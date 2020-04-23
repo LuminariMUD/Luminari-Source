@@ -3008,7 +3008,7 @@ ACMD(do_sorcerer_breath_weapon)
 
   send_to_char(ch, "You exhale breathing out %s!\r\n", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
   char to_room[200];
-  sprintf(to_room, "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+  snprintf(to_room, sizeof(to_room), "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
   act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
@@ -5079,7 +5079,7 @@ int perform_collect(struct char_data *ch, bool silent)
 
   if (ammo && !silent)
   {
-    sprintf(buf, "You collected ammo:  %d.\r\n", ammo);
+    snprintf(buf, sizeof(buf), "You collected ammo:  %d.\r\n", ammo);
     send_to_char(ch, "%s", buf);
     act("$n gathers $s ammunition.", FALSE, ch, 0, 0, TO_ROOM);
   }

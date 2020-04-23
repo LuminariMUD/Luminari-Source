@@ -50,7 +50,7 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
-  sprintf(buf, "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) separator ', ')"
+  snprintf(buf, sizeof(buf), "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) separator ', ')"
                " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
                " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
                " group by hk.help_tag ORDER BY length(hk.keyword) asc",
@@ -109,7 +109,7 @@ struct help_keyword_list *get_help_keywords(const char *tag)
   char buf[1024];
 
   /* Get keywords for this entry. */
-  sprintf(buf, "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", tag);
+  snprintf(buf, sizeof(buf), "select help_tag, CONCAT(UCASE(LEFT(keyword, 1)), LCASE(SUBSTRING(keyword, 2))) from help_keywords where help_tag = '%s'", tag);
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from help_keywords: %s", mysql_error(conn));
@@ -158,7 +158,7 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
 
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
-  sprintf(buf, "SELECT hk.help_tag, "
+  snprintf(buf, sizeof(buf), "SELECT hk.help_tag, "
                "       hk.keyword "
                "FROM help_entries he, "
                "     help_keywords hk "
@@ -332,9 +332,9 @@ ACMD(do_help)
    *  <HELP ENTRY TEXT>
    *  ----------------------------------------------------------------------------
    *  */
-  sprintf(immo_data_buffer, "\tcHelp Tag      : \tn%s\r\n",
+  snprintf(immo_data_buffer, sizeof(immo_data_buffer), "\tcHelp Tag      : \tn%s\r\n",
           entries->tag);
-  sprintf(help_entry_buffer, "\tC%s\tn"
+  snprintf(help_entry_buffer, sizeof(help_entry_buffer), "\tC%s\tn"
                              "%s"
                              "\tcHelp Keywords : \tn%s\r\n"
                              // "\tcHelp Category : \tn%s\r\n"

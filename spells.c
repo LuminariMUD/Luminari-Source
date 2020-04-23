@@ -193,7 +193,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
   wall->short_description = strdup(wallinfo[type].shortname); /* short descrip */
 
   /* create an item description */
-  sprintf(buf, wallinfo[type].longname, dirs[dir]);
+  snprintf(buf, sizeof(buf), wallinfo[type].longname, dirs[dir]);
   wall->description = strdup(CAP(buf));
 
   /* either use a default time of 1 + level/10 or set duration */
@@ -224,7 +224,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
 
   /* all done!  drop the object in the room and let it wreak havoc! */
   obj_to_room(wall, room);
-  sprintf(buf, "%s appears to the %s.\r\n", wallinfo[type].shortname, dirs[dir]);
+  snprintf(buf, sizeof(buf), "%s appears to the %s.\r\n", wallinfo[type].shortname, dirs[dir]);
   send_to_room(room, buf);
 }
 
@@ -285,11 +285,11 @@ int isname_obj(char *search, char *list)
   int i;
 
   /* Force to lowercase for string comparisons */
-  sprintf(searchname, "%s", search);
+  snprintf(searchname, sizeof(searchname), "%s", search);
   for (i = 0; searchname[i]; i++)
     searchname[i] = LOWER(searchname[i]);
 
-  sprintf(namelist, "%s", list);
+  snprintf(namelist, sizeof(namelist), "%s", list);
   for (i = 0; namelist[i]; i++)
     namelist[i] = LOWER(namelist[i]);
 
@@ -1189,7 +1189,7 @@ ASPELL(spell_locate_object)
   }
 
   /*  added a global var to catch 2nd arg. */
-  sprintf(name, "%s", cast_arg2);
+  snprintf(name, sizeof(name), "%s", cast_arg2);
 
   j = CASTER_LEVEL(ch) / 2; /* # items to show = twice char's level */
 

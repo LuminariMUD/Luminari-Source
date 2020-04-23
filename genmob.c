@@ -505,10 +505,10 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   /* paths */
   if (PATH_SIZE(mob))
   {
-    sprintf(buf, "Path: %d:", PATH_RESET(mob));
+    snprintf(buf, sizeof(buf), "Path: %d:", PATH_RESET(mob));
     for (i = 0; i < PATH_SIZE(mob); i++)
     {
-      sprintf(buf2, "%d ", GET_PATH(mob, i));
+      snprintf(buf2, sizeof(buf2), "%d ", GET_PATH(mob, i));
       strcat(buf, buf2);
     }
     strcat(buf, "\n");
@@ -536,7 +536,7 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   strip_cr(strncpy(ldesc, GET_LDESC(mob), MAX_STRING_LENGTH - 1));
   strip_cr(strncpy(ddesc, GET_DDESC(mob), MAX_STRING_LENGTH - 1));
 
-  sprintf(buf, "#%d\n"
+  snprintf(buf, sizeof(buf), "#%d\n"
                "%s%c\n"
                "%s%c\n"
                "%s%c\n"
@@ -605,7 +605,7 @@ void check_mobile_string(mob_vnum i, char **string, const char *desc)
   if (*string == NULL || **string == '\0')
   {
     char smbuf[128];
-    sprintf(smbuf, "GenOLC: Mob #%d has an invalid %s.", i, desc);
+    snprintf(smbuf, sizeof(smbuf), "GenOLC: Mob #%d has an invalid %s.", i, desc);
     mudlog(BRF, LVL_STAFF, TRUE, "%s", smbuf);
     if (*string)
       free(*string);

@@ -351,7 +351,7 @@ ACMD(do_mzoneecho)
 
   else
   {
-    sprintf(buf, "%s\r\n", msg);
+    snprintf(buf, sizeof(buf), "%s\r\n", msg);
     send_to_zone(buf, zone);
   }
 }
@@ -423,7 +423,7 @@ ACMD(do_mload)
     if (SCRIPT(ch))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, GET_ID(mob));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(mob));
       add_var(&(SCRIPT(ch)->global_vars), "lastloaded", buf, 0);
     }
     load_mtrigger(mob);
@@ -438,7 +438,7 @@ ACMD(do_mload)
     if (SCRIPT(ch))
     { /* It _should_ have, but it might be detached. */
       char buf[MAX_INPUT_LENGTH];
-      sprintf(buf, "%c%ld", UID_CHAR, GET_ID(object));
+      snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(object));
       add_var(&(SCRIPT(ch)->global_vars), "lastloaded", buf, 0);
     }
     /* special handling to make objects able to load on a person/in a container/worn etc. */

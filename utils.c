@@ -3164,7 +3164,7 @@ char *add_commas(long num) {
   char num_string[MAX_INPUT_LENGTH];
   static char commastring[MAX_INPUT_LENGTH];
 
-  sprintf(num_string, "%ld", num);
+  snprintf(num_string, sizeof(num_string), "%ld", num);
   len = strlen(num_string);
 
   for (i = 0; num_string[i]; i++) {
@@ -3577,7 +3577,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum) {
     if (uses > daily_uses)
       log("SYSERR: Daily uses exceeed maximum for %s, feat %s", GET_NAME(ch), feat_list[featnum].name);
 
-    sprintf(buf, "uses:%d", uses);
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
   } else {
     /* No event - so attach one. */
@@ -3660,7 +3660,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab) {
     if (uses > daily_uses)
       log("SYSERR: Daily uses exceeed maximum for %s, specab %s", obj->name, special_ability_info[specab].name);
 
-    sprintf(buf, "uses:%d", uses);
+    snprintf(buf, sizeof(buf), "uses:%d", uses);
     pMudEvent->sVariables = strdup(buf);
   } else {
     /* No event - so attach one. */

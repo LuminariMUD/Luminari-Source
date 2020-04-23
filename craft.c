@@ -997,11 +997,11 @@ int convert(struct obj_data *kit, struct char_data *ch)
   GET_GOLD(ch) -= cost;
   // new name
   char buf[MAX_INPUT_LENGTH];
-  sprintf(buf, "\tca portion of %s material\tn",
+  snprintf(buf, sizeof(buf), "\tca portion of %s material\tn",
           material_name[num_mats]);
   new_mat->name = strdup(buf);
   new_mat->short_description = strdup(buf);
-  sprintf(buf, "\tcA portion of %s material lies here.\tn",
+  snprintf(buf, sizeof(buf), "\tcA portion of %s material lies here.\tn",
           material_name[num_mats]);
   new_mat->description = strdup(buf);
   act("$n begins a conversion of materials into $p.", FALSE, ch,
@@ -1086,7 +1086,49 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
     }
   }
 
-  cost = GET_OBJ_COST(obj) + GET_OBJ_LEVEL(obj);
+  /* Thazull wanted very cheap at low level for RP fun */
+  switch (GET_OBJ_LEVEL(obj))
+  {
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+  case 6:
+    cost = 10;
+    break;
+  case 7:
+  case 8:
+  case 9:
+  case 10:
+  case 11:
+  case 12:
+    cost = 20 + GET_OBJ_LEVEL(obj);
+    break;
+  case 13:
+  case 14:
+  case 15:
+  case 16:
+    cost = 40 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 6;
+    break;
+  case 17:
+  case 18:
+  case 19:
+  case 20:
+    cost = 150 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 5;
+    break;
+  case 21:
+  case 22:
+  case 23:
+  case 24:
+  case 25:
+    cost = 500 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 4;
+    break;
+  default:
+    cost = 2000 + GET_OBJ_LEVEL(obj) + GET_OBJ_COST(obj) / 2;
+    break;
+  }
+
   if (GET_GOLD(ch) < cost)
   {
     send_to_char(ch, "You need %d gold on hand for supplies to restring"
@@ -1102,7 +1144,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   obj->name = strdup(argument);
   strip_colors(obj->name);
   obj->short_description = strdup(argument);
-  sprintf(buf, "%s lies here.", CAP(argument));
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
   obj->description = strdup(buf);
   GET_CRAFTING_TYPE(ch) = SCMD_RESTRING;
   GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
@@ -1306,7 +1348,8 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
     }
   }
 
-  if (cost > 0) {
+  if (cost > 0)
+  {
     send_to_char(ch, "It cost you %d coins to resize this item.\r\n",
                  cost);
     GET_GOLD(ch) -= cost;
@@ -1852,7 +1895,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
     /* restringing aspect */
     mold->short_description = strdup(argument);
-    sprintf(buf, "%s lies here.", CAP(argument));
+    snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
     mold->description = strdup(buf);
     strip_colors(argument);
     mold->name = strdup(argument); /*keywords, leave last*/
@@ -2021,64 +2064,64 @@ SPECIAL(crafting_quest)
     switch (dice(1, 5))
     {
     case 1:
-      sprintf(desc, "a shield");
+      snprintf(desc, sizeof(desc), "a shield");
       GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOD;
       break;
     case 2:
-      sprintf(desc, "a sword");
+      snprintf(desc, sizeof(desc), "a sword");
       GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_STEEL;
       break;
     case 3:
       if ((roll = dice(1, 7)) == 1)
       {
-        sprintf(desc, "a necklace");
+        snprintf(desc, sizeof(desc), "a necklace");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
       }
       else if (roll == 2)
       {
-        sprintf(desc, "a bracer");
+        snprintf(desc, sizeof(desc), "a bracer");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COPPER;
       }
       else if (roll == 3)
       {
-        sprintf(desc, "a cloak");
+        snprintf(desc, sizeof(desc), "a cloak");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_WOOL;
       }
       else if (roll == 4)
       {
-        sprintf(desc, "a cape");
+        snprintf(desc, sizeof(desc), "a cape");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_HEMP;
       }
       else if (roll == 5)
       {
-        sprintf(desc, "a belt");
+        snprintf(desc, sizeof(desc), "a belt");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_BURLAP;
       }
       else if (roll == 6)
       {
-        sprintf(desc, "a pair of gloves");
+        snprintf(desc, sizeof(desc), "a pair of gloves");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_COTTON;
       }
       else
       {
-        sprintf(desc, "a pair of boots");
+        snprintf(desc, sizeof(desc), "a pair of boots");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_LEATHER;
       }
       break;
     case 4:
       if ((roll = dice(1, 2)) == 1)
       {
-        sprintf(desc, "a suit of ringmail");
+        snprintf(desc, sizeof(desc), "a suit of ringmail");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_IRON;
       }
       else
       {
-        sprintf(desc, "a cloth robe");
+        snprintf(desc, sizeof(desc), "a cloth robe");
         GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_SATIN;
       }
       break;
     default:
-      sprintf(desc, "some war supplies");
+      snprintf(desc, sizeof(desc), "some war supplies");
       GET_AUTOCQUEST_MATERIAL(ch) = MATERIAL_BRONZE;
       break;
     }
@@ -2205,7 +2248,8 @@ EVENTFUNC(event_crafting)
 
     if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
       exp = 0;
-    if (exp > 0) {
+    if (exp > 0)
+    {
       gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
       send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
     }
@@ -2213,7 +2257,8 @@ EVENTFUNC(event_crafting)
                      "left to go.\r\n",
                  GET_CRAFTING_TICKS(ch) * 6);
 
-    GET_CRAFTING_TICKS(ch)--;
+    GET_CRAFTING_TICKS(ch)
+    --;
 
     /* skill notch */
     if (GET_SKILL(ch, SKILL_FAST_CRAFTER) < 99)
@@ -2231,17 +2276,17 @@ EVENTFUNC(event_crafting)
     {
     case SCMD_RESIZE:
       // no skill association
-      sprintf(buf, "You resize $p.");
+      snprintf(buf, sizeof(buf), "You resize $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n resizes $p.");
+      snprintf(buf, sizeof(buf), "$n resizes $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_DIVIDE:
       // no skill association
-      sprintf(buf, "You create $p (x%d).",
+      snprintf(buf, sizeof(buf), "You create $p (x%d).",
               GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
+      snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       int i = 0;
       for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++)
@@ -2252,37 +2297,37 @@ EVENTFUNC(event_crafting)
       break;
     case SCMD_MINE:
       skill = SKILL_MINING;
-      sprintf(buf, "Your efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n's efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_HUNT:
       skill = SKILL_FORESTING;
-      sprintf(buf, "Your efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n's efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_KNIT:
       skill = SKILL_KNITTING;
-      sprintf(buf, "Your efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n's efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_FOREST:
       skill = SKILL_FORESTING;
-      sprintf(buf, "Your efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n's efforts in the area result in: $p.");
+      snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_DISENCHANT:
       skill = SKILL_CHEMISTRY;
-      sprintf(buf, "You complete the disenchantment process.");
+      snprintf(buf, sizeof(buf), "You complete the disenchantment process.");
       act(buf, false, ch, 0, 0, TO_CHAR);
-      sprintf(buf, "$n finishes the disenchanting process.");
+      snprintf(buf, sizeof(buf), "$n finishes the disenchanting process.");
       act(buf, false, ch, 0, 0, TO_ROOM);
       break;
     case SCMD_SYNTHESIZE:
@@ -2291,7 +2336,7 @@ EVENTFUNC(event_crafting)
     case SCMD_CRAFT:
       if (GET_CRAFTING_REPEAT(ch))
       {
-        sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+        snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
         for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++)
         {
           obj2 = GET_CRAFTING_OBJ(ch);
@@ -2300,10 +2345,10 @@ EVENTFUNC(event_crafting)
         GET_CRAFTING_REPEAT(ch) = 0;
       }
       else
-        sprintf(buf2, "\tn");
-      sprintf(buf, "You create $p%s.", buf2);
+        snprintf(buf2, sizeof(buf2), "\tn");
+      snprintf(buf, sizeof(buf), "You create $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n creates $p%s.", buf2);
+      snprintf(buf, sizeof(buf), "$n creates $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       /*
         if (GET_GOLD(ch) < (GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4)) {
@@ -2318,7 +2363,7 @@ EVENTFUNC(event_crafting)
       skill = SKILL_CHEMISTRY;
       if (GET_CRAFTING_REPEAT(ch))
       {
-        sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+        snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
         for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++)
         {
           obj2 = GET_CRAFTING_OBJ(ch);
@@ -2327,10 +2372,10 @@ EVENTFUNC(event_crafting)
         GET_CRAFTING_REPEAT(ch) = 0;
       }
       else
-        sprintf(buf2, "\tn");
-      sprintf(buf, "You augment $p%s.", buf2);
+        snprintf(buf2, sizeof(buf2), "\tn");
+      snprintf(buf, sizeof(buf), "You augment $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n augments $p%s.", buf2);
+      snprintf(buf, sizeof(buf), "$n augments $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_CONVERT:
@@ -2338,7 +2383,7 @@ EVENTFUNC(event_crafting)
       // use to be part of crafting
       if (GET_CRAFTING_REPEAT(ch))
       {
-        sprintf(buf2, " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
+        snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
         for (i = 0; i < MAX(0, GET_CRAFTING_REPEAT(ch)); i++)
         {
           obj2 = GET_CRAFTING_OBJ(ch);
@@ -2347,18 +2392,18 @@ EVENTFUNC(event_crafting)
         GET_CRAFTING_REPEAT(ch) = 0;
       }
       else
-        sprintf(buf2, "\tn");
-      sprintf(buf, "You convert $p%s.", buf2);
+        snprintf(buf2, sizeof(buf2), "\tn");
+      snprintf(buf, sizeof(buf), "You convert $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n converts $p%s.", buf2);
+      snprintf(buf, sizeof(buf), "$n converts $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_RESTRING:
       // no skill association
-      sprintf(buf2, "\tn");
-      sprintf(buf, "You rename $p%s.", buf2);
+      snprintf(buf2, sizeof(buf2), "\tn");
+      snprintf(buf, sizeof(buf), "You rename $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
-      sprintf(buf, "$n renames $p%s.", buf2);
+      snprintf(buf, sizeof(buf), "$n renames $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
       break;
     case SCMD_SUPPLYORDER:
@@ -2402,7 +2447,7 @@ EVENTFUNC(event_crafting)
       --;
       if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)
       {
-        sprintf(buf, "$n completes an item for a supply order.");
+        snprintf(buf, sizeof(buf), "$n completes an item for a supply order.");
         act(buf, false, ch, NULL, 0, TO_ROOM);
         send_to_char(ch, "You have completed your supply order! Go turn"
                          " it in for more exp, quest points and "
@@ -2410,7 +2455,7 @@ EVENTFUNC(event_crafting)
       }
       else
       {
-        sprintf(buf, "$n completes a supply order.");
+        snprintf(buf, sizeof(buf), "$n completes a supply order.");
         act(buf, false, ch, NULL, 0, TO_ROOM);
         send_to_char(ch, "You have completed another item in your supply "
                          "order and have %d more to make.\r\n",
@@ -2779,16 +2824,16 @@ ACMD(do_harvest)
   GET_CRAFTING_OBJ(ch) = obj;
 
   // Tell the character they started.
-  sprintf(buf, "You begin to %s.", CMD_NAME);
+  snprintf(buf, sizeof(buf), "You begin to %s.", CMD_NAME);
   act(buf, FALSE, ch, 0, NULL, TO_CHAR);
 
   // Tell the room the character started.
-  sprintf(buf, "$n begins to %s.", CMD_NAME);
+  snprintf(buf, sizeof(buf), "$n begins to %s.", CMD_NAME);
   act(buf, FALSE, ch, 0, NULL, TO_ROOM);
 
   if (node)
     GET_OBJ_VAL(node, 0)
-    --;
+  --;
 
   if (node && GET_OBJ_VAL(node, 0) <= 0)
   {

@@ -107,13 +107,13 @@ static void prefedit_save_to_char(struct descriptor_data *d)
 static void prefedit_disp_main_menu(struct descriptor_data *d)
 {
   struct char_data *vict;
-  char prompt_string[10], color_string[10], syslog_string[10];
+  char prompt_string[20], color_string[10], syslog_string[10];
   const char *multi_types[] = {"Off", "Brief", "Normal", "Complete", "\n"};
 
   /* Set up the required variables and strings */
   vict = PREFEDIT_GET_CHAR;
 
-  sprintf(prompt_string, "%s%s%s%s%s%s%s%s",
+  snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
           PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
@@ -123,7 +123,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
           PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
           PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
 
-  sprintf(color_string, "%s", multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
+  snprintf(color_string, sizeof(color_string), "%s", multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
 
   send_to_char(d->character, "\r\n%sPreferences for %s%s\r\n",
                CCYEL(d->character, C_NRM),
@@ -155,7 +155,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Imm Prefs */
   if (GET_LEVEL(PREFEDIT_GET_CHAR) >= LVL_IMMORT)
   {
-    sprintf(syslog_string, "%s", multi_types[((PREFEDIT_FLAGGED(PRF_LOG1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_LOG2) ? 2 : 0))]);
+    snprintf(syslog_string, sizeof(syslog_string), "%s", multi_types[((PREFEDIT_FLAGGED(PRF_LOG1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_LOG2) ? 2 : 0))]);
 
     send_to_char(d->character, "\r\n"
                                "%sImmortal Preferences\r\n"
@@ -333,12 +333,12 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
 static void prefedit_disp_prompt_menu(struct descriptor_data *d)
 {
   /* make sure to adjust this if you add more prompt togs */
-  char prompt_string[16] = {'\0'};
+  char prompt_string[32] = {'\0'};
 
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
-    sprintf(prompt_string, "<Auto>");
+    snprintf(prompt_string, sizeof(prompt_string), "<Auto>");
   else
-    sprintf(prompt_string, "%s%s%s%s%s%s%s%s",
+    snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s",
             PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
             PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
             PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",

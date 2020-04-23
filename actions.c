@@ -66,7 +66,7 @@ void update_msdp_actions(struct char_data *ch)
     char buf[4000]; // Buffer for building the actions table for MSDP
 
     next = af->next;
-    sprintf(buf, "%c%s%c%d"
+    snprintf(buf, sizeof(buf), "%c%s%c%d"
                  "%c%s%c%d"
                  "%c%s%c%d",
             (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
@@ -107,7 +107,7 @@ EVENTFUNC(event_action_cooldown)
 
   /* Lets show duration for immortals */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
-    sprintf(buf, " (%.2f sec)", (float)(atoi(pMudEvent->sVariables)) / 10);
+    snprintf(buf, sizeof(buf), " (%.2f sec)", (float)(atoi(pMudEvent->sVariables)) / 10);
   else
     *buf = '\0';
 
@@ -222,7 +222,7 @@ void start_action_cooldown(struct char_data *ch, action_type act_type, int durat
   char svar[50];
 
   /* Format the sVariables - Always duration first. */
-  sprintf(svar, "%d", duration);
+  snprintf(svar, sizeof(svar), "%d", duration);
 
   if (act_type == atMOVE)
   {

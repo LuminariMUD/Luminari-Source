@@ -966,7 +966,7 @@ SPECIAL(abyss_randomizer)
     }
   }
 
-  sprintf(buf, "\tpThe world seems to shift.\tn\r\n");
+  snprintf(buf, sizeof(buf), "\tpThe world seems to shift.\tn\r\n");
 
   for (i = character_list; i; i = i->next)
     if (world[ch->in_room].zone == world[i->in_room].zone)

@@ -1153,7 +1153,7 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
     {
-      sprintf(buf, "$p belongs to %s.  You cannot put anything inside it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
+      snprintf(buf, sizeof(buf), "$p belongs to %s.  You cannot put anything inside it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
       act(buf, FALSE, ch, cont, 0, TO_CHAR);
       return;
     }
@@ -1168,7 +1168,7 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   if (GET_OBJ_TYPE(cont) == ITEM_AMMO_POUCH &&
       GET_OBJ_VAL(cont, 0) <= num_obj_in_obj(cont))
   {
-    sprintf(buf, "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
+    snprintf(buf, sizeof(buf), "You can only fit %d $p into $P.", GET_OBJ_VAL(cont, 0));
     act(buf, FALSE, ch, obj, cont, TO_CHAR);
     return;
   }
@@ -1387,7 +1387,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
     {
-      sprintf(buf, "$p belongs to %s.  You cannot get anything out of it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
+      snprintf(buf, sizeof(buf), "$p belongs to %s.  You cannot get anything out of it.\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(cont))));
       act(buf, FALSE, ch, cont, 0, TO_CHAR);
       return;
     }
@@ -2236,9 +2236,9 @@ ACMD(do_drink)
     if (GET_OBJ_BOUND_ID(temp) != GET_IDNUM(ch))
     {
       if (get_name_by_id(GET_OBJ_BOUND_ID(temp)) == NULL)
-        sprintf(buf, "$p%s belongs to someone else.  You can't drink from it.", CCNRM(ch, C_NRM));
+        snprintf(buf, sizeof(buf), "$p%s belongs to someone else.  You can't drink from it.", CCNRM(ch, C_NRM));
       else
-        sprintf(buf, "$p%s belongs to %s.  You can't drink from it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(temp))));
+        snprintf(buf, sizeof(buf), "$p%s belongs to %s.  You can't drink from it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(temp))));
 
       act(buf, FALSE, ch, temp, 0, TO_CHAR);
     }
@@ -2416,9 +2416,9 @@ ACMD(do_eat)
     if (GET_OBJ_BOUND_ID(food) != GET_IDNUM(ch))
     {
       if (get_name_by_id(GET_OBJ_BOUND_ID(food)) == NULL)
-        sprintf(buf, "$p%s belongs to someone else.  You can't eat it.", CCNRM(ch, C_NRM));
+        snprintf(buf, sizeof(buf), "$p%s belongs to someone else.  You can't eat it.", CCNRM(ch, C_NRM));
       else
-        sprintf(buf, "$p%s belongs to %s.  You can't eat it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(food))));
+        snprintf(buf, sizeof(buf), "$p%s belongs to %s.  You can't eat it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(food))));
 
       act(buf, FALSE, ch, food, 0, TO_CHAR);
     }
@@ -2943,9 +2943,9 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     if (GET_OBJ_BOUND_ID(obj) != GET_IDNUM(ch))
     {
       if (get_name_by_id(GET_OBJ_BOUND_ID(obj)) == NULL)
-        sprintf(buf, "$p%s belongs to someone else.  You can't use it.", CCNRM(ch, C_NRM));
+        snprintf(buf, sizeof(buf), "$p%s belongs to someone else.  You can't use it.", CCNRM(ch, C_NRM));
       else
-        sprintf(buf, "$p%s belongs to %s.  You can't use it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(obj))));
+        snprintf(buf, sizeof(buf), "$p%s belongs to %s.  You can't use it.", CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(obj))));
 
       act(buf, FALSE, ch, obj, 0, TO_CHAR);
       return;
@@ -3588,7 +3588,7 @@ ACMD(do_loot)
   /* Check the connection, reconnect if necessary. */
   //	mysql_ping(conn);
 
-  sprintf(query, "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
+  snprintf(query, sizeof(query), "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
                  "FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s' AND DATE_ADD(last_loot, INTERVAL 4 HOUR) > NOW()",
           vnum, GET_NAME(ch));
 
@@ -3598,8 +3598,8 @@ ACMD(do_loot)
   {
     if ((row = mysql_fetch_row(res)) != NULL)
     {
-      sprintf(last, "%s", row[0]);
-      sprintf(curr, "%s", row[1]);
+      snprintf(last, sizeof(last), "%s", row[0]);
+      snprintf(curr, sizeof(curr), "%s", row[1]);
       found = TRUE;
     }
   }
@@ -3621,10 +3621,10 @@ ACMD(do_loot)
     return;
   }
 
-  sprintf(query, "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, GET_NAME(ch));
+  snprintf(query, sizeof(query), "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, GET_NAME(ch));
   mysql_query(conn, query);
 
-  sprintf(query, "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
+  snprintf(query, sizeof(query), "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
   mysql_query(conn, query);
 
   int level = 0, max_grade = LOOTBOX_LEVEL_MUNDANE;

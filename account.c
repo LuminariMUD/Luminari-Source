@@ -280,7 +280,7 @@ int load_account(char *name, struct account_data *account)
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
 
-  sprintf(buf, "SELECT id, name, password, experience, email from account_data where lower(name) = lower('%s')",
+  snprintf(buf, sizeof(buf), "SELECT id, name, password, experience, email from account_data where lower(name) = lower('%s')",
           name);
 
   if (mysql_query(conn, buf))
@@ -325,7 +325,7 @@ void load_account_characters(struct account_data *account)
       account->character_names[i] = NULL;
     }
 
-  sprintf(buf, "select name from player_data where account_id = %d", account->id);
+  snprintf(buf, sizeof(buf), "select name from player_data where account_id = %d", account->id);
 
   if (mysql_query(conn, buf))
   {
@@ -357,7 +357,7 @@ void load_account_unlocks(struct account_data *account)
   int i = 0;
 
   /* load locked classes */
-  sprintf(buf, "SELECT class_id from unlocked_classes "
+  snprintf(buf, sizeof(buf), "SELECT class_id from unlocked_classes "
                "WHERE account_id = %d",
           account->id);
   if (mysql_query(conn, buf))
@@ -378,7 +378,7 @@ void load_account_unlocks(struct account_data *account)
   }
 
   /* load locked races */
-  sprintf(buf, "SELECT race_id from unlocked_races "
+  snprintf(buf, sizeof(buf), "SELECT race_id from unlocked_races "
                "WHERE account_id = %d",
           account->id);
   if (mysql_query(conn, buf))
@@ -410,7 +410,7 @@ char *get_char_account_name(char *name)
   char buf[2048];
   char *acct_name = NULL;
 
-  sprintf(buf, "select a.name from account_data a, player_data p where p.account_id = a.id and p.name = '%s'", name);
+  snprintf(buf, sizeof(buf), "select a.name from account_data a, player_data p where p.account_id = a.id and p.name = '%s'", name);
 
   if (mysql_query(conn, buf))
   {
@@ -440,7 +440,7 @@ void save_account(struct account_data *account)
     return;
   }
 
-  sprintf(buf, "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', '%s', %d, %s%s%s)"
+  snprintf(buf, sizeof(buf), "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', '%s', %d, %s%s%s)"
                " on duplicate key update password = VALUES(password), "
                "                         experience = VALUES(experience), "
                "                         email = VALUES(email);",
@@ -464,7 +464,7 @@ void save_account(struct account_data *account)
   for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (account->character_names[i] != NULL); i++)
   {
     buf[0] = '\0';
-    sprintf(buf, "INSERT into player_data (name, account_id) "
+    snprintf(buf, sizeof(buf), "INSERT into player_data (name, account_id) "
                  "VALUES('%s', %d) "
                  "on duplicate key update account_id = VALUES(account_id);",
             account->character_names[i], account->id);
@@ -479,7 +479,7 @@ void save_account(struct account_data *account)
   for (i = 0; i < MAX_UNLOCKED_RACES; i++)
   {
     buf[0] = '\0';
-    sprintf(buf, "INSERT into unlocked_races (account_id, race_id) "
+    snprintf(buf, sizeof(buf), "INSERT into unlocked_races (account_id, race_id) "
                  "VALUES (%d, %d)"
                  "on duplicate key update race_id = VALUES(race_id);",
             account->id, account->races[i]);
@@ -494,7 +494,7 @@ void save_account(struct account_data *account)
   for (i = 0; i < MAX_UNLOCKED_CLASSES; i++)
   {
     buf[0] = '\0';
-    sprintf(buf, "INSERT into unlocked_classes (account_id, class_id) "
+    snprintf(buf, sizeof(buf), "INSERT into unlocked_classes (account_id, class_id) "
                  "VALUES (%d, %d)"
                  "on duplicate key update class_id = VALUES(class_id);",
             account->id, account->classes[i]);
@@ -543,7 +543,7 @@ void show_account_menu(struct descriptor_data *d)
       if (d->account->character_names[i] != NULL)
       {
         write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
-        sprintf(query, "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
+        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
 
         if (mysql_query(conn, query))
         {
@@ -733,7 +733,7 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
     return;
   }
 
-  sprintf(buf, "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
+  snprintf(buf, sizeof(buf), "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
           GET_NAME(ch), account->id);
 
   if (mysql_query(conn, buf))

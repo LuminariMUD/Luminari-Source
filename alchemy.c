@@ -333,7 +333,7 @@ int num_of_bombs_preparable(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int num = 0;
 
@@ -348,7 +348,7 @@ int num_of_bombs_prepared(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int i = 0,
       num_prepped = 0;
@@ -466,7 +466,7 @@ int find_open_bomb_slot(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return -1;
 
   int i = 0;
 
@@ -960,18 +960,18 @@ void send_bomb_direct_message(struct char_data *ch, struct char_data *victim, in
 
   char buf[200];
 
-  sprintf(buf, "%s", bomb_damage_messages[bomb_type][1]);
+  snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][1]);
   act(buf, FALSE, ch, 0, victim, TO_CHAR);
   if (ch == victim)
   {
-    sprintf(buf, "%s", bomb_damage_messages[bomb_type][2]);
+    snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][2]);
     act(buf, FALSE, ch, 0, victim, TO_ROOM);
   }
   else
   {
-    sprintf(buf, "%s", bomb_damage_messages[bomb_type][0]);
+    snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][0]);
     act(buf, FALSE, ch, 0, victim, TO_VICT);
-    sprintf(buf, "%s", bomb_damage_messages[bomb_type][2]);
+    snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][2]);
     act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
   }
 }
@@ -996,11 +996,11 @@ void send_bomb_splash_message(struct char_data *ch, struct char_data *victim, in
     if (!IS_NPC(tch) && !PRF_FLAGGED(ch, PRF_PVP))
       continue;
 
-    sprintf(buf, "%s", bomb_damage_messages[bomb_type][0]);
+    snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][0]);
     act(buf, FALSE, ch, 0, tch, TO_VICT);
-    sprintf(buf, "%s", bomb_damage_messages[bomb_type][1]);
+    snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][1]);
     act(buf, FALSE, ch, 0, tch, TO_CHAR);
-    sprintf(buf, "%s", bomb_damage_messages[bomb_type][2]);
+    snprintf(buf, sizeof(buf), "%s", bomb_damage_messages[bomb_type][2]);
     act(buf, FALSE, ch, 0, tch, TO_NOTVICT);
   }
 }
@@ -1116,9 +1116,9 @@ void perform_bomb_direct_damage(struct char_data *ch, struct char_data *victim, 
 
   if (dam > 0 && FALSE)
   {
-    sprintf(buf, "Your bomb deals %d damage to $N", dam);
+    snprintf(buf, sizeof(buf), "Your bomb deals %d damage to $N", dam);
     act(buf, FALSE, ch, 0, victim, TO_CHAR);
-    sprintf(buf, "$n's bomb deals %d damage to You", dam);
+    snprintf(buf, sizeof(buf), "$n's bomb deals %d damage to You", dam);
     act(buf, FALSE, ch, 0, victim, TO_VICT);
   }
 }
@@ -1246,9 +1246,9 @@ void perform_bomb_splash_damage(struct char_data *ch, struct char_data *victim, 
 
     if (dam > 0 && FALSE)
     {
-      sprintf(buf, "Your bomb deals %d damage to $N", dam);
+      snprintf(buf, sizeof(buf), "Your bomb deals %d damage to $N", dam);
       act(buf, FALSE, ch, 0, tch, TO_CHAR);
-      sprintf(buf, "$n's bomb deals %d damage to You", dam);
+      snprintf(buf, sizeof(buf), "$n's bomb deals %d damage to You", dam);
       act(buf, FALSE, ch, 0, tch, TO_VICT);
     }
   }
@@ -1643,7 +1643,7 @@ int can_learn_discovery(struct char_data *ch, int discovery)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   switch (discovery)
   {
@@ -1753,7 +1753,7 @@ int num_alchemical_discoveries_known(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int i = 0;
   int num_chosen = 0;
@@ -1810,7 +1810,7 @@ int list_alchemical_discoveries(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int i = 0;
   int num = 0;
@@ -2019,7 +2019,7 @@ ACMDCHECK(can_swallow)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_MUTAGEN), "You don't know how to prepare a mutagen or cognatogen.\r\n");
   return CAN_CMD;
@@ -2865,9 +2865,9 @@ ACMD(do_psychokinetic)
     af.bonus_type = BONUS_TYPE_DEFLECTION;
 
     affect_to_char(ch, &af);
-    sprintf(buf, "You drink your psychokinetic tincture and are suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
+    snprintf(buf, sizeof(buf), "You drink your psychokinetic tincture and are suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
     act(buf, FALSE, ch, 0, 0, TO_CHAR);
-    sprintf(buf, "$n drinks a strange fluid and is suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
+    snprintf(buf, sizeof(buf), "$n drinks a strange fluid and is suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
     if (!IS_NPC(ch))
@@ -3067,7 +3067,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
@@ -3097,14 +3097,14 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
   draw_line(ch, line_length, '-', '-');
 
   /*  Here display the prerequisites */
-  sprintf(buf, "\tCPrerequisites : \tn%s\r\n", discovery_requisites[discovery]);
+  snprintf(buf, sizeof(buf), "\tCPrerequisites : \tn%s\r\n", discovery_requisites[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  sprintf(buf, "\tcDescription   : \tn%s\r\n",
+  snprintf(buf, sizeof(buf), "\tcDescription   : \tn%s\r\n",
           alchemical_discovery_descriptions[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
@@ -3154,7 +3154,7 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
@@ -3183,14 +3183,14 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
   draw_line(ch, line_length, '-', '-');
 
   /*  Here display the prerequisites */
-  sprintf(buf, "\tCPrerequisites : \tnLevel 20 Alchemist\r\n");
+  snprintf(buf, sizeof(buf), "\tCPrerequisites : \tnLevel 20 Alchemist\r\n");
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
-  sprintf(buf, "\tcDescription : \tn%s\r\n",
+  snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n",
           grand_alchemical_discovery_descriptions[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
@@ -3204,7 +3204,7 @@ bool display_bomb_types(struct char_data *ch, char *keyword)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs"))
     return FALSE;
@@ -3222,7 +3222,7 @@ bool display_bomb_types(struct char_data *ch, char *keyword)
   int i = 0;
   for (i = 1; i < NUM_BOMB_TYPES; i++)
   {
-    sprintf(buf, "\tC%s bomb\tn\r\n", bomb_types[i]);
+    snprintf(buf, sizeof(buf), "\tC%s bomb\tn\r\n", bomb_types[i]);
     send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   }
 
@@ -3241,7 +3241,7 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   if (!is_abbrev(keyword, "alchemist discoveries") && !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
       !is_abbrev(keyword, "alchemist grand discoveries") && !is_abbrev(keyword, "alchemical grand discoveries") && !is_abbrev(keyword, "grand discoveries"))
@@ -3268,7 +3268,7 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
   int i = 0;
   for (i = 1; i < (grand ? NUM_GR_ALC_DISCOVERIES : NUM_ALC_DISCOVERIES); i++)
   {
-    sprintf(buf, "\tC%s\tn\r\n", grand ? grand_alchemical_discovery_names[i] : alchemical_discovery_names[i]);
+    snprintf(buf, sizeof(buf), "\tC%s\tn\r\n", grand ? grand_alchemical_discovery_names[i] : alchemical_discovery_names[i]);
     send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   }
 
