@@ -107,7 +107,7 @@ static void prefedit_save_to_char(struct descriptor_data *d)
 static void prefedit_disp_main_menu(struct descriptor_data *d)
 {
   struct char_data *vict;
-  char prompt_string[10], color_string[10], syslog_string[10];
+  char prompt_string[20], color_string[10], syslog_string[10];
   const char *multi_types[] = {"Off", "Brief", "Normal", "Complete", "\n"};
 
   /* Set up the required variables and strings */
@@ -333,7 +333,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
 static void prefedit_disp_prompt_menu(struct descriptor_data *d)
 {
   /* make sure to adjust this if you add more prompt togs */
-  char prompt_string[16] = {'\0'};
+  char prompt_string[32] = {'\0'};
 
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     sprintf(prompt_string, "<Auto>");

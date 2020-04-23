@@ -1367,7 +1367,7 @@ SPECIAL(player_owned_shops)
   room_vnum house_vnum;
   struct obj_data *i, *j;
   int num = 1, hse;
-  char *temp, shop_owner[MAX_NAME_LENGTH + 1], buf[MAX_STRING_LENGTH];
+  char *temp, shop_owner[32], buf[MAX_STRING_LENGTH];
   bool found = FALSE;
 
   if (!cmd)
