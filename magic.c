@@ -443,12 +443,13 @@ void affect_update(void)
 
   for (i = character_list; i; i = i->next)
   { /* go through everything */
+
     for (af = i->affected; af; af = next)
     { /* loop his/her aff list */
       next = af->next;
       if (af->duration >= 1) /* duration > 0, decrement */
         af->duration--;
-      else if (af->duration == -1) /* unlimited duration */
+      else if (af->duration <= -1) /* unlimited duration */
         ;
       else
       { /* affect wore off! */
@@ -468,8 +469,8 @@ void affect_update(void)
             else if (alt_wear_off_msg(i, af->spell))
             {
             }
-            /* check for alternative message! (specs) */
-            else if (spec_wear_off_msg(i, af->spell))
+            /* check for alternative message! (specs, like morph) */
+            else if (spec_wear_off(i, af->spell))
             {
             }
             else
@@ -479,8 +480,7 @@ void affect_update(void)
             }
           }
         }
-        /* handle special cases (like morph) */
-        spec_wear_off(i, af->spell);
+
         /* ok, finally remove affect */
         affect_remove(i, af);
       }
