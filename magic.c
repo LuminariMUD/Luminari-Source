@@ -454,8 +454,10 @@ void affect_update(void)
       else
       { /* affect wore off! */
         /* handle spells/skills (use to just handle spells) */
+
         if ((af->spell > 0) && (af->spell <= MAX_SKILLS))
         { /*valid spellnum?*/
+
           /* this is our check to avoid duplicate wear-off messages */
           if (!af->next || (af->next->spell != af->spell) ||
               (af->next->duration > 0))
