@@ -30,6 +30,7 @@
 #include "spell_prep.h"
 #include "alchemy.h"
 #include "templates.h"
+#include "premadebuilds.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -446,6 +447,7 @@ int load_char(const char *name, struct char_data *ch)
     LEVELUP(ch) = NULL;
     GET_DR(ch) = NULL;
     GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
+    GET_PREMADE_BUILD_CLASS(ch) = PFDEF_PREMADE_BUILD;
     init_spell_prep_queue(ch);
     init_innate_magic_queue(ch);
     init_collection_queue(ch);
@@ -748,6 +750,8 @@ int load_char(const char *name, struct char_data *ch)
           strcpy(GET_PASSWD(ch), line);
         else if (!strcmp(tag, "Plyd"))
           ch->player.time.played = atoi(line);
+        else if (!strcmp(tag, "PreB"))
+          GET_PREMADE_BUILD_CLASS(ch) = atoi(line);
         else if (!strcmp(tag, "Pryg"))
           load_praying(fl, ch);
         else if (!strcmp(tag, "Prgm"))
@@ -1399,6 +1403,9 @@ void save_char(struct char_data *ch, int mode)
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
       fprintf(fl, "Trig: %d\n", GET_TRIG_VNUM(t));
   }
+
+  if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
+    fprintf(fl, "PreM: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT)
