@@ -475,7 +475,7 @@ void affect_update(void)
             else
             {
               /* should not get here, problem! */
-              send_to_char(ch, "Please send to staff: Missing wear-off message for: %s (%d)\r\n");
+              send_to_char(i, "Please send to staff: Missing wear-off message for: (%d)\r\n", af->spell);
             }
           }
         }
