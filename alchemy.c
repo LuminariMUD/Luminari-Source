@@ -333,7 +333,7 @@ int num_of_bombs_preparable(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int num = 0;
 
@@ -348,7 +348,7 @@ int num_of_bombs_prepared(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int i = 0,
       num_prepped = 0;
@@ -466,7 +466,7 @@ int find_open_bomb_slot(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return -1;
 
   int i = 0;
 
@@ -1643,7 +1643,7 @@ int can_learn_discovery(struct char_data *ch, int discovery)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   switch (discovery)
   {
@@ -1753,7 +1753,7 @@ int num_alchemical_discoveries_known(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int i = 0;
   int num_chosen = 0;
@@ -1810,7 +1810,7 @@ int list_alchemical_discoveries(struct char_data *ch)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return 0;
 
   int i = 0;
   int num = 0;
@@ -2019,7 +2019,7 @@ ACMDCHECK(can_swallow)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, FEAT_MUTAGEN), "You don't know how to prepare a mutagen or cognatogen.\r\n");
   return CAN_CMD;
@@ -3067,7 +3067,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
@@ -3154,7 +3154,7 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   int discovery = -1;
   char buf[MAX_STRING_LENGTH];
@@ -3204,7 +3204,7 @@ bool display_bomb_types(struct char_data *ch, char *keyword)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs"))
     return FALSE;
@@ -3241,7 +3241,7 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
 {
   /* dummy check */
   if (!ch)
-    return;
+    return FALSE;
 
   if (!is_abbrev(keyword, "alchemist discoveries") && !is_abbrev(keyword, "alchemical discoveries") && !is_abbrev(keyword, "discoveries") &&
       !is_abbrev(keyword, "alchemist grand discoveries") && !is_abbrev(keyword, "alchemical grand discoveries") && !is_abbrev(keyword, "grand discoveries"))
