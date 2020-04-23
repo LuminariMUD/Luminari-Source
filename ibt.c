@@ -246,17 +246,17 @@ void load_ibt_file(int mode)
   switch (mode)
   {
   case SCMD_BUG:
-    sprintf(filename, "%s", BUGS_FILE);
+    snprintf(filename, sizeof(filename), "%s", BUGS_FILE);
     first_ibt = first_bug;
     last_ibt = last_bug;
     break;
   case SCMD_IDEA:
-    sprintf(filename, "%s", IDEAS_FILE);
+    snprintf(filename, sizeof(filename), "%s", IDEAS_FILE);
     first_ibt = first_idea;
     last_ibt = last_idea;
     break;
   case SCMD_TYPO:
-    sprintf(filename, "%s", TYPOS_FILE);
+    snprintf(filename, sizeof(filename), "%s", TYPOS_FILE);
     first_ibt = first_typo;
     last_ibt = last_typo;
     break;
@@ -307,17 +307,17 @@ void save_ibt_file(int mode)
   switch (mode)
   {
   case SCMD_BUG:
-    sprintf(filename, "%s", BUGS_FILE);
+    snprintf(filename, sizeof(filename), "%s", BUGS_FILE);
     first_ibt = first_bug;
     last_ibt = last_bug;
     break;
   case SCMD_IDEA:
-    sprintf(filename, "%s", IDEAS_FILE);
+    snprintf(filename, sizeof(filename), "%s", IDEAS_FILE);
     first_ibt = first_idea;
     last_ibt = last_idea;
     break;
   case SCMD_TYPO:
-    sprintf(filename, "%s", TYPOS_FILE);
+    snprintf(filename, sizeof(filename), "%s", TYPOS_FILE);
     first_ibt = first_typo;
     last_ibt = last_typo;
     break;
@@ -622,9 +622,9 @@ ACMD(do_ibt)
 
         /* Set up the 'important' flag */
         if (IBT_FLAGGED(ibtData, IBT_IMPORTANT))
-          sprintf(imp, "%s!%s", QBFRED, QNRM);
+          snprintf(imp, sizeof(imp), "%s!%s", QBFRED, QNRM);
         else
-          sprintf(imp, "%c", ' ');
+          snprintf(imp, sizeof(imp), "%c", ' ');
 
         if (IBT_FLAGGED(ibtData, IBT_RESOLVED))
         {
@@ -734,7 +734,7 @@ ACMD(do_ibt)
     send_to_char(ch, "Write your %s.\r\n", CMD_NAME);
     send_editor_help(ch->desc);
 
-    sprintf(buf, "$n starts to give %s %s.", TANA(CMD_NAME), CMD_NAME);
+    snprintf(buf, sizeof(buf), "$n starts to give %s %s.", TANA(CMD_NAME), CMD_NAME);
     act(buf, TRUE, ch, 0, 0, TO_ROOM);
 
     string_write(ch->desc, &(ibtData->body), MAX_IBT_LENGTH, 0, NULL);

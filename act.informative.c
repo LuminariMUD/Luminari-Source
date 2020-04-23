@@ -269,7 +269,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
         }
         if (item_num > 0)
         {
-          sprintf(keyword1, "%d.%s", (item_num + 1), keyword);
+          snprintf(keyword1, sizeof(keyword1), "%d.%s", (item_num + 1), keyword);
           strcpy(keyword, keyword1);
         }
         if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
@@ -710,7 +710,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, SKILL_DRHRT_WINGS))
     {
       char wings[150];
-      sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+      snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
       act(wings, FALSE, i, 0, ch, TO_VICT);
     }
     else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS))
@@ -756,7 +756,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, SKILL_DRHRT_WINGS))
     {
       char wings[150];
-      sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+      snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
       act(wings, FALSE, i, 0, ch, TO_VICT);
     }
     else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS))
@@ -899,7 +899,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (affected_by_spell(i, SKILL_DRHRT_WINGS))
   {
     char wings[150];
-    sprintf(wings, "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
+    snprintf(wings, sizeof(wings), "...$e has two large %s wings sprouting from $s back.", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(i)));
     act(wings, FALSE, i, 0, ch, TO_VICT);
   }
   else if (KNOWS_DISCOVERY(i, ALC_DISC_WINGS))
@@ -1027,7 +1027,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SHOWVNUMS))
   {
     sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
-    sprintf(buf2, "\tc[%5d]\tn %s \tc[ %s] %s\tn",
+    snprintf(buf2, sizeof(buf2), "\tc[%5d]\tn %s \tc[ %s] %s\tn",
             GET_ROOM_VNUM(room_number),
             world[room_number].name, buf,
             sector_types[(world[room_number].sector_type)]);
@@ -1907,17 +1907,17 @@ void perform_affects(struct char_data *ch, struct char_data *k)
 
       if (aff->duration + 1 >= 900)
       { // how many rounds in an hour?
-        sprintf(buf, "[%2d hour%s   ] ", (int)((aff->duration + 1) / 900), ((int)((aff->duration + 1) / 900) > 1 ? "s" : " "));
+        snprintf(buf, sizeof(buf), "[%2d hour%s   ] ", (int)((aff->duration + 1) / 900), ((int)((aff->duration + 1) / 900) > 1 ? "s" : " "));
       }
       else if (aff->duration + 1 >= 15)
       { // how many rounds in a minute?
-        sprintf(buf, "[%2d minute%s ] ", (int)((aff->duration + 1) / 15), ((int)((aff->duration + 1) / 15) > 1 ? "s" : " "));
+        snprintf(buf, sizeof(buf), "[%2d minute%s ] ", (int)((aff->duration + 1) / 15), ((int)((aff->duration + 1) / 15) > 1 ? "s" : " "));
       }
       else
       { // rounds
-        sprintf(buf, "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
+        snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
       }
-      sprintf(buf2, "%s%-25s%s ",
+      snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       strcat(buf, buf2);
 
@@ -1925,22 +1925,22 @@ void perform_affects(struct char_data *ch, struct char_data *k)
 
       if (aff->location == APPLY_DR)
       { /* Handle DR a bit differently */
-        sprintf(buf3, "%s", "(see DR)");
+        snprintf(buf3, sizeof(buf3), "%s", "(see DR)");
       }
       else if (aff->modifier)
       {
-        sprintf(buf3, "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
+        snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
       }
 
       if (aff->bitvector[0] || aff->bitvector[1] ||
           aff->bitvector[2] || aff->bitvector[3])
       {
-        sprintf(buf2, "%s(see affected by)", ((aff->modifier) ? ", " : ""));
+        snprintf(buf2, sizeof(buf2), "%s(see affected by)", ((aff->modifier) ? ", " : ""));
         strcat(buf3, buf2);
       }
 
       buf2[0] = '\0';
-      sprintf(buf2, "%-25s", buf3);
+      snprintf(buf2, sizeof(buf2), "%-25s", buf3);
       buf3[0] = '\0';
       /* Add the Bonus type. */
       send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
@@ -2056,7 +2056,7 @@ void add_history(struct char_data *ch, char *str, int type)
   ct = time(0);
   strftime(time_str, sizeof(time_str), "%H:%M ", localtime(&ct));
 
-  sprintf(buf, "%s%s", time_str, str);
+  snprintf(buf, sizeof(buf), "%s%s", time_str, str);
 
   if (!tmp)
   {
@@ -2124,16 +2124,16 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
     if (!CAN_SEE(ch, i))
       continue;
     if (!*buf)
-      sprintf(buf, "You see %s", GET_NAME(i));
+      snprintf(buf, sizeof(buf), "You see %s", GET_NAME(i));
     else
-      sprintf(buf, "%s%s", buf, GET_NAME(i));
+      snprintf(buf, sizeof(buf), "%s%s", buf, GET_NAME(i));
     if (--count > 1)
       strcat(buf, ", ");
     else if (count == 1)
       strcat(buf, " and ");
     else
     {
-      sprintf(buf2, " %s %s.\r\n", how_far[distance], dirs[door]);
+      snprintf(buf2, sizeof(buf2), " %s %s.\r\n", how_far[distance], dirs[door]);
       strcat(buf, buf2);
     }
   }
@@ -2360,7 +2360,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
   {
     if (HAS_FEAT(k, i) && is_daily_feat(i))
     {
-      sprintf(buf, feat_types[feat_list[i].feat_type]);
+      snprintf(buf, sizeof(buf), feat_types[feat_list[i].feat_type]);
       remaining = daily_uses_remaining(k, i);
       total = get_daily_uses(k, i);
       send_to_char(ch,
@@ -2792,7 +2792,7 @@ ACMD(do_score)
       {
         if (counter)
           strcat(buf, " / ");
-        sprintf(buf, "%s%d %s", buf, CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        snprintf(buf, sizeof(buf), "%s%d %s", buf, CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
         counter++;
       }
     }
@@ -3017,7 +3017,7 @@ ACMD(do_equipment)
   }
 
   if (j < 99) // 99 is our signal for no max dex
-    sprintf(dex_max, "%d", j);
+    snprintf(dex_max, sizeof(dex_max), "%d", j);
 
   send_to_char(ch, "You are using:\r\n");
   for (i = 0; i < NUM_WEARS; i++)
@@ -3591,10 +3591,10 @@ ACMD(do_users)
         continue;
 
       if (d->original)
-        sprintf(classname, "[%2d %s]", GET_LEVEL(d->original),
+        snprintf(classname, sizeof(classname), "[%2d %s]", GET_LEVEL(d->original),
                 CLASS_ABBR(d->original));
       else
-        sprintf(classname, "[%2d %s]", GET_LEVEL(d->character),
+        snprintf(classname, sizeof(classname), "[%2d %s]", GET_LEVEL(d->character),
                 CLASS_ABBR(d->character));
     }
     else
@@ -3610,11 +3610,11 @@ ACMD(do_users)
       strcpy(state, connected_types[STATE(d)]);
 
     if (d->character && STATE(d) == CON_PLAYING)
-      sprintf(idletime, "%5d", d->character->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
+      snprintf(idletime, sizeof(idletime), "%5d", d->character->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
     else
       strcpy(idletime, "     ");
 
-    sprintf(line, "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
+    snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
             d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name : "UNDEFINED",
             state, idletime, timeptr);
 
@@ -3625,7 +3625,7 @@ ACMD(do_users)
 
     if (STATE(d) != CON_PLAYING)
     {
-      sprintf(line2, "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
+      snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
       strcpy(line, line2);
     }
     if (STATE(d) != CON_PLAYING ||
@@ -3684,6 +3684,10 @@ ACMD(do_gen_ps)
     break;
   case SCMD_VERSION:
     send_to_char(ch, "%s\r\n", luminari_version);
+    if (IS_IMMORTAL(ch))
+    {
+      send_to_char(ch, "%s", luminari_build);
+    }
     break;
   case SCMD_WHOAMI:
     send_to_char(ch, "%s\r\n", GET_NAME(ch));
@@ -4056,7 +4060,7 @@ ACMD(do_toggle)
     if (!GET_WIMP_LEV(ch))
       strcpy(buf2, "OFF"); /* strcpy: OK */
     else
-      sprintf(buf2, "%-3.3d", GET_WIMP_LEV(ch)); /* sprintf: OK */
+      snprintf(buf2, sizeof(buf2), "%-3.3d", GET_WIMP_LEV(ch)); /* sprintf: OK */
 
     if (GET_LEVEL(ch) == LVL_IMPL)
     {
@@ -4852,7 +4856,7 @@ ACMD(do_areas)
       }
     }
     /* need to edit the below to include the owning clan and popularity % of the clan */
-    /* sprintf(zvn, "%s[%s%3d%s]%s ", QCYN, QYEL, zone_table[i].number, QCYN, QNRM);
+    /* snprintf(zvn, sizeof(zvn), "%s[%s%3d%s]%s ", QCYN, QYEL, zone_table[i].number, QCYN, QNRM);
       if (show_popularity) {
         // Get the VNUM of the zone the player is currently in
         pop = get_popularity(zone_table[i].number, GET_CLAN(ch));
@@ -5261,7 +5265,7 @@ EVENTFUNC(event_tracks)
 
   /* Now change the age in the sVariables, and resubmit the tracks. */
   //  free(pMudEvent->sVariables);
-  sprintf(buf, "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name, track_dir);
+  snprintf(buf, sizeof(buf), "%d \"%s\" \"%s\" %s", track_age, creator_race, creator_name, track_dir);
   pMudEvent->sVariables = strdup(buf);
 
   return 60 RL_SEC; /* Decay tracks every 60 seconds, subject to change :) */

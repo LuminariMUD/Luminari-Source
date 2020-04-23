@@ -156,7 +156,7 @@ clan_rnum get_clan_by_name(const char *c_n)
 
   /* Strip color codes and look again */
   //  for (i=0; i<num_of_clans; i++) {
-  //    sprintf(buf, "%s", clan_list[i].clan_name);
+  //    snprintf(buf, sizeof(buf), "%s", clan_list[i].clan_name);
   //    if (is_abbrev(c_n, buf))
   //      return i;
   //  }
@@ -1427,12 +1427,12 @@ ACMD(do_clandestroy)
 
   /* Now we re-arrange the clans to remove this one */
   c_v = clan_list[c_n].vnum;
-  sprintf(c_name, "%s", clan_list[c_n].clan_name);
+  snprintf(c_name, sizeof(c_name), "%s", clan_list[c_n].clan_name);
 
   if (c_lid >= 0 && c_lid < top_of_p_table)
-    sprintf(c_ldr, "%s", player_table[c_lid].name);
+    snprintf(c_ldr, sizeof(c_ldr), "%s", player_table[c_lid].name);
   else
-    sprintf(c_ldr, "<Unknown!>");
+    snprintf(c_ldr, sizeof(c_ldr), "<Unknown!>");
 
   if (remove_clan(c_v))
   {
@@ -1772,9 +1772,9 @@ ACMD(do_claninfo) /* Information about clans */
         for (j = 0; j < NUM_CLAN_PRIVS; j++)
         {
           if (clan_list[i].privilege[j] > 0)
-            sprintf(pr, "%2d", clan_list[i].privilege[j]);
+            snprintf(pr, sizeof(pr), "%2d", clan_list[i].privilege[j]);
           else
-            sprintf(pr, "LO");
+            snprintf(pr, sizeof(pr), "LO");
           send_to_char(ch, "%12s: %s[%s%2s%s]%s%s", clan_priv_names[j], QCYN,
                        QYEL, pr, QCYN, QNRM, !(++count % 4) ? "\r\n" : "");
         }
@@ -1848,9 +1848,9 @@ ACMD(do_clanlist) /* List of clan members */
         rk_num = GET_CLANRANK(v) - 1;
 
         if (rk_num >= 0)
-          sprintf(rk_name, "%s", clan_list[c].rank_name[rk_num]);
+          snprintf(rk_name, sizeof(rk_name), "%s", clan_list[c].rank_name[rk_num]);
         else
-          sprintf(rk_name, "%sINVALID!", QBRED);
+          snprintf(rk_name, sizeof(rk_name), "%sINVALID!", QBRED);
 
         /* Show leader in white */
         if (player_table[i].id == clan_list[c].leader)
@@ -1879,9 +1879,9 @@ ACMD(do_clanlist) /* List of clan members */
         rk_num = GET_CLANRANK(v) - 1;
 
         if (rk_num >= 0)
-          sprintf(rk_name, "%s", clan_list[c].rank_name[rk_num]);
+          snprintf(rk_name, sizeof(rk_name), "%s", clan_list[c].rank_name[rk_num]);
         else
-          sprintf(rk_name, "%sINVALID!", QBRED);
+          snprintf(rk_name, sizeof(rk_name), "%sINVALID!", QBRED);
 
         /* Show leader in white */
         if (player_table[i].id == clan_list[c].leader)
@@ -3077,7 +3077,7 @@ ACMD(do_clanset)
     if (CLAN_NAME(clannum))
       free(CLAN_NAME(clannum));
     CLAN_NAME(clannum) = strdup(val_arg);
-    sprintf(buf, "Clan ID %d: Name is now: %s%s", clan_list[clannum].vnum,
+    snprintf(buf, sizeof(buf), "Clan ID %d: Name is now: %s%s", clan_list[clannum].vnum,
             CLAN_NAME(clannum), QNRM);
     break;
 
@@ -3098,7 +3098,7 @@ ACMD(do_clanset)
         clan_list[clannum].rank_name[i] = NULL;
       }
     }
-    sprintf(buf, "Clan ID %d: Number of ranks set to %d%s",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Number of ranks set to %d%s",
             clan_list[clannum].vnum, clan_list[clannum].ranks, QNRM);
     break;
 
@@ -3122,7 +3122,7 @@ ACMD(do_clanset)
       free(clan_list[clannum].rank_name[rankid - 1]);
     clan_list[clannum].rank_name[rankid - 1] = strdup(rankname);
 
-    sprintf(buf, "Clan ID %d: Rank %d changed to \"%s%s\"",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Rank %d changed to \"%s%s\"",
             clan_list[clannum].vnum, rankid, rankname, QNRM);
     break;
   case 3: /* clanset clannum treasure <value>*/
@@ -3133,7 +3133,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].treasure = value;
-    sprintf(buf, "Clan ID %d: Treasure (clan bank) set to %s\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Treasure (clan bank) set to %s\r\n",
             clan_list[clannum].vnum, add_commas(value));
     break;
   case 4: /* clanset clannum clannhall <value>*/
@@ -3148,7 +3148,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].hall = value;
-    sprintf(buf, "Clan ID %d: Clanhall zone set to %d\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Clanhall zone set to %d\r\n",
             clan_list[clannum].vnum, value);
     break;
   case 5: /* clanset clannum applev <value>*/
@@ -3159,7 +3159,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].applev = value;
-    sprintf(buf, "Clan ID %d: Application Level set to %d\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Application Level set to %d\r\n",
             clan_list[clannum].vnum, value);
     break;
   case 6: /* clanset clannum appfee <value>*/
@@ -3170,7 +3170,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].appfee = value;
-    sprintf(buf, "Clan ID %d: Application Fee set to %s\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Application Fee set to %s\r\n",
             clan_list[clannum].vnum, add_commas(value));
     break;
   case 7: /* clanset clannum tax <value>*/
@@ -3180,7 +3180,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].taxrate = value;
-    sprintf(buf, "Clan ID %d: Tax set to %d%%\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Tax set to %d%%\r\n",
             clan_list[clannum].vnum, value);
     break;
   case 8: /* clanset clannum skills <id> <value>*/
@@ -3203,7 +3203,7 @@ ACMD(do_clanset)
       }
     }
     clan_list[clannum].spells[spellid - 1] = spellnum;
-    sprintf(buf, "Clan ID %d: Skill %d set to %s\r\n", clan_list[clannum].vnum,
+    snprintf(buf, sizeof(buf), "Clan ID %d: Skill %d set to %s\r\n", clan_list[clannum].vnum,
             spellid, skill_name(spellnum));
     break;
   case 9: /* clanset clannum desc <val_arg>*/
@@ -3216,7 +3216,7 @@ ACMD(do_clanset)
     if (clan_list[clannum].description)
       free(clan_list[clannum].description);
     clan_list[clannum].description = strdup(val_arg);
-    sprintf(buf, "Clan ID %d: Clan plan is now: \r\n%s\tn",
+    snprintf(buf, sizeof(buf), "Clan ID %d: Clan plan is now: \r\n%s\tn",
             clan_list[clannum].vnum, clan_list[clannum].description);
     break;
   case 10: /* clanset clannum atwar <clan id>*/
@@ -3239,7 +3239,7 @@ ACMD(do_clanset)
                    clan_list[clannum].clan_name, QNRM,
                    clan_list[real_clan(clan_list[clannum].at_war)].clan_name, QNRM);
 
-      sprintf(buf, "Clan ID %d: Enemy Clan set to %s\r\n",
+      snprintf(buf, sizeof(buf), "Clan ID %d: Enemy Clan set to %s\r\n",
               clan_list[clannum].vnum,
               clan_list[real_clan(clan_list[clannum].at_war)].clan_name);
     }
@@ -3264,7 +3264,7 @@ ACMD(do_clanset)
       send_to_char(ch, "%s%s is now allied with %s%s",
                    clan_list[clannum].clan_name, QNRM,
                    clan_list[real_clan(clan_list[clannum].allied)].clan_name, QNRM);
-      sprintf(buf, "Clan ID %d: Ally Clan set to %s\r\n",
+      snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n",
               clan_list[clannum].vnum,
               clan_list[real_clan(clan_list[clannum].allied)].clan_name);
     }
@@ -3276,7 +3276,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].war_timer = value;
-    sprintf(buf, "Clan ID %d: War Timer set to %d ticks.\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: War Timer set to %d ticks.\r\n",
             clan_list[clannum].vnum, value);
     break;
   case 13: /* clanset clannum pkwin <value>*/
@@ -3286,7 +3286,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].pk_win = value;
-    sprintf(buf, "Clan ID %d: PK Wins set to %d.\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: PK Wins set to %d.\r\n",
             clan_list[clannum].vnum, value);
     break;
   case 14: /* clanset clannum pklose <value>*/
@@ -3296,7 +3296,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].pk_lose = value;
-    sprintf(buf, "Clan ID %d: PK Losses set to %d.\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: PK Losses set to %d.\r\n",
             clan_list[clannum].vnum, value);
     break;
   case 15: /* clanset clannum pklose <value>*/
@@ -3306,7 +3306,7 @@ ACMD(do_clanset)
       return;
     }
     clan_list[clannum].raided = value;
-    sprintf(buf, "Clan ID %d: PK Raided set to %d.\r\n",
+    snprintf(buf, sizeof(buf), "Clan ID %d: PK Raided set to %d.\r\n",
             clan_list[clannum].vnum, value);
     break;
 
@@ -3320,12 +3320,12 @@ ACMD(do_clanset)
     if (CLAN_ABREV(clannum))
       free(clan_list[clannum].abrev);
     clan_list[clannum].abrev = strdup(val_arg);
-    sprintf(buf, "Clan ID %d: ABREV is now: %s%s", clan_list[clannum].vnum,
+    snprintf(buf, sizeof(buf), "Clan ID %d: ABREV is now: %s%s", clan_list[clannum].vnum,
             CLAN_ABREV(clannum), QNRM);
     break;
 
   default:
-    sprintf(buf, "Can't clanset that!");
+    snprintf(buf, sizeof(buf), "Can't clanset that!");
     break;
   }
 

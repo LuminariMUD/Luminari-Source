@@ -146,39 +146,39 @@ void do_aurasight(struct char_data *ch, char *arg, int cmd)
   align = GET_ALIGNMENT(victim);
 
   if (align > 800)
-    sprintf(buf, "$N&+Y has a blinding golden aura around $S body.\n");
+    snprintf(buf, sizeof(buf), "$N&+Y has a blinding golden aura around $S body.\n");
   else if (align > 350)
-    sprintf(buf, "$N&+Y has a well defined golden aura around $S body.\n");
+    snprintf(buf, sizeof(buf), "$N&+Y has a well defined golden aura around $S body.\n");
   else if (align > 100)
-    sprintf(buf, "$N&+g has a bearly perceptible trace of golden aura around $S body.&N\n");
+    snprintf(buf, sizeof(buf), "$N&+g has a bearly perceptible trace of golden aura around $S body.&N\n");
   else if (align > -100)
-    sprintf(buf, "$N&+g has a shimmering, multi-coloured aura around $M.&N\n");
+    snprintf(buf, sizeof(buf), "$N&+g has a shimmering, multi-coloured aura around $M.&N\n");
   else if (align > -350)
-    sprintf(buf, "$N&+r has a noticable redish aura around $M.&N\n");
+    snprintf(buf, sizeof(buf), "$N&+r has a noticable redish aura around $M.&N\n");
   else if (align > -700)
-    sprintf(buf, "$N&+r has a very strong red aura around $M.&N\n");
+    snprintf(buf, sizeof(buf), "$N&+r has a very strong red aura around $M.&N\n");
   else if (align >= -1001)
-    sprintf(buf, "$N&+r has a blinding red aura around $M.&N\n");
+    snprintf(buf, sizeof(buf), "$N&+r has a blinding red aura around $M.&N\n");
   else
-    sprintf(buf, "$N &=rlradiates incredible amounts of evil energy.\nYou start feeling weak just by looking at $M.&N&n\n");
+    snprintf(buf, sizeof(buf), "$N &=rlradiates incredible amounts of evil energy.\nYou start feeling weak just by looking at $M.&N&n\n");
 
   if (affected_by_spell(victim, SPELL_CURSE))
-    sprintf(buf, "$N&N&+r seems to be affected by some sort of a curse.\n");
+    snprintf(buf, sizeof(buf), "$N&N&+r seems to be affected by some sort of a curse.\n");
 
   if (IS_NPC(victim))
   {
     if (IS_CSET(victim->only.npc->npcact, ACT_AGGRESSIVE_EVIL))
-      sprintf(buf, "$N&N&+r hates evil.\n");
+      snprintf(buf, sizeof(buf), "$N&N&+r hates evil.\n");
     if (IS_CSET(victim->only.npc->npcact, ACT_AGGRESSIVE_GOOD))
-      sprintf(buf, "$N&N&+y hates good.\n");
+      snprintf(buf, sizeof(buf), "$N&N&+y hates good.\n");
     if (IS_CSET(victim->only.npc->npcact, ACT_AGGRESSIVE_NEUTRAL))
-      sprintf(buf, "$N&N&+r hates neutral.\n");
+      snprintf(buf, sizeof(buf), "$N&N&+r hates neutral.\n");
     if (IS_CSET(victim->only.npc->npcact, ACT_AGG_RACEEVIL))
-      sprintf(buf, "$N&N&+r hates evil races.\n");
+      snprintf(buf, sizeof(buf), "$N&N&+r hates evil races.\n");
     if (IS_CSET(victim->only.npc->npcact, ACT_AGG_RACEGOOD))
-      sprintf(buf, "$N&N&+r hates good races.\n");
+      snprintf(buf, sizeof(buf), "$N&N&+r hates good races.\n");
     if (IS_CSET(victim->only.npc->npcact, ACT_AGG_OUTCAST))
-      sprintf(buf, "$N&N&+r hates outcasts.\n");
+      snprintf(buf, sizeof(buf), "$N&N&+r hates outcasts.\n");
   }
 
   act(buf, TRUE, ch, 0, victim, TO_CHAR);
@@ -444,7 +444,7 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd)
     {
       if (aggro_lvls[dir])
       {
-        sprintf(buf, "You sense a mind filled with hatred towards your kind nearby.\n");
+        snprintf(buf, sizeof(buf), "You sense a mind filled with hatred towards your kind nearby.\n");
         break;
         /* Warn the PC about just one threat */
       }
@@ -1857,7 +1857,7 @@ void do_rift(struct char_data *ch, char *arg, int cmd)
   obj_to_room(rift2, ch->in_room);
   AddEvent(EVENT_DECAY, (10 + (skl_lvl / 25)) * PULSE_VIOLENCE, TRUE, rift1, 0);
   AddEvent(EVENT_DECAY, (10 + (skl_lvl / 25)) * PULSE_VIOLENCE, TRUE, rift2, 0);
-  sprintf(Gbuf4, "You open a planar rift to  %s plane!\n", plane_info[plane_to].keyword);
+  snprintf(Gbuf4, sizeof(Gbuf4), "You open a planar rift to  %s plane!\n", plane_info[plane_to].keyword);
   send_to_char(Gbuf4, ch);
 
   incSkillSubPsp(ch, PSIONIC_RIFT, psp, PSIONIC_GAIN_ON);
@@ -3134,7 +3134,7 @@ void chargePSPCrystal(struct char_data *ch)
     inc <<= 1;
 
   crystal->value[PSP_CRYSTAL_CURRENT_CAPACITY] += inc;
-  sprintf(Gbuf, "&+BCurrent charge for&N [ $p ] - %d/%d psp's.",
+  snprintf(Gbuf, sizeof(Gbuf), "&+BCurrent charge for&N [ $p ] - %d/%d psp's.",
           crystal->value[PSP_CRYSTAL_CURRENT_CAPACITY],
           crystal->value[PSP_CRYSTAL_MAX_CAPACITY]);
   act(Gbuf, FALSE, ch, crystal, 0, TO_CHAR);
@@ -3317,13 +3317,13 @@ void do_enhance (struct char_data *ch, char *arg, int cmd)
       enhance_index = search_block(first_arg, enhance_keywords, FALSE);
    }
    else {
-    sprintf(buf, "You only know how to enhance:\n");
+    snprintf(buf, sizeof(buf), "You only know how to enhance:\n");
     if( GET_SKILL(ch, PSIONIC_ENHANCE) > 5)
-       sprintf( buf, " Strength\n Agility\n Dexterity\n Constitution\n");
+       snprintf(buf, sizeof(buf), " Strength\n Agility\n Dexterity\n Constitution\n");
     if( GET_SKILL(ch, PSIONIC_ENHANCE) > 30)
-       sprintf( buf, " Vision\n" );
+       snprintf(buf, sizeof(buf), " Vision\n" );
     if( GET_SKILL(ch, PSIONIC_ENHANCE) > 50)
-       sprintf( buf, " Stamina\n" );
+       snprintf(buf, sizeof(buf), " Stamina\n" );
     send_to_char( buf, ch );
     return;
    }

@@ -394,7 +394,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           v2 = (obj_proto[num].obj_flags.value[3]);
 
           if (v2 != 0)
-            sprintf(buf2, " \tc[\tyspell %d\tn: %s\tc]\tn", v2, spell_info[v2].name);
+            snprintf(buf2, sizeof(buf2), " \tc[\tyspell %d\tn: %s\tc]\tn", v2, spell_info[v2].name);
           else
             *buf2 = '\0';
 
@@ -411,7 +411,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           v3 = (obj_proto[num].obj_flags.value[3]);
 
           if (v2 != 0)
-            sprintf(buf2, " \tc[\tyspell %d\tn: %s\tc]\tn", v2, spell_info[v2].name);
+            snprintf(buf2, sizeof(buf2), " \tc[\tyspell %d\tn: %s\tc]\tn", v2, spell_info[v2].name);
           else
             *buf2 = '\0';
 

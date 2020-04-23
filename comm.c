@@ -364,7 +364,7 @@ int main(int argc, char **argv)
   /* Moved here to distinguish command line options and to show up
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
-  log("%s", luminari_version);
+  log("%s\r\n%s", luminari_version, luminari_build);
 
   if (chdir(dir) < 0)
   {
@@ -3021,7 +3021,7 @@ void game_info(const char *format, ...)
   char messg[MAX_STRING_LENGTH];
   if (format == NULL)
     return;
-  sprintf(messg, "\tcInfo: \ty");
+  snprintf(messg, sizeof(messg), "\tcInfo: \ty");
   for (i = descriptor_list; i; i = i->next)
   {
     if (STATE(i) != CON_PLAYING)
@@ -3417,7 +3417,7 @@ char *act(const char *str, int hide_invisible, struct char_data *ch,
           !ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF))
       {
 
-        sprintf(buf, "%s%s%s", CCYEL(i->character, C_NRM), str, CCNRM(i->character, C_NRM));
+        snprintf(buf, sizeof(buf), "%s%s%s", CCYEL(i->character, C_NRM), str, CCNRM(i->character, C_NRM));
         perform_act(buf, ch, obj, vict_obj, i->character, TRUE);
       }
     }
@@ -3641,7 +3641,7 @@ void update_msdp_room(struct char_data *ch)
         if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
           continue;
 
-        sprintf(buf3, "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
+        snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
         //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
         strcat(room_exits, buf3);
       }
@@ -3649,7 +3649,7 @@ void update_msdp_room(struct char_data *ch)
       //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
 
       /* Build the ROOM table.  */
-      sprintf(buf2, "%cVNUM"
+      snprintf(buf2, sizeof(buf2), "%cVNUM"
                     "%c%d"
                     "%cNAME"
                     "%c%s"
@@ -3817,7 +3817,7 @@ static void msdp_update(void)
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
 
-          sprintf(buf3, "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
+          snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
           //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
           strcat(room_exits, buf3);
         }
@@ -3828,10 +3828,10 @@ static void msdp_update(void)
         for (sector = 0; sector < NUM_ROOM_SECTORS; sector++)
         {
           sector_buf[0] = '\0';
-          sprintf(sector_buf, "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
+          snprintf(sector_buf, sizeof(sector_buf), "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
           strcat(sectors, sector_buf);
         }
-        //sprintf(sector_buf, "%c", MSDP_TABLE_CLOSE);
+        //snprintf(sector_buf, sizeof(sector_buf), "%c", MSDP_TABLE_CLOSE);
         //strcat(sectors, sector_buf);
 
         MSDPSetTable(d, eMSDP_SECTORS, sectors);
@@ -3862,13 +3862,13 @@ static void msdp_update(void)
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH, hit_points);
         MSDPSetNumber(d, eMSDP_OPPONENT_HEALTH_MAX, 100);
         MSDPSetNumber(d, eMSDP_OPPONENT_LEVEL, GET_LEVEL(pOpponent));
-        sprintf(buf, "%s", PERS(pOpponent, ch));
+        snprintf(buf, sizeof(buf), "%s", PERS(pOpponent, ch));
         strip_colors(buf);
         MSDPSetString(d, eMSDP_OPPONENT_NAME, buf);
 
         if (tank != NULL && tank != ch)
         {
-          sprintf(buf, "%s", PERS(tank, ch));
+          snprintf(buf, sizeof(buf), "%s", PERS(tank, ch));
           strip_colors(buf);
           MSDPSetString(d, eMSDP_TANK_NAME, buf);
           MSDPSetNumber(d, eMSDP_TANK_HEALTH, (GET_HIT(tank) * 100) / GET_MAX_HIT(tank));

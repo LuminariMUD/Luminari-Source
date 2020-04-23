@@ -1564,7 +1564,7 @@ void parse_room(FILE *fl, int virtual_nr)
     /* In the old-style files, the 3rd item was the sector-type */
     world[room_nr].sector_type = atoi(flags2);
 
-    sprintf(flags, "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
+    snprintf(flags, sizeof(flags), "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
 
     /* No need to scan the other three sections; they're 0 anyway. */
     check_bitvector_names(world[room_nr].room_flags[0], room_bits_count, flags, "room");
@@ -1586,7 +1586,7 @@ void parse_room(FILE *fl, int virtual_nr)
     world[room_nr].room_flags[2] = asciiflag_conv(flags3);
     world[room_nr].room_flags[3] = asciiflag_conv(flags4);
 
-    sprintf(flags, "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
+    snprintf(flags, sizeof(flags), "room #%d", virtual_nr); /* sprintf: OK (until 399-bit integers) */
     for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
       check_bitvector_names(world[room_nr].room_flags[taeller], room_bits_count, flags, "room");
 
@@ -2396,7 +2396,7 @@ void parse_mobile(FILE *mob_f, int nr)
    * The only reason we have every mob in the game share this copy of the
    * structure is to save newbie coders from themselves. -gg */
   mob_proto[i].player_specials = &dummy_mob;
-  sprintf(buf2, "mob vnum %d", nr); /* sprintf: OK (for 'buf2 >= 19') */
+  snprintf(buf2, sizeof(buf2), "mob vnum %d", nr); /* sprintf: OK (for 'buf2 >= 19') */
 
   /* String data */
   mob_proto[i].player.name = fread_string(mob_f, buf2);
@@ -2575,7 +2575,7 @@ char *parse_object(FILE *obj_f, int nr)
   clear_object(obj_proto + i);
   obj_proto[i].item_number = i;
 
-  sprintf(buf2, "object #%d", nr); /* sprintf: OK (for 'buf2 >= 19') */
+  snprintf(buf2, sizeof(buf2), "object #%d", nr); /* sprintf: OK (for 'buf2 >= 19') */
 
   /* string data */
   if ((obj_proto[i].name = fread_string(obj_f, buf2)) == NULL)

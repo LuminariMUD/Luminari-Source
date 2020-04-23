@@ -231,7 +231,7 @@ int save_objects(zone_rnum zone_num)
       else
         *buf = '\0';
 
-      sprintf(buf2,
+      snprintf(buf2, sizeof(buf2),
               "#%d\n"
               "%s~\n"
               "%s~\n"
