@@ -2776,8 +2776,8 @@ char *parse_object(FILE *obj_f, int nr)
     obj_proto[i].affected[j].modifier = 0;
   }
 
-  strcat(buf2, ", after numeric constants\n" /* strcat: OK (for 'buf2 >= 87') */
-               "...expecting 'E', 'A', '$', or next object number");
+  strlcat(buf2, ", after numeric constants\n" /* strcat: OK (for 'buf2 >= 87') */
+               "...expecting 'E', 'A', '$', or next object number", sizeof(buf2));
   j = 0;
   wsplnum = 0;
 
@@ -3307,7 +3307,7 @@ void load_help(FILE *fl, char *name)
   get_one_line(fl, key);
   while (*key != '$')
   {
-    strcat(key, "\r\n"); /* strcat: OK (READ_SIZE - "\n"  "\r\n" == READ_SIZE  1) */
+    strlcat(key, "\r\n", sizeof(key)); /* strcat: OK (READ_SIZE - "\n"  "\r\n" == READ_SIZE  1) */
     entrylen = strlcpy(entry, key, sizeof(entry));
 
     /* Read in the corresponding help entry. */
@@ -4972,7 +4972,7 @@ static int file_to_string(const char *name, char *buf)
       break;
     if ((len = strlen(tmp)) > 0)
       tmp[len - 1] = '\0'; /* take off the trailing \n */
-    strcat(tmp, "\r\n");   /* strcat: OK (tmp:READ_SIZE+3) */
+    strlcat(tmp, "\r\n", sizeof(tmp));   /* strcat: OK (tmp:READ_SIZE+3) */
 
     if (strlen(buf) + strlen(tmp) + 1 > MAX_STRING_LENGTH)
     {

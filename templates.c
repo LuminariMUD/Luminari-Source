@@ -259,9 +259,9 @@ void show_level_history(struct char_data *ch, int level)
             sub_feat = atoi(row[3]);
 
             if (num_found > 0)
-                strcat(buf, ", ");
+                strlcat(buf, ", ", sizeof(buf));
 
-            strcat(buf, feat_list[feat_num].name);
+            strlcat(buf, feat_list[feat_num].name, sizeof(buf));
 
             switch (feat_num)
             {

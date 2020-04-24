@@ -469,7 +469,7 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd)
           else
             msgindex = 4;
           /* Warn the PC about just one threat */
-          strcat(buf, sense_danger_ms[msgindex]);
+          strlcat(buf, sense_danger_ms[msgindex], sizeof(buf));
         }
     }
     else
@@ -490,8 +490,8 @@ void do_sense_danger(struct char_data *ch, char *arg, int cmd)
             msgindex = 3;
           else
             msgindex = 4;
-          strcat(buf, sense_danger_hs[msgindex]);
-          strcat(buf, sense_danger_dir[dir]);
+          strlcat(buf, sense_danger_hs[msgindex], sizeof(buf));
+          strlcat(buf, sense_danger_dir[dir], sizeof(buf));
         }
       }
     }
@@ -3040,7 +3040,7 @@ void do_charge(struct char_data *ch, char *arg, int cmd)
   if (!*arg)
   {
     *Gbuf = 0;
-    strcat(Gbuf, "&+BPSP Crystal Status:\n\n");
+    strlcat(Gbuf, "&+BPSP Crystal Status:\n\n", sizeof(Gbuf));
     listPSPCrystalCharges(ch, Gbuf);
     send_to_char(Gbuf, ch);
     return;

@@ -1919,7 +1919,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       }
       snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
-      strcat(buf, buf2);
+      strlcat(buf, buf2, sizeof(buf));
 
       buf2[0] = '\0';
 
@@ -1936,7 +1936,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
           aff->bitvector[2] || aff->bitvector[3])
       {
         snprintf(buf2, sizeof(buf2), "%s(see affected by)", ((aff->modifier) ? ", " : ""));
-        strcat(buf3, buf2);
+        strlcat(buf3, buf2, sizeof(buf3));
       }
 
       buf2[0] = '\0';
@@ -2128,13 +2128,13 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
     else
       snprintf(buf, sizeof(buf), "%s%s", buf, GET_NAME(i));
     if (--count > 1)
-      strcat(buf, ", ");
+      strlcat(buf, ", ", sizeof(buf));
     else if (count == 1)
-      strcat(buf, " and ");
+      strlcat(buf, " and ", sizeof(buf));
     else
     {
       snprintf(buf2, sizeof(buf2), " %s %s.\r\n", how_far[distance], dirs[door]);
-      strcat(buf, buf2);
+      strlcat(buf, buf2, sizeof(buf));
     }
   }
   send_to_char(ch, "%s", buf);
@@ -2791,7 +2791,7 @@ ACMD(do_score)
       if (CLASS_LEVEL(ch, i))
       {
         if (counter)
-          strcat(buf, " / ");
+          strlcat(buf, " / ", sizeof(buf));
         snprintf(buf, sizeof(buf), "%s%d %s", buf, CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
         counter++;
       }
@@ -3621,7 +3621,7 @@ ACMD(do_users)
     if (d->host && *d->host)
       sprintf(line + strlen(line), "[%s]\r\n", d->host);
     else
-      strcat(line, "[Hostname unknown]\r\n");
+      strlcat(line, "[Hostname unknown]\r\n", sizeof(line));
 
     if (STATE(d) != CON_PLAYING)
     {
