@@ -200,6 +200,8 @@ int str_cmp(const char *arg1, const char *arg2);
 int strn_cmp(const char *arg1, const char *arg2, int n);
 #endif
 
+size_t strlcat(char *buf, const char *src, size_t bufsz);
+
 /* random functions in random.c */
 void circle_srandom(unsigned long initial_seed);
 unsigned long circle_random(void);

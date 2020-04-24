@@ -968,20 +968,20 @@ ACMD(do_qinfo)
                   snprintf(buf2, sizeof(buf2), " give %s (%d)",
                           obj_proto[real_object(qcmd->value)].short_description,
                           qcmd->value);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_COINS)
                 {
                   snprintf(buf2, sizeof(buf2), " give %d copper coins", qcmd->value);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 if (qcmd->next)
                 {
-                  strcat(buf, " and");
+                  strlcat(buf, " and", sizeof(buf));
                 }
               }
               snprintf(buf2, sizeof(buf2), "\r\nTo %s (%d)\r\n", mob_proto[realnum].player.short_descr, i);
-              strcat(buf, buf2);
+              strlcat(buf, buf2, sizeof(buf));
               for (qcmd = quest->out; qcmd; qcmd = qcmd->next)
               {
                 if (qcmd->type == QUEST_GIVE)
@@ -989,63 +989,63 @@ ACMD(do_qinfo)
                   snprintf(buf2, sizeof(buf2), " and you receive %s (%d)",
                           obj_proto[real_object(qcmd->value)].short_description,
                           qcmd->value);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_DISAPPEAR)
                 {
-                  strcat(buf, " and the mob disappears");
+                  strlcat(buf, " and the mob disappears", sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_ATTACK_QUESTOR)
                 {
-                  strcat(buf, " and the mob Attacks!");
+                  strlcat(buf, " and the mob Attacks!", sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_LOAD_OBJECT_INROOM)
                 {
                   snprintf(buf2, sizeof(buf2), " and the mob loads %s in %s(%d)",
                           obj_proto[real_object(qcmd->value)].short_description,
                           (qcmd->location == -1 ? "CurrentRoom" : world[real_room(qcmd->location)].name), qcmd->location);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_TEACH_SPELL)
                 {
                   snprintf(buf2, sizeof(buf2), " and teaches you %s", spell_info[qcmd->value].name);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_OPEN_DOOR)
                 {
                   snprintf(buf2, sizeof(buf2), "and opens a door %s in %s(%d)", dirs[qcmd->value],
                           world[real_room(qcmd->location)].name, qcmd->location);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_LOAD_MOB_INROOM)
                 {
                   snprintf(buf2, sizeof(buf2), " and loads %s in %s (%d)",
                           mob_proto[real_mobile(qcmd->value)].player.short_descr,
                           qcmd->location == -1 ? "CurrentRoom" : world[real_room(qcmd->location)].name, qcmd->location);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_FOLLOW)
                 {
-                  strcat(buf, " and follows you");
+                  strlcat(buf, " and follows you", sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_KIT)
                 {
                   snprintf(buf, sizeof(buf), "and changes your kit to %s", CLSLIST_NAME(qcmd->value));
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_CHURCH)
                 {
                   snprintf(buf2, sizeof(buf2), " and changes your religious affiliation to %s",
                           church_types[qcmd->value]);
-                  strcat(buf, buf2);
+                  strlcat(buf, buf2, sizeof(buf));
                 }
                 else
                 {
-                  strcat(buf, " needs fixing (hlquest.c)");
+                  strlcat(buf, " needs fixing (hlquest.c)", sizeof(buf));
                 }
               } // end quest-> out loop
 
-              strcat(buf, ".\r\n\r\n");
+              strlcat(buf, ".\r\n\r\n", sizeof(buf));
               send_to_char(ch, buf);
               found = 0;
             } // end of if (found)

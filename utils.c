@@ -1661,6 +1661,28 @@ char *CAP(char *txt) {
   return (txt);
 }
 
+/*
+Returns total length of the string that would have been created.
+*/
+size_t strlcat(char *buf, const char *src, size_t bufsz)
+{
+    size_t buf_len = strlen(buf);
+    size_t src_len = strlen(src);
+    size_t rtn = buf_len + src_len;
+
+    if (buf_len < (bufsz - 1))
+    {
+        if (src_len >= (bufsz - buf_len))
+        {
+            src_len = bufsz - buf_len - 1;
+        }
+        memcpy(buf + buf_len, src, src_len);
+        buf[buf_len + src_len] = '\0';
+    }
+
+    return rtn;
+}
+
 #if !defined(HAVE_STRLCPY)
 
 /** A 'strlcpy' function in the same fashion as 'strdup' below. This copies up
@@ -1832,7 +1854,7 @@ void mudlog(int type, int level, int file, const char *str, ...) {
   va_start(args, str);
   vsnprintf(buf + 2, sizeof (buf) - 6, str, args);
   va_end(args);
-  strcat(buf, " ]\tn\r\n"); /* strcat: OK */
+  strlcat(buf, " ]\tn\r\n", sizeof(buf)); /* strcat: OK */
 
   for (i = descriptor_list; i; i = i->next) {
     if (STATE(i) != CON_PLAYING || IS_NPC(i->character)) /* switch */

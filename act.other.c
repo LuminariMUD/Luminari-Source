@@ -4464,7 +4464,7 @@ void update_msdp_group(struct char_data *ch)
                 (char)MSDP_VAR, "MOVEMENT", (char)MSDP_VAL, GET_MOVE(k),
                 (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
                 (char)MSDP_TABLE_CLOSE);
-        strcat(msdp_buffer, buf);
+        strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
     //send_to_char(ch,"%s", msdp_buffer);
@@ -4501,7 +4501,7 @@ void update_msdp_inventory(struct char_data *ch)
                   (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, equipment_types[i],
                   (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
                   (char)MSDP_TABLE_CLOSE);
-          strcat(msdp_buffer, buf);
+          strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
         }
       }
     }
@@ -4521,7 +4521,7 @@ void update_msdp_inventory(struct char_data *ch)
                 (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, "Inventory",
                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
                 (char)MSDP_TABLE_CLOSE);
-        strcat(msdp_buffer, buf);
+        strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
     strip_colors(msdp_buffer);

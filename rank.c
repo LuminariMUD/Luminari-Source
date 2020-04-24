@@ -167,12 +167,12 @@ void do_slug_rank(struct char_data *ch, char *arg)
     for (tk = key_list; tk; tk = tk->next)
     {
       snprintf(kbuf, sizeof(kbuf), "%*s ", maxkeylength, tk->keystring);
-      strcat(buffer, kbuf);
+      strlcat(buffer, kbuf, sizeof(buffer));
       if (++i % j == 0)
-        strcat(buffer, "\n\r");
+        strlcat(buffer, "\n\r", sizeof(buffer));
     }
-    strcat(buffer, "\n\r");
-    strcat(buffer, "Usage: rank <key> [+-][max]\n\r");
+    strlcat(buffer, "\n\r", sizeof(buffer));
+    strlcat(buffer, "Usage: rank <key> [+-][max]\n\r", sizeof(buffer));
     send_to_char(ch, buffer);
   }
   else

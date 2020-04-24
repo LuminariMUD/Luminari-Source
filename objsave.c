@@ -119,7 +119,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
 #ifdef OBJSAVE_DB
   snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
-  strcat(ins_buf, line_buf);
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
 
   /* autoequip location? */
@@ -130,7 +130,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   if (locate)
   {
     snprintf(line_buf, sizeof(line_buf), "Loc : %d\n", locate);
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
   }
 #endif
 
@@ -190,7 +190,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
             GET_OBJ_VAL(obj, 13),
             GET_OBJ_VAL(obj, 14),
             GET_OBJ_VAL(obj, 15));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (GET_OBJ_EXTRA(obj) != GET_OBJ_EXTRA(temp))
@@ -198,7 +198,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0], GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
 
@@ -211,7 +211,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Name: %s\n", obj->name ? obj->name : "Undefined");
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Name: %s\n", obj->name ? obj->name : "Undefined");
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJS(obj, temp, short_description))
@@ -219,7 +219,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Shrt: %s\n", obj->short_description ? obj->short_description : "Undefined");
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
 
@@ -229,7 +229,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Desc: %s\n", obj->description ? obj->description : "Undefined");
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Desc: %s\n", obj->description ? obj->description : "Undefined");
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   /* Only even try to process this if an action desc exists */
@@ -239,7 +239,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
       fprintf(fp, "ADes:\n%s~\n", buf1);
 #ifdef OBJSAVE_DB
       snprintf(line_buf, sizeof(line_buf), "ADes:\n%s~\n", buf1);
-      strcat(ins_buf, line_buf);
+      strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
   if (TEST_OBJN(type_flag))
@@ -247,7 +247,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Type: %d\n", GET_OBJ_TYPE(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Type: %d\n", GET_OBJ_TYPE(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(prof_flag))
@@ -255,7 +255,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Prof: %d\n", GET_OBJ_PROF(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Prof: %d\n", GET_OBJ_PROF(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(material))
@@ -263,7 +263,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Mats: %d\n", GET_OBJ_MATERIAL(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Mats: %d\n", GET_OBJ_MATERIAL(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(size))
@@ -271,7 +271,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Size: %d\n", GET_OBJ_SIZE(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Size: %d\n", GET_OBJ_SIZE(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(weight))
@@ -279,7 +279,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Wght: %d\n", GET_OBJ_WEIGHT(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Wght: %d\n", GET_OBJ_WEIGHT(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(level))
@@ -287,7 +287,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Levl: %d\n", GET_OBJ_LEVEL(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Levl: %d\n", GET_OBJ_LEVEL(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(cost))
@@ -295,7 +295,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Cost: %d\n", GET_OBJ_COST(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Cost: %d\n", GET_OBJ_COST(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(cost_per_day))
@@ -303,7 +303,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Rent: %d\n", GET_OBJ_RENT(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Rent: %d\n", GET_OBJ_RENT(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(bound_id))
@@ -311,7 +311,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Bind: %d\n", GET_OBJ_BOUND_ID(obj));
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(bitvector))
@@ -319,7 +319,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Perm: %d %d %d %d\n", GET_OBJ_PERM(obj)[0], GET_OBJ_PERM(obj)[1], GET_OBJ_PERM(obj)[2], GET_OBJ_PERM(obj)[3]);
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
   if (TEST_OBJN(wear_flags))
@@ -327,7 +327,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     fprintf(fp, "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Wear: %d %d %d %d\n", GET_OBJ_WEAR(obj)[0], GET_OBJ_WEAR(obj)[1], GET_OBJ_WEAR(obj)[2], GET_OBJ_WEAR(obj)[3]);
-    strcat(ins_buf, line_buf);
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
 
@@ -344,7 +344,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
               counter2,
               obj->affected[counter2].location,
               obj->affected[counter2].modifier);
-      strcat(ins_buf, line_buf);
+      strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
 
@@ -377,7 +377,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                           "%s~\n",
                 ex_desc->keyword,
                 buf1);
-        strcat(ins_buf, line_buf);
+        strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
       }
     }
@@ -391,7 +391,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
       fprintf(fp, "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
 #ifdef OBJSAVE_DB
       snprintf(line_buf, sizeof(line_buf), "Spbk: %d %d\n", obj->sbinfo[i].spellname, obj->sbinfo[i].pages);
-      strcat(ins_buf, line_buf);
+      strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
   }
@@ -402,7 +402,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
 #ifdef OBJSAVE_DB
   snprintf(line_buf, sizeof(line_buf), "');");
-  strcat(ins_buf, line_buf);
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
   if (ch != NULL)
   { /* GHETTTTTTTOOOOOOOOO */
     if (mysql_query(conn, ins_buf))
