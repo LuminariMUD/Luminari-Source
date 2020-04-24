@@ -53,69 +53,69 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
 
   for (i = 0; tokens[i + 1]; i++)
   {
-    strcat(sb, tokens[i]);
+    strlcat(sb, tokens[i], sizeof(sb));
 
     switch (type[i])
     {
     case '~':
       if (!otokens[i])
-        strcat(sb, "someone");
+        strlcat(sb, "someone", sizeof(sb));
       else if ((char_data *)otokens[i] == ch)
-        strcat(sb, "you");
+        strlcat(sb, "you", sizeof(sb));
       else
-        strcat(sb, PERS((char_data *)otokens[i], ch));
+        strlcat(sb, PERS((char_data *)otokens[i], ch), sizeof(sb));
       break;
 
     case '|':
       if (!otokens[i])
-        strcat(sb, "someone's");
+        strlcat(sb, "someone's", sizeof(sb));
       else if ((char_data *)otokens[i] == ch)
-        strcat(sb, "your");
+        strlcat(sb, "your", sizeof(sb));
       else
       {
-        strcat(sb, PERS((char_data *)otokens[i], ch));
-        strcat(sb, "'s");
+        strlcat(sb, PERS((char_data *)otokens[i], ch), sizeof(sb));
+        strlcat(sb, "'s", sizeof(sb));
       }
       break;
 
     case '^':
       if (!otokens[i] || !CAN_SEE(ch, (char_data *)otokens[i]))
-        strcat(sb, "its");
+        strlcat(sb, "its", sizeof(sb));
       else if (otokens[i] == ch)
-        strcat(sb, "your");
+        strlcat(sb, "your", sizeof(sb));
       else
-        strcat(sb, HSHR((char_data *)otokens[i]));
+        strlcat(sb, HSHR((char_data *)otokens[i]), sizeof(sb));
       break;
 
     case '&':
       if (!otokens[i] || !CAN_SEE(ch, (char_data *)otokens[i]))
-        strcat(sb, "it");
+        strlcat(sb, "it", sizeof(sb));
       else if (otokens[i] == ch)
-        strcat(sb, "you");
+        strlcat(sb, "you", sizeof(sb));
       else
-        strcat(sb, HSSH((char_data *)otokens[i]));
+        strlcat(sb, HSSH((char_data *)otokens[i]), sizeof(sb));
       break;
 
     case '*':
       if (!otokens[i] || !CAN_SEE(ch, (char_data *)otokens[i]))
-        strcat(sb, "it");
+        strlcat(sb, "it", sizeof(sb));
       else if (otokens[i] == ch)
-        strcat(sb, "you");
+        strlcat(sb, "you", sizeof(sb));
       else
-        strcat(sb, HMHR((char_data *)otokens[i]));
+        strlcat(sb, HMHR((char_data *)otokens[i]), sizeof(sb));
       break;
 
     case '?':
       if (!otokens[i])
-        strcat(sb, "something");
+        strlcat(sb, "something", sizeof(sb));
       else
-        strcat(sb, OBJS(((obj_data *)otokens[i]), ch));
+        strlcat(sb, OBJS(((obj_data *)otokens[i]), ch), sizeof(sb));
       break;
     }
   }
 
-  strcat(sb, tokens[i]);
-  strcat(sb, "\n\r");
+  strlcat(sb, tokens[i], sizeof(sb));
+  strlcat(sb, "\n\r", sizeof(sb));
   // Removed following line to prevent DG Scripts from capitalizing EVERY LINE.
   // Ornir 02/21/18
   //sb[0] = toupper(sb[0]);

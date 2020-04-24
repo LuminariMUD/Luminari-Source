@@ -657,8 +657,8 @@ void trigedit_save(struct descriptor_data *d)
       strcpy(buf, ""); /* strcpy OK for MAX_CMD_LENGTH > 0*/
       for (cmd = trig->cmdlist; cmd; cmd = cmd->next)
       {
-        strcat(buf, cmd->cmd);
-        strcat(buf, "\n");
+        strlcat(buf, cmd->cmd, sizeof(buf));
+        strlcat(buf, "\n", sizeof(buf));
       }
 
       if (!buf[0])
@@ -1028,7 +1028,7 @@ int format_script(struct descriptor_data *d)
       return FALSE;
     }
     len = len + nlen + llen;
-    strcat(nsc, line); /* strcat OK, size checked above */
+    strlcat(nsc, line, sizeof(nsc)); /* strcat OK, size checked above */
 
     if (indent_next)
     {

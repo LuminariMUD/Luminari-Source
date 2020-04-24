@@ -509,9 +509,9 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     for (i = 0; i < PATH_SIZE(mob); i++)
     {
       snprintf(buf2, sizeof(buf2), "%d ", GET_PATH(mob, i));
-      strcat(buf, buf2);
+      strlcat(buf, buf2, sizeof(buf));
     }
-    strcat(buf, "\n");
+    strlcat(buf, "\n", sizeof(buf));
     fprintf(fd, buf);
   }
   for (i = 0; i < NUM_FEATS; i++)

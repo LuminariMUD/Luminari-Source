@@ -73,7 +73,7 @@ void update_msdp_actions(struct char_data *ch)
             (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
             (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
 
-    strcat(msdp_buffer, buf);
+    strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
     first = FALSE;
 
     MSDPSetTable(ch->desc, eMSDP_ACTIONS, msdp_buffer);

@@ -388,7 +388,7 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d)
           grn, nrm,
           grn, nrm);
 
-  strcat(buf, "Enter choice (0 to end/quit):  ");
+  strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, buf);
   OLC_MODE(d) = HLQEDIT_INCOMMAND;
 }
@@ -424,7 +424,7 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
           grn, nrm,
           grn, nrm);
 
-  strcat(buf, "Enter choice (0 to end/quit):  ");
+  strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, buf);
   OLC_MODE(d) = HLQEDIT_OUTCOMMANDMENU;
 }
@@ -491,10 +491,10 @@ void hlqedit_disp_menu(struct descriptor_data *d)
                   quest->in->value);
 
         if (quest->in->next)
-          strcat(buf, " etc..");
+          strlcat(buf, " etc..", sizeof(buf));
       }
     }
-    strcat(buf, "\r\n");
+    strlcat(buf, "\r\n", sizeof(buf));
     send_to_char(d->character, buf);
 
     num++;

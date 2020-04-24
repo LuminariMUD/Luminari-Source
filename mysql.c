@@ -690,7 +690,7 @@ void insert_path(struct path_data *path)
   {
     char buf2[100];
     snprintf(buf2, sizeof(buf2), "%d %d%s", path->vertices[vtx].x, path->vertices[vtx].y, (vtx + 1 == path->num_vertices ? ")')" : ","));
-    strcat(linestring, buf2);
+    strlcat(linestring, buf2, sizeof(linestring));
   }
 
   log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);

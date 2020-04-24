@@ -1014,7 +1014,7 @@ bool display_class_info(struct char_data *ch, char *classname)
       {
         snprintf(buf2, sizeof(buf2), ", %s%s%s",
                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
-        strcat(buf, buf2);
+        strlcat(buf, buf2, sizeof(buf));
       }
     }
   }
