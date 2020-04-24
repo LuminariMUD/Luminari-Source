@@ -18,12 +18,14 @@ PROFILE =
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
 ##############################################################################
 MKTIME	:= \""$(shell date)"\"
+MKUSER  := \""$(USER)"\"
+MKHOST  := \""$(HOSTNAME)"\"
 BRANCH	:= \""$(shell git branch)"\"
 PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = ../bin
 
-CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 
 LIBS =  -lcrypt -lgd -lm -lmysqlclient
 

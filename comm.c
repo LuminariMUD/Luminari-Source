@@ -217,6 +217,10 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
 
 int main(int argc, char **argv)
 {
+  /* Copy to stack memory to ensure the build info is embedded in core dumps */
+  char embed_version_build[128];
+  snprintf(embed_version_build, sizeof(embed_version_build), "%s\r\n%s", luminari_version, luminari_build);
+
   int pos = 1;
   const char *dir = NULL;
 
