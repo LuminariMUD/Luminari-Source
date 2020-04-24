@@ -3427,7 +3427,11 @@ ACMD(do_show)
       if ((l = real_mobile(i)) >= 0)
       {
         if (MOB_FLAGGED(&mob_proto[l], MOB_CITIZEN))
-          snprintf(buf, sizeof(buf), "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
+        {
+          char res_buf[128];
+          snprintf(res_buf, sizeof(res_buf), "[%5d] %-40s\r\n", i, mob_proto[l].player.short_descr);
+          strlcat(buf, res_buf, sizeof(buf));
+        }
       }
     }
     page_string(ch->desc, buf, 1);
@@ -3453,7 +3457,11 @@ ACMD(do_show)
       if ((l = real_mobile(i)) >= 0)
       {
         if (MOB_FLAGGED(&mob_proto[l], MOB_GUARD))
-          snprintf(buf, sizeof(buf), "%s[%5d] %-40s\r\n", buf, i, mob_proto[l].player.short_descr);
+        {
+          char res_buf[128];
+          snprintf(res_buf, sizeof(res_buf), "[%5d] %-40s\r\n", i, mob_proto[l].player.short_descr);
+          strlcat(buf, res_buf, sizeof(buf));
+        }
       }
     }
     page_string(ch->desc, buf, 1);
@@ -6742,6 +6750,7 @@ ACMD(do_objlist)
   char buf3[8192];
   char buf4[8192];
   char buf5[8192];
+  char tmp_buf[1024];
   one_argument(argument, (char *)&value);
 
   if (*value && is_number(value))
@@ -6766,20 +6775,24 @@ ACMD(do_objlist)
 
       quest = is_object_in_a_quest(obj);
 
-      snprintf(buf, sizeof(buf), "%s[%5d] %s   %s\r\n", buf, i,
-              obj->short_description, (quest ? "(\tcUsed in Quests\tn)" : ""));
+      snprintf(tmp_buf, sizeof(tmp_buf), "[%5d] %s   %s\r\n", i,
+               obj->short_description, (quest ? "(\tcUsed in Quests\tn)" : ""));
+      strlcat(buf, tmp_buf, sizeof(buf));
       switch (GET_OBJ_TYPE(obj))
       {
       case ITEM_WEAPON:
-        snprintf(buf, sizeof(buf), "%s      \tcWeapon\tn: %dd%d ", buf, GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+        snprintf(tmp_buf, sizeof(tmp_buf), "      \tcWeapon\tn: %dd%d ", GET_OBJ_VAL(obj, 1), GET_OBJ_VAL(obj, 2));
+        strlcat(buf, tmp_buf, sizeof(buf));
         break;
       case ITEM_ARMOR:
-        snprintf(buf, sizeof(buf), "%s      \tcAC\tn: %d ", buf, GET_OBJ_VAL(obj, 0));
+        snprintf(tmp_buf, sizeof(tmp_buf), "      \tcAC\tn: %d ", GET_OBJ_VAL(obj, 0));
+        strlcat(buf, tmp_buf, sizeof(buf));
         break;
       default:
-        snprintf(buf, sizeof(buf), "%s      \tcValue\tn: %d/%d/%d/%d ", buf,
+        snprintf(tmp_buf, sizeof(tmp_buf), "      \tcValue\tn: %d/%d/%d/%d ",
                 GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
                 GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
+        strlcat(buf, tmp_buf, sizeof(buf));
         break;
       }
 
@@ -6787,8 +6800,9 @@ ACMD(do_objlist)
         if (obj->affected[m].modifier)
         {
           sprinttype(obj->affected[m].location, apply_types, buf2, sizeof(buf2));
-          snprintf(buf, sizeof(buf), "%s\tc%s\tn%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
-                  obj->affected[m].modifier);
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tc%s\tn%s%d ", buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
+                   obj->affected[m].modifier);
+          strlcat(buf, tmp_buf, sizeof(buf));
         }
       strlcat(buf, "\r\n", sizeof(buf));
 
@@ -6803,8 +6817,10 @@ ACMD(do_objlist)
         buf5[0] = 0;
       if (buf3[0] == 0 && buf4[0] == 0 && buf5[0] == 0)
         strcpy(buf3, "NOBITS ");
-      snprintf(buf, sizeof(buf), "%s      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n", buf,
-              buf2, buf3, buf4, buf5);
+
+      snprintf(tmp_buf, sizeof(tmp_buf), "      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n",
+               buf2, buf3, buf4, buf5);
+      strlcat(buf, tmp_buf, sizeof(buf));
     }
   }
   page_string(ch->desc, buf, 1);
@@ -8303,7 +8319,10 @@ ACMD(do_players)
       {
         if (counter)
           strlcat(buf2, " / ", sizeof(buf2));
-        snprintf(buf2, sizeof(buf2), "%s%d %s", buf2, CLASS_LEVEL(d->character, i), CLSLIST_ABBRV(i));
+        char res_buf[128];
+        snprintf(res_buf, sizeof(res_buf), "%d %s", CLASS_LEVEL(d->character, i), CLSLIST_ABBRV(i));
+        strlcat(buf2, res_buf, sizeof(buf2));
+
         counter++;
       }
     }
