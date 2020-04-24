@@ -278,8 +278,12 @@ void show_level_history(struct char_data *ch, int level)
             case FEAT_WEAPON_MASTERY:
             case FEAT_WEAPON_FLURRY:
             case FEAT_WEAPON_SUPREMACY:
-                snprintf(buf, sizeof(buf), "%s (%s)", buf, weapon_family[sub_feat]);
+            {
+                char res_buf[128];
+                snprintf(res_buf, sizeof(res_buf), " (%s)", weapon_family[sub_feat]);
+                strlcat(buf, res_buf, sizeof(buf));
                 break;
+            }
             case FEAT_SKILL_FOCUS:
             case FEAT_EPIC_SKILL_FOCUS:
                 sprintf(buf + strlen(buf), " (%s)", spell_info[sub_feat].name);

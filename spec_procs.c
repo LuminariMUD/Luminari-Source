@@ -8327,7 +8327,9 @@ void set_magical_obj_name(struct obj_data *obj, int level)
     for (i = 0; i < strlen(buf); i++)
       if (buf[i] == ' ')
         buf[i] = '-';
-    snprintf(buf, sizeof(buf), "%s %s +%d", buf, obj->name, level);
+    char res_buf[128];
+    snprintf(res_buf, sizeof(res_buf), " %s +%d", obj->name, level);
+    strlcat(buf, res_buf, sizeof(buf));
   }
   else
   {

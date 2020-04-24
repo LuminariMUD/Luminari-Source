@@ -2126,7 +2126,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
     if (!*buf)
       snprintf(buf, sizeof(buf), "You see %s", GET_NAME(i));
     else
-      snprintf(buf, sizeof(buf), "%s%s", buf, GET_NAME(i));
+      strlcat(buf, GET_NAME(i), sizeof(buf));
     if (--count > 1)
       strlcat(buf, ", ", sizeof(buf));
     else if (count == 1)
@@ -2792,7 +2792,9 @@ ACMD(do_score)
       {
         if (counter)
           strlcat(buf, " / ", sizeof(buf));
-        snprintf(buf, sizeof(buf), "%s%d %s", buf, CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        char res_buf[32];
+        snprintf(res_buf, sizeof(res_buf), "%d %s", CLASS_LEVEL(ch, i), CLSLIST_ABBRV(i));
+        strlcat(buf, res_buf, sizeof(buf));
         counter++;
       }
     }

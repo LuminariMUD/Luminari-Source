@@ -53,13 +53,13 @@ void zedit_create_index(int znum)
 
   if (!(oldfile = fopen(old_name, "r")))
   {
-    snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", buf);
+    snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", old_name);
     log(buf);
     return;
   }
   else if (!(newfile = fopen(new_name, "w")))
   {
-    snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", buf);
+    snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", new_name);
     log(buf);
     return;
   }
