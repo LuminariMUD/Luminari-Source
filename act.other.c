@@ -47,6 +47,7 @@
 #include "domains_schools.h"
 #include "spells.h"
 #include "spell_prep.h"
+#include "premadebuilds.h"
 
 #define SHAPE_AFFECTS 3
 #define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
@@ -1824,7 +1825,10 @@ ACMD(do_gain)
     return;
   }
 
-  one_argument(argument, arg);
+  if (!GET_PREMADE_BUILD_CLASS(ch))
+    one_argument(argument, arg);
+  else
+    snprintf(arg, MAX_INPUT_LENGTH, "%s", class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
 
   if (!*arg)
   {
@@ -1946,8 +1950,11 @@ ACMD(do_gain)
       if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
         run_autowiz();
 
-      send_to_char(ch, "\tMDon't forget to \tmSTUDY\tM to improve"
-                       " your abilities, feats and stats!\tn\r\n");
+      if (!GET_PREMADE_BUILD_CLASS(ch))
+        send_to_char(ch, "\tMDon't forget to \tmSTUDY\tM to improve"
+                         " your abilities, feats and stats!\tn\r\n");
+      else
+        advance_premade_build(ch);
     }
   }
 }

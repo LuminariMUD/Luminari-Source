@@ -3340,6 +3340,7 @@ struct player_special_data_saved
     int grand_discovery;
 
     ubyte template;
+    byte premade_build;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

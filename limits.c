@@ -915,8 +915,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
-    send_to_char(ch,
-                 "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+    send_to_char(ch, "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
 
   return gain;
 }
