@@ -1116,7 +1116,7 @@ static void set_stats_menu(struct descriptor_data *d)
                   "To set up your base ability scores type the number to the left of the ability score \r\n"
                   "you wish to modify and press enter, then type the number of points you wish to invest \r\n"
                   "or remove as a digit.\r\n"
-                  "EG. 0 <ENTER> 6 <ENTER>\r\n"
+                  "EG. 0 <ENTER> 4 <ENTER>\r\n"
                   "This example willl add 4 points to your strength score.  Note that higher ability scores \r\n"
                   "use up more points as per the table above.\r\n"
                   "\r\n"
