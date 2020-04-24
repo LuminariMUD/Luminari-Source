@@ -4391,7 +4391,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
                 snprintf(buf, sizeof(buf), "%-40s ", buf3);
               //custom_output = TRUE;
             }
-            strcat(buf2, buf);
+            strlcat(buf2, buf, sizeof(buf2));
             none_shown = FALSE;
           }
         }
@@ -4430,7 +4430,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
                 snprintf(buf, sizeof(buf), "%-40s ", buf3);
               //custom_output = TRUE;
             }
-            strcat(buf2, buf);
+            strlcat(buf2, buf, sizeof(buf2));
             none_shown = FALSE;
           }
         }
@@ -4457,7 +4457,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
                 snprintf(buf, sizeof(buf), "%-40s ", buf3);
               //custom_output = TRUE;
             }
-            strcat(buf2, buf);
+            strlcat(buf2, buf, sizeof(buf2));
             none_shown = FALSE;
           }
         }
@@ -4476,7 +4476,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d hp/5 sec)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_HEALING) * 3);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DAMAGE_REDUCTION)
@@ -4491,7 +4491,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, 3 * HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_IMPROVED_FAMILIAR)
@@ -4506,7 +4506,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SHRUG_DAMAGE)
@@ -4521,7 +4521,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ARMOR_SKIN)
@@ -4536,7 +4536,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_SKIN));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SORCERER_BLOODLINE_DRACONIC)
@@ -4551,7 +4551,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DRACONIC_HERITAGE_BREATHWEAPON)
@@ -4566,7 +4566,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DRACONIC_HERITAGE_CLAWS)
@@ -4581,7 +4581,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_NEW_ARCANA)
@@ -4596,7 +4596,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (extra circle slots: %d/%d/%d)", feat_list[i].name, NEW_ARCANA_SLOT(ch, 0), NEW_ARCANA_SLOT(ch, 1), NEW_ARCANA_SLOT(ch, 2));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DRACONIC_BLOODLINE_ARCANA)
@@ -4611,7 +4611,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES || i == FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)
@@ -4626,7 +4626,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (resist %s)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_IMPROVED_REACTION)
@@ -4641,7 +4641,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_NATURAL_ATTACK)
@@ -4656,7 +4656,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d attack dice rolls)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ATTACK));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_AC_BONUS)
@@ -4671,7 +4671,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_AC_BONUS));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_UNSTOPPABLE_STRIKE)
@@ -4686,7 +4686,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d percent)", feat_list[i].name, HAS_FEAT(ch, FEAT_UNSTOPPABLE_STRIKE) * 5);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ARMOR_TRAINING)
@@ -4701,7 +4701,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMOR_TRAINING));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_WEAPON_TRAINING)
@@ -4716,7 +4716,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d ranks)", feat_list[i].name, HAS_FEAT(ch, FEAT_WEAPON_TRAINING));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_CRITICAL_SPECIALIST)
@@ -4731,7 +4731,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (-%d threat)", feat_list[i].name, HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SLOW_FALL)
@@ -4746,7 +4746,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d feet)", feat_list[i].name, 10 * HAS_FEAT(ch, FEAT_SLOW_FALL));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_EPIC_PROWESS)
@@ -4761,7 +4761,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d attack bonus)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_PROWESS));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_EPIC_TOUGHNESS)
@@ -4776,7 +4776,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d hp)", feat_list[i].name, (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS) * 30));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ENERGY_RESISTANCE)
@@ -4791,7 +4791,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENERGY_RESISTANCE) * 3);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_HASTE)
@@ -4806,7 +4806,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (3x/day)", feat_list[i].name);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SACRED_FLAMES)
@@ -4821,7 +4821,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_SACRED_FLAMES));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DRAGON_MOUNT_BREATH)
@@ -4836,7 +4836,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BREATH));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DRAGON_MOUNT_BOOST)
@@ -4851,7 +4851,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_DRAGON_MOUNT_BOOST));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_BREATH_WEAPON)
@@ -4866,7 +4866,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%dd8 dmg|%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_BREATH_WEAPON), HAS_FEAT(ch, FEAT_BREATH_WEAPON));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_RAGE)
@@ -4881,7 +4881,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_RAGE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_DEFENSIVE_STANCE)
@@ -4896,7 +4896,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ENHANCED_SPELL_DAMAGE)
@@ -4911,7 +4911,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_EMPOWERED_MAGIC)
@@ -4926,7 +4926,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ENHANCE_SPELL)
@@ -4941,7 +4941,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d dam dice)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_SPELL) * 5);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_NATURAL_ARMOR_INCREASE)
@@ -4956,7 +4956,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d ac)", feat_list[i].name, HAS_FEAT(ch, FEAT_NATURAL_ARMOR_INCREASE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_GREAT_STRENGTH)
@@ -4971,7 +4971,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_STRENGTH));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_GREAT_DEXTERITY)
@@ -4986,7 +4986,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_DEXTERITY));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_GREAT_CONSTITUTION)
@@ -5001,7 +5001,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CONSTITUTION));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_GREAT_INTELLIGENCE)
@@ -5016,7 +5016,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_INTELLIGENCE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_GREAT_WISDOM)
@@ -5031,7 +5031,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_WISDOM));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_GREAT_CHARISMA)
@@ -5046,7 +5046,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_GREAT_CHARISMA));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_POISON_SAVE_BONUS)
@@ -5061,7 +5061,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_BOMBS)
@@ -5076,7 +5076,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ALCHEMICAL_DISCOVERY)
@@ -5091,7 +5091,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ALCHEMICAL_DISCOVERY));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SNEAK_ATTACK)
@@ -5106,7 +5106,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ANIMATE_DEAD)
@@ -5121,7 +5121,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ANIMATE_DEAD));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ARMORED_SPELLCASTING)
@@ -5136,7 +5136,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_TRAP_SENSE)
@@ -5151,7 +5151,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TRAP_SENSE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_SELF_CONCEALMENT)
@@ -5166,7 +5166,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_ENHANCE_ARROW_MAGIC)
@@ -5181,7 +5181,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_IMPROMPTU_SNEAK_ATTACK)
@@ -5196,7 +5196,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_FAST_CRAFTER)
@@ -5211,7 +5211,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (-%d seconds)", feat_list[i].name, HAS_FEAT(ch, FEAT_FAST_CRAFTER) * 10);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_PROFICIENT_CRAFTER)
@@ -5226,7 +5226,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_CRAFTER));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_PROFICIENT_HARVESTER)
@@ -5241,7 +5241,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%-20s (+%d to checks)", feat_list[i].name, HAS_FEAT(ch, FEAT_PROFICIENT_HARVESTER));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
       else if (i == FEAT_THEURGE_SPELLCASTING)
@@ -5256,7 +5256,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
           snprintf(buf3, sizeof(buf3), "%-20s (%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_THEURGE_SPELLCASTING));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
-        strcat(buf2, buf);
+        strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
 
         /* DEFAULT output */
@@ -5272,7 +5272,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         {
           snprintf(buf, sizeof(buf), "%-40s ", feat_list[i].name);
         }
-        strcat(buf2, buf); /* The above, ^ should always be safe to do. */
+        strlcat(buf2, buf, sizeof(buf2)); /* The above, ^ should always be safe to do. */
         none_shown = FALSE;
       }
 
@@ -5282,7 +5282,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         count++;
         if (count % 2 == 0)
-          strcat(buf2, "\r\n");
+          strlcat(buf2, "\r\n", sizeof(buf2));
       }
 
       /* alternatively, list available or full feat lists */
@@ -5303,7 +5303,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
         snprintf(buf, sizeof(buf), "%-40s ", feat_list[i].name);
       }
 
-      strcat(buf2, buf); /* The above, ^ should always be safe to do. */
+      strlcat(buf2, buf, sizeof(buf2)); /* The above, ^ should always be safe to do. */
       none_shown = FALSE;
 
       /*  If we are not in description mode, split the output up in columns. */
@@ -5311,7 +5311,7 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
       {
         count++;
         if (count % 2 == 0)
-          strcat(buf2, "\r\n");
+          strlcat(buf2, "\r\n", sizeof(buf2));
       }
     }
 
@@ -5323,17 +5323,17 @@ void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data
   if (none_shown)
   {
     snprintf(buf, sizeof(buf), "You do not know any feats at this time.\r\n");
-    strcat(buf2, buf);
+    strlcat(buf2, buf, sizeof(buf2));
   }
 
   if (count % 2 == 1) /* Only one feat on last row */
-    strcat(buf2, "\r\n");
+    strlcat(buf2, "\r\n", sizeof(buf2));
 
-  strcat(buf2, "\tC");
-  strcat(buf2, line_string(line_length, '-', '-'));
-  strcat(buf2, "\tDSyntax: feats < known|available|all  <description> >\tn\r\n");
-  strcat(buf2, "\tDType 'feat info <name of feat>' to get specific information about a particular feat.\tn\r\n");
-  strcat(buf2, "\tDType 'class feats <name of class>' to get a list of free feats that class gets.\tn\r\n");
+  strlcat(buf2, "\tC", sizeof(buf2));
+  strlcat(buf2, line_string(line_length, '-', '-'), sizeof(buf2));
+  strlcat(buf2, "\tDSyntax: feats < known|available|all  <description> >\tn\r\n", sizeof(buf2));
+  strlcat(buf2, "\tDType 'feat info <name of feat>' to get specific information about a particular feat.\tn\r\n", sizeof(buf2));
+  strlcat(buf2, "\tDType 'class feats <name of class>' to get a list of free feats that class gets.\tn\r\n", sizeof(buf2));
 
   if (!viewer)
     viewer = ch;
@@ -5521,7 +5521,7 @@ bool display_feat_info(struct char_data *ch, char *featname)
       {
         snprintf(buf2, sizeof(buf2), ", %s%s%s",
                 (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
-        strcat(buf, buf2);
+        strlcat(buf, buf2, sizeof(buf));
       }
     }
   }

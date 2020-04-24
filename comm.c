@@ -1603,28 +1603,28 @@ static char *make_prompt(struct descriptor_data *d)
         if (len < sizeof(prompt))
         {
           /* tank condition */
-          strcat(prompt, " \tCTC:");
+          strlcat(prompt, " \tCTC:", sizeof(prompt));
           if (GET_MAX_HIT(tank) > 0)
             percent = (100 * GET_HIT(tank)) / GET_MAX_HIT(tank);
           else
             percent = -1;
 
           if (percent >= 100)
-            strcat(prompt, " \t[F050]perfect\tn");
+            strlcat(prompt, " \t[F050]perfect\tn", sizeof(prompt));
           else if (percent >= 90)
-            strcat(prompt, " \t[F350]excellent\tn");
+            strlcat(prompt, " \t[F350]excellent\tn", sizeof(prompt));
           else if (percent >= 75)
-            strcat(prompt, " \t[F450]good\tn");
+            strlcat(prompt, " \t[F450]good\tn", sizeof(prompt));
           else if (percent >= 50)
-            strcat(prompt, " \t[F550]fair\tn");
+            strlcat(prompt, " \t[F550]fair\tn", sizeof(prompt));
           else if (percent >= 30)
-            strcat(prompt, " \t[F530]poor\tn");
+            strlcat(prompt, " \t[F530]poor\tn", sizeof(prompt));
           else if (percent >= 15)
-            strcat(prompt, " \t[F520]bad\tn");
+            strlcat(prompt, " \t[F520]bad\tn", sizeof(prompt));
           else if (percent >= 0)
-            strcat(prompt, " \t[F510]awful\tn");
+            strlcat(prompt, " \t[F510]awful\tn", sizeof(prompt));
           else
-            strcat(prompt, " \t[F500]unconscious\tn");
+            strlcat(prompt, " \t[F500]unconscious\tn", sizeof(prompt));
         }
         len += 30; // just counting the strcat's above
       }            /* end tank elements */
@@ -1645,23 +1645,23 @@ static char *make_prompt(struct descriptor_data *d)
 
       if (len < sizeof(prompt))
       {
-        strcat(prompt, " \tREC:");
+        strlcat(prompt, " \tREC:", sizeof(prompt));
         if (percent >= 100)
-          strcat(prompt, " \t[F050]perfect\tn");
+          strlcat(prompt, " \t[F050]perfect\tn", sizeof(prompt));
         else if (percent >= 90)
-          strcat(prompt, " \t[F350]excellent\tn");
+          strlcat(prompt, " \t[F350]excellent\tn", sizeof(prompt));
         else if (percent >= 75)
-          strcat(prompt, " \t[F450]good\tn");
+          strlcat(prompt, " \t[F450]good\tn", sizeof(prompt));
         else if (percent >= 50)
-          strcat(prompt, " \t[F550]fair\tn");
+          strlcat(prompt, " \t[F550]fair\tn", sizeof(prompt));
         else if (percent >= 30)
-          strcat(prompt, " \t[F530]poor\tn");
+          strlcat(prompt, " \t[F530]poor\tn", sizeof(prompt));
         else if (percent >= 15)
-          strcat(prompt, " \t[F520]bad\tn");
+          strlcat(prompt, " \t[F520]bad\tn", sizeof(prompt));
         else if (percent >= 0)
-          strcat(prompt, " \t[F510]awful\tn");
+          strlcat(prompt, " \t[F510]awful\tn", sizeof(prompt));
         else
-          strcat(prompt, " \t[F500]unconscious\tn");
+          strlcat(prompt, " \t[F500]unconscious\tn", sizeof(prompt));
         len += 30; // just counting the strcat's above
       }
     } // end fighting
@@ -3643,7 +3643,7 @@ void update_msdp_room(struct char_data *ch)
 
         snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
         //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
-        strcat(room_exits, buf3);
+        strlcat(room_exits, buf3, sizeof(room_exits));
       }
 
       //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
@@ -3819,20 +3819,20 @@ static void msdp_update(void)
 
           snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
           //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
-          strcat(room_exits, buf3);
+          strlcat(room_exits, buf3, sizeof(room_exits));
         }
 
         // Sectors
         //ector_buf, "%c", MSDP_TABLE_OPEN);
-        //strcat(sectors, sector_buf);
+        //strlcat(sectors, sector_buf, sizeof(sectors));
         for (sector = 0; sector < NUM_ROOM_SECTORS; sector++)
         {
           sector_buf[0] = '\0';
           snprintf(sector_buf, sizeof(sector_buf), "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
-          strcat(sectors, sector_buf);
+          strlcat(sectors, sector_buf, sizeof(sectors));
         }
         //snprintf(sector_buf, sizeof(sector_buf), "%c", MSDP_TABLE_CLOSE);
-        //strcat(sectors, sector_buf);
+        //strlcat(sectors, sector_buf, sizeof(sectors));
 
         MSDPSetTable(d, eMSDP_SECTORS, sectors);
         // End Sectors

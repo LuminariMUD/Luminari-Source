@@ -845,7 +845,7 @@ void update_msdp_affects(struct char_data *ch)
             (char)MSDP_TABLE_OPEN,
             (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
             (char)MSDP_ARRAY_OPEN);
-    strcat(msdp_buffer, buf2);
+    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
     for (i = 0; i < NUM_AFF_FLAGS; i++)
     {
       if (IS_SET_AR(AFF_FLAGS(ch), i))
@@ -860,7 +860,7 @@ void update_msdp_affects(struct char_data *ch)
                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
                 (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
                 (char)MSDP_TABLE_CLOSE);
-        strcat(msdp_buffer, buf);
+        strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
     snprintf(buf2, sizeof(buf2), "%c"
@@ -869,7 +869,7 @@ void update_msdp_affects(struct char_data *ch)
             (char)MSDP_ARRAY_CLOSE,
             (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
             (char)MSDP_ARRAY_OPEN);
-    strcat(msdp_buffer, buf2);
+    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
     for (af = ch->affected; af; af = next)
     {
       char buf[4000]; // Buffer for building the affect table for MSDP
@@ -889,14 +889,14 @@ void update_msdp_affects(struct char_data *ch)
               (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
               (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
               (char)MSDP_TABLE_CLOSE);
-      strcat(msdp_buffer, buf);
+      strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       first = FALSE;
     }
     snprintf(buf2, sizeof(buf2), "%c"
                   "%c",
             (char)MSDP_ARRAY_CLOSE,
             (char)MSDP_TABLE_CLOSE);
-    strcat(msdp_buffer, buf2);
+    strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
 
     //send_to_char(ch, "%s", msdp_buffer);
 

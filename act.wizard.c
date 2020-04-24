@@ -6790,7 +6790,7 @@ ACMD(do_objlist)
           snprintf(buf, sizeof(buf), "%s\tc%s\tn%s%d ", buf, buf2, (obj->affected[m].modifier > 0 ? "+" : ""),
                   obj->affected[m].modifier);
         }
-      strcat(buf, "\r\n");
+      strlcat(buf, "\r\n", sizeof(buf));
 
       sprintbit((long)obj->obj_flags.wear_flags, wear_bits, buf2, sizeof(buf2));
 
@@ -8302,7 +8302,7 @@ ACMD(do_players)
       if (d->character && CLASS_LEVEL(d->character, i))
       {
         if (counter)
-          strcat(buf2, " / ");
+          strlcat(buf2, " / ", sizeof(buf2));
         snprintf(buf2, sizeof(buf2), "%s%d %s", buf2, CLASS_LEVEL(d->character, i), CLSLIST_ABBRV(i));
         counter++;
       }

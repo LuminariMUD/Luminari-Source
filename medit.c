@@ -594,7 +594,7 @@ static void medit_disp_menu(struct descriptor_data *d)
     for (i = 0; i < PATH_SIZE(mob); i++)
     {
       snprintf(buf, sizeof(buf), "%d ", GET_PATH(mob, i));
-      strcat(path, buf);
+      strlcat(path, buf, sizeof(path));
     }
   }
 

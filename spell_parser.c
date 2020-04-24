@@ -223,7 +223,7 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                 {
                         if (!strncmp(syls[j].org, lbuf + ofs, strlen(syls[j].org)))
                         {
-                                strcat(buf, syls[j].news); /* strcat: BAD */
+                                strlcat(buf, syls[j].news, sizeof(buf)); /* strcat: BAD */
                                 ofs += strlen(syls[j].org);
                                 break;
                         }
@@ -1219,8 +1219,8 @@ EVENTFUNC(event_casting)
                                 (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                                 SINFO.name);
                         for (x = CASTING_TIME(ch); x > 0; x--)
-                                strcat(buf, "*");
-                        strcat(buf, "\r\n");
+                                strlcat(buf, "*", sizeof(buf));
+                        strlcat(buf, "\r\n", sizeof(buf));
                         send_to_char(ch, "%s", buf);
 
                         if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
