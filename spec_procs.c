@@ -8116,7 +8116,7 @@ SPECIAL(menzo_chokers)
   return FALSE;
 }
 
-int get_vendor_armor_cost(int level, int armortype, sbyte masterwork)
+int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte masterwork)
 {
   int cost = 0;
 
@@ -8144,10 +8144,13 @@ int get_vendor_armor_cost(int level, int armortype, sbyte masterwork)
   if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
     cost /= 4;
 
+  int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
+  cost = (cost * 100) / (100 + mod);
+
   return MAX(1, cost);
 }
 
-int get_vendor_weapon_cost(int level, int weapontype, sbyte masterwork)
+int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyte masterwork)
 {
   int cost = 0;
 
@@ -8171,6 +8174,9 @@ int get_vendor_weapon_cost(int level, int weapontype, sbyte masterwork)
     cost += 50000;
     break;
   }
+
+  int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
+  cost = (cost * 100) / (100 + mod);
 
   return MAX(1, cost);
 }
@@ -8219,7 +8225,7 @@ void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, 
   {
     if (armor_list[i].wear != wear)
       continue;
-    cost = get_vendor_armor_cost(level, i, masterwork);
+    cost = get_vendor_armor_cost(ch, level, i, masterwork);
     if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
     {
       send_to_char(ch, "%-25s ", armor_list[i].name);
@@ -8242,7 +8248,7 @@ void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
 
   for (i = 2; i < NUM_WEAPON_TYPES; i++)
   {
-    cost = get_vendor_weapon_cost(level, i, masterwork);
+    cost = get_vendor_weapon_cost(ch, level, i, masterwork);
     send_to_char(ch, "%25s %6d gold ", weapon_list[i].name, cost);
     if ((i % 2) == 1)
       send_to_char(ch, "\r\n");
@@ -8443,7 +8449,7 @@ SPECIAL(buyarmor)
     mundane = FALSE;
   }
 
-  cost = get_vendor_armor_cost(level, i, !mundane);
+  cost = get_vendor_armor_cost(ch, level, i, !mundane);
 
   if (GET_GOLD(ch) < cost)
   {
@@ -8617,7 +8623,7 @@ SPECIAL(buyweapons)
     mundane = FALSE;
   }
 
-  cost = get_vendor_weapon_cost(level, i, !mundane);
+  cost = get_vendor_weapon_cost(ch, level, i, !mundane);
 
   if (GET_GOLD(ch) < cost)
   {

@@ -103,6 +103,14 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_SENSE_MOTIVE, amount);
       break;
+    case CLASS_SORCERER:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
+      break;
 
   }
 
@@ -230,6 +238,22 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_STR(ch)++;
+            break;
+        }
+      break;
+    case CLASS_SORCERER:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_CON(ch) += 2; GET_REAL_DEX(ch) += 2;}
+          break;
+          case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_CHA(ch)++;
             break;
         }
       break;
@@ -681,7 +705,96 @@ void levelup_wizard(struct char_data *ch, int level, bool verbose)
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       }
+      GET_SPECIALTY_SCHOOL(ch) = EVOCATION;
       GET_FAMILIAR(ch) = 85; // imp
+      break;
+    case 2:
+      increase_skills(ch, chclass, TRUE, 2);
+      break;
+    case 3:
+      increase_skills(ch, chclass, TRUE, 3);
+      give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      increase_skills(ch, chclass, TRUE, 4);
+      break;
+    case 5:
+      increase_skills(ch, chclass, TRUE, 5);
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_SPELL_DAMAGE, 0);
+      break;
+    case 6:
+      increase_skills(ch, chclass, TRUE, 6);
+      give_premade_feat(ch, verbose, FEAT_SPELL_PENETRATION, 0);
+      break;
+    case 7:
+      increase_skills(ch, chclass, TRUE, 7);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      increase_skills(ch, chclass, TRUE, 8);
+      break;
+    case 9:
+      increase_skills(ch, chclass, TRUE, 9);
+      give_premade_feat(ch, verbose, FEAT_SPELL_FOCUS, EVOCATION);
+      break;
+    case 10:
+      increase_skills(ch, chclass, TRUE, 10);
+      give_premade_feat(ch, verbose, FEAT_MAXIMIZE_SPELL, 0);
+      break;
+    case 11:
+      increase_skills(ch, chclass, TRUE, 11);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      increase_skills(ch, chclass, TRUE, 12);
+      give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
+      break;
+    case 13:
+      increase_skills(ch, chclass, TRUE, 13);
+      break;
+    case 14:
+      increase_skills(ch, chclass, TRUE, 14);
+      break;
+    case 15:
+      increase_skills(ch, chclass, TRUE, 15);
+      give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_FOCUS, EVOCATION);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      increase_skills(ch, chclass, TRUE, 16);
+      break;
+    case 17:
+      increase_skills(ch, chclass, TRUE, 17);
+      break;
+    case 18:
+      increase_skills(ch, chclass, TRUE, 18);
+      give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      break;
+    case 19:
+      increase_skills(ch, chclass, TRUE, 19);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      increase_skills(ch, chclass, TRUE, 20);
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_FAMILIAR, 0);
+      break;
+  }
+}
+
+void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_SORCERER;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      increase_skills(ch, chclass, TRUE, 1);
+      give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      }
+      GET_SPECIALTY_SCHOOL(ch) = EVOCATION;
+      GET_FAMILIAR(ch) = 87; // faerie dragon
       break;
     case 2:
       increase_skills(ch, chclass, TRUE, 2);
