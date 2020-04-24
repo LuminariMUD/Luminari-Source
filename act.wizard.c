@@ -8478,9 +8478,9 @@ void check_auto_shutdown(void)
       "@n");
     tmstr = (char *) asctime(localtime(&mytime));
     *(tmstr + strlen(tmstr) - 1) = '\0';
-    log("Automated Shutdown on %s.", tmstr);
-    send_to_all("Shutting down.\r\n");
-    circle_shutdown = 1;
+    log("Automated Copyover on %s.", tmstr);
+    send_to_all("Executing Automated Copyover.\r\n");
+    perform_do_copyover();
   }
 }
 
