@@ -33,6 +33,7 @@
 #include "spell_prep.h"
 #include "race.h"
 #include "alchemy.h"
+#include "premadebuilds.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -2395,6 +2396,9 @@ void do_start(struct char_data *ch)
   GET_COND(ch, DRUNK) = 0;
   if (CONFIG_SITEOK_ALL)
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
+  if (GET_PREMADE_BUILD_CLASS(ch))
+    advance_premade_build(ch);
+
 }
 
 /* at each level we run this function to assign free CLASS feats */
@@ -5117,7 +5121,7 @@ void load_class_list(void)
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
                      CC, CC, CA, CA, CA, CC, CC,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CC, CC, CC, CA, CA, CA, CC, CC,
+                     CC, CA, CA, CA, CA, CA, CC, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CC, CC, CC, CC, CC, CA,
                      /*survival,swim,use_magic_device,perform*/

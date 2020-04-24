@@ -3297,6 +3297,7 @@ void assign_feats(void)
   /*epic combat feat*/ combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
 
   /* Epic Feats */
+  epicfeat(FEAT_BANE_OF_ENEMIES);
   epicfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
   epicfeat(FEAT_EPIC_PROWESS);
   epicfeat(FEAT_SWARM_OF_ARROWS);

@@ -328,12 +328,12 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
 }
 
 /* added this function to add special wear off handling -zusuk */
-void spec_wear_off(struct char_data *ch, int skillnum)
+bool spec_wear_off(struct char_data *ch, int skillnum)
 {
   if (skillnum >= MAX_SKILLS)
-    return;
+    return FALSE;
   if (skillnum <= 0)
-    return;
+    return FALSE;
 
   switch (skillnum)
   {
@@ -344,20 +344,27 @@ void spec_wear_off(struct char_data *ch, int skillnum)
     SUBRACE(ch) = 0;
     break;
   default:
-    break;
+    return FALSE;
   }
+
+  /* Sucess! */
+  return TRUE;
 }
 
-/* added this function to add wear off messages for skills -zusuk */
-void alt_wear_off_msg(struct char_data *ch, int skillnum)
+/* added this function to add wear off messages for skills -zusuk
+   wondering why i didn't just add this to skillo() or whatnot? */
+bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 {
   if (skillnum < (MAX_SPELLS + 1))
-    return;
+    return FALSE;
   if (skillnum >= MAX_SKILLS)
-    return;
+    return FALSE;
 
   switch (skillnum)
   {
+  case SKILL_SACRED_FLAMES:
+    send_to_char(ch, "Your sacred flames fade away.\r\n");
+    break;
   case SKILL_CHARGE:
     send_to_char(ch, "You complete your charge.\r\n");
     break;
@@ -405,9 +412,12 @@ void alt_wear_off_msg(struct char_data *ch, int skillnum)
   case SKILL_DIRT_KICK:
     send_to_char(ch, "Your vision clears.\r\n");
     break;
-  default:
-    break;
+  default: /* nothing found! */
+    return FALSE;
   }
+
+  /* sucess! */
+  return TRUE;
 }
 
 void rem_room_aff(struct raff_node *raff)
@@ -433,18 +443,21 @@ void affect_update(void)
 
   for (i = character_list; i; i = i->next)
   { /* go through everything */
+
     for (af = i->affected; af; af = next)
     { /* loop his/her aff list */
       next = af->next;
       if (af->duration >= 1) /* duration > 0, decrement */
         af->duration--;
-      else if (af->duration == -1) /* unlimited duration */
+      else if (af->duration <= -1) /* unlimited duration */
         ;
       else
       { /* affect wore off! */
         /* handle spells/skills (use to just handle spells) */
+
         if ((af->spell > 0) && (af->spell <= MAX_SKILLS))
         { /*valid spellnum?*/
+
           /* this is our check to avoid duplicate wear-off messages */
           if (!af->next || (af->next->spell != af->spell) ||
               (af->next->duration > 0))
@@ -454,14 +467,22 @@ void affect_update(void)
             {
               send_to_char(i, "%s\r\n", spell_info[af->spell].wear_off_msg);
             }
+            /* check for alternative message! (skills) */
+            else if (alt_wear_off_msg(i, af->spell))
+            {
+            }
+            /* check for alternative message! (specs, like morph) */
+            else if (spec_wear_off(i, af->spell))
+            {
+            }
             else
-            { /* check for alternative message! */
-              alt_wear_off_msg(i, af->spell);
+            {
+              /* should not get here, problem! */
+              send_to_char(i, "Please send to staff: Missing wear-off message for: (%d)\r\n", af->spell);
             }
           }
         }
-        /* handle special cases (like morph) */
-        spec_wear_off(i, af->spell);
+
         /* ok, finally remove affect */
         affect_remove(i, af);
       }
@@ -3762,11 +3783,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
    * have an accumulative effect, then fail the spell. */
   if (affected_by_spell(victim, spellnum) && !(accum_duration || accum_affect))
   {
-    if (casttype == CAST_WEAPON_POISON)
+    if (casttype == CAST_WEAPON_POISON) {
       ; /* nicer with no message here */
-    else
+      return;
+    } else if (spell_info[spellnum].violent) {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
-    return;
+      return;
+    } else {
+      // if it's a buff, we want to replace it instead of failing
+      affect_from_char(victim, spellnum);
+    }
   }
 
   if (to_vict != NULL)
