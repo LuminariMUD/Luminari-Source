@@ -34,6 +34,12 @@ cpp_extern const char * const luminari_build =
 #if defined(MKTIME)
     "Make time: " MKTIME "\r\n"
 #endif
+#if defined(MKUSER)
+    "Make user: " MKUSER "\r\n"
+#endif
+#if defined(MKHOST)
+    "Make host: " MKHOST "\r\n"
+#endif
 #if defined(BRANCH)
     "Branch: " BRANCH "\r\n"
 #endif
