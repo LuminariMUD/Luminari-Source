@@ -233,7 +233,7 @@ void feat_prereq_spellcasting(int featnum, int casting_type, int prep_type, int 
                                circle);
 
   snprintf(buf, sizeof(buf), "Ability to cast %s %s spells", casting_types[casting_type],
-          spell_preparation_types[prep_type]);
+           spell_preparation_types[prep_type]);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -5516,12 +5516,12 @@ bool display_feat_info(struct char_data *ch, char *featname)
       {
         first = FALSE;
         snprintf(buf, sizeof(buf), "\tcPrerequisites : %s%s%s",
-                (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
+                 (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
       }
       else
       {
         snprintf(buf2, sizeof(buf2), ", %s%s%s",
-                (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
+                 (meets_prerequisite(ch, prereq, w_type) ? "\tn" : "\tr"), prereq->description, "\tn");
         strlcat(buf, buf2, sizeof(buf));
       }
     }
@@ -5533,7 +5533,7 @@ bool display_feat_info(struct char_data *ch, char *featname)
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n",
-          feat_list[feat].description);
+           feat_list[feat].description);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
