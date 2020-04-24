@@ -1365,12 +1365,12 @@ void update_damage_and_effects_over_time(void)
 
     if (ch->player_specials->sticky_bomb[0] != BOMB_NONE)
     {
-      if (ch->player_specials->sticky_bomb[0] != BOMB_FIRE_BRAND && ch->player_specials->sticky_bomb[0] != BOMB_HEALING) {
+      if (ch->player_specials->sticky_bomb[0] != BOMB_FIRE_BRAND && ch->player_specials->sticky_bomb[0] != BOMB_HEALING && FIGHTING(ch)) {
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
-        act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
-        act(buf, FALSE, ch, 0, 0, TO_ROOM);
-        dam = damage(ch, ch, ch->player_specials->sticky_bomb[2], SKILL_BOMB_TOSS, ch->player_specials->sticky_bomb[1], SKILL_BOMB_TOSS);
+        act(buf, FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $N again causing $M %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
+        act(buf, FALSE, ch, 0, FIGHTING(ch), TO_ROOM);
+        dam = damage(ch, FIGHTING(ch), ch->player_specials->sticky_bomb[2], SKILL_BOMB_TOSS, ch->player_specials->sticky_bomb[1], SKILL_BOMB_TOSS);
         ch->player_specials->sticky_bomb[0] = ch->player_specials->sticky_bomb[1] = ch->player_specials->sticky_bomb[2] = 0;
       } else if (ch->player_specials->sticky_bomb[0] != BOMB_HEALING) {
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.", bomb_types[ch->player_specials->sticky_bomb[0]]);
