@@ -42,7 +42,7 @@ void update_msdp_room(struct char_data *ch);
 /* act functions */
 void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
                  void *vict_obj, struct char_data *to, bool carrier_return);
-char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj, void *vict_obj, int type);
+const char *act(const char *str, int hide_invisible, struct char_data *ch, struct obj_data *obj, void *vict_obj, int type);
 
 /* I/O functions */
 void write_to_q(const char *txt, struct txt_q *queue, int aliased);

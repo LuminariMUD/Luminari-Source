@@ -36,7 +36,7 @@ static int extractions_pending = 0;
 static void update_object(struct obj_data *obj, int use);
 
 /* find the first word in a string buffer */
-char *fname(const char *namelist)
+const char *fname(const char *namelist)
 {
   static char holder[READ_SIZE];
   char *point;

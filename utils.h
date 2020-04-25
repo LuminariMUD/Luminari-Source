@@ -136,7 +136,7 @@ size_t file_sizeof(FILE *file);
 int file_numlines(FILE *file);
 IDXTYPE atoidx(const char *str_to_conv);
 char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
-char *strpaste(char *str1, char *str2, char *joiner);
+const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
 void new_affect(struct affected_type *af);
@@ -231,7 +231,7 @@ bool circle_follow(struct char_data *ch, struct char_data *victim);
 
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
-void add_history(struct char_data *ch, char *msg, int type);
+void add_history(struct char_data *ch, const char *msg, int type);
 void look_at_room_number(struct char_data *ch, int ignore_brief,
                          long room_number);
 /* in spec_procs.c but connected to act.informative.c */

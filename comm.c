@@ -3355,7 +3355,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
   last_act_message = strdup(lbuf);
 }
 
-char *act(const char *str, int hide_invisible, struct char_data *ch,
+const char *act(const char *str, int hide_invisible, struct char_data *ch,
           struct obj_data *obj, void *vict_obj, int type)
 {
   struct char_data *to = NULL;

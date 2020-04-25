@@ -42,7 +42,7 @@ const char *money_desc(int amount);
 struct obj_data *create_money(int amount);
 int isname(const char *str, const char *namelist);
 int is_name(const char *str, const char *namelist);
-char *fname(const char *namelist);
+const char *fname(const char *namelist);
 int get_number(char **name);
 
 /* objects */

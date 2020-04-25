@@ -28,7 +28,7 @@
 /***  utility functions ***/
 
 /* utility function to label 'rare grade' gear */
-char *label_rare_grade(int rare_grade)
+const char *label_rare_grade(int rare_grade)
 {
 
   switch (rare_grade)
