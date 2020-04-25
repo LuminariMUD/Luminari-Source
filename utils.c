@@ -3117,10 +3117,10 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad) {
    @param joiner ???.
    @retval char * Pointer to the output to be displayed?
  */
-char *strpaste(char *str1, char *str2, char *joiner) {
+const char *strpaste(const char *str1, const char *str2, const char *joiner) {
   static char ret[MAX_STRING_LENGTH + 1];
-  char *sp1 = str1;
-  char *sp2 = str2;
+  const char *sp1 = str1;
+  const char *sp2 = str2;
   char *rp = ret;
   int jlen = strlen(joiner);
 

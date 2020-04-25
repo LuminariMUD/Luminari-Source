@@ -2655,7 +2655,7 @@ ACMD(do_pour)
 
 static void wear_message(struct char_data *ch, struct obj_data *obj, int where)
 {
-  const char *wear_messages[][2] = {
+  const char * const wear_messages[][2] = {
       {"$n lights $p and holds it.",
        "You light $p and hold it."},
 
@@ -2862,7 +2862,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
       ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE};
 
-  const char *already_wearing[NUM_WEARS] = {
+  const char * const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  //0
       "YOU SHOULD NEVER SEE THIS MESSAGE.  PLEASE REPORT.\r\n",             //1
       "You're already wearing something on both of your ring fingers.\r\n", //2
@@ -3047,7 +3047,7 @@ int find_eq_pos(struct char_data *ch, struct obj_data *obj, char *arg)
 
   /* this is lined up with equipment_types, it SHOULD be lined
    up with wear_bits (constants.c) probably, but not changing the status quo */
-  const char *keywords[NUM_WEARS + 1] = {
+  const char * const keywords[NUM_WEARS + 1] = {
       "!RESERVED!", //0 (takeable)
       "finger",
       "!RESERVED!", // (2nd finger)

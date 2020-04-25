@@ -85,11 +85,11 @@ extern "C"
   /****************/
 
   //extern const char *domain_power_names[NUM_DOMAIN_POWERS + 1];
-  char *domainpower_names[NUM_DOMAIN_POWERS + 1];
-  char *school_names[NUM_SCHOOLS + 1];
-  int restricted_school_reference[NUM_SCHOOLS + 1];
-  char *school_names_specific[NUM_SCHOOLS + 1];
-  char *school_benefits[NUM_SCHOOLS + 1];
+  extern const char * const domainpower_names[NUM_DOMAIN_POWERS + 1];
+  extern const char * const school_names[NUM_SCHOOLS + 1];
+  extern const int restricted_school_reference[NUM_SCHOOLS + 1];
+  extern const char * const school_names_specific[NUM_SCHOOLS + 1];
+  extern const char * const school_benefits[NUM_SCHOOLS + 1];
 
   /****************/
   /****************/

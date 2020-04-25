@@ -30,7 +30,7 @@ char *two_arguments(char *argument, char *first_arg, char *second_arg);
  * depending on whether or not the match must be exact for it to be returned.
  * Returns -1 if not found; 0..n otherwise.  Array must be terminated with a
  * '\n' so it knows to stop searching. */
-int search_block(char *arg, const char **list, bool exact);
+int search_block(char *arg, const char * const *list, bool exact);
 
 int fill_word(char *argument);
 

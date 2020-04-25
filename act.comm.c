@@ -43,7 +43,8 @@ ACMD(do_say)
     send_to_char(ch, "Yes, but WHAT do you want to say?\r\n");
   else
   {
-    char buf[MAX_INPUT_LENGTH + 14], *msg;
+    char buf[MAX_INPUT_LENGTH + 14];
+    const char *msg = NULL;
     arg2 = strdup(argument); // make a copy to send to triggers b4 parse
     struct char_data *vict;
 
@@ -148,7 +149,8 @@ ACMD(do_gsay)
 
 static void perform_tell(struct char_data *ch, struct char_data *vict, char *arg)
 {
-  char buf[MAX_STRING_LENGTH], *msg;
+  char buf[MAX_STRING_LENGTH];
+  const char *msg = NULL;
 
   sentence_case(arg);
   // append period if it's not already there
@@ -206,8 +208,8 @@ ACMD(do_tell)
 {
   int i = 0;
   struct char_data *vict = NULL;
-  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'},
-       *msg = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
+  const char *msg = NULL;
 
   half_chop(argument, buf, buf2);
 
@@ -459,7 +461,8 @@ ACMD(do_gen_comm)
 {
   struct descriptor_data *i;
   char color_on[24];
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *msg = NULL;
+  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  const char *msg = NULL;
   char buf3[MAX_INPUT_LENGTH];
   bool emoting = FALSE;
 
@@ -483,7 +486,7 @@ ACMD(do_gen_comm)
    *           [1] name of the action
    *           [2] message if you're not on the channel
    *           [3] a color string. */
-  const char *com_msgs[][4] = {
+  const char * const com_msgs[][4] = {
       {"You cannot holler!!\r\n",
        "holler",
        "",

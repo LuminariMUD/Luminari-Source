@@ -448,7 +448,7 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
 static void diag_char_to_char(struct char_data *i, struct char_data *ch)
 {
 
-  struct
+  const struct
   {
     byte percent;
     const char *text;
@@ -605,7 +605,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 {
   struct obj_data *furniture;
   char *short_descr;
-  const char *positions[NUM_POSITIONS] = {
+  const char * const positions[NUM_POSITIONS] = {
       " is lying here, dead.",
       " is lying here, mortally wounded.",
       " is lying here, incapacitated.",
@@ -2044,7 +2044,7 @@ void free_history(struct char_data *ch, int type)
 
 #define HIST_LENGTH 100
 
-void add_history(struct char_data *ch, char *str, int type)
+void add_history(struct char_data *ch, const char *str, int type)
 {
   int i = 0;
   char time_str[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
@@ -2093,7 +2093,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 {
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
 
-  const char *how_far[] = {
+  const char * const how_far[] = {
       "close by",
       "a ways off",
       "far off to the"};
@@ -3885,7 +3885,7 @@ ACMD(do_toggle)
 {
   char buf2[4], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
-  const char *types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
+  const char * const types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
 
   const struct
   {

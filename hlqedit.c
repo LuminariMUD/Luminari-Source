@@ -28,7 +28,7 @@
 /*. Function prototypes / Globals / Externals. */
 /*---------------------------------------------*/
 
-char *hlqedit_command = "CIOMADTXFKUS";
+const char * const hlqedit_command = "CIOMADTXFKUS";
 
 /*****************************************************************************/
 

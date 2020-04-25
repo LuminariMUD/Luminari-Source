@@ -3339,7 +3339,8 @@ ACMD(do_clanset)
 ACMD(do_clantalk)
 {
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH],
-      arg[MAX_INPUT_LENGTH], *msg, *arg2;
+      arg[MAX_INPUT_LENGTH], *arg2;
+  const char *msg = NULL;
   clan_vnum c_id;
   struct descriptor_data *i;
   bool leader = FALSE, imm = FALSE;

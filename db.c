@@ -2557,7 +2557,7 @@ void parse_mobile(FILE *mob_f, int nr)
 }
 
 /* read all objects from obj file; generate index and prototypes */
-char *parse_object(FILE *obj_f, int nr)
+const char *parse_object(FILE *obj_f, int nr)
 {
   static int i = 0;
   static char line[READ_SIZE];
