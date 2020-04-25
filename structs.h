@@ -3378,7 +3378,6 @@ struct player_special_data
     char *new_mail_subject;
     char *new_mail_content;
 
-    int sticky_bomb[2];
 };
 
 /** Special data used by NPCs, not PCs */
@@ -3579,6 +3578,8 @@ struct char_data
     struct list_data *events;
 
     struct char_data *last_attacker; // mainly to prevent type_suffering from awarding exp
+
+    int sticky_bomb[2];
 };
 
 /** descriptor-related structures */

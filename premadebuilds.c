@@ -26,6 +26,7 @@
 #include "dg_scripts.h"
 #include "templates.h"
 #include "oasis.h"
+#include "spell_prep.h"
 #include "premadebuilds.h"
 
 void give_premade_skill(struct char_data *ch, bool verbose, int skill, int amount)
@@ -259,6 +260,16 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
       break;
   }
 
+}
+
+void add_premade_sorcerer_spells(struct char_data *ch, int level)
+{
+  switch (level) {
+    case 1:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_MAGIC_MISSILE, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_MAGE_ARMOR, FALSE);
+      break;
+  }
 }
 
 void levelup_warrior(struct char_data *ch, int level, bool verbose)
@@ -793,8 +804,11 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       }
-      GET_SPECIALTY_SCHOOL(ch) = EVOCATION;
       GET_FAMILIAR(ch) = 87; // faerie dragon
+      SET_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC, 1);
+      SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
+      SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
+      ch->player_specials->saved.sorcerer_bloodline_subtype = 1; // draconic
       break;
     case 2:
       increase_skills(ch, chclass, TRUE, 2);
@@ -864,10 +878,11 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_FAMILIAR, 0);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
+  add_premade_sorcerer_spells(ch, level);
 }
 
 void setup_premade_levelup(struct char_data *ch, int chclass)
