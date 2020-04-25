@@ -1028,9 +1028,9 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   {
     sprintbitarray(ROOM_FLAGS(room_number), room_bits, RF_ARRAY_MAX, buf);
     snprintf(buf2, sizeof(buf2), "\tc[%5d]\tn %s \tc[ %s] %s\tn",
-            GET_ROOM_VNUM(room_number),
-            world[room_number].name, buf,
-            sector_types[(world[room_number].sector_type)]);
+             GET_ROOM_VNUM(room_number),
+             world[room_number].name, buf,
+             sector_types[(world[room_number].sector_type)]);
     send_to_char(ch, buf2);
   }
   else
@@ -1918,7 +1918,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
         snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
       }
       snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-              CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
       strlcat(buf, buf2, sizeof(buf));
 
       buf2[0] = '\0';
@@ -1927,7 +1927,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       { /* Handle DR a bit differently */
         snprintf(buf3, sizeof(buf3), "%s", "(see DR)");
       }
-      else if (aff->modifier)
+      else if (aff->modifier && aff->location)
       {
         snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
       }
@@ -3594,10 +3594,10 @@ ACMD(do_users)
 
       if (d->original)
         snprintf(classname, sizeof(classname), "[%2d %s]", GET_LEVEL(d->original),
-                CLASS_ABBR(d->original));
+                 CLASS_ABBR(d->original));
       else
         snprintf(classname, sizeof(classname), "[%2d %s]", GET_LEVEL(d->character),
-                CLASS_ABBR(d->character));
+                 CLASS_ABBR(d->character));
     }
     else
       strcpy(classname, "   -    ");
@@ -3617,8 +3617,8 @@ ACMD(do_users)
       strcpy(idletime, "     ");
 
     snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
-            d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name : "UNDEFINED",
-            state, idletime, timeptr);
+             d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name : "UNDEFINED",
+             state, idletime, timeptr);
 
     if (d->host && *d->host)
       sprintf(line + strlen(line), "[%s]\r\n", d->host);
