@@ -250,8 +250,7 @@ ACMD(do_perform)
 
 /* function for processing individual effects */
 #define BARD_AFFECTS 5
-int performance_effects(struct char_data *ch, struct char_data *tch, struct affected_type af,
-                        int spellnum, int effectiveness, int aoe)
+int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum, int effectiveness, int aoe)
 {
   int return_val = 1, i = 0;
   bool nomessage = FALSE, engage = TRUE;
@@ -387,7 +386,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
   case SKILL_SONG_OF_FLIGHT:
     if (!AFF_FLAGGED(tch, AFF_FLYING))
     {
-      af.duration = 30;
+      af[0].duration = 30;
       SET_BIT_AR(af[0].bitvector, AFF_FLYING);
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
       act("$n fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_ROOM);
@@ -587,7 +586,7 @@ int process_performance(struct char_data *ch, int spellnum,
   case PERFORM_AOE_GROUP:
     if (!GROUP(ch))
     { /* self only */
-      performance_effects(ch, ch, af, spellnum, effectiveness, aoe);
+      performance_effects(ch, ch, spellnum, effectiveness, aoe);
     }
     else
     {
@@ -597,7 +596,7 @@ int process_performance(struct char_data *ch, int spellnum,
         if (IN_ROOM(tch) != IN_ROOM(ch))
           continue;
         /* found a grouppie! */
-        performance_effects(ch, tch, af, spellnum, effectiveness, aoe);
+        performance_effects(ch, tch, spellnum, effectiveness, aoe);
       }
     }
     break;
@@ -612,7 +611,7 @@ int process_performance(struct char_data *ch, int spellnum,
       /* check if offensive aoe is OK */
       if (aoeOK(ch, tch, spellnum))
       {
-        performance_effects(ch, tch, af, spellnum, effectiveness, aoe);
+        performance_effects(ch, tch, spellnum, effectiveness, aoe);
       }
     } /* end for loop */
     break;
@@ -624,7 +623,7 @@ int process_performance(struct char_data *ch, int spellnum,
     {
       tch_next = tch->next_in_room;
 
-      performance_effects(ch, tch, af, spellnum, effectiveness, aoe);
+      performance_effects(ch, tch, spellnum, effectiveness, aoe);
     } /* end for loop */
     break;
 
