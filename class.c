@@ -2405,6 +2405,7 @@ void do_start(struct char_data *ch)
 void process_class_level_feats(struct char_data *ch, int class)
 {
   char featbuf[MAX_STRING_LENGTH];
+  char tmp_buf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
   int class_level = -1, effective_class_level = -1;
   //struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
@@ -2444,7 +2445,8 @@ void process_class_level_feats(struct char_data *ch, int class)
       {
 
       case FEAT_SNEAK_ATTACK:
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYour sneak attack has increased to +%dd6!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+        snprintf(tmp_buf, sizeof(tmp_buf), "\tMYour sneak attack has increased to +%dd6!\tn\r\n", HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+        strlcat(featbuf, tmp_buf, sizeof(featbuf));
         break;
 
       case FEAT_SHRUG_DAMAGE:
@@ -2477,39 +2479,46 @@ void process_class_level_feats(struct char_data *ch, int class)
         GET_DR(ch) = ptr;
         */
 
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYou can now shrug off %d damage!\tn\r\n", featbuf, HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+        snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou can now shrug off %d damage!\tn\r\n", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+        strlcat(featbuf, tmp_buf, sizeof(featbuf));
         break;
 
       case FEAT_STRENGTH_BOOST:
         ch->real_abils.str += 2;
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural strength has increased by +2!\r\n", featbuf);
+        strlcat(featbuf, "\tMYour natural strength has increased by +2!\r\n", sizeof(featbuf));
         break;
 
       case FEAT_CHARISMA_BOOST:
         ch->real_abils.cha += 2;
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural charisma has increased by +2!\r\n", featbuf);
+        strlcat(featbuf, "\tMYour natural charisma has increased by +2!\r\n", sizeof(featbuf));
         break;
 
       case FEAT_CONSTITUTION_BOOST:
         ch->real_abils.con += 2;
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural constitution has increased by +2!\r\n", featbuf);
+        strlcat(featbuf, "\tMYour natural constitution has increased by +2!\r\n", sizeof(featbuf));
         break;
 
       case FEAT_INTELLIGENCE_BOOST:
         ch->real_abils.intel += 2;
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYour natural intelligence has increased by +2!\r\n", featbuf);
+        strlcat(featbuf, "\tMYour natural intelligence has increased by +2!\r\n", sizeof(featbuf));
         break;
 
         /* no special handling */
       default:
         if (HAS_FEAT(ch, feat_assign->feat_num))
-          snprintf(featbuf, sizeof(featbuf), "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+        {
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
                   feat_list[feat_assign->feat_num].name,
                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        }
         else
-          snprintf(featbuf, sizeof(featbuf), "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+        {
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
                   feat_list[feat_assign->feat_num].name,
                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        }
         break;
       }
 
@@ -2649,6 +2658,7 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
 void process_level_feats(struct char_data *ch, int class)
 {
   char featbuf[MAX_STRING_LENGTH];
+  char tmp_buf[MAX_STRING_LENGTH];
   int i = 0;
 
   snprintf(featbuf, sizeof(featbuf), "\tM");
@@ -2664,13 +2674,19 @@ void process_level_feats(struct char_data *ch, int class)
         !HAS_FEAT(ch, level_feats[i][LF_FEAT]))
     {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYou have improved your %s %s!\tn\r\n", featbuf,
+      {
+        snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
                 feat_list[level_feats[i][LF_FEAT]].name,
                 feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
+        strlcat(featbuf, tmp_buf, sizeof(featbuf));
+      }
       else
-        snprintf(featbuf, sizeof(featbuf), "%s\tMYou have gained the %s %s!\tn\r\n", featbuf,
+      {
+        snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
                 feat_list[level_feats[i][LF_FEAT]].name,
                 feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
+        strlcat(featbuf, tmp_buf, sizeof(featbuf));
+      }
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
 
