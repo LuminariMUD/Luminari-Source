@@ -269,6 +269,85 @@ void add_premade_sorcerer_spells(struct char_data *ch, int level)
       known_spells_add(ch, CLASS_SORCERER, SPELL_MAGIC_MISSILE, FALSE);
       known_spells_add(ch, CLASS_SORCERER, SPELL_MAGE_ARMOR, FALSE);
       break;
+    case 2:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_SHIELD, FALSE);
+      break;
+    case 3:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_BURNING_HANDS, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_IDENTIFY, FALSE);
+      break;
+    case 4:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_SCORCHING_RAY, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_MIRROR_IMAGE, FALSE);
+      break;
+    case 5:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_EXPEDITIOUS_RETREAT, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_BLUR, FALSE);
+      break;
+    case 6:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_FIREBALL, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_HASTE, FALSE);
+      break;
+    case 7:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_SHELGARNS_BLADE, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_GRACE, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_CHARISMA, FALSE);
+      break;
+    case 8:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_STONESKIN, FALSE);
+      break;
+    case 9:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_PHANTOM_STEED, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_FIRE_SHIELD, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_GREATER_INVIS, FALSE);
+      break;
+    case 10:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_STRENGTH, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_FIREBRAND, FALSE);
+      break;
+    case 11:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_ENDURANCE, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_HEROISM, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_MINOR_GLOBE, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_CONE_OF_COLD, FALSE);
+      break;
+    case 12:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_GREATER_MIRROR_IMAGE, FALSE);
+      break;
+    case 13:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_ICE_STORM, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_FAITHFUL_HOUND, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_FREEZING_SPHERE, FALSE);
+      break;
+    case 14:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_MISSILE_STORM, FALSE);
+      break;
+    case 15:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_BALL_OF_LIGHTNING, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_TRANSFORMATION, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_DISPLACEMENT, FALSE);
+      break;
+    case 16:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_SUNBURST, FALSE);
+      break;
+    case 17:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_ENCHANT_WEAPON, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_HORRID_WILTING, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_PRISMATIC_SPRAY, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_FEEBLEMIND, FALSE);
+      break;
+    case 18:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_METEOR_SWARM, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_CHAIN_LIGHTNING, FALSE);
+      break;
+    case 19:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_IRONSKIN, FALSE);
+      known_spells_add(ch, CLASS_SORCERER, SPELL_GATE, FALSE);
+
+      break;
+    case 20:
+      known_spells_add(ch, CLASS_SORCERER, SPELL_SUMMON_CREATURE_9, FALSE);
+      break;
   }
 }
 
@@ -808,7 +887,10 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
       SET_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC, 1);
       SET_FEAT(ch, FEAT_DRACONIC_HERITAGE_CLAWS, 1);
       SET_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA, 1);
-      ch->player_specials->saved.sorcerer_bloodline_subtype = 1; // draconic
+      if (IS_EVIL(ch))
+        ch->player_specials->saved.sorcerer_bloodline_subtype = DRACONIC_HERITAGE_RED; // red dragon
+      else
+        ch->player_specials->saved.sorcerer_bloodline_subtype = DRACONIC_HERITAGE_GOLD; // gold dragon
       break;
     case 2:
       increase_skills(ch, chclass, TRUE, 2);
@@ -929,6 +1011,18 @@ void advance_premade_build(struct char_data *ch)
       setup_premade_levelup(ch, chclass);
       level = CLASS_LEVEL(ch, chclass);
       levelup_berserker(ch, level, TRUE);
+      break;
+    case CLASS_WIZARD:
+      chclass = CLASS_WIZARD;
+      setup_premade_levelup(ch, chclass);
+      level = CLASS_LEVEL(ch, chclass);
+      levelup_wizard(ch, level, TRUE);
+      break;
+    case CLASS_SORCERER:
+      chclass = CLASS_SORCERER;
+      setup_premade_levelup(ch, chclass);
+      level = CLASS_LEVEL(ch, chclass);
+      levelup_sorcerer(ch, level, TRUE);
       break;
   }
 
