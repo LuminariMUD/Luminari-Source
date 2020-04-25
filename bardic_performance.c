@@ -262,9 +262,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     new_affect(&(af[i]));
 
     af[i].spell = spellnum;
-    af[i].duration = 1;
+    af[i].duration = 2;
     af[i].bonus_type = BONUS_TYPE_MORALE;
     af[i].modifier = 1;
+    af[i].location = APPLY_NONE;
   }
 
   if (affected_by_spell(tch, spellnum))
@@ -466,6 +467,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     save_char(tch, 0);
   for (i = 0; i < BARD_AFFECTS; i++)
   {
+    /* lingering song bonus */
+    if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
+      af[i].duration += 2;
     affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
     if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
       save_char(tch, 0);
@@ -495,20 +499,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 int process_performance(struct char_data *ch, int spellnum,
                         int effectiveness, int aoe)
 {
-  struct affected_type af;
   struct char_data *tch = NULL, *tch_next = NULL;
   int return_val = 1;
-
-  /* init affection / default values */
-  new_affect(&af);
-  SET_BIT_AR(af.bitvector, 0);
-  af.modifier = 0;
-  af.duration = 2;
-  if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
-    af.duration += 3;
-  af.location = APPLY_NONE;
-  af.spell = spellnum;
-  af.bonus_type = BONUS_TYPE_MORALE;
 
   /* performance message */
   switch (spellnum)
