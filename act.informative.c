@@ -1904,47 +1904,49 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   {
     for (aff = k->affected; aff; aff = aff->next)
     {
-
-      if (aff->duration + 1 >= 900)
-      { // how many rounds in an hour?
-        snprintf(buf, sizeof(buf), "[%2d hour%s   ] ", (int)((aff->duration + 1) / 900), ((int)((aff->duration + 1) / 900) > 1 ? "s" : " "));
-      }
-      else if (aff->duration + 1 >= 15)
-      { // how many rounds in a minute?
-        snprintf(buf, sizeof(buf), "[%2d minute%s ] ", (int)((aff->duration + 1) / 15), ((int)((aff->duration + 1) / 15) > 1 ? "s" : " "));
-      }
-      else
-      { // rounds
-        snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
-      }
-      snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
-      strlcat(buf, buf2, sizeof(buf));
-
-      buf2[0] = '\0';
-
-      if (aff->location == APPLY_DR)
-      { /* Handle DR a bit differently */
-        snprintf(buf3, sizeof(buf3), "%s", "(see DR)");
-      }
-      else if (aff->modifier && aff->location)
+      if (aff->modifier && aff->location)
       {
-        snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
-      }
+        if (aff->duration + 1 >= 900)
+        { // how many rounds in an hour?
+          snprintf(buf, sizeof(buf), "[%2d hour%s   ] ", (int)((aff->duration + 1) / 900), ((int)((aff->duration + 1) / 900) > 1 ? "s" : " "));
+        }
+        else if (aff->duration + 1 >= 15)
+        { // how many rounds in a minute?
+          snprintf(buf, sizeof(buf), "[%2d minute%s ] ", (int)((aff->duration + 1) / 15), ((int)((aff->duration + 1) / 15) > 1 ? "s" : " "));
+        }
+        else
+        { // rounds
+          snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
+        }
+        snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
+                 CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+        strlcat(buf, buf2, sizeof(buf));
 
-      if (aff->bitvector[0] || aff->bitvector[1] ||
-          aff->bitvector[2] || aff->bitvector[3])
-      {
-        snprintf(buf2, sizeof(buf2), "%s(see affected by)", ((aff->modifier) ? ", " : ""));
-        strlcat(buf3, buf2, sizeof(buf3));
-      }
+        buf2[0] = '\0';
 
-      buf2[0] = '\0';
-      snprintf(buf2, sizeof(buf2), "%-25s", buf3);
-      buf3[0] = '\0';
-      /* Add the Bonus type. */
-      send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
-    }
+        if (aff->location == APPLY_DR)
+        { /* Handle DR a bit differently */
+          snprintf(buf3, sizeof(buf3), "%s", "(see DR)");
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
+        }
+
+        if (aff->bitvector[0] || aff->bitvector[1] ||
+            aff->bitvector[2] || aff->bitvector[3])
+        {
+          snprintf(buf2, sizeof(buf2), "%s(see affected by)", ((aff->modifier) ? ", " : ""));
+          strlcat(buf3, buf2, sizeof(buf3));
+        }
+
+        buf2[0] = '\0';
+        snprintf(buf2, sizeof(buf2), "%-25s", buf3);
+        buf3[0] = '\0';
+        /* Add the Bonus type. */
+        send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
+      }
+    } /* end for */
   }
 
   send_to_char(ch, "\tC");
