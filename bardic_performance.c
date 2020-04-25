@@ -247,18 +247,33 @@ ACMD(do_perform)
   list_available_performances(ch);
   return;
 }
+
 /* function for processing individual effects */
+#define BARD_AFFECTS 5
 int performance_effects(struct char_data *ch, struct char_data *tch, struct affected_type af,
                         int spellnum, int effectiveness, int aoe)
 {
-  int return_val = 1;
+  int return_val = 1, i = 0;
   bool nomessage = FALSE, engage = TRUE;
+  struct affected_type af[BARD_AFFECTS];
+
+  /* init affect array */
+  for (i = 0; i < BARD_AFFECTS; i++)
+  {
+    new_affect(&(af[i]));
+
+    af[i].spell = spellnum;
+    af[i].duration = 1;
+    af[i].bonus_type = BONUS_TYPE_MORALE;
+    af[i].modifier = 1;
+  }
 
   if (affected_by_spell(tch, spellnum))
   {
     nomessage = TRUE;
     /* purpose: refresh song duration */
     affect_from_char(tch, spellnum);
+    update_pos(tch);
   }
 
   switch (spellnum)
@@ -273,31 +288,27 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     break;
 
   case SKILL_DANCE_OF_PROTECTION:
-    af.location = APPLY_AC_NEW;
-    af.modifier = (effectiveness + 1) / 10;
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-    if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
-      save_char(tch, 0);
-    af.location = APPLY_SAVING_WILL;
-    af.modifier = effectiveness / 6;
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = (effectiveness + 1) / 10;
+
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = effectiveness / 6;
     break;
 
   case SKILL_SONG_OF_HEROISM:
-    af.location = APPLY_HITROLL;
-    af.modifier = 1 + effectiveness / 10;
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-    af.location = APPLY_DAMROLL;
-    af.modifier = effectiveness / 13;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 1 + effectiveness / 10;
+
+    af[1].location = APPLY_DAMROLL;
+    af[1].modifier = effectiveness / 13;
     if (GET_LEVEL(ch) >= 19 && !AFF_FLAGGED(tch, AFF_HASTE))
     {
-      SET_BIT_AR(af.bitvector, AFF_HASTE);
+      SET_BIT_AR(af[1].bitvector, AFF_HASTE);
       act("You feel the world slow down around you.", FALSE, tch, 0, 0,
           TO_CHAR);
       act("$n starts to move with uncanny speed.", FALSE, tch, 0, 0,
           TO_ROOM);
     }
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
     break;
 
   case SKILL_ORATORY_OF_REJUVENATION:
@@ -317,38 +328,33 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
   case SKILL_SONG_OF_REVELATION:
     if (!AFF_FLAGGED(tch, AFF_DETECT_INVIS))
     {
-      af.location = APPLY_HITROLL;
-      af.modifier = 0;
-      SET_BIT_AR(af.bitvector, AFF_DETECT_INVIS);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = 0;
+      SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
     }
     if (!AFF_FLAGGED(tch, AFF_DETECT_ALIGN) && GET_LEVEL(ch) >= 5)
     {
-      af.location = APPLY_DAMROLL;
-      af.modifier = 0;
-      SET_BIT_AR(af.bitvector, AFF_DETECT_ALIGN);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      af[1].location = APPLY_DAMROLL;
+      af[1].modifier = 0;
+      SET_BIT_AR(af[1].bitvector, AFF_DETECT_ALIGN);
     }
     if (!AFF_FLAGGED(tch, AFF_DETECT_MAGIC) && GET_LEVEL(ch) >= 10)
     {
-      af.location = APPLY_AC;
-      af.modifier = 0;
+      af[2].location = APPLY_AC;
+      af[2].modifier = 0;
       SET_BIT_AR(af.bitvector, AFF_DETECT_MAGIC);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
     }
     if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && GET_LEVEL(ch) >= 15)
     {
-      af.location = APPLY_DEX;
-      af.modifier = 0;
+      af[3].location = APPLY_DEX;
+      af[3].modifier = 0;
       SET_BIT_AR(af.bitvector, AFF_SENSE_LIFE);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
     }
     if (!AFF_FLAGGED(tch, AFF_FARSEE) && GET_LEVEL(ch) >= 20)
     {
-      af.location = APPLY_AGE;
-      af.modifier = 0;
+      af[4].location = APPLY_AGE;
+      af[4].modifier = 0;
       SET_BIT_AR(af.bitvector, AFF_FARSEE);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
     }
     if (nomessage == FALSE)
       act("You feel your eyes tingle.", FALSE, tch, 0, 0, TO_CHAR);
@@ -362,12 +368,11 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
         send_to_char(tch, "You are soothed by the power of music!\r\n");
         alter_hit(tch, -rand_number(effectiveness / 4, effectiveness / 2), FALSE);
       }
-      af.location = APPLY_AC_NEW;
-      af.modifier = MAX(1, (effectiveness + 2) / 19);
-      affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
-      af.location = APPLY_SAVING_REFL;
-      af.modifier = effectiveness / 5;
-      affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+      af[0].location = APPLY_AC_NEW;
+      af[0].modifier = MAX(1, (effectiveness + 2) / 19);
+
+      af[1].location = APPLY_SAVING_REFL;
+      af[1].modifier = effectiveness / 5;
     }
     break;
 
@@ -383,8 +388,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     if (!AFF_FLAGGED(tch, AFF_FLYING))
     {
       af.duration = 30;
-      SET_BIT_AR(af.bitvector, AFF_FLYING);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      SET_BIT_AR(af[0].bitvector, AFF_FLYING);
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
       act("$n fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_ROOM);
     }
@@ -393,15 +397,12 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
 
   /* increases memming / casting effectiveness */
   case SKILL_SONG_OF_FOCUSED_MIND:
-    af.location = APPLY_INT;
-    af.modifier = 1 + effectiveness / 10;
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-    af.location = APPLY_WIS;
-    af.modifier = 1 + effectiveness / 10;
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-    af.location = APPLY_CHA;
-    af.modifier = 1 + effectiveness / 10;
-    affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+    af[0].location = APPLY_INT;
+    af[0].modifier = 1 + effectiveness / 10;
+    af[1].location = APPLY_WIS;
+    af[1].modifier = 1 + effectiveness / 10;
+    af[2].location = APPLY_CHA;
+    af[2].modifier = 1 + effectiveness / 10;
     /* using affected_by_spell() for memorization bonus */
     break;
 
@@ -420,10 +421,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     if (rand_number(0, 100) < effectiveness)
     {
       act("$n shivers with fear.", FALSE, tch, 0, 0, TO_ROOM);
-      SET_BIT_AR(af.bitvector, AFF_FEAR);
-      af.location = APPLY_HITROLL;
-      af.modifier = -(1 + effectiveness / 10);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -(1 + effectiveness / 10);
     }
     break;
 
@@ -432,13 +432,11 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     if (rand_number(0, 100) < effectiveness)
     {
       act("$n has spawned roots.", FALSE, tch, 0, 0, TO_ROOM);
-      SET_BIT_AR(af.bitvector, AFF_ENTANGLED);
-      af.location = APPLY_DAMROLL;
-      af.modifier = -effectiveness / 5;
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-      af.location = APPLY_AC_NEW;
-      af.modifier = -effectiveness / 9;
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+      af[0].location = APPLY_DAMROLL;
+      af[0].modifier = -effectiveness / 5;
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -effectiveness / 9;
     }
     break;
 
@@ -447,12 +445,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     if (rand_number(0, 100) < effectiveness)
     {
       act("$n seems more vulnerable to magic.", FALSE, tch, 0, 0, TO_ROOM);
-      af.location = APPLY_SAVING_WILL;
-      af.modifier = -(1 + effectiveness / 4);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
-      af.location = APPLY_SPELL_RES;
-      af.modifier = -(2 + effectiveness / 10);
-      affect_join(tch, &af, FALSE, TRUE, FALSE, FALSE);
+      af[0].location = APPLY_SAVING_WILL;
+      af[0].modifier = -(1 + effectiveness / 4);
+      af[1].location = APPLY_SPELL_RES;
+      af[1].modifier = -(2 + effectiveness / 10);
     }
     break;
 
@@ -465,6 +461,17 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     break;
 
   } /* end switch */
+
+  /*** now we apply the affection(s) */
+  if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
+    save_char(tch, 0);
+  for (i = 0; i < BARD_AFFECTS; i++)
+  {
+    affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
+    if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
+      save_char(tch, 0);
+  }
+  /****/
 
   /* aggressive song should engage foes */
   if (aoe == PERFORM_AOE_FOES && engage)
