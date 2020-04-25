@@ -438,14 +438,14 @@ void hsedit_disp_val3_menu(struct descriptor_data *d)
   }
 }
 
-char *hsedit_list_guests(struct house_control_rec *thishouse, char *guestlist)
+static const char *hsedit_list_guests(struct house_control_rec *thishouse, char *guestlist, size_t sz)
 {
   int j, num_printed;
-  char *temp;
+  const char *temp;
 
   if (thishouse->num_of_guests == 0)
   {
-    sprintf(guestlist, "NONE");
+    strlcpy(guestlist, "NONE", sz);
     return (guestlist);
   }
 
@@ -456,11 +456,13 @@ char *hsedit_list_guests(struct house_control_rec *thishouse, char *guestlist)
       continue;
 
     num_printed++;
-    sprintf(guestlist, "%s%c%s ", guestlist, UPPER(*temp), temp + 1);
+    char cap_buf[2] = { UPPER(*temp), '\0' };
+    strlcat(guestlist, cap_buf, sz);
+    strlcat(guestlist, temp + 1, sz);
   }
 
   if (num_printed == 0)
-    sprintf(guestlist, "all dead");
+    strlcpy(guestlist, "all dead", sz);
 
   return (guestlist);
 }
@@ -522,7 +524,7 @@ void hsedit_disp_menu(struct descriptor_data *d)
           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), house_types[(house->mode)], CCNRM(d->character, C_NRM),
           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), built_on, CCNRM(d->character, C_NRM),
           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), last_pay, CCNRM(d->character, C_NRM),
-          CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), hsedit_list_guests(house, buf2), CCNRM(d->character, C_NRM),
+          CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), hsedit_list_guests(house, buf2, sizeof(buf2)), CCNRM(d->character, C_NRM),
           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf1, CCNRM(d->character, C_NRM),
           //	CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf2, CCNRM(d->character, C_NRM),
           CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
