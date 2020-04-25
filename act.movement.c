@@ -2584,8 +2584,8 @@ ACMD(do_enter)
 
           if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS))
           {
-            X_LOC(ch) = world[real_dest].coords[0];
-            Y_LOC(ch) = world[real_dest].coords[1];
+            X_LOC(k->follower) = world[real_dest].coords[0];
+            Y_LOC(k->follower) = world[real_dest].coords[1];
           }
 
           char_to_room(k->follower, real_dest);

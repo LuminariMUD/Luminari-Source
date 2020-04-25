@@ -747,7 +747,7 @@ EVENTFUNC(event_bardic_performance)
     difficulty -= GET_OBJ_VAL(instrument, 1);
 
     /* instrument of quality <= 0 is unbreakable */
-    if (rand_number(1, 2001) <= GET_OBJ_VAL(instrument, 3))
+    if (rand_number(1, 10001) <= GET_OBJ_VAL(instrument, 3))
     {
       act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_CHAR);
       act("$n's $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_ROOM);
