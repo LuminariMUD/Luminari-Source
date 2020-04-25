@@ -342,19 +342,19 @@ int performance_effects(struct char_data *ch, struct char_data *tch, struct affe
     {
       af[2].location = APPLY_AC;
       af[2].modifier = 0;
-      SET_BIT_AR(af.bitvector, AFF_DETECT_MAGIC);
+      SET_BIT_AR(af[2].bitvector, AFF_DETECT_MAGIC);
     }
     if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && GET_LEVEL(ch) >= 15)
     {
       af[3].location = APPLY_DEX;
       af[3].modifier = 0;
-      SET_BIT_AR(af.bitvector, AFF_SENSE_LIFE);
+      SET_BIT_AR(af[3].bitvector, AFF_SENSE_LIFE);
     }
     if (!AFF_FLAGGED(tch, AFF_FARSEE) && GET_LEVEL(ch) >= 20)
     {
       af[4].location = APPLY_AGE;
       af[4].modifier = 0;
-      SET_BIT_AR(af.bitvector, AFF_FARSEE);
+      SET_BIT_AR(af[4].bitvector, AFF_FARSEE);
     }
     if (nomessage == FALSE)
       act("You feel your eyes tingle.", FALSE, tch, 0, 0, TO_CHAR);
