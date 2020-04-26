@@ -144,7 +144,7 @@ ACMD(do_staffevent)
 
     if (!*arg || !*arg2)
     {
-        list_staff_events();
+        list_staff_events(ch);
         return;
     }
 
