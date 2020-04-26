@@ -38,7 +38,7 @@
     USE_MOVE_ACTION(ch)
 
 extern void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
-                                                  char *argument,
+                                                  const char *argument,
                                                   int cmd,
                                                   int subcmd);
 /* Prototype for the event function. */

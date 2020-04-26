@@ -1693,7 +1693,7 @@ ACMD(do_vstat)
   struct obj_data *obj;
   int r_num;
 
-  ACMD(do_tstat);
+  ACMD_DECL(do_tstat);
 
   two_arguments(argument, buf, buf2);
 

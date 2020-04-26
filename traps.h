@@ -64,8 +64,8 @@ void set_trap_detected(struct obj_data *trap);
 int perform_detecttrap(struct char_data *ch, bool silent);
 
 /* ACMD */
-ACMD(do_disabletrap);
-ACMD(do_detecttrap);
+ACMD_DECL(do_disabletrap);
+ACMD_DECL(do_detecttrap);
 
 /* special defines */
 #define TRAP_DARK_WARRIOR_MOBILE 135600

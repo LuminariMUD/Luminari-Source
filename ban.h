@@ -42,8 +42,8 @@ int valid_name(char *newname);
 void read_invalid_list(void);
 void free_invalid_list(void);
 /* Command functions without subcommands */
-ACMD(do_ban);
-ACMD(do_unban);
+ACMD_DECL(do_ban);
+ACMD_DECL(do_unban);
 
 /* Global buffering */
 #ifndef __BAN_C__

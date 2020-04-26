@@ -269,10 +269,10 @@ void time_wtrigger(room_data *room);
 int login_wtrigger(struct room_data *room, char_data *actor);
 
 /* function prototypes from dg_scripts.c */
-ACMD(do_attach);
-ACMD(do_detach);
-ACMD(do_vdelete);
-ACMD(do_tstat);
+ACMD_DECL(do_attach);
+ACMD_DECL(do_detach);
+ACMD_DECL(do_vdelete);
+ACMD_DECL(do_tstat);
 char *str_str(char *cs, char *ct);
 int find_eq_pos_script(char *arg);
 int can_wear_on_pos(struct obj_data *obj, int pos);
@@ -369,28 +369,28 @@ int valid_dg_target(char_data *ch, int bitvector);
 void script_damage(char_data *vict, int dam);
 
 /* from dg_mobcmd.c */
-ACMD(do_masound);
-ACMD(do_mat);
-ACMD(do_mdamage);
-ACMD(do_mdoor);
-ACMD(do_mecho);
-ACMD(do_mgecho);
-ACMD(do_mechoaround);
-ACMD(do_mfollow);
-ACMD(do_mforce);
-ACMD(do_mforget);
-ACMD(do_mgoto);
-ACMD(do_mhunt);
-ACMD(do_mjunk);
-ACMD(do_mkill);
-ACMD(do_mload);
-ACMD(do_mpurge);
-ACMD(do_mrecho);
-ACMD(do_mremember);
-ACMD(do_msend);
-ACMD(do_mteleport);
-ACMD(do_mtransform);
-ACMD(do_mzoneecho);
+ACMD_DECL(do_masound);
+ACMD_DECL(do_mat);
+ACMD_DECL(do_mdamage);
+ACMD_DECL(do_mdoor);
+ACMD_DECL(do_mecho);
+ACMD_DECL(do_mgecho);
+ACMD_DECL(do_mechoaround);
+ACMD_DECL(do_mfollow);
+ACMD_DECL(do_mforce);
+ACMD_DECL(do_mforget);
+ACMD_DECL(do_mgoto);
+ACMD_DECL(do_mhunt);
+ACMD_DECL(do_mjunk);
+ACMD_DECL(do_mkill);
+ACMD_DECL(do_mload);
+ACMD_DECL(do_mpurge);
+ACMD_DECL(do_mrecho);
+ACMD_DECL(do_mremember);
+ACMD_DECL(do_msend);
+ACMD_DECL(do_mteleport);
+ACMD_DECL(do_mtransform);
+ACMD_DECL(do_mzoneecho);
 
 /* from dg_olc.c... thinking these should be moved to oasis.h */
 void trigedit_save(struct descriptor_data *d);
