@@ -8,7 +8,7 @@
 
 struct weapon_table
 {
-  char *name;
+  const char *name;
   sbyte numDice;
   ubyte diceSize;
   sbyte critRange;
@@ -32,7 +32,7 @@ struct weapon_table
 
 struct armor_table
 {
-  char *name;
+  const char *name;
   ubyte armorType;
   ush_int cost;
   ubyte armorBonus;
