@@ -998,11 +998,12 @@
 #define CON_ACCOUNT_ADD_PWD 46
 #define CON_HSEDIT 47  /* OLC mode - house edit      .*/
 #define CON_NEWMAIL 48 // new mail system mail composition
+#define CON_CONFIRM_PREMADE 49 // premade build selection
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT    /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE CON_CRAFTEDIT /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES 49
+#define NUM_CON_STATES 50
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors

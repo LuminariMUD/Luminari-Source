@@ -1727,17 +1727,20 @@ ACMD(do_tame)
 ACMD(do_respec)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   int class = -1;
 
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  one_argument(argument, arg);
+  two_arguments(argument, arg, arg2);
 
   if (!*arg)
   {
-    send_to_char(ch, "You need to select a starting class to respec to,"
-                     " here are your options:\r\n");
+    send_to_char(ch, "You need to select a starting class to respec to, as well as specify a premade build "
+                     "if you desire.  Syntax for a custom build is respec (class name).  Syntax for a premade "
+                     "build is respec (class name) premade.\r\n\r\n"
+                     " Here are your options:\r\n");
     display_all_classes(ch);
     return;
   }
@@ -1778,6 +1781,8 @@ ACMD(do_respec)
     /* in the clear! */
     int tempXP = GET_EXP(ch);
     GET_CLASS(ch) = class;
+    if (*arg2 && is_abbrev(arg2, "premade"))
+      GET_PREMADE_BUILD_CLASS(ch) = class;
 
     /* Make sure that players can't make wildshaped forms permanent.*/
     SUBRACE(ch) = 0;
@@ -1785,12 +1790,14 @@ ACMD(do_respec)
     if (affected_by_spell(ch, SKILL_WILDSHAPE))
     {
       affect_from_char(ch, SKILL_WILDSHAPE);
-      send_to_char(ch, "You return to your normal form..\r\n");
+      send_to_char(ch, "You return to your normal form.\r\n");
     }
 
     do_start(ch);
     GET_EXP(ch) = tempXP;
     send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
+    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+      send_to_char(ch, "\tMYou have chosen a premade %s build\tn\r\n", class_list[class].name);
     send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
   }
 }
@@ -1825,7 +1832,7 @@ ACMD(do_gain)
     return;
   }
 
-  if (!GET_PREMADE_BUILD_CLASS(ch))
+  if (GET_PREMADE_BUILD_CLASS(ch) < 0)
     one_argument(argument, arg);
   else
     snprintf(arg, MAX_INPUT_LENGTH, "%s", class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
@@ -1950,7 +1957,7 @@ ACMD(do_gain)
       if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
         run_autowiz();
 
-      if (!GET_PREMADE_BUILD_CLASS(ch))
+      if (GET_PREMADE_BUILD_CLASS(ch) < 0)
         send_to_char(ch, "\tMDon't forget to \tmSTUDY\tM to improve"
                          " your abilities, feats and stats!\tn\r\n");
       else

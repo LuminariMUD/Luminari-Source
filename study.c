@@ -24,6 +24,7 @@
 #include "domains_schools.h"
 #include "spell_prep.h"
 #include "alchemy.h"
+#include "premadebuilds.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -1084,6 +1085,8 @@ int compute_total_stat_points(struct char_data *ch)
 }
 int stat_points_left(struct char_data *ch)
 {
+  if (GET_PREMADE_BUILD_CLASS(ch) >= 0)
+    return 0;
   return (TOTAL_STAT_POINTS - compute_total_stat_points(ch));
 }
 static void set_stats_menu(struct descriptor_data *d)
