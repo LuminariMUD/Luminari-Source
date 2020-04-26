@@ -623,8 +623,9 @@ void boot_world(void)
   {
     log("Loading shops.");
     index_boot(DB_BOOT_SHP);
+
     log("Placing Harvesting Nodes");
-    for (x = 0; x < 10; x++)
+    for (x = 0; x < NUM_HARVEST_NODE_RESETS; x++)
       reset_harvesting_rooms();
   }
 
@@ -2777,7 +2778,8 @@ char *parse_object(FILE *obj_f, int nr)
   }
 
   strlcat(buf2, ", after numeric constants\n" /* strcat: OK (for 'buf2 >= 87') */
-               "...expecting 'E', 'A', '$', or next object number", sizeof(buf2));
+                "...expecting 'E', 'A', '$', or next object number",
+          sizeof(buf2));
   j = 0;
   wsplnum = 0;
 
@@ -4971,8 +4973,8 @@ static int file_to_string(const char *name, char *buf)
     if (!fgets(tmp, READ_SIZE, fl)) /* EOF check */
       break;
     if ((len = strlen(tmp)) > 0)
-      tmp[len - 1] = '\0'; /* take off the trailing \n */
-    strlcat(tmp, "\r\n", sizeof(tmp));   /* strcat: OK (tmp:READ_SIZE+3) */
+      tmp[len - 1] = '\0';             /* take off the trailing \n */
+    strlcat(tmp, "\r\n", sizeof(tmp)); /* strcat: OK (tmp:READ_SIZE+3) */
 
     if (strlen(buf) + strlen(tmp) + 1 > MAX_STRING_LENGTH)
     {
