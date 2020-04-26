@@ -52,7 +52,7 @@ struct board_info_type
 #define MSG_SLOTNUM(i, j) (msg_index[i][j].slot_num)
 #define MSG_LEVEL(i, j) (msg_index[i][j].level)
 
-SPECIAL(gen_board);
+SPECIAL_DECL(gen_board);
 int board_display_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board);
 int board_show_board(int board_type, struct char_data *ch, char *arg, struct obj_data *board);
 int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board);

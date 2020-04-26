@@ -28,7 +28,7 @@
 #define BLOCK_SIZE 100
 
 /* General, publicly available functions */
-SPECIAL(postmaster);
+SPECIAL_DECL(postmaster);
 
 /* NOTE:  Make sure that your block size is big enough. If not, HEADER_BLOCK_
  * DATASIZE will end up negative.  This is a bad thing. Check the define below 

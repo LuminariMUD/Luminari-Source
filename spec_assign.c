@@ -20,18 +20,18 @@
 #include "mail.h"
 #include "treasure.h"
 
-SPECIAL(questmaster);
-SPECIAL(shop_keeper);
-SPECIAL(buyweapons);
-SPECIAL(buyarmor);
+SPECIAL_DECL(questmaster);
+SPECIAL_DECL(shop_keeper);
+SPECIAL_DECL(buyweapons);
+SPECIAL_DECL(buyarmor);
 
 /* local (file scope only) functions */
-static void ASSIGNROOM(room_vnum room, SPECIAL(fname));
-static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname));
-static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname));
+static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
+static void ASSIGNMOB(mob_vnum mob, SPECIAL_DECL(fname));
+static void ASSIGNOBJ(obj_vnum obj, SPECIAL_DECL(fname));
 
 /* functions to perform assignments */
-static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname))
+static void ASSIGNMOB(mob_vnum mob, SPECIAL_DECL(fname))
 {
   mob_rnum rnum;
 
@@ -41,7 +41,7 @@ static void ASSIGNMOB(mob_vnum mob, SPECIAL(fname))
     log("SYSERR: Attempt to assign spec to non-existant mob #%d", mob);
 }
 
-static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname))
+static void ASSIGNOBJ(obj_vnum obj, SPECIAL_DECL(fname))
 {
   obj_rnum rnum;
 
@@ -51,7 +51,7 @@ static void ASSIGNOBJ(obj_vnum obj, SPECIAL(fname))
     log("SYSERR: Attempt to assign spec to non-existant obj #%d", obj);
 }
 
-static void ASSIGNROOM(room_vnum room, SPECIAL(fname))
+static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname))
 {
   room_rnum rnum;
 
@@ -956,7 +956,7 @@ void assign_rooms(void)
 struct spec_func_data
 {
   const char *name;
-  SPECIAL(*func);
+  SPECIAL_DECL(*func);
   const char *description;
 };
 
@@ -1146,7 +1146,7 @@ static const struct spec_func_data spec_func_list[] = {
 /** !!MAKE SURE TO ADD TO: spec_procs.h!!!  **/
 
 /* return the spec's name */
-const char *get_spec_func_name(SPECIAL(*func))
+const char *get_spec_func_name(SPECIAL_DECL(*func))
 {
   int i;
 

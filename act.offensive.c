@@ -472,7 +472,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af[CHARGE_AFFECTS];
   extern struct index_data *mob_index;
-  int (*name)(struct char_data * ch, void *me, int cmd, char *argument);
+  int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   int i = 0;
 
   if (AFF_FLAGGED(ch, AFF_CHARGING))
@@ -825,7 +825,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
 {
   extern struct index_data *obj_index;
-  int (*name)(struct char_data * ch, void *me, int cmd, char *argument);
+  int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (!shield)
@@ -896,7 +896,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
 bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
 {
   extern struct index_data *obj_index;
-  int (*name)(struct char_data * ch, void *me, int cmd, char *argument);
+  int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (!shield)
@@ -964,7 +964,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af;
   extern struct index_data *obj_index;
-  int (*name)(struct char_data * ch, void *me, int cmd, char *argument);
+  int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (!shield)
