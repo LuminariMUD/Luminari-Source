@@ -82,9 +82,10 @@
 
 #define NUM_BOMB_TYPES 20
 
-#define KNOWS_DISCOVERY(ch, i) (ch->player_specials->saved.discoveries[i])
+#define KNOWS_DISCOVERY(ch, i)  (ch->player_specials->saved.discoveries[i])
 #define GET_GRAND_DISCOVERY(ch) (ch->player_specials->saved.grand_discovery)
-#define GET_BOMB(ch, i) (ch->player_specials->saved.bombs[i])
+#define GET_BOMB(ch, i)         (ch->player_specials->saved.bombs[i])
+#define GET_STICKY_BOMB(ch, i)  (ch->sticky_bomb[i])
 
 ACMD(do_bombs);
 ACMD(do_discoveries);

@@ -335,11 +335,11 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
 }
 
 /* function that will assign a list of values to a given class */
-void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
-            char *menu_name, int max_level, bool locked_class, int prestige_class,
+void classo(int class_num, const char *name, const char *abbrev, const char *colored_abbrev,
+            const char *menu_name, int max_level, bool locked_class, int prestige_class,
             int base_attack_bonus, int hit_dice, int psp_gain, int move_gain,
             int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
-            char *spell_prog, char *descrip)
+            const char *spell_prog, const char *descrip)
 {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
@@ -367,9 +367,10 @@ void classo(int class_num, char *name, char *abbrev, char *colored_abbrev,
 }
 
 /* function used for assigning a classes titles */
-void assign_class_titles(int class_num, char *title_4, char *title_9, char *title_14,
-                         char *title_19, char *title_24, char *title_29, char *title_30, char *title_imm,
-                         char *title_stf, char *title_gstf, char *title_default)
+static void assign_class_titles(
+  int class_num, const char *title_4, const char *title_9, const char *title_14,
+  const char *title_19, const char *title_24, const char *title_29, const char *title_30, const char *title_imm,
+  const char *title_stf, const char *title_gstf, const char *title_default)
 {
   class_list[class_num].titles[0] = title_4;
   class_list[class_num].titles[1] = title_9;

@@ -99,7 +99,7 @@ void eat_spaces(char **source);
 
 void init_keys(void);
 
-void add_key(char *key, char *out, ranktype (*f)(struct char_data *ch));
+static void add_key(const char *key, const char *out, ranktype (*f)(struct char_data *ch));
 struct key_data *search_key(char *key);
 
 struct key_data *key_list = NULL;
@@ -304,7 +304,7 @@ struct key_data *search_key(char *key)
 
 } /* end search_key */
 
-void add_key(char *key, char *out, ranktype (*f)(struct char_data *ch))
+static void add_key(const char *key, const char *out, ranktype (*f)(struct char_data *ch))
 {
 
   struct key_data *tmp_key;

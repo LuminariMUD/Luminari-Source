@@ -280,7 +280,7 @@ int sprintascii(char *out, bitvector_t bits)
 {
   int i, j = 0;
   /* 32 bits, don't just add letters to try to get more unless your bitvector_t is also as large. */
-  char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
+  const char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
 
   for (i = 0; flags[i] != '\0'; i++)
     if (bits & (1 << i))
@@ -295,7 +295,7 @@ int sprintascii(char *out, bitvector_t bits)
 }
 
 /* converts illegal filename chars into appropriate equivalents */
-char *fix_filename(char *str)
+const char *fix_filename(char *str)
 {
   static char good_file_name[MAX_STRING_LENGTH];
   char *cindex = good_file_name;
@@ -342,7 +342,8 @@ ACMD(do_export_zone)
   zone_rnum zrnum;
   zone_vnum zvnum;
   char sysbuf[MAX_INPUT_LENGTH];
-  char zone_name[MAX_INPUT_LENGTH], *f;
+  char zone_name[MAX_INPUT_LENGTH];
+  const char *f;
   int success;
   int i;
 

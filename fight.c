@@ -5141,7 +5141,7 @@ void idle_weapon_spells(struct char_data *ch)
   int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-  char *buf = "$p leaps to action!";
+  const char *buf = "$p leaps to action!";
 
   /* give some random messages */
   switch (dice(1, 4))

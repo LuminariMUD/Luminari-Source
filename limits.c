@@ -1363,27 +1363,29 @@ void update_damage_and_effects_over_time(void)
       }
     } // end boneshard bombs
 
-    if (ch->player_specials->sticky_bomb[0] != BOMB_NONE)
+    if (GET_STICKY_BOMB(ch, 0) != BOMB_NONE)
     {
-      if (ch->player_specials->sticky_bomb[0] != BOMB_FIRE_BRAND && ch->player_specials->sticky_bomb[0] != BOMB_HEALING && FIGHTING(ch)) {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
-        act(buf, FALSE, ch, 0, FIGHTING(ch), TO_VICT);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $N again causing $M %s damage.", bomb_types[ch->player_specials->sticky_bomb[0]], weapon_damage_types[ch->player_specials->sticky_bomb[1]]);
-        act(buf, FALSE, ch, 0, FIGHTING(ch), TO_ROOM);
-        dam = damage(ch, FIGHTING(ch), ch->player_specials->sticky_bomb[2], SKILL_BOMB_TOSS, ch->player_specials->sticky_bomb[1], SKILL_BOMB_TOSS);
-        ch->player_specials->sticky_bomb[0] = ch->player_specials->sticky_bomb[1] = ch->player_specials->sticky_bomb[2] = 0;
-      } else if (ch->player_specials->sticky_bomb[0] != BOMB_HEALING) {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.", bomb_types[ch->player_specials->sticky_bomb[0]]);
+      if (GET_STICKY_BOMB(ch, 0) != BOMB_FIRE_BRAND && GET_STICKY_BOMB(ch, 0) != BOMB_HEALING) {
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.", bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.", bomb_types[ch->player_specials->sticky_bomb[0]]);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
+        act(buf, FALSE, ch, 0, 0, TO_ROOM);
+        dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1), SKILL_BOMB_TOSS);
+        GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
+      } else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING) {
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
+        act(buf, FALSE, ch, 0, 0, TO_CHAR);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         perform_bomb_direct_healing(ch, ch, BOMB_HEALING);
-      } else if (ch->player_specials->sticky_bomb[0] != BOMB_FIRE_BRAND) {
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting your weapons aflame anew.", bomb_types[ch->player_specials->sticky_bomb[0]]);
+        GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
+      } else if (GET_STICKY_BOMB(ch, 0) == BOMB_FIRE_BRAND) {
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting your weapons aflame anew.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
-        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting $n's weapons aflame anew.", bomb_types[ch->player_specials->sticky_bomb[0]]);
+        snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting $n's weapons aflame anew.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         perform_bomb_self_effect(ch, ch, BOMB_FIRE_BRAND);
+        GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
       }
 
     } // sticky bomb effects

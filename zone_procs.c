@@ -3245,7 +3245,7 @@ void close_exit(struct slider_row row)
   SET_BIT(EXITN(row.room, row.door)->exit_info, EX_PICKPROOF);
 }
 
-void send_to_cube(char *echo)
+static void send_to_cube(const char *echo)
 {
   struct descriptor_data *d;
 

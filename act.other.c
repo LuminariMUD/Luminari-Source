@@ -5282,7 +5282,7 @@ ACMD(do_gen_tog)
   int i;
   char arg[MAX_INPUT_LENGTH];
 
-  const char *tog_messages[][2] = {
+  const char * const tog_messages[][2] = {
       /*0*/
       {"You are now safe from summoning by other players.\r\n",
        "You may now be summoned by other players.\r\n"},
@@ -5577,7 +5577,7 @@ ACMD(do_gen_tog)
 }
 
 /*a general diplomacy skill - popularity increase is determined by SCMD */
-struct diplomacy_data diplomacy_types[] = {
+const struct diplomacy_data diplomacy_types[] = {
     {SCMD_MURMUR, SKILL_MURMUR, 0.75, 1},         /**< Murmur skill, 0.75% increase, 1 tick wait  */
     {SCMD_PROPAGANDA, SKILL_PROPAGANDA, 2.32, 3}, /**< Propaganda skill, 2.32% increase, 3 tick wait */
     {SCMD_LOBBY, SKILL_LOBBY, 6.0, 8},            /**< Lobby skill, 10% increase, 8 tick wait     */
@@ -5717,14 +5717,12 @@ ACMD(do_happyhour)
 }
 
 /****  little hint system *******/
-#define NUM_HINTS 36
-
 /* i am surrounding hints with this:
    \tR[HINT]:\tn \ty
    [use nohint or prefedit to deactivate this]\tn\r\n
  */
 
-char *hints[NUM_HINTS] = {
+static const char * const hints[] = {
     /* 1*/ "\tR[HINT]:\tn \ty"
            "Different spell casting classes use different commands "
            "to cast their spells.  Typing score will show you the appropriate "
@@ -5958,6 +5956,8 @@ char *hints[NUM_HINTS] = {
            "to be found throughout the realms."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
+
+static const size_t NUM_HINTS = sizeof(hints)/sizeof(hints[0]);
 
 void show_hints(void)
 {
