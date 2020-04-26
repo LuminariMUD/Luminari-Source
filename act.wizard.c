@@ -1693,7 +1693,7 @@ ACMD(do_vstat)
   struct obj_data *obj;
   int r_num;
 
-  ACMD(do_tstat);
+  ACMD_DECL(do_tstat);
 
   two_arguments(argument, buf, buf2);
 
@@ -4681,7 +4681,7 @@ const struct zcheck_armor
 {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed;        /* Max. AC allowed for this body part  */
-  char *message;         /* phrase for error message            */
+  const char *message;         /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
     {ITEM_WEAR_FINGER, 1, "Ring"}, //0
     {ITEM_WEAR_NECK, 1, "Necklace"},
@@ -6790,8 +6790,8 @@ ACMD(do_objlist)
         break;
       default:
         snprintf(tmp_buf, sizeof(tmp_buf), "      \tcValue\tn: %d/%d/%d/%d ",
-                GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
-                GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
+                 GET_OBJ_VAL(obj, 0), GET_OBJ_VAL(obj, 1),
+                 GET_OBJ_VAL(obj, 2), GET_OBJ_VAL(obj, 3));
         strlcat(buf, tmp_buf, sizeof(buf));
         break;
       }
@@ -6965,9 +6965,9 @@ ACMD(do_singlefile)
 
       snprintf(exits, sizeof(exits), "%d   ", num_exits);
       snprintf(buf, sizeof(buf), "[%5d] %-*s \tgExits: \tc%4s %s\tn\r\n", world[room].number,
-              50 + color_count(world[room].name),
-              world[room].name,
-              num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : "");
+               50 + color_count(world[room].name),
+               world[room].name,
+               num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : "");
 
       send_to_char(ch, buf);
     }
@@ -7202,7 +7202,7 @@ ACMD(do_oconvert)
 
   send_to_char(ch, "%d %s\r\n", iarg, arg2);
 
-  char *weapon_type_keywords[NUM_WEAPON_TYPES];
+  const char *weapon_type_keywords[NUM_WEAPON_TYPES];
 
   /* Initialize the weapon keyword array. */
   for (i = 0; i < NUM_WEAPON_TYPES; i++)
@@ -8306,7 +8306,7 @@ ACMD(do_players)
   send_to_char(ch, "%s", buf);
 
   snprintf(buf, sizeof(buf),
-      "---------------------------------------------------------------------------\r\n");
+           "---------------------------------------------------------------------------\r\n");
   send_to_char(ch, "%s", buf);
 
   for (d = descriptor_list; d; d = d->next)
@@ -8334,27 +8334,27 @@ ACMD(do_players)
     if (STATE(d) == CON_PLAYING)
     {
       snprintf(buf, sizeof(buf),
-              "%-15s %-15s %-3d %-15s %-7d %-7s %s\r\n",
-              GET_NAME(d->character),
-              (d && d->account && d->account->name) ? d->account->name : "None",
-              GET_LEVEL(d->character),
-              buf3,
-              GET_ROOM_VNUM(IN_ROOM(d->character)),
-              race_list[GET_RACE(d->character)].abbrev,
-              buf2);
+               "%-15s %-15s %-3d %-15s %-7d %-7s %s\r\n",
+               GET_NAME(d->character),
+               (d && d->account && d->account->name) ? d->account->name : "None",
+               GET_LEVEL(d->character),
+               buf3,
+               GET_ROOM_VNUM(IN_ROOM(d->character)),
+               race_list[GET_RACE(d->character)].abbrev,
+               buf2);
       send_to_char(ch, "%s", buf);
     }
 
     else
     {
       snprintf(buf, sizeof(buf), "%-15s %-15s %-3d %-15s %-7s %-7s %s\r\n",
-          GET_NAME(d->character),
-          "Offline",
-          GET_LEVEL(d->character),
-          buf3,
-          "Offline",
-          race_list[GET_RACE(d->character)].abbrev,
-          buf2);
+               GET_NAME(d->character),
+               "Offline",
+               GET_LEVEL(d->character),
+               buf3,
+               "Offline",
+               race_list[GET_RACE(d->character)].abbrev,
+               buf2);
       send_to_char(ch, "%s", buf);
     }
   }
@@ -8409,93 +8409,84 @@ void check_auto_shutdown(void)
   h = hour = (mytime / 3600) % 24;
   m = (mytime / 60) % 60;
 
-  if ((h == 7) && m == 30) {
+  if ((h == 7) && m == 30)
+  {
     send_to_all(
-      "@l@R"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "***         THE MUD WILL BE REBOOTING IN 30 MINUTES!       ***\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "@n");
+        "**************************************************************\r\n"
+        "**************************************************************\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "***         THE MUD WILL BE REBOOTING IN 30 MINUTES!       ***\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "**************************************************************\r\n"
+        "**************************************************************\r\n");
   }
-  else if ((h == 7) && m == 45) {
+  else if ((h == 7) && m == 45)
+  {
     send_to_all(
-      "@l@R"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "***         THE MUD WILL BE REBOOTING IN 15 MINUTES!       ***\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "@n");
+        "**************************************************************\r\n"
+        "**************************************************************\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "***         THE MUD WILL BE REBOOTING IN 15 MINUTES!       ***\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "**************************************************************\r\n"
+        "**************************************************************\r\n");
   }
-  else if ((h == 7) && m == 55) {
+  else if ((h == 7) && m == 55)
+  {
     send_to_all(
-      "@l@R"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "***         THE MUD WILL BE REBOOTING IN 05 MINUTES!       ***\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "@n");
-
+        "**************************************************************\r\n"
+        "**************************************************************\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "***         THE MUD WILL BE REBOOTING IN 05 MINUTES!       ***\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "**************************************************************\r\n"
+        "**************************************************************\r\n");
   }
-  else if ((h == 7) && m == 58) {
+  else if ((h == 7) && m == 58)
+  {
     send_to_all(
-      "@l@R"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "***         THE MUD WILL BE REBOOTING IN 02 MINUTES!       ***\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "@n");
-
+        "**************************************************************\r\n"
+        "**************************************************************\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "***         THE MUD WILL BE REBOOTING IN 02 MINUTES!       ***\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "**************************************************************\r\n"
+        "**************************************************************\r\n");
   }
-  else if ((h == 7) && m == 59) {
+  else if ((h == 7) && m == 59)
+  {
     send_to_all(
-      "@l@R"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "***         THE MUD WILL BE REBOOTING IN 01 MINUTES!       ***\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "@n");
-
+        "**************************************************************\r\n"
+        "**************************************************************\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "***         THE MUD WILL BE REBOOTING IN 01 MINUTES!       ***\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "**************************************************************\r\n"
+        "**************************************************************\r\n");
   }
-  else if ((h == 8) && m == 0) {
+  else if ((h == 8) && m == 0)
+  {
     send_to_all(
-      "@l@R"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "***                 THE MUD IS REBOOTING NOW!              ***\r\n"
-      "***                                                        ***\r\n"
-      "***                                                        ***\r\n"
-      "**************************************************************\r\n"
-      "**************************************************************\r\n"
-      "@n");
-    tmstr = (char *) asctime(localtime(&mytime));
+        "**************************************************************\r\n"
+        "**************************************************************\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "***                 THE MUD IS REBOOTING NOW!              ***\r\n"
+        "***                                                        ***\r\n"
+        "***                                                        ***\r\n"
+        "**************************************************************\r\n"
+        "**************************************************************\r\n");
+    tmstr = (char *)asctime(localtime(&mytime));
     *(tmstr + strlen(tmstr) - 1) = '\0';
     log("Automated Copyover on %s.", tmstr);
     send_to_all("Executing Automated Copyover.\r\n");

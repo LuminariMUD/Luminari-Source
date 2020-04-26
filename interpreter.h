@@ -47,10 +47,10 @@ void show_account_menu(struct descriptor_data *d);
 void remove_char_from_account(struct char_data *ch, struct account_data *account);
 char *get_char_account_name(char *name);
 
-ACMD(do_account);
+ACMD_DECL(do_account);
 
 /* ACMDs available through interpreter.c */
-ACMD(do_alias);
+ACMD_DECL(do_alias);
 
 /* for compatibility with 2.20: */
 #define argument_interpreter(a, b, c) two_arguments(a, b, c)
@@ -66,7 +66,7 @@ struct command_info
   const char *command;
   const char *sort_as;
   byte minimum_position;
-  void (*command_pointer)(struct char_data *ch, char *argument, int cmd, int subcmd);
+  void (*command_pointer)(struct char_data *ch, const char *argument, int cmd, int subcmd);
   sh_int minimum_level;
   int subcmd;
   sh_int ignore_wait; // set to TRUE if the command can be performed during wait event
@@ -78,7 +78,7 @@ struct command_info
 struct mob_script_command_t
 {
   const char *command_name;
-  void (*command_pointer)(struct char_data *ch, char *argument, int cmd, int subcmd);
+  void (*command_pointer)(struct char_data *ch, const char *argument, int cmd, int subcmd);
   int subcmd;
 };
 

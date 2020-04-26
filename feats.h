@@ -12,16 +12,16 @@
 /* Below is the structure for a feat */
 struct feat_info
 {
-  char *name;              /* The name of the feat to be displayed to players */
-  sbyte in_game;           /* TRUE or FALSE, is the feat in the game yet? */
-  sbyte can_learn;         /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
-  sbyte can_stack;         /* TRUE or FALSE, can the feat be learned more than once? */
-  int feat_type;           /* The type of feat (see defines) for organization in the selection menu. */
-  char *short_description; /* The line displayed in the feat xxxx desc command display. */
-  char *description;       /* Long description of the feat, displayed in 'feat info' */
-  sbyte epic;              /* Is this an epic feat? */
-  sbyte combat_feat;       /* Is this a combat feat? */
-  int event;               /* The event_id of the cooldown event, used for daily use active feats. */
+  const char *name;              /* The name of the feat to be displayed to players */
+  sbyte in_game;                 /* TRUE or FALSE, is the feat in the game yet? */
+  sbyte can_learn;               /* TRUE or FALSE, can the feat be learned or is it an automatic feat? */
+  sbyte can_stack;               /* TRUE or FALSE, can the feat be learned more than once? */
+  int feat_type;                 /* The type of feat (see defines) for organization in the selection menu. */
+  const char *short_description; /* The line displayed in the feat xxxx desc command display. */
+  const char *description;       /* Long description of the feat, displayed in 'feat info' */
+  sbyte epic;                    /* Is this an epic feat? */
+  sbyte combat_feat;             /* Is this a combat feat? */
+  int event;                     /* The event_id of the cooldown event, used for daily use active feats. */
 
   struct feat_prerequisite *prerequisite_list; /* A list of prerequisite sctructures */
 };
@@ -59,15 +59,15 @@ int find_feat_num(char *name);
 int feat_to_cfeat(int feat);
 int feat_to_sfeat(int feat);
 int feat_to_skfeat(int feat);
-void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer);
+void list_feats(struct char_data *ch, const char *arg, int list_type, struct char_data *viewer);
 extern struct feat_info feat_list[];
 extern int feat_sort_info[MAX_FEATS];
 int get_sorcerer_bloodline_type(struct char_data *ch);
 bool isSorcBloodlineFeat(int featnum);
 
 /**ACMD***/
-ACMD(do_feats);
-ACMD(do_featlisting);
+ACMD_DECL(do_feats);
+ACMD_DECL(do_featlisting);
 
 /* Feat types, don't forget to update in constants.c feat_types[] */
 #define FEAT_TYPE_NONE 0

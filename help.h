@@ -47,6 +47,6 @@ struct help_keyword_list *get_help_keywords(const char *tag);
 void perform_help(struct descriptor_data *d, const char *argument);
 
 /* Help command, used in game. */
-ACMD(do_help);
+ACMD_DECL(do_help);
 
 #endif /* HELP_H */

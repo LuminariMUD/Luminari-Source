@@ -26,7 +26,7 @@
 #define CANT_CMD_TEMP 2
 
 /* from accounts.c */
-ACMD(do_accexp);
+ACMD_DECL(do_accexp);
 extern const bool locked_races[NUM_RACES];
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
@@ -130,7 +130,7 @@ int get_speed(struct char_data *ch, sbyte to_display);
  ****************************************************************************/
 /* functions with subcommands */
 /* do_gen_comm */
-ACMD(do_gen_comm);
+ACMD_DECL(do_gen_comm);
 #define SCMD_HOLLER 0
 #define SCMD_SHOUT 1
 #define SCMD_GOSSIP 2
@@ -138,20 +138,20 @@ ACMD(do_gen_comm);
 #define SCMD_GRATZ 4
 #define SCMD_GEMOTE 5
 /* do_qcomm */
-ACMD(do_qcomm);
+ACMD_DECL(do_qcomm);
 #define SCMD_QSAY 0
 #define SCMD_QECHO 1
 /* do_spec_com */
-ACMD(do_spec_comm);
+ACMD_DECL(do_spec_comm);
 #define SCMD_WHISPER 0
 #define SCMD_ASK 1
 /* functions without subcommands */
-ACMD(do_say);
-ACMD(do_gsay);
-ACMD(do_page);
-ACMD(do_reply);
-ACMD(do_tell);
-ACMD(do_write);
+ACMD_DECL(do_say);
+ACMD_DECL(do_gsay);
+ACMD_DECL(do_page);
+ACMD_DECL(do_reply);
+ACMD_DECL(do_tell);
+ACMD_DECL(do_write);
 /*****************************************************************************
  * Begin Functions and defines for act.informative.c
  ****************************************************************************/
@@ -181,13 +181,13 @@ void free_history(struct char_data *ch, int type);
 void free_recent_players(void);
 /* functions with subcommands */
 /* do_commands */
-ACMD(do_commands);
+ACMD_DECL(do_commands);
 #define SCMD_COMMANDS 0
 #define SCMD_SOCIALS 1
 #define SCMD_WIZHELP 2
 #define SCMD_MANEUVERS 3
 /* do_gen_ps */
-ACMD(do_gen_ps);
+ACMD_DECL(do_gen_ps);
 #define SCMD_INFO 0
 #define SCMD_HANDBOOK 1
 #define SCMD_CREDITS 2
@@ -201,56 +201,56 @@ ACMD(do_gen_ps);
 #define SCMD_CLEAR 10
 #define SCMD_WHOAMI 11
 /* do_look */
-ACMD(do_look);
+ACMD_DECL(do_look);
 #define SCMD_LOOK 0
 #define SCMD_READ 1
 #define SCMD_HERE 2
-ACMD(do_affects);
+ACMD_DECL(do_affects);
 #define SCMD_AFFECTS 0
 #define SCMD_COOLDOWNS 1
 #define SCMD_RESISTANCES 2
 
 /* functions without subcommands */
-ACMD(do_innates);
-ACMD(do_abilities);
-ACMD(do_masterlist);
-ACMD(do_areas);
-ACMD(do_attacks);
-ACMD(do_consider);
-ACMD(do_defenses);
-ACMD(do_damage);
-ACMD(do_diagnose);
-ACMD(do_disengage);
-ACMD(do_equipment);
-ACMD(do_examine);
-ACMD(do_exits);
-ACMD(do_survey);
-ACMD(do_gold);
-ACMD(do_help);
-ACMD(do_history);
-ACMD(do_inventory);
-ACMD(do_levels);
-ACMD(do_scan);
-ACMD(do_score);
-ACMD(do_spot);
-ACMD(do_listen);
-ACMD(do_time);
-ACMD(do_toggle);
-ACMD(do_users);
-ACMD(do_weather);
-ACMD(do_where);
-ACMD(do_who);
-ACMD(do_whois);
-ACMD(do_track);
-ACMD(do_hp);
-ACMD(do_tnl);
-ACMD(do_moves);
+ACMD_DECL(do_innates);
+ACMD_DECL(do_abilities);
+ACMD_DECL(do_masterlist);
+ACMD_DECL(do_areas);
+ACMD_DECL(do_attacks);
+ACMD_DECL(do_consider);
+ACMD_DECL(do_defenses);
+ACMD_DECL(do_damage);
+ACMD_DECL(do_diagnose);
+ACMD_DECL(do_disengage);
+ACMD_DECL(do_equipment);
+ACMD_DECL(do_examine);
+ACMD_DECL(do_exits);
+ACMD_DECL(do_survey);
+ACMD_DECL(do_gold);
+ACMD_DECL(do_help);
+ACMD_DECL(do_history);
+ACMD_DECL(do_inventory);
+ACMD_DECL(do_levels);
+ACMD_DECL(do_scan);
+ACMD_DECL(do_score);
+ACMD_DECL(do_spot);
+ACMD_DECL(do_listen);
+ACMD_DECL(do_time);
+ACMD_DECL(do_toggle);
+ACMD_DECL(do_users);
+ACMD_DECL(do_weather);
+ACMD_DECL(do_where);
+ACMD_DECL(do_who);
+ACMD_DECL(do_whois);
+ACMD_DECL(do_track);
+ACMD_DECL(do_hp);
+ACMD_DECL(do_tnl);
+ACMD_DECL(do_moves);
 
 /*****************************************************************************
  * Begin Functions and defines for rank.c
  ****************************************************************************/
 void do_slug_rank(struct char_data *ch, char *arg);
-ACMD(do_rank);
+ACMD_DECL(do_rank);
 
 /*****************************************************************************
  * Begin Functions and defines for act.item.c
@@ -284,30 +284,30 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent);
 
 /* functions with subcommands */
 /* do_drop */
-ACMD(do_drop);
+ACMD_DECL(do_drop);
 #define SCMD_DROP 0
 #define SCMD_JUNK 1
 #define SCMD_DONATE 2
 /* do_eat */
-ACMD(do_eat);
+ACMD_DECL(do_eat);
 #define SCMD_EAT 0
 #define SCMD_TASTE 1
 #define SCMD_DRINK 2
 #define SCMD_SIP 3
 /* do_pour */
-ACMD(do_pour);
+ACMD_DECL(do_pour);
 #define SCMD_POUR 0
 #define SCMD_FILL 1
 /* functions without subcommands */
-ACMD(do_drink);
-ACMD(do_get);
-ACMD(do_give);
-ACMD(do_grab);
-ACMD(do_put);
-ACMD(do_remove);
-ACMD(do_sac);
-ACMD(do_wear);
-ACMD(do_wield);
+ACMD_DECL(do_drink);
+ACMD_DECL(do_get);
+ACMD_DECL(do_give);
+ACMD_DECL(do_grab);
+ACMD_DECL(do_put);
+ACMD_DECL(do_remove);
+ACMD_DECL(do_sac);
+ACMD_DECL(do_wear);
+ACMD_DECL(do_wield);
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c
@@ -319,26 +319,26 @@ int change_position(struct char_data *ch, int position);
 
 /* Functions with subcommands */
 /* do_gen_door */
-ACMD(do_gen_door);
+ACMD_DECL(do_gen_door);
 #define SCMD_OPEN 0
 #define SCMD_CLOSE 1
 #define SCMD_UNLOCK 2
 #define SCMD_LOCK 3
 #define SCMD_PICK 4
 /* Functions without subcommands */
-ACMD(do_disembark);
-ACMD(do_enter);
-ACMD(do_follow);
-ACMD(do_unlead);
-ACMD(do_leave);
-ACMD(do_move);
-ACMD(do_rest);
-ACMD(do_sit);
-ACMD(do_recline);
-ACMD(do_sleep);
-ACMD(do_stand);
-ACMD(do_wake);
-ACMD(do_pullswitch);
+ACMD_DECL(do_disembark);
+ACMD_DECL(do_enter);
+ACMD_DECL(do_follow);
+ACMD_DECL(do_unlead);
+ACMD_DECL(do_leave);
+ACMD_DECL(do_move);
+ACMD_DECL(do_rest);
+ACMD_DECL(do_sit);
+ACMD_DECL(do_recline);
+ACMD_DECL(do_sleep);
+ACMD_DECL(do_stand);
+ACMD_DECL(do_wake);
+ACMD_DECL(do_pullswitch);
 
 /* Switch info */
 #define SWITCH_UNHIDE 0
@@ -375,120 +375,120 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict);
 int perform_collect(struct char_data *ch, bool silent);
 /* Functions with subcommands */
 /* do_hit */
-ACMD(do_hit);
+ACMD_DECL(do_hit);
 #define SCMD_HIT 0
-ACMD(do_process_attack);
+ACMD_DECL(do_process_attack);
 
 /* Functions without subcommands */
-ACMD(do_fire);
-ACMD(do_reload);
-ACMD(do_autofire);
-ACMD(do_collect);
-ACMD(do_hitall);
-ACMD(do_guard);
-ACMD(do_charge);
-ACMD(do_circle);
+ACMD_DECL(do_fire);
+ACMD_DECL(do_reload);
+ACMD_DECL(do_autofire);
+ACMD_DECL(do_collect);
+ACMD_DECL(do_hitall);
+ACMD_DECL(do_guard);
+ACMD_DECL(do_charge);
+ACMD_DECL(do_circle);
 ACMDCHECK(can_circle);
-ACMD(do_bodyslam);
-ACMD(do_springleap);
-ACMD(do_feint);
-ACMD(do_headbutt);
+ACMD_DECL(do_bodyslam);
+ACMD_DECL(do_springleap);
+ACMD_DECL(do_feint);
+ACMD_DECL(do_headbutt);
 ACMDCHECK(can_headbutt);
-ACMD(do_shieldpunch);
+ACMD_DECL(do_shieldpunch);
 ACMDCHECK(can_shieldpunch);
-ACMD(do_disarm);
-ACMD(do_shieldcharge);
+ACMD_DECL(do_disarm);
+ACMD_DECL(do_shieldcharge);
 ACMDCHECK(can_shieldcharge);
-ACMD(do_shieldslam);
+ACMD_DECL(do_shieldslam);
 ACMDCHECK(can_shieldslam);
-ACMD(do_dirtkick);
+ACMD_DECL(do_dirtkick);
 ACMDCHECK(can_dirtkick);
-ACMD(do_sap);
+ACMD_DECL(do_sap);
 ACMDCHECK(can_sap);
-ACMD(do_assist);
-ACMD(do_rage);
-ACMD(do_sacredflames);
-ACMD(do_innerfire);
+ACMD_DECL(do_assist);
+ACMD_DECL(do_rage);
+ACMD_DECL(do_sacredflames);
+ACMD_DECL(do_innerfire);
 ACMDCHECK(can_rage);
-ACMD(do_defensive_stance);
+ACMD_DECL(do_defensive_stance);
 ACMDCHECK(can_defensive_stance);
-ACMD(do_turnundead);
+ACMD_DECL(do_turnundead);
 ACMDCHECK(can_turnundead);
-ACMD(do_bash);
-ACMD(do_call);
-ACMD(do_fly);
-ACMD(do_levitate);
-ACMD(do_darkness);
-ACMD(do_invisiblerogue);
-ACMD(do_land);
-ACMD(do_frightful);
-ACMD(do_breathe);
+ACMD_DECL(do_bash);
+ACMD_DECL(do_call);
+ACMD_DECL(do_fly);
+ACMD_DECL(do_levitate);
+ACMD_DECL(do_darkness);
+ACMD_DECL(do_invisiblerogue);
+ACMD_DECL(do_land);
+ACMD_DECL(do_frightful);
+ACMD_DECL(do_breathe);
 ACMDCHECK(can_breathe);
-ACMD(do_tailsweep);
+ACMD_DECL(do_tailsweep);
 ACMDCHECK(can_tailsweep);
-ACMD(do_backstab);
+ACMD_DECL(do_backstab);
 ACMDCHECK(can_backstab);
-ACMD(do_flee);
-ACMD(do_stunningfist);
+ACMD_DECL(do_flee);
+ACMD_DECL(do_stunningfist);
 ACMDCHECK(can_stunningfist);
-ACMD(do_quiveringpalm);
+ACMD_DECL(do_quiveringpalm);
 ACMDCHECK(can_quiveringpalm);
-ACMD(do_deatharrow);
+ACMD_DECL(do_deatharrow);
 ACMDCHECK(can_deatharrow);
-ACMD(do_faeriefire);
+ACMD_DECL(do_faeriefire);
 ACMDCHECK(can_faeriefire);
-ACMD(do_kick);
-ACMD(do_seekerarrow);
+ACMD_DECL(do_kick);
+ACMD_DECL(do_seekerarrow);
 ACMDCHECK(can_seekerarrow);
-ACMD(do_arrowswarm);
+ACMD_DECL(do_arrowswarm);
 ACMDCHECK(can_arrowswarm);
-ACMD(do_smiteevil);
+ACMD_DECL(do_smiteevil);
 ACMDCHECK(can_smiteevil);
-ACMD(do_smitegood);
+ACMD_DECL(do_smitegood);
 ACMDCHECK(can_smitegood);
-ACMD(do_kill);
-ACMD(do_layonhands);
+ACMD_DECL(do_kill);
+ACMD_DECL(do_layonhands);
 ACMDCHECK(can_layonhands);
-ACMD(do_order);
-ACMD(do_applypoison);
-ACMD(do_sorcerer_arcane_apotheosis);
-ACMD(do_imbuearrow);
-ACMD(do_abundantstep);
-ACMD(do_animatedead);
-ACMD(do_rescue);
-ACMD(do_taunt);
+ACMD_DECL(do_order);
+ACMD_DECL(do_applypoison);
+ACMD_DECL(do_sorcerer_arcane_apotheosis);
+ACMD_DECL(do_imbuearrow);
+ACMD_DECL(do_abundantstep);
+ACMD_DECL(do_animatedead);
+ACMD_DECL(do_rescue);
+ACMD_DECL(do_taunt);
 ACMDCHECK(can_taunt);
-ACMD(do_intimidate);
+ACMD_DECL(do_intimidate);
 ACMDCHECK(can_intimidate);
-ACMD(do_treatinjury);
+ACMD_DECL(do_treatinjury);
 ACMDCHECK(can_treatinjury);
-ACMD(do_emptybody);
+ACMD_DECL(do_emptybody);
 ACMDCHECK(can_emptybody);
-ACMD(do_wholenessofbody);
+ACMD_DECL(do_wholenessofbody);
 ACMDCHECK(can_wholenessofbody);
-ACMD(do_trip);
-ACMD(do_whirlwind);
+ACMD_DECL(do_trip);
+ACMD_DECL(do_whirlwind);
 ACMDCHECK(can_whirlwind);
-ACMD(do_crystalfist);
+ACMD_DECL(do_crystalfist);
 ACMDCHECK(can_crystalfist);
-ACMD(do_crystalbody);
+ACMD_DECL(do_crystalbody);
 ACMDCHECK(can_crystalbody);
-ACMD(do_supriseaccuracy);
+ACMD_DECL(do_supriseaccuracy);
 ACMDCHECK(can_supriseaccuracy);
-ACMD(do_powerfulblow);
+ACMD_DECL(do_powerfulblow);
 ACMDCHECK(can_powerfulblow);
-ACMD(do_renewedvigor);
+ACMD_DECL(do_renewedvigor);
 ACMDCHECK(can_renewedvigor);
-ACMD(do_reneweddefense);
+ACMD_DECL(do_reneweddefense);
 ACMDCHECK(can_reneweddefense);
-ACMD(do_comeandgetme);
+ACMD_DECL(do_comeandgetme);
 ACMDCHECK(can_comeandgetme);
-ACMD(do_sorcerer_breath_weapon);
+ACMD_DECL(do_sorcerer_breath_weapon);
 ACMDCHECK(can_sorcerer_breath_weapon);
-ACMD(do_sorcerer_claw_attack);
+ACMD_DECL(do_sorcerer_claw_attack);
 ACMDCHECK(can_sorcerer_claw_attack);
-ACMD(do_sorcerer_draconic_wings);
-ACMD(do_impromptu);
+ACMD_DECL(do_sorcerer_draconic_wings);
+ACMD_DECL(do_impromptu);
 ACMDCHECK(can_impromptu);
 
 /*****************************************************************************
@@ -510,7 +510,7 @@ void show_hints(void);
 void display_todo(struct char_data *ch, struct char_data *vict);
 
 /* do_gen_tog */
-ACMD(do_gen_tog);
+ACMD_DECL(do_gen_tog);
 #define SCMD_NOSUMMON 0
 #define SCMD_NOHASSLE 1
 #define SCMD_BRIEF 2
@@ -556,18 +556,18 @@ ACMD(do_gen_tog);
 #define SCMD_AUTOCONSIDER 42
 
 /* do_quit */
-ACMD(do_quit);
+ACMD_DECL(do_quit);
 #define SCMD_QUI 0
 #define SCMD_QUIT 1
 /* do_use */
-ACMD(do_use);
+ACMD_DECL(do_use);
 #define SCMD_USE 0
 #define SCMD_QUAFF 1
 #define SCMD_RECITE 2
 /* do_utter */
-ACMD(do_utter);
+ACMD_DECL(do_utter);
 /* do_diplomacy */
-ACMD(do_diplomacy);
+ACMD_DECL(do_diplomacy);
 #define SCMD_MURMUR 0
 #define SCMD_PROPAGANDA 1
 #define SCMD_LOBBY 2
@@ -576,44 +576,44 @@ ACMD(do_diplomacy);
 #define DIP_INCR (diplomacy_types[dip_num].increase)
 #define DIP_WAIT (diplomacy_types[dip_num].wait)
 /* Functions without subcommands */
-ACMD(do_recharge);
-ACMD(do_nop);
-ACMD(do_buck);
-ACMD(do_dismount);
-ACMD(do_mount);
-ACMD(do_dismiss);
-ACMD(do_tame);
-ACMD(do_boosts);
-ACMD(do_respec);
-ACMD(do_gain);
-ACMD(do_display);
-ACMD(do_shapechange);
-ACMD(do_group);
-ACMD(do_greport);
-ACMD(do_purify);
-ACMD(do_happyhour);
-ACMD(do_hide);
-ACMD(do_lore);
-ACMD(do_not_here);
-ACMD(do_practice);
-ACMD(do_report);
-ACMD(do_save);
-ACMD(do_search);
-ACMD(do_sneak);
-ACMD(do_spelllist);
-ACMD(do_spells);
-ACMD(do_split);
-ACMD(do_steal);
-ACMD(do_title);
-ACMD(do_train);
-ACMD(do_visible);
-ACMD(do_wildshape);
-ACMD(do_vanish);
-ACMD(do_disguise);
-ACMD(do_ethshift);
-ACMD(do_handleanimal);
-//ACMD(do_nohints);
-ACMD(do_todo);
+ACMD_DECL(do_recharge);
+ACMD_DECL(do_nop);
+ACMD_DECL(do_buck);
+ACMD_DECL(do_dismount);
+ACMD_DECL(do_mount);
+ACMD_DECL(do_dismiss);
+ACMD_DECL(do_tame);
+ACMD_DECL(do_boosts);
+ACMD_DECL(do_respec);
+ACMD_DECL(do_gain);
+ACMD_DECL(do_display);
+ACMD_DECL(do_shapechange);
+ACMD_DECL(do_group);
+ACMD_DECL(do_greport);
+ACMD_DECL(do_purify);
+ACMD_DECL(do_happyhour);
+ACMD_DECL(do_hide);
+ACMD_DECL(do_lore);
+ACMD_DECL(do_not_here);
+ACMD_DECL(do_practice);
+ACMD_DECL(do_report);
+ACMD_DECL(do_save);
+ACMD_DECL(do_search);
+ACMD_DECL(do_sneak);
+ACMD_DECL(do_spelllist);
+ACMD_DECL(do_spells);
+ACMD_DECL(do_split);
+ACMD_DECL(do_steal);
+ACMD_DECL(do_title);
+ACMD_DECL(do_train);
+ACMD_DECL(do_visible);
+ACMD_DECL(do_wildshape);
+ACMD_DECL(do_vanish);
+ACMD_DECL(do_disguise);
+ACMD_DECL(do_ethshift);
+ACMD_DECL(do_handleanimal);
+//ACMD_DECL(do_nohints);
+ACMD_DECL(do_todo);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c
@@ -627,13 +627,13 @@ void free_command_list(void);
 /** @todo command list functions probably belong in interpreter */
 void create_command_list(void);
 /* Functions without subcommands */
-ACMD(do_action);
-ACMD(do_gmote);
+ACMD_DECL(do_action);
+ACMD_DECL(do_gmote);
 
 /******************
  * memorize
  *******************/
-ACMD(do_gen_forget);
+ACMD_DECL(do_gen_forget);
 
 #define SCMD_FORGET 1
 #define SCMD_BLANK 2
@@ -642,7 +642,7 @@ ACMD(do_gen_forget);
 #define SCMD_UNADJURE 5
 #define SCMD_DISCARD 6
 
-ACMD(do_gen_memorize);
+ACMD_DECL(do_gen_memorize);
 
 #define SCMD_MEMORIZE 1
 #define SCMD_PRAY 2
@@ -669,22 +669,22 @@ bool AddRecentPlayer(char *chname, char *chhost, bool newplr, bool cpyplr);
 int get_eq_score(obj_rnum a);
 /* Functions with subcommands */
 /* do_date */
-ACMD(do_date);
+ACMD_DECL(do_date);
 #define SCMD_DATE 0
 #define SCMD_UPTIME 1
 /* do_echo */
-ACMD(do_echo);
+ACMD_DECL(do_echo);
 #define SCMD_ECHO 0
 #define SCMD_EMOTE 1
 /* do_last */
-ACMD(do_last);
+ACMD_DECL(do_last);
 #define SCMD_LIST_ALL 1
 /* do_shutdown */
-ACMD(do_shutdown);
+ACMD_DECL(do_shutdown);
 #define SCMD_SHUTDOW 0
 #define SCMD_SHUTDOWN 1
 /* do_wizutil */
-ACMD(do_wizutil);
+ACMD_DECL(do_wizutil);
 #define SCMD_REROLL 0
 #define SCMD_PARDON 1
 #define SCMD_NOTITLE 2
@@ -693,73 +693,73 @@ ACMD(do_wizutil);
 #define SCMD_THAW 5
 #define SCMD_UNAFFECT 6
 /* Functions without subcommands */
-ACMD(do_hlqlist);
-ACMD(do_advance);
-ACMD(do_objlist);
-ACMD(do_singlefile);
-ACMD(do_at);
-ACMD(do_checkloadstatus);
-ACMD(do_copyover);
-ACMD(do_dc);
-ACMD(do_changelog);
-ACMD(do_file);
-ACMD(do_force);
-ACMD(do_gecho);
-ACMD(do_goto);
-ACMD(do_invis);
-ACMD(do_links);
-ACMD(do_keycheck);
-ACMD(do_load);
-ACMD(do_oset);
-ACMD(do_peace);
-ACMD(do_plist);
-ACMD(do_purge);
-ACMD(do_recent);
-ACMD(do_restore);
-ACMD(do_return);
-ACMD(do_saveall);
-ACMD(do_savemobs);
-ACMD(do_send);
-ACMD(do_set);
-ACMD(do_show);
-ACMD(do_snoop);
-ACMD(do_stat);
-ACMD(do_switch);
-ACMD(do_teleport);
-ACMD(do_trans);
-ACMD(do_vnum);
-ACMD(do_vstat);
-ACMD(do_wizlock);
-ACMD(do_wiznet);
-ACMD(do_wizupdate);
-ACMD(do_zcheck);
-ACMD(do_zlock);
-ACMD(do_zpurge);
-ACMD(do_zreset);
-ACMD(do_zunlock);
-ACMD(do_afflist);
-ACMD(do_typelist);
-ACMD(do_eqrating);
-ACMD(do_coordconvert);
-ACMD(do_genmap);
-ACMD(do_genriver);
-ACMD(do_deletepath);
-ACMD(do_oconvert);
-ACMD(do_acconvert);
-ACMD(do_findmagic);
-ACMD(do_cmdlev);
-ACMD(do_obind);
-ACMD(do_unbind);
-//ACMD(do_plist);
-ACMD(do_finddoor);
-ACMD(do_bombs);
-ACMD(do_bandage);
-ACMD(do_players);
-ACMD(do_copyroom);
-ACMD(do_loot);
-ACMD(do_weapontypes);
-ACMD(do_weaponproficiencies);
-ACMD(do_weaponinfo);
-ACMD(do_autocon);
+ACMD_DECL(do_hlqlist);
+ACMD_DECL(do_advance);
+ACMD_DECL(do_objlist);
+ACMD_DECL(do_singlefile);
+ACMD_DECL(do_at);
+ACMD_DECL(do_checkloadstatus);
+ACMD_DECL(do_copyover);
+ACMD_DECL(do_dc);
+ACMD_DECL(do_changelog);
+ACMD_DECL(do_file);
+ACMD_DECL(do_force);
+ACMD_DECL(do_gecho);
+ACMD_DECL(do_goto);
+ACMD_DECL(do_invis);
+ACMD_DECL(do_links);
+ACMD_DECL(do_keycheck);
+ACMD_DECL(do_load);
+ACMD_DECL(do_oset);
+ACMD_DECL(do_peace);
+ACMD_DECL(do_plist);
+ACMD_DECL(do_purge);
+ACMD_DECL(do_recent);
+ACMD_DECL(do_restore);
+ACMD_DECL(do_return);
+ACMD_DECL(do_saveall);
+ACMD_DECL(do_savemobs);
+ACMD_DECL(do_send);
+ACMD_DECL(do_set);
+ACMD_DECL(do_show);
+ACMD_DECL(do_snoop);
+ACMD_DECL(do_stat);
+ACMD_DECL(do_switch);
+ACMD_DECL(do_teleport);
+ACMD_DECL(do_trans);
+ACMD_DECL(do_vnum);
+ACMD_DECL(do_vstat);
+ACMD_DECL(do_wizlock);
+ACMD_DECL(do_wiznet);
+ACMD_DECL(do_wizupdate);
+ACMD_DECL(do_zcheck);
+ACMD_DECL(do_zlock);
+ACMD_DECL(do_zpurge);
+ACMD_DECL(do_zreset);
+ACMD_DECL(do_zunlock);
+ACMD_DECL(do_afflist);
+ACMD_DECL(do_typelist);
+ACMD_DECL(do_eqrating);
+ACMD_DECL(do_coordconvert);
+ACMD_DECL(do_genmap);
+ACMD_DECL(do_genriver);
+ACMD_DECL(do_deletepath);
+ACMD_DECL(do_oconvert);
+ACMD_DECL(do_acconvert);
+ACMD_DECL(do_findmagic);
+ACMD_DECL(do_cmdlev);
+ACMD_DECL(do_obind);
+ACMD_DECL(do_unbind);
+//ACMD_DECL(do_plist);
+ACMD_DECL(do_finddoor);
+ACMD_DECL(do_bombs);
+ACMD_DECL(do_bandage);
+ACMD_DECL(do_players);
+ACMD_DECL(do_copyroom);
+ACMD_DECL(do_loot);
+ACMD_DECL(do_weapontypes);
+ACMD_DECL(do_weaponproficiencies);
+ACMD_DECL(do_weaponinfo);
+ACMD_DECL(do_autocon);
 
 #endif /* _ACT_H_ */

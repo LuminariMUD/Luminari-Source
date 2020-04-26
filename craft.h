@@ -33,7 +33,7 @@
 /* for resizing weapons, what increment for size change in damage? */
 #define WEAPON_RESIZE_INC 2
 /* the maximun harvesting-nodes allowed is number of rooms divided by this value */
-#define NODE_CAP_FACTOR 33
+#define NODE_CAP_FACTOR 17
 // end DEFINES //
 
 #define CREATE_MODE_CREATE 1
@@ -157,8 +157,8 @@ void reset_acraft(struct char_data *ch);
 /* end external functions */
 
 /* command functions */
-ACMD(do_harvest);
-ACMD(do_disenchant);
+ACMD_DECL(do_harvest);
+ACMD_DECL(do_disenchant);
 /* end command functions */
 
 #endif /* CRAFT_H */

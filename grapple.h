@@ -86,11 +86,11 @@ extern "C"
     /* Functions with subcommands */
 
     /* Functions without subcommands */
-    ACMD(do_grapple);
-    ACMD(do_struggle);
-    ACMD(do_free_grapple);
-    ACMD(do_bind);
-    ACMD(do_pin);
+    ACMD_DECL(do_grapple);
+    ACMD_DECL(do_struggle);
+    ACMD_DECL(do_free_grapple);
+    ACMD_DECL(do_bind);
+    ACMD_DECL(do_pin);
 
 /* Macros */
 #define GRAPPLE_TARGET(ch) ((ch)->char_specials.grapple_target)

@@ -122,7 +122,7 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
                      int level_received, bool stacks);
 
 /* ACMD */
-ACMD(do_class);
+ACMD_DECL(do_class);
 
 /* Global variables */
 

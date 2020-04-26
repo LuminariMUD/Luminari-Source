@@ -8,7 +8,7 @@
 
 struct weapon_table
 {
-  char *name;
+  const char *name;
   sbyte numDice;
   ubyte diceSize;
   sbyte critRange;
@@ -32,7 +32,7 @@ struct weapon_table
 
 struct armor_table
 {
-  char *name;
+  const char *name;
   ubyte armorType;
   ush_int cost;
   ubyte armorBonus;
@@ -87,8 +87,8 @@ bool monk_gear_ok(struct char_data *ch);
 bool is_two_handed_ranged_weapon(struct obj_data *obj);
 /**/
 
-ACMD(do_weaponlist);
-ACMD(do_armorlist);
+ACMD_DECL(do_weaponlist);
+ACMD_DECL(do_armorlist);
 
 /**/
 
