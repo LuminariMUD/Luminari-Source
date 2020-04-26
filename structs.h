@@ -2452,8 +2452,9 @@
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_4 72
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_5 73
 #define WEAPON_TYPE_WARMAUL 74
+#define WEAPON_TYPE_KHOPESH 75
 // One higher than last above
-#define NUM_WEAPON_TYPES 75
+#define NUM_WEAPON_TYPES 76
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
