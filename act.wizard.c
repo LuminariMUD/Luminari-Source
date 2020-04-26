@@ -52,6 +52,7 @@
 #include "account.h"
 #include "alchemy.h"
 #include "mud_event.h"
+#include "premadebuilds.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -3631,6 +3632,7 @@ const struct set_struct
     {"alchemist", LVL_STAFF, PC, NUMBER},        /* 90 */
     {"arcaneshadow", LVL_STAFF, PC, NUMBER},     /* 91 */
     {"sacredfist", LVL_STAFF, PC, NUMBER},       /* 92 */
+    {"premadebuild", LVL_STAFF, PC, MISC},       /* 93 */
 
     {"\n", 0, BOTH, MISC}};
 
@@ -4281,6 +4283,14 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 92: // sacred fist
     CLASS_LEVEL(vict, CLASS_SACRED_FIST) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
+    break;
+  case 93: /* premade build class */
+    if ((i = parse_class_long(val_arg)) == CLASS_UNDEFINED)
+    {
+      send_to_char(ch, "That is not a premade build class.\r\n");
+      return (0);
+    }
+    GET_PREMADE_BUILD_CLASS(vict) = i;
     break;
 
   default:

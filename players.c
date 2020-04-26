@@ -1405,7 +1405,7 @@ void save_char(struct char_data *ch, int mode)
   }
 
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)
-    fprintf(fl, "PreM: %d\n", GET_PREMADE_BUILD_CLASS(ch));
+    fprintf(fl, "PreB: %d\n", GET_PREMADE_BUILD_CLASS(ch));
 
   /* Save skills */
   if (GET_LEVEL(ch) < LVL_IMMORT)
