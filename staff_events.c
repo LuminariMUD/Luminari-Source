@@ -118,7 +118,7 @@ void staff_event_info(struct char_data *ch, int event_num)
 }
 
 /* list the events */
-void list_staff_events()
+void list_staff_events(struct char_data *ch)
 {
     int i = 0;
 
