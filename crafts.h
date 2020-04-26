@@ -78,7 +78,7 @@ void show_craft(struct char_data *ch, struct craft_data *craft);
 struct craft_data *get_craft_from_arg(char *arg);
 struct craft_data *get_craft_from_id(int id);
 
-ACMD(do_craft);
+ACMD_DECL(do_craft);
 
 /* Craftedit */
 extern struct list_data *global_craft_list;

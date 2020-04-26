@@ -74,7 +74,7 @@ int *cmd_sort_info = NULL;
 
 struct command_info *complete_cmd_info;
 
-ACMD(do_reboot);
+ACMD_DECL(do_reboot);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"

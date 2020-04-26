@@ -29,8 +29,25 @@
  * to be first defined in interpreter.h. The reason for using a macro is
  * to allow for easier addition of parameters to the otherwise generic and
  * static function structure. */
+#define ACMD_DECL(name) \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
+
 #define ACMD(name) \
-  void name(struct char_data *ch, char *argument, int cmd, int subcmd)
+  static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd) \
+  { \
+    if (!argument) \
+    { \
+      impl_## name ##_(ch, NULL, cmd, subcmd); \
+      return; \
+    } \
+    size_t arg_sz = strlen(argument) + 1; \
+    char arg_buf[arg_sz]; \
+    strcpy(arg_buf, argument); \
+    impl_## name ##_(ch, arg_buf, cmd, subcmd); \
+  } \
+  static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd)
+
 
 /** Definition of the helper function for checking if a command can be used.
  *  If show_error is set, an error message will be sent to the user. Otherwise, it 

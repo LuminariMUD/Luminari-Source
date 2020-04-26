@@ -611,7 +611,7 @@ int save_config(IDXTYPE nowhere);
 /* Prototypes to keep. */
 void clear_screen(struct descriptor_data *);
 int can_edit_zone(struct char_data *ch, zone_rnum rnum);
-ACMD(do_oasis);
+ACMD_DECL(do_oasis);
 
 /* public functions from medit.c */
 void medit_setup_existing(struct descriptor_data *d, int rnum);
@@ -619,7 +619,7 @@ void medit_setup_new(struct descriptor_data *d);
 void medit_save_internally(struct descriptor_data *d);
 void medit_parse(struct descriptor_data *d, char *arg);
 void medit_string_cleanup(struct descriptor_data *d, int terminator);
-ACMD(do_oasis_medit);
+ACMD_DECL(do_oasis_medit);
 void medit_autoroll_stats(struct descriptor_data *d);
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
@@ -630,7 +630,7 @@ void oedit_parse(struct descriptor_data *d, char *arg);
 void oedit_string_cleanup(struct descriptor_data *d, int terminator);
 void oedit_disp_armor_type_menu(struct descriptor_data *d);
 void oedit_disp_weapon_type_menu(struct descriptor_data *d);
-ACMD(do_oasis_oedit);
+ACMD_DECL(do_oasis_oedit);
 
 /* public functions from redit.c */
 void redit_setup_existing(struct descriptor_data *d, int rnum);
@@ -639,38 +639,38 @@ void redit_save_internally(struct descriptor_data *d);
 void redit_save_to_disk(zone_vnum zone_num);
 void redit_parse(struct descriptor_data *d, char *arg);
 void free_room(struct room_data *room);
-ACMD(do_oasis_redit);
+ACMD_DECL(do_oasis_redit);
 
 /* public functions from sedit.c */
 void sedit_setup_existing(struct descriptor_data *d, int rnum);
 void sedit_save_internally(struct descriptor_data *d);
 void sedit_parse(struct descriptor_data *d, char *arg);
-ACMD(do_oasis_sedit);
+ACMD_DECL(do_oasis_sedit);
 
 /* public functions from zedit.c */
 void zedit_parse(struct descriptor_data *d, char *arg);
-ACMD(do_oasis_zedit);
+ACMD_DECL(do_oasis_zedit);
 
 /* public functions from cedit.c */
 void cedit_save_to_disk(void);
 void cedit_parse(struct descriptor_data *d, char *arg);
 void cedit_string_cleanup(struct descriptor_data *d, int terminator);
-ACMD(do_oasis_cedit);
+ACMD_DECL(do_oasis_cedit);
 
 /* public functions from dg_olc.c */
 void trigedit_parse(struct descriptor_data *d, char *arg);
-ACMD(do_oasis_trigedit);
+ACMD_DECL(do_oasis_trigedit);
 
 /* public functions from from aedit.c */
 void aedit_parse(struct descriptor_data *d, char *arg);
-ACMD(do_oasis_aedit);
-ACMD(do_astat);
+ACMD_DECL(do_oasis_aedit);
+ACMD_DECL(do_astat);
 
 /* public functions from hedit.c */
 void hedit_parse(struct descriptor_data *d, char *arg);
 void hedit_string_cleanup(struct descriptor_data *d, int terminator);
 void free_help(struct help_index_element *help);
-ACMD(do_oasis_hedit);
+ACMD_DECL(do_oasis_hedit);
 
 /* public functions from hsedit.c */
 void hsedit_save_to_disk(void);
@@ -679,24 +679,24 @@ void hsedit_setup_existing(struct descriptor_data *d, int real_num);
 void hsedit_parse(struct descriptor_data *d, char *arg);
 void hsedit_string_cleanup(struct descriptor_data *d, int terminator);
 void free_house(struct house_control_rec *house);
-ACMD(do_oasis_hsedit);
+ACMD_DECL(do_oasis_hsedit);
 
 /* public functions from tedit.c */
 void tedit_string_cleanup(struct descriptor_data *d, int terminator);
-ACMD(do_tedit);
+ACMD_DECL(do_tedit);
 
 /* public functions from qedit.c */
-ACMD(do_oasis_qedit);
+ACMD_DECL(do_oasis_qedit);
 void qedit_save_internally(struct descriptor_data *d);
 void qedit_setup_existing(struct descriptor_data *d, int rnum);
 
 /* NewCraft */
 /* public functions from crafts.c */
 void craftedit_parse(struct descriptor_data *d, char *arg);
-ACMD(do_oasis_craftedit);
+ACMD_DECL(do_oasis_craftedit);
 
 /* public functions from study.c */
-ACMD(do_study);
+ACMD_DECL(do_study);
 void study_parse(struct descriptor_data *d, char *arg);
 int stat_points_left(struct char_data *ch);
 int compute_total_stat_points(struct char_data *ch);
@@ -714,13 +714,13 @@ int compute_dex_cost(struct char_data *ch, int number);
 int compute_base_dex(struct char_data *ch);
 
 /* public functions from msgedit.c */
-ACMD(do_msgedit);
+ACMD_DECL(do_msgedit);
 void msgedit_parse(struct descriptor_data *d, char *arg);
 
 /* public functions from oasis_copy.c */
 int buildwalk(struct char_data *ch, int dir);
-ACMD(do_dig);
-ACMD(do_oasis_copy);
+ACMD_DECL(do_dig);
+ACMD_DECL(do_oasis_copy);
 
 /* public functions from oasis_delete.c */
 int free_strings(void *data, int type);
@@ -728,7 +728,7 @@ int free_strings(void *data, int type);
 /* public functions from oasis_list.c */
 void print_zone(struct char_data *ch, zone_rnum rnum);
 /** @deprecated is do_oasis_links intentionally dead code? */
-ACMD(do_oasis_links);
-ACMD(do_oasis_list);
+ACMD_DECL(do_oasis_links);
+ACMD_DECL(do_oasis_list);
 
 #endif /* _OASIS_H_ */

@@ -93,8 +93,8 @@ extern IBT_DATA *first_typo;
 extern IBT_DATA *last_typo;
 
 /* Functions in ibt.c that are used externally */
-ACMD(do_ibt);
-ACMD(do_oasis_ibtedit);
+ACMD_DECL(do_ibt);
+ACMD_DECL(do_oasis_ibtedit);
 void save_ibt_file(int mode);
 void load_ibt_file(int mode);
 void ibtedit_parse(struct descriptor_data *d, char *arg);

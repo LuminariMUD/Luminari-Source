@@ -66,8 +66,8 @@ int get_sorcerer_bloodline_type(struct char_data *ch);
 bool isSorcBloodlineFeat(int featnum);
 
 /**ACMD***/
-ACMD(do_feats);
-ACMD(do_featlisting);
+ACMD_DECL(do_feats);
+ACMD_DECL(do_featlisting);
 
 /* Feat types, don't forget to update in constants.c feat_types[] */
 #define FEAT_TYPE_NONE 0

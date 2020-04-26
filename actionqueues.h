@@ -11,7 +11,7 @@
 #define SCMD_ATTACK_QUEUE 1
 
 /* AQ specific commands */
-ACMD(do_queue);
+ACMD_DECL(do_queue);
 
 struct action_data
 {
