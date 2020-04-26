@@ -19,7 +19,7 @@
 #include "utils.h"   /* for ACMD */
 
 /* used for determining how many harvesting nodes appear in the game for craft system */
-#def NUM_HARVEST_NODE_RESETS 30
+#define NUM_HARVEST_NODE_RESETS 30
 
 /* arbitrary constants used by index_boot() (must be unique) */
 #define DB_BOOT_WLD 0
