@@ -192,7 +192,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 char *line_string(int length, char first, char second);
 const char *text_line_string(const char *text, int length, char first, char second);
 void draw_line(struct char_data *ch, int length, char first, char second);
-void text_line(struct char_data *ch, char *text, int length, char first, char second);
+void text_line(struct char_data *ch, const char *text, int length, char first, char second);
 
 /* Saving Throws */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc);

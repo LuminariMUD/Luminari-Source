@@ -618,8 +618,11 @@ void assign_wilderness_room(room_rnum room, int x, int y)
 {
 
   /* Set defaults */
-  static char *wilderness_name = "The Wilderness of Luminari";
-  static char *wilderness_desc = "The wilderness extends in all directions.";
+
+  /* Char buffer because we can't use const char * due to warnings.
+  TODO: make const when the rest of the plumbing supports it */
+  static char wilderness_name[] = "The Wilderness of Luminari";
+  static char wilderness_desc[] = "The wilderness extends in all directions.";
 
   struct region_list *regions = NULL;
   struct region_list *curr_region = NULL;
