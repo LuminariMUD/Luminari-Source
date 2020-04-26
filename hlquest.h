@@ -73,13 +73,13 @@ void hlqedit_disp_menu(struct descriptor_data *d);
 /* end functions */
 
 /* commands */
-ACMD(do_qinfo);
-ACMD(do_checkapproved);
-ACMD(do_kitquests);
-ACMD(do_spellquests);
-ACMD(do_qref);
-ACMD(do_qview);
-ACMD(do_hlqedit);
+ACMD_DECL(do_qinfo);
+ACMD_DECL(do_checkapproved);
+ACMD_DECL(do_kitquests);
+ACMD_DECL(do_spellquests);
+ACMD_DECL(do_qref);
+ACMD_DECL(do_qview);
+ACMD_DECL(do_hlqedit);
 /* end commands */
 
 /*

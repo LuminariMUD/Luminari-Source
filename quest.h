@@ -108,7 +108,7 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum);
 void quest_timeout(struct char_data *ch);
 void check_timed_quests(void);
 SPECIAL(questmaster);
-ACMD(do_quest);
+ACMD_DECL(do_quest);
 
 /* Implemented in qedit.c  */
 void qedit_parse(struct descriptor_data *d, char *arg);

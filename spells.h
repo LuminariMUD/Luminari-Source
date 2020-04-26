@@ -1183,15 +1183,15 @@ bool spell_in_book(struct obj_data *obj, int spellnum);
 int spell_in_scroll(struct obj_data *obj, int spellnum);
 bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scroll);
 /* spellbook commands */
-ACMD(do_scribe);
+ACMD_DECL(do_scribe);
 
 /* from spell_parser.c */
-ACMD(do_gen_cast);
+ACMD_DECL(do_gen_cast);
 #define SCMD_CAST_SPELL 0 /* don't forget to add to constants.c */
 #define SCMD_CAST_PSIONIC 1
 #define SCMD_CAST_EXTRACT 2
 
-ACMD(do_abort);
+ACMD_DECL(do_abort);
 void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);

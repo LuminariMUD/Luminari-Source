@@ -18,6 +18,9 @@
 #include "structs.h" /* for room_vnum */
 #include "utils.h"   /* for ACMD */
 
+/* used for determining how many harvesting nodes appear in the game for craft system */
+#define NUM_HARVEST_NODE_RESETS 30
+
 /* arbitrary constants used by index_boot() (must be unique) */
 #define DB_BOOT_WLD 0
 #define DB_BOOT_MOB 1
@@ -166,13 +169,13 @@ struct reset_com
    char command; /* current command                      */
 
    signed char if_flag; /* if TRUE: exe only if preceding exe'd */
-   int arg1;     /*                                      */
-   int arg2;     /* Arguments to the command             */
-   int arg3;     /*                                      */
-   int arg4;     /* probability of command executing     */
-   int line;     /* line number this command appears on  */
-   char *sarg1;  /* string argument                      */
-   char *sarg2;  /* string argument                      */
+   int arg1;            /*                                      */
+   int arg2;            /* Arguments to the command             */
+   int arg3;            /*                                      */
+   int arg4;            /* probability of command executing     */
+   int line;            /* line number this command appears on  */
+   char *sarg1;         /* string argument                      */
+   char *sarg2;         /* string argument                      */
 
    /* Commands:
     *  'M': Read a mobile

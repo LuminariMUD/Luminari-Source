@@ -58,6 +58,7 @@
 #include "new_mail.h"
 #include "alchemy.h"
 #include "helpers.h"
+#include "staff_events.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -73,7 +74,7 @@ int *cmd_sort_info = NULL;
 
 struct command_info *complete_cmd_info;
 
-ACMD(do_reboot);
+ACMD_DECL(do_reboot);
 
 /* This is the Master Command List. You can put new commands in, take commands
  * out, change the order they appear in, etc.  You can adjust the "priority"
@@ -107,6 +108,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sw", "sw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* now, the main list */
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"abilities", "abilities", POS_DEAD, do_abilities, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"abort", "abort", POS_FIGHTING, do_abort, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "acconvert", "acconvert", POS_DEAD, do_acconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -154,6 +158,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"armorlist", "armorlist", POS_DEAD, do_armorlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_backstab},
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -173,6 +179,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"blessedtouch", "blessedtouch", POS_STANDING, do_blessedtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"battlerage", "battlerage", POS_STANDING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"bazaar", "bazaar", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"cast", "c", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SPELL, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -221,6 +229,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -256,6 +266,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dracwings", "dracwings", POS_FIGHTING, do_sorcerer_draconic_wings, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -275,6 +287,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -289,12 +303,13 @@ cpp_extern const struct command_info cmd_info[] = {
     {"fire", "fire", POS_FIGHTING, do_fire, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"feint", "feint", POS_FIGHTING, do_process_attack, 1, AA_FEINT, FALSE, ACTION_NONE, {0, 0}, NULL},
-
     {"firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}, can_faeriefire},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"get", "g", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"gdiscovery", "gdisc", POS_RECLINING, do_grand_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -318,6 +333,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"guimode", "guimode", POS_DEAD, do_gen_tog, 1, SCMD_GUI_MODE, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"help", "h", POS_DEAD, do_help, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"happyhour", "ha", POS_DEAD, do_happyhour, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -344,6 +361,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"hp", "hp", POS_DEAD, do_hp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hsedit", "hsedit", POS_DEAD, do_oasis_hsedit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -360,11 +379,17 @@ cpp_extern const struct command_info cmd_info[] = {
     {"invisiblerogue", "invisiblerogue", POS_DEAD, do_invisiblerogue, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"innerfire", "innerfire", POS_FIGHTING, do_innerfire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"kill", "k", POS_FIGHTING, do_kill, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"kick", "ki", POS_FIGHTING, do_process_attack, 1, AA_KICK, FALSE, ACTION_NONE, {6, 0}, NULL},
     {"keycheck", "keycheck", POS_STANDING, do_keycheck, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -385,6 +410,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"levitate", "levitate", POS_FIGHTING, do_levitate, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"lms", "lms", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"manifest", "m", POS_SITTING, do_gen_cast, 1, SCMD_CAST_PSIONIC, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"maneuvers", "maneuvers", POS_DEAD, do_commands, 0, SCMD_MANEUVERS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"memorize", "memorize", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -403,6 +430,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"massinvis", "massinvis", POS_FIGHTING, do_massinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"moves", "moves", POS_DEAD, do_moves, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"news", "news", POS_SLEEPING, do_gen_ps, 0, SCMD_NEWS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noauction", "noauction", POS_DEAD, do_gen_tog, 0, SCMD_NOAUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noclantalk", "noclant", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOCLANTALK, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -419,6 +448,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"nochat", "nochat", POS_DEAD, do_gen_tog, 0, SCMD_NOGOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nohint", "nohint", POS_DEAD, do_gen_tog, 0, SCMD_NOHINT, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"open", "o", POS_SITTING, do_gen_door, 0, SCMD_OPEN, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"oconvert", "oconvert", POS_DEAD, do_oconvert, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"order", "ord", POS_RECLINING, do_order, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -431,6 +462,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"omit", "omit", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_OMIT, FALSE, ACTION_NONE, {0, 0}, NULL},
     //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"obind", "obind", POS_DEAD, do_obind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"pathlist", "pathlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_PATHLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"put", "p", POS_RECLINING, do_put, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -460,6 +493,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     //{ "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"queue", "q", POS_DEAD, do_queue, 0, SCMD_ACTION_QUEUE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"qedit", "qedit", POS_DEAD, do_oasis_qedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qlist", "qlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_QLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -473,6 +508,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"qview", "qview", POS_DEAD, do_qview, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"quiveringpalm", "quiveringpalm", POS_FIGHTING, do_quiveringpalm, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_quiveringpalm},
     {"qcopy", "qcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_QEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"rest", "re", POS_RECLINING, do_rest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reply", "r", POS_SLEEPING, do_reply, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -509,6 +546,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"race", "race", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rp", "rp", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -566,6 +605,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -595,6 +637,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"tnl", "tnl", POS_DEAD, do_tnl, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"todo", "todo", POS_DEAD, do_todo, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"unlock", "unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unban", "unban", POS_DEAD, do_unban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"unaffect", "unaffect", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_UNAFFECT, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -607,6 +651,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"unbind", "unbind", POS_DEAD, do_unbind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"unlead", "unlead", POS_RECLINING, do_unlead, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
+
     {"value", "val", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"version", "ver", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"visible", "vis", POS_RECLINING, do_visible, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -614,6 +660,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"vstat", "vstat", POS_DEAD, do_vstat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vdelete", "vdelete", POS_DEAD, do_vdelete, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vanish", "vanish", POS_DEAD, do_vanish, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -640,6 +688,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"weaponlist", "weaponlist", POS_DEAD, do_weaponlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weaponproficiencies", "weaponprof", POS_DEAD, do_weaponproficiencies, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weapontypes", "weapontypes", POS_DEAD, do_weapontypes, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+
+    /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"zreset", "zreset", POS_DEAD, do_zreset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"zedit", "zedit", POS_DEAD, do_oasis_zedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
