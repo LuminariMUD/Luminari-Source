@@ -84,9 +84,10 @@ void staff_event_info(struct char_data *ch, int event_num)
 {
     int event_field = 0;
 
-    send_to_char(ch, "\r\n\tgDetails about \tW%s\tg:\tn\r\n", staff_events_list[event_num][EVENT_TITLE]);
+    send_to_char(ch, "\r\n\tgDetails about \tW%s (%d)\tg:\tn\r\n",
+                 staff_events_list[event_num][EVENT_TITLE], event_num);
 
-    for (event_field = 1; event_field < STAFF_EVENT_FIELDS; event_field++)
+    for (event_field = 0; event_field < STAFF_EVENT_FIELDS; event_field++)
     {
         switch (event_field)
         {
@@ -102,14 +103,12 @@ void staff_event_info(struct char_data *ch, int event_num)
         case EVENT_DETAIL:
             send_to_char(ch, "Event info:\r\n");
             send_to_char(ch, staff_events_list[event_num][EVENT_DETAIL]);
-            send_to_char(ch, "\r\n");
             break;
 
-        default: /* should not get here */
+        case EVENT_TITLE: /* we mention this above */
+        default:
             break;
         }
-
-        send_to_char(ch, "%d) %s\r\n", event_field, staff_events_list[event_field][0]);
     }
 
     send_to_char(ch, "Usage: staffevent [start|end|info] [index # above]\r\n\r\n");

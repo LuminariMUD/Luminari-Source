@@ -17,6 +17,7 @@
 #define NUM_STAFF_EVENTS 1
 #define STAFF_EVENT_FIELDS 4
 
+/* event fields */
 #define EVENT_TITLE 0
 #define EVENT_BEGIN 1
 #define EVENT_END 2
