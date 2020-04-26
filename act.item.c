@@ -2763,14 +2763,10 @@ int hands_used(struct char_data *ch)
     num++;
   if (is_two_handed_ranged_weapon(GET_EQ(ch, WEAR_WIELD_1)))
     num++; // bows and crossbows and some others will always need 2 hands regardless of size.  Also checks if obj exists
-  if (GET_EQ(ch, WEAR_WIELD_1) && GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_1)) > GET_SIZE(ch))
-    num++;
   if (GET_EQ(ch, WEAR_WIELD_OFFHAND))
     num++;
   if (is_two_handed_ranged_weapon(GET_EQ(ch, WEAR_WIELD_OFFHAND)))
     num++; // bows and crossbows and some others will always need 2 hands regardless of size.  Also checks if obj exists
-  if (GET_EQ(ch, WEAR_WIELD_OFFHAND) && GET_OBJ_SIZE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) > GET_SIZE(ch))
-    num++;
   if (GET_EQ(ch, WEAR_HOLD_1))
     num++;
   if (GET_EQ(ch, WEAR_HOLD_2))
