@@ -18,42 +18,60 @@
 #include "staff_events.h"
 /* end includes */
 
+/****************/
+/** start code **/
+/****************/
+
+/* array with the data about the event, probably just change this to a structure later */
 const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 
     {/*JACKALOPE_HUNT*/
-     /* title */
-     "Hardbuckler Jackalope Hunt",
-     /* event start message */
-     "The horn has sounded, the great Jackalope Hunt of the Hardbuckler Region has begun!",
-     /* event end message */
-     "The horn has sounded, the great Jackalope Hunt of the Hardbuckler Region has ended!",
-     /* event info message */
-     "It is as I feared, Jackalopes have been seen in numbers roaming the countryside.  "
+
+     /* title - EVENT_TITLE */
+     "\tCHardbuckler Jackalope Hunt\tn",
+
+     /* event start message - EVENT_BEGIN */
+     "\tWThe horn has sounded, the great Jackalope Hunt of the Hardbuckler Region has begun!\tn",
+
+     /* event end message - EVENT_END */
+     "\tRThe horn has sounded, the great Jackalope Hunt of the Hardbuckler Region has ended!\tn",
+
+     /* event info message - EVENT_DETAIL */
+     "\tgIt is as I feared, Jackalopes have been seen in numbers roaming the countryside.  "
      "Usually they reproduce very slowly.  Clearly someone has been breeding them, and "
      "this, can mean no good.  We must stop the spread of this growing menace now.  Will "
-     "you help me?\r\n - Fullstaff, Agent of Sanctus -"},
+     "you help me?\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n",
+
+     /* event summary/conclusion - EVENT_SUMMARY */
+     "\tgGreat job cleaning up dood!\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n",
+
+     /*end jackalope hunt*/},
 
 };
 
 /* start a staff event! */
 void start_staff_event(int event_num)
 {
-    struct descriptor_data *pt;
+    struct descriptor_data *pt = NULL;
+
+    /* announcement to game */
+    for (pt = descriptor_list; pt; pt = pt->next)
+    {
+        if (IS_PLAYING(pt) && pt->character)
+        {
+            send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) is Starting!\r\n",
+                         staff_events_list[event_num][EVENT_TITLE]);
+            send_to_char(pt->character, "\tn%s\tn\r\n",
+                         staff_events_list[event_num][EVENT_DETAIL]);
+            send_to_char(pt->character, "\r\n\tn%s\tn\r\n\r\n",
+                         staff_events_list[event_num][EVENT_BEGIN]);
+        }
+    }
 
     switch (event_num)
     {
 
     case JACKALOPE_HUNT:
-        for (pt = descriptor_list; pt; pt = pt->next)
-        {
-            if (IS_PLAYING(pt) && pt->character)
-            {
-                /*
-                send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s of %s's group has defeated %s!\r\n",
-                             GET_NAME(killer), GET_NAME(killer->group->leader), GET_NAME(ch));
-                             */
-            }
-        }
         break;
 
     default:
@@ -66,6 +84,21 @@ void start_staff_event(int event_num)
 /* end a staff event! */
 void end_staff_event(int event_num)
 {
+
+    /* announcement to game */
+    for (pt = descriptor_list; pt; pt = pt->next)
+    {
+        if (IS_PLAYING(pt) && pt->character)
+        {
+            send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) has ended.\r\n",
+                         staff_events_list[event_num][EVENT_TITLE]);
+            send_to_char(pt->character, "\tn%s\tn\r\n",
+                         staff_events_list[event_num][EVENT_SUMMARY]);
+            send_to_char(pt->character, "\r\n\tn%s\tn\r\n\r\n",
+                         staff_events_list[event_num][EVENT_END]);
+        }
+    }
+
     switch (event_num)
     {
 
@@ -84,7 +117,7 @@ void staff_event_info(struct char_data *ch, int event_num)
 {
     int event_field = 0;
 
-    send_to_char(ch, "\r\n\tgDetails about \tW%s (%d)\tg:\tn\r\n",
+    send_to_char(ch, "\r\n\tgDetails about \tn%s\tn (%d)\tg:\tn\r\n",
                  staff_events_list[event_num][EVENT_TITLE], event_num);
 
     for (event_field = 0; event_field < STAFF_EVENT_FIELDS; event_field++)
@@ -93,16 +126,17 @@ void staff_event_info(struct char_data *ch, int event_num)
         {
 
         case EVENT_BEGIN:
-            send_to_char(ch, "Event begin message to world: \tW%s\tn\r\n", staff_events_list[event_num][EVENT_BEGIN]);
+            send_to_char(ch, "Event begin message to world: \tn%s\tn\r\n", staff_events_list[event_num][EVENT_BEGIN]);
             break;
 
         case EVENT_END:
-            send_to_char(ch, "Event end message to world: \tW%s\tn\r\n", staff_events_list[event_num][EVENT_END]);
+            send_to_char(ch, "Event end message to world: \tn%s\tn\r\n", staff_events_list[event_num][EVENT_END]);
             break;
 
         case EVENT_DETAIL:
-            send_to_char(ch, "Event info:\r\n");
+            send_to_char(ch, "Event info:\r\n\tn");
             send_to_char(ch, staff_events_list[event_num][EVENT_DETAIL]);
+            send_to_char(ch, "\tn");
             break;
 
         case EVENT_TITLE: /* we mention this above */
@@ -121,11 +155,11 @@ void list_staff_events(struct char_data *ch)
 {
     int i = 0;
 
-    send_to_char(ch, "\r\nA Listing of Staff Ran Events:\r\n");
+    send_to_char(ch, "\r\n\tCA Listing of Staff Ran Events:\tn\r\n");
 
     for (i = 0; i < NUM_STAFF_EVENTS; i++)
     {
-        send_to_char(ch, "%d) %s\r\n", i, staff_events_list[i][0]);
+        send_to_char(ch, "\tc%d)\tn %s\r\n", i, staff_events_list[i][0]);
     }
 
     send_to_char(ch, "Usage: staffevent [start|end|info] [index # above]\r\n\r\n");
@@ -153,8 +187,8 @@ ACMD(do_staffevent)
     }
     else
     {
-        send_to_char(ch, "Requires a digit for the second argument!\r\n");
         list_staff_events(ch);
+        send_to_char(ch, "Requires a digit (the event number) for the second argument!\r\n");
         return;
     }
 
