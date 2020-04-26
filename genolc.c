@@ -353,7 +353,7 @@ ACMD(do_export_zone)
    * where the binary IS, not where it was run
    * from, thus we act like we are in the bin
    * folder, because we are*/
-  char *path = "../lib/world/export/";
+  const char *path = "../lib/world/export/";
 
   if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMPL)
     return;

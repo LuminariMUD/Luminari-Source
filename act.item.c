@@ -549,7 +549,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     //char *wall_keyword = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].keyword;
     int wall_spellnum = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].spell_num;
     bool wall_stopmove = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].stops_movement;
-    char *wall_sname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].shortname;
+    const char *wall_sname = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].shortname;
     int wall_duration = wallinfo[GET_OBJ_VAL(item, WALL_TYPE)].duration;
     int wall_level = 0;
 
