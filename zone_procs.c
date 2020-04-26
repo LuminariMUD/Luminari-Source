@@ -37,7 +37,7 @@ static int is_trash(struct obj_data *i);
 static void fry_victim(struct char_data *ch);
 static int castle_cleaner(struct char_data *ch, int cmd, int gripe);
 static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum, const char *twinname);
-static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc));
+static void castle_mob_spec(mob_vnum mobnum, SPECIAL_DECL(*specproc));
 
 /* end head of file */
 
@@ -46,16 +46,16 @@ static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc));
 /******************************************************************/
 
 /* Special procedures for Kings Castle by Pjotr. Coded by Sapowox. */
-SPECIAL(CastleGuard);
-SPECIAL(James);
-SPECIAL(cleaning);
-SPECIAL(DicknDavid);
-SPECIAL(tim);
-SPECIAL(tom);
-SPECIAL(king_welmar);
-SPECIAL(training_master);
-SPECIAL(peter);
-SPECIAL(jerry);
+SPECIAL_DECL(CastleGuard);
+SPECIAL_DECL(James);
+SPECIAL_DECL(cleaning);
+SPECIAL_DECL(DicknDavid);
+SPECIAL_DECL(tim);
+SPECIAL_DECL(tom);
+SPECIAL_DECL(king_welmar);
+SPECIAL_DECL(training_master);
+SPECIAL_DECL(peter);
+SPECIAL_DECL(jerry);
 
 /* IMPORTANT! The below defined number is the zone number of the Kings Castle.
  * Change it to apply to your chosen zone number.
@@ -64,7 +64,7 @@ SPECIAL(jerry);
 
 /* Assign castle special procedures. NOTE: The mobile number isn't fully
  * specified. It's only an offset from the zone's base. */
-static void castle_mob_spec(mob_vnum mobnum, SPECIAL(*specproc))
+static void castle_mob_spec(mob_vnum mobnum, SPECIAL_DECL(*specproc))
 {
   mob_vnum vmv = castle_virtual(mobnum);
   mob_rnum rmr = NOBODY;

@@ -71,7 +71,7 @@ static int get_max_recent(void);
 static void clear_recent(struct recent_player *this);
 static struct recent_player *create_recent(void);
 
-const char *get_spec_func_name(SPECIAL(*func));
+const char *get_spec_func_name(SPECIAL_DECL(*func));
 bool zedit_get_levels(struct descriptor_data *d, char *buf);
 
 bool delete_path(region_vnum vnum);

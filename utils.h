@@ -41,9 +41,8 @@
       impl_## name ##_(ch, NULL, cmd, subcmd); \
       return; \
     } \
-    size_t arg_sz = strlen(argument) + 1; \
-    char arg_buf[arg_sz]; \
-    strcpy(arg_buf, argument); \
+    char arg_buf[MAX_INPUT_LENGTH]; \
+    strlcpy(arg_buf, argument, sizeof(arg_buf)); \
     impl_## name ##_(ch, arg_buf, cmd, subcmd); \
   } \
   static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd)
