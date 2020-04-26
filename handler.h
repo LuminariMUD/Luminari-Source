@@ -103,7 +103,7 @@ void leave_group(struct char_data *ch);
 void join_group(struct char_data *ch, struct group_data *group);
 
 /* Generic Find */
-int generic_find(char *arg, bitvector_t bitvector, struct char_data *ch,
+int generic_find(const char *arg, bitvector_t bitvector, struct char_data *ch,
                  struct char_data **tar_ch, struct obj_data **tar_obj);
 
 #define FIND_CHAR_ROOM (1 << 0)

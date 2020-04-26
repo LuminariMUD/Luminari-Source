@@ -2491,12 +2491,16 @@ struct obj_data *create_money(int amount)
  * The routine used to return a pointer to the next word in *arg (just
  * like the one_argument routine), but now it returns an integer that
  * describes what it filled in. */
-int generic_find(char *arg, bitvector_t bitvector, struct char_data *ch,
+int generic_find(const char *arg_in, bitvector_t bitvector, struct char_data *ch,
                  struct char_data **tar_ch, struct obj_data **tar_obj)
 {
   int i, found, number;
   char name_val[MAX_INPUT_LENGTH];
   char *name = name_val;
+  
+  char arg_local[MAX_INPUT_LENGTH];
+  strlcpy(arg_local, arg_in, sizeof(arg_local));
+  char *arg = arg_local;
 
   *tar_ch = NULL;
   *tar_obj = NULL;
