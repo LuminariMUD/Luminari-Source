@@ -772,9 +772,9 @@ bool is_using_double_weapon(struct char_data *ch)
 
 /* end utility, start base set/load/init functions for weapons/armor */
 
-void setweapon(int type, char *name, int numDice, int diceSize, int critRange, int critMult,
-               int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,
-               int material, int handle_type, int head_type)
+static void setweapon(int type, const char *name, int numDice, int diceSize, int critRange, int critMult,
+                      int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,
+                      int material, int handle_type, int head_type)
 {
   weapon_type[type] = strdup(name);
   weapon_list[type].name = name;
@@ -1503,7 +1503,7 @@ int is_proficient_with_armor(struct char_data *ch)
   return FALSE;
 }
 
-void setarmor(int type, char *name, int armorType, int cost, int armorBonus,
+static void setarmor(int type, const char *name, int armorType, int cost, int armorBonus,
               int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
               int twentyFoot, int weight, int material, int wear)
 {
