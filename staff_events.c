@@ -9,6 +9,10 @@
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /* includes */
+#include "conf.h"
+#include "sysdep.h"
+#include "structs.h"
+#include "utils.h"
 #include "staff_events.h"
 /* end includes */
 
