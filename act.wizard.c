@@ -4681,7 +4681,7 @@ const struct zcheck_armor
 {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed;        /* Max. AC allowed for this body part  */
-  char *message;         /* phrase for error message            */
+  const char *message;         /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
     {ITEM_WEAR_FINGER, 1, "Ring"}, //0
     {ITEM_WEAR_NECK, 1, "Necklace"},
@@ -7202,7 +7202,7 @@ ACMD(do_oconvert)
 
   send_to_char(ch, "%d %s\r\n", iarg, arg2);
 
-  char *weapon_type_keywords[NUM_WEAPON_TYPES];
+  const char *weapon_type_keywords[NUM_WEAPON_TYPES];
 
   /* Initialize the weapon keyword array. */
   for (i = 0; i < NUM_WEAPON_TYPES; i++)
