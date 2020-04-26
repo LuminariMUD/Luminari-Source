@@ -30,7 +30,7 @@ void display_levelinfo_ability_scores(char_data *ch, int ability_score);
 void erase_levelup_info(struct char_data *ch);
 void levelinfo_search(struct char_data *ch, int type, char *searchString);
 
-SPECIAL(select_templates);
+SPECIAL_DECL(select_templates);
 ACMD_DECL(do_templates);
 ACMD_DECL(do_levelinfo);
 

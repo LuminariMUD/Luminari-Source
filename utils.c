@@ -3790,7 +3790,7 @@ const char* text_line_string(const char *text, int length, char first, char seco
   return buf;
 }
 
-void text_line(struct char_data *ch, char *text, int length, char first, char second) {
+void text_line(struct char_data *ch, const char *text, int length, char first, char second) {
   send_to_char(ch, "%s", text_line_string(text, length, first, second));
 }
 

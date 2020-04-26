@@ -13,7 +13,7 @@
 #define _SHOP_H_
 
 /* Public function prototypes */
-SPECIAL(shop_keeper);
+SPECIAL_DECL(shop_keeper);
 void boot_the_shops(FILE *shop_f, char *filename, int rec_count);
 void assign_the_shopkeepers(void);
 void show_shops(struct char_data *ch, char *arg);
@@ -52,7 +52,7 @@ struct shop_data
    int close1, close2;         /* When does the shop close?		*/
    int bankAccount;            /* Store all gold over 15000 (disabled)	*/
    int lastsort;               /* How many items are sorted in inven?	*/
-   SPECIAL(*func);             /* Secondary spec_proc for shopkeeper	*/
+   SPECIAL_DECL(*func);             /* Secondary spec_proc for shopkeeper	*/
 };
 
 #define MAX_TRADE 5         /* List maximums for compatibility	*/
