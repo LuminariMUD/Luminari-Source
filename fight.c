@@ -6272,7 +6272,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
             under certain circumstances.  This could be refactored into something else, but it may
             actually be best to refactor the entire homeland 'specials' system and include it into
             weapon special abilities. */
-  char *hit_msg = "";
+  char hit_msg[32] = "";
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
 
@@ -6280,7 +6280,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   //gui_combat_wrap_open(ch);
 
   if (is_critical)
-    hit_msg = "critical";
+    strlcpy(hit_msg, "critical", sizeof(hit_msg));
 
   /* Print descriptive tags - This needs some form of control, via a toggle
            * and also should be formatted in some standard way with standard colors.
