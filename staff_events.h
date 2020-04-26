@@ -42,7 +42,7 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS];
 
 void start_staff_event(int event_num);
 void end_staff_event(int event_num);
-void staff_event_info(int event_num);
+void staff_event_info(struct char_data *ch, int event_num);
 void list_staff_events();
 
 ACMD(do_staffevent);

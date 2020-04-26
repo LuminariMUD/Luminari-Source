@@ -14,6 +14,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
+#include "interpreter.h"
 #include "staff_events.h"
 /* end includes */
 
@@ -47,8 +48,10 @@ void start_staff_event(int event_num)
         {
             if (IS_PLAYING(pt) && pt->character)
             {
+                /*
                 send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s of %s's group has defeated %s!\r\n",
                              GET_NAME(killer), GET_NAME(killer->group->leader), GET_NAME(ch));
+                             */
             }
         }
         break;
@@ -77,7 +80,7 @@ void end_staff_event(int event_num)
 }
 
 /* details about a specific event */
-void staff_event_info(int event_num)
+void staff_event_info(struct char_data *ch, int event_num)
 {
     int event_field = 0;
 
