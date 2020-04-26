@@ -357,7 +357,6 @@ void levelup_warrior(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_HEAVY_BLADE);
       give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
@@ -365,84 +364,54 @@ void levelup_warrior(struct char_data *ch, int level, bool verbose)
       }
       break;
     case 2:
-      increase_skills(ch, chclass, TRUE, 2);
       give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
       break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
       give_premade_feat(ch, verbose, FEAT_WEAPON_SPECIALIZATION, WEAPON_FAMILY_HEAVY_BLADE);
       break;
-    case 5:
-      increase_skills(ch, chclass, TRUE, 5);
-      break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_LIGHTNING_REFLEXES, 0);
       give_premade_feat(ch, verbose, FEAT_DODGE, 0);
       break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
-      break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_HEAVY_BLADE);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_HEAVY_BLADE);
       break;
     case 10:
-      increase_skills(ch, chclass, TRUE, 10);
       give_premade_feat(ch, verbose, FEAT_GREATER_WEAPON_FOCUS, WEAPON_FAMILY_HEAVY_BLADE);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_FAST_HEALER, 0);
       give_premade_feat(ch, verbose, FEAT_ARMOR_SPECIALIZATION_HEAVY, 0);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
     case 14:
-      increase_skills(ch, chclass, TRUE, 14);
       give_premade_feat(ch, verbose, FEAT_GREATER_WEAPON_SPECIALIZATION, WEAPON_FAMILY_HEAVY_BLADE);
       break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_MOBILITY, 0);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
       give_premade_feat(ch, verbose, FEAT_SPRING_ATTACK, 0);
       break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
-      break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_IRON_WILL, 0);
       give_premade_feat(ch, verbose, FEAT_COMBAT_EXPERTISE, 0);
       break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 17);
-      break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       give_premade_feat(ch, verbose, FEAT_WHIRLWIND_ATTACK, 0);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void levelup_rogue(struct char_data *ch, int level, bool verbose)
@@ -451,81 +420,44 @@ void levelup_rogue(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_TWO_WEAPON_FIGHTING, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_DODGE, 0);
       }
       break;
-    case 2:
-      increase_skills(ch, chclass, TRUE, 2);
-      break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_LIGHT_BLADE);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
-      break;
-    case 5:
-      increase_skills(ch, chclass, TRUE, 5);
       break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, 0);
-      break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
-      break;
-    case 10:
-      increase_skills(ch, chclass, TRUE, 10);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_GREATER_TWO_WEAPON_FIGHTING, 0);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
-    case 14:
-      increase_skills(ch, chclass, TRUE, 14);
-      break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_MOBILITY, 0);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
-      break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
       break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_SPRING_ATTACK, 0);
-      break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 19);
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void levelup_monk(struct char_data *ch, int level, bool verbose)
@@ -534,81 +466,44 @@ void levelup_monk(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
       }
       break;
-    case 2:
-      increase_skills(ch, chclass, TRUE, 2);
-      break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_MONK);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
-      break;
-    case 5:
-      increase_skills(ch, chclass, TRUE, 5);
       break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_MONK);
-      break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
-      break;
-    case 10:
-      increase_skills(ch, chclass, TRUE, 10);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_MONK);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
-    case 14:
-      increase_skills(ch, chclass, TRUE, 14);
-      break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_FAST_HEALER, 0);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
-      break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
       break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_DODGE, 0);
-      break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 19);
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void levelup_cleric(struct char_data *ch, int level, bool verbose)
@@ -617,7 +512,6 @@ void levelup_cleric(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
@@ -630,75 +524,39 @@ void levelup_cleric(struct char_data *ch, int level, bool verbose)
       clear_domain_feats(ch);
       add_domain_feats(ch);
       break;
-    case 2:
-      increase_skills(ch, chclass, TRUE, 2);
-      break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_QUICK_CHANT, 0);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
-      break;
-    case 5:
-      increase_skills(ch, chclass, TRUE, 5);
       break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
-      break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_HAMMER);
-      break;
-    case 10:
-      increase_skills(ch, chclass, TRUE, 10);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_HAMMER);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
-    case 14:
-      increase_skills(ch, chclass, TRUE, 14);
-      break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_HAMMER);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
-      break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
       break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
-      break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 19);
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void levelup_berserker(struct char_data *ch, int level, bool verbose)
@@ -707,81 +565,44 @@ void levelup_berserker(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
       }
       break;
-    case 2:
-      increase_skills(ch, chclass, TRUE, 2);
-      break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_DODGE, 0);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
-      break;
-    case 5:
-      increase_skills(ch, chclass, TRUE, 5);
       break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_MOBILITY, 0);
-      break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_AXE);
-      break;
-    case 10:
-      increase_skills(ch, chclass, TRUE, 10);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_SPRING_ATTACK, 0);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
-    case 14:
-      increase_skills(ch, chclass, TRUE, 14);
-      break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_COMBAT_EXPERTISE, 0);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
-      break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
       break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_WHIRLWIND_ATTACK, 0);
-      break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 19);
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void levelup_wizard(struct char_data *ch, int level, bool verbose)
@@ -790,7 +611,6 @@ void levelup_wizard(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
@@ -798,78 +618,46 @@ void levelup_wizard(struct char_data *ch, int level, bool verbose)
       GET_SPECIALTY_SCHOOL(ch) = EVOCATION;
       GET_FAMILIAR(ch) = 85; // imp
       break;
-    case 2:
-      increase_skills(ch, chclass, TRUE, 2);
-      break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
       break;
     case 5:
-      increase_skills(ch, chclass, TRUE, 5);
       give_premade_feat(ch, verbose, FEAT_ENHANCED_SPELL_DAMAGE, 0);
       break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_SPELL_PENETRATION, 0);
-      break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_SPELL_FOCUS, EVOCATION);
       break;
     case 10:
-      increase_skills(ch, chclass, TRUE, 10);
       give_premade_feat(ch, verbose, FEAT_MAXIMIZE_SPELL, 0);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
-    case 14:
-      increase_skills(ch, chclass, TRUE, 14);
-      break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_FOCUS, EVOCATION);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
-      break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
       break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
-      break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 19);
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      increase_skills(ch, chclass, TRUE, 20);
       give_premade_feat(ch, verbose, FEAT_IMPROVED_FAMILIAR, 0);
       break;
   }
+  increase_skills(ch, chclass, TRUE, level);
 }
 
 void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
@@ -878,7 +666,6 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      increase_skills(ch, chclass, TRUE, 1);
       give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
@@ -892,71 +679,39 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
       else
         ch->player_specials->saved.sorcerer_bloodline_subtype = DRACONIC_HERITAGE_GOLD; // gold dragon
       break;
-    case 2:
-      increase_skills(ch, chclass, TRUE, 2);
-      break;
     case 3:
-      increase_skills(ch, chclass, TRUE, 3);
       give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
       break;
     case 4:
       set_premade_stats(ch, chclass, 4);
-      increase_skills(ch, chclass, TRUE, 4);
       break;
     case 5:
-      increase_skills(ch, chclass, TRUE, 5);
       give_premade_feat(ch, verbose, FEAT_ENHANCED_SPELL_DAMAGE, 0);
       break;
     case 6:
-      increase_skills(ch, chclass, TRUE, 6);
       give_premade_feat(ch, verbose, FEAT_SPELL_PENETRATION, 0);
-      break;
-    case 7:
-      increase_skills(ch, chclass, TRUE, 7);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
-      increase_skills(ch, chclass, TRUE, 8);
       break;
     case 9:
-      increase_skills(ch, chclass, TRUE, 9);
       give_premade_feat(ch, verbose, FEAT_SPELL_FOCUS, EVOCATION);
       break;
     case 10:
-      increase_skills(ch, chclass, TRUE, 10);
       give_premade_feat(ch, verbose, FEAT_MAXIMIZE_SPELL, 0);
-      break;
-    case 11:
-      increase_skills(ch, chclass, TRUE, 11);
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      increase_skills(ch, chclass, TRUE, 12);
       give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
       break;
-    case 13:
-      increase_skills(ch, chclass, TRUE, 13);
-      break;
-    case 14:
-      increase_skills(ch, chclass, TRUE, 14);
-      break;
     case 15:
-      increase_skills(ch, chclass, TRUE, 15);
       give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_FOCUS, EVOCATION);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
-      increase_skills(ch, chclass, TRUE, 16);
-      break;
-    case 17:
-      increase_skills(ch, chclass, TRUE, 17);
       break;
     case 18:
-      increase_skills(ch, chclass, TRUE, 18);
       give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
-      break;
-    case 19:
-      increase_skills(ch, chclass, TRUE, 19);
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
@@ -980,50 +735,32 @@ void setup_premade_levelup(struct char_data *ch, int chclass)
 
 void advance_premade_build(struct char_data *ch)
 {
-  int chclass = 0, level = 0;
-  switch (GET_PREMADE_BUILD_CLASS(ch)) {
+  int chclass = GET_PREMADE_BUILD_CLASS(ch),
+      level   = CLASS_LEVEL(ch, chclass);
+
+  setup_premade_levelup(ch, chclass);
+
+  switch (chclass) {
     case CLASS_WARRIOR:
-      chclass = CLASS_WARRIOR;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_warrior(ch, level, TRUE);
       break;
     case CLASS_ROGUE:
-      chclass = CLASS_ROGUE;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_rogue(ch, level, TRUE);
       break;
     case CLASS_MONK:
-      chclass = CLASS_MONK;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_monk(ch, level, TRUE);
       break;
     case CLASS_CLERIC:
-      chclass = CLASS_CLERIC;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_cleric(ch, level, TRUE);
       break;
     case CLASS_BERSERKER:
-      chclass = CLASS_BERSERKER;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_berserker(ch, level, TRUE);
       break;
     case CLASS_WIZARD:
-      chclass = CLASS_WIZARD;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_wizard(ch, level, TRUE);
       break;
     case CLASS_SORCERER:
-      chclass = CLASS_SORCERER;
-      setup_premade_levelup(ch, chclass);
-      level = CLASS_LEVEL(ch, chclass);
       levelup_sorcerer(ch, level, TRUE);
       break;
   }
-
 }
