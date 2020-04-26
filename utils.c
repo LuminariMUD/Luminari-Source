@@ -778,7 +778,7 @@ bool is_fav_enemy_of(struct char_data *ch, int race) {
 }
 
 /* returns a or an based on first character of next word */
-char * a_or_an(char *string) {
+const char * a_or_an(const char *string) {
   switch (tolower(*string)) {
     case 'a':
     case 'e':
@@ -2400,9 +2400,9 @@ int count_color_chars(char *string) {
 /* Not the prettiest thing I've ever written but it does the task which
  * is counting all characters in a string which are not part of the
  * protocol system. This is with the exception of detailed MXP codes. */
-int count_non_protocol_chars(char * str) {
+int count_non_protocol_chars(const char * str) {
   int count = 0;
-  char *string = str;
+  const char *string = str;
 
   while (*string) {
     if (*string == '\r' || *string == '\n') {
@@ -3117,10 +3117,10 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad) {
    @param joiner ???.
    @retval char * Pointer to the output to be displayed?
  */
-char *strpaste(char *str1, char *str2, char *joiner) {
+const char *strpaste(const char *str1, const char *str2, const char *joiner) {
   static char ret[MAX_STRING_LENGTH + 1];
-  char *sp1 = str1;
-  char *sp2 = str2;
+  const char *sp1 = str1;
+  const char *sp2 = str2;
   char *rp = ret;
   int jlen = strlen(joiner);
 
@@ -3324,7 +3324,7 @@ void set_alignment(struct char_data *ch, int alignment) {
 /* also have in constants.c
  * const char *alignment_names[] = {
  */
-char *get_align_by_num_cnd(int align) {
+const char *get_align_by_num_cnd(int align) {
   if (align >= 800)
     return "\tWLG\tn";
   if (align >= 575 && align < 800)
@@ -3353,7 +3353,7 @@ char *get_align_by_num_cnd(int align) {
 /* also have in constants.c
  * const char *alignment_names[] = {
  */
-char *get_align_by_num(int align) {
+const char *get_align_by_num(int align) {
   if (align >= 800)
     return "\tYLawful \tWGood\tn";
   if (align >= 575 && align < 800)
@@ -3748,7 +3748,7 @@ void draw_line(struct char_data *ch, int length, char first, char second) {
 /*  text_line_string()
  *  Generate and return a string, as above, with text centered.
  */
-char* text_line_string(char *text, int length, char first, char second) {
+const char* text_line_string(const char *text, int length, char first, char second) {
   int text_length, text_print_length, pre_length;
   int i = 0, j = 0;
   static char buf[MAX_STRING_LENGTH]; /* Note - static! */

@@ -38,7 +38,7 @@ void load_account_unlocks(struct account_data *account);
 
 /**/
 
-int locked_races_cost[NUM_RACES] = {
+static const int locked_races_cost[NUM_RACES] = {
     0,     /*Human*/
     0,     /*Elf*/
     0,     /*Dwarf*/
@@ -53,7 +53,7 @@ int locked_races_cost[NUM_RACES] = {
     1000,  /*drow (advanced)*/
 };
 
-bool locked_races[NUM_RACES] = {
+const bool locked_races[NUM_RACES] = {
     N, /*Human*/
     N, /*Elf*/
     N, /*Dwarf*/

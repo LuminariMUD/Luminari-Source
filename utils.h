@@ -93,8 +93,8 @@ int compute_current_size(struct char_data *ch);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
-char *get_align_by_num_cnd(int align);
-char *get_align_by_num(int align);
+const char *get_align_by_num_cnd(int align);
+const char *get_align_by_num(int align);
 bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);
@@ -136,7 +136,7 @@ size_t file_sizeof(FILE *file);
 int file_numlines(FILE *file);
 IDXTYPE atoidx(const char *str_to_conv);
 char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
-char *strpaste(char *str1, char *str2, char *joiner);
+const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
 void new_affect(struct affected_type *af);
@@ -145,8 +145,8 @@ int get_class_by_name(char *classname);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
-int count_non_protocol_chars(char *str);
-char *a_or_an(char *string);
+int count_non_protocol_chars(const char *str);
+const char *a_or_an(const char *string);
 bool is_fav_enemy_of(struct char_data *ch, int race);
 int compute_arcana_golem_level(struct char_data *ch);
 bool has_pet_follower(struct char_data *ch);
@@ -173,7 +173,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
-char *text_line_string(char *text, int length, char first, char second);
+const char *text_line_string(const char *text, int length, char first, char second);
 void draw_line(struct char_data *ch, int length, char first, char second);
 void text_line(struct char_data *ch, char *text, int length, char first, char second);
 
@@ -231,7 +231,7 @@ bool circle_follow(struct char_data *ch, struct char_data *victim);
 
 /* in act.informative.c */
 void look_at_room(struct char_data *ch, int mode);
-void add_history(struct char_data *ch, char *msg, int type);
+void add_history(struct char_data *ch, const char *msg, int type);
 void look_at_room_number(struct char_data *ch, int ignore_brief,
                          long room_number);
 /* in spec_procs.c but connected to act.informative.c */

@@ -45,7 +45,7 @@ extern int num_of_houses;
 /* locally defined functions of local (file) scope */
 static int compare_spells(const void *x, const void *y);
 static void npc_steal(struct char_data *ch, struct char_data *victim);
-void zone_yell(struct char_data *ch, char buf[256]);
+static void zone_yell(struct char_data *ch, const char *buf);
 
 /* Special procedures for mobiles. */
 int spell_sort_info[MAX_SKILLS + 1];
@@ -1556,7 +1556,7 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
 
 /* this function will cause basically all the mobiles in the same zone
    to hunt someone down */
-void zone_yell(struct char_data *ch, char buf[256])
+static void zone_yell(struct char_data *ch, const char *buf)
 {
   struct char_data *i;
   struct char_data *vict;
@@ -3334,8 +3334,8 @@ SPECIAL(clan_guard)
   zone_vnum clanhall, to_zone;
   clan_vnum clan;
   struct char_data *guard = (struct char_data *)me;
-  char *buf = "The guard humiliates you, and blocks your way.\r\n";
-  char *buf2 = "The guard humiliates $n, and blocks $s way.";
+  const char *buf = "The guard humiliates you, and blocks your way.\r\n";
+  const char *buf2 = "The guard humiliates $n, and blocks $s way.";
 
   if (!IS_MOVE(cmd) || IS_AFFECTED(guard, AFF_BLIND))
     return FALSE;
@@ -5030,7 +5030,7 @@ SPECIAL(pet_shops)
 /* NOT to be confused with the weapon-spells code used in OLC, etc */
 
 /*  This was ported to accomodate the HL objects that were imported */
-void weapons_spells(char *to_ch, char *to_vict, char *to_room,
+void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
                     struct char_data *ch, struct char_data *vict,
                     struct obj_data *obj, int spl)
 {
@@ -5088,7 +5088,7 @@ struct obj_data *find_ship(int room)
 void move_ship(struct obj_data *ship, int dir)
 {
   int new_room = 0;
-  char *msg = 0;
+  const char *msg = 0;
   int i;
   char buf2[MAX_INPUT_LENGTH];
 

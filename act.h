@@ -27,7 +27,7 @@
 
 /* from accounts.c */
 ACMD(do_accexp);
-bool locked_races[NUM_RACES];
+extern const bool locked_races[NUM_RACES];
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
 int hands_available(struct char_data *ch);
@@ -158,7 +158,7 @@ ACMD(do_write);
 /* Utility Functions */
 
 // char creation help files
-void perform_help(struct descriptor_data *d, char *argument);
+void perform_help(struct descriptor_data *d, const char *argument);
 
 /* character info */
 void perform_affects(struct char_data *ch, struct char_data *k);
@@ -346,7 +346,7 @@ ACMD(do_pullswitch);
 #define SWITCH_OPEN 2
 /* Global variables from act.movement.c */
 #ifndef __ACT_MOVEMENT_C__
-extern const char *cmd_door[];
+extern const char * const cmd_door[];
 #endif /* __ACT_MOVEMENT_C__ */
 
 /*****************************************************************************

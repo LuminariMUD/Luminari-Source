@@ -209,7 +209,7 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
 /* this is used for char creation help */
 
 /* make sure arg doesn't have spaces */
-void perform_help(struct descriptor_data *d, char *argument)
+void perform_help(struct descriptor_data *d, const char *argument)
 {
   struct help_entry_list *entry = NULL, *tmp = NULL;
 

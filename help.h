@@ -44,7 +44,7 @@ struct help_keyword_list *get_help_keywords(const char *tag);
 /* Used during character creation, does not show all of the header information
  * shown by the do_help function, as players do not have access to the entire
  * help system during character creation. */
-void perform_help(struct descriptor_data *d, char *argument);
+void perform_help(struct descriptor_data *d, const char *argument);
 
 /* Help command, used in game. */
 ACMD(do_help);

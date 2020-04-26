@@ -169,7 +169,7 @@ extern struct mud_event_list mud_event_index[];
 
 /* Local Functions */
 void init_events(void);
-struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariables);
+struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables);
 void attach_mud_event(struct mud_event_data *pMudEvent, long time);
 void free_mud_event(struct mud_event_data *pMudEvent);
 struct mud_event_data *char_has_mud_event(struct char_data *ch, event_id iId);

@@ -98,7 +98,7 @@ struct wild_map_info_type
 {
   int sector_type;
   char disp[50];
-  char *variant_disp[NUM_VARIANT_GLYPHS];
+  const char *variant_disp[NUM_VARIANT_GLYPHS];
 };
 
 extern struct wild_map_info_type wild_map_info[];
@@ -189,7 +189,7 @@ struct wild_map_tile
 {
   int vis;
   int sector_type;
-  char *glyph;
+  const char *glyph;
   region_rnum regions[24];
   int num_regions;
   int weather;

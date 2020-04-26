@@ -331,7 +331,7 @@ void assign_triggers(void *i, int type);
 /* From dg_variables.c */
 void add_var(struct trig_var_data **var_list, const char *name, const char *value, long id);
 int item_in_list(char *item, obj_data *list);
-char *skill_percent(struct char_data *ch, char *skill);
+const char *skill_percent(struct char_data *ch, char *skill);
 int char_has_item(char *item, struct char_data *ch);
 void var_subst(void *go, struct script_data *sc, trig_data *trig,
                int type, char *line, char *buf);
@@ -356,8 +356,8 @@ void update_wait_events(struct room_data *to, struct room_data *from);
 /* from dg_comm.c */
 char *any_one_name(char *argument, char *first_arg);
 void sub_write(char *arg, char_data *ch, byte find_invis, int targets);
-void send_to_zone(char *messg, zone_rnum zone);
-void send_to_world(char *messg);
+void send_to_zone(const char *messg, zone_rnum zone);
+void send_to_world(const char *messg);
 
 /* from dg_misc.c */
 void do_dg_cast(void *go, struct script_data *sc, trig_data *trig,

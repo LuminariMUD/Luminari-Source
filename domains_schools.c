@@ -23,7 +23,7 @@
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];
 
-int restricted_school_reference[NUM_SCHOOLS + 1] = {
+const int restricted_school_reference[NUM_SCHOOLS + 1] = {
     /*universalist*/ NOSCHOOL,
 
     /*abjuration*/ DIVINATION,
@@ -39,7 +39,7 @@ int restricted_school_reference[NUM_SCHOOLS + 1] = {
     -1};
 
 /* schools of magic names */
-char *school_names[NUM_SCHOOLS + 1] = {
+const char * const school_names[NUM_SCHOOLS + 1] = {
     "Universalist (No Specialty)", //0
     "Abjurer (Abjuration)",        //1
     "Conjurer (Conjuration)",      //2
@@ -52,7 +52,7 @@ char *school_names[NUM_SCHOOLS + 1] = {
     "\n"};
 
 /* schools of magic names (less detail) */
-char *school_names_specific[NUM_SCHOOLS + 1] = {
+const char * const school_names_specific[NUM_SCHOOLS + 1] = {
     "No School",     //0
     "Abjuration",    //1
     "Conjuration",   //2
@@ -65,7 +65,7 @@ char *school_names_specific[NUM_SCHOOLS + 1] = {
     "\n"};
 
 /* description of school benefits */
-char *school_benefits[NUM_SCHOOLS + 1] = {
+const char * const school_benefits[NUM_SCHOOLS + 1] = {
     /*no school*/ "No benefits, but you will have access to all spells.",                                       //0
     /*abjuration*/ "Your abjuration spells are much more powerful.",                                            //1
     /*Conjuration*/ "Your conjured creatures are much more powerful.",                                          //2
@@ -78,7 +78,7 @@ char *school_benefits[NUM_SCHOOLS + 1] = {
     "\n"};
 
 /* domain power names */
-char *domainpower_names[NUM_DOMAIN_POWERS + 1] = {
+const char * const domainpower_names[NUM_DOMAIN_POWERS + 1] = {
     "Undefined", //0
     "Lightning Arc",
     "Electricity Resistance",
@@ -362,7 +362,7 @@ void init_domains(void)
   }
 }
 
-void add_domain(int domain, char *name, int weapon, char *description)
+void add_domain(int domain, const char *name, int weapon, const char *description)
 {
   domain_list[domain].name = name;
   domain_list[domain].favored_weapon = weapon;

@@ -3530,7 +3530,7 @@ ACMD(do_show)
 #define RANGE(low, high) (value = MAX((low), MIN((high), (value))))
 
 /* The set options available */
-struct set_struct
+const struct set_struct
 {
   const char *cmd;
   const char level;
@@ -4308,9 +4308,9 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
 
 void show_set_help(struct char_data *ch)
 {
-  const char *set_levels[] = {"Imm", "God", "GrGod", "IMP"};
-  const char *set_targets[] = {"PC", "NPC", "BOTH"};
-  const char *set_types[] = {"MISC", "BINARY", "NUMBER"};
+  const char * const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
+  const char * const set_targets[] = {"PC", "NPC", "BOTH"};
+  const char * const set_types[] = {"MISC", "BINARY", "NUMBER"};
   char buf[MAX_STRING_LENGTH];
   int i, len = 0, add_len = 0;
 
@@ -4677,7 +4677,7 @@ ACMD(do_links)
 /* Armor class limits*/
 #define TOTAL_WEAR_CHECKS (NUM_ITEM_WEARS - 1) /* no take flag */
 
-struct zcheck_armor
+const struct zcheck_armor
 {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed;        /* Max. AC allowed for this body part  */
@@ -4712,12 +4712,12 @@ struct zcheck_armor
 
 /* Applies limits !! Very Important:  Keep these in the same order as in Structs.h.
  * To ignore an apply, set max_aff to -99. These will be ignored if MAX_APPLIES_LIMIT = 0 */
-struct zcheck_affs
+const struct zcheck_affs
 {
   int aff_type;  /*from Structs.h*/
   int min_aff;   /*min. allowed value*/
   int max_aff;   /*max. allowed value*/
-  char *message; /*phrase for error message*/
+  const char *message; /*phrase for error message*/
 } zaffs[NUM_APPLIES] = {
     {APPLY_NONE, 0, -99, "unused0"}, //0
     {APPLY_STR, -5, 9, "strength"},
@@ -5838,11 +5838,11 @@ ACMD(do_file)
   char buf[MAX_STRING_LENGTH];  /* Display buffer for req_file. */
 
   /* Defines which files are available to read. */
-  struct file_struct
+  const struct file_struct
   {
-    char *cmd;          /* The 'name' of the file to view */
+    const char *cmd;          /* The 'name' of the file to view */
     char level;         /* Minimum level needed to view. */
-    char *file;         /* The file location, relative to the working dir. */
+    const char *file;         /* The file location, relative to the working dir. */
     int read_backwards; /* Should the file be read backwards by default? */
   } fields[] = {
       {"xnames", LVL_IMMORT, XNAME_FILE, TRUE},

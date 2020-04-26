@@ -583,8 +583,16 @@ ACMD(do_bombs)
 
     if (!target && FIGHTING(ch))
     {
-      target = FIGHTING(ch);
+      switch (type)
+      {
+        case BOMB_HEALING:
+        case BOMB_FIRE_BRAND:
+          target = ch; break;
+        default:
+          target = FIGHTING(ch); break;
+      }
     }
+
 
     if (target == ch)
     {
@@ -1582,7 +1590,7 @@ void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, in
   if (!ch || !victim)
     return;
 
-  const char *to_vict = NULL, *to_room = NULL;
+  const char *to_vict = NULL, *to_room = NULL, *to_notvict = NULL;
   struct affected_type af;
 
   new_affect(&(af));
@@ -1593,7 +1601,7 @@ void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, in
     af.spell = BOMB_AFFECT_FIRE_BRAND;
     af.duration = 10;
     to_vict = "Your weapons are set ablaze.";
-    to_room = "$ns weapons are set ablaze.";
+    to_notvict = "$N's weapons are set ablaze.";
     break;
   }
 
@@ -1607,6 +1615,8 @@ void perform_bomb_self_effect(struct char_data *ch, struct char_data *victim, in
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
   if (to_room != NULL)
     act(to_room, TRUE, victim, 0, ch, TO_ROOM);
+  if (to_notvict != NULL)
+    act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
 
   affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
 }
@@ -2684,7 +2694,7 @@ void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bo
     return;
 
   int damage = HAS_FEAT(ch, FEAT_BOMBS) + GET_INT_BONUS(ch);
-  int dam_type = 0;
+  int dam_type = DAM_FIRE;
 
   switch (bomb_type)
   {
@@ -2719,9 +2729,15 @@ void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bo
     break;
   }
 
-  vict->player_specials->sticky_bomb[0] = bomb_type;
-  vict->player_specials->sticky_bomb[1] = dam_type;
-  vict->player_specials->sticky_bomb[2] = damage;
+  if (bomb_type != BOMB_HEALING && bomb_type != BOMB_FIRE_BRAND) {
+    GET_STICKY_BOMB(vict, 0) = bomb_type;
+    GET_STICKY_BOMB(vict, 1) = dam_type;
+    GET_STICKY_BOMB(vict, 2) = damage;
+  } else {
+    GET_STICKY_BOMB(ch, 0) = bomb_type;
+    GET_STICKY_BOMB(ch, 1) = dam_type;
+    GET_STICKY_BOMB(ch, 2) = damage;
+  }
 }
 
 ACMD(do_curingtouch)

@@ -66,10 +66,10 @@ struct class_prerequisite
 /* class data, layout for storing class information for each class */
 struct class_table
 {
-  char *name;            /* full name of class, ex. wizard (no color) */
-  char *abbrev;          /* abbreviation of class, ex. wiz (no color) */
-  char *colored_abbrev;  /* same as abbrev, but colored */
-  char *menu_name;       /* colored full name of class for menu(s) */
+  const char *name;            /* full name of class, ex. wizard (no color) */
+  const char *abbrev;          /* abbreviation of class, ex. wiz (no color) */
+  const char *colored_abbrev;  /* same as abbrev, but colored */
+  const char *menu_name;       /* colored full name of class for menu(s) */
   int max_level;         /* maximum number of levels you can take in this class, -1 unlimited */
   bool locked_class;     /* whether by default this class is locked or not */
   bool prestige_class;   /* prestige class? */
@@ -82,10 +82,10 @@ struct class_table
   int unlock_cost;       /* if locked, cost to unlock in account xp */
   /*note: !(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
-  char *prestige_spell_progression; /* spell progression for this prestige class */
-  char *descrip;                    /* class description */
+  const char *prestige_spell_progression; /* spell progression for this prestige class */
+  const char *descrip;                    /* class description */
 
-  char *titles[MAX_NUM_TITLES];             /* titles every 5 levels, 3 staff, default */
+  const char *titles[MAX_NUM_TITLES];       /* titles every 5 levels, 3 staff, default */
   int preferred_saves[NUM_PREFERRED_SAVES]; /*high or low saving throw values */
   int class_abil[NUM_ABILITIES];            /*class ability (not avail, cross-class, class-skill)*/
 
