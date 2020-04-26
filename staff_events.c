@@ -155,7 +155,7 @@ ACMD(do_staffevent)
     else
     {
         send_to_char(ch, "Requires a digit for the second argument!\r\n");
-        list_staff_events();
+        list_staff_events(ch);
         return;
     }
 
@@ -169,16 +169,18 @@ ACMD(do_staffevent)
     }
     else if (is_abbrev(arg, "info"))
     {
-        staff_event_info(event_num);
+        staff_event_info(ch, event_num);
     }
     else
     {
-        list_staff_events();
+        list_staff_events(ch);
         return;
     }
 
     return;
 }
+
+/* undefines */
 
 #undef NUM_STAFF_EVENTS
 #undef STAFF_EVENT_FIELDS
@@ -188,7 +190,7 @@ ACMD(do_staffevent)
 #undef EVENT_END
 #undef EVENT_DETAIL
 
-/* jackalope hunt defines */
+/* jackalope hunt undefines */
 #undef JACKALOPE_HUNT
 #undef EASY_JACKALOPE       /* vnum of lower level jackalope */
 #undef MED_JACKALOPE        /* vnum of mid level jackalope */
@@ -198,6 +200,7 @@ ACMD(do_staffevent)
 #undef LARGE_JACKALOPE_HIDE /* vnum of high level jackalope's hide */
 #undef PRISTINE_HORN        /* vnum of rare pristine jackalope horn */
 #undef P_HORN_RARITY        /* % chance of loading pristine jackalope horn */
-/* end jackalope hunt defines */
 
-/* end staff event code */
+/* end jackalope hunt dundefines */
+
+/* EOF */
