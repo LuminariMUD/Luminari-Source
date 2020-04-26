@@ -319,7 +319,7 @@ ACMD_DECL(do_loadmagicspecific);
 //ACMD_DECL(do_bazaar);
 
 /* special procedures */
-SPECIAL(bazaar);
+SPECIAL_DECL(bazaar);
 
 #define GRADE_MUNDANE 1  // 0-5
 #define GRADE_MINOR 2    // 5-10

@@ -41,7 +41,8 @@ const char * const hlqedit_command = "CIOMADTXFKUS";
 void zedit_create_index(int znum)
 {
   FILE *newfile, *oldfile;
-  char new_name[32], old_name[32], *prefix;
+  char new_name[32], old_name[32];
+  const char *prefix;
   int num, found = FALSE;
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_INPUT_LENGTH] = {'\0'};

@@ -71,7 +71,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	bool surrounded = FALSE;
 	bool first_region = TRUE;
 
-	char *direction_strings[9] = {
+	const char * const direction_strings[9] = {
 		"UNDEFINED",
 		"north",
 		"northeast",

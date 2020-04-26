@@ -155,7 +155,7 @@ int delete_quest(qst_rnum rnum)
   qst_rnum i;
   zone_rnum rznum;
   mob_vnum qm = NOBODY;
-  SPECIAL(*tempfunc);
+  SPECIAL_DECL(*tempfunc);
   int quests_remaining = 0;
 
   /* added dummy check in case rnum is funky going in here -zusuk */

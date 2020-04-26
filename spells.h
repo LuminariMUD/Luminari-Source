@@ -1040,9 +1040,9 @@ struct wall_information
 {
         bool stops_movement;
         int spell_num;
-        char *longname;
-        char *shortname;
-        char *keyword;
+        const char *longname;
+        const char *shortname;
+        const char *keyword;
         int duration;
 };
 /* wall types for wall spells, like wall of fire, wall of thorns, wall of etc */
