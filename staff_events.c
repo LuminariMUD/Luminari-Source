@@ -54,6 +54,11 @@ void start_staff_event(int event_num)
 {
     struct descriptor_data *pt = NULL;
 
+    /* dummy checks */
+    if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
+    {
+        return;
+    }
     /* announcement to game */
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -86,6 +91,11 @@ void end_staff_event(int event_num)
 {
     struct descriptor_data *pt = NULL;
 
+    /* dummy checks */
+    if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
+    {
+        return;
+    }
     /* announcement to game */
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -117,6 +127,12 @@ void end_staff_event(int event_num)
 void staff_event_info(struct char_data *ch, int event_num)
 {
     int event_field = 0;
+
+    /* dummy checks */
+    if (!ch || event_num >= NUM_STAFF_EVENTS || event_num < 0)
+    {
+        return;
+    }
 
     send_to_char(ch, "\r\n\tgDetails about \tn%s\tn (%d)\tg:\tn\r\n",
                  staff_events_list[event_num][EVENT_TITLE], event_num);
@@ -190,6 +206,14 @@ ACMD(do_staffevents)
     {
         list_staff_events(ch);
         send_to_char(ch, "Requires a digit (the event number) for the second argument!\r\n");
+        return;
+    }
+
+    /* not a valid event number */
+    if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
+    {
+        list_staff_events(ch);
+        send_to_char(ch, "Invalid event #!\r\n");
         return;
     }
 
