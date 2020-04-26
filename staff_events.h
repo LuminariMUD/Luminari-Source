@@ -22,6 +22,7 @@
 #define EVENT_BEGIN 1
 #define EVENT_END 2
 #define EVENT_DETAIL 3
+#define EVENT_SUMMARY 4
 
 /* jackalope hunt defines */
 #define JACKALOPE_HUNT 0
