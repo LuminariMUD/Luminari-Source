@@ -15,7 +15,6 @@
 /***/
 /******* defines */
 #define NUM_STAFF_EVENTS 1
-#define STAFF_EVENT_FIELDS 4
 
 /* event fields */
 #define EVENT_TITLE 0
@@ -23,6 +22,7 @@
 #define EVENT_END 2
 #define EVENT_DETAIL 3
 #define EVENT_SUMMARY 4
+#define STAFF_EVENT_FIELDS 5
 
 /* jackalope hunt defines */
 #define JACKALOPE_HUNT 0

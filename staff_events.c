@@ -84,6 +84,7 @@ void start_staff_event(int event_num)
 /* end a staff event! */
 void end_staff_event(int event_num)
 {
+    struct descriptor_data *pt = NULL;
 
     /* announcement to game */
     for (pt = descriptor_list; pt; pt = pt->next)
