@@ -158,7 +158,7 @@ ACMD(do_write);
 /* Utility Functions */
 
 // char creation help files
-void perform_help(struct descriptor_data *d, char *argument);
+void perform_help(struct descriptor_data *d, const char *argument);
 
 /* character info */
 void perform_affects(struct char_data *ch, struct char_data *k);

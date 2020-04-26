@@ -96,11 +96,11 @@ extern "C"
 
   struct domain_info
   {
-    char *name;
+    const char *name;
     int granted_powers[MAX_GRANTED_POWERS];
     int domain_spells[MAX_DOMAIN_SPELLS];
     ubyte favored_weapon;
-    char *description;
+    const char *description;
   };
   struct domain_info domain_list[NUM_DOMAINS];
 

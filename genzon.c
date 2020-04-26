@@ -244,7 +244,8 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 void create_world_index(int znum, const char *type)
 {
   FILE *newfile, *oldfile;
-  char new_name[32], old_name[32], *prefix;
+  char new_name[32], old_name[32];
+  const char *prefix;
   int num, found = FALSE;
   char buf[MAX_STRING_LENGTH];
   char buf1[MAX_STRING_LENGTH];

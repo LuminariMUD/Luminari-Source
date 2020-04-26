@@ -846,7 +846,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   }
 }
 
-struct mud_event_data *new_mud_event(event_id iId, void *pStruct, char *sVariables)
+struct mud_event_data *new_mud_event(event_id iId, void *pStruct, const char *sVariables)
 {
   struct mud_event_data *pMudEvent = NULL;
   char *varString = NULL;

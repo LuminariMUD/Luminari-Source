@@ -30,7 +30,7 @@ struct claim_data *claim_list = NULL;
 int num_of_clans = 0;
 
 /* Clan privileges.  Each of these is assigned a minimum rank */
-const char *clan_priv_names[] = {
+const char * const clan_priv_names[] = {
     "Award",      /**< 'clan award' command    */
     "Claim",      /**< 'clan claim' command    */
     "Balance",    /**< 'clans bank balance     */
@@ -2964,9 +2964,9 @@ ACMD(do_clanset)
   int clannum = -1; /* The 'real' number of the clan */
   int spellid, spellnum;
 
-  struct clanset_struct
+  const struct clanset_struct
   {
-    char *cmd;
+    const char *cmd;
     sh_int level;
     char type;
   } fields[] = {

@@ -3902,7 +3902,7 @@ static void perform_mag_groups(int level, struct char_data *ch,
 void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
                 int spellnum, int savetype, int casttype)
 {
-  char *to_char = NULL, *to_room = NULL;
+  const char *to_char = NULL, *to_room = NULL;
   struct char_data *tch;
 
   if (ch == NULL)
@@ -5536,8 +5536,9 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
 {
   long aff = -1;  /* what affection, -1 means it must be an event */
   int rounds = 0; /* how many rounds this spell lasts (duration) */
-  char *to_char = NULL;
-  char *to_room = NULL, buf[MAX_INPUT_LENGTH] = {'\0'};
+  const char *to_char = NULL;
+  const char *to_room = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct raff_node *raff = NULL;
   extern struct raff_node *raff_list;
   room_rnum rnum = NOWHERE;

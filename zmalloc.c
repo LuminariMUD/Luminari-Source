@@ -298,7 +298,7 @@ char *zstrdup(const char *src, char *file, int line)
 void zmalloc_check()
 {
   meminfo *m, *next_m;
-  char *admonishemnt;
+  const char *admonishemnt;
   int total_leak = 0, num_leaks = 0, i;
 
   fprintf(zfd, "\n------------ Checking leaks ------------\n\n");

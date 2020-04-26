@@ -170,10 +170,10 @@ void initialize_races(void)
 }
 
 /* papa assign-function for adding races to the race list */
-void add_race(int race,
-              char *name, char *type, char *type_color, char *abbrev, char *abbrev_color,
-              ubyte family, byte size, sbyte is_pc, ubyte level_adjustment, int unlock_cost,
-              byte epic_adv)
+static void add_race(int race,
+                     const char *name, const char *type, const char *type_color, const char *abbrev, const char *abbrev_color,
+                     ubyte family, byte size, sbyte is_pc, ubyte level_adjustment, int unlock_cost,
+                     byte epic_adv)
 {
 
   /* displaying the race */
@@ -193,8 +193,8 @@ void add_race(int race,
 }
 
 /* extension of details added to race */
-void set_race_details(int race,
-                      char *descrip, char *morph_to_char, char *morph_to_room)
+static void set_race_details(int race,
+                             const char *descrip, const char *morph_to_char, const char *morph_to_room)
 {
 
   race_list[race].descrip = strdup(descrip); /* Description of race */

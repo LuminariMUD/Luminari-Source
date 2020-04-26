@@ -47,7 +47,7 @@ static OCMD(do_omove);
 
 struct obj_command_info
 {
-  char *command;
+  const char *command;
   void (*command_pointer)(obj_data *obj, char *argument, int cmd, int subcmd);
   int subcmd;
 };
@@ -672,7 +672,7 @@ static OCMD(do_odoor)
   struct room_direction_data *newexit;
   int dir, fd, to_room;
 
-  const char *door_field[] = {
+  const char * const door_field[] = {
       "purge",
       "description",
       "flags",
