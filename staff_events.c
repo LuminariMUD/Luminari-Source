@@ -146,7 +146,7 @@ void staff_event_info(struct char_data *ch, int event_num)
         }
     }
 
-    send_to_char(ch, "Usage: staffevent [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
 
     return;
 }
@@ -163,13 +163,13 @@ void list_staff_events(struct char_data *ch)
         send_to_char(ch, "\tc%d)\tn %s\r\n", i, staff_events_list[i][0]);
     }
 
-    send_to_char(ch, "Usage: staffevent [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
 
     return;
 }
 
 /* command to start/end/list staff events */
-ACMD(do_staffevent)
+ACMD(do_staffevents)
 {
     char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     int event_num = -1;
