@@ -222,8 +222,8 @@ EVENTFUNC(event_trap_triggered)
   int effect;
   int dam_type = DAM_FORCE;
   struct affected_type af;
-  char *to_char = NULL;
-  char *to_room = NULL;
+  const char *to_char = NULL;
+  const char *to_room = NULL;
   int dam = 0;
   int count = 0;
   int i;

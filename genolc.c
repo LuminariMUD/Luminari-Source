@@ -280,7 +280,7 @@ int sprintascii(char *out, bitvector_t bits)
 {
   int i, j = 0;
   /* 32 bits, don't just add letters to try to get more unless your bitvector_t is also as large. */
-  char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
+  const char *flags = "abcdefghijklmnopqrstuvwxyzABCDEF";
 
   for (i = 0; flags[i] != '\0'; i++)
     if (bits & (1 << i))

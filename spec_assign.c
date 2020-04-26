@@ -955,14 +955,14 @@ void assign_rooms(void)
 
 struct spec_func_data
 {
-  char *name;
+  const char *name;
   SPECIAL(*func);
-  char *description;
+  const char *description;
 };
 
 /* spec proc list */
 /** !!MAKE SURE TO ADD TO: spec_procs.h!!!  **/
-struct spec_func_data spec_func_list[] = {
+static const struct spec_func_data spec_func_list[] = {
 
     /* a-c */
     {"Abyss Randomizer", abyss_randomizer, ""},

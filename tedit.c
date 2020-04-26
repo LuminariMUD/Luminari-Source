@@ -69,13 +69,13 @@ ACMD(do_tedit)
   char field[MAX_INPUT_LENGTH];
   char *backstr = NULL;
 
-  struct
+  const struct
   {
-    char *cmd;
+    const char *cmd;
     char level;
     char **buffer;
     int size;
-    char *filename;
+    const char *filename;
   } fields[] = {
       /* edit the lvls to your own needs */
       {"credits", LVL_IMPL, &credits, 2400, CREDITS_FILE},

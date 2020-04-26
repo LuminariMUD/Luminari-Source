@@ -32,7 +32,7 @@
 
 struct wld_command_info
 {
-  char *command;
+  const char *command;
   void (*command_pointer)(room_data *room, char *argument, int cmd, int subcmd);
   int subcmd;
 };

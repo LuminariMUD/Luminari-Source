@@ -202,7 +202,7 @@ void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
               sub_write_to_char(to, tokens, otokens, type);
 }
 
-void send_to_zone(char *messg, zone_rnum zone)
+void send_to_zone(const char *messg, zone_rnum zone)
 {
   struct descriptor_data *i;
 
@@ -216,7 +216,7 @@ void send_to_zone(char *messg, zone_rnum zone)
       write_to_output(i, "%s", messg);
 }
 
-void send_to_world(char *messg)
+void send_to_world(const char *messg)
 {
   struct descriptor_data *pt;
 

@@ -362,7 +362,7 @@ void init_domains(void)
   }
 }
 
-void add_domain(int domain, char *name, int weapon, char *description)
+void add_domain(int domain, const char *name, int weapon, const char *description)
 {
   domain_list[domain].name = name;
   domain_list[domain].favored_weapon = weapon;

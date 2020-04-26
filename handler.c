@@ -139,7 +139,7 @@ int isname(const char *str, const char *namelist)
 }
 
 /* modify a character's given apply-type (loc) by value */
-void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, char *msg)
+void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg)
 {
 
   switch (loc)

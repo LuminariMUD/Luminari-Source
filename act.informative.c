@@ -3175,9 +3175,9 @@ ACMD(do_who)
 
   struct
   {
-    char *disp;
-    int min_level;
-    int max_level;
+    const char * const disp;
+    const int min_level;
+    const int max_level;
     int count; /* must always start as 0 */
   } rank[] = {
       {"\tb--\tB= \tCLuminari Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
@@ -3889,11 +3889,11 @@ ACMD(do_toggle)
 
   const struct
   {
-    char *command;
+    const char *command;
     bitvector_t toggle; /* this needs changing once hashmaps are implemented */
     char min_level;
-    char *disable_msg;
-    char *enable_msg;
+    const char *disable_msg;
+    const char *enable_msg;
   } tog_messages[] = {
       /*0*/
       {"summonable", PRF_SUMMONABLE, 0,
