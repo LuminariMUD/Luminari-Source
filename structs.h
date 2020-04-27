@@ -1053,8 +1053,9 @@
 #define WEAR_EAR_L 25 /* worn on/in left ear */
 #define WEAR_EYES 26  /* worn in/over eye(s) */
 #define WEAR_BADGE 27 /* attached to your body armor as a badge */
+#define WEAR_INSTRUMENT 28
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 28
+#define NUM_WEARS 29
 /**/
 
 /* ranged combat */
@@ -1979,9 +1980,9 @@
 #define ITEM_WEAR_EAR 17   // item can be worn on ears
 #define ITEM_WEAR_EYES 18  // item can be worn on eyes
 #define ITEM_WEAR_BADGE 19 // item can be worn as badge
-
+#define ITEM_WEAR_INSTRUMENT 20
 /** Total number of item wears */
-#define NUM_ITEM_WEARS 20
+#define NUM_ITEM_WEARS 21
 
 /* Extra object flags: used by obj_data.obj_flags.extra_flags */
 #define ITEM_GLOW 0             /**< Item is glowing */
@@ -3356,7 +3357,7 @@ struct player_special_data_saved
     int grand_discovery;
 
     ubyte template;
-    byte premade_build;
+    int premade_build;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

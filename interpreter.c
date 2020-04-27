@@ -1930,6 +1930,7 @@ void nanny(struct descriptor_data *d, char *arg)
     {
     case 'C':
     case 'c':
+      GET_PREMADE_BUILD_CLASS(d->character) = -1;
       /* Create a new character */
       /* New policy - Character naming. */
       write_to_output(d, "All character names must meet a certain standard of quality in order to foster a more immersive and creative environment.  The staff retains the right to make the final judgment of whether a character name meets this standard.\r\n");
@@ -2662,7 +2663,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_QCLASS;
       return;
     }
-    /*
+
     write_to_output(d, "\r\nDo you want to use a premade build or a custom build?\r\n"
                        "A premade build is recommended for new players to the game.  It will choose\r\n"
                        "your skills, feats and ability scores each level.  A custom build means you\r\n"
@@ -2681,12 +2682,12 @@ case CON_CONFIRM_PREMADE:
       write_to_output(d, "\r\nPremade Build Confirmed!\r\n");
       GET_PREMADE_BUILD_CLASS(d->character) = GET_CLASS(d->character);
     } else if (is_abbrev(arg, "custom")) {
-      write_to_output(d, "\r\nPremade Build  Confirmed!\r\n");
+      write_to_output(d, "\r\nCustom Build  Confirmed!\r\n");
     } else {
       write_to_output(d, "\r\nPlease specify either premade or custom : ");
       return;
     }
-*/
+
 
 #define CHARGEN_NO_STATISTICS
 #ifndef CHARGEN_NO_STATISTICS

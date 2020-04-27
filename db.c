@@ -58,6 +58,7 @@
 #include "crafts.h" /* NewCraft */
 #include <sys/stat.h>
 #include "trails.h"
+#include "premadebuilds.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -3641,6 +3642,10 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   }
   /* item cost cap */
   //GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
+
+  if (GET_OBJ_TYPE(obj) == ITEM_INSTRUMENT) {
+    SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT);
+  }
 
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
   assign_triggers(obj, OBJ_TRIGGER);

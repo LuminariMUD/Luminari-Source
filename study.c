@@ -775,10 +775,12 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
                   //          sorcerer_known[class_level][circle] -
                   compute_slots_by_circle(d->character, CLASS_SORCERER, circle) -
                       count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
+  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter spell choice, to add or remove "
                      "(Q to exit to main menu) : ",
                   nrm);
+
 
   OLC_MODE(d) = STUDY_SPELLS;
 }
@@ -851,6 +853,7 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
                   bard_known[class_level][circle] -
                       count_known_spells_by_circle(d->character, CLASS_BARD, circle));
+  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
                      "Enter spell choice, to add or remove (Q to exit to main menu) : ",
                   nrm);
@@ -1999,6 +2002,11 @@ void study_parse(struct descriptor_data *d, char *arg)
   int intel_bonus = 0;
   int tempXP = 0;
   int i = 0;
+  char arg1[200] = {'\0'}, arg2[200] = {'\0'};
+
+  two_arguments(arg, arg1, arg2);
+
+  sprintf(arg, "%s", arg1);
 
   switch (OLC_MODE(d))
   {
@@ -2742,8 +2750,16 @@ void study_parse(struct descriptor_data *d, char *arg)
                                     DOMAIN_UNDEFINED) ==
               LEVELUP(d->character)->spell_circle)
           {
-            if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
-              known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
+            if (*arg2 && is_abbrev(arg2, "help")) {
+              do_help(d->character, spell_info[counter].name, 0, 0);
+              return;
+            }
+            if (is_a_known_spell(d->character, CLASS_SORCERER, counter)) {
+              send_to_char(d->character, "\tCYou cannot remove spells known.  You have to cancel the study session and start over "
+                                         "if you made a mistake choosing a spell this session.  To change past choices, you need "
+                                         "to respec your character.\r\n\tn");
+//              known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
+            }
             else if (!known_spells_add(d->character, CLASS_SORCERER, counter, FALSE))
               write_to_output(d, "You are all FULL for spells!\r\n");
           }
@@ -2803,8 +2819,16 @@ void study_parse(struct descriptor_data *d, char *arg)
                                     DOMAIN_UNDEFINED) ==
               LEVELUP(d->character)->spell_circle)
           {
-            if (is_a_known_spell(d->character, CLASS_BARD, counter))
-              known_spells_remove_by_class(d->character, CLASS_BARD, counter);
+            if (*arg2 && is_abbrev(arg2, "help")) {
+              do_help(d->character, spell_info[counter].name, 0, 0);
+              return;
+            }
+            if (is_a_known_spell(d->character, CLASS_BARD, counter)) {
+              send_to_char(d->character, "\tCYou cannot remove spells known.  You have to cancel the study session and start over "
+                                         "if you made a mistake choosing a spell this session.  To change past choices, you need "
+                                         "to respec your character.\r\n\tn");
+//              known_spells_remove_by_class(d->character, CLASS_BARD, counter);
+           }
             else if (!known_spells_add(d->character, CLASS_BARD, counter, FALSE))
               write_to_output(d, "You are all FULL for spells!\r\n");
           }

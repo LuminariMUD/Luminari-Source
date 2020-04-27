@@ -1470,6 +1470,7 @@ const char *wear_where[NUM_WEARS] = {
     "\tY{Worn In Ear}\tn        ", //25
     "\tY{Worn On Eyes}\tn       ",
     "\tY{Worn As Badge}\tn      ",
+    "\tY{Worn As Instrument}\tn ",
 };
 
 /* Describes where an item can be worn.
@@ -1505,6 +1506,7 @@ const char *equipment_types[NUM_WEARS + 1] = {
     "Worn in left ear", //25
     "Worn on eyes",
     "Worn as badge",
+    "Worn as instrument",
     "\n"};
 
 /* weapon family */
@@ -1711,6 +1713,7 @@ const char *wear_bits[NUM_ITEM_WEARS + 1] = {
     "Ears",
     "Eyes",
     "Badge",
+    "Instrument",
     "\n"};
 
 /** Describes the extra flags applied to an item.
