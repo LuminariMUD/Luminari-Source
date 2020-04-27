@@ -606,7 +606,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -2536,7 +2536,8 @@ void nanny(struct descriptor_data *d, char *arg)
     write_to_output(d, "Classes of Luminari\r\n\r\n");
     for (i = 0; i < NUM_CLASSES; i++)
     {
-      if (class_list[i].prestige_class) continue;
+      if (class_list[i].prestige_class)
+        continue;
       if (!CLSLIST_LOCK(i) || has_unlocked_class(d->character, i))
         write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
     }
@@ -2661,7 +2662,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_QCLASS;
       return;
     }
-/*
+    /*
     write_to_output(d, "\r\nDo you want to use a premade build or a custom build?\r\n"
                        "A premade build is recommended for new players to the game.  It will choose\r\n"
                        "your skills, feats and ability scores each level.  A custom build means you\r\n"

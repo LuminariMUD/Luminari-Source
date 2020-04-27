@@ -34,11 +34,19 @@
 #define EASY_JACKALOPE 0       /* vnum of lower level jackalope */
 #define MED_JACKALOPE 0        /* vnum of mid level jackalope */
 #define HARD_JACKALOPE 0       /* vnum of high level jackalope */
+#define NUM_JACKALOPE_EACH 800 /* how many of each jackalope to load */
+
+#define JACKALOPE_NORTH_Y 205 /* north, y-coordinate border for loading mobs */
+#define JACKALOPE_SOUTH_Y -83 /* south, y-coordinate border for loading mobs */
+#define JACKALOPE_WEST_X 597  /* west, x-coordinate border for loading mobs */
+#define JACKALOPE_EAST_X 703  /* east, x-coordinate border for loading mobs */
+
 #define SMALL_JACKALOPE_HIDE 0 /* vnum of lower level jackalope's hide */
 #define MED_JACKALOPE_HIDE 0   /* vnum of mid level jackalope's hide */
 #define LARGE_JACKALOPE_HIDE 0 /* vnum of high level jackalope's hide */
 #define PRISTINE_HORN 0        /* vnum of rare pristine jackalope horn */
 #define P_HORN_RARITY 0        /* % chance of loading pristine jackalope horn */
+
 /* end jackalope hunt defines */
 
 /******* end defines */
@@ -51,6 +59,7 @@ void start_staff_event(int event_num);
 void end_staff_event(int event_num);
 void staff_event_info(struct char_data *ch, int event_num);
 void list_staff_events(struct char_data *ch);
+void jackalope_loader(mob_vnum jackalope_vnum);
 
 ACMD_DECL(do_staffevents);
 
