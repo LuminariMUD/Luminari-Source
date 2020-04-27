@@ -3377,7 +3377,6 @@ struct player_special_data
     char *new_mail_receiver;
     char *new_mail_subject;
     char *new_mail_content;
-
 };
 
 /** Special data used by NPCs, not PCs */
@@ -3802,6 +3801,13 @@ struct guild_info_type
     int pc_class;
     room_vnum guild_room;
     int direction;
+};
+
+/* Staff Ran Event Data */
+struct staffevent_struct
+{
+    int event_num;  /* index # reference for event happening */
+    int ticks_left; /* time left for event */
 };
 
 /** Happy Hour Data */

@@ -1752,6 +1752,7 @@ void char_from_furniture(struct char_data *ch);
 #define GROUP_LEADER(group) (group->leader)
 #define GROUP_FLAGS(group) (group->group_flags)
 
+/**********************/
 /* Happy-hour defines */
 #define IS_HAPPYQP (happy_data.qp_rate > 0)
 #define IS_HAPPYEXP (happy_data.exp_rate > 0)
@@ -1768,6 +1769,16 @@ void char_from_furniture(struct char_data *ch);
 #define IS_HAPPYHOUR ((IS_HAPPYEXP || IS_HAPPYGOLD || IS_HAPPYQP || \
                        IS_HAPPYTREASURE) &&                         \
                       (HAPPY_TIME > 0))
+/**********************/
+
+/***************************/
+/* Staff Ran Event Defines */
+#define IS_STAFF_EVENT (staffevent_data.event_num >= 0 && staffevent_data.ticks_left > 0)
+
+#define STAFF_EVENT_NUM staffevent_data.event_num
+#define STAFF_EVENT_TIME staffevent_data.ticks_left
+
+/**********************/
 
 /* OS compatibility */
 #ifndef NULL

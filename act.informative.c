@@ -605,7 +605,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 {
   struct obj_data *furniture;
   char *short_descr;
-  const char * const positions[NUM_POSITIONS] = {
+  const char *const positions[NUM_POSITIONS] = {
       " is lying here, dead.",
       " is lying here, mortally wounded.",
       " is lying here, incapacitated.",
@@ -2090,7 +2090,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 {
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
 
-  const char * const how_far[] = {
+  const char *const how_far[] = {
       "close by",
       "a ways off",
       "far off to the"};
@@ -3172,7 +3172,7 @@ ACMD(do_who)
 
   struct
   {
-    const char * const disp;
+    const char *const disp;
     const int min_level;
     const int max_level;
     int count; /* must always start as 0 */
@@ -3485,6 +3485,10 @@ ACMD(do_who)
   if (IS_HAPPYHOUR > 0)
   {
     send_to_char(ch, "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
+  }
+  if (IS_STAFF_EVENT)
+  {
+    send_to_char(ch, "\tWA staff-ran event is taking place! Type \tRstaffevent\tW to see the current event info.\tn\r\n");
   }
 }
 
@@ -3882,7 +3886,7 @@ ACMD(do_toggle)
 {
   char buf2[4], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
-  const char * const types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
+  const char *const types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
 
   const struct
   {

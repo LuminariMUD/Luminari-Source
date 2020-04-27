@@ -2814,6 +2814,12 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\tyThere is currently a Happyhour!\tn\r\n");
       write_to_output(d, "\r\n");
     }
+    if (IS_STAFF_EVENT)
+    {
+      write_to_output(d, "\r\n");
+      write_to_output(d, "\tyA staff-ran event is taking place!\tn\r\n");
+      write_to_output(d, "\r\n");
+    }
     add_llog_entry(d->character, LAST_CONNECT);
     STATE(d) = CON_MENU;
 

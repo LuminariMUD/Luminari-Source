@@ -24,8 +24,13 @@
 #define EVENT_SUMMARY 4
 #define STAFF_EVENT_FIELDS 5
 
+/* event index */
+#define UNDEFINED_EVENT -1 /* just a marker */
+#define JACKALOPE_HUNT 0   /* event id (event_num) */
+
+/* defines for each individual event */
+
 /* jackalope hunt defines */
-#define JACKALOPE_HUNT 0
 #define EASY_JACKALOPE 0       /* vnum of lower level jackalope */
 #define MED_JACKALOPE 0        /* vnum of mid level jackalope */
 #define HARD_JACKALOPE 0       /* vnum of high level jackalope */
