@@ -144,13 +144,15 @@ void end_staff_event(int event_num)
 /* details about a specific event */
 void staff_event_info(struct char_data *ch, int event_num)
 {
-    int event_field = 0;
 
     /* dummy checks */
     if (!ch || event_num >= NUM_STAFF_EVENTS || event_num < 0)
     {
         return;
     }
+
+    int event_field = 0;
+    int secs_left = 0;
 
     send_to_char(ch, "\r\n\tgDetails about \tn%s\tn (%d)\tg:\tn\r\n",
                  staff_events_list[event_num][EVENT_TITLE], event_num);
@@ -183,6 +185,11 @@ void staff_event_info(struct char_data *ch, int event_num)
             break;
         }
     } /*end for*/
+
+    if (STAFF_EVENT_TIME)
+        secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
+    else
+        secs_left = 0;
 
     send_to_char(ch, "Event Time Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
                  CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
