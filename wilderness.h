@@ -17,7 +17,7 @@
 #define WILD_ROOM_VNUM_END 1003999   /* The end of the STATIC wilderness rooms. */
 
 #define WILD_DYNAMIC_ROOM_VNUM_START 1004000 /* The start of the vnums for the dynamic room pool. */
-#define WILD_DYNAMIC_ROOM_VNUM_END 1005999   /* The end of the vnums for the dynamic room pool. */
+#define WILD_DYNAMIC_ROOM_VNUM_END 1009999   /* The end of the vnums for the dynamic room pool. */
 
 #define IS_WILDERNESS_VNUM(room_vnum) ((room_vnum >= WILD_ROOM_VNUM_START && room_vnum <= WILD_ROOM_VNUM_END) || (room_vnum >= WILD_DYNAMIC_ROOM_VNUM_START && room_vnum <= WILD_DYNAMIC_ROOM_VNUM_END))
 
