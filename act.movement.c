@@ -194,6 +194,9 @@ bool char_should_fall(struct char_data *ch, bool silent)
   if (!ch)
     return FALSE;
 
+  if (IN_ROOM(ch) == NOWHERE)
+    return FALSE;
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_FLY_NEEDED) && EXIT(ch, DOWN))
     falling = TRUE;
 
@@ -2015,7 +2018,7 @@ int has_key(struct char_data *ch, obj_vnum key)
 #define NEED_LOCKED (1 << 3)
 
 /* cmd_door is required external from act.movement.c */
-const char * const cmd_door[] = {
+const char *const cmd_door[] = {
     "open",
     "close",
     "unlock",
