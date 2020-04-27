@@ -65,12 +65,24 @@ void jackalope_loader(mob_vnum jackalope_vnum)
     int x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
     int y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
 
-    location = find_room_by_coordinates(x_coord, y_coord);
     mob = read_mobile(jackalope_vnum, VIRTUAL);
 
     /* dummy check! */
-    if (location == NOWHERE || !mob)
+    if (!mob)
         return;
+
+    if ((location = find_room_by_coordinates(x_coord, y_coord)) == NOWHERE)
+    {
+        if ((location = find_available_wilderness_room()) == NOWHERE)
+        {
+            return; /* we failed, should not get here if things are working correctly */
+        }
+        else
+        {
+            /* Must set the coords, etc in the going_to room. */
+            assign_wilderness_room(location, x_coord, y_coord);
+        }
+    }
 
     X_LOC(mob) = world[location].coords[0];
     Y_LOC(mob) = world[location].coords[1];
