@@ -15,6 +15,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
+#include "screen.h"
 #include "staff_events.h"
 /* end includes */
 
