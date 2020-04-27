@@ -2218,6 +2218,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   else if (lock_dc <= skill_lvl)
   {
     send_to_char(ch, "Success! [%d dc vs. %d skill]\r\n", lock_dc, skill_lvl);
+    USE_MOVE_ACTION(ch);
     return (1);
   }
 

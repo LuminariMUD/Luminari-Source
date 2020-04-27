@@ -40,10 +40,14 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "\tgIt is as I feared, Jackalopes have been seen in numbers roaming the countryside.  "
      "Usually they reproduce very slowly.  Clearly someone has been breeding them, and "
      "this, can mean no good.  We must stop the spread of this growing menace now.  Will "
-     "you help me?\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n",
+     "you help me?\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n"
+     "\tR[OOC: Go to blah blah to do blah blah for rewards or whatnot]\tn\r\n",
 
      /* event summary/conclusion - EVENT_SUMMARY */
-     "\tgGreat job cleaning up dood!\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n",
+     "\tgThank you hunter, I.... nay the world owes you a debt of gratitude. I hope we have "
+     "quelled this menace for good. However, keep your blades sharp, and your bowstrings tight, "
+     "in case they are needed again.\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n"
+     "\tR[OOC: Go to blah blah to do blah blah for rewards or whatnot]\tn\r\n",
 
      /*end jackalope hunt*/},
 
@@ -59,6 +63,7 @@ void start_staff_event(int event_num)
     {
         return;
     }
+
     /* announcement to game */
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -73,6 +78,13 @@ void start_staff_event(int event_num)
         }
     }
 
+    /* set the event number in the global struct */
+    STAFF_EVENT_NUM = event_num;
+
+    /* default length for event, override in case below, 48 ticks = about 1 real hour */
+    STAFF_EVENT_TIME = 1200; /* this is approximately one real day */
+
+    /* what are we going to do for each event? */
     switch (event_num)
     {
 
@@ -96,6 +108,7 @@ void end_staff_event(int event_num)
     {
         return;
     }
+
     /* announcement to game */
     for (pt = descriptor_list; pt; pt = pt->next)
     {
@@ -109,6 +122,10 @@ void end_staff_event(int event_num)
                          staff_events_list[event_num][EVENT_END]);
         }
     }
+
+    /* make sure the event is turned off */
+    STAFF_EVENT_NUM = UNDEFINED_EVENT;
+    STAFF_EVENT_TIME = 0; /* this is approximately one real day */
 
     switch (event_num)
     {
@@ -147,7 +164,11 @@ void staff_event_info(struct char_data *ch, int event_num)
             break;
 
         case EVENT_END:
-            send_to_char(ch, "Event end message to world: \tn%s\tn\r\n", staff_events_list[event_num][EVENT_END]);
+            if (GET_LEVEL(ch) >= LVL_STAFF)
+            {
+
+                send_to_char(ch, "Event end message to world: \tn%s\tn\r\n", staff_events_list[event_num][EVENT_END]);
+            }
             break;
 
         case EVENT_DETAIL:
@@ -160,9 +181,17 @@ void staff_event_info(struct char_data *ch, int event_num)
         default:
             break;
         }
-    }
+    } /*end for*/
 
-    send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "Event Time Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
+                 CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),
+                 CCYEL(ch, C_NRM), (secs_left % 60), CCNRM(ch, C_NRM));
+
+    if (GET_LEVEL(ch) >= LVL_STAFF)
+    {
+        send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
+    }
 
     return;
 }
@@ -188,7 +217,22 @@ void list_staff_events(struct char_data *ch)
 ACMD(do_staffevents)
 {
     char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
-    int event_num = -1;
+    int event_num = UNDEFINED_EVENT;
+
+    if (GET_LEVEL(ch) < LVL_STAFF)
+    {
+        if (IS_STAFF_EVENT)
+        {
+            staff_event_info(ch, event_num);
+        }
+        else
+        {
+            send_to_char(ch, "There is no staff ran event currently!\r\n");
+        }
+        return;
+    }
+
+    /* should only be staff from this point onward */
 
     half_chop(argument, arg, arg2);
 
@@ -227,11 +271,20 @@ ACMD(do_staffevents)
     }
     else if (is_abbrev(arg, "info"))
     {
-        staff_event_info(ch, event_num);
+        if (IS_STAFF_EVENT)
+        {
+            staff_event_info(ch, event_num);
+        }
+        else
+        {
+            list_staff_events(ch);
+            send_to_char(ch, "There is no event active right now...\r\n");
+        }
     }
     else
     {
         list_staff_events(ch);
+        send_to_char(ch, "Invalid argument!\r\n");
         return;
     }
 
