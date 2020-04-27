@@ -87,13 +87,13 @@
 #define GET_BOMB(ch, i)         (ch->player_specials->saved.bombs[i])
 #define GET_STICKY_BOMB(ch, i)  (ch->sticky_bomb[i])
 
-ACMD(do_bombs);
-ACMD(do_discoveries);
-ACMD(do_grand_discoveries);
-ACMD(do_swallow);
-ACMD(do_curingtouch);
-ACMD(do_poisontouch);
-ACMD(do_psychokinetic);
+ACMD_DECL(do_bombs);
+ACMD_DECL(do_discoveries);
+ACMD_DECL(do_grand_discoveries);
+ACMD_DECL(do_swallow);
+ACMD_DECL(do_curingtouch);
+ACMD_DECL(do_poisontouch);
+ACMD_DECL(do_psychokinetic);
 void perform_bomb_effect(struct char_data *ch, struct char_data *victim, int bomb_type);
 void list_bomb_types_known(struct char_data *ch);
 int find_open_bomb_slot(struct char_data *ch);

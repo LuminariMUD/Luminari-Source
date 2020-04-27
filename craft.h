@@ -157,8 +157,8 @@ void reset_acraft(struct char_data *ch);
 /* end external functions */
 
 /* command functions */
-ACMD(do_harvest);
-ACMD(do_disenchant);
+ACMD_DECL(do_harvest);
+ACMD_DECL(do_disenchant);
 /* end command functions */
 
 #endif /* CRAFT_H */

@@ -599,7 +599,8 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 
   /* Start with an empty column */
-  strcpy(buf1, strfrmt("", 0, CANVAS_HEIGHT + 2, FALSE, FALSE, TRUE));
+  char empty_str[] = ""; // To not pass literal to avoid compiler warning
+  strcpy(buf1, strfrmt(empty_str, 0, CANVAS_HEIGHT + 2, FALSE, FALSE, TRUE));
 
   /* Paste the legend */
   strcpy(buf2, strpaste(buf1, buf, "\tD | \tn"));

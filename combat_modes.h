@@ -47,14 +47,14 @@ struct combat_mode_data
 
 extern struct combat_mode_data combat_mode_info[MAX_MODES];
 
-ACMD(do_mode);
-ACMD(do_powerattack);
-ACMD(do_flurryofblows);
-ACMD(do_expertise);
-ACMD(do_rapidshot);
-ACMD(do_totaldefense);
-ACMD(do_spellbattle);
-ACMD(do_flurry);
-ACMD(do_whirlwind);
+ACMD_DECL(do_mode);
+ACMD_DECL(do_powerattack);
+ACMD_DECL(do_flurryofblows);
+ACMD_DECL(do_expertise);
+ACMD_DECL(do_rapidshot);
+ACMD_DECL(do_totaldefense);
+ACMD_DECL(do_spellbattle);
+ACMD_DECL(do_flurry);
+ACMD_DECL(do_whirlwind);
 
 #endif

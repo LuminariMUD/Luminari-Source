@@ -29,8 +29,24 @@
  * to be first defined in interpreter.h. The reason for using a macro is
  * to allow for easier addition of parameters to the otherwise generic and
  * static function structure. */
+#define ACMD_DECL(name) \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
+
 #define ACMD(name) \
-  void name(struct char_data *ch, char *argument, int cmd, int subcmd)
+  static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd) \
+  { \
+    if (!argument) \
+    { \
+      impl_## name ##_(ch, NULL, cmd, subcmd); \
+      return; \
+    } \
+    char arg_buf[MAX_INPUT_LENGTH]; \
+    strlcpy(arg_buf, argument, sizeof(arg_buf)); \
+    impl_## name ##_(ch, arg_buf, cmd, subcmd); \
+  } \
+  static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd)
+
 
 /** Definition of the helper function for checking if a command can be used.
  *  If show_error is set, an error message will be sent to the user. Otherwise, it 
@@ -175,7 +191,7 @@ int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 char *line_string(int length, char first, char second);
 const char *text_line_string(const char *text, int length, char first, char second);
 void draw_line(struct char_data *ch, int length, char first, char second);
-void text_line(struct char_data *ch, char *text, int length, char first, char second);
+void text_line(struct char_data *ch, const char *text, int length, char first, char second);
 
 /* Saving Throws */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc);

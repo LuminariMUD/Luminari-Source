@@ -67,7 +67,7 @@ void House_list_guests(struct char_data *ch, int i, int quiet);
 int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location);
 void hcontrol_list_houses(struct char_data *ch, char *arg);
 /* In game Commands */
-ACMD(do_hcontrol);
-ACMD(do_house);
+ACMD_DECL(do_hcontrol);
+ACMD_DECL(do_house);
 
 #endif /* _HOUSE_H_ */

@@ -51,7 +51,7 @@ bool display_race_info(struct char_data *ch, char *racename);
 int get_race_stat(int race, int stat);
 
 /* ACMD */
-ACMD(do_race);
+ACMD_DECL(do_race);
 
 /* Global variables */
 

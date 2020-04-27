@@ -39,6 +39,7 @@
 #include "desc_engine.h"
 #include "crafts.h"
 #include "alchemy.h"
+#include "premadebuilds.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -2800,6 +2801,9 @@ ACMD(do_score)
   }
   else
     strcpy(buf, CLASS_ABBR(ch));
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
+    snprintf(buf, sizeof(buf), "%d %s (premade build)", CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
+  }
 
   send_to_char(ch, "\tcClass%s : \tn%s\r\n", (counter == 1 ? "  " : "es"), buf);
   send_to_char(ch, "\tcSex  : \tn%-20s ",

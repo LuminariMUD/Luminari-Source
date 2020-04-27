@@ -39,7 +39,7 @@ static void do_stat_trigger(struct char_data *ch, trig_data *trig);
 static void script_stat(char_data *ch, struct script_data *sc);
 static int remove_trigger(struct script_data *sc, char *name);
 static int is_num(char *arg);
-static void eval_op(char *op, char *lhs, char *rhs, char *result, void *go,
+static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go,
                     struct script_data *sc, trig_data *trig);
 static char *matching_paren(char *p);
 static void eval_expr(char *line, char *result, void *go, struct script_data *sc,
@@ -51,7 +51,7 @@ static int process_if(char *cond, void *go, struct script_data *sc,
 static struct cmdlist_element *find_end(trig_data *trig, struct cmdlist_element *cl);
 static struct cmdlist_element *find_else_end(trig_data *trig,
                                              struct cmdlist_element *cl, void *go, struct script_data *sc, int type);
-static void process_wait(void *go, trig_data *trig, int type, char *cmd,
+static void process_wait(void *go, trig_data *trig, int type, const char *cmd,
                          struct cmdlist_element *cl);
 static void process_set(struct script_data *sc, trig_data *trig, char *cmd);
 static void process_attach(void *go, struct script_data *sc, trig_data *trig,
@@ -1499,7 +1499,7 @@ static int is_num(char *arg)
 }
 
 /* evaluates 'lhs op rhs', and copies to result */
-static void eval_op(char *op, char *lhs, char *rhs, char *result, void *go,
+static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go,
                     struct script_data *sc, trig_data *trig)
 {
   unsigned char *p = NULL;
@@ -1675,7 +1675,7 @@ static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_dat
    * valid operands, in order of priority
    * each must also be defined in eval_op()
    */
-  static char *ops[] = {
+  const char * const ops[] = {
       "||",
       "&&",
       "==",
@@ -1835,13 +1835,17 @@ static struct cmdlist_element *find_else_end(trig_data *trig,
 }
 
 /* processes any 'wait' commands in a trigger */
-static void process_wait(void *go, trig_data *trig, int type, char *cmd,
+static void process_wait(void *go, trig_data *trig, int type, const char *cmd_in,
                          struct cmdlist_element *cl)
 {
   char buf[MAX_INPUT_LENGTH], *arg;
   struct wait_event_data *wait_event_obj;
   long when, hr, min, ntime;
   char c;
+
+  char cmd_local[MAX_INPUT_LENGTH];
+  strlcpy(cmd_local, cmd_in, sizeof(cmd_local));
+  char *cmd = cmd_local;
 
   arg = any_one_arg(cmd, buf);
   skip_spaces(&arg);

@@ -87,8 +87,8 @@ bool monk_gear_ok(struct char_data *ch);
 bool is_two_handed_ranged_weapon(struct obj_data *obj);
 /**/
 
-ACMD(do_weaponlist);
-ACMD(do_armorlist);
+ACMD_DECL(do_weaponlist);
+ACMD_DECL(do_armorlist);
 
 /**/
 

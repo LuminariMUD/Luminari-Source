@@ -268,8 +268,8 @@ extern "C"
 
    /** Start ACMD **/
 
-   ACMD(do_gen_preparation);
-   ACMD(do_consign_to_oblivion);
+   ACMD_DECL(do_gen_preparation);
+   ACMD_DECL(do_consign_to_oblivion);
 
 /** End ACMD **/
 

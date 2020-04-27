@@ -1961,7 +1961,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
   struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
   struct obj_data *shield = NULL;
-  int (*name)(struct char_data * ch, void *me, int cmd, char *argument);
+  int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   bool is_ranged = FALSE;
 
   /* attacker weapon */
@@ -5228,7 +5228,7 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg)
     return 0;
 
   extern struct index_data *obj_index;
-  int (*name)(struct char_data * ch, void *me, int cmd, char *argument);
+  int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
 
   name = obj_index[GET_OBJ_RNUM(wpn)].func;
 
@@ -6272,7 +6272,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
             under certain circumstances.  This could be refactored into something else, but it may
             actually be best to refactor the entire homeland 'specials' system and include it into
             weapon special abilities. */
-  char *hit_msg = "";
+  char hit_msg[32] = "";
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
 
@@ -6280,7 +6280,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   //gui_combat_wrap_open(ch);
 
   if (is_critical)
-    hit_msg = "critical";
+    strlcpy(hit_msg, "critical", sizeof(hit_msg));
 
   /* Print descriptive tags - This needs some form of control, via a toggle
            * and also should be formatted in some standard way with standard colors.
@@ -7027,7 +7027,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
       if (opp_wpn && !rand_number(0, 3))
       {
-        int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
+        int (*name)(struct char_data * victim, void *me, int cmd, const char *argument);
         name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
         if (name)
           (name)(victim, opp_wpn, 0, "parry");
@@ -7053,7 +7053,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
       if (opp_wpn && !rand_number(0, 3))
       {
-        int (*name)(struct char_data * victim, void *me, int cmd, char *argument);
+        int (*name)(struct char_data * victim, void *me, int cmd, const char *argument);
         name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
         if (name)
           (name)(victim, opp_wpn, 0, "parry");

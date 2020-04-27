@@ -52,6 +52,7 @@
 #include "account.h"
 #include "alchemy.h"
 #include "mud_event.h"
+#include "premadebuilds.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -71,7 +72,7 @@ static int get_max_recent(void);
 static void clear_recent(struct recent_player *this);
 static struct recent_player *create_recent(void);
 
-const char *get_spec_func_name(SPECIAL(*func));
+const char *get_spec_func_name(SPECIAL_DECL(*func));
 bool zedit_get_levels(struct descriptor_data *d, char *buf);
 
 bool delete_path(region_vnum vnum);
@@ -1693,7 +1694,7 @@ ACMD(do_vstat)
   struct obj_data *obj;
   int r_num;
 
-  ACMD(do_tstat);
+  ACMD_DECL(do_tstat);
 
   two_arguments(argument, buf, buf2);
 
@@ -3631,6 +3632,7 @@ const struct set_struct
     {"alchemist", LVL_STAFF, PC, NUMBER},        /* 90 */
     {"arcaneshadow", LVL_STAFF, PC, NUMBER},     /* 91 */
     {"sacredfist", LVL_STAFF, PC, NUMBER},       /* 92 */
+    {"premadebuild", LVL_STAFF, PC, MISC},       /* 93 */
 
     {"\n", 0, BOTH, MISC}};
 
@@ -4282,6 +4284,14 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     CLASS_LEVEL(vict, CLASS_SACRED_FIST) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
     break;
+  case 93: /* premade build class */
+    if ((i = parse_class_long(val_arg)) == CLASS_UNDEFINED)
+    {
+      send_to_char(ch, "That is not a premade build class.\r\n");
+      return (0);
+    }
+    GET_PREMADE_BUILD_CLASS(vict) = i;
+    break;
 
   default:
     send_to_char(ch, "Can't set that!\r\n");
@@ -4681,7 +4691,7 @@ const struct zcheck_armor
 {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed;        /* Max. AC allowed for this body part  */
-  char *message;         /* phrase for error message            */
+  const char *message;         /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
     {ITEM_WEAR_FINGER, 1, "Ring"}, //0
     {ITEM_WEAR_NECK, 1, "Necklace"},
@@ -7202,7 +7212,7 @@ ACMD(do_oconvert)
 
   send_to_char(ch, "%d %s\r\n", iarg, arg2);
 
-  char *weapon_type_keywords[NUM_WEAPON_TYPES];
+  const char *weapon_type_keywords[NUM_WEAPON_TYPES];
 
   /* Initialize the weapon keyword array. */
   for (i = 0; i < NUM_WEAPON_TYPES; i++)
