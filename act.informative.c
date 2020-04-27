@@ -2801,6 +2801,7 @@ ACMD(do_score)
   }
   else
     strcpy(buf, CLASS_ABBR(ch));
+
   if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
     snprintf(buf, sizeof(buf), "%d %s (premade build)", CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
   }

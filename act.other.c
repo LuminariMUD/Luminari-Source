@@ -1781,6 +1781,7 @@ ACMD(do_respec)
     /* in the clear! */
     int tempXP = GET_EXP(ch);
     GET_CLASS(ch) = class;
+    GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
     if (*arg2 && is_abbrev(arg2, "premade"))
       GET_PREMADE_BUILD_CLASS(ch) = class;
 
