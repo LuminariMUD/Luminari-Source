@@ -2397,7 +2397,7 @@ void do_start(struct char_data *ch)
   GET_COND(ch, DRUNK) = 0;
   if (CONFIG_SITEOK_ALL)
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
-  if (GET_PREMADE_BUILD_CLASS(ch) >= 0)
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
     advance_premade_build(ch);
 
 }
@@ -2810,7 +2810,7 @@ void advance_level(struct char_data *ch, int class)
   {
     GET_BOOSTS(ch)
     ++;
-    if (GET_PREMADE_BUILD_CLASS(ch) < 0)
+    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
 
@@ -2839,16 +2839,16 @@ void advance_level(struct char_data *ch, int class)
   if (GET_LEVEL(ch) > 1)
   {
     GET_REAL_MAX_PSP(ch) += add_psp;
-    if (GET_PREMADE_BUILD_CLASS(ch) < 0)
+    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMTotal PSP:\tn %d\r\n", add_psp);
   }
   GET_FEAT_POINTS(ch) += feats;
   if (feats)
-    if (GET_PREMADE_BUILD_CLASS(ch) < 0)
+    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
   GET_CLASS_FEATS(ch, class) += class_feats;
   if (class_feats)
-    if (GET_PREMADE_BUILD_CLASS(ch) < 0)
+    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
   GET_EPIC_FEAT_POINTS(ch) += epic_feats;
   if (epic_feats)
@@ -2857,7 +2857,7 @@ void advance_level(struct char_data *ch, int class)
   if (epic_class_feats)
     send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
   GET_TRAINS(ch) += trains;
-  if (GET_PREMADE_BUILD_CLASS(ch) < 0)
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
     send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
   /*******/
   /* end advancement block */

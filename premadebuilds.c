@@ -127,6 +127,14 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
       break;
+    case CLASS_RANGER:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SURVIVAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_DISCIPLINE, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_HANDLE_ANIMAL, amount);
+      break;
 
   }
 
@@ -174,12 +182,11 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
         switch (level) {
           case 1:
             GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
-            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_CON(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) GET_REAL_CON(ch) += 2;
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_STR(ch)++;
@@ -189,13 +196,12 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case CLASS_ROGUE:
         switch (level) {
           case 1:
-            GET_REAL_STR(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
             GET_REAL_CON(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
-            GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_WIS(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 18 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_WIS(ch) += 2; GET_REAL_STR(ch) += 2; }
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_DEX(ch)++;
@@ -209,9 +215,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
             GET_REAL_CON(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
-            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_DEX(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_DEX(ch) += 2; }
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_WIS(ch)++;
@@ -222,12 +227,11 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
         switch (level) {
           case 1:
             GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
-            GET_REAL_CON(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_CON(ch) += 2; }
           break;
           case 4: case 8: case 12: 
             GET_REAL_WIS(ch)++;
@@ -241,12 +245,11 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
         switch (level) {
           case 1:
             GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
-            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_CON(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 13 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 13 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_CON(ch) += 2; }
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_STR(ch)++;
@@ -257,12 +260,11 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
         switch (level) {
           case 1:
             GET_REAL_STR(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
-            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 17 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
-            GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
-            GET_REAL_DEX(ch) = 13 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_WIS(ch) = 11 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_CON(ch) += 2; GET_REAL_DEX(ch) += 1; GET_REAL_WIS(ch) += 1;}
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_STR(ch)++;
@@ -276,9 +278,8 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
             GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
-            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_DEX(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_CON(ch) += 2; GET_REAL_DEX(ch) += 2;}
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_CHA(ch)++;
@@ -288,13 +289,12 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case CLASS_PALADIN:
         switch (level) {
           case 1:
-            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
             GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_STR(ch) += 2;}
           break;
           case 4: case 8: 
             GET_REAL_WIS(ch)++;
@@ -307,16 +307,30 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
     case CLASS_DRUID:
         switch (level) {
           case 1:
+            GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+          break;
+          case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_WIS(ch)++;
+            break;
+        }
+      break;
+    case CLASS_RANGER:
+        switch (level) {
+          case 1:
             GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
             GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_STR(ch) += 2;}
           break;
           case 4: case 8: case 12: case 16: case 20:
-            GET_REAL_WIS(ch)++;
+            GET_REAL_STR(ch)++;
             break;
         }
       break;
@@ -879,6 +893,74 @@ void levelup_druid(struct char_data *ch, int level, bool verbose)
   increase_skills(ch, chclass, TRUE, level);
 }
 
+void levelup_ranger(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_RANGER;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_LIGHT_BLADE);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      }
+      GET_ANIMAL_COMPANION(ch) = 65; // snow leopard
+      if (verbose)
+        send_to_char(ch, "You have a snow leopard as your animal companion.  Type 'group new' and then 'call companion' to use your companion.\r\n");
+      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_HUMANOID;
+      if (verbose)
+        send_to_char(ch, "You have added a new favored enemy of type: humanoid.\r\n");
+      break;
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 5:
+      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_ANIMAL;
+      if (verbose)
+        send_to_char(ch, "You have added a new favored enemy of type: animal.\r\n");
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_LIGHT_BLADE);
+      break;
+    case 10:
+      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_MONSTROUS_HUMANOID;
+      if (verbose)
+        send_to_char(ch, "You have added a new favored enemy of type: monstrous humanoid.\r\n");
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      give_premade_feat(ch, verbose, FEAT_ARMOR_SPECIALIZATION_LIGHT, 0);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_LIGHT_BLADE);
+      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_UNDEAD;
+      if (verbose)
+        send_to_char(ch, "You have added a new favored enemy of type: undead.\r\n");
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_DODGE, 0);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_OUTSIDER;
+      if (verbose)
+        send_to_char(ch, "You have added a new favored enemy of type: outsider.\r\n");
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+}
+
 void setup_premade_levelup(struct char_data *ch, int chclass)
 {
   GET_FEAT_POINTS(ch) = 0;
@@ -925,6 +1007,12 @@ void advance_premade_build(struct char_data *ch)
     case CLASS_DRUID:
       levelup_druid(ch, level, TRUE);
       break;
+    case CLASS_RANGER:
+      levelup_ranger(ch, level, TRUE);
+      break;
+    default:
+      send_to_char(ch, "ERROR.  Please inform staff, error code PREBLD001.\r\n");
+      break;
   }
   send_to_char(ch, "\r\n\tMYou are now a level %d %s!.\r\n\tn", level, class_list[chclass].name);
   if (level == 20) {
@@ -933,6 +1021,6 @@ void advance_premade_build(struct char_data *ch)
                      "feats and ability score boosts.  You can respec if you like to create a custom build from "
                      "level one as well.\r\n\r\n\tn");
     GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
-    save_char(ch, 0);
   }
+  save_char(ch, 0);
 }
