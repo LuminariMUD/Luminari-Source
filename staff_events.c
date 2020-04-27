@@ -16,6 +16,8 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "screen.h"
+#include "wilderness.h"
+#include "dg_scripts.h"
 #include "staff_events.h"
 /* end includes */
 
@@ -54,10 +56,37 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 
 };
 
+/* load and place easy-difficult jackalopes */
+void jackalope_loader(mob_vnum jackalope_vnum)
+{
+    room_rnum location = NOWHERE;
+    struct char_data *mob = NULL;
+    int x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+    int y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+
+    location = find_room_by_coordinates(x_coord, y_coord);
+    mob = read_mobile(jackalope_vnum, VIRTUAL);
+
+    /* dummy check! */
+    if (location == NOWHERE || !mob)
+        return;
+
+    X_LOC(mob) = world[location].coords[0];
+    Y_LOC(mob) = world[location].coords[1];
+    char_to_room(mob, location);
+
+    act("... $N wanders into the area.", FALSE, 0, 0, mob, TO_ROOM);
+
+    load_mtrigger(mob);
+
+    return;
+}
+
 /* start a staff event! */
 void start_staff_event(int event_num)
 {
     struct descriptor_data *pt = NULL;
+    int counter = 0;
 
     /* dummy checks */
     if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
@@ -90,6 +119,18 @@ void start_staff_event(int event_num)
     {
 
     case JACKALOPE_HUNT:
+
+        /* set event duration */
+        STAFF_EVENT_TIME = 2;
+
+        /* load the jackalopes! */
+        for (counter = 0; counter < NUM_JACKALOPE_EACH; counter++)
+        {
+            jackalope_loader(EASY_JACKALOPE);
+            jackalope_loader(MED_JACKALOPE);
+            jackalope_loader(HARD_JACKALOPE);
+        }
+
         break;
 
     default:
@@ -126,7 +167,7 @@ void end_staff_event(int event_num)
 
     /* make sure the event is turned off */
     STAFF_EVENT_NUM = UNDEFINED_EVENT;
-    STAFF_EVENT_TIME = 0; /* this is approximately one real day */
+    STAFF_EVENT_TIME = 0;
 
     switch (event_num)
     {
@@ -246,7 +287,14 @@ ACMD(do_staffevents)
 
     if (!*arg || !*arg2)
     {
-        list_staff_events(ch);
+        if (IS_STAFF_EVENT)
+        {
+            staff_event_info(ch, event_num);
+        }
+        else
+        {
+            list_staff_events(ch);
+        }
         return;
     }
 
@@ -279,13 +327,9 @@ ACMD(do_staffevents)
     }
     else if (is_abbrev(arg, "info"))
     {
-        if (IS_STAFF_EVENT)
+        staff_event_info(ch, event_num);
+        if (!IS_STAFF_EVENT)
         {
-            staff_event_info(ch, event_num);
-        }
-        else
-        {
-            list_staff_events(ch);
             send_to_char(ch, "There is no event active right now...\r\n");
         }
     }
