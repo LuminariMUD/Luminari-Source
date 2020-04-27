@@ -31,9 +31,9 @@
 /* defines for each individual event */
 
 /* jackalope hunt defines */
-#define EASY_JACKALOPE 0       /* vnum of lower level jackalope */
-#define MED_JACKALOPE 0        /* vnum of mid level jackalope */
-#define HARD_JACKALOPE 0       /* vnum of high level jackalope */
+#define EASY_JACKALOPE 11391   /* vnum of lower level jackalope */
+#define MED_JACKALOPE 11392    /* vnum of mid level jackalope */
+#define HARD_JACKALOPE 11393   /* vnum of high level jackalope */
 #define NUM_JACKALOPE_EACH 800 /* how many of each jackalope to load */
 
 #define JACKALOPE_NORTH_Y 205 /* north, y-coordinate border for loading mobs */
