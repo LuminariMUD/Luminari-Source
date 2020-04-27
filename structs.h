@@ -57,9 +57,23 @@
 #endif
 
 /** Function macro for the mob, obj and room special functions */
-#define SPECIAL(name) \
-    int(name)(struct char_data * ch, void *me, int cmd, char *argument)
+#define SPECIAL_DECL(name) \
+    int(name)(struct char_data * ch, void *me, int cmd, const char *argument)
 
+#define SPECIAL(name) \
+  static int impl_## name ##_(struct char_data * ch, void *me, int cmd, char *argument); \
+  int(name)(struct char_data * ch, void *me, int cmd, const char *argument) \
+  { \
+    if (!argument) \
+    { \
+      return impl_## name ##_(ch, me, cmd, NULL); \
+    } \
+    char arg_buf[MAX_INPUT_LENGTH]; \
+    strlcpy(arg_buf, argument, sizeof(arg_buf)); \
+    return impl_## name ##_(ch, me, cmd, arg_buf); \
+  } \
+  static int impl_## name ##_(struct char_data * ch, void *me, int cmd, char *argument)
+  
 /* room-related defines */
 /* The cardinal directions: used as index to room_data.dir_option[] */
 #define NORTH 0     /**< The direction north */
@@ -998,11 +1012,12 @@
 #define CON_ACCOUNT_ADD_PWD 46
 #define CON_HSEDIT 47  /* OLC mode - house edit      .*/
 #define CON_NEWMAIL 48 // new mail system mail composition
+#define CON_CONFIRM_PREMADE 49 // premade build selection
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT    /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE CON_CRAFTEDIT /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES 49
+#define NUM_CON_STATES 50
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -2452,8 +2467,9 @@
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_4 72
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_5 73
 #define WEAPON_TYPE_WARMAUL 74
+#define WEAPON_TYPE_KHOPESH 75
 // One higher than last above
-#define NUM_WEAPON_TYPES 75
+#define NUM_WEAPON_TYPES 76
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
@@ -2976,7 +2992,7 @@ struct room_data
     struct room_direction_data *dir_option[NUM_OF_DIRS]; /**< Directions */
     byte light;                                          /**< Number of lightsources in room */
     byte globe;                                          /**< Number of darkness sources in room */
-    SPECIAL(*func);                                      /**< Points to special function attached to room */
+    SPECIAL_DECL(*func);                                      /**< Points to special function attached to room */
     struct trig_proto_list *proto_script;                /**< list of default triggers */
     struct script_data *script;                          /**< script info for the room */
     struct obj_data *contents;                           /**< List of items in room */
@@ -3783,7 +3799,7 @@ struct index_data
     /** Point to any SPECIAL function assoicated with mob/obj.
      * Note: These are not trigger scripts. They are functions hard coded in
      * the source code. */
-    SPECIAL(*func);
+    SPECIAL_DECL(*func);
 
     char *farg;              /**< String argument for special function. */
     struct trig_data *proto; /**< Points to the trigger prototype. */

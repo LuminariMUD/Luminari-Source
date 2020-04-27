@@ -314,12 +314,12 @@ int determine_rnd_misc_cat();
 int cp_convert_grade_enchantment(int grade);
 
 // staff tool to load random items
-ACMD(do_loadmagic);
-ACMD(do_loadmagicspecific);
-//ACMD(do_bazaar);
+ACMD_DECL(do_loadmagic);
+ACMD_DECL(do_loadmagicspecific);
+//ACMD_DECL(do_bazaar);
 
 /* special procedures */
-SPECIAL(bazaar);
+SPECIAL_DECL(bazaar);
 
 #define GRADE_MUNDANE 1  // 0-5
 #define GRADE_MINOR 2    // 5-10

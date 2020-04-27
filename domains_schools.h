@@ -132,28 +132,28 @@ extern "C"
 
   /******************************************/
 
-  ACMD(do_domain);
+  ACMD_DECL(do_domain);
 
-  ACMD(do_lightningarc);
-  ACMD(do_aciddart);
-  ACMD(do_firebolt);
-  ACMD(do_icicle);
-  ACMD(do_cursetouch);
-  ACMD(do_destructivesmite);
-  ACMD(do_destructiveaura);
-  ACMD(do_eviltouch);
-  ACMD(do_evilscythe);
-  ACMD(do_goodtouch);
-  ACMD(do_goodlance);
-  ACMD(do_healingtouch);
-  ACMD(do_eyeofknowledge);
-  ACMD(do_blessedtouch);
-  ACMD(do_copycat);
-  ACMD(do_massinvis);
-  ACMD(do_auraofprotection);
-  ACMD(do_battlerage);
+  ACMD_DECL(do_lightningarc);
+  ACMD_DECL(do_aciddart);
+  ACMD_DECL(do_firebolt);
+  ACMD_DECL(do_icicle);
+  ACMD_DECL(do_cursetouch);
+  ACMD_DECL(do_destructivesmite);
+  ACMD_DECL(do_destructiveaura);
+  ACMD_DECL(do_eviltouch);
+  ACMD_DECL(do_evilscythe);
+  ACMD_DECL(do_goodtouch);
+  ACMD_DECL(do_goodlance);
+  ACMD_DECL(do_healingtouch);
+  ACMD_DECL(do_eyeofknowledge);
+  ACMD_DECL(do_blessedtouch);
+  ACMD_DECL(do_copycat);
+  ACMD_DECL(do_massinvis);
+  ACMD_DECL(do_auraofprotection);
+  ACMD_DECL(do_battlerage);
   /* //this is in act.other.c, shared with monks 'outsider' feat
-ACMD(do_ethshift);
+ACMD_DECL(do_ethshift);
 */
 
   /******************************************/

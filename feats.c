@@ -314,7 +314,7 @@ void dailyfeat(int featnum, event_id event)
 }
 
 /* function to assign basic attributes to feat */
-void feato(int featnum, char *name, int in_game, int can_learn, int can_stack, int feat_type, char *short_description, char *description)
+static void feato(int featnum, const char *name, int in_game, int can_learn, int can_stack, int feat_type, const char *short_description, const char *description)
 {
   feat_list[featnum].name = name;
   feat_list[featnum].in_game = in_game;
@@ -4330,7 +4330,7 @@ ACMD(do_featlisting)
  *  Stackable Feat                      Weapon Focus (Greatsword)
  *  --------------------------------------------------------------------------------
  */
-void list_feats(struct char_data *ch, char *arg, int list_type, struct char_data *viewer)
+void list_feats(struct char_data *ch, const char *arg, int list_type, struct char_data *viewer)
 {
   int i, sortpos, j;
   int none_shown = TRUE;

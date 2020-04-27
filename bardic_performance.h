@@ -63,7 +63,7 @@ extern "C"
         extern struct room_data *world;
     extern void clearMemory(struct char_data *ch);
     extern const char *spells[];
-    ACMD(do_perform);
+    ACMD_DECL(do_perform);
 
 /*********************************************************/
 #ifdef __cplusplus

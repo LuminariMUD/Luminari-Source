@@ -34,6 +34,7 @@
 #include "constants.h"
 #include "dg_scripts.h"
 #include "alchemy.h"
+#include "premadebuilds.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -441,6 +442,7 @@ int comp_total_stat_points(struct char_data *ch) {
 }
 
 int stats_point_left(struct char_data *ch) {
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) return 0;
   return (TOTAL_STAT_POINTS - comp_total_stat_points(ch));
 }
 
@@ -3788,7 +3790,7 @@ const char* text_line_string(const char *text, int length, char first, char seco
   return buf;
 }
 
-void text_line(struct char_data *ch, char *text, int length, char first, char second) {
+void text_line(struct char_data *ch, const char *text, int length, char first, char second) {
   send_to_char(ch, "%s", text_line_string(text, length, first, second));
 }
 

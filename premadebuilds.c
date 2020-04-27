@@ -33,7 +33,7 @@ void give_premade_skill(struct char_data *ch, bool verbose, int skill, int amoun
 {
   SET_ABILITY(ch, skill, GET_ABILITY(ch, skill) + amount);
   if (verbose)
-    send_to_char(ch, "You have improved your %s skill by %d.\r\n", spell_info[skill].name, amount);
+    send_to_char(ch, "You have improved your %s skill by %d.\r\n", ability_names[skill], amount);
 }
 
 void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
@@ -112,6 +112,21 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
       break;
+    case CLASS_PALADIN:
+      give_premade_skill(ch, verbose, ABILITY_RIDE, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      break;
+    case CLASS_DRUID:
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SURVIVAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_HANDLE_ANIMAL, amount);
+        give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      break;
 
   }
 
@@ -122,13 +137,25 @@ void give_premade_feat(struct char_data *ch, bool verbose, int feat, int subfeat
 
   if (subfeat > 0) {
     SET_FEAT(ch, feat, 1);
-    SET_COMBAT_FEAT(ch, feat_to_cfeat(feat), subfeat);
-    if (verbose) {
-      if (feat_list[feat].combat_feat == TRUE)
-        send_to_char(ch, "You have learned the %s (%s) feat.\r\n", feat_list[feat].name, weapon_family[subfeat]);
-      else
-        send_to_char(ch, "You have learned the %s feat.\r\n", feat_list[feat].name);
-      do_help(ch, feat_list[feat].name, 0, 0);
+    switch (feat) {
+      case FEAT_SPELL_FOCUS:
+      case FEAT_GREATER_SPELL_FOCUS:
+        SET_SCHOOL_FEAT(ch, feat_to_sfeat(feat), subfeat);
+        if (verbose) {
+          send_to_char(ch, "You have learned the %s (%s) feat.\r\n", feat_list[feat].name, spell_schools[subfeat]);
+          do_help(ch, feat_list[feat].name, 0, 0);
+        }
+      break;
+      default:
+      SET_COMBAT_FEAT(ch, feat_to_cfeat(feat), subfeat);
+      if (verbose) {
+        if (feat_list[feat].combat_feat == TRUE)
+          send_to_char(ch, "You have learned the %s (%s) feat.\r\n", feat_list[feat].name, weapon_family[subfeat]);
+        else
+          send_to_char(ch, "You have learned the %s feat.\r\n", feat_list[feat].name);
+        do_help(ch, feat_list[feat].name, 0, 0);
+      }
+      break;
     }
   } else {
     SET_FEAT(ch, feat, 1);
@@ -255,6 +282,41 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_CHA(ch)++;
+            break;
+        }
+      break;
+    case CLASS_PALADIN:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_STR(ch) += 2;}
+          break;
+          case 4: case 8: 
+            GET_REAL_WIS(ch)++;
+            break;
+          case 12: case 16: case 20:
+            GET_REAL_STR(ch)++;
+            break;
+        }
+      break;
+    case CLASS_DRUID:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            if (GET_REAL_RACE(ch) == RACE_HUMAN) { GET_REAL_STR(ch) += 2;}
+          break;
+          case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_WIS(ch)++;
             break;
         }
       break;
@@ -722,6 +784,101 @@ void levelup_sorcerer(struct char_data *ch, int level, bool verbose)
   add_premade_sorcerer_spells(ch, level);
 }
 
+void levelup_paladin(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_PALADIN;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_HEAVY_BLADE);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      }
+      break;
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_HEAVY_BLADE);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      give_premade_feat(ch, verbose, FEAT_ARMOR_SPECIALIZATION_HEAVY, 0);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_EXOTIC_WEAPON_PROFICIENCY, 0);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, 0);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+}
+
+void levelup_druid(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_DRUID;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      }
+      GET_ANIMAL_COMPANION(ch) = 62; // lion
+      if (verbose)
+        send_to_char(ch, "You have a lion as your animal companion.  Type 'group new' and then 'call companion' to use your companion.\r\n");
+      break;
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_QUICK_CHANT, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_NATURAL_SPELL, 0);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      give_premade_feat(ch, verbose, FEAT_TWO_WEAPON_FIGHTING, 0);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_ARMOR_SPECIALIZATION_MEDIUM, 0);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_SPELL_DAMAGE, 0);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+}
+
 void setup_premade_levelup(struct char_data *ch, int chclass)
 {
   GET_FEAT_POINTS(ch) = 0;
@@ -762,5 +919,20 @@ void advance_premade_build(struct char_data *ch)
     case CLASS_SORCERER:
       levelup_sorcerer(ch, level, TRUE);
       break;
+    case CLASS_PALADIN:
+      levelup_paladin(ch, level, TRUE);
+      break;
+    case CLASS_DRUID:
+      levelup_druid(ch, level, TRUE);
+      break;
+  }
+  send_to_char(ch, "\r\n\tMYou are now a level %d %s!.\r\n\tn", level, class_list[chclass].name);
+  if (level == 20) {
+    send_to_char(ch, "\tM\r\n\r\nPremade builds only go up to level 20.  From here on, you will need to use the gain "
+                     "command to specify the class you want to level up in, and manually choose your skills and "
+                     "feats and ability score boosts.  You can respec if you like to create a custom build from "
+                     "level one as well.\r\n\r\n\tn");
+    GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
+    save_char(ch, 0);
   }
 }

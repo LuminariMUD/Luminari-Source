@@ -52,6 +52,6 @@ void end_staff_event(int event_num);
 void staff_event_info(struct char_data *ch, int event_num);
 void list_staff_events(struct char_data *ch);
 
-ACMD(do_staffevents);
+ACMD_DECL(do_staffevents);
 
 /* EOF */

@@ -58,7 +58,7 @@ struct aq_data
   obj_vnum obj_reward; /* vnum of object given as a reward     */
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
-  SPECIAL(*func);      /* secondary spec_proc for the QM       */
+  SPECIAL_DECL(*func);      /* secondary spec_proc for the QM       */
 };
 
 #define QST_NUM(i) (aquest_table[i].vnum)
@@ -107,8 +107,8 @@ void add_completed_quest(struct char_data *ch, qst_vnum vnum);
 void remove_completed_quest(struct char_data *ch, qst_vnum vnum);
 void quest_timeout(struct char_data *ch);
 void check_timed_quests(void);
-SPECIAL(questmaster);
-ACMD(do_quest);
+SPECIAL_DECL(questmaster);
+ACMD_DECL(do_quest);
 
 /* Implemented in qedit.c  */
 void qedit_parse(struct descriptor_data *d, char *arg);
