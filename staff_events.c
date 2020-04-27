@@ -15,6 +15,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
+#include "handler.h"
 #include "screen.h"
 #include "wilderness.h"
 #include "dg_scripts.h"
