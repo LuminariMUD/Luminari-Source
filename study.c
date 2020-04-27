@@ -775,8 +775,8 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
                   //          sorcerer_known[class_level][circle] -
                   compute_slots_by_circle(d->character, CLASS_SORCERER, circle) -
                       count_known_spells_by_circle(d->character, CLASS_SORCERER, circle));
+  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
-  write_to_output(d, "Type the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n");
   write_to_output(d, "%sEnter spell choice, to add or remove "
                      "(Q to exit to main menu) : ",
                   nrm);
@@ -853,6 +853,7 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
                   bard_known[class_level][circle] -
                       count_known_spells_by_circle(d->character, CLASS_BARD, circle));
+  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
                      "Enter spell choice, to add or remove (Q to exit to main menu) : ",
                   nrm);
