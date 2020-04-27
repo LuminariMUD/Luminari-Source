@@ -29,6 +29,7 @@
 #include "grapple.h"
 #include "constants.h"
 #include "alchemy.h"
+#include "staff_events.h"
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch)
@@ -1055,6 +1056,7 @@ void point_update(void)
   int counter = 0;
 
   /** general **/
+
   /* Take 1 from the happy-hour tick counter, and end happy-hour if zero */
   if (HAPPY_TIME > 1)
     HAPPY_TIME--;
@@ -1067,6 +1069,17 @@ void point_update(void)
     HAPPY_TIME = 0;
     game_info("Happy hour has ended!");
   }
+
+  /* staff event counter */
+  if (STAFF_EVENT_TIME > 1)
+    STAFF_EVENT_TIME--;
+  /* Last tick - set everything back to zero */
+  else if (STAFF_EVENT_TIME == 1)
+  {
+    end_staff_event(STAFF_EVENT_NUM);
+  }
+
+  /* end general */
 
   /** characters **/
   for (i = character_list; i; i = next_char)
@@ -1365,21 +1378,26 @@ void update_damage_and_effects_over_time(void)
 
     if (GET_STICKY_BOMB(ch, 0) != BOMB_NONE)
     {
-      if (GET_STICKY_BOMB(ch, 0) != BOMB_FIRE_BRAND && GET_STICKY_BOMB(ch, 0) != BOMB_HEALING) {
+      if (GET_STICKY_BOMB(ch, 0) != BOMB_FIRE_BRAND && GET_STICKY_BOMB(ch, 0) != BOMB_HEALING)
+      {
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again causing you %s damage.", bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes on $n again causing $m %s damage.", bomb_types[GET_STICKY_BOMB(ch, 0)], damtypes[GET_STICKY_BOMB(ch, 1)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         dam = damage(ch, ch, GET_STICKY_BOMB(ch, 2), SKILL_BOMB_TOSS, GET_STICKY_BOMB(ch, 1), SKILL_BOMB_TOSS);
         GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
-      } else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING) {
+      }
+      else if (GET_STICKY_BOMB(ch, 0) == BOMB_HEALING)
+      {
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing you for more.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, healing $n for more.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_ROOM);
         perform_bomb_direct_healing(ch, ch, BOMB_HEALING);
         GET_STICKY_BOMB(ch, 0) = GET_STICKY_BOMB(ch, 1) = GET_STICKY_BOMB(ch, 2) = 0;
-      } else if (GET_STICKY_BOMB(ch, 0) == BOMB_FIRE_BRAND) {
+      }
+      else if (GET_STICKY_BOMB(ch, 0) == BOMB_FIRE_BRAND)
+      {
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting your weapons aflame anew.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
         act(buf, FALSE, ch, 0, 0, TO_CHAR);
         snprintf(buf, sizeof(buf), "A sticky %s bomb explodes again, setting $n's weapons aflame anew.", bomb_types[GET_STICKY_BOMB(ch, 0)]);
