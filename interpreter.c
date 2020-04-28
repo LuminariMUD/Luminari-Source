@@ -606,7 +606,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sacredflames", "sacredflames", POS_FIGHTING, do_sacredflames, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+//    {"staffevents", "staffevents", POS_SLEEPING, do_staffevents, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

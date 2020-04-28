@@ -293,7 +293,7 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
           break;
           case 4: case 8: case 12: case 16: case 20:
-            GET_REAL_STR(ch)++;
+            GET_REAL_INT(ch)++;
             break;
         }
       break;
