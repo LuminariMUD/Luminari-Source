@@ -61,6 +61,7 @@ void staff_event_info(struct char_data *ch, int event_num);
 void list_staff_events(struct char_data *ch);
 void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord);
 int mob_ingame_count(int mobile_vnum);
+void mob_ingame_purge(int mobile_vnum);
 
 ACMD_DECL(do_staffevents);
 

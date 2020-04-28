@@ -57,6 +57,39 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 
 };
 
+/* find the given mobile by vnum and clear it out of the game */
+void mob_ingame_purge(int mobile_vnum)
+{
+    struct char_data *l = NULL;
+    mob_rnum mobile_rnum = real_mobile(mobile_vnum);
+    mob_rnum i = 0;
+
+    if (!top_of_mobt)
+        return;
+
+    if (mobile_rnum == NOTHING)
+        return;
+
+    /* "i" will be the real-number */
+    for (i = 0; i <= top_of_mobt; i++)
+    {
+        /* this the mob? */
+        if (mobile_rnum == i)
+        {
+            /* find how many of the same mobiles are in the game currently */
+            for (num_found = 0, l = character_list; l; l = l->next)
+            {
+                if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
+                {
+                    extract_char(l);
+                }
+            }
+        }
+    } /* end for */
+
+    return;
+}
+
 /* count the # of mobiles of given vnum in the game */
 int mob_ingame_count(int mobile_vnum)
 {
@@ -168,7 +201,7 @@ void start_staff_event(int event_num)
     case JACKALOPE_HUNT:
 
         /* set event duration */
-        STAFF_EVENT_TIME = 2;
+        //STAFF_EVENT_TIME = 20;
 
         /* load the jackalopes! */
         for (counter = 0; counter < NUM_JACKALOPE_EACH; counter++)
@@ -277,10 +310,25 @@ void staff_event_info(struct char_data *ch, int event_num)
             break;
 
         case EVENT_TITLE: /* we mention this above */
+        /* fallthrough */
         default:
             break;
         }
     } /*end for*/
+
+    /* here is our custom output relevant to each event */
+    switch (event_num)
+    {
+    case JACKALOPE_HUNT:
+        send_to_char(ch, "Number of elusive Jackalope: %d, mature Jackalope: %d and alpha Jackalope: %d.\r\n",
+                     mob_ingame_count(EASY_JACKALOPE),
+                     mob_ingame_count(MED_JACKALOPE),
+                     mob_ingame_count(HARD_JACKALOPE));
+        break;
+
+    default:
+        break;
+    }
 
     if (STAFF_EVENT_TIME)
         secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
@@ -294,7 +342,7 @@ void staff_event_info(struct char_data *ch, int event_num)
 
     if (GET_LEVEL(ch) >= LVL_STAFF)
     {
-        send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
+        send_to_char(ch, "\r\nUsage: staffevents [start|end|info] [index # above]\r\n\r\n");
     }
 
     return;
@@ -309,10 +357,10 @@ void list_staff_events(struct char_data *ch)
 
     for (i = 0; i < NUM_STAFF_EVENTS; i++)
     {
-        send_to_char(ch, "\tc%d)\tn %s\r\n", i, staff_events_list[i][0]);
+        send_to_char(ch, "\tG%d)\tn %s\r\n", i, staff_events_list[i][0]);
     }
 
-    send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "\r\nUsage: staffevents [start|end|info] [index # above]\r\n\r\n");
 
     return;
 }
