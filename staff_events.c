@@ -58,7 +58,7 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 };
 
 /* load and place easy-difficult jackalopes */
-void jackalope_loader(mob_vnum jackalope_vnum)
+void jackalope_loader(int jackalope_vnum)
 {
     room_rnum location = NOWHERE;
     struct char_data *mob = NULL;
