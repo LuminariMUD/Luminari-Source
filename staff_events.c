@@ -57,15 +57,47 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 
 };
 
-/* load and place easy-difficult jackalopes */
-void jackalope_loader(int jackalope_vnum)
+/* count the # of mobiles of given vnum in the game */
+int mob_ingame_count(int mobile_vnum)
+{
+    struct mob_data *l = NULL;
+    mob_rnum mobile_rnum = real_mobile(mobile_vnum);
+    int num_found = 0;
+
+    if (!top_of_mobt)
+        return 0;
+
+    if (mobile_rnum == NOTHING)
+        return 0;
+
+    /* "i" will be the real-number */
+    for (i = 0; i <= top_of_mobt; i++)
+    {
+
+        /* this the mob? */
+        if (mobile_rnum == i)
+        {
+            /* find how many of the same mobiles are in the game currently */
+            for (num_found = 0, l = mobile_list; l; l = l->next)
+            {
+                if (GET_MOB_RNUM(l) == i)
+                {
+                    num_found++;
+                }
+            }
+        }
+
+    } /* end for */
+    return num_found;
+}
+
+/* load and place mobile into the wilderness */
+void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 {
     room_rnum location = NOWHERE;
     struct char_data *mob = NULL;
-    int x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
-    int y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
 
-    mob = read_mobile(jackalope_vnum, VIRTUAL);
+    mob = read_mobile(mobile_vnum, VIRTUAL);
 
     /* dummy check! */
     if (!mob)
@@ -88,8 +120,6 @@ void jackalope_loader(int jackalope_vnum)
     Y_LOC(mob) = world[location].coords[1];
     char_to_room(mob, location);
 
-    act("... $N wanders into the area.", FALSE, 0, 0, mob, TO_ROOM);
-
     load_mtrigger(mob);
 
     return;
@@ -100,6 +130,9 @@ void start_staff_event(int event_num)
 {
     struct descriptor_data *pt = NULL;
     int counter = 0;
+    /* variables used in specific events */
+    int x_coord = 0;
+    int y_coord = 0;
 
     /* dummy checks */
     if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
@@ -139,9 +172,17 @@ void start_staff_event(int event_num)
         /* load the jackalopes! */
         for (counter = 0; counter < NUM_JACKALOPE_EACH; counter++)
         {
-            jackalope_loader(EASY_JACKALOPE);
-            jackalope_loader(MED_JACKALOPE);
-            jackalope_loader(HARD_JACKALOPE);
+            x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+            y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+            wild_mobile_loader(EASY_JACKALOPE, x_coord, y_coord);
+
+            x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+            y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+            wild_mobile_loader(MED_JACKALOPE, x_coord, y_coord);
+
+            x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+            y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+            wild_mobile_loader(HARD_JACKALOPE, x_coord, y_coord);
         }
 
         break;
