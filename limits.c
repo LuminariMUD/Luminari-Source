@@ -1118,6 +1118,7 @@ void point_update(void)
       break;
     }
   }
+
   /* Last tick - set everything back to zero */
   else if (STAFF_EVENT_TIME == 1)
   {
