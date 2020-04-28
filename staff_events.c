@@ -81,7 +81,14 @@ void mob_ingame_purge(int mobile_vnum)
             {
                 if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
                 {
-                    extract_char(l);
+                    if (IN_ROOM(i) == NOWHERE)
+                    {
+                        /* this is to prevent crash */
+                    }
+                    else
+                    {
+                        extract_char(l);
+                    }
                 }
             }
         }
@@ -426,7 +433,14 @@ ACMD(do_staffevents)
 
     if (is_abbrev(arg, "start"))
     {
-        start_staff_event(event_num);
+        if (!IS_STAFF_EVENT)
+        {
+            start_staff_event(event_num);
+        }
+        else
+        {
+            send_to_char(ch, "There is already an event running!\r\n");
+        }
     }
     else if (is_abbrev(arg, "end"))
     {
