@@ -81,7 +81,7 @@ void mob_ingame_purge(int mobile_vnum)
             {
                 if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
                 {
-                    if (IN_ROOM(i) == NOWHERE)
+                    if (IN_ROOM(l) == NOWHERE)
                     {
                         /* this is to prevent crash */
                     }
