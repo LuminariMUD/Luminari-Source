@@ -77,7 +77,7 @@ void mob_ingame_purge(int mobile_vnum)
         if (mobile_rnum == i)
         {
             /* find how many of the same mobiles are in the game currently */
-            for (num_found = 0, l = character_list; l; l = l->next)
+            for (l = character_list; l; l = l->next)
             {
                 if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
                 {
