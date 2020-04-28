@@ -23,6 +23,7 @@
 #include "db.h"      /* for config_info */
 #include "structs.h" /* for sbyte */
 #include "helpers.h" /* for UPPER */
+#include "perfmon.h"
 
 /** Definition of the action command, for the do_ series of in game functions.
  * This macro is placed here (for now) because it's too general of a macro
@@ -36,14 +37,18 @@
   static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd) \
   { \
+    PERF_PROF_ENTER(pr_, #name); \
     if (!argument) \
     { \
       impl_## name ##_(ch, NULL, cmd, subcmd); \
-      return; \
     } \
-    char arg_buf[MAX_INPUT_LENGTH]; \
-    strlcpy(arg_buf, argument, sizeof(arg_buf)); \
-    impl_## name ##_(ch, arg_buf, cmd, subcmd); \
+    else \
+    { \
+      char arg_buf[MAX_INPUT_LENGTH]; \
+      strlcpy(arg_buf, argument, sizeof(arg_buf)); \
+      impl_## name ##_(ch, arg_buf, cmd, subcmd); \
+    } \
+    PERF_PROF_EXIT(pr_); \
   } \
   static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd)
 

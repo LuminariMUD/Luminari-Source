@@ -26,11 +26,13 @@ PARENT	:= \""$(shell git rev-parse HEAD)"\"
 BINDIR = ../bin
 
 CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+CXXFLAGS = $(CFLAGS) -std=c++11
 
-LIBS =  -lcrypt -lgd -lm -lmysqlclient
+LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient
 
 SRCFILES := $(wildcard *.c) $(wildcard rtree/*.c)
-OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
+CPPFILES := $(wildcard *.cpp)
+OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
 
 default: all
 
@@ -49,9 +51,6 @@ circle:
 
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
-
-$%.o: %.c
-	$(CC) $< $(CFLAGS) -c -o $@ 
 
 clean:
 	rm -f *.o depend
