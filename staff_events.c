@@ -60,7 +60,7 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 /* count the # of mobiles of given vnum in the game */
 int mob_ingame_count(int mobile_vnum)
 {
-    struct mob_data *l = NULL;
+    struct char_data *l = NULL;
     mob_rnum mobile_rnum = real_mobile(mobile_vnum);
     mob_rnum i = 0;
     int num_found = 0;
