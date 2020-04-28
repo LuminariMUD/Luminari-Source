@@ -1054,6 +1054,8 @@ void point_update(void)
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
   int counter = 0, mob_count = 0;
+  int x_coord = 0;
+  int y_coord = 0;
 
   /** general **/
 
