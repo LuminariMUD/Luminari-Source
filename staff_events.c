@@ -186,9 +186,9 @@ void start_staff_event(int event_num)
     {
         if (IS_PLAYING(pt) && pt->character)
         {
-            send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) is Starting!\r\n",
+            send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) is Starting!\r\n\r\n",
                          staff_events_list[event_num][EVENT_TITLE]);
-            send_to_char(pt->character, "\tn%s\tn\r\n",
+            send_to_char(pt->character, "\tn%s\tn\r\n\r\n",
                          staff_events_list[event_num][EVENT_DETAIL]);
             send_to_char(pt->character, "\r\n\tn%s\tn\r\n\r\n",
                          staff_events_list[event_num][EVENT_BEGIN]);
@@ -251,9 +251,9 @@ void end_staff_event(int event_num)
     {
         if (IS_PLAYING(pt) && pt->character)
         {
-            send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) has ended.\r\n",
+            send_to_char(pt->character, "\tR[\tWInfo\tR]\tn A Staff Ran Event (\tn%s\tn) has ended.\r\n\r\n",
                          staff_events_list[event_num][EVENT_TITLE]);
-            send_to_char(pt->character, "\tn%s\tn\r\n",
+            send_to_char(pt->character, "\tn%s\tn\r\n\r\n",
                          staff_events_list[event_num][EVENT_SUMMARY]);
             send_to_char(pt->character, "\r\n\tn%s\tn\r\n\r\n",
                          staff_events_list[event_num][EVENT_END]);
@@ -263,7 +263,7 @@ void end_staff_event(int event_num)
     /* make sure the event is turned off */
     STAFF_EVENT_NUM = UNDEFINED_EVENT;
     STAFF_EVENT_TIME = 0;
-    STAFF_EVENT_DELAY = 5; /* this is a delay before next event for cleanup */
+    STAFF_EVENT_DELAY = 3; /* this is a delay before next event for cleanup */
 
     switch (event_num)
     {
@@ -351,6 +351,9 @@ void staff_event_info(struct char_data *ch, int event_num)
                  CCYEL(ch, C_NRM), (secs_left / 3600), CCNRM(ch, C_NRM),
                  CCYEL(ch, C_NRM), (secs_left % 3600) / 60, CCNRM(ch, C_NRM),
                  CCYEL(ch, C_NRM), (secs_left % 60), CCNRM(ch, C_NRM));
+
+    send_to_char(ch, "Delay Timer Remaining Between Events: %s%d%s ticks.\r\n",
+                 CCYEL(ch, C_NRM), STAFF_EVENT_DELAY, CCNRM(ch, C_NRM));
 
     if (GET_LEVEL(ch) >= LVL_STAFF)
     {
@@ -440,7 +443,8 @@ ACMD(do_staffevents)
         }
         else if (STAFF_EVENT_DELAY)
         {
-            send_to_char(ch, "There is a delay of approximately 5 minutes between events for cleanup.\r\n");
+            send_to_char(ch, "There is a delay of approximately %d more ticks between events for cleanup.\r\n",
+                         STAFF_EVENT_DELAY);
         }
         else
         {
