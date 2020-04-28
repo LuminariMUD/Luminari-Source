@@ -8322,6 +8322,9 @@ ACMD(do_players)
 
   for (d = descriptor_list; d; d = d->next)
   {
+    if (!d->character)
+      continue;
+
     counter = 0;
     *buf2 = '\0';
     for (i = 0; i < MAX_CLASSES; i++)
