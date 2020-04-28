@@ -38,7 +38,7 @@ bool death_check(struct char_data *ch)
 
   if (HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY) && affected_by_spell(ch, SKILL_RAGE))
   {
-    if (GET_HIT(ch) <= -51)
+    if (GET_HIT(ch) <= -121)
     {
       damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
       return TRUE; // dead for sure now!
@@ -1053,7 +1053,9 @@ void point_update(void)
 {
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
-  int counter = 0;
+  int counter = 0, mob_count = 0;
+  int x_coord = 0;
+  int y_coord = 0;
 
   /** general **/
 
@@ -1072,7 +1074,51 @@ void point_update(void)
 
   /* staff event counter */
   if (STAFF_EVENT_TIME > 1)
+  {
     STAFF_EVENT_TIME--;
+
+    /* if we want things to happen at given ticks for the event, we do it here! */
+    switch (STAFF_EVENT_NUM)
+    {
+
+    case JACKALOPE_HUNT:
+
+      /* place some more jackalope if needed! */
+      if (mob_ingame_count(EASY_JACKALOPE) < NUM_JACKALOPE_EACH)
+      {
+        for (mob_count = 0; mob_count < (NUM_JACKALOPE_EACH - mob_ingame_count(EASY_JACKALOPE)); mob_count++)
+        {
+          x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+          y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+          wild_mobile_loader(EASY_JACKALOPE, x_coord, y_coord);
+        }
+      }
+      if (mob_ingame_count(MED_JACKALOPE) < NUM_JACKALOPE_EACH)
+      {
+        for (mob_count = 0; mob_count < (NUM_JACKALOPE_EACH - mob_ingame_count(MED_JACKALOPE)); mob_count++)
+        {
+          x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+          y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+          wild_mobile_loader(MED_JACKALOPE, x_coord, y_coord);
+        }
+      }
+      if (mob_ingame_count(HARD_JACKALOPE) < NUM_JACKALOPE_EACH)
+      {
+        for (mob_count = 0; mob_count < (NUM_JACKALOPE_EACH - mob_ingame_count(HARD_JACKALOPE)); mob_count++)
+        {
+          x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+          y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+          wild_mobile_loader(HARD_JACKALOPE, x_coord, y_coord);
+        }
+      }
+
+      break;
+
+    default:
+      break;
+    }
+  }
+
   /* Last tick - set everything back to zero */
   else if (STAFF_EVENT_TIME == 1)
   {

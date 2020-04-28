@@ -34,7 +34,7 @@
 #define EASY_JACKALOPE 11391   /* vnum of lower level jackalope */
 #define MED_JACKALOPE 11392    /* vnum of mid level jackalope */
 #define HARD_JACKALOPE 11393   /* vnum of high level jackalope */
-#define NUM_JACKALOPE_EACH 200 /* how many of each jackalope to load */
+#define NUM_JACKALOPE_EACH 400 /* how many of each jackalope to load */
 
 #define JACKALOPE_NORTH_Y 205 /* north, y-coordinate border for loading mobs */
 #define JACKALOPE_SOUTH_Y -83 /* south, y-coordinate border for loading mobs */
@@ -59,7 +59,9 @@ void start_staff_event(int event_num);
 void end_staff_event(int event_num);
 void staff_event_info(struct char_data *ch, int event_num);
 void list_staff_events(struct char_data *ch);
-void jackalope_loader(mob_vnum jackalope_vnum);
+void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord);
+int mob_ingame_count(int mobile_vnum);
+void mob_ingame_purge(int mobile_vnum);
 
 ACMD_DECL(do_staffevents);
 
