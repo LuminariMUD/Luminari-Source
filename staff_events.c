@@ -261,6 +261,10 @@ void end_staff_event(int event_num)
     {
 
     case JACKALOPE_HUNT:
+        /* jackalope cleanup crew */
+        mob_ingame_purge(EASY_JACKALOPE);
+        mob_ingame_purge(MED_JACKALOPE);
+        mob_ingame_purge(HARD_JACKALOPE);
         break;
 
     default:
@@ -392,7 +396,7 @@ ACMD(do_staffevents)
     {
         if (IS_STAFF_EVENT)
         {
-            staff_event_info(ch, event_num);
+            staff_event_info(ch, STAFF_EVENT_NUM);
         }
         else
         {
@@ -426,7 +430,14 @@ ACMD(do_staffevents)
     }
     else if (is_abbrev(arg, "end"))
     {
-        end_staff_event(event_num);
+        if (!IS_STAFF_EVENT)
+        {
+            send_to_char(ch, "There is no event active right now...\r\n");
+        }
+        else
+        {
+            end_staff_event(event_num);
+        }
     }
     else if (is_abbrev(arg, "info"))
     {
