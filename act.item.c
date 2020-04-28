@@ -1835,7 +1835,7 @@ ACMD(do_drop)
   {
     multi = atoi(arg);
     one_argument(argument, arg);
-    if (!str_cmp("coins", arg) || !str_cmp("coin", arg))
+    if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
       perform_drop_gold(ch, multi, mode, RDR);
     else if (multi <= 0)
       send_to_char(ch, "Yeah, that makes sense.\r\n");
@@ -2012,7 +2012,7 @@ ACMD(do_give)
     /* ok we received a number value */
     amount = atoi(arg);
     argument = one_argument(argument, arg);
-    if (!str_cmp("coins", arg) || !str_cmp("coin", arg))
+    if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
     {
       one_argument(argument, arg);
       if ((vict = give_find_vict(ch, arg)) != NULL)
