@@ -33,25 +33,24 @@
 #define ACMD_DECL(name) \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
-#define ACMD(name) \
-  static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
-  void name(struct char_data *ch, const char *argument, int cmd, int subcmd) \
-  { \
-    PERF_PROF_ENTER(pr_, #name); \
-    if (!argument) \
-    { \
-      impl_## name ##_(ch, NULL, cmd, subcmd); \
-    } \
-    else \
-    { \
-      char arg_buf[MAX_INPUT_LENGTH]; \
-      strlcpy(arg_buf, argument, sizeof(arg_buf)); \
-      impl_## name ##_(ch, arg_buf, cmd, subcmd); \
-    } \
-    PERF_PROF_EXIT(pr_); \
-  } \
-  static void impl_## name ##_(struct char_data *ch, char *argument, int cmd, int subcmd)
-
+#define ACMD(name)                                                                       \
+  static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
+  {                                                                                      \
+    PERF_PROF_ENTER(pr_, #name);                                                         \
+    if (!argument)                                                                       \
+    {                                                                                    \
+      impl_##name##_(ch, NULL, cmd, subcmd);                                             \
+    }                                                                                    \
+    else                                                                                 \
+    {                                                                                    \
+      char arg_buf[MAX_INPUT_LENGTH];                                                    \
+      strlcpy(arg_buf, argument, sizeof(arg_buf));                                       \
+      impl_##name##_(ch, arg_buf, cmd, subcmd);                                          \
+    }                                                                                    \
+    PERF_PROF_EXIT(pr_);                                                                 \
+  }                                                                                      \
+  static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd)
 
 /** Definition of the helper function for checking if a command can be used.
  *  If show_error is set, an error message will be sent to the user. Otherwise, it 
@@ -1798,6 +1797,7 @@ void char_from_furniture(struct char_data *ch);
 
 #define STAFF_EVENT_NUM staffevent_data.event_num
 #define STAFF_EVENT_TIME staffevent_data.ticks_left
+#define STAFF_EVENT_DELAY staffevent_data.delay
 
 /**********************/
 

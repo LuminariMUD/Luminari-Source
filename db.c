@@ -149,7 +149,7 @@ struct weather_data weather_info;     /* the infomation about the weather */
 struct player_special_data dummy_mob; /* dummy spec area for mobs	*/
 struct reset_q_type reset_q;          /* queue of zones to be reset	 */
 
-struct staffevent_struct staffevent_data = {-1, 0}; /* first value is event index which starts with 0, -1 means no event */
+struct staffevent_struct staffevent_data = {-1, 0, 5}; /* first value is event index which starts with 0, -1 means no event */
 struct happyhour happy_data = {0, 0, 0, 0, 0};
 
 /* declaration of local (file scope) variables */
@@ -3643,7 +3643,8 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   /* item cost cap */
   //GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
 
-  if (GET_OBJ_TYPE(obj) == ITEM_INSTRUMENT) {
+  if (GET_OBJ_TYPE(obj) == ITEM_INSTRUMENT)
+  {
     SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT);
   }
 
