@@ -57,15 +57,88 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 
 };
 
-/* load and place easy-difficult jackalopes */
-void jackalope_loader(mob_vnum jackalope_vnum)
+/* find the given mobile by vnum and clear it out of the game */
+void mob_ingame_purge(int mobile_vnum)
+{
+    struct char_data *l = NULL;
+    mob_rnum mobile_rnum = real_mobile(mobile_vnum);
+    mob_rnum i = 0;
+
+    if (!top_of_mobt)
+        return;
+
+    if (mobile_rnum == NOTHING)
+        return;
+
+    /* "i" will be the real-number */
+    for (i = 0; i <= top_of_mobt; i++)
+    {
+        /* this the mob? */
+        if (mobile_rnum == i)
+        {
+            /* find how many of the same mobiles are in the game currently */
+            for (l = character_list; l; l = l->next)
+            {
+                if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
+                {
+                    if (IN_ROOM(l) == NOWHERE)
+                    {
+                        /* this is to prevent crash */
+                    }
+                    else
+                    {
+                        extract_char(l);
+                    }
+                }
+            }
+        }
+    } /* end for */
+
+    return;
+}
+
+/* count the # of mobiles of given vnum in the game */
+int mob_ingame_count(int mobile_vnum)
+{
+    struct char_data *l = NULL;
+    mob_rnum mobile_rnum = real_mobile(mobile_vnum);
+    mob_rnum i = 0;
+    int num_found = 0;
+
+    if (!top_of_mobt)
+        return 0;
+
+    if (mobile_rnum == NOTHING)
+        return 0;
+
+    /* "i" will be the real-number */
+    for (i = 0; i <= top_of_mobt; i++)
+    {
+
+        /* this the mob? */
+        if (mobile_rnum == i)
+        {
+            /* find how many of the same mobiles are in the game currently */
+            for (num_found = 0, l = character_list; l; l = l->next)
+            {
+                if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
+                {
+                    num_found++;
+                }
+            }
+        }
+
+    } /* end for */
+    return num_found;
+}
+
+/* load and place mobile into the wilderness */
+void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 {
     room_rnum location = NOWHERE;
     struct char_data *mob = NULL;
-    int x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
-    int y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
 
-    mob = read_mobile(jackalope_vnum, VIRTUAL);
+    mob = read_mobile(mobile_vnum, VIRTUAL);
 
     /* dummy check! */
     if (!mob)
@@ -88,8 +161,6 @@ void jackalope_loader(mob_vnum jackalope_vnum)
     Y_LOC(mob) = world[location].coords[1];
     char_to_room(mob, location);
 
-    act("... $N wanders into the area.", FALSE, 0, 0, mob, TO_ROOM);
-
     load_mtrigger(mob);
 
     return;
@@ -100,6 +171,9 @@ void start_staff_event(int event_num)
 {
     struct descriptor_data *pt = NULL;
     int counter = 0;
+    /* variables used in specific events */
+    int x_coord = 0;
+    int y_coord = 0;
 
     /* dummy checks */
     if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
@@ -134,14 +208,22 @@ void start_staff_event(int event_num)
     case JACKALOPE_HUNT:
 
         /* set event duration */
-        STAFF_EVENT_TIME = 2;
+        //STAFF_EVENT_TIME = 20;
 
         /* load the jackalopes! */
         for (counter = 0; counter < NUM_JACKALOPE_EACH; counter++)
         {
-            jackalope_loader(EASY_JACKALOPE);
-            jackalope_loader(MED_JACKALOPE);
-            jackalope_loader(HARD_JACKALOPE);
+            x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+            y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+            wild_mobile_loader(EASY_JACKALOPE, x_coord, y_coord);
+
+            x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+            y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+            wild_mobile_loader(MED_JACKALOPE, x_coord, y_coord);
+
+            x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
+            y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
+            wild_mobile_loader(HARD_JACKALOPE, x_coord, y_coord);
         }
 
         break;
@@ -186,6 +268,10 @@ void end_staff_event(int event_num)
     {
 
     case JACKALOPE_HUNT:
+        /* jackalope cleanup crew */
+        mob_ingame_purge(EASY_JACKALOPE);
+        mob_ingame_purge(MED_JACKALOPE);
+        mob_ingame_purge(HARD_JACKALOPE);
         break;
 
     default:
@@ -235,10 +321,25 @@ void staff_event_info(struct char_data *ch, int event_num)
             break;
 
         case EVENT_TITLE: /* we mention this above */
+        /* fallthrough */
         default:
             break;
         }
     } /*end for*/
+
+    /* here is our custom output relevant to each event */
+    switch (event_num)
+    {
+    case JACKALOPE_HUNT:
+        send_to_char(ch, "Number of elusive Jackalope: %d, mature Jackalope: %d and alpha Jackalope: %d.\r\n",
+                     mob_ingame_count(EASY_JACKALOPE),
+                     mob_ingame_count(MED_JACKALOPE),
+                     mob_ingame_count(HARD_JACKALOPE));
+        break;
+
+    default:
+        break;
+    }
 
     if (STAFF_EVENT_TIME)
         secs_left = ((STAFF_EVENT_TIME - 1) * SECS_PER_MUD_HOUR) + next_tick;
@@ -252,7 +353,7 @@ void staff_event_info(struct char_data *ch, int event_num)
 
     if (GET_LEVEL(ch) >= LVL_STAFF)
     {
-        send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
+        send_to_char(ch, "\r\nUsage: staffevents [start|end|info] [index # above]\r\n\r\n");
     }
 
     return;
@@ -267,10 +368,10 @@ void list_staff_events(struct char_data *ch)
 
     for (i = 0; i < NUM_STAFF_EVENTS; i++)
     {
-        send_to_char(ch, "\tc%d)\tn %s\r\n", i, staff_events_list[i][0]);
+        send_to_char(ch, "\tG%d)\tn %s\r\n", i, staff_events_list[i][0]);
     }
 
-    send_to_char(ch, "Usage: staffevents [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "\r\nUsage: staffevents [start|end|info] [index # above]\r\n\r\n");
 
     return;
 }
@@ -302,7 +403,7 @@ ACMD(do_staffevents)
     {
         if (IS_STAFF_EVENT)
         {
-            staff_event_info(ch, event_num);
+            staff_event_info(ch, STAFF_EVENT_NUM);
         }
         else
         {
@@ -332,11 +433,25 @@ ACMD(do_staffevents)
 
     if (is_abbrev(arg, "start"))
     {
-        start_staff_event(event_num);
+        if (!IS_STAFF_EVENT)
+        {
+            start_staff_event(event_num);
+        }
+        else
+        {
+            send_to_char(ch, "There is already an event running!\r\n");
+        }
     }
     else if (is_abbrev(arg, "end"))
     {
-        end_staff_event(event_num);
+        if (!IS_STAFF_EVENT)
+        {
+            send_to_char(ch, "There is no event active right now...\r\n");
+        }
+        else
+        {
+            end_staff_event(event_num);
+        }
     }
     else if (is_abbrev(arg, "info"))
     {
