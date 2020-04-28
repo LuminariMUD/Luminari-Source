@@ -719,8 +719,6 @@ EVENTFUNC(event_bardic_performance)
   difficulty = 30 - GET_CHA_BONUS(ch);
 
   /* find an instrument */
-  instrument = GET_EQ(ch, WEAR_INSTRUMENT);
-/*
   instrument = GET_EQ(ch, WEAR_HOLD_1);
   if (!instrument || GET_OBJ_TYPE(instrument) != ITEM_INSTRUMENT)
   {
@@ -730,7 +728,6 @@ EVENTFUNC(event_bardic_performance)
   {
     instrument = GET_EQ(ch, WEAR_HOLD_2H);
   }
-*/
   if (!instrument || GET_OBJ_TYPE(instrument) != ITEM_INSTRUMENT)
     instrument = NULL; /* nope, nothing! */
   /* END find an instrument */

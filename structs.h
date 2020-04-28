@@ -1060,9 +1060,8 @@
 #define WEAR_EAR_L 25 /* worn on/in left ear */
 #define WEAR_EYES 26  /* worn in/over eye(s) */
 #define WEAR_BADGE 27 /* attached to your body armor as a badge */
-#define WEAR_INSTRUMENT 28
 /** Total number of available equipment lcoations */
-#define NUM_WEARS 29
+#define NUM_WEARS 28
 /**/
 
 /* ranged combat */
