@@ -60,27 +60,27 @@
 #define SPECIAL_DECL(name) \
     int(name)(struct char_data * ch, void *me, int cmd, const char *argument)
 
-#define SPECIAL(name) \
-  static int impl_## name ##_(struct char_data * ch, void *me, int cmd, char *argument); \
-  int(name)(struct char_data * ch, void *me, int cmd, const char *argument) \
-  { \
-    PERF_PROF_ENTER(pr_, #name); \
-    int rtn; \
-    if (!argument) \
-    { \
-      rtn = impl_## name ##_(ch, me, cmd, NULL); \
-    } \
-    else \
-    { \
-      char arg_buf[MAX_INPUT_LENGTH]; \
-      strlcpy(arg_buf, argument, sizeof(arg_buf)); \
-      rtn = impl_## name ##_(ch, me, cmd, arg_buf); \
-    } \
-    PERF_PROF_EXIT(pr_); \
-    return rtn; \
-  } \
-  static int impl_## name ##_(struct char_data * ch, void *me, int cmd, char *argument)
-  
+#define SPECIAL(name)                                                                   \
+    static int impl_##name##_(struct char_data *ch, void *me, int cmd, char *argument); \
+    int(name)(struct char_data * ch, void *me, int cmd, const char *argument)           \
+    {                                                                                   \
+        PERF_PROF_ENTER(pr_, #name);                                                    \
+        int rtn;                                                                        \
+        if (!argument)                                                                  \
+        {                                                                               \
+            rtn = impl_##name##_(ch, me, cmd, NULL);                                    \
+        }                                                                               \
+        else                                                                            \
+        {                                                                               \
+            char arg_buf[MAX_INPUT_LENGTH];                                             \
+            strlcpy(arg_buf, argument, sizeof(arg_buf));                                \
+            rtn = impl_##name##_(ch, me, cmd, arg_buf);                                 \
+        }                                                                               \
+        PERF_PROF_EXIT(pr_);                                                            \
+        return rtn;                                                                     \
+    }                                                                                   \
+    static int impl_##name##_(struct char_data *ch, void *me, int cmd, char *argument)
+
 /* room-related defines */
 /* The cardinal directions: used as index to room_data.dir_option[] */
 #define NORTH 0     /**< The direction north */
@@ -1017,8 +1017,8 @@
 #define CON_ACCOUNT_MENU 44
 #define CON_ACCOUNT_ADD 45
 #define CON_ACCOUNT_ADD_PWD 46
-#define CON_HSEDIT 47  /* OLC mode - house edit      .*/
-#define CON_NEWMAIL 48 // new mail system mail composition
+#define CON_HSEDIT 47          /* OLC mode - house edit      .*/
+#define CON_NEWMAIL 48         // new mail system mail composition
 #define CON_CONFIRM_PREMADE 49 // premade build selection
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
@@ -2999,7 +2999,7 @@ struct room_data
     struct room_direction_data *dir_option[NUM_OF_DIRS]; /**< Directions */
     byte light;                                          /**< Number of lightsources in room */
     byte globe;                                          /**< Number of darkness sources in room */
-    SPECIAL_DECL(*func);                                      /**< Points to special function attached to room */
+    SPECIAL_DECL(*func);                                 /**< Points to special function attached to room */
     struct trig_proto_list *proto_script;                /**< list of default triggers */
     struct script_data *script;                          /**< script info for the room */
     struct obj_data *contents;                           /**< List of items in room */
@@ -3831,6 +3831,7 @@ struct staffevent_struct
 {
     int event_num;  /* index # reference for event happening */
     int ticks_left; /* time left for event */
+    int delay;      /* time between the events */
 };
 
 /** Happy Hour Data */

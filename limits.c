@@ -1072,7 +1072,14 @@ void point_update(void)
     game_info("Happy hour has ended!");
   }
 
-  /* staff event counter */
+  /*********/
+  /* staff event related updates */
+
+  if (!IS_STAFF_EVENT && STAFF_EVENT_DELAY > 0)
+  {
+    STAFF_EVENT_DELAY--;
+  }
+
   if (STAFF_EVENT_TIME > 1)
   {
     STAFF_EVENT_TIME--;
@@ -1124,6 +1131,7 @@ void point_update(void)
   {
     end_staff_event(STAFF_EVENT_NUM);
   }
+  /* end staff event section */
 
   /* end general */
 

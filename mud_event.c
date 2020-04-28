@@ -141,10 +141,8 @@ struct mud_event_list mud_event_index[] = {
     {"Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR},  // eDRACCLAWS
     {"Spell Preparation", event_preparation, EVENT_CHAR},                               //ePREPARATION
     /*100*/
-    {"Craft", event_craft, EVENT_CHAR},
-    /* eCRAFT */ /* NewCraft */
-    {"Copyover Event!", event_copyover, EVENT_CHAR},
-    /* eCOPYOVER */                                                              /* copyover delay */
+    {"Craft", event_craft, EVENT_CHAR},                                          /* eCRAFT - NewCraft */
+    {"Copyover Event!", event_copyover, EVENT_CHAR},                             /* eCOPYOVER - copyover delay */
     {"Autocollect delay", event_countdown, EVENT_CHAR},                          //eCOLLECT_DELAY
     {"Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR},    // eARCANEADEPT
     {"Armor SpecAb Cooldown: Blinding", event_daily_use_cooldown, EVENT_OBJECT}, // eARMOR_SPECAB_BLINDING
@@ -156,8 +154,9 @@ struct mud_event_list mud_event_index[] = {
     {"Impromptu Sneak Attack", event_daily_use_cooldown, EVENT_CHAR},                    // eIMPROMPT
     /*110*/
     {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
-    {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eSACRED_FLAMES
-    {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINNER_FIRE
+    {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR},   //eSACRED_FLAMES
+    {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR},      //eINNER_FIRE
+
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -1088,6 +1087,12 @@ struct mud_event_data *region_has_mud_event(struct region_data *reg, event_id iI
   if (found)
     return (pMudEvent);
 
+  return NULL;
+}
+
+/* remove world event */
+struct mud_event_data *world_has_mud_event(event_id iId)
+{
   return NULL;
 }
 
