@@ -493,6 +493,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"push", "push", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     //{ "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"perfmon", "perfmon", POS_DEAD, do_perfmon, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

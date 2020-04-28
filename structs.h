@@ -64,13 +64,20 @@
   static int impl_## name ##_(struct char_data * ch, void *me, int cmd, char *argument); \
   int(name)(struct char_data * ch, void *me, int cmd, const char *argument) \
   { \
+    PERF_PROF_ENTER(pr_, #name); \
+    int rtn; \
     if (!argument) \
     { \
-      return impl_## name ##_(ch, me, cmd, NULL); \
+      rtn = impl_## name ##_(ch, me, cmd, NULL); \
     } \
-    char arg_buf[MAX_INPUT_LENGTH]; \
-    strlcpy(arg_buf, argument, sizeof(arg_buf)); \
-    return impl_## name ##_(ch, me, cmd, arg_buf); \
+    else \
+    { \
+      char arg_buf[MAX_INPUT_LENGTH]; \
+      strlcpy(arg_buf, argument, sizeof(arg_buf)); \
+      rtn = impl_## name ##_(ch, me, cmd, arg_buf); \
+    } \
+    PERF_PROF_EXIT(pr_); \
+    return rtn; \
   } \
   static int impl_## name ##_(struct char_data * ch, void *me, int cmd, char *argument)
   
