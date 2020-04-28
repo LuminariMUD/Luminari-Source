@@ -263,6 +263,7 @@ void end_staff_event(int event_num)
     /* make sure the event is turned off */
     STAFF_EVENT_NUM = UNDEFINED_EVENT;
     STAFF_EVENT_TIME = 0;
+    STAFF_EVENT_DELAY = 5; /* this is a delay before next event for cleanup */
 
     switch (event_num)
     {
@@ -433,9 +434,13 @@ ACMD(do_staffevents)
 
     if (is_abbrev(arg, "start"))
     {
-        if (!IS_STAFF_EVENT)
+        if (!IS_STAFF_EVENT && !STAFF_EVENT_DELAY)
         {
             start_staff_event(event_num);
+        }
+        else if (STAFF_EVENT_DELAY)
+        {
+            send_to_char(ch, "There is a delay of approximately 5 minutes between events for cleanup.\r\n");
         }
         else
         {
