@@ -94,6 +94,7 @@
 #include "assign_wpn_armor.h"
 #include "wilderness.h"
 #include "spell_prep.h"
+#include "perfmon.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -118,6 +119,7 @@ socket_t mother_desc;
 int next_tick = SECS_PER_MUD_HOUR; /* Tick countdown */
 /* used with do_tell and handle_webster_file utility */
 long last_webster_teller = -1L;
+const unsigned PERF_pulse_per_second = PASSES_PER_SEC;
 
 /* static local global variable declarations (current file scope only) */
 static struct txt_block *bufpool = NULL; /* pool of large output buffers */
@@ -218,7 +220,7 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
 int main(int argc, char **argv)
 {
   /* Copy to stack memory to ensure the build info is embedded in core dumps */
-  char embed_version_build[128];
+  char embed_version_build[512];
   snprintf(embed_version_build, sizeof(embed_version_build), "%s\r\n%s", luminari_version, luminari_build);
 
   int pos = 1;
@@ -850,6 +852,25 @@ void game_loop(socket_t local_mother_desc)
     gettimeofday(&before_sleep, (struct timezone *)0); /* current time */
     timediff(&process_time, &before_sleep, &last_time);
 
+    {
+      long int total_usec = 1000000 * process_time.tv_sec + process_time.tv_usec;
+      double usage_pcnt = 100 * ((double)total_usec / OPT_USEC);
+      PERF_log_pulse(usage_pcnt);
+
+      if (usage_pcnt >= 100)
+      {
+        char buf[MAX_STRING_LENGTH];
+        PERF_prof_repr_pulse(buf, sizeof(buf));
+        log("Pulse usage >= 100%% [%.2f%%, %ld usec]. Trace info: \n%s",
+          usage_pcnt, total_usec, buf);
+      }
+    }
+
+    /* just in case, re-calculate after PERF logging */
+    gettimeofday(&before_sleep, (struct timezone *)0);
+    timediff(&process_time, &before_sleep, &last_time);
+
+
     /* If we were asleep for more than one pass, count missed pulses and sleep
      * until we're resynchronized with the next upcoming pulse. */
     if (process_time.tv_sec == 0 && process_time.tv_usec < OPT_USEC)
@@ -880,6 +901,9 @@ void game_loop(socket_t local_mother_desc)
       timediff(&timeout, &last_time, &now);
     } while (timeout.tv_usec || timeout.tv_sec);
 
+    PERF_prof_reset();
+    PERF_PROF_ENTER(pr_main_loop_, "Main Loop");
+
     /* Poll (without blocking) for new input, output, and exceptions */
     if (select(maxdesc + 1, &input_set, &output_set, &exc_set, &null_time) < 0)
     {
@@ -902,6 +926,7 @@ void game_loop(socket_t local_mother_desc)
       }
     }
 
+    PERF_PROF_ENTER(pr_process_input_, "Process Input");
     /* Process descriptors with input pending */
     for (d = descriptor_list; d; d = next_d)
     {
@@ -914,7 +939,9 @@ void game_loop(socket_t local_mother_desc)
           close_socket(d);
       }
     }
+    PERF_PROF_EXIT(pr_process_input_);
 
+    PERF_PROF_ENTER(pr_process_commands_, "Process Commands");
     /* Process commands we just read from process_input */
     for (d = descriptor_list; d; d = next_d)
     {
@@ -974,6 +1001,9 @@ void game_loop(socket_t local_mother_desc)
         execute_next_action(d->character);
       }
     }
+    PERF_PROF_EXIT(pr_process_commands_);
+
+    PERF_PROF_ENTER(pr_process_output_, "Process Output");
     /* Send queued output out to the operating system (ultimately to user). */
     for (d = descriptor_list; d; d = next_d)
     {
@@ -987,6 +1017,7 @@ void game_loop(socket_t local_mother_desc)
           d->has_prompt = 1;
       }
     }
+    PERF_PROF_EXIT(pr_process_output_);
 
     /* Print prompts for other descriptors who had no other output */
     for (d = descriptor_list; d; d = d->next)
@@ -1028,13 +1059,19 @@ void game_loop(socket_t local_mother_desc)
 
     /* Now execute the heartbeat functions */
     while (missed_pulses--)
+    {
+      PERF_PROF_ENTER(pr_heartbeat, "heartbeat" );
       heartbeat(++pulse);
+      PERF_PROF_EXIT(pr_heartbeat);
+    }
 
     if (reread_wizlist)
     {
+      PERF_PROF_ENTER(pr_rwiz_, "reboot_wizlists");
       reread_wizlist = FALSE;
       mudlog(CMP, LVL_IMMORT, TRUE, "Signal received - rereading wizlists.");
       reboot_wizlists();
+      PERF_PROF_EXIT(pr_rwiz_);
     }
 
     /* Orphaned right now as signal trapping is used for Webster lookup
@@ -1048,14 +1085,17 @@ void game_loop(socket_t local_mother_desc)
      */
     if (webster_file_ready)
     {
+      PERF_PROF_ENTER(pr_webs_, "handle_webster_file");
       webster_file_ready = FALSE;
       handle_webster_file();
+      PERF_PROF_EXIT(pr_webs_);
     }
 
 #ifdef CIRCLE_UNIX
     /* Update tics_passed for deadlock protection (UNIX only) */
     tics_passed++;
 #endif
+    PERF_PROF_EXIT(pr_main_loop_);
   }
 }
 
@@ -1082,15 +1122,23 @@ void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
 
+  PERF_PROF_ENTER(pr_event_process_, "event_process");
   event_process();
+  PERF_PROF_EXIT(pr_event_process_);
 
   if (!(heart_pulse % PULSE_DG_SCRIPT))
+  {
+    PERF_PROF_ENTER(pr_script_trigger_, "script_trigger_check");
     script_trigger_check();
+    PERF_PROF_EXIT(pr_script_trigger_);
+  }
 
   if (!(heart_pulse % PASSES_PER_SEC))
   { /* EVERY second */
+    PERF_PROF_ENTER(pr_msdp_update_, "msdp_update");
     msdp_update();
     next_tick--;
+    PERF_PROF_EXIT(pr_msdp_update_);
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60))) { // every minute
@@ -1098,7 +1146,11 @@ void heartbeat(int heart_pulse)
   }
 
   if (!(heart_pulse % PULSE_ZONE))
+  {
+    PERF_PROF_ENTER(pr_zone_update_, "zone_update");
     zone_update();
+    PERF_PROF_EXIT(pr_zone_update_);
+  }
 
   if (!(heart_pulse % PULSE_IDLEPWD)) /* 15 seconds */
     check_idle_passwords();
@@ -1106,8 +1158,12 @@ void heartbeat(int heart_pulse)
   /* this controls the rate mobiles "act" */
   if (!(heart_pulse % PULSE_MOBILE))
   {
+    PERF_PROF_ENTER(pr_mob_activity_, "mobile_activity");
     mobile_activity();
+    PERF_PROF_EXIT(pr_mob_activity_);
+    PERF_PROF_ENTER(pr_proc_update_, "proc_update");
     proc_update();
+    PERF_PROF_EXIT(pr_proc_update_);
   }
 
   /* this is the rate of a combat round before event-driven combat */
@@ -1115,7 +1171,9 @@ void heartbeat(int heart_pulse)
   {
     /* Next line removed as part of conversion from pulse to event-based combat */
     //    perform_violence();
+    PERF_PROF_ENTER(pr_aff_update_, "affect_update");
     affect_update(); //affect updates transformed into "rounds"
+    PERF_PROF_EXIT(pr_aff_update_);
   }
 
   /*  Pulse_Luminari was built to throw in customized Luminari
@@ -1126,7 +1184,9 @@ void heartbeat(int heart_pulse)
    */
   if (!(pulse % PULSE_LUMINARI))
   {                   /* 5 sec */
+    PERF_PROF_ENTER(pr_lum_, "pulse_luminari");
     pulse_luminari(); // limits.c
+    PERF_PROF_EXIT(pr_lum_);
   }
 
   /* every 300 sec show a random hint if they have it toggled */
@@ -1137,18 +1197,22 @@ void heartbeat(int heart_pulse)
 
   if (!(heart_pulse % (6 * PASSES_PER_SEC)))
   {
+    PERF_PROF_ENTER(pr_upd_, "update_damage_and_effects_over_time");
     update_damage_and_effects_over_time();
+    PERF_PROF_EXIT(pr_upd_);
   }
 
   /* the old skool tick system! */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
   {                                /* Tick ! */
+    PERF_PROF_ENTER(pr_ost_, "old skool tick");
     next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
     weather_and_time(1);
     check_time_triggers();
     point_update();
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
+    PERF_PROF_EXIT(pr_ost_);
   }
 
   if (CONFIG_AUTO_SAVE && !(heart_pulse % PULSE_AUTOSAVE))
@@ -1156,8 +1220,14 @@ void heartbeat(int heart_pulse)
     if (++mins_since_crashsave >= CONFIG_AUTOSAVE_TIME)
     {
       mins_since_crashsave = 0;
+
+      PERF_PROF_ENTER(pr_csa_, "Crash_save_all");
       Crash_save_all();
+      PERF_PROF_EXIT(pr_csa_);
+
+      PERF_PROF_ENTER(pr_hsa_, "House_save_all");
       House_save_all();
+      PERF_PROF_EXIT(pr_hsa_);
     }
     update_player_last_on();
   }

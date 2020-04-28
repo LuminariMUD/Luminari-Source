@@ -53,6 +53,7 @@
 #include "alchemy.h"
 #include "mud_event.h"
 #include "premadebuilds.h"
+#include "perfmon.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -8321,6 +8322,9 @@ ACMD(do_players)
 
   for (d = descriptor_list; d; d = d->next)
   {
+    if (!d->character)
+      continue;
+
     counter = 0;
     *buf2 = '\0';
     for (i = 0; i < MAX_CLASSES; i++)
@@ -8501,6 +8505,66 @@ void check_auto_shutdown(void)
     log("Automated Copyover on %s.", tmstr);
     send_to_all("Executing Automated Copyover.\r\n");
     perform_do_copyover();
+  }
+}
+
+ACMD(do_perfmon)
+{
+  char arg1[MAX_INPUT_LENGTH];
+
+  argument = one_argument(argument, arg1);
+
+  if (arg1[0] == '\0')
+  {
+    send_to_char(ch, 
+      "perfmon all             - Print all perfmon info.\r\n"
+      "perfmon summ            - Print summary,\r\n"
+      "perfmon prof            - Print profiling info.\r\n"
+      "perfmon sect <section>  - Print profiling info for section.\r\n");
+    return;
+  }
+
+  if (!str_cmp( arg1, "all"))
+  {
+      char buf[MAX_STRING_LENGTH];
+
+      size_t written = PERF_repr( buf, sizeof(buf) );
+      written = PERF_prof_repr_total( buf + written, sizeof(buf) - written);
+
+      page_string(ch->desc, buf, TRUE);
+
+      return;
+  }
+  else if (!str_cmp( arg1, "summ"))
+  {
+    char buf[MAX_STRING_LENGTH];
+
+    PERF_repr( buf, sizeof(buf) );
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp( arg1, "prof"))
+  {
+    char buf[MAX_STRING_LENGTH];
+
+    PERF_prof_repr_total( buf, sizeof(buf) );
+    page_string(ch->desc, buf, TRUE);
+
+    return;
+  }
+  else if (!str_cmp( arg1, "sect"))
+  {
+    char buf[MAX_STRING_LENGTH];
+
+    PERF_prof_repr_sect( buf, sizeof(buf), argument );
+    page_string(ch->desc, buf, TRUE);
+
+    return;
+  }
+  else
+  {
+    do_perfmon( ch, "", cmd, subcmd );
+    return;
   }
 }
 
