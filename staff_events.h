@@ -59,7 +59,7 @@ void start_staff_event(int event_num);
 void end_staff_event(int event_num);
 void staff_event_info(struct char_data *ch, int event_num);
 void list_staff_events(struct char_data *ch);
-void jackalope_loader(mob_vnum jackalope_vnum);
+void jackalope_loader(int jackalope_vnum);
 
 ACMD_DECL(do_staffevents);
 
