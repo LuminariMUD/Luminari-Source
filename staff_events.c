@@ -62,6 +62,7 @@ int mob_ingame_count(int mobile_vnum)
 {
     struct mob_data *l = NULL;
     mob_rnum mobile_rnum = real_mobile(mobile_vnum);
+    mob_rnum i = 0;
     int num_found = 0;
 
     if (!top_of_mobt)
@@ -78,9 +79,9 @@ int mob_ingame_count(int mobile_vnum)
         if (mobile_rnum == i)
         {
             /* find how many of the same mobiles are in the game currently */
-            for (num_found = 0, l = mobile_list; l; l = l->next)
+            for (num_found = 0, l = character_list; l; l = l->next)
             {
-                if (GET_MOB_RNUM(l) == i)
+                if (IS_NPC(l) && GET_MOB_RNUM(l) == i)
                 {
                     num_found++;
                 }
