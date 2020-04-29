@@ -49,7 +49,7 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
   char sb[MAX_STRING_LENGTH];
   int i;
 
-  strcpy(sb, "");
+  strlcpy(sb, "", sizeof(sb));
 
   for (i = 0; tokens[i + 1]; i++)
   {

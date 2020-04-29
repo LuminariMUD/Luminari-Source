@@ -148,7 +148,7 @@ void do_slug_rank(struct char_data *ch, char *arg)
   nbufp = nbuf;
 
   if (!strlen(keybuf))
-    strcpy(keybuf, "help");
+    strlcpy(keybuf, "help", sizeof(keybuf));
 
   the_key = search_key(keybuf);
 
@@ -241,7 +241,7 @@ void do_slug_rank(struct char_data *ch, char *arg)
     send_to_char(ch, "%s %d players ranked by %s.\n\r", toprank ? "Top" : "Bottom", rk, the_key->outstring);
     for (i = 0; i < rk; i++)
     {
-      strcpy(kbuf, GET_KEY(tt[i].ch, the_key));
+      strlcpy(kbuf, GET_KEY(tt[i].ch, the_key), sizeof(kbuf));
       for (kbp = kbuf; *kbp == ' '; kbp++)
         ;
       send_to_char(ch, "#%2d: %15s %*s\n\r", i + 1, GET_NAME(tt[i].ch),
@@ -340,8 +340,8 @@ char k2[80];
 
 int rank_compare_top(const void *n1, const void *n2)
 {
-  strcpy(k1, (*((struct rank_data *)n1)).key);
-  strcpy(k2, (*((struct rank_data *)n2)).key);
+  strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
+  strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
   return (strcmp(k2, k1));
 }
 
@@ -353,8 +353,8 @@ int char_compare(const void *n1, const void *n2)
 int rank_compare_bot(const void *n1, const void *n2)
 {
 
-  strcpy(k1, (*((struct rank_data *)n1)).key);
-  strcpy(k2, (*((struct rank_data *)n2)).key);
+  strlcpy(k1, (*((struct rank_data *)n1)).key, sizeof(k1));
+  strlcpy(k2, (*((struct rank_data *)n2)).key, sizeof(k2));
 
   return (strcmp(k1, k2));
 }

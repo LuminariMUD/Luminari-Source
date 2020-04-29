@@ -98,7 +98,7 @@ int word_check(char *str, char *wordlist)
   if (*wordlist == '*')
     return 1;
 
-  strcpy(words, wordlist);
+  strlcpy(words, wordlist, sizeof(words));
 
   for (s = one_phrase(words, phrase); *phrase; s = one_phrase(s, phrase))
     if (is_substring(phrase, str))

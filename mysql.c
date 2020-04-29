@@ -47,13 +47,13 @@ void connect_to_mysql()
     else if (sscanf(line, "%s = %s", key, val) == 2)
     {
       if (!str_cmp(key, "mysql_host"))
-        strcpy(host, val);
+        strlcpy(host, val, sizeof(host));
       else if (!str_cmp(key, "mysql_database"))
-        strcpy(database, val);
+        strlcpy(database, val, sizeof(database));
       else if (!str_cmp(key, "mysql_username"))
-        strcpy(username, val);
+        strlcpy(username, val, sizeof(username));
       else if (!str_cmp(key, "mysql_password"))
-        strcpy(password, val);
+        strlcpy(password, val, sizeof(password));
       else
       {
         log("SYSERR: Unknown line in MySQL configuration: %s", line);
