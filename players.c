@@ -1130,7 +1130,7 @@ void save_char(struct char_data *ch, int mode)
 
   if (ch->player.description && *ch->player.description)
   {
-    strcpy(buf, ch->player.description);
+    strlcpy(buf, ch->player.description, sizeof(buf));
     strip_cr(buf);
     fprintf(fl, "Desc:\n%s~\n", buf);
   }

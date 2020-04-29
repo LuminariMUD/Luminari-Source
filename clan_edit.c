@@ -56,7 +56,7 @@ void save_clans(void)
 
     if (clan_list[i].description && *clan_list[i].description)
     {
-      strcpy(buf, clan_list[i].description);
+      strlcpy(buf, clan_list[i].description, sizeof(buf));
       strip_cr(buf);
       fprintf(fl, "Desc:\n%s~\n", buf);
     }

@@ -654,7 +654,7 @@ void trigedit_save(struct descriptor_data *d)
               GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
 
       /* Build the text for the script */
-      strcpy(buf, ""); /* strcpy OK for MAX_CMD_LENGTH > 0*/
+      strlcpy(buf, "", sizeof(buf)); /* strcpy OK for MAX_CMD_LENGTH > 0*/
       for (cmd = trig->cmdlist; cmd; cmd = cmd->next)
       {
         strlcat(buf, cmd->cmd, sizeof(buf));
@@ -662,7 +662,7 @@ void trigedit_save(struct descriptor_data *d)
       }
 
       if (!buf[0])
-        strcpy(buf, "* Empty script");
+        strlcpy(buf, "* Empty script", sizeof(buf));
 
       fprintf(trig_file, "%s%c\n", buf, STRING_TERMINATOR);
       *buf = '\0';

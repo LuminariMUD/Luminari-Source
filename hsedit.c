@@ -484,7 +484,7 @@ void hsedit_disp_menu(struct descriptor_data *d)
     strlcpy(built_on, timestr, sizeof(built_on));
   }
   else
-    strcpy(built_on, "Unknown"); /* strcpy: OK (for 'strlen("Unknown") < 128') */
+    strlcpy(built_on, "Unknown", sizeof(built_on)); /* strcpy: OK (for 'strlen("Unknown") < 128') */
 
   if (house->last_payment)
   {
@@ -493,7 +493,7 @@ void hsedit_disp_menu(struct descriptor_data *d)
     strlcpy(last_pay, timestr, sizeof(last_pay));
   }
   else
-    strcpy(last_pay, "None"); /* strcpy: OK (for 'strlen("None") < 128') */
+    strlcpy(last_pay, "None", sizeof(last_pay)); /* strcpy: OK (for 'strlen("None") < 128') */
 
   *buf2 = '\0';
   sprintbit(house->bitvector, house_flags, buf1, sizeof(buf1));

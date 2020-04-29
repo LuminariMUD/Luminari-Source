@@ -590,7 +590,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
   if ((flow = *ptr_string) == NULL)
     return 0;
 
-  strcpy(str, flow);
+  strlcpy(str, flow, sizeof(str));
 
   for (i = 0; i < low - 1; i++)
   {
@@ -602,7 +602,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
     }
     strcat(formatted, strcat(start, "\n"));
     flow = strstr(flow, "\n");
-    strcpy(str, ++flow);
+    strlcpy(str, ++flow, sizeof(str));
   }
 
   if (IS_SET(mode, FORMAT_INDENT))

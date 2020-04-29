@@ -381,35 +381,35 @@ char *gen_room_description(struct char_data *ch, char *desc)
 	very long strings */
 	int num_graffiti, num_blood, num_snow, num_trails = 0;
 
-	strcpy(graffiti, "");
-	strcpy(blood, "");
-	strcpy(snow, "");
-	strcpy(trails, "");
+	strlcpy(graffiti, "", sizeof(graffiti));
+	strlcpy(blood, "", sizeof(blood));
+	strlcpy(snow, "", sizeof(snow));
+	strlcpy(trails, "", sizeof(trails));
 
 	/* Get room's desc first, tack other stuff in after that. */
-	strcpy(buf, ch->in_room->description);
+	strlcpy(buf, ch->in_room->description, sizeof(buf));
 
 	/* Weather */
 	strcat(buf, get_weather_string(ch, temp));
 
 	/* Comment on the light level */
 	if (lights < -10)
-		strcpy(message, "It is extremely dark. ");
+		strlcpy(message, "It is extremely dark. ", sizeof(message));
 	else if (lights < -5)
-		strcpy(message, "It is very dark here. ");
+		strlcpy(message, "It is very dark here. ", sizeof(message));
 	else if (lights <= 0)
 		if (room_is_dark(ch->in_room))
-			strcpy(message, "It is dark. ");
+			strlcpy(message, "It is dark. ", sizeof(message));
 		else
-			strcpy(message, "There aren't any lights here. ");
+			strlcpy(message, "There aren't any lights here. ", sizeof(message));
 	else if (lights == 1)
-		strcpy(message, "A single light illuminates the area. ");
+		strlcpy(message, "A single light illuminates the area. ", sizeof(message));
 	else if (lights == 2)
-		strcpy(message, "A pair of lights shed light on the surroundings. ");
+		strlcpy(message, "A pair of lights shed light on the surroundings. ", sizeof(message));
 	else if (lights < 7)
-		strcpy(message, "A few lights scattered around provide lighting. ");
+		strlcpy(message, "A few lights scattered around provide lighting. ", sizeof(message));
 	else
-		strcpy(message, "Numerous lights shine from all around. ");
+		strlcpy(message, "Numerous lights shine from all around. ", sizeof(message));
 
 	/* One sentence about the room we're in */
 	switch (ch->in_room->sector_type)
@@ -604,7 +604,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 	strcat(buf, message);
 
 	/* List appropriate room flags */
-	strcpy(message, "");
+	strlcpy(message, "", sizeof(message));
 	if (IS_AFFECTED(ch, AFF_DETECT_MAGIC))
 	{
 		if (IS_SET(ch->in_room->room_flags, ROOM_NO_MAGIC))
@@ -653,7 +653,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 			if (IS_SET(pexit->exit_info, EX_HIDDEN) ||
 				IS_SET(pexit->exit_info, EX_SECRET))
 				continue;
-			strcpy(message, "");
+			strlcpy(message, "", sizeof(message));
 			if (IS_SET(pexit->exit_info, EX_ISDOOR))
 			{
 				if (IS_SET(pexit->exit_info, EX_BASHED))
@@ -683,7 +683,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 				/* Don't say anything about normal exits, only interesting ones */
 				if (pexit->to_room->sector_type != ch->in_room->sector_type)
 				{
-					strcpy(temp, "");
+					strlcpy(temp, "", sizeof(temp));
 					switch (pexit->to_room->sector_type)
 					{
 					case 0:
@@ -765,7 +765,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		if (!can_see_obj(ch, obj))
 			continue;
 
-		strcpy(sentence, munch_colors(obj->short_descr));
+		strlcpy(sentence, munch_colors(obj->short_descr), sizeof(sentence));
 
 		if (IS_OBJ_STAT(obj, ITEM_HOVER)) {
 			switch (obj->serial % 3) {
@@ -851,11 +851,11 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		{
 			if (ch->curr_talent[TAL_TIME] + ch->curr_talent[TAL_SEEKING] > 50)
 			{
-				strcpy(message, capitalize(trail->name));
+				strlcpy(message, capitalize(trail->name), sizeof(message));
 				strcat(message, " has scrawled something here: ");
 			}
 			else
-				strcpy(message, "Something has been scrawled here: ");
+				strlcpy(message, "Something has been scrawled here: ", sizeof(message));
 			strcat(message, trail->graffiti);
 			strcat(message, " ");
 			strcat(graffiti, message);
@@ -868,31 +868,31 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		{
 
 			if (i > 1700)
-				strcpy(message, "A fresh pool of blood covers the floor, leading from %s to %s. ");
+				strlcpy(message, "A fresh pool of blood covers the floor, leading from %s to %s. ", sizeof(message));
 			else if (i > 1600)
-				strcpy(message, "A bright red streak of blood leads from %s to %s. ");
+				strlcpy(message, "A bright red streak of blood leads from %s to %s. ", sizeof(message));
 			else if (i > 1500)
-				strcpy(message, "Wet, bloody footprints lead from %s to %s. ");
+				strlcpy(message, "Wet, bloody footprints lead from %s to %s. ", sizeof(message));
 			else if (i > 1400)
-				strcpy(message, "Bloody footprints lead from %s to %s. ");
+				strlcpy(message, "Bloody footprints lead from %s to %s. ", sizeof(message));
 			else if (i > 1300)
-				strcpy(message, "A wet trail of dark red blood leads %s. ");
+				strlcpy(message, "A wet trail of dark red blood leads %s. ", sizeof(message));
 			else if (i > 1200)
-				strcpy(message, "A trail of wet, sticky blood leads %s. ");
+				strlcpy(message, "A trail of wet, sticky blood leads %s. ", sizeof(message));
 			else if (i > 1100)
-				strcpy(message, "A drying trail of blood leads %s. ");
+				strlcpy(message, "A drying trail of blood leads %s. ", sizeof(message));
 			else if (i > 1000)
-				strcpy(message, "Some nearly dried blood leads to the %s from here. ");
+				strlcpy(message, "Some nearly dried blood leads to the %s from here. ", sizeof(message));
 			else if (i > 900)
-				strcpy(message, "A distinct trail of dry blood leads %s. ");
+				strlcpy(message, "A distinct trail of dry blood leads %s. ", sizeof(message));
 			else if (i > 800)
-				strcpy(message, "A trail of dried blood leads %s. ");
+				strlcpy(message, "A trail of dried blood leads %s. ", sizeof(message));
 			else if (i > 700)
-				strcpy(message, "A bit of dried blood seems to lead %s. ");
+				strlcpy(message, "A bit of dried blood seems to lead %s. ", sizeof(message));
 			else if (i > 500)
-				strcpy(message, "A few drops of dry blood are visible on the floor. ");
+				strlcpy(message, "A few drops of dry blood are visible on the floor. ", sizeof(message));
 			else
-				strcpy(message, "A flake of dried blood catches your eye. ");
+				strlcpy(message, "A flake of dried blood catches your eye. ", sizeof(message));
 
 			snprintf(temp, sizeof(temp), message,
 					(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
@@ -906,7 +906,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		/* Show tracks if it's snowing *grin* -- Scion */
 		if (IS_OUTSIDE(ch) && ((ch->in_room->area->weather->temp + 3 * weath_unit - 1) / weath_unit < 3) && ((ch->in_room->area->weather->precip + 3 * weath_unit - 1) / weath_unit > 3))
 		{
-			strcpy(message, "Footprints in the snow seem to lead from %s to %s. ");
+			strlcpy(message, "Footprints in the snow seem to lead from %s to %s. ", sizeof(message));
 			snprintf(temp, sizeof(temp), message,
 					(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
 					(trail->to > -1 ? dir_name[trail->to] : "right here"));
@@ -923,13 +923,13 @@ char *gen_room_description(struct char_data *ch, char *desc)
 			{
 
 				if (i > 1350)
-					strcpy(message, "Distinct footprints lead from %s to %s, apparently made by %s");
+					strlcpy(message, "Distinct footprints lead from %s to %s, apparently made by %s", sizeof(message));
 				else if (i > 900)
-					strcpy(message, "Footprints lead from %s to %s");
+					strlcpy(message, "Footprints lead from %s to %s", sizeof(message));
 				else if (i > 450)
-					strcpy(message, "A faint set of footprints seems to lead %s");
+					strlcpy(message, "A faint set of footprints seems to lead %s", sizeof(message));
 				else
-					strcpy(message, "You notice a footprint on the ground");
+					strlcpy(message, "You notice a footprint on the ground", sizeof(message));
 				learn_from_success(ch, gsn_track);
 				snprintf(temp, sizeof(temp), message,
 						(trail->from > -1 ? rev_dir_name[trail->from] : "right here"),
@@ -946,16 +946,16 @@ char *gen_room_description(struct char_data *ch, char *desc)
 
 	/* Check if we need to abridge any of this */
 	if (strlen(graffiti) > 200)
-		strcpy(graffiti, "The area is littered with too many scrawled messages to make any out clearly. ");
+		strlcpy(graffiti, "The area is littered with too many scrawled messages to make any out clearly. ", sizeof(graffiti));
 
 	if (strlen(blood) > 200)
-		strcpy(blood, "This place is awash in bloody trails of all kinds, leading in all directions. ");
+		strlcpy(blood, "This place is awash in bloody trails of all kinds, leading in all directions. ", sizeof(blood));
 
 	if (strlen(snow) > 200)
-		strcpy(snow, "The snow is trampled with countless footprints. ");
+		strlcpy(snow, "The snow is trampled with countless footprints. ", sizeof(snow));
 
 	if (strlen(trails) > 200)
-		strcpy(trails, "Dozens of footprints lead in all directions, making it impossible to distinguish one from the others. ");
+		strlcpy(trails, "Dozens of footprints lead in all directions, making it impossible to distinguish one from the others. ", sizeof(trails));
 
 	strcat(buf, " ");
 	strcat(buf, graffiti);
@@ -991,7 +991,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 	space = 0;
 	newspace = 0;
 	line = 0;
-	strcpy(buf, rdesc);
+	strlcpy(buf, rdesc, sizeof(buf));
 
 	/* Add \r\n's back in at their appropriate places */
 	for (i = 0; i < strlen(buf); i++)
