@@ -1,9 +1,6 @@
 #ifndef _D20SW_MISSIONS_HPP_
 #define _D20SW_MISSIONS_HPP_
 
-#include "structs.hpp"
-#include "interpreter.hpp"
-
 // defines
 #define MISSION_LVL             0
 #define MISSION_REBELS          1
@@ -33,9 +30,9 @@
 #define GET_MISSION_EXP(ch)			(ch->player_specials->saved.mission_experience)
 #define GET_MISSION_DIFFICULTY(ch)		(ch->player_specials->saved.mission_difficulty)
 #define GET_MISSION_NPC_NAME_NUM(ch)		(ch->player_specials->saved.mission_rand_name)
-#define GET_MISSION_DECLINE(ch)         (ch->player_specials->saved.mission_decline)
-#define GET_MISSION_COMPLETE(ch)         (ch->player_specials->saved.mission_complete)
-#define GET_FACTION_STANDING(ch)        (ch->player_specials->saved.faction_standing[i])
+#define GET_MISSION_DECLINE(ch)                 (ch->player_specials->saved.mission_decline)
+#define GET_MISSION_COMPLETE(ch)                (ch->player_specials->saved.mission_complete)
+#define GET_FACTION_STANDING(ch, i)             (ch->player_specials->saved.faction_standing[i])
 
 // variables
 extern const char * const mission_details[][8];
@@ -44,15 +41,14 @@ extern const char * const mission_difficulty[5];
 
 // functions
 int mission_details_to_faction(int faction);
-SPECIAL(faction_mission);
-ACMD(do_missions);
-long get_mission_reward(const char_data *ch, int reward_type);
-void clear_mission_mobs(const char_data *ch);
-void create_mission_mobs(const char_data *ch);
-bool are_mission_mobs_loaded(const char_data *ch);
+ACMD_DECL(do_missions);
+long get_mission_reward(char_data *ch, int reward_type);
+void clear_mission_mobs(char_data *ch);
+void create_mission_mobs(char_data *ch);
+bool are_mission_mobs_loaded(char_data *ch);
 void apply_mission_rewards(char_data *ch);
 void clear_mission(char_data *ch);
-bool is_mission_mob(const char_data *ch, const char_data *mob);
-void create_mission_on_entry(const char_data *ch);
+bool is_mission_mob(char_data *ch, char_data *mob);
+void create_mission_on_entry(char_data *ch);
 
 #endif

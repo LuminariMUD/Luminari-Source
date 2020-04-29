@@ -1,4 +1,4 @@
-#include "random_names.hpp"
+#include "random_names.h"
 
 const char * const random_npc_names[NUM_RANDOM_NPC_NAMES] =
 {

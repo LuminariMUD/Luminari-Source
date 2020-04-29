@@ -34,12 +34,17 @@
 #include "premadebuilds.h"
 #include "missions.h"
 #include "random_names.h"
+#include "spec_procs.h"
+#include "oasis.h"
+#include "mudlim.h"
+
+int gain_exp(struct char_data *ch, int gain, int mode);
+int is_player_grouped(struct char_data *target, struct char_data *group);
 
 const char * const mission_details[][8] = {
     // We want to order this from highest level to lowest level
     //         FACTIONS ALLOWED (1 (one) if allowed, 0 (zero) if not)
     //  Lvl    R    E    H    F   Planet         Room Vnum Zone Name
-    {""}
     {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2701", "Memlin Caverns"},
     {"16", "0", "0", "0", "1", "Prime Material Plane - Surface", "1901", "Spider Swamp"},
     {"14", "0", "0", "0", "1", "Prime Material Plane - Surface", "148100", "Orcish Fort"},
@@ -58,8 +63,7 @@ const char * const mission_details[][8] = {
 
 const char * const mission_targets[5] = { "person", "traitor", "darkling", "fugitive", "fugitive" };
 
-const char * const mission_difficulty[5]
-= { "normal", "tough", "challenging", "arduous", "severe" };
+const char * const mission_difficulty[5] = { "normal", "tough", "challenging", "arduous", "severe" };
 
 const char * const target_difficulty[5] = {
     "of normal strength", "above normal strength", "well above normal strength",
@@ -122,7 +126,7 @@ SPECIAL(faction_mission)
             "You have turned down the offered mission.  This has reduced your faction standing with the %s by 50 points.\r\n",
             faction_names[GET_MISSION_FACTION(ch)]);
         GET_CURRENT_MISSION(ch) = -1;
-        save_char(ch);
+        save_char(ch, 0);
         return 1;
     }
 
@@ -270,7 +274,7 @@ ACMD(do_missions)
     }
     send_to_char(
         ch,
-        "Your mission is to terminate %s %s located somewhere in the %s part of %s.  Your reward will be %ld credits, %ld %s standing, %ld overall reputation and %ld experience points.\r\n",
+        "Your mission is to terminate %s %s located somewhere in the %s part of %s.  Your reward will be %ld gold coins, %ld %s standing, %ld quest points and %ld experience points.\r\n",
         AN(mission_targets[mission_details_to_faction(
             GET_MISSION_FACTION(ch))]),
         mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
@@ -281,7 +285,7 @@ ACMD(do_missions)
         GET_MISSION_EXP(ch));
 }
 
-long get_mission_reward(const char_data *ch, int reward_type)
+long get_mission_reward(char_data *ch, int reward_type)
 {
     int reward = 0;
     int level = GET_LEVEL(ch);
@@ -304,12 +308,12 @@ long get_mission_reward(const char_data *ch, int reward_type)
     }
 
     int bonus = compute_ability(ch, ABILITY_DIPLOMACY);
-      reward = (reward * (100+bonus)) / 100;
+    reward = (reward * (100+bonus)) / 100;
 
     return reward;
 }
 
-void clear_mission_mobs(const char_data *ch)
+void clear_mission_mobs(char_data *ch)
 {
     struct char_data *mob = NULL;
 
@@ -332,36 +336,30 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
             GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 2;
             GET_HITROLL(mob) += 2;
             GET_DAMROLL(mob) += 2;
-            GET_AC(mob) += 20;
-            break;
-        case MISSION_DIFF_TOUGH:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 4;
-            GET_HITROLL(mob) += 3;
-            GET_DAMROLL(mob) += 3;
-            GET_AC(mob) += 30;
+            mob->points.armor += 20;
             break;
         case MISSION_DIFF_CHALLENGING:
+            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 5;
+            GET_HITROLL(mob) += 3;
+            GET_DAMROLL(mob) += 3;
+            mob->points.armor += 50;
+            break;
+        case MISSION_DIFF_ARDUOUS:
             GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 8;
             GET_HITROLL(mob) += 5;
             GET_DAMROLL(mob) += 5;
-            GET_AC(mob) += 50;
-            break;
-        case MISSION_DIFF_ARDUOUS:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 12;
-            GET_HITROLL(mob) += 8;
-            GET_DAMROLL(mob) += 8;
-            GET_AC(mob) += 120;
+            mob->points.armor += 80;
             break;
         case MISSION_DIFF_SEVERE:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 16;
-            GET_HITROLL(mob) += 10;
-            GET_DAMROLL(mob) += 10;
-            GET_AC(mob) += 160;
+            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 10;
+            GET_HITROLL(mob) += 6;
+            GET_DAMROLL(mob) += 6;
+            mob->points.armor += 100;
             break;
     }
 }
 
-void create_mission_mobs(const char_data *ch)
+void create_mission_mobs(char_data *ch)
 {
     struct char_data *mob = NULL;
     int i = 0, randName = 0;
@@ -375,8 +373,7 @@ void create_mission_mobs(const char_data *ch)
         mob = read_mobile(60000, VIRTUAL);
         if (!mob)
             return;
-        GET_HITDICE(mob) = GET_LEVEL(ch);
-        medit_autoroll_stats(d);
+        autoroll_mob(mob, FALSE, FALSE);
         if (i > 0)
         {
             SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
@@ -385,25 +382,25 @@ void create_mission_mobs(const char_data *ch)
         {
         case MISSION_DIFF_TOUGH:
             if (i == 0) {
-              increase_mob_difficulty(mob, MISSION_DIFF_TOUGH)
+              increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
             }
             break;
         case MISSION_DIFF_CHALLENGING:
             if (i == 0)
-                increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING)
+                increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
             else
-                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH)
+                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
             break;
         case MISSION_DIFF_ARDUOUS:
             if (i == 0)
-                increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS)
+                increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
             else
-                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH)
+                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
         case MISSION_DIFF_SEVERE:
             if (i == 0)
-                increase_mob_difficulty(mob, MISSION_DIFF_SEVERE)
+                increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
             else
-                increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING)
+                increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
         }
         GET_FACTION(mob) = GET_MISSION_FACTION(ch);
         randName = GET_MISSION_NPC_NAME_NUM(ch);
@@ -415,7 +412,7 @@ void create_mission_mobs(const char_data *ch)
                 GET_MISSION_FACTION(ch))],
                 (i > 0) ? " guard" : random_npc_names[randName],
             (i == 0) ? GET_IDNUM(ch) : 0, GET_NAME(ch));
-        mob->name = strdup(buf);
+        mob->player.name = strdup(buf);
         sprintf(buf, "%s %s%s%s",
             AN(mission_targets[mission_details_to_faction(
                 GET_MISSION_FACTION(ch))]),
@@ -423,7 +420,7 @@ void create_mission_mobs(const char_data *ch)
                 GET_MISSION_FACTION(ch))],
                 (i > 0) ? "" : " named ",
             (i > 0) ? " guard" : random_npc_names[randName]);
-        mob->short_descr = strdup(buf);
+        mob->player.short_descr = strdup(buf);
         sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
             AN(mission_targets[mission_details_to_faction(
                 GET_MISSION_FACTION(ch))]),
@@ -432,7 +429,7 @@ void create_mission_mobs(const char_data *ch)
                 (i > 0) ? "" : " named ",
             (i > 0) ? " guard" : random_npc_names[randName],
             GET_NAME(ch));
-        mob->long_descr = strdup(buf);
+        mob->player.long_descr = strdup(buf);
         if (real_room(to_room) != NOWHERE)
         {
             char_to_room(mob, real_room(to_room));
@@ -445,7 +442,7 @@ void create_mission_mobs(const char_data *ch)
     }
 }
 
-bool are_mission_mobs_loaded(const char_data *ch)
+bool are_mission_mobs_loaded(char_data *ch)
 {
     struct char_data *mob = NULL;
 
@@ -475,21 +472,20 @@ void apply_mission_rewards(char_data *ch)
     send_to_char(ch, "You've received %ld %s faction standing.\r\n",
         GET_MISSION_STANDING(ch),
         faction_names[GET_MISSION_FACTION(ch)]);
-    ch->faction_standing[GET_MISSION_FACTION(ch)] += GET_MISSION_STANDING(ch);
+    GET_FACTION_STANDING(ch, GET_MISSION_FACTION(ch)) += GET_MISSION_STANDING(ch);
 
-    send_to_char(ch, "You've received %ld general reputation.\r\n",
+    send_to_char(ch, "You've received %ld quest points.\r\n",
         GET_MISSION_REP(ch));
     GET_QUESTPOINTS(ch) += GET_MISSION_REP(ch);
-    GET_REPUTATION(ch) += GET_MISSION_REP(ch);
 
     send_to_char(ch,
-        "A sum of credits have been wired to your bank account.\r\n");
-    gain_gold(ch, GET_MISSION_CREDITS(ch), GOLD_BANK);
+        "You have received %ld gold coins.\r\n", GET_MISSION_CREDITS(ch));
+    GET_GOLD(ch) += GET_MISSION_CREDITS(ch);
 
     send_to_char(
         ch,
         "You have earned experience points for completing your mission.\r\n");
-    gain_exp(ch, GET_MISSION_EXP(ch));
+    gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_DEATH);
 
     send_to_char(ch, "\r\n");
 
@@ -498,7 +494,7 @@ void apply_mission_rewards(char_data *ch)
     clear_mission(ch);
 }
 
-bool is_mission_mob(const char_data *ch, const char_data *mob)
+bool is_mission_mob(char_data *ch, char_data *mob)
 {
     if (!ch || !mob)
         return false;
@@ -537,7 +533,7 @@ void clear_mission(char_data *ch)
     GET_MISSION_NPC_NAME_NUM(ch) = 0;
 }
 
-void create_mission_on_entry(const char_data *ch)
+void create_mission_on_entry(char_data *ch)
 {
     if (GET_CURRENT_MISSION(ch) <= 0)
         return;

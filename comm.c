@@ -1200,6 +1200,10 @@ void heartbeat(int heart_pulse)
     PERF_PROF_ENTER(pr_upd_, "update_damage_and_effects_over_time");
     update_damage_and_effects_over_time();
     PERF_PROF_EXIT(pr_upd_);
+  }
+
+  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
+  {
     check_auction();
   }
 

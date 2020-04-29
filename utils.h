@@ -879,6 +879,7 @@ void char_from_furniture(struct char_data *ch);
  */
 /** Alignment value for ch. */
 #define GET_ALIGNMENT(ch) ((ch)->char_specials.saved.alignment)
+#define GET_FACTION(ch)   ((ch)->player_specials->saved.faction)
 
 /* Casting time */
 #define IS_CASTING(ch) ((ch)->char_specials.isCasting)
