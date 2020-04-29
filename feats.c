@@ -918,7 +918,7 @@ void assign_feats(void)
   /* monks get this for free */
   feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Unarmed attacks are considered to be weapons.",
-        "You are considered to be armed even when unarmed—you do not provoke attacks "
+        "You are considered to be armed even when unarmed, ou do not provoke attacks "
         "of opportunity when you attack foes while unarmed.  You can disarm foes without "
         "a penalty when fighting unarmed.  Also you get access to the headbutt combat maneuver.");
 
