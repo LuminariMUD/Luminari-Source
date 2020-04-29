@@ -2580,6 +2580,17 @@
 #define SKY_RAINING 2   /**< Weather = Rain */
 #define SKY_LIGHTNING 3 /**< Weather = Lightning storm */
 
+#define FACTION_NONE                    0
+#define FACTION_THE_ORDER               1
+#define FACTION_ORDER                   1
+#define FACTION_DARKLINGS               2
+#define FACTION_DARKLING                2
+#define FACTION_CRIMINAL                3
+#define FACTION_FREELANCE               4
+#define FACTION_FREELANCERS             4
+
+#define NUM_FACTIONS                    4
+
 /* Rent codes */
 #define RENT_UNDEF 0    /**< Character inv save status = undefined */
 #define RENT_CRASH 1    /**< Character inv save status = game crash */
@@ -3364,6 +3375,20 @@ struct player_special_data_saved
 
     ubyte template;
     int premade_build;
+
+    // factional mission system
+    int current_mission = 0;
+    long mission_credits = 0;
+    long mission_standing = 0;
+    int mission_faction = 0;
+    long mission_reputation = 0;
+    long mission_experience = 0;
+    int mission_difficulty = 0;
+    long faction_standing[NUM_FACTIONS + 1];
+    long faction_standing_spent[NUM_FACTIONS + 1];
+    bool mission_decline = false;
+    int mission_rand_name = 0;
+    bool mission_complete = false;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

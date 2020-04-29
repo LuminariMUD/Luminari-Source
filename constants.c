@@ -3587,6 +3587,13 @@ const char *do_cast_types[][6] = {
     /* end with this */
     {"\n", "\n", "\n", "\n", "\n", "\n"}};
 
+const char * const faction_names[] = {"None",           "Rebel Alliance", "Galactic Empire",
+                         "Hutt Cartels", "Freelancers",    "\n"};
+
+const char * const faction_names_lwr[]
+    = {"none",           "rebel alliance", "galactic empire",
+       "hutt cartels", "freelancers",    "\n"};
+
 /* --- End of constants arrays. --- */
 
 /* Various arrays we count so we can check the world files.  These
