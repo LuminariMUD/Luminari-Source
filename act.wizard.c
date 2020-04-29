@@ -3124,7 +3124,7 @@ ACMD(do_show)
     return;
   }
 
-  strcpy(arg, two_arguments(argument, field, value)); /* strcpy: OK (argument <= MAX_INPUT_LENGTH == arg) */
+  strlcpy(arg, two_arguments(argument, field, value), sizeof(arg)); /* strcpy: OK (argument <= MAX_INPUT_LENGTH == arg) */
 
   for (l = 0; *(fields[l].cmd) != '\n'; l++)
     if (!strncmp(field, fields[l].cmd, strlen(field)))
@@ -4919,7 +4919,7 @@ ACMD(do_zcheck)
         send_to_char(ch, "%s", buf);
       }
       /* reset buffers and found flag */
-      strcpy(buf, "");
+      strlcpy(buf, "", sizeof(buf));
       found = 0;
       len = 0;
     } /* mob is in zone */
@@ -5073,7 +5073,7 @@ ACMD(do_zcheck)
         send_to_char(ch, "[%5d] %-30s: \r\n", GET_OBJ_VNUM(obj), obj->short_description);
         send_to_char(ch, "%s", buf);
       }
-      strcpy(buf, "");
+      strlcpy(buf, "", sizeof(buf));
       len = 0;
       found = 0;
     } /*object is in zone*/
@@ -5144,7 +5144,7 @@ ACMD(do_zcheck)
         send_to_char(ch, "[%5d] %-30s: \r\n",
                      world[i].number, world[i].name ? world[i].name : "An unnamed room");
         send_to_char(ch, "%s", buf);
-        strcpy(buf, "");
+        strlcpy(buf, "", sizeof(buf));
         len = 0;
         found = 0;
       }
@@ -6042,7 +6042,7 @@ ACMD(do_changelog)
       fprintf(new, "%s\n", line);
     else
     {
-      strcpy(last_buf, line);
+      strlcpy(last_buf, line, sizeof(last_buf));
       break;
     }
   }
@@ -6077,7 +6077,7 @@ ACMD(do_plist)
   int low = 0, high = LVL_IMPL, low_day = 0, high_day = 10000, low_hr = 0, high_hr = 24;
 
   skip_spaces(&argument);
-  strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
+  strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   name_search[0] = '\0';
 
   while (*buf)
@@ -6089,7 +6089,7 @@ ACMD(do_plist)
     {
       if (sscanf(arg, "%d-%d", &low, &high) == 1)
         high = low;
-      strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+      strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
     }
     else if (*arg == '-')
     {
@@ -6104,11 +6104,11 @@ ACMD(do_plist)
         half_chop(buf1, name_search, buf);
         break;
       case 'i':
-        strcpy(buf, buf1);
+        strlcpy(buf, buf1, sizeof(buf));
         low = LVL_IMMORT;
         break;
       case 'm':
-        strcpy(buf, buf1);
+        strlcpy(buf, buf1, sizeof(buf));
         high = LVL_IMMORT - 1;
         break;
       case 'd':
@@ -6154,7 +6154,7 @@ ACMD(do_plist)
     if (time_away.hours > high_hr || time_away.hours < low_hr)
       continue;
 
-    strcpy(time_str, asctime(localtime(&player_table[i].last)));
+    strlcpy(time_str, asctime(localtime(&player_table[i].last)), sizeof(time_str));
     time_str[strlen(time_str) - 1] = '\0';
 
     len += snprintf(buf + len, sizeof(buf) - len, "[%3ld] (%2d) %c%-15s %s\r\n",
@@ -6827,7 +6827,7 @@ ACMD(do_objlist)
       if (strcmp(buf5, "NOBITS ") == 0)
         buf5[0] = 0;
       if (buf3[0] == 0 && buf4[0] == 0 && buf5[0] == 0)
-        strcpy(buf3, "NOBITS ");
+        strlcpy(buf3, "NOBITS ", sizeof(buf3));
 
       snprintf(tmp_buf, sizeof(tmp_buf), "      \tcWorn\tn: %s \tcAffects:\tn %s %s %s\r\n",
                buf2, buf3, buf4, buf5);

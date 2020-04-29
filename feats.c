@@ -4354,7 +4354,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
   if (list_type == LIST_FEATS_ALL)
     sprintf(buf + strlen(buf), "\tC%s\tn", text_line_string("\tYAll Feats\tC", line_length, '-', '-'));
 
-  strcpy(buf2, buf);
+  strlcpy(buf2, buf, sizeof(buf2));
 
   for (sortpos = 1; sortpos < NUM_FEATS; sortpos++)
   {

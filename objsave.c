@@ -102,7 +102,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   /* copy the action-description to buf1 */
   if (obj->action_description)
   {
-    strcpy(buf1, obj->action_description);
+    strlcpy(buf1, obj->action_description, sizeof(buf1));
     strip_cr(buf1);
   }
   else
@@ -364,7 +364,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
         {
           continue;
         }
-        strcpy(buf1, ex_desc->description);
+        strlcpy(buf1, ex_desc->description, sizeof(buf1));
         strip_cr(buf1);
         fprintf(fp, "EDes:\n"
                     "%s~\n"
@@ -669,16 +669,16 @@ int Crash_clean_file(char *name)
       switch (rentcode)
       {
       case RENT_CRASH:
-        strcpy(filetype, "crash");
+        strlcpy(filetype, "crash", sizeof(filetype));
         break;
       case RENT_FORCED:
-        strcpy(filetype, "forced rent");
+        strlcpy(filetype, "forced rent", sizeof(filetype));
         break;
       case RENT_TIMEDOUT:
-        strcpy(filetype, "idlesave");
+        strlcpy(filetype, "idlesave", sizeof(filetype));
         break;
       default:
-        strcpy(filetype, "UNKNOWN!");
+        strlcpy(filetype, "UNKNOWN!", sizeof(filetype));
         break;
       }
       log("    Deleting %s's %s file.", name, filetype);

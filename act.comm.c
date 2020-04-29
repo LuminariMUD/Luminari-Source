@@ -59,17 +59,17 @@ ACMD(do_say)
     if (argument[strlen(argument) - 1] == '?')
     {
       // the argument ends in a question mark, it's probably a question
-      strcpy(type, "ask");
+      strlcpy(type, "ask", sizeof(type));
     }
     else if (argument[strlen(argument) - 1] == '!')
     {
-      strcpy(type, "exclaim");
+      strlcpy(type, "exclaim", sizeof(type));
     }
     else if (argument[strlen(argument) - 1] == '.' &&
              argument[strlen(argument) - 2] == '.' &&
              argument[strlen(argument) - 3] == '.')
     {
-      strcpy(type, "mutter");
+      strlcpy(type, "mutter", sizeof(type));
     }
     else
     {
@@ -78,7 +78,7 @@ ACMD(do_say)
       if (argument[strlen(argument) - 1] != '.')
         strcat(argument, ".");
 
-      strcpy(type, "say");
+      strlcpy(type, "say", sizeof(type));
     }
 
     snprintf(buf, sizeof(buf), "\tG$n %ss, '%s'\tn", type, argument);
