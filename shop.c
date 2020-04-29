@@ -984,7 +984,7 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
       quantity[16]; /* "Unlimited" or "%d" */
 
   if (shop_producing(obj, shop_nr))
-    strcpy(quantity, "Unlimited"); /* strcpy: OK (for 'quantity >= 10') */
+    strlcpy(quantity, "Unlimited", sizeof(quantity)); /* strcpy: OK (for 'quantity >= 10') */
   else
     snprintf(quantity, sizeof(quantity), "%d", cnt); /* sprintf: OK (for 'quantity >= 11', 32-bit int) */
 
@@ -1277,7 +1277,7 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list,
         if (!strn_cmp(item_types[tindex], buf, strlen(item_types[tindex])))
         {
           num = tindex;
-          strcpy(buf, buf + strlen(item_types[tindex])); /* strcpy: OK (always smaller) */
+          strlcpy(buf, buf + strlen(item_types[tindex]), sizeof(buf)); /* strcpy: OK (always smaller) */
           break;
         }
 
@@ -1515,7 +1515,7 @@ static void list_all_shops(struct char_data *ch)
     }
 
     if (SHOP_KEEPER(shop_nr) == NOBODY)
-      strcpy(buf1, "<NONE>"); /* strcpy: OK (for 'buf1 >= 7') */
+      strlcpy(buf1, "<NONE>", sizeof(buf1)); /* strcpy: OK (for 'buf1 >= 7') */
     else
       snprintf(buf1, sizeof(buf1), "%6d", mob_index[SHOP_KEEPER(shop_nr)].vnum); /* sprintf: OK (for 'buf1 >= 11', 32-bit int) */
 

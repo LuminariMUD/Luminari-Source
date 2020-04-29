@@ -418,21 +418,21 @@ int save_config(IDXTYPE nowhere)
               "min_pop_to_claim = %f\n\n",
           CONFIG_MIN_POP_TO_CLAIM);
 
-  strcpy(buf, CONFIG_OK);
+  strlcpy(buf, CONFIG_OK, sizeof(buf));
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players when OK is all that is needed.\n"
               "ok = %s\n\n",
           buf);
 
-  strcpy(buf, CONFIG_NOPERSON);
+  strlcpy(buf, CONFIG_NOPERSON, sizeof(buf));
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players when noone is available.\n"
               "noperson = %s\n\n",
           buf);
 
-  strcpy(buf, CONFIG_NOEFFECT);
+  strlcpy(buf, CONFIG_NOEFFECT, sizeof(buf));
   strip_cr(buf);
 
   fprintf(fl, "* Text sent to players when an effect fails.\n"
@@ -504,7 +504,7 @@ int save_config(IDXTYPE nowhere)
 
   if (CONFIG_DFLT_IP)
   {
-    strcpy(buf, CONFIG_DFLT_IP);
+    strlcpy(buf, CONFIG_DFLT_IP, sizeof(buf));
     strip_cr(buf);
 
     fprintf(fl, "* IP address to which the MUD should bind.\nDFLT_IP = %s\n\n", buf);
@@ -512,7 +512,7 @@ int save_config(IDXTYPE nowhere)
 
   if (CONFIG_DFLT_DIR)
   {
-    strcpy(buf, CONFIG_DFLT_DIR);
+    strlcpy(buf, CONFIG_DFLT_DIR, sizeof(buf));
     strip_cr(buf);
 
     fprintf(fl, "* default directory to use as data directory.\n"
@@ -522,7 +522,7 @@ int save_config(IDXTYPE nowhere)
 
   if (CONFIG_LOGNAME)
   {
-    strcpy(buf, CONFIG_LOGNAME);
+    strlcpy(buf, CONFIG_LOGNAME, sizeof(buf));
     strip_cr(buf);
 
     fprintf(fl, "* What file to log messages to (ex: 'log/syslog').\n"
@@ -561,7 +561,7 @@ int save_config(IDXTYPE nowhere)
 
   if (CONFIG_MENU)
   {
-    strcpy(buf, CONFIG_MENU);
+    strlcpy(buf, CONFIG_MENU, sizeof(buf));
     strip_cr(buf);
 
     fprintf(fl, "* The entrance/exit menu.\n"
@@ -571,7 +571,7 @@ int save_config(IDXTYPE nowhere)
 
   if (CONFIG_WELC_MESSG)
   {
-    strcpy(buf, CONFIG_WELC_MESSG);
+    strlcpy(buf, CONFIG_WELC_MESSG, sizeof(buf));
     strip_cr(buf);
 
     fprintf(fl, "* The welcome message.\nWELC_MESSG = \n%s~\n\n", convert_from_tabs(buf));
@@ -579,7 +579,7 @@ int save_config(IDXTYPE nowhere)
 
   if (CONFIG_START_MESSG)
   {
-    strcpy(buf, CONFIG_START_MESSG);
+    strlcpy(buf, CONFIG_START_MESSG, sizeof(buf));
     strip_cr(buf);
 
     fprintf(fl, "* NEWBIE start message.\n"

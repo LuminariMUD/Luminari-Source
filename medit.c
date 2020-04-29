@@ -586,7 +586,7 @@ static void medit_disp_menu(struct descriptor_data *d)
 
   if (PATH_SIZE(mob) == 0)
   {
-    strcpy(path, "No Path Defined");
+    strlcpy(path, "No Path Defined", sizeof(path));
   }
   else
   {

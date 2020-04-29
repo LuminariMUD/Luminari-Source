@@ -1814,7 +1814,7 @@ ACMD(do_gen_cast)
                 skip_spaces(&target_arg);
 
                 /* Copy target to global cast_arg2, for use in spells like locate object */
-                strcpy(cast_arg2, target_arg);
+                strlcpy(cast_arg2, target_arg, sizeof(cast_arg2));
         }
 
         if (IS_SET(SINFO.targets, TAR_IGNORE))

@@ -271,32 +271,32 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
         if (item_num > 0)
         {
           snprintf(keyword1, sizeof(keyword1), "%d.%s", (item_num + 1), keyword);
-          strcpy(keyword, keyword1);
+          strlcpy(keyword, keyword1, sizeof(keyword));
         }
         if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-          strcpy(sendcmd, "wield");
+          strlcpy(sendcmd, "wield", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
-          strcpy(sendcmd, "recite");
+          strlcpy(sendcmd, "recite", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_POTION)
-          strcpy(sendcmd, "quaff");
+          strlcpy(sendcmd, "quaff", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-          strcpy(sendcmd, "wear");
+          strlcpy(sendcmd, "wear", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_WORN)
-          strcpy(sendcmd, "wear");
+          strlcpy(sendcmd, "wear", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_FOOD)
-          strcpy(sendcmd, "eat");
+          strlcpy(sendcmd, "eat", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON)
-          strcpy(sendcmd, "drink");
+          strlcpy(sendcmd, "drink", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_NOTE)
-          strcpy(sendcmd, "read");
+          strlcpy(sendcmd, "read", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
-          strcpy(sendcmd, "look in");
+          strlcpy(sendcmd, "look in", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER)
-          strcpy(sendcmd, "look in");
+          strlcpy(sendcmd, "look in", sizeof(sendcmd));
         else if (GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
-          strcpy(sendcmd, "look in");
+          strlcpy(sendcmd, "look in", sizeof(sendcmd));
         else
-          strcpy(sendcmd, "hold");
+          strlcpy(sendcmd, "hold", sizeof(sendcmd));
         send_to_char(ch, "\t<send href='%s %s|drop %s|eat %s|hold %s|lore %s' hint='use/equip %s|drop %s|eat %s|hold %s|lore %s'>%s\t</send>", sendcmd, keyword,
                      keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword, obj->short_description);
         break;
@@ -2800,7 +2800,7 @@ ACMD(do_score)
     }
   }
   else
-    strcpy(buf, CLASS_ABBR(ch));
+    strlcpy(buf, CLASS_ABBR(ch), sizeof(buf));
 
   if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
     snprintf(buf, sizeof(buf), "%d %s (premade build)", CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
@@ -3189,7 +3189,7 @@ ACMD(do_who)
   // remove spaces in front of argument
   skip_spaces(&argument);
   // copy argument -> buf
-  strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
+  strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   // first char of name_search is now NULL
   name_search[0] = '\0';
   *classes_list = '\0';
@@ -3205,7 +3205,7 @@ ACMD(do_who)
     if (isdigit(*arg))
     {
       sscanf(arg, "%d-%d", &low, &high);
-      strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+      strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
 
       // arg isn't a digit, only acceptable input is '-' and a letter
     }
@@ -3216,26 +3216,26 @@ ACMD(do_who)
       {
       case 'k':
         outlaws = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'z':
         localwho = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 's':
         short_list = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'q':
         questwho = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'n':
         half_chop(buf1, name_search, buf);
         break;
       case 'r':
         who_room = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'c':
         half_chop(buf1, arg, buf);
@@ -3243,11 +3243,11 @@ ACMD(do_who)
         break;
       case 'l':
         showleader = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'g':
         showgroup = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 't':
         half_chop(buf1, arg, buf);
@@ -3513,7 +3513,7 @@ ACMD(do_users)
 
   host_search[0] = name_search[0] = '\0';
 
-  strcpy(buf, argument); /* strcpy: OK (sizeof: argument == buf) */
+  strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   while (*buf)
   {
     char buf1[MAX_INPUT_LENGTH];
@@ -3528,15 +3528,15 @@ ACMD(do_users)
       case 'k':
         outlaws = 1;
         playing = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'p':
         playing = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'd':
         deadweight = 1;
-        strcpy(buf, buf1); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
         break;
       case 'l':
         playing = 1;
@@ -3608,21 +3608,21 @@ ACMD(do_users)
                  CLASS_ABBR(d->character));
     }
     else
-      strcpy(classname, "   -    ");
+      strlcpy(classname, "   -    ", sizeof(classname));
 
     timeptr = asctime(localtime(&d->login_time));
     timeptr += 11;
     *(timeptr + 8) = '\0';
 
     if (STATE(d) == CON_PLAYING && d->original)
-      strcpy(state, "Switched");
+      strlcpy(state, "Switched", sizeof(state));
     else
-      strcpy(state, connected_types[STATE(d)]);
+      strlcpy(state, connected_types[STATE(d)], sizeof(state));
 
     if (d->character && STATE(d) == CON_PLAYING)
       snprintf(idletime, sizeof(idletime), "%5d", d->character->char_specials.timer * SECS_PER_MUD_HOUR / SECS_PER_REAL_MIN);
     else
-      strcpy(idletime, "     ");
+      strlcpy(idletime, "     ", sizeof(idletime));
 
     snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
              d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name : "UNDEFINED",
@@ -3636,7 +3636,7 @@ ACMD(do_users)
     if (STATE(d) != CON_PLAYING)
     {
       snprintf(line2, sizeof(line2), "%s%s%s", CCGRN(ch, C_SPR), line, CCNRM(ch, C_SPR));
-      strcpy(line, line2);
+      strlcpy(line, line2, sizeof(line));
     }
     if (STATE(d) != CON_PLAYING ||
         (STATE(d) == CON_PLAYING && CAN_SEE(ch, d->character)))
@@ -4068,7 +4068,7 @@ ACMD(do_toggle)
   if (!*arg)
   {
     if (!GET_WIMP_LEV(ch))
-      strcpy(buf2, "OFF"); /* strcpy: OK */
+      strlcpy(buf2, "OFF", sizeof(buf2)); /* strcpy: OK */
     else
       snprintf(buf2, sizeof(buf2), "%-3.3d", GET_WIMP_LEV(ch)); /* sprintf: OK */
 
@@ -4559,7 +4559,7 @@ ACMD(do_history)
   one_argument(argument, arg);
 
   if (is_abbrev(arg, "chat"))
-    strcpy(arg, "gossip");
+    strlcpy(arg, "gossip", sizeof(arg));
   type = search_block(arg, history_types, FALSE);
 
   if (!*arg || type < 0)
@@ -4690,7 +4690,7 @@ ACMD(do_whois)
   if (!(GET_LEVEL(victim) < LVL_IMMORT) ||
       (GET_LEVEL(ch) >= GET_LEVEL(victim)))
   {
-    strcpy(buf, (char *)asctime(localtime(&(victim->player.time.logon))));
+    strlcpy(buf, (char *)asctime(localtime(&(victim->player.time.logon))), sizeof(buf));
     buf[10] = '\0';
 
     hours = (time(0) - victim->player.time.logon) / 3600;

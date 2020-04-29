@@ -3004,7 +3004,7 @@ ACMD(do_clanset)
   /* Get the 'field' name */
   half_chop(buf, field, buf);
 
-  strcpy(val_arg, buf);
+  strlcpy(val_arg, buf, sizeof(val_arg));
 
   if (!*name || !*field)
   {
@@ -3063,7 +3063,7 @@ ACMD(do_clanset)
          clannum, l, fields[l].cmd, val_arg,
          GET_NAME(ch));
 
-  strcpy(buf, "Okay."); /* can't use OK macro here 'cause of \r\n */
+  strlcpy(buf, "Okay.", sizeof(buf)); /* can't use OK macro here 'cause of \r\n */
 
   switch (l)
   {

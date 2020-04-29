@@ -61,7 +61,7 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
       return;
   }
 
-  strcpy(orig_cmd, cmd);
+  strlcpy(orig_cmd, cmd, sizeof(orig_cmd));
   /* get: blank, spell name, target name */
   s = strtok(cmd, "'");
   if (s == NULL) {
