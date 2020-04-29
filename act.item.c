@@ -3781,4 +3781,377 @@ ACMD(do_loot)
   //mysql_close(conn);
 }
 
+void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
+{
+    char auction_buf[MAX_STRING_LENGTH];
+    /* Take object from character and set variables */
+
+    obj_from_char(obj);
+    obj_selling = obj;
+    ch_selling = ch;
+    ch_buying = NULL;
+    curbid = bid;
+
+    /* Tell th character where his item went */
+    sprintf(auction_buf, "%s magic flies away from your hands to be auctioned!\r\n",
+        obj_selling->short_description);
+    CAP(auction_buf);
+    send_to_char(ch_selling, "%s", auction_buf);
+
+    /* Anounce the item is being sold */
+    sprintf(auction_buf, auctioneer[AUC_NULL_STATE], curbid);
+    auc_send_to_all(auction_buf, false);
+
+    aucstat = AUC_OFFERING;
+}
+
+void check_auction(void)
+{
+    char auction_buf[MAX_STRING_LENGTH];
+
+    switch (aucstat)
+    {
+    case AUC_NULL_STATE:
+        return;
+    case AUC_OFFERING:
+    {
+        sprintf(auction_buf, auctioneer[AUC_OFFERING], curbid);
+        CAP(auction_buf);
+        auc_send_to_all(auction_buf, false);
+        aucstat = AUC_GOING_ONCE;
+        return;
+    }
+    case AUC_GOING_ONCE:
+    {
+        sprintf(auction_buf, auctioneer[AUC_GOING_ONCE], curbid);
+        CAP(auction_buf);
+        auc_send_to_all(auction_buf, false);
+        aucstat = AUC_GOING_TWICE;
+        return;
+    }
+    case AUC_GOING_TWICE:
+    {
+        sprintf(auction_buf, auctioneer[AUC_GOING_TWICE], curbid);
+        CAP(auction_buf);
+        auc_send_to_all(auction_buf, false);
+        aucstat = AUC_LAST_CALL;
+        return;
+    }
+    case AUC_LAST_CALL:
+    {
+        if (ch_buying == NULL)
+        {
+            sprintf(auction_buf, "%s", auctioneer[AUC_LAST_CALL]);
+
+            CAP(auction_buf);
+            auc_send_to_all(auction_buf, false);
+
+            sprintf(auction_buf, "%s flies out the sky and into your hands.\r\n",
+                obj_selling->short_description);
+            CAP(auction_buf);
+            send_to_char(ch_selling, "%s", auction_buf);
+            obj_to_char(obj_selling, ch_selling);
+
+            /* Reset auctioning values */
+            obj_selling = NULL;
+            ch_selling = NULL;
+            ch_buying = NULL;
+            curbid = 0;
+            aucstat = AUC_NULL_STATE;
+            return;
+        }
+        else
+        {
+            sprintf(auction_buf, auctioneer[AUC_SOLD], curbid);
+            auc_send_to_all(auction_buf, true);
+
+            /* Give the object to the buyer */
+            obj_to_char(obj_selling, ch_buying);
+            sprintf(auction_buf,
+                "%s flies out the sky and into your hands, what a steel!\r\n",
+                obj_selling->short_description);
+            CAP(auction_buf);
+            send_to_char(ch_buying, "%s", auction_buf);
+
+            sprintf(auction_buf, "Congrats! You have sold %s for %d credits!\r\n",
+                obj_selling->short_description, curbid);
+            send_to_char(ch_buying, "%s", auction_buf);
+
+            /* Give selling char the money for his stuff */
+            GET_GOLD(ch_selling) += curbid;
+
+            /* Reset auctioning values */
+            obj_selling = NULL;
+            ch_selling = NULL;
+            ch_buying = NULL;
+            curbid = 0;
+            aucstat = AUC_NULL_STATE;
+            return;
+        }
+    }
+    }
+}
+
+ACMD(do_auction)
+{
+    char arg1[MAX_INPUT_LENGTH];
+    char arg2[MAX_INPUT_LENGTH];
+    struct obj_data *obj;
+    int bid = 0;
+
+    two_arguments(argument, arg1, arg2);
+
+    if (!*arg1)
+    {
+        send_to_char(ch, "Auction what?\r\nType auctalk to speak on the auction channel.\r\n");
+        return;
+    }
+    else if (is_abbrev(arg1, "cancel") || is_abbrev(arg1, "stop"))
+    {
+        if ((ch != ch_selling && GET_ADMLEVEL(ch) < ADMLVL_GRGOD)
+            || aucstat == AUC_NULL_STATE)
+        {
+            send_to_char(ch, "You're not even selling anything!\r\n");
+            return;
+        }
+        else if (ch == ch_selling)
+        {
+            stop_auction(AUC_NORMAL_CANCEL, NULL);
+            return;
+        }
+        else
+        {
+            stop_auction(AUC_WIZ_CANCEL, ch);
+        }
+    }
+    else if (is_abbrev(arg1, "stats") || is_abbrev(arg1, "identify"))
+    {
+        auc_stat(ch, obj_selling);
+        return;
+    }
+    else if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
+    {
+        char auction_buf[MAX_STRING_LENGTH];
+        sprintf(auction_buf, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
+        send_to_char(ch, "%s", auction_buf);
+        send_to_char(ch, "Type auctalk to speak on the auction channel.\r\n");
+        return;
+    }
+    else if (!OBJ_FLAGGED(obj, ITEM_IDENTIFIED))
+    {
+        send_to_char(ch, "You can only auction off an item that has been identified.\r\n");
+        return;
+    }
+    else if (!*arg2 && (bid = GET_OBJ_COST(obj)) <= 0)
+    {
+        char auction_buf[MAX_STRING_LENGTH];
+        sprintf(auction_buf, "What should be the minimum bid?\r\n");
+        send_to_char(ch, "%s", auction_buf);
+        return;
+    }
+    else if (*arg2 && (bid = atoi(arg2)) <= 0)
+    {
+        send_to_char(ch, "Come on? One credit at least?\r\n");
+        return;
+    }
+    else if (aucstat != AUC_NULL_STATE)
+    {
+        char auction_buf[MAX_STRING_LENGTH];
+        sprintf(auction_buf, "Sorry, but %s is already auctioning %s at %d credits!\r\n",
+            GET_NAME(ch_selling), obj_selling->short_description, bid);
+        send_to_char(ch, "%s", auction_buf);
+        return;
+    }
+    else if (OBJ_FLAGGED(obj, ITEM_NOSELL))
+    {
+        send_to_char(ch, "Sorry but you can't sell that!\r\n");
+        return;
+    }
+    else
+    {
+        send_to_char(ch, "%s", CONFIG_OK);
+        start_auction(ch, obj, bid);
+        return;
+    }
+}
+
+ACMD(do_bid)
+{
+    char arg[MAX_INPUT_LENGTH] = { '\0' };
+    int bid = 0;
+
+    if (IS_NPC(ch))
+        return;
+
+    one_argument(argument, arg);
+
+    if (!*arg)
+    {
+        send_to_char(ch, "Bid yes, good idea, but HOW MUCH??\r\n");
+        return;
+    }
+    else if (aucstat == AUC_NULL_STATE)
+    {
+        send_to_char(
+            ch,
+            "Thats very enthusiastic of you, but nothing is being SOLD!\r\n");
+        return;
+    }
+    else if (ch == ch_selling)
+    {
+        send_to_char(
+            ch,
+            "Why bid on something your selling?  You can 'cancel' the auction!\r\n");
+        return;
+    }
+    else if ((bid = atoi(arg)) < ((int)curbid * 1.1 - 1)
+        && ch_buying != NULL)
+    {
+        char auction_buf[MAX_STRING_LENGTH];
+        sprintf(
+            auction_buf,
+            "You must bid at least 10 percent more than the current bid. (%d)\r\n",
+            (int)(curbid * 1.1));
+        send_to_char(ch, "%s", auction_buf);
+        return;
+    }
+    else if (ch_buying == NULL && bid < curbid)
+    {
+        char auction_buf[MAX_STRING_LENGTH];
+        sprintf(auction_buf, "You must at least bid the minimum!\r\n");
+        send_to_char(ch, "%s", auction_buf);
+        return;
+    }
+    else if (bid > GET_GOLD(ch))
+    {
+        send_to_char(ch, "You don't have that much gold!\r\n");
+        return;
+    }
+    else
+    {
+        if (ch == ch_buying)
+            GET_GOLD(ch) -= (bid - curbid);
+        else
+        {
+            GET_GOLD(ch) -= bid;
+
+            if (!(ch_buying == NULL))
+                GET_GOLD(ch_buying) += curbid;
+        }
+
+        curbid = bid;
+        ch_buying = ch;
+
+        char auction_buf[MAX_STRING_LENGTH];
+        sprintf(auction_buf, auctioneer[AUC_BID], bid);
+        auc_send_to_all(auction_buf, true);
+
+        aucstat = AUC_OFFERING;
+        return;
+    }
+}
+
+void stop_auction(int type, struct char_data *ch)
+{
+    char auction_buf[MAX_STRING_LENGTH];
+
+    switch (type)
+    {
+    case AUC_NORMAL_CANCEL:
+    {
+        sprintf(auction_buf, "%s", auctioneer[AUC_NORMAL_CANCEL]);
+        auc_send_to_all(auction_buf, false);
+        break;
+    }
+    case AUC_QUIT_CANCEL:
+    {
+        sprintf(auction_buf, "%s", auctioneer[AUC_QUIT_CANCEL]);
+        auc_send_to_all(auction_buf, false);
+        break;
+    }
+    case AUC_WIZ_CANCEL:
+    {
+        sprintf(auction_buf, "%s", auctioneer[AUC_WIZ_CANCEL]);
+        auc_send_to_all(auction_buf, false);
+        break;
+    }
+    default:
+    {
+        send_to_char(ch,
+            "Sorry, that is an unrecognised cancel command, please report.");
+        return;
+    }
+    }
+
+    if (type != AUC_WIZ_CANCEL)
+    {
+        sprintf(auction_buf, "%s flies out the sky and into your hands.\r\n",
+            obj_selling->short_description);
+        CAP(auction_buf);
+        send_to_char(ch_selling, "%s", auction_buf);
+        obj_to_char(obj_selling, ch_selling);
+    }
+    else
+    {
+        sprintf(auction_buf, "%s flies out the sky and into your hands.\r\n",
+            obj_selling->short_description);
+        CAP(auction_buf);
+        send_to_char(ch, "%s", auction_buf);
+        obj_to_char(obj_selling, ch);
+    }
+
+    if (!(ch_buying == NULL))
+        GET_GOLD(ch_buying) += curbid;
+
+    obj_selling = NULL;
+    ch_selling = NULL;
+    ch_buying = NULL;
+    curbid = 0;
+
+    aucstat = AUC_NULL_STATE;
+}
+
+void auc_stat(struct char_data *ch, struct obj_data *obj)
+{
+    if (aucstat == AUC_NULL_STATE)
+    {
+        send_to_char(ch, "Nothing is being auctioned!\r\n");
+        return;
+    }
+    else if (ch == ch_selling)
+    {
+        send_to_char(
+            ch, "You should have found that out BEFORE auctioning it!\r\n");
+        return;
+    }
+    else
+    {
+        char auction_buf[MAX_STRING_LENGTH];
+        /* auctioneer tells the character the auction details */
+        sprintf(auction_buf, auctioneer[AUC_STAT], curbid);
+        act(auction_buf, true, ch_selling, obj, ch, TO_VICT | TO_SLEEP);
+        call_magic(ch, NULL, obj_selling, SPELL_IDENTIFY, 60, CAST_SPELL, NULL);
+    }
+}
+
+void auc_send_to_all(char *messg, bool buyer)
+{
+    struct descriptor_data *i;
+
+    if (messg == NULL)
+        return;
+
+    for (i = descriptor_list; i; i = i->next)
+    {
+        if (PRF_FLAGGED(i->character, PRF_NOAUCT)) continue;
+        
+        if (buyer)
+            act(messg, true, ch_buying, obj_selling, i->character,
+                TO_VICT | TO_SLEEP);
+        else
+            act(messg, true, ch_selling, obj_selling, i->character,
+                TO_VICT | TO_SLEEP);
+    }
+}
+
 /* EOF */
