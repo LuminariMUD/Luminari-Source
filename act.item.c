@@ -3781,6 +3781,27 @@ ACMD(do_loot)
   //mysql_close(conn);
 }
 
+// local vars
+int curbid = 0;                      /* current bid on item being auctioned */
+int aucstat = AUC_NULL_STATE;        /* state of auction.. first_bid etc.. */
+struct obj_data *obj_selling = NULL; /* current object for sale */
+struct char_data *ch_selling = NULL; /* current character selling obj */
+struct char_data *ch_buying = NULL;  /* current character buying the object */
+
+static const char * const auctioneer[AUC_BID + 1] = {
+
+    "The auctioneer auctions, '$n puts $p up for sale at %d credits.'",
+    "The auctioneer auctions, '$p at %d credits going once!.'",
+    "The auctioneer auctions, '$p at %d credits going twice!.'",
+    "The auctioneer auctions, 'Last call: $p going for %d credits.'",
+    "The auctioneer auctions, 'Unfortunately $p is unsold, returning it to $n.'",
+    "The auctioneer auctions, 'SOLD! $p to $n for %d credits!.'",
+    "The auctioneer auctions, 'Sorry, $n has cancelled the auction.'",
+    "The auctioneer auctions, 'Sorry, $n has left us, the auction can't go on.'",
+    "The auctioneer auctions, 'Sorry, $p has been confiscated, shame on you $n.'",
+    "The auctioneer tells you, '$n is selling $p for %d gold.'",
+    "The auctioneer auctions, '$n bids %d credits on $p.'" };
+
 void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
 {
     char auction_buf[MAX_STRING_LENGTH];
@@ -4144,7 +4165,7 @@ void auc_send_to_all(char *messg, bool buyer)
     for (i = descriptor_list; i; i = i->next)
     {
         if (PRF_FLAGGED(i->character, PRF_NOAUCT)) continue;
-        
+
         if (buyer)
             act(messg, true, ch_buying, obj_selling, i->character,
                 TO_VICT | TO_SLEEP);
