@@ -3889,14 +3889,14 @@ void check_auction(void)
             /* Give the object to the buyer */
             obj_to_char(obj_selling, ch_buying);
             sprintf(auction_buf,
-                "%s flies out the sky and into your hands, what a steel!\r\n",
+                "%s flies out the sky and into your hands, what a steal!\r\n",
                 obj_selling->short_description);
             CAP(auction_buf);
             send_to_char(ch_buying, "%s", auction_buf);
 
             sprintf(auction_buf, "Congrats! You have sold %s for %d credits!\r\n",
                 obj_selling->short_description, curbid);
-            send_to_char(ch_buying, "%s", auction_buf);
+            send_to_char(ch_selling, "%s", auction_buf);
 
             /* Give selling char the money for his stuff */
             GET_GOLD(ch_selling) += curbid;
@@ -3929,7 +3929,7 @@ ACMD(do_auction)
     }
     else if (is_abbrev(arg1, "cancel") || is_abbrev(arg1, "stop"))
     {
-        if ((ch != ch_selling && GET_ADMLEVEL(ch) < ADMLVL_GRGOD)
+        if ((ch != ch_selling && GET_LEVEL(ch) < LVL_STAFF)
             || aucstat == AUC_NULL_STATE)
         {
             send_to_char(ch, "You're not even selling anything!\r\n");
@@ -3958,11 +3958,13 @@ ACMD(do_auction)
         send_to_char(ch, "Type auctalk to speak on the auction channel.\r\n");
         return;
     }
-    else if (!OBJ_FLAGGED(obj, ITEM_IDENTIFIED))
+
+/*    else if (!OBJ_FLAGGED(obj, ITEM_IDENTIFIED))
     {
         send_to_char(ch, "You can only auction off an item that has been identified.\r\n");
         return;
     }
+*/
     else if (!*arg2 && (bid = GET_OBJ_COST(obj)) <= 0)
     {
         char auction_buf[MAX_STRING_LENGTH];
@@ -4151,7 +4153,7 @@ void auc_stat(struct char_data *ch, struct obj_data *obj)
         /* auctioneer tells the character the auction details */
         sprintf(auction_buf, auctioneer[AUC_STAT], curbid);
         act(auction_buf, true, ch_selling, obj, ch, TO_VICT | TO_SLEEP);
-        call_magic(ch, NULL, obj_selling, SPELL_IDENTIFY, 60, CAST_SPELL, NULL);
+        do_stat_object(ch, obj, ITEM_STAT_MODE_LORE_SKILL);
     }
 }
 
@@ -4164,6 +4166,7 @@ void auc_send_to_all(char *messg, bool buyer)
 
     for (i = descriptor_list; i; i = i->next)
     {
+        if (!i->character) continue;
         if (PRF_FLAGGED(i->character, PRF_NOAUCT)) continue;
 
         if (buyer)

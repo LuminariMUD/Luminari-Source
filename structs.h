@@ -2581,15 +2581,17 @@
 #define SKY_LIGHTNING 3 /**< Weather = Lightning storm */
 
 #define FACTION_NONE                    0
+#define FACTION_ADVENTURER              0
+#define FACTION_ADVENTURERS             0
+#define FACTION_FREELANCE               0
+#define FACTION_FREELANCERS             0
 #define FACTION_THE_ORDER               1
 #define FACTION_ORDER                   1
 #define FACTION_DARKLINGS               2
 #define FACTION_DARKLING                2
 #define FACTION_CRIMINAL                3
-#define FACTION_FREELANCE               4
-#define FACTION_FREELANCERS             4
 
-#define NUM_FACTIONS                    4
+#define NUM_FACTIONS                    3
 
 /* Rent codes */
 #define RENT_UNDEF 0    /**< Character inv save status = undefined */
@@ -3377,18 +3379,20 @@ struct player_special_data_saved
     int premade_build;
 
     // factional mission system
-    int current_mission = 0;
-    long mission_credits = 0;
-    long mission_standing = 0;
-    int mission_faction = 0;
-    long mission_reputation = 0;
-    long mission_experience = 0;
-    int mission_difficulty = 0;
+    int current_mission;
+    long mission_credits;
+    long mission_standing;
+    int mission_faction;
+    long mission_reputation;
+    long mission_experience;
+    int mission_difficulty;
     long faction_standing[NUM_FACTIONS + 1];
     long faction_standing_spent[NUM_FACTIONS + 1];
-    bool mission_decline = false;
-    int mission_rand_name = 0;
-    bool mission_complete = false;
+    bool mission_decline;
+    int mission_rand_name;
+    bool mission_complete;
+
+    int faction;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3626,7 +3630,9 @@ struct char_data
 
     struct char_data *last_attacker; // mainly to prevent type_suffering from awarding exp
 
-    int sticky_bomb[2];
+    int sticky_bomb[3];
+    long mission_owner;
+    bool dead;
 };
 
 /** descriptor-related structures */
