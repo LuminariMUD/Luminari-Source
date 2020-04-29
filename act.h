@@ -281,6 +281,11 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where);
 bool obj_should_fall(struct obj_data *obj);
 bool char_should_fall(struct char_data *ch, bool silent);
 bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent);
+void start_auction(struct char_data *ch, struct obj_data *obj, int bid);
+void auc_stat(struct char_data *ch, struct obj_data *obj);
+void stop_auction(int type, struct char_data *ch);
+void check_auction(void);
+void auc_send_to_all(char *messg, bool buyer);
 
 /* functions with subcommands */
 /* do_drop */
@@ -308,6 +313,8 @@ ACMD_DECL(do_remove);
 ACMD_DECL(do_sac);
 ACMD_DECL(do_wear);
 ACMD_DECL(do_wield);
+ACMD_DECL(do_auction);
+ACMD_DECL(do_bid);
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c

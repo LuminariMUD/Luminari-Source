@@ -1200,6 +1200,7 @@ void heartbeat(int heart_pulse)
     PERF_PROF_ENTER(pr_upd_, "update_damage_and_effects_over_time");
     update_damage_and_effects_over_time();
     PERF_PROF_EXIT(pr_upd_);
+    check_auction();
   }
 
   /* the old skool tick system! */
