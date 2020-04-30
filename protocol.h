@@ -176,6 +176,7 @@ typedef enum
    eMSDP_MOVE_ACTION,
    eMSDP_SWIFT_ACTION,
    eMSDP_GROUP,
+   eMSDP_POSITION,
 
    /* Combat */
    eMSDP_OPPONENT_HEALTH,
