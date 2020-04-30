@@ -859,9 +859,9 @@ ACMD(do_applypoison)
       TRLX_PSN_LVL(ch) = GET_OBJ_VAL(poison, 1);
       TRLX_PSN_HIT(ch) = GET_OBJ_VAL(poison, 3);
       snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto your claws\tn...",
-              poison->short_description);
+               poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $s claws\tn...",
-              poison->short_description);
+               poison->short_description);
     }
     else
     {
@@ -869,9 +869,9 @@ ACMD(do_applypoison)
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
       weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
       snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
-              poison->short_description);
+               poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
-              poison->short_description);
+               poison->short_description);
     }
 
     act(buf1, FALSE, ch, weapon, 0, TO_CHAR);
@@ -4454,24 +4454,24 @@ void update_msdp_group(struct char_data *ch)
         char buf[4000]; // Buffer for building the group table for MSDP
         //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
         snprintf(buf, sizeof(buf), "%c%c"
-                     "%c%s%c%s"
-                     "%c%s%c%d"
-                     "%c%s%c%d"
-                     "%c%s%c%d"
-                     "%c%s%c%d"
-                     "%c%s%c%d"
-                     "%c%s%c%d"
-                     "%c",
-                (char)MSDP_VAL,
-                (char)MSDP_TABLE_OPEN,
-                (char)MSDP_VAR, "NAME", (char)MSDP_VAL, GET_NAME(k),
-                (char)MSDP_VAR, "LEVEL", (char)MSDP_VAL, GET_LEVEL(k),
-                (char)MSDP_VAR, "IS_LEADER", (char)MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
-                (char)MSDP_VAR, "HEALTH", (char)MSDP_VAL, GET_HIT(k),
-                (char)MSDP_VAR, "HEALTH_MAX", (char)MSDP_VAL, GET_MAX_HIT(k),
-                (char)MSDP_VAR, "MOVEMENT", (char)MSDP_VAL, GET_MOVE(k),
-                (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
-                (char)MSDP_TABLE_CLOSE);
+                                   "%c%s%c%s"
+                                   "%c%s%c%d"
+                                   "%c%s%c%d"
+                                   "%c%s%c%d"
+                                   "%c%s%c%d"
+                                   "%c%s%c%d"
+                                   "%c%s%c%d"
+                                   "%c",
+                 (char)MSDP_VAL,
+                 (char)MSDP_TABLE_OPEN,
+                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, GET_NAME(k),
+                 (char)MSDP_VAR, "LEVEL", (char)MSDP_VAL, GET_LEVEL(k),
+                 (char)MSDP_VAR, "IS_LEADER", (char)MSDP_VAL, (GROUP_LEADER(GROUP(k)) == k ? 1 : 0),
+                 (char)MSDP_VAR, "HEALTH", (char)MSDP_VAL, GET_HIT(k),
+                 (char)MSDP_VAR, "HEALTH_MAX", (char)MSDP_VAL, GET_MAX_HIT(k),
+                 (char)MSDP_VAR, "MOVEMENT", (char)MSDP_VAL, GET_MOVE(k),
+                 (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, GET_MAX_MOVE(k),
+                 (char)MSDP_TABLE_CLOSE);
         strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
@@ -4501,14 +4501,14 @@ void update_msdp_inventory(struct char_data *ch)
           char buf[4000]; // Buffer for building the inventory table for MSDP
           obj = GET_EQ(ch, i);
           snprintf(buf, sizeof(buf), "%c%c"
-                       "%c%s%c%s"
-                       "%c%s%c%s"
-                       "%c",
-                  (char)MSDP_VAL,
-                  (char)MSDP_TABLE_OPEN,
-                  (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, equipment_types[i],
-                  (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
-                  (char)MSDP_TABLE_CLOSE);
+                                     "%c%s%c%s"
+                                     "%c%s%c%s"
+                                     "%c",
+                   (char)MSDP_VAL,
+                   (char)MSDP_TABLE_OPEN,
+                   (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, equipment_types[i],
+                   (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
+                   (char)MSDP_TABLE_CLOSE);
           strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
         }
       }
@@ -4521,14 +4521,14 @@ void update_msdp_inventory(struct char_data *ch)
       {
         char buf[4000]; // Buffer for building the inventory table for MSDP
         snprintf(buf, sizeof(buf), "%c%c"
-                     "%c%s%c%s"
-                     "%c%s%c%s"
-                     "%c",
-                (char)MSDP_VAL,
-                (char)MSDP_TABLE_OPEN,
-                (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, "Inventory",
-                (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
-                (char)MSDP_TABLE_CLOSE);
+                                   "%c%s%c%s"
+                                   "%c%s%c%s"
+                                   "%c",
+                 (char)MSDP_VAL,
+                 (char)MSDP_TABLE_OPEN,
+                 (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, "Inventory",
+                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, obj->short_description,
+                 (char)MSDP_TABLE_CLOSE);
         strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
@@ -5290,7 +5290,7 @@ ACMD(do_gen_tog)
   int i;
   char arg[MAX_INPUT_LENGTH];
 
-  const char * const tog_messages[][2] = {
+  const char *const tog_messages[][2] = {
       /*0*/
       {"You are now safe from summoning by other players.\r\n",
        "You may now be summoned by other players.\r\n"},
@@ -5730,7 +5730,7 @@ ACMD(do_happyhour)
    [use nohint or prefedit to deactivate this]\tn\r\n
  */
 
-static const char * const hints[] = {
+static const char *const hints[] = {
     /* 1*/ "\tR[HINT]:\tn \ty"
            "Different spell casting classes use different commands "
            "to cast their spells.  Typing score will show you the appropriate "
@@ -5963,9 +5963,17 @@ static const char * const hints[] = {
            "east for the general shop; south, west for the donation pit.  There are plenty more shops "
            "to be found throughout the realms."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*37*/ "\tR[HINT]:\tn \ty"
+           "Helpful commands for finding secrets/hidden aspects of a zone include: 'look around' - "
+           "this will help identify oustanding visual descriptions in the room you are in, 2) 'push' "
+           "or 'pull' - these are common keywords for interacting with objects in a room that "
+           "activate secrets, 3) 'enter' - sometimes hidden portals/entrances are in weird places, "
+           "you can find them with this command, 4) and finally bare in mind not all zones will map "
+           "out onto a 2-dimensional map."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 };
 
-static const size_t NUM_HINTS = sizeof(hints)/sizeof(hints[0]);
+static const size_t NUM_HINTS = sizeof(hints) / sizeof(hints[0]);
 
 void show_hints(void)
 {
