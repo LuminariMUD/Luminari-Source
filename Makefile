@@ -25,7 +25,7 @@ PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = ../bin
 
-CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 CXXFLAGS = $(CFLAGS) -std=c++11
 
 LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient
@@ -36,14 +36,11 @@ OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
 
 default: all
 
-all: .accepted
+all:
 	$(MAKE) $(BINDIR)/circle
 	$(MAKE) utils
 
-.accepted:
-	@./licheck less
-
-utils: .accepted
+utils:
 	(cd util; $(MAKE) all)
 
 circle:
@@ -51,6 +48,12 @@ circle:
 
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
+
+# Always rebuild constants.c with other files so that luminari_build is updated
+constants.c: $(filter-out constants.c,$(SRCFILES))
+	touch constants.c
+
+constants.o: CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 
 clean:
 	rm -f *.o depend
