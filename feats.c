@@ -545,7 +545,7 @@ void assign_feats(void)
   feato(FEAT_TRELUX_EXOSKELETON, "trelux exoskeleton", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "resistances and natural armor bonus",
         "Trelux have an extremely strong exoskeleton that gets harder as they mature. "
-        "(They gain +1 AC-bonus every 5 levels)  Also the exoskeleton grants "
+        "(They gain +1 AC-bonus every 3 levels)  Also the exoskeleton grants "
         "resistance to all damage forms except cold.");
   feato(FEAT_LEAP, "leap", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "20 percent damage avoidance",
@@ -557,7 +557,8 @@ void assign_feats(void)
   feato(FEAT_TRELUX_EQ, "trelux eq", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "can't use some eq slots",
         "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, wear "
-        "gloves or wear rings.  Also due to their insect-like legs, Trelux cannot "
+        "gloves, use shields or wear rings.  The shape of their head and antennae prevent "
+        "the usage of helmets as well.  Finally, due to their insect-like legs, Trelux cannot "
         "wear items on their legs and feet.");
   feato(FEAT_TRELUX_PINCERS, "trelux pincers", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "trelux natural pincer weapon",
@@ -565,7 +566,8 @@ void assign_feats(void)
         "be used as dangerous weapons.  Trelux Monks gain an extra dice of damage "
         "due to these pincers.  Also, Trelux pincers have a chance of poisoning "
         "their victim - note Trelux naturally are 'dual wielding' and will have"
-        "a partial but reduced penalty to hit with their 'off' pincer.");
+        "a partial but reduced penalty to hit with their 'off' pincer.  The vicousness of "
+        "their pincers also gives a +1 bonus to their damroll bonus every 4 levels.");
   feato(FEAT_TRELUX_RACIAL_ADJUSTMENT, "trelux racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+4 dex, +2 str, +4 con",
         "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");

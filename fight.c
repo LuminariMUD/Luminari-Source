@@ -630,30 +630,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* ...Trelux carapace is not effective vs touch attacks! */
   if (GET_RACE(ch) == RACE_TRELUX)
   {
-    if (GET_LEVEL(ch) >= 5)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 10)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 15)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 20)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 25)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 30)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
+    bonuses[BONUS_TYPE_ARMOR] += GET_LEVEL(ch) / 3;
   }
   /**/
 
@@ -3916,6 +3893,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus -= 1;
     if (display_mode)
       send_to_char(ch, "Dayblind penalty: \tR-1\tn\r\n");
+  }
+
+  /* trelux pincers bonus */
+  if (GET_RACE(ch) == RACE_TRELUX)
+  {
+    dambonus += GET_LEVEL(ch) / 5;
   }
 
   /****************************************/
