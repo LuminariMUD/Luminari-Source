@@ -36,14 +36,11 @@ OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
 
 default: all
 
-all: .accepted
+all:
 	$(MAKE) $(BINDIR)/circle
 	$(MAKE) utils
 
-.accepted:
-	@./licheck less
-
-utils: .accepted
+utils:
 	(cd util; $(MAKE) all)
 
 circle:
