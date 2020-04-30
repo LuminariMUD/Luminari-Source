@@ -3790,17 +3790,17 @@ struct char_data *ch_buying = NULL;  /* current character buying the object */
 
 static const char * const auctioneer[AUC_BID + 1] = {
 
-    "The auctioneer auctions, '$n puts $p up for sale at %d credits.'",
-    "The auctioneer auctions, '$p at %d credits going once!.'",
-    "The auctioneer auctions, '$p at %d credits going twice!.'",
-    "The auctioneer auctions, 'Last call: $p going for %d credits.'",
+    "The auctioneer auctions, '$n puts $p up for sale at %d gold coins.'",
+    "The auctioneer auctions, '$p at %d gold coins going once!.'",
+    "The auctioneer auctions, '$p at %d gold coins going twice!.'",
+    "The auctioneer auctions, 'Last call: $p going for %d gold coins.'",
     "The auctioneer auctions, 'Unfortunately $p is unsold, returning it to $n.'",
-    "The auctioneer auctions, 'SOLD! $p to $n for %d credits!.'",
+    "The auctioneer auctions, 'SOLD! $p to $n for %d gold coins!.'",
     "The auctioneer auctions, 'Sorry, $n has cancelled the auction.'",
     "The auctioneer auctions, 'Sorry, $n has left us, the auction can't go on.'",
     "The auctioneer auctions, 'Sorry, $p has been confiscated, shame on you $n.'",
     "The auctioneer tells you, '$n is selling $p for %d gold.'",
-    "The auctioneer auctions, '$n bids %d credits on $p.'" };
+    "The auctioneer auctions, '$n bids %d gold coins on $p.'" };
 
 void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
 {
@@ -3894,7 +3894,7 @@ void check_auction(void)
             CAP(auction_buf);
             send_to_char(ch_buying, "%s", auction_buf);
 
-            sprintf(auction_buf, "Congrats! You have sold %s for %d credits!\r\n",
+            sprintf(auction_buf, "Congrats! You have sold %s for %d gold coins!\r\n",
                 obj_selling->short_description, curbid);
             send_to_char(ch_selling, "%s", auction_buf);
 
@@ -3980,7 +3980,7 @@ ACMD(do_auction)
     else if (aucstat != AUC_NULL_STATE)
     {
         char auction_buf[MAX_STRING_LENGTH];
-        sprintf(auction_buf, "Sorry, but %s is already auctioning %s at %d credits!\r\n",
+        sprintf(auction_buf, "Sorry, but %s is already auctioning %s at %d gold coins!\r\n",
             GET_NAME(ch_selling), obj_selling->short_description, bid);
         send_to_char(ch, "%s", auction_buf);
         return;
