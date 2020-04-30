@@ -795,6 +795,7 @@ void game_loop(socket_t local_mother_desc)
   char comm[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d = NULL, *next_d = NULL;
   int missed_pulses = 0, maxdesc = 0, aliased = 0;
+  long int perf_high_water_mark = 0;
 
   /* initialize various time values */
   null_time.tv_sec = 0;
@@ -857,11 +858,12 @@ void game_loop(socket_t local_mother_desc)
       double usage_pcnt = 100 * ((double)total_usec / OPT_USEC);
       PERF_log_pulse(usage_pcnt);
 
-      if (usage_pcnt >= 100)
+      if (total_usec > perf_high_water_mark)
       {
+        perf_high_water_mark = total_usec;
         char buf[MAX_STRING_LENGTH];
         PERF_prof_repr_pulse(buf, sizeof(buf));
-        log("Pulse usage >= 100%% [%.2f%%, %ld usec]. Trace info: \n%s",
+        log("Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: \n%s",
           usage_pcnt, total_usec, buf);
       }
     }
