@@ -4538,8 +4538,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
-          default: /* 2d4 bleed damage and 2d4 moves drain */
-            GET_MOVE(victim) -= dice(2, 4);
+          default: /* 2d4 bleed damage and 20d4 moves drain */
+            GET_MOVE(victim) -= dice(20, 4);
             dam += dice(2, 4);
             break;
           }
