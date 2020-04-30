@@ -64,3 +64,4 @@ dkms.conf
 
 /unittests/obj
 /depend
+.vscode/settings.json

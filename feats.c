@@ -918,7 +918,7 @@ void assign_feats(void)
   /* monks get this for free */
   feato(FEAT_IMPROVED_UNARMED_STRIKE, "improved unarmed strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Unarmed attacks are considered to be weapons.",
-        "You are considered to be armed even when unarmed—you do not provoke attacks "
+        "You are considered to be armed even when unarmed, ou do not provoke attacks "
         "of opportunity when you attack foes while unarmed.  You can disarm foes without "
         "a penalty when fighting unarmed.  Also you get access to the headbutt combat maneuver.");
 
@@ -1023,7 +1023,7 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
   feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "able to use bucklers, shields without penalty ",
-        "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields");
+        "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields.  Without this proficiency, wearing a shield will incur");
   feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "can use tower shields without penalties",
         "can use tower shields without penalties");
