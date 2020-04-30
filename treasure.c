@@ -105,10 +105,7 @@ int cp_convert_grade_enchantment(int grade)
       enchantment = 6;
     break;
   default: //GRADE_MUNDANE:
-    if (rand_number(0, 1))
-      enchantment = 1;
-    else
-      enchantment = 0;
+    enchantment = 1;
     break;
   }
 
@@ -1684,7 +1681,6 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
     dcount = snprintf(desc + dlen, sizeof(desc) - dlen, "%s", "a pair of");
     if (dcount > 0)
       dlen += dcount;
-
   }
 
   /* set the object material, check for upgrade */
@@ -1736,15 +1732,14 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   if (roll == 3)
   { // armor spec adjective in desc?
     dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s",
-             armor_special_descs[armor_desc_roll]);
+                      armor_special_descs[armor_desc_roll]);
     if (dcount > 0)
       dlen += dcount;
 
     kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s",
-             armor_special_descs[armor_desc_roll]);
+                      armor_special_descs[armor_desc_roll]);
     if (kcount > 0)
       klen += kcount;
-
   }
 
   roll = dice(1, 5);
@@ -1756,56 +1751,52 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
     kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s", colors[color1]);
     if (kcount > 0)
       klen += kcount;
-
   }
   else if (roll == 3)
   { // two colors
-    dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " %s and %s", colors[color1], colors[color2]);
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s and %s", colors[color1], colors[color2]);
     if (dcount > 0)
       dlen += dcount;
     kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " %s and %s", colors[color1], colors[color2]);
     if (kcount > 0)
       klen += kcount;
-
   }
 
   // Insert the material type, then armor type
-  dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " %s", material_name[GET_OBJ_MATERIAL(obj)]);
-    if (dcount > 0)
-      dlen += dcount;
-  dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " %s", armor_list[GET_ARMOR_TYPE(obj)].name);
-    if (dcount > 0)
-      dlen += dcount;
+  dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s", material_name[GET_OBJ_MATERIAL(obj)]);
+  if (dcount > 0)
+    dlen += dcount;
+  dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " %s", armor_list[GET_ARMOR_TYPE(obj)].name);
+  if (dcount > 0)
+    dlen += dcount;
 
   roll = dice(1, 8);
 
   if (roll >= 7)
   { // crest?
-    dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " with %s %s crest", 
-             AN(armor_crests[crest_num]),
-             armor_crests[crest_num]);
+    dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " with %s %s crest",
+                      AN(armor_crests[crest_num]),
+                      armor_crests[crest_num]);
     if (dcount > 0)
       dlen += dcount;
 
-   kcount = snprintf(keywords + klen, sizeof(keywords) - klen,  " with %s %s crest",
-             AN(armor_crests[crest_num]),
-             armor_crests[crest_num]);
-  if (kcount > 0)
-    klen += kcount;
-
-
+    kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " with %s %s crest",
+                      AN(armor_crests[crest_num]),
+                      armor_crests[crest_num]);
+    if (kcount > 0)
+      klen += kcount;
   }
   else if (roll >= 5)
   { // or symbol?
     dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " covered in symbols of %s %s",
-             AN(armor_crests[crest_num]),
-             armor_crests[crest_num]);
+                      AN(armor_crests[crest_num]),
+                      armor_crests[crest_num]);
     if (dcount > 0)
       dlen += dcount;
 
     kcount = snprintf(keywords + klen, sizeof(keywords) - klen, " covered in symbols of %s %s",
-             AN(armor_crests[crest_num]),
-             armor_crests[crest_num]);
+                      AN(armor_crests[crest_num]),
+                      armor_crests[crest_num]);
     if (kcount > 0)
       klen += kcount;
   }
@@ -1815,7 +1806,7 @@ void give_magic_armor(struct char_data *ch, int selection, int enchantment, bool
   // Set descriptions
   obj->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
-  dcount = snprintf(desc + dlen, sizeof(desc) - dlen,  " is lying here.");
+  dcount = snprintf(desc + dlen, sizeof(desc) - dlen, " is lying here.");
   if (dcount > 0)
     dlen += dcount;
   obj->description = strdup(desc);

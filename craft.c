@@ -998,11 +998,11 @@ int convert(struct obj_data *kit, struct char_data *ch)
   // new name
   char buf[MAX_INPUT_LENGTH];
   snprintf(buf, sizeof(buf), "\tca portion of %s material\tn",
-          material_name[num_mats]);
+           material_name[num_mats]);
   new_mat->name = strdup(buf);
   new_mat->short_description = strdup(buf);
   snprintf(buf, sizeof(buf), "\tcA portion of %s material lies here.\tn",
-          material_name[num_mats]);
+           material_name[num_mats]);
   new_mat->description = strdup(buf);
   act("$n begins a conversion of materials into $p.", FALSE, ch,
       new_mat, 0, TO_ROOM);
@@ -1452,7 +1452,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
   extract_obj(obj);
 
   /* make the check! */
-  if (chem_check <= (GET_OBJ_LEVEL(obj) * 3 + 20))
+  if (chem_check <= (GET_OBJ_LEVEL(obj) * 3 + 10))
   {
     /* fail! */
     send_to_char(ch, "You are having difficulty extracting the magical essence...\r\n");
@@ -2284,7 +2284,7 @@ EVENTFUNC(event_crafting)
     case SCMD_DIVIDE:
       // no skill association
       snprintf(buf, sizeof(buf), "You create $p (x%d).",
-              GET_CRAFTING_REPEAT(ch));
+               GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
