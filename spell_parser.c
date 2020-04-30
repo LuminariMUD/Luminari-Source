@@ -3154,6 +3154,13 @@ void mag_assign_spells(void)
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
           NULL, 0, 0, NOSCHOOL, FALSE);
    */
+
+        spello(SKILL_SUPRISE_ACCURACY, "surprise accuracy", 0, 0, 0, POS_STANDING, // 529
+               TAR_IGNORE, FALSE, 0,
+               "The effects of your surprise accuracy have expired.", 0, 0, NOSCHOOL, FALSE);
+        spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
+               TAR_IGNORE, FALSE, 0,
+               "The effects of your powerful blow have expired.", 0, 0, NOSCHOOL, FALSE);
         spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);

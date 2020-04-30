@@ -281,6 +281,11 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where);
 bool obj_should_fall(struct obj_data *obj);
 bool char_should_fall(struct char_data *ch, bool silent);
 bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent);
+void start_auction(struct char_data *ch, struct obj_data *obj, int bid);
+void auc_stat(struct char_data *ch, struct obj_data *obj);
+void stop_auction(int type, struct char_data *ch);
+void check_auction(void);
+void auc_send_to_all(char *messg, bool buyer);
 
 /* functions with subcommands */
 /* do_drop */
@@ -298,6 +303,24 @@ ACMD_DECL(do_eat);
 ACMD_DECL(do_pour);
 #define SCMD_POUR 0
 #define SCMD_FILL 1
+
+ /* AUCTIONING STATES */
+#define AUC_NULL_STATE          0   /* not doing anything */
+#define AUC_OFFERING            1   /* object has been offfered */
+#define AUC_GOING_ONCE          2       /* object is going once! */
+#define AUC_GOING_TWICE         3       /* object is going twice! */
+#define AUC_LAST_CALL           4       /* last call for the object! */
+#define AUC_SOLD                5
+
+/* AUCTION CANCEL STATES */
+#define AUC_NORMAL_CANCEL       6       /* normal cancellation of auction */
+#define AUC_QUIT_CANCEL         7       /* auction canclled because player quit */
+#define AUC_WIZ_CANCEL          8       /* auction cancelled by a god */
+
+/* OTHER JUNK */
+#define AUC_STAT                9
+#define AUC_BID                 10
+
 /* functions without subcommands */
 ACMD_DECL(do_drink);
 ACMD_DECL(do_get);
@@ -308,6 +331,8 @@ ACMD_DECL(do_remove);
 ACMD_DECL(do_sac);
 ACMD_DECL(do_wear);
 ACMD_DECL(do_wield);
+ACMD_DECL(do_auction);
+ACMD_DECL(do_bid);
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c

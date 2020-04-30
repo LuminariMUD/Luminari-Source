@@ -1202,6 +1202,11 @@ void heartbeat(int heart_pulse)
     PERF_PROF_EXIT(pr_upd_);
   }
 
+  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
+  {
+    check_auction();
+  }
+
   /* the old skool tick system! */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
   {                                /* Tick ! */
