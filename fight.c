@@ -1370,13 +1370,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     affect_remove(ch, ch->affected);
 
 
-  if (is_mission_mob(killer, ch)
-            && !are_mission_mobs_loaded(killer))
-  {
-      apply_mission_rewards(killer);
-      clear_mission(killer);
-  }
-
   /* this was commented out for some reason, undid that to make sure
    events clear on death */
   clear_char_event_list(ch);

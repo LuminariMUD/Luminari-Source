@@ -440,12 +440,13 @@ int load_char(const char *name, struct char_data *ch)
     GET_AUTOCQUEST_GOLD(ch) = PFDEF_AUTOCQUEST_GOLD;
     GET_AUTOCQUEST_DESC(ch) = NULL;
     GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
-    GET_CURRENT_MISSION(ch) = -1;
+    GET_CURRENT_MISSION(ch) = 0;
     GET_MISSION_CREDITS(ch) = 0;
     GET_MISSION_STANDING(ch) = 0;
     GET_MISSION_FACTION(ch) = 0;
     GET_MISSION_REP(ch) = 0;
     GET_MISSION_EXP(ch) = 0;
+    GET_MISSION_COOLDOWN(ch) = 0;
     GET_MISSION_DIFFICULTY(ch) = 0;
     GET_MISSION_NPC_NAME_NUM(ch) = 0;
     GET_SALVATION_ROOM(ch) = NOWHERE;
@@ -737,6 +738,8 @@ int load_char(const char *name, struct char_data *ch)
             GET_CURRENT_MISSION(ch) = atoi(line);
         else if (!strcmp(tag, "MiCr"))
             GET_MISSION_CREDITS(ch) = atol(line);
+        else if (!strcmp(tag, "MiCd"))
+            GET_MISSION_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "MiSt"))
             GET_MISSION_STANDING(ch) = atoi(line);
         else if (!strcmp(tag, "MiFa"))
@@ -1219,6 +1222,7 @@ void save_char(struct char_data *ch, int mode)
   // Faction mission system
   fprintf(fl, "MiCu: %d\n", GET_CURRENT_MISSION(ch));
   fprintf(fl, "MiCr: %ld\n", GET_MISSION_CREDITS(ch));
+  fprintf(fl, "MiCd: %d\n", GET_MISSION_COOLDOWN(ch));
   fprintf(fl, "MiSt: %ld\n", GET_MISSION_STANDING(ch));
   fprintf(fl, "MiFa: %d\n", GET_MISSION_FACTION(ch));
   fprintf(fl, "MiRe: %ld\n", GET_MISSION_REP(ch));

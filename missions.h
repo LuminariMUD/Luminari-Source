@@ -31,6 +31,7 @@
 #define GET_MISSION_DIFFICULTY(ch)		(ch->player_specials->saved.mission_difficulty)
 #define GET_MISSION_NPC_NAME_NUM(ch)		(ch->player_specials->saved.mission_rand_name)
 #define GET_MISSION_DECLINE(ch)                 (ch->player_specials->saved.mission_decline)
+#define GET_MISSION_COOLDOWN(ch)                 (ch->player_specials->saved.mission_cooldown)
 #define GET_MISSION_COMPLETE(ch)                (ch->player_specials->saved.mission_complete)
 #define GET_FACTION_STANDING(ch, i)             (ch->player_specials->saved.faction_standing[i])
 

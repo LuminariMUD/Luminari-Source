@@ -45,19 +45,18 @@ const char * const mission_details[][8] = {
     // We want to order this from highest level to lowest level
     //         FACTIONS ALLOWED (1 (one) if allowed, 0 (zero) if not)
     //  Lvl    R    E    H    F   Planet         Room Vnum Zone Name
-    {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2701", "Memlin Caverns"},
+    {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2702", "Memlin Caverns"},
     {"16", "0", "0", "0", "1", "Prime Material Plane - Surface", "1901", "Spider Swamp"},
-    {"14", "0", "0", "0", "1", "Prime Material Plane - Surface", "148100", "Orcish Fort"},
-    {"12", "0", "0", "0", "1", "Prime Material Plane - Surface", "40400", "Blindbreak Rest"},
-    {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "401", "Jade Forest"},
-    {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "29000", "Lizard Lair"},
-    {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "13100", "Quagmire"},
-    {"7" , "0", "0", "0", "1", "Prime Material Plane - Surface", "6701", "Graven Hollow"},
-    {"3" , "0", "0", "0", "1", "Prime Material Plane - Surface", "5900", "Wizard Training Mansion"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "7700", "Crystal Swamp"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3000", "Northern Midgen"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3100", "Southern Midgen"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "103000", "Ashenport"},
+    {"14", "0", "0", "0", "1", "Prime Material Plane - Surface", "148107", "Orcish Fort"},
+    {"12", "0", "0", "0", "1", "Prime Material Plane - Surface", "40403", "Blindbreak Rest"},
+    {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "406", "Jade Forest"},
+    {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "29009", "Lizard Lair"},
+    {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "13130", "Quagmire"},
+    {"7" , "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
+    {"3" , "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
+    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3014", "Northern Midgen"},
+    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3104", "Southern Midgen"},
+    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "103163", "Ashenport"},
     {"0" , "0", "0", "0", "0", "0", "0", "0"} // This must always be last
 };
 
@@ -114,7 +113,7 @@ SPECIAL(faction_mission)
                 "If you wish to confirm this mission decline, type \tYmission decline\tn a second time.\r\n"
                 "If you do not wish to decline the mission, type \tYmission accept\tn to clear the decline flag.\r\n"
                 "Please note that declining will reduce your %s faction by 50 points.\r\n",
-                faction_names[GET_MISSION_FACTION(ch)]);
+                faction_names_lwr[GET_MISSION_FACTION(ch)]);
             GET_MISSION_DECLINE(ch) = true;
             clear_mission_mobs(ch);
             return 1;
@@ -124,7 +123,7 @@ SPECIAL(faction_mission)
         send_to_char(
             ch,
             "You have turned down the offered mission.  This has reduced your faction standing with the %s by 50 points.\r\n",
-            faction_names[GET_MISSION_FACTION(ch)]);
+            faction_names_lwr[GET_MISSION_FACTION(ch)]);
         GET_CURRENT_MISSION(ch) = -1;
         save_char(ch, 0);
         return 1;
@@ -146,6 +145,12 @@ SPECIAL(faction_mission)
         send_to_char(ch, "You have accepted the mission offered to you.\r\n");
         return 1;
     }
+
+    if (GET_MISSION_COOLDOWN(ch) > 0) {
+      send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
+      return 1;
+    }
+    GET_MISSION_COOLDOWN(ch) = 50; // five minutes
 
     struct char_data *mob = (struct char_data *) me;
     int level = GET_LEVEL(ch);
@@ -219,6 +224,8 @@ SPECIAL(faction_mission)
 
     mDet = i - 1;
 
+    clear_mission(ch);
+
     GET_CURRENT_MISSION(ch) = mDet;
     GET_MISSION_FACTION(ch) = faction;
     GET_MISSION_DIFFICULTY(ch) = difficulty;
@@ -230,25 +237,24 @@ SPECIAL(faction_mission)
 
     char buf[MAX_STRING_LENGTH];
 
-    sprintf(
-        buf,
-        "%s I've got something for you from the %s.  We're having some trouble with %s %s named %s, located somewhere in the "
-        "%s part of %s.  We need you to terminate them with extreme predjudice.  We have uploaded "
-        "information to your commlink, designating your target with a label showing your name.  They "
+    snprintf(
+        buf, sizeof(buf), 
+        "\tM$N tells you, 'I've got something for you from the %s.  We're having some trouble with %s %s named %s, located somewhere in "
+        "%s, or in the surrounding wilderness.  We need you to terminate them with extreme predjudice.  We have written this "
+        "information in your journal, designating your target with a label showing your name.  They "
         "will likely not be alone, so be prepared to fight multiple enemies.  When the deed is done, "
         "return to me for your pay.  Take note: this mission is of %s difficulty. Your target will be "
-        "%s and the guards will be %s. That is all.\r\n",
-        GET_NAME(ch), faction_names[faction],
+        "%s and the guards will be %s. That is all.'\tn\r\n",
+        faction_names_lwr[faction],
         AN(mission_targets[mission_details_to_faction(faction)]),
         mission_targets[mission_details_to_faction(faction)],
         random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
         mission_details[mDet][MISSION_ZONE_NAME],
-        mission_details[mDet][MISSION_PLANET], mission_difficulty[difficulty],
+//        mission_details[mDet][MISSION_PLANET], 
+        mission_difficulty[difficulty],
         target_difficulty[difficulty], guard_difficulty[difficulty]);
+    act(buf, FALSE, ch, 0, (struct char_data *) me, TO_CHAR);
 
-    do_tell(mob, strdup(buf), 0, 0);
-
-    clear_mission_mobs(ch);
     create_mission_mobs(ch);
 
     return 1;
@@ -274,14 +280,15 @@ ACMD(do_missions)
     }
     send_to_char(
         ch,
-        "Your mission is to terminate %s %s located somewhere in the %s part of %s.  Your reward will be %ld gold coins, %ld %s standing, %ld quest points and %ld experience points.\r\n",
+        "Your mission is to terminate %s %s named %s, located somewhere in %s or the surrounding wilderness.  Your reward will be %ld gold coins, %ld %s standing, %ld quest points and %ld experience points.\r\n",
         AN(mission_targets[mission_details_to_faction(
             GET_MISSION_FACTION(ch))]),
         mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
+        random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
         mission_details[GET_CURRENT_MISSION(ch)][MISSION_ZONE_NAME],
-        mission_details[GET_CURRENT_MISSION(ch)][MISSION_PLANET],
+//        mission_details[GET_CURRENT_MISSION(ch)][MISSION_PLANET],
         GET_MISSION_CREDITS(ch), GET_MISSION_STANDING(ch),
-        faction_names[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
+        faction_names_lwr[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
         GET_MISSION_EXP(ch));
 }
 
@@ -289,21 +296,21 @@ long get_mission_reward(char_data *ch, int reward_type)
 {
     int reward = 0;
     int level = GET_LEVEL(ch);
-    int mult = MAX(1, GET_MISSION_DIFFICULTY(ch));
+    int mult = MAX(1, 1 + GET_MISSION_DIFFICULTY(ch));
 
     switch (reward_type)
     {
     case MISSION_CREDITS:
-        reward = level * MAX(1, level / 2) * mult * 50 / 4;
+        reward = level * MAX(1, level / 2) * mult * 5;
         break;
     case MISSION_STANDING:
-        reward = 50 + (50 * mult);
+        reward = (50 * mult);
         break;
     case MISSION_REP:
-        reward = level * MAX(1, level / 2) * mult / 4;
+        reward = level * MAX(1, level / 2) * mult / 3;
         break;
     case MISSION_EXP:
-        reward = level * MAX(1, level / 4) * mult * 50;
+        reward = level * MAX(1, level / 4) * mult * 300;
         break;
     }
 
@@ -316,15 +323,19 @@ long get_mission_reward(char_data *ch, int reward_type)
 void clear_mission_mobs(char_data *ch)
 {
     struct char_data *mob = NULL;
+    struct char_data *mnext = NULL;
 
-    for (mob = character_list; mob; mob = mob->next)
+    for (mob = character_list; mob; mob = mnext)
     {
+        mnext = mob->next;
         if (!IS_NPC(mob))
             continue;
         if (GET_IDNUM(ch) == mob->mission_owner)
         {
-            char_from_room(mob);
-            extract_char(mob);
+            if (IN_ROOM(mob) != NOWHERE) {
+//              char_from_room(mob);
+              extract_char(mob);
+            }
         }
     }
 }
@@ -374,12 +385,15 @@ void create_mission_mobs(char_data *ch)
         mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
         if (!mob)
             return;
+        GET_LEVEL(mob) = GET_LEVEL(ch);
+        GET_SEX(mob) = dice(1, 2);
+        GET_REAL_RACE(mob) = get_random_basic_pc_race();
         autoroll_mob(mob, FALSE, FALSE);
         if (i > 0)
         {
             SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
             SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
-            mob->master = leader;
+            add_follower(mob, leader);
         } else {
             SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
             leader = mob;
@@ -452,17 +466,23 @@ bool are_mission_mobs_loaded(char_data *ch)
 {
     struct char_data *mob = NULL;
 
-    if (GET_MISSION_COMPLETE(ch))
-        return false;
+    // we return true because they aren't on a mission
+    // and this function is used in limits.c on a 6 second
+    // pulse to see if mission awards should be applied
+    if (GET_CURRENT_MISSION(ch) <= 0)
+        return true;
 
     for (mob = character_list; mob; mob = mob->next)
     {
-        if (!IS_NPC(mob))
+        if (!IS_NPC(mob)) {
             continue;
-        if (mob->dead)
+	}
+        if (mob->dead) {
             continue;
-        if (GET_IDNUM(ch) == mob->mission_owner)
+        }
+        if (GET_IDNUM(ch) == mob->mission_owner) {
             return true;
+        }
     }
 
     return false;
@@ -477,7 +497,7 @@ void apply_mission_rewards(char_data *ch)
 
     send_to_char(ch, "You've received %ld %s faction standing.\r\n",
         GET_MISSION_STANDING(ch),
-        faction_names[GET_MISSION_FACTION(ch)]);
+        faction_names_lwr[GET_MISSION_FACTION(ch)]);
     GET_FACTION_STANDING(ch, GET_MISSION_FACTION(ch)) += GET_MISSION_STANDING(ch);
 
     send_to_char(ch, "You've received %ld quest points.\r\n",
@@ -508,6 +528,9 @@ bool is_mission_mob(char_data *ch, char_data *mob)
     if (!IS_NPC(mob))
         return false;
 
+
+    if (!mob->mission_owner) return true;
+
     if (mob->mission_owner == GET_IDNUM(ch))
         return true;
 
@@ -529,6 +552,7 @@ bool is_mission_mob(char_data *ch, char_data *mob)
 
 void clear_mission(char_data *ch)
 {
+    clear_mission_mobs(ch);
     GET_CURRENT_MISSION(ch) = 0;
     GET_MISSION_FACTION(ch) = 0;
     GET_MISSION_DIFFICULTY(ch) = 0;
