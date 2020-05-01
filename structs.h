@@ -2580,18 +2580,21 @@
 #define SKY_RAINING 2   /**< Weather = Rain */
 #define SKY_LIGHTNING 3 /**< Weather = Lightning storm */
 
-#define FACTION_NONE                    0
-#define FACTION_ADVENTURER              0
-#define FACTION_ADVENTURERS             0
-#define FACTION_FREELANCE               0
-#define FACTION_FREELANCERS             0
-#define FACTION_THE_ORDER               1
-#define FACTION_ORDER                   1
-#define FACTION_DARKLINGS               2
-#define FACTION_DARKLING                2
-#define FACTION_CRIMINAL                3
+/* factions */
+#define FACTION_NONE 0
+#define FACTION_ADVENTURER 0
+#define FACTION_ADVENTURERS 0
+#define FACTION_FREELANCE 0
+#define FACTION_FREELANCERS 0
+#define FACTION_THE_ORDER 1
+#define FACTION_ORDER 1
+#define FACTION_DARKLINGS 2
+#define FACTION_DARKLING 2
+#define FACTION_CRIMINAL 3
+#define NUM_FACTIONS 3
 
-#define NUM_FACTIONS                    3
+/* Staff Ran Event */
+#define STAFF_RAN_EVENTS_VAR 300 /* values saved for staff events on player */
 
 /* Rent codes */
 #define RENT_UNDEF 0    /**< Character inv save status = undefined */
@@ -3306,7 +3309,7 @@ struct player_special_data_saved
     ubyte boosts;                     //stat boosts left
     ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
 
-    /* old spell prep system */
+    /* old spell prep system, can be removed */
     struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
     struct old_spell_data collection[MAX_MEM][NUM_CASTERS];
 
@@ -3342,10 +3345,12 @@ struct player_special_data_saved
     ubyte screen_width;                    /**< How wide the display page is */
     int olc_zone;                          /**< Current olc permissions */
 
+    /* clan system */
     int clanpoints; /**< Clan points may be spent in a clanhall */
     clan_vnum clan; /**< The clan number to which the player belongs     */
     int clanrank;   /**< The player's rank within their clan (1=highest) */
 
+    /* autoquest */
     int questpoints;            //quest points earned
     qst_vnum *completed_quests; /**< Quests completed              */
     int num_completed_quests;   /**< Number completed              */
@@ -3371,14 +3376,16 @@ struct player_special_data_saved
     int new_arcana_circles[4];
     int mail_days;
 
+    /* alchemists */
     int discoveries[NUM_ALC_DISCOVERIES];
     int bombs[MAX_BOMBS_ALLOWED];
     int grand_discovery;
 
+    /* template system */
     ubyte template;
     int premade_build;
 
-    // factional mission system
+    /* factional mission system */
     int current_mission;
     long mission_credits;
     long mission_standing;
@@ -3391,8 +3398,10 @@ struct player_special_data_saved
     bool mission_decline;
     int mission_rand_name;
     bool mission_complete;
-
     int faction;
+
+    /* staff event variables */
+    int staff_ran_events[STAFF_RAN_EVENTS_VAR];
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
