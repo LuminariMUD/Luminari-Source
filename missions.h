@@ -44,13 +44,13 @@ extern const char * const mission_difficulty[5];
 // functions
 int mission_details_to_faction(int faction);
 ACMD_DECL(do_missions);
-long get_mission_reward(char_data *ch, int reward_type);
-void clear_mission_mobs(char_data *ch);
-void create_mission_mobs(char_data *ch);
-bool are_mission_mobs_loaded(char_data *ch);
-void apply_mission_rewards(char_data *ch);
-void clear_mission(char_data *ch);
-bool is_mission_mob(char_data *ch, char_data *mob);
-void create_mission_on_entry(char_data *ch);
+long get_mission_reward(struct char_data *ch, int reward_type);
+void clear_mission_mobs(struct char_data *ch);
+void create_mission_mobs(struct char_data *ch);
+bool are_mission_mobs_loaded(struct char_data *ch);
+void apply_mission_rewards(struct char_data *ch);
+void clear_mission(struct char_data *ch);
+bool is_mission_mob(struct char_data *ch, struct char_data *mob);
+void create_mission_on_entry(struct char_data *ch);
 
 #endif

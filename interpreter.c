@@ -1741,7 +1741,7 @@ int enter_player_game(struct descriptor_data *d)
   /* END PLAYER STAT HACKS */
 
   // if they are on a mission, but a reboot/copyover has cleared the mobs, reload the mission mobs
-    create_mission_on_entry(ch);
+    create_mission_on_entry(d->character);
 
   return load_result;
 }

@@ -4563,7 +4563,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         {
           ;
         }
-        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, vict))
+        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, victim))
         {
           ;
         }

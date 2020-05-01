@@ -1063,10 +1063,10 @@ void update_player_misc(void)
     if (STATE(d) != CON_PLAYING)
       continue;
 
-    if (!are_mission_mobs_loaded(ch)) && ch->mission_complete)
+    if (!are_mission_mobs_loaded(ch) && GET_MISSION_COMPLETE(ch))
     {
-        apply_mission_rewards(ch));
-        clear_mission(ch));
+        apply_mission_rewards(ch);
+        clear_mission(ch);
     }
   }
 }
