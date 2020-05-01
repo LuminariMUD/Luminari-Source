@@ -3832,7 +3832,9 @@ static void msdp_update(void)
       MSDPSetNumber(d, eMSDP_CON, GET_CON(ch));
       MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
 
-      MSDPSetString(d, eMSDP_POSITION, position_types[GET_POS(ch)]);
+      snprintf(buf, sizeof(buf), "%s", position_types[GET_POS(ch)]);
+      strip_colors(buf);
+      MSDPSetString(d, eMSDP_POSITION, buf);
 
       /* Affects */
       update_msdp_affects(ch);
