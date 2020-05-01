@@ -477,6 +477,8 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
       KNOWS_DISCOVERY(ch, i) = 0;
     GET_GRAND_DISCOVERY(ch) = 0;
+    for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
+      STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
 
     /* finished inits, start loading from file */
 
@@ -2555,8 +2557,8 @@ void update_player_last_on(void)
       continue;
 
     snprintf(buf, sizeof(buf), "UPDATE player_data SET last_online = NOW() "
-                 "WHERE name = '%s';",
-            GET_NAME(d->character));
+                               "WHERE name = '%s';",
+             GET_NAME(d->character));
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));

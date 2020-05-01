@@ -371,7 +371,7 @@ void end_staff_event(int event_num)
     /* make sure the event is turned off */
     STAFF_EVENT_NUM = UNDEFINED_EVENT;
     STAFF_EVENT_TIME = 0;
-    STAFF_EVENT_DELAY = 6; /* this is a delay before next event for cleanup */
+    STAFF_EVENT_DELAY = STAFF_EVENT_DELAY_CNST; /* this is a delay before next event for cleanup */
 
     switch (event_num)
     {
