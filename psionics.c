@@ -2086,7 +2086,7 @@ int dominate_single(struct char_data *ch, P_char victim, int skill_level)
   if (GET_STAT(victim) == STAT_DEAD)
     return FALSE;
 
-  if (nokill(ch, victim))
+  if (nokill(ch, victim) || !is_mission_mob(ch, victim))
     return FALSE;
 
   if (should_not_kill(ch, victim))

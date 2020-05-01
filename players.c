@@ -31,6 +31,7 @@
 #include "alchemy.h"
 #include "templates.h"
 #include "premadebuilds.h"
+#include "missions.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -439,6 +440,14 @@ int load_char(const char *name, struct char_data *ch)
     GET_AUTOCQUEST_GOLD(ch) = PFDEF_AUTOCQUEST_GOLD;
     GET_AUTOCQUEST_DESC(ch) = NULL;
     GET_AUTOCQUEST_MATERIAL(ch) = PFDEF_AUTOCQUEST_MATERIAL;
+    GET_CURRENT_MISSION(ch) = -1;
+    GET_MISSION_CREDITS(ch) = 0;
+    GET_MISSION_STANDING(ch) = 0;
+    GET_MISSION_FACTION(ch) = 0;
+    GET_MISSION_REP(ch) = 0;
+    GET_MISSION_EXP(ch) = 0;
+    GET_MISSION_DIFFICULTY(ch) = 0;
+    GET_MISSION_NPC_NAME_NUM(ch) = 0;
     GET_SALVATION_ROOM(ch) = NOWHERE;
     GET_SALVATION_NAME(ch) = NULL;
     GUARDING(ch) = NULL;
@@ -719,12 +728,27 @@ int load_char(const char *name, struct char_data *ch)
         break;
 
       case 'M':
-        if (!strcmp(tag, "PSP"))
-          load_HMVS(ch, line, LOAD_PSP);
-        else if (!strcmp(tag, "Move"))
+        if (!strcmp(tag, "Move"))
           load_HMVS(ch, line, LOAD_MOVE);
         else if (!strcmp(tag, "Mrph"))
           IS_MORPHED(ch) = atol(line);
+        // Faction mission system
+        else if (!strcmp(tag, "MiCu"))
+            GET_CURRENT_MISSION(ch) = atoi(line);
+        else if (!strcmp(tag, "MiCr"))
+            GET_MISSION_CREDITS(ch) = atol(line);
+        else if (!strcmp(tag, "MiSt"))
+            GET_MISSION_STANDING(ch) = atoi(line);
+        else if (!strcmp(tag, "MiFa"))
+            GET_MISSION_FACTION(ch) = atoi(line);
+        else if (!strcmp(tag, "MiRe"))
+            GET_MISSION_REP(ch) = atoi(line);
+        else if (!strcmp(tag, "MiXp"))
+            GET_MISSION_EXP(ch) = atol(line);
+        else if (!strcmp(tag, "MiDf"))
+            GET_MISSION_DIFFICULTY(ch) = atoi(line);
+        else if (!strcmp(tag, "MiRN"))
+            GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
         break;
 
       case 'N':
@@ -791,6 +815,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_PREFERRED_ARCANE(ch) = atoi(line);
         else if (!strcmp(tag, "PCDi"))
           GET_PREFERRED_DIVINE(ch) = atoi(line);
+        else if (!strcmp(tag, "PSP"))
+          load_HMVS(ch, line, LOAD_PSP);
         break;
 
       case 'Q':
@@ -1190,6 +1216,15 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Alin: %d\n", GET_ALIGNMENT(ch));
   if (GET_TEMPLATE(ch) != PFDEF_TEMPLATE)
     fprintf(fl, "Tmpl: %d\n", GET_TEMPLATE(ch));
+  // Faction mission system
+  fprintf(fl, "MiCu: %d\n", GET_CURRENT_MISSION(ch));
+  fprintf(fl, "MiCr: %ld\n", GET_MISSION_CREDITS(ch));
+  fprintf(fl, "MiSt: %ld\n", GET_MISSION_STANDING(ch));
+  fprintf(fl, "MiFa: %d\n", GET_MISSION_FACTION(ch));
+  fprintf(fl, "MiRe: %ld\n", GET_MISSION_REP(ch));
+  fprintf(fl, "MiXp: %ld\n", GET_MISSION_EXP(ch));
+  fprintf(fl, "MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
+  fprintf(fl, "MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
