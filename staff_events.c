@@ -45,7 +45,11 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "Usually they reproduce very slowly.  Clearly someone has been breeding them, and "
      "this, can mean no good.  We must stop the spread of this growing menace now.  Will "
      "you help me?\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n"
-     "\tR[OOC: Go to blah blah to do blah blah for rewards or whatnot]\tn\r\n",
+     "\r\n\tR[OOC: Head to the Hardbuckler Region and hunt Jackalope in the wilderness.  "
+     "There are 3 levels of Jackalope, a set for level 10 and under, 20 and under, and then "
+     "epic levels.  There is no reward for killing Jackalope under your level bracket.  The "
+     "Jackalope will frequently return to random locations in that area.  Prizes are to be "
+     "turned into Fullstaff in Hardbuckler.]\tn\r\n",
 
      /* event summary/conclusion - EVENT_SUMMARY */
      "\tgThank you hunter, I.... nay the world owes you a debt of gratitude. I hope we have "
@@ -56,6 +60,93 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      /*end jackalope hunt*/},
 
 };
+
+/* drops from staff event mobiles */
+void check_event_drops(struct char_data *killer, struct char_data *victim)
+{
+    /* get some dummy checks out of the way */
+    if (IS_NPC(killer))
+        return;
+    if (!IS_NPC(victim))
+        return;
+    if (!IS_STAFF_EVENT)
+        return;
+
+    struct obj_data *obj = NULL;
+    bool load_drop = FALSE;
+
+    switch (STAFF_EVENT_NUM)
+    {
+
+    case JACKALOPE_HUNT:
+
+        switch (GET_MOB_VNUM(victim))
+        {
+
+        case EASY_JACKALOPE:
+            if (GET_LEVEL(killer) <= 10)
+            {
+                load_drop = TRUE;
+            }
+            else
+            {
+                send_to_char(killer, "OOC:  Lower level Jackalope hides won't drop for someone over level 10.\r\n");
+            }
+
+            break;
+
+        case MED_JACKALOPE:
+            if (GET_LEVEL(killer) <= 20)
+            {
+                load_drop = TRUE;
+            }
+            else
+            {
+                send_to_char(killer, "OOC:  Mid level Jackalopes hides won't drop for someone over level 20.\r\n");
+            }
+            break;
+
+        case HARD_JACKALOPE:
+            load_drop = TRUE;
+            break;
+
+        /* fallthrough */
+        default:
+            break;
+        } /* end mob vnum switch */
+
+        /* ok load up the object */
+        if (load_obj)
+        {
+            if ((obj = read_object(JACKALOPE_HIDE, VIRTUAL)) == NULL)
+            {
+                log("SYSERR: check_event_drops() created NULL object for jackalope hide");
+                return;
+            }
+            obj_to_char(obj, killer); // deliver object
+
+            /* checking for bonus */
+            if (dice(1, 100) < P_HORN_RARITY)
+            {
+                if ((obj = read_object(PRISTINE_HORN, VIRTUAL)) == NULL)
+                {
+                    log("SYSERR: check_event_drops() created NULL object for pristine horn");
+                    return;
+                }
+                obj_to_char(obj, killer); // deliver object
+            }
+        }
+
+        break;
+        /* end jackalope case */
+
+    default:
+        break;
+
+    } /* end staff event switch */
+
+    return;
+}
 
 /* find the given mobile by vnum and clear it out of the game */
 void mob_ingame_purge(int mobile_vnum)
@@ -263,7 +354,7 @@ void end_staff_event(int event_num)
     /* make sure the event is turned off */
     STAFF_EVENT_NUM = UNDEFINED_EVENT;
     STAFF_EVENT_TIME = 0;
-    STAFF_EVENT_DELAY = 3; /* this is a delay before next event for cleanup */
+    STAFF_EVENT_DELAY = 6; /* this is a delay before next event for cleanup */
 
     switch (event_num)
     {
@@ -368,14 +459,14 @@ void list_staff_events(struct char_data *ch)
 {
     int i = 0;
 
-    send_to_char(ch, "\r\n\tCA Listing of Staff Ran Events:\tn\r\n");
+    send_to_char(ch, "\r\n\tCA Listing of Staff Ran Events:\tn\r\n\r\n");
 
     for (i = 0; i < NUM_STAFF_EVENTS; i++)
     {
         send_to_char(ch, "\tG%d)\tn %s\r\n", i, staff_events_list[i][0]);
     }
 
-    send_to_char(ch, "\r\nUsage: staffevents [start|end|info] [index # above]\r\n\r\n");
+    send_to_char(ch, "\r\n\r\nUsage: staffevents [start|end|info] [index # above]\r\n");
 
     return;
 }
