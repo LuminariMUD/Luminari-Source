@@ -54,6 +54,7 @@
 #include "mud_event.h"
 #include "premadebuilds.h"
 #include "perfmon.h"
+#include "missions.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -2955,6 +2956,8 @@ ACMD(do_wizutil)
     case SCMD_UNAFFECT:
       // clear event cooldowns and other timed effects built with the event system
       clear_char_event_list(vict);
+      // reset their mission ready status
+      GET_MISSION_COOLDOWN(vict) = 0;
       // clear affects
       if (vict->affected || AFF_FLAGS(vict))
       {

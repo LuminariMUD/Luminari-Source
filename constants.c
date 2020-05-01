@@ -3587,10 +3587,10 @@ const char *do_cast_types[][6] = {
     /* end with this */
     {"\n", "\n", "\n", "\n", "\n", "\n"}};
 
-const char * const faction_names[] = {"Adventurers", "Rebel Alliance", "Galactic Empire", "Hutt Cartels", "\n"};
+const char * const faction_names[] = {"Adventurers' Guild", "Rebel Alliance", "Galactic Empire", "Hutt Cartels", "\n"};
 
 const char * const faction_names_lwr[]
-    = {"adventurers", "rebel alliance", "galactic empire", "hutt cartels", "\n"};
+    = {"adventurers' guild", "rebel alliance", "galactic empire", "hutt cartels", "\n"};
 
 /* --- End of constants arrays. --- */
 

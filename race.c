@@ -1689,6 +1689,21 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
     return 0;
 }
 
+int get_random_basic_pc_race(void)
+{
+
+  int num = dice(1, NUM_RACES+1);
+  num--;
+
+  while (race_list[num].epic_adv != IS_NORMAL) {
+    num = dice(1, NUM_RACES+1);
+    num--;
+  }
+
+  return num;
+
+}
+
 /*
 int get_size(struct char_data *ch) {
   int racenum;

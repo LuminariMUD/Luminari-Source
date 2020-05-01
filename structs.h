@@ -1744,6 +1744,7 @@
 #define FEAT_BOMB_MASTERY 630
 // end more alchemist
 #define FEAT_EFFICIENT_PERFORMANCE 631
+
 /**************/
 /** reserved above feat# + 1**/
 #define FEAT_LAST_FEAT 632
@@ -3398,6 +3399,7 @@ struct player_special_data_saved
     bool mission_decline;
     int mission_rand_name;
     bool mission_complete;
+    int mission_cooldown;
     int faction;
 
     /* staff event variables */

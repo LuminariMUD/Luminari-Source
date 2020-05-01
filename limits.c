@@ -1063,7 +1063,10 @@ void update_player_misc(void)
     if (STATE(d) != CON_PLAYING)
       continue;
 
-    if (!are_mission_mobs_loaded(ch) && GET_MISSION_COMPLETE(ch))
+    if (GET_MISSION_COOLDOWN(ch) > 0)
+      GET_MISSION_COOLDOWN(ch)--;
+
+    if (!are_mission_mobs_loaded(ch))
     {
         apply_mission_rewards(ch);
         clear_mission(ch);

@@ -49,6 +49,7 @@ int parse_race_long(char *arg);
 void assign_races(void);
 bool display_race_info(struct char_data *ch, char *racename);
 int get_race_stat(int race, int stat);
+int get_random_basic_pc_race(void);
 
 /* ACMD */
 ACMD_DECL(do_race);

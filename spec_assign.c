@@ -19,11 +19,13 @@
 #include "boards.h"
 #include "mail.h"
 #include "treasure.h"
+#include "missions.h"
 
 SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(buyweapons);
 SPECIAL_DECL(buyarmor);
+SPECIAL_DECL(faction_mission);
 
 /* local (file scope only) functions */
 static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
@@ -74,6 +76,8 @@ void assign_mobiles(void)
 
   ASSIGNMOB(103499, buyarmor);
   ASSIGNMOB(103498, buyweapons);
+
+  ASSIGNMOB(103698, faction_mission);
 
   assign_kings_castle();
 

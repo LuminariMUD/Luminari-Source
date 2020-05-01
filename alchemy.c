@@ -2874,6 +2874,8 @@ ACMD(do_psychokinetic)
       return;
     }
 
+
+    new_affect(&af);
     af.spell = ALC_DISC_AFFECT_PSYCHOKINETIC;
     af.duration = 50 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
     af.modifier = MAX(1, CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 4);
@@ -2944,6 +2946,7 @@ ACMD(do_psychokinetic)
         do_flee(victim, 0, 0, 0);
       }
 
+      new_affect(&af2);
       af2.spell = PSYCHOKINETIC_FEAR;
       af2.duration = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
       af2.modifier = -2;
