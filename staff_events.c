@@ -116,7 +116,7 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
         } /* end mob vnum switch */
 
         /* ok load up the object */
-        if (load_obj)
+        if (load_drop)
         {
             if ((obj = read_object(JACKALOPE_HIDE, VIRTUAL)) == NULL)
             {
