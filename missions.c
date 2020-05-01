@@ -370,13 +370,15 @@ void create_mission_mobs(char_data *ch)
 
     for (i = 0; i < 4; i++)
     {
-        mob = read_mobile(60000, VIRTUAL);
+        mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
         if (!mob)
             return;
         autoroll_mob(mob, FALSE, FALSE);
         if (i > 0)
         {
-            SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+            SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
+        } else {
+            SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
         }
         switch (GET_MISSION_DIFFICULTY(ch))
         {

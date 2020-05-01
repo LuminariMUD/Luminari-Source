@@ -30,6 +30,7 @@
 #include "constants.h"
 #include "alchemy.h"
 #include "staff_events.h"
+#include "missions.h"
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch)
@@ -1044,6 +1045,28 @@ void check_idling(struct char_data *ch)
       mudlog(CMP, LVL_STAFF, TRUE, "%s force-rented and extracted (idle).", GET_NAME(ch));
       add_llog_entry(ch, LAST_IDLEOUT);
       extract_char(ch);
+    }
+  }
+}
+
+void update_player_misc(void)
+{
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+
+  for (d = descriptor_list; d; d = d->next)
+  {
+    ch = d->character;
+    if (!ch)
+      continue;
+
+    if (STATE(d) != CON_PLAYING)
+      continue;
+
+    if (!are_mission_mobs_loaded(ch)) && ch->mission_complete)
+    {
+        apply_mission_rewards(ch));
+        clear_mission(ch));
     }
   }
 }

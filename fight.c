@@ -40,6 +40,7 @@
 #include "assign_wpn_armor.h"
 #include "grapple.h"
 #include "alchemy.h"
+#include "missions.h"
 
 /* return results from hit() */
 #define HIT_MISS 0
@@ -1367,6 +1368,14 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* clear all affections */
   while (ch->affected)
     affect_remove(ch, ch->affected);
+
+
+  if (is_mission_mob(killer, ch)
+            && !are_mission_mobs_loaded(killer))
+  {
+      apply_mission_rewards(killer);
+      clear_mission(killer);
+  }
 
   /* this was commented out for some reason, undid that to make sure
    events clear on death */
@@ -2966,7 +2975,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   struct obj_data *corpse_obj;
   room_rnum rnum = NOWHERE;
 
-  if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL))
+  if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, victim))
   {
     send_to_char(ch, "This mob is immune to your attack.\r\n");
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
@@ -3144,7 +3153,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     return (0);
   }
 
-  if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL))
+  if (!ok_damage_shopkeeper(ch, victim) || MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, victim))
   {
     send_to_char(ch, "This mob is protected.\r\n");
     if (FIGHTING(ch) && FIGHTING(ch) == victim)
@@ -4552,7 +4561,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         {
           ;
         }
-        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOKILL))
+        /*fail*/ else if (MOB_FLAGGED(victim, MOB_NOKILL) || !is_mission_mob(ch, vict))
         {
           ;
         }
@@ -8054,7 +8063,7 @@ void handle_smash_defense(struct char_data *ch)
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch)
     return;
-  if (MOB_FLAGGED(vict, MOB_NOKILL))
+  if (MOB_FLAGGED(vict, MOB_NOKILL) || !is_mission_mob(ch, vict))
     return;
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2)
     return;
