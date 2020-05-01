@@ -74,6 +74,7 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
 
     struct obj_data *obj = NULL;
     bool load_drop = FALSE;
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     switch (STAFF_EVENT_NUM)
     {
@@ -115,7 +116,7 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
             break;
         } /* end mob vnum switch */
 
-        /* ok load up the object */
+        /* should it be loaded? ok load up the object */
         if (load_drop)
         {
             if ((obj = read_object(JACKALOPE_HIDE, VIRTUAL)) == NULL)
@@ -124,8 +125,15 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
                 return;
             }
             obj_to_char(obj, killer); // deliver object
+            if (killer && obj && obj->short_description)
+            {
+                send_to_char(killer, "\tYYou have found \tn%s\tn\tY!\tn\r\n", obj->short_description);
 
-            /* checking for bonus */
+                snprintf(buf, MAX_STRING_LENGTH, "$n \tYhas found \tn%s\tn\tY!\tn", obj->short_description);
+                act(buf, FALSE, killer, 0, killer, TO_NOTVICT);
+            }
+
+            /* checking for bonus? */
             if (dice(1, 100) < P_HORN_RARITY)
             {
                 if ((obj = read_object(PRISTINE_HORN, VIRTUAL)) == NULL)
@@ -134,6 +142,14 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
                     return;
                 }
                 obj_to_char(obj, killer); // deliver object
+                buf[MAX_STRING_LENGTH] = {'\0'};
+                if (killer && obj && obj->short_description)
+                {
+                    send_to_char(killer, "\tYYou have found \tn%s\tn\tY!\tn\r\n", obj->short_description);
+
+                    snprintf(buf, MAX_STRING_LENGTH, "$n \tYhas found \tn%s\tn\tY!\tn", obj->short_description);
+                    act(buf, FALSE, killer, 0, killer, TO_NOTVICT);
+                }
             }
         }
 
