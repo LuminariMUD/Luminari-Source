@@ -53,7 +53,7 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
   //additional adjustmenets
   if (HAS_FEAT(vict, FEAT_DIAMOND_SOUL))
-    resist += 10 + MONK_TYPE(ch);
+    resist += 10 + MONK_TYPE(vict);
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DROW_SPELL_RESISTANCE))
     resist += 10 + GET_LEVEL(vict);
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_SPELL_RESISTANCE))
@@ -3783,13 +3783,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
    * have an accumulative effect, then fail the spell. */
   if (affected_by_spell(victim, spellnum) && !(accum_duration || accum_affect))
   {
-    if (casttype == CAST_WEAPON_POISON) {
+    if (casttype == CAST_WEAPON_POISON)
+    {
       ; /* nicer with no message here */
       return;
-    } else if (spell_info[spellnum].violent) {
+    }
+    else if (spell_info[spellnum].violent)
+    {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
-    } else {
+    }
+    else
+    {
       // if it's a buff, we want to replace it instead of failing
       affect_from_char(victim, spellnum);
     }
