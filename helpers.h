@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 
 /** If c is an upper case letter, return the lower case. */
 #define LOWER(c) (((c) >= 'A' && (c) <= 'Z') ? ((c) + ('a' - 'A')) : (c))
@@ -10,6 +11,7 @@
 
 /* Function to skip over the leading spaces of a string. */
 void skip_spaces(char **string);
+void skip_spaces_c(const char **string);
 
 /* Parse out the @ character and replace it with the '\t' to work with
  * KaVir's protocol snippet */
@@ -37,6 +39,7 @@ int fill_word(char *argument);
 /* Copy the first non-fill-word, space-delimited argument of 'argument'
  * to 'first_arg'; return a pointer to the remainder of the string. */
 char *one_argument(char *argument, char *first_arg);
+const char *one_argument_c(const char *argument, char *first_arg, size_t n);
 
 extern const char *fill[];
 

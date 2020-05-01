@@ -303,7 +303,7 @@ ACMD(do_queue)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (is_abbrev(arg, "clear"))
   {

@@ -65,3 +65,5 @@ dkms.conf
 /unittests/obj
 /depend
 .vscode/settings.json
+# generated source file
+/unittests/CuTest/AllTests.c
