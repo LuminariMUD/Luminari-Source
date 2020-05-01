@@ -5971,6 +5971,12 @@ static const char *const hints[] = {
            "you can find them with this command, 4) and finally bare in mind not all zones will map "
            "out onto a 2-dimensional map."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*38*/ "\tR[HINT]:\tn \ty"
+           "Want to know your Actions from your Maneuvers ? Don 't worry combat in Luminari can be deep "
+           "and complex, but that' s part of what makes it so much fun.Make sure you check out HELP ACTIONS, "
+           "COMBAT and QUEUE to become a combat pro!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+
 };
 
 static const size_t NUM_HINTS = sizeof(hints) / sizeof(hints[0]);

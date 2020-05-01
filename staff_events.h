@@ -14,6 +14,8 @@
 
 /***/
 /******* defines */
+#define STAFF_EVENT_DELAY 6 /* DO NOT CHANGE: don't decrease this below 6 */
+
 #define NUM_STAFF_EVENTS 1
 
 /* event fields */
@@ -31,23 +33,25 @@
 /* defines for each individual event */
 
 /* jackalope hunt defines */
-#define EASY_JACKALOPE 11391   /* vnum of lower level jackalope */
-#define MED_JACKALOPE 11392    /* vnum of mid level jackalope */
-#define HARD_JACKALOPE 11393   /* vnum of high level jackalope */
-#define NUM_JACKALOPE_EACH 400 /* how many of each jackalope to load */
+#define EASY_JACKALOPE 11391 /* vnum of lower level jackalope */
+#define MED_JACKALOPE 11392  /* vnum of mid level jackalope */
+#define HARD_JACKALOPE 11393 /* vnum of high level jackalope */
+/* important, due to the size of the wilderness pool, this needs to be kept very limited (maybe 900 total?) */
+#define NUM_JACKALOPE_EACH 300 /* DO NOT CHANGE: how many of each jackalope to load */
 
-#define JACKALOPE_NORTH_Y 205 /* north, y-coordinate border for loading mobs */
-#define JACKALOPE_SOUTH_Y -83 /* south, y-coordinate border for loading mobs */
+#define JACKALOPE_NORTH_Y 185 /* north, y-coordinate border for loading mobs */
+#define JACKALOPE_SOUTH_Y -63 /* south, y-coordinate border for loading mobs */
 #define JACKALOPE_WEST_X 597  /* west, x-coordinate border for loading mobs */
 #define JACKALOPE_EAST_X 703  /* east, x-coordinate border for loading mobs */
 
-#define SMALL_JACKALOPE_HIDE 0 /* vnum of lower level jackalope's hide */
-#define MED_JACKALOPE_HIDE 0   /* vnum of mid level jackalope's hide */
-#define LARGE_JACKALOPE_HIDE 0 /* vnum of high level jackalope's hide */
-#define PRISTINE_HORN 0        /* vnum of rare pristine jackalope horn */
-#define P_HORN_RARITY 0        /* % chance of loading pristine jackalope horn */
-
-/* end jackalope hunt defines */
+#define JACKALOPE_HIDE 11366       /* vnum of jackalope's hide */
+#define PRISTINE_HORN 11368        /* vnum of rare pristine jackalope horn */
+#define P_HORN_RARITY 5            /* % chance of loading pristine jackalope horn */
+#define PRISTINEHORN_PRIZE 11363   /* vnum of prize for turning in the horn (token that does happyhour) */
+#define FULLSTAFF_NPC 11449        /* Fullstaff NPC, quest initiator... */
+#define JACKALOPE_HIGH_PRIZE 11365 /* vnum of overall winner prize (hunting horn) */
+#define GREAT_HUNT_RIBBON 11369    /* prize awarded to all participants */
+                                   /* end jackalope hunt defines */
 
 /******* end defines */
 /***/
@@ -62,6 +66,7 @@ void list_staff_events(struct char_data *ch);
 void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord);
 int mob_ingame_count(int mobile_vnum);
 void mob_ingame_purge(int mobile_vnum);
+void check_event_drops(struct char_data *killer, struct char_data *victim);
 
 ACMD_DECL(do_staffevents);
 

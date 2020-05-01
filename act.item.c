@@ -1834,7 +1834,7 @@ ACMD(do_drop)
   else if (is_number(arg))
   {
     multi = atoi(arg);
-    one_argument(argument, arg);
+    one_argument_c(argument, arg, sizeof(arg));
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
       perform_drop_gold(ch, multi, mode, RDR);
     else if (multi <= 0)
@@ -2014,7 +2014,7 @@ ACMD(do_give)
     argument = one_argument(argument, arg);
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
     {
-      one_argument(argument, arg);
+      one_argument_c(argument, arg, sizeof(arg));
       if ((vict = give_find_vict(ch, arg)) != NULL)
       {
         perform_give_gold(ch, vict, amount);
@@ -2042,7 +2042,7 @@ ACMD(do_give)
   {
     char buf1[MAX_INPUT_LENGTH];
 
-    one_argument(argument, buf1);
+    one_argument_c(argument, buf1, sizeof(buf1));
     if (!(vict = give_find_vict(ch, buf1)))
       return;
     dotmode = find_all_dots(arg);
@@ -2181,7 +2181,7 @@ ACMD(do_drink)
   int on_ground = 0;
   char buf[MAX_INPUT_LENGTH];
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (IS_NPC(ch)) /* Cannot use GET_COND() on mobs. */
     return;
@@ -2385,7 +2385,7 @@ ACMD(do_eat)
   int amount;
   char buf[MAX_INPUT_LENGTH];
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (IS_NPC(ch)) /* Cannot use GET_COND() on mobs. */
     return;
@@ -3284,7 +3284,7 @@ ACMD(do_wield)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, "Wield what?\r\n");
@@ -3318,7 +3318,7 @@ ACMD(do_grab)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, "Hold what?\r\n");
@@ -3381,7 +3381,7 @@ ACMD(do_remove)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -3434,7 +3434,7 @@ ACMD(do_sac)
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *j, *jj, *next_thing2;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -4006,7 +4006,7 @@ ACMD(do_bid)
     if (IS_NPC(ch))
         return;
 
-    one_argument(argument, arg);
+    one_argument_c(argument, arg, sizeof(arg));
 
     if (!*arg)
     {
