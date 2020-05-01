@@ -55,7 +55,8 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "\tgThank you hunter, I.... nay the world owes you a debt of gratitude. I hope we have "
      "quelled this menace for good. However, keep your blades sharp, and your bowstrings tight, "
      "in case they are needed again.\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n"
-     "\tR[OOC: Go to blah blah to do blah blah for rewards or whatnot]\tn\r\n",
+     "\tR[OOC: You can visit Fullstaff in the Hardbuckler Inn to turn in your findings for "
+     "rewards!]\tn\r\n",
 
      /*end jackalope hunt*/},
 
