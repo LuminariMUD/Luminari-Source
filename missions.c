@@ -526,8 +526,7 @@ bool is_mission_mob(char_data *ch, char_data *mob)
         return false;
 
     if (!IS_NPC(mob))
-        return false;
-
+        return true;
 
     if (!mob->mission_owner) return true;
 
