@@ -213,7 +213,7 @@ ACMD(do_unban)
   struct ban_list_element *ban_node, *temp;
   int found = 0;
 
-  one_argument(argument, site);
+  one_argument_c(argument, site, sizeof(site));
   if (!*site)
   {
     send_to_char(ch, "A site to unban might help.\r\n");

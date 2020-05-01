@@ -2768,7 +2768,7 @@ ACMD(do_curingtouch)
     return;
   }
 
-  one_argument(argument, arg1);
+  one_argument_c(argument, arg1, sizeof(arg1));
 
   if (!*arg1)
   {

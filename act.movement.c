@@ -2334,7 +2334,7 @@ ACMD(do_enter)
 
   was_in = IN_ROOM(ch);
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   /* an argument was supplied, search for door keyword */
   if (*buf)
@@ -2736,7 +2736,7 @@ ACMD(do_sit)
   struct char_data *tempch;
   int found;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     found = 0;
@@ -2940,7 +2940,7 @@ ACMD(do_wake)
   struct char_data *vict;
   int self = 0;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (*arg)
   {
     if (GET_POS(ch) == POS_SLEEPING)
@@ -2981,7 +2981,7 @@ ACMD(do_follow)
   char buf[MAX_INPUT_LENGTH];
   struct char_data *leader;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (*buf)
   {
@@ -3037,7 +3037,7 @@ ACMD(do_unlead)
   char buf[MAX_INPUT_LENGTH];
   struct char_data *follower;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (*buf)
   {
@@ -3458,7 +3458,7 @@ ACMD(do_pullswitch)
   struct obj_data *dummy = 0;
   char arg[MAX_INPUT_LENGTH];
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

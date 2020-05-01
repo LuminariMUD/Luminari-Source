@@ -22,6 +22,7 @@
 void sort_commands(void);
 void command_interpreter(struct char_data *ch, char *argument);
 char *one_argument(char *argument, char *first_arg);
+const char *one_argument_c(const char *argument, char *first_arg, size_t n);
 char *one_word(char *argument, char *first_arg);
 char *any_one_arg(char *argument, char *first_arg);
 char *two_arguments(char *argument, char *first_arg, char *second_arg);
@@ -35,6 +36,7 @@ int is_abbrev(const char *arg1, const char *arg2);
 int is_number(const char *str);
 int find_command(const char *command);
 void skip_spaces(char **string);
+void skip_spaces_c(const char **string);
 char *delete_doubledollar(char *string);
 int special(struct char_data *ch, int cmd, char *arg);
 void free_alias(struct alias_data *a);

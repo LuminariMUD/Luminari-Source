@@ -217,7 +217,11 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
 
 #endif /* CIRCLE_WINDOWS || CIRCLE_MACINTOSH */
 
+#if defined(LUMINARI_CUTEST)
+int luminari_main(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
   /* Copy to stack memory to ensure the build info is embedded in core dumps */
   char embed_version_build[512];

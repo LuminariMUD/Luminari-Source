@@ -58,7 +58,7 @@ ACMD(do_oasis_aedit)
       return;
     }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -833,7 +833,7 @@ ACMD(do_astat)
   if (IS_NPC(ch))
     return;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
