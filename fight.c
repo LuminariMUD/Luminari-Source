@@ -1422,9 +1422,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* Clear the action queue */
   clear_action_queue(GET_QUEUE(ch));
 
-  /* random treasure drop */
+  /* random treasure drop, other related drops */
   if (killer && ch && IS_NPC(ch))
+  {
     determine_treasure(find_treasure_recipient(killer), ch);
+  }
 
   /* spec-abil saves on exit, so make sure this does not save */
   DOOM(ch) = 0;

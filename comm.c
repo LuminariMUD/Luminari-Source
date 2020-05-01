@@ -217,7 +217,11 @@ void gettimeofday(struct timeval *t, struct timezone *dummy)
 
 #endif /* CIRCLE_WINDOWS || CIRCLE_MACINTOSH */
 
+#if defined(LUMINARI_CUTEST)
+int luminari_main(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
   /* Copy to stack memory to ensure the build info is embedded in core dumps */
   char embed_version_build[512];
@@ -3833,7 +3837,9 @@ static void msdp_update(void)
       MSDPSetNumber(d, eMSDP_CON, GET_CON(ch));
       MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
 
-      MSDPSetString(d, eMSDP_POSITION, position_types[GET_POS(ch)]);
+      snprintf(buf, sizeof(buf), "%s", position_types[GET_POS(ch)]);
+      strip_colors(buf);
+      MSDPSetString(d, eMSDP_POSITION, buf);
 
       /* Affects */
       update_msdp_affects(ch);

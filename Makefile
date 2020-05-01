@@ -55,6 +55,18 @@ constants.c: $(filter-out constants.c,$(SRCFILES))
 
 constants.o: CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 
+SRCSCUTEST := $(filter-out unittests/CuTest/AllTests.c,$(wildcard unittests/CuTest/*.c)) unittests/CuTest/CuTest.c
+OBJSCUTEST := $(SRCSCUTEST:%.c=%.o) $(OBJFILES)
+
+unittests/CuTest/AllTests.c: $(SRCSCUTEST)
+	unittests/CuTest/make-tests.sh unittests/CuTest/*.c > $@
+
+.PHONY: cutest
+cutest: $(BINDIR)/cutest
+$(BINDIR)/cutest: CFLAGS += -DLUMINARI_CUTEST
+$(BINDIR)/cutest: $(OBJSCUTEST) unittests/CuTest/AllTests.o
+	$(CC) -o $@ $(PROFILE) $^ $(LIBS) && $@
+
 clean:
 	rm -f *.o depend
 

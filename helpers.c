@@ -11,6 +11,12 @@ void skip_spaces(char **string)
     ;
 }
 
+void skip_spaces_c(const char **string)
+{
+  for (; **string && **string != '\t' && isspace(**string); (*string)++)
+    ;
+}
+
 /* Parse out the @ character and replace it with the '\t' to work with
  * KaVir's protocol snippet */
 void parse_at(char *str)
@@ -131,6 +137,39 @@ char *one_argument(char *argument, char *first_arg)
     while (*argument && !isspace(*argument))
     {
       *(first_arg++) = LOWER(*argument);
+      argument++;
+    }
+
+    *first_arg = '\0';
+  } while (fill_word(begin));
+
+  return (argument);
+}
+
+/* Copy the first non-fill-word, space-delimited argument of 'argument'
+ * to 'first_arg'; return a pointer to the remainder of the string. */
+const char *one_argument_c(const char *argument, char *first_arg, size_t n)
+{
+  char *begin = first_arg;
+  const char *arg_last = first_arg + n - 1;
+
+  if (!argument)
+  {
+    *first_arg = '\0';
+    return (NULL);
+  }
+
+  do
+  {
+    skip_spaces_c(&argument);
+
+    first_arg = begin;
+    while (*argument && !isspace(*argument))
+    {
+      if (first_arg < arg_last)
+      {
+        *(first_arg++) = LOWER(*argument);
+      }
       argument++;
     }
 
