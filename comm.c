@@ -183,6 +183,7 @@ void update_msdp_affects(struct char_data *ch);
 void update_damage_and_effects_over_time(void);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
+void update_player_misc(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__

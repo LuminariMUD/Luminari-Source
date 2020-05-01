@@ -30,6 +30,7 @@
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
 #include "feats.h"
+#include "missions.h"
 
 /* defines */
 #define RAGE_AFFECTS 4
@@ -556,7 +557,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     send_to_char(ch, "This mob is protected.\r\n");
     return FALSE;
   }
-  if (!is_mission_mob(ch, vict)))
+  if (!is_mission_mob(ch, vict))
   {
     send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return FALSE;
@@ -2712,7 +2713,7 @@ ACMD(do_taunt)
     send_to_char(ch, "This mob is protected.\r\n");
     return;
   }
-  if (!is_mission_mob(ch, vict)))
+  if (!is_mission_mob(ch, vict))
   {
     send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return;
@@ -2855,7 +2856,7 @@ ACMD(do_intimidate)
     send_to_char(ch, "This mob is protected.\r\n");
     return;
   }
-  if (!is_mission_mob(ch, vict)))
+  if (!is_mission_mob(ch, vict))
   {
     send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return;
