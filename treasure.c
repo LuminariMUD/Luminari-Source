@@ -24,6 +24,7 @@
 #include "assign_wpn_armor.h"
 #include "oasis.h"
 #include "item.h"
+#include "staff_events.h"
 
 /***  utility functions ***/
 
