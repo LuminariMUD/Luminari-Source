@@ -31,6 +31,7 @@
 #include "feats.h"
 #include "race.h"
 #include "alchemy.h"
+#include "missions.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -4033,6 +4034,9 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
 
   // same group, skip
   if (GROUP(tch) && GROUP(ch) && GROUP(ch) == GROUP(tch))
+    return 0;
+  
+  if (IS_NPC(tch) && tch->mission_owner > 0 && !is_mission_mob(ch, tch))
     return 0;
 
   // don't hit the charmee of a group member

@@ -28,6 +28,7 @@
 #include "grapple.h"
 #include "spell_prep.h"
 #include "alchemy.h"
+#include "missions.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -464,7 +465,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 return (0);
         }
 
-        if (cvict && MOB_FLAGGED(cvict, MOB_NOKILL))
+        if (cvict && (MOB_FLAGGED(cvict, MOB_NOKILL) || !is_mission_mob(caster, cvict)))
         {
                 send_to_char(caster, "This mob is protected.\r\n");
                 return (0);

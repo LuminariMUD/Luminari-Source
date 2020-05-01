@@ -34,6 +34,8 @@
 #define GET_MISSION_COMPLETE(ch)                (ch->player_specials->saved.mission_complete)
 #define GET_FACTION_STANDING(ch, i)             (ch->player_specials->saved.faction_standing[i])
 
+#define MISSION_MOB_DFLT_VNUM 60000
+
 // variables
 extern const char * const mission_details[][8];
 extern const char * const mission_targets[5];
