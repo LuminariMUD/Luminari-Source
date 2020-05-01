@@ -28,6 +28,7 @@
 #include "grapple.h"
 #include "spell_prep.h"
 #include "alchemy.h"
+#include "missions.h"
 
 #define SINFO spell_info[spellnum]
 

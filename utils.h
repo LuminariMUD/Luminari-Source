@@ -1798,7 +1798,7 @@ void char_from_furniture(struct char_data *ch);
 
 #define STAFF_EVENT_NUM staffevent_data.event_num
 #define STAFF_EVENT_TIME staffevent_data.ticks_left
-#define STAFF_EVENT_DELAY staffevent_data.delay
+//#define STAFF_EVENT_DELAY staffevent_data.delay
 
 /**********************/
 

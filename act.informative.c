@@ -40,6 +40,7 @@
 #include "crafts.h"
 #include "alchemy.h"
 #include "premadebuilds.h"
+#include "staff_events.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
