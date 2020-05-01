@@ -31,6 +31,7 @@
 #include "feats.h"
 #include "race.h"
 #include "alchemy.h"
+#include "missions.h"
 
 //external
 extern struct raff_node *raff_list;

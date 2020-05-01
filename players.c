@@ -730,7 +730,6 @@ int load_char(const char *name, struct char_data *ch)
           load_HMVS(ch, line, LOAD_MOVE);
         else if (!strcmp(tag, "Mrph"))
           IS_MORPHED(ch) = atol(line);
-        break;
         // Faction mission system
         else if (!strcmp(tag, "MiCu"))
             GET_CURRENT_MISSION(ch) = atoi(line);
@@ -748,6 +747,7 @@ int load_char(const char *name, struct char_data *ch)
             GET_MISSION_DIFFICULTY(ch) = atoi(line);
         else if (!strcmp(tag, "MiRN"))
             GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
+        break;
 
       case 'N':
         if (!strcmp(tag, "Name"))
@@ -813,9 +813,9 @@ int load_char(const char *name, struct char_data *ch)
           GET_PREFERRED_ARCANE(ch) = atoi(line);
         else if (!strcmp(tag, "PCDi"))
           GET_PREFERRED_DIVINE(ch) = atoi(line);
-        break;
         else if (!strcmp(tag, "PSP"))
           load_HMVS(ch, line, LOAD_PSP);
+        break;
 
       case 'Q':
         if (!strcmp(tag, "Qstp"))

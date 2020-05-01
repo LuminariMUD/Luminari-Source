@@ -362,6 +362,7 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
 void create_mission_mobs(char_data *ch)
 {
     struct char_data *mob = NULL;
+    struct char_data *leader = NULL;
     int i = 0, randName = 0;
     room_vnum to_room = 0;
     if (GET_CURRENT_MISSION(ch) >= 0)
@@ -377,8 +378,11 @@ void create_mission_mobs(char_data *ch)
         if (i > 0)
         {
             SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
+            SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+            mob->master = leader;
         } else {
             SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
+            leader = mob;
         }
         switch (GET_MISSION_DIFFICULTY(ch))
         {
