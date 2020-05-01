@@ -1147,7 +1147,8 @@ void heartbeat(int heart_pulse)
     PERF_PROF_EXIT(pr_msdp_update_);
   }
 
-  if (!(heart_pulse % (PASSES_PER_SEC * 60))) { // every minute
+  if (!(heart_pulse % (PASSES_PER_SEC * 60)))
+  { // every minute
     check_auto_shutdown();
   }
 
@@ -3437,7 +3438,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
 }
 
 const char *act(const char *str, int hide_invisible, struct char_data *ch,
-          struct obj_data *obj, void *vict_obj, int type)
+                struct obj_data *obj, void *vict_obj, int type)
 {
   struct char_data *to = NULL;
   int to_sleeping = 0;
@@ -3735,48 +3736,48 @@ void update_msdp_room(struct char_data *ch)
 
       /* Build the ROOM table.  */
       snprintf(buf2, sizeof(buf2), "%cVNUM"
-                    "%c%d"
-                    "%cNAME"
-                    "%c%s"
-                    "%cAREA"
-                    "%c%s"
-                    "%cENVIRONMENT"
-                    "%c%s"
-                    "%cCOORDS"
-                    "%c%c"
-                    "%cX"
-                    "%c%d"
-                    "%cY"
-                    "%c%d"
-                    "%cZ"
-                    "%c%d%c"
-                    "%cTERRAIN"
-                    "%c%s"
-                    "%cEXITS"
-                    "%c%c%s%c",
-              MsdpVar, MsdpVal,
-              GET_ROOM_VNUM(IN_ROOM(ch)),
-              MsdpVar, MsdpVal,
-              world[IN_ROOM(ch)].name,
-              MsdpVar, MsdpVal,
-              zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
-              MsdpVar, MsdpVal,
-              (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
-              MsdpVar, MsdpVal,
-              MSDP_TABLE_OPEN,
-              MsdpVar, MsdpVal,
-              world[IN_ROOM(ch)].coords[X_COORD],
-              MsdpVar, MsdpVal,
-              world[IN_ROOM(ch)].coords[Y_COORD],
-              MsdpVar, MsdpVal,
-              0,
-              MSDP_TABLE_CLOSE,
-              MsdpVar, MsdpVal,
-              sector_types[world[IN_ROOM(ch)].sector_type],
-              MsdpVar, MsdpVal,
-              MSDP_TABLE_OPEN,
-              room_exits,
-              MSDP_TABLE_CLOSE);
+                                   "%c%d"
+                                   "%cNAME"
+                                   "%c%s"
+                                   "%cAREA"
+                                   "%c%s"
+                                   "%cENVIRONMENT"
+                                   "%c%s"
+                                   "%cCOORDS"
+                                   "%c%c"
+                                   "%cX"
+                                   "%c%d"
+                                   "%cY"
+                                   "%c%d"
+                                   "%cZ"
+                                   "%c%d%c"
+                                   "%cTERRAIN"
+                                   "%c%s"
+                                   "%cEXITS"
+                                   "%c%c%s%c",
+               MsdpVar, MsdpVal,
+               GET_ROOM_VNUM(IN_ROOM(ch)),
+               MsdpVar, MsdpVal,
+               world[IN_ROOM(ch)].name,
+               MsdpVar, MsdpVal,
+               zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name,
+               MsdpVar, MsdpVal,
+               (IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch))) ? "Wilderness" : "Room"),
+               MsdpVar, MsdpVal,
+               MSDP_TABLE_OPEN,
+               MsdpVar, MsdpVal,
+               world[IN_ROOM(ch)].coords[X_COORD],
+               MsdpVar, MsdpVal,
+               world[IN_ROOM(ch)].coords[Y_COORD],
+               MsdpVar, MsdpVal,
+               0,
+               MSDP_TABLE_CLOSE,
+               MsdpVar, MsdpVal,
+               sector_types[world[IN_ROOM(ch)].sector_type],
+               MsdpVar, MsdpVal,
+               MSDP_TABLE_OPEN,
+               room_exits,
+               MSDP_TABLE_CLOSE);
 
       strip_colors(buf2);
       MSDPSetTable(ch->desc, eMSDP_ROOM, buf2);
@@ -3834,6 +3835,10 @@ static void msdp_update(void)
       MSDPSetNumber(d, eMSDP_DEX, GET_DEX(ch));
       MSDPSetNumber(d, eMSDP_CON, GET_CON(ch));
       MSDPSetNumber(d, eMSDP_CHA, GET_CHA(ch));
+
+      snprintf(buf, sizeof(buf), "%s", position_types[GET_POS(ch)]);
+      strip_colors(buf);
+      MSDPSetString(d, eMSDP_POSITION, buf);
 
       /* Affects */
       update_msdp_affects(ch);

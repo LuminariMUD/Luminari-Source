@@ -630,30 +630,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* ...Trelux carapace is not effective vs touch attacks! */
   if (GET_RACE(ch) == RACE_TRELUX)
   {
-    if (GET_LEVEL(ch) >= 5)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 10)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 15)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 20)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 25)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
-    if (GET_LEVEL(ch) >= 30)
-    {
-      bonuses[BONUS_TYPE_ARMOR]++;
-    }
+    bonuses[BONUS_TYPE_ARMOR] += GET_LEVEL(ch) / 3;
   }
   /**/
 
@@ -1436,9 +1413,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* Clear the action queue */
   clear_action_queue(GET_QUEUE(ch));
 
-  /* random treasure drop */
+  /* random treasure drop, other related drops */
   if (killer && ch && IS_NPC(ch))
+  {
     determine_treasure(find_treasure_recipient(killer), ch);
+  }
 
   /* spec-abil saves on exit, so make sure this does not save */
   DOOM(ch) = 0;
@@ -3918,6 +3897,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Dayblind penalty: \tR-1\tn\r\n");
   }
 
+  /* trelux pincers bonus */
+  if (GET_RACE(ch) == RACE_TRELUX)
+  {
+    dambonus += GET_LEVEL(ch) / 5;
+  }
+
   /****************************************/
   /**** display, keep mods above this *****/
   /****************************************/
@@ -4538,8 +4523,8 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
             SET_BIT_AR(af.bitvector, AFF_CRIPPLING_CRITICAL);
             affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
             break;
-          default: /* 2d4 bleed damage and 2d4 moves drain */
-            GET_MOVE(victim) -= dice(2, 4);
+          default: /* 2d4 bleed damage and 20d4 moves drain */
+            GET_MOVE(victim) -= dice(20, 4);
             dam += dice(2, 4);
             break;
           }

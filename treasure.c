@@ -24,6 +24,7 @@
 #include "assign_wpn_armor.h"
 #include "oasis.h"
 #include "item.h"
+#include "staff_events.h"
 
 /***  utility functions ***/
 
@@ -694,6 +695,12 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
     return;
   if (!IS_NPC(mob))
     return;
+
+  /* staff events drop items sometimes */
+  if (IS_STAFF_EVENT)
+  {
+    check_event_drops(ch, mob);
+  }
 
   gold = dice(1, GET_LEVEL(mob)) * 10;
   level = GET_LEVEL(mob);
