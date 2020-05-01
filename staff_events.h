@@ -14,7 +14,11 @@
 
 /***/
 /******* defines */
-#define STAFF_EVENT_DELAY 6 /* DO NOT CHANGE: don't decrease this below 6 */
+
+/* this is the index in the pfile array for staff-ran event related stuff up to STAFF_RAN_EVENTS_VAR */
+#define STAFFRAN_PVAR_JACKALOPE 0
+
+#define STAFF_EVENT_DELAY_CNST 6 /* DO NOT CHANGE: don't decrease this below 6 */
 
 #define NUM_STAFF_EVENTS 1
 
@@ -69,5 +73,10 @@ void mob_ingame_purge(int mobile_vnum);
 void check_event_drops(struct char_data *killer, struct char_data *victim);
 
 ACMD_DECL(do_staffevents);
+
+/****** notes *******/
+//#define STAFFRAN_PVAR(ch, variable)
+//CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
+/**** end notes *****/
 
 /* EOF */

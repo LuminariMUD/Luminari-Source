@@ -879,7 +879,7 @@ void char_from_furniture(struct char_data *ch);
  */
 /** Alignment value for ch. */
 #define GET_ALIGNMENT(ch) ((ch)->char_specials.saved.alignment)
-#define GET_FACTION(ch)   ((ch)->player_specials->saved.faction)
+#define GET_FACTION(ch) ((ch)->player_specials->saved.faction)
 
 /* Casting time */
 #define IS_CASTING(ch) ((ch)->char_specials.isCasting)
@@ -1067,6 +1067,11 @@ void char_from_furniture(struct char_data *ch);
 /** The type of quest ch is currently participating in. */
 #define GET_QUEST_TYPE(ch) (real_quest(GET_QUEST((ch))) != NOTHING ? aquest_table[real_quest(GET_QUEST((ch)))].type : AQ_UNDEFINED)
 
+/* Autoquests data */
+/** Return the number of questpoints ch has. */
+#define STAFFRAN_PVAR(ch, variable) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
+
+/**** Clans *****/
 /** Return the vnum of the clan that the player belongs to */
 #define GET_CLAN(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.clan))
 /** Return the player's rank within their clan */
