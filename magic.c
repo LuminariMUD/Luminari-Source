@@ -356,13 +356,48 @@ bool spec_wear_off(struct char_data *ch, int skillnum)
    wondering why i didn't just add this to skillo() or whatnot? */
 bool alt_wear_off_msg(struct char_data *ch, int skillnum)
 {
-  if (skillnum < (MAX_SPELLS + 1))
+  if (skillnum <= SPELL_RESERVED_DBC)
     return FALSE;
   if (skillnum >= MAX_SKILLS)
     return FALSE;
 
   switch (skillnum)
   {
+
+    /*special spells*/
+
+  case SPELL_FAERIE_FIRE:
+    send_to_char(ch, "The effects from faerie fire fade away.\r\n");
+    break;
+  case SPELL_WAIL_OF_THE_BANSHEE:
+    send_to_char(ch, "The effects from Wail of the Banshee fade away.\r\n");
+    break;
+  case SPELL_THUNDERCLAP:
+    send_to_char(ch, "The effects from the Thunderclap fade away.\r\n");
+    break;
+
+  /*skills */
+  /* all fallthrough */
+  case SKILL_SONG_OF_FOCUSED_MIND:
+  case SKILL_SONG_OF_FEAR:
+  case SKILL_SONG_OF_ROOTING:
+  case SKILL_SONG_OF_THE_MAGI:
+  case SKILL_SONG_OF_FLIGHT:
+  case SKILL_SONG_OF_HEROISM:
+  case SKILL_ORATORY_OF_REJUVENATION:
+  case SKILL_ACT_OF_FORGETFULNESS:
+  case SKILL_SONG_OF_REVELATION:
+  case SKILL_SONG_OF_DRAGONS:
+  case SKILL_DANCE_OF_PROTECTION:
+    /* we don't send a message here because it fades so often */
+    //send_to_char(ch, "The effects from song fade away.\r\n");
+    break;
+  case ALC_DISC_AFFECT_PSYCHOKINETIC:
+    send_to_char(ch, "The effects of the psychokinetic fade away.\r\n");
+    break;
+  case SKILL_MUTAGEN:
+    send_to_char(ch, "The effects of the mutagen fade away.\r\n");
+    break;
   case SKILL_SACRED_FLAMES:
     send_to_char(ch, "Your sacred flames fade away.\r\n");
     break;
@@ -471,10 +506,12 @@ void affect_update(void)
             /* check for alternative message! (skills) */
             else if (alt_wear_off_msg(i, af->spell))
             {
+              ;
             }
             /* check for alternative message! (specs, like morph) */
             else if (spec_wear_off(i, af->spell))
             {
+              ;
             }
             else
             {
@@ -4035,7 +4072,7 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
   // same group, skip
   if (GROUP(tch) && GROUP(ch) && GROUP(ch) == GROUP(tch))
     return 0;
-  
+
   if (IS_NPC(tch) && tch->mission_owner > 0 && !is_mission_mob(ch, tch))
     return 0;
 
