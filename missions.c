@@ -102,11 +102,12 @@ SPECIAL(faction_mission)
 
     if (is_abbrev(argument, "decline"))
     {
-        if (GET_CURRENT_MISSION(ch) < 0)
+        if (GET_CURRENT_MISSION(ch) <= 0)
         {
             send_to_char(ch, "You do not currently have a mission.\r\n");
             return 1;
         }
+        
         if (!GET_MISSION_DECLINE(ch))
         {
             send_to_char(
