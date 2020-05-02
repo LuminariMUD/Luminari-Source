@@ -3692,6 +3692,7 @@ void update_msdp_room(struct char_data *ch)
 
   char buf2[MAX_STRING_LENGTH];
   char room_exits[MAX_STRING_LENGTH];
+  char room_doors[MAX_STRING_LENGTH];
 
   /* MSDP */
 
@@ -3720,11 +3721,19 @@ void update_msdp_room(struct char_data *ch)
        *     's'
        *       vnum for room to the south
        *     etc.
+       *   DOORS
+       *     'n'
+       *       keyword for door to the north
+       *     's'
+       *       keyword for door to the south
+       *     etc.
        **/
       room_exits[0] = '\0';
+      room_doors[0] = '\0';
       for (door = 0; door < DIR_COUNT; door++)
       {
         char buf3[MAX_STRING_LENGTH];
+        char buf4[MAX_STRING_LENGTH];
 
         if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
           continue;
@@ -3732,6 +3741,10 @@ void update_msdp_room(struct char_data *ch)
         snprintf(buf3, sizeof(buf3), "%c%s%c%d%c", MsdpVar, dirs[door], MsdpVal, GET_ROOM_VNUM(EXIT(ch, door)->to_room), '\0');
         //          send_to_char(ch, "DEBUG: %s\r\n", buf3);
         strlcat(room_exits, buf3, sizeof(room_exits));
+        if (!EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR))
+          continue;
+        snprintf(buf4, sizeof(buf4), "%c%s%c%s%c", MsdpVar, dirs[door], MsdpVal, EXIT(ch, door)->keyword, '\0');
+        strlcat(room_doors, buf4, sizeof(room_doors));
       }
 
       //        send_to_char(ch, "DEBUG: %s\r\n", room_exits);
@@ -3756,6 +3769,8 @@ void update_msdp_room(struct char_data *ch)
                                    "%cTERRAIN"
                                    "%c%s"
                                    "%cEXITS"
+                                   "%c%c%s%c"
+                                   "%cDOORS"
                                    "%c%c%s%c",
                MsdpVar, MsdpVal,
                GET_ROOM_VNUM(IN_ROOM(ch)),
@@ -3779,6 +3794,11 @@ void update_msdp_room(struct char_data *ch)
                MsdpVar, MsdpVal,
                MSDP_TABLE_OPEN,
                room_exits,
+               MSDP_TABLE_CLOSE
+                   MsdpVar,
+               MsdpVal,
+               MSDP_TABLE_OPEN,
+               room_doors,
                MSDP_TABLE_CLOSE);
 
       strip_colors(buf2);
