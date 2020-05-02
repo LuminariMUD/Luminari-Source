@@ -3795,7 +3795,7 @@ void update_msdp_room(struct char_data *ch)
                MSDP_TABLE_OPEN,
                room_exits,
                MSDP_TABLE_CLOSE
-                   MsdpVar,
+               MsdpVar,
                MsdpVal,
                MSDP_TABLE_OPEN,
                room_doors,
