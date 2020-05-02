@@ -116,17 +116,17 @@ SPECIAL(faction_mission)
                 "Please note that declining will reduce your %s faction by 50 points.\r\n",
                 faction_names_lwr[GET_MISSION_FACTION(ch)]);
             GET_MISSION_DECLINE(ch) = true;
-            GET_MISSION_COOLDOWN(ch) = 0;
-            clear_mission_mobs(ch);
             return 1;
         }
         GET_MISSION_DECLINE(ch) = false;
         GET_FACTION_STANDING(ch, GET_MISSION_FACTION(ch)) -= 50;
         send_to_char(
             ch,
-            "You have turned down the offered mission.  This has reduced your faction standing with the %s by 50 points.\r\n",
+            "You have turned down the offered mission.  This has reduced your faction standing with the %s by 50 points. Your cooldown has been halved.\r\n",
             faction_names_lwr[GET_MISSION_FACTION(ch)]);
         GET_CURRENT_MISSION(ch) = -1;
+        GET_MISSION_COOLDOWN(ch) /= 2;
+        clear_mission(ch);
         save_char(ch, 0);
         return 1;
     }
@@ -152,7 +152,7 @@ SPECIAL(faction_mission)
       send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
       return 1;
     }
-    GET_MISSION_COOLDOWN(ch) = 50; // five minutes
+    GET_MISSION_COOLDOWN(ch) = 300; // thirty minutes
 
     struct char_data *mob = (struct char_data *) me;
     int level = GET_LEVEL(ch);
@@ -316,6 +316,8 @@ long get_mission_reward(char_data *ch, int reward_type)
         break;
     }
 
+    reward = (int) (reward * 0.75);
+
     int bonus = compute_ability(ch, ABILITY_DIPLOMACY);
     reward = (reward * (100+bonus)) / 100;
 
@@ -380,7 +382,7 @@ void create_mission_mobs(char_data *ch)
     struct char_data *leader = NULL;
     int i = 0, randName = 0;
     room_vnum to_room = 0;
-    if (GET_CURRENT_MISSION(ch) >= 0)
+    if (GET_CURRENT_MISSION(ch) > 0)
         to_room = atoi(mission_details[GET_CURRENT_MISSION(ch)][6]);
     char buf[MAX_STRING_LENGTH];
 
@@ -519,8 +521,7 @@ void apply_mission_rewards(char_data *ch)
 
     send_to_char(
         ch,
-        "You have earned experience points for completing your mission.\r\n");
-    gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_DEATH);
+        "You have earned %d experience points for completing your mission.\r\n", gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_DEFAULT));
 
     send_to_char(ch, "\r\n");
 
