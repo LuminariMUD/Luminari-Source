@@ -37,6 +37,7 @@
 #include "spec_procs.h"
 #include "oasis.h"
 #include "mudlim.h"
+#include "genmob.h"
 
 int gain_exp(struct char_data *ch, int gain, int mode);
 int is_player_grouped(struct char_data *target, struct char_data *group);
@@ -54,9 +55,9 @@ const char * const mission_details[][8] = {
     {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "13130", "Quagmire"},
     {"7" , "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
     {"3" , "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3014", "Northern Midgen"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3104", "Southern Midgen"},
-    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "103163", "Ashenport"},
+//    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3014", "Northern Midgen"},
+//    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3104", "Southern Midgen"},
+//    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "103163", "Ashenport"},
     {"0" , "0", "0", "0", "0", "0", "0", "0"} // This must always be last
 };
 
@@ -115,6 +116,7 @@ SPECIAL(faction_mission)
                 "Please note that declining will reduce your %s faction by 50 points.\r\n",
                 faction_names_lwr[GET_MISSION_FACTION(ch)]);
             GET_MISSION_DECLINE(ch) = true;
+            GET_MISSION_COOLDOWN(ch) = 0;
             clear_mission_mobs(ch);
             return 1;
         }
@@ -301,13 +303,13 @@ long get_mission_reward(char_data *ch, int reward_type)
     switch (reward_type)
     {
     case MISSION_CREDITS:
-        reward = level * MAX(1, level / 2) * mult * 5;
+        reward = level * MAX(1, level / 2) * mult * 3;
         break;
     case MISSION_STANDING:
         reward = (50 * mult);
         break;
     case MISSION_REP:
-        reward = level * MAX(1, level / 2) * mult / 3;
+        reward = level * MAX(1, level / 2) * mult / 4;
         break;
     case MISSION_EXP:
         reward = level * MAX(1, level / 4) * mult * 300;
@@ -368,6 +370,8 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
             mob->points.armor += 100;
             break;
     }
+    GET_EXP(mob) = GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty));
+    GET_GOLD(mob) = GET_LEVEL(mob) * (10 + difficulty);
 }
 
 void create_mission_mobs(char_data *ch)
@@ -385,19 +389,24 @@ void create_mission_mobs(char_data *ch)
         mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
         if (!mob)
             return;
-        GET_LEVEL(mob) = GET_LEVEL(ch);
         GET_SEX(mob) = dice(1, 2);
-        GET_REAL_RACE(mob) = get_random_basic_pc_race();
-        autoroll_mob(mob, FALSE, FALSE);
         if (i > 0)
         {
+            GET_LEVEL(mob) = GET_LEVEL(ch) - 2;
             SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
             SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
             add_follower(mob, leader);
         } else {
+            GET_LEVEL(mob) = GET_LEVEL(ch);
             SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
             leader = mob;
         }
+        autoroll_mob(mob, TRUE, FALSE);
+        mob->points.armor -= 40;
+        GET_REAL_MAX_HIT(mob) = (int) (GET_HIT(mob) = GET_HIT(mob) * 0.6);
+        GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
+        GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
+        GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
         switch (GET_MISSION_DIFFICULTY(ch))
         {
         case MISSION_DIFF_TOUGH:

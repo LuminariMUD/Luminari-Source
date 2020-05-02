@@ -449,6 +449,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_MISSION_COOLDOWN(ch) = 0;
     GET_MISSION_DIFFICULTY(ch) = 0;
     GET_MISSION_NPC_NAME_NUM(ch) = 0;
+    GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = 0;
     GET_SALVATION_ROOM(ch) = NOWHERE;
     GET_SALVATION_NAME(ch) = NULL;
     GUARDING(ch) = NULL;
@@ -668,6 +669,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_FREEZE_LEV(ch) = atoi(line);
         else if (!strcmp(tag, "FaEn"))
           load_favored_enemy(fl, ch);
+        else if (!strcmp(tag, "FaAd"))
+          GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
         else if (!strcmp(tag, "Feat"))
           load_feats(fl, ch);
         else if (!strcmp(tag, "Ftpt"))
@@ -1308,6 +1311,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
     fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
+
+  fprintf(fl, "FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
 
   if (GET_BAD_PWS(ch) != PFDEF_BADPWS)
     fprintf(fl, "Badp: %d\n", GET_BAD_PWS(ch));

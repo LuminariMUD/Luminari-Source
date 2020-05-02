@@ -424,7 +424,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
-//    {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"mission", "mission", POS_RESTING, do_missions, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mlist", "mlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_MLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"mcopy", "mcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_MEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"motd", "motd", POS_DEAD, do_gen_ps, 0, SCMD_MOTD, TRUE, ACTION_NONE, {0, 0}, NULL},
