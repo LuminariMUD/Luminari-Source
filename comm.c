@@ -869,14 +869,13 @@ void game_loop(socket_t local_mother_desc)
         char buf[MAX_STRING_LENGTH];
         PERF_prof_repr_pulse(buf, sizeof(buf));
         log("Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: \n%s",
-          usage_pcnt, total_usec, buf);
+            usage_pcnt, total_usec, buf);
       }
     }
 
     /* just in case, re-calculate after PERF logging */
     gettimeofday(&before_sleep, (struct timezone *)0);
     timediff(&process_time, &before_sleep, &last_time);
-
 
     /* If we were asleep for more than one pass, count missed pulses and sleep
      * until we're resynchronized with the next upcoming pulse. */
@@ -1067,7 +1066,7 @@ void game_loop(socket_t local_mother_desc)
     /* Now execute the heartbeat functions */
     while (missed_pulses--)
     {
-      PERF_PROF_ENTER(pr_heartbeat, "heartbeat" );
+      PERF_PROF_ENTER(pr_heartbeat, "heartbeat");
       heartbeat(++pulse);
       PERF_PROF_EXIT(pr_heartbeat);
     }
@@ -1191,7 +1190,7 @@ void heartbeat(int heart_pulse)
    *  been implemented differently.  -Zusuk
    */
   if (!(pulse % PULSE_LUMINARI))
-  {                   /* 5 sec */
+  { /* 5 sec */
     PERF_PROF_ENTER(pr_lum_, "pulse_luminari");
     pulse_luminari(); // limits.c
     PERF_PROF_EXIT(pr_lum_);
@@ -1218,7 +1217,7 @@ void heartbeat(int heart_pulse)
 
   /* the old skool tick system! */
   if (!(heart_pulse % (SECS_PER_MUD_HOUR * PASSES_PER_SEC)))
-  {                                /* Tick ! */
+  { /* Tick ! */
     PERF_PROF_ENTER(pr_ost_, "old skool tick");
     next_tick = SECS_PER_MUD_HOUR; /* Reset tick coundown */
     weather_and_time(1);
@@ -3794,7 +3793,7 @@ void update_msdp_room(struct char_data *ch)
                MsdpVar, MsdpVal,
                MSDP_TABLE_OPEN,
                room_exits,
-               MSDP_TABLE_CLOSE
+               MSDP_TABLE_CLOSE,
                MsdpVar,
                MsdpVal,
                MSDP_TABLE_OPEN,
