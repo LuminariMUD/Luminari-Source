@@ -20,9 +20,11 @@ void parse_at(char *str);
 /* Return first space-delimited token in arg1; remainder of string in arg2.
  * NOTE: Requires sizeof(arg2) >= sizeof(string) */
 void half_chop(char *string, char *arg1, char *arg2);
+void half_chop_c(const char *string, char *arg1, size_t n1, char *arg2, size_t n2);
 
 /* Same as one_argument except that it doesn't ignore fill words. */
 char *any_one_arg(char *argument, char *first_arg);
+const char *any_one_arg_c(const char *argument, char *first_arg, size_t n);
 
 /* Same as one_argument except that it takes two args and returns the rest;
  * ignores fill words */
