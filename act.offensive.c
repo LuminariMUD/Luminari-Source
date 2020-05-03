@@ -1905,7 +1905,7 @@ void clear_rage(struct char_data *ch)
   }
   else
   {
-    GET_HIT(ch) -= (get_rage_bonus(ch) / 2) * GET_LEVEL(ch);
+    GET_HIT(ch) -= GET_LEVEL(ch) * GET_CON_BONUS(ch);
   }
   if (GET_HIT(ch) < 0)
   {

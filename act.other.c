@@ -4824,6 +4824,25 @@ ACMD(do_split)
   }
 }
 
+/* lazy hack to fix some troublesome staves in-game */
+bool invalid_staff_spell(int spell_num)
+{
+  bool is_invalid = FALSE;
+
+  switch (spell_num)
+  {
+  case SPELL_EARTHQUAKE: /* fallthrough */
+  case SPELL_WIZARD_EYE:
+    is_invalid = TRUE;
+    break;
+
+  default:
+    break;
+  }
+
+  return is_invalid;
+}
+
 ACMD(do_use)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -5051,6 +5070,13 @@ ACMD(do_use)
       break;
     case ITEM_WAND:
     case ITEM_STAFF:
+
+      if (invalid_staff_spell(spell))
+      {
+        send_to_char(ch, "Tell a staff member that this staff is using an invalid spell (%d) please.\r\n", spell);
+        return;
+      }
+
       /* Check requirements for using a wand: Spell Trigger method */
       /* 1. Class must be able to cast the spell stored in the wand. Use Magic Device can bluff this. */
       spell = GET_OBJ_VAL(mag_item, 3);
