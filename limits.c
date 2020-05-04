@@ -518,11 +518,14 @@ void regen_update(struct char_data *ch)
       hp += 3;
   }
 
-  /* probably put these as last bonuses */
+  /* these are last bonuses because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
     hp *= 2;
+
   if (AFF_FLAGGED(ch, AFF_REGEN))
     hp *= 2;
+
+  /****/
 
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
       (GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
@@ -533,15 +536,19 @@ void regen_update(struct char_data *ch)
     hp = 0;
 
   /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
-  if (GET_HIT(ch) > GET_MAX_HIT(ch) && !rand_number(0, 1))
+  if (GET_HIT(ch) > GET_MAX_HIT(ch))
   {
-    GET_HIT(ch)
-    --;
+    if (!rand_number(0, 1))
+    {
+      GET_HIT(ch)
+      --;
+    }
   }
   else
   {
     GET_HIT(ch) = MIN(GET_HIT(ch) + hp, GET_MAX_HIT(ch));
   }
+
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
     GET_MOVE(ch)
@@ -550,11 +557,15 @@ void regen_update(struct char_data *ch)
   else if (!AFF_FLAGGED(ch, AFF_FATIGUED))
   {
     int move_regen = hp;
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
       move_regen++;
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ENDURANCE))
       move_regen += 2;
-    move_regen *= 10;
+
+    move_regen *= 10; /* conversion to gicker's new system */
+
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
 
@@ -1064,12 +1075,13 @@ void update_player_misc(void)
       continue;
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)--;
+      GET_MISSION_COOLDOWN(ch)
+    --;
 
     if (!are_mission_mobs_loaded(ch))
     {
-        apply_mission_rewards(ch);
-        clear_mission(ch);
+      apply_mission_rewards(ch);
+      clear_mission(ch);
     }
   }
 }

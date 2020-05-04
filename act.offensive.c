@@ -1905,7 +1905,7 @@ void clear_rage(struct char_data *ch)
   }
   else
   {
-    GET_HIT(ch) -= GET_LEVEL(ch) * GET_CON_BONUS(ch);
+    GET_HIT(ch) -= get_rage_bonus(ch) * GET_LEVEL(ch) * 7 / 8;
   }
   if (GET_HIT(ch) < 0)
   {
@@ -2095,8 +2095,8 @@ ACMD(do_rage)
     USE_STANDARD_ACTION(ch);
   }
 
-  /* causing issues with balance? */
-  GET_HIT(ch) += (bonus / 2) * GET_LEVEL(ch) + GET_CON_BONUS(ch);
+  /* bonus hp from the rage */
+  GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
 }
 
 /* inner fire - sacred fist feat */
