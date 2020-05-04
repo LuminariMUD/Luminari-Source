@@ -346,7 +346,7 @@ void reset_zone(zone_rnum zone);
 void reboot_wizlists(void);
 void boot_world(void);
 int count_hash_records(FILE *fl);
-bitvector_t asciiflag_conv(char *flag);
+bitvector_t asciiflag_conv(const char *flag);
 void renum_world(void);
 void load_config(void);
 struct char_data *new_char();

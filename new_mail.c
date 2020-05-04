@@ -36,12 +36,12 @@ extern struct clan_type *clan_info;
 
 void send_editor_help(struct descriptor_data *d);
 
-ACMD(do_new_mail)
+ACMDC(do_new_mail)
 {
 
   char arg3[200], arg4[200];
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -56,7 +56,7 @@ ACMD(do_new_mail)
   }
   else
   {
-    half_chop(argument, arg3, arg4);
+    half_chop_c(argument, arg3, sizeof(arg3), arg4, sizeof(arg4));
 
     if (!*arg3)
     {

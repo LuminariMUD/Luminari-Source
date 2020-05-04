@@ -180,7 +180,7 @@ const char *familiar_names[] = {
   utility functions
  \*-------------------------------------------------------------------*/
 
-ACMD(do_study)
+ACMDC(do_study)
 {
   struct descriptor_data *d = NULL;
   int class = -1;
