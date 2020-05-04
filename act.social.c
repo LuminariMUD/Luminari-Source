@@ -24,7 +24,7 @@
 /* do_action and do_gmote utility function */
 static int find_action(int cmd);
 
-ACMD(do_action)
+ACMDC(do_action)
 {
   char arg[MAX_INPUT_LENGTH], part[MAX_INPUT_LENGTH];
   int act_nr;
@@ -47,7 +47,7 @@ ACMD(do_action)
     return;
   }
 
-  two_arguments(argument, arg, part);
+  two_arguments_c(argument, arg, sizeof(arg), part, sizeof(part));
 
   if ((!action->char_body_found) && (*part))
   {
@@ -251,14 +251,14 @@ static int find_action(int cmd)
   }
 }
 
-ACMD(do_gmote)
+ACMDC(do_gmote)
 {
   int act_nr, length;
   char arg[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
   struct social_messg *action;
   struct char_data *vict = NULL;
 
-  half_chop(argument, buf, arg);
+  half_chop_c(argument, buf, sizeof(buf), arg, sizeof(arg));
 
   if (subcmd)
     for (length = strlen(buf), cmd = 0; *complete_cmd_info[cmd].command != '\n'; cmd++)

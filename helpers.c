@@ -214,7 +214,12 @@ char *two_arguments(char *argument, char *first_arg, char *second_arg)
   return (one_argument(one_argument(argument, first_arg), second_arg)); /* :-) */
 }
 
-bool legal_communication(char *arg)
+const char *two_arguments_c(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2)
+{
+  return (one_argument_c(one_argument_c(argument, first_arg, n1), second_arg, n2));
+}
+
+bool legal_communication(const char *arg)
 {
   while (*arg)
   {

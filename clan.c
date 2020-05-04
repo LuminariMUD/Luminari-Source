@@ -608,15 +608,16 @@ void clear_clan_vals(struct clan_data *cl)
 }
 
 /****************************************************************************
- End utility functions, Start ACMD()
+ End utility functions, Start ACMDC()
  ***************************************************************************/
 
 /* entry point for clans */
-ACMD(do_clan)
+ACMDC(do_clan)
 {
   clan_rnum clan;
   int rank, i;
-  char clan_cmd[MAX_INPUT_LENGTH], *args;
+  char clan_cmd[MAX_INPUT_LENGTH];
+  const char *args;
 
   clan = real_clan(GET_CLAN(ch));
   rank = GET_CLANRANK(ch);
@@ -660,7 +661,7 @@ ACMD(do_clan)
   }
   else
   {
-    args = one_argument(argument, clan_cmd);
+    args = one_argument_c(argument, clan_cmd, sizeof(clan_cmd));
 
     for (i = 0; *CC_CMD(i) && *CC_CMD(i) != '\n'; i++)
     {
@@ -698,7 +699,7 @@ ACMD(do_clan)
 }
 
 /* clan apply command */
-ACMD(do_clanapply)
+ACMDC(do_clanapply)
 {
   clan_rnum c_n;
 
@@ -756,7 +757,7 @@ ACMD(do_clanapply)
 }
 
 /* clan award command */
-ACMD(do_clanaward)
+ACMDC(do_clanaward)
 {
   char plr[MAX_INPUT_LENGTH], ncp[MAX_INPUT_LENGTH];
   struct char_data *l;
@@ -777,7 +778,7 @@ ACMD(do_clanaward)
     return;
   }
 
-  two_arguments(argument, plr, ncp);
+  two_arguments_c(argument, plr, sizeof(plr), ncp, sizeof(ncp));
 
   if (!*plr || !*ncp)
   {
@@ -830,7 +831,7 @@ ACMD(do_clanaward)
 }
 
 /* clan claim command */
-ACMD(do_clanclaim)
+ACMDC(do_clanclaim)
 {
   zone_vnum zv;
   zone_rnum zr;
@@ -906,14 +907,14 @@ ACMD(do_clanclaim)
 }
 
 /* clan create (IMP) command */
-ACMD(do_clancreate)
+ACMDC(do_clancreate)
 {
   char c_n[MAX_INPUT_LENGTH], c_l[MAX_INPUT_LENGTH];
   struct char_data *l;
   struct clan_data new_clan;
   int i, v;
 
-  half_chop(argument, c_l, c_n);
+  half_chop_c(argument, c_l, sizeof(c_l), c_n, sizeof(c_n));
 
   if (!*c_l || !*c_n)
   {
@@ -1015,7 +1016,7 @@ ACMD(do_clancreate)
 }
 
 /* clan demote command - demote a clan member, even if they are offline */
-ACMD(do_clandemote)
+ACMDC(do_clandemote)
 {
   struct char_data *vict;
   char buf[MAX_INPUT_LENGTH];
@@ -1026,7 +1027,7 @@ ACMD(do_clandemote)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -1186,9 +1187,10 @@ ACMD(do_clandemote)
 }
 
 /* clan balance command - balance of gold in clan's bank */
-ACMD(do_clanbalance)
+ACMDC(do_clanbalance)
 {
-  char buf[MAX_INPUT_LENGTH], *buf2;
+  char buf[MAX_INPUT_LENGTH];
+  const char *buf2;
   bool immcom = FALSE;
   clan_rnum c_n = NO_CLAN;
   int amt;
@@ -1196,7 +1198,7 @@ ACMD(do_clanbalance)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  buf2 = one_argument(argument, buf);
+  buf2 = one_argument_c(argument, buf, sizeof(buf));
 
   if (immcom)
   {
@@ -1239,9 +1241,10 @@ ACMD(do_clanbalance)
 }
 
 /* clan deposit command - deposit gold into the clan's bank */
-ACMD(do_clandeposit)
+ACMDC(do_clandeposit)
 {
-  char buf[MAX_INPUT_LENGTH], *buf2;
+  char buf[MAX_INPUT_LENGTH];
+  const char *buf2;
   bool immcom = FALSE;
   clan_rnum c_n = NO_CLAN;
   int amt;
@@ -1249,7 +1252,7 @@ ACMD(do_clandeposit)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  buf2 = one_argument(argument, buf);
+  buf2 = one_argument_c(argument, buf, sizeof(buf));
 
   amt = atoi(buf);
   if (amt == 0)
@@ -1336,18 +1339,19 @@ ACMD(do_clandeposit)
 }
 
 /* clan destroy (IMP) command */
-ACMD(do_clandestroy)
+ACMDC(do_clandestroy)
 {
   struct char_data *vict;
   bool immcom = FALSE;
   clan_vnum c_v;
   clan_rnum c_n;
   char c_name[MAX_INPUT_LENGTH], c_ldr[MAX_NAME_LENGTH],
-      buf[MAX_INPUT_LENGTH], *buf2;
+      buf[MAX_INPUT_LENGTH];
+  const char *buf2;
   int j, p_pos = 0;
   long c_lid;
 
-  buf2 = one_argument(argument, buf);
+  buf2 = one_argument_c(argument, buf, sizeof(buf));
 
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
@@ -1446,7 +1450,7 @@ ACMD(do_clandestroy)
   }
 }
 
-ACMD(do_clanenrol)
+ACMDC(do_clanenrol)
 {
   char arg[MAX_INPUT_LENGTH];
   clan_rnum c_n = NO_CLAN;
@@ -1457,7 +1461,7 @@ ACMD(do_clanenrol)
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -1566,7 +1570,7 @@ ACMD(do_clanenrol)
                clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
 }
 
-ACMD(do_clanexpel) /* Expel a member */
+ACMDC(do_clanexpel) /* Expel a member */
 {
   char arg[MAX_INPUT_LENGTH];
   clan_rnum c_n = NO_CLAN;
@@ -1578,7 +1582,7 @@ ACMD(do_clanexpel) /* Expel a member */
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -1666,7 +1670,7 @@ ACMD(do_clanexpel) /* Expel a member */
   }
 }
 
-ACMD(do_claninfo) /* Information about clans */
+ACMDC(do_claninfo) /* Information about clans */
 {
   int i, j, count = 0, mems, pow;
   char pr[4];
@@ -1787,7 +1791,7 @@ ACMD(do_claninfo) /* Information about clans */
   }
 }
 
-ACMD(do_clanlist) /* List of clan members */
+ACMDC(do_clanlist) /* List of clan members */
 {
   int i, rk_num;
   clan_rnum c;
@@ -1802,7 +1806,7 @@ ACMD(do_clanlist) /* List of clan members */
   }
   if (GET_LEVEL(ch) >= LVL_IMMORT)
   {
-    one_argument(argument, arg);
+    one_argument_c(argument, arg, sizeof(arg));
     if (!*arg)
     {
       if ((c = real_clan(GET_CLAN(ch))) == NO_CLAN)
@@ -1904,14 +1908,15 @@ ACMD(do_clanlist) /* List of clan members */
   return;
 }
 
-ACMD(do_clanowner)
+ACMDC(do_clanowner)
 {
   clan_rnum c_n;
   struct char_data *new_l;
-  char buf[MAX_STRING_LENGTH], *buf2;
+  char buf[MAX_STRING_LENGTH];
+  const char *buf2;
   bool immcom = FALSE;
 
-  buf2 = one_argument(argument, buf);
+  buf2 = one_argument_c(argument, buf, sizeof(buf));
 
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
@@ -1966,7 +1971,7 @@ ACMD(do_clanowner)
   send_to_char(new_l, "'%s' is now YOUR clan!\r\n", clan_list[c_n].clan_name);
 }
 
-ACMD(do_clanpromote)
+ACMDC(do_clanpromote)
 {
   struct char_data *vict;
   char buf[MAX_INPUT_LENGTH];
@@ -1977,7 +1982,7 @@ ACMD(do_clanpromote)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -2136,7 +2141,7 @@ ACMD(do_clanpromote)
   }     /* End for loop (through player_table) */
 }
 
-ACMD(do_clanstatus)
+ACMDC(do_clanstatus)
 {
   clan_rnum c_n;
   int c_r;
@@ -2181,7 +2186,7 @@ ACMD(do_clanstatus)
   return;
 }
 
-ACMD(do_clanwhere)
+ACMDC(do_clanwhere)
 {
   clan_rnum c;
   room_rnum r;
@@ -2244,9 +2249,10 @@ ACMD(do_clanwhere)
   }
 }
 
-ACMD(do_clanwithdraw)
+ACMDC(do_clanwithdraw)
 {
-  char buf[MAX_INPUT_LENGTH], *buf2;
+  char buf[MAX_INPUT_LENGTH];
+  const char *buf2;
   bool immcom = FALSE;
   clan_rnum c_n = NO_CLAN;
   int amt;
@@ -2254,7 +2260,7 @@ ACMD(do_clanwithdraw)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  buf2 = one_argument(argument, buf);
+  buf2 = one_argument_c(argument, buf, sizeof(buf));
 
   amt = atoi(buf);
   if (amt == 0)
@@ -2340,7 +2346,7 @@ ACMD(do_clanwithdraw)
   send_to_char(ch, "You have withdrawn %d coins from the clan bank.\r\n", amt);
 }
 
-ACMD(do_clanunclaim)
+ACMDC(do_clanunclaim)
 {
   int z, zr;
   bool found = FALSE;
@@ -2953,7 +2959,7 @@ void check_diplomacy(void)
 #define BINARY 1
 #define NUMBER 2
 
-ACMD(do_clanset)
+ACMDC(do_clanset)
 {
   char field[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   char val_arg[MAX_INPUT_LENGTH], rankname[MAX_INPUT_LENGTH],
@@ -2990,7 +2996,7 @@ ACMD(do_clanset)
       {"\n", 0, MISC}};
 
   /* Get the clan ID */
-  half_chop(argument, name, buf);
+  half_chop_c(argument, name, sizeof(name), buf, sizeof(buf));
 
   if (!strcmp(name, "save"))
   {
@@ -3336,17 +3342,18 @@ ACMD(do_clanset)
 /***************************************************************************
  End of Clanset Imm command code - Start of clantalk communications channel
  **************************************************************************/
-ACMD(do_clantalk)
+ACMDC(do_clantalk)
 {
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH],
-      arg[MAX_INPUT_LENGTH], *arg2;
+      arg[MAX_INPUT_LENGTH];
+  const char *arg2;
   const char *msg = NULL;
   clan_vnum c_id;
   struct descriptor_data *i;
   bool leader = FALSE, imm = FALSE;
   int c_arg;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (GET_LEVEL(ch) > LVL_IMMORT)
     imm = TRUE;
@@ -3370,14 +3377,14 @@ ACMD(do_clantalk)
 
   if (imm)
   {
-    arg2 = one_argument(argument, arg);
+    arg2 = one_argument_c(argument, arg, sizeof(arg));
     if ((c_arg = atoi(arg)) > 0)
     {
       if (real_clan(c_arg) != NO_CLAN)
       {
         c_id = (clan_vnum)c_arg;
         argument = arg2;        /* Skip the arg */
-        skip_spaces(&argument); /* Strip spaces. */
+        skip_spaces_c(&argument); /* Strip spaces. */
       }
       else
       {

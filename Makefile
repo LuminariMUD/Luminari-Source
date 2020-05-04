@@ -49,6 +49,9 @@ circle:
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
+# Allow warnings in rtree for now
+rtree/%.o: CFLAGS:=$(filter-out -Werror,$(CFLAGS))
+
 # Always rebuild constants.c with other files so that luminari_build is updated
 constants.c: $(filter-out constants.c,$(SRCFILES))
 	touch constants.c
