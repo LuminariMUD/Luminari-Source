@@ -279,10 +279,8 @@ char *CAP(char *txt)
  * file. */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING], *buf2;
+  char temp[MEDIUM_STRING], *buf2 = NULL;
   int lines = 0;
-
-  *buf2 = '\0';
 
   do
   {
