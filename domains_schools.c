@@ -699,7 +699,7 @@ int is_domain_spell_of_ch(struct char_data *ch, int spellnum)
   return FALSE;
 }
 
-ACMD(do_domain)
+ACMDC(do_domain)
 {
   int i = 0, j = 0;
   char buf[MAX_STRING_LENGTH];

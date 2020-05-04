@@ -33,6 +33,16 @@
 #define ACMD_DECL(name) \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
+#define ACMDC(name)                                                                       \
+  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd); \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
+  {                                                                                      \
+    PERF_PROF_ENTER(pr_, #name);                                                         \
+    impl_##name##_(ch, argument, cmd, subcmd);                                           \
+    PERF_PROF_EXIT(pr_);                                                                 \
+  }                                                                                      \
+  static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd)
+
 #define ACMD(name)                                                                       \
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
