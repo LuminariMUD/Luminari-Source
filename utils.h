@@ -33,14 +33,14 @@
 #define ACMD_DECL(name) \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
-#define ACMDC(name)                                                                       \
+#define ACMDC(name)                                                                            \
   static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd); \
-  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
-  {                                                                                      \
-    PERF_PROF_ENTER(pr_, #name);                                                         \
-    impl_##name##_(ch, argument, cmd, subcmd);                                           \
-    PERF_PROF_EXIT(pr_);                                                                 \
-  }                                                                                      \
+  void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                   \
+  {                                                                                            \
+    PERF_PROF_ENTER(pr_, #name);                                                               \
+    impl_##name##_(ch, argument, cmd, subcmd);                                                 \
+    PERF_PROF_EXIT(pr_);                                                                       \
+  }                                                                                            \
   static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
 #define ACMD(name)                                                                       \
@@ -1617,6 +1617,14 @@ void char_from_furniture(struct char_data *ch);
 /* Returns TRUE if the direction is a diagonal one */
 #define IS_DIAGONAL(dir) (((dir) == NORTHWEST) || ((dir) == NORTHEAST) || \
                           ((dir) == SOUTHEAST) || ((dir) == SOUTHWEST))
+
+/* is this room an "arena" room? 138600-138699 */
+#define ARENA_VNUM_START 138600
+#define ARENA_VNUM_END 138699
+#define CONFIG_ARENA_DEATH 138610
+#define IS_ARENA(rnum) ((world[rnum].number >= ARENA_VNUM_START) && \
+                        (world[rnum].number <= ARENA_VNUM_END))
+#define IN_ARENA(ch) (IS_ARENA(IN_ROOM(ch)))
 
 /* handy macros for dealing with class_list[] */
 #define CLSLIST_NAME(classnum) (class_list[classnum].name)

@@ -1368,6 +1368,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* stop relevant fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
+
   for (k = combat_list; k; k = temp)
   {
     temp = k->next_fighting;
@@ -1442,6 +1443,25 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     /* extraction!  *SLURRRRRRRRRRRRRP* */
     extract_char(ch);
   }
+  else if (IN_ARENA(ch) || IN_ARENA(killer))
+  {
+    char_from_room(ch);
+    death_message(ch);
+    GET_HIT(ch) = GET_MAX_HIT(ch);
+    update_pos(ch);
+
+    /* move char to starting room */
+    char_to_room(ch, real_room(CONFIG_ARENA_DEATH));
+    act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
+    look_at_room(ch, 0);
+    entry_memory_mtrigger(ch);
+    greet_mtrigger(ch, -1);
+    greet_memory_mtrigger(ch);
+    resetCastingData(ch);
+
+    save_char(ch, 0);
+    Crash_delete_crashfile(ch);
+  }
   else
   { /* PC's do not extract currently or make a corpse */
     char_from_room(ch);
@@ -1488,7 +1508,8 @@ void die(struct char_data *ch, struct char_data *killer)
   else
   {
     // if not a newbie then bang that xp! - Bakarus
-    gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
+    if (!IN_ARENA(ch) && !IN_ARENA(killer))
+      gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
   }
 
   if (!IS_NPC(ch))
