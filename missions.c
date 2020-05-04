@@ -153,7 +153,7 @@ SPECIAL(faction_mission)
       send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
       return 1;
     }
-    GET_MISSION_COOLDOWN(ch) = 300; // thirty minutes
+    GET_MISSION_COOLDOWN(ch) = 100; // ten minutes
 
     struct char_data *mob = (struct char_data *) me;
     int level = GET_LEVEL(ch);
@@ -317,12 +317,12 @@ long get_mission_reward(char_data *ch, int reward_type)
         break;
     }
 
-    reward = (int) (reward * 0.75);
+    reward = (int) (reward * 0.25); // we'll adjust this based on what the cooldown is
 
     int bonus = compute_ability(ch, ABILITY_DIPLOMACY);
     reward = (reward * (100+bonus)) / 100;
 
-    return reward;
+    return MAX(1, reward);
 }
 
 void clear_mission_mobs(char_data *ch)
