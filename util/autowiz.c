@@ -242,12 +242,12 @@ int main(int argc, char **argv)
   immlevel = atoi(argv[3]);
 
 #ifdef CIRCLE_UNIX /* Perhaps #ifndef CIRCLE_WINDOWS but ... */
-  int pid;
+//  int pid;
 
-  pid = 0;
+//  pid = 0;
 
-  if (argc == 6)
-    pid = atoi(argv[5]);
+//  if (argc == 6)
+//    pid = atoi(argv[5]);
 #endif
 
   initialize();
@@ -279,12 +279,12 @@ char *CAP(char *txt)
  * file. */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING], *buf2 = NULL;
+  char temp[MEDIUM_STRING];//, *buf2 = NULL;
   int lines = 0;
 
   do
   {
-    buf2 = fgets(temp, MEDIUM_STRING, fl);
+    fgets(temp, MEDIUM_STRING, fl);
     if (feof(fl))
       return (0);
     lines++;
