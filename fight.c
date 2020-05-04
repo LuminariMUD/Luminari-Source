@@ -3046,6 +3046,33 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
       HUNTING(ch) = NULL;
   }
 
+  if (IN_ARENA(ch) || IN_ARENA(killer))
+  {
+    struct descriptor_data *pt = NULL;
+
+    for (pt = descriptor_list; pt; pt = pt->next)
+    {
+      if (IS_PLAYING(pt) && pt->character)
+      {
+        if (GROUP(ch) && GROUP(ch)->members->iSize)
+        {
+          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s of %s's group has defeated %s in the Arena!\r\n",
+                       GET_NAME(ch), GET_NAME(ch->group->leader), GET_NAME(victim));
+        }
+        else if (IS_NPC(ch) && ch->master)
+        {
+          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s's follower has defeated %s in the Arena!\r\n",
+                       GET_NAME(ch->master), GET_NAME(victim));
+        }
+        else
+        {
+          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s has defeated %s in the Arena!\r\n",
+                       GET_NAME(ch), GET_NAME(victim));
+        }
+      }
+    }
+  }
+
   if (IS_NPC(victim))
   { // determine gold before corpse created
     if ((IS_HAPPYHOUR) && (IS_HAPPYGOLD))
