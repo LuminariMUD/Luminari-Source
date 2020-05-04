@@ -105,8 +105,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
             break;
           }
           snprintf(buf, sizeof(buf), "\tCGIVE\tn %s (%d)\r\n",
-                  obj_proto[real_object(qcom->value)].short_description,
-                  qcom->value);
+                   obj_proto[real_object(qcom->value)].short_description,
+                   qcom->value);
           send_to_char(ch, buf);
           break;
         case QUEST_COMMAND_COINS:
@@ -127,7 +127,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           break;
         }
         snprintf(buf, sizeof(buf), "\tcRECEIVE\tn %s (%d)\r\n",
-                obj_proto[real_object(qcom->value)].short_description, qcom->value);
+                 obj_proto[real_object(qcom->value)].short_description, qcom->value);
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_COINS:
@@ -146,8 +146,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           break;
         }
         snprintf(buf, sizeof(buf), "\tcLOADOBJECT\tn %s in %s\r\n",
-                obj_proto[real_object(qcom->value)].short_description,
-                (qcom->location == 0 ? "CurrentRoom" : world[real_room(qcom->location)].name));
+                 obj_proto[real_object(qcom->value)].short_description,
+                 (qcom->location == 0 ? "CurrentRoom" : world[real_room(qcom->location)].name));
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_OPEN_DOOR:
@@ -157,7 +157,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           break;
         }
         snprintf(buf, sizeof(buf), "\tcOPEN_DOOR\tn %s in %s(%d)\r\n", dirs[qcom->value],
-                world[real_room(qcom->location)].name, qcom->location);
+                 world[real_room(qcom->location)].name, qcom->location);
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_FOLLOW:
@@ -165,7 +165,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         break;
       case QUEST_COMMAND_CHURCH:
         snprintf(buf, sizeof(buf), "\tcSET_CHURCH\tn of player to of %s.\r\n",
-                church_types[qcom->value]);
+                 church_types[qcom->value]);
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_KIT:
@@ -176,8 +176,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         else
         {
           snprintf(buf, sizeof(buf), "\tcSET_KIT\tn of a %s to become %s.\r\n",
-                  CLSLIST_NAME(qcom->location),
-                  CLSLIST_NAME(qcom->location));
+                   CLSLIST_NAME(qcom->location),
+                   CLSLIST_NAME(qcom->location));
           send_to_char(ch, buf);
         }
         break;
@@ -188,8 +188,8 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           break;
         }
         snprintf(buf, sizeof(buf), "\tcLOADMOB\tn %s in %s\r\n",
-                mob_proto[real_mobile(qcom->value)].player.short_descr,
-                (qcom->location == 0 ? "CurrentRoom" : world[real_room(qcom->location)].name));
+                 mob_proto[real_mobile(qcom->value)].player.short_descr,
+                 (qcom->location == 0 ? "CurrentRoom" : world[real_room(qcom->location)].name));
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_ATTACK_QUESTOR:
@@ -205,7 +205,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           break;
         }
         snprintf(buf, sizeof(buf), "\tcTEACH_SPELL\tn %s\r\n",
-                spell_info[qcom->value].name);
+                 spell_info[qcom->value].name);
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_CAST_SPELL:
@@ -215,7 +215,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
           break;
         }
         snprintf(buf, sizeof(buf), "\tcCAST_SPELL\tn %s\r\n",
-                spell_info[qcom->value].name);
+                 spell_info[qcom->value].name);
         send_to_char(ch, buf);
         break;
       }
@@ -419,7 +419,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
     case QUEST_COMMAND_CHURCH:
       GET_CHURCH(ch) = qcom->value;
       snprintf(buf, sizeof(buf), "You are now a servant of %s.\r\n",
-              church_types[GET_CHURCH(ch)]);
+               church_types[GET_CHURCH(ch)]);
       send_to_char(ch, buf);
       break;
 
@@ -427,17 +427,39 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
     case QUEST_COMMAND_KIT:
       if (GET_CLASS(ch) != qcom->location)
       {
-        snprintf(buf, sizeof(buf), "You need to be a %s to learn how to be a %s.\r\n", CLSLIST_NAME(qcom->location), CLSLIST_NAME(qcom->value));
-        give_back_items(victim, ch, quest);
-        send_to_char(ch, buf);
+        if (qcom->location <= CLASS_UNDEFINED || qcom->location >= NUM_CLASSES)
+        {
+          snprintf(buf, sizeof(buf), "This quest is broken, please report it to the staff.\r\n");
+          give_back_items(victim, ch, quest);
+          send_to_char(ch, buf);
+        }
+        else
+        {
+          snprintf(buf, sizeof(buf), "You need to be a %s to learn how to be a %s.\r\n",
+                   CLSLIST_NAME(qcom->location), CLSLIST_NAME(qcom->value));
+          give_back_items(victim, ch, quest);
+          send_to_char(ch, buf);
+          log("quest_log : %s failed to do a kitquest.(Not right class)",
+              GET_NAME(ch));
+        }
       }
       else if (!has_race_kit(GET_RACE(ch), qcom->value))
       {
-        snprintf(buf, sizeof(buf), "Your race can NEVER learn how to become a %s.\r\n", CLSLIST_NAME(qcom->value));
-        send_to_char(ch, buf);
-        give_back_items(victim, ch, quest);
-        log("quest_log : %s failed to do a kitquest.(Not right race)",
-            GET_NAME(ch));
+        if (qcom->location <= CLASS_UNDEFINED || qcom->location >= NUM_CLASSES)
+        {
+          snprintf(buf, sizeof(buf), "This quest is broken, please report it to the staff.\r\n");
+          give_back_items(victim, ch, quest);
+          send_to_char(ch, buf);
+        }
+        else
+        {
+          snprintf(buf, sizeof(buf), "Your race can NEVER learn how to become a %s.\r\n",
+                   race_list[qcom->value].type_color);
+          send_to_char(ch, buf);
+          give_back_items(victim, ch, quest);
+          log("quest_log : %s failed to do a kitquest.(Not right race)",
+              GET_NAME(ch));
+        }
       }
       else if (GET_LEVEL(ch) < 10)
       {
@@ -461,6 +483,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         destroy_innate_magic_queue(ch);
         destroy_spell_collection(ch);
         destroy_known_spells(ch);
+
         if (qcom->value == CLASS_LICH)
         {
           //hack for lich remort..
@@ -506,11 +529,11 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
       else
       {
         snprintf(buf, sizeof(buf), "$N teaches you '\tL%s\tn'",
-                spell_info[qcom->value].name);
+                 spell_info[qcom->value].name);
         act(buf, FALSE, ch, 0, victim, TO_CHAR);
         GET_SKILL(ch, qcom->value) = 9;
         snprintf(buf, sizeof(buf), "quest_log: %s has quested %s", GET_NAME(ch),
-                spell_info[qcom->value].name);
+                 spell_info[qcom->value].name);
         log(buf);
       }
       break;
@@ -564,7 +587,7 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword)
   if (GET_LEVEL(ch) >= LVL_IMMORT && GET_LEVEL(ch) < LVL_IMPL)
   {
     snprintf(buf, sizeof(buf), "(GC) %s asked '%s' on %s (%d).", GET_NAME(ch), keyword,
-            GET_NAME(victim), GET_MOB_VNUM(victim));
+             GET_NAME(victim), GET_MOB_VNUM(victim));
     log(buf);
   }
 
@@ -966,8 +989,8 @@ ACMD(do_qinfo)
                 if (qcmd->type == QUEST_GIVE)
                 {
                   snprintf(buf2, sizeof(buf2), " give %s (%d)",
-                          obj_proto[real_object(qcmd->value)].short_description,
-                          qcmd->value);
+                           obj_proto[real_object(qcmd->value)].short_description,
+                           qcmd->value);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_COINS)
@@ -987,8 +1010,8 @@ ACMD(do_qinfo)
                 if (qcmd->type == QUEST_GIVE)
                 {
                   snprintf(buf2, sizeof(buf2), " and you receive %s (%d)",
-                          obj_proto[real_object(qcmd->value)].short_description,
-                          qcmd->value);
+                           obj_proto[real_object(qcmd->value)].short_description,
+                           qcmd->value);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_DISAPPEAR)
@@ -1002,8 +1025,8 @@ ACMD(do_qinfo)
                 else if (qcmd->type == QUEST_COMMAND_LOAD_OBJECT_INROOM)
                 {
                   snprintf(buf2, sizeof(buf2), " and the mob loads %s in %s(%d)",
-                          obj_proto[real_object(qcmd->value)].short_description,
-                          (qcmd->location == -1 ? "CurrentRoom" : world[real_room(qcmd->location)].name), qcmd->location);
+                           obj_proto[real_object(qcmd->value)].short_description,
+                           (qcmd->location == -1 ? "CurrentRoom" : world[real_room(qcmd->location)].name), qcmd->location);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_TEACH_SPELL)
@@ -1014,14 +1037,14 @@ ACMD(do_qinfo)
                 else if (qcmd->type == QUEST_COMMAND_OPEN_DOOR)
                 {
                   snprintf(buf2, sizeof(buf2), "and opens a door %s in %s(%d)", dirs[qcmd->value],
-                          world[real_room(qcmd->location)].name, qcmd->location);
+                           world[real_room(qcmd->location)].name, qcmd->location);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_LOAD_MOB_INROOM)
                 {
                   snprintf(buf2, sizeof(buf2), " and loads %s in %s (%d)",
-                          mob_proto[real_mobile(qcmd->value)].player.short_descr,
-                          qcmd->location == -1 ? "CurrentRoom" : world[real_room(qcmd->location)].name, qcmd->location);
+                           mob_proto[real_mobile(qcmd->value)].player.short_descr,
+                           qcmd->location == -1 ? "CurrentRoom" : world[real_room(qcmd->location)].name, qcmd->location);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_FOLLOW)
@@ -1036,7 +1059,7 @@ ACMD(do_qinfo)
                 else if (qcmd->type == QUEST_COMMAND_CHURCH)
                 {
                   snprintf(buf2, sizeof(buf2), " and changes your religious affiliation to %s",
-                          church_types[qcmd->value]);
+                           church_types[qcmd->value]);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else
@@ -1236,7 +1259,7 @@ ACMD(do_qref)
               break;
             case QUEST_COMMAND_LOAD_OBJECT_INROOM:
               snprintf(buf, sizeof(buf), "\tcLOADOBJECT\tn %s in quest for %s (\tW%d\tn)\r\n",
-                      obj_proto[real_num].short_description, mob_proto[i].player.short_descr, mob_index[i].vnum);
+                       obj_proto[real_num].short_description, mob_proto[i].player.short_descr, mob_index[i].vnum);
               send_to_char(ch, buf);
               count++;
               break;
