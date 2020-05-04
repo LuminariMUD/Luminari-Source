@@ -229,7 +229,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
 
 int main(int argc, char **argv)
 {
-  int wizlevel, immlevel, pid = 0;
+  int wizlevel, immlevel; //, pid = 0;
   FILE *fl;
 
   if (argc != 5 && argc != 6)
@@ -275,7 +275,7 @@ char *CAP(char *txt)
  * file. */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING], *buf2;
+  char temp[MEDIUM_STRING]; //, *buf2;
   int lines = 0;
 
   do
@@ -295,7 +295,8 @@ bitvector_t asciiflag_conv(const char *flag)
 {
   bitvector_t flags = 0;
   int is_number = 1;
-  register char *p;
+  const char *p;
+  //register char *p;
 
   for (p = flag; *p; p++)
   {
