@@ -111,7 +111,8 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "+2 to attack rolls with bombs.",
     "25 percent chance of nullifying any critical hit or sneak attack against the alchemist.",
     "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage and evil ones take none.",
-    "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist a cumulative +1 bonus to deflection ac.  The alchemist can 'launch' one spirit per round which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command.",
+    "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist a cumulative +1"
+    " bonus to deflection ac.  The alchemist can 'launch' one spirit per round which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command.",
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
     "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist level x2.",
     "Causes damage dealing bombs to deal an extra round of splash damage, and causes affect causing bombs to last an additional round.",
@@ -585,14 +586,15 @@ ACMD(do_bombs)
     {
       switch (type)
       {
-        case BOMB_HEALING:
-        case BOMB_FIRE_BRAND:
-          target = ch; break;
-        default:
-          target = FIGHTING(ch); break;
+      case BOMB_HEALING:
+      case BOMB_FIRE_BRAND:
+        target = ch;
+        break;
+      default:
+        target = FIGHTING(ch);
+        break;
       }
     }
-
 
     if (target == ch)
     {
@@ -2741,11 +2743,14 @@ void add_sticky_bomb_effect(struct char_data *ch, struct char_data *vict, int bo
     break;
   }
 
-  if (bomb_type != BOMB_HEALING && bomb_type != BOMB_FIRE_BRAND) {
+  if (bomb_type != BOMB_HEALING && bomb_type != BOMB_FIRE_BRAND)
+  {
     GET_STICKY_BOMB(vict, 0) = bomb_type;
     GET_STICKY_BOMB(vict, 1) = dam_type;
     GET_STICKY_BOMB(vict, 2) = damage;
-  } else {
+  }
+  else
+  {
     GET_STICKY_BOMB(ch, 0) = bomb_type;
     GET_STICKY_BOMB(ch, 1) = dam_type;
     GET_STICKY_BOMB(ch, 2) = damage;
@@ -2885,7 +2890,6 @@ ACMD(do_psychokinetic)
       send_to_char(ch, "You are already under the effect of a psychokinetic tincture.  You may either 'launch' the psychokinetic spirits in battle, or use 'psychokinetic dispel' to end the effect voluntarily.\r\n");
       return;
     }
-
 
     new_affect(&af);
     af.spell = ALC_DISC_AFFECT_PSYCHOKINETIC;
@@ -3136,7 +3140,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   snprintf(buf, sizeof(buf), "\tcDescription   : \tn%s\r\n",
-          alchemical_discovery_descriptions[discovery]);
+           alchemical_discovery_descriptions[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -3222,7 +3226,7 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n",
-          grand_alchemical_discovery_descriptions[discovery]);
+           grand_alchemical_discovery_descriptions[discovery]);
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
