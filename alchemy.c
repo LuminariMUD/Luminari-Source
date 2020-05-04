@@ -1281,6 +1281,8 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
   new_affect(&af2);
   new_affect(&af3);
 
+  af.bonus_type = af2.bonus_type = af3.bonus_type = BONUS_TYPE_ALCHEMICAL;
+
   switch (bomb_type)
   {
   case BOMB_ACID:
@@ -1301,6 +1303,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     af2.duration = 10;
     af2.location = APPLY_AC_NEW;
     af2.modifier = -4;
+    af2.bonus_type = BONUS_TYPE_DODGE;
     SET_BIT_AR(af2.bitvector, AFF_BLIND);
 
     to_vict = "You've been blinded!";
@@ -1391,6 +1394,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     af2.duration = 10;
     af2.location = APPLY_AC_NEW;
     af2.modifier = -4;
+    af2.bonus_type = BONUS_TYPE_DODGE;
     SET_BIT_AR(af2.bitvector, AFF_BLIND);
 
     to_vict = "You've been blinded!";
@@ -2895,7 +2899,7 @@ ACMD(do_psychokinetic)
     af.spell = ALC_DISC_AFFECT_PSYCHOKINETIC;
     af.duration = 50 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
     af.modifier = MIN(5, MAX(1, CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 4));
-    af.location = APPLY_AC;
+    af.location = APPLY_AC_NEW;
     af.bonus_type = BONUS_TYPE_DEFLECTION;
 
     affect_to_char(ch, &af);
