@@ -6991,7 +6991,6 @@ ACMD(do_singlefile)
 #include "wilderness.h"
 #include "kdtree.h"
 #include "mysql.h"
-#include "rtree/rTreeIndex.h"
 
 /* Command to generate a wilderness river. */
 ACMD(do_genriver)
