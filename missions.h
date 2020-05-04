@@ -16,11 +16,14 @@
 #define MISSION_CREDITS		3
 #define MISSION_EXP		4
 
-#define MISSION_DIFF_NORMAL		0
-#define MISSION_DIFF_TOUGH		1
-#define MISSION_DIFF_CHALLENGING	2
-#define MISSION_DIFF_ARDUOUS		3
-#define MISSION_DIFF_SEVERE		4
+#define MISSION_DIFF_EASY		0
+#define MISSION_DIFF_NORMAL		1
+#define MISSION_DIFF_TOUGH		2
+#define MISSION_DIFF_CHALLENGING	3
+#define MISSION_DIFF_ARDUOUS		4
+#define MISSION_DIFF_SEVERE		5
+
+#define NUM_MISSION_DIFFICULTIES        6
 
 #define GET_CURRENT_MISSION(ch)			(ch->player_specials->saved.current_mission)
 #define GET_MISSION_CREDITS(ch)			(ch->player_specials->saved.mission_credits)
@@ -40,7 +43,7 @@
 // variables
 extern const char * const mission_details[][8];
 extern const char * const mission_targets[5];
-extern const char * const mission_difficulty[5];
+extern const char * const mission_difficulty[NUM_MISSION_DIFFICULTIES];
 
 // functions
 int mission_details_to_faction(int faction);

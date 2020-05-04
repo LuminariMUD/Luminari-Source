@@ -89,7 +89,7 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "Can apply mutagen benefits to elemental resitance and an associated skill check bonus. Uses 'swallow' command.",
     "increases the caster level on any quaffed potion to the alchemist's class level.",
     "Any potions quaffed last twice as long.",
-    "Can make and throw bombs with a move action instead of a standard action.",
+    "Can make or throw bombs with a move action instead of a standard action.",
     "Allows use of a bomb that makes your wielded weapons flaming, and and alchemist level 10, also flaming burst.",
     "Deals 1d4/rank force damage with direct targets possibly being knocked prone.",
     "Deals 1d6/rank frost damage with direct targets having a chance to be staggered.",
@@ -2215,6 +2215,10 @@ void perform_mutagen(struct char_data *ch, char *arg2)
 
   act("$n swallows a vial of murky looking substance and grows more physically powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
   act("You swallow a vial of mutagen and grow more physically powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_MUTAGEN);
+
 }
 
 void perform_elemental_mutagen(struct char_data *ch, char *arg2)
@@ -2304,6 +2308,10 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
 
   act("$n swallows a vial of murky looking substance and looks more resistant before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
   act("You swallow a vial of inspiring cognatogen and feel more resistant in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_MUTAGEN);
+
 }
 
 void perform_cognatogen(struct char_data *ch, char *arg2)
@@ -2485,6 +2493,10 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
 
   act("$n swallows a vial of murky looking substance and grows more mentally powerful before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
   act("You swallow a vial of mutagen and grow more mentally powerful in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_MUTAGEN);
+
 }
 
 void perform_inspiring_cognatogen(struct char_data *ch)
@@ -2586,6 +2598,9 @@ void perform_inspiring_cognatogen(struct char_data *ch)
 
   act("$n swallows a vial of murky looking substance and grows more inspired before your eyes.", FALSE, ch, 0, 0, TO_ROOM);
   act("You swallow a vial of inspiring cognatogen and feel more inspired in an instant.", FALSE, ch, 0, 0, TO_CHAR);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_MUTAGEN);
 }
 
 ACMD(do_swallow)
@@ -2678,9 +2693,6 @@ ACMD(do_swallow)
     send_to_char(ch, "Are you trying to swallow a mutagen, elemental-mutagen, cognatogen or inspiring-cognatogen?\r\n");
     return;
   }
-
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_MUTAGEN);
 
   if (!IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_ALCHEMIST) < 1)
   {

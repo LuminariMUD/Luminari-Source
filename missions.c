@@ -63,13 +63,14 @@ const char * const mission_details[][8] = {
 
 const char * const mission_targets[5] = { "person", "traitor", "darkling", "fugitive", "fugitive" };
 
-const char * const mission_difficulty[5] = { "normal", "tough", "challenging", "arduous", "severe" };
+const char * const mission_difficulty[NUM_MISSION_DIFFICULTIES] = { "easy", "normal", "tough", "challenging", "arduous", "severe" };
 
-const char * const target_difficulty[5] = {
-    "of normal strength", "above normal strength", "well above normal strength",
+const char * const target_difficulty[NUM_MISSION_DIFFICULTIES] = {
+    " of easy strength", "of normal strength", "above normal strength", "well above normal strength",
     "far above normal strength ", "far above normal strength " };
 
-const char * const guard_difficulty[5] = {
+const char * const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
+    "of easy strength",
     "of normal strength",         "of normal strength",
     "above normal strength",      "above normal strength",
     "well above normal strength",
@@ -132,23 +133,6 @@ SPECIAL(faction_mission)
         return 1;
     }
 
-    if (is_abbrev(argument, "accept"))
-    {
-        if (GET_CURRENT_MISSION(ch) < 0)
-        {
-            send_to_char(ch, "You do not currently have a mission.\r\n");
-            return 1;
-        }
-        if (!GET_MISSION_DECLINE(ch))
-        {
-            send_to_char(ch, "You have already accepted this mission.\r\n");
-            return 1;
-        }
-        GET_MISSION_DECLINE(ch) = false;
-        send_to_char(ch, "You have accepted the mission offered to you.\r\n");
-        return 1;
-    }
-
     if (GET_MISSION_COOLDOWN(ch) > 0) {
       send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
       return 1;
@@ -161,13 +145,13 @@ SPECIAL(faction_mission)
     int difficulty = 0;
     int i = 0, count = 0, mDet = 0;
 
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < NUM_MISSION_DIFFICULTIES; i++)
     {
         if (is_abbrev(argument, mission_difficulty[i]))
             break;
     }
 
-    if (i >= 5)
+    if (i >= NUM_MISSION_DIFFICULTIES)
     {
         send_to_char(
             ch,
@@ -299,21 +283,23 @@ long get_mission_reward(char_data *ch, int reward_type)
 {
     int reward = 0;
     int level = GET_LEVEL(ch);
-    int mult = MAX(1, 1 + GET_MISSION_DIFFICULTY(ch));
+    float mult = MAX(0, GET_MISSION_DIFFICULTY(ch));
+    if (mult == 0)
+      mult = 0.5;
 
     switch (reward_type)
     {
     case MISSION_CREDITS:
-        reward = level * MAX(1, level / 2) * mult * 3;
+        reward = (int) (level * MAX(1, level / 2) * mult * 3);
         break;
     case MISSION_STANDING:
-        reward = (50 * mult);
+        reward = (int) (50 * mult);
         break;
     case MISSION_REP:
-        reward = level * MAX(1, level / 2) * mult / 4;
+        reward = (int) (level * MAX(1, level / 2) * mult / 4);
         break;
     case MISSION_EXP:
-        reward = level * MAX(1, level / 4) * mult * 300;
+        reward = (int) (level * MAX(1, level / 4) * mult * 300);
         break;
     }
 
@@ -348,26 +334,32 @@ void clear_mission_mobs(char_data *ch)
 void increase_mob_difficulty(struct char_data *mob, int difficulty)
 {
     switch (difficulty) {
+        case MISSION_DIFF_EASY:
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 0.5;
+            GET_HITROLL(mob) -= 2;
+            GET_DAMROLL(mob) -= 2;
+            mob->points.armor -= 30;
+            break;
         case MISSION_DIFF_TOUGH:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 2;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2;
             GET_HITROLL(mob) += 2;
             GET_DAMROLL(mob) += 2;
             mob->points.armor += 20;
             break;
         case MISSION_DIFF_CHALLENGING:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 5;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
             GET_HITROLL(mob) += 3;
             GET_DAMROLL(mob) += 3;
             mob->points.armor += 50;
             break;
         case MISSION_DIFF_ARDUOUS:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 8;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 8;
             GET_HITROLL(mob) += 5;
             GET_DAMROLL(mob) += 5;
             mob->points.armor += 80;
             break;
         case MISSION_DIFF_SEVERE:
-            GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * 10;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 10;
             GET_HITROLL(mob) += 6;
             GET_DAMROLL(mob) += 6;
             mob->points.armor += 100;
@@ -406,7 +398,7 @@ void create_mission_mobs(char_data *ch)
         }
         autoroll_mob(mob, TRUE, FALSE);
         mob->points.armor -= 40;
-        GET_REAL_MAX_HIT(mob) = (int) (GET_HIT(mob) = GET_HIT(mob) * 0.6);
+        GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
         GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
         GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
         GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
