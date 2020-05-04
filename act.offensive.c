@@ -2025,12 +2025,12 @@ ACMDCHECK(can_rage)
 /* rage skill (berserk) primarily for berserkers character class */
 ACMD(do_rage)
 {
-  struct affected_type af, aftwo, afthree, affour;
-  int bonus = 0, duration = 0;
+  struct affected_type af[RAGE_AFFECTS];
+  int bonus = 0, duration = 0, i = 0;
 
   PREREQ_CAN_FIGHT();
 
-  // If currently raging, all this does is stop.
+  /* If currently raging, all this does is stop. */
   if (affected_by_spell(ch, SKILL_RAGE))
   {
     clear_rage(ch);
@@ -2054,38 +2054,35 @@ ACMD(do_rage)
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
   act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
 
-  new_affect(&af);
-  new_affect(&aftwo);
-  new_affect(&afthree);
-  new_affect(&affour);
+  /* init affect array */
+  for (i = 0; i < RAGE_AFFECTS; i++)
+  {
+    new_affect(&(af[i]));
+    af[i].spell = SKILL_RAGE;
+    af[i].duration = duration;
+    af[i].bonus_type = BONUS_TYPE_MORALE;
+  }
 
-  af.spell = SKILL_RAGE;
-  af.duration = duration;
-  af.location = APPLY_STR;
-  af.modifier = bonus;
+  af[0].location = APPLY_STR;
+  af[0].modifier = bonus;
 
-  aftwo.spell = SKILL_RAGE;
-  aftwo.duration = duration;
-  aftwo.location = APPLY_CON;
-  aftwo.modifier = bonus;
+  af[1].location = APPLY_CON;
+  af[1].modifier = bonus;
 
-  afthree.spell = SKILL_RAGE;
-  afthree.duration = duration;
-  afthree.location = APPLY_SAVING_WILL;
-  afthree.modifier = bonus;
+  af[2].location = APPLY_SAVING_WILL;
+  af[2].modifier = bonus;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_WILL))
-    afthree.modifier += 4;
+  {
+    af[2].modifier += 4;
+  }
 
-  //this is a penalty
-  affour.spell = SKILL_RAGE;
-  affour.duration = duration;
-  affour.location = APPLY_AC_NEW;
-  affour.modifier = -2;
+  af[3].location = APPLY_AC_NEW;
+  af[3].modifier = -2; /* penalty! */
 
-  affect_to_char(ch, &af);
-  affect_to_char(ch, &aftwo);
-  affect_to_char(ch, &afthree);
-  affect_to_char(ch, &affour);
+  for (i = 0; i < RAGE_AFFECTS; i++)
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
+  save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_RAGE);
@@ -2097,6 +2094,9 @@ ACMD(do_rage)
 
   /* bonus hp from the rage */
   GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
+  save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
+
+  return;
 }
 
 /* inner fire - sacred fist feat */
