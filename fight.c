@@ -3046,7 +3046,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
       HUNTING(ch) = NULL;
   }
 
-  if (IN_ARENA(ch) || IN_ARENA(killer))
+  if (IN_ARENA(ch) || IN_ARENA(victim))
   {
     struct descriptor_data *pt = NULL;
 
