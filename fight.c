@@ -227,6 +227,7 @@ void perform_flee(struct char_data *ch)
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
     return;
   }
+
   /* got to be in a position to flee */
   if (GET_POS(ch) <= POS_SITTING)
   {
@@ -236,8 +237,13 @@ void perform_flee(struct char_data *ch)
     return;
   }
 
-  /* cost */
-  USE_MOVE_ACTION(ch);
+  if (!is_action_available(ch, atMOVE, TRUE))
+  {
+    GUI_CMBT_OPEN(ch);
+    send_to_char(ch, "You need a move action to flee!\r\n");
+    GUI_CMBT_CLOSE(ch);
+    return;
+  }
 
   //first find which directions are fleeable
   for (i = 0; i < DIR_COUNT; i++)
@@ -258,6 +264,9 @@ void perform_flee(struct char_data *ch)
     return;
   }
 
+  /* cost */
+  USE_MOVE_ACTION(ch);
+
   //not fighting?  no problems
   if (!FIGHTING(ch))
   {
@@ -267,6 +276,7 @@ void perform_flee(struct char_data *ch)
     //pick a random direction
     do_simple_move(ch, fleeOptions[rand_number(0, found - 1)], 3);
   }
+
   else
   {
 
@@ -3401,7 +3411,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
         if ((GET_DEX_BONUS(victim) + 10) > dice(1, 20))
           if (GET_HIT(victim) > 0)
             if (!IS_CASTING(victim) && GET_POS(victim) >= POS_FIGHTING)
-              perform_flee(victim);
+              if (IN_ROOM(ch) == IN_ROOM(victim) && !IS_CASTING(victim))
+                perform_flee(victim);
     }
     if (!IS_NPC(victim) && GET_WIMP_LEV(victim) && (victim != ch) && //pc wimpy
         GET_HIT(victim) < GET_WIMP_LEV(victim) && GET_HIT(victim) > 0 &&
