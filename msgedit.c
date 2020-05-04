@@ -308,7 +308,7 @@ static void copy_message_strings(struct message_type *tmsg, struct message_type 
   tmsg->god_msg.room_msg = fmsg && fmsg->god_msg.room_msg ? strdup(fmsg->god_msg.room_msg) : NULL;
 }
 
-ACMD(do_msgedit)
+ACMDC(do_msgedit)
 {
   int num;
   struct descriptor_data *d;

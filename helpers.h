@@ -29,6 +29,7 @@ const char *any_one_arg_c(const char *argument, char *first_arg, size_t n);
 /* Same as one_argument except that it takes two args and returns the rest;
  * ignores fill words */
 char *two_arguments(char *argument, char *first_arg, char *second_arg);
+const char *two_arguments_c(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2);
 
 /* Searches an array of strings for a target string.  "exact" can be 0 or non-0,
  * depending on whether or not the match must be exact for it to be returned.
@@ -45,6 +46,6 @@ const char *one_argument_c(const char *argument, char *first_arg, size_t n);
 
 extern const char *fill[];
 
-bool legal_communication(char *arg);
+bool legal_communication(const char *arg);
 
 void sentence_case(char *str);
