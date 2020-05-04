@@ -1133,11 +1133,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Move Point Requirement Check */
   if (riding)
   {
-    if (GET_MOVE(RIDING(ch)) < need_movement)
+    /* do NOT touch this until we re-evaluate the movement system and NPC movements points
+       -zusuk */
+    need_movement = 0;
+    /*if (GET_MOVE(RIDING(ch)) < need_movement)
     {
       send_to_char(ch, "Your mount is too exhausted.\r\n");
       return 0;
-    }
+    }*/
   }
   else
   {
@@ -1843,8 +1846,10 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
   room_rnum was_in;
   struct follow_type *k, *next;
 
-  if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS || FIGHTING(ch))
+  if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS)
     return (0);
+  else if (FIGHTING(ch))
+    send_to_char(ch, "You are too busy fighting to move!\r\n");
   else if (char_has_mud_event(ch, eFISTED))
     send_to_char(ch, "You can't move!  You are being held in place by a large clenched fist!\r\n");
   else if (!CONFIG_DIAGONAL_DIRS && IS_DIAGONAL(dir))
@@ -1862,7 +1867,6 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
   }
   else
   {
-
     /* This was tricky - buildwalk for normal rooms is only activated above.
      * for wilderness rooms we need to activate it here. */
     if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))

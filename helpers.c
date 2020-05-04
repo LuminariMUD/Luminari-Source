@@ -47,6 +47,14 @@ void half_chop(char *string, char *arg1, char *arg2)
   strcpy(arg2, temp); /* strcpy: OK (documentation) */
 }
 
+void half_chop_c(const char *string, char *arg1, size_t n1, char *arg2, size_t n2)
+{
+  const char *temp = any_one_arg_c(string, arg1, n1);
+  skip_spaces_c(&temp);
+  strncpy(arg2, temp, n2 - 1);
+  arg2[n2 - 1] = '\0';
+}
+
 /* Same as one_argument except that it doesn't ignore fill words. */
 char *any_one_arg(char *argument, char *first_arg)
 {
@@ -55,6 +63,26 @@ char *any_one_arg(char *argument, char *first_arg)
   while (*argument && !isspace(*argument))
   {
     *(first_arg++) = LOWER(*argument);
+    argument++;
+  }
+
+  *first_arg = '\0';
+
+  return (argument);
+}
+
+const char *any_one_arg_c(const char *argument, char *first_arg, size_t n)
+{
+  const char *arg_last = first_arg + n - 1;
+
+  skip_spaces_c(&argument);
+  
+  while (*argument && !isspace(*argument))
+  {
+    if (first_arg < arg_last)
+    {
+      *(first_arg++) = LOWER(*argument);
+    }
     argument++;
   }
 
@@ -186,7 +214,12 @@ char *two_arguments(char *argument, char *first_arg, char *second_arg)
   return (one_argument(one_argument(argument, first_arg), second_arg)); /* :-) */
 }
 
-bool legal_communication(char *arg)
+const char *two_arguments_c(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2)
+{
+  return (one_argument_c(one_argument_c(argument, first_arg, n1), second_arg, n2));
+}
+
+bool legal_communication(const char *arg)
 {
   while (*arg)
   {

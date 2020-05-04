@@ -70,7 +70,7 @@ void read_file(void)
   void add_name(byte level, char *name);
   char *CAP(char *txt);
   int get_line(FILE * fl, char *buf);
-  bitvector_t asciiflag_conv(char *flag);
+  bitvector_t asciiflag_conv(const char *flag);
 
   FILE *fl;
   int recs, i, last = 0, level = 0, flags = 0;
@@ -229,7 +229,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
 
 int main(int argc, char **argv)
 {
-  int wizlevel, immlevel, pid = 0;
+  int wizlevel, immlevel;
   FILE *fl;
 
   if (argc != 5 && argc != 6)
@@ -242,6 +242,10 @@ int main(int argc, char **argv)
   immlevel = atoi(argv[3]);
 
 #ifdef CIRCLE_UNIX /* Perhaps #ifndef CIRCLE_WINDOWS but ... */
+  int pid;
+
+  pid = 0;
+
   if (argc == 6)
     pid = atoi(argv[5]);
 #endif
@@ -275,7 +279,7 @@ char *CAP(char *txt)
  * file. */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING], *buf2;
+  char temp[MEDIUM_STRING], *buf2 = NULL;
   int lines = 0;
 
   do
@@ -291,11 +295,12 @@ int get_line(FILE *fl, char *buf)
   return (lines);
 }
 
-bitvector_t asciiflag_conv(char *flag)
+bitvector_t asciiflag_conv(const char *flag)
 {
   bitvector_t flags = 0;
   int is_number = 1;
-  register char *p;
+  const char *p;
+  //register char *p;
 
   for (p = flag; *p; p++)
   {

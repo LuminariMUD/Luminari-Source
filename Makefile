@@ -30,7 +30,7 @@ CXXFLAGS = $(CFLAGS) -std=c++11
 
 LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient
 
-SRCFILES := $(wildcard *.c) $(wildcard rtree/*.c)
+SRCFILES := $(wildcard *.c)
 CPPFILES := $(wildcard *.cpp)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
 

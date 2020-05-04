@@ -4824,6 +4824,25 @@ ACMD(do_split)
   }
 }
 
+/* lazy hack to fix some troublesome staves in-game */
+bool invalid_staff_spell(int spell_num)
+{
+  bool is_invalid = FALSE;
+
+  switch (spell_num)
+  {
+  case SPELL_EARTHQUAKE: /* fallthrough */
+  case SPELL_WIZARD_EYE:
+    is_invalid = TRUE;
+    break;
+
+  default:
+    break;
+  }
+
+  return is_invalid;
+}
+
 ACMD(do_use)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -4930,7 +4949,9 @@ ACMD(do_use)
   {
 
   case SCMD_RECITE:
+
     spell = GET_OBJ_VAL(mag_item, 1);
+
     /* remove curse and identify you can use regardless */
     if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY)
       break;
@@ -4945,7 +4966,9 @@ ACMD(do_use)
       send_to_char(ch, "You are unable to decipher the magical writings!\r\n");
       return;
     }
+
     /* 2. Activate the Spell */
+
     /* 2.a. Check the spell type
        *      ARCANE - Wizard, Sorcerer, Bard
        *      DIVINE - Cleric, Druid, Paladin, Ranger */
@@ -4992,6 +5015,7 @@ ACMD(do_use)
         return;
       }
     }
+
     /* 2.c. Check the relevant ability score */
     /* SPELL PREPARATION HOOK (spellCircle) */
     umd_ability_score = (skill_check(ch, ABILITY_USE_MAGIC_DEVICE, 15));
@@ -5017,6 +5041,7 @@ ACMD(do_use)
       send_to_char(ch, "You are physically incapable of casting the spell inscribed on the scroll.\r\n");
       return;
     }
+
     /* 3. Check caster level */
     if ((CASTER_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)) &&
         (check_result && GET_LEVEL(ch) < GET_OBJ_VAL(mag_item, 0)))
@@ -5051,10 +5076,21 @@ ACMD(do_use)
       break;
     case ITEM_WAND:
     case ITEM_STAFF:
+
+      spell = GET_OBJ_VAL(mag_item, 3);
+
+      /* zusuk lazy solution to stop some troublesome spells */
+      if (invalid_staff_spell(spell))
+      {
+        send_to_char(ch, "Tell a staff member that this staff is using an invalid spell (%d) please.\r\n", spell);
+        return;
+      }
+
       /* Check requirements for using a wand: Spell Trigger method */
       /* 1. Class must be able to cast the spell stored in the wand. Use Magic Device can bluff this. */
-      spell = GET_OBJ_VAL(mag_item, 3);
+
       dc = 20;
+
       if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
       {
         if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
