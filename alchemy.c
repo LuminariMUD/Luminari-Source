@@ -2894,11 +2894,12 @@ ACMD(do_psychokinetic)
     new_affect(&af);
     af.spell = ALC_DISC_AFFECT_PSYCHOKINETIC;
     af.duration = 50 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
-    af.modifier = MAX(1, CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 4);
-    af.location = APPLY_AC_NEW;
+    af.modifier = MIN(5, MAX(1, CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 4));
+    af.location = APPLY_AC;
     af.bonus_type = BONUS_TYPE_DEFLECTION;
 
     affect_to_char(ch, &af);
+
     snprintf(buf, sizeof(buf), "You drink your psychokinetic tincture and are suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
     act(buf, FALSE, ch, 0, 0, TO_CHAR);
     snprintf(buf, sizeof(buf), "$n drinks a strange fluid and is suddenly surrounded by %d protective spirit%s.\r\n", af.modifier, af.modifier == 1 ? "" : "s");
