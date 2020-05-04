@@ -70,7 +70,7 @@ void read_file(void)
   void add_name(byte level, char *name);
   char *CAP(char *txt);
   int get_line(FILE * fl, char *buf);
-  bitvector_t asciiflag_conv(char *flag);
+  bitvector_t asciiflag_conv(const char *flag);
 
   FILE *fl;
   int recs, i, last = 0, level = 0, flags = 0;
@@ -291,7 +291,7 @@ int get_line(FILE *fl, char *buf)
   return (lines);
 }
 
-bitvector_t asciiflag_conv(char *flag)
+bitvector_t asciiflag_conv(const char *flag)
 {
   bitvector_t flags = 0;
   int is_number = 1;
