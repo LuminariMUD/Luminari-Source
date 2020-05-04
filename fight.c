@@ -1495,6 +1495,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 
 void die(struct char_data *ch, struct char_data *killer)
 {
+
+  if (!killer) return;
+
   struct char_data *temp;
   struct descriptor_data *pt;
   int xp_to_lvl =

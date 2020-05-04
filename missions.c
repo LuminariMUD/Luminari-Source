@@ -66,8 +66,8 @@ const char * const mission_targets[5] = { "person", "traitor", "darkling", "fugi
 const char * const mission_difficulty[NUM_MISSION_DIFFICULTIES] = { "easy", "normal", "tough", "challenging", "arduous", "severe" };
 
 const char * const target_difficulty[NUM_MISSION_DIFFICULTIES] = {
-    " of easy strength", "of normal strength", "above normal strength", "well above normal strength",
-    "far above normal strength ", "far above normal strength " };
+    "of easy strength", "of normal strength", "above normal strength", "well above normal strength",
+    "far above normal strength", "far above normal strength" };
 
 const char * const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
     "of easy strength",
@@ -156,7 +156,7 @@ SPECIAL(faction_mission)
         send_to_char(
             ch,
             "That is not a valid difficulty level.  Select among the following difficulty levels:\r\n");
-        for (i = 0; i < 5; i++)
+        for (i = 0; i < NUM_MISSION_DIFFICULTIES; i++)
             send_to_char(
                 ch,
                 "-- %11s      - challenge level %d: %s target and %s guards\r\n",
@@ -227,11 +227,10 @@ SPECIAL(faction_mission)
     snprintf(
         buf, sizeof(buf), 
         "\tM$N tells you, 'I've got something for you from the %s.  We're having some trouble with %s %s named %s, located somewhere in "
-        "%s, or in the surrounding wilderness.  We need you to terminate them with extreme predjudice.  We have written this "
-        "information in your journal, designating your target with a label showing your name.  They "
+        "%s, or in the surrounding wilderness.  We need you to terminate them with extreme predjudice. They "
         "will likely not be alone, so be prepared to fight multiple enemies.  When the deed is done, "
         "return to me for your pay.  Take note: this mission is of %s difficulty. Your target will be "
-        "%s and the guards will be %s. That is all.'\tn\r\n",
+        "%s and the guards will be %s.'\r\n",
         faction_names_lwr[faction],
         AN(mission_targets[mission_details_to_faction(faction)]),
         mission_targets[mission_details_to_faction(faction)],
@@ -241,6 +240,14 @@ SPECIAL(faction_mission)
         mission_difficulty[difficulty],
         target_difficulty[difficulty], guard_difficulty[difficulty]);
     act(buf, FALSE, ch, 0, (struct char_data *) me, TO_CHAR);
+
+    send_to_char(
+        ch,
+        "Your reward will be %ld gold coins, %ld %s standing, %ld quest points and %ld experience points.\r\n\tn",
+        GET_MISSION_CREDITS(ch), GET_MISSION_STANDING(ch),
+        faction_names_lwr[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
+        GET_MISSION_EXP(ch));
+
 
     create_mission_mobs(ch);
 
@@ -257,7 +264,7 @@ ACMDC(do_missions)
         send_to_char(
             ch,
             "You may start a new mission by specifying a difficulty level.  Select among the following difficulty levels:\r\n");
-        for (i = 0; i < 5; i++)
+        for (i = 0; i < NUM_MISSION_DIFFICULTIES; i++)
             send_to_char(
                 ch,
                 "-- %11s      - challenge level %d: %s target and %s guards\r\n",
@@ -341,25 +348,25 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
             mob->points.armor -= 30;
             break;
         case MISSION_DIFF_TOUGH:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 1.5;
             GET_HITROLL(mob) += 2;
             GET_DAMROLL(mob) += 2;
             mob->points.armor += 20;
             break;
         case MISSION_DIFF_CHALLENGING:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2.5;
             GET_HITROLL(mob) += 3;
             GET_DAMROLL(mob) += 3;
             mob->points.armor += 50;
             break;
         case MISSION_DIFF_ARDUOUS:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 8;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 3.33;
             GET_HITROLL(mob) += 5;
             GET_DAMROLL(mob) += 5;
             mob->points.armor += 80;
             break;
         case MISSION_DIFF_SEVERE:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 10;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
             GET_HITROLL(mob) += 6;
             GET_DAMROLL(mob) += 6;
             mob->points.armor += 100;
@@ -404,6 +411,9 @@ void create_mission_mobs(char_data *ch)
         GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
         switch (GET_MISSION_DIFFICULTY(ch))
         {
+        case MISSION_DIFF_EASY:
+            increase_mob_difficulty(mob, MISSION_DIFF_EASY);
+            break;
         case MISSION_DIFF_TOUGH:
             if (i == 0) {
               increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
@@ -426,6 +436,7 @@ void create_mission_mobs(char_data *ch)
             else
                 increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
         }
+	GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
         GET_FACTION(mob) = GET_MISSION_FACTION(ch);
         randName = GET_MISSION_NPC_NAME_NUM(ch);
         mob->mission_owner = GET_IDNUM(ch);

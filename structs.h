@@ -3122,8 +3122,8 @@ struct char_point_data
 {
     sh_int psp;            /**< Current psp level  */
     sh_int max_psp;        /**< Max psp level */
-    sh_int hit;            /**< Curent hit point, or health, level */
-    sh_int max_hit;        /**< Max hit point, or health, level */
+    int hit;            /**< Curent hit point, or health, level */
+    int max_hit;        /**< Max hit point, or health, level */
     sh_int move;           /**< Current move point, or stamina, level */
     sh_int max_move;       /**< Max move point, or stamina, level */
     sh_int armor;          // armor class
