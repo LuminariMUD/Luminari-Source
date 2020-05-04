@@ -109,7 +109,7 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
   return FALSE;
 }
 
-ACMD(do_disabletrap)
+ACMDC(do_disabletrap)
 {
   struct obj_data *trap = NULL;
   int result = 0, exp = 1, dc = 0;
@@ -190,7 +190,7 @@ int perform_detecttrap(struct char_data *ch, bool silent)
   return 0;
 }
 
-ACMD(do_detecttrap)
+ACMDC(do_detecttrap)
 {
 
   if (!GET_ABILITY(ch, ABILITY_PERCEPTION))

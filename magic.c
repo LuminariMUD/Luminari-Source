@@ -365,7 +365,9 @@ bool alt_wear_off_msg(struct char_data *ch, int skillnum)
   {
 
     /*special spells*/
-
+  case SPELL_PRISMATIC_SPRAY:
+    send_to_char(ch, "The effects from the prismatic spray fade away.\r\n");
+    break;
   case SPELL_FAERIE_FIRE:
     send_to_char(ch, "The effects from faerie fire fade away.\r\n");
     break;

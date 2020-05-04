@@ -1446,11 +1446,11 @@ static char fread_letter(FILE *fp)
   return c;
 }
 
-bitvector_t asciiflag_conv(char *flag)
+bitvector_t asciiflag_conv(const char *flag)
 {
   bitvector_t flags = 0;
   int is_num = TRUE;
-  char *p;
+  const char *p;
 
   for (p = flag; *p; p++)
   {

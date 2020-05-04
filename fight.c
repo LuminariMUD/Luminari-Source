@@ -227,6 +227,7 @@ void perform_flee(struct char_data *ch)
     GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
     return;
   }
+
   /* got to be in a position to flee */
   if (GET_POS(ch) <= POS_SITTING)
   {
@@ -236,8 +237,13 @@ void perform_flee(struct char_data *ch)
     return;
   }
 
-  /* cost */
-  USE_MOVE_ACTION(ch);
+  if (!is_action_available(ch, atMOVE, TRUE))
+  {
+    GUI_CMBT_OPEN(ch);
+    send_to_char(ch, "You need a move action to flee!\r\n");
+    GUI_CMBT_CLOSE(ch);
+    return;
+  }
 
   //first find which directions are fleeable
   for (i = 0; i < DIR_COUNT; i++)
@@ -258,6 +264,9 @@ void perform_flee(struct char_data *ch)
     return;
   }
 
+  /* cost */
+  USE_MOVE_ACTION(ch);
+
   //not fighting?  no problems
   if (!FIGHTING(ch))
   {
@@ -267,6 +276,7 @@ void perform_flee(struct char_data *ch)
     //pick a random direction
     do_simple_move(ch, fleeOptions[rand_number(0, found - 1)], 3);
   }
+
   else
   {
 
@@ -1358,6 +1368,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* stop relevant fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
+
   for (k = combat_list; k; k = temp)
   {
     temp = k->next_fighting;
@@ -1368,7 +1379,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* clear all affections */
   while (ch->affected)
     affect_remove(ch, ch->affected);
-
 
   /* this was commented out for some reason, undid that to make sure
    events clear on death */
@@ -1433,6 +1443,25 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     /* extraction!  *SLURRRRRRRRRRRRRP* */
     extract_char(ch);
   }
+  else if (IN_ARENA(ch) || IN_ARENA(killer))
+  {
+    char_from_room(ch);
+    death_message(ch);
+    GET_HIT(ch) = GET_MAX_HIT(ch);
+    update_pos(ch);
+
+    /* move char to starting room */
+    char_to_room(ch, real_room(CONFIG_ARENA_DEATH));
+    act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
+    look_at_room(ch, 0);
+    entry_memory_mtrigger(ch);
+    greet_mtrigger(ch, -1);
+    greet_memory_mtrigger(ch);
+    resetCastingData(ch);
+
+    save_char(ch, 0);
+    Crash_delete_crashfile(ch);
+  }
   else
   { /* PC's do not extract currently or make a corpse */
     char_from_room(ch);
@@ -1479,7 +1508,8 @@ void die(struct char_data *ch, struct char_data *killer)
   else
   {
     // if not a newbie then bang that xp! - Bakarus
-    gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
+    if (!IN_ARENA(ch) && !IN_ARENA(killer))
+      gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
   }
 
   if (!IS_NPC(ch))
@@ -1655,7 +1685,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
   /* Calculate level-difference bonus */
-  if (GET_LEVEL(victim) < GET_LEVEL(ch))
+  if (GET_LEVEL(victim) > GET_LEVEL(ch))
   {
     if (IS_NPC(ch))
       exp += MAX(0, (exp * MIN(4, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
@@ -3402,7 +3432,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
         if ((GET_DEX_BONUS(victim) + 10) > dice(1, 20))
           if (GET_HIT(victim) > 0)
             if (!IS_CASTING(victim) && GET_POS(victim) >= POS_FIGHTING)
-              perform_flee(victim);
+              if (IN_ROOM(ch) == IN_ROOM(victim) && !IS_CASTING(victim))
+                perform_flee(victim);
     }
     if (!IS_NPC(victim) && GET_WIMP_LEV(victim) && (victim != ch) && //pc wimpy
         GET_HIT(victim) < GET_WIMP_LEV(victim) && GET_HIT(victim) > 0 &&
