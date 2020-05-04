@@ -1369,7 +1369,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   while (ch->affected)
     affect_remove(ch, ch->affected);
 
-
   /* this was commented out for some reason, undid that to make sure
    events clear on death */
   clear_char_event_list(ch);
@@ -1655,7 +1654,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   exp = MIN(CONFIG_MAX_EXP_GAIN, GET_EXP(victim) / 3);
 
   /* Calculate level-difference bonus */
-  if (GET_LEVEL(victim) < GET_LEVEL(ch))
+  if (GET_LEVEL(victim) > GET_LEVEL(ch))
   {
     if (IS_NPC(ch))
       exp += MAX(0, (exp * MIN(4, (GET_LEVEL(victim) - GET_LEVEL(ch)))) / 8);
