@@ -579,6 +579,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"skillset", "skillset", POS_SLEEPING, do_skillset, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sleep", "sl", POS_SLEEPING, do_sleep, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"slist", "slist", POS_SLEEPING, do_oasis_list, LVL_BUILDER, SCMD_OASIS_SLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"smashdefense", "smashdefense", POS_RESTING, do_gen_tog, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"smiteevil", "smiteevil", POS_FIGHTING, do_smiteevil, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_smiteevil},
     {"smitegood", "smitegood", POS_FIGHTING, do_smitegood, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_smitegood},
     {"sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

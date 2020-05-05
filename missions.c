@@ -526,7 +526,7 @@ void apply_mission_rewards(char_data *ch)
 
     send_to_char(
         ch,
-        "You have earned %d experience points for completing your mission.\r\n", gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_DEFAULT));
+        "You have earned %d experience points for completing your mission.\r\n", gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_QUEST));
 
     send_to_char(ch, "\r\n");
 
