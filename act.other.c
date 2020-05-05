@@ -5090,6 +5090,7 @@ ACMD(do_use)
     /* Check the item type */
     switch (GET_OBJ_TYPE(mag_item))
     {
+
     case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
       if (HAS_SPECIAL_ABILITIES(mag_item))
       {
@@ -5162,8 +5163,14 @@ ACMD(do_use)
       }
 
       break;
-    }
-    break;
+
+    default:
+      send_to_char(ch, "Reached the end of switch for obj-type in 'use' command.\r\n");
+      break;
+
+    } /* end switch for obj-type */
+
+    break; /* break for 'use' case above */
   }
 
   mag_objectmagic(ch, mag_item, buf);
