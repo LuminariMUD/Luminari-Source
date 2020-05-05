@@ -48,6 +48,7 @@
 #include "spells.h"
 #include "spell_prep.h"
 #include "premadebuilds.h"
+#include "staff_events.h"
 
 #define SHAPE_AFFECTS 3
 #define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
@@ -4911,7 +4912,8 @@ ACMD(do_use)
   case SCMD_USE:
     if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
         (GET_OBJ_TYPE(mag_item) != ITEM_STAFF) &&
-        (!HAS_SPECIAL_ABILITIES(mag_item)))
+        (!HAS_SPECIAL_ABILITIES(mag_item)) &&
+        (GET_OBJ_VNUM(mag_item) != PRISTINEHORN_PRIZE))
     {
       send_to_char(ch, "You can't seem to figure out how to use it.\r\n");
       return;
@@ -5060,7 +5062,31 @@ ACMD(do_use)
       }
     }
     break;
+
   case SCMD_USE:
+
+    /*special cases*/
+    if (GET_OBJ_VNUM(mag_item) == PRISTINEHORN_PRIZE)
+    {
+      if (GET_OBJ_VAL(mag_item, 0) >= 0)
+      {
+        send_to_char(ch, "You release the powerful magics inscribed on the token!\r\n");
+        act("$n raises $p in the air releasing powerful magic...", TRUE, ch, mag_item, 0, TO_ROOM);
+
+        GET_OBJ_VAL(mag_item, 0) = -1; /* just a marker that it has been used */
+
+        invoke_happyhour(ch);
+
+        return;
+      }
+      else
+      {
+        send_to_char(ch, "Apparently the power in this token has already been consumed...\r\n");
+        return;
+      }
+    }
+    /*end special cases */
+
     /* Check the item type */
     switch (GET_OBJ_TYPE(mag_item))
     {
@@ -5666,6 +5692,23 @@ void show_happyhour(struct char_data *ch)
   {
     send_to_char(ch, "Sorry, there is currently no happy hour!\r\n");
   }
+}
+
+/* set this up so we can just start a happy hour with a token */
+void invoke_happyhour(struct char_data *ch)
+{
+  if (!ch)
+    return;
+
+  HAPPY_EXP = 100;
+  HAPPY_GOLD = 50;
+  HAPPY_QP = 50;
+  HAPPY_TREASURE = 20;
+  HAPPY_TIME = 48;
+
+  game_info("A Happyhour has been started by %s!", GET_NAME(ch));
+
+  return;
 }
 
 ACMD(do_happyhour)
