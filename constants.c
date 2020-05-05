@@ -1426,7 +1426,8 @@ const char *connected_types[NUM_CON_STATES + 1] = {
     "Alignment Selection", //37
     "Race Help",           // 38
     "HL Quest Edit",
-    "Select Stats", //40
+    "Craft Edit", // 40
+    "Select Stats",
     "Acct Name",
     "Acct Name Confirm",
     "Acct Menu",
@@ -1434,8 +1435,10 @@ const char *connected_types[NUM_CON_STATES + 1] = {
     "Acct Char Pwd",
     "House Edit",
     "Composing Mail Message",
+    "Confirm Premade",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
+_Static_assert(sizeof(connected_types)/sizeof(connected_types[0]) == NUM_CON_STATES + 1, "connected_types is missing entries");
 
 /** Describes the position in the equipment listing.
  * @pre Must be in the same order as the defines.
