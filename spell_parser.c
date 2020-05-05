@@ -1216,9 +1216,9 @@ EVENTFUNC(event_casting)
 
                         //display time left to finish spell
                         snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : "Casting",
-                                (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
-                                (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
-                                SINFO.name);
+                                 (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
+                                 (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                                 SINFO.name);
                         for (x = CASTING_TIME(ch); x > 0; x--)
                                 strlcat(buf, "*", sizeof(buf));
                         strlcat(buf, "\r\n", sizeof(buf));
@@ -2882,7 +2882,7 @@ void mag_assign_spells(void)
 
         // epic magical
         spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
-               TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
                "You feel less protected.", 4, 1, ABJURATION, FALSE);
         spello(SPELL_EPIC_WARDING, "epic warding", 95, 80, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,

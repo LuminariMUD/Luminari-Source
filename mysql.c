@@ -760,15 +760,15 @@ struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y)
   char buf[1024];
 
   snprintf(buf, sizeof(buf), "SELECT vnum, "
-               "  CASE WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "             ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
-               "    WHEN (ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "               ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
+               "  CASE WHEN (ST_Within(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+               "             ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
+               "    WHEN (ST_Within(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+               "               ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
                "    ELSE %d"
                "  END AS glyph "
                "  from path_index "
                "  where zone_vnum = %d "
-               "  and ST_Touches(GeomFromText('POINT(%d %d)'), path_linestring)",
+               "  and ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)",
           x, y - 1, x, y + 1, GLYPH_TYPE_PATH_NS, x - 1, y, x + 1, y, GLYPH_TYPE_PATH_EW, GLYPH_TYPE_PATH_INT, zone_table[zone].number, x, y);
 
   /* Check the connection, reconnect if necessary. */
