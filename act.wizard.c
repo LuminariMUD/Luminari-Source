@@ -4322,9 +4322,9 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
 
 void show_set_help(struct char_data *ch)
 {
-  const char * const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
-  const char * const set_targets[] = {"PC", "NPC", "BOTH"};
-  const char * const set_types[] = {"MISC", "BINARY", "NUMBER"};
+  const char *const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
+  const char *const set_targets[] = {"PC", "NPC", "BOTH"};
+  const char *const set_types[] = {"MISC", "BINARY", "NUMBER"};
   char buf[MAX_STRING_LENGTH];
   int i, len = 0, add_len = 0;
 
@@ -4695,7 +4695,7 @@ const struct zcheck_armor
 {
   bitvector_t bitvector; /* from Structs.h                       */
   int ac_allowed;        /* Max. AC allowed for this body part  */
-  const char *message;         /* phrase for error message            */
+  const char *message;   /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
     {ITEM_WEAR_FINGER, 1, "Ring"}, //0
     {ITEM_WEAR_NECK, 1, "Necklace"},
@@ -4728,9 +4728,9 @@ const struct zcheck_armor
  * To ignore an apply, set max_aff to -99. These will be ignored if MAX_APPLIES_LIMIT = 0 */
 const struct zcheck_affs
 {
-  int aff_type;  /*from Structs.h*/
-  int min_aff;   /*min. allowed value*/
-  int max_aff;   /*max. allowed value*/
+  int aff_type;        /*from Structs.h*/
+  int min_aff;         /*min. allowed value*/
+  int max_aff;         /*max. allowed value*/
   const char *message; /*phrase for error message*/
 } zaffs[NUM_APPLIES] = {
     {APPLY_NONE, 0, -99, "unused0"}, //0
@@ -5854,9 +5854,9 @@ ACMD(do_file)
   /* Defines which files are available to read. */
   const struct file_struct
   {
-    const char *cmd;          /* The 'name' of the file to view */
+    const char *cmd;    /* The 'name' of the file to view */
     char level;         /* Minimum level needed to view. */
-    const char *file;         /* The file location, relative to the working dir. */
+    const char *file;   /* The file location, relative to the working dir. */
     int read_backwards; /* Should the file be read backwards by default? */
   } fields[] = {
       {"xnames", LVL_IMMORT, XNAME_FILE, TRUE},
@@ -8416,6 +8416,9 @@ ACMD(do_copyroom)
 
 void check_auto_shutdown(void)
 {
+  if (IS_HAPPYHOUR || IS_STAFF_EVENT)
+    return;
+
   char *tmstr;
   time_t mytime;
   int h, m, hour;
@@ -8518,54 +8521,54 @@ ACMD(do_perfmon)
 
   if (arg1[0] == '\0')
   {
-    send_to_char(ch, 
-      "perfmon all             - Print all perfmon info.\r\n"
-      "perfmon summ            - Print summary,\r\n"
-      "perfmon prof            - Print profiling info.\r\n"
-      "perfmon sect <section>  - Print profiling info for section.\r\n");
+    send_to_char(ch,
+                 "perfmon all             - Print all perfmon info.\r\n"
+                 "perfmon summ            - Print summary,\r\n"
+                 "perfmon prof            - Print profiling info.\r\n"
+                 "perfmon sect <section>  - Print profiling info for section.\r\n");
     return;
   }
 
-  if (!str_cmp( arg1, "all"))
-  {
-      char buf[MAX_STRING_LENGTH];
-
-      size_t written = PERF_repr( buf, sizeof(buf) );
-      written = PERF_prof_repr_total( buf + written, sizeof(buf) - written);
-
-      page_string(ch->desc, buf, TRUE);
-
-      return;
-  }
-  else if (!str_cmp( arg1, "summ"))
+  if (!str_cmp(arg1, "all"))
   {
     char buf[MAX_STRING_LENGTH];
 
-    PERF_repr( buf, sizeof(buf) );
-    page_string(ch->desc, buf, TRUE);
-    return;
-  }
-  else if (!str_cmp( arg1, "prof"))
-  {
-    char buf[MAX_STRING_LENGTH];
+    size_t written = PERF_repr(buf, sizeof(buf));
+    written = PERF_prof_repr_total(buf + written, sizeof(buf) - written);
 
-    PERF_prof_repr_total( buf, sizeof(buf) );
     page_string(ch->desc, buf, TRUE);
 
     return;
   }
-  else if (!str_cmp( arg1, "sect"))
+  else if (!str_cmp(arg1, "summ"))
   {
     char buf[MAX_STRING_LENGTH];
 
-    PERF_prof_repr_sect( buf, sizeof(buf), argument );
+    PERF_repr(buf, sizeof(buf));
+    page_string(ch->desc, buf, TRUE);
+    return;
+  }
+  else if (!str_cmp(arg1, "prof"))
+  {
+    char buf[MAX_STRING_LENGTH];
+
+    PERF_prof_repr_total(buf, sizeof(buf));
+    page_string(ch->desc, buf, TRUE);
+
+    return;
+  }
+  else if (!str_cmp(arg1, "sect"))
+  {
+    char buf[MAX_STRING_LENGTH];
+
+    PERF_prof_repr_sect(buf, sizeof(buf), argument);
     page_string(ch->desc, buf, TRUE);
 
     return;
   }
   else
   {
-    do_perfmon( ch, "", cmd, subcmd );
+    do_perfmon(ch, "", cmd, subcmd);
     return;
   }
 }
