@@ -111,8 +111,9 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "+2 to attack rolls with bombs.",
     "25 percent chance of nullifying any critical hit or sneak attack against the alchemist.",
     "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage and evil ones take none.",
-    "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist a cumulative +1"
-    " bonus to deflection ac.  The alchemist can 'launch' one spirit per round which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command.",
+    "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist a cumulative +1 "
+      "bonus to deflection ac, up to a maximum of 5 at alchemist level 20.  The alchemist can 'launch' one spirit per round "
+      "which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command. See also: HELP PSYCHOKINETIC",
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
     "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist level x2.",
     "Causes damage dealing bombs to deal an extra round of splash damage, and causes affect causing bombs to last an additional round.",

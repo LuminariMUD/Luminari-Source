@@ -1376,6 +1376,9 @@ void mobile_activity(void)
           continue;
         if (MOB_FLAGGED(ch, MOB_GUARD) && !MOB_FLAGGED(ch, MOB_HELPER) && !MOB_FLAGGED(vict, MOB_CITIZEN))
           continue;
+        if (MOB_FLAGGED(ch, MOB_GUARD) && (MOB_FLAGGED(ch, MOB_HELPER) || MOB_FLAGGED(vict, MOB_CITIZEN)))
+          if (ch->mission_owner && vict->mission_owner && ch->mission_owner != vict->mission_owner)
+            continue;
         if (MOB_FLAGGED(ch, MOB_HELPER) && IS_ANIMAL(vict))
           continue;
 
