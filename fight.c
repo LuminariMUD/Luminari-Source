@@ -1496,7 +1496,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 void die(struct char_data *ch, struct char_data *killer)
 {
 
-  if (!killer) return;
+  if (!killer)
+    return;
 
   struct char_data *temp;
   struct descriptor_data *pt;
@@ -1642,7 +1643,7 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
   tot_gain = (GET_EXP(victim) / 3) + tot_members - 1;
 
   /* Calculate level-difference bonus */
-  if (GET_LEVEL(victim) < party_level)
+  if (GET_LEVEL(victim) > party_level)
   {
     if (IS_NPC(ch))
       tot_gain += MAX(0, (tot_gain * MIN(4, (GET_LEVEL(victim) - party_level))) / 8);
