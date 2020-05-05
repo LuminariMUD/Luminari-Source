@@ -348,25 +348,25 @@ void increase_mob_difficulty(struct char_data *mob, int difficulty)
             mob->points.armor -= 30;
             break;
         case MISSION_DIFF_TOUGH:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 1.5;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2;
             GET_HITROLL(mob) += 2;
             GET_DAMROLL(mob) += 2;
             mob->points.armor += 20;
             break;
         case MISSION_DIFF_CHALLENGING:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2.5;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 3;
             GET_HITROLL(mob) += 3;
             GET_DAMROLL(mob) += 3;
             mob->points.armor += 50;
             break;
         case MISSION_DIFF_ARDUOUS:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 3.33;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
             GET_HITROLL(mob) += 5;
             GET_DAMROLL(mob) += 5;
             mob->points.armor += 80;
             break;
         case MISSION_DIFF_SEVERE:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
+            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
             GET_HITROLL(mob) += 6;
             GET_DAMROLL(mob) += 6;
             mob->points.armor += 100;
