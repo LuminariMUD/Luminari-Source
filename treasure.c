@@ -739,7 +739,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
     award_magic_item(1, ch, grade);
     snprintf(buf, MEDIUM_STRING, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
-    snprintf(buf, MEDIUM_STRING, "$n \tYhas has found %d coins hidden on $N's corpse!\tn", gold);
+    snprintf(buf, MEDIUM_STRING, "$n \tYhas found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_NOTVICT);
     GET_GOLD(ch) += gold;
     /* does not split this gold, maybe change later */
