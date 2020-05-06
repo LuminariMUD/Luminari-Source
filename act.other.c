@@ -109,7 +109,8 @@ ACMD(do_exchange)
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   char arg3[MAX_STRING_LENGTH] = {'\0'};
-  float source = 0.0, exchange = 0.0, amount = 0.0, cost = 0.0, pool = 0.0;
+  float amount = 0.0, cost = 0.0, pool = 0.0;
+  int source = 0, exchange = 0;
 
   three_arguments(argument, arg1, arg2, arg3);
 
