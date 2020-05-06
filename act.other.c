@@ -78,10 +78,10 @@ static void display_group_list(struct char_data *ch);
 
 /* exchange code */
 
-#define ACCEXP_EXCHANGE_RATE 1
-#define QP_EXCHANGE_RATE 5
-#define GOLD_EXCHANGE_RATE 300
-#define EXP_EXCHANGE_RATE 500
+#define ACCEXP_EXCHANGE_RATE 500.0
+#define QP_EXCHANGE_RATE 300.0
+#define GOLD_EXCHANGE_RATE 5.0
+#define EXP_EXCHANGE_RATE 1.0
 
 #define SRC_DST_ACCEXP 1
 #define SRC_DST_QP 2
@@ -109,7 +109,7 @@ ACMD(do_exchange)
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   char arg3[MAX_STRING_LENGTH] = {'\0'};
-  int source = 0, exchange = 0, amount = 0, cost = 0, pool = 0;
+  float source = 0.0, exchange = 0.0, amount = 0.0, cost = 0.0, pool = 0.0;
 
   three_arguments(argument, arg1, arg2, arg3);
 
@@ -181,23 +181,23 @@ ACMD(do_exchange)
   switch (exchange)
   {
   case SRC_DST_ACCEXP:
-    cost = ACCEXP_EXCHANGE_RATE * amount;
+    cost = (float)ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
-    if ((amount + GET_ACCEXP_DESC(ch)) > 33999)
+    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 33999.0)
     {
       send_to_char(ch, "Account experience caps at 34K.\r\n");
       return;
     }
     break;
   case SRC_DST_QP:
-    cost = QP_EXCHANGE_RATE * amount;
+    cost = (float)QP_EXCHANGE_RATE * amount;
     break;
   case SRC_DST_GOLD:
-    cost = GOLD_EXCHANGE_RATE * amount;
+    cost = (float)GOLD_EXCHANGE_RATE * amount;
     break;
   case SRC_DST_EXP:
-    cost = EXP_EXCHANGE_RATE * amount;
+    cost = (float)EXP_EXCHANGE_RATE * amount;
     break;
   default: /* should never get here */
     show_exchange_rates(ch);
@@ -208,51 +208,90 @@ ACMD(do_exchange)
   /* can we afford it? if so, go ahead and charge 'em */
   switch (source)
   {
+
   case SRC_DST_ACCEXP:
-    pool = ACCEXP_EXCHANGE_RATE * amount;
-    if (GET_ACCEXP_DESC(ch) < pool)
+    pool = cost / (float)ACCEXP_EXCHANGE_RATE; /* amount we need */
+
+    if (pool <= 0.0)
     {
-      send_to_char(ch, "You do not have enough account exp, you need %d total.\r\n", pool);
+      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
       return;
     }
+
+    if (GET_ACCEXP_DESC(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough account exp, you need %d total.\r\n", (int)pool);
+      return;
+    }
+
     /* bingo! */
     GET_ACCEXP_DESC(ch) -= pool;
     save_account(ch->desc->account);
-    send_to_char(ch, "You exchange %d account exp for ", pool);
+    send_to_char(ch, "You exchange %d account exp for ", (int)pool);
     break;
+
   case SRC_DST_QP:
-    pool = QP_EXCHANGE_RATE * amount;
-    if (GET_QUESTPOINTS(ch) < pool)
+    pool = cost / (float)QP_EXCHANGE_RATE; /* amount we need */
+
+    if (pool <= 0.0)
     {
-      send_to_char(ch, "You do not have enough quest points, you need %d total.\r\n", pool);
+      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
       return;
     }
+
+    if (GET_QUESTPOINTS(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough quest points, you need %d total.\r\n", (int)pool);
+      return;
+    }
+
     /* bingo! */
     GET_QUESTPOINTS(ch) -= pool;
-    send_to_char(ch, "You exchange %d quest points for ", pool);
+    send_to_char(ch, "You exchange %d quest points for ", (int)pool);
     break;
+
   case SRC_DST_GOLD:
-    pool = GOLD_EXCHANGE_RATE * amount;
+    pool = cost / (float)GOLD_EXCHANGE_RATE; /* amount we need */
+
+    if (pool <= 0.0)
+    {
+      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
+      return;
+    }
+
     if (GET_GOLD(ch) < pool)
     {
       send_to_char(ch, "You do not have enough gold on hand, you need %d total on "
                        "hand (not in bank) to make the exchange.\r\n",
-                   pool);
+                   (int)pool);
       return;
     }
+
     /* bingo! */
     GET_GOLD(ch) -= pool;
-    send_to_char(ch, "You exchange %d gold for ", pool);
+    send_to_char(ch, "You exchange %d gold for ", (int)pool);
     break;
+
   case SRC_DST_EXP:
-    pool = EXP_EXCHANGE_RATE * amount;
-    if (GET_EXP(ch) < pool)
+    pool = cost / (float)EXP_EXCHANGE_RATE; /* amount we need */
+
+    if (pool <= 0.0)
     {
-      send_to_char(ch, "You do not have enough experience points, you need %d total.\r\n", pool);
+      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
       return;
     }
-    send_to_char(ch, "You exchange %d experience points for ", pool);
+
+    if (GET_EXP(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough experience points, you need %d total.\r\n", (int)pool);
+      return;
+    }
+
+    /* bingo! */
+    GET_EXP(ch) -= pool;
+    send_to_char(ch, "You exchange %d experience points for ", (int)pool);
     break;
+
   default: /*shouldn't get here*/
     show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in source switch in do_exchange.\r\n");
@@ -263,21 +302,21 @@ ACMD(do_exchange)
   switch (exchange)
   {
   case SRC_DST_ACCEXP:
-    send_to_char(ch, "%d account experience.", amount);
-    GET_ACCEXP_DESC(ch) += amount;
+    send_to_char(ch, "%d account experience.", (int)amount);
+    GET_ACCEXP_DESC(ch) += (int)amount;
     save_account(ch->desc->account);
     break;
   case SRC_DST_QP:
-    send_to_char(ch, "%d quest points.", amount);
-    GET_QUESTPOINTS(ch) += amount;
+    send_to_char(ch, "%d quest points.", (int)amount);
+    GET_QUESTPOINTS(ch) += (int)amount;
     break;
   case SRC_DST_GOLD:
-    send_to_char(ch, "%d gold coins.", amount);
-    GET_GOLD(ch) += amount;
+    send_to_char(ch, "%d gold coins.", (int)amount);
+    GET_GOLD(ch) += (int)amount;
     break;
   case SRC_DST_EXP:
-    send_to_char(ch, "%d experience points.", amount);
-    GET_EXP(ch) += amount;
+    send_to_char(ch, "%d experience points.", (int)amount);
+    GET_EXP(ch) += (int)amount;
     break;
   default: /* should never get here */
     show_exchange_rates(ch);
