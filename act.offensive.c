@@ -4532,8 +4532,16 @@ ACMD(do_springleap)
   PREREQ_CHECK(can_springleap);
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  if (GET_POS(ch) != POS_SITTING && GET_POS(ch) != POS_RECLINING)
+  /* character's position is a restriction/advantage of this skill */
+  switch (GET_POS(ch))
   {
+  case POS_RECLINING: /* fallthrough */
+  case POS_CRAWLING:  /* fallthrough */
+  case POS_RESTING:   /* fallthrough */
+  case POS_SITTING:
+    /* valid positions */
+    break;
+  default:
     send_to_char(ch, "You must be sitting or reclining to springleap.\r\n");
     return;
   }

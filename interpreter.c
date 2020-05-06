@@ -606,7 +606,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shieldpunch", "shieldp", POS_FIGHTING, do_process_attack, 1, AA_SHIELDPUNCH, FALSE, ACTION_NONE, {0, 0}, can_shieldpunch},
     {"shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldcharge},
     {"shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldslam},
-    {"springleap", "springleap", POS_SITTING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"springleap", "springleap", POS_RECLINING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"supriseaccuracy", "supriseaccuracy", POS_FIGHTING, do_supriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_supriseaccuracy},
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
@@ -1742,7 +1742,7 @@ int enter_player_game(struct descriptor_data *d)
   /* END PLAYER STAT HACKS */
 
   // if they are on a mission, but a reboot/copyover has cleared the mobs, reload the mission mobs
-    create_mission_on_entry(d->character);
+  create_mission_on_entry(d->character);
 
   return load_result;
 }
@@ -2684,19 +2684,22 @@ void nanny(struct descriptor_data *d, char *arg)
     STATE(d) = CON_CONFIRM_PREMADE;
     return;
 
+  case CON_CONFIRM_PREMADE:
 
-case CON_CONFIRM_PREMADE:
-
-    if (is_abbrev(arg, "premade")) {
+    if (is_abbrev(arg, "premade"))
+    {
       write_to_output(d, "\r\nPremade Build Confirmed!\r\n");
       GET_PREMADE_BUILD_CLASS(d->character) = GET_CLASS(d->character);
-    } else if (is_abbrev(arg, "custom")) {
+    }
+    else if (is_abbrev(arg, "custom"))
+    {
       write_to_output(d, "\r\nCustom Build  Confirmed!\r\n");
-    } else {
+    }
+    else
+    {
       write_to_output(d, "\r\nPlease specify either premade or custom : ");
       return;
     }
-
 
 #define CHARGEN_NO_STATISTICS
 #ifndef CHARGEN_NO_STATISTICS
