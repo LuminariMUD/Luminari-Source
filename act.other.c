@@ -211,7 +211,7 @@ ACMD(do_exchange)
   {
 
   case SRC_DST_ACCEXP:
-    pool = ((float)ACCEXP_EXCHANGE_RATE * amount) / cost; /* amount we need */
+    pool = cost / ((float)ACCEXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -232,7 +232,7 @@ ACMD(do_exchange)
     break;
 
   case SRC_DST_QP:
-    pool = ((float)QP_EXCHANGE_RATE * amount) / cost; /* amount we need */
+    pool = cost / ((float)QP_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -252,7 +252,7 @@ ACMD(do_exchange)
     break;
 
   case SRC_DST_GOLD:
-    pool = ((float)GOLD_EXCHANGE_RATE * amount) / cost; /* amount we need */
+    pool = cost / ((float)GOLD_EXCHANGE_RATE); /* amount we need */
 
     if (pool < 1.0)
     {
@@ -274,7 +274,7 @@ ACMD(do_exchange)
     break;
 
   case SRC_DST_EXP:
-    pool = ((float)EXP_EXCHANGE_RATE * amount) / cost; /* amount we need */
+    pool = cost / ((float)EXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool <= 0.0)
     {
