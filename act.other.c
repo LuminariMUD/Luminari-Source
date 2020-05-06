@@ -5489,6 +5489,9 @@ ACMD(do_gen_tog)
       /*42*/
       {"You will no longer see level differences between you and mobs when you type look.\r\n",
        "You will now see level differences between you and mobs when you type look.\r\n"},
+      /* 43 */
+      {"You will no longer use smash defense in combat.\r\n",
+       "You will now use smash defense in combat (if you know it).\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -5496,6 +5499,9 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+    case SCMD_SMASH_DEFENSE:
+    result = PRF_TOG_CHK(ch, PRF_SMASH_DEFENSE);
+    break;
   case SCMD_AOE_BOMBS:
     result = PRF_TOG_CHK(ch, PRF_AOE_BOMBS);
     break;

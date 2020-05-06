@@ -436,7 +436,8 @@ void create_mission_mobs(char_data *ch)
             else
                 increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
         }
-	GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+        GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
+	    GET_HIT(mob) = GET_MAX_HIT(mob);
         GET_FACTION(mob) = GET_MISSION_FACTION(ch);
         randName = GET_MISSION_NPC_NAME_NUM(ch);
         mob->mission_owner = GET_IDNUM(ch);
@@ -525,7 +526,7 @@ void apply_mission_rewards(char_data *ch)
 
     send_to_char(
         ch,
-        "You have earned %d experience points for completing your mission.\r\n", gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_DEFAULT));
+        "You have earned %d experience points for completing your mission.\r\n", gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_QUEST));
 
     send_to_char(ch, "\r\n");
 

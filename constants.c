@@ -1125,6 +1125,7 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
     "Faer-Causes-Flee",
     "PvP-Enabled",
     "Auto-Consider",
+    "Smash Defense",
     "\n"};
 
 /** Bonus types */
