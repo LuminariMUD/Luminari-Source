@@ -149,7 +149,7 @@ ACMD(do_exchange)
   else
   {
     send_to_char(ch, "The first argument is invalid.\r\n");
-    show_exchange_rates();
+    show_exchange_rates(ch);
     return;
   }
 
