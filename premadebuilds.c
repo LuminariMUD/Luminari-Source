@@ -1113,7 +1113,7 @@ void levelup_ranger(struct char_data *ch, int level, bool verbose)
       set_premade_stats(ch, chclass, 4);
       break;
     case 5:
-      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_ANIMAL;
+      GET_FAVORED_ENEMY(ch, 1) = RACE_TYPE_ANIMAL;
       if (verbose)
         send_to_char(ch, "You have added a new favored enemy of type: animal.\r\n");
       break;
@@ -1127,7 +1127,7 @@ void levelup_ranger(struct char_data *ch, int level, bool verbose)
       give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_LIGHT_BLADE);
       break;
     case 10:
-      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_MONSTROUS_HUMANOID;
+      GET_FAVORED_ENEMY(ch, 2) = RACE_TYPE_MONSTROUS_HUMANOID;
       if (verbose)
         send_to_char(ch, "You have added a new favored enemy of type: monstrous humanoid.\r\n");
       break;
@@ -1137,7 +1137,7 @@ void levelup_ranger(struct char_data *ch, int level, bool verbose)
       break;
     case 15:
       give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_LIGHT_BLADE);
-      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_UNDEAD;
+      GET_FAVORED_ENEMY(ch, 3) = RACE_TYPE_UNDEAD;
       if (verbose)
         send_to_char(ch, "You have added a new favored enemy of type: undead.\r\n");
       break;
@@ -1149,7 +1149,7 @@ void levelup_ranger(struct char_data *ch, int level, bool verbose)
       break;
     case 20:
       set_premade_stats(ch, chclass, 20);
-      GET_FAVORED_ENEMY(ch, 0) = RACE_TYPE_OUTSIDER;
+      GET_FAVORED_ENEMY(ch, 4) = RACE_TYPE_OUTSIDER;
       if (verbose)
         send_to_char(ch, "You have added a new favored enemy of type: outsider.\r\n");
       break;
