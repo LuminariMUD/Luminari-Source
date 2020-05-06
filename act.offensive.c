@@ -4535,9 +4535,8 @@ ACMD(do_springleap)
   /* character's position is a restriction/advantage of this skill */
   switch (GET_POS(ch))
   {
-  case POS_RECLINING: /* fallthrough */
-  case POS_CRAWLING:  /* fallthrough */
-  case POS_RESTING:   /* fallthrough */
+  case POS_RECLINING: /* fallthrough */ /* includes POS_CRAWLING */
+  case POS_RESTING:                     /* fallthrough */
   case POS_SITTING:
     /* valid positions */
     break;
