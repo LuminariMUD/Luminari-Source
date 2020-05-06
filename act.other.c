@@ -95,10 +95,10 @@ void show_exchange_rates(struct char_data *ch)
                    "experience points, gold coins, account experience or quest points.\r\n");
   send_to_char(ch, "       currencies: accexp | qp | gold | exp\r\n");
   send_to_char(ch, "       current exchange rates: accexp: %d, qp: %d, gold: %d, exp: %d",
-               ACCEXP_EXCHANGE_RATE,
-               QP_EXCHANGE_RATE,
-               GOLD_EXCHANGE_RATE,
-               EXP_EXCHANGE_RATE);
+               (int)ACCEXP_EXCHANGE_RATE,
+               (int)QP_EXCHANGE_RATE,
+               (int)GOLD_EXCHANGE_RATE,
+               (int)EXP_EXCHANGE_RATE);
 
   return;
 }
