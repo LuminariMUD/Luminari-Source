@@ -195,7 +195,7 @@ void class_prereq_spellcasting(int class_num, int casting_type, int prep_type, i
   prereq = create_prereq(CLASS_PREREQ_SPELLCASTING, casting_type, prep_type, circle);
 
   snprintf(buf, sizeof(buf), "Has %s %s (circle) %d spells", casting_types[casting_type],
-          spell_preparation_types[prep_type], circle);
+           spell_preparation_types[prep_type], circle);
   prereq->description = strdup(buf);
 
   /*   Link it up. */
@@ -368,9 +368,9 @@ void classo(int class_num, const char *name, const char *abbrev, const char *col
 
 /* function used for assigning a classes titles */
 static void assign_class_titles(
-  int class_num, const char *title_4, const char *title_9, const char *title_14,
-  const char *title_19, const char *title_24, const char *title_29, const char *title_30, const char *title_imm,
-  const char *title_stf, const char *title_gstf, const char *title_default)
+    int class_num, const char *title_4, const char *title_9, const char *title_14,
+    const char *title_19, const char *title_24, const char *title_29, const char *title_30, const char *title_imm,
+    const char *title_stf, const char *title_gstf, const char *title_default)
 {
   class_list[class_num].titles[0] = title_4;
   class_list[class_num].titles[1] = title_9;
@@ -752,8 +752,8 @@ bool display_class_prereqs(struct char_data *ch, char *classname)
     if (meets_class_prerequisite(ch, prereq, NO_IARG))
       meets_prereqs = TRUE;
     snprintf(buf, sizeof(buf), "\tn%s%s%s - %s\r\n",
-            (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
-            (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
+             (meets_prereqs ? "\tn" : "\tr"), prereq->description, "\tn",
+             (meets_prereqs ? "\tWFulfilled!\tn" : "\trMissing\tn"));
     send_to_char(ch, "%s", buf);
     found = TRUE;
   }
@@ -931,7 +931,7 @@ bool display_class_info(struct char_data *ch, char *classname)
   send_to_char(ch, "\tcMaximum Levels   : \tn%d\r\n", CLSLIST_MAXLVL(class));
   send_to_char(ch, "\tcUnlock Cost      : \tn%d Account XP\r\n", CLSLIST_COST(class));
   send_to_char(ch, "\tcBAB Progression  : \tn%s\r\n",
-               (CLSLIST_BAB(i) == 2) ? "High" : (CLSLIST_BAB(class) ? "Medium" : "Low"));
+               (CLSLIST_BAB(class) == H) ? "High" : ((CLSLIST_BAB(class) == M) ? "Medium" : "Low"));
   send_to_char(ch, "\tcHitpoint Gain    : \tn%d-%d plus constitution bonus\r\n",
                CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
   send_to_char(ch, "\tcMovement Gain    : \tn0-%d\r\n", CLSLIST_MVS(class));
@@ -1010,12 +1010,12 @@ bool display_class_info(struct char_data *ch, char *classname)
       {
         first = FALSE;
         snprintf(buf, sizeof(buf), "\tcPrerequisites : %s%s%s",
-                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
+                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
       }
       else
       {
         snprintf(buf2, sizeof(buf2), ", %s%s%s",
-                (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
+                 (meets_class_prerequisite(ch, prereq, NO_IARG) ? "\tn" : "\tr"), prereq->description, "\tn");
         strlcat(buf, buf2, sizeof(buf));
       }
     }
@@ -2399,7 +2399,6 @@ void do_start(struct char_data *ch)
     SET_BIT_AR(PLR_FLAGS(ch), PLR_SITEOK);
   if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
     advance_premade_build(ch);
-
 }
 
 /* at each level we run this function to assign free CLASS feats */
@@ -2509,15 +2508,15 @@ void process_class_level_feats(struct char_data *ch, int class)
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
           snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
-                  feat_list[feat_assign->feat_num].name,
-                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
+                   feat_list[feat_assign->feat_num].name,
+                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
           strlcat(featbuf, tmp_buf, sizeof(featbuf));
         }
         else
         {
           snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
-                  feat_list[feat_assign->feat_num].name,
-                  feat_types[feat_list[feat_assign->feat_num].feat_type]);
+                   feat_list[feat_assign->feat_num].name,
+                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
           strlcat(featbuf, tmp_buf, sizeof(featbuf));
         }
         break;
@@ -2677,15 +2676,15 @@ void process_level_feats(struct char_data *ch, int class)
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
       {
         snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
-                feat_list[level_feats[i][LF_FEAT]].name,
-                feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
+                 feat_list[level_feats[i][LF_FEAT]].name,
+                 feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
         strlcat(featbuf, tmp_buf, sizeof(featbuf));
       }
       else
       {
         snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
-                feat_list[level_feats[i][LF_FEAT]].name,
-                feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
+                 feat_list[level_feats[i][LF_FEAT]].name,
+                 feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
         strlcat(featbuf, tmp_buf, sizeof(featbuf));
       }
       SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
