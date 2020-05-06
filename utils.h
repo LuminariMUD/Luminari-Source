@@ -682,6 +682,7 @@ void char_from_furniture(struct char_data *ch);
 
 /** Account name. */
 #define GET_ACCOUNT_NAME(ch) ((ch)->player_specials->saved.account_name)
+#define GET_ACCEXP_DESC(ch) ((ch)->desc->account->experience)
 
 /** Name of PC. */
 #define GET_PC_NAME(ch) ((ch)->player.name)

@@ -820,11 +820,12 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     /* flat rate for now! (halfed the rate for testing purposes) */
     if (ch && ch->desc && ch->desc->account)
     {
-      if (gain >= 2500 && ch->desc->account->experience < 33999)
+      if (gain >= 2500 && GET_ACCEXP_DESC(ch) < 33999)
       {
         if (gain / 1250 >= 7) /*reduce spam*/
           send_to_char(ch, "You gain %d account experience points!\r\n", gain / 1250);
-        ch->desc->account->experience += gain / 1250;
+        GET_ACCEXP_DESC(ch) += gain / 1250;
+        save_account(ch->desc->account);
       }
     }
 
