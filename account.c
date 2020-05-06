@@ -160,9 +160,9 @@ ACMD(do_accexp)
                          "submit a petition to ask for the limit to be increased.\r\n");
         return;
       }
-      if (ch->desc->account->experience >= cost)
+      if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        ch->desc->account->experience -= cost;
+        GET_ACCEXP_DESC(ch) -= cost;
         ch->desc->account->races[j] = i;
         save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
@@ -174,7 +174,7 @@ ACMD(do_accexp)
       {
         send_to_char(ch, "You need %d account experience to purchase that advanced "
                          "race and you only have %d.\r\n",
-                     cost, ch->desc->account->experience);
+                     cost, GET_ACCEXP_DESC(ch));
         return;
       }
     }
@@ -229,9 +229,9 @@ ACMD(do_accexp)
                          "Ask the staff for the limit to be increased.\r\n");
         return;
       }
-      if (ch->desc->account->experience >= cost)
+      if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        ch->desc->account->experience -= cost;
+        GET_ACCEXP_DESC(ch) -= cost;
         ch->desc->account->classes[j] = i;
         save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the prestige class '%s' for all "
@@ -242,7 +242,7 @@ ACMD(do_accexp)
       else
       {
         send_to_char(ch, "You need %d account experience to purchase that prestige class and you only have %d.\r\n",
-                     cost, ch->desc->account->experience);
+                     cost, GET_ACCEXP_DESC(ch));
         return;
       }
     }
@@ -281,7 +281,7 @@ int load_account(char *name, struct account_data *account)
   mysql_ping(conn);
 
   snprintf(buf, sizeof(buf), "SELECT id, name, password, experience, email from account_data where lower(name) = lower('%s')",
-          name);
+           name);
 
   if (mysql_query(conn, buf))
   {
@@ -358,8 +358,8 @@ void load_account_unlocks(struct account_data *account)
 
   /* load locked classes */
   snprintf(buf, sizeof(buf), "SELECT class_id from unlocked_classes "
-               "WHERE account_id = %d",
-          account->id);
+                             "WHERE account_id = %d",
+           account->id);
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from unlocked_classes: %s", mysql_error(conn));
@@ -379,8 +379,8 @@ void load_account_unlocks(struct account_data *account)
 
   /* load locked races */
   snprintf(buf, sizeof(buf), "SELECT race_id from unlocked_races "
-               "WHERE account_id = %d",
-          account->id);
+                             "WHERE account_id = %d",
+           account->id);
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to SELECT from unlocked_races: %s", mysql_error(conn));
@@ -441,16 +441,16 @@ void save_account(struct account_data *account)
   }
 
   snprintf(buf, sizeof(buf), "INSERT into account_data (id, name, password, experience, email) values (%d, '%s', '%s', %d, %s%s%s)"
-               " on duplicate key update password = VALUES(password), "
-               "                         experience = VALUES(experience), "
-               "                         email = VALUES(email);",
-          account->id,
-          account->name,
-          account->password,
-          account->experience,
-          (account->email ? "'" : ""),
-          (account->email ? account->email : "NULL"),
-          (account->email ? "'" : ""));
+                             " on duplicate key update password = VALUES(password), "
+                             "                         experience = VALUES(experience), "
+                             "                         email = VALUES(email);",
+           account->id,
+           account->name,
+           account->password,
+           account->experience,
+           (account->email ? "'" : ""),
+           (account->email ? account->email : "NULL"),
+           (account->email ? "'" : ""));
 
   if (mysql_query(conn, buf))
   {
@@ -465,9 +465,9 @@ void save_account(struct account_data *account)
   {
     buf[0] = '\0';
     snprintf(buf, sizeof(buf), "INSERT into player_data (name, account_id) "
-                 "VALUES('%s', %d) "
-                 "on duplicate key update account_id = VALUES(account_id);",
-            account->character_names[i], account->id);
+                               "VALUES('%s', %d) "
+                               "on duplicate key update account_id = VALUES(account_id);",
+             account->character_names[i], account->id);
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to UPSERT player_data: %s", mysql_error(conn));
@@ -480,9 +480,9 @@ void save_account(struct account_data *account)
   {
     buf[0] = '\0';
     snprintf(buf, sizeof(buf), "INSERT into unlocked_races (account_id, race_id) "
-                 "VALUES (%d, %d)"
-                 "on duplicate key update race_id = VALUES(race_id);",
-            account->id, account->races[i]);
+                               "VALUES (%d, %d)"
+                               "on duplicate key update race_id = VALUES(race_id);",
+             account->id, account->races[i]);
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to UPSERT unlocked_races: %s", mysql_error(conn));
@@ -495,9 +495,9 @@ void save_account(struct account_data *account)
   {
     buf[0] = '\0';
     snprintf(buf, sizeof(buf), "INSERT into unlocked_classes (account_id, class_id) "
-                 "VALUES (%d, %d)"
-                 "on duplicate key update class_id = VALUES(class_id);",
-            account->id, account->classes[i]);
+                               "VALUES (%d, %d)"
+                               "on duplicate key update class_id = VALUES(class_id);",
+             account->id, account->classes[i]);
     if (mysql_query(conn, buf))
     {
       log("SYSERR: Unable to UPSERT unlocked_classes: %s", mysql_error(conn));
@@ -734,7 +734,7 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
   }
 
   snprintf(buf, sizeof(buf), "DELETE from player_data where lower(name) = lower('%s') and account_id = %d;",
-          GET_NAME(ch), account->id);
+           GET_NAME(ch), account->id);
 
   if (mysql_query(conn, buf))
   {
