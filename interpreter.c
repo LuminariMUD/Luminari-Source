@@ -290,6 +290,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"extracts", "extracts", POS_RECLINING, do_spells, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"exchange", "exchange", POS_RECLINING, do_exchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

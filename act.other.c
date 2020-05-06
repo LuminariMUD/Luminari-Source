@@ -76,6 +76,228 @@ static void display_group_list(struct char_data *ch);
 
 /*****************/
 
+/* exchange code */
+
+#define ACCEXP_EXCHANGE_RATE 1
+#define QP_EXCHANGE_RATE 5
+#define GOLD_EXCHANGE_RATE 300
+#define EXP_EXCHANGE_RATE 500
+
+#define SRC_DST_ACCEXP 1
+#define SRC_DST_QP 2
+#define SRC_DST_GOLD 3
+#define SRC_DST_EXP 4
+
+void show_exchange_rates()
+{
+  send_to_char(ch, "Usage: exchange <currency source> <currency purchasing> <amount to purchase>\r\n");
+  send_to_char(ch, "       This command is used to exchange in-game currencies including your "
+                   "experience points, gold coins, account experience or quest points.\r\n");
+  send_to_char(ch, "       currencies: accexp | qp | gold | exp\r\n");
+  send_to_char(ch, "       current exchange rates: accexp: %d, qp: %d, gold: %d, exp: %d",
+               ACCEXP_EXCHANGE_RATE,
+               QP_EXCHANGE_RATE,
+               GOLD_EXCHANGE_RATE,
+               EXP_EXCHANGE_RATE);
+
+  return;
+}
+
+ACMD(do_exchange)
+{
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
+  char arg2[MAX_STRING_LENGTH] = {'\0'};
+  char arg3[MAX_STRING_LENGTH] = {'\0'};
+  int source = 0, exchange = 0, amount = 0, cost = 0, pool = 0;
+
+  three_arguments(argument, arg1, arg2, arg3);
+
+  if (!*arg1 || !*arg2 || !*arg3)
+  {
+    send_to_char(ch, "Missing argument!\r\n");
+    show_exchange_rates();
+    return;
+  }
+
+  /* valid arguments */
+
+  if (!is_number(arg3))
+  {
+    send_to_char(ch, "The third argument is invalid, it needs to be a number.\r\n");
+    show_exchange_rates();
+    return;
+  }
+
+  amount = atoi(arg3);
+
+  if (amount <= 0)
+  {
+    send_to_char(ch, "The third argument needs to be above 0.\r\n");
+    show_exchange_rates();
+    return;
+  }
+
+  if (is_abbrev(arg1, "accexp"))
+    source = SRC_DST_ACCEXP;
+  else if (is_abbrev(arg1, "qp"))
+    source = SRC_DST_QP;
+  else if (is_abbrev(arg1, "gold"))
+    source = SRC_DST_GOLD;
+  else if (is_abbrev(arg1, "exp"))
+    source = SRC_DST_EXP;
+  else
+  {
+    send_to_char(ch, "The first argument is invalid.\r\n");
+    show_exchange_rates();
+    return;
+  }
+
+  if (is_abbrev(arg2, "accexp"))
+    exchange = SRC_DST_ACCEXP;
+  else if (is_abbrev(arg2, "qp"))
+    exchange = SRC_DST_QP;
+  else if (is_abbrev(arg2, "gold"))
+    exchange = SRC_DST_GOLD;
+  else if (is_abbrev(arg2, "exp"))
+    exchange = SRC_DST_EXP;
+  else
+  {
+    send_to_char(ch, "The second argument is invalid.\r\n");
+    show_exchange_rates();
+    return;
+  }
+
+  if (source == exchange)
+  {
+    send_to_char(ch, ".... um yeah your exchange is finished.\r\n");
+    show_exchange_rates();
+    return;
+  }
+
+  /* everything should be valid by now, so time for some math */
+
+  /* how much is this transaction going to "cost" */
+  switch (exchange)
+  {
+  case SRC_DST_ACCEXP:
+    cost = ACCEXP_EXCHANGE_RATE * amount;
+
+    /* cap for account xp currently */
+    if ((amount + GET_ACCEXP_DESC(ch)) > 33999)
+    {
+      send_to_char(ch, "Account experience caps at 34K.\r\n");
+      return;
+    }
+    break;
+  case SRC_DST_QP:
+    cost = QP_EXCHANGE_RATE * amount;
+    break;
+  case SRC_DST_GOLD:
+    cost = GOLD_EXCHANGE_RATE * amount;
+    break;
+  case SRC_DST_EXP:
+    cost = EXP_EXCHANGE_RATE * amount;
+    break;
+  default: /* should never get here */
+    show_exchange_rates();
+    send_to_char(ch, "Please report to staff: reached default case in 1est xchange switch in do_exchange.\r\n");
+    return;
+  }
+
+  /* can we afford it? if so, go ahead and charge 'em */
+  switch (source)
+  {
+  case SRC_DST_ACCEXP:
+    pool = ACCEXP_EXCHANGE_RATE * amount;
+    if (GET_ACCEXP_DESC(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough account exp, you need %d total.\r\n", pool);
+      return;
+    }
+    /* bingo! */
+    GET_ACCEXP_DESC(ch) -= pool;
+    save_account(ch->desc->account);
+    send_to_char(ch, "You exchange %d account exp for ", pool);
+    break;
+  case SRC_DST_QP:
+    pool = QP_EXCHANGE_RATE * amount;
+    if (GET_QUESTPOINTS(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough quest points, you need %d total.\r\n", pool);
+      return;
+    }
+    /* bingo! */
+    GET_QUESTPOINTS(ch) -= pool;
+    send_to_char(ch, "You exchange %d quest points for ", pool);
+    break;
+  case SRC_DST_GOLD:
+    pool = GOLD_EXCHANGE_RATE * amount;
+    if (GET_GOLD(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough gold on hand, you need %d total on "
+                       "hand (not in bank) to make the exchange.\r\n",
+                   pool);
+      return;
+    }
+    /* bingo! */
+    GET_GOLD(ch) -= pool;
+    send_to_char(ch, "You exchange %d gold for ", pool);
+    break;
+  case SRC_DST_EXP:
+    pool = EXP_EXCHANGE_RATE * amount;
+    if (GET_EXP(ch) < pool)
+    {
+      send_to_char(ch, "You do not have enough experience points, you need %d total.\r\n", pool);
+      return;
+    }
+    send_to_char(ch, "You exchange %d experience points for ", pool);
+    break;
+  default: /*shouldn't get here*/
+    show_exchange_rates();
+    send_to_char(ch, "Please report to staff: reached default case in source switch in do_exchange.\r\n");
+    return;
+  }
+
+  /* final portion of transaction, give them their purchase */
+  switch (exchange)
+  {
+  case SRC_DST_ACCEXP:
+    send_to_char(ch, "%d account experience.", amount);
+    GET_ACCEXP_DESC(ch) += amount;
+    save_account(ch->desc->account);
+    break;
+  case SRC_DST_QP:
+    send_to_char(ch, "%d quest points.", amount);
+    GET_QUESTPOINTS(ch) += amount;
+    break;
+  case SRC_DST_GOLD:
+    send_to_char(ch, "%d gold coins.", amount);
+    GET_GOLD(ch) += amount;
+    break;
+  case SRC_DST_EXP:
+    send_to_char(ch, "%d experience points.", amount);
+    GET_EXP(ch) += amount;
+    break;
+  default: /* should never get here */
+    show_exchange_rates();
+    send_to_char(ch, "Please report to staff: reached default case in 2nd exchange switch in do_exchange.\r\n");
+    return;
+  }
+
+  return;
+}
+
+#undef ACCEXP_EXCHANGE_RATE
+#undef QP_EXCHANGE_RATE
+#undef GOLD_EXCHANGE_RATE
+#undef EXP_EXCHANGE_RATE
+#undef SRC_DST_ACCEXP
+#undef SRC_DST_QP
+#undef SRC_DST_GOLD
+#undef SRC_DST_EXP
+
+/*end exchange code */
+
 ACMD(do_nop)
 {
   send_to_char(ch, "\r\n");
@@ -5499,7 +5721,7 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
-    case SCMD_SMASH_DEFENSE:
+  case SCMD_SMASH_DEFENSE:
     result = PRF_TOG_CHK(ch, PRF_SMASH_DEFENSE);
     break;
   case SCMD_AOE_BOMBS:
