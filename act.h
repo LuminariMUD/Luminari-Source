@@ -580,6 +580,7 @@ ACMD_DECL(do_gen_tog);
 #define SCMD_RP 40
 #define SCMD_AOE_BOMBS 41
 #define SCMD_AUTOCONSIDER 42
+#define SCMD_SMASH_DEFENSE 43
 
 /* do_quit */
 ACMD_DECL(do_quit);

@@ -2905,7 +2905,8 @@ void assign_feats(void)
                "free knockdown attack while in defensive stance",
                "While in defensive stance, once per round (every 6 seconds), the Stalwart "
                "Defender gets a free knock-down attempt against the opponent he is "
-               "directly engaged with.");
+               "directly engaged with. This mode needs to be turned on first to use it "
+               "by typing 'smashdefense'.");
   /*10*/ feato(FEAT_LAST_WORD, "last word", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                "two extra attacks before suffering death blow in defensive stance",
                "Once per day, while in a defensive stance, a stalwart defender can make two "

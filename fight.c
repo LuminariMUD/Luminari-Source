@@ -8424,7 +8424,7 @@ void perform_violence(struct char_data *ch, int phase)
   {
 
     /* handle smash defense */
-    if (HAS_FEAT(ch, FEAT_SMASH_DEFENSE) &&
+    if (HAS_FEAT(ch, FEAT_SMASH_DEFENSE) && PRF_FLAGGED(ch, PRF_SMASH_DEFENSE) &&
         affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) &&
         !char_has_mud_event(ch, eSMASH_DEFENSE))
       handle_smash_defense(ch);
