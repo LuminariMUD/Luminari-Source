@@ -35,6 +35,7 @@
 #include "dg_scripts.h"
 #include "alchemy.h"
 #include "premadebuilds.h"
+#include "craft.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -934,6 +935,15 @@ void increase_skill(struct char_data *ch, int skillnum) {
   if (GET_SKILL(ch, skillnum) > 99) {
     GET_SKILL(ch, skillnum) = 99;
     return;
+  }
+
+  // We don't want to allow crafting skill improvements if they are
+  // resizing to their racial size, since such resizing has no
+  // gold cost.
+  if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
+  {
+    if (GET_CRAFTING_OBJ(ch) && GET_OBJ_SIZE(GET_CRAFTING_OBJ(ch)) == GET_SIZE(ch))
+      return;
   }
 
   int use = rand_number(0, USE);
@@ -4008,4 +4018,41 @@ bool is_flying(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_FLYING)) return TRUE;	
 
   return FALSE;
+}
+
+void do_study_spell_help(struct char_data *ch, int spellnum)
+{
+
+  char buf[MEDIUM_STRING];
+  
+  switch (spellnum)
+  {
+    case SPELL_STRENGTH:
+    case SPELL_SLOW:
+    case SPELL_WISDOM:
+    case SPELL_CHARISMA:
+    case SPELL_TELEPORT:
+      snprintf(buf, sizeof(buf), "spell %s", spell_info[spellnum].name);
+      do_help(ch, buf, 0, 0);
+      break;
+
+    case SPELL_NON_DETECTION:
+      snprintf(buf, sizeof(buf), "non detection");
+      do_help(ch, buf, 0, 0);
+      break;
+
+    case SPELL_IRRESISTIBLE_DANCE:
+      snprintf(buf, sizeof(buf), "irrisistable dance");
+      do_help(ch, buf, 0, 0);
+      break;
+
+    case SPELL_IRONSKIN:
+      snprintf(buf, sizeof(buf), "ironskin");
+      do_help(ch, buf, 0, 0);
+      break;
+
+    default:
+      do_help(ch, spell_info[spellnum].name, 0, 0);
+      break;
+  }
 }

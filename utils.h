@@ -194,7 +194,7 @@ int calculate_cp(struct obj_data *obj);
 bool paralysis_immunity(struct char_data *ch);
 bool sleep_immunity(struct char_data *ch);
 int get_levelup_sorcerer_bloodline_type(struct char_data *ch);
-
+void do_study_spell_help(struct char_data *ch, int spellnum);
 int get_daily_uses(struct char_data *ch, int featnum);
 int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);

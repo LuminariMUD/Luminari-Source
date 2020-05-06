@@ -517,6 +517,7 @@ ACMDCHECK(can_sorcerer_claw_attack);
 ACMD_DECL(do_sorcerer_draconic_wings);
 ACMD_DECL(do_impromptu);
 ACMDCHECK(can_impromptu);
+ACMD_DECL(do_favoredenemies);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

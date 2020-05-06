@@ -808,7 +808,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /* stalwart warrior - warrior feat */
   if (HAS_FEAT(ch, FEAT_STALWART_WARRIOR))
   {
-    bonuses[BONUS_TYPE_UNDEFINED] += (CLASS_LEVEL(ch, CLASS_WARRIOR) / 4);
+    bonuses[BONUS_TYPE_ARMOR] += (CLASS_LEVEL(ch, CLASS_WARRIOR) / 4);
   }
   /* favored enemy */
   if (attacker && attacker != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER))
@@ -816,11 +816,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
-      bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_DODGE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     }
     else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
     {
-      bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_DODGE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     }
   }
   /* These bonuses to AC apply even against touch attacks or when the monk is
@@ -829,35 +829,35 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
    * a medium or heavy load. */
   if (MONK_TYPE(ch) && monk_gear_ok(ch))
   {
-    bonuses[BONUS_TYPE_UNDEFINED] += GET_WIS_BONUS(ch);
+    bonuses[BONUS_TYPE_DODGE] += GET_WIS_BONUS(ch);
 
     if (MONK_TYPE(ch) >= 4)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
     if (MONK_TYPE(ch) >= 8)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
     if (MONK_TYPE(ch) >= 12)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
     if (MONK_TYPE(ch) >= 16)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
     if (MONK_TYPE(ch) >= 20)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
     if (MONK_TYPE(ch) >= 24)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
     if (MONK_TYPE(ch) >= 28)
     {
-      bonuses[BONUS_TYPE_UNDEFINED]++;
+      bonuses[BONUS_TYPE_DODGE]++;
     }
   }
   /**/
@@ -5607,18 +5607,18 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
-      bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
-        bonuses[BONUS_TYPE_UNDEFINED] += 4;
+        bonuses[BONUS_TYPE_MORALE] += 4;
       }
     }
     else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
     {
-      bonuses[BONUS_TYPE_UNDEFINED] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
-        bonuses[BONUS_TYPE_UNDEFINED] += 4;
+        bonuses[BONUS_TYPE_MORALE] += 4;
       }
     }
   }

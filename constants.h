@@ -27,6 +27,7 @@ extern const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1];
 extern const char *race_family_abbrevs[NUM_RACE_TYPES + 1];
 extern const char *race_family_short[NUM_RACE_TYPES + 1];
 extern const char *race_family_types[NUM_RACE_TYPES + 1];
+extern const char *race_family_types_plural[NUM_RACE_TYPES + 1];
 extern const char *class_names[NUM_CLASSES + 1];
 extern const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1];
 extern const char *attack_hit_types[];
