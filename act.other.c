@@ -88,7 +88,7 @@ static void display_group_list(struct char_data *ch);
 #define SRC_DST_GOLD 3
 #define SRC_DST_EXP 4
 
-void show_exchange_rates()
+void show_exchange_rates(struct char_data *ch)
 {
   send_to_char(ch, "Usage: exchange <currency source> <currency purchasing> <amount to purchase>\r\n");
   send_to_char(ch, "       This command is used to exchange in-game currencies including your "
@@ -110,12 +110,12 @@ ACMD_DECL(do_exchange)
   char arg3[MAX_STRING_LENGTH] = {'\0'};
   int source = 0, exchange = 0, amount = 0, cost = 0, pool = 0;
 
-  three_arguments(argument, arg1, arg2, arg3);
+  one_argument(two_arguments(argument, arg1, arg2), arg3); /* three_arguments */
 
   if (!*arg1 || !*arg2 || !*arg3)
   {
     send_to_char(ch, "Missing argument!\r\n");
-    show_exchange_rates();
+    show_exchange_rates(ch);
     return;
   }
 
@@ -124,7 +124,7 @@ ACMD_DECL(do_exchange)
   if (!is_number(arg3))
   {
     send_to_char(ch, "The third argument is invalid, it needs to be a number.\r\n");
-    show_exchange_rates();
+    show_exchange_rates(ch);
     return;
   }
 
@@ -133,7 +133,7 @@ ACMD_DECL(do_exchange)
   if (amount <= 0)
   {
     send_to_char(ch, "The third argument needs to be above 0.\r\n");
-    show_exchange_rates();
+    show_exchange_rates(ch);
     return;
   }
 
@@ -163,14 +163,14 @@ ACMD_DECL(do_exchange)
   else
   {
     send_to_char(ch, "The second argument is invalid.\r\n");
-    show_exchange_rates();
+    show_exchange_rates(ch);
     return;
   }
 
   if (source == exchange)
   {
     send_to_char(ch, ".... um yeah your exchange is finished.\r\n");
-    show_exchange_rates();
+    show_exchange_rates(ch);
     return;
   }
 
@@ -199,7 +199,7 @@ ACMD_DECL(do_exchange)
     cost = EXP_EXCHANGE_RATE * amount;
     break;
   default: /* should never get here */
-    show_exchange_rates();
+    show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in 1est xchange switch in do_exchange.\r\n");
     return;
   }
@@ -253,7 +253,7 @@ ACMD_DECL(do_exchange)
     send_to_char(ch, "You exchange %d experience points for ", pool);
     break;
   default: /*shouldn't get here*/
-    show_exchange_rates();
+    show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in source switch in do_exchange.\r\n");
     return;
   }
@@ -279,7 +279,7 @@ ACMD_DECL(do_exchange)
     GET_EXP(ch) += amount;
     break;
   default: /* should never get here */
-    show_exchange_rates();
+    show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in 2nd exchange switch in do_exchange.\r\n");
     return;
   }
