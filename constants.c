@@ -317,6 +317,25 @@ const char *race_family_types[NUM_RACE_TYPES + 1] = {
     "Vermin", //15
     "\n"};
 
+const char *race_family_types_plural[NUM_RACE_TYPES + 1] = {
+    "Unknown", //0
+    "Humanoids",
+    "Undead",
+    "Animals",
+    "Dragons",
+    "Giants", //5
+    "Aberrations",
+    "Constructs",
+    "Elementals",
+    "Fey",
+    "Magical Beasts", //10
+    "Monstrous Humanoids",
+    "Oozes",
+    "Outsiders",
+    "Plants",
+    "Vermin", //15
+    "\n"};
+
 const char *class_names[NUM_CLASSES + 1] = {
     "Wizard", //0
     "Cleric",

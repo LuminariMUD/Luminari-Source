@@ -2998,6 +2998,9 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'discoveries' to see your alchemist discoveries.\tn\r\n");
     send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen discovery).\tn\r\n");
   }
+  if (GET_FAVORED_ENEMY(ch, 0) > 0) {
+    send_to_char(ch, "\tDType 'favoredenemies' to get a list of your favored enemies.\tn\r\n");
+  }
 }
 
 ACMD(do_inventory)
@@ -5687,6 +5690,35 @@ ACMD(do_autocon)
     send_to_char(ch, "Auto-consider has been turned on.\r\n");
     return;
   }
+}
+
+ACMD(do_favoredenemies)
+{
+  if (GET_FAVORED_ENEMY(ch, 0) <= 0)
+  {
+    send_to_char(ch, "You do not have any favored enemies.\r\n");
+    return;
+  }
+
+  int i = 0;
+
+  send_to_char(ch, "Your favored enemies are: \r\n");
+
+  for (i = 0; i < MAX_ENEMIES; i++)
+  {
+    if (GET_FAVORED_ENEMY(ch, i) > 0)
+      send_to_char(ch, "-- %s\r\n", race_family_types_plural[GET_FAVORED_ENEMY(ch, i)]);
+  }
+
+  i = (CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2) + (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY) ? 4 : 0);
+
+  send_to_char(ch, "\r\n");
+  send_to_char(ch, "When fighting a favored enemy, you benefit from:\r\n");  
+  send_to_char(ch, "-- +%d dodge bonus to armor class.\r\n", i);
+  send_to_char(ch, "-- +%d bonus to weapon or unarmed damage.\r\n", i);
+  send_to_char(ch, "-- +%d morale bonus to weapon or unarmed attack rolls.\r\n", i);
+  send_to_char(ch, "\r\n");
+
 }
 
 /*EOF*/

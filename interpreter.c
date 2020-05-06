@@ -311,6 +311,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}, can_faeriefire},
+    {"favoredenemies", "favoredenemies", POS_DEAD, do_favoredenemies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 

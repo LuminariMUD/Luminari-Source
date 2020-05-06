@@ -2820,7 +2820,7 @@ void study_parse(struct descriptor_data *d, char *arg)
               LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help")) {
-              do_help(d->character, spell_info[counter].name, 0, 0);
+              do_study_spell_help(d->character, counter);
               return;
             }
             if (is_a_known_spell(d->character, CLASS_BARD, counter)) {
