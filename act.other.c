@@ -103,7 +103,7 @@ void show_exchange_rates()
   return;
 }
 
-ACMD(do_exchange)
+ACMD_DECL(do_exchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
