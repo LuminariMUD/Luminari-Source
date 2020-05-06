@@ -213,7 +213,7 @@ ACMD(do_exchange)
   case SRC_DST_ACCEXP:
     pool = cost / (float)ACCEXP_EXCHANGE_RATE; /* amount we need */
 
-    if (pool <= 0.0)
+    if (pool < 1.0)
     {
       send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
       return;
