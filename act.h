@@ -405,7 +405,8 @@ ACMD_DECL(do_hit);
 ACMD_DECL(do_process_attack);
 
 /* Functions without subcommands */
-ACMD_DECL(do_exchange);
+//ACMD_DECL(do_exchange);
+ACMD(do_exchange);
 ACMD_DECL(do_fire);
 ACMD_DECL(do_reload);
 ACMD_DECL(do_autofire);

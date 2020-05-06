@@ -103,14 +103,15 @@ void show_exchange_rates(struct char_data *ch)
   return;
 }
 
-ACMD_DECL(do_exchange)
+//ACMD_DECL(do_exchange)
+ACMD(do_exchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   char arg3[MAX_STRING_LENGTH] = {'\0'};
   int source = 0, exchange = 0, amount = 0, cost = 0, pool = 0;
 
-  one_argument(two_arguments(argument, arg1, arg2), arg3); /* three_arguments */
+  three_arguments(argument, arg1, arg2, arg3);
 
   if (!*arg1 || !*arg2 || !*arg3)
   {
