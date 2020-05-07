@@ -518,6 +518,7 @@ ACMD_DECL(do_sorcerer_draconic_wings);
 ACMD_DECL(do_impromptu);
 ACMDCHECK(can_impromptu);
 ACMD_DECL(do_favoredenemies);
+ACMD_DECL(do_summon);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

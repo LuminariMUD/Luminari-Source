@@ -734,7 +734,7 @@
 /* we added a bunch of filler flags due to incompatible zone files */
 #define MOB_CUSTOM_GOLD 39
 #define MOB_NO_AI 40
-#define MOB_UNUSED_4 41
+#define MOB_MERCENARY 41 // for buying mercenary charmies, only one per person
 #define MOB_UNUSED_5 42
 #define MOB_UNUSED_6 43
 #define MOB_UNUSED_7 44

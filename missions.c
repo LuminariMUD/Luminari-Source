@@ -297,7 +297,8 @@ long get_mission_reward(char_data *ch, int reward_type)
     switch (reward_type)
     {
     case MISSION_CREDITS:
-        reward = (int) (level * MAX(1, level / 2) * mult * 3);
+        reward = 40 + dice(level * 2, 3);
+        reward *= 5 + (mult*2);
         break;
     case MISSION_STANDING:
         reward = (int) (50 * mult);
@@ -310,9 +311,10 @@ long get_mission_reward(char_data *ch, int reward_type)
         break;
     }
 
-    reward = (int) (reward * 0.25); // we'll adjust this based on what the cooldown is
+    if (reward_type != MISSION_CREDITS)
+      reward = (int) (reward * 0.25); // we'll adjust this based on what the cooldown is
 
-    int bonus = compute_ability(ch, ABILITY_DIPLOMACY);
+    int bonus = dice(1, 20) + compute_ability(ch, ABILITY_DIPLOMACY);
     reward = (reward * (100+bonus)) / 100;
 
     return MAX(1, reward);
