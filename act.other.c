@@ -78,8 +78,8 @@ static void display_group_list(struct char_data *ch);
 
 /* exchange code */
 
-#define ACCEXP_EXCHANGE_RATE 500.0
-#define QP_EXCHANGE_RATE 300.0
+#define ACCEXP_EXCHANGE_RATE 1500.0
+#define QP_EXCHANGE_RATE 1200.0
 #define GOLD_EXCHANGE_RATE 5.0
 #define EXP_EXCHANGE_RATE 1.0
 
