@@ -4961,6 +4961,17 @@ SPECIAL(pet_shops)
   else if (CMD_IS("buy"))
   {
 
+    struct follow_type *f = NULL;
+
+    for (f = ch->followers; f; f = f->next)
+    {
+      if (IS_NPC(f->follower) && MOB_FLAGGED(f->follower, MOB_MERCENARY) && AFF_FLAGGED(f->follower, AFF_CHARM))
+      {
+        send_to_char(ch, "You may only have one purchased follower.\r\n");
+        return 1;
+      }
+    }
+
     two_arguments(argument, buf, pet_name);
 
     /* disqualifiers */
@@ -7919,6 +7930,17 @@ SPECIAL(bought_pet)
   {
     send_to_char(ch, "This appears to be a pet.\r\n");
     return TRUE;
+  }
+
+  struct follow_type *f = NULL;
+
+  for (f = ch->followers; f; f = f->next)
+  {
+    if (IS_NPC(f->follower) && MOB_FLAGGED(f->follower, MOB_MERCENARY) && AFF_FLAGGED(f->follower, AFF_CHARM))
+    {
+      send_to_char(ch, "You may only have one purchased follower.\r\n");
+      return 1;
+    }
   }
 
   struct obj_data *obj = (struct obj_data *)me;

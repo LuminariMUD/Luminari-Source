@@ -6451,6 +6451,39 @@ ACMD(do_todo)
   }
 }
 
+// summon charmies to your current room
+ACMD(do_summon)
+{
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Mobs cannot summon charmies.\r\n");
+    return;
+  }
+
+  struct follow_type *f = NULL;
+  struct char_data *tch = NULL;
+  bool found = false;
+
+  for (f = ch->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!IS_NPC(tch)) continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
+    if (IN_ROOM(ch) == IN_ROOM(tch)) continue;
+    char_from_room(tch);
+    char_to_room(tch, IN_ROOM(ch));
+    act("$N appears beside you in a flash of light.", FALSE, ch, 0, tch, TO_CHAR);
+    act("You appear beside $n in a flash of light.", FALSE, ch, 0, tch, TO_VICT);
+    act("$N appears beside $n in a flash of light.", FALSE, ch, 0, tch, TO_NOTVICT);
+    found = true;
+  }
+
+  if (!found) {
+    send_to_char(ch, "You don't seem to have any followers away from you.\r\n");
+  }
+}
+
 /* some cleanup */
 #undef NUM_HINTS
 #undef SHAPE_AFFECTS

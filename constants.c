@@ -1064,7 +1064,7 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
     "Info-Kill",
     "Custom-Gold",
     "No-AI", //40
-    "unused",
+    "Mercenary",
     "unused",
     "unused",
     "unused", //45
