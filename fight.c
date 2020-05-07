@@ -816,11 +816,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
-      bonuses[BONUS_TYPE_DODGE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     }
     else if (IS_NPC(attacker) && IS_FAV_ENEMY_OF(ch, GET_RACE(attacker)))
     {
-      bonuses[BONUS_TYPE_DODGE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
     }
   }
   /* These bonuses to AC apply even against touch attacks or when the monk is
