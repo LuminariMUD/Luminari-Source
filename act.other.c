@@ -112,6 +112,13 @@ ACMD(do_exchange)
   float amount = 0.0, cost = 0.0, pool = 0.0;
   int source = 0, exchange = 0;
 
+  /*temp*/
+  if (GET_LEVEL(ch) < LVL_STAFF)
+  {
+    send_to_char(ch, "Under construction!\r\n");
+    return;
+  }
+
   three_arguments(argument, arg1, arg2, arg3);
 
   if (!*arg1 || !*arg2 || !*arg3)
