@@ -541,7 +541,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Elven.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Elven.");
   set_race_genders(RACE_ELF, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_ELF, 0, -2, 0, 0, 2, 0);          /* str con int wis dex cha */
+  set_race_abilities(RACE_ELF, 0, -2, 2, 0, 2, 0);          /* str con int wis dex cha */
   set_race_alignments(RACE_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_ELF,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -618,7 +618,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Dwarven.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Dwarven.");
   set_race_genders(RACE_DWARF, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_DWARF, 0, 2, 0, 0, 0, -2);          /* str con int wis dex cha */
+  set_race_abilities(RACE_DWARF, 0, 2, 0, 2, 0, -2);          /* str con int wis dex cha */
   set_race_alignments(RACE_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_DWARF,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -655,7 +655,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Halfling.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Halfling.");
   set_race_genders(RACE_HALFLING, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_HALFLING, -2, 0, 0, 0, 2, 0);          /* str con int wis dex cha */
+  set_race_abilities(RACE_HALFLING, -2, 0, 0, 0, 2, 2);          /* str con int wis dex cha */
   set_race_alignments(RACE_HALFLING, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_HALFLING,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -689,7 +689,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Gnomish.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Gnomish.");
   set_race_genders(RACE_GNOME, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_GNOME, -2, 2, 0, 0, 0, 0);          /* str con int wis dex cha */
+  set_race_abilities(RACE_GNOME, -2, 2, 0, 0, 0, 2);          /* str con int wis dex cha */
   set_race_alignments(RACE_GNOME, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_GNOME,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
