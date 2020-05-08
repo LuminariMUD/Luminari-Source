@@ -5762,6 +5762,9 @@ ACMD(do_gen_tog)
       /* 43 */
       {"You will no longer use smash defense in combat.\r\n",
        "You will now use smash defense in combat (if you know it).\r\n"},
+       /* 44 */
+      {"You will now allow charmies to rescue you and other group members.\r\n",
+       "You will no longer allow charmies to rescue you and other group members\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -5769,6 +5772,9 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+  case SCMD_NOCHARMIERESCUES:
+    result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);
+    break;
   case SCMD_SMASH_DEFENSE:
     result = PRF_TOG_CHK(ch, PRF_SMASH_DEFENSE);
     break;
