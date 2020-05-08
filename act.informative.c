@@ -76,13 +76,41 @@ int boot_high = 0;
 void lore_id_vict(struct char_data *ch, struct char_data *tch)
 {
   int i = 0;
+  size_t len = 0;
+  int count = 0;
+  bool has_subrace = false;
+  char subraces[MEDIUM_STRING];
+
+  count = snprintf(subraces + len, sizeof(subraces) - len, ", Subrace(s): ");
+  if (count > 0)
+    len += count;
+  if (GET_SUBRACE(tch, 0)) {
+    count = snprintf(subraces + len, sizeof(subraces) - len, "%s", npc_subrace_types[GET_SUBRACE(tch, 0)]);
+    if (count > 0)
+        len += count;
+    has_subrace = true;
+  }
+  if (GET_SUBRACE(tch, 1)) {
+  count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 1)]);
+  if (count > 0)
+      len += count;
+  }
+  if (GET_SUBRACE(tch, 2)) {
+  count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 2)]);
+  if (count > 0)
+      len += count;
+  }
 
   send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
   if (!IS_NPC(tch))
     send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
                  GET_NAME(tch), age(tch)->year, age(tch)->month,
                  age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
+  send_to_char(ch, "Race: %s%s.\r\n",
+              race_family_types[GET_RACE(tch)],
+              has_subrace ? subraces : "");
+  send_to_char(ch, "Alignment: %s.\r\n",
+              get_align_by_num(GET_ALIGNMENT(tch)));
   send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
                GET_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",

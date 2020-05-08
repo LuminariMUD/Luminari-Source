@@ -1476,6 +1476,15 @@ static char *make_prompt(struct descriptor_data *d)
           len += count;
       }
 
+      /* display gold on hand */
+      if (PRF_FLAGGED(d->character, PRF_DISPGOLD) && len < sizeof(prompt))
+      {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sGold:%s%d ",
+                         CCYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), GET_GOLD(d->character));
+        if (count >= 0)
+          len += count;
+      }
+
       /* display rooms */
       if (PRF_FLAGGED(d->character, PRF_DISPROOM) && len < sizeof(prompt))
       {
