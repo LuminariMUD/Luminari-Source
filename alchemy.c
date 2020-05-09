@@ -545,7 +545,7 @@ ACMD(do_bombs)
       return;
     }
 
-    two_arguments(scmd, slot, spec);
+    two_arguments(scmd, slot, sizeof(slot), spec, sizeof(spec));
 
     if (!*slot)
     {
@@ -2637,7 +2637,7 @@ ACMD(do_swallow)
 
   PREREQ_CHECK(can_swallow);
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -2787,7 +2787,7 @@ ACMD(do_curingtouch)
     return;
   }
 
-  one_argument_c(argument, arg1, sizeof(arg1));
+  one_argument(argument, arg1, sizeof(arg1));
 
   if (!*arg1)
   {

@@ -53,7 +53,7 @@ ACMD(do_oasis_zedit)
     return;
 
   /* Parse any arguments. */
-  stop = one_argument_c(two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2)), sbot, sizeof(sbot));
+  stop = one_argument(two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2)), sbot, sizeof(sbot));
 
   /* If no argument was given, use the zone the builder is standing in. */
   if (!*buf1)

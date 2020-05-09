@@ -101,7 +101,7 @@ ACMD(do_mkill)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -164,7 +164,7 @@ ACMD(do_mjunk)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -220,7 +220,7 @@ ACMDU(do_mechoaround)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  p = one_argument(argument, arg);
+  p = one_argument_u(argument, arg);
   skip_spaces(&p);
 
   if (!*arg)
@@ -262,7 +262,7 @@ ACMDU(do_msend)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  p = one_argument(argument, arg);
+  p = one_argument_u(argument, arg);
   skip_spaces(&p);
 
   if (!*arg)
@@ -382,7 +382,7 @@ ACMD(do_mload)
   if (ch->desc && GET_LEVEL(ch->desc->original) < LVL_IMPL)
     return;
 
-  target = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  target = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
   {
@@ -456,7 +456,7 @@ ACMD(do_mload)
       load_otrigger(object);
       return;
     }
-    two_arguments_c(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
+    two_arguments(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
     tch = (arg1 != NULL && *arg1 == UID_CHAR) ? get_char(arg1) : get_char_room_vis(ch, arg1, NULL);
     if (tch)
     {
@@ -511,7 +511,7 @@ ACMD(do_mpurge)
       if (GET_LEVEL(ch->desc->original) < LVL_IMPL)
         return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -585,7 +585,7 @@ ACMD(do_mgoto)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -630,7 +630,7 @@ ACMDU(do_mat)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_u(argument, arg);
 
   if (!*arg || !*argument)
   {
@@ -688,7 +688,7 @@ ACMD(do_mteleport)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  argument = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2)
   {
@@ -780,7 +780,7 @@ ACMD(do_mdamage)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  two_arguments_c(argument, name, sizeof(name), amount, sizeof(amount));
+  two_arguments(argument, name, sizeof(name), amount, sizeof(amount));
 
   /* who cares if it's a number ? if not it'll just be 0 */
   if (!*name || !*amount)
@@ -824,7 +824,7 @@ ACMDU(do_mforce)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_u(argument, arg);
 
   if (!*arg || !*argument)
   {
@@ -898,7 +898,7 @@ ACMD(do_mhunt)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -944,7 +944,7 @@ ACMD(do_mremember)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  argument = one_argument_c(argument, arg, sizeof(arg));
+  argument = one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1005,7 +1005,7 @@ ACMD(do_mforget)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1082,7 +1082,7 @@ ACMD(do_mtransform)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
     mob_log(ch, "mtransform: missing argument");
@@ -1208,8 +1208,8 @@ ACMD(do_mdoor)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = two_arguments_c(argument, target, sizeof(target), direction, sizeof(direction));
-  value = one_argument_c(argument, field, sizeof(field));
+  argument = two_arguments(argument, target, sizeof(target), direction, sizeof(direction));
+  value = one_argument(argument, field, sizeof(field));
   skip_spaces_c(&value);
 
   if (!*target || !*direction || !*field)
@@ -1305,7 +1305,7 @@ ACMD(do_mfollow)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (!*buf)
   {
@@ -1384,7 +1384,7 @@ ACMD(do_mrecho)
     send_to_char(ch, "Huh?!?\r\n");
     return;
   }
-  msg = two_arguments_c(argument, start, sizeof(start), finish, sizeof(finish));
+  msg = two_arguments(argument, start, sizeof(start), finish, sizeof(finish));
 
   skip_spaces_c(&msg);
 

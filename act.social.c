@@ -47,7 +47,7 @@ ACMD(do_action)
     return;
   }
 
-  two_arguments_c(argument, arg, sizeof(arg), part, sizeof(part));
+  two_arguments(argument, arg, sizeof(arg), part, sizeof(part));
 
   if ((!action->char_body_found) && (*part))
   {
@@ -59,7 +59,7 @@ ACMD(do_action)
     *arg = '\0';
 
   if (action->char_found && argument)
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
   else
     *arg = '\0';
 

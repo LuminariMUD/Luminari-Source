@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 
-void Test_one_argument(CuTest *tc)
+void Test_one_argument_u(CuTest *tc)
 {
     // NULL argument
     {
@@ -14,7 +14,7 @@ void Test_one_argument(CuTest *tc)
 
         char *exp_res = NULL;
         const char * const exp_outp = "";
-        char * res = one_argument(inp, outp);
+        char * res = one_argument_u(inp, outp);
 
         CuAssertPtrEquals(tc, exp_res, res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -27,7 +27,7 @@ void Test_one_argument(CuTest *tc)
 
         char *exp_res = inp + 5;
         const char * const exp_outp = "hello";
-        char *res = one_argument(inp, outp);
+        char *res = one_argument_u(inp, outp);
 
         CuAssertPtrEquals(tc, exp_res, res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -39,7 +39,7 @@ void Test_one_argument(CuTest *tc)
 
         char *exp_res = inp + 7;
         const char * const exp_outp = "tacos";
-        char * res = one_argument(inp, outp);
+        char * res = one_argument_u(inp, outp);
 
         CuAssertPtrEquals(tc, exp_res, res);
         CuAssertStrEquals(tc, exp_outp, outp);    
@@ -52,7 +52,7 @@ void Test_one_argument(CuTest *tc)
 
         char *exp_res = inp + 10;
         const char * const exp_outp = "hello";
-        char *res = one_argument(inp, outp);
+        char *res = one_argument_u(inp, outp);
 
         CuAssertPtrEquals(tc, exp_res, res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -65,14 +65,14 @@ void Test_one_argument(CuTest *tc)
 
         char *exp_res = inp + 42;
         const char * const exp_outp = "hello";
-        char *res = one_argument(inp, outp);
+        char *res = one_argument_u(inp, outp);
 
         CuAssertPtrEquals(tc, exp_res, res);
         CuAssertStrEquals(tc, exp_outp, outp);
     }
 }
 
-void Test_one_argument_c(CuTest *tc)
+void Test_one_argument(CuTest *tc)
 {
     // NULL argument
     {
@@ -81,7 +81,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = NULL;
         const char * const exp_outp = "";
-        const char * res = one_argument_c(inp, outp, sizeof(outp));
+        const char * res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -94,7 +94,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = inp + 5;
         const char * const exp_outp = "hello";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -106,7 +106,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = inp + 7;
         const char * const exp_outp = "tacos";
-        const char * res = one_argument_c(inp, outp, sizeof(outp));
+        const char * res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);    
@@ -119,7 +119,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = inp + 10;
         const char * const exp_outp = "hello";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -132,7 +132,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = inp + 42;
         const char * const exp_outp = "hello";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -145,7 +145,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = inp + 10;
         const char * const exp_outp = "hellowo";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -158,7 +158,7 @@ void Test_one_argument_c(CuTest *tc)
 
         const char *exp_res = inp + 20;
         const char * const exp_outp = "th";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -202,7 +202,7 @@ void Test_any_one_arg_c(CuTest *tc)
 
         const char *exp_res = inp + 5;
         const char * const exp_outp = "hello";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);
@@ -214,7 +214,7 @@ void Test_any_one_arg_c(CuTest *tc)
 
         const char *exp_res = inp + 7;
         const char * const exp_outp = "tacos";
-        const char * res = one_argument_c(inp, outp, sizeof(outp));
+        const char * res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);    
@@ -227,7 +227,7 @@ void Test_any_one_arg_c(CuTest *tc)
 
         const char *exp_res = inp + 10;
         const char * const exp_outp = "hellowo";
-        const char *res = one_argument_c(inp, outp, sizeof(outp));
+        const char *res = one_argument(inp, outp, sizeof(outp));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp, outp);

@@ -327,7 +327,7 @@ ACMD(do_templates)
 
       char arg1[100], arg2[100];
 
-      two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+      two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
       if (!*arg1) {
         send_to_char(ch, "That is not a known template type.  Please type @Y'templates'@n for a list.\r\n"

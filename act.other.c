@@ -119,7 +119,7 @@ ACMD(do_exchange)
     return;
   }
 
-  three_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
   if (!*arg1 || !*arg2 || !*arg3)
   {
@@ -768,7 +768,7 @@ ACMD(do_imbuearrow)
   int spell_num = 0, class = -1;
   int uses_remaining = 0;
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   /* need two arguments */
   if (!*arg1)
@@ -1011,7 +1011,7 @@ ACMD(do_applypoison)
   int amount = 1;
   bool is_trelux = FALSE;
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!HAS_FEAT(ch, FEAT_APPLY_POISON))
   {
@@ -1180,7 +1180,7 @@ ACMD(do_sorcerer_arcane_apotheosis)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1633,7 +1633,7 @@ ACMD(do_purify)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
@@ -1679,7 +1679,7 @@ ACMD(do_dismiss)
   int found = 0;
   struct mud_event_data *pMudEvent = NULL;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1771,7 +1771,7 @@ ACMD(do_recharge)
     return;
   }
 
-  argument = one_argument_c(argument, buf, sizeof(buf));
+  argument = one_argument(argument, buf, sizeof(buf));
 
   if (!(obj = get_obj_in_list_vis(ch, buf, NULL, ch->carrying)))
   {
@@ -1825,7 +1825,7 @@ ACMD(do_mount)
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1948,7 +1948,7 @@ ACMD(do_tame)
   struct affected_type af;
   struct char_data *vict;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -2004,7 +2004,7 @@ ACMD(do_respec)
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
@@ -2105,7 +2105,7 @@ ACMD(do_gain)
   }
 
   if (GET_PREMADE_BUILD_CLASS(ch) < 0)
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
   else
     snprintf(arg, MAX_INPUT_LENGTH, "%s", class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
 
@@ -3639,7 +3639,7 @@ ACMD(do_lore)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   target = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tch, &tobj);
 
@@ -4274,7 +4274,7 @@ ACMD(do_steal)
     return;
   }
 
-  two_arguments_c(argument, obj_name, sizeof(obj_name), vict_name, sizeof(vict_name));
+  two_arguments(argument, obj_name, sizeof(obj_name), vict_name, sizeof(vict_name));
 
   if (!(vict = get_char_vis(ch, vict_name, NULL, FIND_CHAR_ROOM)))
   {
@@ -4434,7 +4434,7 @@ ACMD(do_spells)
   if (IS_NPC(ch))
     return;
 
-  two_arguments_c(argument, arg, sizeof(arg), arg1, sizeof(arg1));
+  two_arguments(argument, arg, sizeof(arg), arg1, sizeof(arg1));
 
   if (!*arg && subcmd != SCMD_CONCOCT)
   {
@@ -4492,7 +4492,7 @@ ACMD(do_spelllist)
   if (IS_NPC(ch))
     return;
 
-  two_arguments_c(argument, arg, sizeof(arg), arg1, sizeof(arg1));
+  two_arguments(argument, arg, sizeof(arg), arg1, sizeof(arg1));
 
   if (subcmd == SCMD_CONCOCT)
   {
@@ -4559,7 +4559,7 @@ ACMD(do_boosts)
   if (IS_NPC(ch))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
     send_to_char(ch, "You can only boost stats with a trainer.\r\n");
@@ -4592,7 +4592,7 @@ ACMD(do_practice)
   if (IS_NPC(ch))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
     send_to_char(ch, "Type '\tYcraft\tn' without an argument to view your crafting skills.\r\n");
@@ -4617,7 +4617,7 @@ ACMD(do_train)
   //if (IS_NPC(ch))
   //return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg && is_abbrev(arg, "knowledge"))
   {
@@ -4853,7 +4853,7 @@ ACMDU(do_group)
 {
   char buf[MAX_STRING_LENGTH];
   struct char_data *vict;
-  argument = one_argument(argument, buf);
+  argument = one_argument_u(argument, buf);
 
   if (!*buf)
   {
@@ -5028,7 +5028,7 @@ ACMD(do_split)
   if (IS_NPC(ch))
     return;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (is_number(buf))
   {
@@ -5847,7 +5847,7 @@ ACMD(do_gen_tog)
     result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
     if (PRF_FLAGGED(ch, PRF_BUILDWALK))
     {
-      one_argument_c(argument, arg, sizeof(arg));
+      one_argument(argument, arg, sizeof(arg));
       for (i = 0; *arg && *(sector_types[i]) != '\n'; i++)
         if (is_abbrev(arg, sector_types[i]))
           break;
@@ -6012,7 +6012,7 @@ ACMD(do_happyhour)
   }
 
   /* Only Imms get here, so check args */
-  two_arguments_c(argument, arg, sizeof(arg), val, sizeof(val));
+  two_arguments(argument, arg, sizeof(arg), val, sizeof(val));
 
   if (is_abbrev(arg, "experience"))
   {

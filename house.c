@@ -516,7 +516,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
   }
 
   /* first arg: house's vnum */
-  arg = one_argument(arg, arg1);
+  arg = one_argument_u(arg, arg1);
   if (!*arg1)
   {
     send_to_char(ch, "%s", HCONTROL_FORMAT);
@@ -535,7 +535,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
   }
 
   /* second arg: direction of house's exit */
-  arg = one_argument(arg, arg1);
+  arg = one_argument_u(arg, arg1);
   if (!*arg1)
   {
     send_to_char(ch, "%s", HCONTROL_FORMAT);
@@ -562,7 +562,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
   }
 
   /* third arg: player's name */
-  one_argument(arg, arg1);
+  one_argument(arg, arg1, sizeof(arg1));
   if (!*arg1)
   {
     send_to_char(ch, "%s", HCONTROL_FORMAT);
@@ -686,7 +686,7 @@ ACMD(do_house)
   char arg[MAX_INPUT_LENGTH];
   int i, j, id;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_HOUSE))
     send_to_char(ch, "You must be in your house to set guests.\r\n");

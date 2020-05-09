@@ -617,7 +617,7 @@ bool oset_apply(struct obj_data *obj, const char *argument)
   int i = 0, apply = -1, location = -1, mod = 0, empty = -1, value;
   char arg[MAX_INPUT_LENGTH];
 
-  argument = one_argument_c(argument, arg, sizeof(arg));
+  argument = one_argument(argument, arg, sizeof(arg));
 
   skip_spaces_c(&argument);
 

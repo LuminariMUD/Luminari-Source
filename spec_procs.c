@@ -2607,7 +2607,7 @@ SPECIAL(guild)
     }
 
     /* Parse argument and check for 'knowledge' or 'craft' as a first arg- */
-    ability_name = one_argument(argument, arg);
+    ability_name = one_argument_u(argument, arg);
     skip_spaces(&ability_name);
 
     if (is_abbrev(arg, "craft"))
@@ -3258,7 +3258,7 @@ SPECIAL(clan_cleric)
 
   if (CMD_IS("buy") || CMD_IS("list"))
   {
-    argument = one_argument(argument, buf);
+    argument = one_argument_u(argument, buf);
 
     /* Which clanhall is this cleric in? */
     clanhall = zone_table[(GET_ROOM_ZONE(IN_ROOM(this_mob)))].number;
@@ -4972,7 +4972,7 @@ SPECIAL(pet_shops)
       }
     }
 
-    two_arguments(argument, buf, pet_name);
+    two_arguments(argument, buf, sizeof(buf), pet_name, sizeof(pet_name));
 
     /* disqualifiers */
     if (!(pet = get_char_room(buf, NULL, pet_room)) || !IS_NPC(pet))
@@ -7761,7 +7761,7 @@ SPECIAL(clanportal)
   if (!CMD_IS("enter"))
     return FALSE;
 
-  argument = one_argument(argument, obj_name);
+  argument = one_argument_u(argument, obj_name);
 
   /* Check that the player is trying to enter THIS portal */
   if (!(port = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))

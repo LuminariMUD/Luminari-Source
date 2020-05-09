@@ -58,7 +58,7 @@ ACMD(do_oasis_hedit)
     }
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

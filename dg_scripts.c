@@ -1050,8 +1050,8 @@ ACMD(do_attach)
   int loc, tn, rn, num_arg;
   room_rnum rnum;
 
-  argument = two_arguments_c(argument, arg, sizeof(arg), trig_name, sizeof(trig_name));
-  two_arguments_c(argument, targ_name, sizeof(targ_name), loc_name, sizeof(loc_name));
+  argument = two_arguments(argument, arg, sizeof(arg), trig_name, sizeof(trig_name));
+  two_arguments(argument, targ_name, sizeof(targ_name), loc_name, sizeof(loc_name));
 
   if (!*arg || !*targ_name || !*trig_name)
   {
@@ -1269,8 +1269,8 @@ ACMD(do_detach)
   char *trigger = 0;
   int num_arg;
 
-  argument = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
-  one_argument_c(argument, arg3, sizeof(arg3));
+  argument = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  one_argument(argument, arg3, sizeof(arg3));
 
   if (!*arg1 || !*arg2)
   {
@@ -1903,7 +1903,7 @@ static void process_set(struct script_data *sc, trig_data *trig, char *cmd)
 {
   char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH], *value;
 
-  value = two_arguments(cmd, arg, name);
+  value = two_arguments_u(cmd, arg, name);
 
   skip_spaces(&value);
 
@@ -1924,8 +1924,8 @@ void process_eval(void *go, struct script_data *sc, trig_data *trig,
   char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   char result[MAX_INPUT_LENGTH], *expr;
 
-  expr = one_argument(cmd, arg);   /* cut off 'eval' */
-  expr = one_argument(expr, name); /* cut off name */
+  expr = one_argument_u(cmd, arg);   /* cut off 'eval' */
+  expr = one_argument_u(expr, name); /* cut off name */
 
   skip_spaces(&expr);
 
@@ -1952,7 +1952,7 @@ static void process_attach(void *go, struct script_data *sc, trig_data *trig,
   room_data *r = NULL;
   long trignum, id;
 
-  id_p = two_arguments(cmd, arg, trignum_s);
+  id_p = two_arguments_u(cmd, arg, trignum_s);
   skip_spaces(&id_p);
 
   if (!*trignum_s)
@@ -2044,7 +2044,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig,
   room_data *r = NULL;
   long id = 0;
 
-  id_p = two_arguments(cmd, arg, trignum_s);
+  id_p = two_arguments_u(cmd, arg, trignum_s);
   skip_spaces(&id_p);
 
   if (!*trignum_s)
@@ -2270,7 +2270,7 @@ static int process_return(trig_data *trig, char *cmd)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-  two_arguments(cmd, arg1, arg2);
+  two_arguments(cmd, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg2)
   {
@@ -2318,7 +2318,7 @@ static void process_remote(struct script_data *sc, trig_data *trig, char *cmd)
   obj_data *obj;
 
   line = any_one_arg(cmd, arg);
-  two_arguments(line, buf, buf2);
+  two_arguments(line, buf, sizeof(buf), buf2, sizeof(buf2));
   var = buf;
   uid_p = buf2;
   skip_spaces(&var);
@@ -2401,7 +2401,7 @@ ACMD(do_vdelete)
   char_data *mob;
   obj_data *obj;
 
-  argument = two_arguments_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
+  argument = two_arguments(argument, buf, sizeof(buf), buf2, sizeof(buf2));
   var = buf;
   uid_p = buf2;
   skip_spaces(&var);
@@ -2527,7 +2527,7 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   obj_data *obj;
 
   line = any_one_arg(cmd, arg);
-  two_arguments(line, buf, buf2);
+  two_arguments(line, buf, sizeof(buf), buf2, sizeof(buf2));
   var = buf;
   uid_p = buf2;
   skip_spaces(&var);

@@ -325,7 +325,7 @@ ACMD(do_write)
   struct obj_data *paper, *pen = NULL;
   char papername[MAX_STRING_LENGTH], penname[MAX_STRING_LENGTH];
 
-  two_arguments_c(argument, papername, sizeof(papername), penname, sizeof(penname));
+  two_arguments(argument, papername, sizeof(papername), penname, sizeof(penname));
 
   if (!ch->desc)
     return;

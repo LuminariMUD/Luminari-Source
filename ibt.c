@@ -508,8 +508,8 @@ ACMD(do_ibt)
   if (IS_NPC(ch))
     return;
 
-  arg_text = one_argument_c(argument, arg, sizeof(arg));
-  argument = two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+  arg_text = one_argument(argument, arg, sizeof(arg));
+  argument = two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   first_ibt = get_first_ibt(subcmd);
   last_ibt = get_last_ibt(subcmd);
@@ -891,7 +891,7 @@ ACMD(do_oasis_ibtedit)
     return;
 
   /* Parse any arguments */
-  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {

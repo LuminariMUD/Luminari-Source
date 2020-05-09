@@ -399,7 +399,7 @@ static int transaction_amt(char *arg)
 
   /* If we have two arguments, it means 'buy 5 3', or buy 5 of #3. We don't do
    * that if we only have one argument, like 'buy 5', buy #5. By Andrey Fidrya */
-  buywhat = one_argument(arg, buf);
+  buywhat = one_argument_u(arg, buf);
   if (*buywhat && *buf && is_number(buf))
   {
     strcpy(arg, arg + strlen(buf) + 1); /* strcpy: OK (always smaller) */
@@ -483,7 +483,7 @@ static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct
   char name[MAX_INPUT_LENGTH];
   struct obj_data *obj;
 
-  one_argument(arg, name);
+  one_argument(arg, name, sizeof(name));
   do
   {
     if (*name == '#' || is_number(name))
@@ -881,7 +881,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
-  one_argument(arg, name);
+  one_argument(arg, name, sizeof(name));
   if (!(obj = get_selling_obj(ch, name, keeper, shop_nr, TRUE)))
     return;
 
@@ -958,7 +958,7 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
-  one_argument(arg, name);
+  one_argument(arg, name, sizeof(name));
   if (!(obj = get_selling_obj(ch, name, keeper, shop_nr, TRUE)))
     return;
 
@@ -1031,7 +1031,7 @@ static void shopping_list(char *arg, struct char_data *ch, struct char_data *kee
   if (SHOP_SORT(shop_nr) < IS_CARRYING_N(keeper))
     sort_keeper_objs(keeper, shop_nr);
 
-  one_argument(arg, name);
+  one_argument(arg, name, sizeof(name));
 
   len = strlcpy(buf, " ##   Available   Item                                               Cost\r\n"
                      "----------------------------------------------------------------------------\r\n",

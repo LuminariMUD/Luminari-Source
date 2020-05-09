@@ -62,7 +62,7 @@ ACMD(do_oasis_qedit)
   /****************************************************************************/
   /** Parse any arguments.                                                   **/
   /****************************************************************************/
-  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {

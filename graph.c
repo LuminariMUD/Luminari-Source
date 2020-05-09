@@ -174,7 +174,7 @@ ACMD(do_track)
     send_to_char(ch, "You have no idea how.\r\n");
     return;
   }
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Whom are you trying to track?\r\n");

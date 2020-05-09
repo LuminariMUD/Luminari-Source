@@ -53,7 +53,7 @@ ACMD(do_eviltouch)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -150,7 +150,7 @@ ACMD(do_blessedtouch)
   }
   else
   {
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
 
     if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
     {
@@ -221,7 +221,7 @@ ACMD(do_goodtouch)
   }
   else
   {
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
 
     if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
     {
@@ -303,7 +303,7 @@ ACMD(do_healingtouch)
   }
   else
   {
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
 
     if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
     {
@@ -781,7 +781,7 @@ ACMD(do_lightningarc)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -866,7 +866,7 @@ ACMD(do_aciddart)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -951,7 +951,7 @@ ACMD(do_firebolt)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -1036,7 +1036,7 @@ ACMD(do_icicle)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -1119,7 +1119,7 @@ ACMD(do_cursetouch)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
