@@ -1107,7 +1107,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 /* Quest Command Processing Function and Questmaster Special                */
 
 /*--------------------------------------------------------------------------*/
-ACMDC(do_quest)
+ACMD(do_quest)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int tp;

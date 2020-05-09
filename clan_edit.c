@@ -491,7 +491,7 @@ ACMD(do_clanedit)
   clan_rnum cr;
   struct descriptor_data *d;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   /***************************************************************************/
   /** Work out which clan is being edited.                                  **/

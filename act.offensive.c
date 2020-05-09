@@ -1756,7 +1756,7 @@ ACMD(do_turnundead)
     return;
   }
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
   if (!(vict = get_char_room_vis(ch, buf, NULL)))
   {
     send_to_char(ch, "Turn who?\r\n");
@@ -2169,7 +2169,7 @@ ACMD(do_assist)
     send_to_char(ch, "You're already fighting!  How can you assist someone else?\r\n");
     return;
   }
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, "Whom do you wish to assist?\r\n");
@@ -2197,7 +2197,7 @@ ACMD(do_hit)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "Hit who?\r\n");
@@ -2334,7 +2334,7 @@ ACMD(do_kill)
 
   PREREQ_CAN_FIGHT();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -2414,7 +2414,7 @@ ACMD(do_backstab)
     return;
   }
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
   if (!(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM)))
   {
     send_to_char(ch, "Backstab who?\r\n");
@@ -2465,7 +2465,7 @@ ACMD(do_order)
   struct char_data *vict;
   struct follow_type *k;
 
-  half_chop(argument, name, message);
+  half_chop_c(argument, name, sizeof(name), message, sizeof(message));
 
   if (!*name || !*message)
     send_to_char(ch, "Order who to do what?\r\n");
@@ -2542,7 +2542,7 @@ ACMD(do_flee)
   }
 
   if (argument)
-    one_argument(argument, arg);
+    one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -2688,7 +2688,7 @@ ACMD(do_taunt)
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_NPC();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   PREREQ_NOT_PEACEFUL_ROOM();
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
@@ -2832,7 +2832,7 @@ ACMD(do_intimidate)
   PREREQ_NOT_NPC();
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
@@ -3187,7 +3187,7 @@ ACMD(do_bash)
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
@@ -3224,7 +3224,7 @@ ACMD(do_trip)
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
@@ -3254,7 +3254,7 @@ ACMD(do_layonhands)
 
   PREREQ_CHECK(can_layonhands);
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     send_to_char(ch, "Whom do you want to lay hands on?\r\n");
@@ -3471,7 +3471,7 @@ ACMD(do_treatinjury)
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   PREREQ_CHECK(can_treatinjury);
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
@@ -3548,7 +3548,7 @@ ACMD(do_bandage)
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
@@ -3642,7 +3642,7 @@ ACMD(do_rescue)
 
   PREREQ_CAN_FIGHT();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
@@ -4052,7 +4052,7 @@ ACMD(do_impromptu)
   PREREQ_CHECK(can_impromptu);
   PREREQ_HAS_USES(FEAT_IMPROMPTU_SNEAK_ATTACK, "You must recover the energy required to use another impromptu sneak attack.\r\n");
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -4082,7 +4082,7 @@ ACMD(do_seekerarrow)
   PREREQ_CHECK(can_seekerarrow);
   PREREQ_HAS_USES(FEAT_SEEKER_ARROW, "You must recover the arcane energy required to use another seeker arrow.\r\n");
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
@@ -4115,7 +4115,7 @@ ACMD(do_faeriefire)
   PREREQ_CHECK(can_faeriefire);
   PREREQ_HAS_USES(FEAT_SLA_FAERIE_FIRE, "You must recover before you can use faerie fire again.\r\n");
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
@@ -4145,7 +4145,7 @@ ACMD(do_kick)
 
   PREREQ_NOT_NPC();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
@@ -4257,7 +4257,7 @@ ACMD(do_circle)
     return;
   }
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
   if (!*buf && FIGHTING(ch))
     vict = FIGHTING(ch);
   else if (!(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM)))
@@ -4315,7 +4315,7 @@ ACMD(do_bodyslam)
   PREREQ_CAN_FIGHT();
   PREREQ_NOT_NPC();
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   send_to_char(ch, "Unimplemented.\r\n");
   return;
@@ -4367,7 +4367,7 @@ ACMD(do_headbutt)
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_headbutt);
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -4400,7 +4400,7 @@ ACMD(do_sap)
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_sap);
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (FIGHTING(ch))
   {
@@ -4437,7 +4437,7 @@ ACMD(do_guard)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!*arg)
   {
     if (GUARDING(ch))
@@ -4487,7 +4487,7 @@ ACMD(do_dirtkick)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_CHECK(can_dirtkick);
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg || !(vict = get_char_room_vis(ch, arg, NULL)))
   {
@@ -4526,7 +4526,7 @@ ACMD(do_springleap)
 
   PREREQ_CAN_FIGHT();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_springleap);
@@ -4583,7 +4583,7 @@ ACMD(do_shieldpunch)
   PREREQ_IN_POSITION(POS_SITTING, "You need to get on your feet to shieldpunch.\r\n");
   PREREQ_CHECK(can_shieldpunch);
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -4623,7 +4623,7 @@ ACMD(do_shieldcharge)
   PREREQ_IN_POSITION(POS_SITTING, "You need to get on your feet to shieldcharge.\r\n");
   PREREQ_CHECK(can_shieldcharge);
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -4666,7 +4666,7 @@ ACMD(do_shieldslam)
   PREREQ_IN_POSITION(POS_SITTING, "You need to get on your feet to shieldslam.\r\n");
   PREREQ_CHECK(can_shieldslam);
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   PREREQ_NOT_PEACEFUL_ROOM();
 
@@ -4691,7 +4691,7 @@ ACMD(do_charge)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_IN_POSITION(POS_SITTING, "You need to stand to charge!\r\n");
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -4831,7 +4831,7 @@ ACMD(do_fire)
     return;
   }
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   /* no 2nd argument?  target room has to be same room */
   if (!*arg2)
@@ -4978,7 +4978,7 @@ ACMD(do_autofire)
   PREREQ_NOT_NPC();
   PREREQ_NOT_PEACEFUL_ROOM();
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (FIGHTING(ch) || FIRING(ch))
   {
@@ -5233,7 +5233,7 @@ ACMD(do_feint)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_IN_POSITION(POS_SITTING, "You need to stand to feint!\r\n");
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -5407,7 +5407,7 @@ ACMD(do_disarm)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_IN_POSITION(POS_SITTING, "You need to stand to disarm!\r\n");
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

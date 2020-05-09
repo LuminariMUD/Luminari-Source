@@ -29,6 +29,10 @@ const char *any_one_arg_c(const char *argument, char *first_arg, size_t n);
 char *two_arguments(char *argument, char *first_arg, char *second_arg);
 char *three_arguments(char *argument, char *first_arg, char *second_arg,
                       char *third_arg);
+const char *three_arguments_c(const char *argument,
+                              char *first_arg, size_t n1,
+                              char *second_arg, size_t n2,
+                              char *third_arg, size_t n3);
 int fill_word(char *argument);
 int reserved_word(char *argument);
 void half_chop(char *string, char *arg1, char *arg2);

@@ -3600,7 +3600,7 @@ ACMD(do_loadmagicspecific)
   int number = 0;
   int i = 0;
 
-  three_arguments(argument, arg1, arg2, arg3);
+  three_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
   if (!*arg1)
   {
@@ -3707,7 +3707,7 @@ ACMD(do_loadmagic)
   int number = 1;
   int grade = 0;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {

@@ -42,7 +42,7 @@ ACMD(do_oasis_zedit)
 {
   int number = NOWHERE, save = 0, real_num;
   struct descriptor_data *d;
-  char *stop;
+  const char *stop;
   char sbot[MAX_STRING_LENGTH];
   char buf1[MAX_STRING_LENGTH];
   char buf2[MAX_STRING_LENGTH];
@@ -53,7 +53,7 @@ ACMD(do_oasis_zedit)
     return;
 
   /* Parse any arguments. */
-  stop = one_argument(two_arguments(argument, buf1, buf2), sbot);
+  stop = one_argument_c(two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2)), sbot, sizeof(sbot));
 
   /* If no argument was given, use the zone the builder is standing in. */
   if (!*buf1)

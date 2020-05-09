@@ -36,7 +36,7 @@ static void redit_disp_menu(struct descriptor_data *d);
 /* Utils and exported functions. */
 ACMD(do_oasis_redit)
 {
-  char *buf3;
+  const char *buf3;
   char buf1[MAX_STRING_LENGTH];
   char buf2[MAX_STRING_LENGTH];
   int number = NOWHERE, save = 0, real_num;
@@ -47,7 +47,7 @@ ACMD(do_oasis_redit)
     return;
 
   /* Parse any arguments. */
-  buf3 = two_arguments(argument, buf1, buf2);
+  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
     number = GET_ROOM_VNUM(IN_ROOM(ch));

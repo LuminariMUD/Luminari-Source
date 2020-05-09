@@ -74,7 +74,7 @@ ACMD(do_oasis_copy)
     return;
 
   /* We need two arguments. */
-  two_arguments(argument, buf1, buf2);
+  two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /* Both arguments are required and they must be numeric. */
   if (!*buf2 || !is_number(buf1) || !is_number(buf2))
@@ -163,7 +163,8 @@ ACMD(do_oasis_copy)
 /* Commands */
 ACMD(do_dig)
 {
-  char sdir[MAX_INPUT_LENGTH], sroom[MAX_INPUT_LENGTH], *new_room_name;
+  char sdir[MAX_INPUT_LENGTH], sroom[MAX_INPUT_LENGTH];
+  const char *new_room_name;
   room_vnum rvnum = NOWHERE;
   room_rnum rrnum = NOWHERE;
   zone_rnum zone;
@@ -171,8 +172,8 @@ ACMD(do_dig)
   struct descriptor_data *d = ch->desc; /* will save us some typing */
 
   /* Grab the room's name (if available). */
-  new_room_name = two_arguments(argument, sdir, sroom);
-  skip_spaces(&new_room_name);
+  new_room_name = two_arguments_c(argument, sdir, sizeof(sdir), sroom, sizeof(sroom));
+  skip_spaces_c(&new_room_name);
 
   /* Can't dig if we don't know where to go. */
   if (!*sdir || !*sroom)

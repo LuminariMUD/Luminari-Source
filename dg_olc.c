@@ -39,7 +39,7 @@ ACMD(do_oasis_trigedit)
     return;
 
   /* Parse any arguments. */
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
   if (!*argument || !isdigit(*argument))
   {
     send_to_char(ch, "Specify a trigger VNUM to edit.\r\n");

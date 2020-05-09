@@ -448,7 +448,7 @@ ACMD(do_reboot)
 {
   char arg[MAX_INPUT_LENGTH];
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!str_cmp(arg, "all") || *arg == '*')
   {

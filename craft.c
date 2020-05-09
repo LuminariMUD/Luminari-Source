@@ -2478,7 +2478,7 @@ EVENTFUNC(event_crafting)
 }
 
 /* the 'harvest' command */
-ACMDC(do_harvest)
+ACMD(do_harvest)
 {
   struct obj_data *obj = NULL, *node = NULL;
   int roll = 0, material = -1, minskill = 0;

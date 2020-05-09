@@ -137,7 +137,7 @@ void disable_combat_mode(struct char_data *ch, int mode)
 }
 
 /* Generic mode manager */
-ACMDC(do_mode)
+ACMD(do_mode)
 {
 
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -233,7 +233,7 @@ ACMDC(do_mode)
 #define SPELLBATTLE_CAP 12
 #define SPELLBATTLE_AFFECTS 4
 
-ACMDC(do_spellbattle)
+ACMD(do_spellbattle)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int number = -1, cap = SPELLBATTLE_CAP, duration = 1, i = 0;

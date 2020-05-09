@@ -496,7 +496,7 @@ void use_boost_point(struct char_data *ch, int stat)
   }
 }
 
-ACMDC(do_study)
+ACMD(do_study)
 {
   /* gonna have some restrictions here */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))

@@ -5179,7 +5179,7 @@ void ship_lookout(struct char_data *ch)
   look_at_room_number(ch, 1, ship->in_room);
 }
 
-ACMDC(do_disembark)
+ACMD(do_disembark)
 {
   struct obj_data *ship;
   ship = find_ship(ch->in_room);

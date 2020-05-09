@@ -161,7 +161,7 @@ int find_first_step(room_rnum src, room_rnum target)
 
 /* our pimritive version of track, to be upgraded by Ornir at some point
    (that work can be found commented out in act.informative.c do_track) */
-ACMDC(do_track)
+ACMD(do_track)
 {
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;

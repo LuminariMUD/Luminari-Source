@@ -24,7 +24,7 @@
 /* do_action and do_gmote utility function */
 static int find_action(int cmd);
 
-ACMDC(do_action)
+ACMD(do_action)
 {
   char arg[MAX_INPUT_LENGTH], part[MAX_INPUT_LENGTH];
   int act_nr;
@@ -251,7 +251,7 @@ static int find_action(int cmd)
   }
 }
 
-ACMDC(do_gmote)
+ACMD(do_gmote)
 {
   int act_nr, length;
   char arg[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];

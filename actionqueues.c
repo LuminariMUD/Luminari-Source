@@ -265,7 +265,7 @@ int pending_attacks(struct char_data *ch)
  * need to change moment by moment.
  * Using this command, the player may manipulate their
  * action queue in various ways. */
-ACMDC(do_queue)
+ACMD(do_queue)
 {
   char arg[MAX_INPUT_LENGTH];
   struct queue_type *queue;

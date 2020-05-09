@@ -358,7 +358,7 @@ ACMD(do_export_zone)
   if (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMPL)
     return;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
   if (!*argument)
   {
     send_to_char(ch, "Syntax: export <zone vnum>");

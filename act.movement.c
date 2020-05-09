@@ -2260,7 +2260,7 @@ ACMD(do_gen_door)
   struct obj_data *obj = NULL;
   struct char_data *victim = NULL;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -2268,7 +2268,7 @@ ACMD(do_gen_door)
     return;
   }
 
-  two_arguments(argument, type, dir);
+  two_arguments_c(argument, type, sizeof(type), dir, sizeof(dir));
 
   if (!generic_find(type, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &victim, &obj))
     door = find_door(ch, type, dir, cmd_door[subcmd]);

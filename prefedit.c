@@ -1121,7 +1121,7 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   PREFEDIT_GET_SCREENWIDTH = 80; /* Default telnet screen is 80 columns */
 }
 
-ACMDC(do_oasis_prefedit)
+ACMD(do_oasis_prefedit)
 {
   struct descriptor_data *d;
   struct char_data *vict;

@@ -2187,7 +2187,7 @@ ACMD(do_masterlist)
   if (IS_NPC(ch))
     return;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!argument || !*argument)
   {
@@ -2265,7 +2265,7 @@ ACMD(do_look)
   {
     char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-    half_chop(argument, arg, arg2);
+    half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
     if (subcmd == SCMD_READ)
     {
@@ -3222,7 +3222,7 @@ ACMD(do_who)
       {"\n", 0, 0, 0}};
 
   // remove spaces in front of argument
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
   // copy argument -> buf
   strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   // first char of name_search is now NULL
@@ -4097,8 +4097,8 @@ ACMD(do_toggle)
   if (IS_NPC(ch))
     return;
 
-  argument = one_argument(argument, arg);
-  any_one_arg(argument, arg2); /* so that we don't skip 'on' */
+  argument = one_argument_c(argument, arg, sizeof(arg));
+  any_one_arg_c(argument, arg2, sizeof(arg2)); /* so that we don't skip 'on' */
 
   if (!*arg)
   {
@@ -5334,7 +5334,7 @@ void display_weapon_families(struct char_data *ch)
 
 ACMD(do_weapontypes)
 {
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -5527,7 +5527,7 @@ int is_weapon_proficient(int weapon, int type)
 
 ACMD(do_weaponproficiencies)
 {
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -5636,7 +5636,7 @@ ACMD(do_weaponproficiencies)
 ACMD(do_weaponinfo)
 {
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {

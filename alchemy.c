@@ -515,7 +515,7 @@ ACMD(do_bombs)
     return;
   }
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -534,7 +534,7 @@ ACMD(do_bombs)
 
   struct char_data *target = NULL;
 
-  half_chop(argument, ccmd, scmd);
+  half_chop_c(argument, ccmd, sizeof(ccmd), scmd, sizeof(scmd));
 
   if (is_abbrev(ccmd, "toss"))
   {
@@ -1856,7 +1856,7 @@ ACMD(do_discoveries)
   }
 
   int num = 0, i = 0;
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -1913,7 +1913,7 @@ ACMD(do_grand_discoveries)
   }
 
   int num = 0, i = 0;
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!GET_GRAND_DISCOVERY(ch))
   {
@@ -1931,7 +1931,7 @@ ACMD(do_grand_discoveries)
       return;
     }
     char arg1[200], arg2[200];
-    half_chop(argument, arg1, arg2);
+    half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
     if (!*arg1 || !is_abbrev(arg1, "learn"))
     {
       send_to_char(ch, "To learn a grand discovery type 'gdiscovery learn (grand discovery name)\r\n");
@@ -2637,7 +2637,7 @@ ACMD(do_swallow)
 
   PREREQ_CHECK(can_swallow);
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -2869,7 +2869,7 @@ ACMD(do_psychokinetic)
     return;
   }
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   // check to see if they specified an argument
   if (!*argument)

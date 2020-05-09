@@ -499,7 +499,8 @@ static bool is_ibt_logger(IBT_DATA *ibtData, struct char_data *ch)
 ACMD(do_ibt)
 {
   char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH], *arg_text, imp[30];
+  char buf[MAX_STRING_LENGTH], imp[30];
+  const char *arg_text;
   int i, num_res, num_unres;
   IBT_DATA *ibtData, *first_ibt, *last_ibt;
   int ano = 0;
@@ -507,8 +508,8 @@ ACMD(do_ibt)
   if (IS_NPC(ch))
     return;
 
-  arg_text = one_argument(argument, arg);
-  argument = two_arguments(argument, arg, arg2);
+  arg_text = one_argument_c(argument, arg, sizeof(arg));
+  argument = two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   first_ibt = get_first_ibt(subcmd);
   last_ibt = get_last_ibt(subcmd);
@@ -882,14 +883,15 @@ ACMD(do_oasis_ibtedit)
 {
   int number = NOTHING;
   struct descriptor_data *d;
-  char buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], *buf3;
+  char buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  const char *buf3;
 
   /* No editing as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
 
   /* Parse any arguments */
-  buf3 = two_arguments(argument, buf1, buf2);
+  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {
