@@ -18,7 +18,7 @@
 
 /* Exported function prototypes */
 bool show_worldmap(struct char_data *ch);
-void perform_map(struct char_data *ch, char *argument, bool worldmap);
+void perform_map(struct char_data *ch, const char *argument, bool worldmap);
 bool can_see_map(struct char_data *ch);
 void str_and_map(char *str, struct char_data *ch, room_vnum target_room);
 const char *get_map_string(struct char_data *ch, room_vnum target_room);

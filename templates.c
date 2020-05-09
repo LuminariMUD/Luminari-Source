@@ -320,14 +320,14 @@ void show_level_history(struct char_data *ch, int level)
 
 ACMD(do_templates)
 {
-    skip_spaces(&argument);
+    skip_spaces_c(&argument);
 
     // we're going to use the levelinfo code to let them see what they'll get from their template
     if (*argument) {
 
       char arg1[100], arg2[100];
 
-      two_arguments(argument, arg1, arg2);
+      two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
       if (!*arg1) {
         send_to_char(ch, "That is not a known template type.  Please type @Y'templates'@n for a list.\r\n"
@@ -561,7 +561,7 @@ ACMD(do_levelinfo)
 
     char arg1[200], arg2[700], arg3[200], arg4[500];
 
-    half_chop(argument, arg1, arg2);
+    half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   mysql_ping(conn );
 

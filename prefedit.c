@@ -1121,7 +1121,7 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   PREFEDIT_GET_SCREENWIDTH = 80; /* Default telnet screen is 80 columns */
 }
 
-ACMDC(do_oasis_prefedit)
+ACMD(do_oasis_prefedit)
 {
   struct descriptor_data *d;
   struct char_data *vict;
@@ -1132,7 +1132,7 @@ ACMDC(do_oasis_prefedit)
   /****************************************************************************/
   /** Parse any arguments.                                                   **/
   /****************************************************************************/
-  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /****************************************************************************/
   /** If there aren't any arguments...well...they can only modify their      **/

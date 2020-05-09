@@ -187,7 +187,7 @@ WCMD(do_wrecho)
 {
   char start[MAX_INPUT_LENGTH], finish[MAX_INPUT_LENGTH], *msg;
 
-  msg = two_arguments(argument, start, finish);
+  msg = two_arguments_u(argument, start, finish);
 
   skip_spaces(&msg);
 
@@ -214,8 +214,8 @@ WCMD(do_wdoor)
       "room",
       "\n"};
 
-  argument = two_arguments(argument, target, direction);
-  value = one_argument(argument, field);
+  argument = two_arguments_u(argument, target, direction);
+  value = one_argument_u(argument, field);
   skip_spaces(&value);
 
   if (!*target || !*direction || !*field)
@@ -303,7 +303,7 @@ WCMD(do_wteleport)
   room_rnum target, nr;
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2)
   {
@@ -372,7 +372,7 @@ WCMD(do_wforce)
   char_data *ch, *next_ch;
   char arg1[MAX_INPUT_LENGTH], *line;
 
-  line = one_argument(argument, arg1);
+  line = one_argument_u(argument, arg1);
 
   if (!*arg1 || !*line)
   {
@@ -415,7 +415,7 @@ WCMD(do_wpurge)
   char_data *ch, *next_ch;
   obj_data *obj = NULL, *next_obj;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -480,7 +480,7 @@ WCMD(do_wload)
   obj_data *cnt;
   int pos;
 
-  target = two_arguments(argument, arg1, arg2);
+  target = two_arguments_u(argument, arg1, arg2);
 
   if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
   {
@@ -547,7 +547,7 @@ WCMD(do_wload)
       return;
     }
 
-    two_arguments(target, arg1, arg2); /* recycling ... */
+    two_arguments(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
     tch = get_char_in_room(room, arg1);
     if (tch)
     {
@@ -586,7 +586,7 @@ WCMD(do_wdamage)
   int dam = 0;
   char_data *ch;
 
-  two_arguments(argument, name, amount);
+  two_arguments(argument, name, sizeof(name), amount, sizeof(amount));
 
   /* who cares if it's a number ? if not it'll just be 0 */
   if (!*name || !*amount)
@@ -648,7 +648,7 @@ WCMD(do_wmove)
   room_rnum target, nr;
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2)
   {

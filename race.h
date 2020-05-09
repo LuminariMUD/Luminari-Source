@@ -45,9 +45,9 @@ struct affect_assign
 int parse_race(char arg);
 bitvector_t find_race_bitvector(const char *arg);
 int invalid_race(struct char_data *ch, struct obj_data *obj);
-int parse_race_long(char *arg);
+int parse_race_long(const char *arg);
 void assign_races(void);
-bool display_race_info(struct char_data *ch, char *racename);
+bool display_race_info(struct char_data *ch, const char *racename);
 int get_race_stat(int race, int stat);
 int get_random_basic_pc_race(void);
 

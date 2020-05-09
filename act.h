@@ -249,7 +249,7 @@ ACMD_DECL(do_moves);
 /*****************************************************************************
  * Begin Functions and defines for rank.c
  ****************************************************************************/
-void do_slug_rank(struct char_data *ch, char *arg);
+void do_slug_rank(struct char_data *ch, const char *arg);
 ACMD_DECL(do_rank);
 
 /*****************************************************************************
@@ -535,7 +535,7 @@ void perform_perform(struct char_data *ch);
 void perform_call(struct char_data *ch, int call_type, int level);
 void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
-bool wildshape_engine(struct char_data *ch, char *argument, int mode);
+bool wildshape_engine(struct char_data *ch, const char *argument, int mode);
 void show_hints(void);
 void display_todo(struct char_data *ch, struct char_data *vict);
 
@@ -693,7 +693,7 @@ ACMD_DECL(do_gen_memorize);
 void clean_llog_entries(void);
 /** @todo This should be moved to a more general utility file */
 int script_command_interpreter(struct char_data *ch, char *arg);
-room_rnum find_target_room(struct char_data *ch, char *rawroomstr);
+room_rnum find_target_room(struct char_data *ch, const char *rawroomstr);
 void perform_immort_vis(struct char_data *ch);
 void snoop_check(struct char_data *ch);
 bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_name);

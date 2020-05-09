@@ -1820,7 +1820,7 @@ bool monk_gear_ok(struct char_data *ch)
 /* ACMD */
 
 /* list all the weapon defines in-game */
-ACMDC(do_weaponlist_old)
+ACMD(do_weaponlist_old)
 {
   int type = 0;
   char buf[MAX_STRING_LENGTH];
@@ -1870,7 +1870,7 @@ ACMDC(do_weaponlist_old)
 }
 
 /* list all the weapon defines in-game */
-ACMDC(do_armorlist)
+ACMD(do_armorlist)
 {
   int i = 0;
   char buf[MAX_STRING_LENGTH];

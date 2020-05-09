@@ -58,7 +58,7 @@ ACMD(do_oasis_hedit)
     }
   }
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -603,7 +603,7 @@ ACMD(do_hindex)
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
   int i = 0, count = 0, count2 = 0, len = 0, len2 = 0;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {

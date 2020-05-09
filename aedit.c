@@ -29,7 +29,7 @@ static void aedit_setup_existing(struct descriptor_data *d, int real_num);
 static void aedit_save_internally(struct descriptor_data *d);
 
 /* Utils and exported functions. */
-ACMDC(do_oasis_aedit)
+ACMD(do_oasis_aedit)
 {
   char arg[MAX_INPUT_LENGTH];
   struct descriptor_data *d;
@@ -58,7 +58,7 @@ ACMDC(do_oasis_aedit)
       return;
     }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -825,7 +825,7 @@ void aedit_parse(struct descriptor_data *d, char *arg)
   aedit_disp_menu(d);
 }
 
-ACMDC(do_astat)
+ACMD(do_astat)
 {
   int i, real = FALSE;
   char arg[MAX_INPUT_LENGTH];
@@ -833,7 +833,7 @@ ACMDC(do_astat)
   if (IS_NPC(ch))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

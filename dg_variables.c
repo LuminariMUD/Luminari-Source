@@ -161,7 +161,7 @@ static int handle_oset(struct obj_data *obj, char *argument)
   struct oset_handler
   {
     const char *type;
-    bool (*name)(struct obj_data *, char *);
+    bool (*name)(struct obj_data *, const char *);
   } handler[] = {
       {"alias", oset_alias},
       {"apply", oset_apply},
@@ -172,7 +172,7 @@ static int handle_oset(struct obj_data *obj, char *argument)
   if (!obj || !*argument)
     return 0;
 
-  argument = one_argument(argument, value);
+  argument = one_argument_u(argument, value);
 
   while (*handler[i].type != '\n')
   {

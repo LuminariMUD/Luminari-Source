@@ -254,7 +254,7 @@ SPECIAL(faction_mission)
     return 1;
 }
 
-ACMDC(do_missions)
+ACMD(do_missions)
 {
     int i = 0;
 

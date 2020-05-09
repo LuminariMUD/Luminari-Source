@@ -105,15 +105,15 @@ char * trade_name[NUM_TRADE_GOODS] = {
                                       "Wine",
 };
 
-ACMD(do_dropwagon) {
+ACMDU(do_dropwagon) {
   send_to_char(ch, "You can't do that here.\r\n");
 }
 
-ACMD(do_getwagon) {
+ACMDU(do_getwagon) {
   send_to_char(ch, "You can't do that here.\r\n");
 }
 
-ACMD(do_claimwagon) {
+ACMDU(do_claimwagon) {
   struct obj_data *obj;
   struct char_data *tmp_char;
 

@@ -907,7 +907,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
         struct obj_data *tobj = NULL;
         int potion_level = GET_OBJ_VAL(obj, 0);
 
-        one_argument(argument, arg);
+        one_argument(argument, arg, sizeof(arg));
 
         k = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tch, &tobj);
 
@@ -1534,7 +1534,7 @@ ACMD(do_abort)
  * determines the spell number and finds a target, throws the die to see if
  * the spell can be cast, checks for sufficient psp (hah) and subtracts it, and
  * passes control to cast_spell(). */
-ACMD(do_gen_cast)
+ACMDU(do_gen_cast)
 {
         struct char_data *tch = NULL;
         struct obj_data *tobj = NULL;
@@ -1811,7 +1811,7 @@ ACMD(do_gen_cast)
                 char arg[MAX_INPUT_LENGTH];
 
                 strlcpy(arg, target_arg, sizeof(arg));
-                one_argument(arg, target_arg);
+                one_argument_u(arg, target_arg);
                 skip_spaces(&target_arg);
 
                 /* Copy target to global cast_arg2, for use in spells like locate object */

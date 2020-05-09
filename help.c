@@ -234,7 +234,7 @@ void perform_help(struct descriptor_data *d, const char *argument)
   }
 }
 
-ACMD(do_help)
+ACMDU(do_help)
 {
   struct help_entry_list *entries = NULL, *tmp = NULL;
   struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
