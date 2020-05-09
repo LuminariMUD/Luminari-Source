@@ -610,7 +610,7 @@ ACMD(do_bombs)
       }
     }
 
-    if (!is_player_grouped(ch, target) && !IS_NPC(target) && (!PRF_FLAGGED(ch, PRF_PVP) || !PRF_FLAGGED(target, PRF_PVP)))
+    if (!is_player_grouped(ch, target) && !IS_NPC(target) && !pvp_ok(ch, target))
     {
       switch (type)
       {
@@ -1639,7 +1639,7 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
   switch (bomb_type)
   {
   case BOMB_POISON:
-    spellnum = SPELL_CLOUDKILL;
+    spellnum = SPELL_DEATHCLOUD; // cloudkill
     break;
   case BOMB_STINK:
     spellnum = SPELL_STINKING_CLOUD;

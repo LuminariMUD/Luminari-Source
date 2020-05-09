@@ -836,7 +836,7 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
     for (i = 0; i < NUM_CLASSES; i++)
       if (CLASS_LEVEL(ch, i)) /* found char current class */
         break;
-    switch (GET_RACE(ch))
+    switch (GET_REAL_RACE(ch))
     {
     case RACE_CRYSTAL_DWARF:
       if (classnum == i) /* char class selection and current class match? */
@@ -2290,6 +2290,8 @@ void init_start_char(struct char_data *ch)
   for (i = 0; i < MAX_ABILITIES; i++)
     for (j = 0; j < NUM_SKFEATS; j++)
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
+  for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
+      GET_BOMB(ch, i) = 0;
 
   /* initialize spell prep data, allow adjustment of spells known */
   destroy_spell_prep_queue(ch);
