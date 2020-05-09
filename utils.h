@@ -200,6 +200,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);
 int daily_item_specab_uses_remaining(struct obj_data *obj, int specab);
 int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
+bool pvp_ok(struct char_data *ch, struct char_data *target);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -2018,6 +2019,9 @@ void char_from_furniture(struct char_data *ch);
 
 #define LOOTBOX_LEVEL(obj) (GET_OBJ_VAL(obj, 0))
 #define LOOTBOX_TYPE(obj) (GET_OBJ_VAL(obj, 1))
+
+#define ARENA_START 138600
+#define ARENA_END   138608
 
 #endif /* _UTILS_H_ */
 

@@ -4056,3 +4056,16 @@ void do_study_spell_help(struct char_data *ch, int spellnum)
       break;
   }
 }
+
+bool pvp_ok(struct char_data *ch, struct char_data *target)
+{
+  if (PRF_FLAGGED(ch, PRF_PVP) && PRF_FLAGGED(target, PRF_PVP))
+    return true;
+
+  // are they in the arena?
+  if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END)
+    if (world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+      return true;
+
+  return false;
+}
