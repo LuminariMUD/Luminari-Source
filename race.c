@@ -421,8 +421,8 @@ ACMD(do_race)
 
   /*  Have to process arguments like this
    *  because of the syntax - race info <racename> */
-  racename = one_argument_c(argument, arg, sizeof(arg));
-  one_argument_c(racename, arg2, sizeof(arg2));
+  racename = one_argument(argument, arg, sizeof(arg));
+  one_argument(racename, arg2, sizeof(arg2));
 
   /* no argument, or general list of races */
   if (is_abbrev(arg, "list") || !*arg)

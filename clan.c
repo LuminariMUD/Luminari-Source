@@ -661,7 +661,7 @@ ACMD(do_clan)
   }
   else
   {
-    args = one_argument_c(argument, clan_cmd, sizeof(clan_cmd));
+    args = one_argument(argument, clan_cmd, sizeof(clan_cmd));
 
     for (i = 0; *CC_CMD(i) && *CC_CMD(i) != '\n'; i++)
     {
@@ -778,7 +778,7 @@ ACMD(do_clanaward)
     return;
   }
 
-  two_arguments_c(argument, plr, sizeof(plr), ncp, sizeof(ncp));
+  two_arguments(argument, plr, sizeof(plr), ncp, sizeof(ncp));
 
   if (!*plr || !*ncp)
   {
@@ -1027,7 +1027,7 @@ ACMD(do_clandemote)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -1198,7 +1198,7 @@ ACMD(do_clanbalance)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  buf2 = one_argument_c(argument, buf, sizeof(buf));
+  buf2 = one_argument(argument, buf, sizeof(buf));
 
   if (immcom)
   {
@@ -1252,7 +1252,7 @@ ACMD(do_clandeposit)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  buf2 = one_argument_c(argument, buf, sizeof(buf));
+  buf2 = one_argument(argument, buf, sizeof(buf));
 
   amt = atoi(buf);
   if (amt == 0)
@@ -1351,7 +1351,7 @@ ACMD(do_clandestroy)
   int j, p_pos = 0;
   long c_lid;
 
-  buf2 = one_argument_c(argument, buf, sizeof(buf));
+  buf2 = one_argument(argument, buf, sizeof(buf));
 
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
@@ -1461,7 +1461,7 @@ ACMD(do_clanenrol)
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -1582,7 +1582,7 @@ ACMD(do_clanexpel) /* Expel a member */
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -1806,7 +1806,7 @@ ACMD(do_clanlist) /* List of clan members */
   }
   if (GET_LEVEL(ch) >= LVL_IMMORT)
   {
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
     if (!*arg)
     {
       if ((c = real_clan(GET_CLAN(ch))) == NO_CLAN)
@@ -1916,7 +1916,7 @@ ACMD(do_clanowner)
   const char *buf2;
   bool immcom = FALSE;
 
-  buf2 = one_argument_c(argument, buf, sizeof(buf));
+  buf2 = one_argument(argument, buf, sizeof(buf));
 
   if (GET_LEVEL(ch) == LVL_IMPL)
     immcom = TRUE;
@@ -1982,7 +1982,7 @@ ACMD(do_clanpromote)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (!immcom && (c_n = real_clan(GET_CLAN(ch))) == NO_CLAN)
   {
@@ -2260,7 +2260,7 @@ ACMD(do_clanwithdraw)
   if (GET_LEVEL(ch) > LVL_IMMORT)
     immcom = TRUE;
 
-  buf2 = one_argument_c(argument, buf, sizeof(buf));
+  buf2 = one_argument(argument, buf, sizeof(buf));
 
   amt = atoi(buf);
   if (amt == 0)
@@ -3377,7 +3377,7 @@ ACMD(do_clantalk)
 
   if (imm)
   {
-    arg2 = one_argument_c(argument, arg, sizeof(arg));
+    arg2 = one_argument(argument, arg, sizeof(arg));
     if ((c_arg = atoi(arg)) > 0)
     {
       if (real_clan(c_arg) != NO_CLAN)

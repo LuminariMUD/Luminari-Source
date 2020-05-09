@@ -96,7 +96,7 @@ ACMD(do_tedit)
   if (ch->desc == NULL)
     return;
 
-  one_argument_c(argument, field, sizeof(field));
+  one_argument(argument, field, sizeof(field));
 
   if (!*field)
   {

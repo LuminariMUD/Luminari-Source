@@ -10,7 +10,7 @@
 #include <stddef.h>
 
 
-void Test_three_arguments(CuTest *tc)
+void Test_three_arguments_u(CuTest *tc)
 {
     // Simple cases
     {
@@ -23,7 +23,7 @@ void Test_three_arguments(CuTest *tc)
         const char * const exp_outp1 = "hello";
         const char * const exp_outp2 = "world";
         const char * const exp_outp3 = "bongo";
-        char *res = three_arguments(inp, outp1, outp2, outp3);
+        char *res = three_arguments_u(inp, outp1, outp2, outp3);
 
         CuAssertPtrEquals(tc, exp_res, res);
         CuAssertStrEquals(tc, exp_outp1, outp1);
@@ -32,7 +32,7 @@ void Test_three_arguments(CuTest *tc)
     }
 }
 
-void Test_three_arguments_c(CuTest *tc)
+void Test_three_arguments(CuTest *tc)
 {
     // Simple cases
     {
@@ -45,7 +45,7 @@ void Test_three_arguments_c(CuTest *tc)
         const char * const exp_outp1 = "hello";
         const char * const exp_outp2 = "world";
         const char * const exp_outp3 = "bongo";
-        const char *res = three_arguments_c(inp, outp1, sizeof(outp1), outp2, sizeof(outp2), outp3, sizeof(outp3));
+        const char *res = three_arguments(inp, outp1, sizeof(outp1), outp2, sizeof(outp2), outp3, sizeof(outp3));
 
         CuAssertTrue(tc, exp_res == res);
         CuAssertStrEquals(tc, exp_outp1, outp1);

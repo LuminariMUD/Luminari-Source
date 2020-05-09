@@ -164,7 +164,7 @@ ACMD(do_ban)
     return;
   }
 
-  two_arguments_c(argument, flag, sizeof(flag), site, sizeof(site));
+  two_arguments(argument, flag, sizeof(flag), site, sizeof(site));
   if (!*site || !*flag)
   {
     send_to_char(ch, "Usage: ban {all | select | new} site_name\r\n");
@@ -213,7 +213,7 @@ ACMD(do_unban)
   struct ban_list_element *ban_node, *temp;
   int found = 0;
 
-  one_argument_c(argument, site, sizeof(site));
+  one_argument(argument, site, sizeof(site));
   if (!*site)
   {
     send_to_char(ch, "A site to unban might help.\r\n");

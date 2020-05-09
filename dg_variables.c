@@ -172,7 +172,7 @@ static int handle_oset(struct obj_data *obj, char *argument)
   if (!obj || !*argument)
     return 0;
 
-  argument = one_argument(argument, value);
+  argument = one_argument_u(argument, value);
 
   while (*handler[i].type != '\n')
   {

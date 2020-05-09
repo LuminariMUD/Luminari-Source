@@ -5589,8 +5589,8 @@ ACMD(do_feats)
 
   /*  Have to process arguments like this
    *  because of the syntax - feat info <featname> */
-  featname = one_argument_c(argument, arg, sizeof(arg));
-  one_argument_c(featname, arg2, sizeof(arg2));
+  featname = one_argument(argument, arg, sizeof(arg));
+  one_argument(featname, arg2, sizeof(arg2));
 
   if (is_abbrev(arg, "known") || !*arg)
   {

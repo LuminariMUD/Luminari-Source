@@ -147,7 +147,7 @@ ACMD(do_mode)
 
   if (argument)
   {
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
   }
   if (is_mode_enabled(ch, mode) &&
       ((combat_mode_info[mode].has_value == FALSE) ||
@@ -255,7 +255,7 @@ ACMD(do_spellbattle)
   }
 
   if (argument)
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
 
   /* OK no argument, that means we're attempting to turn it off */
   if (!*arg)

@@ -416,7 +416,7 @@ ACMDU(do_skillset)
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
   int skill, value, i, qend, pc, pl;
 
-  argument = one_argument(argument, name);
+  argument = one_argument_u(argument, name);
 
   if (!*name)
   { /* no arguments. print an informative text */
@@ -473,7 +473,7 @@ ACMDU(do_skillset)
     return;
   }
   argument += qend + 1; /* skip to next parameter */
-  argument = one_argument(argument, buf);
+  argument = one_argument_u(argument, buf);
 
   if (!*buf)
   {
@@ -522,7 +522,7 @@ ACMDU(do_abilityset)
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
   int skill, value, i, qend, pc, pl;
 
-  argument = one_argument(argument, name);
+  argument = one_argument_u(argument, name);
 
   if (!*name)
   { /* no arguments. print an informative text */
@@ -577,7 +577,7 @@ ACMDU(do_abilityset)
     return;
   }
   argument += qend + 1; /* skip to next parameter */
-  argument = one_argument(argument, buf);
+  argument = one_argument_u(argument, buf);
 
   if (!*buf)
   {

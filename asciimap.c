@@ -519,7 +519,7 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap) {
 
 
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (*arg1) {
     size = atoi(arg1);
   }

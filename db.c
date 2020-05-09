@@ -448,7 +448,7 @@ ACMD(do_reboot)
 {
   char arg[MAX_INPUT_LENGTH];
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!str_cmp(arg, "all") || *arg == '*')
   {
@@ -4579,7 +4579,8 @@ char *fread_line(FILE *fp)
 int fread_flags(FILE *fp, int *fg, int fg_size)
 {
   char line[MAX_STRING_LENGTH];
-  char *pline, *tmp_txt, val_txt[MAX_INPUT_LENGTH];
+  char *pline, val_txt[MAX_INPUT_LENGTH];
+  const char *tmp_txt;
   char c;
   int ln, i;
 
@@ -4637,7 +4638,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
   /* We now have a line of text with all the flags on it - let's convert it */
   for (i = 0, tmp_txt = line; tmp_txt && *tmp_txt && i < fg_size; i++)
   {
-    tmp_txt = one_argument(tmp_txt, val_txt); /* Grab a number  */
+    tmp_txt = one_argument(tmp_txt, val_txt, sizeof(val_txt)); /* Grab a number  */
     fg[i] = atoi(val_txt);                    /* Convert to int */
   }
 

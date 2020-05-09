@@ -1235,7 +1235,7 @@ ACMD(do_put)
   int obj_dotmode = 0, cont_dotmode = 0, found = 0, howmany = 1;
   char *theobj = NULL, *thecont = NULL;
 
-  one_argument_c(two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
+  one_argument(two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
 
   if (*arg3 && is_number(arg1))
   {
@@ -1586,7 +1586,7 @@ ACMD(do_get)
   struct obj_data *cont = NULL;
   struct char_data *tmp_char = NULL;
 
-  one_argument_c(two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
+  one_argument(two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
 
   if (!*arg1)
     send_to_char(ch, "Get what?\r\n");
@@ -1824,7 +1824,7 @@ ACMD(do_drop)
     break;
   }
 
-  argument = one_argument_c(argument, arg, sizeof(arg));
+  argument = one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1834,7 +1834,7 @@ ACMD(do_drop)
   else if (is_number(arg))
   {
     multi = atoi(arg);
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
       perform_drop_gold(ch, multi, mode, RDR);
     else if (multi <= 0)
@@ -2002,7 +2002,7 @@ ACMDU(do_give)
   if (!ch)
     return;
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_u(argument, arg);
 
   if (!*arg)
     send_to_char(ch, "Give what to who?\r\n");
@@ -2011,10 +2011,10 @@ ACMDU(do_give)
   {
     /* ok we received a number value */
     amount = atoi(arg);
-    argument = one_argument(argument, arg);
+    argument = one_argument_u(argument, arg);
     if (!str_cmp("coins", arg) || !str_cmp("coin", arg) || !str_cmp("gold", arg))
     {
-      one_argument_c(argument, arg, sizeof(arg));
+      one_argument(argument, arg, sizeof(arg));
       if ((vict = give_find_vict(ch, arg)) != NULL)
       {
         perform_give_gold(ch, vict, amount);
@@ -2042,7 +2042,7 @@ ACMDU(do_give)
   {
     char buf1[MAX_INPUT_LENGTH];
 
-    one_argument_c(argument, buf1, sizeof(buf1));
+    one_argument(argument, buf1, sizeof(buf1));
     if (!(vict = give_find_vict(ch, buf1)))
       return;
     dotmode = find_all_dots(arg);
@@ -2181,7 +2181,7 @@ ACMD(do_drink)
   int on_ground = 0;
   char buf[MAX_INPUT_LENGTH];
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (IS_NPC(ch)) /* Cannot use GET_COND() on mobs. */
     return;
@@ -2385,7 +2385,7 @@ ACMD(do_eat)
   int amount;
   char buf[MAX_INPUT_LENGTH];
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (IS_NPC(ch)) /* Cannot use GET_COND() on mobs. */
     return;
@@ -2493,7 +2493,7 @@ ACMD(do_pour)
   struct obj_data *from_obj = NULL, *to_obj = NULL;
   int amount = 0;
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (subcmd == SCMD_POUR)
   {
@@ -3138,7 +3138,7 @@ ACMD(do_wear)
     return;
   }
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -3284,7 +3284,7 @@ ACMD(do_wield)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, "Wield what?\r\n");
@@ -3318,7 +3318,7 @@ ACMD(do_grab)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, "Hold what?\r\n");
@@ -3381,7 +3381,7 @@ ACMD(do_remove)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -3434,7 +3434,7 @@ ACMD(do_sac)
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *j, *jj, *next_thing2;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -3920,7 +3920,7 @@ ACMD(do_auction)
     struct obj_data *obj;
     int bid = 0;
 
-    two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+    two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
     if (!*arg1)
     {
@@ -4006,7 +4006,7 @@ ACMD(do_bid)
     if (IS_NPC(ch))
         return;
 
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
 
     if (!*arg)
     {

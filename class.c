@@ -1162,8 +1162,8 @@ ACMD(do_class)
 
   /*  Have to process arguments like this
    *  because of the syntax - class info <classname> */
-  classname = one_argument_c(argument, arg, sizeof(arg));
-  one_argument_c(classname, arg2, sizeof(arg2));
+  classname = one_argument(argument, arg, sizeof(arg));
+  one_argument(classname, arg2, sizeof(arg2));
 
   /* no argument, or general list of classes */
   if (is_abbrev(arg, "list") || !*arg)
