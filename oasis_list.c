@@ -721,7 +721,7 @@ ACMD(do_oasis_list)
   bool use_name = FALSE;
   int i;
 
-  two_arguments(argument, smin, smax);
+  two_arguments_c(argument, smin, sizeof(smin), smax, sizeof(smax));
 
   if (!*smin || *smin == '.')
   {
@@ -758,7 +758,7 @@ ACMD(do_oasis_list)
   switch (subcmd)
   {
   case SCMD_OASIS_PATHLIST:
-    two_arguments(argument, arg, arg2);
+    two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
     if (!IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number))
     {
       send_to_char(ch, "This command is only available while in the wilderness.\r\n");
@@ -794,7 +794,7 @@ ACMD(do_oasis_list)
 
     break;
   case SCMD_OASIS_REGLIST:
-    two_arguments(argument, arg, arg2);
+    two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
     if (!IS_WILDERNESS_VNUM(world[IN_ROOM(ch)].number))
     {
       send_to_char(ch, "This command is only available while in the wilderness.\r\n");
@@ -833,7 +833,7 @@ ACMD(do_oasis_list)
 
   case SCMD_OASIS_MLIST:
 
-    two_arguments(argument, arg, arg2);
+    two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
     if (is_abbrev(arg, "help"))
     {
@@ -873,7 +873,7 @@ ACMD(do_oasis_list)
       list_mobiles(ch, rzone, vmin, vmax);
     break;
   case SCMD_OASIS_OLIST:
-    two_arguments(argument, arg, arg2);
+    two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
     if (is_abbrev(arg, "help"))
     {
@@ -994,8 +994,8 @@ ACMD(do_oasis_links)
   int j;
   char arg[MAX_INPUT_LENGTH];
 
-  skip_spaces(&argument);
-  one_argument(argument, arg);
+  skip_spaces_c(&argument);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

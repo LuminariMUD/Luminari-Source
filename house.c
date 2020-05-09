@@ -662,7 +662,7 @@ ACMD(do_hcontrol)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-  half_chop(argument, arg1, arg2);
+  half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (is_abbrev(arg1, "build"))
     hcontrol_build_house(ch, arg2);
@@ -686,7 +686,7 @@ ACMD(do_house)
   char arg[MAX_INPUT_LENGTH];
   int i, j, id;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_HOUSE))
     send_to_char(ch, "You must be in your house to set guests.\r\n");

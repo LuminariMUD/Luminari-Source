@@ -1096,7 +1096,7 @@ ACMD(do_hlqedit)
 {
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
-  char *buf3;
+  const char *buf3;
   char buf2[MAX_INPUT_LENGTH];
   char buf1[MAX_INPUT_LENGTH];
 
@@ -1105,7 +1105,7 @@ ACMD(do_hlqedit)
     return;
 
   // parse arguments
-  buf3 = two_arguments(argument, buf1, buf2);
+  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   // no argument
   if (!*buf1)

@@ -309,7 +309,7 @@ void display_pc_races(struct char_data *ch)
 }
 
 /* display a specific races details */
-bool display_race_info(struct char_data *ch, char *racename)
+bool display_race_info(struct char_data *ch, const char *racename)
 {
   int race = -1, stat_mod = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -317,7 +317,7 @@ bool display_race_info(struct char_data *ch, char *racename)
   size_t len = 0;
   bool found = FALSE;
 
-  skip_spaces(&racename);
+  skip_spaces_c(&racename);
   race = parse_race_long(racename);
 
   if (race == -1 || race >= NUM_EXTENDED_RACES)
@@ -376,12 +376,12 @@ bool display_race_info(struct char_data *ch, char *racename)
 }
 
 /* function to view a list of feats race is granted */
-bool view_race_feats(struct char_data *ch, char *racename)
+bool view_race_feats(struct char_data *ch, const char *racename)
 {
   int race = RACE_UNDEFINED;
   struct race_feat_assign *feat_assign = NULL;
 
-  skip_spaces(&racename);
+  skip_spaces_c(&racename);
   race = parse_race_long(racename);
 
   if (race == RACE_UNDEFINED)
@@ -417,12 +417,12 @@ ACMD(do_race)
 {
   char arg[80];
   char arg2[80];
-  char *racename;
+  const char *racename;
 
   /*  Have to process arguments like this
    *  because of the syntax - race info <racename> */
-  racename = one_argument(argument, arg);
-  one_argument(racename, arg2);
+  racename = one_argument_c(argument, arg, sizeof(arg));
+  one_argument_c(racename, arg2, sizeof(arg2));
 
   /* no argument, or general list of races */
   if (is_abbrev(arg, "list") || !*arg)
@@ -1609,8 +1609,13 @@ int parse_race(char arg)
 }
 
 /* accept short descrip, return race */
-int parse_race_long(char *arg)
+int parse_race_long(const char *arg_in)
 {
+  size_t arg_sz = strlen(arg_in) + 1;
+  char arg_buf[arg_sz];
+  strlcpy(arg_buf, arg_in, arg_sz);
+  char *arg = arg_buf;
+
   int l = 0; /* string length */
 
   for (l = 0; *(arg + l); l++) /* convert to lower case */

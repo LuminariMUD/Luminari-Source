@@ -409,7 +409,7 @@ static void exdesc_string_cleanup(struct descriptor_data *d, int action)
 }
 
 /* Modification of character skills. */
-ACMD(do_skillset)
+ACMDU(do_skillset)
 {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
@@ -515,7 +515,7 @@ ACMD(do_skillset)
 }
 
 /* Modification of character abilities. */
-ACMD(do_abilityset)
+ACMDU(do_abilityset)
 {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];

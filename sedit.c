@@ -44,7 +44,7 @@ static void sedit_save_to_disk(int num)
 }
 
 /* utility functions */
-ACMDC(do_oasis_sedit)
+ACMD(do_oasis_sedit)
 {
   int number = NOWHERE, save = 0;
   shop_rnum real_num;

@@ -279,7 +279,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
                              struct char_data *victim, /* The target of the ability (either fighting or
 							 * specified explicitly. */
                              int actmtd,               /* Activation method */
-                             char *cmdword)            /* Command word (optional, NULL if none. */
+                             const char *cmdword)      /* Command word (optional, NULL if none. */
 {
   int activated_abilities = 0;
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
@@ -338,7 +338,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
 int process_armor_abilities(struct char_data *ch,     /* The player wearing the armor. */
                             struct char_data *victim, /* The target of the ability (either fighting or specified explicitly. */
                             int actmtd,               /* Activation method */
-                            char *cmdword)            /* Command word (optional, NULL if none. */
+                            const char *cmdword)      /* Command word (optional, NULL if none. */
 {
   int i = 0;
   int activated_abilities = 0;

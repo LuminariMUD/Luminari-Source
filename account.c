@@ -108,7 +108,7 @@ ACMD(do_accexp)
   int i = 0, j = 0;
   int cost = 0;
 
-  two_arguments(argument, arg, arg2);
+  two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
@@ -642,7 +642,7 @@ void combine_accounts(void) {
 }
  */
 
-/* engine for ACMD(do_account) */
+/* engine for ACMDU(do_account) */
 void perform_do_account(struct char_data *ch, struct char_data *vict)
 {
   bool found = FALSE;

@@ -1050,8 +1050,8 @@ ACMD(do_attach)
   int loc, tn, rn, num_arg;
   room_rnum rnum;
 
-  argument = two_arguments(argument, arg, trig_name);
-  two_arguments(argument, targ_name, loc_name);
+  argument = two_arguments_c(argument, arg, sizeof(arg), trig_name, sizeof(trig_name));
+  two_arguments_c(argument, targ_name, sizeof(targ_name), loc_name, sizeof(loc_name));
 
   if (!*arg || !*targ_name || !*trig_name)
   {
@@ -1269,8 +1269,8 @@ ACMD(do_detach)
   char *trigger = 0;
   int num_arg;
 
-  argument = two_arguments(argument, arg1, arg2);
-  one_argument(argument, arg3);
+  argument = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  one_argument_c(argument, arg3, sizeof(arg3));
 
   if (!*arg1 || !*arg2)
   {
@@ -2401,7 +2401,7 @@ ACMD(do_vdelete)
   char_data *mob;
   obj_data *obj;
 
-  argument = two_arguments(argument, buf, buf2);
+  argument = two_arguments_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
   var = buf;
   uid_p = buf2;
   skip_spaces(&var);
@@ -3047,7 +3047,7 @@ trig_rnum real_trigger(trig_vnum vnum)
   return (NOTHING);
 }
 
-ACMD(do_tstat)
+ACMDU(do_tstat)
 {
   int rnum;
   char str[MAX_INPUT_LENGTH];

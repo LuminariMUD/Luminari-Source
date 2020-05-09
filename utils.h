@@ -33,7 +33,7 @@
 #define ACMD_DECL(name) \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
-#define ACMDC(name)                                                                            \
+#define ACMD(name)                                                                            \
   static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd); \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                   \
   {                                                                                            \
@@ -43,7 +43,9 @@
   }                                                                                            \
   static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
-#define ACMD(name)                                                                       \
+/* "unsafe" version of ACMD. Commands that still require non const argument due to using
+   unsafe operations on argument */
+#define ACMDU(name)                                                                       \
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
   {                                                                                      \

@@ -1235,7 +1235,7 @@ ACMD(do_put)
   int obj_dotmode = 0, cont_dotmode = 0, found = 0, howmany = 1;
   char *theobj = NULL, *thecont = NULL;
 
-  one_argument(two_arguments(argument, arg1, arg2), arg3); /* three_arguments */
+  one_argument_c(two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
 
   if (*arg3 && is_number(arg1))
   {
@@ -1586,7 +1586,7 @@ ACMD(do_get)
   struct obj_data *cont = NULL;
   struct char_data *tmp_char = NULL;
 
-  one_argument(two_arguments(argument, arg1, arg2), arg3); /* three_arguments */
+  one_argument_c(two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3)); /* three_arguments */
 
   if (!*arg1)
     send_to_char(ch, "Get what?\r\n");
@@ -1824,7 +1824,7 @@ ACMD(do_drop)
     break;
   }
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1992,7 +1992,7 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict,
   bribe_mtrigger(vict, ch, amount);
 }
 
-ACMD(do_give)
+ACMDU(do_give)
 {
   char arg[MAX_STRING_LENGTH] = {'\0'};
   int amount = 0, dotmode = 0;
@@ -2493,7 +2493,7 @@ ACMD(do_pour)
   struct obj_data *from_obj = NULL, *to_obj = NULL;
   int amount = 0;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (subcmd == SCMD_POUR)
   {
@@ -3138,7 +3138,7 @@ ACMD(do_wear)
     return;
   }
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -3920,7 +3920,7 @@ ACMD(do_auction)
     struct obj_data *obj;
     int bid = 0;
 
-    two_arguments(argument, arg1, arg2);
+    two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
     if (!*arg1)
     {

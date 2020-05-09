@@ -36,7 +36,7 @@ ACMD(do_spec_comm)
     break;
   }
 
-  half_chop(argument, buf, buf2);
+  half_chop_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
   if (!*buf || !*buf2)
     send_to_char(ch, "Whom do you want to %s.. and what??\r\n", action_sing);

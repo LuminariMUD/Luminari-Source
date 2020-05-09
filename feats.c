@@ -4296,7 +4296,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 }
 
 /* simple debug command to make sure we have all our assigns set up */
-ACMDC(do_featlisting)
+ACMD(do_featlisting)
 {
   int i = 0;
 
@@ -5402,10 +5402,10 @@ int is_daily_feat(int featnum)
   return (feat_list[featnum].event != eNULL);
 };
 
-int find_feat_num(char *name)
+int find_feat_num(const char *name)
 {
   int index, ok;
-  char *temp, *temp2;
+  const char *temp, *temp2;
   char first[256], first2[256];
 
   for (index = 1; index < NUM_FEATS; index++)
@@ -5415,14 +5415,14 @@ int find_feat_num(char *name)
 
     ok = TRUE;
     /* It won't be changed, but other uses of this function elsewhere may. */
-    temp = any_one_arg((char *)feat_list[index].name, first);
-    temp2 = any_one_arg(name, first2);
+    temp = any_one_arg_c(feat_list[index].name, first, sizeof(first));
+    temp2 = any_one_arg_c(name, first2, sizeof(first2));
     while (*first && *first2 && ok)
     {
       if (!is_abbrev(first2, first))
         ok = FALSE;
-      temp = any_one_arg(temp, first);
-      temp2 = any_one_arg(temp2, first2);
+      temp = any_one_arg_c(temp, first, sizeof(first));
+      temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
     }
     if (ok && !*first2)
       return (index);
@@ -5461,7 +5461,7 @@ int find_feat_num(char *name)
  *
  * (NOTE: The headers of the sections above will be colored
  * differently, making them stand out.) */
-bool display_feat_info(struct char_data *ch, char *featname)
+bool display_feat_info(struct char_data *ch, const char *featname)
 {
   int feat = -1;
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
@@ -5469,7 +5469,7 @@ bool display_feat_info(struct char_data *ch, char *featname)
   //  static int line_length = 57;
   static int line_length = 80;
 
-  skip_spaces(&featname);
+  skip_spaces_c(&featname);
   feat = find_feat_num(featname);
 
   if (feat == -1 || feat_list[feat].in_game == FALSE)
@@ -5585,12 +5585,12 @@ ACMD(do_feats)
 {
   char arg[80];
   char arg2[80];
-  char *featname;
+  const char *featname;
 
   /*  Have to process arguments like this
    *  because of the syntax - feat info <featname> */
-  featname = one_argument(argument, arg);
-  one_argument(featname, arg2);
+  featname = one_argument_c(argument, arg, sizeof(arg));
+  one_argument_c(featname, arg2, sizeof(arg2));
 
   if (is_abbrev(arg, "known") || !*arg)
   {

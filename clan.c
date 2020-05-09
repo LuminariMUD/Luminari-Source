@@ -612,7 +612,7 @@ void clear_clan_vals(struct clan_data *cl)
  ***************************************************************************/
 
 /* entry point for clans */
-ACMDC(do_clan)
+ACMD(do_clan)
 {
   clan_rnum clan;
   int rank, i;
@@ -699,7 +699,7 @@ ACMDC(do_clan)
 }
 
 /* clan apply command */
-ACMDC(do_clanapply)
+ACMD(do_clanapply)
 {
   clan_rnum c_n;
 
@@ -757,7 +757,7 @@ ACMDC(do_clanapply)
 }
 
 /* clan award command */
-ACMDC(do_clanaward)
+ACMD(do_clanaward)
 {
   char plr[MAX_INPUT_LENGTH], ncp[MAX_INPUT_LENGTH];
   struct char_data *l;
@@ -831,7 +831,7 @@ ACMDC(do_clanaward)
 }
 
 /* clan claim command */
-ACMDC(do_clanclaim)
+ACMD(do_clanclaim)
 {
   zone_vnum zv;
   zone_rnum zr;
@@ -907,7 +907,7 @@ ACMDC(do_clanclaim)
 }
 
 /* clan create (IMP) command */
-ACMDC(do_clancreate)
+ACMD(do_clancreate)
 {
   char c_n[MAX_INPUT_LENGTH], c_l[MAX_INPUT_LENGTH];
   struct char_data *l;
@@ -1016,7 +1016,7 @@ ACMDC(do_clancreate)
 }
 
 /* clan demote command - demote a clan member, even if they are offline */
-ACMDC(do_clandemote)
+ACMD(do_clandemote)
 {
   struct char_data *vict;
   char buf[MAX_INPUT_LENGTH];
@@ -1187,7 +1187,7 @@ ACMDC(do_clandemote)
 }
 
 /* clan balance command - balance of gold in clan's bank */
-ACMDC(do_clanbalance)
+ACMD(do_clanbalance)
 {
   char buf[MAX_INPUT_LENGTH];
   const char *buf2;
@@ -1241,7 +1241,7 @@ ACMDC(do_clanbalance)
 }
 
 /* clan deposit command - deposit gold into the clan's bank */
-ACMDC(do_clandeposit)
+ACMD(do_clandeposit)
 {
   char buf[MAX_INPUT_LENGTH];
   const char *buf2;
@@ -1339,7 +1339,7 @@ ACMDC(do_clandeposit)
 }
 
 /* clan destroy (IMP) command */
-ACMDC(do_clandestroy)
+ACMD(do_clandestroy)
 {
   struct char_data *vict;
   bool immcom = FALSE;
@@ -1450,7 +1450,7 @@ ACMDC(do_clandestroy)
   }
 }
 
-ACMDC(do_clanenrol)
+ACMD(do_clanenrol)
 {
   char arg[MAX_INPUT_LENGTH];
   clan_rnum c_n = NO_CLAN;
@@ -1570,7 +1570,7 @@ ACMDC(do_clanenrol)
                clan_list[(c_n)].clan_name, CCNRM(v, C_NRM));
 }
 
-ACMDC(do_clanexpel) /* Expel a member */
+ACMD(do_clanexpel) /* Expel a member */
 {
   char arg[MAX_INPUT_LENGTH];
   clan_rnum c_n = NO_CLAN;
@@ -1670,7 +1670,7 @@ ACMDC(do_clanexpel) /* Expel a member */
   }
 }
 
-ACMDC(do_claninfo) /* Information about clans */
+ACMD(do_claninfo) /* Information about clans */
 {
   int i, j, count = 0, mems, pow;
   char pr[4];
@@ -1791,7 +1791,7 @@ ACMDC(do_claninfo) /* Information about clans */
   }
 }
 
-ACMDC(do_clanlist) /* List of clan members */
+ACMD(do_clanlist) /* List of clan members */
 {
   int i, rk_num;
   clan_rnum c;
@@ -1908,7 +1908,7 @@ ACMDC(do_clanlist) /* List of clan members */
   return;
 }
 
-ACMDC(do_clanowner)
+ACMD(do_clanowner)
 {
   clan_rnum c_n;
   struct char_data *new_l;
@@ -1971,7 +1971,7 @@ ACMDC(do_clanowner)
   send_to_char(new_l, "'%s' is now YOUR clan!\r\n", clan_list[c_n].clan_name);
 }
 
-ACMDC(do_clanpromote)
+ACMD(do_clanpromote)
 {
   struct char_data *vict;
   char buf[MAX_INPUT_LENGTH];
@@ -2141,7 +2141,7 @@ ACMDC(do_clanpromote)
   }     /* End for loop (through player_table) */
 }
 
-ACMDC(do_clanstatus)
+ACMD(do_clanstatus)
 {
   clan_rnum c_n;
   int c_r;
@@ -2186,7 +2186,7 @@ ACMDC(do_clanstatus)
   return;
 }
 
-ACMDC(do_clanwhere)
+ACMD(do_clanwhere)
 {
   clan_rnum c;
   room_rnum r;
@@ -2249,7 +2249,7 @@ ACMDC(do_clanwhere)
   }
 }
 
-ACMDC(do_clanwithdraw)
+ACMD(do_clanwithdraw)
 {
   char buf[MAX_INPUT_LENGTH];
   const char *buf2;
@@ -2346,7 +2346,7 @@ ACMDC(do_clanwithdraw)
   send_to_char(ch, "You have withdrawn %d coins from the clan bank.\r\n", amt);
 }
 
-ACMDC(do_clanunclaim)
+ACMD(do_clanunclaim)
 {
   int z, zr;
   bool found = FALSE;
@@ -2959,7 +2959,7 @@ void check_diplomacy(void)
 #define BINARY 1
 #define NUMBER 2
 
-ACMDC(do_clanset)
+ACMD(do_clanset)
 {
   char field[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   char val_arg[MAX_INPUT_LENGTH], rankname[MAX_INPUT_LENGTH],
@@ -3342,7 +3342,7 @@ ACMDC(do_clanset)
 /***************************************************************************
  End of Clanset Imm command code - Start of clantalk communications channel
  **************************************************************************/
-ACMDC(do_clantalk)
+ACMD(do_clantalk)
 {
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH],
       arg[MAX_INPUT_LENGTH];

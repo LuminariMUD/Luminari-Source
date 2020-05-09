@@ -1534,7 +1534,7 @@ ACMD(do_abort)
  * determines the spell number and finds a target, throws the die to see if
  * the spell can be cast, checks for sufficient psp (hah) and subtracts it, and
  * passes control to cast_spell(). */
-ACMD(do_gen_cast)
+ACMDU(do_gen_cast)
 {
         struct char_data *tch = NULL;
         struct obj_data *tobj = NULL;

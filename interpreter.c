@@ -1099,7 +1099,7 @@ void free_alias(struct alias_data *a)
 }
 
 /* The interface to the outside world: do_alias */
-ACMD(do_alias)
+ACMDU(do_alias)
 {
   char arg[MAX_INPUT_LENGTH];
   char *repl;
@@ -1357,6 +1357,13 @@ char *one_word(char *argument, char *first_arg)
 char *three_arguments(char *argument, char *first_arg, char *second_arg, char *third_arg)
 {
   return (one_argument(one_argument(one_argument(argument, first_arg), second_arg), third_arg)); /* :-) */
+}
+
+const char *three_arguments_c(
+    const char *argument,
+    char *first_arg, size_t n1, char *second_arg, size_t n2, char *third_arg, size_t n3)
+{
+  return (one_argument_c(one_argument_c(one_argument_c(argument, first_arg, n1), second_arg, n2), third_arg, n3)); /* :-) */
 }
 
 /* Determine if a given string is an abbreviation of another.

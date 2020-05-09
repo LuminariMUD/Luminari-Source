@@ -117,7 +117,7 @@ int purge_room(room_rnum room)
 
 ACMD(do_echo)
 {
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
     send_to_char(ch, "Yes.. but what?\r\n");
@@ -146,7 +146,7 @@ ACMD(do_send)
   char arg[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  half_chop(argument, arg, buf);
+  half_chop_c(argument, arg, sizeof(arg), buf, sizeof(buf));
 
   if (!*arg)
   {
@@ -168,12 +168,12 @@ ACMD(do_send)
 }
 
 /* take a string, and return an rnum.. used for goto, at, etc.  -je 4/6/93 */
-room_rnum find_target_room(struct char_data *ch, char *rawroomstr)
+room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 {
   room_rnum location = NOWHERE;
   char roomstr[MAX_INPUT_LENGTH];
 
-  one_argument(rawroomstr, roomstr);
+  one_argument_c(rawroomstr, roomstr, sizeof(roomstr));
 
   if (!*roomstr)
   {
@@ -250,7 +250,7 @@ ACMD(do_at)
   room_rnum location, original_loc;
   int orig_x, orig_y; /* Needed if 'at'ing in the wilderness. */
 
-  half_chop(argument, buf, command);
+  half_chop_c(argument, buf, sizeof(buf), command, sizeof(command));
   if (!*buf)
   {
     send_to_char(ch, "You must supply a room number or a name.\r\n");
@@ -301,7 +301,7 @@ ACMD(do_goto)
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   room_rnum location;
 
-  two_arguments(argument, arg, arg2);
+  two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg2)
   {
@@ -358,7 +358,7 @@ ACMD(do_trans)
   struct descriptor_data *i;
   struct char_data *victim;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
   if (!*buf)
     send_to_char(ch, "Whom do you wish to transfer?\r\n");
   else if (str_cmp("all", buf))
@@ -423,7 +423,7 @@ ACMD(do_teleport)
   struct char_data *victim;
   room_rnum target;
 
-  two_arguments(argument, buf, buf2);
+  two_arguments_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
   if (!*buf)
     send_to_char(ch, "Whom do you wish to teleport?\r\n");
@@ -460,7 +460,7 @@ ACMD(do_vnum)
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
   int good_arg = 0;
 
-  half_chop(argument, buf, buf2);
+  half_chop_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
   if (!*buf || !*buf2)
   {
@@ -1160,7 +1160,7 @@ ACMD(do_stat)
   struct obj_data *object = NULL;
   struct room_data *room = NULL;
 
-  half_chop(argument, buf1, buf2);
+  half_chop_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {
@@ -1373,7 +1373,7 @@ ACMD(do_shutdown)
     send_to_char(ch, "If you want to shut something down, say so!\r\n");
     return;
   }
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1462,7 +1462,7 @@ ACMD(do_snoop)
   if (!ch->desc)
     return;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     stop_snooping(ch);
@@ -1511,7 +1511,7 @@ ACMD(do_switch)
   //return;                                        /**/
   /* temporarily disabled while adapting to wilderness */
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (ch->desc->original)
     send_to_char(ch, "You're already switched.\r\n");
@@ -1600,7 +1600,7 @@ ACMD(do_load)
   char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], buf3[MAX_INPUT_LENGTH];
   int i = 0, n = 1;
 
-  one_argument(two_arguments(argument, buf, buf2), buf3);
+  one_argument_c(two_arguments_c(argument, buf, sizeof(buf), buf2, sizeof(buf2)), buf3, sizeof(buf3));
 
   if (!*buf || !*buf2 || !isdigit(*buf2))
   {
@@ -1698,7 +1698,7 @@ ACMD(do_vstat)
 
   ACMD_DECL(do_tstat);
 
-  two_arguments(argument, buf, buf2);
+  two_arguments_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
   if (!*buf || !*buf2 || !isdigit(*buf2))
   {
@@ -1765,7 +1765,7 @@ ACMD(do_purge)
   struct obj_data *obj;
   int number;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (GET_LEVEL(ch) < LVL_GRSTAFF &&
       !can_edit_zone(ch, world[IN_ROOM(ch)].zone))
@@ -1832,7 +1832,7 @@ ACMD(do_advance)
   char name[MAX_INPUT_LENGTH], level[MAX_INPUT_LENGTH];
   int newlevel, oldlevel, i;
 
-  two_arguments(argument, name, level);
+  two_arguments_c(argument, name, sizeof(name), level, sizeof(level));
 
   if (*name)
   {
@@ -1946,7 +1946,7 @@ ACMD(do_restore)
   struct descriptor_data *j;
   int i;
 
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (!*buf)
     send_to_char(ch, "Whom do you wish to restore?\r\n");
@@ -2096,7 +2096,7 @@ ACMD(do_invis)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!*arg)
   {
     if (GET_INVIS_LEV(ch) > 0)
@@ -2116,7 +2116,7 @@ ACMD(do_invis)
   }
 }
 
-ACMD(do_gecho)
+ACMDU(do_gecho)
 {
   struct descriptor_data *pt;
 
@@ -2146,7 +2146,7 @@ ACMD(do_dc)
   struct descriptor_data *d;
   int num_to_dc;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!(num_to_dc = atoi(arg)))
   {
     send_to_char(ch, "Usage: DC <user number> (type USERS for a list)\r\n");
@@ -2201,7 +2201,7 @@ ACMD(do_wizlock)
   int value;
   const char *when;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (*arg)
   {
     value = atoi(arg);
@@ -2513,7 +2513,7 @@ void show_full_last_command(struct char_data *ch)
   mysql_free_result(res);
 }
 
-ACMD(do_last)
+ACMDU(do_last)
 {
   char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   struct char_data *vict = NULL;
@@ -2631,7 +2631,7 @@ ACMD(do_force)
   struct char_data *vict, *next_force;
   char arg[MAX_INPUT_LENGTH], to_force[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH + 32];
 
-  half_chop(argument, arg, to_force);
+  half_chop_c(argument, arg, sizeof(arg), to_force, sizeof(to_force));
 
   snprintf(buf1, sizeof(buf1), "$n has forced you to '%s'.", to_force);
 
@@ -2685,7 +2685,7 @@ ACMD(do_force)
   }
 }
 
-ACMD(do_wiznet)
+ACMDU(do_wiznet)
 {
   char buf1[MAX_INPUT_LENGTH] = {'\0'},
        buf2[MAX_INPUT_LENGTH] = {'\0'},
@@ -2822,7 +2822,7 @@ ACMD(do_zreset)
   zone_rnum i;
   zone_vnum j;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (*arg == '*')
   {
@@ -2871,7 +2871,7 @@ ACMD(do_wizutil)
   int taeller;
   long result;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, "Yes, but for whom?!?\r\n");
@@ -3115,7 +3115,7 @@ ACMD(do_show)
       {"todo", LVL_IMMORT},
       {"\n", 0}};
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -3127,7 +3127,7 @@ ACMD(do_show)
     return;
   }
 
-  strlcpy(arg, two_arguments(argument, field, value), sizeof(arg)); /* strcpy: OK (argument <= MAX_INPUT_LENGTH == arg) */
+  strlcpy(arg, two_arguments_c(argument, field, sizeof(field), value, sizeof(value)), sizeof(arg)); /* strcpy: OK (argument <= MAX_INPUT_LENGTH == arg) */
 
   for (l = 0; *(fields[l].cmd) != '\n'; l++)
     if (!strncmp(field, fields[l].cmd, strlen(field)))
@@ -4352,7 +4352,7 @@ ACMD(do_set)
   int mode, len, player_i = 0, retval;
   char is_file = 0, is_player = 0;
 
-  half_chop(argument, name, buf);
+  half_chop_c(argument, name, sizeof(name), buf, sizeof(buf));
 
   if (!strcmp(name, "file"))
   {
@@ -4503,7 +4503,7 @@ ACMD(do_keycheck)
   char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
   struct obj_data *obj = NULL;
 
-  one_argument(argument, zone_num);
+  one_argument_c(argument, zone_num, sizeof(zone_num));
 
   /* dummy check, completely unnecessary as far as I know :)  */
   if (!top_of_world)
@@ -4628,8 +4628,8 @@ ACMD(do_links)
   int first, last, j;
   char arg[MAX_INPUT_LENGTH];
 
-  skip_spaces(&argument);
-  one_argument(argument, arg);
+  skip_spaces_c(&argument);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!is_number(arg))
   {
@@ -4810,7 +4810,7 @@ ACMD(do_zcheck)
   float avg_dam;
   size_t len = 0;
   //struct extra_descr_data *ext, *ext2;
-  one_argument(argument, buf);
+  one_argument_c(argument, buf, sizeof(buf));
 
   if (!is_number(buf) || !strcmp(buf, "."))
     zrnum = world[IN_ROOM(ch)].zone;
@@ -5418,7 +5418,7 @@ ACMD(do_checkloadstatus)
 {
   char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
 
-  two_arguments(argument, buf1, buf2);
+  two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if ((!*buf1) || (!*buf2) || (!isdigit(*buf2)))
   {
@@ -5705,7 +5705,7 @@ ACMD(do_copyover)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -5778,7 +5778,7 @@ ACMD(do_zpurge)
   int vroom, room, vzone = 0, zone = 0;
   char arg[MAX_INPUT_LENGTH];
   int purge_all = FALSE;
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (*arg == '.' || !*arg)
   {
     zone = world[IN_ROOM(ch)].zone;
@@ -5887,7 +5887,7 @@ ACMD(do_file)
   /**/
   /* End function variable set-up and initialization. */
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   /* Display usage if no argument. */
   if (!*argument)
@@ -5902,7 +5902,7 @@ ACMD(do_file)
   /* Begin validity checks. Is the file choice valid and accessible? */
   /**/
   /* There are some arguments, deal with them. */
-  two_arguments(argument, field, value);
+  two_arguments_c(argument, field, sizeof(field), value, sizeof(value));
 
   for (l = 0; *(fields[l].cmd) != '\n'; l++)
   {
@@ -6011,7 +6011,7 @@ ACMD(do_changelog)
       buf[READ_SIZE];
   FILE *fl, *new;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -6081,7 +6081,7 @@ ACMD(do_plist)
   struct time_info_data time_away;
   int low = 0, high = LVL_IMPL, low_day = 0, high_day = 10000, low_hr = 0, high_hr = 24;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
   strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   name_search[0] = '\0';
 
@@ -6288,7 +6288,7 @@ ACMD(do_zlock)
   int counter = 0;
   bool fail = FALSE;
 
-  two_arguments(argument, arg, arg2);
+  two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
@@ -6425,7 +6425,7 @@ ACMD(do_zunlock)
   int counter = 0;
   bool fail = FALSE;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -6621,7 +6621,7 @@ ACMD(do_recent)
   struct recent_player *this;
   bool loc;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
   if (!*arg)
   {
     limit = 0;
@@ -6718,7 +6718,7 @@ ACMD(do_oset)
     return;
   }
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
     send_to_char(ch, usage);
@@ -6727,7 +6727,7 @@ ACMD(do_oset)
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
   else
   {
-    argument = one_argument(argument, arg2);
+    argument = one_argument_c(argument, arg2, sizeof(arg2));
 
     if (!*arg2)
       send_to_char(ch, usage);
@@ -6767,7 +6767,7 @@ ACMD(do_objlist)
   char buf4[8192];
   char buf5[8192];
   char tmp_buf[1024];
-  one_argument(argument, (char *)&value);
+  one_argument_c(argument, value, sizeof(value));
 
   if (*value && is_number(value))
     j = atoi(value);
@@ -6858,7 +6858,7 @@ ACMD(do_hlqlist)
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   /* parse any arguments */
-  two_arguments(argument, buf1, buf2);
+  two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /* if no buf1, use current zone information */
   if (!*buf1)
@@ -6999,14 +6999,14 @@ ACMD(do_genriver)
 {
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
-  char *name = NULL;
+  const char *name = NULL;
   int dir = 0;
   region_vnum vnum;
 
   /* genreiver north 100011 FooBar River
    * genmap <arg1> <arg2> <name string> */
 
-  name = two_arguments(argument, arg1, arg2);
+  name = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -7022,7 +7022,7 @@ ACMD(do_genriver)
     return;
   }
 
-  skip_spaces(&name);
+  skip_spaces_c(&name);
 
   if (!*name)
   {
@@ -7067,7 +7067,7 @@ ACMD(do_deletepath)
   char arg1[MAX_STRING_LENGTH];
   region_vnum vnum;
 
-  one_argument(argument, arg1);
+  one_argument_c(argument, arg1, sizeof(arg1));
 
   if (!*arg1)
   {
@@ -7100,14 +7100,14 @@ ACMD(do_genmap)
 {
   char arg1[MAX_STRING_LENGTH];
   char arg2[MAX_STRING_LENGTH];
-  char *name = NULL;
+  const char *name = NULL;
   int dir = 0;
   region_vnum vnum;
 
   /* genmap north 100011 FooBar River
    * genmap <arg1> <arg2> <name string> */
 
-  name = two_arguments(argument, arg1, arg2);
+  name = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -7123,7 +7123,7 @@ ACMD(do_genmap)
     return;
   }
 
-  skip_spaces(&name);
+  skip_spaces_c(&name);
 
   if (!*name)
   {
@@ -7212,7 +7212,7 @@ ACMD(do_oconvert)
     return;
   }
 
-  two_arguments(argument, arg, arg2);
+  two_arguments_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
   iarg = atoi(arg);
 
   send_to_char(ch, "%d %s\r\n", iarg, arg2);
@@ -7671,7 +7671,7 @@ ACMD(do_eqrating)
 
   struct obj_data *obj = NULL;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1)
   {
@@ -7870,7 +7870,7 @@ ACMD(do_coordconvert)
   int tmp_x_value = -1025, tmp_y_value = -1025;
   int x_value = -1025, y_value = -1025;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   send_to_char(ch, "                            \tCBoundaries\tn\r\n"
                    "\tc              Pixel Location    In-Game Co-ordinates\r\n"
@@ -7924,7 +7924,7 @@ ACMD(do_findmagic)
   int spellnum, hits = 0, r_num, num;
   struct obj_data *obj;
 
-  half_chop(argument, objname, spellname);
+  half_chop_c(argument, objname, sizeof(objname), spellname, sizeof(spellname));
 
   if ((!*objname) || (!*spellname))
   {
@@ -7997,7 +7997,7 @@ ACMD(do_cmdlev)
   int iCmd, iLev;
   char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
 
-  two_arguments(argument, buf, buf2);
+  two_arguments_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
   if (!*buf)
   {
@@ -8044,7 +8044,7 @@ ACMD(do_unbind)
   char obj_name[MAX_INPUT_LENGTH];
   struct obj_data *obj;
 
-  one_argument(argument, obj_name);
+  one_argument_c(argument, obj_name, sizeof(obj_name));
   if (!*obj_name)
   {
     send_to_char(ch, "What would you like to unbind?\r\n");
@@ -8082,7 +8082,7 @@ ACMD(do_obind)
   struct obj_data *obj;
   struct char_data *vict;
 
-  two_arguments(argument, obj_name, char_name);
+  two_arguments_c(argument, obj_name, sizeof(obj_name), char_name, sizeof(char_name));
 
   if (!*obj_name)
   {
@@ -8129,7 +8129,7 @@ ACMD(do_obind)
 #define PLIST_FORMAT \
   "plist [minlev[-maxlev]] [-n name] [-a] [-u] [-o] [-i] [-m]"
 
-ACMD(do_plist) {
+ACMDU(do_plist) {
   int i, len = 0, count = 0;
   char col, mode, buf[MAX_STRING_LENGTH], name_search[MAX_NAME_LENGTH], time_str[MAX_STRING_LENGTH];
   struct time_info_data time_away;
@@ -8260,7 +8260,7 @@ ACMD(do_finddoor)
   if (!ch)
     return;
 
-  one_argument(argument, arg);
+  one_argument_c(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -8381,7 +8381,7 @@ ACMD(do_players)
 ACMD(do_copyroom)
 {
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   int i = 0;
 
@@ -8519,7 +8519,7 @@ ACMD(do_perfmon)
 {
   char arg1[MAX_INPUT_LENGTH];
 
-  argument = one_argument(argument, arg1);
+  argument = one_argument_c(argument, arg1, sizeof(arg1));
 
   if (arg1[0] == '\0')
   {
