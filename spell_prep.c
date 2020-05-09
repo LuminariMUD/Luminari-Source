@@ -2089,7 +2089,7 @@ EVENTFUNC(event_preparation)
 
 /* manipulation of your respective lists! command for players to
  *   "un" prepare spells */
-ACMD(do_consign_to_oblivion)
+ACMDU(do_consign_to_oblivion)
 {
   int domain_1st = 0, domain_2nd = 0, class = CLASS_UNDEFINED;
   char *spell_arg, *metamagic_arg, arg[MAX_INPUT_LENGTH];
@@ -2296,7 +2296,7 @@ ACMD(do_consign_to_oblivion)
  *   in a proper 'state' - can do anytime.
    TODO:
      - FIX domains as entry point value here! */
-ACMD(do_gen_preparation)
+ACMDU(do_gen_preparation)
 {
   int class = CLASS_UNDEFINED, circle_for_spell = 0, num_slots_by_circle = 0;
   int spellnum = 0, metamagic = 0, domain_1st = 0, domain_2nd = 0;

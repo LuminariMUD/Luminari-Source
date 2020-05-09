@@ -975,7 +975,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   qst_rnum rnum = NOTHING;
   //qst_vnum vnum = NOTHING;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "Huh!?!\r\n");
@@ -1107,12 +1107,12 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 /* Quest Command Processing Function and Questmaster Special                */
 
 /*--------------------------------------------------------------------------*/
-ACMDC(do_quest)
+ACMD(do_quest)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int tp;
 
-  two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (!*arg1)
     send_to_char(ch, "%s\r\n", GET_LEVEL(ch) < LVL_IMMORT ? quest_mort_usage : quest_imm_usage);
   else if (((tp = search_block(arg1, quest_cmd, FALSE)) == -1))
@@ -1171,7 +1171,7 @@ SPECIAL(questmaster)
     return TRUE; /* The secondary spec proc handled this command */
   else if (CMD_IS("quest"))
   {
-    two_arguments(argument, arg1, arg2);
+    two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
     if (!*arg1)
       return FALSE;
     else if (((tp = search_block(arg1, quest_cmd, FALSE)) == -1))

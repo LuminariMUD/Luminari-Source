@@ -124,7 +124,7 @@ static void write_ban_list(void)
 }
 
 #define BAN_LIST_FORMAT "%-25.25s  %-8.8s  %-10.10s  %-16.16s\r\n"
-ACMDC(do_ban)
+ACMD(do_ban)
 {
   char flag[MAX_INPUT_LENGTH], site[MAX_INPUT_LENGTH], *nextchar;
   char timestr[16];
@@ -164,7 +164,7 @@ ACMDC(do_ban)
     return;
   }
 
-  two_arguments_c(argument, flag, sizeof(flag), site, sizeof(site));
+  two_arguments(argument, flag, sizeof(flag), site, sizeof(site));
   if (!*site || !*flag)
   {
     send_to_char(ch, "Usage: ban {all | select | new} site_name\r\n");
@@ -207,13 +207,13 @@ ACMDC(do_ban)
 }
 #undef BAN_LIST_FORMAT
 
-ACMDC(do_unban)
+ACMD(do_unban)
 {
   char site[MAX_INPUT_LENGTH];
   struct ban_list_element *ban_node, *temp;
   int found = 0;
 
-  one_argument_c(argument, site, sizeof(site));
+  one_argument(argument, site, sizeof(site));
   if (!*site)
   {
     send_to_char(ch, "A site to unban might help.\r\n");

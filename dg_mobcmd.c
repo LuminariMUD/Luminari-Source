@@ -48,7 +48,7 @@ static void mob_log(char_data *mob, const char *format, ...)
 /* mob commands */
 
 /* prints the argument to all the rooms aroud the mobile */
-ACMD(do_masound)
+ACMDU(do_masound)
 {
   room_rnum was_in_room;
   int door;
@@ -87,7 +87,7 @@ ACMD(do_masound)
 }
 
 /* lets the mobile kill any player or mobile */
-ACMDC(do_mkill)
+ACMD(do_mkill)
 {
   char arg[MAX_INPUT_LENGTH];
   char_data *victim;
@@ -101,7 +101,7 @@ ACMDC(do_mkill)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -148,7 +148,7 @@ ACMDC(do_mkill)
 /* Lets the mobile destroy an object in its inventory it can also destroy a
  * worn object and it can destroy items using all.xxxxx or just plain all of
  * them. */
-ACMDC(do_mjunk)
+ACMD(do_mjunk)
 {
   char arg[MAX_INPUT_LENGTH];
   int pos, junk_all = 0;
@@ -164,7 +164,7 @@ ACMDC(do_mjunk)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -205,7 +205,7 @@ ACMDC(do_mjunk)
 }
 
 /* prints the message to everyone in the room other than the mob and victim */
-ACMD(do_mechoaround)
+ACMDU(do_mechoaround)
 {
   char arg[MAX_INPUT_LENGTH];
   char_data *victim;
@@ -220,7 +220,7 @@ ACMD(do_mechoaround)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  p = one_argument(argument, arg);
+  p = one_argument_u(argument, arg);
   skip_spaces(&p);
 
   if (!*arg)
@@ -247,7 +247,7 @@ ACMD(do_mechoaround)
 }
 
 /* sends the message to only the victim */
-ACMD(do_msend)
+ACMDU(do_msend)
 {
   char arg[MAX_INPUT_LENGTH];
   char_data *victim;
@@ -262,7 +262,7 @@ ACMD(do_msend)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  p = one_argument(argument, arg);
+  p = one_argument_u(argument, arg);
   skip_spaces(&p);
 
   if (!*arg)
@@ -289,7 +289,7 @@ ACMD(do_msend)
 }
 
 /* prints the message to the room at large */
-ACMD(do_mecho)
+ACMDU(do_mecho)
 {
   char *p;
 
@@ -314,7 +314,7 @@ ACMD(do_mecho)
   sub_write(p, ch, TRUE, TO_CHAR);
 }
 
-ACMDC(do_mgecho)
+ACMD(do_mgecho)
 {
   const char *p;
 
@@ -330,7 +330,7 @@ ACMDC(do_mgecho)
   send_to_world(p);
 }
 
-ACMDC(do_mzoneecho)
+ACMD(do_mzoneecho)
 {
   int zone;
   char room_number[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
@@ -359,7 +359,7 @@ ACMDC(do_mzoneecho)
 
 /* Lets the mobile load an item or mobile.  All items are loaded into
  * inventory, unless it is NO-TAKE. */
-ACMDC(do_mload)
+ACMD(do_mload)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int number = 0;
@@ -382,7 +382,7 @@ ACMDC(do_mload)
   if (ch->desc && GET_LEVEL(ch->desc->original) < LVL_IMPL)
     return;
 
-  target = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  target = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
   {
@@ -456,7 +456,7 @@ ACMDC(do_mload)
       load_otrigger(object);
       return;
     }
-    two_arguments_c(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
+    two_arguments(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
     tch = (arg1 != NULL && *arg1 == UID_CHAR) ? get_char(arg1) : get_char_room_vis(ch, arg1, NULL);
     if (tch)
     {
@@ -491,7 +491,7 @@ ACMDC(do_mload)
 /* Lets the mobile purge all objects and other npcs in the room, or purge a
  * specified object or mob in the room.  It can purge itself, but this will
  * be the last command it does. */
-ACMDC(do_mpurge)
+ACMD(do_mpurge)
 {
   char arg[MAX_INPUT_LENGTH];
   char_data *victim;
@@ -511,7 +511,7 @@ ACMDC(do_mpurge)
       if (GET_LEVEL(ch->desc->original) < LVL_IMPL)
         return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -571,7 +571,7 @@ ACMDC(do_mpurge)
 }
 
 /* lets the mobile goto any location it wishes that is not private */
-ACMDC(do_mgoto)
+ACMD(do_mgoto)
 {
   char arg[MAX_INPUT_LENGTH];
   room_rnum location;
@@ -585,7 +585,7 @@ ACMDC(do_mgoto)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -615,7 +615,7 @@ ACMDC(do_mgoto)
 }
 
 /* lets the mobile do a command at another location. Very useful */
-ACMD(do_mat)
+ACMDU(do_mat)
 {
   char arg[MAX_INPUT_LENGTH];
   room_rnum location, original;
@@ -630,7 +630,7 @@ ACMD(do_mat)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_u(argument, arg);
 
   if (!*arg || !*argument)
   {
@@ -673,7 +673,7 @@ ACMD(do_mat)
 
 /* Lets the mobile transfer people. The all argument transfers everyone in the
  * current room to the specified location. */
-ACMDC(do_mteleport)
+ACMD(do_mteleport)
 {
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   room_rnum target = NOWHERE;
@@ -688,7 +688,7 @@ ACMDC(do_mteleport)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = two_arguments_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  argument = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2)
   {
@@ -765,7 +765,7 @@ ACMDC(do_mteleport)
   }
 }
 
-ACMDC(do_mdamage)
+ACMD(do_mdamage)
 {
   char name[MAX_INPUT_LENGTH], amount[MAX_INPUT_LENGTH];
   int dam = 0;
@@ -780,7 +780,7 @@ ACMDC(do_mdamage)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  two_arguments_c(argument, name, sizeof(name), amount, sizeof(amount));
+  two_arguments(argument, name, sizeof(name), amount, sizeof(amount));
 
   /* who cares if it's a number ? if not it'll just be 0 */
   if (!*name || !*amount)
@@ -808,7 +808,7 @@ ACMDC(do_mdamage)
 
 /* Lets the mobile force someone to do something.  must be mortal level and the
  * all argument only affects those in the room with the mobile. */
-ACMD(do_mforce)
+ACMDU(do_mforce)
 {
   char arg[MAX_INPUT_LENGTH];
 
@@ -824,7 +824,7 @@ ACMD(do_mforce)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  argument = one_argument(argument, arg);
+  argument = one_argument_u(argument, arg);
 
   if (!*arg || !*argument)
   {
@@ -881,7 +881,7 @@ ACMD(do_mforce)
 }
 
 /* hunt for someone */
-ACMDC(do_mhunt)
+ACMD(do_mhunt)
 {
   char_data *victim;
   char arg[MAX_INPUT_LENGTH];
@@ -898,7 +898,7 @@ ACMDC(do_mhunt)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -926,7 +926,7 @@ ACMDC(do_mhunt)
 }
 
 /* place someone into the mob's memory list */
-ACMDC(do_mremember)
+ACMD(do_mremember)
 {
   char_data *victim;
   struct script_memory *mem;
@@ -944,7 +944,7 @@ ACMDC(do_mremember)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  argument = one_argument_c(argument, arg, sizeof(arg));
+  argument = one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -987,7 +987,7 @@ ACMDC(do_mremember)
 }
 
 /* remove someone from the list */
-ACMDC(do_mforget)
+ACMD(do_mforget)
 {
   char_data *victim;
   struct script_memory *mem, *prev;
@@ -1005,7 +1005,7 @@ ACMDC(do_mforget)
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1057,7 +1057,7 @@ ACMDC(do_mforget)
 }
 
 /* transform into a different mobile */
-ACMDC(do_mtransform)
+ACMD(do_mtransform)
 {
   char arg[MAX_INPUT_LENGTH];
   char_data *m, tmpmob;
@@ -1082,7 +1082,7 @@ ACMDC(do_mtransform)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
     mob_log(ch, "mtransform: missing argument");
@@ -1181,7 +1181,7 @@ ACMDC(do_mtransform)
   }
 }
 
-ACMDC(do_mdoor)
+ACMD(do_mdoor)
 {
   char target[MAX_INPUT_LENGTH], direction[MAX_INPUT_LENGTH];
   char field[MAX_INPUT_LENGTH];
@@ -1208,8 +1208,8 @@ ACMDC(do_mdoor)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  argument = two_arguments_c(argument, target, sizeof(target), direction, sizeof(direction));
-  value = one_argument_c(argument, field, sizeof(field));
+  argument = two_arguments(argument, target, sizeof(target), direction, sizeof(direction));
+  value = one_argument(argument, field, sizeof(field));
   skip_spaces_c(&value);
 
   if (!*target || !*direction || !*field)
@@ -1290,7 +1290,7 @@ ACMDC(do_mdoor)
   }
 }
 
-ACMDC(do_mfollow)
+ACMD(do_mfollow)
 {
   char buf[MAX_INPUT_LENGTH];
   struct char_data *leader;
@@ -1305,7 +1305,7 @@ ACMDC(do_mfollow)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (!*buf)
   {
@@ -1374,7 +1374,7 @@ ACMDC(do_mfollow)
 
 /* Prints the message to everyone in the range of numbers. Thanks to Jamie
  * Nelson of 4D for this contribution */
-ACMDC(do_mrecho)
+ACMD(do_mrecho)
 {
   char start[MAX_INPUT_LENGTH], finish[MAX_INPUT_LENGTH];
   const char *msg;
@@ -1384,7 +1384,7 @@ ACMDC(do_mrecho)
     send_to_char(ch, "Huh?!?\r\n");
     return;
   }
-  msg = two_arguments_c(argument, start, sizeof(start), finish, sizeof(finish));
+  msg = two_arguments(argument, start, sizeof(start), finish, sizeof(finish));
 
   skip_spaces_c(&msg);
 

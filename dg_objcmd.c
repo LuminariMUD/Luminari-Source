@@ -93,7 +93,7 @@ static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr)
   obj_data *target_obj;
   char roomstr[MAX_INPUT_LENGTH];
 
-  one_argument(rawroomstr, roomstr);
+  one_argument(rawroomstr, roomstr, sizeof(roomstr));
 
   if (!*roomstr)
     return NOWHERE;
@@ -170,7 +170,7 @@ static OCMD(do_oforce)
   int room;
   char arg1[MAX_INPUT_LENGTH], *line;
 
-  line = one_argument(argument, arg1);
+  line = one_argument_u(argument, arg1);
 
   if (!*arg1 || !*line)
   {
@@ -267,7 +267,7 @@ static OCMD(do_orecho)
 {
   char start[MAX_INPUT_LENGTH], finish[MAX_INPUT_LENGTH], *msg;
 
-  msg = two_arguments(argument, start, finish);
+  msg = two_arguments_u(argument, start, finish);
 
   skip_spaces(&msg);
 
@@ -282,7 +282,7 @@ static OCMD(do_otimer)
 {
   char arg[MAX_INPUT_LENGTH];
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
     obj_log(obj, "otimer: missing argument");
@@ -301,7 +301,7 @@ static OCMD(do_otransform)
   struct char_data *wearer = NULL;
   int pos = 0;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
     obj_log(obj, "otransform: missing argument");
@@ -355,7 +355,7 @@ static OCMD(do_opurge)
   obj_data *o, *next_obj;
   int rm;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -411,7 +411,7 @@ static OCMD(do_oteleport)
   room_rnum target, rm;
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!*arg1 || !*arg2)
   {
@@ -504,7 +504,7 @@ static OCMD(do_dgoload)
   obj_data *cnt;
   int pos;
 
-  target = two_arguments(argument, arg1, arg2);
+  target = two_arguments_u(argument, arg1, arg2);
 
   if (!*arg1 || !*arg2 || !is_number(arg2) || ((number = atoi(arg2)) < 0))
   {
@@ -574,7 +574,7 @@ static OCMD(do_dgoload)
       load_otrigger(object);
       return;
     }
-    two_arguments(target, arg1, arg2); /* recycling ... */
+    two_arguments(target, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* recycling ... */
     tch = get_char_near_obj(obj, arg1);
     if (tch)
     {
@@ -612,7 +612,7 @@ static OCMD(do_odamage)
   int dam = 0;
   char_data *ch;
 
-  two_arguments(argument, name, amount);
+  two_arguments(argument, name, sizeof(name), amount, sizeof(amount));
 
   /* who cares if it's a number ? if not it'll just be 0 */
   if (!*name || !*amount)
@@ -681,8 +681,8 @@ static OCMD(do_odoor)
       "room",
       "\n"};
 
-  argument = two_arguments(argument, target, direction);
-  value = one_argument(argument, field);
+  argument = two_arguments_u(argument, target, direction);
+  value = one_argument_u(argument, field);
   skip_spaces(&value);
 
   if (!*target || !*direction || !*field)
@@ -769,7 +769,7 @@ static OCMD(do_osetval)
   int position, new_value, worn_on;
   struct char_data *worn_by = NULL;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (arg1 == NULL || !*arg1 || arg2 == NULL || !*arg2 || !is_number(arg1) || !is_number(arg2))
   {
     obj_log(obj, "osetval: bad syntax");
@@ -874,7 +874,7 @@ static OCMD(do_omove)
   room_rnum target;
   char arg1[MAX_INPUT_LENGTH];
 
-  one_argument(argument, arg1);
+  one_argument(argument, arg1, sizeof(arg1));
 
   if (!*arg1)
   {

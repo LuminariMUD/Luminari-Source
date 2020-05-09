@@ -55,14 +55,14 @@ ACMD(do_oasis_qedit)
   qst_rnum real_num;
   qst_vnum number = NOWHERE;
   struct descriptor_data *d;
-  char *buf3;
+  const char *buf3;
   char buf1[MAX_INPUT_LENGTH];
   char buf2[MAX_INPUT_LENGTH];
 
   /****************************************************************************/
   /** Parse any arguments.                                                   **/
   /****************************************************************************/
-  buf3 = two_arguments(argument, buf1, buf2);
+  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {

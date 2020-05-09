@@ -2505,7 +2505,7 @@ int generic_find(const char *arg_in, bitvector_t bitvector, struct char_data *ch
   *tar_ch = NULL;
   *tar_obj = NULL;
 
-  one_argument(arg, name);
+  one_argument(arg, name_val, sizeof(name_val));
 
   if (!*name)
     return (0);

@@ -118,7 +118,7 @@ char *kbp;
 struct rank_data tt[MAX_RANKED + 1];
 
 /* primary function for display, in act.informative.c */
-void do_slug_rank(struct char_data *ch, char *arg)
+void do_slug_rank(struct char_data *ch, const char *arg)
 {
   int i, j, k;
   int rk;
@@ -144,7 +144,7 @@ void do_slug_rank(struct char_data *ch, char *arg)
   while (arg[0] == ' ')
     arg++;
 
-  half_chop(arg, keybuf, nbuf);
+  half_chop_c(arg, keybuf, sizeof(keybuf), nbuf, sizeof(nbuf));
   nbufp = nbuf;
 
   if (!strlen(keybuf))

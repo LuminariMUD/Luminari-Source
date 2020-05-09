@@ -706,7 +706,7 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
 }
 
 /* a display specific to identify prereqs for a given class */
-bool display_class_prereqs(struct char_data *ch, char *classname)
+bool display_class_prereqs(struct char_data *ch, const char *classname)
 {
   int class = CLASS_UNDEFINED;
   struct class_prerequisite *prereq = NULL;
@@ -714,7 +714,7 @@ bool display_class_prereqs(struct char_data *ch, char *classname)
   char buf[MAX_STRING_LENGTH] = {'\0'};
   bool meets_prereqs = FALSE, found = FALSE;
 
-  skip_spaces(&classname);
+  skip_spaces_c(&classname);
   class = parse_class_long(classname);
 
   if (class == CLASS_UNDEFINED)
@@ -903,7 +903,7 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
 }
 
 /* display a specific classes details */
-bool display_class_info(struct char_data *ch, char *classname)
+bool display_class_info(struct char_data *ch, const char *classname)
 {
   int class = -1, i = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -912,7 +912,7 @@ bool display_class_info(struct char_data *ch, char *classname)
   bool first_skill = TRUE;
   size_t len = 0;
 
-  skip_spaces(&classname);
+  skip_spaces_c(&classname);
   class = parse_class_long(classname);
 
   if (class == -1 || class >= NUM_CLASSES)
@@ -1110,12 +1110,12 @@ void display_imm_classlist(struct char_data *ch)
   page_string(ch->desc, buf, 1);
 }
 
-bool view_class_feats(struct char_data *ch, char *classname)
+bool view_class_feats(struct char_data *ch, const char *classname)
 {
   int class = CLASS_UNDEFINED;
   struct class_feat_assign *feat_assign = NULL;
 
-  skip_spaces(&classname);
+  skip_spaces_c(&classname);
   class = parse_class_long(classname);
 
   if (class == CLASS_UNDEFINED)
@@ -1158,12 +1158,12 @@ ACMD(do_class)
 {
   char arg[80];
   char arg2[80];
-  char *classname;
+  const char *classname;
 
   /*  Have to process arguments like this
    *  because of the syntax - class info <classname> */
-  classname = one_argument(argument, arg);
-  one_argument(classname, arg2);
+  classname = one_argument(argument, arg, sizeof(arg));
+  one_argument(classname, arg2, sizeof(arg2));
 
   /* no argument, or general list of classes */
   if (is_abbrev(arg, "list") || !*arg)
@@ -1387,8 +1387,13 @@ int parse_class(char arg)
 }
 
 /* accept short descrip, return class */
-int parse_class_long(char *arg)
+int parse_class_long(const char *arg_in)
 {
+  size_t arg_sz = strlen(arg_in) + 1;
+  char arg_buf[arg_sz];
+  strlcpy(arg_buf, arg_in, arg_sz);
+  char *arg = arg_buf;
+
   int l = 0; /* string length */
 
   for (l = 0; *(arg + l); l++) /* convert to lower case */

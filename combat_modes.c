@@ -137,7 +137,7 @@ void disable_combat_mode(struct char_data *ch, int mode)
 }
 
 /* Generic mode manager */
-ACMDC(do_mode)
+ACMD(do_mode)
 {
 
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -147,7 +147,7 @@ ACMDC(do_mode)
 
   if (argument)
   {
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
   }
   if (is_mode_enabled(ch, mode) &&
       ((combat_mode_info[mode].has_value == FALSE) ||
@@ -233,7 +233,7 @@ ACMDC(do_mode)
 #define SPELLBATTLE_CAP 12
 #define SPELLBATTLE_AFFECTS 4
 
-ACMDC(do_spellbattle)
+ACMD(do_spellbattle)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int number = -1, cap = SPELLBATTLE_CAP, duration = 1, i = 0;
@@ -255,7 +255,7 @@ ACMDC(do_spellbattle)
   }
 
   if (argument)
-    one_argument_c(argument, arg, sizeof(arg));
+    one_argument(argument, arg, sizeof(arg));
 
   /* OK no argument, that means we're attempting to turn it off */
   if (!*arg)

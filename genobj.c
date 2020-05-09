@@ -594,12 +594,12 @@ int delete_object(obj_rnum rnum)
 }
 
 /* oset handling, this location should be temporary */
-bool oset_alias(struct obj_data *obj, char *argument)
+bool oset_alias(struct obj_data *obj, const char *argument)
 {
   static int max_len = 64;
   int i = GET_OBJ_RNUM(obj);
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (strlen(argument) > max_len)
     return FALSE;
@@ -612,14 +612,14 @@ bool oset_alias(struct obj_data *obj, char *argument)
   return TRUE;
 }
 
-bool oset_apply(struct obj_data *obj, char *argument)
+bool oset_apply(struct obj_data *obj, const char *argument)
 {
   int i = 0, apply = -1, location = -1, mod = 0, empty = -1, value;
   char arg[MAX_INPUT_LENGTH];
 
-  argument = one_argument(argument, arg);
+  argument = one_argument(argument, arg, sizeof(arg));
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if ((value = atoi(argument)) == 0)
     return FALSE;
@@ -672,12 +672,12 @@ bool oset_apply(struct obj_data *obj, char *argument)
   return TRUE;
 }
 
-bool oset_short_description(struct obj_data *obj, char *argument)
+bool oset_short_description(struct obj_data *obj, const char *argument)
 {
   static int max_len = 64;
   int i = GET_OBJ_RNUM(obj);
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (strlen(argument) > max_len)
     return FALSE;
@@ -690,12 +690,12 @@ bool oset_short_description(struct obj_data *obj, char *argument)
   return TRUE;
 }
 
-bool oset_long_description(struct obj_data *obj, char *argument)
+bool oset_long_description(struct obj_data *obj, const char *argument)
 {
   static int max_len = 128;
   int i = GET_OBJ_RNUM(obj);
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (strlen(argument) > max_len)
     return FALSE;

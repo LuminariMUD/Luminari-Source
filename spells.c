@@ -849,7 +849,7 @@ ASPELL(spell_control_weather)
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  one_argument(cast_arg2, arg);
+  one_argument(cast_arg2, arg, sizeof(arg));
 
   if (is_abbrev(arg, "worsen"))
   {
@@ -1247,7 +1247,7 @@ ASPELL(spell_plane_shift)
     return;
   }
 
-  one_argument(cast_arg2, arg);
+  one_argument(cast_arg2, arg, sizeof(arg));
 
   if (is_abbrev(arg, "astral"))
   {
@@ -1342,7 +1342,7 @@ ASPELL(spell_polymorph)
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  one_argument(cast_arg2, arg);
+  one_argument(cast_arg2, arg, sizeof(arg));
 
   /* act.other.c, part of druid wildshape engine, the value "1" notifies the
        the function that this is the polymorph spells */
@@ -1524,7 +1524,7 @@ ASPELL(spell_spellstaff)
   int spellnum = 0;
 
   // cast_arg2 should be the spellname
-  one_argument(cast_arg2, spellname);
+  one_argument(cast_arg2, spellname, sizeof(spellname));
 
   if (!*spellname || spellname == NULL)
   {
@@ -1847,7 +1847,7 @@ ASPELL(spell_wall_of_thorns)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument(cast_arg2, arg);
+  one_argument(cast_arg2, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
@@ -1871,7 +1871,7 @@ ASPELL(spell_wall_of_fire)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument(cast_arg2, arg);
+  one_argument(cast_arg2, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
@@ -1895,7 +1895,7 @@ ASPELL(spell_wall_of_force)
   if (AFF_FLAGGED(ch, AFF_CHARM))
     return;
 
-  one_argument(cast_arg2, arg);
+  one_argument(cast_arg2, arg, sizeof(arg));
   if (!*arg)
   {
     send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
