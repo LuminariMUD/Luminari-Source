@@ -3295,6 +3295,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
     af[0].duration = dice(2, 4) + 2;
+    victim->confuser_idnum = GET_IDNUM(ch);
     to_room = "$n is confused by the scintillating pattern!";
     to_vict = "You are confused by the scintillating pattern!";
     break;

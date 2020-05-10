@@ -3026,6 +3026,13 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
       else
         solo_gain(ch->master, victim);
     }
+    else if (IS_NPC(ch) && ch->confuser_idnum > 0 && is_pc_idnum_in_room(ch, ch->confuser_idnum))
+    {
+      if (GROUP(ch))
+        group_gain(ch, victim);
+      else
+        solo_gain(ch, victim);
+    }
     else
     {
       if (GROUP(ch))

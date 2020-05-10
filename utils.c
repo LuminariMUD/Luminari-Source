@@ -4069,3 +4069,18 @@ bool pvp_ok(struct char_data *ch, struct char_data *target)
 
   return false;
 }
+
+bool is_pc_idnum_in_room(struct char_data *ch, long int idnum)
+{
+  if (!ch) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == ch) continue;
+    if (IS_NPC(tch)) continue;
+    if (GET_IDNUM(tch) == idnum) return true;
+  }
+  return false;
+}

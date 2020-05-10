@@ -3647,6 +3647,8 @@ struct char_data
     int sticky_bomb[3];
     long mission_owner;
     bool dead;
+
+    long int confuser_idnum;
 };
 
 /** descriptor-related structures */
