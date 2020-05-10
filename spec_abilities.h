@@ -107,7 +107,7 @@ extern const char *activation_methods[];
 bool obj_has_special_ability(struct obj_data *obj, int ability);
 struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ability);
 int process_armor_abilities(struct char_data *ch, struct char_data *victim,
-                            int actmtd, char *cmdword);
+                            int actmtd, const char *cmdword);
 #define SPECAB_PROC_DEF(specab_proc)                                                                   \
   void (*specab_proc)(struct obj_special_ability * specab, /* The ability structure, to get values. */ \
                       struct obj_data * obj,               /* The item with the ability. */            \
@@ -174,7 +174,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
                              struct char_data *victim, /* The target of the ability (either fighting or 
                                                         * specified explicitly. */
                              int actmtd,               /* Activation method */
-                             char *cmdword);           /* Command word (optional, NULL if none. */
+                             const char *cmdword);     /* Command word (optional, NULL if none. */
 
 /* Process weapon abilities for the specified activation method. */
 int process_item_abilities(struct obj_data *obj,     /* The weapon to check for special abilities. */

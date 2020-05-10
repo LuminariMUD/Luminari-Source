@@ -238,7 +238,7 @@ int board_show_board(int board_type, struct char_data *ch, char *arg, struct obj
   if (!ch->desc)
     return (0);
 
-  one_argument(arg, tmp);
+  one_argument(arg, tmp, sizeof(tmp));
 
   if (!*tmp || !isname(tmp, board->name))
     return (0);
@@ -300,7 +300,7 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
   char number[MAX_INPUT_LENGTH], buffer[MAX_STRING_LENGTH];
   int msg, ind;
 
-  one_argument(arg, number);
+  one_argument(arg, number, sizeof(number));
   if (!*number)
     return (0);
   if (isname(number, board->name)) /* so "read board" works */
@@ -362,7 +362,7 @@ int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj
   char number[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
   struct descriptor_data *d;
 
-  one_argument(arg, number);
+  one_argument(arg, number, sizeof(number));
 
   if (!*number || !is_number(number))
     return (0);

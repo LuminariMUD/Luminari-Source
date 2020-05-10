@@ -5299,7 +5299,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     gate_process = TRUE;
 
     /* where is it going? */
-    one_argument(cast_arg2, arg);
+    one_argument(cast_arg2, arg, sizeof(arg));
     if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE))
     {
       send_to_char(ch, "A bright flash prevents your spell from working!");

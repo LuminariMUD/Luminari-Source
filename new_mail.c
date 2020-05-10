@@ -36,7 +36,7 @@ extern struct clan_type *clan_info;
 
 void send_editor_help(struct descriptor_data *d);
 
-ACMDC(do_new_mail)
+ACMD(do_new_mail)
 {
 
   char arg3[200], arg4[200];

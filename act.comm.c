@@ -26,7 +26,7 @@
 #include "modify.h"
 #include "hlquest.h"
 
-ACMD(do_say)
+ACMDU(do_say)
 {
   char type[20];
   char *arg2 = NULL;
@@ -108,7 +108,7 @@ ACMD(do_say)
   speech_wtrigger(ch, arg2);
 }
 
-ACMD(do_gsay)
+ACMDU(do_gsay)
 {
   skip_spaces(&argument);
 
@@ -211,7 +211,7 @@ ACMD(do_tell)
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   const char *msg = NULL;
 
-  half_chop(argument, buf, buf2);
+  half_chop_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
   if (!*buf || !*buf2)
     send_to_char(ch, "Who do you wish to tell what??\r\n");
@@ -285,7 +285,7 @@ ACMD(do_tell)
   }
 }
 
-ACMD(do_reply)
+ACMDU(do_reply)
 {
   struct char_data *tch = character_list;
 
@@ -323,13 +323,9 @@ ACMD(do_reply)
 ACMD(do_write)
 {
   struct obj_data *paper, *pen = NULL;
-  char *papername, *penname;
-  char buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char papername[MAX_STRING_LENGTH], penname[MAX_STRING_LENGTH];
 
-  papername = buf1;
-  penname = buf2;
-
-  two_arguments(argument, papername, penname);
+  two_arguments(argument, papername, sizeof(papername), penname, sizeof(penname));
 
   if (!ch->desc)
     return;
@@ -420,7 +416,7 @@ ACMD(do_page)
   struct char_data *vict;
   char buf2[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
 
-  half_chop(argument, arg, buf2);
+  half_chop_c(argument, arg, sizeof(arg), buf2, sizeof(buf2));
 
   if (IS_NPC(ch))
     send_to_char(ch, "Monsters can't page.. go away.\r\n");
@@ -457,7 +453,7 @@ ACMD(do_page)
 }
 
 /* Generalized communication function by Fred C. Merkel (Torg). */
-ACMD(do_gen_comm)
+ACMDU(do_gen_comm)
 {
   struct descriptor_data *i;
   char color_on[24];
@@ -683,7 +679,7 @@ ACMD(do_gen_comm)
   }
 }
 
-ACMD(do_qcomm)
+ACMDU(do_qcomm)
 {
   if (!PRF_FLAGGED(ch, PRF_QUEST))
   {

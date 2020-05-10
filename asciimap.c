@@ -508,7 +508,7 @@ static const char *CompactStringMap(int centre, int size) {
 }
 
 /* Display a nicely formatted map with a legend */
-void perform_map(struct char_data *ch, char *argument, bool worldmap) {
+void perform_map(struct char_data *ch, const char *argument, bool worldmap) {
   int size = DEFAULT_MAP_SIZE;
   int centre, x, y, min, max;
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH],
@@ -519,7 +519,7 @@ void perform_map(struct char_data *ch, char *argument, bool worldmap) {
 
 
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
   if (*arg1) {
     size = atoi(arg1);
   }

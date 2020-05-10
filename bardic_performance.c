@@ -161,7 +161,7 @@ ACMD(do_perform)
     event_cancel_specific(ch, eBARDIC_PERFORMANCE);
   }
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
   len = strlen(argument);
 
   for (i = 0; i < MAX_PERFORMANCES; i++)

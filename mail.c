@@ -309,7 +309,7 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
     act(buf, FALSE, mailman, 0, ch, TO_VICT);
     return;
   }
-  one_argument(arg, buf);
+  one_argument(arg, buf, sizeof(buf));
 
   if (!*buf)
   { /* you'll get no argument from me! */

@@ -113,11 +113,12 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Set up the required variables and strings */
   vict = PREFEDIT_GET_CHAR;
 
-  snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s",
+  snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
           PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+          PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
           PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
           PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
@@ -282,7 +283,8 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                              "%sOther Flags\r\n"
                              "%sF%s) No Summon    %s[%s%3s%s]      %sH%s) Brief    %s[%s%3s%s]\r\n"
                              "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact  %s[%s%3s%s]\r\n"
-                             "%sY%s) AoE Bombs    %s[%s%3s%s]      %sZ%s) AutoCon  %s[%s%3s%s]\r\n",
+                             "%sY%s) Charmies Won't Rescue You                     %s[%s%3s%s]\r\n"
+                             "%sZ%s) AutoConsider %s[%s%3s%s]\r\n",
                CBWHT(d->character, C_NRM),
                /* Line 10 - nosummon and brief */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
@@ -294,7 +296,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_COMPACT)), CCCYN(d->character, C_NRM),
                /* Line 12 - aoebombs and autoconsider */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AOE_BOMBS)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_NO_CHARMIE_RESCUE)), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCON)), CCCYN(d->character, C_NRM));
 
   /* The bottom section of the toggles menu */
@@ -338,11 +340,12 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     snprintf(prompt_string, sizeof(prompt_string), "<Auto>");
   else
-    snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s",
+    snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s",
             PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
             PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
             PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
             PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+            PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
             PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
             PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
             PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
@@ -358,10 +361,12 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
                              "%s7%s) Toggle Rooms\r\n"
                              "%s8%s) Toggle Memtimes\r\n"
                              "%s9%s) Toggle Actions\r\n"
+                             "%s10%s) Toggle Gold\r\n"
                              "\r\n"
                              "%sCurrent Prompt: %s%s%s\r\n\r\n"
                              "%s0%s) Quit (to main menu)\r\n",
                CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
@@ -784,7 +789,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'y':
     case 'Y':
-      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AOE_BOMBS);
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NO_CHARMIE_RESCUE);
       break;
       /*z*/
     case 'z':
@@ -900,6 +905,13 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPACTIONS);
+        }
+        else if (number == 10)
+        {
+          if (PREFEDIT_FLAGGED(PRF_DISPGOLD))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPGOLD);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPGOLD);
         }
         prefedit_disp_prompt_menu(d);
       }
@@ -1109,7 +1121,7 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
   PREFEDIT_GET_SCREENWIDTH = 80; /* Default telnet screen is 80 columns */
 }
 
-ACMDC(do_oasis_prefedit)
+ACMD(do_oasis_prefedit)
 {
   struct descriptor_data *d;
   struct char_data *vict;
@@ -1120,7 +1132,7 @@ ACMDC(do_oasis_prefedit)
   /****************************************************************************/
   /** Parse any arguments.                                                   **/
   /****************************************************************************/
-  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   /****************************************************************************/
   /** If there aren't any arguments...well...they can only modify their      **/

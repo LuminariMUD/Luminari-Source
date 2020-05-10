@@ -50,7 +50,7 @@ ACMD(do_oasis_cedit)
     return;
 
   /* Parse any arguments. */
-  one_argument(argument, buf1);
+  one_argument(argument, buf1, sizeof(buf1));
 
   if (GET_LEVEL(ch) < LVL_IMPL)
   {

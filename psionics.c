@@ -1738,7 +1738,7 @@ void do_rift(struct char_data *ch, char *arg, int cmd)
 
   skl_lvl = GET_SKILL(ch, PSIONIC_RIFT);
 
-  one_argument(arg, Gbuf4);
+  one_argument(arg, Gbuf4, sizeof(Gbuf4));
 
   for (plane_to = 0; plane_to < nr_planes; plane_to++)
     if (is_abbrev(Gbuf4, plane_info[plane_to].keyword))
@@ -2426,7 +2426,7 @@ void do_canibalize(struct char_data *ch, char *arg, int cmd)
   /* This is the fixed version of getting the proficiency - Iyachtu */
   skl_lvl = GET_SKILL(ch, PSIONIC_CANIBALIZE);
 
-  one_argument(arg, oneArg);
+  one_argument(arg, oneArg, sizeof(oneArg));
 
   if (!*oneArg || !isdigit(*oneArg))
   {
@@ -3052,7 +3052,7 @@ void do_charge(struct char_data *ch, char *arg, int cmd)
     return;
   }
 
-  one_argument(arg, Gbuf);
+  one_argument(arg, Gbuf, sizeof(Gbuf));
   if (!(crystal = get_obj_in_list_vis(ch, Gbuf, ch->carrying)))
   {
     send_to_char("You can't find it!\n", ch);

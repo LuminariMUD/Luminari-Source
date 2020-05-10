@@ -2044,7 +2044,7 @@ SPECIAL(crafting_quest)
     return 0;
   }
 
-  two_arguments(argument, arg, arg2);
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
     cquest_report(ch);
@@ -2478,7 +2478,7 @@ EVENTFUNC(event_crafting)
 }
 
 /* the 'harvest' command */
-ACMDC(do_harvest)
+ACMD(do_harvest)
 {
   struct obj_data *obj = NULL, *node = NULL;
   int roll = 0, material = -1, minskill = 0;
@@ -2504,7 +2504,7 @@ ACMDC(do_harvest)
     return;
   }
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
