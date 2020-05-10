@@ -107,7 +107,7 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "Allows others to benefit from extracts",
     "+2 dodge ac, -2 strength and constitution, +1 to attack rolls and weapon damage.",
     "Increases save DCs of alchemist's poisons by +4, and increases duration by 50 percent.",
-    "Kills weak creatures outright and deals 1d4 consitution damage continuously until suiccessful fortitude save.",
+    "Deals 1d4/level poison damage to all in room, as well as secondary poison damage to all if AoE Bombs enabled.",
     "+2 to attack rolls with bombs.",
     "25 percent chance of nullifying any critical hit or sneak attack against the alchemist.",
     "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage and evil ones take none.",
@@ -1444,6 +1444,9 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
       act(to_room, TRUE, victim, 0, ch, TO_ROOM);
 
     affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+
+    if (bomb_type == BOMB_CONFUSION)
+      victim->confuser_idnum = GET_IDNUM(ch);
 
     if (af2.spell != 0)
     {

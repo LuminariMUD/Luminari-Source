@@ -979,6 +979,9 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
     return;
   }
 
+  if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
+    ch->confuser_idnum = 0;
+
   affect_modify_ar(ch, af->location, 0, af->bitvector, FALSE);
 
   if (BONUS_TYPE_STACKS(af->bonus_type))

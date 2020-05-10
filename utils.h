@@ -203,6 +203,7 @@ int daily_uses_remaining(struct char_data *ch, int featnum);
 int daily_item_specab_uses_remaining(struct obj_data *obj, int specab);
 int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 bool pvp_ok(struct char_data *ch, struct char_data *target);
+bool is_pc_idnum_in_room(struct char_data *ch, long int idnum);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
