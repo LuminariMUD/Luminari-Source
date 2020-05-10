@@ -814,9 +814,11 @@
 #define PRF_PVP 49         /* If set, will allow player vs. player combat against others also flagged */
 #define PRF_AUTOCON 50     /* autoconsider, shows level difference of mobs in look command */
 #define PRF_SMASH_DEFENSE 51 // stalwart defender level 10 ability
+#define PRF_DISPGOLD 52 // will show gold in prompt
+#define PRF_NO_CHARMIE_RESCUE 53 // charmie mobs won't rescue you
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 52
+#define NUM_PRF_FLAGS 54
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

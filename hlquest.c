@@ -941,7 +941,7 @@ ACMD(do_qinfo)
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1205,7 +1205,7 @@ ACMD(do_qref)
   struct quest_command *qcom;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  one_argument(argument, buf);
+  one_argument(argument, buf, sizeof(buf));
 
   if (!*buf)
   {
@@ -1283,7 +1283,7 @@ ACMD(do_qview)
   int num;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  one_argument(argument, buf);
+  one_argument(argument, buf, sizeof(buf));
 
   if (!*buf)
   {

@@ -222,7 +222,7 @@ ACMD(do_grapple)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {

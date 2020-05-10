@@ -44,7 +44,7 @@ static void sedit_save_to_disk(int num)
 }
 
 /* utility functions */
-ACMDC(do_oasis_sedit)
+ACMD(do_oasis_sedit)
 {
   int number = NOWHERE, save = 0;
   shop_rnum real_num;
@@ -58,7 +58,7 @@ ACMDC(do_oasis_sedit)
     return;
 
   /* Parse any arguments. */
-  buf3 = two_arguments_c(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
+  buf3 = two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
   if (!*buf1)
   {

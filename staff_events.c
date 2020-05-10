@@ -510,7 +510,7 @@ ACMD(do_staffevents)
 
     /* should only be staff from this point onward */
 
-    half_chop(argument, arg, arg2);
+    half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
     if (!*arg || !*arg2)
     {

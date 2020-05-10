@@ -496,7 +496,7 @@ void use_boost_point(struct char_data *ch, int stat)
   }
 }
 
-ACMDC(do_study)
+ACMD(do_study)
 {
   /* gonna have some restrictions here */
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
@@ -2004,7 +2004,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   int i = 0;
   char arg1[200] = {'\0'}, arg2[200] = {'\0'};
 
-  two_arguments(arg, arg1, arg2);
+  two_arguments(arg, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   sprintf(arg, "%s", arg1);
 

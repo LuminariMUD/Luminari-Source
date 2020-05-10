@@ -1280,7 +1280,7 @@ void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom)
   gdImageDestroy(im);
 }
 
-void generate_river(struct char_data *ch, int dir, region_vnum vnum, char *name)
+void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char *name)
 {
   /* Start at your current wilderness location, then create a river that meanders in direction 'dir' */
   int x, y, vtx, i;

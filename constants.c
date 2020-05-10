@@ -1145,6 +1145,8 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
     "PvP-Enabled",
     "Auto-Consider",
     "Smash Defense",
+    "Display-Gold",
+    "No-Charmie-Rescues"
     "\n"};
 
 /** Bonus types */

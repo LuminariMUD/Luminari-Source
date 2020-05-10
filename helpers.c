@@ -147,7 +147,7 @@ int fill_word(char *argument)
 
 /* Copy the first non-fill-word, space-delimited argument of 'argument'
  * to 'first_arg'; return a pointer to the remainder of the string. */
-char *one_argument(char *argument, char *first_arg)
+char *one_argument_u(char *argument, char *first_arg)
 {
   char *begin = first_arg;
 
@@ -176,7 +176,7 @@ char *one_argument(char *argument, char *first_arg)
 
 /* Copy the first non-fill-word, space-delimited argument of 'argument'
  * to 'first_arg'; return a pointer to the remainder of the string. */
-const char *one_argument_c(const char *argument, char *first_arg, size_t n)
+const char *one_argument(const char *argument, char *first_arg, size_t n)
 {
   char *begin = first_arg;
   const char *arg_last = first_arg + n - 1;
@@ -209,14 +209,14 @@ const char *one_argument_c(const char *argument, char *first_arg, size_t n)
 
 /* Same as one_argument except that it takes two args and returns the rest;
  * ignores fill words */
-char *two_arguments(char *argument, char *first_arg, char *second_arg)
+char *two_arguments_u(char *argument, char *first_arg, char *second_arg)
 {
-  return (one_argument(one_argument(argument, first_arg), second_arg)); /* :-) */
+  return (one_argument_u(one_argument_u(argument, first_arg), second_arg)); /* :-) */
 }
 
-const char *two_arguments_c(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2)
+const char *two_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2)
 {
-  return (one_argument_c(one_argument_c(argument, first_arg, n1), second_arg, n2));
+  return (one_argument(one_argument(argument, first_arg, n1), second_arg, n2));
 }
 
 bool legal_communication(const char *arg)

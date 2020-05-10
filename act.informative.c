@@ -76,13 +76,41 @@ int boot_high = 0;
 void lore_id_vict(struct char_data *ch, struct char_data *tch)
 {
   int i = 0;
+  size_t len = 0;
+  int count = 0;
+  bool has_subrace = false;
+  char subraces[MEDIUM_STRING];
+
+  count = snprintf(subraces + len, sizeof(subraces) - len, ", Subrace(s): ");
+  if (count > 0)
+    len += count;
+  if (GET_SUBRACE(tch, 0)) {
+    count = snprintf(subraces + len, sizeof(subraces) - len, "%s", npc_subrace_types[GET_SUBRACE(tch, 0)]);
+    if (count > 0)
+        len += count;
+    has_subrace = true;
+  }
+  if (GET_SUBRACE(tch, 1)) {
+  count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 1)]);
+  if (count > 0)
+      len += count;
+  }
+  if (GET_SUBRACE(tch, 2)) {
+  count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 2)]);
+  if (count > 0)
+      len += count;
+  }
 
   send_to_char(ch, "Name: %s\r\n", GET_NAME(tch));
   if (!IS_NPC(tch))
     send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
                  GET_NAME(tch), age(tch)->year, age(tch)->month,
                  age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
+  send_to_char(ch, "Race: %s%s.\r\n",
+              race_family_types[GET_RACE(tch)],
+              has_subrace ? subraces : "");
+  send_to_char(ch, "Alignment: %s.\r\n",
+              get_align_by_num(GET_ALIGNMENT(tch)));
   send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
                GET_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
@@ -251,7 +279,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
 
     if (mxp_type != 0)
     {
-      one_argument(obj->name, keyword);
+      one_argument(obj->name, keyword, sizeof(keyword));
 
       switch (mxp_type)
       {
@@ -2159,7 +2187,7 @@ ACMD(do_masterlist)
   if (IS_NPC(ch))
     return;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!argument || !*argument)
   {
@@ -2237,7 +2265,7 @@ ACMD(do_look)
   {
     char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
 
-    half_chop(argument, arg, arg2);
+    half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
     if (subcmd == SCMD_READ)
     {
@@ -2297,7 +2325,7 @@ ACMD(do_examine)
   struct obj_data *tmp_object;
   char tempsave[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -2398,7 +2426,7 @@ ACMD(do_abilities)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
@@ -2614,7 +2642,7 @@ ACMD(do_affects)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   /* find the victim */
   vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
@@ -2651,7 +2679,7 @@ ACMD(do_attacks)
   int mode = -1, attack_type = -1;
   int line_length = 80;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -3194,7 +3222,7 @@ ACMD(do_who)
       {"\n", 0, 0, 0}};
 
   // remove spaces in front of argument
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
   // copy argument -> buf
   strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   // first char of name_search is now NULL
@@ -3578,7 +3606,7 @@ ACMD(do_users)
                "Num Class    Name         State          Idl   Login\t*   Site\r\n"
                "--- -------- ------------ -------------- ----- -------- ------------------------\r\n");
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -3725,7 +3753,7 @@ ACMD(do_where)
 {
   char arg[MAX_INPUT_LENGTH];
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     perform_immort_where(ch, arg);
@@ -3744,7 +3772,7 @@ ACMD(do_levels)
     send_to_char(ch, "You ain't nothin' but a hound-dog.\r\n");
     return;
   }
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (arg != NULL && *arg)
   {
@@ -3822,7 +3850,7 @@ ACMD(do_consider)
   struct char_data *victim;
   int diff;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (!(victim = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM)))
   {
@@ -3876,7 +3904,7 @@ ACMD(do_diagnose)
   char buf[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (*buf)
   {
@@ -4069,8 +4097,8 @@ ACMD(do_toggle)
   if (IS_NPC(ch))
     return;
 
-  argument = one_argument(argument, arg);
-  any_one_arg(argument, arg2); /* so that we don't skip 'on' */
+  argument = one_argument(argument, arg, sizeof(arg));
+  any_one_arg_c(argument, arg2, sizeof(arg2)); /* so that we don't skip 'on' */
 
   if (!*arg)
   {
@@ -4478,7 +4506,7 @@ ACMD(do_commands)
   if (!ch->desc)
     return;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
   {
@@ -4563,7 +4591,7 @@ ACMD(do_history)
   char arg[MAX_INPUT_LENGTH];
   int type;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (is_abbrev(arg, "chat"))
     strlcpy(arg, "gossip", sizeof(arg));
@@ -4607,7 +4635,7 @@ ACMD(do_whois)
   char buf[MAX_STRING_LENGTH];
   clan_rnum c_n;
 
-  one_argument_c(argument, buf, sizeof(buf));
+  one_argument(argument, buf, sizeof(buf));
 
   if (!*buf)
   {
@@ -4782,7 +4810,7 @@ ACMD(do_areas)
   //  float pop;
   //  clan_rnum ocr;
 
-  one_argument_c(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
   {
@@ -5306,7 +5334,7 @@ void display_weapon_families(struct char_data *ch)
 
 ACMD(do_weapontypes)
 {
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -5499,7 +5527,7 @@ int is_weapon_proficient(int weapon, int type)
 
 ACMD(do_weaponproficiencies)
 {
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -5608,7 +5636,7 @@ ACMD(do_weaponproficiencies)
 ACMD(do_weaponinfo)
 {
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {

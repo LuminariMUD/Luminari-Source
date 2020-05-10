@@ -613,7 +613,7 @@ EVENTFUNC(event_craft)
   return (0);
 }
 
-ACMD(do_craft)
+ACMDU(do_craft)
 {
   struct craft_data *craft;
   struct obj_data *obj;

@@ -120,7 +120,7 @@ ACMD(do_exchange)
   }
   /*TEMP*/
 
-  three_arguments(argument, arg1, arg2, arg3);
+  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
   if (!*arg1 || !*arg2 || !*arg3)
   {
@@ -352,7 +352,7 @@ ACMD(do_nop)
   send_to_char(ch, "\r\n");
 }
 
-ACMD(do_handleanimal)
+ACMDU(do_handleanimal)
 {
   struct char_data *vict = NULL;
   int dc = 0;
@@ -651,7 +651,7 @@ ACMD(do_abundantstep)
 
 /* ethereal shift - monk epic feat skill/cleric travel domain power/feat, allows
  * shifting of self and group members to the ethereal plane and back */
-ACMD(do_ethshift)
+ACMDU(do_ethshift)
 {
   struct char_data *shiftee = NULL;
   room_rnum shift_dest = NOWHERE;
@@ -769,7 +769,7 @@ ACMD(do_imbuearrow)
   int spell_num = 0, class = -1;
   int uses_remaining = 0;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   /* need two arguments */
   if (!*arg1)
@@ -1012,7 +1012,7 @@ ACMD(do_applypoison)
   int amount = 1;
   bool is_trelux = FALSE;
 
-  two_arguments(argument, arg1, arg2);
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   if (!HAS_FEAT(ch, FEAT_APPLY_POISON))
   {
@@ -1181,7 +1181,7 @@ ACMD(do_sorcerer_arcane_apotheosis)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1315,7 +1315,7 @@ void perform_perform(struct char_data *ch)
 /* this has been replaced in bardic_performance.c */
 
 /*
-ACMD(do_perform) {
+ACMDU(do_perform) {
 
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC)) {
     send_to_char(ch, "You don't know how to perform.\r\n");
@@ -1546,7 +1546,7 @@ ACMD(do_call)
 {
   int call_type = -1, level = 0;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   /* call types
      MOB_C_ANIMAL -> animal companion
@@ -1634,7 +1634,7 @@ ACMD(do_purify)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
   {
@@ -1680,7 +1680,7 @@ ACMD(do_dismiss)
   int found = 0;
   struct mud_event_data *pMudEvent = NULL;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1772,7 +1772,7 @@ ACMD(do_recharge)
     return;
   }
 
-  argument = one_argument(argument, buf);
+  argument = one_argument(argument, buf, sizeof(buf));
 
   if (!(obj = get_obj_in_list_vis(ch, buf, NULL, ch->carrying)))
   {
@@ -1826,7 +1826,7 @@ ACMD(do_mount)
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -1949,7 +1949,7 @@ ACMD(do_tame)
   struct affected_type af;
   struct char_data *vict;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
@@ -2005,7 +2005,7 @@ ACMD(do_respec)
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  two_arguments(argument, arg, arg2);
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
@@ -2106,7 +2106,7 @@ ACMD(do_gain)
   }
 
   if (GET_PREMADE_BUILD_CLASS(ch) < 0)
-    one_argument(argument, arg);
+    one_argument(argument, arg, sizeof(arg));
   else
     snprintf(arg, MAX_INPUT_LENGTH, "%s", class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
 
@@ -2616,7 +2616,7 @@ At 12th level, a druid can use wild shape to change into a Huge elemental or a
  * shape now functions as elemental body IV. When taking the form of a plant, the
  * druid's wild shape now functions as plant shape III.
  */
-int display_eligible_wildshape_races(struct char_data *ch, char *argument, int silent, int mode)
+int display_eligible_wildshape_races(struct char_data *ch, const char *argument, int silent, int mode)
 {
   int i = 0;
   struct wild_shape_mods *abil_mods;
@@ -3063,13 +3063,13 @@ void wildshape_return(struct char_data *ch)
 /* moved the engine out of do_wildshape so we can use it in other places */
 /* mode = 0, druid */
 /* mode = 1, polymorph spell (spells.c) */
-bool wildshape_engine(struct char_data *ch, char *argument, int mode)
+bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
 {
   int i = 0;
   char buf[200];
   struct wild_shape_mods *abil_mods;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
   {
@@ -3142,7 +3142,7 @@ ACMD(do_wildshape)
   char buf[200];
   int uses_remaining = 0;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument && HAS_FEAT(ch, FEAT_WILD_SHAPE))
   {
@@ -3355,7 +3355,7 @@ ACMD(do_shapechange)
   return;
   /*********************************************************************/
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!HAS_FEAT(ch, FEAT_WILD_SHAPE))
   {
@@ -3436,7 +3436,7 @@ ACMD(do_shapechange)
 
 /*****************************/
 
-int display_eligible_disguise_races(struct char_data *ch, char *argument, int silent)
+int display_eligible_disguise_races(struct char_data *ch, const char *argument, int silent)
 {
   int i = 0;
 
@@ -3473,7 +3473,7 @@ ACMD(do_disguise)
   int i = 0;
   char buf[200];
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!GET_ABILITY(ch, ABILITY_DISGUISE))
   {
@@ -3640,7 +3640,7 @@ ACMD(do_lore)
     return;
   }
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   target = generic_find(arg, FIND_CHAR_ROOM | FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_EQUIP, ch, &tch, &tobj);
 
@@ -3953,7 +3953,7 @@ ACMD(do_search)
     return;
   }
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -4275,7 +4275,7 @@ ACMD(do_steal)
     return;
   }
 
-  two_arguments(argument, obj_name, vict_name);
+  two_arguments(argument, obj_name, sizeof(obj_name), vict_name, sizeof(vict_name));
 
   if (!(vict = get_char_vis(ch, vict_name, NULL, FIND_CHAR_ROOM)))
   {
@@ -4435,7 +4435,7 @@ ACMD(do_spells)
   if (IS_NPC(ch))
     return;
 
-  two_arguments(argument, arg, arg1);
+  two_arguments(argument, arg, sizeof(arg), arg1, sizeof(arg1));
 
   if (!*arg && subcmd != SCMD_CONCOCT)
   {
@@ -4493,7 +4493,7 @@ ACMD(do_spelllist)
   if (IS_NPC(ch))
     return;
 
-  two_arguments(argument, arg, arg1);
+  two_arguments(argument, arg, sizeof(arg), arg1, sizeof(arg1));
 
   if (subcmd == SCMD_CONCOCT)
   {
@@ -4560,7 +4560,7 @@ ACMD(do_boosts)
   if (IS_NPC(ch))
     return;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
     send_to_char(ch, "You can only boost stats with a trainer.\r\n");
@@ -4593,7 +4593,7 @@ ACMD(do_practice)
   if (IS_NPC(ch))
     return;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
     send_to_char(ch, "Type '\tYcraft\tn' without an argument to view your crafting skills.\r\n");
@@ -4618,7 +4618,7 @@ ACMD(do_train)
   //if (IS_NPC(ch))
   //return;
 
-  one_argument(argument, arg);
+  one_argument(argument, arg, sizeof(arg));
 
   if (*arg && is_abbrev(arg, "knowledge"))
   {
@@ -4670,7 +4670,7 @@ ACMD(do_visible)
     send_to_char(ch, "You are already visible.\r\n");
 }
 
-ACMD(do_title)
+ACMDU(do_title)
 {
   skip_spaces(&argument);
   delete_doubledollar(argument);
@@ -4850,11 +4850,11 @@ static void display_group_list(struct char_data *ch)
 
 //vatiken's group system 1.2, installed 08/08/12 by zusuk
 
-ACMD(do_group)
+ACMDU(do_group)
 {
   char buf[MAX_STRING_LENGTH];
   struct char_data *vict;
-  argument = one_argument(argument, buf);
+  argument = one_argument_u(argument, buf);
 
   if (!*buf)
   {
@@ -5029,7 +5029,7 @@ ACMD(do_split)
   if (IS_NPC(ch))
     return;
 
-  one_argument(argument, buf);
+  one_argument(argument, buf, sizeof(buf));
 
   if (is_number(buf))
   {
@@ -5124,7 +5124,7 @@ ACMD(do_use)
   int spell;
   int umd_ability_score;
 
-  half_chop(argument, arg, buf);
+  half_chop_c(argument, arg, sizeof(arg), buf, sizeof(buf));
 
   if (!*arg)
   {
@@ -5454,7 +5454,7 @@ ACMD(do_utter)
   int found = 0;
   struct obj_data *mag_item = NULL;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -5528,7 +5528,7 @@ ACMD(do_display)
     send_to_char(ch, "Monsters don't need displays.  Go away.\r\n");
     return;
   }
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {
@@ -5763,6 +5763,9 @@ ACMD(do_gen_tog)
       /* 43 */
       {"You will no longer use smash defense in combat.\r\n",
        "You will now use smash defense in combat (if you know it).\r\n"},
+       /* 44 */
+      {"You will now allow charmies to rescue you and other group members.\r\n",
+       "You will no longer allow charmies to rescue you and other group members\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -5770,6 +5773,9 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+  case SCMD_NOCHARMIERESCUES:
+    result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);
+    break;
   case SCMD_SMASH_DEFENSE:
     result = PRF_TOG_CHK(ch, PRF_SMASH_DEFENSE);
     break;
@@ -5842,7 +5848,7 @@ ACMD(do_gen_tog)
     result = PRF_TOG_CHK(ch, PRF_BUILDWALK);
     if (PRF_FLAGGED(ch, PRF_BUILDWALK))
     {
-      one_argument(argument, arg);
+      one_argument(argument, arg, sizeof(arg));
       for (i = 0; *arg && *(sector_types[i]) != '\n'; i++)
         if (is_abbrev(arg, sector_types[i]))
           break;
@@ -6007,7 +6013,7 @@ ACMD(do_happyhour)
   }
 
   /* Only Imms get here, so check args */
-  two_arguments(argument, arg, val);
+  two_arguments(argument, arg, sizeof(arg), val, sizeof(val));
 
   if (is_abbrev(arg, "experience"))
   {
@@ -6369,7 +6375,7 @@ void show_hints(void)
 
 /* moved to do_gen_tog */
 /*
-ACMD(do_nohints) {
+ACMDU(do_nohints) {
   if (!PRF_FLAGGED(ch, PRF_NOHINTS)) {
     SET_BIT_AR(PRF_FLAGS(ch), PRF_NOHINTS);
     send_to_char(ch, "You will no longer see game hints.\r\n");
@@ -6396,7 +6402,7 @@ ACMD(do_todo)
 {
   struct txt_block *tmp;
 
-  skip_spaces(&argument);
+  skip_spaces_c(&argument);
 
   if (!*argument)
   {

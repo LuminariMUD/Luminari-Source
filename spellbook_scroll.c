@@ -250,7 +250,7 @@ ACMD(do_scribe)
   int i = 0, spellnum = -1, found = FALSE;
   struct obj_data *obj = NULL, *scroll = NULL, *next_obj = NULL;
 
-  half_chop(argument, arg1, arg2);
+  half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   /* quick outs */
   if (!*arg1 || !*arg2)

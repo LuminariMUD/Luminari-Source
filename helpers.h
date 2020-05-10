@@ -19,17 +19,23 @@ void parse_at(char *str);
 
 /* Return first space-delimited token in arg1; remainder of string in arg2.
  * NOTE: Requires sizeof(arg2) >= sizeof(string) */
+/* unsafe version */
 void half_chop(char *string, char *arg1, char *arg2);
+/* safe version */
 void half_chop_c(const char *string, char *arg1, size_t n1, char *arg2, size_t n2);
 
-/* Same as one_argument except that it doesn't ignore fill words. */
+/* Same as one_argument_u except that it doesn't ignore fill words. */
+/* unsafe version */
 char *any_one_arg(char *argument, char *first_arg);
+/* safe version */
 const char *any_one_arg_c(const char *argument, char *first_arg, size_t n);
 
-/* Same as one_argument except that it takes two args and returns the rest;
+/* Same as one_argument_u except that it takes two args and returns the rest;
  * ignores fill words */
-char *two_arguments(char *argument, char *first_arg, char *second_arg);
-const char *two_arguments_c(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2);
+/* unsafe version */
+char *two_arguments_u(char *argument, char *first_arg, char *second_arg);
+/* safe version */
+const char *two_arguments(const char *argument, char *first_arg, size_t n1, char *second_arg, size_t n2);
 
 /* Searches an array of strings for a target string.  "exact" can be 0 or non-0,
  * depending on whether or not the match must be exact for it to be returned.
@@ -41,8 +47,10 @@ int fill_word(char *argument);
 
 /* Copy the first non-fill-word, space-delimited argument of 'argument'
  * to 'first_arg'; return a pointer to the remainder of the string. */
-char *one_argument(char *argument, char *first_arg);
-const char *one_argument_c(const char *argument, char *first_arg, size_t n);
+/* unsafe version */
+char *one_argument_u(char *argument, char *first_arg);
+/* safe version */
+const char *one_argument(const char *argument, char *first_arg, size_t n);
 
 extern const char *fill[];
 
