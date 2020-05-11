@@ -6458,6 +6458,30 @@ ACMD(do_todo)
   }
 }
 
+ACMD(do_summon)
+{
+  struct char_data *tch = NULL;
+  bool found = false;
+
+  for (tch = character_list; tch; tch = tch->next)
+  {
+    if (!IS_NPC(tch)) continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
+    if (tch->master != ch) continue;
+    if (IN_ROOM(tch) == NOWHERE) continue;
+    act("$n disappears in a flash of light.", FALSE, ch, 0, 0, TO_ROOM);
+    char_from_room(tch);
+    char_to_room(tch, IN_ROOM(ch));
+    act("$n appears in a flash of light.", FALSE, ch, 0, 0, TO_ROOM);
+    found = true;
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "You do not have any charmies that require summoning.\r\n");
+  }
+}
+
 /* some cleanup */
 #undef NUM_HINTS
 #undef SHAPE_AFFECTS
