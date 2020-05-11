@@ -46,7 +46,7 @@ const char * const mission_details[][8] = {
     // We want to order this from highest level to lowest level
     //         FACTIONS ALLOWED (1 (one) if allowed, 0 (zero) if not)
     //  Lvl    R    E    H    F   Planet         Room Vnum Zone Name
-    {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2702", "Memlin Caverns"},
+    {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2721", "Memlin Caverns"},
     {"16", "0", "0", "0", "1", "Prime Material Plane - Surface", "1901", "Spider Swamp"},
     {"14", "0", "0", "0", "1", "Prime Material Plane - Surface", "148107", "Orcish Fort"},
     {"12", "0", "0", "0", "1", "Prime Material Plane - Surface", "40403", "Blindbreak Rest"},
