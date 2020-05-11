@@ -46,6 +46,8 @@ const char * const mission_details[][8] = {
     // We want to order this from highest level to lowest level
     //         FACTIONS ALLOWED (1 (one) if allowed, 0 (zero) if not)
     //  Lvl    R    E    H    F   Planet         Room Vnum Zone Name
+    {"7" , "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
+    {"3" , "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
     {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2721", "Memlin Caverns"},
     {"16", "0", "0", "0", "1", "Prime Material Plane - Surface", "1901", "Spider Swamp"},
     {"14", "0", "0", "0", "1", "Prime Material Plane - Surface", "148107", "Orcish Fort"},
@@ -133,6 +135,11 @@ SPECIAL(faction_mission)
         return 1;
     }
 
+    if (GET_CURRENT_MISSION(ch) > 0) {
+        send_to_char(ch, "You are currently on a mission.  Type 'mission decline' before taking a new one.\r\n");
+        return TRUE;
+    }
+
     if (GET_MISSION_COOLDOWN(ch) > 0) {
       send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
       return 1;
@@ -172,8 +179,7 @@ SPECIAL(faction_mission)
 
     while (atoi(mission_details[i][0]) != 0)
     {
-        if (atoi(mission_details[i][mission_details_to_faction(faction)])
-            == 0)
+        if (atoi(mission_details[i][mission_details_to_faction(faction)]) == 0)
         {
             i++;
             continue;
@@ -209,9 +215,7 @@ SPECIAL(faction_mission)
             break;
     }
 
-    mDet = i - 1;
-
-    clear_mission(ch);
+    mDet = MAX(1, i - 1);
 
     GET_CURRENT_MISSION(ch) = mDet;
     GET_MISSION_FACTION(ch) = faction;
