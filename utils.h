@@ -204,6 +204,7 @@ int daily_item_specab_uses_remaining(struct obj_data *obj, int specab);
 int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
 bool pvp_ok(struct char_data *ch, struct char_data *target);
 bool is_pc_idnum_in_room(struct char_data *ch, long int idnum);
+int is_player_grouped(struct char_data *target, struct char_data *group);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

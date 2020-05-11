@@ -138,6 +138,18 @@ ACMDU(do_gsay)
     send_to_group(ch, ch->group, "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
                   GET_NAME(ch), argument, CCNRM(ch, C_NRM));
 
+    struct descriptor_data *d = NULL;
+    char buf[MAX_STRING_LENGTH];
+    snprintf(buf, sizeof(buf), "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
+                  GET_NAME(ch), argument, CCNRM(ch, C_NRM));
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (STATE(d) != CON_PLAYING) continue;
+      if (!d->character) continue;
+      if (!is_player_grouped(ch, d->character)) continue;
+      add_history(d->character, buf, HIST_GSAY);
+    }
+
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
       send_to_char(ch, "%s", CONFIG_OK);
     else
