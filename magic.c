@@ -247,10 +247,6 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   {
     challenge += 2;
   }
-  // malignant poison alchemist discovery
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-    if (casttype == CAST_WEAPON_POISON)
-      challenge += 4;
 
   challenge += GET_DC_BONUS(ch);
   GET_DC_BONUS(ch) = 0; // Always set to zero after applying dc_bonus
@@ -3040,6 +3036,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = GET_LEVEL(ch) * 5;
     else
       af[0].duration = caster_level * 12;
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+      af[0].duration *= 1.5;
     af[0].modifier = -2;
     SET_BIT_AR(af[0].bitvector, AFF_POISON);
     to_vict = "You feel very sick.";
@@ -3853,7 +3851,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         (af[i].location != APPLY_NONE))
     {
       if (casttype == CAST_POTION)
-        if (KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION))
+        if (KNOWS_DISCOVERY(ch, ALC_DISC_EXTEND_POTION))
           af[i].duration *= 2;
       affect_join(victim, af + i, accum_duration, FALSE, accum_affect, FALSE);
     }

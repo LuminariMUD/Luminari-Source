@@ -77,11 +77,11 @@ const char *skill_percent(struct char_data *ch, char *skill)
   static char retval[16];
   int skillnum;
 
-  skillnum = find_skill_num(skill);
+  skillnum = find_ability_num_by_name(skill);
   if (skillnum <= 0)
     return ("unknown skill");
 
-  snprintf(retval, sizeof(retval), "%d", GET_SKILL(ch, skillnum));
+  snprintf(retval, sizeof(retval), "%d", GET_ABILITY(ch, skillnum));
   return retval;
 }
 

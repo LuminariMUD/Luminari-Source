@@ -4084,3 +4084,22 @@ bool is_pc_idnum_in_room(struct char_data *ch, long int idnum)
   }
   return false;
 }
+
+int find_ability_num_by_name(char *name)
+{
+  char skOne[MEDIUM_STRING];
+  int i = 0, j = 0;
+
+  for (i = 0; i < strlen(name); i++)
+    name[i] = tolower(name[i]);
+
+  for (j = START_GENERAL_ABILITIES; j < NUM_ABILITIES; j++)
+  {
+    snprintf(skOne, sizeof(skOne), "%s", ability_names[j]);
+    for (i = 0; i < strlen(skOne); i++)
+      skOne[i] = tolower(skOne[i]);
+    if (!strcmp(name, skOne))
+      return j;
+  }
+  return 0;
+}

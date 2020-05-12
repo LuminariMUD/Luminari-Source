@@ -1956,7 +1956,7 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
       {
         if (EXIT(ch, door)->keyword)
         {
-          if (isname(type, EXIT(ch, door)->keyword))
+          if (isname(type, EXIT(ch, door)->keyword) || is_abbrev(type, dirs[door]))
           {
             if ((!IS_NPC(ch)) && (!PRF_FLAGGED(ch, PRF_AUTODOOR)))
               return door;
