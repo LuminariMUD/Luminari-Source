@@ -1391,7 +1391,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     af.modifier = -4;
     SET_BIT_AR(af.bitvector, AFF_BLIND);
 
-    af.spell = BOMB_AFFECT_SUNLIGHT;
+    af2.spell = BOMB_AFFECT_SUNLIGHT;
     af2.duration = 10;
     af2.location = APPLY_AC_NEW;
     af2.modifier = -4;
@@ -3049,7 +3049,7 @@ ACMD(do_poisontouch)
       af.location = APPLY_CON;
       af.modifier = dice(1, 3);
       af.bonus_type = BONUS_TYPE_ALCHEMICAL;
-      af.duration = 10;
+      af.duration = 10 + (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON) ? 5 : 0);
 
       affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
 
