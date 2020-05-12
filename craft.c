@@ -1319,7 +1319,10 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   cost = GET_OBJ_COST(obj) / 2;
   // if it's a race changing the size to their own so they can use it normally, we don't want to penalize them with a cost in gold
   if (newsize == GET_SIZE(ch))
-    cost = 0;
+  {
+   cost = 0;
+  }
+    
   if (GET_GOLD(ch) < cost)
   {
     send_to_char(ch, "You need %d coins on hand for supplies to resize this "
@@ -1369,7 +1372,10 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 
   GET_CRAFTING_OBJ(ch) = obj;
   GET_CRAFTING_TYPE(ch) = SCMD_RESIZE;
-  GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
+  if (cost == 0)
+    GET_CRAFTING_TICKS(ch) = 1;
+  else
+    GET_CRAFTING_TICKS(ch) = 5 - fast_craft_bonus;
 
   obj_to_char(obj, ch);
   save_char(ch, 0);

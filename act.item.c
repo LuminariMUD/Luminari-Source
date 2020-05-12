@@ -2961,7 +2961,6 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
   }
 
   // size for gear, not in-hands
-  /* old
   if (where != WEAR_WIELD_1 && where != WEAR_WIELD_OFFHAND &&
       where != WEAR_HOLD_1 && where != WEAR_HOLD_2 &&
       where != WEAR_SHIELD && where != WEAR_WIELD_2H &&
@@ -2972,8 +2971,6 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       where != WEAR_FINGER_R && where != WEAR_FINGER_L &&
       where != WEAR_EAR_R && where != WEAR_EAR_L &&
       where != WEAR_EYES && where != WEAR_BADGE)
-  */
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON)
   {
     if (GET_OBJ_SIZE(obj) < GET_SIZE(ch))
     {
