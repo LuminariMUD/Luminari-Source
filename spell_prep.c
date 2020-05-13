@@ -1483,6 +1483,11 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
    we are checking our spell-prep system, THEN innate magic system */
 int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
 {
+
+  // Staff can cast any spell at any time
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return true;
+
   int class = CLASS_UNDEFINED;
 
   /* go through all the classes checking our collection */

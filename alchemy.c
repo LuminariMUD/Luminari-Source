@@ -135,7 +135,7 @@ const char *grand_alchemical_discovery_descriptions[NUM_GR_ALC_DISCOVERIES] = {
     "Your base intelligence raises by 2 permanently",
     "Heal 5 hp per round permanently",
     "Is able to poison others with a touch (poisontouch command)",
-    "Mutagens now bestow +8 to natural ac, str, dex and con, while -2 to int, wis and cha."};
+    "Mutagens now bestow +8 to natural ac, str, dex and con, while -2 to int, wis and cha. Cognatogens, Inspiring Cognatogens and Elemental Mutagens are also improved."};
 
 const char *bomb_types[NUM_BOMB_TYPES] = {
     "none",
@@ -2057,7 +2057,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   }
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
-  int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0;
+  int duration = 0;
 
   new_affect(&af);
   new_affect(&af2);
@@ -2078,21 +2078,21 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     af2.location = APPLY_INT;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
     {
-      mod1 = 8;
+      af.modifier = 8;
       af3.location = APPLY_DEX;
-      mod3 = 6;
+      af3.modifier = 6;
       af4.location = APPLY_CON;
-      mod4 = 4;
+      af4.modifier = 4;
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
     {
-      mod1 = 6;
+      af.modifier = 6;
       af3.location = APPLY_DEX;
-      mod3 = 4;
+      af3.modifier = 4;
     }
     else
     {
-      mod1 = 4;
+      af.modifier = 4;
     }
   }
   else if (is_abbrev(arg2, "dexterity"))
@@ -2101,20 +2101,20 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     af2.location = APPLY_WIS;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
     {
-      mod1 = 8;
+      af.modifier = 8;
       af3.location = APPLY_CON;
-      mod3 = 6;
+      af3.modifier = 6;
       af4.location = APPLY_STR;
-      mod4 = 4;
+      af4.modifier = 4;
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
     {
       af3.location = APPLY_CON;
-      mod3 = 4;
+      af3.modifier = 4;
     }
     else
     {
-      mod1 = 4;
+      af.modifier = 4;
     }
   }
   else if (is_abbrev(arg2, "constitution"))
@@ -2123,20 +2123,20 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     af2.location = APPLY_CHA;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
     {
-      mod1 = 8;
+      af.modifier = 8;
       af3.location = APPLY_STR;
-      mod3 = 6;
+      af3.modifier = 6;
       af4.location = APPLY_DEX;
-      mod4 = 4;
+      af4.modifier = 4;
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
     {
       af3.location = APPLY_STR;
-      mod3 = 4;
+      af3.modifier = 4;
     }
     else
     {
-      mod1 = 4;
+      af.modifier = 4;
     }
   }
   else
@@ -2146,18 +2146,18 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   }
 
   // this is the penalty to ability score associated the physical ability chosen above
-  mod2 = -2;
+  af2.modifier = -2;
   if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
-    mod2++;
+    af2.modifier++;
 
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
-    mod1 = af5.modifier = mod3 = mod4 = 8;
-    af2.modifier = af6.modifier = af7.modifier = mod2;
+    af.modifier  = af5.modifier = af3.modifier = af4.modifier = 8;
+    af2.modifier = af6.modifier = af7.modifier;
     af2.location = APPLY_INT;
     af6.location = APPLY_WIS;
     af7.location = APPLY_CHA;
-    af.location = APPLY_STR;
+    af.location  = APPLY_STR;
     af3.location = APPLY_DEX;
     af4.location = APPLY_CON;
   }
@@ -2174,30 +2174,26 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     af5.modifier = 2;
   }
 
-  if (mod1 != 0)
+  if (af.modifier != 0)
   {
-    af.modifier = mod1;
     af.spell = SKILL_MUTAGEN;
     af.duration = duration;
     affect_to_char(ch, &af);
   }
-  if (mod2 != 0)
+  if (af2.modifier != 0)
   {
-    af2.modifier = mod2;
     af2.spell = SKILL_MUTAGEN;
     af2.duration = duration;
     affect_to_char(ch, &af2);
   }
-  if (mod3 != 0)
+  if (af3.modifier != 0)
   {
-    af3.modifier = mod3;
     af3.spell = SKILL_MUTAGEN;
     af3.duration = duration;
     affect_to_char(ch, &af3);
   }
-  if (mod4 != 0)
+  if (af4.modifier != 0)
   {
-    af4.modifier = mod4;
     af4.spell = SKILL_MUTAGEN;
     af4.duration = duration;
     affect_to_char(ch, &af4);
@@ -2242,12 +2238,13 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
   }
 
   struct affected_type af, af2;
-  int duration = 0, mod1 = 5, mod2 = 5;
+  int duration = 0;
 
   new_affect(&af);
   new_affect(&af2);
 
   af.bonus_type = af2.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.modifier = af2.modifier = 5;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2283,35 +2280,34 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
     return;
   }
 
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_INSPIRING_COGNATOGEN))
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_MUTAGEN))
   {
-    mod1 += 5;
-    mod2 += 2;
+    af.modifier += 5;
+    af2.modifier += 2;
   }
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN))
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
   {
-    mod1 += 5;
-    mod2 += 2;
+    af.modifier += 5;
+    af2.modifier += 2;
   }
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
-    mod1 += 5;
-    mod2 += 2;
+    af.modifier += 5;
+    af2.modifier += 2;
   }
 
-  if (mod1 != 0)
+  if (af.modifier != 0)
   {
-    af.modifier = mod1;
     af.spell = SKILL_MUTAGEN;
     af.duration = duration;
-    af.modifier = mod1;
+    af.modifier = af.modifier;
     affect_to_char(ch, &af);
   }
-  if (mod2 != 0)
+  if (af2.modifier != 0)
   {
     af2.spell = SKILL_MUTAGEN;
     af2.duration = duration;
-    af2.modifier = mod2;
+    af2.modifier = af2.modifier;
     affect_to_char(ch, &af2);
   }
 
@@ -2334,7 +2330,7 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
   }
 
   struct affected_type af, af2, af3, af4, af5, af6, af7;
-  int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0;
+  int duration = 0;
 
   new_affect(&af);
   new_affect(&af2);
@@ -2355,20 +2351,20 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
     af2.location = APPLY_STR;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN))
     {
-      mod1 = 8;
+      af.modifier = 8;
       af3.location = APPLY_WIS;
-      mod3 = 6;
+      af3.modifier = 6;
       af4.location = APPLY_CHA;
-      mod4 = 4;
+      af4.modifier = 4;
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN))
     {
       af3.location = APPLY_WIS;
-      mod3 = 4;
+      af3.modifier = 4;
     }
     else
     {
-      mod1 = 4;
+      af.modifier = 4;
     }
   }
   else if (is_abbrev(arg2, "wisdom"))
@@ -2377,20 +2373,20 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
     af2.location = APPLY_DEX;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN))
     {
-      mod1 = 8;
+      af.modifier = 8;
       af3.location = APPLY_CHA;
-      mod3 = 6;
+      af3.modifier = 6;
       af4.location = APPLY_INT;
-      mod4 = 4;
+      af4.modifier = 4;
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN))
     {
       af3.location = APPLY_CHA;
-      mod3 = 4;
+      af3.modifier = 4;
     }
     else
     {
-      mod1 = 4;
+      af.modifier = 4;
     }
   }
   else if (is_abbrev(arg2, "charisma"))
@@ -2399,20 +2395,20 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
     af2.location = APPLY_CON;
     if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_COGNATOGEN))
     {
-      mod1 = 8;
+      af.modifier = 8;
       af3.location = APPLY_INT;
-      mod3 = 6;
+      af3.modifier = 6;
       af4.location = APPLY_WIS;
-      mod4 = 4;
+      af4.modifier = 4;
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_COGNATOGEN))
     {
       af3.location = APPLY_INT;
-      mod3 = 4;
+      af3.modifier = 4;
     }
     else
     {
-      mod1 = 4;
+      af.modifier = 4;
     }
   }
   else
@@ -2422,14 +2418,14 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
   }
 
   // this is the penalty to ability score associated the physical ability chosen above
-  mod2 = -2;
+  af2.modifier = -2;
   if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
-    mod2++;
+    af2.modifier++;
 
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
     af.modifier = af3.modifier = af4.modifier = af5.modifier = 8;
-    af2.modifier = af6.modifier = af7.modifier = mod2;
+    af6.modifier = af7.modifier = af2.modifier;
     af.location = APPLY_INT;
     af3.location = APPLY_WIS;
     af4.location = APPLY_CHA;
@@ -2450,30 +2446,26 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
     af5.modifier = 2;
   }
 
-  if (mod1 != 0)
+  if (af.modifier != 0)
   {
-    af.modifier = mod1;
     af.spell = SKILL_COGNATOGEN;
     af.duration = duration;
     affect_to_char(ch, &af);
   }
-  if (mod2 != 0)
+  if (af2.modifier != 0)
   {
-    af2.modifier = mod2;
     af2.spell = SKILL_COGNATOGEN;
     af2.duration = duration;
     affect_to_char(ch, &af2);
   }
-  if (mod3 != 0)
+  if (af3.modifier != 0)
   {
-    af3.modifier = mod3;
     af3.spell = SKILL_COGNATOGEN;
     af3.duration = duration;
     affect_to_char(ch, &af3);
   }
-  if (mod4 != 0)
+  if (af4.modifier != 0)
   {
-    af4.modifier = mod4;
     af4.spell = SKILL_COGNATOGEN;
     af4.duration = duration;
     affect_to_char(ch, &af4);
@@ -2517,16 +2509,17 @@ void perform_inspiring_cognatogen(struct char_data *ch)
     PREREQ_HAS_USES(FEAT_MUTAGEN, "You must wait some time before you can prepare another mutagen or cognatogen.\r\n");
   }
 
-  struct affected_type af, af2, af3, af4, af5;
-  int duration = 0, mod1 = 0, mod2 = 0, mod3 = 0, mod4 = 0, mod5 = 0;
+  struct affected_type af, af2, af3, af4, af5, af6;
+  int duration = 0;
 
   new_affect(&af);
   new_affect(&af2);
   new_affect(&af3);
   new_affect(&af4);
   new_affect(&af5);
+  new_affect(&af6);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonustype = BONUS_TYPE_ALCHEMICAL;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2537,10 +2530,10 @@ void perform_inspiring_cognatogen(struct char_data *ch)
 
   if (KNOWS_DISCOVERY(ch, ALC_DISC_GRAND_INSPIRING_COGNATOGEN))
   {
-    mod1 = 4;
-    mod5 = 4;
+    af.modifier = 4;
+    af5.modifier = 4;
     af2.location = APPLY_SAVING_REFL;
-    mod2 = 4;
+    af2.modifier = 4;
     af3.location = APPLY_STR;
     af3.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -3 : -4;
     af4.location = APPLY_CON;
@@ -2548,9 +2541,9 @@ void perform_inspiring_cognatogen(struct char_data *ch)
   }
   else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_INSPIRING_COGNATOGEN))
   {
-    mod5 = 3;
+    af5.modifier = 3;
     af2.location = APPLY_SAVING_REFL;
-    mod2 = 4;
+    af2.modifier = 4;
     af3.location = APPLY_STR;
     af3.modifier = KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN) ? -1 : -2;
     af4.location = APPLY_CON;
@@ -2558,46 +2551,36 @@ void perform_inspiring_cognatogen(struct char_data *ch)
   }
   else
   {
-    mod1 = 2;
-    mod5 = 2;
+    af.modifier = 2;
+    af5.modifier = 2;
   }
 
-  // this is the penalty to ability score associated the physical ability chosen above
-  mod2 = -2;
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_INFUSE_MUTAGEN))
-    mod2++;
-
-  if (mod1 != 0)
+  if (af.modifier != 0)
   {
-    af.modifier = mod1;
     af.spell = SKILL_INSPIRING_COGNATOGEN;
     af.duration = duration;
     affect_to_char(ch, &af);
   }
-  if (mod2 != 0)
+  if (af2.modifier != 0)
   {
-    af2.modifier = mod2;
     af2.spell = SKILL_INSPIRING_COGNATOGEN;
     af2.duration = duration;
     affect_to_char(ch, &af2);
   }
-  if (mod3 != 0)
+  if (af3.modifier != 0)
   {
-    af3.modifier = mod3;
     af3.spell = SKILL_INSPIRING_COGNATOGEN;
     af3.duration = duration;
     affect_to_char(ch, &af3);
   }
-  if (mod4 != 0)
+  if (af4.modifier != 0)
   {
-    af4.modifier = mod4;
     af4.spell = SKILL_INSPIRING_COGNATOGEN;
     af4.duration = duration;
     affect_to_char(ch, &af4);
   }
-  if (mod5 != 0)
+  if (af5.modifier != 0)
   {
-    af5.modifier = mod5;
     af5.spell = SKILL_INSPIRING_COGNATOGEN;
     af5.duration = duration;
     affect_to_char(ch, &af5);
@@ -3047,7 +3030,7 @@ ACMD(do_poisontouch)
       af.spell = SPELL_POISON;
       SET_BIT_AR(af.bitvector, AFF_POISON);
       af.location = APPLY_CON;
-      af.modifier = dice(1, 3);
+      af.modifier = -dice(1, 3);
       af.bonus_type = BONUS_TYPE_ALCHEMICAL;
       af.duration = 10 + (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON) ? 5 : 0);
 

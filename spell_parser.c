@@ -1409,21 +1409,28 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
    will be using for casting this spell */
         if (!isEpicSpell(spellnum) && !IS_NPC(ch))
         {
-
-                /* SPELL PREPARATION HOOK */
-                /* NEW SPELL PREP SYSTEM */
-                ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
-                if (ch_class == CLASS_UNDEFINED)
+                if (GET_LEVEL(ch) >= LVL_IMMORT) 
                 {
-                        send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
-                        log("spell_prep_gen_extract() failed in cast_spell()");
-                        return 0;
-                }
+                        ch_class = CLASS_WIZARD;
+                        clevel = 30;
+                        CASTING_CLASS(ch) = ch_class;
+                } else
+                {
+                        /* SPELL PREPARATION HOOK */
+                        /* NEW SPELL PREP SYSTEM */
+                        ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
+                        if (ch_class == CLASS_UNDEFINED)
+                        {
+                                send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
+                                log("spell_prep_gen_extract() failed in cast_spell()");
+                                return 0;
+                        }
 
-                /* level to cast this particular spell as */
-                clevel = CLASS_LEVEL(ch, ch_class);
-                CASTING_CLASS(ch) = ch_class;
-                /* npc class */
+                        /* level to cast this particular spell as */
+                        clevel = CLASS_LEVEL(ch, ch_class);
+                        CASTING_CLASS(ch) = ch_class;
+                        /* npc class */
+                }
         }
         else if (IS_NPC(ch))
         {

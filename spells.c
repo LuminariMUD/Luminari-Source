@@ -786,7 +786,13 @@ ASPELL(spell_clairvoyance)
     return;
   }
 
-  if ((location = find_target_room(ch, GET_NAME(victim))) == NOWHERE)
+  if (GET_LEVEL(victim) >= LVL_IMMORT)
+  {
+    send_to_char(ch, "You can't spy on staff members.\r\n");
+    return;
+  }
+
+  if ((location = IN_ROOM(victim)) == NOWHERE)
   {
     send_to_char(ch, "Your spell fails.\r\n");
     return;

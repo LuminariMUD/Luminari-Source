@@ -679,7 +679,7 @@ ACMDU(do_ethshift)
     }
 
     /* ok we have a target, is this target grouped? */
-    if (GROUP(shiftee) != GROUP(ch))
+    if (!GROUP(ch) || (GROUP(shiftee) != GROUP(ch)))
     {
       send_to_char(ch, "You can only shift someone else if they are in the same "
                        "group as you.\r\n");
