@@ -2519,7 +2519,7 @@ void perform_inspiring_cognatogen(struct char_data *ch)
   new_affect(&af5);
   new_affect(&af6);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonustype = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ALCHEMICAL;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
