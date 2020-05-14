@@ -255,11 +255,8 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch))
     savethrow += 2;
-  if (HAS_FEAT(vict, FEAT_POISON_RESIST))
-  {
-    if (casttype == CAST_WEAPON_POISON)
-      savethrow += 4;
-  }
+  if (casttype == CAST_WEAPON_POISON)
+    savethrow += get_poison_save_mod(ch, vict);
   if (IS_FRIGHTENED(ch))
     savethrow -= 2;
 
@@ -1485,6 +1482,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     race_bonus += 2;
   if (GET_RACE(victim) == RACE_ARCANA_GOLEM)
     race_bonus -= 2;
+
+  if (element == DAM_POISON)
+    race_bonus += get_poison_save_mod(ch, victim);
 
   if (element == DAM_POISON && KNOWS_DISCOVERY(ch, ALC_DISC_CELESTIAL_POISONS))
     element = DAM_CELESTIAL_POISON;
@@ -3021,10 +3021,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_POISON: //enchantment, shared
     if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
       return;
-    int bonus = 0;
-    if (GET_RACE(ch) == RACE_DWARF || //dwarf dwarven poison resist
-        GET_RACE(ch) == RACE_CRYSTAL_DWARF)
-      bonus += 2;
+    int bonus = get_poison_save_mod(ch,victim);
     if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "Your victim seems to resist the poison!\r\n");

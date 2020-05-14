@@ -4391,8 +4391,10 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 {
   int threat_range, confirm_roll = dice(1, 20) + calc_bab;
 
-  if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1)
+  if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced)) {
+    FIGHTING(ch)->preserve_organs_procced = TRUE;
     return FALSE;
+  }
 
   threat_range = determine_threat_range(ch, wielded);
 
@@ -6513,7 +6515,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     /* Calculate regular sneak attack damage. */
   }
   else if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
-           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1) &&
+           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1 || (FIGHTING(ch)->preserve_organs_procced)) &&
            (compute_concealment(victim) == 0) &&
            ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
             || !(has_dex_bonus_to_ac(ch, victim))  /* No dex bonus to ac */
@@ -6795,6 +6797,10 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
+  
+  // each hit we want to reset the preserve organs proc.  This is to prevent double dipping
+  // from sneak attacks and crits
+  victim->preserve_organs_procced = FALSE;
 
   struct obj_data *wielded = get_wielded(ch, attack_type); /* Wielded weapon for this hand (uses offhand) */
                                                            /*if (GET_EQ(ch, WEAR_WIELD_2H) && attack_type != ATTACK_TYPE_RANGED)
