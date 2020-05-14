@@ -491,6 +491,15 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
       STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
 
+    ch->sticky_bomb[0] = 0;
+    ch->sticky_bomb[1] = 0;
+    ch->sticky_bomb[2] = 0;
+    ch->mission_owner = 0;
+    ch->dead = 0;
+    ch->confuser_idnum = 0;
+    ch->preserve_organs_procced = 0;
+    ch->mute_equip_messages = 0;
+
     /* finished inits, start loading from file */
 
     while (get_line(fl, line))
@@ -1840,6 +1849,10 @@ void save_char(struct char_data *ch, int mode)
     GET_DR(ch) = tmp_dr;
   }
 
+  // This will prevent things like item special abilities that send messages to the character
+  // when they equip it, since equipment is removed then re-equipped when saving character
+  ch->mute_equip_messages = TRUE;
+
   for (i = 0; i < NUM_WEARS; i++)
   {
     if (char_eq[i])
@@ -1852,6 +1865,8 @@ void save_char(struct char_data *ch, int mode)
         obj_to_char(char_eq[i], ch);
 #endif
   }
+
+  ch->mute_equip_messages = FALSE;
 
   /* end char_to_store code */
 

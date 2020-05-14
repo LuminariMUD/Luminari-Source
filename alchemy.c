@@ -113,7 +113,7 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "Deals 1d6/rank unholy damage. Good targets may be staggered. Neutral targets take 1/2 damage and evil ones take none.",
     "For every 4 alchemist levels, this tincture bestows a single spirit that gives the alchemist a cumulative +1 "
     "bonus to deflection ac, up to a maximum of 5 at alchemist level 20.  The alchemist can 'launch' one spirit per round "
-    "which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command. See also: HELP PSYCHOKINETIC",
+    "which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command.",
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
     "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist level x2.",
     "Causes damage dealing bombs to deal an extra round of splash damage, and causes affect causing bombs to last an additional round.",
@@ -553,19 +553,39 @@ ACMD(do_bombs)
       return;
     }
 
-    for (i = 0; i < num_of_bombs_preparable(ch); i++)
+    if (GET_LEVEL(ch) < LVL_IMMORT)
     {
-      if (is_abbrev(slot, bomb_types[GET_BOMB(ch, i)]))
+      for (i = 0; i < num_of_bombs_preparable(ch); i++)
       {
-        type = GET_BOMB(ch, i);
-        bSlot = i;
-        break;
+        if (is_abbrev(slot, bomb_types[GET_BOMB(ch, i)]))
+        {
+          type = GET_BOMB(ch, i);
+          bSlot = i;
+          break;
+        }
+      }
+      if (i >= num_of_bombs_preparable(ch))
+      {
+        send_to_char(ch, "You don't have any %s bombs prepared.\r\n", slot);
+        return;
       }
     }
-    if (i >= num_of_bombs_preparable(ch))
+    else // imms can throw any bomb as often as they like
     {
-      send_to_char(ch, "You don't have any %s bombs prepared.\r\n", slot);
-      return;
+      for (i = 0; i < NUM_BOMB_TYPES; i++)
+      {
+        if (is_abbrev(slot, bomb_types[i]))
+        {
+          type = i;
+          bSlot = i;
+          break;
+        }
+      }
+      if (i >= NUM_BOMB_TYPES)
+      {
+        send_to_char(ch, "That is not a valid bomb type.\r\n");
+        return;
+      }
     }
 
     if (*spec)
@@ -603,6 +623,7 @@ ACMD(do_bombs)
       {
       case BOMB_HEALING:
       case BOMB_FIRE_BRAND:
+      case BOMB_DISPELLING:
         break; // these are ok. ^^^
       default: // these aren't >>>
         send_to_char(ch, "You cannot throw a harmful bomb at yourself.");
@@ -628,6 +649,7 @@ ACMD(do_bombs)
       {
       case BOMB_HEALING:
       case BOMB_FIRE_BRAND:
+      case BOMB_DISPELLING:
         break; // these are ok. ^^^
       default: // these aren't >>>
         send_to_char(ch, "You cannot use that type of bomb on party members.");
@@ -1648,7 +1670,10 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
     spellnum = SPELL_STINKING_CLOUD;
     break;
   case BOMB_DISPELLING:
-    spellnum = SPELL_DISPEL_MAGIC;
+    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST)< 14)
+      spellnum = SPELL_DISPEL_MAGIC;
+    else
+     spellnum = SPELL_GREATER_DISPELLING;
     break;
   }
 
@@ -2781,7 +2806,6 @@ ACMD(do_curingtouch)
   }
   else
   {
-
     if (!KNOWS_DISCOVERY(ch, ALC_DISC_HEALING_TOUCH))
     {
       send_to_char(ch, "You can only perform a curing touch on yourself.  The curing touch alchemical discovery allows for perform this on others as well as increasing the amount you can heal.");

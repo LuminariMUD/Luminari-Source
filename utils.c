@@ -3932,6 +3932,21 @@ void remove_fear_affects(struct char_data *ch, sbyte display) {
 
 }
 
+int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
+{
+  int bonus = 0;
+
+  if (HAS_FEAT(victim, FEAT_POISON_RESIST)) //poison resist feat
+    bonus += 4;
+  if (GET_RACE(victim) == RACE_DWARF || //dwarf dwarven poison resist
+      GET_RACE(victim) == RACE_CRYSTAL_DWARF)
+    bonus += 2;
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+    bonus -= 4;
+
+  return bonus;
+}
+
 // will return TRUE if the poison is resisted, otherwise will return false
 // includes the saving throw against poison.
 sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level) {
@@ -3940,11 +3955,9 @@ sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int ca
 
   if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
     return TRUE;
-  bonus = 0;
-  if (HAS_FEAT(victim, FEAT_POISON_RESIST)) //poison resist feat
-    bonus += 4;
-  if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
-    bonus -= 4;
+
+  bonus += get_poison_save_mod(ch, victim);
+  
   if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT)) {
     return TRUE;
   }
@@ -4059,6 +4072,10 @@ void do_study_spell_help(struct char_data *ch, int spellnum)
 
 bool pvp_ok(struct char_data *ch, struct char_data *target)
 {
+
+  // right now, there's no opt-in pvp, so we'll return true until we add that in
+  return true;
+
   if (PRF_FLAGGED(ch, PRF_PVP) && PRF_FLAGGED(target, PRF_PVP))
     return true;
 

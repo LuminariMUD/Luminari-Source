@@ -523,7 +523,8 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
-    send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n",
+    if (!ch->mute_equip_messages)
+      send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n",
                  (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0 ? "Your companion is too tired to answer your summons."
                                                                                             : "Your companion is ready to answer your summons!"));
     break;
@@ -630,7 +631,8 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
-    send_to_char(ch, "The shield speaks in your mind, \"I will blind your enemies!  Utter 'Lumia'!  FOR LUMIA!\"\r\n");
+    if (!ch->mute_equip_messages)
+      send_to_char(ch, "The shield speaks in your mind, \"I will blind your enemies!  Utter 'Lumia'!  FOR LUMIA!\"\r\n");
   default:
     /* Do nothing. */
     break;

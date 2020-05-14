@@ -478,6 +478,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
             (casttype != CAST_WEAPON_POISON) &&
             (casttype != CAST_WEAPON_SPELL) &&
             (casttype != CAST_FOOD_DRINK) &&
+            (casttype != CAST_BOMB) &&
             (casttype != CAST_WAND) && !IS_NPC(caster))
                 switch (CASTING_CLASS(caster))
                 {
@@ -1414,7 +1415,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                         ch_class = CLASS_WIZARD;
                         clevel = 30;
                         CASTING_CLASS(ch) = ch_class;
-                } else
+                }
+                else
                 {
                         /* SPELL PREPARATION HOOK */
                         /* NEW SPELL PREP SYSTEM */
