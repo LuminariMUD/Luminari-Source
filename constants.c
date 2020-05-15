@@ -1092,7 +1092,7 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
 /** PC Preference flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *preference_bits[NUM_PRF_FLAGS + 1] = {
+const char *preference_bits[] = {
     "Brief",
     "Compact",
     "Shout-Toggle",
@@ -1146,8 +1146,9 @@ const char *preference_bits[NUM_PRF_FLAGS + 1] = {
     "Auto-Consider",
     "Smash Defense",
     "Display-Gold",
-    "No-Charmie-Rescues"
+    "No-Charmie-Rescues",
     "\n"};
+_Static_assert(sizeof(preference_bits)/sizeof(preference_bits[0]) == NUM_PRF_FLAGS + 1, "preference_bits wrong number entries");
 
 /** Bonus types */
 const char *bonus_types[NUM_BONUS_TYPES + 1] = {
