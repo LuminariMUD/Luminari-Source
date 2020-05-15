@@ -24,6 +24,10 @@
 #include "domains_schools.h"
 #include "handler.h"
 
+
+#define CHECK_TABLE_SIZE(tbl, exp_sz) \
+    _Static_assert(sizeof( (tbl) )/sizeof( (tbl) [0]) == (exp_sz), #tbl " wrong number entries")
+
 /** Current LuminariMUD version.
  * @todo defined with _LUMINARIMUD so we don't have multiple constants to change.
  * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
@@ -51,7 +55,7 @@ cpp_extern const char * const luminari_build =
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
 // npc subrace
-const char *npc_subrace_types[NUM_SUB_RACES + 1] = {
+const char *npc_subrace_types[] = {
     "Unknown",      /**/
     "Air",          /**/
     "Angelic",      /**/
@@ -74,10 +78,11 @@ const char *npc_subrace_types[NUM_SUB_RACES + 1] = {
     "Swarm",        /**/
     "Water",        /**/
     "\n"};
+CHECK_TABLE_SIZE(npc_subrace_types, NUM_SUB_RACES + 1);
 
 // colored npc subrace abbreviations
 // for now full name for effect
-const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1] = {
+const char *npc_subrace_abbrevs[] = {
     "Unknown",
     "\tCAir\tn",
     "\tWAngelic\tn",
@@ -100,6 +105,7 @@ const char *npc_subrace_abbrevs[NUM_SUB_RACES + 1] = {
     "\tySwarm\tn",
     "\tBWater\tn",
     "\n"};
+CHECK_TABLE_SIZE(npc_subrace_abbrevs, NUM_SUB_RACES + 1);
 
 // made this for shapechange, a tad tacky -zusuk
 const char *npc_race_menu =
@@ -123,7 +129,7 @@ const char *npc_race_menu =
     "15) \tyVermin\tn\r\n";
 
 // shapechange morph messages to_room, original system
-const char *morph_to_room[NUM_RACE_TYPES + 1] = {
+const char *morph_to_room[] = {
     /* unknown */
     " ",
     /* Humanoid */
@@ -163,9 +169,10 @@ const char *morph_to_room[NUM_RACE_TYPES + 1] = {
     /* Vermin */
     " ",
     /*END*/ "\n"};
+CHECK_TABLE_SIZE(morph_to_room, NUM_RACE_TYPES + 1);
 
 // shapechange morph messages to_char
-const char *morph_to_char[NUM_RACE_TYPES + 1] = {
+const char *morph_to_char[] = {
     /* unknown */
     " ",
     /* Humanoid */
@@ -205,6 +212,7 @@ const char *morph_to_char[NUM_RACE_TYPES + 1] = {
     /* Vermin */
     " ",
     /*END*/ "\n"};
+CHECK_TABLE_SIZE(morph_to_char, NUM_RACE_TYPES + 1);
 
 /* druid shape change race options */
 const char *shape_types[MAX_PC_SUBRACES + 1] = {
@@ -217,7 +225,7 @@ const char *shape_types[MAX_PC_SUBRACES + 1] = {
 //5 (number of types)
 
 /* druid shape change messages, to room */
-const char *shape_to_room[MAX_PC_SUBRACES + 1] = {
+const char *shape_to_room[] = {
     "Unknown",
     /* badger */
     "$n shrinks and suddenly grows spiky brown fur all over $s body, $s nose lengthens"
@@ -237,9 +245,10 @@ const char *shape_to_room[MAX_PC_SUBRACES + 1] = {
     "small stumps and a large tail extends from $s body.  Hard dark scales cover "
     "$s whole body as $s nose and mouth extend into a large tooth-filled maw.",
     /*END*/ "\n"};
+CHECK_TABLE_SIZE(shape_to_room, MAX_PC_SUBRACES + 1);
 
 /* druid shape change messages, to char */
-const char *shape_to_char[MAX_PC_SUBRACES + 1] = {
+const char *shape_to_char[] = {
     "Unknown",
     /* badger */
     "You shrink and suddenly grows spiky brown fur all over your body, your nose lengthens"
@@ -259,10 +268,11 @@ const char *shape_to_char[MAX_PC_SUBRACES + 1] = {
     "small stumps and a large tail extends from your body.  Hard dark scales cover "
     "your whole body as your nose and mouth extend into a large tooth-filled maw.",
     /*END*/ "\n"};
+CHECK_TABLE_SIZE(shape_to_char, MAX_PC_SUBRACES + 1);
 
 // colored npc race abbreviations
 // for now full name for effect
-const char *race_family_abbrevs[NUM_RACE_TYPES + 1] = {
+const char *race_family_abbrevs[] = {
     "Unknown",
     "\tWHmnd\tn",
     "\tDUndd\tn",
@@ -280,7 +290,9 @@ const char *race_family_abbrevs[NUM_RACE_TYPES + 1] = {
     "\tGPlnt\tn",
     "\tyVrmn\tn",
     "\n"};
-const char *race_family_short[NUM_RACE_TYPES + 1] = {
+CHECK_TABLE_SIZE(race_family_abbrevs, NUM_RACE_TYPES + 1);
+
+const char *race_family_short[] = {
     "???",
     "Hmn",
     "Und",
@@ -298,7 +310,9 @@ const char *race_family_short[NUM_RACE_TYPES + 1] = {
     "Plt",
     "Ver",
     "\n"};
-const char *race_family_types[NUM_RACE_TYPES + 1] = {
+CHECK_TABLE_SIZE(race_family_short, NUM_RACE_TYPES + 1);
+
+const char *race_family_types[] = {
     "Unknown", //0
     "Humanoid",
     "Undead",
@@ -316,8 +330,9 @@ const char *race_family_types[NUM_RACE_TYPES + 1] = {
     "Plant",
     "Vermin", //15
     "\n"};
+CHECK_TABLE_SIZE(race_family_types, NUM_RACE_TYPES + 1);
 
-const char *race_family_types_plural[NUM_RACE_TYPES + 1] = {
+const char *race_family_types_plural[] = {
     "Unknown", //0
     "Humanoids",
     "Undead",
@@ -335,8 +350,9 @@ const char *race_family_types_plural[NUM_RACE_TYPES + 1] = {
     "Plants",
     "Vermin", //15
     "\n"};
+CHECK_TABLE_SIZE(race_family_types_plural, NUM_RACE_TYPES + 1);
 
-const char *class_names[NUM_CLASSES + 1] = {
+const char *class_names[] = {
     "Wizard", //0
     "Cleric",
     "Rogue",
@@ -363,8 +379,9 @@ const char *class_names[NUM_CLASSES + 1] = {
     //  "Shadow Dancer", //20
     //  "Assassin",
     "\n"};
+CHECK_TABLE_SIZE(class_names, NUM_CLASSES + 1);
 
-const char *attack_hit_types[NUM_ATTACK_TYPES + 1] = {
+const char *attack_hit_types[] = {
     "Hit", //0
     "Sting",
     "Whip",
@@ -391,8 +408,9 @@ const char *attack_hit_types[NUM_ATTACK_TYPES + 1] = {
     "Gore", //23
     /**/
     "\n"};
+CHECK_TABLE_SIZE(attack_hit_types, NUM_ATTACK_TYPES + 1);
 
-const char *instrument_names[MAX_INSTRUMENTS + 1] = {
+const char *instrument_names[] = {
     "Lyre",
     "Flute",
     "Horn",
@@ -401,82 +419,85 @@ const char *instrument_names[MAX_INSTRUMENTS + 1] = {
     "Mandolin",
     /**/
     "\n"};
+CHECK_TABLE_SIZE(instrument_names, MAX_INSTRUMENTS + 1);
 
-const char *spec_armor_type[NUM_SPEC_ARMOR_TYPES + 1] = {
-    "Undefined",
-    /**/
-    "Clothing/Robes",
-    "Padded Armor",
-    "Leather Armor",
-    "Studded Leather Armor",
-    "Light Chain Armor",
-    "Hide Armor",
-    "Scale Armor",
-    "Chainmail",
-    "Piecemeal Armor",
-    "Splint Armor",
-    "Banded Armor",
-    "Halfplate Armor",
-    "Fullplate Armor",
-    /**/
-    "Buckler",
-    "Small Shield",
-    "Large Shield",
-    "Tower Shield",
-    /**/
-    "Cloth Hood",
-    "Padded Helm",
-    "Leather Helm",
-    "Studded Leather Helm",
-    "Light Chain Helm",
-    "Hide Helm",
-    "Scale Helm",
-    "Chainmail Helm",
-    "Piecemeal Helm",
-    "Splint Helm",
-    "Banded Helm",
-    "Halfplate Helm",
-    "Fullplate Helm",
-    /**/
-    "Cloth Sleeves",
-    "Padded Sleeves",
-    "Leather Sleeves",
-    "Studded Leather Sleeves",
-    "Light Chain Sleeves",
-    "Hide Sleeves",
-    "Scale Sleeves",
-    "Chainmail Sleeves",
-    "Piecemeal Sleeves",
-    "Splint Vambraces",
-    "Banded Vambraces",
-    "Halfplate Vambraces",
-    "Fullplate Vambraces",
-    "Fullplate Vambraces",
-    /**/
-    "Cloth Pants",
-    "Padded Leggings",
-    "Light Chain Leggings",
-    "Hide Leggings",
-    "Scale Leggings",
-    "Chainmail Leggings",
-    "Piecemeal Leggings",
-    "Splint Greaves",
-    "Banded Greaves",
-    "Halfplate Greaves",
-    "Fullplate Greaves",
-    "\n"};
+// const char *spec_armor_type[] = {
+//     "Undefined",
+//     /**/
+//     "Clothing/Robes",
+//     "Padded Armor",
+//     "Leather Armor",
+//     "Studded Leather Armor",
+//     "Light Chain Armor",
+//     "Hide Armor",
+//     "Scale Armor",
+//     "Chainmail",
+//     "Piecemeal Armor",
+//     "Splint Armor",
+//     "Banded Armor",
+//     "Halfplate Armor",
+//     "Fullplate Armor",
+//     /**/
+//     "Buckler",
+//     "Small Shield",
+//     "Large Shield",
+//     "Tower Shield",
+//     /**/
+//     "Cloth Hood",
+//     "Padded Helm",
+//     "Leather Helm",
+//     "Studded Leather Helm",
+//     "Light Chain Helm",
+//     "Hide Helm",
+//     "Scale Helm",
+//     "Chainmail Helm",
+//     "Piecemeal Helm",
+//     "Splint Helm",
+//     "Banded Helm",
+//     "Halfplate Helm",
+//     "Fullplate Helm",
+//     /**/
+//     "Cloth Sleeves",
+//     "Padded Sleeves",
+//     "Leather Sleeves",
+//     "Studded Leather Sleeves",
+//     "Light Chain Sleeves",
+//     "Hide Sleeves",
+//     "Scale Sleeves",
+//     "Chainmail Sleeves",
+//     "Piecemeal Sleeves",
+//     "Splint Vambraces",
+//     "Banded Vambraces",
+//     "Halfplate Vambraces",
+//     "Fullplate Vambraces",
+//     "Fullplate Vambraces",
+//     /**/
+//     "Cloth Pants",
+//     "Padded Leggings",
+//     "Light Chain Leggings",
+//     "Hide Leggings",
+//     "Scale Leggings",
+//     "Chainmail Leggings",
+//     "Piecemeal Leggings",
+//     "Splint Greaves",
+//     "Banded Greaves",
+//     "Halfplate Greaves",
+//     "Fullplate Greaves",
+//     "\n"};
+// // CHECK_TABLE_SIZE(spec_armor_type, NUM_SPEC_ARMOR_TYPES + 1);
 
 /* ammo types */
-const char *ammo_types[NUM_AMMO_TYPES + 1] = {
+const char *ammo_types[] = {
     "Undefined",
     "arrow",
     "bolt",
     "sling bullet",
     "dart",
     "\n"};
+CHECK_TABLE_SIZE(ammo_types, NUM_AMMO_TYPES + 1);
 
 /* weapon head types */
-const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1] = {
+const char *weapon_head_types[] = {
     "Undefined",
     "Blade",
     "Head",
@@ -488,9 +509,10 @@ const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1] = {
     "Chain",
     "Fist",
     "\n"};
+CHECK_TABLE_SIZE(weapon_head_types, NUM_WEAPON_HEAD_TYPES + 1);
 
 /* weapon handle types */
-const char *weapon_handle_types[NUM_WEAPON_HANDLE_TYPES + 1] = {
+const char *weapon_handle_types[] = {
     "Undefined",
     "Shaft",
     "Hilt",
@@ -500,9 +522,10 @@ const char *weapon_handle_types[NUM_WEAPON_HANDLE_TYPES + 1] = {
     "Handle",
     "Glove",
     "\n"};
+CHECK_TABLE_SIZE(weapon_handle_types, NUM_WEAPON_HANDLE_TYPES + 1);
 
 /* sizes */
-const char *sizes[NUM_SIZES + 1] = {
+const char *sizes[] = {
     "Undefined",
     "Fine",
     "Diminutive",
@@ -514,16 +537,19 @@ const char *sizes[NUM_SIZES + 1] = {
     "Gargantuan",
     "Colossal",
     "\n"};
+CHECK_TABLE_SIZE(sizes, NUM_SIZES + 1);
+
 /* weapon damage types */
-const char *weapon_damage_types[NUM_WEAPON_DAMAGE_TYPES + 1] = {
+const char *weapon_damage_types[] = {
     "Bludgeoning",
     "Slashing",
     "Piercing",
     "Non-Lethal",
     "\n"};
+CHECK_TABLE_SIZE(weapon_damage_types, NUM_WEAPON_DAMAGE_TYPES + 1);
 
 /* What type of trap */
-const char *trap_type[MAX_TRAP_TYPES + 1] = {
+const char *trap_type[] = {
     "Leave Room",
     "Open Door",
     "Unlock Door",
@@ -532,10 +558,11 @@ const char *trap_type[MAX_TRAP_TYPES + 1] = {
     "Get Object",
     "Enter Room (sets off without check opportunity at least once)",
     "\n"};
+CHECK_TABLE_SIZE(trap_type, MAX_TRAP_TYPES + 1);
 
 /* Trap-effects, add 1000 to this value to reference the proper values in
  act.item.c */
-const char *trap_effects[MAX_TRAP_EFFECTS + 1] = {
+const char *trap_effects[] = {
     "Wall of Flames (20d20 fire)",
     "Lightning Strike (20d20 electric)",
     "Impaling Spike (15d20 puncture, para 5 rounds)",
@@ -553,24 +580,27 @@ const char *trap_effects[MAX_TRAP_EFFECTS + 1] = {
     "Skeletal Hands (50% chance death or 10d40 damage)",
     "Spider Webs (web spell 20 rounds, 1d3 spiders)",
     "\n"};
+CHECK_TABLE_SIZE(trap_effects, MAX_TRAP_EFFECTS + 1);
 
 /* ranged weapon types (bows, etc) */
-const char *ranged_weapons[NUM_RANGED_WEAPONS + 1] = {
+const char *ranged_weapons[] = {
     "bow",
     "crossbow",
     "\n"};
+CHECK_TABLE_SIZE(ranged_weapons, NUM_RANGED_WEAPONS + 1);
 
 /* ranged weapon missiles (arrows, etc) */
-const char *ranged_missiles[NUM_RANGED_MISSILES + 1] = {
+const char *ranged_missiles[] = {
     "arrow",
     "bolt",
     "\n"};
+CHECK_TABLE_SIZE(ranged_missiles, NUM_RANGED_MISSILES + 1);
 
 /* note - in utils.c there are two functions for alignment as well
  * char *get_align_by_num(int align)
  * char *get_align_by_num_cnd(int align)
  */
-const char *alignment_names[NUM_ALIGNMENTS + 1] = {
+const char *alignment_names[] = {
     "\tYLawful \tWGood\tn",
     "\tcNeutral \tWGood\tn",
     "\tRChaotic \tWGood\tn",
@@ -581,7 +611,9 @@ const char *alignment_names[NUM_ALIGNMENTS + 1] = {
     "\tcNeutral \tDEvil\tn",
     "\tRChaotic \tDEvil\tn",
     "\n"};
-const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1] = {
+CHECK_TABLE_SIZE(alignment_names, NUM_ALIGNMENTS + 1);
+
+const char *alignment_names_nocolor[] = {
     "Lawful Good",
     "Neutral Good",
     "Chaotic Good",
@@ -592,17 +624,19 @@ const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1] = {
     "Neutral Evil",
     "Chaotic Evil",
     "\n"};
+CHECK_TABLE_SIZE(alignment_names_nocolor, NUM_ALIGNMENTS + 1);
 
 /* structure for immortal prefix */
-const char *admin_level_names[LVL_IMPL - LVL_IMMORT + 2] = {
+const char *admin_level_names[] = {
     "\tB[  \tC Staff   \tB ]\tn", // LVL_IMMORTAL
     "\tB[\tCSenior Staff\tB]\tn", // LVL_STAFF
     "\tB[\tCWorld Forger\tB]\tn", // LVL_GRSTAFF
     "\tB[   \tCForger\tB   ]\tn", // LVL_IMPL
     "\n",
 };
+CHECK_TABLE_SIZE(admin_level_names, LVL_IMPL - LVL_IMMORT + 2);
 
-const char *craft_type[NUM_CRAFT + 1] = {
+const char *craft_type[] = {
     "RESERVED",
     "brew",
     "craft",
@@ -622,8 +656,9 @@ const char *craft_type[NUM_CRAFT + 1] = {
     "wand-craft",
     "staff-craft",
     "\n"};
+CHECK_TABLE_SIZE(craft_type, NUM_CRAFT + 1);
 
-const char *size_names[NUM_SIZES + 1] = {
+const char *size_names[] = {
     "RESERVED",
     "Fine",
     "Diminutive",
@@ -635,9 +670,10 @@ const char *size_names[NUM_SIZES + 1] = {
     "Gargantuan",
     "Colossal",
     "\n"};
+CHECK_TABLE_SIZE(size_names, NUM_SIZES + 1);
 
 /* used for armor class calculations */
-const int size_modifiers_inverse[NUM_SIZES] = {
+const int size_modifiers_inverse[] = {
     0,
     8,
     4,
@@ -648,9 +684,10 @@ const int size_modifiers_inverse[NUM_SIZES] = {
     -2,
     -4,
     -8};
+CHECK_TABLE_SIZE(size_modifiers_inverse, NUM_SIZES);
 
 /* used for attack roll calculations */
-const int size_modifiers[NUM_SIZES] = {
+const int size_modifiers[] = {
     0,
     -8,
     -4,
@@ -661,8 +698,9 @@ const int size_modifiers[NUM_SIZES] = {
     2,
     4,
     8};
+CHECK_TABLE_SIZE(size_modifiers, NUM_SIZES);
 
-const int grapple_size_modifiers[NUM_SIZES] = {
+const int grapple_size_modifiers[] = {
     0,
     -16,
     -12,
@@ -673,14 +711,16 @@ const int grapple_size_modifiers[NUM_SIZES] = {
     8,
     12,
     16};
+CHECK_TABLE_SIZE(grapple_size_modifiers, NUM_SIZES);
 
-const char *dr_damtypes[NUM_DR_DAMTYPES + 1] = {
+const char *dr_damtypes[] = {
     "bludgeoning",
     "slashing",
     "piercing",
     "\n"};
+CHECK_TABLE_SIZE(dr_damtypes, NUM_DR_DAMTYPES + 1);
 
-const char *damtypes[NUM_DAM_TYPES + 1] = {
+const char *damtypes[] = {
     "RESERVED",
     "fire",
     "cold",
@@ -704,8 +744,9 @@ const char *damtypes[NUM_DAM_TYPES + 1] = {
     "water",
     "celestial poison",
     "\n"};
+CHECK_TABLE_SIZE(damtypes, NUM_DAM_TYPES + 1);
 
-const char *damtype_display[NUM_DAM_TYPES + 1] = {
+const char *damtype_display[] = {
     "RESERVED",
     "Damage Fire",
     "Damage Cold",
@@ -727,12 +768,14 @@ const char *damtype_display[NUM_DAM_TYPES + 1] = {
     "Damage Light",
     "Damage Energy",
     "Damage Water",
+    "Damage Celestial Poison",
     "\n"};
+CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 
 /** Description of cardinal directions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *dirs[NUM_OF_DIRS + 1] = {
+const char *dirs[] = {
     "north",
     "east",
     "south",
@@ -744,8 +787,9 @@ const char *dirs[NUM_OF_DIRS + 1] = {
     "southeast",
     "southwest",
     "\n"};
+CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
-const char *autoexits[NUM_OF_DIRS + 1] = {
+const char *autoexits[] = {
     "N",
     "E",
     "S",
@@ -757,11 +801,12 @@ const char *autoexits[NUM_OF_DIRS + 1] = {
     "se",
     "sw",
     "\n"};
+CHECK_TABLE_SIZE(autoexits, NUM_OF_DIRS + 1);
 
 /** Room flag descriptions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *room_bits[NUM_ROOM_FLAGS + 1] = {
+const char *room_bits[] = {
     "Dark",
     "Death-Trap",
     "No-Mob",
@@ -798,9 +843,10 @@ const char *room_bits[NUM_ROOM_FLAGS + 1] = {
     "Trapped",
     "Wild-Generated-Desc",
     "\n"};
+CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
 // room affect effect
-const char *room_affections[NUM_RAFF + 1] = {
+const char *room_affections[] = {
     "Fogged",
     "Darkened",
     "Lighted",
@@ -815,11 +861,12 @@ const char *room_affections[NUM_RAFF + 1] = {
     "Unholy",
     "Obscuring-Mist",
     "\n"};
+CHECK_TABLE_SIZE(room_affections, NUM_RAFF + 1);
 
 /** Room flag descriptions. (ZONE_x)
  * @pre Must be in the same order as the defines in structs.h.
  * Must end array with a single newline. */
-const char *zone_bits[NUM_ZONE_FLAGS + 1] = {
+const char *zone_bits[] = {
     "Closed",
     "No-Immortal",
     "Quest",
@@ -833,11 +880,12 @@ const char *zone_bits[NUM_ZONE_FLAGS + 1] = {
     "Elemental-Plane",
     "Wilderness",
     "\n"};
+CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 
 /** Exit bits for doors.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *exit_bits[NUM_EXIT_BITS + 1] = {
+const char *exit_bits[] = {
     "Door",
     "Closed",
     "Locked (easy)",
@@ -846,13 +894,14 @@ const char *exit_bits[NUM_EXIT_BITS + 1] = {
     "Hidden (medium)",
     "Hidden (hard)",
     "Locked (medium)",
-    "Locked (hard)"
+    "Locked (hard)",
     "\n"};
+CHECK_TABLE_SIZE(exit_bits, NUM_EXIT_BITS + 1);
 
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *sector_types[NUM_ROOM_SECTORS + 1] = {
+const char *sector_types[] = {
     "Inside", //0
     "City",
     "Field",
@@ -888,11 +937,12 @@ const char *sector_types[NUM_ROOM_SECTORS + 1] = {
     "Taiga",
     "Beach",
     "\n"};
+CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
 
 /** Description of the room sector type.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *sector_types_readable[NUM_ROOM_SECTORS + 1] = {
+const char *sector_types_readable[] = {
     "inside", //0
     "in a city",
     "on a field",
@@ -928,10 +978,11 @@ const char *sector_types_readable[NUM_ROOM_SECTORS + 1] = {
     "in a coniferous forest",
     "on a beach",
     "\n"};
+CHECK_TABLE_SIZE(sector_types_readable, NUM_ROOM_SECTORS + 1);
 
 /** How much movement is lost moving through a particular sector type. */
 /* make sure it matches SECT_ */
-int movement_loss[NUM_ROOM_SECTORS] = {
+int movement_loss[] = {
     1, /* Inside     */ // 0
     1,                  /* City       */
     2,                  /* Field      */
@@ -967,20 +1018,22 @@ int movement_loss[NUM_ROOM_SECTORS] = {
     4,                  // boreal forest, higher elevations, cold.
     2,                  // beach, borders low areas and water. 33
 };
+CHECK_TABLE_SIZE(movement_loss, NUM_ROOM_SECTORS);
 
 /** PC and NPC sex.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *genders[NUM_GENDERS + 1] = {
+const char *genders[] = {
     "neutral",
     "male",
     "female",
     "\n"};
+CHECK_TABLE_SIZE(genders, NUM_GENDERS + 1);
 
 /** Character positions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *position_types[NUM_POSITIONS + 1] = {
+const char *position_types[] = {
     "\tRDead\tn", //0
     "\tRMortally wounded\tn",
     "\tRIncapacitated\tn",
@@ -992,11 +1045,12 @@ const char *position_types[NUM_POSITIONS + 1] = {
     "Fighting",
     "Standing",
     "\n"};
+CHECK_TABLE_SIZE(position_types, NUM_POSITIONS + 1);
 
 /** Player flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *player_bits[NUM_PLR_BITS + 1] = {
+const char *player_bits[] = {
     "KILLER", //0
     "THIEF",
     "FROZEN",
@@ -1017,12 +1071,14 @@ const char *player_bits[NUM_PLR_BITS + 1] = {
     "IBT_BUG",
     "IBT_IDEA",
     "IBT_TYPO",
+    "SALVATION",
     "\n"};
+CHECK_TABLE_SIZE(player_bits, NUM_PLR_BITS + 1);
 
 /** Mob action flags.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *action_bits[NUM_MOB_FLAGS + 1] = {
+const char *action_bits[] = {
     "<spec>",
     "Sentinel",
     "Scavenger",
@@ -1088,6 +1144,7 @@ const char *action_bits[NUM_MOB_FLAGS + 1] = {
     "unused", /* 63 */
     "unused", /* 64 */
     "\n"};
+CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 
 /** PC Preference flags.
  * @pre Must be in the same order as the defines.
@@ -1148,10 +1205,10 @@ const char *preference_bits[] = {
     "Display-Gold",
     "No-Charmie-Rescues",
     "\n"};
-_Static_assert(sizeof(preference_bits)/sizeof(preference_bits[0]) == NUM_PRF_FLAGS + 1, "preference_bits wrong number entries");
+CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
 /** Bonus types */
-const char *bonus_types[NUM_BONUS_TYPES + 1] = {
+const char *bonus_types[] = {
     "Untyped",
     "Alchemical",
     "Armor",
@@ -1173,11 +1230,12 @@ const char *bonus_types[NUM_BONUS_TYPES + 1] = {
     "Size",
     "Trait",
     "\n"};
+CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 
 /** Affected bits.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *affected_bits[NUM_AFF_FLAGS + 1] = {
+const char *affected_bits[] = {
     "\0", /* DO NOT REMOVE!! */
     "Blinded",
     "Invisible",
@@ -1287,13 +1345,14 @@ const char *affected_bits[NUM_AFF_FLAGS + 1] = {
     "Dazzled",
     "Shaken",
     "\n"};
+CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 
 /** Affected bits descriptions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline.
  * MUST BE 57 CHARACTERS OR LESS.
  * */
-const char *affected_bit_descs[NUM_AFF_FLAGS + 1] = {
+const char *affected_bit_descs[] = {
     "\0", /* DO NOT REMOVE!! */
     //|---------------------------------------------------------|
     "You can't see a thing.",
@@ -1401,14 +1460,15 @@ const char *affected_bit_descs[NUM_AFF_FLAGS + 1] = {
     "You are levitating above the ground!",
     "You are suffering bleed damage each round until healed!",
     "You are staggered - 50% chance to fail spells or a single melee attack!", //105
-    "You are dazzled and will suffer -1 to attacks and perception checks!"
+    "You are dazzled and will suffer -1 to attacks and perception checks!",
     "You are shaken: -2 to attack rolls, saves and skills checks!",
     "\n"};
+CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
 /** Connection type descriptions.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *connected_types[NUM_CON_STATES + 1] = {
+const char *connected_types[] = {
     "Playing", //0
     "Disconnecting",
     "Get Name",
@@ -1461,12 +1521,12 @@ const char *connected_types[NUM_CON_STATES + 1] = {
     "Confirm Premade",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
-_Static_assert(sizeof(connected_types)/sizeof(connected_types[0]) == NUM_CON_STATES + 1, "connected_types is missing entries");
+CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);
 
 /** Describes the position in the equipment listing.
  * @pre Must be in the same order as the defines.
  * Not used in sprinttype() so no \n. */
-const char *wear_where[NUM_WEARS] = {
+const char *wear_where[] = {
     "\tY{Used As Light}\tn      ", //0
     "\tY{Worn On Finger}\tn     ",
     "\tY{Worn On Finger}\tn     ",
@@ -1497,11 +1557,12 @@ const char *wear_where[NUM_WEARS] = {
     "\tY{Worn On Eyes}\tn       ",
     "\tY{Worn As Badge}\tn      ",
 };
+CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
 
 /* Describes where an item can be worn.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *equipment_types[NUM_WEARS + 1] = {
+const char *equipment_types[] = {
     "Used as light", //0
     "Worn on right finger",
     "Worn on left finger",
@@ -1532,9 +1593,10 @@ const char *equipment_types[NUM_WEARS + 1] = {
     "Worn on eyes",
     "Worn as badge",
     "\n"};
+CHECK_TABLE_SIZE(equipment_types, NUM_WEARS + 1);
 
 /* weapon family */
-const char *weapon_family[NUM_WEAPON_FAMILIES + 1] = {
+const char *weapon_family[] = {
     "Monk",
     "Light-Blade",
     "Hammer",
@@ -1544,9 +1606,10 @@ const char *weapon_family[NUM_WEAPON_FAMILIES + 1] = {
     "Double-Weapon",
     "Axe",
     "\n"};
+CHECK_TABLE_SIZE(weapon_family, NUM_WEAPON_FAMILIES + 1);
 
 /* weapon flags */
-const char *weapon_flags[NUM_WEAPON_FLAGS + 1] = {
+const char *weapon_flags[] = {
     "Simple",
     "Martial",
     "Exotic",
@@ -1574,6 +1637,7 @@ const char *weapon_flags[NUM_WEAPON_FLAGS + 1] = {
     "Strength",
     "Sunder",
     "\n"};
+CHECK_TABLE_SIZE(weapon_flags, NUM_WEAPON_FLAGS + 1);
 
 const char *ability_score_names[6] = {
     "strength",
@@ -1584,7 +1648,7 @@ const char *ability_score_names[6] = {
     "charisma"};
 
 /* armor type (none, light, medium, heavy, etc) */
-const char *armor_type[NUM_ARMOR_TYPES + 1] = {
+const char *armor_type[] = {
     "None",
     "Light Armor",
     "Medium Armor",
@@ -1592,9 +1656,10 @@ const char *armor_type[NUM_ARMOR_TYPES + 1] = {
     "Normal Shield",
     "Tower Shield",
     "\n"};
+CHECK_TABLE_SIZE(armor_type, NUM_ARMOR_TYPES + 1);
 
 // labels for item proficiency category
-const char *item_profs[NUM_ITEM_PROFS + 1] = {
+const char *item_profs[] = {
     "None",
     "Minimal Weapon Proficiency",
     "Basic Weapon Proficiency",
@@ -1607,8 +1672,9 @@ const char *item_profs[NUM_ITEM_PROFS + 1] = {
     "Shield Proficiency",
     "Tower Shield Proficiency",
     "\n"};
+CHECK_TABLE_SIZE(item_profs, NUM_ITEM_PROFS + 1);
 
-const char *material_name[NUM_MATERIALS + 1] = {
+const char *material_name[] = {
     "RESERVED",
     "cotton",
     "leather",
@@ -1655,11 +1721,12 @@ const char *material_name[NUM_MATERIALS + 1] = {
     "cold iron",
     "darkwood",
     "\n"};
+CHECK_TABLE_SIZE(material_name, NUM_MATERIALS + 1);
 
 /** Describes the type of object.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *item_types[NUM_ITEM_TYPES + 1] = {
+const char *item_types[] = {
     "UNDEFINED", //0
     "Light",
     "Scroll",
@@ -1711,11 +1778,12 @@ const char *item_types[NUM_ITEM_TYPES + 1] = {
     "Blueprint", //47 /* NewCraft */
     "Treasure Chest",
     "\n"};
+CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 
 /** Describes the wear flags set on an item.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *wear_bits[NUM_ITEM_WEARS + 1] = {
+const char *wear_bits[] = {
     "(Takeable)", //0
     "Finger",
     "Neck",
@@ -1737,12 +1805,14 @@ const char *wear_bits[NUM_ITEM_WEARS + 1] = {
     "Ears",
     "Eyes",
     "Badge",
+    "Instrument",
     "\n"};
+CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
 
 /** Describes the extra flags applied to an item.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
+const char *extra_bits[] = {
     "Glows", //0
     "Hums",
     "Not-Rentable",
@@ -1796,11 +1866,12 @@ const char *extra_bits[NUM_ITEM_FLAGS + 1] = {
     "Anti-Drow",
     "Masterwork",
     "\n"};
+CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
 /** Describes the apply types.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *apply_types[NUM_APPLIES + 1] = {
+const char *apply_types[] = {
     "<None>",
     "Strength",
     "Dexterity",
@@ -1854,6 +1925,7 @@ const char *apply_types[NUM_APPLIES + 1] = {
     "Skill-Bonus",
     "\n" /*51*/
 };
+CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
 /** Matrix to show which bonus types are allowed for which apply locations */
 /* "Untyped",
@@ -1878,74 +1950,76 @@ const char *apply_types[NUM_APPLIES + 1] = {
   "Trait",
   "\n"
  */
-const int valid_bonus_types[NUM_APPLIES][NUM_BONUS_TYPES] = {
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //<None>
-    {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Strength
-    {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Dexterity
-    {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1}, //Intelligence
-    {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1}, //Wisdom
-    {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Constitution
-    {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1}, //Charisma
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Class
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Level
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Age
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Weight
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Height
-    {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-PSP
-    {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-HP
-    {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-Move
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Gold
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Experience
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //!Unused!
-    {1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Hitroll
-    {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1}, //Damroll
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Fortitude
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Reflex
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Will
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Poison
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Death
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, //Spell-Resist
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, //Size
-    {1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1}, //Armor-Class
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Fire
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Cold
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Air
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Earth
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Acid
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Holy
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Electric
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Unholy
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Slice
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Puncture
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Force
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Sound
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Poison
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Disease
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Negative
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Illusion
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Mental
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Light
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Energy
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Water
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Damage-Reduction
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Grant-Feat
-};
+// const int valid_bonus_types[][NUM_BONUS_TYPES] = {
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, //<None>
+//     {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Strength
+//     {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Dexterity
+//     {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1}, //Intelligence
+//     {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1}, //Wisdom
+//     {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Constitution
+//     {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1}, //Charisma
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Class
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Level
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Age
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Weight
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Height
+//     {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-PSP
+//     {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-HP
+//     {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0}, //Max-Move
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Gold
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //Experience
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //!Unused!
+//     {1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1}, //Hitroll
+//     {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1}, //Damroll
+//     {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Fortitude
+//     {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Reflex
+//     {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Will
+//     {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Poison
+//     {1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1}, //Save-Death
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, //Spell-Resist
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}, //Size
+//     {1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1}, //Armor-Class
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Fire
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Cold
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Air
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Earth
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Acid
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Holy
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Electric
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Unholy
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Slice
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Puncture
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Force
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Sound
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Poison
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Disease
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Negative
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Illusion
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Mental
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Light
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Energy
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Resist-Water
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Damage-Reduction
+//     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, //Grant-Feat
+// };
+// CHECK_TABLE_SIZE(valid_bonus_types, NUM_APPLIES);
 
 /** Describes the closure mechanism for a container.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *container_bits[NUM_CONT_FLAGS + 1] = {
+const char *container_bits[] = {
     "Closeable",
     "Pick-Proof",
     "Closed",
     "Locked",
     "\n",
 };
+CHECK_TABLE_SIZE(container_bits, NUM_CONT_FLAGS + 1);
 
 /** Describes the liquid description.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *drinks[NUM_LIQ_TYPES + 1] = {
+const char *drinks[] = {
     "water",
     "beer",
     "wine",
@@ -1963,11 +2037,12 @@ const char *drinks[NUM_LIQ_TYPES + 1] = {
     "salt water",
     "clear water",
     "\n"};
+CHECK_TABLE_SIZE(drinks, NUM_LIQ_TYPES + 1);
 
 /** Describes a one word alias for each type of liquid.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *drinknames[NUM_LIQ_TYPES + 1] = {
+const char *drinknames[] = {
     "water",
     "beer",
     "wine",
@@ -1985,6 +2060,7 @@ const char *drinknames[NUM_LIQ_TYPES + 1] = {
     "salt",
     "water",
     "\n"};
+CHECK_TABLE_SIZE(drinknames, NUM_LIQ_TYPES + 1);
 
 /** Define the effect of liquids on hunger, thirst, and drunkenness, in that
  * order. See values.doc for more information.
@@ -2010,7 +2086,7 @@ int drink_aff[][3] = {
 /** Describes the color of the various drinks.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *color_liquid[NUM_LIQ_TYPES + 1] = {
+const char *color_liquid[] = {
     "clear",
     "brown",
     "clear",
@@ -2028,6 +2104,7 @@ const char *color_liquid[NUM_LIQ_TYPES + 1] = {
     "clear",
     "crystal clear",
     "\n"};
+CHECK_TABLE_SIZE(color_liquid, NUM_LIQ_TYPES + 1);
 
 /** Used to describe the level of fullness of a drink container. Not used in
  * sprinttype() so no \n. */
@@ -2044,7 +2121,7 @@ const char *portal_types[] = {
     "Clanhall",
     "\n"};
 
-const char *spell_schools[NUM_SCHOOLS + 1] = {
+const char *spell_schools[] = {
     "None",
     "Abjuration",
     "Conjuration",
@@ -2055,6 +2132,7 @@ const char *spell_schools[NUM_SCHOOLS + 1] = {
     "Necromancy",
     "Transmutation",
     "\n"};
+CHECK_TABLE_SIZE(spell_schools, NUM_SCHOOLS + 1);
 
 int spell_bonus[][NUM_CIRCLES + 1] = {
     //circle 0 1 2 3 4 5 6 7 8 9 10 number-circles
@@ -3100,7 +3178,7 @@ const char *ability_names[] = {
     "planes",
     "\n"};
 
-const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES + 1] = {
+const char *draconic_heritage_names[] = {
     "none",
     "black",
     "blue",
@@ -3114,8 +3192,9 @@ const char *draconic_heritage_names[NUM_DRACONIC_HERITAGE_TYPES + 1] = {
     "gold",
     "\n" // always last
 };
+CHECK_TABLE_SIZE(draconic_heritage_names, NUM_DRACONIC_HERITAGE_TYPES + 1);
 
-const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES + 1] = {
+const int draconic_heritage_energy_types[] = {
     0,            // none
     DAM_ACID,     // black
     DAM_ELECTRIC, // blue
@@ -3129,9 +3208,10 @@ const int draconic_heritage_energy_types[NUM_DRACONIC_HERITAGE_TYPES + 1] = {
     DAM_FIRE,     // gold
     0             // always last
 };
+CHECK_TABLE_SIZE(draconic_heritage_energy_types, NUM_DRACONIC_HERITAGE_TYPES + 1);
 
 // the number of spells received per level for caster types
-const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int wizard_slots[][NUM_CIRCLES + 1] = {
     //   1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3169,8 +3249,9 @@ const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //33
     {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}  //34
 };
+CHECK_TABLE_SIZE(wizard_slots, LVL_IMPL + 1);
 
-const int sorcerer_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int sorcerer_slots[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3208,8 +3289,9 @@ const int sorcerer_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //33
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}  //34
 };
+CHECK_TABLE_SIZE(sorcerer_slots, LVL_IMPL + 1);
 
-const int bard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int bard_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3247,9 +3329,10 @@ const int bard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //33
     {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}  //34
 };
+CHECK_TABLE_SIZE(bard_slots, LVL_IMPL + 1);
 
 /** known spells for sorcs **/
-const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int sorcerer_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3287,9 +3370,10 @@ const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //33
     {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}  //34
 };
+CHECK_TABLE_SIZE(sorcerer_known, LVL_IMPL + 1);
 
 /** known spells for bards **/
-const int bard_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int bard_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3327,8 +3411,9 @@ const int bard_known[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //33
     {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}  //34
 };
+CHECK_TABLE_SIZE(bard_known, LVL_IMPL + 1);
 
-const int ranger_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int ranger_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 1
@@ -3366,8 +3451,9 @@ const int ranger_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 33
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}  // 34
 };
+CHECK_TABLE_SIZE(ranger_slots, LVL_IMPL + 1);
 
-const int paladin_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int paladin_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 1
@@ -3405,8 +3491,9 @@ const int paladin_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}, // 33
     {0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}  // 34
 };
+CHECK_TABLE_SIZE(paladin_slots, LVL_IMPL + 1);
 
-const int cleric_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int cleric_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3444,8 +3531,9 @@ const int cleric_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 33
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}  // 34
 };
+CHECK_TABLE_SIZE(cleric_slots, LVL_IMPL + 1);
 
-const int druid_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int druid_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -3483,8 +3571,9 @@ const int druid_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 33
     {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}  // 34
 };
+CHECK_TABLE_SIZE(druid_slots, LVL_IMPL + 1);
 
-const int alchemist_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
+const int alchemist_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     //0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
@@ -3523,21 +3612,23 @@ const int alchemist_slots[LVL_IMPL + 1][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //33
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  //34
 };
+CHECK_TABLE_SIZE(alchemist_slots, LVL_IMPL + 1);
 
 // (old) words to use for the spell preparation process for different classes.
-const char *spell_prep_dictation[NUM_CASTERS][4] = {
-    /* 0       1          2         3*/
-    {"pray", "praying", "prayed", "prayers"},               // CLASS_CLERIC
-    {"commune", "communing", "communed", "communion"},      // CLASS_DRUID
-    {"memorize", "studying", "memorized", "studies"},       // CLASS_WIZARD
-    {"meditate", "meditating", "meditated", "meditations"}, // CLASS_SORCERER
-    {"chant", "chanting", "chanted", "petitions"},          // CLASS_PALADIN
-    {"adjure", "adjuring", "adjured", "adjurations"},       // CLASS_RANGER
-    {"compose", "composing", "composed", "compositions"},   // CLASS_BARD
-};
+// const char *spell_prep_dictation[][4] = {
+//     /* 0       1          2         3*/
+//     {"pray", "praying", "prayed", "prayers"},               // CLASS_CLERIC
+//     {"commune", "communing", "communed", "communion"},      // CLASS_DRUID
+//     {"memorize", "studying", "memorized", "studies"},       // CLASS_WIZARD
+//     {"meditate", "meditating", "meditated", "meditations"}, // CLASS_SORCERER
+//     {"chant", "chanting", "chanted", "petitions"},          // CLASS_PALADIN
+//     {"adjure", "adjuring", "adjured", "adjurations"},       // CLASS_RANGER
+//     {"compose", "composing", "composed", "compositions"},   // CLASS_BARD
+// };
+// CHECK_TABLE_SIZE(spell_prep_dictation, NUM_CASTERS);
 
 /* words to use for the spell preparation process for different classes. */
-const char *spell_prep_dict[NUM_CLASSES][4] = {
+const char *spell_prep_dict[][4] = {
     /* 0           1             2            3 */
     {"memorize", "studying", "memorized", "studies"},       /* CLASS_WIZARD */
     {"pray", "praying", "prayed", "prayers"},               /* CLASS_CLERIC */
@@ -3566,9 +3657,10 @@ const char *spell_prep_dict[NUM_CLASSES][4] = {
     //  {"",         "",           "",          ""            }, /* shadow dancer */
     //  {"",         "",           "",          ""            }, /* assassin */
 };
+CHECK_TABLE_SIZE(spell_prep_dict, NUM_CLASSES);
 
 /* words to use for the spell preparation process for different classes. */
-const char *spell_consign_dict[NUM_CLASSES][4] = {
+const char *spell_consign_dict[][4] = {
     /* 0           1             2            3 */
     {"forget", "forgot", "forgetting", "forgotten"},         /* CLASS_WIZARD */
     {"blank", "blanked", "blanking", "blanken"},             /* CLASS_CLERIC */
@@ -3597,6 +3689,7 @@ const char *spell_consign_dict[NUM_CLASSES][4] = {
     //  {"",          "",            "",           ""            }, /* shadow dancer 22 */
     //  {"",          "",            "",           ""            }, /* assassin 23 */
 };
+CHECK_TABLE_SIZE(spell_consign_dict, NUM_CLASSES);
 
 /* ... and bloodlines */
 const char *bloodline_names[] = {
