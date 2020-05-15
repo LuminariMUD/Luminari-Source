@@ -642,6 +642,9 @@ ACMDU(do_gen_comm)
     if (!IS_NPC(ch) && (PRF_FLAGGED(i->character, channels[subcmd])))
       continue;
 
+    if (IN_ROOM(ch) == NOWHERE) continue;
+    if (IN_ROOM(i->character) == NOWHERE) continue;
+
     /* we want history for the rest of the conditions */
     add_history(i->character, buf3, hist_type[subcmd]);
 
