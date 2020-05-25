@@ -2294,7 +2294,6 @@ static int process_output(struct descriptor_data *t)
 
   if (result < 0)
   { /* Oops, fatal error. Bye! */
-    close_socket(t);
     return (-1);
   }
   else if (result == 0) /* Socket buffer full. Try later. */
