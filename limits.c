@@ -793,6 +793,7 @@ void run_autowiz(void)
 int gain_exp(struct char_data *ch, int gain, int mode)
 {
   int xp_to_lvl = 0;
+  int xp_to_lvl_cap = 0;
   int gain_cap = 0;
 
   if (!IS_NPC(ch) && ((GET_LEVEL(ch) < 1 || GET_LEVEL(ch) >= LVL_IMMORT)))
@@ -807,6 +808,13 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   if (IS_NPC(ch))
   {
     GET_EXP(ch) += gain / 2;
+    return 0;
+  }
+
+  xp_to_lvl_cap = level_exp(ch, GET_LEVEL(ch) + 2) - level_exp(ch, GET_LEVEL(ch));
+
+  if (GET_EXP(ch) > xp_to_lvl_cap  && gain > 0 && GET_LEVEL(ch) < 30) {
+    send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
     return 0;
   }
 
@@ -875,11 +883,15 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     case GAIN_EXP_MODE_TRAP:
     default:
       xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+
+/* The no cap for below level 6 was causing serious power levelling issues. -- Gicker May 28, 2020
       if (GET_LEVEL(ch) < 6)
       {
-        gain_cap = gain; /* no cap */
+        gain_cap = gain; // no cap
       }
-      else if (GET_LEVEL(ch) < 11)
+      else 
+*/      
+      if (GET_LEVEL(ch) < 11)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
       }
