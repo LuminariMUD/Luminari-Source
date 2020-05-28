@@ -42,6 +42,7 @@
 #include "premadebuilds.h"
 #include "staff_events.h"
 #include "missions.h"
+#include "spec_procs.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -5747,6 +5748,107 @@ ACMD(do_favoredenemies)
   send_to_char(ch, "-- +%d morale bonus to weapon or unarmed attack rolls.\r\n", i);
   send_to_char(ch, "\r\n");
 
+}
+
+SPECIAL(eqstats)
+{
+
+  if (!CMD_IS("eqstats"))
+    return FALSE;
+
+  int cost = GET_LEVEL(ch) * 100;
+
+  if (GET_GOLD(ch) < cost) {
+    send_to_char(ch, "It costs %d gold coins to be able to show a summary of your worn equipment enchantments.\r\n", cost);
+    return TRUE;
+  }
+
+    GET_GOLD(ch) -= cost;
+
+    int i, k, lore_bonus = 0;
+    int found = false;
+    struct obj_data *obj = NULL;
+    char buf2[300], bitbuf[300];
+
+    send_to_char(ch, "You are using:\r\n");
+    for (i = 0; i < NUM_WEARS; i++)
+    {
+        found = false;
+        if (GET_EQ(ch, i))
+        {
+            obj = GET_EQ(ch, i);
+            if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
+            {
+                send_to_char(ch, "%-30s", wear_where[i]);
+
+                  if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
+                  {
+                    lore_bonus += 4;
+                    if (GET_WIS_BONUS(ch) > 0)
+                      lore_bonus += GET_WIS_BONUS(ch);
+                  }
+                  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE))
+                  {
+                    lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
+                  }
+
+                  /* good enough lore for object? */
+                  if (GET_EQ(ch, i) && GET_OBJ_COST(GET_EQ(ch, i)) > lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+                  {
+                    send_to_char(ch, " (couldn't identify)");
+                    continue;
+                  }
+                if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+                  send_to_char(ch, " %s Enhancement: %d ", 
+                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? (CAN_WEAR(obj, ITEM_WEAR_SHIELD) ? "Shield" : "Armor") : "Weapon",
+                  GET_ENHANCEMENT_BONUS(obj));
+
+                for (k = 0; k < MAX_OBJ_AFFECT; k++)
+                {
+                    if ((obj->affected[k].location != APPLY_NONE)
+                        && (obj->affected[k].modifier != 0))
+                    {
+                        if (!found)
+                        {
+                            found = true;
+                        }
+                        sprinttype(obj->affected[k].location, apply_types,
+                            bitbuf, sizeof(bitbuf));
+                        switch (obj->affected[k].location)
+                        {
+                        case APPLY_FEAT:
+                            snprintf(buf2, sizeof(buf2), " (%s)",
+                                feat_list[obj->affected[k].modifier].name);
+                                send_to_char(ch, " %s%s", bitbuf, buf2);
+                            break;
+                        default:
+                            buf2[0] = 0;
+                            send_to_char(ch, " %s%s %s%d (%s)", bitbuf, buf2,
+                              (obj->affected[k].modifier > 0) ? "+"
+                              : "",
+                              obj->affected[k].modifier,
+                              bonus_types[obj->affected[k].bonus_type]);
+                            break;
+                        }
+                    }
+                }
+                send_to_char(ch, "\r\n");
+            }
+            else
+            {
+                send_to_char(ch, "%-30s", wear_where[i]);
+                send_to_char(ch, "Something.\r\n");
+            }
+        }
+        else
+        {
+            if (!GET_EQ(ch, i))
+            {
+                send_to_char(ch, "%-30s<empty>\r\n", wear_where[i]);
+            }
+        }
+    }
+    return TRUE;
 }
 
 /*EOF*/

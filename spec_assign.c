@@ -26,6 +26,7 @@ SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(buyweapons);
 SPECIAL_DECL(buyarmor);
 SPECIAL_DECL(faction_mission);
+SPECIAL_DECL(eqstats);
 
 /* local (file scope only) functions */
 static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
@@ -73,7 +74,9 @@ void assign_mobiles(void)
   // mosswood
   ASSIGNMOB(145391, buyweapons);
   ASSIGNMOB(145392, buyarmor);
+  ASSIGNMOB(145394, eqstats);
 
+  // ashenport
   ASSIGNMOB(103499, buyarmor);
   ASSIGNMOB(103498, buyweapons);
 

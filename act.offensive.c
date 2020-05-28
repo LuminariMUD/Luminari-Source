@@ -2511,6 +2511,7 @@ ACMD(do_order)
 
       for (k = ch->followers; k; k = k->next)
       {
+        if (IN_ROOM(ch) == NOWHERE || IN_ROOM(k->follower) == NOWHERE) continue;
         if (IN_ROOM(ch) == IN_ROOM(k->follower))
           if (AFF_FLAGGED(k->follower, AFF_CHARM))
           {
