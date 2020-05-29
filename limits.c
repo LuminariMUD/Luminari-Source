@@ -811,7 +811,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     return 0;
   }
 
-  xp_to_lvl_cap = level_exp(ch, GET_LEVEL(ch) + 2) - level_exp(ch, GET_LEVEL(ch));
+  xp_to_lvl_cap = level_exp(ch, GET_LEVEL(ch) + 2);
 
   if (GET_EXP(ch) > xp_to_lvl_cap  && gain > 0 && GET_LEVEL(ch) < 30) {
     send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
