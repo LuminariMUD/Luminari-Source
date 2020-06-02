@@ -257,6 +257,7 @@ int MIN(int a, int b);
 float FLOATMAX(float a, float b);
 float FLOATMIN(float a, float b);
 char *CAP(char *txt);
+char *UNCAP(char *txt);
 
 /* Followers */
 int num_followers_charmed(struct char_data *ch);

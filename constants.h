@@ -91,6 +91,7 @@ extern const char *fullness[];
 extern const char *weekdays[];
 extern const char *month_name[];
 extern const char *spell_schools[];
+extern const char *spell_schools_lower[];
 extern int spell_bonus[STAT_CAP + 1][NUM_CIRCLES + 1];
 extern const struct str_app_type str_app[];
 extern const struct dex_skill_type dex_app_skill[];
