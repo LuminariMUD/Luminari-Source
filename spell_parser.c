@@ -1988,7 +1988,13 @@ static void spello(int spl, const char *name, int max_psp, int min_psp,
         spell_info[spl].violent = violent;
         spell_info[spl].routines = routines;
         spell_info[spl].name = name;
-        spell_info[spl].wear_off_msg = wearoff;
+        if (wearoff == 0) {
+          char buf[MEDIUM_STRING];
+          snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
+          spell_info[spl].wear_off_msg = strdup(buf);
+        } else {
+          spell_info[spl].wear_off_msg = wearoff;
+        }
         spell_info[spl].time = time;
         spell_info[spl].memtime = memtime;
         spell_info[spl].schoolOfMagic = school;

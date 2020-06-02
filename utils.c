@@ -646,7 +646,7 @@ bool ultra_blind(struct char_data *ch, room_rnum room_number) {
   if (AFF_FLAGGED(ch, AFF_DARKVISION))
     return FALSE;
 
-  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
+  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
     return FALSE;
 
   switch (SECT(room_number)) {
@@ -1670,6 +1670,27 @@ char *CAP(char *txt) {
 
   if (*p)
     *p = UPPER(*p);
+  return (txt);
+}
+
+/** Used to uncapitalize a string. Will not change any mud specific color codes.
+ * @parUam txt The string to uncapitalize.
+ * @retUval char* Pointer to the uncapitalized string. */
+char *UNCAP(char *txt) {
+  char *p = txt;
+
+  /* Skip all preceeding color codes and ANSI codes */
+  while ((*p == '\t' && *(p + 1)) || (*p == '\x1B' && *(p + 1) == '[')) {
+    if (*p == '\t') p += 2; /* Skip \t sign and color letter/number */
+    else {
+      p += 2; /* Skip the CSI section of the ANSI code */
+      while (*p && !isalpha(*p)) p++; /* Skip until a 'letter' is found */
+      if (*p) p++; /* Skip the letter */
+    }
+  }
+
+  if (*p)
+    *p = LOWER(*p);
   return (txt);
 }
 

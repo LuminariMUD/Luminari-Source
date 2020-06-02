@@ -8575,4 +8575,35 @@ ACMD(do_perfmon)
   }
 }
 
+ACMD(do_showwearoff)
+{
+
+  char arg1[MEDIUM_STRING];
+
+  one_argument(argument, arg1, sizeof(arg1));
+
+  if (!*arg1) {
+    send_to_char(ch, "Please specify a spell or skill.\r\n");
+    return;
+  }
+
+  int i = 0;
+
+  for (i = 0; i < NUM_SKILLS + 1; i++)
+  {
+    if (is_abbrev(arg1, spell_info[i].name))
+    {
+      send_to_char(ch, "Spell/Skill: %s\r\n"
+                       "Wearoff Msg: %s.\r\n",
+                       spell_info[i].name,
+                       spell_info[i].wear_off_msg
+                       );
+      return;
+    }
+  }
+
+  send_to_char(ch, "There is no spell or skill by that name.\r\n");
+
+}
+
 /* EOF */

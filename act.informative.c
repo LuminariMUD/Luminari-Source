@@ -107,7 +107,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
                  GET_NAME(tch), age(tch)->year, age(tch)->month,
                  age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Race: %s%s.\r\n",
+  send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : 
               race_family_types[GET_RACE(tch)],
               has_subrace ? subraces : "");
   send_to_char(ch, "Alignment: %s.\r\n",
@@ -1011,7 +1011,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
     return;
   if (room_number < 0)
     return;
-  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
+  if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "A fog makes it impossible to look far.\r\n");
     return;
@@ -1245,7 +1245,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 
   /* autoexits */
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) &&
-      !IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG))
+      (!IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG) || GET_LEVEL(ch) >= LVL_IMMORT))
     do_auto_exits(ch);
 
   /* now list characters & objects */
@@ -1255,7 +1255,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
 
 static void look_in_direction(struct char_data *ch, int dir)
 {
-  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG))
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "A fog makes it impossible to look far.\r\n");
     return;
@@ -2971,6 +2971,16 @@ ACMD(do_score)
     send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
                  domain_list[GET_1ST_DOMAIN(ch)].name,
                  domain_list[GET_2ND_DOMAIN(ch)].name);
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
+  {
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)), DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
+    draw_line(ch, line_length, '-', '-');
+  } else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
+  {
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n", spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
     draw_line(ch, line_length, '-', '-');
   }
 
@@ -4970,7 +4980,7 @@ ACMD(do_scan)
     send_to_char(ch, "You can't see anything but stars!\r\n");
     return;
   }
-  if (IS_SET_AR(ROOM_FLAGS(scanned_room), ROOM_FOG))
+  if (IS_SET_AR(ROOM_FLAGS(scanned_room), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "A fog makes it impossible to look far.\r\n");
     return;

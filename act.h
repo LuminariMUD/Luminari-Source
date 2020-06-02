@@ -794,5 +794,6 @@ ACMD_DECL(do_weaponproficiencies);
 ACMD_DECL(do_weaponinfo);
 ACMD_DECL(do_autocon);
 ACMD_DECL(do_perfmon);
+ACMD_DECL(do_showwearoff);
 
 #endif /* _ACT_H_ */

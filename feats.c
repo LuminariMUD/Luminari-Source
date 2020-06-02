@@ -4543,6 +4543,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
+      else if (i == FEAT_SORCERER_BLOODLINE_ARCANE)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_SCHOOL_POWER)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s magic)", feat_list[i].name, spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
       else if (i == FEAT_SORCERER_BLOODLINE_DRACONIC)
       {
         if (mode == 1)

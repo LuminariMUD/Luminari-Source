@@ -192,7 +192,7 @@ ACMD(do_track)
     send_to_char(ch, "You sense no trail.\r\n");
     return;
   }
-  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMPL)
+  if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
     return;

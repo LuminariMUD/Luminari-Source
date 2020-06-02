@@ -577,6 +577,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"set", "set", POS_DEAD, do_set, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdown", "shutdown", POS_DEAD, do_shutdown, LVL_IMPL, SCMD_SHUTDOWN, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sip", "sip", POS_RECLINING, do_drink, 0, SCMD_SIP, FALSE, ACTION_MOVE, {0, 6}, NULL},
