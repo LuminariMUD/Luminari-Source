@@ -1736,7 +1736,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[5].duration = 300;
     af[5].bonus_type = BONUS_TYPE_MORALE;
 
-    accum_duration = TRUE;
     to_room = "$n is now divinely aided!";
     to_vict = "You feel divinely aided.";
     break;
@@ -1748,7 +1747,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
     af[0].duration = 400;
-    accum_duration = TRUE;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by magical armor!";
     break;
@@ -1812,7 +1810,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[1].duration = 300;
     af[1].bonus_type = BONUS_TYPE_MORALE;
 
-    accum_duration = TRUE;
     to_room = "$n is now righteous!";
     to_vict = "You feel righteous.";
     break;
@@ -1859,7 +1856,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 25 + level;
     SET_BIT_AR(af[0].bitvector, AFF_BRAVERY);
 
-    accum_duration = TRUE;
     to_vict = "You suddenly feel very brave.";
     to_room = "$n suddenly feels very brave.";
     break;
@@ -1992,7 +1988,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 4;
     af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
-    accum_duration = TRUE;
     to_vict = "You feel more intelligent!";
     to_room = "$n's intelligence increases!";
     break;
@@ -2126,7 +2121,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_DETECT_ALIGN:
     af[0].duration = 300 + caster_level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
-    accum_duration = TRUE;
     to_room = "$n's eyes become sensitive to motives!";
     to_vict = "Your eyes become sensitive to motives.";
     break;
@@ -2134,7 +2128,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_DETECT_INVIS: //divination
     af[0].duration = 300 + level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
-    accum_duration = TRUE;
     to_vict = "Your eyes tingle, now sensitive to invisibility.";
     to_room = "$n's eyes become sensitive to invisibility!";
     break;
@@ -2142,7 +2135,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_DETECT_MAGIC: //divination
     af[0].duration = 300 + caster_level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_DETECT_MAGIC);
-    accum_duration = TRUE;
     to_room = "$n's eyes become sensitive to magic!";
     to_vict = "Magic becomes clear as your eyes tingle.";
     break;
@@ -2177,7 +2169,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
     af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
-    accum_duration = TRUE;
     to_vict = "You feel more hardy!";
     to_room = "$n begins to feel more hardy!";
     break;
@@ -2298,7 +2289,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[1].modifier = 30;
     af[1].duration = 300;
 
-    accum_duration = TRUE;
     to_room = "$n grows strong with \tDdark\tn life!";
     to_vict = "You grow strong with \tDdark\tn life!";
     break;
@@ -2350,7 +2340,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_FLY:
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_FLYING);
-    accum_duration = TRUE;
     to_room = "$n begins to fly above the ground!";
     to_vict = "You fly above the ground.";
     break;
@@ -2383,7 +2372,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
     af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
-    accum_duration = TRUE;
     to_vict = "You feel more dextrous!";
     to_room = "$n's appears to be more dextrous!";
     break;
@@ -2451,7 +2439,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = 4;
     af[0].location = APPLY_AC_NEW;
     SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
-    accum_duration = TRUE;
     to_vict = "You vanish.";
     to_room = "$n slowly fades out of existence.";
     break;
@@ -2475,7 +2462,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].modifier = 1;
     af[0].duration = 5 * level;
 
-    accum_duration = TRUE;
     to_room = "$n is now affected by magic fang!";
     to_vict = "You are suddenly empowered by magic fang.";
     break;
@@ -2678,7 +2664,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_INFRAVISION: //divination, shared
     af[0].duration = 300 + caster_level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_INFRAVISION);
-    accum_duration = TRUE;
     to_vict = "Your eyes glow red.";
     to_room = "$n's eyes glow red.";
     break;
@@ -2704,7 +2689,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = 4;
     af[0].location = APPLY_AC_NEW;
     SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
-    accum_duration = TRUE;
     to_vict = "You vanish.";
     to_room = "$n slowly fades out of existence.";
     break;
@@ -2779,7 +2763,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = 1;
     af[0].duration = level;
 
-    accum_duration = TRUE;
     to_room = "$n is now affected by magic fang!";
     to_vict = "You are suddenly empowered by magic fang.";
     break;
@@ -2794,7 +2777,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CHA;
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
-    accum_duration = TRUE;
     to_vict = "You feel more charismatic!";
     to_room = "$n's charisma increases!";
     break;
@@ -2811,7 +2793,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
 
-    accum_duration = TRUE;
     to_vict = "You feel more intelligent!";
     to_room = "$n's intelligence increases!";
     break;
@@ -2828,7 +2809,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_CON;
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
-    accum_duration = TRUE;
     to_vict = "You feel more hardy!";
     to_room = "$n's begins to feel more hardy!";
     break;
@@ -2861,7 +2841,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[2].modifier = 2 + (caster_level / 5);
     af[2].bonus_type = BONUS_TYPE_ENHANCEMENT;
 
-    accum_duration = TRUE;
     to_vict = "You feel your physical attributes enhanced!";
     to_room = "$n's physical attributes are enhanced!";
     break;
@@ -2878,7 +2857,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
-    accum_duration = TRUE;
     to_vict = "You feel more dextrous!";
     to_room = "$n's appears to be more dextrous!";
     break;
@@ -2914,7 +2892,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
-    accum_duration = TRUE;
     to_vict = "You feel stronger!";
     to_room = "$n's muscles begin to bulge!";
     break;
@@ -2930,7 +2907,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_WIS;
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 2 + (caster_level / 5);
-    accum_duration = TRUE;
     to_vict = "You feel more wise!";
     to_room = "$n's wisdom increases!";
     break;
@@ -3112,7 +3088,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[5].modifier = dice(4, 12) + level;
     af[5].duration = 300;
 
-    accum_duration = TRUE;
     to_room = "$n is now divinely blessed and aided!";
     to_vict = "You feel divinely blessed and aided.";
     break;
@@ -3172,14 +3147,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_PROT_FROM_EVIL: // abjuration
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_PROTECT_EVIL);
-    accum_duration = TRUE;
     to_vict = "You feel invulnerable to evil!";
     break;
 
   case SPELL_PROT_FROM_GOOD: // abjuration
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_PROTECT_GOOD);
-    accum_duration = TRUE;
     to_vict = "You feel invulnerable to good!";
     break;
 
@@ -3300,7 +3273,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's eyes become aware of life forms!";
     af[0].duration = level * 25;
     SET_BIT_AR(af[0].bitvector, AFF_SENSE_LIFE);
-    accum_duration = TRUE;
     break;
 
   case SPELL_SHADOW_SHIELD: //illusion
@@ -3524,7 +3496,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
     af[0].duration = 600;
-    accum_duration = TRUE;
     to_vict = "You feel your bones harden.";
     to_room = "$n's bones harden!";
     break;
@@ -3658,7 +3629,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_HITROLL;
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 20;
-    accum_duration = TRUE;
     to_vict = "You feel able to strike true!";
     to_room = "$n is now able to strike true!";
     break;
@@ -3690,7 +3660,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_WATER_BREATHE:
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_SCUBA);
-    accum_duration = TRUE;
     to_vict = "You feel gills grow behind your neck.";
     to_room = "$n's neck grows gills!";
     break;
@@ -3698,7 +3667,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_LEVITATE: //transmutation
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_LEVITATE);
-    accum_duration = TRUE;
     to_vict = "As you raise your arms, you begin to float in the air.";
     to_room = "$n begins to slowly levitate above the ground!";
     break;
@@ -3706,7 +3674,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_WATERWALK: //transmutation
     af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
-    accum_duration = TRUE;
     to_vict = "You feel webbing between your toes.";
     to_room = "$n's feet grow webbing!";
     break;
@@ -3777,7 +3744,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_WIS;
     af[0].duration = (caster_level * 12) + 100;
     af[0].modifier = 4;
-    accum_duration = TRUE;
     to_vict = "You feel more wise!";
     to_room = "$n's wisdom increases!";
     break;
