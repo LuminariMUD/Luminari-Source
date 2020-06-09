@@ -4164,17 +4164,19 @@ void auc_send_to_all(char *messg, bool buyer)
     if (messg == NULL)
         return;
 
+    if (!obj_selling)
+      return;
+
     for (i = descriptor_list; i; i = i->next)
     {
         if (!i->character) continue;
+
         if (PRF_FLAGGED(i->character, PRF_NOAUCT)) continue;
 
-        if (buyer)
-            act(messg, true, ch_buying, obj_selling, i->character,
-                TO_VICT | TO_SLEEP);
-        else
-            act(messg, true, ch_selling, obj_selling, i->character,
-                TO_VICT | TO_SLEEP);
+        if (buyer && ch_buying)
+            act(messg, true, ch_buying, obj_selling, i->character, TO_VICT | TO_SLEEP);
+        else if (ch_selling)
+            act(messg, true, ch_selling, obj_selling, i->character, TO_VICT | TO_SLEEP);
     }
 }
 
