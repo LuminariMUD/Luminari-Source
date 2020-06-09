@@ -87,6 +87,16 @@ static void display_group_list(struct char_data *ch);
 #define SRC_DST_QP 2
 #define SRC_DST_GOLD 3
 #define SRC_DST_EXP 4
+#define NUM_EXCHANGE_TYPES 5 // one more than the last above
+
+const char * exchange_types[NUM_EXCHANGE_TYPES] =
+{
+  "",
+  "account experience",
+  "quest points",
+  "gold coins",
+  "experience"
+};
 
 void show_exchange_rates(struct char_data *ch)
 {
@@ -2186,7 +2196,7 @@ ACMD(do_gain)
                          "You have %d boost%s remaining.\r\n",
                      GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
       if (stats_point_left(ch) > 0 && GET_LEVEL(ch) == 1)
-        send_to_char(ch, "You must spend all your stat points before gaining a level.\r\n");
+        send_to_char(ch, "You must spend all your stat points before gaining a level. Points: %d\r\n", stats_point_left(ch));
       /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
               send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
             if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
@@ -2581,7 +2591,7 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
   switch (race)
   {
   case RACE_CHEETAH:
-    abil_mods->dexterity += 8;
+    //abil_mods->dexterity += 8; // This should not be here. Gicker June 5, 2020
     break;
   case RACE_WOLF:
   case RACE_HYENA:
@@ -6465,10 +6475,12 @@ ACMD(do_summon)
 
   for (tch = character_list; tch; tch = tch->next)
   {
+    if (tch == ch) continue;
     if (!IS_NPC(tch)) continue;
     if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
     if (tch->master != ch) continue;
     if (IN_ROOM(tch) == NOWHERE) continue;
+    if (IN_ROOM(tch) == IN_ROOM(ch)) continue;
     act("$n disappears in a flash of light.", FALSE, ch, 0, 0, TO_ROOM);
     char_from_room(tch);
     char_to_room(tch, IN_ROOM(ch));

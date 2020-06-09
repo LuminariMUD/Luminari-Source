@@ -259,9 +259,9 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTOCOLLECT)), CCCYN(d->character, C_NRM)
                /*end*/);
 
-  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload %s[%s%3s%s]\r\n"
-                             "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll %s[%s%3s%s]\r\n"
-                             "%s9%s) Autodoor     %s[%s%3s%s]      %sV%s) GUI Mode   %s[%s%3s%s]\r\n",
+  send_to_char(d->character, "%s7%s) Automap      %s[%s%3s%s]      %sT%s) AutoReload   %s[%s%3s%s]\r\n"
+                             "%s8%s) Autokey      %s[%s%3s%s]      %sU%s) CombatRoll   %s[%s%3s%s]\r\n"
+                             "%s9%s) Autodoor     %s[%s%3s%s]      %sV%s) GUI Mode     %s[%s%3s%s]\r\n",
                /* Line 7 - automap & autoreload */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), PREFEDIT_FLAGGED(PRF_AUTOMAP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTOMAP)), CCCYN(d->character, C_NRM),
@@ -281,10 +281,9 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
   /* The bottom section of the toggles menu */
   send_to_char(d->character, "\r\n"
                              "%sOther Flags\r\n"
-                             "%sF%s) No Summon    %s[%s%3s%s]      %sH%s) Brief    %s[%s%3s%s]\r\n"
-                             "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact  %s[%s%3s%s]\r\n"
-                             "%sY%s) Charmies Won't Rescue You                     %s[%s%3s%s]\r\n"
-                             "%sZ%s) AutoConsider %s[%s%3s%s]\r\n",
+                             "%sF%s) No Summon    %s[%s%3s%s]      %sH%s) Brief        %s[%s%3s%s]\r\n"
+                             "%sG%s) No Repeat    %s[%s%3s%s]      %sI%s) Compact      %s[%s%3s%s]\r\n"
+                             "%sY%s) NoNPCRescues %s[%s%3s%s]      %sZ%s) AutoConsider %s[%s%3s%s]\r\n",
                CBWHT(d->character, C_NRM),
                /* Line 10 - nosummon and brief */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),

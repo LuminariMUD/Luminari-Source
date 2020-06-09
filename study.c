@@ -24,6 +24,7 @@
 #include "domains_schools.h"
 #include "spell_prep.h"
 #include "alchemy.h"
+#include "race.h"
 #include "premadebuilds.h"
 
 /*-------------------------------------------------------------------*/
@@ -894,15 +895,13 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
   OLC_MODE(d) = FAVORED_ENEMY_SUB;
 }
 
-#define TOTAL_STAT_POINTS 30
-#define MAX_POINTS_IN_A_STAT 10
-#define BASE_STAT 8
 int stat_cost_chart[11] = {/* cost for total points */
                            /*0  1  2  3  4  5  6  7  8   9   10 */
                            0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16};
 int compute_base_dex(struct char_data *ch)
 {
   int base_dex = BASE_STAT;
+  /*
   switch (GET_RACE(ch))
   {
   case RACE_ELF:
@@ -921,6 +920,7 @@ int compute_base_dex(struct char_data *ch)
     base_dex += 8;
     break;
   }
+  */
   return base_dex;
 }
 int compute_dex_cost(struct char_data *ch, int number)
@@ -931,6 +931,7 @@ int compute_dex_cost(struct char_data *ch, int number)
 int compute_base_str(struct char_data *ch)
 {
   int base_str = BASE_STAT;
+  /*
   switch (GET_RACE(ch))
   {
   case RACE_HALFLING:
@@ -955,6 +956,7 @@ int compute_base_str(struct char_data *ch)
     base_str += 2;
     break;
   }
+  */
   return base_str;
 }
 int compute_str_cost(struct char_data *ch, int number)
@@ -966,6 +968,7 @@ int compute_str_cost(struct char_data *ch, int number)
 int compute_base_con(struct char_data *ch)
 {
   int base_con = BASE_STAT;
+  /*
   switch (GET_RACE(ch))
   {
   case RACE_ELF:
@@ -993,6 +996,7 @@ int compute_base_con(struct char_data *ch)
     base_con -= 2;
     break;
   }
+  */
   return base_con;
 }
 int compute_con_cost(struct char_data *ch, int number)
@@ -1003,6 +1007,7 @@ int compute_con_cost(struct char_data *ch, int number)
 int compute_base_inte(struct char_data *ch)
 {
   int base_inte = BASE_STAT;
+  /*
   switch (GET_RACE(ch))
   {
   case RACE_HALF_TROLL:
@@ -1018,6 +1023,7 @@ int compute_base_inte(struct char_data *ch)
     base_inte -= 2;
     break;
   }
+  */
   return base_inte;
 }
 int compute_inte_cost(struct char_data *ch, int number)
@@ -1028,6 +1034,7 @@ int compute_inte_cost(struct char_data *ch, int number)
 int compute_base_wis(struct char_data *ch)
 {
   int base_wis = BASE_STAT;
+  /*
   switch (GET_RACE(ch))
   {
   case RACE_HALF_TROLL:
@@ -1043,6 +1050,7 @@ int compute_base_wis(struct char_data *ch)
     base_wis += 2;
     break;
   }
+  */
   return base_wis;
 }
 int compute_wis_cost(struct char_data *ch, int number)
@@ -1053,6 +1061,7 @@ int compute_wis_cost(struct char_data *ch, int number)
 int compute_base_cha(struct char_data *ch)
 {
   int base_cha = BASE_STAT;
+  /*
   switch (GET_RACE(ch))
   {
   case RACE_DWARF:
@@ -1074,6 +1083,7 @@ int compute_base_cha(struct char_data *ch)
     base_cha -= 2;
     break;
   }
+  */
   return base_cha;
 }
 int compute_cha_cost(struct char_data *ch, int number)
@@ -1090,7 +1100,7 @@ int stat_points_left(struct char_data *ch)
 {
   if (GET_PREMADE_BUILD_CLASS(ch) >= 0)
     return 0;
-  return (TOTAL_STAT_POINTS - compute_total_stat_points(ch));
+  return (TOTAL_STAT_POINTS(ch) - compute_total_stat_points(ch));
 }
 static void set_stats_menu(struct descriptor_data *d)
 {
@@ -3157,6 +3167,13 @@ void study_parse(struct descriptor_data *d, char *arg)
         send_to_char(ch, "You must spend all of your stat points before continuing.\r\n");
         break;
       }
+      // We're applying racial bonuses now instead of in init_start_char in class.c
+      LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD);
+      LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD);
+      LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD);
+      LEVELUP(d->character)->inte += get_race_stat(GET_RACE(ch), R_INTEL_MOD);
+      LEVELUP(d->character)->wis += get_race_stat(GET_RACE(ch), R_WIS_MOD);
+      LEVELUP(d->character)->cha += get_race_stat(GET_RACE(ch), R_CHA_MOD);
       // let's update trains
       intel_bonus += ((GET_REAL_INT(ch) + LEVELUP(ch)->inte) - GET_REAL_INT(ch)) / 2;
       if (GET_LEVEL(ch) == 1)
