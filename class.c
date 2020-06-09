@@ -2315,12 +2315,15 @@ void init_start_char(struct char_data *ch)
   GET_COND(ch, THIRST) = -1;
 
   /* stat modifications */
+  /* temp removed gicker june 8 2020 */
+  /*
   GET_REAL_CON(ch) += get_race_stat(GET_RACE(ch), R_CON_MOD);
   GET_REAL_STR(ch) += get_race_stat(GET_RACE(ch), R_STR_MOD);
   GET_REAL_DEX(ch) += get_race_stat(GET_RACE(ch), R_DEX_MOD);
   GET_REAL_INT(ch) += get_race_stat(GET_RACE(ch), R_INTEL_MOD);
   GET_REAL_WIS(ch) += get_race_stat(GET_RACE(ch), R_WIS_MOD);
   GET_REAL_CHA(ch) += get_race_stat(GET_RACE(ch), R_CHA_MOD);
+  */
 
   /* some racial modifications, size, etc */
   switch (GET_RACE(ch))

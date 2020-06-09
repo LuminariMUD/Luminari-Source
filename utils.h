@@ -708,6 +708,10 @@ void char_from_furniture(struct char_data *ch);
 #define IS_EPIC_LEVEL(ch) (GET_LEVEL(ch) > 20)
 #define IS_EPIC(ch) (IS_EPIC_LEVEL(ch))
 
+#define TOTAL_STAT_POINTS(ch) (GET_REAL_RACE(ch) == RACE_HUMAN ? 34 : 30)
+#define MAX_POINTS_IN_A_STAT 10
+#define BASE_STAT 8
+
 #define SPELLBATTLE(ch) ((ch)->char_specials.saved.spec_abil[AG_SPELLBATTLE])
 #define DIVINE_LEVEL(ch) (compute_divine_level(ch))
 #define ARCANE_LEVEL(ch) (compute_arcane_level(ch))
