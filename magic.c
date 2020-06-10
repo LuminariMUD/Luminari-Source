@@ -3897,6 +3897,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_ARMOR:
     mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype, 0);
     break;
+  case SPELL_MASS_FALSE_LIFE:
+    mag_affects(level, ch, tch, obj, SPELL_FALSE_LIFE, savetype, casttype, 0);
+    break;
   case SPELL_MASS_HASTE:
     mag_affects(level, ch, tch, obj, SPELL_HASTE, savetype, casttype, 0);
     break;

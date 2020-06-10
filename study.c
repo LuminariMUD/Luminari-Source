@@ -524,7 +524,8 @@ ACMD(do_study)
       TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0)
+  //if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0)  // old -- gicker, june 10, 2020
+  if (!HAS_SET_STATS_STUDY(ch))
   {
     set_stats_menu(d);
     return;
@@ -3168,12 +3169,15 @@ void study_parse(struct descriptor_data *d, char *arg)
         break;
       }
       // We're applying racial bonuses now instead of in init_start_char in class.c
-      LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD);
-      LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD);
-      LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD);
-      LEVELUP(d->character)->inte += get_race_stat(GET_RACE(ch), R_INTEL_MOD);
-      LEVELUP(d->character)->wis += get_race_stat(GET_RACE(ch), R_WIS_MOD);
-      LEVELUP(d->character)->cha += get_race_stat(GET_RACE(ch), R_CHA_MOD);
+      if (!HAS_SET_STATS_STUDY(ch)) {
+        LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD);
+        LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD);
+        LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD);
+        LEVELUP(d->character)->inte += get_race_stat(GET_RACE(ch), R_INTEL_MOD);
+        LEVELUP(d->character)->wis += get_race_stat(GET_RACE(ch), R_WIS_MOD);
+        LEVELUP(d->character)->cha += get_race_stat(GET_RACE(ch), R_CHA_MOD);
+        HAS_SET_STATS_STUDY(ch) = TRUE;
+      }
       // let's update trains
       intel_bonus += ((GET_REAL_INT(ch) + LEVELUP(ch)->inte) - GET_REAL_INT(ch)) / 2;
       if (GET_LEVEL(ch) == 1)

@@ -3407,6 +3407,9 @@ struct player_special_data_saved
 
     /* staff event variables */
     int staff_ran_events[STAFF_RAN_EVENTS_VAR];
+
+    // set true if ability scores have been set in study
+    bool have_stats_been_set_study;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

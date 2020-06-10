@@ -2077,11 +2077,19 @@ ACMD(do_respec)
     }
 
     do_start(ch);
+    GET_REAL_CON(ch) -= get_race_stat(GET_RACE(ch), R_CON_MOD);
+    GET_REAL_STR(ch) -= get_race_stat(GET_RACE(ch), R_STR_MOD);
+    GET_REAL_DEX(ch) -= get_race_stat(GET_RACE(ch), R_DEX_MOD);
+    GET_REAL_INT(ch) -= get_race_stat(GET_RACE(ch), R_INTEL_MOD);
+    GET_REAL_WIS(ch) -= get_race_stat(GET_RACE(ch), R_WIS_MOD);
+    GET_REAL_CHA(ch) -= get_race_stat(GET_RACE(ch), R_CHA_MOD);
+    HAS_SET_STATS_STUDY(ch) = FALSE;
     GET_EXP(ch) = tempXP;
     send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
     if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMYou have chosen a premade %s build\tn\r\n", class_list[class].name);
     send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
+    save_char(ch, 0);
   }
 }
 

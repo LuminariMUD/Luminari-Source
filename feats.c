@@ -2218,7 +2218,7 @@ void assign_feats(void)
   feato(FEAT_ETH_SHIFT, "ethereal shift", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "shift between ethereal/prime planes at will",
         "You gain the ability to shift group members or yourself, at will, to the "
-        "ethereal plane and back to the prime material plane.");
+        "ethereal plane and back to the prime material plane. Command is: ethshift");
   feato(FEAT_BATTLE_RAGE, "battle rage", TRUE, FALSE, FALSE, FEAT_TYPE_DOMAIN_ABILITY,
         "bonus to hitroll/damage",
         "You add your cleric level / 4 to both your hitroll and damroll for "
