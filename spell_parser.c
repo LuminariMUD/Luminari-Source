@@ -2371,7 +2371,12 @@ void mag_assign_spells(void)
         //blindness - shared
         spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "You feel your necromantic-life drain away.", 4, 9, ILLUSION, FALSE);
+               "You feel your necromantic-life drain away.", 4, 9, NECROMANCY, FALSE);
+        
+        spello(SPELL_MASS_FALSE_LIFE, "mass false life", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM, FALSE, MAG_GROUPS,
+               "You feel your necromantic-life drain away.", 4, 9, NECROMANCY, FALSE);
+               
         /* enchantment */
         spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,

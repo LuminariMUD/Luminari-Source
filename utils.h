@@ -1199,6 +1199,7 @@ void char_from_furniture(struct char_data *ch);
                                   : 0))
 #define CAN_STUDY_SKILLS(ch) (GET_LEVELUP_SKILL_POINTS(ch))
 #define CAN_STUDY_BOOSTS(ch) (GET_LEVELUP_BOOSTS(ch) > 0)
+#define HAS_SET_STATS_STUDY(ch) (ch->player_specials->saved.have_stats_been_set_study)
 
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 

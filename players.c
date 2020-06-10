@@ -472,6 +472,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_DISGUISE_CON(ch) = 0;
     GET_DISGUISE_DEX(ch) = 0;
     GET_DISGUISE_AC(ch) = 0;
+    HAS_SET_STATS_STUDY(ch) = PFDEF_HAS_SET_STATS_STUDY;
     GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
     NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) = NEW_ARCANA_SLOT(ch, 3) = 0;
     for (i = 0; i < AF_ARRAY_MAX; i++)
@@ -925,6 +926,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_REAL_SPELL_RES(ch) = atoi(line);
         else if (!strcmp(tag, "Size"))
           GET_REAL_SIZE(ch) = atoi(line);
+        else if (!strcmp(tag, "SySt"))
+          HAS_SET_STATS_STUDY(ch) = atoi(line);
         else if (!strcmp(tag, "Str "))
           load_HMVS(ch, line, LOAD_STRENGTH);
         else if (!strcmp(tag, "SSch"))
@@ -1191,6 +1194,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Race: %d\n", GET_REAL_RACE(ch));
   if (GET_REAL_SIZE(ch) != PFDEF_SIZE)
     fprintf(fl, "Size: %d\n", GET_REAL_SIZE(ch));
+  if (HAS_SET_STATS_STUDY(ch) != PFDEF_HAS_SET_STATS_STUDY)
+    fprintf(fl, "SySt: %d\n", HAS_SET_STATS_STUDY(ch));
   if (GET_LEVEL(ch) != PFDEF_LEVEL)
     fprintf(fl, "Levl: %d\n", GET_LEVEL(ch));
   if (GET_DISGUISE_RACE(ch))

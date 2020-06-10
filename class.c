@@ -3282,6 +3282,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_MASS_WISDOM, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_CHARISMA, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_FALSE_LIFE, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_WIZARD, SPELL_CLENCHED_FIST, 15);
@@ -4423,6 +4424,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_MASS_WISDOM, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_CHARISMA, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_CUNNING, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_FALSE_LIFE, 14);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_SORCERER, SPELL_CLENCHED_FIST, 16);

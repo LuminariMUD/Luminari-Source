@@ -421,9 +421,6 @@
 #define SPELL_VIGORIZE_CRITICAL 311
 #define SPELL_GROUP_VIGORIZE 312
 
-/** Total Number of defined spells  */
-#define NUM_SPELLS 313
-
 /* unfinished spell list (homeland-port) */
 
 #define SPELL_EMBALM 313
@@ -504,7 +501,12 @@
 #define SPELL_AUGURY 384
 #define PSYCHOKINETIC_FEAR 385
 /****/
-#define LAST_SPELL_DEFINE 385
+
+#define SPELL_MASS_FALSE_LIFE 386
+
+/** Total Number of defined spells  */
+#define NUM_SPELLS 386
+#define LAST_SPELL_DEFINE 386
 /*******************************/
 
 
