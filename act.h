@@ -795,5 +795,15 @@ ACMD_DECL(do_weaponinfo);
 ACMD_DECL(do_autocon);
 ACMD_DECL(do_perfmon);
 ACMD_DECL(do_showwearoff);
+ACMD_DECL(do_poisonbreath);
+ACMDCHECK(can_poisonbreath);
+ACMD_DECL(do_tailspikes);
+ACMDCHECK(can_tailspikes);
+ACMD_DECL(do_pixiedust);
+ACMD_DECL(do_pixieinvis);
+ACMDCHECK(can_pixiedust);
+ACMDCHECK(can_pixieinvis);
+ACMD_DECL(do_dragonfear);
+ACMDCHECK(can_dragonfear);
 
 #endif /* _ACT_H_ */

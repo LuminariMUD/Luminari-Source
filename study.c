@@ -525,7 +525,7 @@ ACMD(do_study)
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
   //if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0)  // old -- gicker, june 10, 2020
-  if (!HAS_SET_STATS_STUDY(ch))
+  if (GET_LEVEL(ch) == 1 && !HAS_SET_STATS_STUDY(ch) && GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
   {
     set_stats_menu(d);
     return;
@@ -1119,13 +1119,13 @@ static void set_stats_menu(struct descriptor_data *d)
                   "to reset your characters stats to try a different configuration.\r\n"
                   "Change made to base stat:   1  2  3  4  5  6  7  8   9   10\r\n"
                   "Point cost              :   1  2  3  4  5  6  8  10  13  16\r\n"
-                  "\r\n"
-                  "%s 0%s) Strength:      %d%s\r\n"
-                  "%s 1%s) Dexterity:     %d%s\r\n"
-                  "%s 2%s) Constitution:  %d%s\r\n"
-                  "%s 3%s) Intelligence:  %d%s\r\n"
-                  "%s 4%s) Wisdom:        %d%s\r\n"
-                  "%s 5%s) Charisma:      %d%s\r\n"
+                  "                 Base | Race Mod | Final\r\n"
+                  "%s 0%s) Strength:      %2d%s | %6s%s%d | %d\r\n"
+                  "%s 1%s) Dexterity:     %2d%s | %6s%s%d | %d\r\n"
+                  "%s 2%s) Constitution:  %2d%s | %6s%s%d | %d\r\n"
+                  "%s 3%s) Intelligence:  %2d%s | %6s%s%d | %d\r\n"
+                  "%s 4%s) Wisdom:        %2d%s | %6s%s%d | %d\r\n"
+                  "%s 5%s) Charisma:      %2d%s | %6s%s%d | %d\r\n"
                   "%sPoints Left:         %d%s\r\n"
                   "\r\n"
                   "%s Q%s) Quit\r\n"
@@ -1141,12 +1141,18 @@ static void set_stats_menu(struct descriptor_data *d)
 
                   mgn, nrm,
                   /* empty line */
-                  grn, nrm, LEVELUP(d->character)->str, nrm,
-                  grn, nrm, LEVELUP(d->character)->dex, nrm,
-                  grn, nrm, LEVELUP(d->character)->con, nrm,
-                  grn, nrm, LEVELUP(d->character)->inte, nrm,
-                  grn, nrm, LEVELUP(d->character)->wis, nrm,
-                  grn, nrm, LEVELUP(d->character)->cha, nrm,
+                  grn, nrm, LEVELUP(d->character)->str, nrm, "", get_race_stat(GET_RACE(d->character), R_STR_MOD) >= 0 ? "+" : "",
+                            get_race_stat(GET_RACE(d->character), R_STR_MOD), get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str,
+                  grn, nrm, LEVELUP(d->character)->dex, nrm, "", get_race_stat(GET_RACE(d->character), R_DEX_MOD) >= 0 ? "+" : "",
+                            get_race_stat(GET_RACE(d->character), R_DEX_MOD), get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex,
+                  grn, nrm, LEVELUP(d->character)->con, nrm, "", get_race_stat(GET_RACE(d->character), R_CON_MOD) >= 0 ? "+" : "",
+                            get_race_stat(GET_RACE(d->character), R_CON_MOD), get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con,
+                  grn, nrm, LEVELUP(d->character)->inte, nrm, "", get_race_stat(GET_RACE(d->character), R_INTEL_MOD) >= 0 ? "+" : "",
+                            get_race_stat(GET_RACE(d->character), R_INTEL_MOD), get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte,
+                  grn, nrm, LEVELUP(d->character)->wis, nrm, "", get_race_stat(GET_RACE(d->character), R_WIS_MOD) >= 0 ? "+" : "",
+                            get_race_stat(GET_RACE(d->character), R_WIS_MOD), get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis,
+                  grn, nrm, LEVELUP(d->character)->cha, nrm, "", get_race_stat(GET_RACE(d->character), R_CHA_MOD) >= 0 ? "+" : "",
+                            get_race_stat(GET_RACE(d->character), R_CHA_MOD), get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha,
                   grn, stat_points_left(d->character), nrm,
                   /* empty line */
                   grn, nrm
@@ -2228,6 +2234,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         send_to_char(ch, "You return to your normal form..\r\n");
       }
       do_start(ch);
+      HAS_SET_STATS_STUDY(ch) = FALSE;
       GET_EXP(ch) = tempXP;
       send_to_char(ch, "You have reset your  character and can begin choosing stats, skills and feats anew.\r\n");
       save_char(d->character, 0);

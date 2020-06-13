@@ -1536,35 +1536,115 @@ void assign_races(void)
 
   /* magical beast */
   /*
-  add_race(RACE_BLINK_DOG, "blink dog", "BlnkDog", "Blink Dog", RACE_TYPE_MAGICAL_BEAST, N, Y, Y, 0, 0, 0, 0, 0, 0,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-    */
+  add_race(RACE_BLINK_DOG, "blink dog", "BlinkDog", "Blink Dog", "BlDg", "BlDg",
+           // race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? 
+           RACE_TYPE_MAGICAL_BEAST, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
+
+  set_race_attack_types(RACE_BLINK_DOG,
+                      // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce 
+                      N, N, N, N, Y, N, N, N, Y, N, N, N,
+                      // blast punch stab slice thrust hack rake peck smash trample charge gore 
+                      N, N, N, N, N, N, N, N, N, N, N, N);
+  */
+  add_race(RACE_MANTICORE, "manticore", "Mnticore", "Manticore", "Mntc", "Mntc",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_MAGICAL_BEAST, SIZE_LARGE, FALSE, 0, 0, IS_NORMAL);
+
+  set_race_attack_types(RACE_MANTICORE,
+                      /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                      N, N, N, N, Y, N, N, N, Y, N, N, N,
+                      /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                      N, N, N, N, N, N, N, N, N, N, N, N);
+  
 
   /* fey */
-  /*
-  add_race(RACE_PIXIE, "pixie", "Pixie", "Pixie", RACE_TYPE_FEY, N, Y, Y, -4, 0, 4, 0, 4, 4,
-          Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_TINY, FALSE, CLASS_DRUID, SKILL_LANG_ELVEN, 3);
-    */
+  
+  add_race(RACE_PIXIE, "pixie", "Pixie", "Pixie", "Pixi", "Pixi",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_FEY, SIZE_TINY, FALSE, 0, 0, IS_NORMAL);
+
+  set_race_attack_types(RACE_PIXIE,
+                      /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                      N, Y, N, N, N, N, N, N, N, N, N, N,
+                      /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                      Y, N, N, N, N, N, N, N, N, N, N, N);
+
 
   /* construct */
-  /*
-  add_race(RACE_IRON_GOLEM, "iron golem", "IronGolem", "Iron Golem", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
-          N, N, N, N, Y, N, Y, Y, Y, SIZE_LARGE, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-  add_race(RACE_ARCANA_GOLEM, "arcana golem", "ArcanaGolem", "Arcana Golem", RACE_TYPE_CONSTRUCT, Y, N, N, 0, 0, 0, 0, 0, 0,
-          N, N, N, N, Y, N, Y, Y, Y, SIZE_MEDIUM, TRUE, CLASS_WIZARD, SKILL_LANG_COMMON, 0);
-    */
+  
+  add_race(RACE_IRON_GOLEM, "iron golem", "IronGolem", "Iron Golem", "IrGl", "IrGl",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_CONSTRUCT, SIZE_LARGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_IRON_GOLEM,
+                    /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                    N, N, N, N, N, Y, Y, N, N, N, N, N,
+                    /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                    N, N, N, N, N, N, N, N, N, N, N, N);
 
   /* outsiders */
-  /*
+
+  /* 
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
-    */
-
+  */
+ 
   /* dragon */
   /*
   add_race(RACE_DRAGON_CLOUD, "dragon cloud", "DrgCloud", "Cloud Dragon", RACE_TYPE_DRAGON, N, Y, Y, 0, 0, 0, 0, 0, 0,
           N, N, N, N, Y, N, Y, Y, Y, SIZE_HUGE, FALSE, CLASS_WARRIOR, SKILL_LANG_DRACONIC, 0);
     */
+
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_WHITE_DRAGON, "white dragon", "WhtDragn", "White Dragon", "WhDr", "WhDr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_DRAGON, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_WHITE_DRAGON,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_BLACK_DRAGON, "black dragon", "BlkDragn", "Black Dragon", "BlDr", "BlDr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_DRAGON, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_BLACK_DRAGON,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_GREEN_DRAGON, "green dragon", "GrnDragn", "green Dragon", "GrDr", "GrDr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_DRAGON, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_GREEN_DRAGON,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+    /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_BLUE_DRAGON, "blue dragon", "BluDragn", "Blue Dragon", "BlDr", "BlDr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_DRAGON, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_WHITE_DRAGON,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  add_race(RACE_RED_DRAGON, "red dragon", "RedDragn", "Red Dragon", "RdDr", "RdDr",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_DRAGON, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_RED_DRAGON,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /****************************************************************************/
 
   /* aberration */
   /*

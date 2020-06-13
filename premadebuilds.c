@@ -886,8 +886,7 @@ void levelup_wizard(struct char_data *ch, int level, bool verbose)
       give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
-      }
-      GET_SPECIALTY_SCHOOL(ch) = EVOCATION;
+      }      
       GET_FAMILIAR(ch) = 85; // imp
       break;
     case 3:

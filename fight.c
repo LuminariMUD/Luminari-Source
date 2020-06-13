@@ -2295,6 +2295,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
       damtype_reduction += -50;
+    if (!IS_NPC(ch) && (GET_RACE(ch) == RACE_WHITE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_WHITE_DRAGON))
+      damtype_reduction += -50;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_COLD_SHIELD))
@@ -2318,13 +2320,16 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (HAS_SUBRACE(ch, SUBRACE_SWARM))
         damtype_reduction -= 50;
     }
-
+    if (GET_RACE(ch) == RACE_RED_DRAGON || GET_DISGUISE_RACE(ch) == RACE_RED_DRAGON)
+      damtype_reduction += 100;
     break;
 
   case DAM_COLD:
 
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_TRELUX)
       damtype_reduction += -20;
+    if (!IS_NPC(ch) && (GET_RACE(ch) == RACE_RED_DRAGON || GET_DISGUISE_RACE(ch) == RACE_RED_DRAGON))
+      damtype_reduction += -50;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
@@ -2348,7 +2353,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (HAS_SUBRACE(ch, SUBRACE_REPTILIAN))
         damtype_reduction -= 25;
     }
-
+    if (GET_RACE(ch) == RACE_WHITE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_WHITE_DRAGON)
+      damtype_reduction += 100;
     break;
 
   case DAM_AIR:
@@ -2415,7 +2421,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (HAS_SUBRACE(ch, SUBRACE_EARTH))
         damtype_reduction += 25;
     }
-
+    if (GET_RACE(ch) == RACE_BLACK_DRAGON || GET_DISGUISE_RACE(ch) == RACE_BLACK_DRAGON)
+      damtype_reduction += 100;
     break;
 
   case DAM_HOLY:
@@ -2461,7 +2468,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (HAS_SUBRACE(ch, SUBRACE_WATER))
         damtype_reduction -= 50;
     }
-
+    if (GET_RACE(ch) == RACE_BLUE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_BLUE_DRAGON)
+      damtype_reduction += 100;
     break;
 
   case DAM_UNHOLY:
@@ -2553,7 +2561,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
         damtype_reduction += 75;
     }
-
+    if (GET_RACE(ch) == RACE_GREEN_DRAGON || GET_DISGUISE_RACE(ch) == RACE_GREEN_DRAGON)
+      damtype_reduction += 100;
     break;
 
   case DAM_CELESTIAL_POISON:
@@ -2750,6 +2759,13 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
   if (affected_by_spell(ch, SPELL_EPIC_MAGE_ARMOR))
     damage_reduction += 6;
+
+  if (IS_IRON_GOLEM(ch))
+    damage_reduction += 10;
+  if (IS_PIXIE(ch))
+    damage_reduction += 10;
+  if (IS_DRAGON(ch))
+    damage_reduction += 5;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -4261,7 +4277,12 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
   {
     if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     {
-      send_to_char(ch, "Claws, Teeth and Smash!\r\n");
+      if (IS_PIXIE(ch))
+        send_to_char(ch, "A Tiny Short Sword\r\n");
+      else if (IS_IRON_GOLEM(ch))
+        send_to_char(ch, "Huge Iron Fists\r\n");
+      else
+        send_to_char(ch, "Claws, Teeth and Smash!\r\n");
     }
     else if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
     {
@@ -6750,9 +6771,13 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
       return_val = damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
     }
     else if (dam && victim && GET_HIT(victim) >= -1 &&
+             IS_AFFECTED(victim, AFF_ESHIELD))
+    { // electric shield
+      return_val = damage(victim, ch, dice(1, 6), SPELL_ESHIELD_DAM, DAM_ELECTRIC, attack_type);
+    }
+    else if (dam && victim && GET_HIT(victim) >= -1 &&
              IS_AFFECTED(victim, AFF_ASHIELD))
     { // acid shield
-
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
   }

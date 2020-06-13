@@ -68,6 +68,10 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (!IS_NPC(vict) && GET_EQ(vict, WEAR_SHIELD) &&
       HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
     resist += 25;
+  if (IS_PIXIE(vict))
+    resist += 15;
+  if (IS_DRAGON(vict))
+    resist += 25;
 
   return MIN(99, MAX(0, resist));
 }
@@ -77,6 +81,10 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
 {
+
+  if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY))
+    return TRUE;
+
   int challenge = dice(1, 20),
       resist = compute_spell_res(ch, vict, modifier);
 
@@ -1211,6 +1219,22 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = GET_LEVEL(ch);
     size_dice = 12;
     break;
+  case SPELL_ACID_BREATHE:
+    //AoE
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_ACID;
+    num_dice = GET_LEVEL(ch);
+    size_dice = 12;
+    break;
+  case SPELL_POISON_BREATHE:
+    //AoE
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_POISON;
+    num_dice = GET_LEVEL(ch);
+    size_dice = 12;
+    break;
 
     /****************************************\
       || --------Magic AoE SPELLS------------ ||
@@ -1469,10 +1493,32 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
 
+  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE) {
+    GET_HIT(victim) += dam;
+    if (GET_HIT(victim) > GET_MAX_HIT(victim))
+      GET_HIT(victim) = GET_MAX_HIT(victim);
+    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
+    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return 1;
+  }
+  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_ELECTRIC) {
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = SPELL_SLOW;
+    af.duration = 3;
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+    affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
+    act("The spell deals no damage, but slows you instead!", TRUE, ch, 0, victim, TO_CHAR);
+    act("The spell deals no damage, but slows $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+    return 1;
+  }
+
   //resistances to magic, message in mag_resistance
-  if (dam && mag_resist)
-    if (mag_resistance(ch, victim, 0))
-      return 0;
+  if (dam && mag_resist) {
+    if (!HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) || element == DAM_FIRE || element == DAM_ELECTRIC)
+      if (mag_resistance(ch, victim, 0))
+        return 0;
+  }
 
   //dwarven racial bonus to magic, gnomes to illusion
   int race_bonus = 0;
@@ -2140,7 +2186,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_DEEP_SLUMBER: //enchantment
 
-    if (GET_LEVEL(victim) >= 15 || is_immune_sleep)
+    if ((!IS_PIXIE(ch) && GET_LEVEL(victim) >= 15) || is_immune_sleep)
     {
       send_to_char(ch, "The target is too powerful for this enchantment!\r\n");
       return;
@@ -2381,6 +2427,39 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n grasps $s head in pain, $s eyes glazing over!";
     to_vict = "Your head starts to throb and a wave of confusion washes over you.";
+    break;
+
+  case SPELL_CONFUSION: // enchantment
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    {
+      return;
+    }
+
+    if (is_immune_mind_affecting(ch, victim, TRUE))
+      return;
+
+    SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
+    af[0].duration = level;
+    victim->confuser_idnum = GET_IDNUM(ch);
+    to_room = "A look of utter confusion washes over $n's face.";
+    to_vict = "You find yourself completely confused and disoriented.";
+    break;
+
+  case SPELL_ENTANGLE: //transmutation
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
+      return;
+
+    SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    af[0].duration = 10 + level;
+    af[0].location = APPLY_DEX;
+    af[0].modifier = -2;
+    accum_duration = FALSE;
+    to_room = "$n is grasped by waving and entangling vines!";
+    to_vict = "You are grasped by waving and entangling vines!";
     break;
 
   case SPELL_FIRE_SHIELD: //evocation
@@ -4299,6 +4378,14 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_LIGHTNING_BREATHE:
     to_char = "You exhale breathing out lightning!";
     to_room = "$n exhales breathing lightning!";
+    break;
+  case SPELL_ACID_BREATHE:
+    to_char = "You exhale breathing out acid!";
+    to_room = "$n exhales breathing acid!";
+    break;
+  case SPELL_POISON_BREATHE:
+    to_char = "You exhale breathing out poison!";
+    to_room = "$n exhales breathing poison!";
     break;
   case SPELL_DRACONIC_BLOODLINE_BREATHWEAPON:
     switch (draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])

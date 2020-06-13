@@ -156,6 +156,7 @@ struct mud_event_list mud_event_index[] = {
     {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
     {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR},   //eSACRED_FLAMES
     {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR},      //eINNER_FIRE
+    {"Pixie Dust Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // ePIXIEDUST
 
 };
 
@@ -714,6 +715,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eDRACBREATH:
     featnum = FEAT_DRACONIC_HERITAGE_BREATHWEAPON;
     send_to_char(ch, "One of your draconic heritage breath weapon uses has recovered.\r\n");
+    break;
+  case ePIXIEDUST:
+    featnum = FEAT_PIXIE_DUST;
+    send_to_char(ch, "One of your pixie dust uses has recovered.\r\n");
     break;
   case eARCANEADEPT:
     featnum = FEAT_METAMAGIC_ADEPT;

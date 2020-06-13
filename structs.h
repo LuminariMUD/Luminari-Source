@@ -574,10 +574,16 @@
 #define RACE_MANDRAGORA 78
 #define RACE_AEON_THELETOS 79
 #define RACE_STIRGE 80
+#define RACE_WHITE_DRAGON 81
+#define RACE_BLACK_DRAGON 82
+#define RACE_GREEN_DRAGON 83
+#define RACE_BLUE_DRAGON 84
+#define RACE_RED_DRAGON 85
+#define RACE_MANTICORE 86
 /**/
 /* Total Number of available (in-game) PC Races*/
 #define NUM_RACES 12
-#define NUM_EXTENDED_RACES 81
+#define NUM_EXTENDED_RACES 87
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -937,8 +943,9 @@
 #define AFF_STAGGERED 105          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
 #define AFF_DAZZLED 106            /* suffers -1 to attacks and perception checks */
 #define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
+#define AFF_ESHIELD 108             // electric shield - reflect damage
 /*---*/
-#define NUM_AFF_FLAGS 108
+#define NUM_AFF_FLAGS 109
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -1747,12 +1754,19 @@
 #define FEAT_BOMB_MASTERY 630
 // end more alchemist
 #define FEAT_EFFICIENT_PERFORMANCE 631
+#define FEAT_TRUE_SIGHT 632
+#define FEAT_PARALYSIS_IMMUNITY 633
+#define FEAT_IRON_GOLEM_IMMUNITY 634
+#define FEAT_POISON_BREATH 635
+#define FEAT_TAIL_SPIKES 636
+#define FEAT_PIXIE_DUST 637
+#define FEAT_PIXIE_INVISIBILITY 638
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 632
+#define FEAT_LAST_FEAT 637
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 633
+#define NUM_FEATS 638
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
