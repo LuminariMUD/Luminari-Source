@@ -141,6 +141,7 @@ typedef enum
   /*110*/ eINVISIBLE_ROGUE, /* invisible rogue, SLA */
   eSACRED_FLAMES,           /*flaming sacred unarmed attacks!*/
   eINNER_FIRE,              /*inner fire, lots of juicy bonuses!*/
+  ePIXIEDUST,               // pixie dust used with shifter form: pixie
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

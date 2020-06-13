@@ -852,7 +852,7 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *sneaker) {
  */
 bool can_see_hidden(struct char_data *ch, struct char_data *hider) {
   /* free passes */
-  if (!AFF_FLAGGED(hider, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT))
+  if (!AFF_FLAGGED(hider, AFF_HIDE) || AFF_FLAGGED(ch, AFF_TRUE_SIGHT) || HAS_FEAT(ch, FEAT_TRUE_SIGHT))
     return TRUE;
 
   /* do spot check here */
@@ -3576,6 +3576,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17) daily_uses++;
       if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20) daily_uses++;
       break;
+    case FEAT_PIXIE_DUST:
+      daily_uses = GET_REAL_CHA(ch) + 4;
+      break;
     case FEAT_DRACONIC_HERITAGE_CLAWS:
       daily_uses += 3 + GET_CHA_BONUS(ch);
       break;
@@ -3864,12 +3867,14 @@ int calculate_cp(struct obj_data *obj) {
 bool paralysis_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
+  if (HAS_FEAT(ch, FEAT_PARALYSIS_IMMUNITY)) return TRUE;
   return FALSE;
 }
 
 bool sleep_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
+  if (HAS_FEAT(ch, FEAT_SLEEP_ENCHANTMENT_IMMUNITY)) return TRUE;
   return FALSE;
 }
 
@@ -3911,6 +3916,19 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     }
     return TRUE;
   }
+  return FALSE;
+}
+
+sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte display) {
+  if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
+    if (display) {
+      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!",
+              GET_NAME(ch));
+    }
+    return TRUE;
+  }
+  if (HAS_FEAT(victim, FEAT_SLEEP_ENCHANTMENT_IMMUNITY)) return TRUE;
   return FALSE;
 }
 

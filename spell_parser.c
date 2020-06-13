@@ -2328,6 +2328,9 @@ void mag_assign_spells(void)
         spello(SPELL_MAGIC_FANG, "magic fang", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "Your magic fang wears off.", 3, 7, TRANSMUTATION, FALSE);
+        spello(SPELL_ENTANGLE, "entangle", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+               "The vines around your feet turn to dust.", 3, 7, TRANSMUTATION, FALSE);
         spello(SPELL_MAGIC_STONE, "magic stone", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_CREATIONS,
                NULL, 3, 7, TRANSMUTATION, FALSE);
@@ -2393,6 +2396,10 @@ void mag_assign_spells(void)
         spello(SPELL_TOUCH_OF_IDIOCY, "touch of idiocy", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
                "You begin to feel less incompetent.", 2, 9,
+               ENCHANTMENT, FALSE);
+        spello(SPELL_CONFUSION, "confusion", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+               "The confusion fogging your mind has passed.", 2, 9,
                ENCHANTMENT, FALSE);
         /* illusion */
         spello(SPELL_BLUR, "blur", 0, 0, 0, POS_FIGHTING,
@@ -3151,6 +3158,9 @@ void mag_assign_spells(void)
         spello(SPELL_DEATHCLOUD, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
+        spello(SPELL_GENERIC_AOE, "aoe attack", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS,
+               NULL, 0, 0, NOSCHOOL, FALSE);
         spello(SPELL_FIRE_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
@@ -3160,10 +3170,22 @@ void mag_assign_spells(void)
         spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
+        spello(SPELL_ACID_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS,
+               NULL, 0, 0, NOSCHOOL, FALSE);
+        spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS,
+               NULL, 0, 0, NOSCHOOL, FALSE);
+        spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS,
+               NULL, 0, 0, NOSCHOOL, FALSE);
         spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
         spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AFFECTS,
+               NULL, 0, 0, NOSCHOOL, FALSE);
+        spello(SPELL_ESHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AFFECTS,
                NULL, 0, 0, NOSCHOOL, FALSE);
         /* innate darkness spell, room events testing spell as well */

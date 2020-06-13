@@ -587,6 +587,9 @@ void assign_feats(void)
   feato(FEAT_ULTRAVISION, "ultravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "you can see perfectly even in complete dark",
         "you can see perfectly even in complete dark");
+  feato(FEAT_TRUE_SIGHT, "true sight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "you can see invisible persons or items and the true forms of shapechanged, wildshaped, disguised or polymorphed beings",
+        "you can see invisible persons or items and the true forms of shapechanged, wildshaped, disguised or polymorphed beings");
   feato(FEAT_INFRAVISION, "infravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "you can see outlines of life in complete dark",
         "you can see outlines of life in complete dark");
@@ -2936,6 +2939,15 @@ void assign_feats(void)
   /*10*/ feato(FEAT_SHIFTER_SHAPES_5, "shifter shapes v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                "dragon shape",
                "dragon shape");
+  feato(FEAT_IRON_GOLEM_IMMUNITY, "iron golem immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "immunity to all magic, except fire and lightning.",
+               "immunity to all magic, except fire and lightning. Fire will heal the golem instead.  Electric damage will slow the golem instead.");
+  feato(FEAT_POISON_BREATH, "poison breath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "allows breathing poison gas into the room",
+               "dragon shape");
+  feato(FEAT_TAIL_SPIKES, "tail spikes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "can shoot spikes from your tail to each enemy in the room.",
+               "can shoot spikes from your tail to each enemy in the room.  1d6+5 damage each, uses a swift action.");
 
   /* Assassin */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3117,6 +3129,10 @@ void assign_feats(void)
   feato(FEAT_THEORY_TO_PRACTICE, "theory to practice", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "unfinished", "unfinished");
   feato(FEAT_RUTHLESS_NEGOTIATOR, "ruthless negotiator", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "unfinished", "unfinished");
 
+  feato(FEAT_PARALYSIS_IMMUNITY, "paralysis immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  "cannot be paralyzed.",
+  "cannot be paralyzed");
+
   /* artisan */
   feato(FEAT_LEARNED_CRAFTER, "learned crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Artisan gains exp for crafting items and harvesting", "Artisan gains exp for crafting items and harvesting");
   feato(FEAT_PROFICIENT_CRAFTER, "proficient crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Increases all crafting skills", "Increases all crafting skills");
@@ -3231,7 +3247,9 @@ void assign_feats(void)
   feato(FEAT_CLAWS_AND_BITE, "claws and bite", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_CONSTITUTION_BOOST, "constitution boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_INTELLIGENCE_BOOST, "intelligence boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_SLEEP_PARALYSIS_IMMUNITY, "sleep & paralysis immunity", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
+  feato(FEAT_SLEEP_PARALYSIS_IMMUNITY, "sleep & paralysis immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  "cannot be put to sleep or paralyzed.",
+  "cannot be put to sleep or paralyzed");
   feato(FEAT_STRENGTH_BOOST, "strength boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TRAMPLE, "trample", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
@@ -3387,6 +3405,7 @@ void assign_feats(void)
   dailyfeat(FEAT_METAMAGIC_ADEPT, eARCANEADEPT);
   dailyfeat(FEAT_MUTAGEN, eMUTAGEN);
   dailyfeat(FEAT_PSYCHOKINETIC, ePSYCHOKINETIC);
+  dailyfeat(FEAT_PIXIE_DUST, ePIXIEDUST);
   /** END **/
 }
 
@@ -4598,6 +4617,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_PIXIE_DUST)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

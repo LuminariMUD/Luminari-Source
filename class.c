@@ -2183,6 +2183,7 @@ void init_start_char(struct char_data *ch)
   IS_MORPHED(ch) = 0;
   GET_DISGUISE_RACE(ch) = 0;
   cleanup_disguise(ch);
+  GET_SPECIALTY_SCHOOL(ch) = 0;
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
@@ -3224,6 +3225,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_STONESKIN, 7);
   spell_assignment(CLASS_WIZARD, SPELL_ENLARGE_PERSON, 7);
   spell_assignment(CLASS_WIZARD, SPELL_SHRINK_PERSON, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_CONFUSION, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
@@ -3976,6 +3978,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_OBSCURING_MIST, 1);
   spell_assignment(CLASS_DRUID, SPELL_PRODUCE_FLAME, 1);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_1, 1);
+  spell_assignment(CLASS_DRUID, SPELL_ENTANGLE, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_DRUID, SPELL_BARKSKIN, 3);
@@ -4366,6 +4369,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_STONESKIN, 8);
   spell_assignment(CLASS_SORCERER, SPELL_ENLARGE_PERSON, 8);
   spell_assignment(CLASS_SORCERER, SPELL_SHRINK_PERSON, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_CONFUSION, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);
@@ -4704,6 +4708,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_JUMP, 6);
   spell_assignment(CLASS_RANGER, SPELL_MAGIC_FANG, 6);
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_1, 6);
+  spell_assignment(CLASS_RANGER, SPELL_ENTANGLE, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_RANGER, SPELL_ENDURANCE, 10);
@@ -4846,6 +4851,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_WISDOM, 8);
   spell_assignment(CLASS_BARD, SPELL_CHARISMA, 8);
   spell_assignment(CLASS_BARD, SPELL_CURE_SERIOUS, 8);
+  spell_assignment(CLASS_BARD, SPELL_CONFUSION, 8);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_4, 11);

@@ -31,7 +31,7 @@ ACMDU(do_say)
   char type[20];
   char *arg2 = NULL;
 
-  if (IS_ANIMAL(ch))
+  if (IS_ANIMAL(ch) && !IS_WILDSHAPED(ch))
   {
     send_to_char(ch, "You can't speak!\r\n");
     return;
@@ -112,7 +112,7 @@ ACMDU(do_gsay)
 {
   skip_spaces(&argument);
 
-  if (IS_ANIMAL(ch))
+  if (IS_ANIMAL(ch) && !IS_WILDSHAPED(ch))
   {
     send_to_char(ch, "You can't speak!\r\n");
     return;
@@ -554,7 +554,7 @@ ACMDU(do_gen_comm)
   }
 
   /* animals can't speak */
-  if (IS_ANIMAL(ch))
+  if (IS_ANIMAL(ch) && !IS_WILDSHAPED(ch))
   {
     send_to_char(ch, "You can't speak!\r\n");
     return;

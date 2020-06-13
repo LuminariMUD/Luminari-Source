@@ -24,7 +24,6 @@
 #include "domains_schools.h"
 #include "handler.h"
 
-
 #define CHECK_TABLE_SIZE(tbl, exp_sz) \
     _Static_assert(sizeof( (tbl) )/sizeof( (tbl) [0]) == (exp_sz), #tbl " wrong number entries")
 
@@ -1344,7 +1343,10 @@ const char *affected_bits[] = {
     "Staggered",
     "Dazzled",
     "Shaken",
-    "\n"};
+    "Electric-Shielded",
+    "\n"
+};
+
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 
 /** Affected bits descriptions.
@@ -1462,6 +1464,7 @@ const char *affected_bit_descs[] = {
     "You are staggered - 50% chance to fail spells or a single melee attack!", //105
     "You are dazzled and will suffer -1 to attacks and perception checks!",
     "You are shaken: -2 to attack rolls, saves and skills checks!",
+    "You are surrounded by a shield of sparking electricity.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

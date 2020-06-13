@@ -144,7 +144,6 @@ SPECIAL(faction_mission)
       send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
       return 1;
     }
-    GET_MISSION_COOLDOWN(ch) = 100; // ten minutes
 
     struct char_data *mob = (struct char_data *) me;
     int level = GET_LEVEL(ch);
@@ -254,6 +253,7 @@ SPECIAL(faction_mission)
 
 
     create_mission_mobs(ch);
+    GET_MISSION_COOLDOWN(ch) = 100; // ten minutes
 
     return 1;
 }

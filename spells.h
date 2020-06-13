@@ -388,7 +388,7 @@
 #define SPELL_WALL_OF_FIRE 282
 #define SPELL_WALL_OF_THORNS 283
 #define SPELL_FIRE_SEEDS 284
-#define SPELL_UNUSED285 285
+#define SPELL_CONFUSION 285
 #define SPELL_MASS_ENDURANCE 286 // *note mass enhance combines these 3
 #define SPELL_MASS_STRENGTH 287  // *note mass enhance combines these 3
 #define SPELL_MASS_GRACE 288     // *note mass enhance combines these 3
@@ -403,7 +403,7 @@
 #define SPELL_CONTROL_PLANTS 297
 #define SPELL_FINGER_OF_DEATH 298
 #define SPELL_ELEMENTAL_SWARM 299
-#define SPELL_UNUSED300 300
+#define SPELL_GENERIC_AOE 300
 #define SPELL_SHAMBLER 301
 #define SPELL_SHAPECHANGE 302 // hey b, maybe use polymorph
 /* some more cleric spells */
@@ -493,7 +493,7 @@
 #define PSIONIC_UNNAMED12 379
 #define PSIONIC_UNNAMED13 380
 #define PSIONIC_UNNAMED14 381
-#define PSIONIC_UNNAMED15 382
+#define SPELL_ESHIELD_DAM 382          //done, acid shield proc
 /* end unfinished list */
 
 /* alchemist */
@@ -503,10 +503,14 @@
 /****/
 
 #define SPELL_MASS_FALSE_LIFE 386
+#define SPELL_ACID_BREATHE 387
+#define SPELL_POISON_BREATHE 388
+#define SPELL_ENTANGLE 389
+#define SPELL_DRAGONFEAR 390
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 386
-#define LAST_SPELL_DEFINE 386
+#define NUM_SPELLS 391
+#define LAST_SPELL_DEFINE 391
 /*******************************/
 
 
@@ -808,6 +812,7 @@
 
 /* other attack types */
 
+#define TYPE_ESHIELD 795
 #define TYPE_CSHIELD 796
 #define TYPE_FSHIELD 797
 #define TYPE_ASHIELD 798

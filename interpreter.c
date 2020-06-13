@@ -268,6 +268,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dracbreath", "dracbreath", POS_FIGHTING, do_sorcerer_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_sorcerer_breath_weapon},
     {"dracclaws", "dracclaws", POS_FIGHTING, do_sorcerer_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_sorcerer_claw_attack},
     {"dracwings", "dracwings", POS_FIGHTING, do_sorcerer_draconic_wings, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -483,6 +484,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"page", "pag", POS_DEAD, do_page, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"pardon", "pardon", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_PARDON, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"plist", "plist", POS_DEAD, do_plist, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"poisonbreath", "poisonb", POS_FIGHTING, do_poisonbreath, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_poisonbreath},
     {"poisontouch", "poisont", POS_FIGHTING, do_poisontouch, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"policy", "pol", POS_DEAD, do_gen_ps, 0, SCMD_POLICIES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"pour", "pour", POS_STANDING, do_pour, 0, SCMD_POUR, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -495,6 +497,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"powerfulblow", "powerfulblow", POS_FIGHTING, do_powerfulblow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_powerfulblow},
     {"pin", "pin", POS_FIGHTING, do_pin, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"pixiedust", "pixiedust", POS_RECLINING, do_pixiedust, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixiedust},
+    {"pixieinvis", "pixieinvis", POS_RECLINING, do_pixieinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixieinvis},
     {"players", "players", POS_DEAD, do_players, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"psychokinetic", "psychokinetic", POS_FIGHTING, do_psychokinetic, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
@@ -624,6 +628,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"tell", "t", POS_DEAD, do_tell, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"take", "ta", POS_RECLINING, do_get, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"tailspikes", "tailspikes", POS_FIGHTING, do_tailspikes, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_tailspikes},
     {"taste", "tas", POS_RECLINING, do_eat, 0, SCMD_TASTE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"taunt", "taunt", POS_FIGHTING, do_taunt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_taunt},
     {"teleport", "tele", POS_DEAD, do_teleport, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

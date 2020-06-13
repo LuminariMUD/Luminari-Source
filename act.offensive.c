@@ -31,6 +31,7 @@
 #include "assign_wpn_armor.h"
 #include "feats.h"
 #include "missions.h"
+#include "domains_schools.h"
 
 /* defines */
 #define RAGE_AFFECTS 4
@@ -2956,6 +2957,94 @@ ACMD(do_frightful)
   attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
 }
 
+ACMDCHECK(can_tailspikes)
+{
+  ACMDCHECK_PERMFAIL_IF(GET_RACE(ch) != RACE_MANTICORE && GET_DISGUISE_RACE(ch) != RACE_MANTICORE, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_tailspikes)
+{
+  struct char_data *vict, *next_vict;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_tailspikes);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  act("You lift your tail and send a spray of tail spikes to all your foes.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n lifts $s tail and sends a spray of tail spikes to all $s foes.", FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, SPELL_GENERIC_AOE))
+    {
+      damage(ch, vict, dice(1, 6)+5, SPELL_GENERIC_AOE, DAM_PUNCTURE, FALSE);
+    }
+  }
+  USE_SWIFT_ACTION(ch);
+
+}
+
+ACMDCHECK(can_dragonfear)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_dragonfear)
+{
+  struct char_data *vict, *next_vict;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_dragonfear);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  struct affected_type af;
+
+  act("You raise your huge dragonic head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n raises $s huge dragonic head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, SPELL_DRAGONFEAR))
+    {
+      if (is_immune_fear(ch, vict, TRUE))
+        continue;
+      if (is_immune_mind_affecting(ch, vict, TRUE))
+        continue;
+      if (mag_resistance(ch, vict, 0))
+        continue;
+      if (mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER), ENCHANTMENT))
+        continue;
+      // success
+      act("You have been shaken by the dragon's might.", FALSE, ch, 0, vict, TO_VICT);
+      new_affect(&af);
+      af.spell = SPELL_DRAGONFEAR;
+      af.duration = dice(5, 6);
+      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+    }
+  }
+
+  USE_SWIFT_ACTION(ch);
+}
+
 ACMDCHECK(can_breathe)
 {
   ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
@@ -2979,8 +3068,38 @@ ACMD(do_breathe)
     return;
   }
 
-  send_to_char(ch, "You exhale breathing out fire!\r\n");
-  act("$n exhales breathing fire!", FALSE, ch, 0, 0, TO_ROOM);
+  int dam_type = DAM_FIRE;
+  int spellnum = SPELL_FIRE_BREATHE;
+  int cast_level = GET_LEVEL(ch);
+  char buf[MEDIUM_STRING] = { '\0' };
+
+  if (IS_MORPHED(ch)) {
+    cast_level = CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID);
+    switch (GET_DISGUISE_RACE(ch))
+    {
+      case RACE_WHITE_DRAGON:
+        dam_type = DAM_COLD;
+        spellnum = SPELL_FROST_BREATHE;
+        break;
+      case RACE_BLACK_DRAGON:
+        dam_type = DAM_ACID;
+        spellnum = SPELL_ACID_BREATHE;
+        break;
+      case RACE_GREEN_DRAGON:
+        dam_type = DAM_POISON;
+        spellnum = SPELL_POISON_BREATHE;
+        break;
+      case RACE_BLUE_DRAGON:
+        dam_type = DAM_ELECTRIC;
+        spellnum = SPELL_LIGHTNING_BREATHE;
+        break;
+      // no need for red here, as defaults above are fire.
+    }
+  }
+
+  send_to_char(ch, "You exhale breathing out %s!\r\n", damtypes[dam_type]);
+  snprintf(buf, sizeof(buf), "$n exhales breathing %s!", damtypes[dam_type]);
+  act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
@@ -2988,18 +3107,131 @@ ACMD(do_breathe)
 
     if (aoeOK(ch, vict, SPELL_FIRE_BREATHE))
     {
-      if (GET_LEVEL(ch) <= 15)
-        damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
-               FALSE);
-      else
-        damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_FIRE_BREATHE, DAM_FIRE,
-               FALSE);
+      if (IS_MORPHED(ch)) {
+        damage(ch, vict, dice(cast_level, 6), spellnum, dam_type, FALSE);
+      } else {
+        if (GET_LEVEL(ch) <= 15)
+          damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
+                FALSE);
+        else
+          damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_FIRE_BREATHE, DAM_FIRE,
+                FALSE);
+      }
     }
   }
   USE_STANDARD_ACTION(ch);
 
   /* 12 seconds = 2 rounds */
   attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
+}
+
+ACMDCHECK(can_poisonbreath)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_IRON_GOLEM(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_poisonbreath)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_poisonbreath);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  act("You exhale, breathing out a cloud of poison!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n exhales, breathing out a cloud of poison!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, NULL, NULL, SPELL_DEATHCLOUD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_pixieinvis)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_PIXIE(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_pixieinvis)
+{
+  PREREQ_CHECK(can_pixieinvis);
+
+  act("You blink your eyes and vanish from sight!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n blinks $s eyes and vaishes from sight!", FALSE, ch, 0, 0, TO_ROOM);
+  
+  call_magic(ch, ch, NULL, SPELL_GREATER_INVIS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  USE_STANDARD_ACTION(ch);
+}
+
+ACMDCHECK(can_pixiedust)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_PIXIE(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_pixiedust)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_pixiedust);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_PIXIE_DUST, "You must recover before you can use pixie dust again.\r\n");
+    send_to_char(ch, "You have %d uses remaining.\r\n", uses_remaining);
+  }
+
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast pixie dust upon.\r\n");
+    return;
+  }
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+  if (!vict)
+  {
+    send_to_char(ch, "There is no one here by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your pixie dust to take:\r\n"
+                     "pixiedust (target) (sleep|charm|confuse|dispel|entangle|shield)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "sleep") || is_abbrev(arg2, "charm") || is_abbrev(arg2, "confuse") || is_abbrev(arg2, "dispel") ||
+      is_abbrev(arg2, "entangle") || is_abbrev(arg2, "shield"))
+  {
+    act("You cast a handful of pixie dust over $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n casts a handful of pixie dust over you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n casts a handful of pixie dust over $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch))
+      start_daily_use_cooldown(ch, FEAT_PIXIE_DUST);
+  }
+  if (is_abbrev(arg2, "sleep")) {
+    call_magic(ch, vict, NULL, SPELL_DEEP_SLUMBER, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "charm")) {
+    call_magic(ch, vict, NULL, SPELL_DOMINATE_PERSON, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "confuse")) {
+    call_magic(ch, vict, NULL, SPELL_CONFUSION, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "dispel")) {
+    call_magic(ch, vict, NULL, SPELL_DISPEL_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "entangle")) {
+    call_magic(ch, vict, NULL, SPELL_ENTANGLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "shield")) {
+    call_magic(ch, vict, NULL, SPELL_SHIELD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+   send_to_char(ch, "You need to specify what effect you'd like your pixie dust to take:\r\n"
+                     "pixiedust (target) (sleep|charm|confuse|dispel|entangle|shield)\r\n");
+  }
 }
 
 ACMDCHECK(can_sorcerer_breath_weapon)

@@ -908,6 +908,7 @@ ACMD(do_imbuearrow)
   case SPELL_FSHIELD_DAM:
   case SPELL_CSHIELD_DAM:
   case SPELL_ASHIELD_DAM:
+  case SPELL_ESHIELD_DAM:
   case SPELL_INTERPOSING_HAND:
   case SPELL_WALL_OF_FORCE:
   case SPELL_CLOUDKILL:
@@ -2070,6 +2071,7 @@ ACMD(do_respec)
     /* Make sure that players can't make wildshaped forms permanent.*/
     SUBRACE(ch) = 0;
     IS_MORPHED(ch) = 0;
+    GET_DISGUISE_RACE(ch) = -1; // 0 is human
     if (affected_by_spell(ch, SKILL_WILDSHAPE))
     {
       affect_from_char(ch, SKILL_WILDSHAPE);
@@ -2077,12 +2079,6 @@ ACMD(do_respec)
     }
 
     do_start(ch);
-    GET_REAL_CON(ch) -= get_race_stat(GET_RACE(ch), R_CON_MOD);
-    GET_REAL_STR(ch) -= get_race_stat(GET_RACE(ch), R_STR_MOD);
-    GET_REAL_DEX(ch) -= get_race_stat(GET_RACE(ch), R_DEX_MOD);
-    GET_REAL_INT(ch) -= get_race_stat(GET_RACE(ch), R_INTEL_MOD);
-    GET_REAL_WIS(ch) -= get_race_stat(GET_RACE(ch), R_WIS_MOD);
-    GET_REAL_CHA(ch) -= get_race_stat(GET_RACE(ch), R_CHA_MOD);
     HAS_SET_STATS_STUDY(ch) = FALSE;
     GET_EXP(ch) = tempXP;
     send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
@@ -2181,8 +2177,7 @@ ACMD(do_gain)
     /* need to spend their points before advancing */
     if ((GET_PRACTICES(ch) != 0) ||
         (GET_TRAINS(ch) > 1) ||
-        (GET_BOOSTS(ch) != 0) ||
-        (stats_point_left(ch) > 0 && GET_LEVEL(ch) == 1))
+        (GET_BOOSTS(ch) != 0))
     { //    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
                (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
@@ -2203,19 +2198,6 @@ ACMD(do_gain)
         send_to_char(ch, "You must use all boosts before gaining another level.  "
                          "You have %d boost%s remaining.\r\n",
                      GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
-      if (stats_point_left(ch) > 0 && GET_LEVEL(ch) == 1)
-        send_to_char(ch, "You must spend all your stat points before gaining a level. Points: %d\r\n", stats_point_left(ch));
-      /*       if(CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch))
-              send_to_char(ch, "You must 'study sorcerer' before gaining another level.\r\n");
-            if(CLASS_LEVEL(ch, CLASS_WIZARD) && !IS_WIZ_LEARNED(ch))
-              send_to_char(ch, "You must 'study wizard' before gaining another level.\r\n");
-            if(CLASS_LEVEL(ch, CLASS_BARD) && !IS_BARD_LEARNED(ch))
-              send_to_char(ch, "You must 'study bard' before gaining another level.\r\n");
-            if(CLASS_LEVEL(ch, CLASS_DRUID) && !IS_DRUID_LEARNED(ch))
-              send_to_char(ch, "You must 'study druid' before gaining another level.\r\n");
-            if(CLASS_LEVEL(ch, CLASS_RANGER) && !IS_RANG_LEARNED(ch))
-              send_to_char(ch, "You must 'study ranger' before gaining another level.\r\n");
-       */
       return;
     }
     else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
@@ -2443,22 +2425,22 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
     switch (race_list[race].size)
     {
     case SIZE_LARGE:
-      abil_mods->dexterity = -2;
-      abil_mods->strength = 7;
-      abil_mods->constitution = 3;
-      abil_mods->natural_armor = 4;
+      abil_mods->dexterity = 0;
+      abil_mods->strength = 6;
+      abil_mods->constitution = 6;
+      abil_mods->natural_armor = 10;
       break;
     case SIZE_HUGE:
-      abil_mods->dexterity = -4;
-      abil_mods->strength = 11;
-      abil_mods->constitution = 6;
-      abil_mods->natural_armor = 5;
+      abil_mods->dexterity = 0;
+      abil_mods->strength = 8;
+      abil_mods->constitution = 8;
+      abil_mods->natural_armor = 12;
       break;
     case SIZE_GARGANTUAN:
-      abil_mods->dexterity = -6;
-      abil_mods->strength = 16;
-      abil_mods->constitution = 9;
-      abil_mods->natural_armor = 8;
+      abil_mods->dexterity = 0;
+      abil_mods->strength = 10;
+      abil_mods->constitution = 10;
+      abil_mods->natural_armor = 14;
       break;
     }
     break;
@@ -2604,7 +2586,24 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
   case RACE_WOLF:
   case RACE_HYENA:
     break;
-
+  case RACE_IRON_GOLEM:
+    abil_mods->strength = 8;
+    abil_mods->dexterity = -2;
+    abil_mods->constitution = 8;
+    abil_mods->natural_armor = 8;
+    break;
+  case RACE_MANTICORE:
+    abil_mods->strength = 6;
+    abil_mods->dexterity = 2;
+    abil_mods->constitution = 4;
+    abil_mods->natural_armor = 6;
+    break;
+  case RACE_PIXIE:
+    abil_mods->strength = -2;
+    abil_mods->dexterity = 8;
+    abil_mods->constitution = 2;
+    abil_mods->natural_armor = 6;
+    break;
   default:
     break;
   }
@@ -2850,7 +2849,33 @@ void cleanup_wildshape_feats(struct char_data *ch)
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
     break;
   case RACE_EAGLE:
+  case RACE_PIXIE:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_MANTICORE:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_RED_DRAGON:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_BLUE_DRAGON:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ESHIELD);
+    break;
+  case RACE_GREEN_DRAGON:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+    break;
+  case RACE_BLACK_DRAGON:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+    break;
+  case RACE_WHITE_DRAGON:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
     break;
   case RACE_SMALL_FIRE_ELEMENTAL:
   case RACE_MEDIUM_FIRE_ELEMENTAL:
@@ -2992,6 +3017,72 @@ void assign_wildshape_feats(struct char_data *ch)
   /* individual race specific assignments, feats, affections, etc */
   switch (shifted_race)
   {
+  case RACE_WHITE_DRAGON:
+    MOB_SET_FEAT(ch, FEAT_TRUE_SIGHT, 1);
+    MOB_SET_FEAT(ch, FEAT_PARALYSIS_IMMUNITY, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    MOB_SET_FEAT(ch, FEAT_BLINDSENSE, 1);
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_ALERTNESS, 1);
+    MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
+    break;
+  case RACE_BLACK_DRAGON:
+    MOB_SET_FEAT(ch, FEAT_TRUE_SIGHT, 1);
+    MOB_SET_FEAT(ch, FEAT_PARALYSIS_IMMUNITY, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    MOB_SET_FEAT(ch, FEAT_BLINDSENSE, 1);
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_ALERTNESS, 1);
+    MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+    break;
+  case RACE_GREEN_DRAGON:
+    MOB_SET_FEAT(ch, FEAT_TRUE_SIGHT, 1);
+    MOB_SET_FEAT(ch, FEAT_PARALYSIS_IMMUNITY, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    MOB_SET_FEAT(ch, FEAT_BLINDSENSE, 1);
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_ALERTNESS, 1);
+    MOB_SET_FEAT(ch, FEAT_CLEAVE, 1);
+    MOB_SET_FEAT(ch, FEAT_GREAT_CLEAVE, 1);
+    MOB_SET_FEAT(ch, FEAT_IRON_WILL, 1);
+    MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
+    MOB_SET_FEAT(ch, FEAT_TRACKLESS_STEP, 1);
+    MOB_SET_FEAT(ch, FEAT_WOODLAND_STRIDE, 1);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
+    break;
+  case RACE_BLUE_DRAGON:
+    MOB_SET_FEAT(ch, FEAT_TRUE_SIGHT, 1);
+    MOB_SET_FEAT(ch, FEAT_PARALYSIS_IMMUNITY, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    MOB_SET_FEAT(ch, FEAT_BLINDSENSE, 1);
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_COMBAT_CASTING, 1);
+    MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_ESHIELD);
+    break;
+  case RACE_RED_DRAGON:
+    MOB_SET_FEAT(ch, FEAT_TRUE_SIGHT, 1);
+    MOB_SET_FEAT(ch, FEAT_PARALYSIS_IMMUNITY, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    MOB_SET_FEAT(ch, FEAT_BLINDSENSE, 1);
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_IRON_WILL, 1);
+    MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
+    MOB_SET_FEAT(ch, FEAT_CLEAVE, 1);
+    MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+    break;
+  case RACE_IRON_GOLEM:
+    MOB_SET_FEAT(ch, FEAT_IRON_GOLEM_IMMUNITY, 1);
+    MOB_SET_FEAT(ch, FEAT_POISON_BREATH, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    break;
   case RACE_BLINK_DOG:
     SET_BIT_AR(AFF_FLAGS(ch), AFF_BLINKING);
     break;
@@ -3016,6 +3107,19 @@ void assign_wildshape_feats(struct char_data *ch)
   case RACE_CONSTRICTOR_SNAKE:
   case RACE_GIANT_CONSTRICTOR_SNAKE:
     MOB_SET_FEAT(ch, FEAT_IMPROVED_GRAPPLE, 1);
+    break;
+  case RACE_MANTICORE:
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_TAIL_SPIKES, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    break;
+  case RACE_PIXIE:
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    MOB_SET_FEAT(ch, FEAT_PIXIE_DUST, 1);
+    MOB_SET_FEAT(ch, FEAT_PIXIE_INVISIBILITY, 1);
+    MOB_SET_FEAT(ch, FEAT_DODGE, 1);
+    MOB_SET_FEAT(ch, FEAT_WEAPON_FINESSE, 1);
+    MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
     break;
   case RACE_EAGLE:
     MOB_SET_FEAT(ch, FEAT_WINGS, 1);
@@ -3066,6 +3170,7 @@ void wildshape_return(struct char_data *ch)
 
   /* stat modifications are cleaned up in affect_total() */
   GET_DISGUISE_RACE(ch) = 0;
+  IS_MORPHED(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
 
   FIRING(ch) = FALSE; /*just in case*/
@@ -3147,6 +3252,7 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
   GET_HIT(ch) += GET_LEVEL(ch);
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
 
+  IS_MORPHED(ch) = race_list[GET_DISGUISE_RACE(ch)].family;
   affect_total(ch);
   save_char(ch, 0);
   Crash_crashsave(ch);

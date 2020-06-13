@@ -94,6 +94,7 @@ sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int ca
 int get_poison_save_mod(struct char_data *ch, struct char_data *victim);
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display);
+sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte display);
 void remove_fear_affects(struct char_data *ch, sbyte display);
 void gui_combat_wrap_open(struct char_data *ch);
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj);
@@ -1529,7 +1530,8 @@ void char_from_furniture(struct char_data *ch);
  */
 #define INVIS_OK(sub, obj)                                                       \
   ((!AFF_FLAGGED((obj), AFF_INVISIBLE) || (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || \
-                                           AFF_FLAGGED(sub, AFF_TRUE_SIGHT))) && \
+                                           AFF_FLAGGED(sub, AFF_TRUE_SIGHT) || \
+                                           HAS_FEAT(sub, FEAT_TRUE_SIGHT))) && \
    (can_see_hidden(sub, obj)))
 
 /** Defines if sub character can see obj character, assuming mortal only
@@ -1774,6 +1776,8 @@ void char_from_furniture(struct char_data *ch);
                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
 #define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
+#define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
+#define IS_PIXIE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
