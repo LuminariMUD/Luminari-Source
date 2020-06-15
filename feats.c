@@ -964,7 +964,8 @@ void assign_feats(void)
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Extra attack with offhand weapon",
         "Extra attack with offhand weapon with no penalty");
-  feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING);
+  //feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING); // For some reason not returning true even when prereq is set.
+  feat_prereq_feat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING, 1);
   feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
   /* archery epic feats */
   feato(FEAT_EPIC_MANYSHOT, "epic manyshot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
@@ -2948,6 +2949,21 @@ void assign_feats(void)
   feato(FEAT_TAIL_SPIKES, "tail spikes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                "can shoot spikes from your tail to each enemy in the room.",
                "can shoot spikes from your tail to each enemy in the room.  1d6+5 damage each, uses a swift action.");
+  feato(FEAT_PIXIE_DUST, "pixie dust", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "Can use pixie magic",
+               "Can use pixie magic.  Command is pixiedust.");
+  feato(FEAT_PIXIE_INVISIBILITY, "pixie invisibility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "Can use greater invisibility at will.",
+               "Can use greater invisiblity at will.  Command is pixieinvis.");
+  feato(FEAT_EFREETI_MAGIC, "efreeti magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "Can use efreeti magic",
+               "Can use efreeti magic.  Command is efreetimagic.");
+  feato(FEAT_DRAGON_MAGIC, "dragon magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+               "Can use dragon magic",
+               "Can use dragon magic.  Command is dragonmagic.");
+  feato(FEAT_EPIC_WILDSHAPE, "epic wildshape", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
+               "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.",
+               "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.  Max 5 ranks.");
 
   /* Assassin */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3353,6 +3369,7 @@ void assign_feats(void)
   epicfeat(FEAT_HELLBALL);
   epicfeat(FEAT_EPIC_MAGE_ARMOR);
   epicfeat(FEAT_EPIC_WARDING);
+  epicfeat(FEAT_EPIC_WILDSHAPE);
 
   epicfeat(FEAT_LAST_FEAT);
 
@@ -3406,6 +3423,8 @@ void assign_feats(void)
   dailyfeat(FEAT_MUTAGEN, eMUTAGEN);
   dailyfeat(FEAT_PSYCHOKINETIC, ePSYCHOKINETIC);
   dailyfeat(FEAT_PIXIE_DUST, ePIXIEDUST);
+  dailyfeat(FEAT_EFREETI_MAGIC, eEFREETIMAGIC);
+  dailyfeat(FEAT_DRAGON_MAGIC, eDRAGONMAGIC);
   /** END **/
 }
 
@@ -3689,6 +3708,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (has_feat_requirement_check(ch, FEAT_EPIC_PROWESS) >= 5)
         return FALSE;
       return TRUE;
+    
+    case FEAT_EPIC_WILDSHAPE:
+      if (has_feat_requirement_check(ch, FEAT_EPIC_WILDSHAPE) >= 5)
+        return FALSE;
+      if (ch->real_abils.wis >= 21 && (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID)) >= 20)
+        return TRUE;
+      return FALSE;
 
     case FEAT_EPIC_COMBAT_CHALLENGE:
       if (GET_ABILITY(ch, ABILITY_DIPLOMACY) < 20 &&
@@ -4622,6 +4648,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
+      else if (i == FEAT_EFREETI_MAGIC)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_DRAGON_MAGIC)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
       else if (i == FEAT_PIXIE_DUST)
       {
         if (mode == 1)
@@ -4827,6 +4883,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (+%d attack bonus)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_PROWESS));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_EPIC_WILDSHAPE)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

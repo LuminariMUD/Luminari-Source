@@ -580,10 +580,11 @@
 #define RACE_BLUE_DRAGON 84
 #define RACE_RED_DRAGON 85
 #define RACE_MANTICORE 86
+#define RACE_EFREETI 87
 /**/
 /* Total Number of available (in-game) PC Races*/
 #define NUM_RACES 12
-#define NUM_EXTENDED_RACES 87
+#define NUM_EXTENDED_RACES 88
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -1761,12 +1762,15 @@
 #define FEAT_TAIL_SPIKES 636
 #define FEAT_PIXIE_DUST 637
 #define FEAT_PIXIE_INVISIBILITY 638
+#define FEAT_EFREETI_MAGIC 639
+#define FEAT_DRAGON_MAGIC 640
+#define FEAT_EPIC_WILDSHAPE 641
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 637
+#define FEAT_LAST_FEAT 642
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 638
+#define NUM_FEATS 643
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
@@ -3424,6 +3428,13 @@ struct player_special_data_saved
 
     // set true if ability scores have been set in study
     bool have_stats_been_set_study;
+
+    int pixie_dust_uses;
+    int pixie_dust_timer;
+    int efreeti_magic_uses;
+    int efreeti_magic_timer;
+    int dragon_magic_uses;
+    int dragon_magic_timer;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

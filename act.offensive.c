@@ -3175,8 +3175,17 @@ ACMD(do_pixiedust)
 
   if (!IS_NPC(ch))
   {
-    PREREQ_HAS_USES(FEAT_PIXIE_DUST, "You must recover before you can use pixie dust again.\r\n");
-    send_to_char(ch, "You have %d uses remaining.\r\n", uses_remaining);
+    if (PIXIE_DUST_USES(ch) <= 0)
+    {
+      if (PIXIE_DUST_TIMER(ch) <= 0) {
+        PIXIE_DUST_TIMER(ch) = 0;
+        PIXIE_DUST_USES(ch) = PIXIE_DUST_USES_PER_DAY(ch);
+        send_to_char(ch, "Your pixie dust uses have been refreshed to %d.\r\n", PIXIE_DUST_USES_PER_DAY(ch));
+      } else {
+        send_to_char(ch, "You don't have any pixie dust uses left.\r\n");
+        return;
+      }
+    }
   }
 
   struct char_data *vict = NULL;
@@ -3213,8 +3222,11 @@ ACMD(do_pixiedust)
     act("$n casts a handful of pixie dust over you!", FALSE, ch, 0, vict, TO_VICT);
     act("$n casts a handful of pixie dust over $N!", FALSE, ch, 0, vict, TO_NOTVICT);
     USE_STANDARD_ACTION(ch);
-    if (!IS_NPC(ch))
-      start_daily_use_cooldown(ch, FEAT_PIXIE_DUST);
+    if (!IS_NPC(ch)) {
+      if (PIXIE_DUST_TIMER(ch) <= 0)
+        PIXIE_DUST_TIMER(ch) = 150;
+      PIXIE_DUST_USES(ch)--;
+    }
   }
   if (is_abbrev(arg2, "sleep")) {
     call_magic(ch, vict, NULL, SPELL_DEEP_SLUMBER, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
@@ -3231,7 +3243,495 @@ ACMD(do_pixiedust)
   } else {
    send_to_char(ch, "You need to specify what effect you'd like your pixie dust to take:\r\n"
                      "pixiedust (target) (sleep|charm|confuse|dispel|entangle|shield)\r\n");
+   return;
   }
+  send_to_char(ch, "You have %d pixie dust uses left.\r\n", PIXIE_DUST_USES(ch));
+}
+
+void perform_red_dragon_magic(struct char_data *ch, const char *argument)
+{
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast your dragon magic upon.\r\n");
+    return;
+  }
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+  if (!vict)
+  {
+    send_to_char(ch, "There is no one here by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|magic-missile|shield|true-strike|endure-elements|haste)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "detect-magic") || is_abbrev(arg2, "continual-flame") || is_abbrev(arg2, "dispel-magic") || is_abbrev(arg2, "invisibility") ||
+      is_abbrev(arg2, "see-invisibility") || is_abbrev(arg2, "magic-missile") || is_abbrev(arg2, "shield") || is_abbrev(arg2, "true-strike") ||
+       is_abbrev(arg2, "endure-elements") || is_abbrev(arg2, "haste"))
+  {
+    act("You invoke your natural dragon magic on $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n invokes $s natural dragon magic on you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n invokes $s natural dragon magic on $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !is_abbrev(arg2, "detect-magic") && !is_abbrev(arg2, "continual-flame"))
+      { if (DRAGON_MAGIC_TIMER(ch) <= 0) DRAGON_MAGIC_TIMER(ch) = 150; DRAGON_MAGIC_USES(ch)--; }
+  }
+  if (is_abbrev(arg2, "detect-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "continual-flame")) {
+    call_magic(ch, vict, NULL, SPELL_CONTINUAL_FLAME, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "dispel-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DISPEL_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "see-invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_INVIS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "magic-missile")) {
+    call_magic(ch, vict, NULL, SPELL_MAGIC_MISSILE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "shield")) {
+    call_magic(ch, vict, NULL, SPELL_SHIELD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "true-strike")) {
+    call_magic(ch, vict, NULL, SPELL_TRUE_STRIKE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "endure-elements")) {
+    call_magic(ch, vict, NULL, SPELL_ENDURE_ELEMENTS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "haste")) {
+    call_magic(ch, vict, NULL, SPELL_HASTE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|magic-missile|shield|true-strike|endure-elements|haste)\r\n");
+  }
+}
+
+void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
+{
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast your dragon magic upon.\r\n");
+    return;
+  }
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+  if (!vict)
+  {
+    send_to_char(ch, "There is no one here by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|mage-armor|shield|true-strike|endure-elements|lightning-bolt)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "detect-magic") || is_abbrev(arg2, "continual-flame") || is_abbrev(arg2, "dispel-magic") || is_abbrev(arg2, "invisibility") ||
+      is_abbrev(arg2, "see-invisibility") || is_abbrev(arg2, "mage-armor") || is_abbrev(arg2, "shield") || is_abbrev(arg2, "true-strike") ||
+       is_abbrev(arg2, "endure-elements") || is_abbrev(arg2, "lightning-bolt"))
+  {
+    act("You invoke your natural dragon magic on $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n invokes $s natural dragon magic on you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n invokes $s natural dragon magic on $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !is_abbrev(arg2, "detect-magic") && !is_abbrev(arg2, "continual-flame"))
+      { if (DRAGON_MAGIC_TIMER(ch) <= 0) DRAGON_MAGIC_TIMER(ch) = 150; DRAGON_MAGIC_USES(ch)--; }
+  }
+  if (is_abbrev(arg2, "detect-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "continual-flame")) {
+    call_magic(ch, vict, NULL, SPELL_CONTINUAL_FLAME, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "dispel-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DISPEL_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "see-invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_INVIS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "mage-armor")) {
+    call_magic(ch, vict, NULL, SPELL_MAGE_ARMOR, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "shield")) {
+    call_magic(ch, vict, NULL, SPELL_SHIELD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "true-strike")) {
+    call_magic(ch, vict, NULL, SPELL_TRUE_STRIKE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "endure-elements")) {
+    call_magic(ch, vict, NULL, SPELL_ENDURE_ELEMENTS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "lightning-bolt")) {
+    call_magic(ch, vict, NULL, SPELL_LIGHTNING_BOLT, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|mage-armor|shield|true-strike|endure-elements|lightning-bolt)\r\n");
+  }
+}
+
+void perform_green_dragon_magic(struct char_data *ch, const char *argument)
+{
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast your dragon magic upon.\r\n");
+    return;
+  }
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+  if (!vict)
+  {
+    send_to_char(ch, "There is no one here by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|mage-armor|shield|true-strike|endure-elements|mirror-image)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "detect-magic") || is_abbrev(arg2, "continual-flame") || is_abbrev(arg2, "dispel-magic") || is_abbrev(arg2, "invisibility") ||
+      is_abbrev(arg2, "see-invisibility") || is_abbrev(arg2, "mage-armor") || is_abbrev(arg2, "shield") || is_abbrev(arg2, "true-strike") ||
+       is_abbrev(arg2, "endure-elements") || is_abbrev(arg2, "mirror-image"))
+  {
+    act("You invoke your natural dragon magic on $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n invokes $s natural dragon magic on you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n invokes $s natural dragon magic on $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !is_abbrev(arg2, "detect-magic") && !is_abbrev(arg2, "continual-flame"))
+      { if (DRAGON_MAGIC_TIMER(ch) <= 0) DRAGON_MAGIC_TIMER(ch) = 150; DRAGON_MAGIC_USES(ch)--; }
+  }
+  if (is_abbrev(arg2, "detect-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "continual-flame")) {
+    call_magic(ch, vict, NULL, SPELL_CONTINUAL_FLAME, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "dispel-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DISPEL_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "see-invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_INVIS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "mage-armor")) {
+    call_magic(ch, vict, NULL, SPELL_MAGE_ARMOR, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "shield")) {
+    call_magic(ch, vict, NULL, SPELL_SHIELD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "true-strike")) {
+    call_magic(ch, vict, NULL, SPELL_TRUE_STRIKE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "endure-elements")) {
+    call_magic(ch, vict, NULL, SPELL_ENDURE_ELEMENTS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "mirror-image")) {
+    call_magic(ch, vict, NULL, SPELL_MIRROR_IMAGE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|mage-armor|shield|true-strike|endure-elements|mirror-image)\r\n");
+  }
+}
+
+void perform_black_dragon_magic(struct char_data *ch, const char *argument)
+{
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast your dragon magic upon.\r\n");
+    return;
+  }
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+  if (!vict)
+  {
+    send_to_char(ch, "There is no one here by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|stinking-cloud|shield|true-strike|endure-elements|slow)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "detect-magic") || is_abbrev(arg2, "continual-flame") || is_abbrev(arg2, "dispel-magic") || is_abbrev(arg2, "invisibility") ||
+      is_abbrev(arg2, "see-invisibility") || is_abbrev(arg2, "stinking-cloud") || is_abbrev(arg2, "shield") || is_abbrev(arg2, "true-strike") ||
+       is_abbrev(arg2, "endure-elements") || is_abbrev(arg2, "slow"))
+  {
+    act("You invoke your natural dragon magic on $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n invokes $s natural dragon magic on you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n invokes $s natural dragon magic on $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !is_abbrev(arg2, "detect-magic") && !is_abbrev(arg2, "continual-flame"))
+      { if (DRAGON_MAGIC_TIMER(ch) <= 0) DRAGON_MAGIC_TIMER(ch) = 150; DRAGON_MAGIC_USES(ch)--; }
+  }
+  if (is_abbrev(arg2, "detect-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "continual-flame")) {
+    call_magic(ch, vict, NULL, SPELL_CONTINUAL_FLAME, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "dispel-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DISPEL_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "see-invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_INVIS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "stinking-cloud")) {
+    call_magic(ch, vict, NULL, SPELL_STINKING_CLOUD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "shield")) {
+    call_magic(ch, vict, NULL, SPELL_SHIELD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "true-strike")) {
+    call_magic(ch, vict, NULL, SPELL_TRUE_STRIKE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "endure-elements")) {
+    call_magic(ch, vict, NULL, SPELL_ENDURE_ELEMENTS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "slow")) {
+    call_magic(ch, vict, NULL, SPELL_SLOW, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|stinking-cloud|shield|true-strike|endure-elements|slow)\r\n");
+  }
+}
+
+void perform_white_dragon_magic(struct char_data *ch, const char *argument)
+{
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast your dragon magic upon.\r\n");
+    return;
+  }
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+  if (!vict)
+  {
+    send_to_char(ch, "There is no one here by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|chill-touch|shield|true-strike|endure-elements|ice-storm)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "detect-magic") || is_abbrev(arg2, "continual-flame") || is_abbrev(arg2, "dispel-magic") || is_abbrev(arg2, "invisibility") ||
+      is_abbrev(arg2, "see-invisibility") || is_abbrev(arg2, "chill-touch") || is_abbrev(arg2, "shield") || is_abbrev(arg2, "true-strike") ||
+       is_abbrev(arg2, "endure-elements") || is_abbrev(arg2, "ice-storm"))
+  {
+    act("You invoke your natural dragon magic on $N!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n invokes $s natural dragon magic on you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n invokes $s natural dragon magic on $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !is_abbrev(arg2, "detect-magic") && !is_abbrev(arg2, "continual-flame"))
+      { if (DRAGON_MAGIC_TIMER(ch) <= 0) DRAGON_MAGIC_TIMER(ch) = 150; DRAGON_MAGIC_USES(ch)--; }
+  }
+  if (is_abbrev(arg2, "detect-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "continual-flame")) {
+    call_magic(ch, vict, NULL, SPELL_CONTINUAL_FLAME, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "dispel-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DISPEL_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "see-invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_INVIS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "chill-touch")) {
+    call_magic(ch, vict, NULL, SPELL_CHILL_TOUCH, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "shield")) {
+    call_magic(ch, vict, NULL, SPELL_SHIELD, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "true-strike")) {
+    call_magic(ch, vict, NULL, SPELL_TRUE_STRIKE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "endure-elements")) {
+    call_magic(ch, vict, NULL, SPELL_ENDURE_ELEMENTS, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "ice-storm")) {
+    call_magic(ch, vict, NULL, SPELL_ICE_STORM, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+    send_to_char(ch, "You need to specify what effect you'd like your dragon magic to take:\r\n"
+                     "dragonmagic (target) (detect-magic|continual-flame|dispel-magic|invisibility|see-invis|chill-touch|shield|true-strike|endure-elements|ice-storm)\r\n");
+  }
+}
+
+ACMDCHECK(can_dragonmagic)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_dragonmagic)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_dragonmagic);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!IS_NPC(ch))
+  {
+    if (DRAGON_MAGIC_USES(ch) <= 0)
+    {
+      if (DRAGON_MAGIC_TIMER(ch) <= 0) {
+        DRAGON_MAGIC_TIMER(ch) = 0;
+        DRAGON_MAGIC_USES(ch) = DRAGON_MAGIC_USES_PER_DAY;
+        send_to_char(ch, "Your dragon magic uses have been refreshed to %d.\r\n", DRAGON_MAGIC_USES_PER_DAY);
+      } else {
+        send_to_char(ch, "You don't have any dragon magic uses left.\r\n");
+        return;
+      }
+    }
+  }
+
+  switch(GET_DISGUISE_RACE(ch))
+  {
+    case RACE_RED_DRAGON:
+      perform_red_dragon_magic(ch, argument);
+      break;
+    case RACE_BLUE_DRAGON:
+      perform_blue_dragon_magic(ch, argument);
+      break;
+    case RACE_GREEN_DRAGON:
+      perform_green_dragon_magic(ch, argument);
+      break;
+    case RACE_BLACK_DRAGON:
+      perform_black_dragon_magic(ch, argument);
+      break;
+    case RACE_WHITE_DRAGON:
+      perform_white_dragon_magic(ch, argument);
+      break;
+    default:
+      send_to_char(ch, "You are not of an eligible dragon type to be able to use dragon magic.\r\n");
+      return;
+  }
+  send_to_char(ch, "You have %d dragon magic uses left.\r\n", DRAGON_MAGIC_USES(ch));
+}
+
+extern char cast_arg2[MAX_INPUT_LENGTH];
+
+ACMDCHECK(can_efreetimagic)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_EFREETI(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_efreetimagic)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_efreetimagic);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!IS_NPC(ch))
+  {
+    if (EFREETI_MAGIC_USES(ch) <= 0)
+    {
+      if (EFREETI_MAGIC_TIMER(ch) <= 0) {
+        EFREETI_MAGIC_TIMER(ch) = 0;
+        EFREETI_MAGIC_USES(ch) = EFREETI_MAGIC_USES_PER_DAY;
+        send_to_char(ch, "Your efreeti magic uses have been refreshed to %d.\r\n", EFREETI_MAGIC_USES_PER_DAY);
+      } else {
+        send_to_char(ch, "You don't have any efreeti magic uses left.\r\n");
+        return;
+      }
+    }
+  }
+
+  struct char_data *vict = NULL;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  int i = 0;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you want to cast your efreeti magic upon.\r\n");
+    return;
+  }
+
+  
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify what effect you'd like your efreeti magic to take:\r\n"
+                     "efreetimagic (target) (detect-magic|produce-flame|scorching-ray|invisiblity|wall-of-fire|mirror-image|enlarge-person|reduce-person)\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "wall-of-fire")) {
+    for (i = 0; i < NUM_OF_DIRS; i++)
+      if (is_abbrev(dirs[i], arg1))
+        break;
+    if (i >= NUM_OF_DIRS) {
+      send_to_char(ch, "There's no exit in that direction.\r\n");
+      return;
+    }
+    vict = ch;
+  } else {
+    /* find the victim */
+    vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM);
+
+    if (!vict)
+    {
+      send_to_char(ch, "There is no one here by that description.\r\n");
+      return;
+    }
+  }
+
+  if (is_abbrev(arg2, "detect-magic") || is_abbrev(arg2, "produce-flame") || is_abbrev(arg2, "scorching-ray") || is_abbrev(arg2, "invisibility") ||
+      is_abbrev(arg2, "wall-of-fire") || is_abbrev(arg2, "mirror-image") || is_abbrev(arg2, "enlarge-person") || is_abbrev(arg2, "reduce-person"))
+  {
+    act("You invoke your natural efreeti magic on $N!", FALSE, ch, 0, vict, TO_CHAR);
+    if (vict != ch)
+      act("$n invokes $s natural efreeti magic on you!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n invokes $s natural efreeti magic on $N!", FALSE, ch, 0, vict, TO_NOTVICT);
+    USE_STANDARD_ACTION(ch);
+    if (!IS_NPC(ch) && !is_abbrev(arg2, "detect-magic") && !is_abbrev(arg2, "produce-flame") && !is_abbrev(arg2, "scorching-ray"))
+      { if (EFREETI_MAGIC_TIMER(ch) <= 0) EFREETI_MAGIC_TIMER(ch) = 150; EFREETI_MAGIC_USES(ch)--; }
+  }
+  if (is_abbrev(arg2, "detect-magic")) {
+    call_magic(ch, vict, NULL, SPELL_DETECT_MAGIC, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "produce-flame")) {
+    call_magic(ch, vict, NULL, SPELL_PRODUCE_FLAME, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "scorching-ray")) {
+    call_magic(ch, vict, NULL, SPELL_SCORCHING_RAY, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "invisibility")) {
+    call_magic(ch, vict, NULL, SPELL_INVISIBLE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "wall-of-fire")) {
+    strlcpy(cast_arg2, arg1, sizeof(cast_arg2));
+    call_magic(ch, ch, NULL, SPELL_WALL_OF_FIRE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "mirror-image")) {
+    call_magic(ch, ch, NULL, SPELL_MIRROR_IMAGE, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "enlarge-person")) {
+    call_magic(ch, ch, NULL, SPELL_ENLARGE_PERSON, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else if (is_abbrev(arg2, "reduce-person")) {
+    call_magic(ch, ch, NULL, SPELL_SHRINK_PERSON, 0, CLASS_LEVEL(ch, CLASS_SHIFTER), CAST_INNATE);
+  } else {
+   send_to_char(ch, "You need to specify what effect you'd like your pixie dust to take:\r\n"
+                     "efreetimagic (target) (detect-magic|produce-flame|scorching-ray|invisiblity|wall-of-fire|mirror-image|enlarge-person|reduce-person)\r\n");
+    return;
+  }
+  send_to_char(ch, "You have %d efreeti magic uses left.\r\n", EFREETI_MAGIC_USES(ch));
 }
 
 ACMDCHECK(can_sorcerer_breath_weapon)

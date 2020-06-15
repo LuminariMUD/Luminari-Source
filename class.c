@@ -5217,7 +5217,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SHIFTER, "shifter", "Shf", "\twS\tWh\twf\tn", "f) \twSh\tWift\twer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         10, Y, Y, M, 8, 0, 1, 4, N, 5000, 0,
+         10, Y, Y, M, 8, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "A shifter has no form they call their own. Instead, they clothe "
                      "themselves in whatever shape is most expedient at the time. While others base "
@@ -5247,7 +5247,7 @@ void load_class_list(void)
                       "the Perpetually Changing", /* <= 30 */
                       "the Immortal Shifter",     /* <= LVL_IMMORT */
                       "the Limitless Changeling", /* <= LVL_STAFF */
-                      "the God of Shifting",      /* <= LVL_GRSTAFF */
+                      "the Guru of Shifting",      /* <= LVL_GRSTAFF */
                       "the Shifter"               /* default */
   );
   /* feat assignment */
@@ -5261,7 +5261,7 @@ void load_class_list(void)
   /* no class feats */
   /* no spell assignment */
   /* class prereqs */
-  class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 6);
+  class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 10);
   /****************************************************************************/
 
   /****************************************************************************/

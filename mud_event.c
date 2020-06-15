@@ -157,6 +157,8 @@ struct mud_event_list mud_event_index[] = {
     {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR},   //eSACRED_FLAMES
     {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR},      //eINNER_FIRE
     {"Pixie Dust Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // ePIXIEDUST
+    {"Efreeti Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eEFREETIMAGIC
+    {"Dragon Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eDRAGONMAGIC
 
 };
 
@@ -719,6 +721,14 @@ EVENTFUNC(event_daily_use_cooldown)
   case ePIXIEDUST:
     featnum = FEAT_PIXIE_DUST;
     send_to_char(ch, "One of your pixie dust uses has recovered.\r\n");
+    break;
+  case eEFREETIMAGIC:
+    featnum = FEAT_EFREETI_MAGIC;
+    send_to_char(ch, "One of your efreeti magic uses has recovered.\r\n");
+    break;
+  case eDRAGONMAGIC:
+    featnum = FEAT_DRAGON_MAGIC;
+    send_to_char(ch, "One of your dragon magic uses has recovered.\r\n");
     break;
   case eARCANEADEPT:
     featnum = FEAT_METAMAGIC_ADEPT;

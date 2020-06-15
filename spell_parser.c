@@ -3423,6 +3423,7 @@ void mag_assign_spells(void)
         skillo(SKILL_PSYCHOKINETIC, "psychokinetic", ACTIVE_SKILL);                 /* 547 */
         skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);                       /* 548 */
         skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);                 /* 549 */
+        skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
 
         /* songs */
         skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       //588

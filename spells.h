@@ -679,6 +679,7 @@
 #define SKILL_PSYCHOKINETIC 547
 #define SKILL_INNER_FIRE 548
 #define SKILL_SACRED_FLAMES 549
+#define SKILL_EPIC_WILDSHAPE 550    //implemented
 
 /* reserving this space for different performances 580 - 599*/
 #define TOP_OF_PERFORMANCES 580

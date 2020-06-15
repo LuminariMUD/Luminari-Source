@@ -1583,6 +1583,15 @@ void assign_races(void)
 
   /* outsiders */
 
+  add_race(RACE_EFREETI, "efreeti", "Efreeti", "Efreeti", "Efrt", "Efrt",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_OUTSIDER, SIZE_LARGE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_EFREETI,
+                    // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce 
+                    N, N, N, Y, N, N, N, N, N, N, Y, N,
+                    // blast p slice thrust hack rake peck smash trample charge gore 
+                    N, N, N, N, N, N, N, N, N, N, N, N);
+
   /* 
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
