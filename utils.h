@@ -1778,6 +1778,20 @@ void char_from_furniture(struct char_data *ch);
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
 #define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
 #define IS_PIXIE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
+#define IS_EFREETI(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_EFREETI || GET_DISGUISE_RACE(ch) == RACE_EFREETI))
+
+#define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
+#define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)
+#define PIXIE_DUST_USES_PER_DAY(ch) (GET_CHA(ch) + 4)
+
+#define EFREETI_MAGIC_USES(ch) (ch->player_specials->saved.efreeti_magic_uses)
+#define EFREETI_MAGIC_TIMER(ch) (ch->player_specials->saved.efreeti_magic_timer)
+#define EFREETI_MAGIC_USES_PER_DAY 10
+
+#define DRAGON_MAGIC_USES(ch) (ch->player_specials->saved.dragon_magic_uses)
+#define DRAGON_MAGIC_TIMER(ch) (ch->player_specials->saved.dragon_magic_timer)
+#define DRAGON_MAGIC_USES_PER_DAY 10
+
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))

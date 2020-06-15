@@ -1189,6 +1189,12 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
+    case SKILL_EPIC_WILDSHAPE:
+      if (!pass) {
+        notched = TRUE;
+        GET_SKILL(ch, skillnum)++;
+      }
+      break;
     case SKILL_EPIC_2_WEAPON:
       if (!pass) {
         notched = TRUE;
@@ -3578,6 +3584,12 @@ int get_daily_uses(struct char_data *ch, int featnum) {
       break;
     case FEAT_PIXIE_DUST:
       daily_uses = GET_REAL_CHA(ch) + 4;
+      break;
+    case FEAT_EFREETI_MAGIC:
+      daily_uses = 10;
+      break;
+    case FEAT_DRAGON_MAGIC:
+      daily_uses = 10;
       break;
     case FEAT_DRACONIC_HERITAGE_CLAWS:
       daily_uses += 3 + GET_CHA_BONUS(ch);

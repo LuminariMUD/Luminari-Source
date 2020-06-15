@@ -405,7 +405,7 @@ ACMDU(do_handleanimal)
   /* you have to be higher level to have a chance */
   if (GET_LEVEL(vict) >= GET_LEVEL(ch))
   {
-    dc += 99; /* impossible */
+    dc += 999; /* impossible */
   }
 
   USE_STANDARD_ACTION(ch);
@@ -2592,6 +2592,12 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
     abil_mods->constitution = 8;
     abil_mods->natural_armor = 8;
     break;
+  case RACE_EFREETI:
+    abil_mods->strength = 8;
+    abil_mods->dexterity = 8;
+    abil_mods->constitution = 8;
+    abil_mods->natural_armor = 8;
+    break;
   case RACE_MANTICORE:
     abil_mods->strength = 6;
     abil_mods->dexterity = 2;
@@ -2769,6 +2775,13 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
       } /* end family switch */
     }
     abil_mods = set_wild_shape_mods(i);
+    if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE))
+    {
+      abil_mods->strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods->dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+      abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    }
     if (!silent && race_list[i].name != NULL)
     {
       send_to_char(ch, "%-40s Str [%s%-2d] Con [%s%-2d] Dex [%s%-2d] NatAC [%s%-2d]\r\n", race_list[i].name,
@@ -2856,6 +2869,10 @@ void cleanup_wildshape_feats(struct char_data *ch)
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     break;
   case RACE_RED_DRAGON:
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    break;
+  case RACE_EFREETI:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     break;
@@ -3026,6 +3043,7 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_ALERTNESS, 1);
     MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
     MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
+    MOB_SET_FEAT(ch, FEAT_DRAGON_MAGIC, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_CSHIELD);
     break;
   case RACE_BLACK_DRAGON:
@@ -3038,6 +3056,7 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
     MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    MOB_SET_FEAT(ch, FEAT_DRAGON_MAGIC, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
     break;
   case RACE_GREEN_DRAGON:
@@ -3054,6 +3073,7 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_TRACKLESS_STEP, 1);
     MOB_SET_FEAT(ch, FEAT_WOODLAND_STRIDE, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+    MOB_SET_FEAT(ch, FEAT_DRAGON_MAGIC, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_ASHIELD);
     break;
   case RACE_BLUE_DRAGON:
@@ -3064,6 +3084,7 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_WINGS, 1);
     MOB_SET_FEAT(ch, FEAT_COMBAT_CASTING, 1);
     MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    MOB_SET_FEAT(ch, FEAT_DRAGON_MAGIC, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_ESHIELD);
     break;
   case RACE_RED_DRAGON:
@@ -3076,6 +3097,7 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_POWER_ATTACK, 1);
     MOB_SET_FEAT(ch, FEAT_CLEAVE, 1);
     MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    MOB_SET_FEAT(ch, FEAT_DRAGON_MAGIC, 1);
     SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
     break;
   case RACE_IRON_GOLEM:
@@ -3122,6 +3144,16 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
     break;
   case RACE_EAGLE:
+    MOB_SET_FEAT(ch, FEAT_WINGS, 1);
+    break;
+  case RACE_EFREETI:
+    MOB_SET_FEAT(ch, FEAT_EFREETI_MAGIC, 1);
+    MOB_SET_FEAT(ch, FEAT_ULTRAVISION, 1);
+    MOB_SET_FEAT(ch, FEAT_COMBAT_CASTING, 1);
+    MOB_SET_FEAT(ch, FEAT_COMBAT_REFLEXES, 1);
+    MOB_SET_FEAT(ch, FEAT_DODGE, 1);
+    MOB_SET_FEAT(ch, FEAT_IMPROVED_INITIATIVE, 1);
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FSHIELD);
     MOB_SET_FEAT(ch, FEAT_WINGS, 1);
     break;
   case RACE_SMALL_FIRE_ELEMENTAL:

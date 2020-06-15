@@ -1765,8 +1765,12 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACCLAWS)))
     send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, ePIXIEDUST)))
-    send_to_char(ch, "Pixie Dust Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if (PIXIE_DUST_TIMER(ch) > 0)
+    send_to_char(ch, "Pixie Dust Cooldown  - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
+  if (EFREETI_MAGIC_TIMER(ch) > 0)
+    send_to_char(ch, "Efreeti Magic Cooldown  - Duration: %d seconds\r\n", EFREETI_MAGIC_TIMER(ch) * 6);
+  if (DRAGON_MAGIC_TIMER(ch) > 0)
+    send_to_char(ch, "Dragon Magic Cooldown  - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
   if (GET_MISSION_COOLDOWN(k) > 0)
     send_to_char(ch, "Mission Ready Cooldown  - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k)*6);
 

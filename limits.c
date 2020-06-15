@@ -1096,6 +1096,34 @@ void update_player_misc(void)
       apply_mission_rewards(ch);
       clear_mission(ch);
     }
+
+    if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
+    {
+      EFREETI_MAGIC_TIMER(ch)--;
+      if (EFREETI_MAGIC_TIMER(ch) <= 0) {
+        EFREETI_MAGIC_TIMER(ch) = 0;
+        EFREETI_MAGIC_USES(ch) = EFREETI_MAGIC_USES_PER_DAY;
+        send_to_char(ch, "Your efreeti magic uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_DRAGON_MAGIC) && IS_DRAGON(ch) && DRAGON_MAGIC_TIMER(ch) > 0)
+    {
+      DRAGON_MAGIC_TIMER(ch)--;
+      if (DRAGON_MAGIC_TIMER(ch) <= 0) {
+        DRAGON_MAGIC_TIMER(ch) = 0;
+        DRAGON_MAGIC_USES(ch) = DRAGON_MAGIC_USES_PER_DAY;
+        send_to_char(ch, "Your dragon magic uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
+    {
+      PIXIE_DUST_TIMER(ch)--;
+      if (PIXIE_DUST_TIMER(ch) <= 0) {
+        PIXIE_DUST_TIMER(ch) = 0;
+        PIXIE_DUST_USES(ch) = PIXIE_DUST_USES_PER_DAY(ch);
+        send_to_char(ch, "Your pixie dust uses have been refreshed.\r\n");
+      }
+    }
   }
 }
 

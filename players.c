@@ -472,6 +472,12 @@ int load_char(const char *name, struct char_data *ch)
     GET_DISGUISE_CON(ch) = 0;
     GET_DISGUISE_DEX(ch) = 0;
     GET_DISGUISE_AC(ch) = 0;
+    EFREETI_MAGIC_USES(ch) = 0;
+    EFREETI_MAGIC_TIMER(ch) = 0;
+    DRAGON_MAGIC_USES(ch) = 0;
+    DRAGON_MAGIC_TIMER(ch) = 0;
+    PIXIE_DUST_USES(ch) = 0;
+    PIXIE_DUST_TIMER(ch) = 0;
     HAS_SET_STATS_STUDY(ch) = PFDEF_HAS_SET_STATS_STUDY;
     GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
     NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) = NEW_ARCANA_SLOT(ch, 3) = 0;
@@ -661,6 +667,10 @@ int load_char(const char *name, struct char_data *ch)
           GET_1ST_DOMAIN(ch) = atoi(line);
         else if (!strcmp(tag, "Dom2"))
           GET_2ND_DOMAIN(ch) = atoi(line);
+        else if (!strcmp(tag, "DrMU"))
+          DRAGON_MAGIC_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "DrMT"))
+          DRAGON_MAGIC_TIMER(ch) = atoi(line);
         break;
 
       case 'E':
@@ -672,6 +682,10 @@ int load_char(const char *name, struct char_data *ch)
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
           GET_EPIC_FEAT_POINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "EfMU"))
+          EFREETI_MAGIC_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "EfMT"))
+          EFREETI_MAGIC_TIMER(ch) = atoi(line);
         break;
 
       case 'F':
@@ -833,6 +847,10 @@ int load_char(const char *name, struct char_data *ch)
           GET_PREFERRED_DIVINE(ch) = atoi(line);
         else if (!strcmp(tag, "PSP"))
           load_HMVS(ch, line, LOAD_PSP);
+        else if (!strcmp(tag, "PxDU"))
+          PIXIE_DUST_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "PxDT"))
+          PIXIE_DUST_TIMER(ch) = atoi(line);
         break;
 
       case 'Q':
@@ -1430,6 +1448,19 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
   if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
     fprintf(fl, "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
+  
+  if (EFREETI_MAGIC_USES(ch) != PFDEF_EFREETI_MAGIC_USES)
+    fprintf(fl, "EfMU: %d\n", EFREETI_MAGIC_USES(ch));
+  if (EFREETI_MAGIC_TIMER(ch) != PFDEF_EFREETI_MAGIC_TIMER)
+    fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
+  if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
+    fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
+  if (DRAGON_MAGIC_TIMER(ch) != PFDEF_DRAGON_MAGIC_TIMER)
+    fprintf(fl, "DrMT: %d\n", DRAGON_MAGIC_TIMER(ch));
+  if (PIXIE_DUST_USES(ch) != PFDEF_PIXIE_DUST_USES)
+    fprintf(fl, "DxDU: %d\n", PIXIE_DUST_USES(ch));
+  if (PIXIE_DUST_TIMER(ch) != PFDEF_PIXIE_DUST_TIMER)
+    fprintf(fl, "PxDT: %d\n", PIXIE_DUST_TIMER(ch));
 
   if (GET_OLC_ZONE(ch) != PFDEF_OLC)
     fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));

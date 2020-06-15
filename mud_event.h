@@ -142,6 +142,8 @@ typedef enum
   eSACRED_FLAMES,           /*flaming sacred unarmed attacks!*/
   eINNER_FIRE,              /*inner fire, lots of juicy bonuses!*/
   ePIXIEDUST,               // pixie dust used with shifter form: pixie
+  eEFREETIMAGIC,            // efreeti magic used with shifter form: efreeti
+  eDRAGONMAGIC,            // dragon magic used with shifter form: dragon
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

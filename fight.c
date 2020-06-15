@@ -2322,6 +2322,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     }
     if (GET_RACE(ch) == RACE_RED_DRAGON || GET_DISGUISE_RACE(ch) == RACE_RED_DRAGON)
       damtype_reduction += 100;
+    if (IS_EFREETI(ch))
+      damtype_reduction += 100;
     break;
 
   case DAM_COLD:
@@ -2330,6 +2332,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += -20;
     if (!IS_NPC(ch) && (GET_RACE(ch) == RACE_RED_DRAGON || GET_DISGUISE_RACE(ch) == RACE_RED_DRAGON))
       damtype_reduction += -50;
+    if (IS_EFREETI(ch))
+      damtype_reduction -= 50;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
@@ -4279,6 +4283,8 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
     {
       if (IS_PIXIE(ch))
         send_to_char(ch, "A Tiny Short Sword\r\n");
+      if (IS_EFREETI(ch))
+        send_to_char(ch, "A Flaming Ranseur\r\n");
       else if (IS_IRON_GOLEM(ch))
         send_to_char(ch, "Huge Iron Fists\r\n");
       else
@@ -6719,6 +6725,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* Weapon special abilities that trigger on hit. */
   if (ch && victim && wielded && !victim_is_dead)
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
+  if (IS_EFREETI(ch))
+    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
 
   /* our primitive weapon-poison system, needs some love */
   if (ch && victim && (wielded || missile || IS_TRELUX(ch)) && !victim_is_dead)
