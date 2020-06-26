@@ -245,6 +245,12 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     //send_to_char(ch, "Bingo 2!\r\n");
     challenge += 2;
   }
+  if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), school))
+  {
+    /*deubg*/
+    //send_to_char(ch, "Bingo 2!\r\n");
+    challenge += 3;
+  }
   if (!IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school)
   {
     /*deubg*/
@@ -4955,6 +4961,52 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
       GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    int spell_focus_bonus = 0;
+    switch (spellnum)
+    {
+      case SPELL_ANIMATE_DEAD:
+      case SPELL_GREATER_ANIMATION:
+      case SPELL_MUMMY_DUST:
+        if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), NECROMANCY))
+          spell_focus_bonus++;
+        if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), NECROMANCY))
+          spell_focus_bonus++;
+        if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), NECROMANCY))
+          spell_focus_bonus++;
+        GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
+        GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
+        GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
+        GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
+        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus) * GET_LEVEL(mob); /* con bonus */
+        GET_HIT(mob) = GET_MAX_HIT(mob);
+        break;
+      case SPELL_DRAGON_KNIGHT:
+      case SPELL_ELEMENTAL_SWARM:
+      case SPELL_SHAMBLER:
+      case SPELL_SUMMON_CREATURE_1:
+      case SPELL_SUMMON_CREATURE_2:
+      case SPELL_SUMMON_CREATURE_3:
+      case SPELL_SUMMON_CREATURE_4:
+      case SPELL_SUMMON_CREATURE_5:
+      case SPELL_SUMMON_CREATURE_6:
+      case SPELL_SUMMON_CREATURE_7:
+      case SPELL_SUMMON_CREATURE_8:
+      case SPELL_SUMMON_CREATURE_9:
+        if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
+          spell_focus_bonus++;
+        if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), CONJURATION))
+          spell_focus_bonus++;
+        if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), CONJURATION))
+          spell_focus_bonus++;
+        GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
+        GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
+        GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
+        GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
+        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus) * GET_LEVEL(mob); /* con bonus */
+        GET_HIT(mob) = GET_MAX_HIT(mob);
+        break;
     }
 
     if (IS_SPECIALTY_SCHOOL(ch, spellnum))

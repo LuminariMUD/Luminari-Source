@@ -2428,19 +2428,19 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
       abil_mods->dexterity = 0;
       abil_mods->strength = 6;
       abil_mods->constitution = 6;
-      abil_mods->natural_armor = 10;
+      abil_mods->natural_armor = 18;
       break;
     case SIZE_HUGE:
       abil_mods->dexterity = 0;
       abil_mods->strength = 8;
       abil_mods->constitution = 8;
-      abil_mods->natural_armor = 12;
+      abil_mods->natural_armor = 20;
       break;
     case SIZE_GARGANTUAN:
       abil_mods->dexterity = 0;
       abil_mods->strength = 10;
       abil_mods->constitution = 10;
-      abil_mods->natural_armor = 14;
+      abil_mods->natural_armor = 22;
       break;
     }
     break;
@@ -2590,25 +2590,25 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
     abil_mods->strength = 8;
     abil_mods->dexterity = -2;
     abil_mods->constitution = 8;
-    abil_mods->natural_armor = 8;
+    abil_mods->natural_armor = 20;
     break;
   case RACE_EFREETI:
     abil_mods->strength = 8;
     abil_mods->dexterity = 8;
     abil_mods->constitution = 8;
-    abil_mods->natural_armor = 8;
+    abil_mods->natural_armor = 20;
     break;
   case RACE_MANTICORE:
     abil_mods->strength = 6;
     abil_mods->dexterity = 2;
     abil_mods->constitution = 4;
-    abil_mods->natural_armor = 6;
+    abil_mods->natural_armor = 20;
     break;
   case RACE_PIXIE:
     abil_mods->strength = -2;
     abil_mods->dexterity = 8;
     abil_mods->constitution = 2;
-    abil_mods->natural_armor = 6;
+    abil_mods->natural_armor = 20;
     break;
   default:
     break;
@@ -2653,7 +2653,16 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
 
     if (mode == 1)
     { /*polymorph spell*/
-      /* we are just giving polymorph access to everything */
+      // everything but shifter shapes
+      switch (race_list[i].family)
+      {
+        case RACE_TYPE_MAGICAL_BEAST:
+        case RACE_TYPE_FEY:
+        case RACE_TYPE_CONSTRUCT:
+        case RACE_TYPE_OUTSIDER:
+        case RACE_TYPE_DRAGON:
+          continue;
+      }
     }
     else if (mode == 0)
     { /*druid*/
@@ -2775,12 +2784,30 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
       } /* end family switch */
     }
     abil_mods = set_wild_shape_mods(i);
-    if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE))
+    if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0)
     {
       abil_mods->strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
       abil_mods->dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
       abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
       abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    }
+    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+      abil_mods->strength += 2;
+      abil_mods->dexterity += 2;
+      abil_mods->constitution += 2;
+      abil_mods->natural_armor += 1;
+    }
+    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+      abil_mods->strength += 2;
+      abil_mods->dexterity += 2;
+      abil_mods->constitution += 2;
+      abil_mods->natural_armor += 1;
+    }
+    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+      abil_mods->strength += 2;
+      abil_mods->dexterity += 2;
+      abil_mods->constitution += 2;
+      abil_mods->natural_armor += 1;
     }
     if (!silent && race_list[i].name != NULL)
     {
@@ -3270,6 +3297,31 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
   GET_DISGUISE_RACE(ch) = i;
   /* determine modifiers */
   abil_mods = set_wild_shape_mods(GET_DISGUISE_RACE(ch));
+  if (HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE) && mode == 0) // wildshape
+  {
+    abil_mods->strength += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods->dexterity += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+    abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
+  }
+  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+    abil_mods->strength += 2;
+    abil_mods->dexterity += 2;
+    abil_mods->constitution += 2;
+    abil_mods->natural_armor += 1;
+  }
+  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+    abil_mods->strength += 2;
+    abil_mods->dexterity += 2;
+    abil_mods->constitution += 2;
+    abil_mods->natural_armor += 1;
+  }
+  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+    abil_mods->strength += 2;
+    abil_mods->dexterity += 2;
+    abil_mods->constitution += 2;
+    abil_mods->natural_armor += 1;
+  }
   /* set the bonuses */
   set_bonus_stats(ch, abil_mods->strength, abil_mods->constitution,
                   abil_mods->dexterity, abil_mods->natural_armor);
@@ -3494,6 +3546,7 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum)
 /* a trivial shapechange code for druids, replaced by wildshape */
 ACMD(do_shapechange)
 {
+  
   int form_num = -1, i = 0, uses_remaining = 0;
 
   if (!ch->desc || IS_NPC(ch))
@@ -3634,6 +3687,11 @@ ACMD(do_disguise)
   if (!GET_ABILITY(ch, ABILITY_DISGUISE))
   {
     send_to_char(ch, "You do not have the ability to disguise!\r\n");
+    return;
+  }
+
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "You cannot disguise while wild shaped.\r\n");
     return;
   }
 

@@ -721,6 +721,7 @@ void char_from_furniture(struct char_data *ch);
 #define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
+#define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER)+ CLASS_LEVEL(ch, CLASS_DRUID))
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -748,7 +749,9 @@ void char_from_furniture(struct char_data *ch);
 #define GET_NPC_RACE(ch) (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
 
 #define GET_RACE(ch) ((GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : (IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color)))
+#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_WILDSHAPED(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : \
+                      ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : \
+                      (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color))))
 /*#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
   race_family_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
   race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)*/
@@ -1779,6 +1782,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
 #define IS_PIXIE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
 #define IS_EFREETI(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_EFREETI || GET_DISGUISE_RACE(ch) == RACE_EFREETI))
+#define IS_MANTICORE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_MANTICORE || GET_DISGUISE_RACE(ch) == RACE_MANTICORE))
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)

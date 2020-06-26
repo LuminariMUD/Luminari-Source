@@ -1458,7 +1458,7 @@ void save_char(struct char_data *ch, int mode)
   if (DRAGON_MAGIC_TIMER(ch) != PFDEF_DRAGON_MAGIC_TIMER)
     fprintf(fl, "DrMT: %d\n", DRAGON_MAGIC_TIMER(ch));
   if (PIXIE_DUST_USES(ch) != PFDEF_PIXIE_DUST_USES)
-    fprintf(fl, "DxDU: %d\n", PIXIE_DUST_USES(ch));
+    fprintf(fl, "PxDU: %d\n", PIXIE_DUST_USES(ch));
   if (PIXIE_DUST_TIMER(ch) != PFDEF_PIXIE_DUST_TIMER)
     fprintf(fl, "PxDT: %d\n", PIXIE_DUST_TIMER(ch));
 

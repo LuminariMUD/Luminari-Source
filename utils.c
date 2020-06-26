@@ -508,10 +508,15 @@ int compute_current_size(struct char_data *ch) {
   if (!ch) return size;
   int racenum = GET_DISGUISE_RACE(ch);
 
-  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && racenum) /* wildhsaped */
+  if (AFF_FLAGGED(ch, AFF_WILD_SHAPE) && racenum) { // wildshaped
     size = race_list[racenum].size;
-  else
+    if (affected_by_spell(ch, SPELL_ENLARGE_PERSON))
+      size++;
+    if (affected_by_spell(ch, SPELL_SHRINK_PERSON))
+     size--;
+  } else {
     size = (ch)->points.size;
+  }
 
   if (size < SIZE_FINE)
     size = SIZE_FINE;
