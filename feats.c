@@ -1995,10 +1995,13 @@ void assign_feats(void)
 
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "+1 to all spell dcs for all spells in school/domain",
-        "+1 to all spell dcs for all spells in school/domain");
+        "+1 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
   feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "+2 to all spell dcs for all spells in school/domain",
-        "+2 to all spell dcs for all spells in school/domain");
+        "+2 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+  feato(FEAT_EPIC_SPELL_FOCUS, "epic spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+        "+3 to all spell dcs for all spells in school/domain",
+        "+3 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
 
   feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "your familiar gets more powerful",
@@ -3370,6 +3373,7 @@ void assign_feats(void)
   epicfeat(FEAT_EPIC_MAGE_ARMOR);
   epicfeat(FEAT_EPIC_WARDING);
   epicfeat(FEAT_EPIC_WILDSHAPE);
+  epicfeat(FEAT_EPIC_SPELL_FOCUS);
 
   epicfeat(FEAT_LAST_FEAT);
 
@@ -4186,6 +4190,10 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
     case FEAT_GREATER_SPELL_FOCUS:
       if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat_requirement_check(ch, FEAT_SPELL_FOCUS))
+        return TRUE;
+      return FALSE;
+    case FEAT_EPIC_SPELL_FOCUS:
+      if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat_requirement_check(ch, FEAT_GREATER_SPELL_FOCUS))
         return TRUE;
       return FALSE;
 
@@ -5796,6 +5804,8 @@ int feat_to_sfeat(int feat)
     return SFEAT_SPELL_FOCUS;
   case FEAT_GREATER_SPELL_FOCUS:
     return SFEAT_GREATER_SPELL_FOCUS;
+  case FEAT_EPIC_SPELL_FOCUS:
+    return SFEAT_EPIC_SPELL_FOCUS;
   default:
     return -1;
   }

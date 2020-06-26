@@ -1765,12 +1765,13 @@
 #define FEAT_EFREETI_MAGIC 639
 #define FEAT_DRAGON_MAGIC 640
 #define FEAT_EPIC_WILDSHAPE 641
+#define FEAT_EPIC_SPELL_FOCUS 642
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 642
+#define FEAT_LAST_FEAT 643
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 643
+#define NUM_FEATS 644
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
@@ -1806,7 +1807,8 @@
 /* Spell feats that apply to a specific school of spells */
 #define SFEAT_SPELL_FOCUS 0
 #define SFEAT_GREATER_SPELL_FOCUS 1
-#define NUM_SFEATS 2
+#define SFEAT_EPIC_SPELL_FOCUS 1
+#define NUM_SFEATS 3
 
 // Skill feats that apply to a specific skill
 #define SKFEAT_SKILL_FOCUS 0

@@ -4365,6 +4365,14 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       diceTwo = 1;
       break;
     }
+    if (IS_MANTICORE(ch)) {
+      diceOne = 3 + (CLASS_LEVEL(ch, CLASS_SHIFTER)/2);
+      diceTwo = 4;
+    }
+    if (IS_PIXIE(ch)) {
+      diceOne = 2;
+      diceTwo = 2 + (CLASS_LEVEL(ch, CLASS_SHIFTER)/2);
+    }
   }
   else if (IS_MORPHED(ch))
   {
@@ -6065,6 +6073,13 @@ int wildshape_weapon_type(struct char_data *ch)
     /* pick random */
     weapon_type = w_type_array[rand_number(0, count)];
   }
+  if (IS_PIXIE(ch))
+  {
+    count = 0;
+    w_type_array[count] = TYPE_PIERCE;
+    w_type_array[++count] = TYPE_STAB;
+    w_type_array[++count] = TYPE_STING;
+  }
 
   return weapon_type;
 }
@@ -6726,7 +6741,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && wielded && !victim_is_dead)
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
   if (IS_EFREETI(ch))
-    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+    damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
 
   /* our primitive weapon-poison system, needs some love */
   if (ch && victim && (wielded || missile || IS_TRELUX(ch)) && !victim_is_dead)

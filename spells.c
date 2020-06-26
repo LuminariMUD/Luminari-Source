@@ -451,6 +451,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
                     struct obj_data *obj, int spellnum)
 {
   int i = 0, attempt = 0, challenge = 0, num_dispels = 0, msg = FALSE;
+  bool wildshape = false;
 
   // no target == room
   if (!vict && !obj)
@@ -503,9 +504,13 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
                        spell_info[ch->affected->spell].wear_off_msg);
         affect_remove(ch, ch->affected);
       }
+      if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))
+        wildshape = true;
       for (i = 0; i < AF_ARRAY_MAX; i++)
         AFF_FLAGS(ch)
         [i] = 0;
+      if (wildshape)
+        SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
     }
     return;
   }
@@ -1354,6 +1359,11 @@ ASPELL(spell_polymorph)
 
   if (IS_NPC(ch) || !ch->desc)
     return;
+
+  if (IS_WILDSHAPED(ch)) {
+    send_to_char(ch, "You cannot polymorph while wildshaped.\r\n");
+    return;
+  }
 
   one_argument(cast_arg2, arg, sizeof(arg));
 
