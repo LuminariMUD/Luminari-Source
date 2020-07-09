@@ -1268,55 +1268,55 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_2ND_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_2ND_CIRCLE_SLOT, "2nd circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_3RD_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_3RD_CIRCLE_SLOT, "3rd circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_4TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_4TH_CIRCLE_SLOT, "4th circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_5TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_5TH_CIRCLE_SLOT, "5th circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 5th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_6TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_6TH_CIRCLE_SLOT, "6th circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 6th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_7TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_7TH_CIRCLE_SLOT, "7th circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 7th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_8TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_8TH_CIRCLE_SLOT, "8th circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 8th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_9TH_CIRCLE_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_9TH_CIRCLE_SLOT, "9th circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric 9th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_CLERIC_EPIC_SPELL_SLOT, "1st circle cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_CLERIC_EPIC_SPELL_SLOT, "epic cleric slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "cleric epic circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
@@ -1392,55 +1392,55 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_2ND_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_2ND_CIRCLE_SLOT, "2nd circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_3RD_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_3RD_CIRCLE_SLOT, "3rd circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_4TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_4TH_CIRCLE_SLOT, "4th circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_5TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_5TH_CIRCLE_SLOT, "5th circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 5th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_6TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_6TH_CIRCLE_SLOT, "6th circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 6th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_7TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_7TH_CIRCLE_SLOT, "7th circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 7th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_8TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_8TH_CIRCLE_SLOT, "8th circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 8th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_9TH_CIRCLE_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_9TH_CIRCLE_SLOT, "9th circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid 9th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_DRUID_EPIC_SPELL_SLOT, "1st circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_DRUID_EPIC_SPELL_SLOT, "epic circle druid slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "druid epic circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
@@ -1481,19 +1481,19 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_PALADIN_2ND_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_PALADIN_2ND_CIRCLE_SLOT, "2nd circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "paladin 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_PALADIN_3RD_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_PALADIN_3RD_CIRCLE_SLOT, "3rd circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "paladin 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_PALADIN_4TH_CIRCLE_SLOT, "1st circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_PALADIN_4TH_CIRCLE_SLOT, "4th circle paladin slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "paladin 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
@@ -1534,19 +1534,19 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_RANGER_2ND_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_RANGER_2ND_CIRCLE_SLOT, "2nd circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "ranger 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_RANGER_3RD_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_RANGER_3RD_CIRCLE_SLOT, "3rd circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "ranger 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_RANGER_4TH_CIRCLE_SLOT, "1st circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_RANGER_4TH_CIRCLE_SLOT, "4th circle ranger slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "ranger 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
@@ -1622,55 +1622,55 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_2ND_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_2ND_CIRCLE_SLOT, "2nd circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_3RD_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_3RD_CIRCLE_SLOT, "3rd circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_4TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_4TH_CIRCLE_SLOT, "4th circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_5TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_5TH_CIRCLE_SLOT, "5th circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 5th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_6TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_6TH_CIRCLE_SLOT, "6th circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 6th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_7TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_7TH_CIRCLE_SLOT, "7th circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 7th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_8TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_8TH_CIRCLE_SLOT, "8th circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 8th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_9TH_CIRCLE_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_9TH_CIRCLE_SLOT, "9th circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard 9th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_WIZARD_EPIC_SPELL_SLOT, "1st circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_WIZARD_EPIC_SPELL_SLOT, "epic circle wizard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "wizard epic circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
@@ -1746,55 +1746,55 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_2ND_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_2ND_CIRCLE_SLOT, "2nd circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_3RD_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_3RD_CIRCLE_SLOT, "3rd circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_4TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_4TH_CIRCLE_SLOT, "4th circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_5TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_5TH_CIRCLE_SLOT, "5th circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 5th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_6TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_6TH_CIRCLE_SLOT, "6th circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 6th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_7TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_7TH_CIRCLE_SLOT, "7th circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 7th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_8TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_8TH_CIRCLE_SLOT, "8th circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 8th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_9TH_CIRCLE_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_9TH_CIRCLE_SLOT, "9th circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer 9th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_SORCERER_EPIC_SPELL_SLOT, "1st circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SORCERER_EPIC_SPELL_SLOT, "epic circle sorcerer slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "sorcerer epic circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
@@ -1852,37 +1852,37 @@ void assign_feats(void)
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_BARD_2ND_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_BARD_2ND_CIRCLE_SLOT, "2nd circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "bard 2nd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_BARD_3RD_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_BARD_3RD_CIRCLE_SLOT, "3rd circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "bard 3rd circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_BARD_4TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_BARD_4TH_CIRCLE_SLOT, "4th circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "bard 4th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_BARD_5TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_BARD_5TH_CIRCLE_SLOT, "5th circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "bard 5th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_BARD_6TH_CIRCLE_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_BARD_6TH_CIRCLE_SLOT, "6th circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "bard 6th circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
-  feato(FEAT_BARD_EPIC_SPELL_SLOT, "1st circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_BARD_EPIC_SPELL_SLOT, "epic circle bard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "bard epic circle slot",
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
