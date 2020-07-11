@@ -33,7 +33,7 @@
 #define ACMD_DECL(name) \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
-#define ACMD(name)                                                                            \
+#define ACMD(name)                                                                             \
   static void impl_##name##_(struct char_data *ch, const char *argument, int cmd, int subcmd); \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)                   \
   {                                                                                            \
@@ -45,7 +45,7 @@
 
 /* "unsafe" version of ACMD. Commands that still require non const argument due to using
    unsafe operations on argument */
-#define ACMDU(name)                                                                       \
+#define ACMDU(name)                                                                      \
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd); \
   void name(struct char_data *ch, const char *argument, int cmd, int subcmd)             \
   {                                                                                      \
@@ -721,7 +721,7 @@ void char_from_furniture(struct char_data *ch);
 #define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
-#define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER)+ CLASS_LEVEL(ch, CLASS_DRUID))
+#define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -749,9 +749,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_NPC_RACE(ch) (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
 
 #define GET_RACE(ch) ((GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_WILDSHAPED(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : \
-                      ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : \
-                      (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color))))
+#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_WILDSHAPED(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color))))
 /*#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
   race_family_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
   race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)*/
@@ -1533,8 +1531,8 @@ void char_from_furniture(struct char_data *ch);
  */
 #define INVIS_OK(sub, obj)                                                       \
   ((!AFF_FLAGGED((obj), AFF_INVISIBLE) || (AFF_FLAGGED(sub, AFF_DETECT_INVIS) || \
-                                           AFF_FLAGGED(sub, AFF_TRUE_SIGHT) || \
-                                           HAS_FEAT(sub, FEAT_TRUE_SIGHT))) && \
+                                           AFF_FLAGGED(sub, AFF_TRUE_SIGHT) ||   \
+                                           HAS_FEAT(sub, FEAT_TRUE_SIGHT))) &&   \
    (can_see_hidden(sub, obj)))
 
 /** Defines if sub character can see obj character, assuming mortal only
@@ -1566,7 +1564,7 @@ void char_from_furniture(struct char_data *ch);
 
 /** Can the sub character see the obj if it is invisible? */
 #define INVIS_OK_OBJ(sub, obj) \
-  (!OBJ_FLAGGED((obj), ITEM_INVISIBLE) || AFF_FLAGGED((sub), AFF_DETECT_INVIS))
+  (!OBJ_FLAGGED((obj), ITEM_INVISIBLE) || AFF_FLAGGED((sub), AFF_DETECT_INVIS) || AFF_FLAGGED((sub), AFF_TRUE_SIGHT))
 
 /** Is anyone carrying this object and if so, are they visible? */
 #define CAN_SEE_OBJ_CARRIER(sub, obj)                     \
@@ -1795,7 +1793,6 @@ void char_from_furniture(struct char_data *ch);
 #define DRAGON_MAGIC_USES(ch) (ch->player_specials->saved.dragon_magic_uses)
 #define DRAGON_MAGIC_TIMER(ch) (ch->player_specials->saved.dragon_magic_timer)
 #define DRAGON_MAGIC_USES_PER_DAY 10
-
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
@@ -2055,7 +2052,7 @@ void char_from_furniture(struct char_data *ch);
 #define LOOTBOX_TYPE(obj) (GET_OBJ_VAL(obj, 1))
 
 #define ARENA_START 138600
-#define ARENA_END   138608
+#define ARENA_END 138608
 
 #endif /* _UTILS_H_ */
 
