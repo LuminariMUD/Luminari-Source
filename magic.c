@@ -2886,7 +2886,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     // no save, unless have special feat
     if (HAS_FEAT(ch, FEAT_PARALYSIS_RESIST)) {
       mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, /* +4 bonus from feat */
-                      casttype, level, ENCHANTMENT))
+                      casttype, level, ENCHANTMENT);
       return;
     }
 
