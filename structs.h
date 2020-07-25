@@ -1782,9 +1782,9 @@
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 651
+#define FEAT_LAST_FEAT 653
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 652
+#define NUM_FEATS 654
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
