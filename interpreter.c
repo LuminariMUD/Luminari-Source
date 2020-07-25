@@ -280,6 +280,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {":", ":", POS_RECLINING, do_echo, 1, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"enter", "ent", POS_STANDING, do_enter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"enlarge", "enlarge", POS_FIGHTING, do_enlarge, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"exits", "ex", POS_RECLINING, do_exits, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -381,6 +382,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"immlist", "imm", POS_DEAD, do_gen_ps, 0, SCMD_IMMLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"info", "info", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"invis", "invi", POS_DEAD, do_invis, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"invisduergar", "invisduergar", POS_FIGHTING, do_invisduergar, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"innates", "innates", POS_DEAD, do_innates, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"intimidate", "intimidate", POS_FIGHTING, do_intimidate, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_intimidate},
     {"icicle", "icicle", POS_FIGHTING, do_icicle, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -605,6 +607,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"steal", "ste", POS_STANDING, do_steal, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"stunningfist", "stunningfist", POS_FIGHTING, do_stunningfist, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_stunningfist},
     {"study", "study", POS_RECLINING, do_study, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"strength", "strength", POS_FIGHTING, do_strength, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"swallow", "swallow", POS_RECLINING, do_swallow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -2505,6 +2508,9 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case RACE_DWARF:
       perform_help(d, "race-dwarf");
+      break;
+    case RACE_DUERGAR:
+      perform_help(d, "race-duergar");
       break;
     case RACE_HALF_TROLL:
       perform_help(d, "race-half-troll");

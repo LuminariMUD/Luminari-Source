@@ -497,13 +497,15 @@
 #define RACE_TRELUX 9        // trelux (epic)
 #define RACE_ARCANA_GOLEM 10 // arcana golem (advanced)
 #define RACE_ARCANE_GOLEM RACE_ARCANA_GOLEM
-#define RACE_DROW 11 // not yet implemented
+#define RACE_DROW 11 // drow
 #define RACE_DROW_ELF RACE_DROW
 #define RACE_DARK_ELF RACE_DROW
+#define RACE_DUERGAR 12 // duergar
+#define RACE_GRAY_DWARF RACE_DUERGAR
+#define RACE_DARK_DWARF RACE_DUERGAR
+#define RACE_DUERGAR_DWARF RACE_DUERGAR
 //NUM_RACES = last playable race +1, set below [12]
 /* coming soon!*/
-#define RACE_DUERGAR 12 // not yet implemented
-#define RACE_GRAY_DWARF RACE_DUERGAR
 #define RACE_H_OGRE 13 // not yet implemented
 #define RACE_HALF_OGRE RACE_H_OGRE
 #define RACE_RAT 14
@@ -583,7 +585,7 @@
 #define RACE_EFREETI 87
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_RACES 12
+#define NUM_RACES 13
 #define NUM_EXTENDED_RACES 88
 /*****/
 
@@ -769,59 +771,59 @@
 #define NUM_MOB_FLAGS 64
 
 /* Preference flags: used by char_data.player_specials.pref */
-#define PRF_BRIEF 0        /**< Room descs won't normally be shown */
-#define PRF_COMPACT 1      /**< No extra CRLF pair before prompts */
-#define PRF_NOSHOUT 2      /**< Can't hear shouts */
-#define PRF_NOTELL 3       /**< Can't receive tells */
-#define PRF_DISPHP 4       /**< Display hit points in prompt */
-#define PRF_DISPPSP 5      /**< Display psp points in prompt */
-#define PRF_DISPMOVE 6     /**< Display move points in prompt */
-#define PRF_AUTOEXIT 7     /**< Display exits in a room */
-#define PRF_NOHASSLE 8     /**< Aggr mobs won't attack */
-#define PRF_QUEST 9        /**< On quest */
-#define PRF_SUMMONABLE 10  /**< Can be summoned */
-#define PRF_NOREPEAT 11    /**< No repetition of comm commands */
-#define PRF_HOLYLIGHT 12   /**< Can see in dark */
-#define PRF_COLOR_1 13     /**< Color (low bit) */
-#define PRF_COLOR_2 14     /**< Color (high bit) */
-#define PRF_NOWIZ 15       /**< Can't hear wizline */
-#define PRF_LOG1 16        /**< On-line System Log (low bit) */
-#define PRF_LOG2 17        /**< On-line System Log (high bit) */
-#define PRF_NOAUCT 18      /**< Can't hear auction channel */
-#define PRF_NOGOSS 19      /**< Can't hear gossip channel */
-#define PRF_NOGRATZ 20     /**< Can't hear grats channel */
-#define PRF_SHOWVNUMS 21   /**< Can see VNUMs */
-#define PRF_DISPAUTO 22    /**< Show prompt HP, MP, MV when < 25% */
-#define PRF_CLS 23         /**< Clear screen in OLC */
-#define PRF_BUILDWALK 24   /**< Build new rooms while walking */
-#define PRF_AFK 25         /**< AFK flag */
-#define PRF_AUTOLOOT 26    /**< Loot everything from a corpse */
-#define PRF_AUTOGOLD 27    /**< Loot gold from a corpse */
-#define PRF_AUTOSPLIT 28   /**< Split gold with group */
-#define PRF_AUTOSAC 29     /**< Sacrifice a corpse */
-#define PRF_AUTOASSIST 30  /**< Auto-assist toggle */
-#define PRF_AUTOMAP 31     /**< Show map at the side of room descs */
-#define PRF_AUTOKEY 32     /**< Automatically unlock locked doors when opening */
-#define PRF_AUTODOOR 33    /**< Use the next available door */
-#define PRF_NOCLANTALK 34  /**< Don't show ALL clantalk channels (Imm-only) */
-#define PRF_AUTOSCAN 35    // automatically scan each step?
-#define PRF_DISPEXP 36     // autoprompt xp display
-#define PRF_DISPEXITS 37   // autoprompt exits display
-#define PRF_DISPROOM 38    // display room name and/or #
-#define PRF_DISPMEMTIME 39 // display memtimes
-#define PRF_DISPACTIONS 40 /**< action system display on prompt */
-#define PRF_AUTORELOAD 41  /**< Attempt to automatically reload weapon (xbow/slings) */
-#define PRF_COMBATROLL 42  /**< extra info during combat */
-#define PRF_GUI_MODE 43    /**< add special tags to code for MSDP GUI */
-#define PRF_NOHINT 44      /**< show in-game hints to newer players */
-#define PRF_AUTOCOLLECT 45 /**< collect ammo after combat automatically */
-#define PRF_RP 46          /**< Interested in Role-Playing! */
-#define PRF_AOE_BOMBS 47   /** Bombs will use splash damage instead of single target */
-#define PRF_FRIGHTENED 48  /* If set, victims of fear affects will flee */
-#define PRF_PVP 49         /* If set, will allow player vs. player combat against others also flagged */
-#define PRF_AUTOCON 50     /* autoconsider, shows level difference of mobs in look command */
-#define PRF_SMASH_DEFENSE 51 // stalwart defender level 10 ability
-#define PRF_DISPGOLD 52 // will show gold in prompt
+#define PRF_BRIEF 0              /**< Room descs won't normally be shown */
+#define PRF_COMPACT 1            /**< No extra CRLF pair before prompts */
+#define PRF_NOSHOUT 2            /**< Can't hear shouts */
+#define PRF_NOTELL 3             /**< Can't receive tells */
+#define PRF_DISPHP 4             /**< Display hit points in prompt */
+#define PRF_DISPPSP 5            /**< Display psp points in prompt */
+#define PRF_DISPMOVE 6           /**< Display move points in prompt */
+#define PRF_AUTOEXIT 7           /**< Display exits in a room */
+#define PRF_NOHASSLE 8           /**< Aggr mobs won't attack */
+#define PRF_QUEST 9              /**< On quest */
+#define PRF_SUMMONABLE 10        /**< Can be summoned */
+#define PRF_NOREPEAT 11          /**< No repetition of comm commands */
+#define PRF_HOLYLIGHT 12         /**< Can see in dark */
+#define PRF_COLOR_1 13           /**< Color (low bit) */
+#define PRF_COLOR_2 14           /**< Color (high bit) */
+#define PRF_NOWIZ 15             /**< Can't hear wizline */
+#define PRF_LOG1 16              /**< On-line System Log (low bit) */
+#define PRF_LOG2 17              /**< On-line System Log (high bit) */
+#define PRF_NOAUCT 18            /**< Can't hear auction channel */
+#define PRF_NOGOSS 19            /**< Can't hear gossip channel */
+#define PRF_NOGRATZ 20           /**< Can't hear grats channel */
+#define PRF_SHOWVNUMS 21         /**< Can see VNUMs */
+#define PRF_DISPAUTO 22          /**< Show prompt HP, MP, MV when < 25% */
+#define PRF_CLS 23               /**< Clear screen in OLC */
+#define PRF_BUILDWALK 24         /**< Build new rooms while walking */
+#define PRF_AFK 25               /**< AFK flag */
+#define PRF_AUTOLOOT 26          /**< Loot everything from a corpse */
+#define PRF_AUTOGOLD 27          /**< Loot gold from a corpse */
+#define PRF_AUTOSPLIT 28         /**< Split gold with group */
+#define PRF_AUTOSAC 29           /**< Sacrifice a corpse */
+#define PRF_AUTOASSIST 30        /**< Auto-assist toggle */
+#define PRF_AUTOMAP 31           /**< Show map at the side of room descs */
+#define PRF_AUTOKEY 32           /**< Automatically unlock locked doors when opening */
+#define PRF_AUTODOOR 33          /**< Use the next available door */
+#define PRF_NOCLANTALK 34        /**< Don't show ALL clantalk channels (Imm-only) */
+#define PRF_AUTOSCAN 35          // automatically scan each step?
+#define PRF_DISPEXP 36           // autoprompt xp display
+#define PRF_DISPEXITS 37         // autoprompt exits display
+#define PRF_DISPROOM 38          // display room name and/or #
+#define PRF_DISPMEMTIME 39       // display memtimes
+#define PRF_DISPACTIONS 40       /**< action system display on prompt */
+#define PRF_AUTORELOAD 41        /**< Attempt to automatically reload weapon (xbow/slings) */
+#define PRF_COMBATROLL 42        /**< extra info during combat */
+#define PRF_GUI_MODE 43          /**< add special tags to code for MSDP GUI */
+#define PRF_NOHINT 44            /**< show in-game hints to newer players */
+#define PRF_AUTOCOLLECT 45       /**< collect ammo after combat automatically */
+#define PRF_RP 46                /**< Interested in Role-Playing! */
+#define PRF_AOE_BOMBS 47         /** Bombs will use splash damage instead of single target */
+#define PRF_FRIGHTENED 48        /* If set, victims of fear affects will flee */
+#define PRF_PVP 49               /* If set, will allow player vs. player combat against others also flagged */
+#define PRF_AUTOCON 50           /* autoconsider, shows level difference of mobs in look command */
+#define PRF_SMASH_DEFENSE 51     // stalwart defender level 10 ability
+#define PRF_DISPGOLD 52          // will show gold in prompt
 #define PRF_NO_CHARMIE_RESCUE 53 // charmie mobs won't rescue you
 
 /** Total number of available PRF flags */
@@ -944,7 +946,7 @@
 #define AFF_STAGGERED 105          /* A staggered character has a 50% chance to fail a spell or a single melee attack */
 #define AFF_DAZZLED 106            /* suffers -1 to attacks and perception checks */
 #define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
-#define AFF_ESHIELD 108             // electric shield - reflect damage
+#define AFF_ESHIELD 108            // electric shield - reflect damage
 /*---*/
 #define NUM_AFF_FLAGS 109
 /********************************/
@@ -1766,16 +1768,28 @@
 #define FEAT_DRAGON_MAGIC 640
 #define FEAT_EPIC_WILDSHAPE 641
 #define FEAT_EPIC_SPELL_FOCUS 642
+/* duergar */
+#define FEAT_STRONG_SPELL_HARDINESS 643
+#define FEAT_DUERGAR_RACIAL_ADJUSTMENT 644
+#define FEAT_AFFINITY_MOVE_SILENT 645
+#define FEAT_AFFINITY_LISTEN 646
+#define FEAT_AFFINITY_SPOT 647
+#define FEAT_SLA_INVIS 648
+#define FEAT_SLA_STRENGTH 649
+#define FEAT_SLA_ENLARGE 650
+#define FEAT_PHANTASM_RESIST 651
+#define FEAT_PARALYSIS_RESIST 652
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 643
+#define FEAT_LAST_FEAT 651
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 644
+#define NUM_FEATS 652
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
 
+/* alchemist */
 #define NUM_DISCOVERIES_KNOWN 20
 #define MAX_BOMBS_ALLOWED 50
 #define NUM_ALC_DISCOVERIES 44
@@ -2070,8 +2084,9 @@
 /*more item flags!*/
 #define ITEM_ANTI_DROW 49
 #define ITEM_MASTERWORK 50
+#define ITEM_ANTI_DUERGAR 51
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 51
+#define NUM_ITEM_FLAGS 52
 
 /* homeland-port */
 /*
@@ -3145,8 +3160,8 @@ struct char_point_data
 {
     sh_int psp;            /**< Current psp level  */
     sh_int max_psp;        /**< Max psp level */
-    int hit;            /**< Curent hit point, or health, level */
-    int max_hit;        /**< Max hit point, or health, level */
+    int hit;               /**< Curent hit point, or health, level */
+    int max_hit;           /**< Max hit point, or health, level */
     sh_int move;           /**< Current move point, or stamina, level */
     sh_int max_move;       /**< Max move point, or stamina, level */
     sh_int armor;          // armor class
