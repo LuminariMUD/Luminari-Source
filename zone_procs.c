@@ -1925,7 +1925,7 @@ SPECIAL(thrym)
     // no save, unless have special feat
     if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST)) {
       mag_savingthrow(ch, vict, SAVING_FORT, +4, /* +4 bonus from feat */
-                      CAST_INNATE, 30, ENCHANTMENT))
+                      CAST_INNATE, 30, ENCHANTMENT);
     send_to_char(ch, "Your target is unfazed.\r\n");
       return 1;
     }

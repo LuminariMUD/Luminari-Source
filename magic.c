@@ -3898,7 +3898,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     // no save, unless have special feat
     if (HAS_FEAT(ch, FEAT_PHANTASM_RESIST)) {
       mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus+4, /* +4 bonus from feat */
-                      casttype, level, ILLUSION))
+                      casttype, level, ILLUSION);
       return;
     }
 
