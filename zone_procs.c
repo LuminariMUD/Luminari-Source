@@ -1922,6 +1922,14 @@ SPECIAL(thrym)
     return 1;
   }
 
+    // no save, unless have special feat
+    if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST)) {
+      mag_savingthrow(ch, vict, SAVING_FORT, +4, /* +4 bonus from feat */
+                      CAST_INNATE, 30, ENCHANTMENT))
+    send_to_char(ch, "Your target is unfazed.\r\n");
+      return 1;
+    }
+
   act("\tCThrym touches you with a chilling hand, freezing you in place.\tn", FALSE, vict, 0, ch, TO_CHAR);
   act("\tCThrym touches $n\tC, freezing $m in place.\tn", FALSE, vict, 0, ch, TO_ROOM);
 
@@ -2428,8 +2436,18 @@ SPECIAL(giantslayer)
     return 1;
   }
 
-  if (GET_RACE(ch) != RACE_DWARF)
-    return 0;
+swtich (GET_RACE(ch)) {
+
+  case RACE_DWARF:
+  break;
+
+  case RACE_DUERGAR:
+  break;
+
+  default:
+  return 0;
+  break;
+}
 
   struct obj_data *obj = (struct obj_data *)me;
   struct char_data *vict = FIGHTING(ch);

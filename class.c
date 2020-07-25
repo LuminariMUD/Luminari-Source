@@ -1786,6 +1786,20 @@ static int level_feats[][LEVEL_FEATS] = {
     //disadvantage
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_LIGHT_BLINDNESS},
 
+    /* class, race, stacks?, level, feat_ name */
+    /* Duergar */
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_ULTRAVISION},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_POISON_RESIST},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_PHANTASM_RESIST},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_PARALYSIS_RESIST},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_STABILITY},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_STRONG_SPELL_HARDINESS},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_DUERGAR_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_INVIS},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_STRENGTH},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_ENLARGE},
+
     /*****************************************/
     /* This is always the last array element */
     /*****************************************/
@@ -1904,6 +1918,7 @@ void newbieEquipment(struct char_data *ch)
   switch (GET_RACE(ch))
   {
   case RACE_DWARF:
+  case RACE_DUERGAR:
     obj = read_object(NOOB_DWARF_WARAXE, VIRTUAL);
     obj_to_char(obj, ch); // dwarven waraxe
     break;
@@ -2297,7 +2312,7 @@ void init_start_char(struct char_data *ch)
     for (j = 0; j < NUM_SKFEATS; j++)
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
   for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
-      GET_BOMB(ch, i) = 0;
+    GET_BOMB(ch, i) = 0;
 
   /* initialize spell prep data, allow adjustment of spells known */
   destroy_spell_prep_queue(ch);
@@ -2336,6 +2351,9 @@ void init_start_char(struct char_data *ch)
     trains += 3;
     break;
   case RACE_ELF:
+    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
+    break;
+  case RACE_DUERGAR:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     break;
   case RACE_DWARF:
@@ -3002,7 +3020,9 @@ int level_exp(struct char_data *ch, int level)
 
   //can add other exp penalty/bonuses here
   switch (GET_REAL_RACE(ch))
-  { /* funny bug: use to use disguised/wildshape race */
+  {
+    /* funny bug: used to use disguised/wildshape race */
+
     //advanced races
   case RACE_HALF_TROLL:
     exp *= 2;
@@ -3013,6 +3033,10 @@ int level_exp(struct char_data *ch, int level)
   case RACE_DROW:
     exp *= 2;
     break;
+  case RACE_DUERGAR:
+    exp *= 2;
+    break;
+
     //epic races
   case RACE_CRYSTAL_DWARF:
     exp *= 15;
@@ -3020,6 +3044,7 @@ int level_exp(struct char_data *ch, int level)
   case RACE_TRELUX:
     exp *= 15;
     break;
+
   default:
     break;
   }
@@ -5247,7 +5272,7 @@ void load_class_list(void)
                       "the Perpetually Changing", /* <= 30 */
                       "the Immortal Shifter",     /* <= LVL_IMMORT */
                       "the Limitless Changeling", /* <= LVL_STAFF */
-                      "the Guru of Shifting",      /* <= LVL_GRSTAFF */
+                      "the Guru of Shifting",     /* <= LVL_GRSTAFF */
                       "the Shifter"               /* default */
   );
   /* feat assignment */

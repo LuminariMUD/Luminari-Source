@@ -876,6 +876,52 @@ void assign_races(void)
   /*                  race-num  affect            lvl */
   /****************************************************************************/
 
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_DUERGAR, "duergar", "Duergar", "\t[F333]Duergar\tn", "Drgr", "\t[F333]Drgr\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 2, 1000, IS_ADVANCE);
+  set_race_details(RACE_DUERGAR,
+                   /*descrip*/ "Duergar dwell in subterranean caverns far from the touch of light. They detest all races "
+                               "living beneath the sun, but that hatred pales beside their loathing of their surface-dwarf "
+		                  	       "cousins. Dwarves and duergar once were one race, but the dwarves left the deeps for their "
+                               "mountain strongholds. Duergar still consider themselves the only true dwarves, and the "
+                               "rightful heirs of all beneath the world’s surface. In appearance, duergar resemble gray-"
+                               "skinned dwarves, bearded but bald, with cold, lightless eyes. They favor taking captives "
+                               "in battle over wanton slaughter, save for surface dwarves, who are slain without hesitation. "
+                               "Duergar view life as ceaseless toil ended only by death. Though few can be described as "
+                               "anything other than vile and cruel, duergar still value honor and rarely break their word.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Duergar.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Duergar.");
+  set_race_genders(RACE_DUERGAR, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_DUERGAR, 0, 4, 0, 0, 0, -2);          /* str con int wis dex cha */
+  set_race_alignments(RACE_DUERGAR, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_DUERGAR,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_DUERGAR, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_LIGHT_BLINDNESS, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_DUERGAR_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_PARALYSIS_RESIST, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_PHANTASM_RESIST, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_STRONG_SPELL_HARDINESS, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_SLA_ENLARGE, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_SLA_STRENGTH, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_SLA_INVIS, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_AFFINITY_SPOT, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_AFFINITY_LISTEN, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_AFFINITY_MOVE_SILENT, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_POISON_RESIST, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_STABILITY, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+  /****************************************************************************/
+
   /******/
   /*Epic*/
   /******/
@@ -1551,35 +1597,33 @@ void assign_races(void)
            RACE_TYPE_MAGICAL_BEAST, SIZE_LARGE, FALSE, 0, 0, IS_NORMAL);
 
   set_race_attack_types(RACE_MANTICORE,
-                      /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                      N, N, N, N, Y, N, N, N, Y, N, N, N,
-                      /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                      N, N, N, N, N, N, N, N, N, N, N, N);
-  
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, Y, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
 
   /* fey */
-  
+
   add_race(RACE_PIXIE, "pixie", "Pixie", "Pixie", "Pixi", "Pixi",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_FEY, SIZE_TINY, FALSE, 0, 0, IS_NORMAL);
 
   set_race_attack_types(RACE_PIXIE,
-                      /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                      N, Y, N, N, N, N, N, N, N, N, N, N,
-                      /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                      Y, N, N, N, N, N, N, N, N, N, N, N);
-
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, Y, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        Y, N, N, N, N, N, N, N, N, N, N, N);
 
   /* construct */
-  
+
   add_race(RACE_IRON_GOLEM, "iron golem", "IronGolem", "Iron Golem", "IrGl", "IrGl",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_CONSTRUCT, SIZE_LARGE, FALSE, 0, 0, IS_NORMAL);
   set_race_attack_types(RACE_IRON_GOLEM,
-                    /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                    N, N, N, N, N, Y, Y, N, N, N, N, N,
-                    /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                    N, N, N, N, N, N, N, N, N, N, N, N);
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, N, Y, Y, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
 
   /* outsiders */
 
@@ -1587,16 +1631,16 @@ void assign_races(void)
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_OUTSIDER, SIZE_LARGE, FALSE, 0, 0, IS_NORMAL);
   set_race_attack_types(RACE_EFREETI,
-                    // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce 
-                    N, N, N, Y, N, N, N, N, N, N, Y, N,
-                    // blast p slice thrust hack rake peck smash trample charge gore 
-                    N, N, N, N, N, N, N, N, N, N, N, N);
+                        // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce
+                        N, N, N, Y, N, N, N, N, N, N, Y, N,
+                        // blast p slice thrust hack rake peck smash trample charge gore
+                        N, N, N, N, N, N, N, N, N, N, N, N);
 
   /* 
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   */
- 
+
   /* dragon */
   /*
   add_race(RACE_DRAGON_CLOUD, "dragon cloud", "DrgCloud", "Cloud Dragon", RACE_TYPE_DRAGON, N, Y, Y, 0, 0, 0, 0, 0, 0,
@@ -1634,7 +1678,7 @@ void assign_races(void)
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
                         N, N, N, N, N, N, N, N, N, N, N, N);
   /****************************************************************************/
-    /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
+  /*                  simple-name, no-color-name, color-name, abbrev (4), color-abbrev (4) */
   add_race(RACE_BLUE_DRAGON, "blue dragon", "BluDragn", "Blue Dragon", "BlDr", "BlDr",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_DRAGON, SIZE_HUGE, FALSE, 0, 0, IS_NORMAL);
@@ -1692,6 +1736,8 @@ int parse_race(char arg)
     return RACE_ARCANA_GOLEM;
   case 'k':
     return RACE_DROW;
+  case 'l':
+    return RACE_DUERGAR;
   default:
     return RACE_UNDEFINED;
   }
@@ -1722,6 +1768,12 @@ int parse_race_long(const char *arg_in)
     return RACE_DROW;
   if (is_abbrev(arg, "dwarf"))
     return RACE_DWARF;
+  if (is_abbrev(arg, "duergar"))
+    return RACE_DUERGAR;
+  if (is_abbrev(arg, "graydwarf"))
+    return RACE_DUERGAR;
+  if (is_abbrev(arg, "darkdwarf"))
+    return RACE_DUERGAR;
   if (is_abbrev(arg, "half-troll"))
     return RACE_HALF_TROLL;
   if (is_abbrev(arg, "halftroll"))
@@ -1777,6 +1829,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
       (OBJ_FLAGGED(obj, ITEM_ANTI_TRELUX) && IS_TRELUX(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANA_GOLEM) && IS_ARCANA_GOLEM(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DROW) && IS_DROW(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_DUERGAR) && IS_DUERGAR(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DWARF) && IS_DWARF(ch)))
     return 1;
   else
@@ -1786,16 +1839,16 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
 int get_random_basic_pc_race(void)
 {
 
-  int num = dice(1, NUM_RACES+1);
+  int num = dice(1, NUM_RACES + 1);
   num--;
 
-  while (race_list[num].epic_adv != IS_NORMAL) {
-    num = dice(1, NUM_RACES+1);
+  while (race_list[num].epic_adv != IS_NORMAL)
+  {
+    num = dice(1, NUM_RACES + 1);
     num--;
   }
 
   return num;
-
 }
 
 /*

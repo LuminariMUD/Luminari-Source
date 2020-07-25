@@ -794,6 +794,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     if ((GET_RACE(ch) == RACE_DWARF ||
          GET_RACE(ch) == RACE_CRYSTAL_DWARF ||
          GET_RACE(ch) == RACE_GNOME ||
+         GET_RACE(ch) == RACE_DUERGAR ||
          GET_RACE(ch) == RACE_HALFLING) &&
         GET_SIZE(attacker) > GET_SIZE(ch))
     {
@@ -4365,13 +4366,15 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       diceTwo = 1;
       break;
     }
-    if (IS_MANTICORE(ch)) {
-      diceOne = 3 + (CLASS_LEVEL(ch, CLASS_SHIFTER)/2);
+    if (IS_MANTICORE(ch))
+    {
+      diceOne = 3 + (CLASS_LEVEL(ch, CLASS_SHIFTER) / 2);
       diceTwo = 4;
     }
-    if (IS_PIXIE(ch)) {
+    if (IS_PIXIE(ch))
+    {
       diceOne = 2;
-      diceTwo = 2 + (CLASS_LEVEL(ch, CLASS_SHIFTER)/2);
+      diceTwo = 2 + (CLASS_LEVEL(ch, CLASS_SHIFTER) / 2);
     }
   }
   else if (IS_MORPHED(ch))
@@ -4426,7 +4429,8 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 {
   int threat_range, confirm_roll = dice(1, 20) + calc_bab;
 
-  if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced)) {
+  if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced))
+  {
     FIGHTING(ch)->preserve_organs_procced = TRUE;
     return FALSE;
   }
@@ -6845,7 +6849,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
   if (!ch || !victim)
     return (HIT_MISS); /* ch and victim exist? */
-  
+
   // each hit we want to reset the preserve organs proc.  This is to prevent double dipping
   // from sneak attacks and crits
   victim->preserve_organs_procced = FALSE;

@@ -3554,6 +3554,7 @@ int get_speed(struct char_data *ch, sbyte to_display)
   switch (GET_RACE(ch))
   {
   case RACE_DWARF:
+  case RACE_DUERGAR:
   case RACE_CRYSTAL_DWARF:
   case RACE_HALFLING:
   case RACE_GNOME:
