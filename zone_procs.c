@@ -21,6 +21,7 @@
 #include "graph.h"
 #include "mud_event.h"
 #include "actions.h"
+#include "domains_schools.h"
 
 /* local, file scope restricted functions */
 
@@ -2436,7 +2437,7 @@ SPECIAL(giantslayer)
     return 1;
   }
 
-swtich (GET_RACE(ch)) {
+switch (GET_RACE(ch)) {
 
   case RACE_DWARF:
   break;
