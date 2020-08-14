@@ -1764,6 +1764,12 @@ void char_from_furniture(struct char_data *ch);
                          (GET_RACE(ch) == RACE_DROW))
 #define IS_DARK_ELF(ch) (!IS_NPC(ch) && \
                          (GET_RACE(ch) == RACE_DROW))
+#define IS_DUERGAR(ch) (!IS_NPC(ch) && \
+                     (GET_RACE(ch) == RACE_DUERGAR))
+#define IS_GRAY_DWARF(ch) (!IS_NPC(ch) && \
+                     (GET_RACE(ch) == RACE_DUERGAR))
+#define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
+                     (GET_RACE(ch) == RACE_DUERGAR))
 
 // IS_race for various morph/shapechange equivalent of npc races
 #define IS_DRAGON(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_DRAGON) || \

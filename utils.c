@@ -2519,6 +2519,8 @@ bool char_has_ultra(struct char_data *ch) {
     return TRUE;
   if (GET_RACE(ch) == RACE_DROW)
     return TRUE;
+  if (GET_RACE(ch) == RACE_DUERGAR)
+    return TRUE;
   if (GET_RACE(ch) == RACE_TRELUX)
     return TRUE;
 
@@ -3535,6 +3537,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_REMOVE_DISEASE:
       daily_uses += HAS_FEAT(ch, FEAT_REMOVE_DISEASE);
       break;
+    case FEAT_SLA_INVIS:
+    case FEAT_SLA_STRENGTH:
+    case FEAT_SLA_ENLARGE:
     case FEAT_CRYSTAL_FIST:
     case FEAT_CRYSTAL_BODY:
     case FEAT_SLA_FAERIE_FIRE:
@@ -4004,6 +4009,7 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
   if (HAS_FEAT(victim, FEAT_POISON_RESIST)) //poison resist feat
     bonus += 4;
   if (GET_RACE(victim) == RACE_DWARF || //dwarf dwarven poison resist
+      GET_RACE(victim) == RACE_DUERGAR ||
       GET_RACE(victim) == RACE_CRYSTAL_DWARF)
     bonus += 2;
   if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))

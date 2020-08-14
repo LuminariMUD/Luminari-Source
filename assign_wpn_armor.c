@@ -160,6 +160,17 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     }
   }
 
+  if (IS_DUERGAR(ch) &&
+      HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY))
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_DWARVEN_WAR_AXE:
+    case WEAPON_TYPE_DWARVEN_URGOSH:
+      return TRUE;
+    }
+  }
+
   /* cleric domain, favored weapons */
   if (domain_list[GET_1ST_DOMAIN(ch)].favored_weapon == weapon)
     return TRUE;
@@ -1507,8 +1518,8 @@ int is_proficient_with_armor(struct char_data *ch)
 }
 
 static void setarmor(int type, const char *name, int armorType, int cost, int armorBonus,
-              int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
-              int twentyFoot, int weight, int material, int wear)
+                     int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
+                     int twentyFoot, int weight, int material, int wear)
 {
   armor_list[type].name = name;
   armor_list[type].armorType = armorType;

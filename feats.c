@@ -381,6 +381,7 @@ void assign_feats(void)
   /* Racial ability feats */
 
   /* Human */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_QUICK_TO_MASTER, "quick to master", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "extra starting feat",
         "You start off with an extra feat.");
@@ -397,6 +398,7 @@ void assign_feats(void)
         "As a racial adjustment you have +2 to constitution and -2 to charisma");
 
   /* Halfling */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SHADOW_HOPPER, "shadow hopper", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 to stealth",
         "+2 to stealth");
@@ -408,16 +410,19 @@ void assign_feats(void)
         "You gain +2 to dexterity and -2 strength as racial stat adjustments.");
 
   /* Half-Elf */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_HALF_BLOOD, "half blood", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 discipline and lore",
         "+2 discipline and lore");
 
   /* Half-Orc */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_HALF_ORC_RACIAL_ADJUSTMENT, "halforc racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 str, -2 int/cha",
         "Half-Orcs as a racial adjustment have +2 strength and -2 intelligence/charisma.");
 
   /* Gnome */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_RESISTANCE_TO_ILLUSIONS, "resistance to illusions", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 saving throw bonus against illusions",
         "+2 saving throw bonus against illusions");
@@ -432,6 +437,7 @@ void assign_feats(void)
         "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
 
   /* Elf */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SLEEP_ENCHANTMENT_IMMUNITY, "sleep enchantment immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "immunity to sleep enchantments",
         "immunity to sleep enchantments");
@@ -440,6 +446,7 @@ void assign_feats(void)
         "Elven racial adjustment to stats are: +2 dexterity -2 constitution.");
 
   /* Half-Troll */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_TROLL_REGENERATION, "troll regeneration", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "rapid health regeneration",
         "Half-Trolls recover health much quicker than other races, and this effect is even more dramatic during combat.");
@@ -460,6 +467,7 @@ void assign_feats(void)
         "As racial stat adjustments Half-Trolls get: +2 to strength/dexterity/constitution and -4 to intelligence/wisdom/charisma.");
 
   /* Arcana Golem */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELLBATTLE, "spellbattle", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "strengthen your body with arcane power",
         "By channeling their inner magic, Arcana Golems can use it to provide a huge "
@@ -495,6 +503,7 @@ void assign_feats(void)
         "Arcana Golem natural racial adjustment to stats are: -2 constitution/strength, +2 intelligence/wisdom/charisma.");
 
   /* Crystal Dwarf */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_CRYSTAL_BODY, "crystal body", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "damage reduction 3/- temporarily",
         "Allows you to harden your crystal-like body for a short time. "
@@ -510,7 +519,42 @@ void assign_feats(void)
         "+4 con, +2 str, +2 wis, +2 cha",
         "As a natural racial bonus, crystal-dwarves start with +4 constituion, +2 to strength, wisdom and charisma.");
 
+  /* Duergar */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_SLA_INVIS, "duergar invis", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - invisibility 3/day",
+        "Duergar have a spell-like ability to use invisibility (command: invisiduergar) on themselves three times per day");
+  feato(FEAT_SLA_STRENGTH, "duergar strength", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - strength 3/day",
+        "Duergar have a spell-like ability to use strength (command: strength) on themselves three times per day");
+  feato(FEAT_SLA_ENLARGE, "duergar enlarge", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "sla - enlarge 3/day",
+        "Duergar have a spell-like ability to use enlarge (command: enlarge) on themselves three times per day");
+  feato(FEAT_AFFINITY_MOVE_SILENT, "affinity - move silent", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 move silent check",
+        "A strong affinity to move silently, receive a +4 bonus to all checks");
+  feato(FEAT_AFFINITY_LISTEN, "affinity - listen", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 listen check",
+        "An affinity to listen, receive a +2 bonus to all checks");
+  feato(FEAT_AFFINITY_SPOT, "affinity - spot", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 spot check",
+        "An affinity to spot, receive a +2 bonus to all checks");
+  feato(FEAT_STRONG_SPELL_HARDINESS, "strong spell hardiness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 to spell saves",
+        "A strong hardiness in resisting spells, +4 bonus to saves against magic");
+  feato(FEAT_DUERGAR_RACIAL_ADJUSTMENT, "duergar racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 con, -2 cha",
+        "Duergar get a +4 bonus to their natural constitution and a -2 penalty to their charisma");
+  feato(FEAT_PHANTASM_RESIST, "strong phantasm resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 to phantasm saves",
+        "A strong hardiness in resisting phantasms, +4 bonus to saves");
+  feato(FEAT_PARALYSIS_RESIST, "strong paralysis resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 to paralysis saves",
+        "A strong hardiness in resisting paralysis, +4 bonus to saves - will also allow saves versus some spells/abilities "
+          "that normally don't allow saves");
+
   /* Drow */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   //sleep enchantment immunity - shared
   //ultravision / darkvision - shared
   //keen senses - shared
@@ -539,6 +583,7 @@ void assign_feats(void)
         "hand-crossbows, rapiers and short-swords.");
 
   /* Trelux */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_VULNERABLE_TO_COLD, "vulnerable to cold", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "20 percent weakness to cold attacks",
         "20 percent weakness to cold attacks");
@@ -573,6 +618,7 @@ void assign_feats(void)
         "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
 
   /* Shared - Various */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_LIGHT_BLINDNESS, "light blindness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "penalties in daylight",
         "You receive penalties of -1 to hitroll, damroll, saves and skill checks when "
@@ -619,6 +665,7 @@ void assign_feats(void)
   /***/
 
   /* combat modes */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_POWER_ATTACK, "power attack", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "subtract a number from hit and add to dam.  If 2H weapon add 2x dam instead",
         "When active, take a value specified as penalty to attack roll and gain that "
@@ -652,6 +699,8 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_GREAT_CLEAVE, FEAT_POWER_ATTACK, 1);
   feat_prereq_attribute(FEAT_GREAT_CLEAVE, AB_STR, 13);
   feat_prereq_bab(FEAT_GREAT_CLEAVE, 4);
+
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* weapon focus feats */
   feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
@@ -718,6 +767,7 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_WHIRLWIND_ATTACK, FEAT_SPRING_ATTACK, 1);
   feat_prereq_bab(FEAT_WHIRLWIND_ATTACK, 4);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* critical feats */
   feato(FEAT_POWER_CRITICAL, "power critical", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
         "+4 to rolls to confirm critical hits.",
@@ -785,6 +835,7 @@ void assign_feats(void)
   feat_prereq_attribute(FEAT_SNATCH_ARROWS, AB_DEX, 17);
   feat_prereq_feat(FEAT_SNATCH_ARROWS, FEAT_DEFLECT_ARROWS, 1);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* here is our mounted combat feats */
   feato(FEAT_MOUNTED_COMBAT, "mounted combat", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "once per round rider may negate a hit against him with a successful ride vs attack roll check",
@@ -811,6 +862,7 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_MOUNTED_ARCHERY, FEAT_MOUNTED_COMBAT, 1);
   feat_prereq_ability(FEAT_MOUNTED_ARCHERY, ABILITY_RIDE, 6);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* shield feats */
   feato(FEAT_IMPROVED_SHIELD_PUNCH, "improved shield punch", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "retain your shield's AC bonus when you shield punch",
@@ -834,6 +886,7 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_SHIELD_CHARGE, 1);
   feat_prereq_feat(FEAT_SHIELD_SLAM, FEAT_IMPROVED_SHIELD_PUNCH, 1);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* two weapon fighting feats */
   feato(FEAT_TWO_WEAPON_FIGHTING, "two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "reduces penalty for two weapon fighting",
@@ -855,6 +908,7 @@ void assign_feats(void)
         "shield bonus to AC");
   feat_prereq_cfeat(FEAT_TWO_WEAPON_DEFENSE, FEAT_TWO_WEAPON_FIGHTING);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* uncategorized combat feats */
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
@@ -944,6 +998,7 @@ void assign_feats(void)
         "weapons, or weapons that are a smaller size class than the character.");
   feat_prereq_bab(FEAT_WEAPON_FINESSE, 1);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* epic */
   feato(FEAT_DAMAGE_REDUCTION, "damage reduction", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
         "3/- damage reduction per rank of feat",
@@ -1014,6 +1069,7 @@ void assign_feats(void)
         "Taking skill focus will give you +3 in chosen skill, this feat can be taken "
         "multiple times, but only once per skill chosen.");
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* weapon / armor proficiency */
   feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "allows unpenalized use of light armor ",
@@ -1048,6 +1104,7 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_EXOTIC_WEAPON_PROFICIENCY, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
   /********/
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* armor specialization */
   feato(FEAT_ARMOR_SPECIALIZATION_HEAVY, "armor specialization (heavy)", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "DR 2/- when wearing heavy armor",
@@ -1109,6 +1166,7 @@ void assign_feats(void)
         "+2 to all fortitude saving throw checks",
         "+2 to all fortitude saving throw checks");
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_INVESTIGATOR, "investigator", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "+2 to lore and perception checks",
         "+2 to lore and perception checks");
@@ -1148,6 +1206,7 @@ void assign_feats(void)
         "use survival skill to track others");
   feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* Epic */
   feato(FEAT_FAST_HEALING, "fast healing", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
         "accelerated regeneration of hps",
@@ -1187,6 +1246,7 @@ void assign_feats(void)
         "Increases Charisma by 1",
         "Increases Charisma by 1");
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* MetaMagic Feats */
   feato(FEAT_MAXIMIZE_SPELL, "maximize spell", TRUE, TRUE, FALSE, FEAT_TYPE_METAMAGIC,
         "all spells cast while maximize enabled do maximum effect",
@@ -2944,29 +3004,29 @@ void assign_feats(void)
                "dragon shape",
                "dragon shape");
   feato(FEAT_IRON_GOLEM_IMMUNITY, "iron golem immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "immunity to all magic, except fire and lightning.",
-               "immunity to all magic, except fire and lightning. Fire will heal the golem instead.  Electric damage will slow the golem instead.");
+        "immunity to all magic, except fire and lightning.",
+        "immunity to all magic, except fire and lightning. Fire will heal the golem instead.  Electric damage will slow the golem instead.");
   feato(FEAT_POISON_BREATH, "poison breath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "allows breathing poison gas into the room",
-               "dragon shape");
+        "allows breathing poison gas into the room",
+        "dragon shape");
   feato(FEAT_TAIL_SPIKES, "tail spikes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "can shoot spikes from your tail to each enemy in the room.",
-               "can shoot spikes from your tail to each enemy in the room.  1d6+5 damage each, uses a swift action.");
+        "can shoot spikes from your tail to each enemy in the room.",
+        "can shoot spikes from your tail to each enemy in the room.  1d6+5 damage each, uses a swift action.");
   feato(FEAT_PIXIE_DUST, "pixie dust", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "Can use pixie magic",
-               "Can use pixie magic.  Command is pixiedust.");
+        "Can use pixie magic",
+        "Can use pixie magic.  Command is pixiedust.");
   feato(FEAT_PIXIE_INVISIBILITY, "pixie invisibility", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "Can use greater invisibility at will.",
-               "Can use greater invisiblity at will.  Command is pixieinvis.");
+        "Can use greater invisibility at will.",
+        "Can use greater invisiblity at will.  Command is pixieinvis.");
   feato(FEAT_EFREETI_MAGIC, "efreeti magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "Can use efreeti magic",
-               "Can use efreeti magic.  Command is efreetimagic.");
+        "Can use efreeti magic",
+        "Can use efreeti magic.  Command is efreetimagic.");
   feato(FEAT_DRAGON_MAGIC, "dragon magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-               "Can use dragon magic",
-               "Can use dragon magic.  Command is dragonmagic.");
+        "Can use dragon magic",
+        "Can use dragon magic.  Command is dragonmagic.");
   feato(FEAT_EPIC_WILDSHAPE, "epic wildshape", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-               "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.",
-               "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.  Max 5 ranks.");
+        "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.",
+        "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.  Max 5 ranks.");
 
   /* Assassin */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3149,8 +3209,8 @@ void assign_feats(void)
   feato(FEAT_RUTHLESS_NEGOTIATOR, "ruthless negotiator", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "unfinished", "unfinished");
 
   feato(FEAT_PARALYSIS_IMMUNITY, "paralysis immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-  "cannot be paralyzed.",
-  "cannot be paralyzed");
+        "cannot be paralyzed.",
+        "cannot be paralyzed");
 
   /* artisan */
   feato(FEAT_LEARNED_CRAFTER, "learned crafter", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Artisan gains exp for crafting items and harvesting", "Artisan gains exp for crafting items and harvesting");
@@ -3267,8 +3327,8 @@ void assign_feats(void)
   feato(FEAT_CONSTITUTION_BOOST, "constitution boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_INTELLIGENCE_BOOST, "intelligence boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_SLEEP_PARALYSIS_IMMUNITY, "sleep & paralysis immunity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-  "cannot be put to sleep or paralyzed.",
-  "cannot be put to sleep or paralyzed");
+        "cannot be put to sleep or paralyzed.",
+        "cannot be put to sleep or paralyzed");
   feato(FEAT_STRENGTH_BOOST, "strength boost", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_TRAMPLE, "trample", FALSE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY, "ask staff", "ask staff");
   feato(FEAT_NATURAL_ARMOR_INCREASE, "natural armor increase", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
@@ -3386,6 +3446,9 @@ void assign_feats(void)
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
   dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
   dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
+  dailyfeat(FEAT_SLA_STRENGTH, eSLA_STRENGTH);
+  dailyfeat(FEAT_SLA_ENLARGE, eSLA_ENLARGE);
+  dailyfeat(FEAT_SLA_INVIS , eSLA_INVIS);
   dailyfeat(FEAT_SLA_LEVITATE, eSLA_LEVITATE);
   dailyfeat(FEAT_SLA_DARKNESS, eSLA_DARKNESS);
   dailyfeat(FEAT_SLA_FAERIE_FIRE, eSLA_FAERIE_FIRE);
@@ -3712,7 +3775,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (has_feat_requirement_check(ch, FEAT_EPIC_PROWESS) >= 5)
         return FALSE;
       return TRUE;
-    
+
     case FEAT_EPIC_WILDSHAPE:
       if (has_feat_requirement_check(ch, FEAT_EPIC_WILDSHAPE) >= 5)
         return FALSE;
