@@ -1274,8 +1274,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
         if (GET_LEVEL(ch) >= LVL_IMMORT)
         {
           // imms can cast any spell
-          call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL);
-          return;
+          return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
         }
 
         int position = GET_POS(ch);
