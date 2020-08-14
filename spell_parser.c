@@ -1271,6 +1271,13 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
+        if (GET_LEVEL(ch) >= LVL_IMMORT)
+        {
+          // imms can cast any spell
+          call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL);
+          return;
+        }
+
         int position = GET_POS(ch);
         int ch_class = CLASS_WIZARD, clevel = 0;
         int casting_time = 0;

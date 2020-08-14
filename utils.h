@@ -187,6 +187,7 @@ bool has_pet_follower(struct char_data *ch);
 bool has_elemental_follower(struct char_data *ch);
 bool has_undead_follower(struct char_data *ch);
 int color_count(char *bufptr);
+bool using_monk_gloves(struct char_data *ch);
 int num_obj_in_obj(struct obj_data *obj);
 bool ultra_blind(struct char_data *ch, room_rnum room_number);
 bool is_room_outdoors(room_rnum room_number);
