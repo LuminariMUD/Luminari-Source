@@ -52,7 +52,7 @@ struct shop_data
    int close1, close2;         /* When does the shop close?		*/
    int bankAccount;            /* Store all gold over 15000 (disabled)	*/
    int lastsort;               /* How many items are sorted in inven?	*/
-   SPECIAL_DECL(*func);             /* Secondary spec_proc for shopkeeper	*/
+   SPECIAL_DECL(*func);        /* Secondary spec_proc for shopkeeper	*/
 };
 
 #define MAX_TRADE 5         /* List maximums for compatibility	*/
@@ -101,8 +101,9 @@ struct shop_data
 #define TRADE_NOGNOME (1 << 22)
 #define TRADE_NOARCANAGOLEM (1 << 23)
 #define TRADE_NODROW (1 << 24)
+#define TRADE_NODUERGAR (1 << 25)
 /** Total number of trade types */
-#define NUM_TRADERS 25
+#define NUM_TRADERS 26
 
 struct stack_data
 {
@@ -165,6 +166,7 @@ struct stack_data
 #define NOTRADE_GNOME(i) (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOGNOME))
 #define NOTRADE_ARCANAGOLEM(i) (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NOARCANAGOLEM))
 #define NOTRADE_DROW(i) (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NODROW))
+#define NOTRADE_DUERGAR(i) (IS_SET(SHOP_TRADE_WITH((i)), TRADE_NODUERGAR))
 
 /* Shop flags */
 #define WILL_START_FIGHT (1 << 0)

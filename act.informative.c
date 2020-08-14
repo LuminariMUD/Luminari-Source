@@ -70,6 +70,21 @@ int sorted_spells[MAX_SKILLS + 1];
 int sorted_skills[MAX_SKILLS + 1];
 int boot_high = 0;
 
+/* file level defines */
+/* weapon types */
+#define WPT_SIMPLE 1
+#define WPT_MARTIAL 2
+#define WPT_EXOTIC 3
+#define WPT_MONK 4
+#define WPT_DRUID 5
+#define WPT_BARD 6
+#define WPT_ROGUE 7
+#define WPT_WIZARD 8
+#define WPT_DROW 9
+#define WPT_ELF 10
+#define WPT_DWARF 11
+#define WPT_DUERGAR 11
+
 /*******  UTILITY FUNCTIONS ***********/
 
 /* function to display some basic info about a mobile that is 'identified' or
@@ -85,20 +100,23 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   count = snprintf(subraces + len, sizeof(subraces) - len, ", Subrace(s): ");
   if (count > 0)
     len += count;
-  if (GET_SUBRACE(tch, 0)) {
+  if (GET_SUBRACE(tch, 0))
+  {
     count = snprintf(subraces + len, sizeof(subraces) - len, "%s", npc_subrace_types[GET_SUBRACE(tch, 0)]);
     if (count > 0)
-        len += count;
+      len += count;
     has_subrace = true;
   }
-  if (GET_SUBRACE(tch, 1)) {
-  count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 1)]);
-  if (count > 0)
+  if (GET_SUBRACE(tch, 1))
+  {
+    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 1)]);
+    if (count > 0)
       len += count;
   }
-  if (GET_SUBRACE(tch, 2)) {
-  count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 2)]);
-  if (count > 0)
+  if (GET_SUBRACE(tch, 2))
+  {
+    count = snprintf(subraces + len, sizeof(subraces) - len, "/%s", npc_subrace_types[GET_SUBRACE(tch, 2)]);
+    if (count > 0)
       len += count;
   }
 
@@ -107,11 +125,10 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
     send_to_char(ch, "%s is %d years, %d months, %d days and %d hours old.\r\n",
                  GET_NAME(tch), age(tch)->year, age(tch)->month,
                  age(tch)->day, age(tch)->hours);
-  send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : 
-              race_family_types[GET_RACE(tch)],
-              has_subrace ? subraces : "");
+  send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
+               has_subrace ? subraces : "");
   send_to_char(ch, "Alignment: %s.\r\n",
-              get_align_by_num(GET_ALIGNMENT(tch)));
+               get_align_by_num(GET_ALIGNMENT(tch)));
   send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
                GET_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
@@ -1765,6 +1782,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACCLAWS)))
     send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
+    send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))
+    send_to_char(ch, "Enlarge Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSLA_INVIS)))
+    send_to_char(ch, "Invisibility Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+
+
   if (PIXIE_DUST_TIMER(ch) > 0)
     send_to_char(ch, "Pixie Dust Cooldown  - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
   if (EFREETI_MAGIC_TIMER(ch) > 0)
@@ -1772,7 +1797,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   if (DRAGON_MAGIC_TIMER(ch) > 0)
     send_to_char(ch, "Dragon Magic Cooldown  - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
   if (GET_MISSION_COOLDOWN(k) > 0)
-    send_to_char(ch, "Mission Ready Cooldown  - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k)*6);
+    send_to_char(ch, "Mission Ready Cooldown  - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -2627,6 +2652,29 @@ ACMD(do_innates)
       send_to_char(ch, "drow charisma (+2 cha)\r\n");
       send_to_char(ch, "drow weak constitution (-2 con)\r\n");
       break;
+    case RACE_DUERGAR:
+      send_to_char(ch, "\tRlight blindness\tn - -1 to hitroll, damroll, saves and "
+                       "skill checks when outdoors during the day, darkness spells and "
+                       "effects negate this penalty\r\n");
+      send_to_char(ch, "darkvision\r\n");
+      send_to_char(ch, "\tRduergar charisma (-2 cha)\tn\r\n");
+      send_to_char(ch, "duergar constitution (+4 con)\r\n");
+      send_to_char(ch, "poison resist (+2 poison save)\r\n");
+      send_to_char(ch, "strong phantasm resist (+4 phantasm saves)\r\n");
+      send_to_char(ch, "strong paralysis resist (+4 paralysis saves)\r\n");
+      send_to_char(ch, "stability (+4 resist bash/trip)\r\n");
+      send_to_char(ch, "spell hardiness (+4 spell save vs. "
+                       "damaging spells)\r\n");
+      send_to_char(ch, "combat training versus giants "
+                       "(+1 size bonus vs. larger opponents)\r\n");
+      send_to_char(ch, "proficiency with dwarven waraxes\r\n");
+      send_to_char(ch, "Skill Affinity (Move Silently): +2 racial bonus to move silently\r\n");
+      send_to_char(ch, "Partial Skill Affinity (Listen): +1 racial bonus on listen checks\r\n");
+      send_to_char(ch, "Partial Skill Affinity (Spot): +1 racial bonus on spot checks\r\n");
+      send_to_char(ch, "spell-like ability 3/day: invisibility\r\n");
+      send_to_char(ch, "spell-like ability 3/day: enlarge\r\n");
+      send_to_char(ch, "spell-like ability 3/day: strength\r\n");
+      break;
     default:
       send_to_char(ch, "No Racials (yet)\r\n");
       break;
@@ -2841,7 +2889,8 @@ ACMD(do_score)
   else
     strlcpy(buf, CLASS_ABBR(ch), sizeof(buf));
 
-  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) {
+  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+  {
     snprintf(buf, sizeof(buf), "%d %s (premade build)", CLASS_LEVEL(ch, GET_PREMADE_BUILD_CLASS(ch)), class_list[GET_PREMADE_BUILD_CLASS(ch)].name);
   }
 
@@ -2984,7 +3033,8 @@ ACMD(do_score)
   {
     send_to_char(ch, "\tcSorcerer Bloodline: \tnDraconic (%s/%s).\r\n", DRCHRTLIST_NAME(GET_BLOODLINE_SUBTYPE(ch)), DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
     draw_line(ch, line_length, '-', '-');
-  } else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
+  }
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
   {
     send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n", spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
     draw_line(ch, line_length, '-', '-');
@@ -3043,7 +3093,8 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'discoveries' to see your alchemist discoveries.\tn\r\n");
     send_to_char(ch, "\tDType 'swallow' to use a mutagen or cognatogen (if you have cognatogen discovery).\tn\r\n");
   }
-  if (GET_FAVORED_ENEMY(ch, 0) > 0) {
+  if (GET_FAVORED_ENEMY(ch, 0) > 0)
+  {
     send_to_char(ch, "\tDType 'favoredenemies' to get a list of your favored enemies.\tn\r\n");
   }
 }
@@ -5409,18 +5460,6 @@ ACMD(do_weaponlist)
   column_list(ch, 4, cmd_weapon_names, j, TRUE);
 }
 
-#define WPT_SIMPLE 1
-#define WPT_MARTIAL 2
-#define WPT_EXOTIC 3
-#define WPT_MONK 4
-#define WPT_DRUID 5
-#define WPT_BARD 6
-#define WPT_ROGUE 7
-#define WPT_WIZARD 8
-#define WPT_DROW 9
-#define WPT_ELF 10
-#define WPT_DWARF 11
-
 int is_weapon_proficient(int weapon, int type)
 {
 
@@ -5539,6 +5578,17 @@ int is_weapon_proficient(int weapon, int type)
       return TRUE;
     }
   }
+  else if (type == WPT_DUERGAR)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_DWARVEN_WAR_AXE:
+    case WEAPON_TYPE_DWARVEN_URGOSH:
+      return TRUE;
+    }
+  }
+
+  /* nothing! */
   return false;
 }
 
@@ -5560,6 +5610,7 @@ ACMD(do_weaponproficiencies)
                      "drow\r\n"
                      "elf\r\n"
                      "dwarf\r\n"
+                     "duergar\r\n"
                      "\r\n");
     return;
   }
@@ -5610,6 +5661,10 @@ ACMD(do_weaponproficiencies)
   {
     type = WPT_DWARF;
   }
+  else if (is_abbrev(argument, "duergar"))
+  {
+    type = WPT_DUERGAR;
+  }
   else
   {
     send_to_char(ch, "Please specify one of the following weapon proficiency types:\r\n"
@@ -5624,6 +5679,7 @@ ACMD(do_weaponproficiencies)
                      "drow\r\n"
                      "elf\r\n"
                      "dwarf\r\n"
+                     "duergar\r\n"
                      "\r\n");
     return;
   }
@@ -5637,18 +5693,6 @@ ACMD(do_weaponproficiencies)
       send_to_char(ch, "--%s\r\n", weapon_list[i].name);
   }
 }
-
-#undef WPT_SIMPLE
-#undef WPT_MARTIAL
-#undef WPT_EXOTIC
-#undef WPT_MONK
-#undef WPT_DRUID
-#undef WPT_BARD
-#undef WPT_ROGUE
-#undef WPT_WIZARD
-#undef WPT_DROW
-#undef WPT_ELF
-#undef WPT_DWARF
 
 ACMD(do_weaponinfo)
 {
@@ -5758,12 +5802,11 @@ ACMD(do_favoredenemies)
   i = (CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2) + (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY) ? 4 : 0);
 
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "When fighting a favored enemy, you benefit from:\r\n");  
+  send_to_char(ch, "When fighting a favored enemy, you benefit from:\r\n");
   send_to_char(ch, "-- +%d dodge bonus to armor class.\r\n", i);
   send_to_char(ch, "-- +%d bonus to weapon or unarmed damage.\r\n", i);
   send_to_char(ch, "-- +%d morale bonus to weapon or unarmed attack rolls.\r\n", i);
   send_to_char(ch, "\r\n");
-
 }
 
 SPECIAL(eqstats)
@@ -5774,97 +5817,110 @@ SPECIAL(eqstats)
 
   int cost = GET_LEVEL(ch) * 100;
 
-  if (GET_GOLD(ch) < cost) {
+  if (GET_GOLD(ch) < cost)
+  {
     send_to_char(ch, "It costs %d gold coins to be able to show a summary of your worn equipment enchantments.\r\n", cost);
     return TRUE;
   }
 
-    GET_GOLD(ch) -= cost;
+  GET_GOLD(ch) -= cost;
 
-    int i, k, lore_bonus = 0;
-    int found = false;
-    struct obj_data *obj = NULL;
-    char buf2[300], bitbuf[300];
+  int i, k, lore_bonus = 0;
+  int found = false;
+  struct obj_data *obj = NULL;
+  char buf2[300], bitbuf[300];
 
-    send_to_char(ch, "You are using:\r\n");
-    for (i = 0; i < NUM_WEARS; i++)
+  send_to_char(ch, "You are using:\r\n");
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    found = false;
+    if (GET_EQ(ch, i))
     {
-        found = false;
-        if (GET_EQ(ch, i))
+      obj = GET_EQ(ch, i);
+      if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
+      {
+        send_to_char(ch, "%-30s", wear_where[i]);
+
+        if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
         {
-            obj = GET_EQ(ch, i);
-            if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
-            {
-                send_to_char(ch, "%-30s", wear_where[i]);
-
-                  if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
-                  {
-                    lore_bonus += 4;
-                    if (GET_WIS_BONUS(ch) > 0)
-                      lore_bonus += GET_WIS_BONUS(ch);
-                  }
-                  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE))
-                  {
-                    lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
-                  }
-
-                  /* good enough lore for object? */
-                  if (GET_EQ(ch, i) && GET_OBJ_COST(GET_EQ(ch, i)) > lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
-                  {
-                    send_to_char(ch, " (couldn't identify)");
-                    continue;
-                  }
-                if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-                  send_to_char(ch, " %s Enhancement: %d ", 
-                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? (CAN_WEAR(obj, ITEM_WEAR_SHIELD) ? "Shield" : "Armor") : "Weapon",
-                  GET_ENHANCEMENT_BONUS(obj));
-
-                for (k = 0; k < MAX_OBJ_AFFECT; k++)
-                {
-                    if ((obj->affected[k].location != APPLY_NONE)
-                        && (obj->affected[k].modifier != 0))
-                    {
-                        if (!found)
-                        {
-                            found = true;
-                        }
-                        sprinttype(obj->affected[k].location, apply_types,
-                            bitbuf, sizeof(bitbuf));
-                        switch (obj->affected[k].location)
-                        {
-                        case APPLY_FEAT:
-                            snprintf(buf2, sizeof(buf2), " (%s)",
-                                feat_list[obj->affected[k].modifier].name);
-                                send_to_char(ch, " %s%s", bitbuf, buf2);
-                            break;
-                        default:
-                            buf2[0] = 0;
-                            send_to_char(ch, " %s%s %s%d (%s)", bitbuf, buf2,
-                              (obj->affected[k].modifier > 0) ? "+"
-                              : "",
-                              obj->affected[k].modifier,
-                              bonus_types[obj->affected[k].bonus_type]);
-                            break;
-                        }
-                    }
-                }
-                send_to_char(ch, "\r\n");
-            }
-            else
-            {
-                send_to_char(ch, "%-30s", wear_where[i]);
-                send_to_char(ch, "Something.\r\n");
-            }
+          lore_bonus += 4;
+          if (GET_WIS_BONUS(ch) > 0)
+            lore_bonus += GET_WIS_BONUS(ch);
         }
-        else
+        if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE))
         {
-            if (!GET_EQ(ch, i))
-            {
-                send_to_char(ch, "%-30s<empty>\r\n", wear_where[i]);
-            }
+          lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
         }
+
+        /* good enough lore for object? */
+        if (GET_EQ(ch, i) && GET_OBJ_COST(GET_EQ(ch, i)) > lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+        {
+          send_to_char(ch, " (couldn't identify)");
+          continue;
+        }
+        if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+          send_to_char(ch, " %s Enhancement: %d ",
+                       GET_OBJ_TYPE(obj) == ITEM_ARMOR ? (CAN_WEAR(obj, ITEM_WEAR_SHIELD) ? "Shield" : "Armor") : "Weapon",
+                       GET_ENHANCEMENT_BONUS(obj));
+
+        for (k = 0; k < MAX_OBJ_AFFECT; k++)
+        {
+          if ((obj->affected[k].location != APPLY_NONE) && (obj->affected[k].modifier != 0))
+          {
+            if (!found)
+            {
+              found = true;
+            }
+            sprinttype(obj->affected[k].location, apply_types,
+                       bitbuf, sizeof(bitbuf));
+            switch (obj->affected[k].location)
+            {
+            case APPLY_FEAT:
+              snprintf(buf2, sizeof(buf2), " (%s)",
+                       feat_list[obj->affected[k].modifier].name);
+              send_to_char(ch, " %s%s", bitbuf, buf2);
+              break;
+            default:
+              buf2[0] = 0;
+              send_to_char(ch, " %s%s %s%d (%s)", bitbuf, buf2,
+                           (obj->affected[k].modifier > 0) ? "+"
+                                                           : "",
+                           obj->affected[k].modifier,
+                           bonus_types[obj->affected[k].bonus_type]);
+              break;
+            }
+          }
+        }
+        send_to_char(ch, "\r\n");
+      }
+      else
+      {
+        send_to_char(ch, "%-30s", wear_where[i]);
+        send_to_char(ch, "Something.\r\n");
+      }
     }
-    return TRUE;
+    else
+    {
+      if (!GET_EQ(ch, i))
+      {
+        send_to_char(ch, "%-30s<empty>\r\n", wear_where[i]);
+      }
+    }
+  }
+  return TRUE;
 }
+
+#undef WPT_SIMPLE
+#undef WPT_MARTIAL
+#undef WPT_EXOTIC
+#undef WPT_MONK
+#undef WPT_DRUID
+#undef WPT_BARD
+#undef WPT_ROGUE
+#undef WPT_WIZARD
+#undef WPT_DROW
+#undef WPT_ELF
+#undef WPT_DWARF
+#undef WPT_DUERGAR
 
 /*EOF*/

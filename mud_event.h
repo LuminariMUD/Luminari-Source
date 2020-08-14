@@ -143,7 +143,10 @@ typedef enum
   eINNER_FIRE,              /*inner fire, lots of juicy bonuses!*/
   ePIXIEDUST,               // pixie dust used with shifter form: pixie
   eEFREETIMAGIC,            // efreeti magic used with shifter form: efreeti
-  eDRAGONMAGIC,            // dragon magic used with shifter form: dragon
+  /*115*/eDRAGONMAGIC,            // dragon magic used with shifter form: dragon
+  eSLA_STRENGTH,                          /* innate strength*/
+  eSLA_ENLARGE,                          /* innate enlarge */
+  eSLA_INVIS,                          /* innate invisibility */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

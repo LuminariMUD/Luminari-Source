@@ -59,6 +59,7 @@ const char *trade_letters[] = {
     "Gnome",
     "Arcana Golem",
     "Drow",
+    "Duergar",
     "\n"};
 
 const char *shop_bits[] = {
@@ -171,6 +172,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
       (IS_GNOME(ch) && NOTRADE_GNOME(shop_nr)) ||
       (IS_ARCANA_GOLEM(ch) && NOTRADE_ARCANAGOLEM(shop_nr)) ||
       (IS_DROW(ch) && NOTRADE_DROW(shop_nr)) ||
+      (IS_DUERGAR(ch) && NOTRADE_DUERGAR(shop_nr)) ||
       (IS_DWARF(ch) && NOTRADE_DWARF(shop_nr)))
   {
     snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_SELL_RACE);

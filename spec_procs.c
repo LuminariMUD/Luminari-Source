@@ -877,6 +877,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
 
   case ABILITY_STEALTH:
     value += GET_DEX_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_AFFINITY_MOVE_SILENT))
+      value += 4;
     if (HAS_FEAT(ch, FEAT_STEALTHY))
       value += 2;
     if (GET_RACE(ch) == RACE_HALFLING)
@@ -902,6 +904,16 @@ int compute_ability(struct char_data *ch, int abilityNum)
   case ABILITY_PERCEPTION:
     value += GET_WIS_BONUS(ch);
 
+    if (HAS_FEAT(ch, FEAT_AFFINITY_LISTEN))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
+    if (HAS_FEAT(ch, FEAT_AFFINITY_SPOT))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
     if (HAS_FEAT(ch, FEAT_KEEN_SENSES))
     {
       /* Unnamed bonus, elves */

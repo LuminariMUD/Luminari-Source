@@ -1499,7 +1499,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
 
-  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE) {
+  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
+  {
     GET_HIT(victim) += dam;
     if (GET_HIT(victim) > GET_MAX_HIT(victim))
       GET_HIT(victim) = GET_MAX_HIT(victim);
@@ -1507,7 +1508,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
     return 1;
   }
-  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_ELECTRIC) {
+  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_ELECTRIC)
+  {
     struct affected_type af;
     new_affect(&af);
     af.spell = SPELL_SLOW;
@@ -1520,7 +1522,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
 
   //resistances to magic, message in mag_resistance
-  if (dam && mag_resist) {
+  if (dam && mag_resist)
+  {
     if (!HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) || element == DAM_FIRE || element == DAM_ELECTRIC)
       if (mag_resistance(ch, victim, 0))
         return 0;
@@ -1530,6 +1533,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   int race_bonus = 0;
   if (GET_RACE(victim) == RACE_DWARF)
     race_bonus += 2;
+  if (GET_RACE(victim) == RACE_DUERGAR) {
+    race_bonus += 4;
+    if (spellnum == SPELL_WEIRD)
+    race_bonus += 4;
+    }
   if (GET_RACE(victim) == RACE_GNOME && element == DAM_ILLUSION)
     race_bonus += 2;
   if (GET_RACE(victim) == RACE_ARCANA_GOLEM)
@@ -1613,74 +1621,73 @@ int isMagicArmored(struct char_data *ch, struct char_data *victim, int spellnum)
 
   switch (spellnum)
   {
-    case SPELL_EPIC_MAGE_ARMOR:
-      if (affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-          affected_by_spell(victim, SPELL_SHIELD) ||
-          affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-          affected_by_spell(victim, SPELL_ARMOR) ||
-          affected_by_spell(victim, SPELL_BARKSKIN))
-      {
-        send_to_char(ch, "Your target already has magical armoring!\r\n");
-        return TRUE;
-      }
-      return FALSE;
-    case SPELL_MAGE_ARMOR:
-      if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-          affected_by_spell(victim, SPELL_SHIELD) ||
-          affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-          affected_by_spell(victim, SPELL_ARMOR) ||
-          affected_by_spell(victim, SPELL_BARKSKIN))
-      {
-        send_to_char(ch, "Your target already has magical armoring!\r\n");
-        return TRUE;
-      }
-      return FALSE;
-    case SPELL_SHIELD:
-      if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-         affected_by_spell(victim, SPELL_ARMOR) ||
-         affected_by_spell(victim, SPELL_BARKSKIN))
-      {
-        send_to_char(ch, "Your target already has magical armoring!\r\n");
-        return TRUE;
-      }
-      return FALSE;
-    case SPELL_SHADOW_SHIELD:
-      if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_SHIELD) ||
-         affected_by_spell(victim, SPELL_ARMOR) ||
-         affected_by_spell(victim, SPELL_BARKSKIN))
-      {
-        send_to_char(ch, "Your target already has magical armoring!\r\n");
-        return TRUE;
-      }
-      return FALSE;
+  case SPELL_EPIC_MAGE_ARMOR:
+    if (affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_SHIELD) ||
+        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
+        affected_by_spell(victim, SPELL_ARMOR) ||
+        affected_by_spell(victim, SPELL_BARKSKIN))
+    {
+      send_to_char(ch, "Your target already has magical armoring!\r\n");
+      return TRUE;
+    }
+    return FALSE;
+  case SPELL_MAGE_ARMOR:
+    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_SHIELD) ||
+        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
+        affected_by_spell(victim, SPELL_ARMOR) ||
+        affected_by_spell(victim, SPELL_BARKSKIN))
+    {
+      send_to_char(ch, "Your target already has magical armoring!\r\n");
+      return TRUE;
+    }
+    return FALSE;
+  case SPELL_SHIELD:
+    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
+        affected_by_spell(victim, SPELL_ARMOR) ||
+        affected_by_spell(victim, SPELL_BARKSKIN))
+    {
+      send_to_char(ch, "Your target already has magical armoring!\r\n");
+      return TRUE;
+    }
+    return FALSE;
+  case SPELL_SHADOW_SHIELD:
+    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_SHIELD) ||
+        affected_by_spell(victim, SPELL_ARMOR) ||
+        affected_by_spell(victim, SPELL_BARKSKIN))
+    {
+      send_to_char(ch, "Your target already has magical armoring!\r\n");
+      return TRUE;
+    }
+    return FALSE;
 
-    case SPELL_ARMOR:
-      if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_SHIELD) ||
-         affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-         affected_by_spell(victim, SPELL_BARKSKIN))
-      {
-        send_to_char(ch, "Your target already has magical armoring!\r\n");
-        return TRUE;
-      }
-      return FALSE;
-    case SPELL_BARKSKIN:
-      if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-         affected_by_spell(victim, SPELL_SHIELD) ||
-         affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-         affected_by_spell(victim, SPELL_ARMOR))
-      {
-        send_to_char(ch, "Your target already has magical armoring!\r\n");
-        return TRUE;
-      }
-      return FALSE;
-      
+  case SPELL_ARMOR:
+    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_SHIELD) ||
+        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
+        affected_by_spell(victim, SPELL_BARKSKIN))
+    {
+      send_to_char(ch, "Your target already has magical armoring!\r\n");
+      return TRUE;
+    }
+    return FALSE;
+  case SPELL_BARKSKIN:
+    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
+        affected_by_spell(victim, SPELL_SHIELD) ||
+        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
+        affected_by_spell(victim, SPELL_ARMOR))
+    {
+      send_to_char(ch, "Your target already has magical armoring!\r\n");
+      return TRUE;
+    }
+    return FALSE;
   }
 
   return FALSE;
@@ -1700,7 +1707,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, spell_school = NOSCHOOL, caster_level = 0;
-  int enchantment_bonus = 0, illusion_bonus = 0, success = 0;
+  int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL;
   bool is_immune_sleep = FALSE;
@@ -1740,9 +1747,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {                /* caster */
     case RACE_GNOME: // illusions
       break;
+
     default:
       break;
     }
+
     /* racial victim resistance */
     switch (GET_RACE(victim))
     { /* target */
@@ -1754,6 +1763,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       break;
     case RACE_GNOME: // illusions
       break;
+
     default:
       break;
     }
@@ -1781,6 +1791,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(victim, FEAT_RESISTANCE_TO_ILLUSIONS))
   {
     illusion_bonus += 2; /* gnome */
+  }
+  if (HAS_FEAT(victim, FEAT_PARALYSIS_RESIST))
+  {
+    paralysis_bonus += 4; /* duergar*/
   }
 
   illusion_bonus += GET_RESISTANCES(victim, DAM_ILLUSION);
@@ -2659,7 +2673,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, casttype, level, NECROMANCY))
     {
       return;
     }
@@ -2719,7 +2733,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL,
+                        enchantment_bonus + paralysis_bonus,
+                        casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -2753,7 +2769,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -2782,7 +2798,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -2866,7 +2882,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_IRRESISTIBLE_DANCE: //enchantment
     if (mag_resistance(ch, victim, 0))
       return;
-    // no save
+
+    // no save, unless have special feat
+    if (HAS_FEAT(ch, FEAT_PARALYSIS_RESIST)) {
+      mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, /* +4 bonus from feat */
+                      casttype, level, ENCHANTMENT);
+      return;
+    }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
     af[0].duration = dice(1, 4) + 1;
@@ -3015,7 +3037,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -3143,7 +3165,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_POISON: //enchantment, shared
     if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
       return;
-    int bonus = get_poison_save_mod(ch,victim);
+    int bonus = get_poison_save_mod(ch, victim);
     if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
     {
       send_to_char(ch, "Your victim seems to resist the poison!\r\n");
@@ -3241,7 +3263,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_PRISMATIC_SPRAY: //illusion, does damage too
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + paralysis_bonus, casttype, level, ILLUSION))
     {
       return;
     }
@@ -3872,7 +3894,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_WEIRD: //illusion (also does damage)
     if (mag_resistance(ch, victim, 0))
       return;
-    // no save
+
+    // no save, unless have special feat
+    if (HAS_FEAT(ch, FEAT_PHANTASM_RESIST)) {
+      mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus+4, /* +4 bonus from feat */
+                      casttype, level, ILLUSION);
+      return;
+    }
 
     af[0].location = APPLY_STR;
     af[0].duration = level;
@@ -4966,47 +4994,47 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     int spell_focus_bonus = 0;
     switch (spellnum)
     {
-      case SPELL_ANIMATE_DEAD:
-      case SPELL_GREATER_ANIMATION:
-      case SPELL_MUMMY_DUST:
-        if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), NECROMANCY))
-          spell_focus_bonus++;
-        if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), NECROMANCY))
-          spell_focus_bonus++;
-        if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), NECROMANCY))
-          spell_focus_bonus++;
-        GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
-        GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
-        GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
-        GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
-        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus) * GET_LEVEL(mob); /* con bonus */
-        GET_HIT(mob) = GET_MAX_HIT(mob);
-        break;
-      case SPELL_DRAGON_KNIGHT:
-      case SPELL_ELEMENTAL_SWARM:
-      case SPELL_SHAMBLER:
-      case SPELL_SUMMON_CREATURE_1:
-      case SPELL_SUMMON_CREATURE_2:
-      case SPELL_SUMMON_CREATURE_3:
-      case SPELL_SUMMON_CREATURE_4:
-      case SPELL_SUMMON_CREATURE_5:
-      case SPELL_SUMMON_CREATURE_6:
-      case SPELL_SUMMON_CREATURE_7:
-      case SPELL_SUMMON_CREATURE_8:
-      case SPELL_SUMMON_CREATURE_9:
-        if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
-          spell_focus_bonus++;
-        if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), CONJURATION))
-          spell_focus_bonus++;
-        if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), CONJURATION))
-          spell_focus_bonus++;
-        GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
-        GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
-        GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
-        GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
-        GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus) * GET_LEVEL(mob); /* con bonus */
-        GET_HIT(mob) = GET_MAX_HIT(mob);
-        break;
+    case SPELL_ANIMATE_DEAD:
+    case SPELL_GREATER_ANIMATION:
+    case SPELL_MUMMY_DUST:
+      if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), NECROMANCY))
+        spell_focus_bonus++;
+      if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), NECROMANCY))
+        spell_focus_bonus++;
+      if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), NECROMANCY))
+        spell_focus_bonus++;
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
+      GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
+      GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus)*GET_LEVEL(mob); /* con bonus */
+      GET_HIT(mob) = GET_MAX_HIT(mob);
+      break;
+    case SPELL_DRAGON_KNIGHT:
+    case SPELL_ELEMENTAL_SWARM:
+    case SPELL_SHAMBLER:
+    case SPELL_SUMMON_CREATURE_1:
+    case SPELL_SUMMON_CREATURE_2:
+    case SPELL_SUMMON_CREATURE_3:
+    case SPELL_SUMMON_CREATURE_4:
+    case SPELL_SUMMON_CREATURE_5:
+    case SPELL_SUMMON_CREATURE_6:
+    case SPELL_SUMMON_CREATURE_7:
+    case SPELL_SUMMON_CREATURE_8:
+    case SPELL_SUMMON_CREATURE_9:
+      if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
+        spell_focus_bonus++;
+      if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), CONJURATION))
+        spell_focus_bonus++;
+      if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), CONJURATION))
+        spell_focus_bonus++;
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
+      GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
+      GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus)*GET_LEVEL(mob); /* con bonus */
+      GET_HIT(mob) = GET_MAX_HIT(mob);
+      break;
     }
 
     if (IS_SPECIALTY_SCHOOL(ch, spellnum))

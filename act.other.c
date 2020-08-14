@@ -89,14 +89,13 @@ static void display_group_list(struct char_data *ch);
 #define SRC_DST_EXP 4
 #define NUM_EXCHANGE_TYPES 5 // one more than the last above
 
-const char * exchange_types[NUM_EXCHANGE_TYPES] =
-{
-  "",
-  "account experience",
-  "quest points",
-  "gold coins",
-  "experience"
-};
+const char *exchange_types[NUM_EXCHANGE_TYPES] =
+    {
+        "",
+        "account experience",
+        "quest points",
+        "gold coins",
+        "experience"};
 
 void show_exchange_rates(struct char_data *ch)
 {
@@ -2656,12 +2655,12 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
       // everything but shifter shapes
       switch (race_list[i].family)
       {
-        case RACE_TYPE_MAGICAL_BEAST:
-        case RACE_TYPE_FEY:
-        case RACE_TYPE_CONSTRUCT:
-        case RACE_TYPE_OUTSIDER:
-        case RACE_TYPE_DRAGON:
-          continue;
+      case RACE_TYPE_MAGICAL_BEAST:
+      case RACE_TYPE_FEY:
+      case RACE_TYPE_CONSTRUCT:
+      case RACE_TYPE_OUTSIDER:
+      case RACE_TYPE_DRAGON:
+        continue;
       }
     }
     else if (mode == 0)
@@ -2791,19 +2790,22 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
       abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
       abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
     }
-    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
+    { // polymorph
       abil_mods->strength += 2;
       abil_mods->dexterity += 2;
       abil_mods->constitution += 2;
       abil_mods->natural_armor += 1;
     }
-    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
+    { // polymorph
       abil_mods->strength += 2;
       abil_mods->dexterity += 2;
       abil_mods->constitution += 2;
       abil_mods->natural_armor += 1;
     }
-    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+    if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
+    { // polymorph
       abil_mods->strength += 2;
       abil_mods->dexterity += 2;
       abil_mods->constitution += 2;
@@ -3304,19 +3306,22 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
     abil_mods->constitution += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
     abil_mods->natural_armor += HAS_FEAT(ch, FEAT_EPIC_WILDSHAPE);
   }
-  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
+  { // polymorph
     abil_mods->strength += 2;
     abil_mods->dexterity += 2;
     abil_mods->constitution += 2;
     abil_mods->natural_armor += 1;
   }
-  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
+  { // polymorph
     abil_mods->strength += 2;
     abil_mods->dexterity += 2;
     abil_mods->constitution += 2;
     abil_mods->natural_armor += 1;
   }
-  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1) { // polymorph
+  if (HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), TRANSMUTATION) && mode == 1)
+  { // polymorph
     abil_mods->strength += 2;
     abil_mods->dexterity += 2;
     abil_mods->constitution += 2;
@@ -3546,7 +3551,7 @@ void perform_wildshape(struct char_data *ch, int form_num, int spellnum)
 /* a trivial shapechange code for druids, replaced by wildshape */
 ACMD(do_shapechange)
 {
-  
+
   int form_num = -1, i = 0, uses_remaining = 0;
 
   if (!ch->desc || IS_NPC(ch))
@@ -3690,7 +3695,8 @@ ACMD(do_disguise)
     return;
   }
 
-  if (IS_WILDSHAPED(ch)) {
+  if (IS_WILDSHAPED(ch))
+  {
     send_to_char(ch, "You cannot disguise while wild shaped.\r\n");
     return;
   }
@@ -3978,6 +3984,109 @@ ACMD(do_land)
   {
     send_to_char(ch, "You are not flying or levitating.\r\n");
   }
+}
+
+/* enlarge ability (duergar) */
+ACMD(do_enlarge)
+{
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_SLA_ENLARGE))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SPELL_ENLARGE_PERSON))
+  {
+    send_to_char(ch, "You already have enhanced strength!\r\n");
+    return;
+  }
+
+  /*
+  if (AFF_FLAGGED(ch, AFF_ENLARGE))
+  {
+    send_to_char(ch, "You are already enlarged!\r\n");
+    return;
+  }
+  */
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_ENLARGE)) == 0))
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  call_magic(ch, ch, NULL, SPELL_ENLARGE_PERSON, 0, GET_LEVEL(ch), CAST_INNATE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SLA_ENLARGE);
+}
+
+/* invisibility (duergar) */
+ACMD(do_invisduergar)
+{
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_SLA_INVIS))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_INVISIBLE))
+  {
+    send_to_char(ch, "You are already invsible!\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SPELL_INVISIBILITY_SPHERE) || affected_by_spell(ch, SPELL_GREATER_INVIS) ||
+      affected_by_spell(ch, SPELL_GREATER_INVIS))
+  {
+    send_to_char(ch, "You already affected by an invisibility spell!\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_INVIS)) == 0))
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You invoke your innate ability and slowly begin to fade from sight...  ");
+  call_magic(ch, ch, NULL, SPELL_INVISIBLE, 0, GET_LEVEL(ch), CAST_SPELL);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SLA_INVIS);
+}
+
+/* strength ability (duergar) */
+ACMD(do_strength)
+{
+  int uses_remaining = 0;
+
+  if (!HAS_FEAT(ch, FEAT_SLA_STRENGTH))
+  {
+    send_to_char(ch, "You don't have this ability.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SPELL_MASS_STRENGTH) || affected_by_spell(ch, SPELL_STRENGTH))
+  {
+    send_to_char(ch, "You already have enhanced strength!\r\n");
+    return;
+  }
+
+  if (!IS_NPC(ch) && ((uses_remaining = daily_uses_remaining(ch, FEAT_SLA_STRENGTH)) == 0))
+  {
+    send_to_char(ch, "You must recover before you can use this ability again.\r\n");
+    return;
+  }
+
+  call_magic(ch, ch, NULL, SPELL_STRENGTH, 0, GET_LEVEL(ch), CAST_INNATE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SLA_STRENGTH);
 }
 
 /* levitate ability (drow) */
@@ -5977,7 +6086,7 @@ ACMD(do_gen_tog)
       /* 43 */
       {"You will no longer use smash defense in combat.\r\n",
        "You will now use smash defense in combat (if you know it).\r\n"},
-       /* 44 */
+      /* 44 */
       {"You will now allow charmies to rescue you and other group members.\r\n",
        "You will no longer allow charmies to rescue you and other group members\r\n"},
   };
@@ -6679,12 +6788,18 @@ ACMD(do_summon)
 
   for (tch = character_list; tch; tch = tch->next)
   {
-    if (tch == ch) continue;
-    if (!IS_NPC(tch)) continue;
-    if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
-    if (tch->master != ch) continue;
-    if (IN_ROOM(tch) == NOWHERE) continue;
-    if (IN_ROOM(tch) == IN_ROOM(ch)) continue;
+    if (tch == ch)
+      continue;
+    if (!IS_NPC(tch))
+      continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM))
+      continue;
+    if (tch->master != ch)
+      continue;
+    if (IN_ROOM(tch) == NOWHERE)
+      continue;
+    if (IN_ROOM(tch) == IN_ROOM(ch))
+      continue;
     act("$n disappears in a flash of light.", FALSE, ch, 0, 0, TO_ROOM);
     char_from_room(tch);
     char_to_room(tch, IN_ROOM(ch));

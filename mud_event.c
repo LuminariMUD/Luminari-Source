@@ -159,6 +159,9 @@ struct mud_event_list mud_event_index[] = {
     {"Pixie Dust Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // ePIXIEDUST
     {"Efreeti Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eEFREETIMAGIC
     {"Dragon Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eDRAGONMAGIC
+    {"Strength", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_STRENGTH
+    {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_ENLARGE
+    {"Invis", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_INVIS
 
 };
 
@@ -565,6 +568,18 @@ EVENTFUNC(event_daily_use_cooldown)
   case eCRYSTALFIST:
     featnum = FEAT_CRYSTAL_FIST;
     send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");
+    break;
+  case eSLA_INVIS:
+    featnum = FEAT_SLA_INVIS ;
+    send_to_char(ch, "One of your invisbility uses has recovered.\r\n");
+    break;
+  case eSLA_STRENGTH:
+    featnum = FEAT_SLA_STRENGTH ;
+    send_to_char(ch, "One of your strength uses has recovered.\r\n");
+    break;
+  case eSLA_ENLARGE:
+    featnum = FEAT_SLA_ENLARGE ;
+    send_to_char(ch, "One of your enlarge uses has recovered.\r\n");
     break;
   case eSLA_LEVITATE:
     featnum = FEAT_SLA_LEVITATE;

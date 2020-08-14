@@ -4215,7 +4215,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 77: /* epicfeatpoints */
     GET_EPIC_FEAT_POINTS(vict) = RANGE(0, 20);
     break;
-  case 78:                              /* classfeats (points) */
+  case 78: /* classfeats (points) */
     two_arguments(val_arg, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* set <name> classfeats <class> <#> */
     class = parse_class_long(arg1);
     if (class == CLASS_UNDEFINED)
@@ -4227,7 +4227,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_CLASS_FEATS(vict, class) = RANGE(0, 20);
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
     break;
-  case 79:                              /* epicclassfeats (points) */
+  case 79: /* epicclassfeats (points) */
     two_arguments(val_arg, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* set <name> epicclassfeats <class> <#> */
     class = parse_class_long(arg1);
     if (class == CLASS_UNDEFINED)
@@ -7507,6 +7507,7 @@ int get_eq_score(obj_rnum a)
       case ITEM_ANTI_BARD:
       case ITEM_ANTI_ARCANA_GOLEM:
       case ITEM_ANTI_DROW:
+      case ITEM_ANTI_DUERGAR:
         score -= 15;
         break;
       case ITEM_ANTI_GOOD:
@@ -8582,7 +8583,8 @@ ACMD(do_showwearoff)
 
   one_argument(argument, arg1, sizeof(arg1));
 
-  if (!*arg1) {
+  if (!*arg1)
+  {
     send_to_char(ch, "Please specify a spell or skill.\r\n");
     return;
   }
@@ -8595,15 +8597,13 @@ ACMD(do_showwearoff)
     {
       send_to_char(ch, "Spell/Skill: %s\r\n"
                        "Wearoff Msg: %s.\r\n",
-                       spell_info[i].name,
-                       spell_info[i].wear_off_msg
-                       );
+                   spell_info[i].name,
+                   spell_info[i].wear_off_msg);
       return;
     }
   }
 
   send_to_char(ch, "There is no spell or skill by that name.\r\n");
-
 }
 
 /* EOF */

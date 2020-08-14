@@ -25,15 +25,15 @@
 #include "handler.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz) \
-    _Static_assert(sizeof( (tbl) )/sizeof( (tbl) [0]) == (exp_sz), #tbl " wrong number entries")
+    _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
 
 /** Current LuminariMUD version.
  * @todo defined with _LUMINARIMUD so we don't have multiple constants to change.
  * @todo cpp_extern isn't needed here (or anywhere) as the extern reserved word
  * works correctly with C compilers (at least in my Experience)
  * Jeremy Osborne 1/28/2008 */
-cpp_extern const char * const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64)";
-cpp_extern const char * const luminari_build =
+cpp_extern const char *const luminari_version = "LuminariMUD 2.4839 (tbaMUD 3.64)";
+cpp_extern const char *const luminari_build =
 #if defined(MKTIME)
     "Make time: " MKTIME "\r\n"
 #endif
@@ -49,7 +49,7 @@ cpp_extern const char * const luminari_build =
 #if defined(PARENT)
     "Parent: " PARENT "\r\n"
 #endif
-;
+    ;
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
@@ -1344,8 +1344,7 @@ const char *affected_bits[] = {
     "Dazzled",
     "Shaken",
     "Electric-Shielded",
-    "\n"
-};
+    "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
 
@@ -1868,6 +1867,7 @@ const char *extra_bits[] = {
     "Anti-WeaponMaster",
     "Anti-Drow",
     "Masterwork",
+    "Anti-Duergar",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -3722,10 +3722,9 @@ const char *do_cast_types[][6] = {
     /* end with this */
     {"\n", "\n", "\n", "\n", "\n", "\n"}};
 
-const char * const faction_names[] = {"Adventurers' Guild", "Rebel Alliance", "Galactic Empire", "Hutt Cartels", "\n"};
+const char *const faction_names[] = {"Adventurers' Guild", "Rebel Alliance", "Galactic Empire", "Hutt Cartels", "\n"};
 
-const char * const faction_names_lwr[]
-    = {"adventurers' guild", "rebel alliance", "galactic empire", "hutt cartels", "\n"};
+const char *const faction_names_lwr[] = {"adventurers' guild", "rebel alliance", "galactic empire", "hutt cartels", "\n"};
 
 /* --- End of constants arrays. --- */
 
