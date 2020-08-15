@@ -812,5 +812,6 @@ ACMDCHECK(can_efreetimagic);
 ACMD_DECL(do_efreetimagic);
 ACMDCHECK(can_dragonmagic);
 ACMD_DECL(do_dragonmagic);
+ACMD_DECL(do_resetpassword);
 
 #endif /* _ACT_H_ */

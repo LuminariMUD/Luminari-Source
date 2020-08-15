@@ -8606,4 +8606,65 @@ ACMD(do_showwearoff)
   send_to_char(ch, "There is no spell or skill by that name.\r\n");
 }
 
+ACMD(do_resetpassword)
+{
+
+  char query[2048], arg1[MAX_NAME_LENGTH], arg2[MAX_PWD_LENGTH], password[MAX_PWD_LENGTH];
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  bool account_found = false;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify the account for which you would like to change the password.\r\n");
+    return;
+
+  }
+  if (!*arg2)
+  {
+    send_to_char(ch, "Please specify what you would like the new password to be.\r\n");
+    return;
+  }
+
+  if (strstr(arg2, ";") || strstr(arg2, "'"))
+  {
+    send_to_char(ch, "Passwords cannot contain ' or ; symbols.\r\n");
+    return;
+  }
+
+  arg1[0] = toupper(arg1[0]);
+
+  snprintf(query, sizeof(query), "SELECT name from account_data WHERE name='%s'", arg1);
+  mysql_query(conn, query);
+  res = mysql_use_result(conn);
+  if (res != NULL)
+  {
+    if ((row = mysql_fetch_row(res)) != NULL)
+    {
+      account_found = true;
+    }
+  }
+  mysql_free_result(res);
+
+  if (!account_found)
+  {
+    send_to_char(ch, "There is no account by that name.\r\n");
+    return;
+  }
+
+  snprintf(password, sizeof(password), "%s", CRYPT(arg2, arg1));
+
+  snprintf(query, sizeof(query), "UPDATE account_data SET password='%s' WHERE name='%s'", password, arg1);
+  if (!mysql_query(conn, query))
+  {
+    send_to_char(ch, "You have updated account %s's password to '%s'.\r\n", arg1, arg2);
+    return;  
+  }
+
+  send_to_char(ch, "There was an error saving the new password to the database.  Password not changed.\r\n");
+  
+}
+
 /* EOF */
