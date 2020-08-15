@@ -564,6 +564,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"race", "race", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rp", "rp", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"resetpassword", "resetpassword", POS_DEAD, do_resetpassword, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
