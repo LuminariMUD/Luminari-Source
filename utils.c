@@ -4191,3 +4191,16 @@ int find_ability_num_by_name(char *name)
   }
   return 0;
 }
+
+bool using_monk_gloves(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (!GET_EQ(ch, WEAR_HANDS))
+    return false;
+
+  if (!GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
+    return false;
+
+  return true;
+}
