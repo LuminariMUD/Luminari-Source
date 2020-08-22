@@ -1271,6 +1271,12 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
+        if (GET_LEVEL(ch) >= LVL_IMMORT)
+        {
+          // imms can cast any spell
+          return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
+        }
+
         int position = GET_POS(ch);
         int ch_class = CLASS_WIZARD, clevel = 0;
         int casting_time = 0;
@@ -1747,7 +1753,8 @@ ACMDU(do_gen_cast)
                         return;
                 }
         }
-        else if (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
+        else if (GET_LEVEL(ch) < LVL_IMMORT &&
+                (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
                  //          BONUS_CASTER_LEVEL(ch, CLASS_PSY_WARR) + CLASS_LEVEL(ch, CLASS_PSY_WARR) < SINFO.min_level[CLASS_PSY_WARR] &&
                  //          BONUS_CASTER_LEVEL(ch, CLASS_SOULKNIFE) + CLASS_LEVEL(ch, CLASS_SOULKNIFE) < SINFO.min_level[CLASS_SOULKNIFE] &&
                  //          BONUS_CASTER_LEVEL(ch, CLASS_WILDER) + CLASS_LEVEL(ch, CLASS_WILDER) < SINFO.min_level[CLASS_WILDER] &&
@@ -1759,14 +1766,14 @@ ACMDU(do_gen_cast)
                  BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
                  //          BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_ALCHEMIST) + CLASS_LEVEL(ch, CLASS_ALCHEMIST) < SINFO.min_level[CLASS_ALCHEMIST])
+                 BONUS_CASTER_LEVEL(ch, CLASS_ALCHEMIST) + CLASS_LEVEL(ch, CLASS_ALCHEMIST) < SINFO.min_level[CLASS_ALCHEMIST]))
         {
                 send_to_char(ch, "You do not know that %s!\r\n", do_cast_types[subcmd][2]);
                 return;
         }
 
         /* SPELL PREPARATION HOOK */
-        if (spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
+        if (GET_LEVEL(ch) < LVL_IMMORT && spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
             !isEpicSpell(spellnum))
         {
                 send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",

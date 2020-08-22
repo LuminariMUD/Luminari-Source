@@ -4714,9 +4714,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     }
 
     /* Add additional damage dice from weapon special abilities. - Ornir */
-    if (wielded && FIGHTING(ch))
+    if ((wielded || using_monk_gloves(ch)) && FIGHTING(ch))
     {
-
+      if (!wielded)
+        wielded = GET_EQ(ch, WEAR_HANDS);
+        
       /* process weapon abilities - critical */
       if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == RACE_TYPE_UNDEAD))
         process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);
@@ -6742,7 +6744,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     weapon_spells(ch, victim, wielded);
 
   /* Weapon special abilities that trigger on hit. */
-  if (ch && victim && wielded && !victim_is_dead)
+  if (ch && victim && (wielded || using_monk_gloves(ch)) && !victim_is_dead)
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
   if (IS_EFREETI(ch))
     damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);

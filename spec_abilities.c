@@ -285,6 +285,14 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
   int alcFire = FALSE, alcBurst = FALSE;
 
+  if (!weapon)
+  {
+    if (GET_EQ(ch, ITEM_WEAR_HANDS))
+      weapon = GET_EQ(ch, WEAR_HANDS);
+    else
+      return 0;
+  }
+
   /* Run the 'callbacks' for each of the special abilities on weapon that match the activation method. */
   for (specab = weapon->special_abilities; specab != NULL; specab = specab->next)
   {

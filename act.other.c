@@ -5801,6 +5801,7 @@ ACMD(do_utter)
       case WEAR_WIELD_1:
       case WEAR_WIELD_OFFHAND:
       case WEAR_WIELD_2H:
+      case WEAR_HANDS:
         found += process_weapon_abilities(mag_item, ch, NULL, ACTMTD_COMMAND_WORD, argument);
         break;
       default:
