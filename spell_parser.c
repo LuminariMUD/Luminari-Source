@@ -1410,7 +1410,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
    will be using for casting this spell */
         if (!isEpicSpell(spellnum) && !IS_NPC(ch))
         {
-                if (GET_LEVEL(ch) >= LVL_IMMORT) 
+                if (GET_LEVEL(ch) >= LVL_IMMORT)
                 {
                         ch_class = CLASS_WIZARD;
                         clevel = 30;
@@ -1803,7 +1803,7 @@ ACMDU(do_gen_cast)
                 send_to_char(ch, "You are not wise enough to cast spells...\r\n");
                 return;
         }
-        if (CLASS_LEVEL(ch, CLASS_PALADIN) && GET_WIS(ch) < 10)
+        if (CLASS_LEVEL(ch, CLASS_PALADIN) && GET_CHA(ch) < 10)
         {
                 send_to_char(ch, "You are not wise enough to cast spells...\r\n");
                 return;
@@ -1988,12 +1988,15 @@ static void spello(int spl, const char *name, int max_psp, int min_psp,
         spell_info[spl].violent = violent;
         spell_info[spl].routines = routines;
         spell_info[spl].name = name;
-        if (wearoff == 0) {
-          char buf[MEDIUM_STRING];
-          snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
-          spell_info[spl].wear_off_msg = strdup(buf);
-        } else {
-          spell_info[spl].wear_off_msg = wearoff;
+        if (wearoff == 0)
+        {
+                char buf[MEDIUM_STRING];
+                snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
+                spell_info[spl].wear_off_msg = strdup(buf);
+        }
+        else
+        {
+                spell_info[spl].wear_off_msg = wearoff;
         }
         spell_info[spl].time = time;
         spell_info[spl].memtime = memtime;
@@ -2375,11 +2378,11 @@ void mag_assign_spells(void)
         spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your necromantic-life drain away.", 4, 9, NECROMANCY, FALSE);
-        
+
         spello(SPELL_MASS_FALSE_LIFE, "mass false life", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_GROUPS,
                "You feel your necromantic-life drain away.", 4, 9, NECROMANCY, FALSE);
-               
+
         /* enchantment */
         spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,

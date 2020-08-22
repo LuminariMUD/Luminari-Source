@@ -702,7 +702,8 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
   for (; current; current = next)
   {
     next = current->next;
-    if (current->spell == spellnum && current->metamagic == metamagic) {
+    if (current->spell == spellnum && current->metamagic == metamagic)
+    {
       return TRUE;
     }
   }
@@ -1247,7 +1248,7 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle)
     spell_slots += ranger_slots[class_level][circle];
     break;
   case CLASS_PALADIN:
-    spell_slots += spell_bonus[GET_WIS(ch)][circle];
+    spell_slots += spell_bonus[GET_CHA(ch)][circle];
     spell_slots += paladin_slots[class_level][circle];
     break;
   case CLASS_CLERIC:
@@ -1434,7 +1435,7 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
       circle = TOP_CIRCLE + 1, is_domain = FALSE;
 
   /* go through all the classes checking our collection */
-  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class ++)
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
     if (is_spell_in_collection(ch, ch_class, spellnum, metamagic))
     {
@@ -1454,7 +1455,7 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
   }
 
   /* nothing yet? go through our innate magic system now! */
-  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class ++)
+  for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
   {
     is_domain = is_domain_spell_of_ch(ch, spellnum);
     circle = /* computes adjustment to circle via metamagic */
@@ -1807,7 +1808,7 @@ void begin_preparing(struct char_data *ch, int class)
                  spell_prep_dict[class][3]);
     *buf = '\0';
     snprintf(buf, sizeof(buf), "$n continues $s %s.",
-            spell_prep_dict[class][3]);
+             spell_prep_dict[class][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
     start_prep_event(ch, class);
   }
@@ -1845,7 +1846,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     break;
   case CLASS_PALADIN:
     prep_time *= PALADIN_PREP_TIME_FACTOR;
-    stat_bonus = GET_WIS_BONUS(ch);
+    stat_bonus = GET_CHA_BONUS(ch);
     break;
   case CLASS_DRUID:
     prep_time *= DRUID_PREP_TIME_FACTOR;
