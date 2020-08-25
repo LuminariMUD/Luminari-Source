@@ -326,7 +326,6 @@ void perform_rage(struct char_data *ch)
 
   af[1].location = APPLY_CON;
   af[1].modifier = bonus;
-  GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
   af[1].bonus_type = BONUS_TYPE_MORALE;
 
   af[2].location = APPLY_SAVING_WILL;
@@ -339,6 +338,9 @@ void perform_rage(struct char_data *ch)
 
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
+  if (!affected_by_spell(ch, SKILL_RAGE))
+    GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
 
   /* Add another affect for heavy shrug. */
   //  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
