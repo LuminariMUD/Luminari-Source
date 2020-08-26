@@ -34,7 +34,7 @@
 #include "domains_schools.h"
 
 /* defines */
-#define RAGE_AFFECTS 4
+#define RAGE_AFFECTS 5
 #define SACRED_FLAMES_AFFECTS 1
 #define INNER_FIRE_AFFECTS 6
 #define D_STANCE_AFFECTS 4
@@ -336,11 +336,16 @@ void perform_rage(struct char_data *ch)
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = -2;
 
+  af[4].location = APPLY_HIT;
+  af[4].modifier = bonus * 2;
+  af[4].bonus_type = BONUS_TYPE_MORALE;
+
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
 
-  if (!affected_by_spell(ch, SKILL_RAGE))
-    GET_HIT(ch) += GET_LEVEL(ch) * bonus / 2; //little boost in current hps
+  GET_HIT(ch) += bonus * 2;
+  if (GET_HIT(ch) > GET_MAX_HIT(ch))
+    GET_HIT(ch) = GET_MAX_HIT(ch);
 
   /* Add another affect for heavy shrug. */
   //  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
@@ -1906,11 +1911,11 @@ void clear_rage(struct char_data *ch)
   /* PCs only.  Otherwise mobs will die and player won't get exp. */
   if (IS_NPC(ch))
   {
-    GET_HIT(ch) = MAX(0, GET_HIT(ch) - ((get_rage_bonus(ch) / 2) * GET_LEVEL(ch)));
+    GET_HIT(ch) = MAX(0, GET_HIT(ch) - (get_rage_bonus(ch) * 2));
   }
   else
   {
-    GET_HIT(ch) -= get_rage_bonus(ch) * GET_LEVEL(ch) * 7 / 8;
+    GET_HIT(ch) -= get_rage_bonus(ch) * 2;
   }
   if (GET_HIT(ch) < 0)
   {
@@ -2084,8 +2089,16 @@ ACMD(do_rage)
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = -2; /* penalty! */
 
+  af[4].location = APPLY_HIT;
+  af[4].modifier = bonus * 2;
+  af[4].bonus_type = BONUS_TYPE_MORALE;
+
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+
+  GET_HIT(ch) += bonus * 2;
+  if (GET_HIT(ch) > GET_MAX_HIT(ch))
+    GET_HIT(ch) = GET_MAX_HIT(ch);
 
   save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
 
@@ -2098,7 +2111,7 @@ ACMD(do_rage)
   }
 
   /* bonus hp from the rage */
-  GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
+  //GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
   save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
 
   return;
