@@ -1710,7 +1710,8 @@ void char_from_furniture(struct char_data *ch);
 #define IS_RANGER(ch) (CLASS_LEVEL(ch, CLASS_RANGER))
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 
-#define IS_CASTER(ch) (IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
+#define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT || \
+                      IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||            \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch))
 

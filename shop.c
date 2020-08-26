@@ -524,8 +524,7 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_BUYPROFIT(shop_nr);
 
-  if (price < ((float)GET_OBJ_COST(obj) / 4));
-    price = (float)GET_OBJ_COST(obj) / 4;
+  price = MAX(1, price);
 
   return ((int)price);
 }
