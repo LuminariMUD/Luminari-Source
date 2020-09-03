@@ -125,7 +125,7 @@
 #define SPELL_DETECT_POISON 21  //done
 #define SPELL_DISPEL_EVIL 22    //done
 #define SPELL_EARTHQUAKE 23     //done
-#define SPELL_ENCHANT_WEAPON 24 //done
+#define SPELL_ENCHANT_ITEM 24   //done
 #define SPELL_ENERGY_DRAIN 25   //done
 #define SPELL_FIREBALL 26       //done
 #define SPELL_HARM 27           //done
@@ -1093,7 +1093,7 @@ ASPELL(spell_detect_poison);
 ASPELL(spell_dismissal);
 ASPELL(spell_dispel_magic);
 ASPELL(spell_dominate_person);
-ASPELL(spell_enchant_weapon);
+ASPELL(spell_enchant_item);
 ASPELL(spell_greater_dispelling);
 ASPELL(spell_group_summon);
 ASPELL(spell_identify);

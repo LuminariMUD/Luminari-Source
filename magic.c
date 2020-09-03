@@ -4181,7 +4181,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
 }
 
 // CHARM PERSON CHARM_PERSON - enchantment (found in spells.c)
-// ENCHANT WEAPON ENCHANT_WEAPON - enchantment (spells.c)
+// ENCHANT WEAPON ENCHANT_ITEM - enchantment (spells.c)
 
 //  pass values spellnum
 // spellnum = spellnum

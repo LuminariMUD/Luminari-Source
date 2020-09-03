@@ -464,7 +464,7 @@ void add_premade_sorcerer_spells(struct char_data *ch, int level)
       known_spells_add(ch, chclass, SPELL_SUNBURST, FALSE);
       break;
     case 17:
-      known_spells_add(ch, chclass, SPELL_ENCHANT_WEAPON, FALSE);
+      known_spells_add(ch, chclass, SPELL_ENCHANT_ITEM, FALSE);
       known_spells_add(ch, chclass, SPELL_HORRID_WILTING, FALSE);
       known_spells_add(ch, chclass, SPELL_PRISMATIC_SPRAY, FALSE);
       known_spells_add(ch, chclass, SPELL_FEEBLEMIND, FALSE);

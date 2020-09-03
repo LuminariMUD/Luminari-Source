@@ -1304,6 +1304,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_MYSTIC_THEURGE:
   case CLASS_SACRED_FIST:
   case CLASS_ALCHEMIST:
+  case CLASS_ELDRITCH_KNIGHT:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1377,6 +1378,8 @@ int parse_class(char arg)
     return CLASS_SACRED_FIST;
   case 'w':
     return CLASS_WARRIOR;
+  case 'x':
+    return CLASS_ELDRITCH_KNIGHT;
     /* empty letters */
     /* empty letters */
     /* empty letters */
@@ -1437,6 +1440,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_ARCANE_SHADOW;
   if (is_abbrev(arg, "arcaneshadow"))
     return CLASS_ARCANE_SHADOW;
+  if (is_abbrev(arg, "eldritchknight"))
+    return CLASS_ELDRITCH_KNIGHT;
+  if (is_abbrev(arg, "eldritch-knight"))
+    return CLASS_ELDRITCH_KNIGHT;
   if (is_abbrev(arg, "stalwartdefender"))
     return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender"))
@@ -2773,12 +2780,17 @@ void advance_level(struct char_data *ch, int class)
     //else if (IS_EPIC(ch))
     //epic_class_feats++;
   }
-  if (class == CLASS_WARRIOR && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2))
+  if (class == CLASS_WARRIOR)
   {
     if (!IS_EPIC(ch))
       class_feats++; // warriors get a bonus class feat every 2 levels
     //else if (IS_EPIC(ch))
     //epic_class_feats++;
+  }
+  if (class == CLASS_ELDRITCH_KNIGHT  && (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 1 || 
+               CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 5 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 9))
+  {
+    class_feats++; // Eldritch Knights get a bonus feat on levels 1, 5, and 9
   }
   if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) &&
       CLASS_LEVEL(ch, CLASS_SORCERER) > 1)
@@ -3000,6 +3012,7 @@ int level_exp(struct char_data *ch, int level)
     //    case CLASS_SHADOW_DANCER:
   case CLASS_ARCANE_ARCHER:
   case CLASS_ARCANE_SHADOW:
+  case CLASS_ELDRITCH_KNIGHT:
   case CLASS_SACRED_FIST:
   case CLASS_ROGUE:
   case CLASS_BARD:
@@ -3163,7 +3176,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_NEGATIVE_ENERGY_RAY, 1);
   spell_assignment(CLASS_WIZARD, SPELL_RAY_OF_ENFEEBLEMENT, 1);
   spell_assignment(CLASS_WIZARD, SPELL_CHARM, 1);
-  spell_assignment(CLASS_WIZARD, SPELL_ENCHANT_WEAPON, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_ENCHANT_ITEM, 1);
   spell_assignment(CLASS_WIZARD, SPELL_SLEEP, 1);
   spell_assignment(CLASS_WIZARD, SPELL_COLOR_SPRAY, 1);
   spell_assignment(CLASS_WIZARD, SPELL_SCARE, 1);
@@ -4307,7 +4320,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_NEGATIVE_ENERGY_RAY, 1);
   spell_assignment(CLASS_SORCERER, SPELL_RAY_OF_ENFEEBLEMENT, 1);
   spell_assignment(CLASS_SORCERER, SPELL_CHARM, 1);
-  spell_assignment(CLASS_SORCERER, SPELL_ENCHANT_WEAPON, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_ENCHANT_ITEM, 1);
   spell_assignment(CLASS_SORCERER, SPELL_SLEEP, 1);
   spell_assignment(CLASS_SORCERER, SPELL_COLOR_SPRAY, 1);
   spell_assignment(CLASS_SORCERER, SPELL_SCARE, 1);
@@ -5100,6 +5113,124 @@ void load_class_list(void)
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_EVIL);
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_GOOD);
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_NEUTRAL);
+  /****************************************************************************/
+
+
+/****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_ELDRITCH_KNIGHT, "eldritchknight", "EKn", "\tWE\tCKn\tn", "n) \tWEldritch\tCKnight\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, H, 10, 0, 2, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "Arcane advancement every level",
+         /*descrip*/ "Fearsome warriors and spellcasters, eldritch knights are rare among magic-users "
+                     "in their ability to wade into battle alongside fighters, barbarians, and other "
+                     "martial classes. Those who must face eldritch knights in combat fear them greatly, "
+                     "for their versatility on the battlefield is tremendous; against heavily armed "
+                     "and armored opponents they may level crippling spells, while opposing spellcasters "
+                     "meet their ends on an eldritch knight's blade.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ELDRITCH_KNIGHT, G, B, B, G, B);
+  assign_class_abils(CLASS_ELDRITCH_KNIGHT, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CC, CC, CC, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CC, CC, CC, CC, CC, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CA, CC);
+  assign_class_titles(CLASS_ELDRITCH_KNIGHT,          /* class number */
+                      "",                           /* <= 4  */
+                      "the Eldritch Knight",         /* <= 9  */
+                      "the Eldritch Knight",          /* <= 14 */
+                      "the Eldritch Knight",          /* <= 19 */
+                      "the Eldritch Knight",        /* <= 24 */
+                      "the Eldritch Knight",         /* <= 29 */
+                      "the Eldritch Knight",        /* <= 30 */
+                      "the Eldritch Knight",  /* <= LVL_IMMORT */
+                      "the Eldritch Knight", /* <= LVL_STAFF */
+                      "the Eldritch Knight",    /* <= LVL_GRSTAFF */
+                      "the Eldritch Knight"            /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DIVERSE_TRAINING, Y, 1, Y);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SPELL_CRITICAL, Y, 10, N);
+    /* list of class feats */
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_spellcasting(CLASS_ELDRITCH_KNIGHT, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 3 /*circle*/);
+  class_prereq_feat(CLASS_ELDRITCH_KNIGHT, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
+
   /****************************************************************************/
 
   /****************************************************************************/

@@ -372,6 +372,7 @@ const char *class_names[] = {
     "Alchemist",
     "Arcane Shadow",
     "Sacred Fist",
+    "Eldritch Knight",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -3666,6 +3667,7 @@ const char *spell_prep_dict[][4] = {
     {"concoct", "an extract", "concocted", "concoctions"},  /* alchemist 17 */
     {"", "", "", ""},                                       /* arcane shadow 18 */
     {"", "", "", ""},                                       /* sacred fist 19 */
+    {"", "", "", ""},                                       /* eldritch knight 20 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -3698,6 +3700,7 @@ const char *spell_consign_dict[][4] = {
     {"discard", "discarded", "discarding", "discarded"},     /* alchemist 17 */
     {"", "", "", ""},                                        /* arcane shadow 18 */
     {"", "", "", ""},                                        /* sacred fist 19 */
+    {"", "", "", ""},                                        /* eldritch knight 20 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */

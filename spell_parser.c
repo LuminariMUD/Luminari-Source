@@ -791,8 +791,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case SPELL_DOMINATE_PERSON:
                         MANUAL_SPELL(spell_dominate_person);
                         break;
-                case SPELL_ENCHANT_WEAPON:
-                        MANUAL_SPELL(spell_enchant_weapon);
+                case SPELL_ENCHANT_ITEM:
+                        MANUAL_SPELL(spell_enchant_item);
                         break;
                 case SPELL_GREATER_DISPELLING:
                         MANUAL_SPELL(spell_greater_dispelling);
@@ -1472,6 +1472,12 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                         else
                                 casting_time = casting_time * 3 / 2;
                 }
+        }
+
+        if (HAS_ELDRITCH_SPELL_CRIT(ch))
+        {
+          HAS_ELDRITCH_SPELL_CRIT(ch) = false;
+          casting_time = 0;
         }
 
         /* handle spells with no casting time */
@@ -2293,7 +2299,7 @@ void mag_assign_spells(void)
         spello(SPELL_CHARM, "charm person", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
                "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
-        spello(SPELL_ENCHANT_WEAPON, "enchant weapon", 0, 0, 0, POS_FIGHTING,
+        spello(SPELL_ENCHANT_ITEM, "enchant item", 0, 0, 0, POS_FIGHTING,
                TAR_OBJ_INV, FALSE, MAG_MANUAL,
                NULL, 5, 7, ENCHANTMENT, FALSE);
         spello(SPELL_SLEEP, "sleep", 0, 0, 0, POS_FIGHTING,

@@ -2035,6 +2035,16 @@ void assign_feats(void)
         "theurge previously had access to, but only for purposes of daily spells and spell "
         "circles available.");
 
+  feato(FEAT_SPELL_CRITICAL, "spell critical", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "Can cast a spell immediately after scoring a critical hit.",
+        "Upon landing a successful critical hit with a weapon or unarmed attack, the "
+        "eldritch knight can then cast a spell immediately, without waiting for the "
+        "spell casting countdown to occur.");
+
+  feato(FEAT_DIVERSE_TRAINING, "diverse training", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+        "Adds eldritch knight levels to warrior levels when determining feat eligibility.",
+        "Adds eldritch knight levels to warrior levels when determining feat eligibility.");
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "+2 bonus on caster level checks to defeat spell resistance",
@@ -4221,13 +4231,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
              return TRUE;
          */
     case FEAT_WEAPON_SPECIALIZATION:
-      if (BAB(ch) < 4 || CLASS_LEVEL(ch, CLASS_WARRIOR) < 4)
+      if (BAB(ch) < 4 || WARRIOR_LEVELS(ch) < 4)
         return FALSE;
       if (!iarg || is_proficient_with_weapon(ch, iarg))
         return TRUE;
       return FALSE;
     case FEAT_GREATER_WEAPON_SPECIALIZATION:
-      if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 12)
+      if (WARRIOR_LEVELS(ch) < 12)
         return FALSE;
       if (!iarg)
         return TRUE;
@@ -4238,7 +4248,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return TRUE;
       return FALSE;
     case FEAT_EPIC_WEAPON_SPECIALIZATION:
-      if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 20)
+      if (WARRIOR_LEVELS(ch) < 20)
         return FALSE;
       if (!iarg)
         return TRUE;
