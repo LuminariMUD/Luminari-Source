@@ -561,6 +561,12 @@ void compute_char_cap(struct char_data *ch)
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
+      case CLASS_ELDRITCH_KNIGHT:
+        int_cap += class_level / 4 + 1;
+        str_cap += class_level / 4 + 1;
+        hit_cap += class_level / 3;
+        dam_cap += class_level / 3;
+        break;
       case CLASS_SHIFTER:
         str_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;

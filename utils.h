@@ -1227,6 +1227,11 @@ void char_from_furniture(struct char_data *ch);
 #define GET_PREFERRED_DIVINE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.preferred_divine))
 #define BONUS_CASTER_LEVEL(ch, class) (compute_bonus_caster_level(ch, class))
 
+// Eldritch knight spell critical ability
+#define HAS_ELDRITCH_SPELL_CRIT(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->has_eldritch_knight_spell_critical))
+// Eldritch knight levels are added to warrior levels when determining qualification for certain warrior-only feats
+#define WARRIOR_LEVELS(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT))
+
 /* Attacks of Opportunity (AOO) */
 #define GET_TOTAL_AOO(ch) (ch->char_specials.attacks_of_opportunity)
 
@@ -1701,6 +1706,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_MYSTICTHEURGE(ch) (CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE))
 #define IS_ARCANE_ARCHER(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER))
 #define IS_ARCANE_SHADOW(ch) (CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW))
+#define IS_ELDRITCH_KNIGHT(ch) (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT))
 #define IS_SACRED_FIST(ch) (CLASS_LEVEL(ch, CLASS_SACRED_FIST))
 #define IS_SHIFTER(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER))
 #define IS_MONK(ch) (CLASS_LEVEL(ch, CLASS_MONK))
@@ -1713,7 +1719,8 @@ void char_from_furniture(struct char_data *ch);
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT || \
                       IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||            \
-                       IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch))
+                       IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
+                       IS_ELDRITCH_KNIGHT(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -1730,6 +1737,7 @@ void char_from_furniture(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_MYSTIC_THEURGE || \
                            GET_CLASS(ch) == CLASS_ARCANE_ARCHER ||  \
                            GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||  \
+                           GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT ||  \
                            GET_CLASS(ch) == CLASS_SACRED_FIST ||    \
                            GET_CLASS(ch) == CLASS_SHIFTER ||        \
                            GET_CLASS(ch) == CLASS_BARD)

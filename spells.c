@@ -1020,42 +1020,65 @@ ASPELL(spell_dominate_person) // enchantment
 
 /* Cannot use this spell on an equipped object or it will mess up the wielding
  * character's hit/dam totals. */
-ASPELL(spell_enchant_weapon) // enchantment
+ASPELL(spell_enchant_item) // enchantment
 {
   int i;
+  int bonus = 0;
+  int eligible = true;
 
   if (ch == NULL || obj == NULL)
     return;
 
   /* Either already enchanted or not a weapon. */
-  if (GET_OBJ_TYPE(obj) != ITEM_WEAPON || OBJ_FLAGGED(obj, ITEM_MAGIC))
-    return;
+  if ((GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR) || OBJ_FLAGGED(obj, ITEM_MAGIC))
+    eligible = false;
 
   /* Make sure no other affections. */
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
     if (obj->affected[i].location != APPLY_NONE)
-      return;
+      { eligible = false; break; }
+
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i) == obj)
+      { eligible = false; break; }
+
+  if (GET_OBJ_VAL(obj, 4) > 0)
+    eligible = false;
+
+  if (!eligible) {
+    send_to_char(ch, "Your spell failed.\r\n"
+                     "This spell will only work on nonmagical weapons and armor that offer no stat modifications.\r\n"
+                     "It will also fail on any worn equipment.  The item must be in your inventory");
+    return;
+  }
 
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
-  obj->affected[0].location = APPLY_HITROLL;
-  obj->affected[0].modifier = MAX(1, (int)(MAGIC_LEVEL(ch) / 7));
+  bonus = MAX(1, (int)(MAGIC_LEVEL(ch) / 7));
 
-  obj->affected[1].location = APPLY_DAMROLL;
-  obj->affected[1].modifier = MAX(1, (int)(MAGIC_LEVEL(ch) / 7));
+  // enhancement bonus
+  GET_OBJ_VAL(obj, 4) = bonus;
 
-  if (IS_GOOD(ch))
+  switch (bonus)
   {
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_ANTI_EVIL);
-    act("$p glows \tBblue\tn.", FALSE, ch, obj, 0, TO_CHAR);
+    case 1:
+      GET_OBJ_LEVEL(obj) = 1;
+      break;
+    case 2:
+      GET_OBJ_LEVEL(obj) = 8;
+      break;
+    case 3:
+      GET_OBJ_LEVEL(obj) = 16;
+      break;
+    case 4:
+      GET_OBJ_LEVEL(obj) = 25;
+      break;
+    default:
+      GET_OBJ_LEVEL(obj) = 31;
+      break;
   }
-  else if (IS_EVIL(ch))
-  {
-    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_ANTI_GOOD);
-    act("$p glows \tRred\tn.", FALSE, ch, obj, 0, TO_CHAR);
-  }
-  else
-    act("$p glows \tYyellow\tn.", FALSE, ch, obj, 0, TO_CHAR);
+
+  act("$p glows \tYyellow\tn.", FALSE, ch, obj, 0, TO_CHAR);
 }
 
 ASPELL(spell_greater_dispelling) // abjuration

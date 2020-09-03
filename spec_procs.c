@@ -387,7 +387,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 
     /* warrior */
   case SKILL_SHIELD_SPECIALIST: // not a free skill
-    if (CLASS_LEVEL(ch, CLASS_WARRIOR) >= 6)
+    if (WARRIOR_LEVELS(ch) >= 6)
       return TRUE;
     else
       return FALSE;

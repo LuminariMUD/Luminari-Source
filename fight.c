@@ -6385,8 +6385,14 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* Wrap the message in tags for GUI mode. JTM 1/5/18 */
   //gui_combat_wrap_open(ch);
 
-  if (is_critical)
+  if (is_critical) {
     strlcpy(hit_msg, "critical", sizeof(hit_msg));
+    if (HAS_REAL_FEAT(ch, FEAT_SPELL_CRITICAL) && !HAS_ELDRITCH_SPELL_CRIT(ch))
+    {
+      send_to_char(ch, "[\tWSPELL-CRITICAL\tn] ");
+      HAS_ELDRITCH_SPELL_CRIT(ch) = true;
+    }
+  }
 
   /* Print descriptive tags - This needs some form of control, via a toggle
            * and also should be formatted in some standard way with standard colors.

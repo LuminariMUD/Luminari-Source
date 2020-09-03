@@ -357,6 +357,7 @@
 #define CLASS_ALCHEMIST 17
 #define CLASS_ARCANE_SHADOW 18
 #define CLASS_SACRED_FIST 19
+#define CLASS_ELDRITCH_KNIGHT 20
 //#define CLASS_PSIONICIST        16
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
@@ -370,7 +371,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 20
+#define NUM_CLASSES 21
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1779,12 +1780,14 @@
 #define FEAT_SLA_ENLARGE 650
 #define FEAT_PHANTASM_RESIST 651
 #define FEAT_PARALYSIS_RESIST 652
+#define FEAT_SPELL_CRITICAL 653
+#define FEAT_DIVERSE_TRAINING 654
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 653
+#define FEAT_LAST_FEAT 655
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 654
+#define NUM_FEATS 656
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
@@ -3488,6 +3491,7 @@ struct player_special_data
     char *new_mail_receiver;
     char *new_mail_subject;
     char *new_mail_content;
+    byte has_eldritch_knight_spell_critical;
 };
 
 /** Special data used by NPCs, not PCs */

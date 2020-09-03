@@ -558,7 +558,7 @@ void assign_domains(void)
   add_domain_powers(DOMAIN_LAW, DOMAIN_POWER_BLESSED_TOUCH, DOMAIN_POWER_LAWFUL_WEAPON,
                     DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
-  add_domain_spells(DOMAIN_LAW, SPELL_RESERVED_DBC, SPELL_ENCHANT_WEAPON,
+  add_domain_spells(DOMAIN_LAW, SPELL_RESERVED_DBC, SPELL_ENCHANT_ITEM,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
                     SPELL_RESERVED_DBC, SPELL_SLOW, SPELL_RESERVED_DBC,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
