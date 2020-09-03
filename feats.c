@@ -3547,8 +3547,15 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
     }
     break;
   case FEAT_PREREQ_CLASS_LEVEL:
-    if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
-      return FALSE;
+    if (prereq->values[0] == CLASS_WARRIOR)
+    {
+      if (WARRIOR_LEVELS(ch) < prereq->values[1])
+        return FALSE;
+    }
+    else {
+      if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
+        return FALSE;
+    }
     break;
   case FEAT_PREREQ_FEAT:
     if (has_feat_requirement_check(ch, prereq->values[0]) < prereq->values[1])
