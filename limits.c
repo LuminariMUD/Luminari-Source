@@ -1231,6 +1231,9 @@ void point_update(void)
       (i->char_specials.timer)++;
       if (GET_LEVEL(i) < CONFIG_IDLE_MAX_LEVEL)
         check_idling(i);
+      // eldritch knight spell crit expires after combat ends if not used.
+      if (!FIGHTING(i) && HAS_ELDRITCH_SPELL_CRIT(i))
+        HAS_ELDRITCH_SPELL_CRIT(i) = false;
     }
   }
 
