@@ -2019,6 +2019,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   int intel_bonus = 0;
   int tempXP = 0;
   int i = 0;
+  bool can_add_spell = TRUE;
   char arg1[200] = {'\0'}, arg2[200] = {'\0'};
 
   two_arguments(arg, arg1, sizeof(arg1), arg2, sizeof(arg2));
@@ -2773,13 +2774,25 @@ void study_parse(struct descriptor_data *d, char *arg)
               return;
             }
             if (is_a_known_spell(d->character, CLASS_SORCERER, counter)) {
-              send_to_char(d->character, "\tCYou cannot remove spells known.  You have to cancel the study session and start over "
-                                         "if you made a mistake choosing a spell this session.  To change past choices, you need "
+              if (!LEVELUP(d->character)->spells_learned[counter]) {
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                                         "To change past choices, you need "
                                          "to respec your character.\r\n\tn");
-//              known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
+                break;        
+              } else {
+                known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
+                LEVELUP(d->character)->spells_learned[counter] = 0; 
+              }
             }
-            else if (!known_spells_add(d->character, CLASS_SORCERER, counter, FALSE))
-              write_to_output(d, "You are all FULL for spells!\r\n");
+            else {
+              can_add_spell = known_spells_add(d->character, CLASS_SORCERER, counter, FALSE);
+              if (!can_add_spell) {
+                write_to_output(d, "You are all FULL for spells!\r\n");
+                break;
+              } else {
+                LEVELUP(d->character)->spells_learned[counter] = 1; 
+              }
+            }
           }
         }
       }
