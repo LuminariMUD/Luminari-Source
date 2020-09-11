@@ -133,7 +133,7 @@ ACMD(do_exchange)
 
   if (!*arg1 || !*arg2 || !*arg3)
   {
-    send_to_char(ch, "Missing argument!\r\n");
+    send_to_char(ch, "You need to provide more information.\r\n");
     show_exchange_rates(ch);
     return;
   }
@@ -188,7 +188,7 @@ ACMD(do_exchange)
 
   if (source == exchange)
   {
-    send_to_char(ch, ".... um yeah your exchange is finished.\r\n");
+    send_to_char(ch, "Your source and desired currency types cannot be the same.\r\n");
     show_exchange_rates(ch);
     return;
   }

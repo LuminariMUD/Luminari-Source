@@ -3621,6 +3621,7 @@ struct level_data
     int feat_skills[NUM_FEATS];
     /*        int spells_known[NUM_SPELLS];*/
     int spell_slots[10];
+    int spells_learned[MAX_SKILLS+1];
 
     /* setting stats */
     int str;
