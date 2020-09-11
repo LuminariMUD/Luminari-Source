@@ -2854,14 +2854,27 @@ void study_parse(struct descriptor_data *d, char *arg)
               do_study_spell_help(d->character, counter);
               return;
             }
+            
             if (is_a_known_spell(d->character, CLASS_BARD, counter)) {
-              send_to_char(d->character, "\tCYou cannot remove spells known.  You have to cancel the study session and start over "
-                                         "if you made a mistake choosing a spell this session.  To change past choices, you need "
+              if (!LEVELUP(d->character)->spells_learned[counter]) {
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                                         "To change past choices, you need "
                                          "to respec your character.\r\n\tn");
-//              known_spells_remove_by_class(d->character, CLASS_BARD, counter);
-           }
-            else if (!known_spells_add(d->character, CLASS_BARD, counter, FALSE))
-              write_to_output(d, "You are all FULL for spells!\r\n");
+                break;        
+              } else {
+                known_spells_remove_by_class(d->character, CLASS_BARD, counter);
+                LEVELUP(d->character)->spells_learned[counter] = 0; 
+              }
+            }
+            else {
+              can_add_spell = known_spells_add(d->character, CLASS_BARD, counter, FALSE);
+              if (!can_add_spell) {
+                write_to_output(d, "You are all FULL for spells!\r\n");
+                break;
+              } else {
+                LEVELUP(d->character)->spells_learned[counter] = 1; 
+              }
+            }
           }
         }
       }
