@@ -43,6 +43,7 @@
 #include "staff_events.h"
 #include "missions.h"
 #include "spec_procs.h"
+#include "transport.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -1135,6 +1136,28 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       room_dark = FALSE;
       can_infra_in_dark = TRUE;
       ignore_brief = FALSE;
+    }
+  }
+
+   if (rm->number >= 66700 && rm->number <= 66799) {
+
+    if (ch->player_specials->travel_type == TRAVEL_CARRIAGE) {
+      rm->name = strdup("A Horse-Drawn Carriage");
+      snprintf(buf, sizeof(buf), "This small carriage is pulled by two brown draft horses, led by a weathered old man smoking a pipe and wearing a long, brown overcoat.\r\n"
+                     "The inside of the carriage is big enough for about 6 people, with benches on either side, and a small table in the middle.  An oil based lantern\r\n"
+                     "hangs overhead, supplying light, and windows are real glass, and able to be opened or closed, with small rain canopies keeping the weather out for the most part.\r\n"
+                     "Judging by how far you've gone so far, you have about %d kilometers to go until you get to %s.\r\n",
+                               ch->player_specials->travel_timer * 10, carriage_locales[ch->player_specials->travel_locale][0]);
+      rm->description = strdup(buf);
+    } else if (ch->player_specials->travel_type == TRAVEL_AIRSHIP) {
+      rm->name = strdup("A Small Wooden Airship");
+      snprintf(buf, sizeof(buf),
+             "This small airship is powered by aracana crystals and is of a sleek, if compact design.\r\n"
+             "The airship itself has seating for about 6 people, on wooden benches that line the railed side of the airship.\r\n"
+             "The view below is nothing short of amazing.  Judging by how far you've gone so far you should arrive in\r\n"
+             "about %d minutes an %d seconds to your destination: %s.\r\n",
+                               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, airship_locales[ch->player_specials->travel_locale][0]);
+      rm->description = strdup(buf);
     }
   }
 
