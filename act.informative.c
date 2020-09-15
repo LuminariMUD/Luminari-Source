@@ -1284,6 +1284,15 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     send_to_char(ch, "\tDIt is hard to make out too much detail with just \trinfravision\tD.\r\n");
   }
 
+  int i = 0;
+  while (atoi(carriage_locales[i][1]) != 0) {
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(carriage_locales[i][1])) {
+      send_to_char(ch, "\r\nThis room is a carriage stop.  Use the \tYcarriage\tn command to see options.\r\n");
+      break;
+    }
+    i++;
+  }
+
   /* autoexits */
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) &&
       (!IS_SET_AR(ROOM_FLAGS(target_room), ROOM_FOG) || GET_LEVEL(ch) >= LVL_IMMORT))
