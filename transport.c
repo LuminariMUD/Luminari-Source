@@ -34,11 +34,20 @@ extern struct char_data *character_list;
 room_rnum find_target_room(struct char_data *ch, char *rawroomstr);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
-// location name, carriage stop room vnum, cost to travel here, continent name (matched below), zone description
-const char *carriage_locales[][5] = {
-  {"mosswood village",                      "145387", "10",   "Continent1", "starting area, levels 1-5"},
-  {"ashenport",                             "103000", "10",   "Continent1", "central city for low to mid levels and main quest line"},
-  {"always the last item",                  "0",      "0",    "Nowhere", "nothing"}
+// to get the map coords, using photoshop, enable rulers, zoom to 100%, press f8 and mouse over the position on the map image.
+// map image located at: https://luminarimud.com/wiki/images/7/7e/Luminari-World-Map-Update-April-14-2020.png
+// same applies to the airship map points below. Map point will be the spot where the airship tower is.
+
+// location name, carriage stop room vnum, cost to travel here, continent name (matched below), zone description, mapp coord x, map coord y
+const char *carriage_locales[][7] = {
+  {"mosswood village",                      "145387", "10",   "Continent1", "starting area, levels 1-5", "964", "935"},
+  {"ashenport",                             "103000", "10",   "Continent1", "central city for low to mid levels and main quest line", "973", "927"},
+  {"wizard training mansion",               "5900",   "10",   "Continent1", "level 3-6 mobs, questline", "1002", "995"},
+  {"graven hollow",                         "6766",   "100",  "Continent1", "level 7-12 mobs, questline", "1028", "958"},
+  {"dollhouse",                             "11899",  "150",  "Continent1", "level 5-8 mobs, questline", "1192", "855"},
+  {"blindbreak rest",                       "40400",  "200",  "Continent1", "level 10-11 mobs, questline", "972", "962"},
+  {"mosaic cave",                           "40600",  "250",  "Continent1", "level 16-22 mobs, questline", "1028", "1022"},
+  {"always the last item",                  "0",      "0",    "Nowhere", "nothing", "0", "0"}
 };
 
 // continent name, airshop dock room vnum, Cost in gold to travel here, faction name, contintent description, map coord x, map coord y
@@ -73,18 +82,16 @@ ACMDU(do_carriage) {
     found = false;
     i = 0;
 	send_to_char(ch, "Available %s Destinations:\r\n", "Carriage");
-	send_to_char(ch, "%-30s %4s (%s)\r\n", "Carriage Destination", "Cost", "Area Note");
+	send_to_char(ch, "%-30s %4s %10s %10s (%s)\r\n", "Carriage Destination:", "Cost", "Distance", "Time (sec)", "Area Note");
     int j = 0;
     for (j = 0; j < 80; j++) 
       send_to_char(ch, "~");
     send_to_char(ch, "\r\n");
     while (atoi(carriage_locales[i][1]) != 0) {
-      if (atoi(carriage_locales[i][1]) == 30036) {i++; continue; }
-      if (atoi(carriage_locales[i][1]) == 30037) {i++; continue; }
       if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(carriage_locales[i][1]) && ((here != 999) ? 
           (carriage_locales[here][3] == carriage_locales[i][3]) : TRUE)) {
         found = true;
-		send_to_char(ch, "%-30s %4s (%s)\r\n", carriage_locales[i][0],  carriage_locales[i][2], carriage_locales[i][4]);
+		send_to_char(ch, "%-30s %4s %10d %10d (%s)\r\n", carriage_locales[i][0],  carriage_locales[i][2], get_distance(ch, i, here, TRAVEL_CARRIAGE), get_travel_time(ch, 10, i, here, TRAVEL_CARRIAGE), carriage_locales[i][4]);
       }
       i++;
     }
@@ -112,7 +119,7 @@ ACMDU(do_carriage) {
               GET_GOLD(ch) -= atoi(carriage_locales[i][2]);
           }
           }
-          enter_carriage(ch, i, TRAVEL_CARRIAGE, here);
+          enter_transport(ch, i, TRAVEL_CARRIAGE, here);
           return;
         }
       }
@@ -159,7 +166,7 @@ ACMDU(do_airship) {
     while (atoi(airship_locales[i][1]) != 0) {
       if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(airship_locales[i][1]) && valid_airship_travel(here, i)) {
         found = true;
-        send_to_char(ch, "%-30s %4s %10d %10d (%s)\r\n", airship_locales[i][0],  airship_locales[i][2], get_distance(ch, i, here), get_travel_time(ch, 10, i, here), airship_locales[i][4]);
+        send_to_char(ch, "%-30s %4s %10d %10d (%s)\r\n", airship_locales[i][0],  airship_locales[i][2], get_distance(ch, i, here, TRAVEL_AIRSHIP), get_travel_time(ch, 10, i, here, TRAVEL_AIRSHIP), airship_locales[i][4]);
       }
       i++;
     }
@@ -191,7 +198,7 @@ ACMDU(do_airship) {
             send_to_char(ch, "There is an error with that destination.  Please report on the forums.\r\n");
             return;
           }
-          enter_carriage(ch, i, TRAVEL_AIRSHIP, here);
+          enter_transport(ch, i, TRAVEL_AIRSHIP, here);
           return;
         }
       }
@@ -212,7 +219,7 @@ int valid_airship_travel(int here, int i)
    return false;
 }
 
-void enter_carriage(struct char_data *ch, int locale, int type, int here)
+void enter_transport(struct char_data *ch, int locale, int type, int here)
 {
     int cnt = 0, found = false;
     char air[200], car[200];
@@ -247,55 +254,49 @@ void enter_carriage(struct char_data *ch, int locale, int type, int here)
     struct char_data *tch = NULL;
 
     for (f = ch->followers; f; f = f->next) {
-    tch = f->follower;
-    if (IN_ROOM(tch) != IN_ROOM(ch))
-        continue;
-    if (!is_player_grouped(ch, tch))
-        continue;
-    if (FIGHTING(tch))
-        continue;
-    if (GET_POS(tch) < POS_STANDING)
-        continue;
-    if (type == TRAVEL_CARRIAGE) {
-        act("$n boards a carriage which heads off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-        send_to_char(tch, "Your group leader ushers you into a nearby carriage.\r\n");
-        send_to_char(tch, "You hop into a carriage and head off towards %s.\r\n\r\n", carriage_locales[locale][0]);
-    } else if (type == TRAVEL_AIRSHIP) {
-        act("$n boards an airship which flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-        send_to_char(tch, "Your group leader ushers you into the airship.\r\n");
-        send_to_char(tch, "You board the airship and fly off towards %s.\r\n\r\n", airship_locales[locale][0]);
-    }
-    char_from_room(tch);
-    char_to_room(tch, taxi);
-    tch->player_specials->destination = to_room;
-    if (type == TRAVEL_AIRSHIP)
-        tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here) /2;
-    else
-        tch->player_specials->travel_timer = 30;
-    tch->player_specials->travel_type = type;
-    tch->player_specials->travel_locale = locale;
-    look_at_room(tch, 0);
-    entry_memory_mtrigger(tch);
-    greet_mtrigger(tch, -1);
-    greet_memory_mtrigger(tch);
+        tch = f->follower;
+        if (IN_ROOM(tch) != IN_ROOM(ch))
+            continue;
+        if (!is_player_grouped(ch, tch))
+            continue;
+        if (FIGHTING(tch))
+            continue;
+        if (GET_POS(tch) < POS_STANDING)
+            continue;
+        if (type == TRAVEL_CARRIAGE) {
+            act("$n boards a carriage which heads off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
+            send_to_char(tch, "Your group leader ushers you into a nearby carriage.\r\n");
+            send_to_char(tch, "You hop into a carriage and head off towards %s.\r\n\r\n", carriage_locales[locale][0]);
+        } else if (type == TRAVEL_AIRSHIP) {
+            act("$n boards an airship which flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
+            send_to_char(tch, "Your group leader ushers you into the airship.\r\n");
+            send_to_char(tch, "You board the airship and fly off towards %s.\r\n\r\n", airship_locales[locale][0]);
+        }
+        
+        char_from_room(tch);
+        char_to_room(tch, taxi);
+        tch->player_specials->destination = to_room;
+        tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here, type);
+        tch->player_specials->travel_type = type;
+        tch->player_specials->travel_locale = locale;
+        look_at_room(tch, 0);
+        entry_memory_mtrigger(tch);
+        greet_mtrigger(tch, -1);
+        greet_memory_mtrigger(tch);
     }
 
     if (type == TRAVEL_CARRIAGE) {
         act("$n boards a carriage which heads off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-        send_to_char(ch, "Your group leader ushers you into a nearby carriage.\r\n");
         send_to_char(ch, "You hop into a carriage and head off towards %s.\r\n\r\n", carriage_locales[locale][0]);
     } else if (type == TRAVEL_AIRSHIP) {
         act("$n boards an airship which flies off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-        send_to_char(ch, "Your group leader ushers you into the airship.\r\n");
         send_to_char(ch, "You board the airship and fly off towards %s.\r\n\r\n", airship_locales[locale][0]);
     }
+
     char_from_room(ch);
     char_to_room(ch, taxi);
     ch->player_specials->destination = to_room;
-    if (type == TRAVEL_AIRSHIP)
-        ch->player_specials->travel_timer = get_travel_time(ch, 10, locale, here) / 2;
-    else
-        ch->player_specials->travel_timer = 30;
+    ch->player_specials->travel_timer = get_travel_time(ch, 10, locale, here, type);
     ch->player_specials->travel_type = type;
     ch->player_specials->travel_locale = locale;
     look_at_room(ch, 0);
@@ -321,6 +322,7 @@ void travel_tickdown(void)
       continue;
 
     if (ch->player_specials->destination == 0 || ch->player_specials->destination == NOWHERE) {
+      to_room = real_room(14100);
       char_from_room(ch);
       char_to_room(ch, to_room);
       look_at_room(ch, 0);
@@ -369,13 +371,13 @@ void travel_tickdown(void)
   }
 }
 
-int get_distance(struct char_data *ch, int locale, int here)
+int get_distance(struct char_data *ch, int locale, int here, int type)
 {
   int xf, xt, yf, yt;
-  xf = atoi(airship_locales[here][5]);
-  xt = atoi(airship_locales[locale][5]);
-  yf = atoi(airship_locales[here][6]);
-  yt = atoi(airship_locales[locale][6]);
+  xf = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[here][5]);
+  xt = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[locale][5]);
+  yf = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[here][6]);
+  yt = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[locale][6]);
 
   int dx, dy;
 
@@ -394,15 +396,17 @@ int get_distance(struct char_data *ch, int locale, int here)
   return distance;
 }
 
-int get_travel_time(struct char_data *ch, int speed, int locale, int here)
+int get_travel_time(struct char_data *ch, int speed, int locale, int here, int type)
 {
-  int distance = get_distance(ch, locale, here);
+  int distance = get_distance(ch, locale, here, type);
 
   distance *= 10;
 
   if (speed == 0) speed = 10;
 
   distance /= speed;
+
+  distance /= 2;
 
   return distance;
 }

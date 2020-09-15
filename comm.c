@@ -95,6 +95,7 @@
 #include "wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"
+#include "transport.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1145,6 +1146,7 @@ void heartbeat(int heart_pulse)
     msdp_update();
     next_tick--;
     PERF_PROF_EXIT(pr_msdp_update_);
+    travel_tickdown();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))

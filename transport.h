@@ -3,12 +3,12 @@
 #define TRAVEL_AIRSHIP          2
 
 extern const char *airship_locales[][7];
-extern const char *carriage_locales[][5];
+extern const char *carriage_locales[][7];
 
-int get_travel_time(struct char_data *ch, int speed, int locale, int here);
-int get_distance(struct char_data *ch, int locale, int here);
+int get_travel_time(struct char_data *ch, int speed, int locale, int here, int type);
+int get_distance(struct char_data *ch, int locale, int here, int type);
 void travel_tickdown(void);
-void enter_carriage(struct char_data *ch, int locale, int type, int here);
+void enter_transport(struct char_data *ch, int locale, int type, int here);
 int valid_airship_travel(int here, int i);
 ACMD_DECL(do_airship);
 ACMD_DECL(do_carriage);
