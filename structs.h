@@ -745,7 +745,7 @@
 #define MOB_CUSTOM_GOLD 39
 #define MOB_NO_AI 40
 #define MOB_MERCENARY 41 // for buying mercenary charmies, only one per person
-#define MOB_UNUSED_5 42
+#define MOB_ENCOUNTER 42 // this mob is used in a wilderness based random encounter
 #define MOB_UNUSED_6 43
 #define MOB_UNUSED_7 44
 #define MOB_UNUSED_8 45
