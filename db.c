@@ -59,6 +59,7 @@
 #include <sys/stat.h>
 #include "trails.h"
 #include "premadebuilds.h"
+#include "encounters.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -1003,6 +1004,9 @@ void boot_db(void)
 
   log("Loading Typos.");
   load_ibt_file(SCMD_TYPO);
+
+  log("Loading random encounter tables.");
+  populate_encounter_table();
 
   if (!no_rent_check)
   {

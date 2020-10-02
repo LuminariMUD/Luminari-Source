@@ -4206,3 +4206,81 @@ bool using_monk_gloves(struct char_data *ch)
 
   return true;
 }
+
+int get_max_party_level_same_room(struct char_data *ch)
+{
+  if (!ch) return 0;
+
+  struct char_data *master = NULL, *tch = NULL;
+  struct follow_type *f = NULL;
+  int level = 0;
+
+  if (ch->master)
+    master = ch->master;
+  else
+    master = ch;
+
+  level = GET_LEVEL(master);
+
+  for (f = master->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!tch) continue;
+    if (IN_ROOM(tch) != IN_ROOM(master)) continue;
+    if (GET_LEVEL(tch) > level)
+      level = GET_LEVEL(tch);
+  }
+
+  return level;
+}
+
+int get_avg_party_level_same_room(struct char_data *ch)
+{
+  if (!ch) return 0;
+
+  struct char_data *master = NULL, *tch = NULL;
+  struct follow_type *f = NULL;
+  int level = 0, size = 1;
+
+  if (ch->master)
+    master = ch->master;
+  else
+    master = ch;
+
+  level = GET_LEVEL(master);
+
+  for (f = master->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!tch) continue;
+    if (IN_ROOM(tch) != IN_ROOM(master)) continue;
+    level += GET_LEVEL(tch);
+    size++;
+  }
+
+  return (level / size);
+}
+
+int get_party_size_same_room(struct char_data *ch)
+{
+  if (!ch) return 0;
+
+  struct char_data *master = NULL, *tch = NULL;
+  struct follow_type *f = NULL;
+  int size = 1;
+
+  if (ch->master)
+    master = ch->master;
+  else
+    master = ch;
+
+  for (f = master->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!tch) continue;
+    if (IN_ROOM(tch) != IN_ROOM(master)) continue;
+    size++;
+  }
+
+  return size;
+}

@@ -33,6 +33,7 @@
 #include "spell_prep.h"
 #include "trails.h"
 #include "assign_wpn_armor.h"
+#include "encounters.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -1838,6 +1839,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (!sensed_trap)
     check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
 
+  if (!ch->master) {
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+    {
+      check_random_encounter(ch);
+    }
+  }
+
   return (1);
 }
 
@@ -1865,6 +1873,10 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
     else
       send_to_char(ch, "It seems to be closed.\r\n");
   }
+  else if (in_encounter_room(ch))
+  {
+    send_to_char(ch, "You must deal with this encounter before proceeding.\r\n");
+  }
   else
   {
     /* This was tricky - buildwalk for normal rooms is only activated above.
@@ -1889,6 +1901,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
         perform_move(k->follower, dir, 1);
       }
     }
+    
     return (1);
   }
   return (0);

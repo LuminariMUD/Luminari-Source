@@ -1121,7 +1121,7 @@ const char *action_bits[] = {
     "Custom-Gold",
     "No-AI", //40
     "Mercenary",
-    "unused",
+    "Encounter",
     "unused",
     "unused", //45
     "unused",
