@@ -7,13 +7,17 @@
 #define ENCOUNTER_TYPE_NONE                0
 #define ENCOUNTER_TYPE_GOBLIN_1            1
 #define ENCOUNTER_TYPE_GOBLIN_2            2
+#define ENCOUNTER_TYPE_KING_CRAB_1         3
+#define ENCOUNTER_TYPE_KOBOLD_1            4
 
-#define NUM_ENCOUNTER_TYPES                3
+#define NUM_ENCOUNTER_TYPES                5
 
 #define ENCOUNTER_GROUP_TYPE_NONE          0
 #define ENCOUNTER_GROUP_TYPE_GOBLINS       1
+#define ENCOUNTER_GROUP_TYPE_KING_CRABS    2
+#define ENCOUNTER_GROUP_TYPE_KOBOLDS       3
 
-#define NUM_ENCOUNTER_GROUP_TYPES          2
+#define NUM_ENCOUNTER_GROUP_TYPES          4
 
 #define ENCOUNTER_STRENGTH_NORMAL          0
 #define ENCOUNTER_STRENGTH_BOSS            1
@@ -45,6 +49,7 @@
 struct encounter_data {
 
   int encounter_type;
+  int min_level;
   int max_level;
   bool sector_types[NUM_ROOM_SECTORS];
   int encounter_group;
@@ -55,6 +60,10 @@ struct encounter_data {
   int treasure_table;
   int char_class;
   int encounter_strength;
+  int alignment;
+  int race_type;
+  int subrace[3];
+  int size;
 };
 
 extern struct encounter_data encounter_table[NUM_ENCOUNTER_TYPES];
