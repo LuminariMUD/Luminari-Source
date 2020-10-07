@@ -814,4 +814,7 @@ ACMDCHECK(can_dragonmagic);
 ACMD_DECL(do_dragonmagic);
 ACMD_DECL(do_resetpassword);
 
+// encounters.c
+ACMD_DECL(do_encounters);
+
 #endif /* _ACT_H_ */

@@ -18,11 +18,11 @@
 <?php
 if ($_POST)
 {
-    $encounter_record = "ENCOUNTER_TYPE_" . str_replace(" ", "_", strtoupper($_POST['encounter_record']));
+    $encounter_record = "ENCOUNTER_TYPE_" . str_replace(" ", "_", strtoupper(trim($_POST['encounter_record'])));
     $encounter_type = $_POST['encounter_type'];
     $min_level = $_POST['min_level'];
     $max_level = $_POST['max_level'];
-    $encounter_group = "ENCOUNTER_GROUP_TYPE_" . str_replace(" ", "_", strtoupper($_POST['encounter_group']));
+    $encounter_group = "ENCOUNTER_GROUP_TYPE_" . str_replace(" ", "_", strtoupper(trim($_POST['encounter_group'])));
     $object_name = $_POST['object_name'];
     $load_chance = $_POST['load_chance'];
     $min_number = $_POST['min_number'];
@@ -51,8 +51,10 @@ if ($_POST)
             $output .= "    set_encounter_terrain_all_surface(".$encounter_record.");";
         else if ($key == "SECT_ALL_UD")
             $output .= "    set_encounter_terrain_all_underdark(".$encounter_record.");";
-        else if ($key == "SECT_ALL_SURFACE")
+            else if ($key == "SECT_ALL_SURFACE")
             $output .= "    set_encounter_terrain_all_roads(".$encounter_record.");";
+            else if ($key == "SECT_ALL_WATER")
+            $output .= "    set_encounter_terrain_all_water(".$encounter_record.");";
         else
             $output .= "    add_encounter_sector(".$encounter_record.", ".$key.");";
         if (($i % 2) == 1)
@@ -62,6 +64,8 @@ if ($_POST)
         $i++;
     }
     $output .= "\n";
+    $output .= "#define ".$encounter_record."\n";
+    $output .= "#define ".$encounter_group."\n";
 ?>
 <script>
 function copyCode() {
@@ -339,6 +343,7 @@ else{
                 <option value="SECT_ALL_SURFACE">All Surface Terrains</option>
                 <option value="SECT_ALL_UD">All Underdark Terrains</option>
                 <option value="SECT_ROADS">All Surface Roads</option>
+                <option value="SECT_ALL_WATER">All Water Types</option>
                 <option value="SECT_INSIDE">Inside (Eg. Buildings)</option>
                 <option value="SECT_CITY">City Streets</option>
                 <option value="SECT_FIELD">Field</option>
