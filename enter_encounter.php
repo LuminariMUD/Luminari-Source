@@ -36,11 +36,12 @@ if ($_POST)
     $subrace2 = $_POST['subrace2'];
     $subrace3 = $_POST['subrace3'];
     $size = $_POST['size'];
+    $hostile = $_POST['hostile'];
 
     $output = "    add_encounter_record(".$encounter_record.", ".$encounter_type.", ".$min_level.", ".$max_level.", ".$encounter_group.", \"".$object_name."\", ".
                $load_chance.", ".$min_number.", ".$max_number.", \n      ".$treasure_table.
               ", ".$class.", ".$encounter_strength.", ".$alignment.", ".$race_type.", \n".
-            "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$size." );\n";
+            "      ".$subrace1.", ".$subrace2.", ".$subrace3.", ".$hostile.", ".$size." );\n";
 
     $i = 0;
     foreach ($_POST['terrain'] as $key)
@@ -175,7 +176,7 @@ else{
                 <option value="CLASS_WIZARD">Wizard</option>
                 <option value="CLASS_CLERIC">Cleric</option>
                 <option value="CLASS_ROGUE">Rogue</option>
-                <option value="CLASS_WARRIOR">Warrior</option>
+                <option value="CLASS_WARRIOR" selected>Warrior</option>
                 <option value="CLASS_MONK">Monk</option>
                 <option value="CLASS_DRUID">Druid</option>
                 <option value="CLASS_BERSERKER">Berserker</option>
@@ -332,6 +333,15 @@ else{
                 <option value="SIZE_HUGE">Huge</option>
                 <option value="SIZE_GARGANTUAN">Gargantuan</option>
                 <option value="SIZE_COLOSSAL">Colossal</option>
+            </select>
+        </div>
+    </div>
+    <div class="row pt-1 pb-1">
+        <div class="col-sm-6 w-100 text-right font-weight-bold">Hostile?</div>
+        <div class="col-sm-6">
+            <select class="w-100" name="hostile">
+                <option value="NON_HOSTILE">Non-Hostile</option>
+                <option value="HOSTILE">Hostile</option>
             </select>
         </div>
     </div>

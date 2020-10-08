@@ -33,8 +33,33 @@
 #define ENCOUNTER_TYPE_BABOON               26
 #define ENCOUNTER_TYPE_BADGER               27
 #define ENCOUNTER_TYPE_DOLPHIN              28
+#define ENCOUNTER_TYPE_EAGLE                29
+#define ENCOUNTER_TYPE_HOBGOBLIN_SOLDIER    30
+#define ENCOUNTER_TYPE_HOBGOBLIN_SERGEANT   31
+#define ENCOUNTER_TYPE_BLUE_RINGED_OCTOPUS  32
+#define ENCOUNTER_TYPE_SAGARI               33
+#define ENCOUNTER_TYPE_VIPER                34
+#define ENCOUNTER_TYPE_GIANT_CRAB_SPIDER    35
+#define ENCOUNTER_TYPE_STINGRAY             36
+#define ENCOUNTER_TYPE_STIRGE               37
+#define ENCOUNTER_TYPE_SYLPH                38
+#define ENCOUNTER_TYPE_TENGU                39
+#define ENCOUNTER_TYPE_SNAPPING_TURTLE      40
+#define ENCOUNTER_TYPE_UNDINE               41
+#define ENCOUNTER_TYPE_VEGEPYGMY            42
+#define ENCOUNTER_TYPE_VULTURE              43
+#define ENCOUNTER_TYPE_WANDERING_ZOMBIE     44
+#define ENCOUNTER_TYPE_GREMLIN              45
+#define ENCOUNTER_TYPE_MANTARI              46
+#define ENCOUNTER_TYPE_GIANT_AMOEBA         47
+#define ENCOUNTER_TYPE_GIANT_BEE            48
+#define ENCOUNTER_TYPE_BROWNIE              49
+#define ENCOUNTER_TYPE_CAMEL                50
+#define ENCOUNTER_TYPE_CLAWBAT              51
+#define ENCOUNTER_TYPE_DARKMANTLE           52
+#define ENCOUNTER_TYPE_DIRE_CORBY           53
 
-#define NUM_ENCOUNTER_TYPES                 29
+#define NUM_ENCOUNTER_TYPES                 54
 
 #define ENCOUNTER_GROUP_TYPE_NONE           0
 #define ENCOUNTER_GROUP_TYPE_GOBLINS        1
@@ -62,8 +87,32 @@
 #define ENCOUNTER_GROUP_TYPE_BABOON         23
 #define ENCOUNTER_GROUP_TYPE_BADGER         24
 #define ENCOUNTER_GROUP_TYPE_DOLPHIN        25
+#define ENCOUNTER_GROUP_TYPE_EAGLE          26
+#define ENCOUNTER_GROUP_TYPE_HOBGOBLINS     27
+#define ENCOUNTER_GROUP_TYPE_BLUE_RINGED_OCTOPUS 28
+#define ENCOUNTER_GROUP_TYPE_SAGARI         29
+#define ENCOUNTER_GROUP_TYPE_VIPER          30
+#define ENCOUNTER_GROUP_TYPE_GIANT_CRAB_SPIDER 31
+#define ENCOUNTER_GROUP_TYPE_STINGRAY       32
+#define ENCOUNTER_GROUP_TYPE_STIRGE         33
+#define ENCOUNTER_GROUP_TYPE_SYLPH          34
+#define ENCOUNTER_GROUP_TYPE_TENGU          35
+#define ENCOUNTER_GROUP_TYPE_SNAPPING_TURTLE 36
+#define ENCOUNTER_GROUP_TYPE_UNDINE         37
+#define ENCOUNTER_GROUP_TYPE_VEGEPYGMY      38
+#define ENCOUNTER_GROUP_TYPE_VULTURE        39
+#define ENCOUNTER_GROUP_TYPE_WANDERING_ZOMBIE 40
+#define ENCOUNTER_GROUP_TYPE_GREMLIN        41
+#define ENCOUNTER_GROUP_TYPE_MANTARI        42
+#define ENCOUNTER_GROUP_TYPE_GIANT_AMOEBA   43
+#define ENCOUNTER_GROUP_TYPE_GIANT_BEE      44
+#define ENCOUNTER_GROUP_TYPE_BROWNIE        45
+#define ENCOUNTER_GROUP_TYPE_CAMEL          46
+#define ENCOUNTER_GROUP_TYPE_CLAWBAT        47
+#define ENCOUNTER_GROUP_TYPE_DARKMANTLE     48
+#define ENCOUNTER_GROUP_TYPE_DIRE_CORBY     49
 
-#define NUM_ENCOUNTER_GROUP_TYPES           26
+#define NUM_ENCOUNTER_GROUP_TYPES           50
 
 #define ENCOUNTER_STRENGTH_NORMAL          0
 #define ENCOUNTER_STRENGTH_BOSS            1
@@ -92,6 +141,9 @@
 
 #define ENCOUNTER_MOB_VNUM                 8100
 
+#define NON_HOSTILE                        false
+#define HOSTILE                            true
+
 struct encounter_data {
 
   int encounter_type;
@@ -110,6 +162,7 @@ struct encounter_data {
   int race_type;
   int subrace[3];
   int size;
+  bool hostile;
 };
 
 extern struct encounter_data encounter_table[NUM_ENCOUNTER_TYPES];
