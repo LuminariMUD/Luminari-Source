@@ -32,6 +32,7 @@
 #include "feats.h"
 #include "missions.h"
 #include "domains_schools.h"
+#include "encounters.h"
 
 /* defines */
 #define RAGE_AFFECTS 5
@@ -2559,6 +2560,15 @@ ACMD(do_flee)
   {
     send_to_char(ch, "You are in pretty bad shape, unable to flee!\r\n");
     return;
+  }
+
+  if (in_encounter_room(ch))
+  {
+    if (!can_flee_speed(ch))
+    {
+      send_to_char(ch, "You are not fast enough to flee this encounter.\r\n");
+      return;
+    }
   }
 
   if (argument)

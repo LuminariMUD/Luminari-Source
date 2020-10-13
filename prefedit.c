@@ -20,6 +20,7 @@
 #include "oasis.h"
 #include "prefedit.h"
 #include "screen.h"
+#include "encounters.h"
 
 /* Internal (static) functions */
 static void prefedit_setup(struct descriptor_data *d, struct char_data *vict);
@@ -136,7 +137,7 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
                              "%sPreferences\r\n"
                              "%sP%s) Prompt : %s[%s%-15s%s]   %sL%s) Pagelength : %s[%s%-3d%s]\r\n"
                              "%sC%s) Color  : %s[%s%-8s%s]    %sS%s) Screenwidth: %s[%s%-3d%s]\r\n"
-                             "%sW%s) Wimpy  : %s[%s%-4d%s]%s\r\n",
+                             "%sW%s) Wimpy  : %s[%s%-4d%s]    %sE%s) Encounters : %s[%s%-5s%s]\r\n",
                CCWHT(d->character, C_NRM),
                /* Line 1 - prompt and pagelength */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
@@ -146,9 +147,12 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
                color_string, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), PREFEDIT_GET_SCREENWIDTH, CCCYN(d->character, C_NRM),
-               /* Line 2 - wimpy                 */
+               /* Line 3 - wimpy                 */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               PREFEDIT_GET_WIMP_LEV, CCCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
+               PREFEDIT_GET_WIMP_LEV, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), 
+               PREFEDIT_FLAGGED(PRF_AVOID_ENCOUNTERS) ? "Avoid" : (PREFEDIT_FLAGGED(PRF_SEEK_ENCOUNTERS) ? "Seek" : "Default"), 
+               CCCYN(d->character, C_NRM));              
 
   send_to_char(d->character, "%sT%s) Toggle Preferences...\r\n",
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
@@ -495,6 +499,12 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
       prefedit_Restore_Defaults(d);
       break;
 
+    case 'e':
+    case 'E':
+      send_to_char(d->character, "Would you like to 'avoid' or 'seek' encounters?  Or if neither, enter 'default'.\r\n");
+      OLC_MODE(d) = PREFEDIT_ENCOUNTERS;
+      return;
+
       /* Below this point are Imm-only toggles */
     case '1':
       if (GET_LEVEL(PREFEDIT_GET_CHAR) < LVL_IMMORT)
@@ -597,6 +607,21 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
   case PREFEDIT_SCREENWIDTH:
     number = atoi(arg);
     OLC_PREFS(d)->screen_width = MAX(40, MIN(number, 120));
+    break;
+  
+  case PREFEDIT_ENCOUNTERS:
+    if (is_abbrev(arg, "avoid")) {
+      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AVOID_ENCOUNTERS);
+      REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SEEK_ENCOUNTERS);
+    }
+    else if (is_abbrev(arg, "seek")) {
+      REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AVOID_ENCOUNTERS);
+      SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SEEK_ENCOUNTERS);
+    }
+    else {
+      REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AVOID_ENCOUNTERS);
+      REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SEEK_ENCOUNTERS);
+    }
     break;
 
   case PREFEDIT_WIMPY:

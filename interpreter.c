@@ -282,7 +282,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {":", ":", POS_RECLINING, do_echo, 1, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"enter", "ent", POS_STANDING, do_enter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"encounters", "encounterts", POS_DEAD, do_encounters, LVL_IMMORT,  0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"encounterinfo", "encounterinfo", POS_DEAD, do_encounterinfo, LVL_IMMORT,  0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"enlarge", "enlarge", POS_FIGHTING, do_enlarge, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

@@ -826,9 +826,11 @@
 #define PRF_SMASH_DEFENSE 51     // stalwart defender level 10 ability
 #define PRF_DISPGOLD 52          // will show gold in prompt
 #define PRF_NO_CHARMIE_RESCUE 53 // charmie mobs won't rescue you
+#define PRF_SEEK_ENCOUNTERS 54 // will try to find random encounters in wilderness
+#define PRF_AVOID_ENCOUNTERS 55 // will try to avoid random encounters in wilderness
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 54
+#define NUM_PRF_FLAGS 56
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
