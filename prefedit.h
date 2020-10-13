@@ -52,6 +52,7 @@ struct prefs_data
 #define PREFEDIT_CONFIRM_SAVE 6
 #define PREFEDIT_SYSLOG 7
 #define PREFEDIT_TOGGLE_MENU 8
+#define PREFEDIT_ENCOUNTERS 9
 
 /* External Functions in prefedit.c */
 void prefedit_Restore_Defaults(struct descriptor_data *d);

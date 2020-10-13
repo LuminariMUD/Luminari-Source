@@ -1201,9 +1201,11 @@ const char *preference_bits[] = {
     "Faer-Causes-Flee",
     "PvP-Enabled",
     "Auto-Consider",
-    "Smash Defense",
+    "Smash-Defense",
     "Display-Gold",
     "No-Charmie-Rescues",
+    "Seek-Encounters",
+    "Avoid-Encoutners",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 

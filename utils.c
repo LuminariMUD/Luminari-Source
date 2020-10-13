@@ -4284,3 +4284,68 @@ int get_party_size_same_room(struct char_data *ch)
 
   return size;
 }
+
+int combat_skill_roll(struct char_data *ch, int skillnum)
+{
+    int roll = skill_roll(ch, skillnum);
+
+    if (roll >= 75)
+    {
+        return 8;
+    }
+    else if (roll >= 65)
+    {
+        return 7;
+    }
+    else if (roll >= 55)
+    {
+        return 6;
+    }
+    else if (roll >= 45)
+    {
+        return 5;
+    }
+    else if (roll >= 35)
+    {
+        return 4;
+    }
+    else if (roll >= 25)
+    {
+        return 3;
+    }
+    else if (roll >= 20)
+    {
+        return 2;
+    }
+    else if (roll >= 15)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+bool can_flee_speed(struct char_data *ch)
+{
+    if (!ch || IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  int ch_speed = get_speed(ch, false);
+  int mob_speed = 0;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
+    {
+      if (CAN_SEE(tch, ch))
+        mob_speed = MAX(mob_speed, get_speed(tch, false));
+    }
+  }
+  
+  if (ch_speed <= mob_speed) return false;
+  return true;
+}
