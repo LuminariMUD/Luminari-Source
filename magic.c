@@ -3412,11 +3412,30 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     is_mind_affect = TRUE;
 
-    if (GET_LEVEL(victim) >= 7)
+    if (GET_LEVEL(victim) >= 10)
     {
       send_to_char(ch, "The victim is too powerful for this illusion!\r\n");
       return;
     }
+
+    SET_BIT_AR(af[0].bitvector, AFF_FEAR);
+    af[0].duration = dice(2, 6);
+    to_room = "$n is imbued with fear!";
+    to_vict = "You feel scared and fearful!";
+    break;
+
+  case SPELL_FEAR: //illusion
+    if (is_immune_fear(ch, victim, TRUE))
+      return;
+    if (is_immune_mind_affecting(ch, victim, TRUE))
+      return;
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION))
+    {
+      return;
+    }
+    is_mind_affect = TRUE;
 
     SET_BIT_AR(af[0].bitvector, AFF_FEAR);
     af[0].duration = dice(2, 6);

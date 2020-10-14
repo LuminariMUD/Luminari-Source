@@ -1840,9 +1840,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
 
   if (!ch->master) {
+    // set cooldown timer on old room
+    if (was_in != NOWHERE && ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS))
+    {
+      set_expire_cooldown(was_in);
+    }
     if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
     {
       check_random_encounter(ch);
+      reset_expire_cooldown(ch->in_room);
     }
   }
 
@@ -1873,7 +1879,7 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
     else
       send_to_char(ch, "It seems to be closed.\r\n");
   }
-  else if (in_encounter_room(ch))
+  else if (in_encounter_room(ch) && !is_peaceful_encounter(ch))
   {
     send_to_char(ch, "You must deal with this encounter before proceeding.\r\n");
   }
@@ -3561,6 +3567,10 @@ ACMD(do_pullswitch)
 
 int get_speed(struct char_data *ch, sbyte to_display)
 {
+
+  // if mounted, we'll use the mount's speed instead.
+  if (RIDING(ch))
+   return get_speed(RIDING(ch), to_display);
 
   int speed = 30;
 

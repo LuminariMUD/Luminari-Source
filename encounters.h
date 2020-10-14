@@ -267,6 +267,12 @@
 #define NON_SENTIENT                        false
 #define SENTIENT                            true
 
+#define ENCOUNTER_SCMD_DISTRACT             0
+#define ENCOUNTER_SCMD_INTIMIDATE           1
+#define ENCOUNTER_SCMD_DIPLOMACY            2
+#define ENCOUNTER_SCMD_BLUFF                3
+#define ENCOUNTER_SCMD_BRIBE                4
+
 struct encounter_data {
 
   int encounter_type;
@@ -298,6 +304,21 @@ bool in_encounter_room(struct char_data *ch);
 void check_random_encounter(struct char_data *ch);
 int encounter_chance(struct char_data *ch);
 void populate_encounter_table(void);
+void reset_expire_cooldown(room_rnum rnum);
+void set_expire_cooldown(room_rnum rnum);
+int encounter_bribe_amount(struct char_data *ch);
+bool is_hostile_encounter(struct char_data *ch);
+void set_encounter_peaceful(struct char_data *ch);
+bool is_peaceful_encounter(struct char_data *ch);
+int get_party_slowest_speed(struct char_data *ch);
+int get_encounter_mobs_speed(struct char_data *ch);
+bool can_encounter_mobs_see_party(struct char_data *ch);
+bool encounter_mobs_can_move(struct char_data *ch);
+bool encounter_coerce_attempted(struct char_data *ch, int attempt_type);
+void set_coersion_attempted(struct char_data *ch, int attempt_type);
+void give_gold_to_encounter_mob(struct char_data *ch, int amount);
+void set_encounter_to_peaceful(struct char_data *ch);
+bool can_coerce_encounter(struct char_data *ch, int attempt_type);
 void add_encounter_record(int encounter_record, int encounter_type, int min_level, int max_level, int encounter_group, const char *object_name, 
     int load_chance, int min_number, int max_number, int treasure_table, int char_class, int encounter_strength,
     int alignment, int race_type, int subrace1, int subrace2, int subrace3, bool hostile, bool sentient, int size);

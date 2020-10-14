@@ -816,5 +816,6 @@ ACMD_DECL(do_resetpassword);
 
 // encounters.c
 ACMD_DECL(do_encounterinfo);
+ACMD_DECL(do_encounter);
 
 #endif /* _ACT_H_ */

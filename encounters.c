@@ -29,6 +29,8 @@
 #include "encounters.h"
 #include "dg_scripts.h"
 #include "prefedit.h"
+#include "mud_event.h"
+#include "act.h"
 
 extern struct room_data *world;
 extern struct char_data *character_list;
@@ -933,7 +935,7 @@ int get_exploration_dc(struct char_data *ch)
     
     if (STATE(ch->desc) != CON_PLAYING) return 9999;
 
-    int dc = ((int) GET_LEVEL(ch) / 1.5) + 17;
+    int dc = ((int) GET_LEVEL(ch) / 1.5) + 15;
 
     return dc;
 }
@@ -942,6 +944,8 @@ void check_random_encounter(struct char_data *ch)
 {
 
   if (!ch || IN_ROOM(ch) == NOWHERE) return;
+
+  if (in_encounter_room(ch)) return;
   
   int i = 0, j = 0, count = 0, roll = 0, group_type = ENCOUNTER_GROUP_TYPE_NONE;
   int groups[NUM_ENCOUNTER_GROUP_TYPES];
@@ -1013,10 +1017,32 @@ void check_random_encounter(struct char_data *ch)
         mob->player.name = strdup(encounter_table[j].object_name);
         sprintf(mob_descs, "%s %s", AN(encounter_table[j].object_name), encounter_table[j].object_name);
         mob->player.short_descr = strdup(mob_descs);
-        sprintf(mob_descs, "%s %s is here.\r\n", AN(encounter_table[j].object_name), encounter_table[j].object_name);
-        mob->player.long_descr = strdup(mob_descs);
-        sprintf(mob_descs, "%s %s is here before you.\r\n", AN(encounter_table[j].object_name), encounter_table[j].object_name);
-        mob->player.description = strdup(mob_descs);    
+        if (!strcmp(encounter_table[j].long_description, "Nothing")) {
+          sprintf(mob_descs, "%s %s is here.\r\n", AN(encounter_table[j].object_name), encounter_table[j].object_name);
+          mob->player.long_descr = strdup(mob_descs);
+        } else {
+          sprintf(mob_descs, "%s\r\n", encounter_table[j].long_description);
+          mob->player.long_descr = strdup(mob_descs);
+        }
+        if (!strcmp(encounter_table[j].description, "Nothing")) {
+          sprintf(mob_descs, "%s %s is here before you.\r\n", AN(encounter_table[j].object_name), encounter_table[j].object_name);
+          mob->player.description = strdup(mob_descs);    
+        } else {
+          sprintf(mob_descs, "%s\r\n", encounter_table[j].description);
+          mob->player.description = strdup(mob_descs);
+        }
+        // set mob details
+        GET_REAL_RACE(mob) = encounter_table[j].race_type;
+        GET_SUBRACE(mob, 0) - encounter_table[j].subrace[0];
+        GET_SUBRACE(mob, 1) - encounter_table[j].subrace[1];
+        GET_SUBRACE(mob, 2) - encounter_table[j].subrace[2];
+        mob->mob_specials.hostile = encounter_table[j].hostile;
+        if (mob->mob_specials.hostile)
+          mob->mob_specials.aggro_timer = 5;
+        mob->mob_specials.sentient = encounter_table[j].sentient;
+        mob->mob_specials.extract_timer = -1;
+        mob->mob_specials.peaceful_timer = -1;
+        
         // set stats
         GET_CLASS(mob) = encounter_table[j].char_class;
         GET_LEVEL(mob) = MAX(1, highest_level - 2);
@@ -1026,6 +1052,7 @@ void check_random_encounter(struct char_data *ch)
         set_alignment(mob, encounter_table[j].alignment);
         // set flags
         SET_BIT_AR(MOB_FLAGS(mob), MOB_ENCOUNTER);
+        SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
         SET_BIT_AR(MOB_FLAGS(mob), MOB_HELPER);
 
         X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
@@ -1103,16 +1130,439 @@ ACMD(do_encounterinfo)
   send_to_char(ch, "\r\nTotal number of encounters: %d\r\n", NUM_ENCOUNTER_GROUP_TYPES);
 }
 
+int encounter_bribe_amount(struct char_data *ch)
+{
+  if (!ch) return 0;
+
+  return (GET_LEVEL(ch) * MAX(1, GET_LEVEL(ch) / 2) * 10);
+}
+
+void set_encounter_peaceful(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER))
+    {
+      tch ->mob_specials.peaceful_timer = 10;
+      if (tch->mob_specials.hostile)
+        tch->mob_specials.aggro_timer = 5;
+    }
+  } 
+}
+
+bool is_peaceful_encounter(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  if (!in_encounter_room(ch))
+  {
+    return false;
+  }
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER) &&  tch->mob_specials.peaceful_timer > 0) return true;
+  }
+  return false;
+}
+
+void set_encounter_to_peaceful(struct char_data *ch)
+{
+  if (!ch) return;
+
+  if (IN_ROOM(ch) == NOWHERE) return;
+
+  if (!in_encounter_room(ch))
+  {
+    return;
+  }
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER))
+      tch->mob_specials.peaceful_timer = 10;
+  }
+}
+
+bool is_hostile_encounter(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  if (!in_encounter_room(ch))
+  {
+    return false;
+  }
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER) && tch->mob_specials.hostile && tch->mob_specials.peaceful_timer > 0) return true;
+  }
+  return false;
+}
+
+bool can_coerce_encounter(struct char_data *ch, int attempt_type)
+{
+  if (!ch) return false;
+
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  if (!in_encounter_room(ch))
+  {
+    return false;
+  }
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER)){
+      if (tch->mob_specials.sentient) return true;
+      if (IS_ANIMAL(tch) && HAS_FEAT(ch, FEAT_WILD_EMPATHY) && attempt_type != ENCOUNTER_SCMD_BRIBE) return true;
+    }
+  }
+  return false;
+}
+
+int get_party_slowest_speed(struct char_data *ch)
+{
+
+  if (IN_ROOM(ch) == NOWHERE) return 0;
+
+  struct char_data *tch = NULL;
+  int speed = get_speed(ch, false);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (is_player_grouped(ch, tch))
+      if (get_speed(tch, false) > speed)
+        speed = get_speed(tch, false);
+  }
+  return speed;
+}
+
+int get_encounter_mobs_speed(struct char_data *ch)
+{
+
+  if (IN_ROOM(ch) == NOWHERE) return 0;
+
+  struct char_data *tch = NULL;
+  int speed = 0;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch))
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
+        if (get_speed(tch, false) > speed)
+          speed = get_speed(tch, false);
+  }
+  return speed;
+}
+
+bool can_encounter_mobs_see_party(struct char_data *ch)
+{
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  struct char_data *mch = NULL, *tch = NULL;
+
+  for (mch = world[IN_ROOM(ch)].people; mch; mch = mch->next_in_room)
+  {
+    if (!IS_NPC(mch) || !MOB_FLAGGED(mch, MOB_ENCOUNTER)) continue;
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (IS_NPC(tch) || !is_player_grouped(tch, ch)) continue;
+        if (CAN_SEE(mch, tch)) return true;
+    }
+  }
+  return false;
+}
+
+bool encounter_mobs_can_move(struct char_data *ch)
+{
+  if (IN_ROOM(ch) == NOWHERE) return 0;
+  bool can_move = true;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch)) {
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER)) {
+        can_move = true;
+        if (AFF_FLAGGED(tch, AFF_GRAPPLED) || AFF_FLAGGED(tch, AFF_ENTANGLED)) can_move = false;
+        else if (affected_by_spell(tch, SKILL_DEFENSIVE_STANCE) && !HAS_FEAT(tch, FEAT_MOBILE_DEFENSE)) can_move = false;
+        else if (AFF_FLAGGED(tch, AFF_STUN) || AFF_FLAGGED(tch, AFF_PARALYZED) || char_has_mud_event(tch, eSTUNNED)) can_move = false;
+        else if (AFF_FLAGGED(tch, AFF_DAZED)) can_move = false;
+        else if (AFF_FLAGGED(tch, AFF_FEAR)) can_move = false;
+        else if (GET_POS(tch) <= POS_SLEEPING) can_move = false;
+
+      }
+    }
+  }
+  return can_move;
+}
+
+bool encounter_coerce_attempted(struct char_data *ch, int attempt_type)
+{
+  if (!ch) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch)) {
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER)) {
+        if (tch->mob_specials.coersion_attempted[attempt_type])
+          return true;
+      }
+    }
+  }
+  return false;
+}
+
+void set_coersion_attempted(struct char_data *ch, int attempt_type)
+{
+  if (!ch) return;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch)) {
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER)) {
+        tch->mob_specials.coersion_attempted[attempt_type] = true;
+      }
+    }
+  }
+}
+
+void give_gold_to_encounter_mob(struct char_data *ch, int amount)
+{
+  if (!ch) return;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch)) {
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER)) {
+        GET_GOLD(tch) += amount; return;
+      }
+    }
+  }
+}
+
+void encounter_command_description(struct char_data *ch)
+{
+  if (!ch) return;
+
+  send_to_char(ch, "Please choose an action to take:\r\n"
+                     "depart     - leave a non-hostile encounter peacefully\r\n"
+                     "escape     - leave a hostile encounter through various means (HELP ESCAPE)\r\n"
+                     "distract   - leave a hostile encounter using stealth skill\r\n"
+                     "intimidate - make a sentient hostile mob non-hostile using intimidate skill\r\n"
+                     "diplomacy  - make a sentient hostile mob non-hostile using diplomacy skill\r\n"
+                     "bluff      - make a sentient hostile mob non-hostile using bluff skill\r\n"
+                     "bribe      - make a sentient hostile mob non-hostile by giving them %d gold\r\n"
+                     "\r\n"
+                     "Any of these options will make it possible to leave the encounter room for 60 seconds, at which point\r\n"
+                     "the encounter will become active again, and an attempt must be made again. Note that the same tactic\r\n"
+                     "cannot be used more than once per encounter.\r\n"
+                     "\r\n", encounter_bribe_amount(ch));
+}
+
 ACMD(do_encounter)
 {
-  /* ways to handle a combat encounter:
-   * 
-   * depart if non-hostile
-   * escape - check speed, blind/invis and stealth if hostile
-   * intimidate, diplomacy or bluff if hostile
-   * bribe
-   * feared
-   * paralyzed/stunned
-   * 
-   */
+
+  char arg[200], escape_buf[200];
+  one_argument(argument, arg, sizeof(arg));
+  bool can_escape = false;
+
+  if (!*arg)
+  {
+    encounter_command_description(ch);
+    return;
+  }
+
+  if (is_abbrev(arg, "depart"))
+  {
+    if (is_hostile_encounter(ch))
+    {
+      send_to_char(ch, "You cannot 'depart' a hostile ancounter.\r\n");
+      return;
+    }
+    set_encounter_to_peaceful(ch);
+    send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+    return;
+  }
+  else if (is_abbrev(arg, "escape"))
+  {
+
+    if (get_party_slowest_speed(ch) > get_encounter_mobs_speed(ch)) {
+      snprintf(escape_buf, sizeof(escape_buf), "Your party is not fast enough to escape.\r\n");
+      can_escape = true;
+    } else if (!can_encounter_mobs_see_party(ch)) {
+      snprintf(escape_buf, sizeof(escape_buf), "Your escape is blocked by your enemies.\r\n");
+      can_escape = true;
+    } else if (!encounter_mobs_can_move(ch)) {
+      can_escape = true;
+      snprintf(escape_buf, sizeof(escape_buf), "Your escape is blocked by your enemies.\r\n");
+    }
+
+    if (can_escape)
+    {
+      set_encounter_to_peaceful(ch);
+      send_to_char(ch, "Your attempt to escape is successful.\r\n");
+      send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+      return;
+    }
+    else {
+      send_to_char(ch, "%s", escape_buf);
+      return;
+    }
+  }
+  else if (is_abbrev(arg, "distract"))
+  {
+    if (encounter_coerce_attempted(ch, ENCOUNTER_SCMD_DISTRACT))
+    {
+      send_to_char(ch, "Your party has already attempted to distract in this encounter");
+    }
+    else if (skill_roll(ch, ABILITY_STEALTH) > get_exploration_dc(ch)) {
+      set_encounter_to_peaceful(ch);
+      send_to_char(ch, "Your attempt to distract the enemy has succeeded.\r\n");
+      send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+    } else {
+      send_to_char(ch, "Your attempt to distract the enemy has failed.\r\n");
+      set_coersion_attempted(ch, ENCOUNTER_SCMD_DISTRACT);
+    }
+  }
+  else if (is_abbrev(arg, "intimidate"))
+  {
+    if (!can_coerce_encounter(ch, ENCOUNTER_SCMD_INTIMIDATE))
+    {
+      send_to_char(ch, "You cannot attempt to intimidate this type of enemy.\r\n");
+    }
+    else if (encounter_coerce_attempted(ch, ENCOUNTER_SCMD_INTIMIDATE))
+    {
+      send_to_char(ch, "Your party has already attempted to intimidate in this encounter");
+    }
+    else if (skill_roll(ch, ABILITY_INTIMIDATE) > get_exploration_dc(ch)) {
+      set_encounter_to_peaceful(ch);
+      send_to_char(ch, "Your attempt to intimidate the enemy has succeeded.\r\n");
+      send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+    } else {
+      send_to_char(ch, "Your attempt to intimidate the enemy has failed.\r\n");
+      set_coersion_attempted(ch, ENCOUNTER_SCMD_INTIMIDATE);
+    }
+  }
+  else if (is_abbrev(arg, "diplomacy"))
+  {
+    if (!can_coerce_encounter(ch, ENCOUNTER_SCMD_DIPLOMACY))
+    {
+      send_to_char(ch, "You cannot attempt to use diplomacy on this type of enemy.\r\n");
+    }
+    else if (encounter_coerce_attempted(ch, ENCOUNTER_SCMD_DIPLOMACY))
+    {
+      send_to_char(ch, "Your party has already attempted to use diplomacy in this encounter");
+    }
+    else if (skill_roll(ch, ABILITY_DIPLOMACY) > get_exploration_dc(ch)) {
+      set_encounter_to_peaceful(ch);
+      send_to_char(ch, "Your attempt to use diplomacy on the enemy has succeeded.\r\n");
+      send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+    } else {
+      send_to_char(ch, "Your attempt to use diplomacy on the enemy has failed.\r\n");
+      set_coersion_attempted(ch, ENCOUNTER_SCMD_DIPLOMACY);
+    }
+  }
+  else if (is_abbrev(arg, "bluff"))
+  {
+    if (!can_coerce_encounter(ch, ENCOUNTER_SCMD_BLUFF))
+    {
+      send_to_char(ch, "You cannot attempt to bluff this type of enemy.\r\n");
+    }
+    else if (encounter_coerce_attempted(ch, ENCOUNTER_SCMD_BLUFF))
+    {
+      send_to_char(ch, "Your party has already attempted to bluff in this encounter");
+    }
+    else if (skill_roll(ch, ABILITY_BLUFF) > get_exploration_dc(ch)) {
+      set_encounter_to_peaceful(ch);
+      send_to_char(ch, "Your attempt to bluff the enemy has succeeded.\r\n");
+      send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+    } else {
+      send_to_char(ch, "Your attempt to bluff the enemy has failed.\r\n");
+      set_coersion_attempted(ch, ENCOUNTER_SCMD_BLUFF);
+    }
+  }
+  else if (is_abbrev(arg, "bribe"))
+  {
+    if (!can_coerce_encounter(ch, ENCOUNTER_SCMD_BRIBE))
+    {
+      send_to_char(ch, "You cannot attempt to bribe this type of enemy.\r\n");
+    }
+    else if (GET_GOLD(ch) < encounter_bribe_amount(ch))
+    {
+      send_to_char(ch, "You don't have enough gold to bribe this enemy.  You need %d.\r\n", encounter_bribe_amount(ch));
+    } else {
+      GET_GOLD(ch) -= encounter_bribe_amount(ch);
+      give_gold_to_encounter_mob(ch, encounter_bribe_amount(ch));
+      set_encounter_to_peaceful(ch);
+      send_to_char(ch, "Your attempt to bribe the enemy has succeeded. It cost you %d gold.\r\n", encounter_bribe_amount(ch));
+      send_to_room(IN_ROOM(ch), "This encounter has become peaceful for 60 seconds.  You may now leave freely if desired.\r\n");
+    }
+  }
+  else {
+    encounter_command_description(ch);
+    return;
+  }
+}
+
+void set_expire_cooldown(room_rnum rnum)
+{
+  if (rnum == NOWHERE) return;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[rnum].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch))
+    {
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
+      {
+        if (tch->mob_specials.extract_timer == -1)
+        tch->mob_specials.extract_timer = 10;
+      }
+    }
+  }
+
+}
+
+void reset_expire_cooldown(room_rnum rnum)
+{
+  if (rnum == NOWHERE) return;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[rnum].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch))
+    {
+      if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
+      {
+        if (tch->mob_specials.extract_timer != -1)
+        tch->mob_specials.extract_timer = 10;
+      }
+    }
+  }
+
 }

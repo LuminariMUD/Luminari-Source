@@ -508,9 +508,11 @@
 #define SPELL_ENTANGLE 389
 #define SPELL_DRAGONFEAR 390
 
+#define SPELL_FEAR 391
+
 /** Total Number of defined spells  */
-#define NUM_SPELLS 391
-#define LAST_SPELL_DEFINE 391
+#define NUM_SPELLS 392
+#define LAST_SPELL_DEFINE 392
 /*******************************/
 
 

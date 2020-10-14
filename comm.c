@@ -1183,6 +1183,7 @@ void heartbeat(int heart_pulse)
     PERF_PROF_ENTER(pr_aff_update_, "affect_update");
     affect_update(); //affect updates transformed into "rounds"
     PERF_PROF_EXIT(pr_aff_update_);
+    proc_d20_round();
   }
 
   /*  Pulse_Luminari was built to throw in customized Luminari

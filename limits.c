@@ -1127,6 +1127,76 @@ void update_player_misc(void)
   }
 }
 
+
+// every 6 seconds
+void proc_d20_round(void)
+{
+
+  struct char_data *i = NULL;
+
+  for (i = character_list; i; i = i->next)
+  {
+
+    if (!IS_NPC(i)) // players only
+    {
+
+    }
+    else // mobs only
+    {
+      if (MOB_FLAGGED(i, MOB_ENCOUNTER))
+      {
+
+        if (i->mob_specials.extract_timer > 0)
+        {
+          i->mob_specials.extract_timer--;
+          if (i->mob_specials.extract_timer == 0)
+          {
+            char_from_room(i);
+            extract_char(i);
+          }
+        }
+
+        if (i->mob_specials.peaceful_timer > 0)
+        {
+          i->mob_specials.peaceful_timer--;
+          if (i->mob_specials.peaceful_timer == 0)
+          {
+            i->mob_specials.peaceful_timer = -1;
+            act("$n is no longer peaceful and will have to be dealt with again in some manner. (HELP ENCOUNTERS)\r\n", false, i, 0, 0, TO_ROOM);
+          }
+        }
+
+        if (i->mob_specials.aggro_timer > 0 && i->mob_specials.peaceful_timer == -1)
+        {
+          switch (i->mob_specials.aggro_timer)
+          {
+            case 5:
+              act("\tR$n looks very hostile towards you.\tn", true, i, 0, 0, TO_ROOM);
+              break;
+            case 4:
+              act("\tR$n seems to be getting even more hostile.\tN", true, i, 0, 0, TO_ROOM);
+              break;
+            case 3:
+              act("\tR$n looks to be losing $s patience.\tN", true, i, 0, 0, TO_ROOM);
+              break;
+            case 2:
+              act("\tR$n looks like $e may attack you.\tN", true, i, 0, 0, TO_ROOM);
+              break;
+            case 1:
+              act("\tR$n is preparing to attack you.\tN", true, i, 0, 0, TO_ROOM);
+              break;
+          }
+          i->mob_specials.aggro_timer--;
+          if (i->mob_specials.aggro_timer == 0) {
+            SET_BIT_AR(MOB_FLAGS(i), MOB_AGGRESSIVE);
+            REMOVE_BIT_AR(MOB_FLAGS(i), MOB_HELPER); // helper and aggro flags conflict
+          }
+        }
+      }
+    }
+  }
+}
+
 /* Update PCs, NPCs, and objects */
 void point_update(void)
 {
@@ -1225,7 +1295,7 @@ void point_update(void)
 
     /* old tick regen code use to be here -zusuk */
 
-    if (!IS_NPC(i))
+    if (!IS_NPC(i)) // players only
     {
       update_char_objects(i);
       (i->char_specials.timer)++;
@@ -1234,6 +1304,10 @@ void point_update(void)
       // eldritch knight spell crit expires after combat ends if not used.
       if (!FIGHTING(i) && HAS_ELDRITCH_SPELL_CRIT(i))
         HAS_ELDRITCH_SPELL_CRIT(i) = false;
+    }
+    else // mobs only
+    {
+      
     }
   }
 
