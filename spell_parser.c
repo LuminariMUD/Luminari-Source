@@ -2162,6 +2162,9 @@ void mag_assign_spells(void)
         spello(SPELL_SCARE, "scare", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
                "You no longer feel scared.", 1, 7, ILLUSION, FALSE); //wiz1, cle2
+        spello(SPELL_FEAR, "cause fear", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+               "You no longer feel afraid.", 1, 7, ILLUSION, FALSE); //wiz4, cle5
         spello(SPELL_SUMMON_CREATURE_2, "summon creature ii", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
                NULL, 6, 9, CONJURATION, FALSE); //wiz2, cle2

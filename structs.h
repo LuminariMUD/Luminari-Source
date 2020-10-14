@@ -3529,6 +3529,13 @@ struct mob_special_data
        for zone-procs */
     int proc_fired;
     room_rnum temp_room_data; /* for homeland, for storing temporary room data */
+    bool hostile;   // used for encounters, hostile mobs will aggro after a timer
+    bool sentient;  // used for encounters, sentient mobs can be bribeed, intimidated, bluffed, etc.
+    int aggro_timer; // used for encounters, this timer will start for hostile mobs, after which the aggro flag will be applied
+    int extract_timer; // used for encounters.  This timer is set when the player(s) leave the room.  When timer ends, mob will be extracted
+    int peaceful_timer; // used for encounter. While active hostile encounters are suspended, and the player(s) can leave the room
+    bool coersion_attempted[5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
+    
 };
 
 /** An affect structure. */

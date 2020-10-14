@@ -3264,6 +3264,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_ENLARGE_PERSON, 7);
   spell_assignment(CLASS_WIZARD, SPELL_SHRINK_PERSON, 7);
   spell_assignment(CLASS_WIZARD, SPELL_CONFUSION, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_FEAR, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
@@ -3509,6 +3510,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_REGENERATION, 9);
   spell_assignment(CLASS_CLERIC, SPELL_FREE_MOVEMENT, 9);
   spell_assignment(CLASS_CLERIC, SPELL_STRENGTHEN_BONE, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_FEAR, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_CLERIC, SPELL_DISPEL_EVIL, 11);
@@ -4408,6 +4410,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_ENLARGE_PERSON, 8);
   spell_assignment(CLASS_SORCERER, SPELL_SHRINK_PERSON, 8);
   spell_assignment(CLASS_SORCERER, SPELL_CONFUSION, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_FEAR, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);

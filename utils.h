@@ -147,6 +147,7 @@ size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t r
 size_t sprinttype(int type, const char *names[], char *result, size_t reslen);
 bool is_flying(struct char_data *ch);
 bool can_flee_speed(struct char_data *ch);
+void proc_d20_round(void);
 bool can_fly(struct char_data *ch);
 void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result);
 int get_line(FILE *fl, char *buf);
