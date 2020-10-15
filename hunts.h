@@ -61,6 +61,9 @@
 
 #define NUM_HUNT_ABILITIES          22
 
+#define AHUNT_1 5
+#define AHUNT_2 7
+
 struct hunt_type {
 
   int hunt_type;
@@ -81,5 +84,11 @@ extern struct hunt_type hunt_table[NUM_HUNT_TYPES];
 extern int active_hunts[5][7];
 extern int hunt_reset_timer;
 
+void select_hunt_coords(int which_hunt);
+void select_reported_hunt_coords(int which_hunt, int times_called);
+void load_hunts(void);
 void create_hunts(void);
 int select_a_hunt(int level);
+void check_hunt_room(room_rnum room);
+void create_hunt_mob(room_rnum room, int which_hunt);
+SPECIAL_DECL(huntsmaster);

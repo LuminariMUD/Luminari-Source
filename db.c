@@ -60,6 +60,7 @@
 #include "trails.h"
 #include "premadebuilds.h"
 #include "encounters.h"
+#include "hunts.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -1007,6 +1008,11 @@ void boot_db(void)
 
   log("Loading random encounter tables.");
   populate_encounter_table();
+
+  log("Loading hunts table.");
+  load_hunts();
+  log("Spawning hunts for the first time this boot.");
+  create_hunts();
 
   if (!no_rent_check)
   {

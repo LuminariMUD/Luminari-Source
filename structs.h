@@ -766,7 +766,7 @@
 #define MOB_UNUSED_23 60
 #define MOB_UNUSED_24 61
 #define MOB_UNUSED_25 62
-#define MOB_UNUSED_26 63
+#define MOB_HUNTS_TARGET 63
 #define MOB_ABIL_GRAPPLE           64
 #define MOB_ABIL_PETRIFY           65
 #define MOB_ABIL_TAIL_SPIKES       66

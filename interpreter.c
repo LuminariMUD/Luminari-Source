@@ -375,6 +375,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"healingtouch", "healingtouch", POS_STANDING, do_healingtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"hp", "hp", POS_DEAD, do_hp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hsedit", "hsedit", POS_DEAD, do_oasis_hsedit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"hunts", "hunts", POS_RECLINING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

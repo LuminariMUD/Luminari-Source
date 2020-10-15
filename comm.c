@@ -96,6 +96,7 @@
 #include "spell_prep.h"
 #include "perfmon.h"
 #include "transport.h"
+#include "hunts.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
@@ -1184,6 +1185,8 @@ void heartbeat(int heart_pulse)
     affect_update(); //affect updates transformed into "rounds"
     PERF_PROF_EXIT(pr_aff_update_);
     proc_d20_round();
+    hunt_reset_timer--;
+
   }
 
   /*  Pulse_Luminari was built to throw in customized Luminari
@@ -1216,6 +1219,12 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
   {
     check_auction();
+  }
+
+  // every 2 hours
+  if (!(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
+  {
+    create_hunts();
   }
 
   /* the old skool tick system! */

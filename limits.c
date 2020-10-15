@@ -1143,6 +1143,17 @@ void proc_d20_round(void)
     }
     else // mobs only
     {
+      if (MOB_FLAGGED(i, MOB_HUNTS_TARGET))
+      {
+        if (i->mob_specials.hunt_cooldown > 0)
+        {
+          i->mob_specials.hunt_cooldown--;
+          if (i->mob_specials.hunt_cooldown == 0)
+          {
+            extract_char(i);
+          }
+        }
+      }
       if (MOB_FLAGGED(i, MOB_ENCOUNTER))
       {
 

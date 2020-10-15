@@ -12,10 +12,13 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
+#include "oasis.h"
 #include "screen.h"
 #include "handler.h"
 #include "constants.h"
+#include "interpreter.h"
 #include "race.h"
+#include "wilderness.h"
 #include "hunts.h"
 #include "act.h"
 
@@ -37,9 +40,10 @@ extern struct room_data *world;
 struct hunt_type hunt_table[NUM_HUNT_TYPES];
 /* active hunts:
  * first field is the level, 0=10, 1=15, 2=20, 3=25, 4=30
- * second field, 0 = hunt type, 1 = reported x coord, 2 = reported y coord, 3 = actual x coord, 4 = actual y coord, 6 = 
+ * second field, 0 = hunt type, 1 = reported x coord, 2 = reported y coord, 3 = actual x coord, 4 = actual y coord, 6 = has the hunt been loaded yet?
  */
-int active_hunts[5][7];
+
+int active_hunts[AHUNT_1][AHUNT_2];
 int hunt_reset_timer;
 
 void add_hunt(int hunt_type, int level, const char *name, const char *description, const char *long_description, int char_class, int alignment, int race_type,
@@ -93,7 +97,7 @@ void load_hunts(void)
              SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SIZE_MEDIUM);
     add_hunt_ability(HUNT_TYPE_BASILISK, HUNT_ABIL_PETRIFY);
 
-    add_hunt(HUNT_TYPE_MANTICORE, 10, "This creature has a vaguely humanoid head, the body of a lion, and the wings of a dragon. Its tail ends in long, sharp spikes.",
+    add_hunt(HUNT_TYPE_MANTICORE, 10, "manticore", "This creature has a vaguely humanoid head, the body of a lion, and the wings of a dragon. Its tail ends in long, sharp spikes.",
             "A large manticore is here staring at you menacingly.", CLASS_WARRIOR, LAWFUL_EVIL, RACE_TYPE_MAGICAL_BEAST,
             SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SIZE_LARGE);
     add_hunt_ability(HUNT_TYPE_MANTICORE, HUNT_ABIL_TAIL_SPIKES);
@@ -267,10 +271,13 @@ void create_hunts(void)
     int which_hunt = 0;
     struct char_data *ch = NULL;
 
+    // let's reset the timer.  This timer is used only to show players/staff how long before the next reset
+    hunt_reset_timer = 1200;
+
     // let's erase existing active hunt table
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < AHUNT_1; i++)
     {
-        for (j = 0; j < 7; j++)
+        for (j = 0; j < AHUNT_2; j++)
         {
             active_hunts[i][j] = 0;
         }
@@ -278,17 +285,104 @@ void create_hunts(void)
 
     // now let's set a cooldown timer of 5 minutes on any existing hunt mobs
 
-    
+    for (ch = character_list; ch; ch = ch->next)
+    {
+      if (!IS_NPC(ch)) continue;
+      if (!MOB_FLAGGED(ch, MOB_HUNTS_TARGET)) continue;
+      ch->mob_specials.hunt_cooldown = 50;
+    }
 
     // now let's load new hunts
 
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < AHUNT_1; i++)
     {
-        which_hunt = select_a_hunt(((i*5)+15));
+        which_hunt = select_a_hunt(((i*5)+10));
         if (which_hunt == NUM_HUNT_TYPES) continue;
         active_hunts[i][0] = which_hunt;
         select_hunt_coords(i);
     }
+}
+
+void check_hunt_room(room_rnum room)
+{
+  if (room == NOWHERE) return;
+
+  int x = 0, y = 0, i = 0;
+
+  x = world[room].coords[0];
+  y = world[room].coords[1];
+
+  for (i = 0; i < AHUNT_1; i++)
+  {
+    if (active_hunts[i][3] == x && active_hunts[i][4] == y)
+    {
+      create_hunt_mob(room, active_hunts[i][0]);
+      return;
+    }
+  }
+
+}
+
+void create_hunt_mob(room_rnum room, int which_hunt)
+{
+  if (room == NOWHERE) return;
+
+  struct char_data *mob = read_mobile(8100, VIRTUAL);
+  char mob_descs[1000];
+
+  if (!mob) {
+    //send_to_char(ch, "Mob load error.\r\n");
+    return;
+  }
+
+  // set descriptions
+  mob->player.name = strdup(hunt_table[which_hunt].name);
+  sprintf(mob_descs, "%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+  mob->player.short_descr = strdup(mob_descs);
+  if (!strcmp(hunt_table[which_hunt].long_description, "Nothing")) {
+    sprintf(mob_descs, "%s %s is here.\r\n", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+    mob->player.long_descr = strdup(mob_descs);
+  } else {
+    sprintf(mob_descs, "%s\r\n", hunt_table[which_hunt].long_description);
+    mob->player.long_descr = strdup(mob_descs);
+  }
+  if (!strcmp(hunt_table[which_hunt].description, "Nothing")) {
+    sprintf(mob_descs, "%s %s is here before you.\r\n", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+    mob->player.description = strdup(mob_descs);    
+  } else {
+    sprintf(mob_descs, "%s\r\n", hunt_table[which_hunt].description);
+    mob->player.description = strdup(mob_descs);
+  }
+  // set mob details
+  GET_REAL_RACE(mob) = hunt_table[which_hunt].race_type;
+  GET_SUBRACE(mob, 0) - hunt_table[which_hunt].subrace[0];
+  GET_SUBRACE(mob, 1) - hunt_table[which_hunt].subrace[1];
+  GET_SUBRACE(mob, 2) - hunt_table[which_hunt].subrace[2];
+  mob->mob_specials.hunt_cooldown = -1;
+  mob->mob_specials.hunt_type = which_hunt;
+  
+  // set stats
+  GET_CLASS(mob) = hunt_table[which_hunt].char_class;
+  GET_LEVEL(mob) = hunt_table[which_hunt].level;
+  autoroll_mob(mob, TRUE, FALSE);
+  GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 500);
+  GET_GOLD(mob) = (GET_LEVEL(mob) * 100);
+  set_alignment(mob, hunt_table[which_hunt].alignment);
+  GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
+  GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
+	GET_HIT(mob) = GET_MAX_HIT(mob);
+  GET_HITROLL(mob) += 6;
+  GET_DAMROLL(mob) += 6;
+  mob->points.armor += 100;
+  // set flags
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_HUNTS_TARGET);
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+
+  X_LOC(mob) = world[room].coords[0];
+  Y_LOC(mob) = world[room].coords[1];
+  char_to_room(mob, room);
+  
+  send_to_room(room, "\tYYou've come across a hunt target: %s!\tn\r\n", CAP(mob->player.short_descr));
 }
 
 void select_hunt_coords(int which_hunt)
@@ -297,13 +391,15 @@ void select_hunt_coords(int which_hunt)
     int terrain = 0;
     room_rnum room = NOWHERE;
 
-    x = roll(1, 1301) - 651;
-    y = roll(1, 1301) - 651;
+    x = dice(1, 1301) - 651;
+    y = dice(1, 1301) - 651;
     room = find_room_by_coordinates(x, y);
     if (room == NOWHERE)
       room = find_available_wilderness_room();
     if (room == NOWHERE)
       return;
+
+    assign_wilderness_room(room, x, y);
     
     terrain = world[room].sector_type;
 
@@ -318,6 +414,9 @@ void select_hunt_coords(int which_hunt)
           select_hunt_coords(which_hunt);
           return;
     }
+
+    active_hunts[which_hunt][1] = x;
+    active_hunts[which_hunt][2] = y;
 
     select_reported_hunt_coords(which_hunt, 0);
 }
@@ -337,8 +436,8 @@ void select_reported_hunt_coords(int which_hunt, int times_called)
     int terrain = 0;
     room_rnum room = NOWHERE;
 
-    x = roll(1, 101) -51;
-    y = roll(1, 101) -51;
+    x = dice(1, 101) -51;
+    y = dice(1, 101) -51;
     
     x += active_hunts[which_hunt][1];
     y += active_hunts[which_hunt][2];
@@ -348,6 +447,8 @@ void select_reported_hunt_coords(int which_hunt, int times_called)
       room = find_available_wilderness_room();
     if (room == NOWHERE)
       return;
+
+    assign_wilderness_room(room, x, y);
     
     terrain = world[room].sector_type;
 
@@ -362,8 +463,8 @@ void select_reported_hunt_coords(int which_hunt, int times_called)
           select_reported_hunt_coords(which_hunt, times_called);
           return;
     }
-    active_hunts[which_hunt][1] = x;
-    active_hunts[which_hunt][2] = y;
+    active_hunts[which_hunt][3] = x;
+    active_hunts[which_hunt][4] = y;
 }
 
 int select_a_hunt(int level)
@@ -396,4 +497,30 @@ int select_a_hunt(int level)
     }
 
     return which_hunt;
+}
+
+SPECIAL(huntsmaster)
+{
+  if (!CMD_IS("hunts")) return 0;
+
+  int i = 0;
+  char reported[20], actual[20];
+  int hours = 0, minutes = 0, seconds = 0;
+
+  send_to_char(ch, "%-20s %-5s %-16s %s\r\n", "Hunt Target", "Level", "Last Seen Coords", (GET_LEVEL(ch) >= LVL_IMMORT) ? "Actual Coords" : "");
+
+  for (i = 0; i < 5; i++)
+  {
+    snprintf(reported, sizeof(reported), "%d, %d", active_hunts[i][1], active_hunts[i][2]);
+    snprintf(actual, sizeof(actual), "%d, %d", active_hunts[i][3], active_hunts[i][4]);
+    send_to_char(ch, "%-20s %-5d %-16s %s\r\n", hunt_table[active_hunts[i][0]].name, hunt_table[active_hunts[i][0]].level, reported, (GET_LEVEL(ch) >= LVL_IMMORT) ? actual : "");
+  }
+
+  hours = hunt_reset_timer / 600;
+  minutes = (hunt_reset_timer - (hours * 600)) / 10;
+  seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
+
+  send_to_char(ch, "Time until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
+
+  return 1;
 }
