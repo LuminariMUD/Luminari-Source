@@ -1142,7 +1142,28 @@ const char *action_bits[] = {
     "unused",
     "unused",
     "unused", /* 63 */
-    "unused", /* 64 */
+    "Ability-Grapple", /* 64 */
+    "Ability-Petrify",
+    "Ability-Tail-Spikes",
+    "Ability-Level-Drain",
+    "Ability-Charm",
+    "Ability-Blink",
+    "Ability-Engulf",
+    "Ability-Cause-Fear",
+    "Ability-Corruption",
+    "Ability-Swallow",
+    "Ability-Flight",
+    "Ability-Poison",
+    "Ability-Regenerate",
+    "Ability-Paralyze",
+    "Ability-Fire-Breath",
+    "Ability-Lightning-Breath",
+    "Ability-Poison-Breath",
+    "Ability-Acid-Breath",
+    "Ability-Frost-Breath",
+    "Ability-Magic-Immunity",
+    "Ability-Invisibility",
+    "unused", // 85
     "\n"};
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 

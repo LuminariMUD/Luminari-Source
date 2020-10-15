@@ -3574,14 +3574,17 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   int speed = 30;
 
-  switch (GET_RACE(ch))
-  {
-  case RACE_DWARF:
-  case RACE_DUERGAR:
-  case RACE_CRYSTAL_DWARF:
-  case RACE_HALFLING:
-  case RACE_GNOME:
-    speed = 25;
+  if (!IS_NPC(ch)) {
+    switch (GET_RACE(ch))
+    {
+      case RACE_DWARF:
+      case RACE_DUERGAR:
+      case RACE_CRYSTAL_DWARF:
+      case RACE_HALFLING:
+      case RACE_GNOME:
+        speed = 25;
+        break;
+    }
   }
 
   if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_MOUNTABLE))

@@ -44,6 +44,7 @@
 #include "missions.h"
 #include "spec_procs.h"
 #include "transport.h"
+#include "encounters.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -1291,6 +1292,11 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       break;
     }
     i++;
+  }
+
+  if (in_encounter_room(ch))
+  {
+    send_to_char(ch, "\r\nYou have spawned a random encounter. See \tYHELP ENCOUNTER\tn for more information.\r\n");
   }
 
   /* autoexits */

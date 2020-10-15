@@ -1207,7 +1207,7 @@ bool is_hostile_encounter(struct char_data *ch)
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER) && tch->mob_specials.hostile && tch->mob_specials.peaceful_timer > 0) return true;
+    if (IS_NPC(tch) && MOB_FLAGGED(tch, MOB_ENCOUNTER) && tch->mob_specials.hostile && (tch->mob_specials.peaceful_timer == -1)) return true;
   }
   return false;
 }
@@ -1246,7 +1246,7 @@ int get_party_slowest_speed(struct char_data *ch)
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
     if (is_player_grouped(ch, tch))
-      if (get_speed(tch, false) > speed)
+      if (get_speed(tch, false) < speed)
         speed = get_speed(tch, false);
   }
   return speed;
