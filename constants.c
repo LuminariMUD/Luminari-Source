@@ -1141,7 +1141,7 @@ const char *action_bits[] = {
     "unused", //60
     "unused",
     "unused",
-    "unused", /* 63 */
+    "Hunts-Target", /* 63 */
     "Ability-Grapple", /* 64 */
     "Ability-Petrify",
     "Ability-Tail-Spikes",

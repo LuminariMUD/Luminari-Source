@@ -34,6 +34,7 @@
 #include "trails.h"
 #include "assign_wpn_armor.h"
 #include "encounters.h"
+#include "hunts.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -1849,6 +1850,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     {
       check_random_encounter(ch);
       reset_expire_cooldown(ch->in_room);
+      check_hunt_room(ch->in_room);
     }
   }
 

@@ -20,6 +20,7 @@
 #include "mail.h"
 #include "treasure.h"
 #include "missions.h"
+#include "hunts.h"
 
 SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);
@@ -79,6 +80,7 @@ void assign_mobiles(void)
   // ashenport
   ASSIGNMOB(103499, buyarmor);
   ASSIGNMOB(103498, buyweapons);
+  ASSIGNMOB(103801, huntsmaster);
 
   ASSIGNMOB(103698, faction_mission);
 
