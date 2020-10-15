@@ -767,9 +767,30 @@
 #define MOB_UNUSED_24 61
 #define MOB_UNUSED_25 62
 #define MOB_UNUSED_26 63
+#define MOB_ABIL_GRAPPLE           64
+#define MOB_ABIL_PETRIFY           65
+#define MOB_ABIL_TAIL_SPIKES       66
+#define MOB_ABIL_LEVEL_DRAIN       67
+#define MOB_ABIL_CHARM             68
+#define MOB_ABIL_BLINK             69
+#define MOB_ABIL_ENGULF            70
+#define MOB_ABIL_CAUSE_FEAR        71
+#define MOB_ABIL_CORRUPTION        72
+#define MOB_ABIL_SWALLOW           73
+#define MOB_ABIL_FLIGHT            74
+#define MOB_ABIL_POISON            75
+#define MOB_ABIL_REGENERATION      76
+#define MOB_ABIL_PARALYZE          77
+#define MOB_ABIL_FIRE_BREATH       78
+#define MOB_ABIL_LIGHTNING_BREATH  79
+#define MOB_ABIL_POISON_BREATH     80
+#define MOB_ABIL_ACID_BREATH       81
+#define MOB_ABIL_FROST_BREATH      82
+#define MOB_ABIL_MAGIC_IMMUNITY    83
+#define MOB_ABIL_INVISIBILITY      84
 
 /**********************/
-#define NUM_MOB_FLAGS 64
+#define NUM_MOB_FLAGS 85
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF 0              /**< Room descs won't normally be shown */
@@ -3535,6 +3556,8 @@ struct mob_special_data
     int extract_timer; // used for encounters.  This timer is set when the player(s) leave the room.  When timer ends, mob will be extracted
     int peaceful_timer; // used for encounter. While active hostile encounters are suspended, and the player(s) can leave the room
     bool coersion_attempted[5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
+    int hunt_type; // for hunts, used to track which hunt entry it is on the huhnt table
+    int hunt_cooldown; // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
     
 };
 

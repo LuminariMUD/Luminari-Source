@@ -1151,7 +1151,6 @@ void proc_d20_round(void)
           i->mob_specials.extract_timer--;
           if (i->mob_specials.extract_timer == 0)
           {
-            char_from_room(i);
             extract_char(i);
           }
         }
