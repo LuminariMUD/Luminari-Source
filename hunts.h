@@ -92,3 +92,5 @@ int select_a_hunt(int level);
 void check_hunt_room(room_rnum room);
 void create_hunt_mob(room_rnum room, int which_hunt);
 SPECIAL_DECL(huntsmaster);
+void award_hunt_materials(struct char_data *ch, int which_hunt);
+void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob);

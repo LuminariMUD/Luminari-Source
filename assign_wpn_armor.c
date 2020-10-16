@@ -1124,6 +1124,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_ADAMANTINE:
     case MATERIAL_MITHRIL:
     case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;
@@ -1146,6 +1148,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_ADAMANTINE:
     case MATERIAL_MITHRIL:
     case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;
@@ -1164,6 +1168,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_ADAMANTINE:
     case MATERIAL_MITHRIL:
     case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;
@@ -1182,6 +1188,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_ADAMANTINE:
     case MATERIAL_MITHRIL:
     case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;
@@ -1200,6 +1208,8 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     case MATERIAL_ADAMANTINE:
     case MATERIAL_MITHRIL:
     case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
     case MATERIAL_DIAMOND:
     case MATERIAL_DARKWOOD:
       counter += 1.1;

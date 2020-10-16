@@ -1746,6 +1746,8 @@ const char *material_name[] = {
     "alchemical silver",
     "cold iron",
     "darkwood",
+    "dragonscale",
+    "dragonbone",
     "\n"};
 CHECK_TABLE_SIZE(material_name, NUM_MATERIALS + 1);
 
@@ -1803,6 +1805,7 @@ const char *item_types[] = {
     "Pet",       //46
     "Blueprint", //47 /* NewCraft */
     "Treasure Chest",
+    "Hunt Target",
     "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 

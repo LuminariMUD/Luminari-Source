@@ -1910,8 +1910,9 @@
 #define ITEM_PET 46            /* object will convert into a mobile follower upon purchase */
 #define ITEM_BLUEPRINT 47      /* NewCraft, recipe for crafting item */
 #define ITEM_TREASURE_CHEST 48 /* used with the loot command. */
+#define ITEM_HUNT_TROPHY 49    // used to mark a hunt target mob
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 49 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 50 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
@@ -2017,8 +2018,10 @@
 #define MATERIAL_ALCHEMAL_SILVER 42
 #define MATERIAL_COLD_IRON 43
 #define MATERIAL_DARKWOOD 44
+#define MATERIAL_DRAGONSCALE 45
+#define MATERIAL_DRAGONBONE 46
 /** Total number of item mats.*/
-#define NUM_MATERIALS 45
+#define NUM_MATERIALS 47
 
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
