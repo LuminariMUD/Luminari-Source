@@ -2772,6 +2772,32 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   if (IS_DRAGON(ch))
     damage_reduction += 5;
 
+  if (GET_EQ(ch, WEAR_BODY) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_BODY)) == ITEM_ARMOR &&
+     ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONHIDE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONSCALE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONBONE)))
+    damage_reduction += 2;
+  if (GET_EQ(ch, WEAR_HEAD) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HEAD)) == ITEM_ARMOR &&
+     ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONHIDE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONSCALE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONBONE)))
+    damage_reduction += 2;
+  if (GET_EQ(ch, WEAR_ARMS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS)) == ITEM_ARMOR &&
+     ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONHIDE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONSCALE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONBONE)))
+    damage_reduction += 2;
+  if (GET_EQ(ch, WEAR_LEGS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_LEGS)) == ITEM_ARMOR &&
+     ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONHIDE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONSCALE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONBONE)))
+    damage_reduction += 2;
+  if (GET_EQ(ch, WEAR_SHIELD) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_SHIELD)) == ITEM_ARMOR &&
+     ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONHIDE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONSCALE) ||
+     (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONBONE)))
+    damage_reduction += 2;
+
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
 }
@@ -3839,6 +3865,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   if (wielded && GET_OBJ_MATERIAL(wielded) == MATERIAL_ADAMANTINE)
       dambonus++;
    */
+
+  if (wielded && GET_OBJ_MATERIAL(wielded) == MATERIAL_DRAGONBONE)
+      dambonus += 2;
 
   /* power attack */
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) && attack_type != ATTACK_TYPE_RANGED && attack_type != ATTACK_TYPE_BOMB_TOSS)

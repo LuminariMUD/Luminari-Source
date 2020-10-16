@@ -1644,7 +1644,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
 
   /* right material? */
   if (HAS_FEAT(ch, FEAT_BONE_ARMOR) &&
-      GET_OBJ_MATERIAL(material) == MATERIAL_BONE)
+      (GET_OBJ_MATERIAL(material) == MATERIAL_BONE || GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONBONE))
   {
     send_to_char(ch, "You use your mastery in bone-crafting to substitutue "
                      "bone for the normal material needed...\r\n");
@@ -1677,6 +1677,16 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
            !IS_PRECIOUS_METAL(GET_OBJ_MATERIAL(material)))
   {
     send_to_char(ch, "You need precious metal for this mold pattern.\r\n");
+    return 1;
+  }
+  else if (GET_OBJ_TYPE(mold) == ITEM_WEAPON && GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONSCALE)
+  {
+    send_to_char(ch, "You can't use dragonscale to make weapons.\r\n");
+    return 1;
+  }
+  else if (GET_OBJ_TYPE(mold) == ITEM_ARMOR && GET_OBJ_MATERIAL(material) == MATERIAL_DRAGONBONE)
+  {
+    send_to_char(ch, "You can't use dragonbone to make armor or shields.\r\n");
     return 1;
   }
   /* we should be OK at this point with material validity, */

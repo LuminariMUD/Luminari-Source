@@ -87,17 +87,19 @@
 #define IS_CLOTH(mat) (mat == MATERIAL_COTTON || mat == MATERIAL_SILK ||  \
                        mat == MATERIAL_SATIN || mat == MATERIAL_VELVET || \
                        mat == MATERIAL_WOOL || mat == MATERIAL_HEMP ||    \
-                       mat == MATERIAL_BURLAP)
+                       mat == MATERIAL_BURLAP || mat == MATERIAL_DRAGONHIDE)
 #define IS_LEATHER(mat) (mat == MATERIAL_LEATHER || \
                          mat == MATERIAL_DRAGONHIDE)
-#define IS_WOOD(mat) (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD)
+#define IS_WOOD(mat) (mat == MATERIAL_WOOD || mat == MATERIAL_DARKWOOD || mat == MATERIAL_DRAGONSCALE || mat == MATERIAL_DRAGONBONE)
 #define IS_HARD_METAL(mat) (mat == MATERIAL_STEEL ||           \
                             mat == MATERIAL_BRONZE ||          \
                             mat == MATERIAL_IRON ||            \
                             mat == MATERIAL_ALCHEMAL_SILVER || \
                             mat == MATERIAL_COLD_IRON ||       \
                             mat == MATERIAL_MITHRIL ||         \
-                            mat == MATERIAL_ADAMANTINE)
+                            mat == MATERIAL_ADAMANTINE || \
+                            mat == MATERIAL_DRAGONSCALE || \
+                            mat == MATERIAL_DRAGONBONE)
 #define IS_PRECIOUS_METAL(mat) (mat == MATERIAL_SILVER || \
                                 mat == MATERIAL_GOLD ||   \
                                 mat == MATERIAL_COPPER || \

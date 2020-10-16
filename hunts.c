@@ -24,13 +24,8 @@
 
 /* To Do
  *
- * randomly load hunt mobs every hour
- * place at a random spot in the wilderness that is NOT a water type terrain
- * Assign a 'last seen' spot in the wilderness within 50 places of actual location.  Also NOT water
- * When randomly assinging points go between -650/-650 and 650 650 and if a non-water spot is found
- * then roll up to 20 times within 50 points of that location looking for a non-water spot.  If no
- * non-water spot is found after 20 rolls, reroll the first spot again.  Repeat until two non water
- * spots are found withinn 50 points of each other.
+ * Add reward system
+ * Add special abilities functionality
  * 
  */
 
@@ -371,9 +366,9 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
   GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
 	GET_HIT(mob) = GET_MAX_HIT(mob);
-  GET_HITROLL(mob) += 6;
-  GET_DAMROLL(mob) += 6;
-  mob->points.armor += 100;
+  GET_HITROLL(mob) += GET_LEVEL(mob) / 5;
+  GET_DAMROLL(mob) += GET_LEVEL(mob) / 5;
+  mob->points.armor += (int) (GET_LEVEL(mob) * 3.5);
   // set flags
   SET_BIT_AR(MOB_FLAGS(mob), MOB_HUNTS_TARGET);
   SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
@@ -508,11 +503,12 @@ SPECIAL(huntsmaster)
   int hours = 0, minutes = 0, seconds = 0;
 
   send_to_char(ch, "%-20s %-5s %-16s %s\r\n", "Hunt Target", "Level", "Last Seen Coords", (GET_LEVEL(ch) >= LVL_IMMORT) ? "Actual Coords" : "");
+  send_to_char(ch, "---------------------------------------------------------\r\n");
 
   for (i = 0; i < 5; i++)
   {
-    snprintf(reported, sizeof(reported), "%d, %d", active_hunts[i][1], active_hunts[i][2]);
-    snprintf(actual, sizeof(actual), "%d, %d", active_hunts[i][3], active_hunts[i][4]);
+    snprintf(reported, sizeof(reported), "%4d, %-4d", active_hunts[i][1], active_hunts[i][2]);
+    snprintf(actual, sizeof(actual), "%4d, %-d", active_hunts[i][3], active_hunts[i][4]);
     send_to_char(ch, "%-20s %-5d %-16s %s\r\n", hunt_table[active_hunts[i][0]].name, hunt_table[active_hunts[i][0]].level, reported, (GET_LEVEL(ch) >= LVL_IMMORT) ? actual : "");
   }
 
@@ -520,7 +516,164 @@ SPECIAL(huntsmaster)
   minutes = (hunt_reset_timer - (hours * 600)) / 10;
   seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
 
-  send_to_char(ch, "Time until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
+  send_to_char(ch, "\r\nTime until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
 
   return 1;
+}
+
+void award_hunt_materials(struct char_data *ch, int which_hunt)
+{
+  struct obj_data *obj1 = NULL, *obj2 = NULL;
+  int roll = 0;
+
+  switch (which_hunt) {
+    
+    case HUNT_TYPE_BASILISK:
+      obj1 = read_object(60000, VIRTUAL);
+      obj2 = read_object(60001, VIRTUAL);
+      break;
+    case HUNT_TYPE_MANTICORE:
+      obj1 = read_object(60002, VIRTUAL);
+      obj2 = read_object(60003, VIRTUAL);
+      break;
+    case HUNT_TYPE_WRAITH:
+      obj1 = read_object(60004, VIRTUAL);
+      obj2 = read_object(60005, VIRTUAL);
+      break;
+    case HUNT_TYPE_SIREN:
+      obj1 = read_object(60006, VIRTUAL);
+      obj2 = read_object(60007, VIRTUAL);
+      break;
+    case HUNT_TYPE_WILL_O_WISP:
+      obj1 = read_object(60008, VIRTUAL);
+      obj2 = read_object(60009, VIRTUAL);
+      break;
+    case HUNT_TYPE_BARGHEST:
+      obj1 = read_object(60010, VIRTUAL);
+      obj2 = read_object(60011, VIRTUAL);
+      break;
+    case HUNT_TYPE_BLACK_PUDDING:
+      obj1 = read_object(60012, VIRTUAL);
+      obj2 = read_object(60013, VIRTUAL);
+      break;
+    case HUNT_TYPE_CHIMERA:
+      obj1 = read_object(60014, VIRTUAL);
+      obj2 = read_object(60015, VIRTUAL);
+      break;
+    case HUNT_TYPE_GHOST:
+      obj1 = read_object(60016, VIRTUAL);
+      obj2 = read_object(60017, VIRTUAL);
+      break;
+    case HUNT_TYPE_MEDUSA:
+      obj1 = read_object(60018, VIRTUAL);
+      obj2 = read_object(60019, VIRTUAL);
+      break;
+    case HUNT_TYPE_BEHIR:
+      obj1 = read_object(60020, VIRTUAL);
+      obj2 = read_object(60021, VIRTUAL);
+      break;
+    case HUNT_TYPE_EFREETI:
+      obj1 = read_object(60022, VIRTUAL);
+      obj2 = read_object(60023, VIRTUAL);
+      break;
+    case HUNT_TYPE_DJINNI:
+      obj1 = read_object(60024, VIRTUAL);
+      obj2 = read_object(60025, VIRTUAL);
+      break;
+    case HUNT_TYPE_ROC:
+      obj1 = read_object(60029, VIRTUAL);
+      obj2 = read_object(60030, VIRTUAL);
+      break;
+    case HUNT_TYPE_PURPLE_WORM:
+      obj1 = read_object(60031, VIRTUAL);
+      obj2 = read_object(60032, VIRTUAL);
+      break;
+    case HUNT_TYPE_PYROHYDRA:
+      obj1 = read_object(60033, VIRTUAL);
+      obj2 = read_object(60034, VIRTUAL);
+      break;
+    case HUNT_TYPE_BANDERSNATCH:
+      obj1 = read_object(60035, VIRTUAL);
+      obj2 = read_object(60036, VIRTUAL);
+      break;
+    case HUNT_TYPE_BANSHEE:
+      obj1 = read_object(60037, VIRTUAL);
+      obj2 = read_object(60038, VIRTUAL);
+      break;
+    case HUNT_TYPE_ADULT_RED_DRAGON:
+    case HUNT_TYPE_OLD_RED_DRAGON:
+    case HUNT_TYPE_YOUNG_BLUE_DRAGON:
+    case HUNT_TYPE_ADULT_BLUE_DRAGON:
+    case HUNT_TYPE_OLD_BLUE_DRAGON:
+    case HUNT_TYPE_YOUNG_GREEN_DRAGON:
+    case HUNT_TYPE_ADULT_GREEN_DRAGON:
+    case HUNT_TYPE_OLD_GREEN_DRAGON:
+    case HUNT_TYPE_YOUNG_BLACK_DRAGON:
+    case HUNT_TYPE_ADULT_BLACK_DRAGON:
+    case HUNT_TYPE_OLD_BLACK_DRAGON:
+    case HUNT_TYPE_YOUNG_WHITE_DRAGON:
+    case HUNT_TYPE_ADULT_WHITE_DRAGON:
+    case HUNT_TYPE_OLD_WHITE_DRAGON:
+    case HUNT_TYPE_DRAGON_TURTLE:
+      roll = dice(1, 3);
+      if (roll == 1)
+        obj1 = read_object(60026, VIRTUAL);
+      else if (roll == 2)
+        obj1 = read_object(60027, VIRTUAL);
+      else
+        obj1 = read_object(60028, VIRTUAL);      
+      obj2 = read_object(60039, VIRTUAL);
+      break;
+  }
+  
+  if (obj1) {
+    obj_to_char(obj1, ch);
+    act("You harvest $p from the creature's remains.", true, ch, obj1, 0, TO_ROOM);
+    act("$n harvests $p from the creature's remains.", true, ch, obj1, 0, TO_ROOM);
+  }
+
+  if (obj2) {
+    obj_to_char(obj2, ch);
+    act("You harvest $p from the creature's remains.", true, ch, obj2, 0, TO_ROOM);
+    act("$n harvests $p from the creature's remains.", true, ch, obj2, 0, TO_ROOM);
+  }
+
+}
+
+void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob)
+{
+  if (!ch || ! hunt_mob) return;
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(hunt_mob) == NOWHERE) return;
+  
+  if (IS_NPC(ch))
+  { 
+    // if the mob has a master, award the master
+    // if the master is in a different room or the mob has no master, award the mob
+    if (ch->master && IN_ROOM(ch) == IN_ROOM(ch->master))
+    {
+      drop_hunt_mob_rewards(ch->master, hunt_mob);
+      return;
+    }
+  }
+  
+
+  struct char_data *tch = NULL;
+  struct char_data *master = NULL;
+
+  if (ch->master) master = ch->master;
+  else master = ch;
+
+  // only the party leader will get the hunt-specific drops
+  award_hunt_materials(master, hunt_mob->mob_specials.hunt_type);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (IS_NPC(tch)) continue;
+    if (is_player_grouped(tch, ch))
+    {
+      GET_QUESTPOINTS(tch) += GET_LEVEL(hunt_mob) * 20;
+      send_to_char(ch, "You've been rewarded %d quest points!\r\n", GET_LEVEL(hunt_mob) * 20);
+    }
+  }
+
 }
