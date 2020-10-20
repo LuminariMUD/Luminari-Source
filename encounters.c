@@ -1560,7 +1560,7 @@ void reset_expire_cooldown(room_rnum rnum)
       if (MOB_FLAGGED(tch, MOB_ENCOUNTER))
       {
         if (tch->mob_specials.extract_timer != -1)
-        tch->mob_specials.extract_timer = 10;
+        tch->mob_specials.extract_timer = -1;
       }
     }
   }

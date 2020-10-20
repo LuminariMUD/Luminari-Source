@@ -765,7 +765,7 @@
 #define MOB_UNUSED_22 59
 #define MOB_UNUSED_23 60
 #define MOB_UNUSED_24 61
-#define MOB_UNUSED_25 62
+#define MOB_NOCONFUSE 62
 #define MOB_HUNTS_TARGET 63
 #define MOB_ABIL_GRAPPLE           64
 #define MOB_ABIL_PETRIFY           65
@@ -2114,8 +2114,11 @@
 #define ITEM_ANTI_DROW 49
 #define ITEM_MASTERWORK 50
 #define ITEM_ANTI_DUERGAR 51
+#define ITEM_SEEKING 52
+#define ITEM_ADAPTIVE 53
+#define ITEM_AGILE 54
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 52
+#define NUM_ITEM_FLAGS 55
 
 /* homeland-port */
 /*

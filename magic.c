@@ -2460,6 +2460,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
+    if (MOB_FLAGGED(victim, MOB_NOCONFUSE))
+      return;
+
     SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
     af[0].duration = level;
     victim->confuser_idnum = GET_IDNUM(ch);
@@ -3447,6 +3450,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_resistance(ch, victim, 0))
       return;
     // no save
+
+    if (MOB_FLAGGED(victim, MOB_NOCONFUSE))
+      return;
 
     SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
     af[0].duration = dice(2, 4) + 2;

@@ -431,8 +431,8 @@ void select_reported_hunt_coords(int which_hunt, int times_called)
     int terrain = 0;
     room_rnum room = NOWHERE;
 
-    x = dice(1, 101) -51;
-    y = dice(1, 101) -51;
+    x = dice(1, 31) -16;
+    y = dice(1, 31) -16;
     
     x += active_hunts[which_hunt][1];
     y += active_hunts[which_hunt][2];
@@ -494,29 +494,121 @@ int select_a_hunt(int level)
     return which_hunt;
 }
 
+void list_hunt_rewards(struct char_data *ch, int type)
+{
+   if (type == HUNT_REWARD_TYPE_TRINKET)
+   {
+     send_to_char(ch,
+          "Component Type          - Effect\r\n"
+          "----------------------------------------------\r\n"
+          "1.  basilisk scales     - Freedom of Movement\r\n"
+          "2.  manticore hide      - Infravision\r\n"
+          "3.  wraith dust         - Sense Life\r\n"
+          "4.  siren hair          - Water Walk\r\n"
+          "5.  will o wisp dust    - Invisibility\r\n"
+          "6.  barghest hide       - Blinking\r\n"
+          "7.  black pudding slime - Death Ward\r\n"
+          "8.  chimera hide        - Detect Alignment\r\n"
+          "9.  ghost dust          - Detect Invisibility\r\n"
+          "10. medusa snake head   - Ultravision\r\n"
+          "11. behir scale         - Electric Shield\r\n"
+          "12. efreeti dust        - Fire Shield\r\n"
+          "13. djinni dust         - Haste\r\n"
+          "14. roc feather         - Flying\r\n"
+          "15. purple worm hide    - Dangersense\r\n"
+          "16. pyrohydra hide      - Regeneration\r\n"
+          "17. bandersnatch hide   - Minor Globe\r\n"
+          "18. banshee dust        - Displacement\r\n"
+     );
+     send_to_char(ch, "In order to redeem your hunt trophies, you will need 10 of the type specified and decide whether you wish it on a ring, pendant or bracer.\r\n");
+     send_to_char(ch, "Eg. buy 2 ring\r\n");
+     send_to_char(ch, "This will purchase a ring of infravision, provided you have 10 manticore hides in your inventory.\r\n");
+   }
+   else
+   {
+     send_to_char(ch,
+          "Component Type            - Weapon Effect\r\n"
+          "----------------------------------------------\r\n"
+          "1.  basilisk tooth        - Seeking\r\n"
+          "2.  manticore spike       - Merciful\r\n"
+          "3.  wraith essence        - Disruption\r\n"
+          "4.  chimera tooth         - Speed\r\n"
+          "5.  black pudding essence - Wounding\r\n"
+          "6.  barghest tooth        - Bane (randomly determined)\r\n"
+          "7.  will o wisp essence   - Dancing\r\n"
+          "8.  siren tongue          - Defending\r\n"
+          "9.  efreeti finger        - Flaming\r\n"
+          "10. behir tusk            - Shocking\r\n"
+          "11. medusa eyes           - Blinding\r\n"
+          "12. ghost essence         - Ghost Touch\r\n"
+          "13. banshee essence       - Unholy\r\n"
+          "14. bandersnatch tooth    - Vorpal\r\n"
+          "15. pyrohydra tooth       - Bane (randomly determined)\r\n"
+          "16. purple worm tooth     - Vicious\r\n"
+          "17. roc talon             - Keen\r\n"
+          "18. djinni finger         - Thundering\r\n"
+          "19. dragon horn           - Bane (randomly determined)\r\n"
+     );
+     send_to_char(ch, "In order to redeem your hunt trophies, you will need 10 of the type specified.\r\n");
+     send_to_char(ch, "Eg. buy 2\r\n");
+     send_to_char(ch, "This will purchase weapon oil that applies the merciful affect when applied to a weapon, provided you have 10 manticore spikes in your inventory.\r\n");
+   }
+}
+
 SPECIAL(huntsmaster)
 {
-  if (!CMD_IS("hunts")) return 0;
+  if (!CMD_IS("hunts") && !CMD_IS("list")) return 0;
 
   int i = 0;
   char reported[20], actual[20];
   int hours = 0, minutes = 0, seconds = 0;
+  char arg1[200], arg2[200];
 
-  send_to_char(ch, "%-20s %-5s %-16s %s\r\n", "Hunt Target", "Level", "Last Seen Coords", (GET_LEVEL(ch) >= LVL_IMMORT) ? "Actual Coords" : "");
-  send_to_char(ch, "---------------------------------------------------------\r\n");
+  half_chop(argument, arg1, arg2);
 
-  for (i = 0; i < 5; i++)
-  {
-    snprintf(reported, sizeof(reported), "%4d, %-4d", active_hunts[i][1], active_hunts[i][2]);
-    snprintf(actual, sizeof(actual), "%4d, %-d", active_hunts[i][3], active_hunts[i][4]);
-    send_to_char(ch, "%-20s %-5d %-16s %s\r\n", hunt_table[active_hunts[i][0]].name, hunt_table[active_hunts[i][0]].level, reported, (GET_LEVEL(ch) >= LVL_IMMORT) ? actual : "");
+  if (CMD_IS("hunts")) {
+    send_to_char(ch, "%-20s %-5s %-16s %s\r\n", "Hunt Target", "Level", "Last Seen Coords", (GET_LEVEL(ch) >= LVL_IMMORT) ? "Actual Coords" : "");
+    send_to_char(ch, "---------------------------------------------------------\r\n");
+
+    for (i = 0; i < 5; i++)
+    {
+      snprintf(reported, sizeof(reported), "%4d, %-4d", active_hunts[i][1], active_hunts[i][2]);
+      snprintf(actual, sizeof(actual), "%4d, %-d", active_hunts[i][3], active_hunts[i][4]);
+      send_to_char(ch, "%-20s %-5d %-16s %s\r\n", hunt_table[active_hunts[i][0]].name, hunt_table[active_hunts[i][0]].level, reported, (GET_LEVEL(ch) >= LVL_IMMORT) ? actual : "");
+    }
+
+    hours = hunt_reset_timer / 600;
+    minutes = (hunt_reset_timer - (hours * 600)) / 10;
+    seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
+
+    send_to_char(ch, "\r\nTime until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
   }
+  else if (CMD_IS("list"))
+  {
+    if (!*arg1)
+    {
+      send_to_char(ch, "Would you like to list 'trinket' rewards, or 'weapon' rewards?\r\n"
+                       "Ie. list trinkets or list weapons\r\n");
+    }
+    else if (is_abbrev(arg1, "trinkets"))
+    {
+      list_hunt_rewards(ch, HUNT_REWARD_TYPE_TRINKET);
+    }
+    else if (is_abbrev(arg1, "weapons"))
+    {
+      list_hunt_rewards(ch, HUNT_REWARD_TYPE_WEAPON_OIL);
+    }
+    else
+    {
+      send_to_char(ch, "Would you like to list 'trinket' rewards, or 'weapon' rewards?\r\n"
+                       "Ie. list trinkets or list weapons\r\n");
+    }
+    return 1;
+  }
+  else if (CMD_IS("buy"))
+  {
 
-  hours = hunt_reset_timer / 600;
-  minutes = (hunt_reset_timer - (hours * 600)) / 10;
-  seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
-
-  send_to_char(ch, "\r\nTime until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
+  }
 
   return 1;
 }

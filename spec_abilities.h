@@ -102,7 +102,12 @@ extern const char *activation_methods[];
 
 #define ITEM_SPECAB_HORN_OF_SUMMONING 53 /* Horns only - Summon mobile vnum in val1 */
 
-#define NUM_SPECABS 54 /* Number of Special Abilities */
+#define WEAPON_SPECAB_BLINDING 54        // Attempts to blind opponent on a critical hit
+#define WEAPON_SPECAB_ADAPTIVE 55        // ranged weapons can use full strength bonus
+#define WEAPON_SPECAB_AGILE    56        // Weapons that qualify for weapon finesse deal dex damage instead of strength damage if higher
+#define WEAPON_SPECAB_BEWILDERING 57     // will add confuse effect to opponents on crit
+
+#define NUM_SPECABS 58 /* Number of Special Abilities */
 
 bool obj_has_special_ability(struct obj_data *obj, int ability);
 struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ability);
@@ -200,6 +205,11 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_thundering);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_holy);
 //WEAPON_SPECIAL_ABILITY(weapon_specab_unholy);
+WEAPON_SPECIAL_ABILITY(weapon_specab_seeking);
+WEAPON_SPECIAL_ABILITY(weapon_specab_blinding);
+WEAPON_SPECIAL_ABILITY(weapon_specab_adaptive);
+WEAPON_SPECIAL_ABILITY(weapon_specab_agile);
+WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering);
 
 /* Prototypes for armor special abilities */
 ARMOR_SPECIAL_ABILITY(armor_specab_blinding);

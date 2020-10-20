@@ -151,10 +151,16 @@ void initialize_special_abilities(void)
 
   daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING, 2);
 
-  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding", 7, ACTMTD_COMMAND_WORD | ACTMTD_WEAR,
+  add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding (Armor)", 7, ACTMTD_COMMAND_WORD | ACTMTD_WEAR,
                             TAR_IGNORE, TRUE, 0, EVOCATION, 1, armor_specab_blinding);
 
   daily_item_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);
+
+  add_weapon_special_ability(WEAPON_SPECAB_ADAPTIVE, "Adaptive", 12, ACTMTD_NONE,
+                             TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, weapon_specab_adaptive);
+
+  add_weapon_special_ability(WEAPON_SPECAB_AGILE, "Agile", 12, ACTMTD_NONE,
+                             TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, weapon_specab_agile);
 
   add_weapon_special_ability(WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
@@ -164,6 +170,12 @@ void initialize_special_abilities(void)
 
   add_weapon_special_ability(WEAPON_SPECAB_BANE, "Bane", 8, ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
                              TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_bane);
+
+add_weapon_special_ability(WEAPON_SPECAB_BEWILDERING, "Bewildering", 8, ACTMTD_ON_CRIT,
+                             TAR_FIGHT_VICT, FALSE, 0, ENCHANTMENT, 1, weapon_specab_bewildering);
+
+add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMTD_ON_CRIT,
+                             TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_blinding);
 
   add_weapon_special_ability(WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
@@ -214,7 +226,7 @@ void initialize_special_abilities(void)
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
   add_weapon_special_ability(WEAPON_SPECAB_SEEKING, "Seeking", 12, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
+                             TAR_IGNORE, FALSE, 0, DIVINATION, 1, weapon_specab_seeking);
 
   add_weapon_special_ability(WEAPON_SPECAB_SHOCK, "Shock", 8, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
@@ -845,4 +857,256 @@ int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *
   int damtype = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
   dam -= compute_damtype_reduction(ch, damtype);
   return MAX(0, dam);
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_seeking)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the seeking ability.
+       *  - Set the SEEKING bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_SEEKING))
+    {
+      /* Seeking is on, turn it off. */
+      send_to_char(ch, "A cloud of darkness covers your entire weapon.\r\n");
+      act("A cloud of darkness covers $o wielded by $n.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_SEEKING);
+    }
+    else
+    {
+      /* Seeking On */
+      send_to_char(ch, "A flash of light covers your entire weapon\r\n");
+      act("A flash of light covers $o wielded by $n.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_SEEKING);
+    }
+    break;
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_adaptive)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the ADAPTIVE ability.
+       *  - Set the ADAPTIVE bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_ADAPTIVE))
+    {
+      /* ADAPTIVE is on, turn it off. */
+      send_to_char(ch, "The surface of your weapon loosens slightly.\r\n");
+      act("The surface of $o wielded by $n loosens slightly.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_ADAPTIVE);
+    }
+    else
+    {
+      /* ADAPTIVE On */
+      send_to_char(ch, "The surface of your weapon constricts slightly.\r\n");
+      act("The surface of $o wielded by $n constricts slightly.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_ADAPTIVE);
+    }
+    break;
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_agile)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the AGILE ability.
+       *  - Set the AGILE bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_AGILE))
+    {
+      /* AGILE is on, turn it off. */
+      send_to_char(ch, "The balance of your weapon has decreased dramatically.\r\n");
+      act("$o, wielded by $n, looks a little heavier in $s hands.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_AGILE);
+    }
+    else
+    {
+      /* AGILE On */
+      send_to_char(ch, "The balance of your weapon has increased dramatically.\r\n");
+      act("$o, wielded by $n, looks a little lighter in $s hands.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_AGILE);
+    }
+    break;
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
+{
+  
+  struct affected_type af[2];
+  int i = 0;
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    if (MOB_FLAGGED(victim, MOB_NOBLIND))
+      {
+        return;
+      }
+
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL))
+      {
+        act("You look away just in time to avoid getting blinded!", FALSE, victim, weapon, ch, TO_CHAR);
+        act("$n looks away just in time to avoid getting blinded!", TRUE, victim, weapon, ch, TO_ROOM);
+        return;
+      }
+
+      af[0].spell = SPELL_BLINDNESS;
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -4;
+      af[0].duration = 1;
+      af[0].bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+      af[1].spell = SPELL_BLINDNESS;
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
+      af[1].duration = 1;
+      af[1].bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+      act("You have been blinded!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n seems to be blinded!", TRUE, victim, 0, ch, TO_ROOM);
+
+      for (i = 0; i < 2; i++)
+      {
+        if (af[i].bitvector[0] || af[i].bitvector[1] ||
+            af[i].bitvector[2] || af[i].bitvector[3] ||
+            (af[i].location != APPLY_NONE))
+        {
+          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
+        }
+      }
+    break;
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
+{
+  
+  struct affected_type af[2];
+  int i = 0;
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    if (MOB_FLAGGED(victim, MOB_NOCONFUSE))
+      {
+        return;
+      }
+
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, 10, ENCHANTMENT))
+      {
+        act("You shake off a cloud of confusion settling over your mind.", FALSE, victim, weapon, ch, TO_CHAR);
+        act("$n looks confused for a moment, but shakes it off.", TRUE, victim, weapon, ch, TO_ROOM);
+        return;
+      }
+
+      af[0].spell = SPELL_CONFUSION;
+      af[0].location = APPLY_NONE;
+      af[0].modifier = 0;
+      af[0].duration = 1;
+      af[0].bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
+
+      act("You feel extremely confused.", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n seems extremely confused.", TRUE, victim, 0, ch, TO_ROOM);
+
+      for (i = 0; i < 1; i++)
+      {
+        if (af[i].bitvector[0] || af[i].bitvector[1] ||
+            af[i].bitvector[2] || af[i].bitvector[3] ||
+            (af[i].location != APPLY_NONE))
+        {
+          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
+        }
+      }
+    break;
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
 }
