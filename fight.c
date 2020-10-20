@@ -2881,6 +2881,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                     int dam, int attacktype, int dam_type)
 {
   bool is_spell = FALSE;
+  struct obj_data *weapon = NULL;
+  weapon = is_using_ranged_weapon(ch, true);
 
   /* lets figure out if this attacktype is magical or not */
   if (attacktype > SPELL_RESERVED_DBC && attacktype < NUM_SPELLS)
@@ -2892,6 +2894,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     /* handle concealment */
     int concealment = compute_concealment(victim);
+    // seeking weapons (ranged weapons only) bypass concealment always
+    if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
+      concealment = 0;
     if (dice(1, 100) <= compute_concealment(victim) && !is_spell)
     {
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
@@ -3585,6 +3590,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 {
   int dambonus = mod;
   bool display_mode = FALSE;
+  int str_bonus = GET_STR_BONUS(ch);
+  char strength[20];
 
   if (w_type == -1)
     display_mode = TRUE;
@@ -3595,6 +3602,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
+
+  if (wielded && is_using_light_weapon(ch, wielded) && OBJ_FLAGGED(wielded, ITEM_AGILE)) {
+    str_bonus = MAX(GET_DEX_BONUS(ch), GET_STR_BONUS(ch));
+    sprintf(strength, "Dexterity");
+  } else {
+    sprintf(strength, "Strength");
+  }
 
   /* damroll (should be mostly just gear, spell affections) */
   dambonus += GET_DAMROLL(ch);
@@ -3609,43 +3623,43 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   case ATTACK_TYPE_PRIMARY_SNEAK:
     if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
     {
-      dambonus += GET_STR_BONUS(ch);
+      dambonus += str_bonus;
       if (display_mode)
-        send_to_char(ch, "Strength from Claws: \tR%d\tn\r\n", GET_STR_BONUS(ch));
+        send_to_char(ch, "%s from Claws: \tR%d\tn\r\n", strength, str_bonus);
     }
-    else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch))
+    else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
     {
-      dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
+      dambonus += str_bonus * 3 / 2; /* 2handed weapon */
       if (display_mode)
-        send_to_char(ch, "Strength from 2Hand Weapon: \tR%d\tn\r\n", GET_STR_BONUS(ch) * 3 / 2);
+        send_to_char(ch, "%s from 2Hand Weapon: \tR%d\tn\r\n", strength, str_bonus * 3 / 2);
     }
     else if (hands_available(ch) > 0)
     {
-      dambonus += GET_STR_BONUS(ch) * 3 / 2; /* one handed weapon held in two hands because of empty off hand */
+      dambonus += str_bonus * 3 / 2; /* one handed weapon held in two hands because of empty off hand */
       if (display_mode)
-        send_to_char(ch, "Strength from 1Hand Weapon, free offhand: \tR%d\tn\r\n", GET_STR_BONUS(ch) * 3 / 2);
+        send_to_char(ch, "%s from 1Hand Weapon, free offhand: \tR%d\tn\r\n", strength, str_bonus * 3 / 2);
     }
     else
     {
-      dambonus += GET_STR_BONUS(ch);
+      dambonus += str_bonus;
       if (display_mode)
-        send_to_char(ch, "Strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch));
+        send_to_char(ch, "%s bonus: \tR%d\tn\r\n", strength, str_bonus);
     }
     break;
 
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_OFFHAND_SNEAK:
-    dambonus += GET_STR_BONUS(ch) / 2;
+    dambonus += str_bonus / 2;
     if (display_mode)
-      send_to_char(ch, "Offhand strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch) / 2);
+      send_to_char(ch, "Offhand %s bonus: \tR%d\tn\r\n", strength, str_bonus / 2);
     break;
 
   case ATTACK_TYPE_RANGED:
 
     /* strength penalties DO apply to ranged weapons */
-    if (GET_STR_BONUS(ch) <= 0)
+    if (str_bonus <= 0)
     {
-      dambonus += GET_STR_BONUS(ch);
+      dambonus += str_bonus;
       if (display_mode)
         send_to_char(ch, "ranged strength penalty: \tR%d\tn\r\n", GET_STR_BONUS(ch));
     }
@@ -3654,45 +3668,49 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       /* some ranged weapons get various strength bonus */
       if (wielded)
       {
-        switch (GET_OBJ_VAL(wielded, 0))
-        {
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW:
-        case WEAPON_TYPE_COMPOSITE_LONGBOW:
-          if (display_mode)
-            send_to_char(ch, "Comp bow (1) bonus: \tR%d\tn\r\n", MIN(1, GET_STR_BONUS(ch)));
-          dambonus += MIN(1, GET_STR_BONUS(ch));
-          break;
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
-          if (display_mode)
-            send_to_char(ch, "Comp bow (2) bonus: \tR%d\tn\r\n", MIN(2, GET_STR_BONUS(ch)));
-          dambonus += MIN(2, GET_STR_BONUS(ch));
-          break;
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
-          if (display_mode)
-            send_to_char(ch, "Comp bow (3) bonus: \tR%d\tn\r\n", MIN(3, GET_STR_BONUS(ch)));
-          dambonus += MIN(3, GET_STR_BONUS(ch));
-          break;
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
-          if (display_mode)
-            send_to_char(ch, "Comp bow (4) bonus: \tR%d\tn\r\n", MIN(4, GET_STR_BONUS(ch)));
-          dambonus += MIN(4, GET_STR_BONUS(ch));
-          break;
-        case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
-        case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
-          if (display_mode)
-            send_to_char(ch, "Comp bow (5) bonus: \tR%d\tn\r\n", MIN(5, GET_STR_BONUS(ch)));
-          dambonus += MIN(5, GET_STR_BONUS(ch));
-          break;
-        case WEAPON_TYPE_SLING:
-          if (display_mode)
-            send_to_char(ch, "Sling strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch));
-          dambonus += GET_STR_BONUS(ch);
-          break;
-        default:
-          break; /* nope, no bonus */
+        if (OBJ_FLAGGED(wielded, ITEM_ADAPTIVE))
+          dambonus += str_bonus;
+        else {
+          switch (GET_OBJ_VAL(wielded, 0))
+          {
+          case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+          case WEAPON_TYPE_COMPOSITE_LONGBOW:
+            if (display_mode)
+              send_to_char(ch, "Comp bow (1) bonus: \tR%d\tn\r\n", MIN(1, str_bonus));
+            dambonus += MIN(1, str_bonus);
+            break;
+          case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+          case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+            if (display_mode)
+              send_to_char(ch, "Comp bow (2) bonus: \tR%d\tn\r\n", MIN(2, str_bonus));
+            dambonus += MIN(2, str_bonus);
+            break;
+          case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+          case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+            if (display_mode)
+              send_to_char(ch, "Comp bow (3) bonus: \tR%d\tn\r\n", MIN(3, str_bonus));
+            dambonus += MIN(3, str_bonus);
+            break;
+          case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+          case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+            if (display_mode)
+              send_to_char(ch, "Comp bow (4) bonus: \tR%d\tn\r\n", MIN(4, str_bonus));
+            dambonus += MIN(4, str_bonus);
+            break;
+          case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
+          case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+            if (display_mode)
+              send_to_char(ch, "Comp bow (5) bonus: \tR%d\tn\r\n", MIN(5, str_bonus));
+            dambonus += MIN(5, str_bonus);
+            break;
+          case WEAPON_TYPE_SLING:
+            if (display_mode)
+              send_to_char(ch, "Sling strength bonus: \tR%d\tn\r\n", str_bonus);
+            dambonus += str_bonus;
+            break;
+          default:
+            break; /* nope, no bonus */
+          }
         }
       }
     }
@@ -3710,14 +3728,16 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   case ATTACK_TYPE_UNARMED:
     if (display_mode)
-      send_to_char(ch, "Unarmed strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch));
-    dambonus += GET_STR_BONUS(ch);
+      send_to_char(ch, "Unarmed %s bonus: \tR%d\tn\r\n", strength, str_bonus);
+    dambonus += str_bonus;
     break;
 
   case ATTACK_TYPE_TWOHAND:
+    if (wielded && OBJ_FLAGGED(wielded, ITEM_AGILE))
+      break;
     if (display_mode)
-      send_to_char(ch, "Two-hand strength bonus: \tR%d\tn\r\n", GET_STR_BONUS(ch) * 3 / 2);
-    dambonus += GET_STR_BONUS(ch) * 3 / 2; /* 2handed weapon */
+      send_to_char(ch, "Two-hand strength bonus: \tR%d\tn\r\n", str_bonus * 3 / 2);
+    dambonus += str_bonus * 3 / 2; /* 2handed weapon */
     break;
 
   default:

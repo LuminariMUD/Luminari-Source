@@ -1457,6 +1457,9 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
   if (af.spell == 0)
     return;
 
+  if (bomb_type == BOMB_CONFUSION && MOB_FLAGGED(victim, MOB_NOCONFUSE))
+    return;
+
   if (!noAffectOnSave || !mag_savingthrow(ch, victim, saveType, 0, CAST_BOMB, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
   {
 

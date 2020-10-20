@@ -1140,7 +1140,7 @@ const char *action_bits[] = {
     "unused",
     "unused", //60
     "unused",
-    "unused",
+    "No-Confuse",
     "Hunts-Target", /* 63 */
     "Ability-Grapple", /* 64 */
     "Ability-Petrify",
@@ -1895,6 +1895,9 @@ const char *extra_bits[] = {
     "Anti-Drow",
     "Masterwork",
     "Anti-Duergar",
+    "Seeking",
+    "Adaptive",
+    "Agile",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

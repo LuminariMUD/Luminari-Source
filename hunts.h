@@ -64,6 +64,12 @@
 #define AHUNT_1 5
 #define AHUNT_2 7
 
+#define MIN_HUNT_DROP_VNUM          60000
+#define MAX_HUNT_DROP_VNUM          60039
+
+#define HUNT_REWARD_TYPE_TRINKET    1
+#define HUNT_REWARD_TYPE_WEAPON_OIL 2
+
 struct hunt_type {
 
   int hunt_type;
@@ -94,3 +100,4 @@ void create_hunt_mob(room_rnum room, int which_hunt);
 SPECIAL_DECL(huntsmaster);
 void award_hunt_materials(struct char_data *ch, int which_hunt);
 void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob);
+void list_hunt_rewards(struct char_data *ch, int type);
