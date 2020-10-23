@@ -1200,7 +1200,7 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
         update_pos(FIGHTING(ch));
       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1)
       {
-        if (dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) <= 15)
+        if (d20(ch) + compute_ability(ch, ABILITY_ACROBATICS) <= 15)
         {
           send_to_char(ch, "You fumble putting away the item:  ");
           USE_SWIFT_ACTION(ch);
@@ -1417,7 +1417,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
         update_pos(FIGHTING(ch));
       if (FIGHTING(ch) && GET_HIT(FIGHTING(ch)) >= 1)
       {
-        if (dice(1, 20) + compute_ability(ch, ABILITY_ACROBATICS) <= 15)
+        if (d20(ch) + compute_ability(ch, ABILITY_ACROBATICS) <= 15)
         {
           send_to_char(ch, "You fumble putting away the item:  ");
           USE_SWIFT_ACTION(ch);
@@ -3556,7 +3556,7 @@ ACMD(do_loot)
       continue;
     if (subcmd == SCMD_PILFER)
     {
-      if (skill_check(ch, ABILITY_SLEIGHT_OF_HAND, dice(1, 20) + (GET_LEVEL(tch) * 0.75)))
+      if (skill_check(ch, ABILITY_SLEIGHT_OF_HAND, d20(ch) + (GET_LEVEL(tch) * 0.75)))
       {
         pilfer = true;
         continue;

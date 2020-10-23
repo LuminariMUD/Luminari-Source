@@ -61,6 +61,10 @@ int compute_gear_spell_failure(struct char_data *ch);
 int compute_gear_armor_penalty(struct char_data *ch);
 int compute_gear_armor_type(struct char_data *ch);
 int compute_gear_shield_type(struct char_data *ch);
+int get_defending_weapon_bonus(struct char_data *ch, bool weapon);
+bool is_using_ghost_touch_weapon(struct char_data *ch);
+bool has_speed_weapon(struct char_data *ch);
+int get_lucky_weapon_bonus(struct char_data *ch);
 
 struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode);
 //bool *is_ranged_weapon(struct obj_data *obj);

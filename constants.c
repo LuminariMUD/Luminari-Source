@@ -743,6 +743,7 @@ const char *damtypes[] = {
     "energy",
     "water",
     "celestial poison",
+    "bleeding",
     "\n"};
 CHECK_TABLE_SIZE(damtypes, NUM_DAM_TYPES + 1);
 
@@ -769,6 +770,7 @@ const char *damtype_display[] = {
     "Damage Energy",
     "Damage Water",
     "Damage Celestial Poison",
+    "Damage Bleeding",
     "\n"};
 CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 
@@ -1898,6 +1900,11 @@ const char *extra_bits[] = {
     "Seeking",
     "Adaptive",
     "Agile",
+    "Corrosive",
+    "Disruption",
+    "Defending",
+    "Vicious",
+    "Vorpal",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

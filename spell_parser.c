@@ -285,9 +285,9 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                         continue;
 
                 if (!IS_NPC(i))
-                        attempt = compute_ability(i, ABILITY_SPELLCRAFT) + dice(1, 20);
+                        attempt = compute_ability(i, ABILITY_SPELLCRAFT) + d20(i);
                 else
-                        attempt = 10 + dice(1, 20);
+                        attempt = 10 + d20(i);
 
                 if (attempt > dc_of_id)
                         perform_act(buf1, ch, tobj, tch, i, TRUE);
@@ -296,9 +296,9 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
         }
 
         if (tch != NULL && !IS_NPC(tch))
-                attempt = compute_ability(tch, ABILITY_SPELLCRAFT) + dice(1, 20);
+                attempt = compute_ability(tch, ABILITY_SPELLCRAFT) + d20(tch);
         else
-                attempt = 10 + dice(1, 20);
+                attempt = 10 + d20(tch);
 
         if (tch != NULL && tch != ch && IN_ROOM(tch) == IN_ROOM(ch))
         {
@@ -2640,6 +2640,9 @@ void mag_assign_spells(void)
                TAR_IGNORE, TRUE, MAG_AREAS, NULL, 8, 15, NECROMANCY, FALSE);
         spello(SPELL_WAVES_OF_FATIGUE, "waves of fatigue", 65, 50, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical fatigue fade away.", 7,
+               9, NECROMANCY, FALSE);
+        spello(TYPE_SPECAB_EXHAUSTION, "exhaustion", 65, 50, 1, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AFFECTS, "You feel your fatigue fade away.", 7,
                9, NECROMANCY, FALSE);
         /* enchantment */
         spello(SPELL_DOMINATE_PERSON, "dominate person", 51, 36, 1, POS_FIGHTING,

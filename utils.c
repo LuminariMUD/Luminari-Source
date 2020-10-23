@@ -820,7 +820,7 @@ bool can_hear_sneaking(struct char_data *ch, struct char_data *sneaker) {
 
   /* do listen check here */
   bool can_hear = FALSE;
-  int challenge = dice(1, 20), dc = (dice(1, 20) + 10);
+  int challenge = d20(ch), dc = (d20(sneaker) + 10);
 
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch)) {
@@ -863,7 +863,7 @@ bool can_see_hidden(struct char_data *ch, struct char_data *hider) {
     return TRUE;
 
   /* do spot check here */
-  bool can_see = FALSE, challenge = dice(1, 20), dc = (dice(1, 20) + 10);
+  bool can_see = FALSE, challenge = d20(ch), dc = (d20(hider) + 10);
 
   //challenger bonuses/penalty (ch)
   if (!IS_NPC(ch))
@@ -899,7 +899,7 @@ bool can_see_hidden(struct char_data *ch, struct char_data *hider) {
 
 /* function to calculate a skill roll for given ch */
 int skill_roll(struct char_data *ch, int skillnum) {
-  int roll = dice(1, 20);
+  int roll = d20(ch);
 
   /*if (PRF_FLAGGED(ch, PRF_TAKE_TEN))
     roll = 10;*/
@@ -3499,7 +3499,7 @@ int find_armor_type(int specType) {
 
 /* did CH successfully making his saving-throw? */
 int savingthrow(struct char_data *ch, int save, int modifier, int dc) {
-  int roll = dice(1, 20);
+  int roll = d20(ch);
 
   /* 1 is an automatic failure. */
   if (roll == 1)
@@ -4348,4 +4348,15 @@ bool can_flee_speed(struct char_data *ch)
   
   if (ch_speed <= mob_speed) return false;
   return true;
+}
+
+int d20(struct char_data *ch)
+{
+  int roll = dice(1, 20);
+
+  if (dice(1, 100) <= 5)
+  {
+    roll += MAX(1, get_lucky_weapon_bonus(ch) / 2);
+  }
+  return roll;
 }

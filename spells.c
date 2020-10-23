@@ -471,8 +471,8 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
 
   if (obj)
   {
-    attempt = dice(1, 20) + CASTER_LEVEL(ch);
-    challenge = dice(1, 20) + GET_OBJ_LEVEL(obj);
+    attempt = d20(ch) + CASTER_LEVEL(ch);
+    challenge = d20(vict) + GET_OBJ_LEVEL(obj);
 
     if (GET_OBJ_TYPE(obj) == ITEM_WALL)
     {
@@ -516,8 +516,8 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
   }
   else
   {
-    attempt = dice(1, 20) + CASTER_LEVEL(ch);
-    challenge = dice(1, 20) + CASTER_LEVEL(vict);
+    attempt = d20(ch) + CASTER_LEVEL(ch);
+    challenge = d20(vict) + CASTER_LEVEL(vict);
 
     if (spellnum == SPELL_GREATER_DISPELLING)
     {
@@ -532,8 +532,8 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
             affect_remove(vict, vict->affected);
           }
         }
-        attempt = dice(1, 20) + CASTER_LEVEL(ch);
-        challenge = dice(1, 20) + CASTER_LEVEL(vict);
+        attempt = d20(ch) + CASTER_LEVEL(ch);
+        challenge = d20(vict) + CASTER_LEVEL(vict);
       }
       if (msg)
       {

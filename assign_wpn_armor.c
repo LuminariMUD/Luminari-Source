@@ -19,6 +19,7 @@
 #include "constants.h"
 #include "modify.h"
 #include "domains_schools.h"
+#include "spec_abilities.h"
 
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
@@ -2176,4 +2177,105 @@ bool is_two_handed_ranged_weapon(struct obj_data *obj)
     return FALSE;
 
   return TRUE;
+}
+
+int get_defending_weapon_bonus(struct char_data *ch, bool weapon)
+{
+  struct obj_data *obj = NULL;
+  int bonus = weapon ? 0 : 1;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
+    bonus += GET_OBJ_VAL(obj, 1) / 2;
+  
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
+    bonus += GET_OBJ_VAL(obj, 1) / 2;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
+    bonus += GET_OBJ_VAL(obj, 1) / 2;
+
+  return bonus;
+}
+
+bool has_speed_weapon(struct char_data *ch)
+{
+  struct obj_data *obj = NULL;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
+    return true;
+    
+  
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
+    return true;
+
+  return false;
+}
+
+bool is_using_ghost_touch_weapon(struct char_data *ch)
+{
+  struct obj_data *obj = NULL;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
+    return true;
+    
+  
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
+    return true;
+
+  return false;
+}
+
+bool is_using_keen_weapon(struct char_data *ch)
+{
+  struct obj_data *obj = NULL;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
+    return true;
+    
+  
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
+    return true;
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
+    return true;
+
+  return false;
+}
+
+int get_lucky_weapon_bonus(struct char_data *ch)
+{
+  struct obj_data *obj = NULL;
+  int bonus = 0;
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
+    bonus = GET_OBJ_VAL(obj, 4);
+    
+  
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+
+  return bonus;
 }

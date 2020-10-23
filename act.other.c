@@ -1900,7 +1900,7 @@ ACMD(do_mount)
   USE_MOVE_ACTION(ch);
 
   if (IS_NPC(vict) && !AFF_FLAGGED(vict, AFF_TAMED) &&
-      (compute_ability(ch, ABILITY_RIDE) + dice(1, 20)) <= rand_number(1, GET_LEVEL(vict)))
+      (compute_ability(ch, ABILITY_RIDE) + d20(ch)) <= rand_number(1, GET_LEVEL(vict)))
   {
     act("$N suddenly bucks upwards, throwing you violently to the ground!", FALSE, ch, 0, vict, TO_CHAR);
     act("$n is thrown to the ground as $N violently bucks!", TRUE, ch, 0, vict, TO_NOTVICT);
@@ -5644,7 +5644,7 @@ ACMD(do_use)
     {
       /* Perform caster level check */
       dc = GET_OBJ_VAL(mag_item, 0) + 1;
-      if (dice(1, 20) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc)
+      if (d20(ch) + (((check_result >= 0) && (CASTER_LEVEL(ch) < GET_LEVEL(ch))) ? GET_LEVEL(ch) : CASTER_LEVEL(ch)) < dc)
       {
         /* Fail */
         send_to_char(ch, "You try, but the spell on the scroll is far to powerful for you to cast.\r\n");

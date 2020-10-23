@@ -2117,8 +2117,13 @@
 #define ITEM_SEEKING 52
 #define ITEM_ADAPTIVE 53
 #define ITEM_AGILE 54
+#define ITEM_CORROSIVE 55
+#define ITEM_DISRUPTION 56
+#define ITEM_DEFENDING 57
+#define ITEM_VICIOUS 58
+#define ITEM_VORPAL 59
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 55
+#define NUM_ITEM_FLAGS 60
 
 /* homeland-port */
 /*
@@ -3185,7 +3190,7 @@ struct char_ability_data
 #define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
-#define NUM_DAM_TYPES 22
+#define NUM_DAM_TYPES 23
 
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data

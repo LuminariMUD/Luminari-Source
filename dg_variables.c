@@ -95,7 +95,7 @@ const char *skill_percent_plus_d20(struct char_data *ch, char *skill)
   if (skillnum <= 0)
     return ("unknown skill");
 
-  snprintf(retval, sizeof(retval), "%d", dice(1, 20) + GET_ABILITY(ch, skillnum));
+  snprintf(retval, sizeof(retval), "%d", d20(ch) + GET_ABILITY(ch, skillnum));
   return retval;
 }
 
