@@ -586,7 +586,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     send_to_char(ch, "You can't knock down something that is already down!\r\n");
     return FALSE;
   }
-  if (IS_INCORPOREAL(vict))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
     act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!",
         FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -638,8 +638,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     /* Successful unarmed touch attacks. */
 
     /* Perform strength check. */
-    attack_check += dice(1, 20) + size_modifiers[GET_SIZE(ch)]; /* we added stat bonus above */
-    defense_check = dice(1, 20) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
+    attack_check += d20(ch) + size_modifiers[GET_SIZE(ch)]; /* we added stat bonus above */
+    defense_check = d20(vict) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
     {
@@ -721,8 +721,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       /* Victim gets a chance to countertrip */
       if (skill != SKILL_SHIELD_CHARGE && GET_POS(vict) > POS_SITTING)
       {
-        attack_check = (dice(1, 20) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch)) * 4);
-        defense_check = (dice(1, 20) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
+        attack_check = (d20(vict) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch)) * 4);
+        defense_check = (d20(ch) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
 
         if (GET_RACE(ch) == RACE_DWARF ||
             GET_RACE(ch) == RACE_DUERGAR ||
@@ -1086,7 +1086,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
     return;
   }
 
-  if (IS_INCORPOREAL(vict))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
     act("$n sprawls completely through $N as $e tries to attack $M!",
         FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -1210,7 +1210,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
     return;
   }
 
-  if (IS_INCORPOREAL(vict))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
     send_to_char(ch, "There is simply nothing solid there to sap.\r\n");
     return;
@@ -1462,7 +1462,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict)
     }
   }
 
-  if (IS_INCORPOREAL(vict))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
     act("$n sprawls completely through $N as $e tries to springleap $M!",
         FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -1794,7 +1794,7 @@ ACMD(do_turnundead)
   }
 
   turn_difference = (turn_level - GET_LEVEL(vict));
-  turn_roll = rand_number(1, 20);
+  turn_roll = d20(ch);
 
   switch (turn_difference)
   {
@@ -2204,7 +2204,7 @@ ACMD(do_hit)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int chInitiative = dice(1, 20), victInitiative = dice(1, 20);
+  int chInitiative = 0, victInitiative = 0;
 
   PREREQ_CAN_FIGHT();
 
@@ -2265,9 +2265,11 @@ ACMD(do_hit)
   {
 
     /* INITIATIVE */
+    chInitiative = d20(ch);
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE))
       chInitiative += 4;
     chInitiative += GET_DEX(ch);
+    victInitiative = d20(vict);
     if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_IMPROVED_INITIATIVE))
       victInitiative += 4;
     victInitiative += GET_DEX(vict);
@@ -2661,7 +2663,7 @@ ACMD(do_disengage)
 /* taunt engine */
 int perform_taunt(struct char_data *ch, struct char_data *vict)
 {
-  int attempt = dice(1, 20), resist = 10;
+  int attempt = d20(ch), resist = 10;
   int success = 0;
 
   /* we started with base roll and defense in the variable declaration */
@@ -2760,7 +2762,7 @@ ACMD(do_taunt)
 int perform_intimidate(struct char_data *ch, struct char_data *vict)
 {
   int success = 0;
-  int attempt = dice(1, 20), resist = 10;
+  int attempt = d20(ch), resist = 10;
 
   /* we started with base roll and defense in the variable declaration */
   if (!IS_NPC(vict))
@@ -4075,7 +4077,7 @@ ACMD(do_tailsweep)
 
     if (vict == ch)
       continue;
-    if (IS_INCORPOREAL(vict))
+    if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
       continue;
 
     // pass -2 as spellnum to handle tailsweep
@@ -4868,8 +4870,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
     return;
   }
 
-  /* Change this so GHOST_TOUCH boots will kick incorporeal creatures. */
-  if (IS_INCORPOREAL(vict))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
     act("$n sprawls completely through $N as $e tries to attack $M.",
         FALSE, ch, NULL, vict, TO_NOTVICT);
@@ -6115,7 +6116,7 @@ int perform_feint(struct char_data *ch, struct char_data *vict)
   }
 
   /* calculate our final bluff skill check (feint attempt) */
-  bluff_skill_check = dice(1, 20) + compute_ability(ch, ABILITY_BLUFF);
+  bluff_skill_check = d20(ch) + compute_ability(ch, ABILITY_BLUFF);
   if (IS_NPC(vict) && GET_NPC_RACE(vict) != RACE_TYPE_HUMANOID)
     bluff_skill_check -= 4;
   if (GET_INT(vict) <= 2)

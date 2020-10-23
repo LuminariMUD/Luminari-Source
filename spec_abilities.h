@@ -106,8 +106,15 @@ extern const char *activation_methods[];
 #define WEAPON_SPECAB_ADAPTIVE 55        // ranged weapons can use full strength bonus
 #define WEAPON_SPECAB_AGILE    56        // Weapons that qualify for weapon finesse deal dex damage instead of strength damage if higher
 #define WEAPON_SPECAB_BEWILDERING 57     // will add confuse effect to opponents on crit
+#define WEAPON_SPECAB_CORROSIVE 58       // adds acid damage
+#define WEAPON_SPECAB_CORROSIVE_BURST 59  // adds acid damage plus more on crit
+#define WEAPON_SPECAB_EXHAUSTING 60      // sets fatigue and drains moves on crit
+#define WEAPON_SPECAB_VAMPIRIC 61        // heals damage on hit
+#define WEAPON_SPECAB_LUCKY 62           // 5% chance to add 1/2 weapon enhancement bonus to almost any d20 roll
+#define WEAPON_SPECAB_INVIGORATING 63    // restores tamina points with each hit
 
-#define NUM_SPECABS 58 /* Number of Special Abilities */
+
+#define NUM_SPECABS 64 /* Number of Special Abilities */
 
 bool obj_has_special_ability(struct obj_data *obj, int ability);
 struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ability);
@@ -210,6 +217,18 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding);
 WEAPON_SPECIAL_ABILITY(weapon_specab_adaptive);
 WEAPON_SPECIAL_ABILITY(weapon_specab_agile);
 WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering);
+WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive);
+WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive_burst);
+WEAPON_SPECIAL_ABILITY(weapon_specab_disruption);
+WEAPON_SPECIAL_ABILITY(weapon_specab_defending);
+WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting);
+WEAPON_SPECIAL_ABILITY(weapon_specab_wounding);
+WEAPON_SPECIAL_ABILITY(weapon_specab_thundering);
+WEAPON_SPECIAL_ABILITY(weapon_specab_vicious);
+WEAPON_SPECIAL_ABILITY(weapon_specab_vorpal);
+WEAPON_SPECIAL_ABILITY(weapon_specab_vampiric);
+WEAPON_SPECIAL_ABILITY(weapon_specab_invigorating);
+WEAPON_SPECIAL_ABILITY(weapon_specab_lucky);
 
 /* Prototypes for armor special abilities */
 ARMOR_SPECIAL_ABILITY(armor_specab_blinding);

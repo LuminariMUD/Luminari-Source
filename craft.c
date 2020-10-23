@@ -1391,7 +1391,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
   struct obj_data *obj = NULL;
   int num_objs = 0, essence_level = 0;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-  int chem_check = GET_SKILL(ch, SKILL_CHEMISTRY) + dice(1, 20);
+  int chem_check = GET_SKILL(ch, SKILL_CHEMISTRY) + d20(ch);
 
   /* Cycle through contents */
   /* disenchant requires just one item be inside the kit */

@@ -171,26 +171,35 @@ void initialize_special_abilities(void)
   add_weapon_special_ability(WEAPON_SPECAB_BANE, "Bane", 8, ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
                              TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_bane);
 
-add_weapon_special_ability(WEAPON_SPECAB_BEWILDERING, "Bewildering", 8, ACTMTD_ON_CRIT,
+  add_weapon_special_ability(WEAPON_SPECAB_BEWILDERING, "Bewildering", 8, ACTMTD_ON_CRIT,
                              TAR_FIGHT_VICT, FALSE, 0, ENCHANTMENT, 1, weapon_specab_bewildering);
 
-add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMTD_ON_CRIT,
+  add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMTD_ON_CRIT,
                              TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_blinding);
 
   add_weapon_special_ability(WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
 
+  add_weapon_special_ability(WEAPON_SPECAB_CORROSIVE, "Corrosive", 10, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
+                             TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_corrosive);
+
+  add_weapon_special_ability(WEAPON_SPECAB_CORROSIVE_BURST, "Corrosive Burst", 12, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
+                             TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_corrosive_burst);
+
   add_weapon_special_ability(WEAPON_SPECAB_DANCING, "Dancing", 15, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
 
   add_weapon_special_ability(WEAPON_SPECAB_DEFENDING, "Defending", 8, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, ABJURATION, 1, NULL);
+                             TAR_IGNORE, FALSE, 0, ABJURATION, 1, weapon_specab_defending);
 
   add_weapon_special_ability(WEAPON_SPECAB_DISRUPTION, "Disruption", 14, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, CONJURATION, 2, NULL);
+                             TAR_IGNORE, FALSE, 0, CONJURATION, 2, weapon_specab_disruption);
 
   add_weapon_special_ability(WEAPON_SPECAB_DISTANCE, "Distance", 6, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
+
+add_weapon_special_ability(WEAPON_SPECAB_EXHAUSTING, "Exhausting", 8, ACTMTD_ON_CRIT,
+                             TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_exhausting);
 
   add_weapon_special_ability(WEAPON_SPECAB_FLAMING, "Flaming", 10, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_flaming);
@@ -210,11 +219,17 @@ add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMT
   add_weapon_special_ability(WEAPON_SPECAB_ICY_BURST, "Icy Burst", 10, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
+add_weapon_special_ability(WEAPON_SPECAB_INVIGORATING, "Invigorating", 18, ACTMTD_NONE,
+                             TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_invigorating);
+
   add_weapon_special_ability(WEAPON_SPECAB_KEEN, "Keen", 10, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
   add_weapon_special_ability(WEAPON_SPECAB_KI_FOCUS, "Ki Focus", 8, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
+
+add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
+                             TAR_IGNORE, FALSE, 0, ENCHANTMENT, 1, NULL);
 
   add_weapon_special_ability(WEAPON_SPECAB_MERCIFUL, "Merciful", 5, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, CONJURATION, 1, NULL);
@@ -240,8 +255,8 @@ add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMT
   add_weapon_special_ability(WEAPON_SPECAB_SPELL_STORING, "Spell Storing", 12, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
 
-  add_weapon_special_ability(WEAPON_SPECAB_THUNDERING, "Thundering", 5, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, NECROMANCY, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_THUNDERING, "Thundering", 5, ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
+                             TAR_IGNORE, FALSE, 0, NECROMANCY, 1, weapon_specab_thundering);
 
   add_weapon_special_ability(WEAPON_SPECAB_THROWING, "Throwing", 5, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
@@ -249,14 +264,17 @@ add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMT
   add_weapon_special_ability(WEAPON_SPECAB_UNHOLY, "Unholy", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
+add_weapon_special_ability(WEAPON_SPECAB_VAMPIRIC, "Vampiric", 18, ACTMTD_NONE,
+                             TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_vampiric);
+
   add_weapon_special_ability(WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, NECROMANCY, 1, NULL);
+                             TAR_IGNORE, FALSE, 0, NECROMANCY, 1, weapon_specab_vicious);
 
   add_weapon_special_ability(WEAPON_SPECAB_VORPAL, "Vorpal", 18, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, NULL);
+                             TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_vorpal);
 
   add_weapon_special_ability(WEAPON_SPECAB_WOUNDING, "Wounding", 10, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+                             TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_wounding);
 }
 
 bool obj_has_special_ability(struct obj_data *obj, int ability)
@@ -767,6 +785,282 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst)
   }
 }
 
+WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive_burst)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the CORROSIVE ability.
+       *  - Set the CORROSIVE bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE))
+    {
+      /* CORROSIVE is on, turn it off. */
+      send_to_char(ch, "The magical acid dripping off your weapon vanish.\r\n");
+      act("The magical acid dripping off $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_CORROSIVE);
+    }
+    else
+    {
+      /* FLAME ON! */
+      send_to_char(ch, "Magical acid starts dripping down the length of your weapon!\r\n");
+      act("Magical acid starts dripping down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_CORROSIVE);
+    }
+    break;
+  case ACTMTD_ON_HIT:                      /* Called whenever a weapon hits an enemy. */
+    if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE)) /* Burn 'em. */
+      if (victim)
+      {
+        /*send_to_char(ch, "\tr[spcab]\tn");*/
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_CORROSIVE, DAM_ACID, FALSE);
+      }
+    break;
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    /* We don't care if the CORROSIVE property is active, it bursts anyway! */
+    if (victim)
+    {
+      /* send_to_char(ch,"\tr[burst]\tn");*/
+      damage(ch, victim, dice(1, 10), TYPE_SPECAB_CORROSIVE, DAM_ACID, FALSE);
+    }
+    break;
+  case ACTMTD_WEAR: /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_vicious)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: 
+  case ACTMTD_USE:          
+    if (OBJ_FLAGGED(weapon, ITEM_VICIOUS))
+    {
+      send_to_char(ch, "The tiny whirls of black smoke surrounding your weapon dissipate.\r\n");
+      act("The tiny whirls of black smoke surrounding $n's weapon dissipate.", FALSE, ch, weapon, NULL, TO_ROOM);
+      REMOVE_OBJ_FLAG(weapon, ITEM_VICIOUS);
+    }
+    else
+    {
+      send_to_char(ch, "Tiny whirls of black smoke suddenly surround your weapon.\r\n");
+      act("Tiny whirls of black smoke suddenly surround $n's weapon.", FALSE, ch, weapon, NULL, TO_ROOM);
+      SET_OBJ_FLAG(weapon, ITEM_VICIOUS);
+    }
+    break;
+  case ACTMTD_ON_HIT:                     
+    if (OBJ_FLAGGED(weapon, ITEM_VICIOUS)) 
+      if (victim)
+      {
+        damage(ch, victim, dice(2, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+        damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+      }
+    break;
+  case ACTMTD_ON_CRIT: 
+    if (victim)
+    {
+      damage(ch, victim, dice(3, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+      damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+    }
+    break;
+  case ACTMTD_WEAR: 
+  default:
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_vorpal)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: 
+  case ACTMTD_USE:          
+    if (OBJ_FLAGGED(weapon, ITEM_VORPAL))
+    {
+      send_to_char(ch, "The tiny whirls of black smoke surrounding your weapon dissipate.\r\n");
+      act("The tiny whirls of black smoke surrounding $n's weapon dissipate.", FALSE, ch, weapon, NULL, TO_ROOM);
+      REMOVE_OBJ_FLAG(weapon, ITEM_VORPAL);
+    }
+    else
+    {
+      send_to_char(ch, "Tiny whirls of black smoke suddenly surround your weapon.\r\n");
+      act("Tiny whirls of black smoke suddenly surround $n's weapon.", FALSE, ch, weapon, NULL, TO_ROOM);
+      SET_OBJ_FLAG(weapon, ITEM_VORPAL);
+    }
+    break;
+  case ACTMTD_ON_CRIT: 
+    if (victim)
+    {
+      if (dice(1, 20) == 1) { // 5% chance on a critical hit
+        if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
+           (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT) &&
+           (GET_NPC_RACE(victim) != RACE_TYPE_OOZE)) { // they need to have or a head or not be able to function without a head
+          if (!MOB_FLAGGED(victim, MOB_NOCHARM)) { // a fail safe for boss type mobs and shopkeepers, etc.
+            damage(ch, victim, GET_HIT(victim) + 100, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE); // should kill them outright
+          }
+        }
+      }
+    }
+    break;
+  case ACTMTD_ON_HIT:
+  case ACTMTD_WEAR: 
+  default:
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_vampiric)
+{
+  int dam = 0;
+  //char buf[200]; // uncomment if we decide we want to show a message for hp healed.  Commented out because considered too spammy
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_ON_HIT:
+  case ACTMTD_ON_CRIT: 
+    if (victim)
+    {
+      if (actmtd == ACTMTD_ON_HIT)
+        dam = dice(1, 4);
+      else
+        dam = dice(2, 4);
+      if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
+          (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT)) { // has to be alive
+          damage(ch, victim, dam, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+        if ((dam / 2) > 0)
+        {
+          GET_HIT(ch) += dam / 2;
+          GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch));
+          //snprintf(buf, sizeof(buf), "Your $o has healed you %d hit points!", dam/2);
+          //act(buf, false, ch, weapon, 0, TO_CHAR);
+        }
+      }
+    }
+    break;
+  case ACTMTD_COMMAND_WORD: 
+  case ACTMTD_USE:
+  case ACTMTD_WEAR: 
+  default:
+    break;
+  }
+}
+
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_invigorating)
+{
+
+  int stamina = GET_OBJ_VAL(weapon, 4);
+
+  //char buf[200]; // uncomment if we decide we want to show a message for hp healed.  Commented out because considered too spammy
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_ON_HIT:
+  case ACTMTD_ON_CRIT: 
+    if (victim)
+    {
+      if (actmtd == ACTMTD_ON_CRIT)
+        stamina *= 3;
+      GET_MOVE(ch) += stamina / 2;
+      GET_MOVE(ch) = MIN(GET_MAX_MOVE(ch), GET_MOVE(ch));
+    }
+    break;
+  case ACTMTD_COMMAND_WORD: 
+  case ACTMTD_USE:
+  case ACTMTD_WEAR: 
+  default:
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the CORROSIVE ability.
+       *  - Set the CORROSIVE bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE))
+    {
+      /* CORROSIVE is on, turn it off. */
+      send_to_char(ch, "The magical acid dripping off your weapon vanish.\r\n");
+      act("The magical acid dripping off $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_CORROSIVE);
+    }
+    else
+    {
+      /* FLAME ON! */
+      send_to_char(ch, "Magical acid starts dripping down the length of your weapon!\r\n");
+      act("Magical acid starts dripping down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_CORROSIVE);
+    }
+    break;
+  case ACTMTD_ON_HIT:                      /* Called whenever a weapon hits an enemy. */
+    if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE)) /* Burn 'em. */
+      if (victim)
+      {
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_CORROSIVE, DAM_ACID, FALSE);
+      }
+    break;
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
 /* A weapon wne prints messages when fighting it's favored enemy... */
 WEAPON_SPECIAL_ABILITY(weapon_specab_bane)
 {
@@ -800,6 +1094,74 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bane)
   }
 }
 
+WEAPON_SPECIAL_ABILITY(weapon_specab_disruption)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the DISRUPTION ability.
+       *  - Set the DISRUPTION bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
+    {
+      /* Flaming is on, turn it off. */
+      send_to_char(ch, "The field of holy energy on your weapon dissipates.\r\n");
+      act("The field of holy energy on $n's weapon dissipates.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_DISRUPTION);
+    }
+    else
+    {
+      /* DISRUPTION ON! */
+      send_to_char(ch, "A field of holy energy envelops your weapon.\r\n");
+      act("A field of holy energy envelops $n's weapon.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_DISRUPTION);
+    }
+    break;
+  case ACTMTD_ON_HIT:                    /* Called whenever a weapon hits an enemy. */
+    if (GET_RACE(victim) == RACE_TYPE_UNDEAD) {
+      if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
+        if (victim)
+        {
+          damage(ch, victim, dice(2, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+        }
+    }
+    break;
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    if (GET_RACE(victim) == RACE_TYPE_UNDEAD) {
+        if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
+          if (victim)
+          {
+            if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+            {
+              send_to_char(ch, "Your weapon flashes with brilliant light!\r\n");
+              act("$o carried by $n flashes with brilliant light", FALSE, ch, weapon, NULL, TO_ROOM);
+              damage(ch, victim, dice(GET_LEVEL(ch) / 2 + 3, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+            }
+            else
+            {
+              damage(ch, victim, dice(3, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+            }
+          }
+      }
+      break;
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
 /* A weapon with the frost special ability generates cold, becoming encrusted with frost and dealing
  * cold damage on a regular hit. */
 WEAPON_SPECIAL_ABILITY(weapon_specab_frost)
@@ -815,7 +1177,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost)
   {
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
-    /* Activate the flaming ability.
+    /* Activate the frost ability.
        *  - Set the FROST bit on the weapon (this affects the display,
        *    and is used to toggle the effect.)
        */
@@ -988,6 +1350,43 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_agile)
   }
 }
 
+WEAPON_SPECIAL_ABILITY(weapon_specab_defending)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    if (OBJ_FLAGGED(weapon, ITEM_DEFENDING))
+    {
+      send_to_char(ch, "Your weapon stops moving on its own accord.\r\n");
+      act("$o, wielded by $n, stops moving on its own accord.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_DEFENDING);
+    }
+    else
+    {
+      send_to_char(ch, "Your weapon starts moving on its own accord.\r\n");
+      act("$o, wielded by $n, starts moving on its own accord.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_DEFENDING);
+    }
+    break;
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
 WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
 {
   
@@ -1009,7 +1408,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
         return;
       }
 
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, 10, SCHOOL_NOSCHOOL))
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
       {
         act("You look away just in time to avoid getting blinded!", FALSE, victim, weapon, ch, TO_CHAR);
         act("$n looks away just in time to avoid getting blinded!", TRUE, victim, weapon, ch, TO_ROOM);
@@ -1053,6 +1452,113 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
   }
 }
 
+WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
+{
+  
+  struct affected_type af[2];
+  int i = 0;
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+      {
+        act("You resist the wave of exhaustion from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
+        act("$n resists the wave of exhaustion from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
+        return;
+      }
+
+      af[0].duration = 2;
+      af[0].location = SPELL_WAVES_OF_EXHAUSTION;
+      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+      GET_MOVE(victim) -= 20;
+      if (GET_MOVE(victim) < 0)
+        GET_MOVE(victim) = 0;
+
+      act("You have been inflicted with heavy fatigue!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n seems to be inflicted with heavy fatigue!", TRUE, victim, 0, ch, TO_ROOM);
+
+      for (i = 0; i < 1; i++)
+      {
+        if (af[i].bitvector[0] || af[i].bitvector[1] ||
+            af[i].bitvector[2] || af[i].bitvector[3] ||
+            (af[i].location != APPLY_NONE))
+        {
+          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
+        }
+      }
+    break;
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
+{
+  
+  struct affected_type af[2];
+  int i = 0;
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+
+      damage(ch, victim, dice(2, 8), TYPE_SPECAB_THUNDERING, DAM_SOUND, FALSE);
+
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+      {
+        act("You resist the thunderlcap from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
+        act("$n resists the thunderclap from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
+        return;
+      }
+
+      af[0].duration = 2;
+      af[0].location = SPELL_DEAFNESS;
+      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+
+      act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n seems to have been deafened!", TRUE, victim, 0, ch, TO_ROOM);
+
+      for (i = 0; i < 1; i++)
+      {
+        if (af[i].bitvector[0] || af[i].bitvector[1] ||
+            af[i].bitvector[2] || af[i].bitvector[3] ||
+            (af[i].location != APPLY_NONE))
+        {
+          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
+        }
+      }
+    break;
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
 WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
 {
   
@@ -1074,7 +1580,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
         return;
       }
 
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, 10, ENCHANTMENT))
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), ENCHANTMENT))
       {
         act("You shake off a cloud of confusion settling over your mind.", FALSE, victim, weapon, ch, TO_CHAR);
         act("$n looks confused for a moment, but shakes it off.", TRUE, victim, weapon, ch, TO_ROOM);
@@ -1104,6 +1610,64 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
   case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
+{
+  
+  struct affected_type af[2];
+  int i = 0;
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+
+  case ACTMTD_ON_HIT: 
+  case ACTMTD_ON_CRIT:
+    
+      if ((GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT) ||
+         (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD) ||
+         (GET_NPC_RACE(ch) == RACE_TYPE_OOZE))
+         return;
+
+      af[0].spell = TYPE_SPECAB_BLEEDING;
+      af[0].location = APPLY_NONE;
+      af[0].modifier = 1;
+      af[0].duration = 3;
+      af[0].bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af[0].bitvector, AFF_BLEED);
+
+      if (AFF_FLAGGED(victim, AFF_BLEED))
+      {
+        act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
+      } else {
+        act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
+      }
+
+      for (i = 0; i < 1; i++)
+      {
+        if (af[i].bitvector[0] || af[i].bitvector[1] ||
+            af[i].bitvector[2] || af[i].bitvector[3] ||
+            (af[i].location != APPLY_NONE))
+        {
+          affect_join(victim, af + i, FALSE, FALSE, TRUE, FALSE);
+        }
+      }
+    break;
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
   case ACTMTD_WEAR:    /* Called whenever the item is worn. */
   default:
     /* Do nothing. */

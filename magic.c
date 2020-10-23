@@ -85,7 +85,7 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (HAS_FEAT(vict, FEAT_IRON_GOLEM_IMMUNITY))
     return TRUE;
 
-  int challenge = dice(1, 20),
+  int challenge = d20(ch),
       resist = compute_spell_res(ch, vict, modifier);
 
   // should be modified - zusuk
@@ -189,7 +189,7 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school)
 {
   int challenge = 10, // 10 is base DC
-      diceroll = dice(1, 20),
+      diceroll = d20(ch),
       stat_bonus = 0,
       savethrow = compute_mag_saves(vict, type, modifier) + diceroll;
 

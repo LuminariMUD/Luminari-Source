@@ -129,6 +129,7 @@ int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
 const char *get_align_by_num_cnd(int align);
 const char *get_align_by_num(int align);
+int d20(struct char_data *ch);
 bool can_hear_sneaking(struct char_data *ch, struct char_data *vict);
 bool can_see_hidden(struct char_data *ch, struct char_data *vict);
 int skill_check(struct char_data *ch, int skill, int dc);

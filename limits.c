@@ -1550,6 +1550,22 @@ void update_damage_and_effects_over_time(void)
     if (!ch)
       return;
 
+    if (AFF_FLAGGED(ch, AFF_BLEED))
+    {
+      for (affects = ch->affected; affects; affects = affects->next)
+      {
+        if (IS_SET_AR(affects->bitvector, AFF_BLEED))
+        {
+         dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
+
+          if (dam <= 0)
+          { /* they died */
+            break;
+          } 
+        }
+      }
+    }
+
     if (affected_by_spell(ch, BOMB_AFFECT_ACID))
     {
       for (affects = ch->affected; affects; affects = affects->next)

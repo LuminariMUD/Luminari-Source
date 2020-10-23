@@ -705,10 +705,15 @@
 
 /* Special Abilities for weapons */
 
-#define TYPE_SPECAB_FLAMING 600
+#define TYPE_SPECAB_FLAMING   600
 #define TYPE_SPECAB_FLAMING_BURST 601
-#define TYPE_SPECAB_FROST 602
+#define TYPE_SPECAB_FROST     602
 #define TYPE_SPECAB_ICY_BURST 603
+#define TYPE_SPECAB_CORROSIVE 604
+#define TYPE_SPECAB_HOLY      605
+#define TYPE_SPECAB_EXHAUSTION 606
+#define TYPE_SPECAB_THUNDERING 607
+#define TYPE_SPECAB_BLEEDING   608
 /* up to 610 */
 
 #define SKILL_LANG_COMMON 601
@@ -940,8 +945,9 @@
 #define DAM_ENERGY 19
 #define DAM_WATER 20
 #define DAM_CELESTIAL_POISON 21
+#define DAM_BLEEDING 22
 /* ------------------------------*/
-#define NUM_DAM_TYPES 22
+#define NUM_DAM_TYPES 23
 /* =============================*/
 
 /*********************************/

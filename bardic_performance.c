@@ -778,7 +778,7 @@ EVENTFUNC(event_bardic_performance)
   spellnum = performance_info[performance_num][PERFORMANCE_SKILLNUM];
 
   /* performance check! */
-  if (compute_ability(ch, ABILITY_PERFORM) + dice(1, 20) >=
+  if (compute_ability(ch, ABILITY_PERFORM) + d20(ch) >=
       performance_info[performance_num][PERFORMANCE_DIFF] + 10)
   {
     effectiveness += 3;

@@ -518,7 +518,7 @@ int roll_initiative(struct char_data *ch)
 {
   int initiative = 0;
 
-  initiative = dice(1, 20) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
+  initiative = d20(ch) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
   initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
   //initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
 
@@ -695,6 +695,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
   /* bonus type enhancement (equipment) */
   bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
+  bonuses[BONUS_TYPE_ENHANCEMENT] += get_defending_weapon_bonus(ch, false);
   /**/
 
   /* bonus type dodge */
@@ -4216,8 +4217,11 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
     threat_range = 20;
 
   /* mods */
-
-  if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL))
+  if (wielded && obj_has_special_ability(wielded, WEAPON_SPECAB_KEEN))
+  {
+    threat_range -= weapon_list[GET_OBJ_VAL(wielded, 0)].critRange;
+  }
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) )
   { /* Check the weapon type, make sure it matches. */
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
@@ -4476,7 +4480,7 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
 int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll,
                     int calc_bab, int victim_ac)
 {
-  int threat_range, confirm_roll = dice(1, 20) + calc_bab;
+  int threat_range, confirm_roll = d20(ch) + calc_bab;
 
   if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced))
   {
@@ -5557,17 +5561,22 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Competence bonus */
 
   /* Enhancement bonus */
-  if (wielded)
+  if (wielded) {
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
+    bonuses[BONUS_TYPE_ENHANCEMENT] -= get_defending_weapon_bonus(ch, true);
+  }
   /* ranged includes arrow, what a hack */ /* why is that a hack again? */
-  if (can_fire_ammo(ch, TRUE))
+  if (can_fire_ammo(ch, TRUE)) {
     bonuses[BONUS_TYPE_ENHANCEMENT] += GET_ENHANCEMENT_BONUS(GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
-  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  }
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch)) {
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], HAS_FEAT(ch, FEAT_NATURAL_ATTACK) / 2);
+  }
   /* monk glove */
-  if (MONK_TYPE(ch) && is_bare_handed(ch) && monk_gear_ok(ch) &&
-      GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0))
+  if (MONK_TYPE(ch) && is_bare_handed(ch) && monk_gear_ok(ch) && 
+      GET_EQ(ch, WEAR_HANDS) && GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0)) {
     bonuses[BONUS_TYPE_ENHANCEMENT] = GET_OBJ_VAL(GET_EQ(ch, WEAR_HANDS), 0);
+  }
   /**/
 
   /* Insight bonus  */
@@ -5901,7 +5910,7 @@ int compute_cmd(struct char_data *vict,   /* Defender */
 int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
                           int combat_maneuver_type, int attacker_bonus)
 {
-  int attack_roll = dice(1, 20);
+  int attack_roll = d20(ch);
   int cm_bonus = attacker_bonus; /* combat maneuver bonus */
   int cm_defense = 0;            /* combat maneuver defense */
   int result = 0;
@@ -5989,7 +5998,7 @@ int attack_roll(struct char_data *ch,     /* Attacker */
   int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
-  int diceroll = rand_number(1, 20);
+  int diceroll = d20(ch);
   int result = ((attack_bonus + diceroll) - victim_ac);
 
   //  if (attack_type == ATTACK_TYPE_RANGED) {
@@ -7105,9 +7114,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   }
 
   if (HAS_FEAT(ch, FEAT_WEAPON_TRAINING))
-    diceroll = rand_number(1 + HAS_FEAT(ch, FEAT_WEAPON_TRAINING), 20);
+    diceroll = d20(ch) + HAS_FEAT(ch, FEAT_WEAPON_TRAINING);
   else
-    diceroll = rand_number(1, 20);
+    diceroll = d20(ch);
   if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac))
   {
     dam = TRUE;
@@ -7241,7 +7250,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       MOUNTED_BLOCKS_LEFT(victim) > 0)
   {
     int mounted_block_dc = calc_bab + diceroll;
-    int mounted_block_bonus = compute_ability(victim, ABILITY_RIDE) + dice(1, 20);
+    int mounted_block_bonus = compute_ability(victim, ABILITY_RIDE) + d20(victim);
     if (mounted_block_dc <= mounted_block_bonus)
     {
       send_to_char(victim, "You \tcmaneuver %s to block\tn the attack from %s!\r\n",
@@ -7486,7 +7495,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */
   if (AFF_FLAGGED(ch, AFF_HASTE) ||
-      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)))
+      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)) ||
+      (has_speed_weapon(ch)))
   {
     ranged_attacks++;
     attacks_at_max_bab++;
@@ -8250,7 +8260,7 @@ void handle_smash_defense(struct char_data *ch)
     return;
   if (GET_POS(vict) <= POS_SITTING)
     return;
-  if (IS_INCORPOREAL(vict))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
     return;
   if (MOB_FLAGGED(vict, MOB_NOBASH))
     return;
