@@ -2279,3 +2279,26 @@ int get_lucky_weapon_bonus(struct char_data *ch)
 
   return bonus;
 }
+
+int get_agile_weapon_dex_bonus(struct char_data *ch)
+{
+  struct obj_data *obj = NULL;
+  int bonus = 0;
+  int dex_bonus = MAX(0, GET_DEX_BONUS(ch));
+
+  obj = GET_EQ(ch, WEAR_WIELD_1);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
+    bonus = GET_OBJ_VAL(obj, 4);
+  
+  obj = GET_EQ(ch, WEAR_WIELD_2H);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+
+  obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+  if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
+    bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
+
+  bonus = MIN(bonus, dex_bonus);
+
+  return bonus;
+}

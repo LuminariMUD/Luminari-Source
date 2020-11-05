@@ -1911,8 +1911,9 @@
 #define ITEM_BLUEPRINT 47      /* NewCraft, recipe for crafting item */
 #define ITEM_TREASURE_CHEST 48 /* used with the loot command. */
 #define ITEM_HUNT_TROPHY 49    // used to mark a hunt target mob
+#define ITEM_WEAPON_OIL 50
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 50 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 51 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
@@ -3530,6 +3531,8 @@ struct player_special_data
     int travel_timer;           // used for carriage and airship systems
     int travel_type;            // used for carriage and airship systems
     int travel_locale;          // used for carriage and airship systems
+    int bane_race;              // used in applyoil command to create a proper bane weapon
+    int bane_subrace;           // used in applyoil command to create a proper bane weapon
 };
 
 /** Special data used by NPCs, not PCs */

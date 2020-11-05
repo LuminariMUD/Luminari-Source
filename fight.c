@@ -41,6 +41,7 @@
 #include "grapple.h"
 #include "alchemy.h"
 #include "missions.h"
+#include "hunts.h"
 
 /* return results from hit() */
 #define HIT_MISS 0
@@ -1431,6 +1432,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   if (killer && ch && IS_NPC(ch))
   {
     determine_treasure(find_treasure_recipient(killer), ch);
+    if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_HUNTS_TARGET))
+    {
+      award_hunt_materials(killer, ch->mob_specials.hunt_type);
+      remove_hunts_mob(ch->mob_specials.hunt_type);
+    }
   }
 
   /* spec-abil saves on exit, so make sure this does not save */
@@ -3605,8 +3611,8 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     wielded = get_wielded(ch, attack_type);
 
   if (wielded && is_using_light_weapon(ch, wielded) && OBJ_FLAGGED(wielded, ITEM_AGILE)) {
-    str_bonus = MAX(GET_DEX_BONUS(ch), GET_STR_BONUS(ch));
-    sprintf(strength, "Dexterity");
+    str_bonus = MAX(get_agile_weapon_dex_bonus(ch), GET_STR_BONUS(ch));
+    sprintf(strength, "Dexterity (Agile Weapon)");
   } else {
     sprintf(strength, "Strength");
   }

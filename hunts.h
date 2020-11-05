@@ -70,6 +70,8 @@
 #define HUNT_REWARD_TYPE_TRINKET    1
 #define HUNT_REWARD_TYPE_WEAPON_OIL 2
 
+#define HUNTS_REWARD_ITEM_VNUM      60100
+
 struct hunt_type {
 
   int hunt_type;
@@ -101,3 +103,14 @@ SPECIAL_DECL(huntsmaster);
 void award_hunt_materials(struct char_data *ch, int which_hunt);
 void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob);
 void list_hunt_rewards(struct char_data *ch, int type);
+int hunts_special_weapon_type(int hunt_record);
+int hunts_special_armor_type(int hunt_record);
+int get_hunt_armor_drop_vnum(int hunt_record);
+int get_hunt_weapon_drop_vnum(int hunt_record);
+bool is_hunt_trophy_a_trinket(int vnum);
+void remove_hunts_mob(int which_hunt);
+bool is_hunt_mob_in_room(room_rnum room, int which_hunt);
+bool weapon_specab_desc_position(int specab);
+bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type, int specab, bool output);
+int obj_vnum_to_hunt_type(int vnum);
+bool is_specab_upgradeable(int specab_source, int specab_apply);

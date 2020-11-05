@@ -522,6 +522,8 @@ ACMD_DECL(do_impromptu);
 ACMDCHECK(can_impromptu);
 ACMD_DECL(do_favoredenemies);
 ACMD_DECL(do_summon);
+ACMD_DECL(do_applyoil);
+ACMD_DECL(do_setbaneweapon);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

@@ -4354,9 +4354,12 @@ int d20(struct char_data *ch)
 {
   int roll = dice(1, 20);
 
-  if (dice(1, 100) <= 5)
+  if (dice(1, 100) <= 10 && get_lucky_weapon_bonus(ch))
   {
     roll += MAX(1, get_lucky_weapon_bonus(ch) / 2);
+    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
   }
+  
   return roll;
 }

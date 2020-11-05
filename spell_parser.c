@@ -1474,7 +1474,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 }
         }
 
-        if (HAS_ELDRITCH_SPELL_CRIT(ch))
+        if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
         {
           HAS_ELDRITCH_SPELL_CRIT(ch) = false;
           casting_time = 0;

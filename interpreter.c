@@ -62,6 +62,7 @@
 #include "premadebuilds.h"
 #include "missions.h"
 #include "transport.h"
+#include "hunts.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -152,6 +153,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"adjure", "adjure", POS_RESTING, do_gen_preparation, 0, SCMD_ADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"autofire", "autofire", POS_FIGHTING, do_autofire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"applyoil", "applyoil", POS_STANDING, do_applyoil, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"applypoison", "applypoison", POS_STANDING, do_applypoison, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"abundantstep", "abundantstep", POS_STANDING, do_abundantstep, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"animatedead", "animatedead", POS_STANDING, do_animatedead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -289,6 +291,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"exits", "ex", POS_RECLINING, do_exits, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"examine", "exa", POS_RECLINING, do_examine, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"exchange", "exch", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"expertise", "expertise", POS_FIGHTING, do_mode, 1, MODE_COMBAT_EXPERTISE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"export", "export", POS_DEAD, do_export_zone, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"eqrating", "eqrating", POS_SLEEPING, do_eqrating, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -589,6 +592,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sedit", "sedit", POS_DEAD, do_oasis_sedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"send", "send", POS_SLEEPING, do_send, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"set", "set", POS_DEAD, do_set, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
