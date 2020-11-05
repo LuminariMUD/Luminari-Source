@@ -1807,7 +1807,8 @@ const char *item_types[] = {
     "Pet",       //46
     "Blueprint", //47 /* NewCraft */
     "Treasure Chest",
-    "Hunt Target",
+    "Hunt Trophy",
+    "Weapon Oil",
     "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 

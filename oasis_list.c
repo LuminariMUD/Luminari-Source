@@ -467,6 +467,8 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_PET:
         case ITEM_BLUEPRINT:
         case ITEM_TREASURE_CHEST:
+        case ITEM_HUNT_TROPHY:
+        case ITEM_WEAPON_OIL:
 
         /* stock item types */
         case ITEM_TREASURE:

@@ -924,7 +924,7 @@ int encounter_chance(struct char_data *ch)
     else if (PRF_FLAGGED(ch, PRF_SEEK_ENCOUNTERS))
       chance += combat_skill_roll(ch, ABILITY_SURVIVAL) * 5;
 
-    send_to_char(ch, " Chance: %d\r\n", chance);
+    //send_to_char(ch, " Chance: %d\r\n", chance);
 
     return MAX(5, chance);
 }
@@ -959,7 +959,7 @@ void check_random_encounter(struct char_data *ch)
 
   roll = dice(1, 1000);
 
-  send_to_char(ch, "Roll: %d, ", roll);
+  //send_to_char(ch, "Roll: %d, ", roll);
 
   if (roll > encounter_chance(ch))
     return;

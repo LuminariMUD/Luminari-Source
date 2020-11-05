@@ -40,6 +40,7 @@
 #include "mysql.h"
 #include "treasure.h"
 #include "crafts.h"
+#include "hunts.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -235,6 +236,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                    specab->level, actmtds,
                    (specab->command_word == NULL ? "Not set." : specab->command_word),
                    specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      if (specab->ability == WEAPON_SPECAB_BANE)
+      {
+        send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        if (specab->value[1])
+          send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+      }
     }
     if (!found)
       send_to_char(ch, "No weapon special abilities assigned.\r\n");
@@ -377,6 +384,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                    specab->level, actmtds,
                    (specab->command_word == NULL ? "Not set." : specab->command_word),
                    specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      
+      if (specab->ability == WEAPON_SPECAB_BANE)
+      {
+        send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        if (specab->value[1])
+          send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+      }
     }
     if (!found)
       send_to_char(ch, "No special abilities assigned.\r\n");
@@ -689,6 +703,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     break;
 
+  case ITEM_HUNT_TROPHY: /* 49 */
+    break;
+
+  case ITEM_WEAPON_OIL: /* 50 */
+    break;
+
   default:
     send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
     break;
@@ -743,6 +763,12 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
     send_to_char(ch, "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
                  buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
                  GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+  }
+  else if (GET_OBJ_TYPE(j) == ITEM_WEAPON_OIL)
+  {
+    send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: Adds '%s' to a weapon with 'apply' command\r\n", 
+                 buf, special_ability_info[GET_OBJ_VAL(j, 0)].name);
+                 
   }
   else
   {
@@ -4178,6 +4204,256 @@ void auc_send_to_all(char *messg, bool buyer)
         else if (ch_selling)
             act(messg, true, ch_selling, obj_selling, i->character, TO_VICT | TO_SLEEP);
     }
+}
+
+ACMD(do_applyoil)
+{
+  struct obj_data *oil = NULL, *weapon = NULL;
+  char arg1[200], arg2[200];
+  struct obj_special_ability *specab = NULL;
+  int specab_type = 0;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify the weapon in your inventory you wish to apply with weapon oil.\r\n");
+    send_to_char(ch, "Command syntax is: apply (weapon to be applied to) (oil object to apply to weapon)\r\n");
+    return;
+  }
+  if (!*arg2)
+  {
+    send_to_char(ch, "Please specify the vial of weapon oil in your inventory to apply to the weapon.\r\n");
+    send_to_char(ch, "Command syntax is: apply (weapon to be applied to) (oil object to apply to weapon)\r\n");
+    return;
+  }
+
+  if (!(weapon = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
+  {
+    send_to_char(ch, "There is no weapon of that description, in your inventory.\r\n");
+    return;
+  }
+  if (!(oil = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying)))
+  {
+    send_to_char(ch, "There is no weapon of that description, in your inventory.\r\n");
+    return;
+  }
+
+  if (GET_OBJ_TYPE(weapon) != ITEM_WEAPON)
+  {
+    send_to_char(ch, "%s is not a weapon.\r\n", weapon->short_description);
+    return;
+  }
+
+  if (GET_OBJ_TYPE(oil) != ITEM_WEAPON_OIL)
+  {
+    send_to_char(ch, "%s is not a vial of weapon oil.\r\n", oil->short_description);
+    return;
+  }
+
+  specab_type = GET_OBJ_VAL(oil, 0);
+
+  if (GET_OBJ_VAL(oil, 0) == 0)
+  {
+    send_to_char(ch, "The weapon oil seems to be inert.  Please inform a staff member citing error code: APPLYOIL001.\r\n");
+    return;
+  }
+
+  for (specab = weapon->special_abilities; specab != NULL; specab = specab->next)
+  {
+    if (specab->ability != SPECAB_NONE)
+    {
+      if (!is_specab_upgradeable(specab->ability, specab_type))
+      {
+        send_to_char(ch, "That weapon already has a special ability, and weapon oil cannot enhance the weapon further.\r\n");
+        return;
+      }
+    }
+  }
+
+  if (!is_weapon_specab_compatible(ch, GET_OBJ_VAL(weapon, 0), specab_type, true))
+  {
+    return;
+  }
+
+  if (specab_type == WEAPON_SPECAB_BANE)
+  {
+    if (ch->player_specials->bane_race == RACE_TYPE_UNKNOWN)
+    {
+      send_to_char(ch, "In order to apply bane weapon oil, you must first decide on a race and racial subtype using the 'setbane' command.\r\n");
+      send_to_char(ch, "Eg. 'setbane humanoid goblinoid' followed by 'applyoil sword bane'.\r\n");
+      return;
+    }
+  }
+
+  for (specab = weapon->special_abilities; specab != NULL; specab = specab->next)
+  {
+    if (specab->ability != SPECAB_NONE)
+    {
+      if (is_specab_upgradeable(specab->ability, specab_type))
+      {
+        if (specab->ability == WEAPON_SPECAB_FLAMING && specab_type == WEAPON_SPECAB_FLAMING)
+        {
+          send_to_char(ch, "You upgrade your weapon's flaming affect to flaming burst!\r\n");
+          specab->ability = WEAPON_SPECAB_FLAMING_BURST;
+          return;
+        }
+        if (specab->ability == WEAPON_SPECAB_CORROSIVE && specab_type == WEAPON_SPECAB_CORROSIVE)
+        {
+          send_to_char(ch, "You upgrade your weapon's corrosive affect to corrosive burst!\r\n");
+          specab->ability = WEAPON_SPECAB_CORROSIVE_BURST;
+          return;
+        }
+        if (specab->ability == WEAPON_SPECAB_SHOCK && specab_type == WEAPON_SPECAB_SHOCK)
+        {
+          send_to_char(ch, "You upgrade your weapon's shock affect to shocking burst!\r\n");
+          specab->ability = WEAPON_SPECAB_SHOCKING_BURST;
+          return;
+        }
+        if (specab->ability == WEAPON_SPECAB_FROST && specab_type == WEAPON_SPECAB_FROST)
+        {
+          send_to_char(ch, "You upgrade your weapon's frost affect to icy burst!\r\n");
+          specab->ability = WEAPON_SPECAB_ICY_BURST;
+          return;
+        }
+      }
+    }
+  }
+
+  // let's create the special ability
+  CREATE(weapon->special_abilities, struct obj_special_ability, 1);
+  //weapon->special_abilities->next = weapon->special_abilities;
+  //weapon->special_abilities = weapon->special_abilities;
+
+  weapon->special_abilities->ability = specab_type;
+  weapon->special_abilities->level = special_ability_info[specab_type].level;
+  weapon->special_abilities->activation_method = special_ability_info[specab_type].activation_method;
+  weapon->special_abilities->command_word = get_weapon_specab_default_command_word(specab_type);
+
+  send_to_char(ch, "You upgrade %s with the '%s' affect.\r\n", weapon->short_description, special_ability_info[specab_type].name);
+  if (weapon->special_abilities->command_word != NULL)
+  {  
+    send_to_char(ch, "The affect can be toggled on and off by typing: 'utter %s'.\r\n", weapon->special_abilities->command_word);
+  }
+
+  if (specab_type == WEAPON_SPECAB_BANE)
+  {
+    weapon->special_abilities->value[0] = ch->player_specials->bane_race;
+    weapon->special_abilities->value[1] = ch->player_specials->bane_subrace;
+    send_to_char(ch, "Your bane weapon is effective against '%s'", race_family_types_plural[weapon->special_abilities->value[0]]);
+    if (weapon->special_abilities->value[1])
+     send_to_char(ch, " of subtype '%s'", npc_subrace_types[weapon->special_abilities->value[1]]);
+    send_to_char(ch, ".\r\n");
+    return;
+  }
+
+  obj_from_char(oil);
+  extract_obj(oil);
+
+}
+
+void display_bane_weapon_info(struct char_data *ch)
+{
+    int i = 0;
+    send_to_char(ch, "Please specify one of the following race types:\r\n\r\n");
+    for (i = 1; i < NUM_RACE_TYPES; i++)
+    {
+      send_to_char(ch, "%s", race_family_types[i]);
+      if (i != (NUM_RACE_TYPES - 1))
+        send_to_char(ch, ", ");
+      if ((i % 5) == 0)
+        send_to_char(ch, "\r\n");
+    }
+    if ((i % 5) != 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+
+    send_to_char(ch, "You can also optionally choose one of these subtypes:\r\n\r\n");
+    for (i = 1; i < NUM_SUB_RACES; i++)
+    {
+      send_to_char(ch, "%s", npc_subrace_types[i]);
+      if (i != (NUM_SUB_RACES - 1))
+        send_to_char(ch, ", ");
+      if ((i % 5) == 0)
+        send_to_char(ch, "\r\n");
+    }
+    if ((i % 5) != 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tYThis command is only used to decide what kind of bane weapon you want when using the applyoil command.\r\n");
+    send_to_char(ch, "Example: setbaneweapon (race type) (optional subrace type)\r\n");
+    send_to_char(ch, "If you made a mistake or wish to choose again, type 'setbaneweapon reset'.\r\n");
+    send_to_char(ch, "If you want to see what your current choices are, type 'setbaneweapon show'.\r\n\tn");
+}
+
+ACMD(do_setbaneweapon)
+{
+  char arg1[200], arg2[200], buf[200];
+  int i = 0, j = 0;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    display_bane_weapon_info(ch);
+    return;
+  }
+
+  if (is_abbrev(arg1, "reset"))
+  {
+    send_to_char(ch, "You reset your bane weapon choices.\r\n");
+    return;
+  }
+  else if (is_abbrev(arg1, "show"))
+  {
+    send_to_char(ch, "Your bane weapon choices are as follows:\r\n");
+    send_to_char(ch, "Race: %s", race_family_types[ch->player_specials->bane_race]);
+    if (ch->player_specials->bane_subrace)
+      send_to_char(ch, ", Subrace: %s", npc_subrace_types[ch->player_specials->bane_subrace]);
+    send_to_char(ch, "\r\n");
+    return;
+  }
+
+  for (i = 1; i < NUM_RACE_TYPES; i++)
+  {
+    snprintf(buf, sizeof(buf), "%s", race_family_types[i]);
+    for (j = 0; j < sizeof(buf); j++)
+      buf[j] = tolower(buf[j]);
+    if (!strcmp(buf, arg1)) break;
+  }
+
+  if (i >= NUM_RACE_TYPES)
+  {
+    send_to_char(ch, "\tYThat is an invalid race type choice.  Please select again.\r\n\tn");
+    display_bane_weapon_info(ch);
+    return;
+  }
+
+  ch->player_specials->bane_race = i;
+  send_to_char(ch, "You set your bane weapon race type to '%s'.\r\n", race_family_types[ch->player_specials->bane_race]);
+
+  // subrace is optional.  Only if specified
+  if (*arg2)
+  {
+    for (i = 1; i < NUM_SUB_RACES; i++)
+    {
+      snprintf(buf, sizeof(buf), "%s", npc_subrace_types[i]);
+      for (j = 0; j < sizeof(buf); j++)
+        buf[j] = tolower(buf[j]);
+      if (!strcmp(buf, arg2)) break;
+    }
+
+    if (i >= NUM_SUB_RACES)
+    {
+      send_to_char(ch, "\tYThat is an invalid subrace choice.  Please select again.\r\n\tn");
+      display_bane_weapon_info(ch);
+      return;
+    }
+
+    ch->player_specials->bane_subrace = i;
+    send_to_char(ch, "You set your bane weapon subrace type to '%s'.\r\n", npc_subrace_types[ch->player_specials->bane_subrace]);
+  }
+
 }
 
 /* EOF */

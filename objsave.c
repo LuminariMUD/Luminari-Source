@@ -89,6 +89,7 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   struct extra_descr_data *ex_desc;
   char buf1[MAX_STRING_LENGTH + 1];
   struct obj_data *temp = NULL;
+  struct obj_special_ability *specab = NULL;
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -394,6 +395,23 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
+  }
+
+  // weapon and armor special abilities
+  if (obj->special_abilities)
+  { /* Yes, save them too. */
+    specab = obj->special_abilities;
+    fprintf(fp, "SpAb: %d %d %d %d %d %d %d %s\n",
+            specab->ability, specab->level, specab->activation_method,
+            specab->value[0], specab->value[1], specab->value[2], specab->value[3],
+            (specab->command_word && *specab->command_word) ? specab->command_word : "");
+    #ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n",
+            specab->ability, specab->level, specab->activation_method,
+            specab->value[0], specab->value[1], specab->value[2], specab->value[3],
+            (specab->command_word && *specab->command_word) ? specab->command_word : "");
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+    #endif
   }
 
   /*** end checks for object modifications ****/
@@ -1489,7 +1507,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
 
   while (TRUE)
   {
-    char tag[6];
+    char tag[8];
     int num;
 
     /* if the file is done, wrap it all up */
@@ -1723,6 +1741,20 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           j++;
         }
       }
+      else if (!strcmp(tag, "SpAb"))
+      {
+        CREATE(temp->special_abilities, struct obj_special_ability, 1);
+        sscanf(line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], f1);
+            temp->special_abilities->ability = t[0];
+            temp->special_abilities->level = t[1];
+            temp->special_abilities->activation_method = t[2];
+            temp->special_abilities->value[0] = t[3];
+            temp->special_abilities->value[1] = t[4];
+            temp->special_abilities->value[2] = t[5];
+            temp->special_abilities->value[3] = t[6];
+            temp->special_abilities->command_word = strdup(f1);
+      }
+      break;
     case 'T':
       if (!strcmp(tag, "Type"))
         GET_OBJ_TYPE(temp) = num;
@@ -1848,7 +1880,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
    */
   while ((row = mysql_fetch_row(result)))
   {
-    char tag[6];
+    char tag[8];
     int num, j = 0;
 
     /* Get the data from the row structure. */
@@ -2043,6 +2075,20 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
             j++;
           }
         }
+        else if (!strcmp(tag, "SpAb"))
+        {
+          sscanf(*line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], f1);
+              CREATE(temp->special_abilities, struct obj_special_ability, 1);
+              temp->special_abilities->ability = t[0];
+              temp->special_abilities->level = t[1];
+              temp->special_abilities->activation_method = t[2];
+              temp->special_abilities->value[0] = t[3];
+              temp->special_abilities->value[1] = t[4];
+              temp->special_abilities->value[2] = t[5];
+              temp->special_abilities->value[3] = t[6];
+              temp->special_abilities->command_word = strdup(f1);
+        }
+        break;
       case 'T':
         if (!strcmp(tag, "Type"))
           GET_OBJ_TYPE(temp) = num;

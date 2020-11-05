@@ -1674,3 +1674,36 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
     break;
   }
 }
+
+char * get_weapon_specab_default_command_word(int specab)
+{
+  switch (specab)
+  {
+    case WEAPON_SPECAB_BLINDING:
+      return strdup("obscure");
+    case WEAPON_SPECAB_FLAMING:
+    case WEAPON_SPECAB_FLAMING_BURST:
+      return strdup("blaze");
+    case WEAPON_SPECAB_CORROSIVE:
+    case WEAPON_SPECAB_CORROSIVE_BURST:
+      return strdup("corrode");
+    case WEAPON_SPECAB_FROST:
+    case WEAPON_SPECAB_ICY_BURST:
+      return strdup("glacier");
+    case WEAPON_SPECAB_VICIOUS:
+      return strdup("ferocity");
+    case WEAPON_SPECAB_VORPAL:
+      return strdup("decapitate");
+    case WEAPON_SPECAB_DISRUPTION:
+      return strdup("exorcise");
+    case WEAPON_SPECAB_SEEKING:
+      return strdup("snipe");
+    case WEAPON_SPECAB_ADAPTIVE:
+      return strdup("propel");
+    case WEAPON_SPECAB_AGILE:
+      return strdup("fleet");
+    case WEAPON_SPECAB_DEFENDING:
+      return strdup("aegis");
+  }
+  return NULL;
+}

@@ -1575,6 +1575,8 @@ void print_prep_queue(struct char_data *ch, int ch_class)
   send_to_char(ch, "\tC");
   text_line(ch, buf, line_length, '-', '-');
   send_to_char(ch, "\tn");
+  if (ch_class == CLASS_WIZARD)
+    send_to_char(ch, "Wizards must have their spellbook in their inventory to memorize spells.\r\n");
 
   /* all done */
   return;
