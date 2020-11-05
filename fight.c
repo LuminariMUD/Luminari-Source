@@ -2783,27 +2783,27 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONHIDE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONSCALE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONBONE)))
-    damage_reduction += 2;
+    damage_reduction += 1;
   if (GET_EQ(ch, WEAR_HEAD) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HEAD)) == ITEM_ARMOR &&
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONHIDE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONSCALE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONBONE)))
-    damage_reduction += 2;
+    damage_reduction += 1;
   if (GET_EQ(ch, WEAR_ARMS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS)) == ITEM_ARMOR &&
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONHIDE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONSCALE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONBONE)))
-    damage_reduction += 2;
+    damage_reduction += 1;
   if (GET_EQ(ch, WEAR_LEGS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_LEGS)) == ITEM_ARMOR &&
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONHIDE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONSCALE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONBONE)))
-    damage_reduction += 2;
+    damage_reduction += 1;
   if (GET_EQ(ch, WEAR_SHIELD) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_SHIELD)) == ITEM_ARMOR &&
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONHIDE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONSCALE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONBONE)))
-    damage_reduction += 2;
+    damage_reduction += 1;
 
   //damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
