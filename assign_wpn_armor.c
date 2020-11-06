@@ -2261,6 +2261,8 @@ bool is_using_keen_weapon(struct char_data *ch)
 
 int get_lucky_weapon_bonus(struct char_data *ch)
 {
+  if (!ch) return 0;
+  
   struct obj_data *obj = NULL;
   int bonus = 0;
 

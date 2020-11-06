@@ -233,8 +233,8 @@ void load_hunts(void)
       SUBRACE_AQUATIC, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SIZE_HUGE );
     add_hunt_ability(HUNT_TYPE_DRAGON_TURTLE, HUNT_ABIL_SWALLOW);      add_hunt_ability(HUNT_TYPE_DRAGON_TURTLE, HUNT_ABIL_FIRE_BREATH);
 
-    add_hunt(HUNT_TYPE_ROC, 25, "roc",  "This immense raptor unleashes a shrill cry as it bares its talons, each large enough to carry off a horse.t", 
-      "", CLASS_WARRIOR, TRUE_NEUTRAL, RACE_TYPE_ANIMAL, 
+    add_hunt(HUNT_TYPE_ROC, 25, "roc",  "This immense raptor unleashes a shrill cry as it bares its talons, each large enough to carry off a horse.", 
+      "A massive roc, a huge flying bird of prey, sits majestically before you.", CLASS_WARRIOR, TRUE_NEUTRAL, RACE_TYPE_ANIMAL, 
       SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SIZE_GARGANTUAN );
     add_hunt_ability(HUNT_TYPE_ROC, HUNT_ABIL_FLIGHT);      add_hunt_ability(HUNT_TYPE_ROC, HUNT_ABIL_GRAPPLE);
 
@@ -324,7 +324,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 {
   if (room == NOWHERE) return;
 
-  struct char_data *mob = read_mobile(8100, VIRTUAL);
+  struct char_data *mob = read_mobile(HUNTS_MOB_VNUM, VIRTUAL);
   char mob_descs[1000];
   int i = 0;
 
@@ -341,24 +341,28 @@ void create_hunt_mob(room_rnum room, int which_hunt)
 
   // set descriptions
   mob->player.name = strdup(hunt_table[which_hunt].name);
-  sprintf(mob_descs, "%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+
+  sprintf(mob_descs, "\tn%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
   for (i = 0; i < strlen(mob_descs); i++)
     mob_descs[i] = tolower(mob_descs[i]);
   mob->player.short_descr = strdup(mob_descs);
+
   if (!strcmp(hunt_table[which_hunt].long_description, "Nothing")) {
-    sprintf(mob_descs, "%s %s is here.\r\n", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+    sprintf(mob_descs, "\tn%s %s is here.\r\n", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
     mob->player.long_descr = strdup(mob_descs);
   } else {
-    sprintf(mob_descs, "%s\r\n", hunt_table[which_hunt].long_description);
+    sprintf(mob_descs, "\tn%s\r\n", hunt_table[which_hunt].long_description);
     mob->player.long_descr = strdup(mob_descs);
   }
+
   if (!strcmp(hunt_table[which_hunt].description, "Nothing")) {
-    sprintf(mob_descs, "%s %s is here before you.\r\n", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
+    sprintf(mob_descs, "\tn%s %s is here before you.\r\n", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
     mob->player.description = strdup(mob_descs);    
   } else {
-    sprintf(mob_descs, "%s\r\n", hunt_table[which_hunt].description);
+    sprintf(mob_descs, "\tn%s\r\n", hunt_table[which_hunt].description);
     mob->player.description = strdup(mob_descs);
   }
+
   // set mob details
   GET_REAL_RACE(mob) = hunt_table[which_hunt].race_type;
   GET_SUBRACE(mob, 0) - hunt_table[which_hunt].subrace[0];
@@ -443,8 +447,8 @@ void select_reported_hunt_coords(int which_hunt, int times_called)
     int terrain = 0;
     room_rnum room = NOWHERE;
 
-    //x = dice(1, 11) - 6;
-    //y = dice(1, 11) - 6;
+    x = dice(1, 11) - 6;
+    y = dice(1, 11) - 6;
     
     x += active_hunts[which_hunt][1];
     y += active_hunts[which_hunt][2];
@@ -791,6 +795,7 @@ void award_hunt_materials(struct char_data *ch, int which_hunt)
 void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob)
 {
   if (!ch || ! hunt_mob) return;
+
   if (IN_ROOM(ch) == NOWHERE || IN_ROOM(hunt_mob) == NOWHERE) return;
   
   if (IS_NPC(ch))
@@ -820,7 +825,9 @@ void drop_hunt_mob_rewards(struct char_data *ch, struct char_data *hunt_mob)
     if (is_player_grouped(tch, ch))
     {
       GET_QUESTPOINTS(tch) += GET_LEVEL(hunt_mob) * 20;
-      send_to_char(ch, "You've been rewarded %d quest points!\r\n", GET_LEVEL(hunt_mob) * 20);
+      GET_GOLD(tch) += GET_LEVEL(hunt_mob) * 500;
+      send_to_char(tch, "You've been rewarded %d quest points, and %d gold!\r\n", GET_LEVEL(hunt_mob) * 20, GET_LEVEL(hunt_mob) * 500);
+      
     }
   }
 
