@@ -71,6 +71,7 @@
 #define HUNT_REWARD_TYPE_WEAPON_OIL 2
 
 #define HUNTS_REWARD_ITEM_VNUM      60100
+#define HUNTS_MOB_VNUM              8101
 
 struct hunt_type {
 

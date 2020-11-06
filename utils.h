@@ -1168,7 +1168,7 @@ void char_from_furniture(struct char_data *ch);
 /* Macros to check LEVELUP feats. */
 #define HAS_LEVELUP_FEAT(ch, i) (has_feat_requirement_check((ch), i))
 #define SET_LEVELUP_FEAT(ch, i, j) (LEVELUP(ch)->feats[i] = j)
-#define HAS_LEVELUP_COMBAT_FEAT(ch, i, j) (IS_SET_AR(LEVELUP(ch)->combat_feats[i], j))
+#define HAS_LEVELUP_COMBAT_FEAT(ch, i, j) ((i == -1) ? 0 : IS_SET_AR(LEVELUP(ch)->combat_feats[i], j))
 #define SET_LEVELUP_COMBAT_FEAT(ch, i, j) (SET_BIT_AR(LEVELUP(ch)->combat_feats[(i)], (j)))
 #define HAS_LEVELUP_SCHOOL_FEAT(ch, i, j) (IS_SET(LEVELUP(ch)->school_feats[(i)], (1 << (j))))
 #define SET_LEVELUP_SCHOOL_FEAT(ch, i, j) (SET_BIT(LEVELUP(ch)->school_feats[(i)], (1 << (j))))

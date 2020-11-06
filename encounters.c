@@ -1059,7 +1059,10 @@ void check_random_encounter(struct char_data *ch)
         Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
         char_to_room(mob, IN_ROOM(ch));
         
-        send_to_room(IN_ROOM(ch), "\tY%s has ambushed you!\tn\r\n", CAP(mob->player.short_descr));
+        if (encounter_table[j].hostile)
+          send_to_room(IN_ROOM(ch), "\tY%s has ambushed you!\tn\r\n", CAP(mob->player.short_descr));
+        else
+          send_to_room(IN_ROOM(ch), "\tYYou come across %s.\tn\r\n", CAP(mob->player.short_descr));
         num_mobs++;
       }
     }

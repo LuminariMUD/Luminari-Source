@@ -2549,7 +2549,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
       write_to_output(d, "That is an invalid choice!\r\n");
       cfeat_disp_menu(d);
-      break;
+      return;
     }
     number--; // menu starts at 1 but weapon family defines start at 0
     if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(LEVELUP(d->character)->tempFeat), number) ||
@@ -2557,7 +2557,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
       write_to_output(d, "You already have that weapon type selected for this feat!\r\n\r\n");
       cfeat_disp_menu(d);
-      break;
+      return;
     }
     /* Now we have the weapon type - set it in the structure. */
     if (add_levelup_feat(d, LEVELUP(d->character)->tempFeat))

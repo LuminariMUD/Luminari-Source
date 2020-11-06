@@ -210,6 +210,8 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon) {
   bool using_comp = FALSE;
   bool has_comp_feat = FALSE;
 
+  if (cfeat == -1) return false;
+
   /* had to add special test to weapon combat feats because of the way
      I set up composite bows with various strength modifiers -zusuk */
   switch (weapon) {

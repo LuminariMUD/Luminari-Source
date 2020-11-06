@@ -1176,7 +1176,7 @@ void proc_d20_round(void)
           }
         }
 
-        if (i->mob_specials.aggro_timer > 0 && i->mob_specials.peaceful_timer == -1)
+        if (!FIGHTING(i) && i->mob_specials.aggro_timer > 0 && i->mob_specials.peaceful_timer == -1)
         {
           switch (i->mob_specials.aggro_timer)
           {

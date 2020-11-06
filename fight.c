@@ -1434,7 +1434,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     determine_treasure(find_treasure_recipient(killer), ch);
     if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_HUNTS_TARGET))
     {
-      award_hunt_materials(killer, ch->mob_specials.hunt_type);
+      drop_hunt_mob_rewards(killer, ch);
       remove_hunts_mob(ch->mob_specials.hunt_type);
     }
   }
@@ -1571,17 +1571,20 @@ void die(struct char_data *ch, struct char_data *killer)
       {
         if (GROUP(killer) && GROUP(killer)->members->iSize)
         {
-          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s of %s's group has defeated %s!\r\n",
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s of %s's group has defeated %s!\r\n",
+                       MOB_FLAGGED(ch, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
                        GET_NAME(killer), GET_NAME(killer->group->leader), GET_NAME(ch));
         }
         else if (IS_NPC(killer) && killer->master)
         {
-          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s's follower has defeated %s!\r\n",
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s's follower has defeated %s!\r\n",
+                       MOB_FLAGGED(ch, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
                        GET_NAME(killer->master), GET_NAME(ch));
         }
         else
         {
-          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s has defeated %s!\r\n",
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s has defeated %s!\r\n",
+                       MOB_FLAGGED(ch, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
                        GET_NAME(killer), GET_NAME(ch));
         }
       }
@@ -3126,17 +3129,20 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
       {
         if (GROUP(ch) && GROUP(ch)->members->iSize)
         {
-          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s of %s's group has defeated %s in the Arena!\r\n",
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s of %s's group has defeated %s in the Arena!\r\n",
+                       MOB_FLAGGED(ch, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
                        GET_NAME(ch), GET_NAME(ch->group->leader), GET_NAME(victim));
         }
         else if (IS_NPC(ch) && ch->master)
         {
-          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s's follower has defeated %s in the Arena!\r\n",
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s's follower has defeated %s in the Arena!\r\n",
+                       MOB_FLAGGED(ch, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
                        GET_NAME(ch->master), GET_NAME(victim));
         }
         else
         {
-          send_to_char(pt->character, "\tR[\tWInfo\tR]\tn %s has defeated %s in the Arena!\r\n",
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s has defeated %s in the Arena!\r\n",
+                       MOB_FLAGGED(ch, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
                        GET_NAME(ch), GET_NAME(victim));
         }
       }
