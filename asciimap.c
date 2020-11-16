@@ -143,6 +143,7 @@ static struct map_info_type map_info[] = {
   { SECT_TUNDRA, "\tW.\tn"},
   { SECT_TAIGA, "\tgA\tn"},
   { SECT_BEACH, "\ty:\tn"},
+  { SECT_SEAPORT, "\tc[\tRS\tc]\tn"}, /* 34 */
 
   { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
@@ -185,6 +186,7 @@ static struct map_info_type world_map_info[] = {
   { SECT_TUNDRA, "\tW.\tn"},
   { SECT_TAIGA, "\tgA\tn"},
   { SECT_BEACH, "\ty:\tn"},
+  { SECT_SEAPORT, "\tRS\tn"}, /* 34 */
 
   { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
   { SECT_EMPTY, " "},
@@ -595,6 +597,7 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap) {
   count += sprintf(buf + count, "\tn%s D Rd E-W\\\\", map_info[SECT_D_ROAD_EW].disp);
   count += sprintf(buf + count, "\tn%s D Inters\\\\", map_info[SECT_D_ROAD_INT].disp);
   count += sprintf(buf + count, "\tn%s Cave\\\\", map_info[SECT_CAVE].disp);
+  count += sprintf(buf + count, "\tn%s Sea Port\\\\", map_info[SECT_SEAPORT].disp);
 
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 
