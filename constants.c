@@ -938,6 +938,7 @@ const char *sector_types[] = {
     "Tundra",
     "Taiga",
     "Beach",
+    "Sea Port",
     "\n"};
 CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
 
@@ -979,6 +980,7 @@ const char *sector_types_readable[] = {
     "on the tundra",
     "in a coniferous forest",
     "on a beach",
+    "at a sea port",
     "\n"};
 CHECK_TABLE_SIZE(sector_types_readable, NUM_ROOM_SECTORS + 1);
 
@@ -1019,6 +1021,7 @@ int movement_loss[] = {
     4,                  // tundra, dry, high elevations, extreme cold.
     4,                  // boreal forest, higher elevations, cold.
     2,                  // beach, borders low areas and water. 33
+    1,                  // sea ports
 };
 CHECK_TABLE_SIZE(movement_loss, NUM_ROOM_SECTORS);
 

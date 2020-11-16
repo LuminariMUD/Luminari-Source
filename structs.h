@@ -272,9 +272,10 @@
 #define SECT_TUNDRA 31 // tundra, dry, high elevations, extreme cold.
 #define SECT_TAIGA 32  // boreal forest, higher elevations, cold.
 #define SECT_BEACH 33  // beach, borders low areas and water.
+#define SECT_SEAPORT 34
 /* End wilderness sectors. These can (and should!) be used in zones too! */
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS 34
+#define NUM_ROOM_SECTORS 35
 
 /* char and mob-related defines */
 

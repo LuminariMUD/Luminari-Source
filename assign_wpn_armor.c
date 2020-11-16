@@ -173,9 +173,9 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
   }
 
   /* cleric domain, favored weapons */
-  if (domain_list[GET_1ST_DOMAIN(ch)].favored_weapon == weapon)
+  if (!IS_NPC(ch) && domain_list[GET_1ST_DOMAIN(ch)].favored_weapon == weapon)
     return TRUE;
-  if (domain_list[GET_2ND_DOMAIN(ch)].favored_weapon == weapon)
+  if (!IS_NPC(ch) && domain_list[GET_2ND_DOMAIN(ch)].favored_weapon == weapon)
     return TRUE;
 
   /* TODO: Adapt this - Focus on an aspect of the divine, not a deity. */
