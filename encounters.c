@@ -905,6 +905,14 @@ void populate_encounter_table(void)
     set_encounter_long_description(ENCOUNTER_TYPE_NAGA, "A slender, writhing naga flicks its barbed tongue at you wickedly.");
     set_encounter_terrain_all_surface(ENCOUNTER_TYPE_NAGA);      set_encounter_terrain_all_water(ENCOUNTER_TYPE_NAGA);
 
+    add_encounter_record(ENCOUNTER_TYPE_HILL_GIANT, ENCOUNTER_CLASS_COMBAT, 10, 20, ENCOUNTER_GROUP_TYPE_HILL_GIANT, "hill giant", 100, 1, 5, 
+      TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL, RACE_TYPE_GIANT, 
+      SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, SENTIENT, SIZE_LARGE );
+    set_encounter_description(ENCOUNTER_TYPE_HILL_GIANT, "This hunched giant exudes power and a crude, stupid anger, its filthy fur clothing bespeaking a brutish and backwoods lifestyle.");
+    set_encounter_long_description(ENCOUNTER_TYPE_HILL_GIANT, "A huge hill giant towers menacingly here.");
+    add_encounter_sector(ENCOUNTER_TYPE_HILL_GIANT, SECT_FIELD);      add_encounter_sector(ENCOUNTER_TYPE_HILL_GIANT, SECT_HILLS);
+    add_encounter_sector(ENCOUNTER_TYPE_HILL_GIANT, SECT_MOUNTAIN);      add_encounter_sector(ENCOUNTER_TYPE_HILL_GIANT, SECT_CAVE);
+
 
 // CR 8
 
@@ -961,6 +969,14 @@ void populate_encounter_table(void)
     set_encounter_description(ENCOUNTER_TYPE_RAKSHASA, "This figure’s backward-bending fingers and its bestial, snarling visage leave little doubt as to its fiendish nature.");
     set_encounter_long_description(ENCOUNTER_TYPE_RAKSHASA, "A wicked rakshasa snarls at you as its fiendish claws curl back unnaturally.");
     set_encounter_terrain_all_surface(ENCOUNTER_TYPE_RAKSHASA);  
+
+    add_encounter_record(ENCOUNTER_TYPE_FIRE_GIANT, ENCOUNTER_CLASS_COMBAT, 20, 30, ENCOUNTER_GROUP_TYPE_FIRE_GIANT, "fire giant", 100, 1, 5, 
+      TREASURE_TABLE_NONE, CLASS_BERSERKER, ENCOUNTER_STRENGTH_NORMAL, CHAOTIC_EVIL, RACE_TYPE_GIANT, 
+      SUBRACE_FIRE, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, SENTIENT, SIZE_LARGE );
+    set_encounter_description(ENCOUNTER_TYPE_FIRE_GIANT, "This lumbering giant has short stumpy legs and powerful, muscular arms. Its hair and beard seem to be made of fire.");
+    set_encounter_long_description(ENCOUNTER_TYPE_FIRE_GIANT, "A massive fire giant pounds a gigantic, pitch-black into the ground.");
+    add_encounter_sector(ENCOUNTER_TYPE_FIRE_GIANT, SECT_FIELD);      add_encounter_sector(ENCOUNTER_TYPE_FIRE_GIANT, SECT_HILLS);
+    add_encounter_sector(ENCOUNTER_TYPE_FIRE_GIANT, SECT_LAVA);  
 
 // CR 11
 

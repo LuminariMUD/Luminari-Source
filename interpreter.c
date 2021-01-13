@@ -167,8 +167,8 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_backstab},
-    {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
