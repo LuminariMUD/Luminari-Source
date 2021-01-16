@@ -1336,6 +1336,11 @@ void mobile_activity(void)
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             found = TRUE;
           }
+          else if (!MOB_FLAGGED(ch, MOB_ENCOUNTER)) {
+            // all other aggro mobs
+            hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+            found = TRUE;
+          }
         }
       }
     }
