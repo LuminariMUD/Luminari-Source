@@ -2782,7 +2782,7 @@ void advance_level(struct char_data *ch, int class)
   }
   if (class == CLASS_WARRIOR)
   {
-    if (!IS_EPIC(ch))
+    if (!IS_EPIC(ch) && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2))
       class_feats++; // warriors get a bonus class feat every 2 levels
     //else if (IS_EPIC(ch))
     //epic_class_feats++;
@@ -2884,11 +2884,11 @@ void advance_level(struct char_data *ch, int class)
   }
   GET_FEAT_POINTS(ch) += feats;
   if (feats)
-    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+    if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
   GET_CLASS_FEATS(ch, class) += class_feats;
   if (class_feats)
-    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+    if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMClass feat points gained.\tn\r\n", class_feats);
   GET_EPIC_FEAT_POINTS(ch) += epic_feats;
   if (epic_feats)
@@ -2897,7 +2897,7 @@ void advance_level(struct char_data *ch, int class)
   if (epic_class_feats)
     send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
   GET_TRAINS(ch) += trains;
-  if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+  if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
     send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
   /*******/
   /* end advancement block */
