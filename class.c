@@ -2775,14 +2775,14 @@ void advance_level(struct char_data *ch, int class)
   /* pre epic special class feat progression */
   if (class == CLASS_WIZARD && !(CLASS_LEVEL(ch, CLASS_WIZARD) % 5))
   {
-    if (!IS_EPIC(ch))
+    if (CLASS_LEVEL(ch, CLASS_WIZARD) <= 20)
       class_feats++; // wizards get a bonus class feat every 5 levels
     //else if (IS_EPIC(ch))
     //epic_class_feats++;
   }
   if (class == CLASS_WARRIOR)
   {
-    if (!IS_EPIC(ch) && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2))
+    if (CLASS_LEVEL(ch, CLASS_WARRIOR) <= 20 && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2))
       class_feats++; // warriors get a bonus class feat every 2 levels
     //else if (IS_EPIC(ch))
     //epic_class_feats++;
