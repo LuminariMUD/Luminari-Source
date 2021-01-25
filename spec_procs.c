@@ -855,6 +855,24 @@ int compute_ability(struct char_data *ch, int abilityNum)
     }
   }
 
+  int high_eq = 0, i = 0, j = 0;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    for (j = 0; j < 6; j++)
+    {
+      if (GET_EQ(ch, i)
+      && GET_EQ(ch, i)->affected[j].location == APPLY_SKILL
+      && GET_EQ(ch, i)->affected[j].specific == abilityNum)
+      {
+          if (GET_EQ(ch, i)->affected[j].modifier > high_eq)
+              high_eq = GET_EQ(ch, i)->affected[j].modifier;
+      }
+    }
+  }
+
+  value += high_eq;
+
   switch (abilityNum)
   {
 

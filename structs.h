@@ -2919,6 +2919,7 @@ struct obj_affected_type
     byte location;  /**< Which ability to change (APPLY_XXX) */
     int modifier;   /**< How much it changes by              */
     int bonus_type; /**< What type of bonus is this. */
+    int specific; // for feats and skills
 };
 
 /* For weapon spells. */

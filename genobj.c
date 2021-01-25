@@ -279,10 +279,11 @@ int save_objects(zone_rnum zone_num)
         if (obj->affected[counter2].modifier)
           fprintf(fp,
                   "A\n"
-                  "%d %d %d\n",
+                  "%d %d %d %d\n",
                   obj->affected[counter2].location,
                   obj->affected[counter2].modifier,
-                  obj->affected[counter2].bonus_type);
+                  obj->affected[counter2].bonus_type,
+                  obj->affected[counter2].specific);
 
       /* B:  Do we have spells? */
       if (obj->sbinfo)

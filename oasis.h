@@ -262,6 +262,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OEDIT_VALUE_5 52
 #define OEDIT_APPLY_BONUS_TYPE 53
 #define OEDIT_APPLYSPEC 54
+#define OEDIT_APPLY_SPECIFIC 55
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1
