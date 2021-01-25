@@ -5949,4 +5949,20 @@ bool isSorcBloodlineFeat(int featnum)
   return FALSE;
 }
 
+bool valid_item_feat(int featnum)
+{
+  if (featnum < 1 || featnum >= FEAT_LAST_FEAT)
+    return false;
+
+  if (feat_list[featnum].can_learn && feat_list[featnum].combat_feat == FALSE && feat_list[featnum].epic == FALSE &&
+            feat_list[featnum].in_game && feat_to_skfeat(featnum) == -1 &&
+            (feat_list[featnum].feat_type == FEAT_TYPE_COMBAT || feat_list[featnum].feat_type == FEAT_TYPE_CRAFT ||
+            feat_list[featnum].feat_type == FEAT_TYPE_GENERAL || feat_list[featnum].feat_type == FEAT_TYPE_METAMAGIC ||
+            feat_list[featnum].feat_type == FEAT_TYPE_SPELLCASTING)
+  )
+    return true;
+
+  return false;
+}
+
 /* EOF */

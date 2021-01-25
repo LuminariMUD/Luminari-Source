@@ -847,7 +847,15 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
         feat_num = j->affected[i].modifier;
         if (feat_num < 0 || feat_num >= NUM_FEATS)
           feat_num = FEAT_UNDEFINED;
-        send_to_char(ch, "%s %s:(%d)%s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
+        send_to_char(ch, "%s %s:(%d) %s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
+      }
+      else if (j->affected[i].location == APPLY_SKILL)
+      {
+        feat_num = j->affected[i].specific;
+        if (feat_num < START_GENERAL_ABILITIES || feat_num > END_CRAFT_ABILITIES)
+          feat_num = ABILITY_UNDEFINED;
+        send_to_char(ch, "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
+        j->affected[i].modifier, ability_names[feat_num], bonus_types[j->affected[i].bonus_type]);
       }
       else
         send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);

@@ -32,6 +32,7 @@
 #include "domains_schools.h"
 #include "treasure.h" /* set_weapon_object */
 #include "act.h"      /* get_eq_score() */
+#include "feats.h"
 
 /* local functions */
 static void oedit_disp_size_menu(struct descriptor_data *d);
@@ -450,6 +451,13 @@ static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
                                        ? OLC_OBJ(d)->affected[counter].modifier
                                        : 0)]
                             .name,
+                        bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
+      }
+      else if (OLC_OBJ(d)->affected[counter].location == APPLY_SKILL)
+      {
+        write_to_output(d, " %s%d%s) Improves Skill %s by %d (%s)\r\n", grn, counter + 1, nrm,
+                        ability_names[OLC_OBJ(d)->affected[counter].specific],
+                        OLC_OBJ(d)->affected[counter].modifier,
                         bonus_types[OLC_OBJ(d)->affected[counter].bonus_type]);
       }
       else
@@ -1654,7 +1662,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
 /* main loop (of sorts).. basically interpreter throws all input to here. */
 void oedit_parse(struct descriptor_data *d, char *arg)
 {
-  int number, min_val;
+  int number, min_val, i = 0, count = 0;
   long max_val;
   char *oldtext = NULL;
   //int this_missile = -1;
@@ -2343,12 +2351,34 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
 
       OLC_OBJ(d)->affected[OLC_VAL(d)].location = number - 1;
-      write_to_output(d, "Modifier : ");
+      if ((number - 1) == APPLY_FEAT) {
+        write_to_output(d, "Select Feat : \r\n");
+        for (i = 1; i < FEAT_LAST_FEAT; i++)
+        {
+          if (valid_item_feat(i))
+          {
+            count++;
+            send_to_char(d->character, "%3d) %-30s ", i, feat_list[i].name);
+            if ((count % 3) == 2)
+              send_to_char(d->character, "\r\n");
+          }
+        }
+        send_to_char(d->character, "\r\n");
+      } else {
+        write_to_output(d, "Modifier : ");
+      }
       OLC_MODE(d) = OEDIT_APPLYMOD;
     }
     return;
 
   case OEDIT_APPLYMOD:
+    if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_FEAT)
+    {
+      if (!valid_item_feat(atoi(arg))) {
+        send_to_char(d->character, "You can't assign that feat to an item.\r\n");
+        return;
+      }
+    }
     OLC_OBJ(d)->affected[OLC_VAL(d)].modifier = atoi(arg);
     oedit_disp_apply_prompt_bonus_type_menu(d);
     return;
@@ -2387,6 +2417,30 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
     OLC_OBJ(d)->affected[OLC_VAL(d)].bonus_type = atoi(arg);
+    if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_SKILL)
+    {
+      write_to_output(d, "\r\nSelect which skill to affect:\r\n\r\n");
+      for (i = START_GENERAL_ABILITIES; i <= END_CRAFT_ABILITIES; i++)
+      {
+        write_to_output(d, "%2d) %-21s ", i, ability_names[i]);
+        if ((i % 3) == 0)
+          write_to_output(d, "\r\n");
+      }
+      write_to_output(d, "\r\n");
+      write_to_output(d, "Skill: ");
+      OLC_MODE(d) = OEDIT_APPLY_SPECIFIC;
+    } else {
+      oedit_disp_prompt_apply_menu(d);
+    }
+    return;
+  case OEDIT_APPLY_SPECIFIC:
+    number = atoi(arg);
+    if (number < START_GENERAL_ABILITIES || number > END_CRAFT_ABILITIES)
+    {
+      write_to_output(d, "That is not a valid skill.\r\n");
+      return;
+    }
+    OLC_OBJ(d)->affected[OLC_VAL(d)].specific = number;
     oedit_disp_prompt_apply_menu(d);
     return;
   case OEDIT_EXTRADESC_KEY:

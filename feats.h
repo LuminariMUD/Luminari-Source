@@ -64,6 +64,7 @@ extern struct feat_info feat_list[];
 extern int feat_sort_info[MAX_FEATS];
 int get_sorcerer_bloodline_type(struct char_data *ch);
 bool isSorcBloodlineFeat(int featnum);
+bool valid_item_feat(int featnum);
 
 /**ACMD***/
 ACMD_DECL(do_feats);

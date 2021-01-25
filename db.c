@@ -2818,9 +2818,14 @@ const char *parse_object(FILE *obj_f, int nr)
         exit(1);
       }
 
-      if ((retval = sscanf(line, " %d %d %d", t, t + 1, t + 2)) != 3)
+      if ((retval = sscanf(line, " %d %d %d %d", t, t + 1, t + 2, t + 3)) != 4)
       {
-        if (retval == 2)
+        if (retval == 3) {
+          obj_proto[i].affected[j].location = t[0];
+          obj_proto[i].affected[j].modifier = t[1];
+          obj_proto[i].affected[j].bonus_type = t[2];
+        }
+        else if (retval == 2)
         {
           /* Old object verison, no bonus type.*/
           t[2] = BONUS_TYPE_UNDEFINED;
@@ -2837,6 +2842,7 @@ const char *parse_object(FILE *obj_f, int nr)
       obj_proto[i].affected[j].location = t[0];
       obj_proto[i].affected[j].modifier = t[1];
       obj_proto[i].affected[j].bonus_type = t[2];
+      obj_proto[i].affected[j].specific = t[3];
       j++;
       break;
     case 'B':
