@@ -4050,7 +4050,7 @@ int is_player_grouped(struct char_data *target, struct char_data *group) {
   if (group == target)
     return TRUE;
 
-  if (!AFF_FLAGGED(target, AFF_GROUP) || !AFF_FLAGGED(group, AFF_GROUP))
+  if (!(target->group && group->group && target->group == group->group))
     return FALSE;
 
   if (group == target->master || target == group->master)
