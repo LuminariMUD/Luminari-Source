@@ -1813,6 +1813,18 @@ void char_from_furniture(struct char_data *ch);
 #define EFREETI_MAGIC_TIMER(ch) (ch->player_specials->saved.efreeti_magic_timer)
 #define EFREETI_MAGIC_USES_PER_DAY 10
 
+#define LAUGHING_TOUCH_USES(ch) (ch->player_specials->saved.laughing_touch_uses)
+#define LAUGHING_TOUCH_TIMER(ch) (ch->player_specials->saved.laughing_touch_timer)
+#define LAUGHING_TOUCH_USES_PER_DAY(ch) (3 + GET_CHA_BONUS(ch))
+
+#define FLEETING_GLANCE_USES(ch) (ch->player_specials->saved.fleeting_glance_uses)
+#define FLEETING_GLANCE_TIMER(ch) (ch->player_specials->saved.fleeting_glance_timer)
+#define FLEETING_GLANCE_USES_PER_DAY  3
+
+#define FEY_SHADOW_WALK_USES(ch) (ch->player_specials->saved.fey_shadow_walk_uses)
+#define FEY_SHADOW_WALK_TIMER(ch) (ch->player_specials->saved.fey_shadow_walk_timer)
+#define FEY_SHADOW_WALK_USES_PER_DAY  1
+
 #define DRAGON_MAGIC_USES(ch) (ch->player_specials->saved.dragon_magic_uses)
 #define DRAGON_MAGIC_TIMER(ch) (ch->player_specials->saved.dragon_magic_timer)
 #define DRAGON_MAGIC_USES_PER_DAY 10

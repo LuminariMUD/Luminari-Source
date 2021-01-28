@@ -1514,6 +1514,11 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
     if (ability == ABILITY_APPRAISE)
       ability_value = CA;
   }
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
+  {
+    if (ability == ABILITY_SURVIVAL)
+      ability_value = CA;
+  }
 
   return ability_value;
 }
@@ -2667,6 +2672,39 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
         send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ARCANE_APOTHEOSIS].name);
       }
     }
+    else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
+    {
+        if (!HAS_REAL_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA))
+        {
+          SET_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_BLOODLINE_ARCANA].name);
+        }
+        if (!HAS_REAL_FEAT(ch, FEAT_LAUGHING_TOUCH))
+        {
+          SET_FEAT(ch, FEAT_LAUGHING_TOUCH, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_LAUGHING_TOUCH].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_WOODLAND_STRIDE))
+        {
+          SET_FEAT(ch, FEAT_WOODLAND_STRIDE, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_WOODLAND_STRIDE].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_FLEETING_GLANCE))
+        {
+          SET_FEAT(ch, FEAT_FLEETING_GLANCE, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FLEETING_GLANCE].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_FEY_MAGIC))
+        {
+          SET_FEAT(ch, FEAT_FEY_MAGIC, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_MAGIC].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_SOUL_OF_THE_FEY))
+        {
+          SET_FEAT(ch, FEAT_SOUL_OF_THE_FEY, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_SOUL_OF_THE_FEY].name);
+        }
+      }
     break;
   case CLASS_MYSTIC_THEURGE:
   {
@@ -3302,6 +3340,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_CLONE, 11);
   spell_assignment(CLASS_WIZARD, SPELL_WATERWALK, 11);
   spell_assignment(CLASS_WIZARD, SPELL_LEVITATE, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_WALK, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM, 13);
@@ -4448,6 +4487,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_CLONE, 12);
   spell_assignment(CLASS_SORCERER, SPELL_WATERWALK, 12);
   spell_assignment(CLASS_SORCERER, SPELL_LEVITATE, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_SHADOW_WALK, 12);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_SORCERER, SPELL_MISSILE_STORM, 14);
@@ -4909,6 +4949,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_NIGHTMARE, 14);
   spell_assignment(CLASS_BARD, SPELL_MIND_FOG, 14);
   spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT, 14);
+  spell_assignment(CLASS_BARD, SPELL_SHADOW_WALK, 14);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7, 17);
@@ -5652,6 +5693,7 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_HEAL, 16);
   spell_assignment(CLASS_ALCHEMIST, SPELL_TRANSFORMATION, 16);
   spell_assignment(CLASS_ALCHEMIST, SPELL_TRUE_SEEING, 16);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_SHADOW_WALK, 16);
 
   /* starting feats and proficiencies */
   feat_assignment(CLASS_ALCHEMIST, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);

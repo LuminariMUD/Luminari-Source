@@ -4026,6 +4026,9 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
 // includes the saving throw against poison.
 sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level) {
 
+  if (HAS_FEAT(victim, FEAT_POISON_IMMUNITY) || HAS_FEAT(victim, FEAT_SOUL_OF_THE_FEY))
+    return TRUE;
+
   int bonus = 0;
 
   if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))

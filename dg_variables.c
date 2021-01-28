@@ -29,6 +29,7 @@
 #include "race.h"
 #include "clan.h"
 #include "mudlim.h"
+#include "feats.h"
 
 /* Utility functions */
 
@@ -69,6 +70,18 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
   }
 
   strcpy(vd->value, value); /* strcpy: ok*/
+}
+
+int dg_has_feat(char_data *ch, const char *feat, int return_type)
+{
+    int featnum;
+
+    featnum = find_feat_num(feat);
+
+    if (featnum <= 0)
+      return 0;
+    else
+      return HAS_FEAT(ch, featnum);
 }
 
 /* perhaps not the best place for this, but I didn't want a new file */
@@ -895,7 +908,9 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         }
         break;
       case 'f':
-        if (!str_cmp(field, "fighting"))
+        if (!str_cmp(field, "feat"))
+            snprintf(str, slen, "%d", dg_has_feat(c, subfield, 0));
+        else if (!str_cmp(field, "fighting"))
         {
           if (FIGHTING(c))
             snprintf(str, slen, "%c%ld", UID_CHAR, GET_ID(FIGHTING(c)));
@@ -1497,6 +1512,10 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         }
         else if (!str_cmp(field, "sex"))
           snprintf(str, slen, "%s", genders[(int)GET_SEX(c)]);
+        else if (!str_cmp(field, "size"))
+          snprintf(str, slen, "%s", size_names[(int)GET_SIZE(c)]);
+        else if (!str_cmp(field, "sizenumber"))
+          snprintf(str, slen, "%d", (int)GET_SIZE(c));
         else if (!str_cmp(field, "skill"))
           snprintf(str, slen, "%s", skill_percent(c, subfield));
         else if (!str_cmp(field, "skillroll"))

@@ -32,6 +32,9 @@
 #include "staff_events.h"
 #include "missions.h"
 
+// external functions
+void save_char_pets(struct char_data *ch);
+
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch)
 {
@@ -409,7 +412,7 @@ void regen_update(struct char_data *ch)
     }
 
     /* poison immunity feat */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POISON_IMMUNITY))
+    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_POISON_IMMUNITY) || HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY)))
     {
       send_to_char(ch, "Your poison immunity purges the poison!\r\n");
       act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
@@ -1062,6 +1065,7 @@ void check_idling(struct char_data *ch)
         ch->desc->character = NULL;
         ch->desc = NULL;
       }
+      save_char_pets(ch);
       if (CONFIG_FREE_RENT)
         Crash_rentsave(ch, 0);
       else
@@ -1086,6 +1090,8 @@ void update_player_misc(void)
 
     if (STATE(d) != CON_PLAYING)
       continue;
+
+    save_char_pets(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
       GET_MISSION_COOLDOWN(ch)
@@ -1122,6 +1128,33 @@ void update_player_misc(void)
         PIXIE_DUST_TIMER(ch) = 0;
         PIXIE_DUST_USES(ch) = PIXIE_DUST_USES_PER_DAY(ch);
         send_to_char(ch, "Your pixie dust uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_LAUGHING_TOUCH) && LAUGHING_TOUCH_TIMER(ch) > 0)
+    {
+      LAUGHING_TOUCH_TIMER(ch)--;
+      if (LAUGHING_TOUCH_TIMER(ch) <= 0) {
+        LAUGHING_TOUCH_TIMER(ch) = 0;
+        LAUGHING_TOUCH_USES(ch) = LAUGHING_TOUCH_USES_PER_DAY(ch);
+        send_to_char(ch, "Your laughing touch uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_FLEETING_GLANCE) && FLEETING_GLANCE_TIMER(ch) > 0)
+    {
+      FLEETING_GLANCE_TIMER(ch)--;
+      if (FLEETING_GLANCE_TIMER(ch) <= 0) {
+        FLEETING_GLANCE_TIMER(ch) = 0;
+        FLEETING_GLANCE_USES(ch) = FLEETING_GLANCE_USES_PER_DAY;
+        send_to_char(ch, "Your fleeting glance uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY) && FEY_SHADOW_WALK_TIMER(ch) > 0)
+    {
+      FEY_SHADOW_WALK_TIMER(ch)--;
+      if (FEY_SHADOW_WALK_TIMER(ch) <= 0) {
+        FEY_SHADOW_WALK_TIMER(ch) = 0;
+        FEY_SHADOW_WALK_USES(ch) = FEY_SHADOW_WALK_USES_PER_DAY;
+        send_to_char(ch, "Your fey shadow walk uses have been refreshed.\r\n");
       }
     }
   }

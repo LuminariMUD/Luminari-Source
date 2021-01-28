@@ -82,6 +82,10 @@ static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
 static void load_bombs(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
+void save_char_pets(struct char_data *ch);
+
+// external functions
+void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -474,6 +478,12 @@ int load_char(const char *name, struct char_data *ch)
     GET_DISGUISE_AC(ch) = 0;
     EFREETI_MAGIC_USES(ch) = 0;
     EFREETI_MAGIC_TIMER(ch) = 0;
+    LAUGHING_TOUCH_USES(ch) = 0;
+    LAUGHING_TOUCH_TIMER(ch) = 0;
+    FLEETING_GLANCE_USES(ch) = 0;
+    FLEETING_GLANCE_TIMER(ch) = 0;
+    FEY_SHADOW_WALK_USES(ch) = 0;
+    FEY_SHADOW_WALK_TIMER(ch) = 0;
     DRAGON_MAGIC_USES(ch) = 0;
     DRAGON_MAGIC_TIMER(ch) = 0;
     PIXIE_DUST_USES(ch) = 0;
@@ -697,6 +707,10 @@ int load_char(const char *name, struct char_data *ch)
           GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
         else if (!strcmp(tag, "Feat"))
           load_feats(fl, ch);
+        else if (!strcmp(tag, "FLGT"))
+          FLEETING_GLANCE_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "FLGU"))
+          FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
           GET_FEAT_POINTS(ch) = atoi(line);
 
@@ -753,6 +767,10 @@ int load_char(const char *name, struct char_data *ch)
           GET_LAST_MOTD(ch) = atoi(line);
         else if (!strcmp(tag, "Lnew"))
           GET_LAST_NEWS(ch) = atoi(line);
+        else if (!strcmp(tag, "LTCT"))
+          LAUGHING_TOUCH_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "LTCU"))
+          LAUGHING_TOUCH_USES(ch) = atoi(line);
         break;
 
       case 'M':
@@ -932,6 +950,10 @@ int load_char(const char *name, struct char_data *ch)
           }
           ch->char_specials.saved.school_feats[i] = asciiflag_conv(f1);
         }
+        else if (!strcmp(tag, "FSWT"))
+          FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "FSWU"))
+          FEY_SHADOW_WALK_USES(ch) = atoi(line);
         else if (!strcmp(tag, "ScrW"))
           GET_SCREEN_WIDTH(ch) = atoi(line);
         else if (!strcmp(tag, "Skil"))
@@ -1453,6 +1475,7 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "EfMU: %d\n", EFREETI_MAGIC_USES(ch));
   if (EFREETI_MAGIC_TIMER(ch) != PFDEF_EFREETI_MAGIC_TIMER)
     fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
+  
   if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
     fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
   if (DRAGON_MAGIC_TIMER(ch) != PFDEF_DRAGON_MAGIC_TIMER)
@@ -1461,6 +1484,21 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "PxDU: %d\n", PIXIE_DUST_USES(ch));
   if (PIXIE_DUST_TIMER(ch) != PFDEF_PIXIE_DUST_TIMER)
     fprintf(fl, "PxDT: %d\n", PIXIE_DUST_TIMER(ch));
+
+  if (LAUGHING_TOUCH_USES(ch) != PFDEF_LAUGHING_TOUCH_USES)
+    fprintf(fl, "LTCU: %d\n", LAUGHING_TOUCH_USES(ch));
+  if (LAUGHING_TOUCH_TIMER(ch) != PFDEF_LAUGHING_TOUCH_TIMER)
+    fprintf(fl, "LTCT: %d\n", LAUGHING_TOUCH_TIMER(ch));
+
+  if (FLEETING_GLANCE_USES(ch) != PFDEF_FLEETING_GLANCE_USES)
+    fprintf(fl, "FLGU: %d\n", FLEETING_GLANCE_USES(ch));
+  if (FLEETING_GLANCE_TIMER(ch) != PFDEF_FLEETING_GLANCE_TIMER)
+    fprintf(fl, "FLGT: %d\n", FLEETING_GLANCE_TIMER(ch));
+
+  if (FEY_SHADOW_WALK_USES(ch) != PFDEF_FEY_SHADOW_WALK_USES)
+    fprintf(fl, "FSWU: %d\n", FEY_SHADOW_WALK_USES(ch));
+  if (FEY_SHADOW_WALK_TIMER(ch) != PFDEF_FEY_SHADOW_WALK_TIMER)
+    fprintf(fl, "FSWT: %d\n", FEY_SHADOW_WALK_TIMER(ch));
 
   if (GET_OLC_ZONE(ch) != PFDEF_OLC)
     fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));
@@ -2665,4 +2703,103 @@ void update_player_last_on(void)
       log("SYSERR: Unable to UPDATE last_online for %s on PLAYER_DATA: %s", GET_NAME(d->character), mysql_error(conn));
     }
   }
+}
+
+void save_char_pets(struct char_data *ch)
+{
+
+  struct follow_type *f = NULL;
+  struct char_data *tch = NULL;
+  char query[200];
+
+  mysql_ping(conn);
+
+  snprintf(query, sizeof(query), "DELETE FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to DELETE from pet_data: %s", mysql_error(conn));
+  }
+
+  if (!ch || !ch->desc || IS_NPC(ch))
+   return;
+
+  for (f = ch->followers; f; f = f->next)
+  {
+    tch = f->follower;
+    if (!IS_NPC(tch)) continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
+    snprintf(query, sizeof(query), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,"
+                    "'%s','%d','%d','%d','%d','%d','%d','%d','%d')",
+                    GET_NAME(ch), GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
+                    GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch));
+    if (mysql_query(conn, query))
+    {
+      log("SYSERR: Unable to INSERT INTO pet_data: %s", mysql_error(conn));
+      return;
+    }
+  }
+}
+
+void load_char_pets(struct char_data *ch)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char query[200];
+  struct char_data *mob = NULL;
+
+  if (!ch) return;
+
+  if (IN_ROOM(ch) == NOWHERE) return;
+
+  mysql_ping(conn);
+
+  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to SELECT from pet_data: %s", mysql_error(conn));
+  }
+
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: Unable to SELECT from pet_data: %s", mysql_error(conn));
+    return;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    mob = read_mobile(atoi(row[0]), VIRTUAL);
+      if (!mob) continue;
+      log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      {
+        X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+        Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+      }
+      char_to_room(mob, IN_ROOM(ch));
+      IS_CARRYING_W(mob) = 0;
+      IS_CARRYING_N(mob) = 0;
+      SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+      GET_LEVEL(mob) = atoi(row[1]);
+      autoroll_mob(mob, TRUE, TRUE);
+      if (GET_MOB_VNUM(mob) == 10) // MOB_CLONE define from magic.c
+      {
+        mob->player.name = strdup(GET_NAME(ch));
+        mob->player.short_descr = strdup(GET_NAME(ch));
+      }
+      GET_REAL_STR(mob) = atoi(row[4]);
+      GET_REAL_CON(mob) = atoi(row[5]);
+      GET_REAL_DEX(mob) = atoi(row[6]);
+      GET_REAL_AC(mob) = atoi(row[7]);
+      GET_REAL_MAX_HIT(mob) = atoi(row[3]);
+      GET_HIT(mob) = atoi(row[2]);
+      load_mtrigger(mob);
+      add_follower(mob, ch);
+      if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+        join_group(mob, GROUP(ch));
+      act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
+      act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
+  }
+
+  mysql_free_result(result);
 }

@@ -36,6 +36,8 @@
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
+void save_char_pets(struct char_data *ch);
+
 /* Reference
 #define SPELL_WALL_OF_FORCE             147
 #define SPELL_WALL_OF_FIRE              282
@@ -435,6 +437,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
     affect_to_char(victim, &af);
 
     act("Isn't $n just such a nice fellow?", FALSE, ch, 0, victim, TO_VICT);
+    save_char_pets(ch);
     //    if (IS_NPC(victim))
     //      REMOVE_BIT_AR(MOB_FLAGS(victim), MOB_SPEC);
   }

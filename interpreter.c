@@ -73,6 +73,9 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d);
 /* sort_commands utility */
 static int sort_commands_helper(const void *a, const void *b);
 
+// external functions
+void load_char_pets(struct char_data *ch);
+
 /* globals defined here, used here and elsewhere */
 int *cmd_sort_info = NULL;
 
@@ -324,6 +327,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}, can_faeriefire},
     {"favoredenemies", "favoredenemies", POS_DEAD, do_favoredenemies, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"feymagic", "feymagic", POS_FIGHTING, do_fey_magic, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_fey_magic},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
@@ -1753,6 +1757,8 @@ int enter_player_game(struct descriptor_data *d)
   character_list = d->character;
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
+
+  load_char_pets(d->character);
 
   /* Save the character and their object file */
   save_char(d->character, 0);

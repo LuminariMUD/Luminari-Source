@@ -3946,6 +3946,175 @@ ACMD(do_efreetimagic)
   send_to_char(ch, "You have %d efreeti magic uses left.\r\n", EFREETI_MAGIC_USES(ch));
 }
 
+ACMDCHECK(can_fey_magic)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SORCERER_BLOODLINE_FEY, "You do not have access to this ability.\r\n");
+  return CAN_CMD;
+}
+
+#define FEY_MAGIC_NO_ARG  "Please specify one of the following fey magic options:\r\n" \
+                          "laughing-touch  : sorcerer lvl 1  - causes target to lose their standard action for 1 round.\r\n" \
+                          "fleeting-glance : sorcerer lvl 9  - casts greater invisibility.\r\n" \
+                          "shadow-walk     : sorcerer lvl 20 - casts shadow walk.\r\n" \
+                          "\r\n"
+
+ACMD(do_fey_magic)
+{
+  // laughing tough, fleeting glance, shadow walk - soul of the fey
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_fey_magic);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  char arg1[100], arg2[100];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "%s", FEY_MAGIC_NO_ARG);
+    return;
+  }
+
+  if (is_abbrev(arg1, "laughing-tough"))
+  {
+    if (!IS_NPC(ch))
+    {
+      if (LAUGHING_TOUCH_USES(ch) <= 0)
+      {
+        if (LAUGHING_TOUCH_TIMER(ch) <= 0)
+        {
+          LAUGHING_TOUCH_TIMER(ch) = 0;
+          LAUGHING_TOUCH_USES(ch) = LAUGHING_TOUCH_USES_PER_DAY(ch);
+          send_to_char(ch, "Your laughing touch uses have been refreshed to %d.\r\n", LAUGHING_TOUCH_USES_PER_DAY(ch));
+        }
+        else
+        {
+          send_to_char(ch, "You don't have any laughing touch uses left.\r\n");
+          return;
+        }
+      }
+    } else {
+      send_to_char(ch, "NPCs cannot use laughing touch.\r\n");
+      return;
+    }
+
+    if (!*arg2)
+    {
+      send_to_char(ch, "You need to specify a target for your laughing touch.\r\n");
+      return;
+    }
+    
+    struct char_data *victim = get_char_room_vis(ch, arg2, NULL);
+
+    if (!victim)
+    {
+      send_to_char(ch, "There is no one by that description here.\r\n");
+      return;
+    }
+
+    if (is_player_grouped(ch, victim))
+    {
+      send_to_char(ch, "You probably shouldn't do that to a group member.\r\n");
+      return;
+    }
+
+    act("You touch $N, who bursts into uncontrolable laughter.", false, ch, 0, victim, TO_CHAR);
+    act("$n touches you causing you to burst into uncontrolable laughter.", false, ch, 0, victim, TO_VICT);
+    act("$n touches $N, who bursts into uncontrolable laughter.", false, ch, 0, victim, TO_NOTVICT);
+    USE_STANDARD_ACTION(victim);
+
+    if (LAUGHING_TOUCH_TIMER(ch) <= 0)
+        LAUGHING_TOUCH_TIMER(ch) = 150;
+      LAUGHING_TOUCH_USES(ch)--;
+    return; // end laughing touch
+  }
+  else if (is_abbrev(arg1, "fleeting-glance"))
+  {
+    if (!HAS_FEAT(ch, FEAT_FLEETING_GLANCE))
+    {
+      send_to_char(ch, "You need to have the sorcerer fey bloodline ability, 'fleeting glance', to use this ability.\r\n");
+      return;
+    }
+    if (!IS_NPC(ch))
+    {
+      if (FLEETING_GLANCE_USES(ch) <= 0)
+      {
+        if (FLEETING_GLANCE_TIMER(ch) <= 0)
+        {
+          FLEETING_GLANCE_TIMER(ch) = 0;
+          FLEETING_GLANCE_USES(ch) = FLEETING_GLANCE_USES_PER_DAY;
+          send_to_char(ch, "Your fleeting glance uses have been refreshed to %d.\r\n", FLEETING_GLANCE_USES_PER_DAY);
+        }
+        else
+        {
+          send_to_char(ch, "You don't have any fleeting glance uses left.\r\n");
+          return;
+        }
+      }
+    } else {
+      send_to_char(ch, "NPCs cannot use fleeting glance.\r\n");
+      return;
+    }
+
+    act("You draw upon your innate fey magic.", true, ch, 0, 0, TO_CHAR);
+    act("$n draws upon $s innate fey magic.", true, ch, 0, 0, TO_ROOM);
+
+    call_magic(ch, ch, NULL, SPELL_GREATER_INVIS, 0, compute_arcane_level(ch), CAST_INNATE);
+
+    if (FLEETING_GLANCE_TIMER(ch) <= 0)
+      FLEETING_GLANCE_TIMER(ch) = 150;
+    FLEETING_GLANCE_USES(ch)--;
+
+    return; // end fleeting glance
+
+  }
+  else if (is_abbrev(arg1, "shadow-walk"))
+  {
+    if (!HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY))
+    {
+      send_to_char(ch, "You need the sorcerer fey bloodline ability, 'soul of the fey', to use fey magic shadow walk.\r\n");
+      return;
+    }
+    if (!IS_NPC(ch))
+    {
+      if (FEY_SHADOW_WALK_USES(ch) <= 0)
+      {
+        if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
+        {
+          FEY_SHADOW_WALK_TIMER(ch) = 0;
+          FEY_SHADOW_WALK_USES(ch) = FEY_SHADOW_WALK_USES_PER_DAY;
+          send_to_char(ch, "Your fey shadow walk uses have been refreshed to %d.\r\n", FEY_SHADOW_WALK_USES_PER_DAY);
+        }
+        else
+        {
+          send_to_char(ch, "You don't have any fey shadow walk uses left.\r\n");
+          return;
+        }
+      }
+    } else {
+      send_to_char(ch, "NPCs cannot use fey shadow walk.\r\n");
+      return;
+    }
+
+    act("You draw upon your innate fey magic.", true, ch, 0, 0, TO_CHAR);
+    act("$n draws upon $s innate fey magic.", true, ch, 0, 0, TO_ROOM);
+
+    call_magic(ch, ch, NULL, SPELL_SHADOW_WALK, 0, compute_arcane_level(ch), CAST_INNATE);
+
+    if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
+      FEY_SHADOW_WALK_TIMER(ch) = 150;
+    FEY_SHADOW_WALK_USES(ch)--;
+
+    return; // end shadow walk
+  }
+  else
+  {
+    send_to_char(ch, "%s", FEY_MAGIC_NO_ARG);
+    return;
+  }
+}
+
 ACMDCHECK(can_sorcerer_breath_weapon)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, "You do not have access to this ability.\r\n");
