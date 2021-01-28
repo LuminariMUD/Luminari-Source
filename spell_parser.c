@@ -2909,6 +2909,11 @@ void mag_assign_spells(void)
         spello(SPELL_SHADOW_SHIELD, "shadow shield", 95, 80, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel the shadow shield dissipate.", 5, 23, ILLUSION, FALSE);
+
+        spello(SPELL_SHADOW_WALK, "shadow walk", 95, 80, 1, POS_FIGHTING,
+               TAR_SELF_ONLY, FALSE, MAG_GROUPS,
+               "You feel your synergy with the shadow realm fade.", 5, 23, ILLUSION, FALSE);
+
         /* divination */
         spello(SPELL_PRISMATIC_SPHERE, "prismatic sphere", 65, 50, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 8, 23, DIVINATION, FALSE);

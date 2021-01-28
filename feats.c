@@ -2028,6 +2028,37 @@ void assign_feats(void)
         "expend charges, such as wands and staves.  For every three levels of spell "
         "slots used, one less charge will be expended.  See the apotheosis command and HELP "
         "APOTHEOSIS for more information.");
+  
+  // Sorcerer Fey Bloodline
+  feato(FEAT_SORCERER_BLOODLINE_FEY, "fey bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "level one sorcerer",
+        "The capricious nature of the fey runs in your family due to some intermingling of "
+        "fey blood or magic. You are more emotional than most, prone to bouts of joy and rage. "
+        "The fey bloodline offers a great knowledge of nature as well as enhanced abilities in "
+        "traversing or dealing with nature.  It also offers abilities using fey magic.");
+  feato(FEAT_FEY_BLOODLINE_ARCANA, "fey arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "fey bloodline selected",
+        "Whenever you cast a spell of the enchantment school, the dc to resist increases by 2.");
+  feato(FEAT_LAUGHING_TOUCH, "laughing touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "fey bloodline",
+        "Cause a target to burst out laughing for one round, during which they can only take "
+        "a move action.  Useable as a swift action (3 + charisma modifier) times per day. "
+        "Uses the 'fey' command.");
+  feato(FEAT_WOODLAND_STRIDE, "wilderness stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+                         "fey bloodline or druid level 2",
+                         "Reduced movement penalty when moving through wilderness areas.");
+  feato(FEAT_FLEETING_GLANCE, "fleeting glance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "fey bloodline, sorcerer level 9",
+        "Can cast greater invisibility 3 times per day. Uses the 'fey' command.");
+  feato(FEAT_FEY_MAGIC, "fey magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "fey bloodline, sorcerer level 15",
+        "Whenever trying to overcome spell resistance, you will roll twice and take the better roll.");
+  feato(FEAT_SOUL_OF_THE_FEY, "soul of the fey", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "fey bloodline, sorcerer level 20",
+        "Gain immunity to poison and +3 damage reduction. Creatures of the animal type will not "
+        "aggro you. Can cast 'shadow walk' once per day using the 'fey' command.");
+
+
   feato(FEAT_THEURGE_SPELLCASTING, "theurge spellcasting", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
         "mystic theurge",
         "This feat allows the mystic theurge to progress in both arcane and divine casting "
@@ -2534,9 +2565,7 @@ void assign_feats(void)
   /* unfinished */ feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                          "The adventurer can improve the attitude of an animal.",
                          "The adventurer can improve the attitude of an animal.");
-  /* unfinished */ feato(FEAT_WOODLAND_STRIDE, "woodland stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-                         "Reduced movement penalty when moving through woodland areas.",
-                         "Reduced movement penalty when moving through woodland areas.");
+  /* unfinished */ 
 
   /* Druid */
   feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -2640,9 +2669,6 @@ void assign_feats(void)
                        "Gain 10/magic damage reduction [note: until our damage reduction system is "
                        "changed, this feat will give a flat 3 damage reduction against ALL incoming attacks");
   feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "immune to poison",
-        "immune to poison");
-  feato(FEAT_POISON_IMMUNITY, "poison immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immune to poison",
         "immune to poison");
   feato(FEAT_QUIVERING_PALM, "quivering palm", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -5615,6 +5641,21 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
         return TRUE;
       }
     }
+    else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
+    {
+      switch (featnum)
+      {
+      case FEAT_DODGE:
+      case FEAT_IMPROVED_INITIATIVE:
+      case FEAT_LIGHTNING_REFLEXES:
+      case FEAT_MOBILITY:
+      case FEAT_POINT_BLANK_SHOT:
+      case FEAT_PRECISE_SHOT:
+      case FEAT_QUICKEN_SPELL:
+      case FEAT_SKILL_FOCUS:
+        return TRUE;
+      }
+    }
   }
 
   return FALSE;
@@ -5922,6 +5963,8 @@ int get_sorcerer_bloodline_type(struct char_data *ch)
     return bl;
   else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_ARCANE)))
     return bl;
+  else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_FEY)))
+    return bl;
   else
     bl = 0;
   return bl;
@@ -5935,6 +5978,9 @@ int get_levelup_sorcerer_bloodline_type(struct char_data *ch)
   bl = FEAT_SORCERER_BLOODLINE_ARCANE;
   if (LEVELUP(ch)->feats[bl] > 0)
     return bl;
+  bl = FEAT_SORCERER_BLOODLINE_FEY;
+  if (LEVELUP(ch)->feats[bl] > 0)
+    return bl;
   return 0;
 }
 
@@ -5944,6 +5990,7 @@ bool isSorcBloodlineFeat(int featnum)
   {
   case FEAT_SORCERER_BLOODLINE_DRACONIC:
   case FEAT_SORCERER_BLOODLINE_ARCANE:
+  case FEAT_SORCERER_BLOODLINE_FEY:
     return TRUE;
   }
   return FALSE;

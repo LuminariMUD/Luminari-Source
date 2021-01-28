@@ -1830,13 +1830,19 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 
 
   if (PIXIE_DUST_TIMER(ch) > 0)
-    send_to_char(ch, "Pixie Dust Cooldown  - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
+    send_to_char(ch, "Pixie Dust Cooldown      - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
   if (EFREETI_MAGIC_TIMER(ch) > 0)
-    send_to_char(ch, "Efreeti Magic Cooldown  - Duration: %d seconds\r\n", EFREETI_MAGIC_TIMER(ch) * 6);
+    send_to_char(ch, "Efreeti Magic Cooldown   - Duration: %d seconds\r\n", EFREETI_MAGIC_TIMER(ch) * 6);
   if (DRAGON_MAGIC_TIMER(ch) > 0)
-    send_to_char(ch, "Dragon Magic Cooldown  - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
+    send_to_char(ch, "Dragon Magic Cooldown    - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
+  if (LAUGHING_TOUCH_TIMER(ch) > 0)
+    send_to_char(ch, "Laughing Touch Cooldown  - Duration: %d seconds\r\n", LAUGHING_TOUCH_TIMER(ch) * 6);
+  if (FLEETING_GLANCE_TIMER(ch) > 0)
+    send_to_char(ch, "Fleeting Glance Cooldown - Duration: %d seconds\r\n", FLEETING_GLANCE_TIMER(ch) * 6);
+  if (FEY_SHADOW_WALK_TIMER(ch) > 0)
+    send_to_char(ch, "Fey Shadow Walk Cooldown - Duration: %d seconds\r\n", FEY_SHADOW_WALK_TIMER(ch) * 6);
   if (GET_MISSION_COOLDOWN(k) > 0)
-    send_to_char(ch, "Mission Ready Cooldown  - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
+    send_to_char(ch, "Mission Ready Cooldown   - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');

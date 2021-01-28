@@ -403,6 +403,8 @@ int perform_collect(struct char_data *ch, bool silent);
 ACMD_DECL(do_hit);
 #define SCMD_HIT 0
 ACMD_DECL(do_process_attack);
+ACMD_DECL(do_fey_magic);
+ACMDCHECK(can_fey_magic);
 
 /* Functions without subcommands */
 ACMD_DECL(do_exchange);

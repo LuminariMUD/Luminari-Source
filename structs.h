@@ -1806,12 +1806,19 @@
 #define FEAT_PARALYSIS_RESIST 652
 #define FEAT_SPELL_CRITICAL 653
 #define FEAT_DIVERSE_TRAINING 654
+#define FEAT_SORCERER_BLOODLINE_FEY 655
+#define FEAT_FEY_BLOODLINE_ARCANA 656
+#define FEAT_LAUGHING_TOUCH 657
+#define FEAT_FLEETING_GLANCE 658
+#define FEAT_FEY_MAGIC 659
+#define FEAT_SOUL_OF_THE_FEY 660
+
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 655
+#define FEAT_LAST_FEAT 661
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 656
+#define NUM_FEATS 662
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
@@ -3492,6 +3499,12 @@ struct player_special_data_saved
     int efreeti_magic_timer;
     int dragon_magic_uses;
     int dragon_magic_timer;
+    int laughing_touch_uses;
+    int laughing_touch_timer;
+    int fleeting_glance_uses;
+    int fleeting_glance_timer;
+    int fey_shadow_walk_uses;
+    int fey_shadow_walk_timer;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

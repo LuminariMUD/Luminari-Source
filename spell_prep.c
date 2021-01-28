@@ -794,6 +794,21 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
       return TRUE;
     }
     break;
+  case SORC_BLOODLINE_FEY:
+    switch (spellnum)
+    {
+    case SPELL_CHARM:
+    case SPELL_HIDEOUS_LAUGHTER:
+    case SPELL_DEEP_SLUMBER:
+    case SPELL_POISON:
+    case SPELL_FEEBLEMIND:
+    case SPELL_TRUE_SEEING:
+    case SPELL_PRISMATIC_SPRAY:
+    case SPELL_IRRESISTIBLE_DANCE:
+    case SPELL_POLYMORPH:
+      return TRUE;
+    }
+    break;
   }
   return FALSE;
 }
@@ -804,6 +819,8 @@ int get_sorc_bloodline(struct char_data *ch)
     return SORC_BLOODLINE_DRACONIC;
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
     return SORC_BLOODLINE_ARCANE;
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
+    return SORC_BLOODLINE_FEY;
 
   return SORC_BLOODLINE_NONE;
 }

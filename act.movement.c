@@ -1092,9 +1092,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* All checks passed, nothing will prevent movement now other than lack of
    * move points. */
   /* move points needed is avg. move loss for src and destination sect type */
-  need_movement = (movement_loss[SECT(was_in)] +
-                   movement_loss[SECT(going_to)]) /
-                  2;
+  if (OUTDOORS(ch) && HAS_FEAT(riding ? RIDING(ch) : ch, FEAT_WOODLAND_STRIDE))
+  {
+    need_movement = 1;
+  }
+  else{
+    need_movement = (movement_loss[SECT(was_in)] + movement_loss[SECT(going_to)]) / 2;
+  }
 
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
     need_movement--;
@@ -1129,8 +1133,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   speed_mod = speed_mod - 30;
   need_movement -= speed_mod;
 
-  // regardless of bonuses, we'll never use less than 10 moves per room
-  need_movement = MAX(10, need_movement);
+  // regardless of bonuses, we'll never use less than 10 moves per room, unless using shadow walk
+  if (affected_by_spell(riding ? RIDING(ch) : ch, SPELL_SHADOW_WALK))
+    need_movement = MAX(1, need_movement);
+  else
+    need_movement = MAX(10, need_movement);
 
   /* Move Point Requirement Check */
   if (riding)
@@ -3594,6 +3601,10 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   if (is_flying(ch))
     speed = 50;
+
+  // yes, 400 is intentional :)
+  if (affected_by_spell(ch, SPELL_SHADOW_WALK))
+    speed = 400;
 
   // haste and exp. retreat don't stack for balance reasons
   if (AFF_FLAGGED(ch, AFF_HASTE))

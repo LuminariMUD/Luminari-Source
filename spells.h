@@ -509,10 +509,11 @@
 #define SPELL_DRAGONFEAR 390
 
 #define SPELL_FEAR 391
+#define SPELL_SHADOW_WALK 392
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 392
-#define LAST_SPELL_DEFINE 392
+#define NUM_SPELLS 393
+#define LAST_SPELL_DEFINE 393
 /*******************************/
 
 
@@ -1186,7 +1187,8 @@ int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
 #define SORC_BLOODLINE_NONE 0
 #define SORC_BLOODLINE_DRACONIC 1
 #define SORC_BLOODLINE_ARCANE 2
-#define NUM_SORC_BLOODLINES 3 // 1 more than the last above
+#define SORC_BLOODLINE_FEY 3
+#define NUM_SORC_BLOODLINES 4 // 1 more than the last above
 
 /**********************/
 /* spellbook_scroll.c */

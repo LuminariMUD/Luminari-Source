@@ -54,6 +54,9 @@ struct obj_data *last_missile = NULL;
 /* head of l-list of fighting chars */
 struct char_data *combat_list = NULL;
 
+// external functions
+void save_char_pets(struct char_data *ch);
+
 int hands_used(struct char_data *ch);
 
 /* Weapon attack texts
@@ -1404,6 +1407,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 
   if (ch->followers || ch->master) // handle followers
     die_follower(ch);
+  save_char_pets(ch);  
 
   if (GROUP(ch))
   {
@@ -2578,6 +2582,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     }
     if (GET_RACE(ch) == RACE_GREEN_DRAGON || GET_DISGUISE_RACE(ch) == RACE_GREEN_DRAGON)
       damtype_reduction += 100;
+    if (HAS_FEAT(ch, FEAT_POISON_IMMUNITY) || HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY))
+      damtype_reduction += 100;
     break;
 
   case DAM_CELESTIAL_POISON:
@@ -2743,6 +2749,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   //    damage_reduction += 12;
 
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
+    damage_reduction += 3;
+  if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY)) /* temporary mechanic until we upgrade this system */
     damage_reduction += 3;
 
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))

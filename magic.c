@@ -35,6 +35,7 @@
 
 //external
 extern struct raff_node *raff_list;
+void save_char_pets(struct char_data *ch);
 
 /* local file scope function prototypes */
 static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1,
@@ -232,6 +233,9 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     }
     break;
   }
+
+  if (HAS_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA) && school == ENCHANTMENT)
+    challenge += 2;
 
   if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), school))
   {
@@ -2702,6 +2706,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You begin to speed up!";
     break;
 
+  case SPELL_SHADOW_WALK: // illusion
+
+    af[0].location = APPLY_DEX;
+    af[0].modifier = 2;
+    af[0].duration = MIN(10, caster_level);
+    af[0].bonus_type = BONUS_TYPE_INHERENT;
+
+    to_room = "$n melds with the shadow realm, giving $m blinding speed.";
+    to_vict = "You meld with the shadow realm, giving you blinding speed.";
+    break;
+
   case SPELL_HEROISM: //necromancy
     if (affected_by_spell(victim, SPELL_GREATER_HEROISM))
     {
@@ -4099,6 +4114,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     /* found in act.other.c */
     perform_wildshape(tch, rand_number(1, (NUM_SHAPE_TYPES - 1)), spellnum);
     break;
+  case SPELL_SHADOW_WALK:
+    mag_affects(level, ch, tch, obj, SPELL_SHADOW_WALK, savetype, casttype, 0);
+    break;
   }
 }
 
@@ -5092,6 +5110,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
     extract_obj(obj);
   }
+
+  save_char_pets(ch);
 
   send_to_char(ch, "You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.\r\n");
 }

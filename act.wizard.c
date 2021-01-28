@@ -82,6 +82,9 @@ bool delete_path(region_vnum vnum);
 /* Local Globals */
 static struct recent_player *recent_list = NULL; /** Global list of recent players */
 
+// external functions
+void save_char_pets(struct char_data *ch);
+
 int purge_room(room_rnum room)
 {
   int j;
@@ -5485,6 +5488,8 @@ void perform_do_copyover()
                                          "you should be able to reconnect immediately or within a few minutes.]\r\n");
 
       /* and handling we need to do */
+
+      save_char_pets(och);
 
       /* gonna clear some events for player convenience */
       if (char_has_mud_event(och, eMUMMYDUST))

@@ -1331,6 +1331,9 @@ void mobile_activity(void)
                 (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict)) */
         )
         {
+          if (IS_ANIMAL(ch) && HAS_FEAT(vict, FEAT_SOUL_OF_THE_FEY)) {
+            continue;
+          }
           if (MOB_FLAGGED(ch, MOB_ENCOUNTER) && ((GET_LEVEL(ch) - GET_LEVEL(vict)) < 2)) {
             // We don't want abandoned random encounters killing people they weren't meant for
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
