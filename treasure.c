@@ -1115,15 +1115,37 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
      - does not match level
    */
   int loop_counter = 0; // just in case
-  do
-  {
-    spell_num = rand_number(1, NUM_SPELLS - 1);
-    loop_counter++;
+  if (type == TYPE_POTION) {
+    switch (rand_number(1, 3))
+    {
+      case 1:
+      case 2:
+        // healing potions
+        spell_num = get_random_healing_potion(spell_level);
+        break;
+      case 3:
+        do
+        {
+          spell_num = rand_number(1, NUM_SPELLS - 1);
+          loop_counter++;
 
-    if (loop_counter >= 999)
-      return;
-  } while (spell_level < spell_info[spell_num].min_level[class] ||
-           !valid_item_spell(spell_num));
+          if (loop_counter >= 999)
+            return;
+        } while (spell_level < spell_info[spell_num].min_level[class] ||
+                !valid_item_spell(spell_num));
+        break;
+    }
+  } else {
+    do
+    {
+      spell_num = rand_number(1, NUM_SPELLS - 1);
+      loop_counter++;
+
+      if (loop_counter >= 999)
+        return;
+    } while (spell_level < spell_info[spell_num].min_level[class] ||
+            !valid_item_spell(spell_num));
+  }
 
   /* first assign two random colors for usage */
   color1 = rand_number(0, NUM_A_COLORS - 1);
@@ -4247,4 +4269,41 @@ int get_armor_piece_by_style(int style, int wear_loc)
     break;
   }
   return 0;
+}
+
+/*  Will return a random healing potion based on level */
+int get_random_healing_potion(int spell_level)
+{
+
+  if (spell_level <= 5)
+  {
+    return SPELL_CURE_LIGHT;
+  }
+  else if (spell_level <= 10)
+  {
+   return SPELL_CURE_MODERATE; 
+  }
+  else if (spell_level <= 15)
+  {
+    if (rand_number(1, 3) == 1)
+      return SPELL_REGENERATION;
+    else
+      return SPELL_CURE_SERIOUS; 
+  }
+  else if (spell_level <= 20)
+  {
+    if (rand_number(1, 3) == 1)
+      return SPELL_REGENERATION;
+    else
+      return SPELL_CURE_CRITIC; 
+  }
+  else {
+    switch (rand_number(1, 6))
+    {
+      case 1: case 2: return SPELL_REGENERATION;
+      case 3: return SPELL_HEAL;
+      default: return SPELL_CURE_CRITIC;
+    }
+  }
+  return SPELL_CURE_LIGHT;
 }

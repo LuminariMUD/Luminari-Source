@@ -313,6 +313,8 @@ int get_armor_piece_by_style(int style, int wear_loc);
  * 4)  determine AC bonus (Always first stat...)
  * 5)  craft description based on object and bonuses */
 void award_magic_armor_suit(struct char_data *ch, int grade);
+/*  Will return a random healing potion based on level */
+int get_random_healing_potion(int spell_level);
 
 /* Procedures for loading mobs with items, rather than simply handing them out
  * automaticalyl after death.  Used with random treasure load resets.
