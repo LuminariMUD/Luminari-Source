@@ -76,6 +76,7 @@ const char *npc_subrace_types[] = {
     "Shapechanger", /**/
     "Swarm",        /**/
     "Water",        /**/
+    "Darkling",     /**/
     "\n"};
 CHECK_TABLE_SIZE(npc_subrace_types, NUM_SUB_RACES + 1);
 
@@ -103,6 +104,7 @@ const char *npc_subrace_abbrevs[] = {
     "\tMShapechanger\tn",
     "\tySwarm\tn",
     "\tBWater\tn",
+    "\tDDarkling\tn",
     "\n"};
 CHECK_TABLE_SIZE(npc_subrace_abbrevs, NUM_SUB_RACES + 1);
 

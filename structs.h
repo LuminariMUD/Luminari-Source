@@ -614,8 +614,9 @@
 #define SUBRACE_SHAPECHANGER 18
 #define SUBRACE_SWARM 19
 #define SUBRACE_WATER 20
+#define SUBRACE_DARKLING 21
 //total
-#define NUM_SUB_RACES 21
+#define NUM_SUB_RACES 22
 /* how many subrace-types can a mobile have? */
 /* note, if this is changed, a lot of other places have
  * to be changed as well -zusuk */

@@ -3084,6 +3084,11 @@ ACMD(do_score)
     send_to_char(ch, "\tcSorcerer Bloodline: \tnArcane (%s magic).\r\n", spell_schools_lower[GET_BLOODLINE_SUBTYPE(ch)]);
     draw_line(ch, line_length, '-', '-');
   }
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
+  {
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnFey.\r\n");
+    draw_line(ch, line_length, '-', '-');
+  }
 
   if (CLASS_LEVEL(ch, CLASS_WIZARD))
   {
