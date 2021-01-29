@@ -97,6 +97,23 @@ ACMD_DECL(do_armorlist);
 
 /**/
 
+#define ARMOR_STYLE_NONE            0
+#define ARMOR_STYLE_CLOTHING        1
+#define ARMOR_STYLE_PADDED          2
+#define ARMOR_STYLE_LEATHER         3
+#define ARMOR_STYLE_STUDDED_LEATHER 4
+#define ARMOR_STYLE_LIGHT_CHAINMAIL 5
+#define ARMOR_STYLE_HIDE            6
+#define ARMOR_STYLE_SCALE           7
+#define ARMOR_STYLE_CHAINMAIL       8
+#define ARMOR_STYLE_PIECEMEAL       9
+#define ARMOR_STYLE_SPLINT          10
+#define ARMOR_STYLE_BANDED          11
+#define ARMOR_STYLE_HALF_PLATE      12
+#define ARMOR_STYLE_PLATE_MAIL      13
+
+#define NUM_ARMOR_STYLES            14
+
 #ifdef __cplusplus
 extern "C"
 {

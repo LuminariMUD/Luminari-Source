@@ -301,6 +301,18 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
 int random_apply_value(void);
 /* called by random_bonus_value(), cp_modify_object_applies(), */
 int adjust_bonus_value(int apply_location, int bonus);
+/* determine a random armor style */
+int get_random_armor_suit_type(void);
+/* get an armor piece by armor style and wear location */
+int get_armor_piece_by_style(int style, int wear_loc);
+/* Give away full suit of random magic armor
+ * (includes:  body/head/legs/arms)
+ * 1)  determine material
+ * 2)  determine rarity
+ * 3)  determine Creation Points
+ * 4)  determine AC bonus (Always first stat...)
+ * 5)  craft description based on object and bonuses */
+void award_magic_armor_suit(struct char_data *ch, int grade);
 
 /* Procedures for loading mobs with items, rather than simply handing them out
  * automaticalyl after death.  Used with random treasure load resets.

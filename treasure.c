@@ -77,36 +77,36 @@ int cp_convert_grade_enchantment(int grade)
   {
   case GRADE_MINOR:
     if (rand_number(0, 1))
-      enchantment = 2;
+      enchantment = 3;
     else
-      enchantment = 1;
+      enchantment = 2;
     break;
   case GRADE_TYPICAL:
     if (rand_number(0, 1))
-      enchantment = 3;
+      enchantment = 4;
     else
-      enchantment = 2;
+      enchantment = 3;
     break;
   case GRADE_MEDIUM:
-    if (rand_number(0, 2))
-      enchantment = 3;
-    else
-      enchantment = 4;
-    break;
-  case GRADE_MAJOR:
     if (rand_number(0, 2))
       enchantment = 4;
     else
       enchantment = 5;
     break;
-  case GRADE_SUPERIOR:
-    if (rand_number(0, 3))
+  case GRADE_MAJOR:
+    if (rand_number(0, 2))
       enchantment = 5;
     else
       enchantment = 6;
     break;
+  case GRADE_SUPERIOR:
+    if (rand_number(0, 3))
+      enchantment = 6;
+    else
+      enchantment = 7;
+    break;
   default: //GRADE_MUNDANE:
-    enchantment = 1;
+    enchantment = 2;
     break;
   }
 
@@ -116,7 +116,7 @@ int cp_convert_grade_enchantment(int grade)
 /* determine a random category for misc treasure */
 int determine_rnd_misc_cat()
 {
-  int diceroll = dice(1, 11);
+  int diceroll = dice(1, 12);
   int category = 0;
 
   switch (diceroll)
@@ -137,9 +137,6 @@ int determine_rnd_misc_cat()
     category = TRS_SLOT_FEET;
     break;
   case 8:                  /*hands*/
-    if (dice(1, 10) == 10) /* monk gloves */
-      category = TRS_SLOT_MONK_GLOVE;
-    else
       category = TRS_SLOT_HANDS;
     break;
   case 9: /*about*/
@@ -150,6 +147,9 @@ int determine_rnd_misc_cat()
     break;
   case 11: /*held*/
     category = TRS_SLOT_HELD;
+    break;
+  case 12: /*monk gloves*/
+    category = TRS_SLOT_MONK_GLOVE;
     break;
   }
 
@@ -303,7 +303,7 @@ int determine_stat_apply(int wear)
   {
   case WEAR_FINGER_R:
   case WEAR_FINGER_L:
-    switch (rand_number(1, 7))
+    switch (rand_number(1, 5))
     {
     case 1:
       stat = APPLY_WIS;
@@ -315,22 +315,20 @@ int determine_stat_apply(int wear)
       stat = APPLY_HIT;
       break;
     case 4:
-      stat = APPLY_RES_FIRE;
-      break;
     case 5:
-      stat = APPLY_RES_PUNCTURE;
-      break;
-    case 6:
-      stat = APPLY_RES_ILLUSION;
-      break;
-    case 7:
-      stat = APPLY_RES_ENERGY;
+      switch (rand_number(1, 4))
+      {
+      case 1: stat = APPLY_RES_FIRE; break;
+      case 2: stat = APPLY_RES_PUNCTURE; break;
+      case 3: stat = APPLY_RES_ILLUSION; break;
+      case 4: stat = APPLY_RES_ENERGY; break;
+      }
       break;
     }
     break;
   case WEAR_NECK_1:
   case WEAR_NECK_2:
-    switch (rand_number(1, 7))
+    switch (rand_number(1, 4))
     {
     case 1:
       stat = APPLY_INT;
@@ -339,25 +337,27 @@ int determine_stat_apply(int wear)
       stat = APPLY_SAVING_REFL;
       break;
     case 3:
-      stat = APPLY_RES_COLD;
-      break;
     case 4:
-      stat = APPLY_RES_AIR;
-      break;
-    case 5:
-      stat = APPLY_RES_FORCE;
-      break;
-    case 6:
-      stat = APPLY_RES_MENTAL;
-      break;
-    case 7:
-      stat = APPLY_RES_WATER;
+      switch (rand_number(1, 5))
+      {
+        case 1:
+        stat = APPLY_RES_COLD; break;
+        case 2:
+        stat = APPLY_RES_AIR; break;
+        case 3:
+        stat = APPLY_RES_FORCE; break;
+        case 4:
+        stat = APPLY_RES_MENTAL; break;
+        case 5:
+        stat = APPLY_RES_WATER; break;
+        break;
+      }
       break;
     }
     break;
   case WEAR_WRIST_R:
   case WEAR_WRIST_L:
-    switch (rand_number(1, 6))
+    switch (rand_number(1, 4))
     {
     case 1:
       stat = APPLY_SAVING_FORT;
@@ -366,16 +366,22 @@ int determine_stat_apply(int wear)
       stat = APPLY_PSP;
       break;
     case 3:
-      stat = APPLY_RES_ELECTRIC;
-      break;
     case 4:
-      stat = APPLY_RES_UNHOLY;
-      break;
-    case 5:
-      stat = APPLY_RES_SOUND;
-      break;
-    case 6:
-      stat = APPLY_RES_LIGHT;
+      switch (rand_number(1, 4))
+      {
+      case 1:
+        stat = APPLY_RES_ELECTRIC;
+        break;
+      case 2:
+        stat = APPLY_RES_UNHOLY;
+        break;
+      case 3:
+        stat = APPLY_RES_SOUND;
+        break;
+      case 4:
+        stat = APPLY_RES_LIGHT;
+        break;
+      }
       break;
     }
     break;
@@ -630,7 +636,29 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_MOVE:
     adjusted_bonus = bonus * 120;
     break;
-    /* no modifications */
+  case APPLY_RES_FIRE:
+  case APPLY_RES_COLD:
+  case APPLY_RES_AIR:
+  case APPLY_RES_EARTH:
+  case APPLY_RES_ACID:
+  case APPLY_RES_HOLY:
+  case APPLY_RES_ELECTRIC:
+  case APPLY_RES_UNHOLY:
+  case APPLY_RES_SLICE:
+  case APPLY_RES_PUNCTURE:
+  case APPLY_RES_FORCE:
+  case APPLY_RES_SOUND:
+  case APPLY_RES_POISON:
+  case APPLY_RES_DISEASE:
+  case APPLY_RES_NEGATIVE:
+  case APPLY_RES_ILLUSION:
+  case APPLY_RES_MENTAL:
+  case APPLY_RES_LIGHT:
+  case APPLY_RES_ENERGY:
+  case APPLY_RES_WATER:
+    adjusted_bonus = bonus * 8;
+    break;
+  /* no modifications */
   default:
     break;
   }
@@ -739,7 +767,7 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
 
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE))
   {
-    award_magic_item(1, ch, grade);
+    if (dice(1, 3) == 1) award_magic_item(1, ch, grade); // we want magic item treasure drops to be better but less common
     snprintf(buf, MEDIUM_STRING, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     snprintf(buf, MEDIUM_STRING, "$n \tYhas found %d coins hidden on $N's corpse!\tn", gold);
@@ -768,38 +796,48 @@ void award_magic_item(int number, struct char_data *ch, int grade)
   for (i = 0; i < number; i++)
   {
     roll = dice(1, 100);
-    if (roll <= 5) /*  1 - 5    5%  */
+    if (roll <= 10) /*  1 - 10    10%  */
       award_random_crystal(ch, grade);
-    else if (roll <= 15) /*  6 - 15   10% */
+    else if (roll <= 30) /*  11 - 30   20% */
       award_magic_weapon(ch, grade);
     else if (roll <= 55)
-    { /* 16 - 55   40% */
-      switch (dice(1, 6))
+    { /* 31 - 55   25% */
+      switch (dice(1, 9))
       {
       case 1:
+      case 2:
+      case 3:
+        award_expendable_item(ch, grade, TYPE_SCROLL);
         award_expendable_item(ch, grade, TYPE_SCROLL);
         break;
-      case 2:
+      case 4:
+      case 5:
+      case 6:
+        award_expendable_item(ch, grade, TYPE_POTION);
+        award_expendable_item(ch, grade, TYPE_POTION);
         award_expendable_item(ch, grade, TYPE_POTION);
         break;
-      case 3:
+      case 7:
         award_expendable_item(ch, grade, TYPE_WAND);
         break;
-      case 4:
+      case 8:
         award_expendable_item(ch, grade, TYPE_STAFF);
         break;
-      default: /* 5- 6 */
+      default: /* 5 */
         award_magic_ammo(ch, grade);
         break;
       }
     }
-    else if (roll <= 75)
-    { /* 56 - 75   20% */
+    else if (roll <= 80)
+    { /* 56 - 80   25% */
       award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
     }
     else
-    { /* 76 - 100  25% */
-      award_magic_armor(ch, grade, -1);
+    { /* 80 - 100  20% */
+      if (dice(1, 3) != 3)
+        award_magic_armor_suit(ch, grade);
+      else
+        award_magic_armor(ch, grade, ITEM_WEAR_SHIELD);
     }
   }
 }
@@ -1537,7 +1575,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 /* Give away random magic ammo */
 void award_magic_ammo(struct char_data *ch, int grade)
 {
-  struct obj_data *obj = NULL;
+  struct obj_data *obj = NULL, *obj2 = NULL, *obj3 = NULL, *obj4 = NULL;
   int armor_desc_rollA = 0;
   int armor_desc_rollB = 0;
   int rare_grade = RARE_GRADE_NORMAL;
@@ -1556,6 +1594,9 @@ void award_magic_ammo(struct char_data *ch, int grade)
     log("SYSERR: award_magic_ammo created NULL object");
     return;
   }
+  obj2 = read_object(AMMO_PROTO, VIRTUAL);
+  obj3 = read_object(AMMO_PROTO, VIRTUAL);
+  obj4 = read_object(AMMO_PROTO, VIRTUAL);
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
@@ -1566,10 +1607,15 @@ void award_magic_ammo(struct char_data *ch, int grade)
 
   /* now set up this new object */
   set_ammo_object(obj, armor_desc_rollA);
+  set_ammo_object(obj2, armor_desc_rollA);
+  set_ammo_object(obj3, armor_desc_rollA);
+  set_ammo_object(obj4, armor_desc_rollA);
+
   /* we should have a completely usable ammo now, just missing descrip/stats */
 
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(obj) = possible_material_upgrade(GET_OBJ_MATERIAL(obj), grade);
+  GET_OBJ_MATERIAL(obj2) = GET_OBJ_MATERIAL(obj3) = GET_OBJ_MATERIAL(obj4) = GET_OBJ_MATERIAL(obj);
 
   /* determine level */
   switch (grade)
@@ -1627,19 +1673,33 @@ void award_magic_ammo(struct char_data *ch, int grade)
   snprintf(desc, MEDIUM_STRING, "%s %s %s %s", desc1, desc2, desc3, desc4);
 
   /* finished descrips, so lets assign them */
-  obj->name = strdup(keywords); /* key words */
-  // Set descriptions
+  obj->name = strdup(keywords);
+  obj2->name = strdup(keywords);
+  obj3->name = strdup(keywords);
+  obj4->name = strdup(keywords);
   obj->short_description = strdup(desc);
+  obj2->short_description = strdup(desc);
+  obj3->short_description = strdup(desc);
+  obj4->short_description = strdup(desc);
   desc[0] = toupper(desc[0]);
   snprintf(desc5, MEDIUM_STRING, "%s is lying here.", desc);
   desc5[0] = toupper(desc5[0]);
   obj->description = strdup(desc5);
+  obj2->description = strdup(desc5);
+  obj3->description = strdup(desc5);
+  obj4->description = strdup(desc5);
 
   /* END DESCRIPTION SECTION */
 
   /* BONUS SECTION */
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+  SET_BIT_AR(GET_OBJ_EXTRA(obj2), ITEM_MAGIC);
+  SET_BIT_AR(GET_OBJ_EXTRA(obj3), ITEM_MAGIC);
+  SET_BIT_AR(GET_OBJ_EXTRA(obj4), ITEM_MAGIC);
   cp_modify_object_applies(ch, obj, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj2, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj3, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
+  cp_modify_object_applies(ch, obj4, cp_convert_grade_enchantment(grade), CP_TYPE_AMMO, rare_grade, FALSE);
   /* END BONUS SECTION */
 }
 
@@ -1996,6 +2056,276 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   /* END BONUS SECTION */
 }
 
+/* Give away full suit of random magic armor
+ * (includes:  body/head/legs/arms)
+ * 1)  determine material
+ * 2)  determine rarity
+ * 3)  determine Creation Points
+ * 4)  determine AC bonus (Always first stat...)
+ * 5)  craft description based on object and bonuses */
+void award_magic_armor_suit(struct char_data *ch, int grade)
+{
+  struct obj_data *head = NULL, *body = NULL, *arms = NULL, *legs = NULL;
+  int roll = 0, armor_desc_roll = 0, crest_num = 0;
+  int rare_grade = 0, color1 = 0, color2 = 0, level = 0;
+  char descb[MEDIUM_STRING] = {'\0'};
+  char desch[MEDIUM_STRING] = {'\0'};
+  char desca[MEDIUM_STRING] = {'\0'};
+  char descl[MEDIUM_STRING] = {'\0'};
+  char keywordsb[MEDIUM_STRING] = {'\0'};
+  char keywordsh[MEDIUM_STRING] = {'\0'};
+  char keywordsa[MEDIUM_STRING] = {'\0'};
+  char keywordsl[MEDIUM_STRING] = {'\0'};
+
+  /* ok load blank object */
+  if ((body = read_object(ARMOR_PROTO, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: award_magic_armor_suit created NULL object");
+    return;
+  }
+  head = read_object(ARMOR_PROTO, VIRTUAL);
+  arms = read_object(ARMOR_PROTO, VIRTUAL);
+  legs = read_object(ARMOR_PROTO, VIRTUAL);
+
+  roll = get_random_armor_suit_type();
+
+  /* now set up these new objects */
+  set_armor_object(body, get_armor_piece_by_style(roll, ITEM_WEAR_BODY));
+  set_armor_object(head, get_armor_piece_by_style(roll, ITEM_WEAR_HEAD));
+  set_armor_object(arms, get_armor_piece_by_style(roll, ITEM_WEAR_ARMS));
+  set_armor_object(legs, get_armor_piece_by_style(roll, ITEM_WEAR_LEGS));
+
+  /* we should have a completely usable armor now, just missing descrip/stats */
+
+  /* determine if rare or not, start building string */
+  rare_grade = determine_rare_grade();
+  snprintf(descb, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(desch, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(desca, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(descl, MEDIUM_STRING, label_rare_grade(rare_grade));
+
+  /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
+  
+  strncat(descb, "a suit of", MEDIUM_STRING - strlen(descb));
+  armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
+  strncat(desch, AN(armor_special_descs[armor_desc_roll]), MEDIUM_STRING - strlen(desch));
+  strncat(desca, "a pair of", MEDIUM_STRING - strlen(desca));
+  strncat(descl, "a pair of", MEDIUM_STRING - strlen(descl));
+
+  /* set the object material, check for upgrade */
+  GET_OBJ_MATERIAL(body) = possible_material_upgrade(GET_OBJ_MATERIAL(body), grade);
+  GET_OBJ_MATERIAL(head) = GET_OBJ_MATERIAL(arms) = GET_OBJ_MATERIAL(legs) = GET_OBJ_MATERIAL(body);
+
+  /* determine level */
+  switch (grade)
+  {
+  case GRADE_MUNDANE:
+    level = rand_number(1, 5);
+    break;
+  case GRADE_MINOR:
+    level = rand_number(2, 10);
+    break;
+  case GRADE_TYPICAL:
+    level = rand_number(3, 15);
+    break;
+  case GRADE_MEDIUM:
+    level = rand_number(5, 20);
+    break;
+  case GRADE_MAJOR:
+    level = rand_number(8, 25);
+    break;
+  default: // superior grade
+    level = rand_number(12, 30);
+    break;
+  }
+
+  /* BEGIN DESCRIPTION SECTION */
+
+  /* first assign two random colors for usage */
+  color1 = rand_number(0, NUM_A_COLORS - 1);
+  color2 = rand_number(0, NUM_A_COLORS - 1);
+  /* make sure they are not the same colors */
+  while (color2 == color1)
+    color2 = rand_number(0, NUM_A_COLORS - 1);
+  crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
+
+  /* start with keyword string */
+  strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
+  strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
+  strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
+  strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
+  strncat(keywordsb, armor_list[GET_ARMOR_TYPE(body)].name, MEDIUM_STRING - strlen(keywordsb));
+  strncat(keywordsh, armor_list[GET_ARMOR_TYPE(head)].name, MEDIUM_STRING - strlen(keywordsh));
+  strncat(keywordsa, armor_list[GET_ARMOR_TYPE(arms)].name, MEDIUM_STRING - strlen(keywordsa));
+  strncat(keywordsl, armor_list[GET_ARMOR_TYPE(legs)].name, MEDIUM_STRING - strlen(keywordsl));
+  strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
+  strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
+  strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
+  strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
+  strncat(keywordsb, material_name[GET_OBJ_MATERIAL(body)], MEDIUM_STRING - strlen(keywordsb));
+  strncat(keywordsh, material_name[GET_OBJ_MATERIAL(head)], MEDIUM_STRING - strlen(keywordsh));
+  strncat(keywordsa, material_name[GET_OBJ_MATERIAL(arms)], MEDIUM_STRING - strlen(keywordsa));
+  strncat(keywordsl, material_name[GET_OBJ_MATERIAL(legs)], MEDIUM_STRING - strlen(keywordsl));
+
+  roll = dice(1, 3);
+  if (roll == 3)
+  { // armor spec adjective in desc?
+    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
+    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
+    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
+    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
+    strncat(descb, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(descb));
+    strncat(desch, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(desch));
+    strncat(desca, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(desca));
+    strncat(descl, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(descl));
+    strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
+    strncat(keywordsb, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsl));
+  }
+
+  roll = dice(1, 5);
+  if (roll >= 4)
+  { // color describe #1?
+    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
+    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
+    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
+    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
+    strncat(descb, colors[color1], MEDIUM_STRING - strlen(descb));
+    strncat(desch, colors[color1], MEDIUM_STRING - strlen(desch));
+    strncat(desca, colors[color1], MEDIUM_STRING - strlen(desca));
+    strncat(descl, colors[color1], MEDIUM_STRING - strlen(descl));
+    strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
+    strncat(keywordsb, colors[color1], MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, colors[color1], MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, colors[color1], MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, colors[color1], MEDIUM_STRING - strlen(keywordsl));
+  }
+  else if (roll == 3)
+  { // two colors
+    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
+    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
+    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
+    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
+    strncat(descb, colors[color1], MEDIUM_STRING - strlen(descb));
+    strncat(desch, colors[color1], MEDIUM_STRING - strlen(desch));
+    strncat(desca, colors[color1], MEDIUM_STRING - strlen(desca));
+    strncat(descl, colors[color1], MEDIUM_STRING - strlen(descl));
+    strncat(descb, " and ", MEDIUM_STRING - strlen(descb));
+    strncat(desch, " and ", MEDIUM_STRING - strlen(desch));
+    strncat(desca, " and ", MEDIUM_STRING - strlen(desca));
+    strncat(descl, " and ", MEDIUM_STRING - strlen(descl));
+    strncat(descb, colors[color2], MEDIUM_STRING - strlen(descb));
+    strncat(desch, colors[color2], MEDIUM_STRING - strlen(desch));
+    strncat(desca, colors[color2], MEDIUM_STRING - strlen(desca));
+    strncat(descl, colors[color2], MEDIUM_STRING - strlen(descl));
+    strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
+    strncat(keywordsb, colors[color1], MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, colors[color1], MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, colors[color1], MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, colors[color1], MEDIUM_STRING - strlen(keywordsl));
+    strncat(keywordsb, " and ", MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, " and ", MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, " and ", MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, " and ", MEDIUM_STRING - strlen(keywordsl));
+    strncat(keywordsb, colors[color2], MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, colors[color2], MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, colors[color2], MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, colors[color2], MEDIUM_STRING - strlen(keywordsl));
+  }
+
+  // Insert the material type, then armor type
+  if (GET_OBJ_MATERIAL(body) != MATERIAL_LEATHER) // leather is redudant in description here
+  {
+    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
+    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
+    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
+    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
+    strncat(descb, material_name[GET_OBJ_MATERIAL(body)], MEDIUM_STRING - strlen(descb));
+    strncat(desch, material_name[GET_OBJ_MATERIAL(head)], MEDIUM_STRING - strlen(desch));
+    strncat(desca, material_name[GET_OBJ_MATERIAL(arms)], MEDIUM_STRING - strlen(desca));
+    strncat(descl, material_name[GET_OBJ_MATERIAL(legs)], MEDIUM_STRING - strlen(descl));
+  }
+  strncat(descb, " ", MEDIUM_STRING - strlen(descb));
+  strncat(desch, " ", MEDIUM_STRING - strlen(desch));
+  strncat(desca, " ", MEDIUM_STRING - strlen(desca));
+  strncat(descl, " ", MEDIUM_STRING - strlen(descl));
+  strncat(descb, armor_list[GET_ARMOR_TYPE(body)].name, MEDIUM_STRING - strlen(descb));
+  strncat(desch, armor_list[GET_ARMOR_TYPE(head)].name, MEDIUM_STRING - strlen(desch));
+  strncat(desca, armor_list[GET_ARMOR_TYPE(arms)].name, MEDIUM_STRING - strlen(desca));
+  strncat(descl, armor_list[GET_ARMOR_TYPE(legs)].name, MEDIUM_STRING - strlen(descl));
+
+  roll = dice(1, 8);
+  if (roll >= 7)
+  { // crest?
+    char tmp[SMALL_STRING];
+    snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]), armor_crests[crest_num]);
+    strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
+    strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
+    strncat(desca, tmp, MEDIUM_STRING - strlen(desca));
+    strncat(descl, tmp, MEDIUM_STRING - strlen(descl));
+    strncat(keywordsb, tmp, MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, tmp, MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, tmp, MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, tmp, MEDIUM_STRING - strlen(keywordsl));
+  }
+  else if (roll >= 5)
+  { // or symbol?
+    char tmp[SMALL_STRING];
+    snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]), armor_crests[crest_num]);
+    strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
+    strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
+    strncat(desca, tmp, MEDIUM_STRING - strlen(desca));
+    strncat(descl, tmp, MEDIUM_STRING - strlen(descl));
+    strncat(keywordsb, tmp, MEDIUM_STRING - strlen(keywordsb));
+    strncat(keywordsh, tmp, MEDIUM_STRING - strlen(keywordsh));
+    strncat(keywordsa, tmp, MEDIUM_STRING - strlen(keywordsa));
+    strncat(keywordsl, tmp, MEDIUM_STRING - strlen(keywordsl));
+  }
+
+  // keywords
+  body->name = strdup(keywordsb);
+  head->name = strdup(keywordsh);
+  arms->name = strdup(keywordsa);
+  legs->name = strdup(keywordsl);
+  // Set descriptions
+  body->short_description = strdup(descb);
+  head->short_description = strdup(desch);
+  arms->short_description = strdup(desca);
+  legs->short_description = strdup(descl);
+  descb[0] = toupper(descb[0]);
+  desch[0] = toupper(desch[0]);
+  desca[0] = toupper(desca[0]);
+  descl[0] = toupper(descl[0]);
+  strncat(descb, " is lying here.", MEDIUM_STRING);
+  strncat(desch, " is lying here.", MEDIUM_STRING);
+  strncat(desca, " is lying here.", MEDIUM_STRING);
+  strncat(descl, " is lying here.", MEDIUM_STRING);
+  body->description = strdup(descb);
+  head->description = strdup(desch);
+  arms->description = strdup(desca);
+  legs->description = strdup(descl);
+
+  /* END DESCRIPTION SECTION */
+
+  /* BONUS SECTION */
+  cp_modify_object_applies(ch, body, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
+  cp_modify_object_applies(ch, head, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
+  cp_modify_object_applies(ch, arms, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
+  cp_modify_object_applies(ch, legs, cp_convert_grade_enchantment(grade), CP_TYPE_ARMOR, rare_grade, FALSE);
+  /* END BONUS SECTION */
+}
+
 /* automatically set object up to be a given ammo type, also setting breakability
    ammo object values:
  * 0 : ammo type
@@ -2304,7 +2634,12 @@ void award_magic_weapon(struct char_data *ch, int grade)
   }
 
   /* pick a random weapon, 0 = undefined 1 = unarmed */
-  roll = rand_number(2, NUM_WEAPON_TYPES - 1);
+  roll = rand_number(1, NUM_WEAPON_TYPES - 1);
+  if (roll == 1)
+  {
+    award_misc_magic_item(ch, 9, grade); // monk gloves
+    return;
+  }
 
   /* now set up this new object */
   set_weapon_object(obj, roll);
@@ -3753,4 +4088,163 @@ ACMD(do_loadmagic)
     number = 50;
 
   award_magic_item(number, ch, grade);
+}
+
+int get_random_armor_suit_type(void)
+{
+  switch (rand_number(1, 13))
+  {
+    case 1: return ARMOR_STYLE_CLOTHING;
+    case 2: return ARMOR_STYLE_PADDED;
+    case 3: return ARMOR_STYLE_LEATHER;
+    case 4: return ARMOR_STYLE_STUDDED_LEATHER;
+    case 5: return ARMOR_STYLE_LIGHT_CHAINMAIL;
+    case 6: return ARMOR_STYLE_HIDE;
+    case 7: return ARMOR_STYLE_SCALE;
+    case 8: return ARMOR_STYLE_CHAINMAIL;
+    case 9: return ARMOR_STYLE_PIECEMEAL;
+    case 10: return ARMOR_STYLE_SPLINT;
+    case 11: return ARMOR_STYLE_BANDED;
+    case 12: return ARMOR_STYLE_HALF_PLATE;
+    case 13: return ARMOR_STYLE_PLATE_MAIL;
+  }
+  return 0;
+}
+
+int get_armor_piece_by_style(int style, int wear_loc)
+{
+  switch (style)
+  {
+    case ARMOR_STYLE_CLOTHING:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_CLOTHING_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_CLOTHING;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_CLOTHING_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_CLOTHING_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_PADDED:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_PADDED_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_PADDED;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_PADDED_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_PADDED_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_LEATHER:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_LEATHER_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_LEATHER;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_LEATHER_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_LEATHER_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_STUDDED_LEATHER:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_STUDDED_LEATHER;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_LIGHT_CHAINMAIL:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_LIGHT_CHAIN;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_HIDE:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_HIDE_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_HIDE;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_HIDE_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_HIDE_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_SCALE:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_SCALE_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_SCALE;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_SCALE_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_SCALE_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_CHAINMAIL:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_CHAINMAIL_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_CHAINMAIL;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_CHAINMAIL_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_CHAINMAIL_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_PIECEMEAL:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_PIECEMEAL_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_PIECEMEAL;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_PIECEMEAL_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_PIECEMEAL_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_SPLINT:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_SPLINT_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_SPLINT;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_SPLINT_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_SPLINT_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_BANDED:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_BANDED_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_BANDED;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_BANDED_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_BANDED_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_HALF_PLATE:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_HALF_PLATE_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_HALF_PLATE;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_HALF_PLATE_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_HALF_PLATE_LEGS;
+      break;
+    }
+    break;
+    case ARMOR_STYLE_PLATE_MAIL:
+    switch (wear_loc)
+    {
+      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_FULL_PLATE_HEAD;
+      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_FULL_PLATE;
+      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_FULL_PLATE_ARMS;
+      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_FULL_PLATE_LEGS;
+      break;
+    }
+    break;
+  }
+  return 0;
 }
