@@ -41,6 +41,7 @@
 #include "treasure.h"
 #include "crafts.h"
 #include "hunts.h"
+#include "class.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -2945,6 +2946,18 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
   if (OBJ_FLAGGED(obj, ITEM_MOLD))
   {
     send_to_char(ch, "You can't wear an object mold!\r\n");
+    return;
+  }
+
+  if (!is_class_req_object(ch, obj, true))
+  {
+    // fail message sent by above function
+    return;
+  }
+
+  if (is_class_anti_object(ch, obj, true))
+  {
+    // fail message sent by above function
     return;
   }
 

@@ -5789,6 +5789,66 @@ void load_class_list(void)
   /****************************************************************************/
 }
 
+/* This will check a character to see if the object reference has any anti-class
+ * flags associated with the character's class make-up. returns true if
+ * the character has an associated class and anti-flag.  */
+bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output)
+{
+  if ((IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD))) { if (output) send_to_char(ch, "This object cannot be used by wizards.\r\n"); return true; }
+  if ((IS_CLERIC(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_CLERIC))) { if (output) send_to_char(ch, "This object cannot be used by clerics.\r\n"); return true; }
+  if ((IS_RANGER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_RANGER))) { if (output) send_to_char(ch, "This object cannot be used by rangers.\r\n"); return true; }
+  if ((IS_PALADIN(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_PALADIN))) { if (output) send_to_char(ch, "This object cannot be used by paladins.\r\n"); return true; }
+  if ((IS_ROGUE(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE))) { if (output) send_to_char(ch, "This object cannot be used by rogues.\r\n"); return true; }
+  if ((IS_MONK(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_MONK))) { if (output) send_to_char(ch, "This object cannot be used by monks.\r\n"); return true; }
+  if ((IS_DRUID(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_DRUID))) { if (output) send_to_char(ch, "This object cannot be used by druids.\r\n"); return true; }
+  if ((IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_BERSERKER))) { if (output) send_to_char(ch, "This object cannot be used by berserkers.\r\n"); return true; }
+  if ((IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SORCERER))) { if (output) send_to_char(ch, "This object cannot be used by sorcerers.\r\n"); return true; }
+  if ((IS_BARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_BARD))) { if (output) send_to_char(ch, "This object cannot be used by bards.\r\n"); return true; }
+  if ((IS_WARRIOR(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WARRIOR))) { if (output) send_to_char(ch, "This object cannot be used by warriors.\r\n"); return true; }
+  if ((IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WEAPONMASTER))) { if (output) send_to_char(ch, "This object cannot be used by weapon masters.\r\n"); return true; }
+  if ((IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANE_ARCHER))) { if (output) send_to_char(ch, "This object cannot be used by arcane archers.\r\n"); return true; }
+  if ((IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_STALWART_DEFENDER))) { if (output) send_to_char(ch, "This object cannot be used by stalwart defenders.\r\n"); return true; }
+  if ((IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SHIFTER))) { if (output) send_to_char(ch, "This object cannot be used by shifters.\r\n"); return true; }
+  if ((IS_DUELIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_DUELIST))) { if (output) send_to_char(ch, "This object cannot be used by duelists.\r\n"); return true; }
+  if ((IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_MYSTIC_THEURGE))) { if (output) send_to_char(ch, "This object cannot be used by mystic theurges.\r\n"); return true; }
+  if ((IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ALCHEMIST))) { if (output) send_to_char(ch, "This object cannot be used by alchemists.\r\n"); return true; }
+  if ((IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANE_SHADOW))) { if (output) send_to_char(ch, "This object cannot be used by arcane shadows.\r\n"); return true; }
+  if ((IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SACRED_FIST))) { if (output) send_to_char(ch, "This object cannot be used by sacred fists.\r\n"); return true; }
+  if ((IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ELDRITCH_KNIGHT))) { if (output) send_to_char(ch, "This object cannot be used by eldritch knights.\r\n"); return true; }
+
+  return false;
+}
+
+/* this will check a character to see if they have any levels in any classes
+ * associated with the object's class-required flags. returns true if
+ * the character has an associated class and required class */
+bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output)
+{
+      if (!(IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WIZARD))) { if (output) send_to_char(ch, "You must have levels as a wizard to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_CLERIC(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_CLERIC))) { if (output) send_to_char(ch, "You must have levels as a cleric to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_RANGER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_RANGER))) { if (output) send_to_char(ch, "You must have levels as a ranger to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_PALADIN(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_PALADIN))) { if (output) send_to_char(ch, "You must have levels as a paladin to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_ROGUE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ROGUE))) { if (output) send_to_char(ch, "You must have levels as a rogue to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_MONK(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MONK))) { if (output) send_to_char(ch, "You must have levels as a monk to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_DRUID(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_DRUID))) { if (output) send_to_char(ch, "You must have levels as a druid to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BERSERKER))) { if (output) send_to_char(ch, "You must have levels as a berserker to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SORCERER))) { if (output) send_to_char(ch, "You must have levels as a sorcerer to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_BARD(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BARD))) { if (output) send_to_char(ch, "You must have levels as a bard to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_WARRIOR(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WARRIOR))) { if (output) send_to_char(ch, "You must have levels as a warrior to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WEAPONMASTER))) { if (output) send_to_char(ch, "You must have levels as a weapon master to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_ARCHER))) { if (output) send_to_char(ch, "You must have levels as an arcane archer to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_STALWART_DEFENDER))) { if (output) send_to_char(ch, "You must have levels as a stalwart defender to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SHIFTER))) { if (output) send_to_char(ch, "You must have levels as a shifter to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_DUELIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_DUELIST))) { if (output) send_to_char(ch, "You must have levels as a duelist to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MYSTIC_THEURGE))) { if (output) send_to_char(ch, "You must have levels as a mystic theurge to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ALCHEMIST))) { if (output) send_to_char(ch, "You must have levels as an alchemist to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_SHADOW))) { if (output) send_to_char(ch, "You must have levels as an arcane shadow to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SACRED_FIST))) { if (output) send_to_char(ch, "You must have levels as a sacred fist to use %s.\r\n", obj->short_description); return false; }
+      if (!(IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ELDRITCH_KNIGHT))) { if (output) send_to_char(ch, "You must have levels as an eldritch knight to use %s.\r\n", obj->short_description); return false; }
+
+  return true;
+}
+
 /** LOCAL UNDEFINES **/
 // good/bad
 #undef G //good

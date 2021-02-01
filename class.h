@@ -120,6 +120,8 @@ void load_class_list(void);
 static int level_feats[][LEVEL_FEATS];
 void feat_assignment(int class_num, int feat_num, bool is_classfeat,
                      int level_received, bool stacks);
+bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output);
+bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output);
 
 /* ACMD */
 ACMD_DECL(do_class);

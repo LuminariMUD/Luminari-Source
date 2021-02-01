@@ -35,6 +35,7 @@
 #include "assign_wpn_armor.h"
 #include "encounters.h"
 #include "hunts.h"
+#include "class.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -2385,41 +2386,7 @@ ACMD(do_enter)
         break;
 
       case PORTAL_CHECKFLAGS:
-        if (((IS_WIZARD(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_WIZARD))) ||
-
-            ((IS_CLERIC(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_CLERIC))) ||
-
-            ((IS_RANGER(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_RANGER))) ||
-
-            ((IS_PALADIN(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_PALADIN))) ||
-
-            ((IS_ROGUE(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_ROGUE))) ||
-
-            ((IS_MONK(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_MONK))) ||
-
-            ((IS_DRUID(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_DRUID))) ||
-
-            ((IS_BERSERKER(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_BERSERKER))) ||
-
-            ((IS_SORCERER(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_SORCERER))) ||
-
-            ((IS_BARD(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_BARD))) ||
-
-            ((IS_WARRIOR(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_WARRIOR))) ||
-
-            ((IS_WEAPONMASTER(ch)) &&
-             (OBJ_FLAGGED(portal, ITEM_ANTI_WEAPONMASTER))))
+        if (is_class_anti_object(ch, portal, false) && !is_class_req_object(ch, portal, false))
         {
           act("You try to enter $p, but a mysterious power "
               "forces you back!  (class restriction)",

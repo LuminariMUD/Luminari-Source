@@ -1345,25 +1345,33 @@ void char_from_furniture(struct char_data *ch);
 #define IS_HOLY(room) (ROOM_AFFECTED(room, RAFF_HOLY) && !ROOM_AFFECTED(room, RAFF_UNHOLY))
 #define IS_UNHOLY(room) (ROOM_AFFECTED(room, RAFF_UNHOLY) && !ROOM_AFFECTED(room, RAFF_HOLY))
 
-/** Defines if ch is good. */
-#define IS_GOOD(ch) (GET_ALIGNMENT(ch) >= 350)
-
-/** Defines if ch is evil. */
-#define IS_EVIL(ch) (GET_ALIGNMENT(ch) <= -350)
-
-/** Defines if ch is neither good nor evil. */
-#define IS_NEUTRAL(ch) (!IS_GOOD(ch) && !IS_EVIL(ch))
-
 /* dnd type of alignments */
 #define IS_LG(ch) (GET_ALIGNMENT(ch) >= 800)
 #define IS_NG(ch) (GET_ALIGNMENT(ch) >= 575 && GET_ALIGNMENT(ch) < 800)
 #define IS_CG(ch) (GET_ALIGNMENT(ch) >= 350 && GET_ALIGNMENT(ch) < 575)
 #define IS_LN(ch) (GET_ALIGNMENT(ch) >= 125 && GET_ALIGNMENT(ch) < 350)
-#define IS_NN(ch) (GET_ALIGNMENT(ch) < 125 && GET_ALIGNMENT(ch) > -125)
+#define IS_TN(ch) (GET_ALIGNMENT(ch) < 125 && GET_ALIGNMENT(ch) > -125)
 #define IS_CN(ch) (GET_ALIGNMENT(ch) <= -125 && GET_ALIGNMENT(ch) > -350)
 #define IS_LE(ch) (GET_ALIGNMENT(ch) <= -350 && GET_ALIGNMENT(ch) > -575)
 #define IS_NE(ch) (GET_ALIGNMENT(ch) <= -575 && GET_ALIGNMENT(ch) > -800)
 #define IS_CE(ch) (GET_ALIGNMENT(ch) <= -800)
+
+/** Defines if ch is good. */
+//#define IS_GOOD(ch) (GET_ALIGNMENT(ch) >= 350) // old system
+#define IS_GOOD(ch) (IS_LG(ch) || IS_NG(ch) || IS_CG(ch))
+
+/** Defines if ch is evil. */
+//#define IS_EVIL(ch) (GET_ALIGNMENT(ch) <= -350) // old system
+#define IS_EVIL(ch) (IS_LE(ch) || IS_NE(ch) || IS_CE(ch))
+
+/** Defines if ch is neither good nor evil. */
+// #define IS_NEUTRAL(ch) (!IS_GOOD(ch) && !IS_EVIL(ch)) // old system
+#define IS_NEUTRAL(ch) (IS_LN(ch) || IS_TN(ch) || IS_CN(ch))
+#define IS_NEUTRAL_ETHOS(ch) (IS_NG(ch) || IS_TN(ch) || IS_NE(ch))
+#define IS_NEUTRAL_ANY(ch) (IS_NEUTRAL(ch) || IS_NEUTRAL_ETHOS(ch))
+
+#define IS_LAWFUL(ch) (IS_LG(ch) || IS_LN(ch) || IS_LE(ch))
+#define IS_CHAOTIC(ch) (IS_CG(ch) || IS_CN(ch) || IS_CE(ch))
 
 /** Old wait state function.
  * @deprecated Use GET_WAIT_STATE */

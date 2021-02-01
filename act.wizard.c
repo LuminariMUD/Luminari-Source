@@ -7513,6 +7513,38 @@ int get_eq_score(obj_rnum a)
       case ITEM_ANTI_ARCANA_GOLEM:
       case ITEM_ANTI_DROW:
       case ITEM_ANTI_DUERGAR:
+      case ITEM_ANTI_LAWFUL:
+      case ITEM_ANTI_CHAOTIC:
+      case ITEM_REQ_WIZARD:
+      case ITEM_REQ_CLERIC:
+      case ITEM_REQ_ROGUE:
+      case ITEM_REQ_WARRIOR:
+      case ITEM_REQ_MONK:
+      case ITEM_REQ_DRUID:
+      case ITEM_REQ_BERSERKER:
+      case ITEM_REQ_SORCERER:
+      case ITEM_REQ_PALADIN:
+      case ITEM_REQ_RANGER:
+      case ITEM_REQ_BARD:
+      case ITEM_REQ_WEAPONMASTER:
+      case ITEM_REQ_ARCANE_ARCHER:
+      case ITEM_REQ_STALWART_DEFENDER:
+      case ITEM_REQ_SHIFTER:
+      case ITEM_REQ_DUELIST:
+      case ITEM_REQ_MYSTIC_THEURGE:
+      case ITEM_REQ_ALCHEMIST:
+      case ITEM_REQ_ARCANE_SHADOW:
+      case ITEM_REQ_SACRED_FIST:
+      case ITEM_REQ_ELDRITCH_KNIGHT:
+      case ITEM_ANTI_ARCANE_ARCHER:
+      case ITEM_ANTI_STALWART_DEFENDER:
+      case ITEM_ANTI_SHIFTER:
+      case ITEM_ANTI_DUELIST:
+      case ITEM_ANTI_MYSTIC_THEURGE:
+      case ITEM_ANTI_ALCHEMIST:
+      case ITEM_ANTI_ARCANE_SHADOW:
+      case ITEM_ANTI_SACRED_FIST:
+      case ITEM_ANTI_ELDRITCH_KNIGHT:
         score -= 15;
         break;
       case ITEM_ANTI_GOOD:
