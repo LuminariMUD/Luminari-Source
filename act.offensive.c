@@ -3143,12 +3143,7 @@ ACMD(do_breathe)
       }
       else
       {
-        if (GET_LEVEL(ch) <= 15)
-          damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE,
-                 FALSE);
-        else
-          damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_FIRE_BREATHE, DAM_FIRE,
-                 FALSE);
+          damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
       }
     }
   }
@@ -4111,6 +4106,225 @@ ACMD(do_fey_magic)
   else
   {
     send_to_char(ch, "%s", FEY_MAGIC_NO_ARG);
+    return;
+  }
+}
+
+ACMDCHECK(can_grave_magic)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_SORCERER_BLOODLINE_UNDEAD, "You do not have access to this ability.\r\n");
+  return CAN_CMD;
+}
+
+#define GRAVE_MAGIC_NO_ARG  "Please specify one of the following fey magic options:\r\n" \
+                            "touch            : sorcerer lvl 1  - causes target to become shaken.\r\n" \
+                            "grasp            : sorcerer lvl 9  - deals AoE slashing damage.\r\n" \
+                            "incorporeal-form : sorcerer lvl 15 - become incorporeal, reduced damage from physical attacks.\r\n" \
+                            "\r\n"
+
+ACMD(do_grave_magic)
+{
+  // laughing tough, fleeting glance, shadow walk - soul of the fey
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_grave_magic);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  char arg1[100], arg2[100];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "%s", GRAVE_MAGIC_NO_ARG);
+    return;
+  }
+
+  if (is_abbrev(arg1, "touch"))
+  {
+    if (!IS_NPC(ch))
+    {
+      if (GRAVE_TOUCH_USES(ch) <= 0)
+      {
+        if (GRAVE_TOUCH_TIMER(ch) <= 0)
+        {
+          GRAVE_TOUCH_TIMER(ch) = 0;
+          GRAVE_TOUCH_USES(ch) = GRAVE_TOUCH_USES_PER_DAY(ch);
+          send_to_char(ch, "Your grave touch uses have been refreshed to %d.\r\n", GRAVE_TOUCH_USES_PER_DAY(ch));
+        }
+        else
+        {
+          send_to_char(ch, "You don't have any grave touch uses left.\r\n");
+          return;
+        }
+      }
+    } else {
+      send_to_char(ch, "NPCs cannot use grave touch.\r\n");
+      return;
+    }
+
+    struct char_data *victim = NULL;
+
+    if (!*arg2)
+    {
+      if (FIGHTING(ch))
+      {
+        victim = FIGHTING(ch);
+      }
+      else
+      {
+        send_to_char(ch, "You need to specify a target for your grave touch.\r\n");
+        return;
+      }
+    } else {
+      victim = get_char_room_vis(ch, arg2, NULL);
+    }
+
+    if (!victim)
+    {
+      send_to_char(ch, "There is no one by that description here.\r\n");
+      return;
+    }
+
+    if (is_player_grouped(ch, victim))
+    {
+      send_to_char(ch, "You probably shouldn't do that to a group member.\r\n");
+      return;
+    }
+
+    if (is_immune_fear(ch, victim, FALSE))
+    {
+      act("You touch $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_CHAR);
+      act("$n touches you, but you shake off the fear affect immediately.", false, ch, 0, victim, TO_VICT);
+      act("$n touches $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_NOTVICT);
+    }
+    else
+    {
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
+      {
+        act("You touch $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_CHAR);
+        act("$n touches you, but you shake off the fear affect immediately.", false, ch, 0, victim, TO_VICT);
+        act("$n touches $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_NOTVICT);
+      }
+      else
+      {
+        struct affected_type af;
+        new_affect(&af);
+
+        af.spell = SPELL_GRAVE_TOUCH;
+        af.duration = MAX(2, CLASS_LEVEL(ch, CLASS_SORCERER) / 2);
+        SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+        af.modifier = -1;
+        af.location = APPLY_AC_NEW;
+
+        affect_to_char(victim, &af);
+
+        act("You touch $N, who immediately becomes quite frightened.", false, ch, 0, victim, TO_CHAR);
+        act("$n touches you causing you to become quite frightened.", false, ch, 0, victim, TO_VICT);
+        act("$n touches $N, who immediately becomes quite frightened.", false, ch, 0, victim, TO_NOTVICT);
+      }
+    }
+
+    if (GRAVE_TOUCH_TIMER(ch) <= 0)
+        GRAVE_TOUCH_TIMER(ch) = 150;
+      GRAVE_TOUCH_USES(ch)--;
+    return; // end GRAVE touch
+  }
+  else if (is_abbrev(arg1, "grasp"))
+  {
+    if (!HAS_FEAT(ch, FEAT_GRASP_OF_THE_DEAD))
+    {
+      send_to_char(ch, "You need the sorcerer undead bloodline ability, 'grasp of the dead', to use this ability.\r\n");
+      return;
+    }
+    if (!IS_NPC(ch))
+    {
+      if (GRASP_OF_THE_DEAD_USES(ch) <= 0)
+      {
+        if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
+        {
+          GRASP_OF_THE_DEAD_TIMER(ch) = 0;
+          GRASP_OF_THE_DEAD_USES(ch) = GRASP_OF_THE_DEAD_USES_PER_DAY(ch);
+          send_to_char(ch, "Your undead bloodline grasp of the dead uses have been refreshed to %d.\r\n", GRASP_OF_THE_DEAD_USES_PER_DAY(ch));
+        }
+        else
+        {
+          send_to_char(ch, "You don't have any undead bloodline grasp of the dead uses left.\r\n");
+          return;
+        }
+      }
+    }
+    else
+    {
+      send_to_char(ch, "NPCs cannot use grasp of the dead.\r\n");
+      return;
+    }
+
+    act("You draw upon your innate undead prowess.", true, ch, 0, 0, TO_CHAR);
+    act("$n draws upon $s innate undead prowess.", true, ch, 0, 0, TO_ROOM);
+
+    call_magic(ch, ch, NULL, SPELL_GRASP_OF_THE_DEAD, 0, compute_arcane_level(ch), CAST_INNATE);
+
+    if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
+      GRASP_OF_THE_DEAD_TIMER(ch) = 150;
+    GRASP_OF_THE_DEAD_USES(ch)--;
+
+    return; // end grasp of the dead
+  }
+  else if (is_abbrev(arg1, "incorporeal-form"))
+  {
+    if (!HAS_FEAT(ch, FEAT_INCORPOREAL_FORM))
+    {
+      send_to_char(ch, "You need the sorcerer undead bloodline ability, 'incorporeal form', to use this ability.\r\n");
+      return;
+    }
+    if (!IS_NPC(ch))
+    {
+      if (INCORPOREAL_FORM_USES(ch) <= 0)
+      {
+        if (INCORPOREAL_FORM_TIMER(ch) <= 0)
+        {
+          INCORPOREAL_FORM_TIMER(ch) = 0;
+          INCORPOREAL_FORM_USES(ch) = INCORPOREAL_FORM_USES_PER_DAY(ch);
+          send_to_char(ch, "Your undead bloodline incorporeal form uses have been refreshed to %d.\r\n", INCORPOREAL_FORM_USES_PER_DAY(ch));
+        }
+        else
+        {
+          send_to_char(ch, "You don't have any undead bloodline incorporeal form uses left.\r\n");
+          return;
+        }
+      }
+    } else {
+      send_to_char(ch, "NPCs cannot use incorporeal form.\r\n");
+      return;
+    }
+
+    act("You draw upon your innate undead prowess.", true, ch, 0, 0, TO_CHAR);
+    act("$n draws upon $s innate undead prowess.", true, ch, 0, 0, TO_ROOM);
+
+    struct affected_type af;
+    new_affect(&af);
+
+    af.spell = SPELL_INCORPOREAL_FORM;
+    af.duration = 3;;
+    SET_BIT_AR(af.bitvector, AFF_IMMATERIAL);
+    af.modifier = 1;
+    af.location = APPLY_AC_NEW;
+
+    affect_to_char(ch, &af);
+
+    act("You suddenly become incorporeal, half in this plane, half in the astral plane.", false, ch, 0, 0, TO_CHAR);
+    act("$n suddenly becomes incorporeal.", false, ch, 0, 0, TO_ROOM);
+
+    if (INCORPOREAL_FORM_TIMER(ch) <= 0)
+      INCORPOREAL_FORM_TIMER(ch) = 150;
+    INCORPOREAL_FORM_USES(ch)--;
+
+    return; // end incorporeal form
+  }
+  else
+  {
+    send_to_char(ch, "%s", GRAVE_MAGIC_NO_ARG);
     return;
   }
 }

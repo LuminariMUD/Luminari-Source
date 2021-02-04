@@ -352,6 +352,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"gain", "gain", POS_RECLINING, do_gain, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"guard", "guard", POS_FIGHTING, do_guard, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"grapple", "grapple", POS_RECLINING, do_grapple, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"gravemagic", "grave", POS_FIGHTING, do_grave_magic, 1, 0, FALSE, ACTION_MOVE, {6, 0}, NULL},
     {"goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"guimode", "guimode", POS_DEAD, do_gen_tog, 1, SCMD_GUI_MODE, TRUE, ACTION_NONE, {0, 0}, NULL},

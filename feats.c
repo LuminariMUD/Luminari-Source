@@ -2057,7 +2057,51 @@ void assign_feats(void)
         "fey bloodline, sorcerer level 20",
         "Gain immunity to poison and +3 damage reduction. Creatures of the animal type will not "
         "aggro you. Can cast 'shadow walk' once per day using the 'fey' command.");
-
+  
+  // Sorcerer Undead Bloodline
+  feato(FEAT_SORCERER_BLOODLINE_UNDEAD, "undead bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "level one sorcerer",
+        "The taint of the grave runs through your family. Perhaps one of your ancestors became a "
+        "powerful lich or vampire, or maybe you were born dead before suddenly returning to life. "
+        "Either way, the forces of death move through you and touch your every action. The undead "
+        "sorcerer bloodline allows you to cause fear in opponents, gain resistance to cold and "
+        "innate damage reduction, cause the dead to reach forth from the earth to ravage your foes, "
+        "become incorporeal and eventually become one of the undead yourself.");
+  feato(FEAT_UNDEAD_BLOODLINE_ARCANA, "undead arcana", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "undead bloodline selected",
+        "Undead can now be succeptible to your mind-affecting spells.");
+  feato(FEAT_GRAVE_TOUCH, "grave touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "undead bloodline selected",
+        "Use a move action to touch another being causing them to be shaken for a number "
+        "of rounds equal to your sorcerer level divided by two.  Useable a number of times "
+        "per day equal to your charisma modifier plus three.");
+  feato(FEAT_DEATHS_GIFT, "death's gift", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "undead bloodline selected, level 3 sorcerer",
+        "At sorcerer level 3 you gain 20 cold resist, 30 nonlethal resist and DR 1/- against all damage. At sorcerer "
+        "level 9, this increases to 40 cold resist, 50 nonlethal resist and DR 2/- against all damage.");
+  feato(FEAT_GRASP_OF_THE_DEAD, "grasp of the dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "undead bloodline selected, sorcerer level 9",
+        "As a standard action, you can cause a swarm of skeletal arms to burst from the ground to rip and tear "
+        "at your foes. This affects all enemies in the room, and does 1d6 slashing damage "
+        "per sorcerer level. Victims can make a reflex save for half damage.  Those who fail "
+        "their save are also unable to move for 1 round. The dc for this ability is 10 + 1/2 "
+        "sorcerer level + your charisma modifier. You must be on a solid surface for this to work. "
+        "At sorcerer level 9 this is useable once per day.  At sorcerer level 17, it can be "
+        "used twice per day, and at sorcerer level 20, it can be used three times per day.");
+  feato(FEAT_INCORPOREAL_FORM, "incorporeal form (undead bloodline)", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "undead bloodline selected, sorcerer level 15",
+        "You become incorporeal for 3 rounds, during which you take 1/2 damage from all sources except spells, unless "
+        "the weapon is a ghost touch weapon or your opponent is incorporeal as well.  Likewise, your "
+        "non-spell attacks only deal 1/2 damage to corporeal opponents.  This ability can be used "
+        "a number of times per day equal to your sorcerer level / 3. Using a ghost touch weapon will bypass "
+        "this damage reduction for melee attacks.");
+  feato(FEAT_ONE_OF_US, "one of us", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "undead bloodline selected, sorcerer level 20",
+        "At sorcerer level 20, your physical form begins to rot, and undead see you as "
+        "one of them. You gain immunity to cold damage, nonlethal damage, and DR 5/- from all other damage. "
+        "You also gain immunity to paralysis and sleep affects. Undead NPCs will not aggro "
+        "you. You receive a +4 moral bonus on saving throws made against spells and spell-like "
+        "abilities cast by undead.");
 
   feato(FEAT_THEURGE_SPELLCASTING, "theurge spellcasting", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
         "mystic theurge",
@@ -5656,6 +5700,21 @@ int is_class_feat(int featnum, int class, struct char_data *ch)
         return TRUE;
       }
     }
+    else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+    {
+      switch (featnum)
+      {
+      case FEAT_COMBAT_CASTING:
+      case FEAT_DIEHARD:
+      case FEAT_ENDURANCE:
+      case FEAT_IRON_WILL:
+      case FEAT_SPELL_FOCUS:
+      case FEAT_STILL_SPELL:
+      case FEAT_TOUGHNESS:
+      case FEAT_SKILL_FOCUS:
+        return TRUE;
+      }
+    }
   }
 
   return FALSE;
@@ -5965,6 +6024,8 @@ int get_sorcerer_bloodline_type(struct char_data *ch)
     return bl;
   else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_FEY)))
     return bl;
+  else if (HAS_FEAT(ch, (bl = FEAT_SORCERER_BLOODLINE_UNDEAD)))
+    return bl;
   else
     bl = 0;
   return bl;
@@ -5981,6 +6042,9 @@ int get_levelup_sorcerer_bloodline_type(struct char_data *ch)
   bl = FEAT_SORCERER_BLOODLINE_FEY;
   if (LEVELUP(ch)->feats[bl] > 0)
     return bl;
+  bl = FEAT_SORCERER_BLOODLINE_UNDEAD;
+  if (LEVELUP(ch)->feats[bl] > 0)
+    return bl;
   return 0;
 }
 
@@ -5991,6 +6055,7 @@ bool isSorcBloodlineFeat(int featnum)
   case FEAT_SORCERER_BLOODLINE_DRACONIC:
   case FEAT_SORCERER_BLOODLINE_ARCANE:
   case FEAT_SORCERER_BLOODLINE_FEY:
+  case FEAT_SORCERER_BLOODLINE_UNDEAD:
     return TRUE;
   }
   return FALSE;

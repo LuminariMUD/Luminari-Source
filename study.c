@@ -1327,12 +1327,15 @@ static void set_sorcerer_bloodline(struct descriptor_data *d)
                   "%s 0%s) Arcane\r\n"
                   "%s 1%s) Draconic\r\n"
                   "%s 2%s) Fey\r\n"
+                  "%s 3%s) Undead\r\n"
                   "\r\n"
                   "%s Q%s) Quit\r\n"
                   "\r\n"
                   "Enter Choice : ",
 
                   mgn, nrm,
+                  /* empty line */
+                  grn, nrm,
                   /* empty line */
                   grn, nrm,
                   /* empty line */
@@ -3107,6 +3110,12 @@ void study_parse(struct descriptor_data *d, char *arg)
         OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
         write_to_output(d, "\r\n%s%s:\r\n%s%s\r\n\r\n", nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description);
         write_to_output(d, "Choose the fey bloodline? (Y/N): ");
+        return;
+      case 3:
+        LEVELUP(ch)->tempFeat = FEAT_SORCERER_BLOODLINE_UNDEAD;
+        OLC_MODE(d) = STUDY_CONFIRM_BLOODLINE;
+        write_to_output(d, "\r\n%s%s:\r\n%s%s\r\n\r\n", nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description);
+        write_to_output(d, "Choose the undead bloodline? (Y/N): ");
         return;
       default:
         write_to_output(d, "That is an invalid choice.  Please choose again: ");

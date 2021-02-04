@@ -1519,6 +1519,11 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
     if (ability == ABILITY_SURVIVAL)
       ability_value = CA;
   }
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+  {
+    if (ability == ABILITY_INTIMIDATE)
+      ability_value = CA;
+  }
 
   return ability_value;
 }
@@ -2705,6 +2710,39 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
           send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_SOUL_OF_THE_FEY].name);
         }
       }
+      else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+    {
+        if (!HAS_REAL_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
+        {
+          SET_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_UNDEAD_BLOODLINE_ARCANA].name);
+        }
+        if (!HAS_REAL_FEAT(ch, FEAT_GRAVE_TOUCH))
+        {
+          SET_FEAT(ch, FEAT_GRAVE_TOUCH, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRAVE_TOUCH].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_DEATHS_GIFT))
+        {
+          SET_FEAT(ch, FEAT_DEATHS_GIFT, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DEATHS_GIFT].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_GRASP_OF_THE_DEAD))
+        {
+          SET_FEAT(ch, FEAT_GRASP_OF_THE_DEAD, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRASP_OF_THE_DEAD].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_INCORPOREAL_FORM))
+        {
+          SET_FEAT(ch, FEAT_INCORPOREAL_FORM, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_INCORPOREAL_FORM].name);
+        }
+        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_ONE_OF_US))
+        {
+          SET_FEAT(ch, FEAT_ONE_OF_US, 1);
+          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ONE_OF_US].name);
+        }
+      }
     break;
   case CLASS_MYSTIC_THEURGE:
   {
@@ -3341,6 +3379,8 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_WATERWALK, 11);
   spell_assignment(CLASS_WIZARD, SPELL_LEVITATE, 11);
   spell_assignment(CLASS_WIZARD, SPELL_SHADOW_WALK, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_OF_DEATH, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_UNDEATH_TO_DEATH, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM, 13);
@@ -3363,6 +3403,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_MASS_CHARISMA, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_FALSE_LIFE, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_FINGER_OF_DEATH, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_WIZARD, SPELL_CLENCHED_FIST, 15);
@@ -3565,6 +3606,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CUNNING, 11);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_DISEASE, 11);
   spell_assignment(CLASS_CLERIC, SPELL_LEVITATE, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_UNDEATH_TO_DEATH, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_CLERIC, SPELL_CALL_LIGHTNING, 13);
@@ -4139,6 +4181,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_SUNBURST, 15);
   spell_assignment(CLASS_DRUID, SPELL_WHIRLWIND, 15);
   spell_assignment(CLASS_DRUID, SPELL_WORD_OF_RECALL, 15);
+  spell_assignment(CLASS_DRUID, SPELL_FINGER_OF_DEATH, 15);
   /*              class num      spell                   level acquired */
   /* 9th circle */
   spell_assignment(CLASS_DRUID, SPELL_ELEMENTAL_SWARM, 17);
@@ -4488,6 +4531,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_WATERWALK, 12);
   spell_assignment(CLASS_SORCERER, SPELL_LEVITATE, 12);
   spell_assignment(CLASS_SORCERER, SPELL_SHADOW_WALK, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_CIRCLE_OF_DEATH, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_UNDEATH_TO_DEATH, 12);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_SORCERER, SPELL_MISSILE_STORM, 14);
@@ -4510,6 +4555,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_MASS_CHARISMA, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_CUNNING, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_FALSE_LIFE, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_FINGER_OF_DEATH, 14);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_SORCERER, SPELL_CLENCHED_FIST, 16);

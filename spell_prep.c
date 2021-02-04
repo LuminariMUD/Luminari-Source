@@ -809,6 +809,21 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
       return TRUE;
     }
     break;
+  case SORC_BLOODLINE_UNDEAD:
+    switch (spellnum)
+    {
+    case SPELL_CHILL_TOUCH:
+    case SPELL_FALSE_LIFE:
+    case SPELL_VAMPIRIC_TOUCH:
+    case SPELL_ANIMATE_DEAD:
+    case SPELL_WAVES_OF_FATIGUE:
+    case SPELL_UNDEATH_TO_DEATH:
+    case SPELL_FINGER_OF_DEATH:
+    case SPELL_HORRID_WILTING:
+    case SPELL_ENERGY_DRAIN:
+      return TRUE;
+    }
+    break;
   }
   return FALSE;
 }
@@ -821,6 +836,8 @@ int get_sorc_bloodline(struct char_data *ch)
     return SORC_BLOODLINE_ARCANE;
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
     return SORC_BLOODLINE_FEY;
+  if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+    return SORC_BLOODLINE_UNDEAD;
 
   return SORC_BLOODLINE_NONE;
 }

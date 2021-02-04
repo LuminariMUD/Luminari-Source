@@ -1830,19 +1830,25 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 
 
   if (PIXIE_DUST_TIMER(ch) > 0)
-    send_to_char(ch, "Pixie Dust Cooldown      - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
+    send_to_char(ch, "Pixie Dust Cooldown - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
   if (EFREETI_MAGIC_TIMER(ch) > 0)
-    send_to_char(ch, "Efreeti Magic Cooldown   - Duration: %d seconds\r\n", EFREETI_MAGIC_TIMER(ch) * 6);
+    send_to_char(ch, "Efreeti Magic Cooldown - Duration: %d seconds\r\n", EFREETI_MAGIC_TIMER(ch) * 6);
   if (DRAGON_MAGIC_TIMER(ch) > 0)
-    send_to_char(ch, "Dragon Magic Cooldown    - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
+    send_to_char(ch, "Dragon Magic Cooldown - Duration: %d seconds\r\n", DRAGON_MAGIC_TIMER(ch) * 6);
   if (LAUGHING_TOUCH_TIMER(ch) > 0)
-    send_to_char(ch, "Laughing Touch Cooldown  - Duration: %d seconds\r\n", LAUGHING_TOUCH_TIMER(ch) * 6);
+    send_to_char(ch, "Laughing Touch Cooldown - Duration: %d seconds\r\n", LAUGHING_TOUCH_TIMER(ch) * 6);
   if (FLEETING_GLANCE_TIMER(ch) > 0)
     send_to_char(ch, "Fleeting Glance Cooldown - Duration: %d seconds\r\n", FLEETING_GLANCE_TIMER(ch) * 6);
   if (FEY_SHADOW_WALK_TIMER(ch) > 0)
     send_to_char(ch, "Fey Shadow Walk Cooldown - Duration: %d seconds\r\n", FEY_SHADOW_WALK_TIMER(ch) * 6);
+  if (GRAVE_TOUCH_TIMER(ch) > 0)
+    send_to_char(ch, "Grave Touch Cooldown - Duration: %d seconds\r\n", GRAVE_TOUCH_TIMER(ch) * 6);
+  if (GRASP_OF_THE_DEAD_TIMER(ch) > 0)
+    send_to_char(ch, "Grasp of the Dead Cooldown - Duration: %d seconds\r\n", GRASP_OF_THE_DEAD_TIMER(ch) * 6);
+  if (INCORPOREAL_FORM_TIMER(ch) > 0)
+    send_to_char(ch, "Incorporeal Form (Undead Bloodline) Cooldown - Duration: %d seconds\r\n", INCORPOREAL_FORM_TIMER(ch) * 6);
   if (GET_MISSION_COOLDOWN(k) > 0)
-    send_to_char(ch, "Mission Ready Cooldown   - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
+    send_to_char(ch, "Mission Ready Cooldown - Duration: %d seconds\r\n", GET_MISSION_COOLDOWN(k) * 6);
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -3087,6 +3093,11 @@ ACMD(do_score)
   else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
   {
     send_to_char(ch, "\tcSorcerer Bloodline: \tnFey.\r\n");
+    draw_line(ch, line_length, '-', '-');
+  }
+  else if (HAS_REAL_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+  {
+    send_to_char(ch, "\tcSorcerer Bloodline: \tnUndead.\r\n");
     draw_line(ch, line_length, '-', '-');
   }
 

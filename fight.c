@@ -2353,6 +2353,15 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
       damtype_reduction += 50;
+    if (HAS_FEAT(ch, FEAT_DEATHS_GIFT))
+    {
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9)
+        damtype_reduction += 40;
+      else
+        damtype_reduction += 20;
+    }
+    if (HAS_FEAT(ch, FEAT_ONE_OF_US))
+      damtype_reduction += 100;
 
     if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
       damtype_reduction += 50;
@@ -2790,6 +2799,16 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   if (IS_DRAGON(ch))
     damage_reduction += 5;
 
+  if (HAS_FEAT(ch, FEAT_ONE_OF_US))
+    damage_reduction += 5;
+  else if (HAS_FEAT(ch, FEAT_DEATHS_GIFT))
+  {
+    if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9)
+      damage_reduction += 2;
+    else
+      damage_reduction += 1;
+  }
+
   if (GET_EQ(ch, WEAR_BODY) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_BODY)) == ITEM_ARMOR &&
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONHIDE) ||
      (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONSCALE) ||
@@ -3022,6 +3041,29 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* damage reduction system (old version) */
     if (!is_spell)
     {
+      // We want to handle incorporeal affect on damage before applying damage reduction
+      // damage by a spell will always do full damage to incorporeal creatures
+      // we halve damage for undead sorcerer bloodline users of icorporeal form
+      // At some point we want to incorporate this into the incorporeal flag in itself -- Gicker
+      if (IS_INCORPOREAL(victim) && HAS_FEAT(victim, FEAT_INCORPOREAL_FORM))
+      {
+        // damage is normal if you're using a ghost touch weapon, or you're incorporeal yourself
+        if (is_using_ghost_touch_weapon(ch) || IS_INCORPOREAL(ch))
+          ;
+        else
+          dam /= 2;
+      }
+      // The same is also true.  If you are incorporeal and your foe isn't, you deal 1/2 damage
+      // If you're using a ghost touch weapon you do full damage
+      else if (IS_INCORPOREAL(ch) && HAS_FEAT(ch, FEAT_INCORPOREAL_FORM))
+      {
+        // damage is normal if you're using a ghost touch weapon, or if your foe is also incorporeal
+        if (is_using_ghost_touch_weapon(ch) || IS_INCORPOREAL(victim))
+          ;
+        else
+          dam /= 2;
+      }
+
       damage_reduction = compute_damage_reduction(victim, dam_type);
       dam -= MIN(dam, damage_reduction);
       if (!dam && (ch != victim))

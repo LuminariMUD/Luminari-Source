@@ -3894,6 +3894,7 @@ bool paralysis_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
   if (HAS_FEAT(ch, FEAT_PARALYSIS_IMMUNITY)) return TRUE;
+  if (HAS_FEAT(ch, FEAT_ONE_OF_US)) return TRUE;
   return FALSE;
 }
 
@@ -3901,9 +3902,21 @@ bool sleep_immunity(struct char_data *ch) {
   if (!ch) return FALSE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
   if (HAS_FEAT(ch, FEAT_SLEEP_ENCHANTMENT_IMMUNITY)) return TRUE;
+  if (HAS_FEAT(ch, FEAT_ONE_OF_US)) return TRUE;
   return FALSE;
 }
 
+sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyte display) {
+  if (AFF_FLAGGED(victim, AFF_DEATH_WARD)) {
+    if (display) {
+      send_to_char(ch, "%s appears to be immune to death magic!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are protected from death magic by your death ward!\r\n");
+    }
+    return TRUE;
+  }
+
+  return FALSE;
+}
 
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display) {
   if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
@@ -3934,6 +3947,16 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
 }
 
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display) {
+  
+  if ((IS_UNDEAD(victim) || HAS_FEAT(victim, FEAT_ONE_OF_US)) && !HAS_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
+  {
+    if (display) {
+      send_to_char(ch, "%s is undead and thus immune to mind affecting spells and abilities!", GET_NAME(victim));
+      send_to_char(victim, "You are undead and thus are immune to %s's mind-affecting spells and abilities!", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
   if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
     if (display) {
       send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
@@ -3942,6 +3965,7 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     }
     return TRUE;
   }
+
   return FALSE;
 }
 

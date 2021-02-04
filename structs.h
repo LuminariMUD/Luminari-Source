@@ -1813,13 +1813,20 @@
 #define FEAT_FLEETING_GLANCE 658
 #define FEAT_FEY_MAGIC 659
 #define FEAT_SOUL_OF_THE_FEY 660
+#define FEAT_SORCERER_BLOODLINE_UNDEAD 661
+#define FEAT_UNDEAD_BLOODLINE_ARCANA 662
+#define FEAT_GRAVE_TOUCH 663
+#define FEAT_DEATHS_GIFT 664
+#define FEAT_GRASP_OF_THE_DEAD 665
+#define FEAT_INCORPOREAL_FORM 666
+#define FEAT_ONE_OF_US 667
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 661
+#define FEAT_LAST_FEAT 668
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 662
+#define NUM_FEATS 669
 /** absolute cap **/
 #define MAX_FEATS 750
 /*****/
@@ -3538,6 +3545,12 @@ struct player_special_data_saved
     int fleeting_glance_timer;
     int fey_shadow_walk_uses;
     int fey_shadow_walk_timer;
+    int grave_touch_uses;
+    int grave_touch_timer;
+    int grasp_of_the_dead_uses;
+    int grasp_of_the_dead_timer;
+    int incorporeal_form_uses;
+    int incorporeal_form_timer;
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
