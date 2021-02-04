@@ -488,6 +488,12 @@ int load_char(const char *name, struct char_data *ch)
     DRAGON_MAGIC_TIMER(ch) = 0;
     PIXIE_DUST_USES(ch) = 0;
     PIXIE_DUST_TIMER(ch) = 0;
+    GRAVE_TOUCH_USES(ch) = PFDEF_GRAVE_TOUCH_USES;
+    GRAVE_TOUCH_TIMER(ch) = PFDEF_GRAVE_TOUCH_TIMER;
+    GRASP_OF_THE_DEAD_USES(ch) = PFDEF_GRASP_OF_THE_DEAD_USES;
+    GRASP_OF_THE_DEAD_TIMER(ch) = PFDEF_GRASP_OF_THE_DEAD_TIMER;
+    INCORPOREAL_FORM_USES(ch) = PFDEF_INCORPOREAL_FORM_USES;
+    INCORPOREAL_FORM_TIMER(ch) = PFDEF_INCORPOREAL_FORM_TIMER;
     HAS_SET_STATS_STUDY(ch) = PFDEF_HAS_SET_STATS_STUDY;
     GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
     NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) = NEW_ARCANA_SLOT(ch, 3) = 0;
@@ -721,6 +727,14 @@ int load_char(const char *name, struct char_data *ch)
           GET_GOLD(ch) = atoi(line);
         else if (!strcmp(tag, "GrDs"))
           GET_GRAND_DISCOVERY(ch) = atoi(line);
+        else if (!strcmp(tag, "GTCT"))
+          GRAVE_TOUCH_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "GTCU"))
+          GRAVE_TOUCH_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "GODT"))
+          GRASP_OF_THE_DEAD_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "GODU"))
+          GRASP_OF_THE_DEAD_USES(ch) = atoi(line);
         break;
 
       case 'H':
@@ -749,6 +763,10 @@ int load_char(const char *name, struct char_data *ch)
           GET_REAL_INT(ch) = atoi(line);
         else if (!strcmp(tag, "Invs"))
           GET_INVIS_LEV(ch) = atoi(line);
+        else if (!strcmp(tag, "InFT"))
+          INCORPOREAL_FORM_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "InFU"))
+          INCORPOREAL_FORM_USES(ch) = atoi(line);
         break;
 
       case 'K':
@@ -1499,6 +1517,21 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "FSWU: %d\n", FEY_SHADOW_WALK_USES(ch));
   if (FEY_SHADOW_WALK_TIMER(ch) != PFDEF_FEY_SHADOW_WALK_TIMER)
     fprintf(fl, "FSWT: %d\n", FEY_SHADOW_WALK_TIMER(ch));
+
+  if (GRAVE_TOUCH_USES(ch) != PFDEF_GRAVE_TOUCH_USES)
+    fprintf(fl, "GTCU: %d\n", GRAVE_TOUCH_USES(ch));
+  if (GRAVE_TOUCH_TIMER(ch) != PFDEF_GRAVE_TOUCH_TIMER)
+    fprintf(fl, "GTCT: %d\n", GRAVE_TOUCH_TIMER(ch));
+
+  if (GRASP_OF_THE_DEAD_USES(ch) != PFDEF_GRASP_OF_THE_DEAD_USES)
+    fprintf(fl, "GODU: %d\n", GRASP_OF_THE_DEAD_USES(ch));
+  if (GRASP_OF_THE_DEAD_TIMER(ch) != PFDEF_GRASP_OF_THE_DEAD_TIMER)
+    fprintf(fl, "GODT: %d\n", GRASP_OF_THE_DEAD_TIMER(ch));
+
+  if (INCORPOREAL_FORM_USES(ch) != PFDEF_INCORPOREAL_FORM_USES)
+    fprintf(fl, "InFU: %d\n", INCORPOREAL_FORM_USES(ch));
+  if (INCORPOREAL_FORM_TIMER(ch) != PFDEF_INCORPOREAL_FORM_TIMER)
+    fprintf(fl, "InFT: %d\n", INCORPOREAL_FORM_TIMER(ch));
 
   if (GET_OLC_ZONE(ch) != PFDEF_OLC)
     fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));

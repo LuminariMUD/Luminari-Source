@@ -405,6 +405,8 @@ ACMD_DECL(do_hit);
 ACMD_DECL(do_process_attack);
 ACMD_DECL(do_fey_magic);
 ACMDCHECK(can_fey_magic);
+ACMD_DECL(do_grave_magic);
+ACMDCHECK(can_grave_magic);
 
 /* Functions without subcommands */
 ACMD_DECL(do_exchange);

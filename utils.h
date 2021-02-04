@@ -95,6 +95,7 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim);
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte display);
+sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyte display);
 void remove_fear_affects(struct char_data *ch, sbyte display);
 void gui_combat_wrap_open(struct char_data *ch);
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj);
@@ -1795,6 +1796,12 @@ void char_from_furniture(struct char_data *ch);
 #define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
                      (GET_RACE(ch) == RACE_DUERGAR))
 
+// shifter forms
+#define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
+#define IS_PIXIE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
+#define IS_EFREETI(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_EFREETI || GET_DISGUISE_RACE(ch) == RACE_EFREETI))
+#define IS_MANTICORE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_MANTICORE || GET_DISGUISE_RACE(ch) == RACE_MANTICORE))
+
 // IS_race for various morph/shapechange equivalent of npc races
 #define IS_DRAGON(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_DRAGON) || \
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_DRAGON))
@@ -1808,10 +1815,10 @@ void char_from_furniture(struct char_data *ch);
                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
 #define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
-#define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
-#define IS_PIXIE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_PIXIE || GET_DISGUISE_RACE(ch) == RACE_PIXIE))
-#define IS_EFREETI(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_EFREETI || GET_DISGUISE_RACE(ch) == RACE_EFREETI))
-#define IS_MANTICORE(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_MANTICORE || GET_DISGUISE_RACE(ch) == RACE_MANTICORE))
+#define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) || \
+                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
+                       (IS_IRON_GOLEM(ch)))
+#define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)
@@ -1836,6 +1843,19 @@ void char_from_furniture(struct char_data *ch);
 #define DRAGON_MAGIC_USES(ch) (ch->player_specials->saved.dragon_magic_uses)
 #define DRAGON_MAGIC_TIMER(ch) (ch->player_specials->saved.dragon_magic_timer)
 #define DRAGON_MAGIC_USES_PER_DAY 10
+
+#define GRAVE_TOUCH_USES(ch) (ch->player_specials->saved.grave_touch_uses)
+#define GRAVE_TOUCH_TIMER(ch) (ch->player_specials->saved.grave_touch_timer)
+#define GRAVE_TOUCH_USES_PER_DAY(ch) (3 + GET_CHA_BONUS(ch))
+
+#define GRASP_OF_THE_DEAD_USES(ch) (ch->player_specials->saved.grasp_of_the_dead_uses)
+#define GRASP_OF_THE_DEAD_TIMER(ch) (ch->player_specials->saved.grasp_of_the_dead_timer)
+#define GRASP_OF_THE_DEAD_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 ? 3 : \
+                                            (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 ? 2 : 1))
+
+#define INCORPOREAL_FORM_USES(ch) (ch->player_specials->saved.incorporeal_form_uses)
+#define INCORPOREAL_FORM_TIMER(ch) (ch->player_specials->saved.incorporeal_form_timer)
+#define INCORPOREAL_FORM_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) / 3)
 
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))

@@ -234,6 +234,9 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     break;
   }
 
+  if (IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US))
+    challenge += 4;
+
   if (HAS_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA) && school == ENCHANTMENT)
     challenge += 2;
 
@@ -806,13 +809,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_FINGER_OF_DEATH: // necromancy
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
     // saving throw is handled special below
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_UNHOLY;
-    num_dice = 3;
-    size_dice = 6;
-    bonus = GET_HIT(victim) + 10; // MIN(level, 25);
+    num_dice = 1;
+    size_dice = 1;
+    bonus = level * 10;
     break;
 
   case SPELL_FIREBALL: //evocation
@@ -1419,6 +1424,36 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = level + 10;
     break;
 
+    case SPELL_CIRCLE_OF_DEATH: //necromancy
+    // AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_NEGATIVE;
+    num_dice = MIN(level, 20);
+    size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_UNDEATH_TO_DEATH: //necromancy
+    // AoE
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    num_dice = MIN(level, 20);
+    size_dice = 6;
+    bonus = 0;
+    break;
+
+    case SPELL_GRASP_OF_THE_DEAD: //necromancy
+    // AoE
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_SLICE;
+    num_dice = level;
+    size_dice = 6;
+    bonus = 0;
+    break;
+
     /***********************************************\
       || ------------ DIVINE AoE SPELLS ------------ ||
       \***********************************************/
@@ -1503,6 +1538,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
 
+  if (spellnum == SPELL_CIRCLE_OF_DEATH && !IS_LIVING(victim))
+  {
+    act("You ignore the spell affect, as it only affects the living.", TRUE, ch, 0, victim, TO_VICT);
+    act("$N ignores the spell affect, as it only affects the living.", TRUE, ch, 0, victim, TO_ROOM);
+    return 1;
+  }
+  if (spellnum == SPELL_UNDEATH_TO_DEATH && !IS_UNDEAD(victim))
+  {
+    act("You ignore the spell affect, as it only affects undead.", TRUE, ch, 0, victim, TO_VICT);
+    act("$N ignores the spell affect, as it only affects undead.", TRUE, ch, 0, victim, TO_ROOM);
+    return 1;
+  }
+
   if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
   {
     GET_HIT(victim) += dam;
@@ -1560,11 +1608,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     {
       if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
       {
-        dam = (num_dice * size_dice) + MIN(25, level);
+        dam = (18) + MIN(25, level);
       }
       else
       {
-        dam = dice(num_dice, size_dice) + MIN(25, level);
+        dam = dice(3, 6) + MIN(25, level);
       }
     }
   }
@@ -4439,6 +4487,18 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "\tDYou muster the power of death creating waves of fatigue!\tn";
     to_room = "$n\tD musters the power of death creating waves of fatigue!\tn";
     break;
+  case SPELL_CIRCLE_OF_DEATH:
+    to_char = "\tDA wave of negative energy bursts forth from your body!\tn";
+    to_room = "\tDA wave of negative energy bursts forth from $n's body!\tn";
+    break;
+  case SPELL_UNDEATH_TO_DEATH:
+    to_char = "\tDA wave of undead-disrupting energy bursts forth from your body!\tn";
+    to_room = "\tDA wave of undead-disrupting energy bursts forth from $n's body!\tn";
+    break;
+  case SPELL_GRASP_OF_THE_DEAD:
+    to_char = "\tDYou pull your arms up above your head, bringing with it a swarm of skeletal arms that burst from the ground!\tn";
+    to_room = "\tD$n pulls $s arms up above $s head, bringing with it a swarm of skeletal arms that burst from the ground!\tn";
+    break;
   case SPELL_WHIRLWIND:
     to_char = "You call down a rip-roaring cyclone on the area!";
     to_room = "$n calls down a rip-roaring cyclone on the area!";
@@ -5071,11 +5131,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         spell_focus_bonus++;
       if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), CONJURATION))
         spell_focus_bonus++;
-      GET_REAL_STR(mob) = (mob)->aff_abils.str += spell_focus_bonus * 2;
-      GET_REAL_CON(mob) = (mob)->aff_abils.con += spell_focus_bonus * 2;
-      GET_REAL_DEX(mob) = (mob)->aff_abils.dex += spell_focus_bonus * 2;
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += (spell_focus_bonus * 2);
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += (spell_focus_bonus * 2);
+      GET_REAL_DEX(mob) = (mob)->aff_abils.dex += (spell_focus_bonus * 2);
       GET_REAL_AC(mob) = (mob)->points.armor += (spell_focus_bonus * 2) * 10;
-      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += (spell_focus_bonus)*GET_LEVEL(mob); /* con bonus */
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += ((spell_focus_bonus)*GET_LEVEL(mob)); /* con bonus */
       GET_HIT(mob) = GET_MAX_HIT(mob);
       break;
     }

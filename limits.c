@@ -1157,6 +1157,33 @@ void update_player_misc(void)
         send_to_char(ch, "Your fey shadow walk uses have been refreshed.\r\n");
       }
     }
+    if (HAS_FEAT(ch, FEAT_GRAVE_TOUCH) && GRAVE_TOUCH_TIMER(ch) > 0)
+    {
+      GRAVE_TOUCH_TIMER(ch)--;
+      if (GRAVE_TOUCH_TIMER(ch) <= 0) {
+        GRAVE_TOUCH_TIMER(ch) = 0;
+        GRAVE_TOUCH_USES(ch) = GRAVE_TOUCH_USES_PER_DAY(ch);
+        send_to_char(ch, "Your grave touch uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_GRASP_OF_THE_DEAD) && GRASP_OF_THE_DEAD_TIMER(ch) > 0)
+    {
+      GRASP_OF_THE_DEAD_TIMER(ch)--;
+      if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0) {
+        GRASP_OF_THE_DEAD_TIMER(ch) = 0;
+        GRASP_OF_THE_DEAD_USES(ch) = GRASP_OF_THE_DEAD_USES_PER_DAY(ch);
+        send_to_char(ch, "Your grasp of the dead uses have been refreshed.\r\n");
+      }
+    }
+    if (HAS_FEAT(ch, FEAT_INCORPOREAL_FORM) && INCORPOREAL_FORM_TIMER(ch) > 0)
+    {
+      INCORPOREAL_FORM_TIMER(ch)--;
+      if (INCORPOREAL_FORM_TIMER(ch) <= 0) {
+        INCORPOREAL_FORM_TIMER(ch) = 0;
+        INCORPOREAL_FORM_USES(ch) = INCORPOREAL_FORM_USES_PER_DAY(ch);
+        send_to_char(ch, "Your incorporeal form (undead bloodline) uses have been refreshed.\r\n");
+      }
+    }
   }
 }
 

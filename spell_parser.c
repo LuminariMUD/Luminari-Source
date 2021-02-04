@@ -2699,6 +2699,17 @@ void mag_assign_spells(void)
         spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
                "You feel your transformation fade.", 5, 17, NECROMANCY, FALSE);
+        spello(SPELL_CIRCLE_OF_DEATH, "circle of death", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
+        spello(SPELL_UNDEATH_TO_DEATH, "undeath to death", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
+        // sorcerer bloodline undead abilities
+        spello(SPELL_GRASP_OF_THE_DEAD, "grasp of the dead", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
+        spello(SPELL_GRAVE_TOUCH, "grave touch", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AFFECTS, NULL, 5, 17, NECROMANCY, FALSE);
+        spello(SPELL_INCORPOREAL_FORM, "incorporeal form (undead bloodline)", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
         //eyebite - shared
         /* enchantment */
         spello(SPELL_MASS_HASTE, "mass haste", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
@@ -2911,7 +2922,7 @@ void mag_assign_spells(void)
                "You feel the shadow shield dissipate.", 5, 23, ILLUSION, FALSE);
 
         spello(SPELL_SHADOW_WALK, "shadow walk", 95, 80, 1, POS_FIGHTING,
-               TAR_SELF_ONLY, FALSE, MAG_GROUPS,
+               TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS,
                "You feel your synergy with the shadow realm fade.", 5, 23, ILLUSION, FALSE);
 
         /* divination */
