@@ -2052,7 +2052,9 @@ void assign_feats(void)
         "Can cast greater invisibility 3 times per day. Uses the 'fey' command.");
   feato(FEAT_FEY_MAGIC, "fey magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "fey bloodline, sorcerer level 15",
-        "Whenever trying to overcome spell resistance, you will roll twice and take the better roll.");
+        "Whenever trying to overcome spell resistance, you will roll twice and take the better roll. "
+        "Also refers the 'feymagic' command, which is used to perform various fey bloodling abilities. "
+        "Type 'feymagic' by itself for a list of options.");
   feato(FEAT_SOUL_OF_THE_FEY, "soul of the fey", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "fey bloodline, sorcerer level 20",
         "Gain immunity to poison and +3 damage reduction. Creatures of the animal type will not "

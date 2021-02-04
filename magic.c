@@ -953,6 +953,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_POWER_WORD_KILL: //divination
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
     save = -1;
     mag_resist = TRUE;
     element = DAM_MENTAL;
@@ -1415,6 +1417,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_WAIL_OF_THE_BANSHEE: //necromancy
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
     //  has effect too
     save = SAVING_FORT;
     mag_resist = TRUE;
@@ -3890,6 +3894,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_WAIL_OF_THE_BANSHEE: //necromancy (does damage too)
+    if (is_immune_death_magic(ch, victim, FALSE)) // FALSE because we show the message in mag_damage
+      return;
     if (is_immune_fear(ch, victim, TRUE))
       return;
     if (is_immune_mind_affecting(ch, victim, TRUE))
