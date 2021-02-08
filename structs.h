@@ -1820,15 +1820,17 @@
 #define FEAT_GRASP_OF_THE_DEAD 665
 #define FEAT_INCORPOREAL_FORM 666
 #define FEAT_ONE_OF_US 667
+#define FEAT_EPIC_SPELL_PENETRATION 668
+#define FEAT_BOON_COMPANION 669
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 668
+#define FEAT_LAST_FEAT 670
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 669
+#define NUM_FEATS 671
 /** absolute cap **/
-#define MAX_FEATS 750
+#define MAX_FEATS 1000
 /*****/
 
 /* alchemist */

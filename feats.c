@@ -2130,6 +2130,10 @@ void assign_feats(void)
         "+2 to caster level checks to defeat spell resistance",
         "+2 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
+  feato(FEAT_EPIC_SPELL_PENETRATION, "epic spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "+2 to caster level checks to defeat spell resistance",
+        "+2 to caster level checks to defeat spell resistance");
+  feat_prereq_feat(FEAT_EPIC_SPELL_PENETRATION, FEAT_GREATER_SPELL_PENETRATION, 1);
 
   feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "reduce penalty for casting arcane spells while armored",
@@ -2608,6 +2612,10 @@ void assign_feats(void)
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Can call a loyal companion animal that accompanies the adventurer.",
         "Can call a loyal companion animal that accompanies the adventurer.");
+  feato(FEAT_BOON_COMPANION, "boon companion", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "Your animal companion is stronger than normal.",
+        "Your level is considered to be 5 higher when it comes to setting stats on your animal companion.");
+  feat_prereq_feat(FEAT_BOON_COMPANION, FEAT_ANIMAL_COMPANION, 1);
   /* unfinished */ feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                          "The adventurer can improve the attitude of an animal.",
                          "The adventurer can improve the attitude of an animal.");
