@@ -97,9 +97,8 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
     challenge += 2;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_SPELL_PENETRATION))
     challenge += 2;
-  /* not implemented yet */
-  //if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
-  //challenge += 2;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
+  challenge += 2;
 
   //success?
   if (resist > challenge)

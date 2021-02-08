@@ -1487,6 +1487,8 @@ void perform_call(struct char_data *ch, int call_type, int level)
   switch (call_type)
   {
   case MOB_C_ANIMAL:
+    if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
+      level += 5;
     GET_REAL_MAX_HIT(mob) += 20;
     for (i = 0; i < level; i++)
       GET_REAL_MAX_HIT(mob) += dice(1, 20) + 1;
@@ -4451,16 +4453,16 @@ ACMD(do_sneak)
     return;
   }
 
-  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH))
-  {
-    send_to_char(ch, "You have no idea how to do that.\r\n");
-    return;
-  }
-
   if (AFF_FLAGGED(ch, AFF_SNEAK))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SNEAK);
     send_to_char(ch, "You stop sneaking...\r\n");
+    return;
+  }
+
+  if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_STEALTH))
+  {
+    send_to_char(ch, "You have no idea how to do that.\r\n");
     return;
   }
 
