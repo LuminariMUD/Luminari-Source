@@ -75,6 +75,11 @@ extern int debug_mode;
 extern int map_option;
 extern int default_map_size;
 extern int default_minimap_size;
+extern int happy_hour_chance;
+extern int happy_hour_exp_bonus;
+extern int happy_hour_qp_bonus;
+extern int happy_hour_gold_bonus;
+extern int happy_hour_treasure_bonus;
 
 extern int medit_advanced_stats;
 extern float min_pop_to_claim;

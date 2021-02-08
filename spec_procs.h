@@ -16,8 +16,8 @@
 
 #include "spells.h"
 
-int spell_sort_info[MAX_SKILLS + 1];
-int sorted_spells[MAX_SKILLS + 1];
+int spell_sort_info[MAX_SPELLS + 1];
+int sorted_spells[MAX_SPELLS + 1];
 int sorted_skills[MAX_SKILLS + 1];
 
 /*****************************************************************************

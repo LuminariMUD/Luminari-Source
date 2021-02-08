@@ -3143,7 +3143,7 @@ ACMD(do_breathe)
       }
       else
       {
-          damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+          damage(ch, vict, dice(GET_LEVEL(ch), GET_LEVEL(ch) > 30 ? 14 : 6), SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
       }
     }
   }

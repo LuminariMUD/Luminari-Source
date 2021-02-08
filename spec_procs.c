@@ -48,8 +48,8 @@ static void npc_steal(struct char_data *ch, struct char_data *victim);
 static void zone_yell(struct char_data *ch, const char *buf);
 
 /* Special procedures for mobiles. */
-int spell_sort_info[MAX_SKILLS + 1];
-int sorted_spells[MAX_SKILLS + 1];
+int spell_sort_info[MAX_SPELLS + 1];
+int sorted_spells[MAX_SPELLS + 1];
 int sorted_skills[MAX_SKILLS + 1];
 
 #define LEARNED_LEVEL 0 /* % known which is considered "learned" */

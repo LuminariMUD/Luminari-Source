@@ -67,8 +67,8 @@ static void perform_mortal_where(struct char_data *ch, char *arg);
 static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur);
 
 /* globals */
-int spell_sort_info[MAX_SKILLS + 1];
-int sorted_spells[MAX_SKILLS + 1];
+int spell_sort_info[MAX_SPELLS + 1];
+int sorted_spells[MAX_SPELLS + 1];
 int sorted_skills[MAX_SKILLS + 1];
 int boot_high = 0;
 

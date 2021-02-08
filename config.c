@@ -231,6 +231,13 @@ int max_filesize = 50000;
 /* Maximum number of password attempts before disconnection. */
 int max_bad_pws = 3;
 
+/* Happy hour stuff */
+int happy_hour_chance = 5;
+int happy_hour_exp_bonus = 50;
+int happy_hour_qp_bonus = 50;
+int happy_hour_gold_bonus = 50;
+int happy_hour_treasure_bonus = 20;
+
 /* Rationale for enabling this, as explained by Naved:
  * Usually, when you select ban a site, it is because one or two people are
  * causing troubles while there are still many people from that site who you

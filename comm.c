@@ -186,6 +186,7 @@ void update_damage_and_effects_over_time(void);
 void update_player_last_on(void);
 void check_auto_shutdown(void);
 void update_player_misc(void);
+void check_auto_happy_hour(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1153,6 +1154,7 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))
   { // every minute
     check_auto_shutdown();
+    check_auto_happy_hour();
   }
 
   if (!(heart_pulse % PULSE_ZONE))
