@@ -1747,7 +1747,7 @@ void check_auto_happy_hour(void)
   mytime = time(0);
 
   m = (mytime / 60) % 60;
-  
+
   if (m == 0)
   {
     if (rand_number(1, 100) <= CONFIG_HAPPY_HOUR_CHANCE)
@@ -1756,7 +1756,7 @@ void check_auto_happy_hour(void)
       HAPPY_GOLD = CONFIG_HAPPY_HOUR_GOLD;
       HAPPY_QP = CONFIG_HAPPY_HOUR_QP;
       HAPPY_TREASURE = CONFIG_HAPPY_HOUR_TREASURE;
-      HAPPY_TIME = 59;
+      HAPPY_TIME = 47;
 
       game_info("An automated happy hour has started!");
     }
