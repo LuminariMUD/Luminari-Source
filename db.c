@@ -5720,6 +5720,13 @@ static void load_default_config(void)
   /* Autowiz options. */
   CONFIG_USE_AUTOWIZ = use_autowiz;
   CONFIG_MIN_WIZLIST_LEV = min_wizlist_lev;
+
+  /* Happy hour stuff */
+  CONFIG_HAPPY_HOUR_CHANCE = happy_hour_chance;
+  CONFIG_HAPPY_HOUR_EXP = happy_hour_exp_bonus;
+  CONFIG_HAPPY_HOUR_QP = happy_hour_qp_bonus;
+  CONFIG_HAPPY_HOUR_GOLD = happy_hour_gold_bonus;
+  CONFIG_HAPPY_HOUR_TREASURE = happy_hour_treasure_bonus;
 }
 
 void load_config(void)
@@ -5824,6 +5831,16 @@ void load_config(void)
     case 'h':
       if (!str_cmp(tag, "holler_move_cost"))
         CONFIG_HOLLER_MOVE_COST = num;
+      else if (!str_cmp(tag, "happy_hour_chance"))
+        CONFIG_HAPPY_HOUR_CHANCE = num;
+      else if (!str_cmp(tag, "happy_hour_exp_bonus"))
+        CONFIG_HAPPY_HOUR_EXP = num;
+      else if (!str_cmp(tag, "happy_hour_qp_bonus"))
+        CONFIG_HAPPY_HOUR_QP = num;
+      else if (!str_cmp(tag, "happy_hour_gold_bonus"))
+        CONFIG_HAPPY_HOUR_GOLD = num;
+      else if (!str_cmp(tag, "happy_hour_treasure_bonus"))
+        CONFIG_HAPPY_HOUR_TREASURE = num;
       break;
 
     case 'i':

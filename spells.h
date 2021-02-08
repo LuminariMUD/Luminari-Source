@@ -529,7 +529,10 @@
 
 /* Insert new spells here, up to MAX_SPELLS */
 /* make sure this matches up with structs.h spellbook define */
-#define MAX_SPELLS 400
+// -----NEW NEW NEW -----
+// spells are in a table separate from skills, abilities and everything else
+// Gicker Feb 5, 2021
+#define MAX_SPELLS 999
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
 #define SKILL_BACKSTAB 401          // implemented
@@ -792,7 +795,8 @@
  * define it with a 'spellname'. */
 #define SPELL_DG_AFFECT 698
 
-#define TOP_SPELL_DEFINE 699
+#define TOP_SPELL_DEFINE 999
+#define TOP_SKILL_DEFINE 699
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
 
 /*** Due to wanting the values to be more global, I moved

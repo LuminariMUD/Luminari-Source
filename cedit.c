@@ -153,6 +153,13 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->autowiz.use_autowiz = CONFIG_USE_AUTOWIZ;
   OLC_CONFIG(d)->autowiz.min_wizlist_lev = CONFIG_MIN_WIZLIST_LEV;
 
+  /* Happy Hour */
+  OLC_CONFIG(d)->happy_hour.chance = CONFIG_HAPPY_HOUR_CHANCE;
+  OLC_CONFIG(d)->happy_hour.exp = CONFIG_HAPPY_HOUR_EXP;
+  OLC_CONFIG(d)->happy_hour.qp = CONFIG_HAPPY_HOUR_QP;
+  OLC_CONFIG(d)->happy_hour.gold = CONFIG_HAPPY_HOUR_GOLD;
+  OLC_CONFIG(d)->happy_hour.treasure = CONFIG_HAPPY_HOUR_TREASURE;
+
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
   OLC_CONFIG(d)->play.NOPERSON = str_udup(CONFIG_NOPERSON);
@@ -255,6 +262,13 @@ static void cedit_save_internally(struct descriptor_data *d)
   /* Autowiz */
   CONFIG_USE_AUTOWIZ = OLC_CONFIG(d)->autowiz.use_autowiz;
   CONFIG_MIN_WIZLIST_LEV = OLC_CONFIG(d)->autowiz.min_wizlist_lev;
+
+  /* Happy Hour */
+  CONFIG_HAPPY_HOUR_CHANCE = OLC_CONFIG(d)->happy_hour.chance;
+  CONFIG_HAPPY_HOUR_EXP = OLC_CONFIG(d)->happy_hour.exp;
+  CONFIG_HAPPY_HOUR_QP = OLC_CONFIG(d)->happy_hour.qp;
+  CONFIG_HAPPY_HOUR_GOLD = OLC_CONFIG(d)->happy_hour.gold;
+  CONFIG_HAPPY_HOUR_TREASURE = OLC_CONFIG(d)->happy_hour.treasure;
 
   /* Allocate space for the strings. */
   if (CONFIG_OK)
@@ -618,6 +632,17 @@ int save_config(IDXTYPE nowhere)
               "debug_mode = %d\n\n",
           CONFIG_DEBUG_MODE);
 
+  fprintf(fl, "* Chance for Happy Hour to Occur randomly and automatically each rl hour.\n"
+              "happy_hour_chance = %d\n\n", CONFIG_HAPPY_HOUR_CHANCE);
+  fprintf(fl, "* Percent increase in experience gained during automated happy hour.\n"
+              "happy_hour_exp_bonus = %d\n\n", CONFIG_HAPPY_HOUR_EXP);
+  fprintf(fl, "* Percent increase in qp gained during automated happy hour.\n"
+              "happy_hour_qp_bonus = %d\n\n", CONFIG_HAPPY_HOUR_QP);
+  fprintf(fl, "* Percent increase in gold gained during automated happy hour.\n"
+              "happy_hour_gold_bonus = %d\n\n", CONFIG_HAPPY_HOUR_GOLD);
+  fprintf(fl, "* Percent Increase for chance of random treasure during automated happy hour.\n"
+              "happy_hour_treasure_bonus = %d\n\n", CONFIG_HAPPY_HOUR_TREASURE);
+
   fclose(fl);
 
   if (in_save_list(NOWHERE, SL_CFG))
@@ -641,6 +666,7 @@ static void cedit_disp_menu(struct descriptor_data *d)
                   "%sR%s) Room Numbers\r\n"
                   "%sO%s) Operation Options\r\n"
                   "%sA%s) Autowiz Options\r\n"
+                  "%sH%s) Happy Hour Options\r\n"
                   "%sQ%s) Quit\r\n"
                   "Enter your choice : ",
 
@@ -649,9 +675,38 @@ static void cedit_disp_menu(struct descriptor_data *d)
                   grn, nrm,
                   grn, nrm,
                   grn, nrm,
+                  grn, nrm,
                   grn, nrm);
 
   OLC_MODE(d) = CEDIT_MAIN_MENU;
+}
+
+static void cedit_disp_happy_hour_options(struct descriptor_data *d)
+{
+  int m_opt;
+  m_opt = OLC_CONFIG(d)->play.map_option;
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d, "\r\n\r\n"
+                     "AUTOMATED HAPPY HOUR SETTINGS\r\n"
+                     "%s1%s) Chance to Occur Each RL Hour                : %s%d\r\n"
+                     "%s2%s) Percent Amount of Additional QP             : %s%d\r\n"
+                     "%s3%s) Percent Amount of Additional EXP            : %s%d\r\n"
+                     "%s4%s) Percent Amount of Additional Gold           : %s%d\r\n"
+                     "%s5%s) Increase Percent Chance of Random Treasure  : %s%d\r\n"
+                     "%sQ%s) Exit To The Main Menu\r\n"
+                     "Enter your choice : ",
+
+                  grn, nrm, cyn, OLC_CONFIG(d)->happy_hour.chance,
+                  grn, nrm, cyn, OLC_CONFIG(d)->happy_hour.qp,
+                  grn, nrm, cyn, OLC_CONFIG(d)->happy_hour.exp,
+                  grn, nrm, cyn, OLC_CONFIG(d)->happy_hour.gold,
+                  grn, nrm, cyn, OLC_CONFIG(d)->happy_hour.treasure,
+                  grn, nrm);
+
+  OLC_MODE(d) = CEDIT_HAPPY_HOUR_MENU;  
+
 }
 
 static void cedit_disp_game_play_options(struct descriptor_data *d)
@@ -890,6 +945,12 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_GAME_OPTIONS_MENU;
       break;
 
+    case 'h':
+    case 'H':
+      cedit_disp_happy_hour_options(d);
+      OLC_MODE(d) = CEDIT_HAPPY_HOUR_MENU;
+      break;
+
     case 'c':
     case 'C':
       cedit_disp_crash_save_options(d);
@@ -926,6 +987,39 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       break;
     }
     break;
+
+  case CEDIT_HAPPY_HOUR_MENU:
+  switch (*arg)
+    {
+      case '1':
+        write_to_output(d, "Enter the percent chance for a happy hour to occur automatically each rl hour : ");
+        OLC_MODE(d) = CEDIT_HAPPY_HOUR_CHANCE;
+        return;
+      case '2':
+        write_to_output(d, "Enter the percent increase of quest points during an automated happy hour. : ");
+        OLC_MODE(d) = CEDIT_HAPPY_HOUR_QP;
+        return;
+      case '3':
+        write_to_output(d, "Enter the percent increase of experience gained during an automated happy hour. : ");
+        OLC_MODE(d) = CEDIT_HAPPY_HOUR_EXP;
+        return;
+      case '4':
+        write_to_output(d, "Enter the percent increase of gold gained during an automated happy hour. : ");
+        OLC_MODE(d) = CEDIT_HAPPY_HOUR_GOLD;
+        return;
+      case '5':
+        write_to_output(d, "Enter the percent increase for chance to obtain random treasure during an automated happy hour. : ");
+        OLC_MODE(d) = CEDIT_HAPPY_HOUR_TREASURE;
+        return;
+      case 'q':
+      case 'Q':
+        cedit_disp_menu(d);
+        return; 
+      default:
+        write_to_output(d, "\r\nThat is an invalid choice!\r\n");
+        cedit_disp_happy_hour_options(d);
+    }
+    return;
 
   case CEDIT_GAME_OPTIONS_MENU:
     switch (*arg)
@@ -1364,6 +1458,76 @@ void cedit_parse(struct descriptor_data *d, char *arg)
 
     cedit_disp_autowiz_options(d);
     return;
+
+  case CEDIT_HAPPY_HOUR_CHANCE:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percent chance for a happy hour to occur automatically each rl hour : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->happy_hour.chance = atoi(arg);
+      cedit_disp_happy_hour_options(d);
+    }
+    break;
+  
+  case CEDIT_HAPPY_HOUR_EXP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percent increase of experience gained during an automated happy hour. : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->happy_hour.exp = atoi(arg);
+      cedit_disp_happy_hour_options(d);
+    }
+    break;
+
+  case CEDIT_HAPPY_HOUR_QP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percent increase of quest points during an automated happy hour. : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->happy_hour.qp = atoi(arg);
+      cedit_disp_happy_hour_options(d);
+    }
+    break;
+
+  case CEDIT_HAPPY_HOUR_GOLD:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percent increase of gold gained during an automated happy hour. : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->happy_hour.gold = atoi(arg);
+      cedit_disp_happy_hour_options(d);
+    }
+    break;
+
+  case CEDIT_HAPPY_HOUR_TREASURE:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percent increase for chance to obtain random treasure during an automated happy hour. : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->happy_hour.treasure = atoi(arg);
+      cedit_disp_happy_hour_options(d);
+    }
+    break;
 
   case CEDIT_LEVEL_CAN_SHOUT:
     if (!*arg)

@@ -1735,3 +1735,30 @@ void update_damage_and_effects_over_time(void)
 
   } // end character_list loop
 }
+
+void check_auto_happy_hour(void)
+{
+  if (IS_HAPPYHOUR)
+    return;
+
+  time_t mytime;
+  int m;
+
+  mytime = time(0);
+
+  m = (mytime / 60) % 60;
+  
+  if (m == 0)
+  {
+    if (rand_number(1, 100) <= CONFIG_HAPPY_HOUR_CHANCE)
+    {
+      HAPPY_EXP = CONFIG_HAPPY_HOUR_EXP;
+      HAPPY_GOLD = CONFIG_HAPPY_HOUR_GOLD;
+      HAPPY_QP = CONFIG_HAPPY_HOUR_QP;
+      HAPPY_TREASURE = CONFIG_HAPPY_HOUR_TREASURE;
+      HAPPY_TIME = 59;
+
+      game_info("An automated happy hour has started!");
+    }
+  }
+}

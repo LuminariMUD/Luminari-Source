@@ -487,6 +487,12 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define CEDIT_MINIMAP_SIZE 56
 #define CEDIT_POPULARITY 57
 #define CEDIT_DEBUG_MODE 58
+#define CEDIT_HAPPY_HOUR_MENU 59
+#define CEDIT_HAPPY_HOUR_CHANCE 60
+#define CEDIT_HAPPY_HOUR_QP 61
+#define CEDIT_HAPPY_HOUR_EXP 62
+#define CEDIT_HAPPY_HOUR_GOLD 63
+#define CEDIT_HAPPY_HOUR_TREASURE 64
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0

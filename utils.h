@@ -2088,11 +2088,25 @@ void char_from_furniture(struct char_data *ch);
 /** Activate debug mode? */
 #define CONFIG_DEBUG_MODE config_info.operation.debug_mode
 
+
 /* Autowiz */
 /** Use autowiz or not? */
 #define CONFIG_USE_AUTOWIZ config_info.autowiz.use_autowiz
 /** What is the minimum level character to put on the wizlist? */
 #define CONFIG_MIN_WIZLIST_LEV config_info.autowiz.min_wizlist_lev
+
+/* Hour hour stuff */
+/** chance for happy hour to occur autmatically each rl hour */
+#define CONFIG_HAPPY_HOUR_CHANCE config_info.happy_hour.chance
+/** Percent increase of quest points during automated happy hour */
+#define CONFIG_HAPPY_HOUR_QP config_info.happy_hour.qp
+/** Percent increase of experience during automated happy hour */
+#define CONFIG_HAPPY_HOUR_EXP config_info.happy_hour.exp
+/** Percent increase of gold during automated happy hour */
+#define CONFIG_HAPPY_HOUR_GOLD config_info.happy_hour.gold
+/** Percent increase of chance for random treasure during automated happy hour */
+#define CONFIG_HAPPY_HOUR_TREASURE config_info.happy_hour.treasure
+
 
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)

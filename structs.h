@@ -4101,6 +4101,16 @@ struct game_data
     char *NOEFFECT; /**< 'Nothing seems to happen.'            */
 };
 
+// automatic hour happy info saved in game config, cedit
+struct happy_hour_data
+{
+    int qp;         // percent increase in number of qp
+    int exp;        // percent increase in exp
+    int gold;       // percent increase in gold
+    int treasure;   // percent increase in random treasure chance
+    int chance;     // percent chance the happy hour will occur each rl hour
+};
+
 /** The rent and crashsave options. */
 struct crash_save_data
 {
@@ -4179,6 +4189,8 @@ struct config_data
     struct game_operation operation;
     /** Autowiz specific settings, like turning it on and minimum level */
     struct autowiz_data autowiz;
+    /** Automatic happy hour activation options */
+    struct happy_hour_data happy_hour;
 };
 
 #ifdef MEMORY_DEBUG
