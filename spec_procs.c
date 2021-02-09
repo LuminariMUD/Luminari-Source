@@ -655,14 +655,15 @@ void list_crafting_skills(struct char_data *ch)
 
   /* Crafting Skills */
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+  for (i = START_SKILLS + 1; i < NUM_SKILLS; i++)
   {
-    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
-        spell_info[i].schoolOfMagic == CRAFTING_SKILL)
+    // Why is this level check here? Gicker Feb 8, 2021
+    //if (GET_LEVEL(ch) >= skill_info[i].min_level[GET_CLASS(ch)] &&
+    if (skill_info[i].schoolOfMagic == CRAFTING_SKILL)
     {
       if (meet_skill_reqs(ch, i))
       {
-        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
+        send_to_char(ch, "%-24s %d          ", skill_info[i].name, GET_SKILL(ch, i));
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");
@@ -777,14 +778,14 @@ void list_skills(struct char_data *ch)
 
   /* Crafting Skills */
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+  for (i = START_SKILLS + 1; i < NUM_SKILLS; i++)
   {
-    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
-        spell_info[i].schoolOfMagic == CRAFTING_SKILL)
+    if (GET_LEVEL(ch) >= skill_info[i].min_level[GET_CLASS(ch)] &&
+        skill_info[i].schoolOfMagic == CRAFTING_SKILL)
     {
       if (meet_skill_reqs(ch, i))
       {
-        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
+        send_to_char(ch, "%-24s %d          ", skill_info[i].name, GET_SKILL(ch, i));
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");

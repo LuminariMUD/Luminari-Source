@@ -2831,7 +2831,7 @@ ACMD(do_harvest)
   if (GET_SKILL(ch, skillnum) < minskill)
   {
     send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
-                 spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
+                 skill_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
     return;
   }
 
