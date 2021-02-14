@@ -731,6 +731,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
+#define GET_PSIONIC_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST))
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -838,6 +839,7 @@ void char_from_furniture(struct char_data *ch);
 /** Maximum psp points (magic) of ch. */
 #define GET_REAL_MAX_PSP(ch) ((ch)->real_points.max_psp)
 #define GET_MAX_PSP(ch) ((ch)->points.max_psp)
+#define GET_AUGMENT_PSP(ch) ((ch)->player_specials->augment_psp)
 /** Gold on ch. */
 #define GET_GOLD(ch) ((ch)->points.gold)
 /** Gold in bank of ch. */

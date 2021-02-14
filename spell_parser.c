@@ -29,6 +29,7 @@
 #include "spell_prep.h"
 #include "alchemy.h"
 #include "missions.h"
+#include "psionics.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -42,7 +43,7 @@ const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearof
 /* Local (File Scope) Function Prototypes */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start);
-static void spello(int spl, const char *name, int max_psp, int min_psp,
+void spello(int spl, const char *name, int max_psp, int min_psp,
                    int psp_change, int minpos, int targets, int violent, int routines,
                    const char *wearoff, int time, int memtime, int school, bool quest);
 static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
@@ -1231,11 +1232,9 @@ EVENTFUNC(event_casting)
 
                         if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
                                 if (rand_number(0, 1))
-                                        CASTING_TIME(ch)
-                        --;
+                                        CASTING_TIME(ch)--;
 
-                        CASTING_TIME(ch)
-                        --;
+                        CASTING_TIME(ch)--;
 
                         //chance quick chant bumped us to finish early
                         if (CASTING_TIME(ch) <= 0)
@@ -1792,9 +1791,9 @@ ACMDU(do_gen_cast)
         }
 
         /* further restrictions, this needs updating!
-   * what we need to do is loop through the class-array to find the min. stat
-   * then compare to the classes - spell-level vs stat
-   * -zusuk */
+        * what we need to do is loop through the class-array to find the min. stat
+        * then compare to the classes - spell-level vs stat
+        * -zusuk */
         if (CLASS_LEVEL(ch, CLASS_WIZARD) && GET_INT(ch) < 10)
         {
                 send_to_char(ch, "You are not smart enough to cast spells...\r\n");
@@ -1986,7 +1985,7 @@ void spell_level(int spell, int chclass, int level)
 }
 
 /* Assign the spells on boot up */
-static void spello(int spl, const char *name, int max_psp, int min_psp,
+void spello(int spl, const char *name, int max_psp, int min_psp,
                    int psp_change, int minpos, int targets, int violent,
                    int routines, const char *wearoff, int time, int memtime, int school,
                    bool quest)
@@ -2144,6 +2143,9 @@ void mag_assign_spells(void)
         for (i = 0; i <= TOP_SKILL_DEFINE; i++)
                 unused_skill(i);
         /* Do not change the loop above. */
+
+        /** let's start by assigning the psionic powers from psionics.c */
+        assign_psionic_powers();
 
         // sorted the spells by shared / magical / divine, and by circle
         // in each category (school) -zusuk

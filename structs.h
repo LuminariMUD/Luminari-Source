@@ -359,7 +359,7 @@
 #define CLASS_ARCANE_SHADOW 18
 #define CLASS_SACRED_FIST 19
 #define CLASS_ELDRITCH_KNIGHT 20
-//#define CLASS_PSIONICIST        16
+#define CLASS_PSIONICIST 21
 //#define CLASS_PSION CLASS_PSIONICIST
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
@@ -372,13 +372,13 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 21
+#define NUM_CLASSES 22
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
 #define MAX_CLASSES 30 // total number of maximum pc classes
-#define NUM_CASTERS 8  //direct reference to pray array
+#define NUM_CASTERS 9  //direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
  *  x cleric 3
@@ -2039,8 +2039,9 @@
 #define MATERIAL_DARKWOOD 44
 #define MATERIAL_DRAGONSCALE 45
 #define MATERIAL_DRAGONBONE 46
+#define MATERIAL_SEA_IVORY 47
 /** Total number of item mats.*/
-#define NUM_MATERIALS 47
+#define NUM_MATERIALS 48
 
 /* Portal types for the portal object */
 #define PORTAL_NORMAL 0
@@ -3121,6 +3122,8 @@ struct raff_node
     long affection;       /* which affection does this room have */
     int spell;            /* the spell number */
     struct char_data *ch; // caster of this affection
+    int dc;               // save dc, if specified
+    bool special;         // true if a special affect associated with the room affect applies
 
     struct raff_node *next; /* link to the next node */
 };
@@ -3596,6 +3599,7 @@ struct player_special_data
     int travel_locale;          // used for carriage and airship systems
     int bane_race;              // used in applyoil command to create a proper bane weapon
     int bane_subrace;           // used in applyoil command to create a proper bane weapon
+    int augment_psp;              // used when augmenting psionic powers
 };
 
 /** Special data used by NPCs, not PCs */

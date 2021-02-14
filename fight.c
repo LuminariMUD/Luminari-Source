@@ -698,7 +698,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type enhancement (equipment) */
-  bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
+  if (is_touch)
+    bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
   bonuses[BONUS_TYPE_ENHANCEMENT] += get_defending_weapon_bonus(ch, false);
   /**/
 

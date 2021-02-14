@@ -18,6 +18,7 @@
 #define MODE_ARMOR_CLASS_COMBAT_MANEUVER_DEFENSE 1
 #define MODE_ARMOR_CLASS_PENALTIES 2
 #define MODE_ARMOR_CLASS_DISPLAY 3
+#define MODE_ARMOR_CLASS_TOUCH 4
 
 #define MODE_NORMAL_HIT 0      //Normal damage calculating in hit()
 #define MODE_DISPLAY_PRIMARY 2 //Display damage info primary
