@@ -375,6 +375,7 @@ const char *class_names[] = {
     "Arcane Shadow",
     "Sacred Fist",
     "Eldritch Knight",
+    "Psionicist",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -1755,6 +1756,7 @@ const char *material_name[] = {
     "darkwood",
     "dragonscale",
     "dragonbone",
+    "sea ivory",
     "\n"};
 CHECK_TABLE_SIZE(material_name, NUM_MATERIALS + 1);
 
@@ -3742,6 +3744,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                       /* arcane shadow 18 */
     {"", "", "", ""},                                       /* sacred fist 19 */
     {"", "", "", ""},                                       /* eldritch knight 20 */
+    {"", "", "", ""},                                       /* psionicist 21 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -3775,6 +3778,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        /* arcane shadow 18 */
     {"", "", "", ""},                                        /* sacred fist 19 */
     {"", "", "", ""},                                        /* eldritch knight 20 */
+    {"", "", "", ""},                                        /* psionicist 21 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */

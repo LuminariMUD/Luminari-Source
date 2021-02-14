@@ -3601,6 +3601,8 @@ int get_speed(struct char_data *ch, sbyte to_display)
     speed /= 2;
   else if (!to_display && AFF_FLAGGED(ch, AFF_BLIND) && skill_roll(ch, ABILITY_ACROBATICS) < 10)
     speed /= 2;
+  else if (affected_by_spell(ch, PSIONIC_DECELERATION))
+    speed /= 2;
 
   return speed;
 }

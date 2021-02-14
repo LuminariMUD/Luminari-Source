@@ -437,7 +437,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"manifest", "m", POS_SITTING, do_gen_cast, 1, SCMD_CAST_PSIONIC, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"manifest", "m", POS_SITTING, do_manifest, 1, SCMD_CAST_PSIONIC, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"maneuvers", "maneuvers", POS_DEAD, do_commands, 0, SCMD_MANEUVERS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"memorize", "memorize", POS_RESTING, do_gen_preparation, 0, SCMD_MEMORIZE, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

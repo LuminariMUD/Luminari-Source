@@ -32,6 +32,7 @@
 #include "race.h"
 #include "alchemy.h"
 #include "missions.h"
+#include "psionics.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -701,6 +702,28 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1;
     size_dice = 8;
     bonus = 0;
+    break;
+
+    /*******************************************\
+      || ------------ PSIONIC POWERS ----------- ||
+      \*******************************************/
+
+  case PSIONIC_CRYSTAL_SHARD:
+    if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+    {
+      act("A crystal shard fired by $n at $N goes wide.", FALSE, ch, 0, victim, TO_NOTVICT);
+      act("A crystal shard fired by $n at YOU goes wide.", FALSE, ch, 0, victim, TO_VICT);
+      act("A crystal shard you fired at $N goes wide.", FALSE, ch, 0, victim, TO_CHAR);
+      return 0;
+    }
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    save = -1; // no save
+    mag_resist = FALSE;
+    element = DAM_PUNCTURE;
+    num_dice = 1 + GET_AUGMENT_PSP(ch);
+    size_dice = 6;
+    bonus = 0;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
     break;
 
     /*******************************************\
@@ -1864,6 +1887,71 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   switch (spellnum)
   {
+
+  // psionic powers 1st
+
+  case PSIONIC_BROKER:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    // we need to correct the psp cost below, because the power only
+    // benefits from 2 augment points at a time.
+    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    af[0].location = APPLY_SKILL;
+    af[0].duration = level;
+    af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
+    af[0].specific = ABILITY_DIPLOMACY;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    accum_duration = FALSE;
+    to_vict = "Your dipomatic abilities have been enhanced.";
+    break;
+
+  case PSIONIC_CALL_TO_MIND:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    // we need to correct the psp cost below, because the power only
+    // benefits from 2 augment points at a time.
+    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    af[0].location = APPLY_SKILL;
+    af[0].duration = level;
+    af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
+    af[0].specific = ABILITY_LORE;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    to_vict = "Your knowledge and lore expertise have been enhanced.";
+    break;
+
+  case PSIONIC_CATFALL:
+    af[0].location = APPLY_DEX;
+    af[0].duration = 100;
+    af[0].modifier =  2;
+    SET_BIT_AR(af[0].bitvector, AFF_SAFEFALL);
+    to_vict = "You gain the ability to fall safely like a cat.";
+    break;
+
+  case PSIONIC_DECELERATION:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    // we need to correct the psp cost below, because the power only
+    // benefits from 2 augment points at a time.
+    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    if (GET_SIZE(victim) > (SIZE_MEDIUM + (GET_AUGMENT_PSP(ch) / 2)))
+    {
+      send_to_char(ch, "Your attempt to decelerate your foe fails, as they are too large.\r\n");
+      GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+      return;
+    }
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, PSYCHOPORTATION))
+    {
+      act("Your attempt to decelerate $N fails.", FALSE, ch, 0, victim, TO_CHAR);
+      act("$n's attempt to decelerate YOU fails.", FALSE, ch, 0, victim, TO_VICT);
+      return;
+    }
+    af[0].location = APPLY_DEX;
+    af[0].duration = level * 10;
+    af[0].modifier = -2;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    to_room = "$N starts to move much more slowly.";
+    to_vict = "You start to move much more slowly.";
+    break;
+
+  // spells and other effects
 
   case SPELL_ACID_SHEATH: //divination
     if (affected_by_spell(victim, SPELL_FIRE_SHIELD) ||
@@ -4245,12 +4333,15 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   }
 }
 
-/* Mass spells affect every creature in the room except the caster. */
+/** Mass spells affect every creature in the room except the caster,
+ * and his group members.
+ */
 void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
                 int spellnum, int savetype, int casttype, int metamagic)
 {
   struct char_data *tch, *tch_next;
   int isEffect = FALSE;
+  bool isUnEffect = false;
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch_next)
   {
@@ -4269,8 +4360,13 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
       break;
     }
 
+    if (!aoeOK(ch, tch, spellnum))
+      continue;
+
     if (isEffect)
       mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, metamagic);
+    else if (isUnEffect)
+      mag_unaffects(level, ch, tch, obj, spellnum, savetype, casttype);
     else
       mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
   }

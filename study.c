@@ -2027,6 +2027,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   int i = 0;
   bool can_add_spell = TRUE;
   char arg1[200] = {'\0'}, arg2[200] = {'\0'};
+  char buf[200] = {'\0'};
 
   two_arguments(arg, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -2776,7 +2777,8 @@ void study_parse(struct descriptor_data *d, char *arg)
               LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help")) {
-              do_help(d->character, spell_info[counter].name, 0, 0);
+              snprintf(buf, sizeof(buf), "spell %s", spell_info[counter].name);
+              do_help(d->character, buf, 0, 0);
               return;
             }
             if (is_a_known_spell(d->character, CLASS_SORCERER, counter)) {

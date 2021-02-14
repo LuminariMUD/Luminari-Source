@@ -465,6 +465,111 @@
 /*******************************/
 
 
+/** we're going to start psionic powers at 1500.
+ * most psionic stuff is either in psionics.c or spell_parser.c
+ */
+
+#define PSIONIC_BROKER                  1500
+#define PSIONIC_CALL_TO_MIND            1501
+#define PSIONIC_CATFALL                 1502
+#define PSIONIC_CRYSTAL_SHARD           1503
+#define PSIONIC_DECELERATION            1504
+#define PSIONIC_DEMORALIZE              1505
+#define PSIONIC_ECTOPLASMIC_SHEEN       1506
+#define PSIONIC_ENERGY_RAY              1507
+#define PSIONIC_FORCE_SCREEN            1508
+#define PSIONIC_FORTIFY                 1509
+#define PSIONIC_INERTIAL_ARMOR          1510
+#define PSIONIC_INEVITABLE_STRIKE       1511
+#define PSIONIC_MIND_THRUST             1512
+#define PSIONIC_DEFENSIVE_PRECOGNITION  1513
+#define PSIONIC_OFFENSIVE_PRECOGNITION  1514
+#define PSIONIC_OFFENSIVE_PRESCIENCE    1515
+#define PSIONIC_SLUMBER                 1516
+#define PSIONIC_VIGOR                   1517
+#define PSIONIC_BESTOW_POWER            1518
+#define PSIONIC_BIOFEEDBACK             1519
+#define PSIONIC_BODY_EQUILLIBRIUM       1520
+#define PSIONIC_BREACH                  1521
+#define PSIONIC_CONCEALING_AMORPHA      1522
+#define PSIONIC_CONCUSSION_BLAST        1523
+#define PSIONIC_DETECT_HOSTILE_INTENT   1524
+#define PSIONIC_ELFSIGHT                1525
+#define PSIONIC_ENERGY_ADAPTATION_SPECIFIED 1526
+#define PSIONIC_ENERGY_PUSH             1527
+#define PSIONIC_ENERGY_STUN             1528
+#define PSIONIC_INFLICT_PAIN            1529
+#define PSIONIC_MENTAL_DISRUPTION       1530
+#define PSIONIC_MASS_MISSIVE            1531
+#define PSIONIC_PSIONIC_LOCK            1532
+#define PSIONIC_PSYCHIC_BODYGUARD       1533
+#define PSIONIC_RECALL_AGONY            1534
+#define PSIONIC_SHARE_PAIN              1535
+#define PSIONIC_SWARM_OF_CRYSTALS       1536
+#define PSIONIC_THOUGHT_SHIELD          1537
+#define PSIONIC_BODY_ADJUSTMENT         1538
+#define PSIONIC_CONCUSSIVE_ONSLAUGHT    1539
+#define PSIONIC_DISPEL_PSIONICS         1540
+#define PSIONIC_ENDORPHIN_SURGE         1541
+#define PSIONIC_ENERGY_BURST            1542
+#define PSIONIC_ENERGY_RETORT           1543
+#define PSIONIC_ERADICATE_INVISIBILITY  1544
+#define PSIONIC_HEIGHTENED_VISION       1545
+#define PSIONIC_MENTAL_BARRIER          1546
+#define PSIONIC_MIND_TRAP               1547
+#define PSIONIC_PSIONIC_BLAST           1548
+#define PSIONIC_FORCED_SHARED_PAIN      1549
+#define PSIONIC_SHARPENED_EDGE          1550
+#define PSIONIC_UBIQUITUS_VISION        1551
+#define PSIONIC_DEADLY_FEAR             1552
+#define PSIONIC_DEATH_URGE              1553
+#define PSIONIC_EMPATHIC_FEEDBACK       1554
+#define PSIONIC_ENERGY_ADAPTATION       1555
+#define PSIONIC_INCITE_PASSION          1556
+#define PSIONIC_INTELLECT_FORTRESS      1557
+#define PSIONIC_MOMENT_OF_TERROR        1558
+#define PSIONIC_POWER_LEECH             1559
+#define PSIONIC_SLIP_THE_BONDS          1560
+#define PSIONIC_WITHER                  1561
+#define PSIONIC_WALL_OF_ECTOPLASM       1562
+#define PSIONIC_ADAPT_BODY              1563
+#define PSIONIC_ECTOPLASMIC_SHAMBLER    1564
+#define PSIONIC_PIERCE_VEIL             1565
+#define PSIONIC_PLANAR_TRAVEL           1566
+#define PSIONIC_POWER_RESISTANCE        1567
+#define PSIONIC_PSYCHIC_CRUSH           1568
+#define PSIONIC_PSYCHOPORTATION         1569
+#define PSIONIC_SHATTER_MIND_BLANK      1570
+#define PSIONIC_SHRAPNEL_BURST          1571
+#define PSIONIC_TOWER_OF_IRON_WILL      1572
+#define PSIONIC_UPHEAVAL                1573
+#define PSIONIC_BREATH_OF_THE_BLACK_DRAGON 1574
+#define PSIONIC_BRUTALIZE_WOUNDS        1575
+#define PSIONIC_DISINTEGRATION          1576
+#define PSIONIC_REMOTE_VIEW_TRAP        1577
+#define PSIONIC_SUSTAINED_FLIGHT        1578
+#define PSIONIC_BARRED_MIND             1579
+#define PSIONIC_COSMIC_AWARENESS        1580
+#define PSIONIC_ENERGY_CONVERSION       1581
+#define PSIONIC_ENERGY_WAVE             1582
+#define PSIONIC_EVADE_BURST             1583
+#define PSIONIC_OAK_BODY                1584
+#define PSIONIC_PSYCHOSIS               1585
+#define PSIONIC_ULTRABLAST              1586
+#define PSIONIC_BODY_OF_IRON            1587
+#define PSIONIC_GREATER_PSYCHOPORTATION 1588
+#define PSIONIC_RECALL_DEATH            1589
+#define PSIONIC_SHADOW_BODY             1590
+#define PSIONIC_APOPSI                  1591
+#define PSIONIC_ASSIMILATE              1592
+#define PSIONIC_TIMELESS_BODY           1593
+#define PSIONIC_BARRED_MIND_PERSONAL    1594
+#define PSIONIC_PSYCHOPORT_GREATER      1595
+#define PSIONIC_TRUE_METABOLISM         1596
+
+#define PSIONIC_POWER_START             1500
+#define PSIONIC_POWER_END               1596
+
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
  * 2)  if you want this spell to be available as a npc nuke, mobact.c
@@ -475,7 +580,7 @@
 // -----NEW NEW NEW -----
 // spells are in a table separate from skills, abilities and everything else
 // Gicker Feb 5, 2021
-#define MAX_SPELLS 999
+#define MAX_SPELLS 2000
 #define START_SKILLS 400
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
@@ -739,7 +844,7 @@
  * define it with a 'spellname'. */
 #define SPELL_DG_AFFECT 698
 
-#define TOP_SPELL_DEFINE 999
+#define TOP_SPELL_DEFINE 2000
 #define TOP_SKILL_DEFINE 699
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
 
@@ -1162,6 +1267,7 @@ ACMD_DECL(do_gen_cast);
 #define SCMD_CAST_SPELL 0 /* don't forget to add to constants.c */
 #define SCMD_CAST_PSIONIC 1
 #define SCMD_CAST_EXTRACT 2
+ACMD_DECL(do_manifest);
 
 ACMD_DECL(do_abort);
 void unused_spell(int spl);
