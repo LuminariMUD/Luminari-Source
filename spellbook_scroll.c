@@ -285,13 +285,6 @@ ACMD(do_scribe)
     return;
   }
 
-  /* very much just a dummy check*/
-  if (!GET_SKILL(ch, spellnum))
-  {
-    send_to_char(ch, "That spell is not fitting!\r\n");
-    return;
-  }
-
   /* found an object, looking for a spellbook or scroll.. */
   if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
   {

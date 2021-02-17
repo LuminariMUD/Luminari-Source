@@ -3423,6 +3423,7 @@ struct innate_magic_data
 struct player_special_data_saved
 {
     int skills[MAX_SKILLS + 1];         //saved skills
+    int spells[2001];                   //saved spells, should be MAX_SPELLS + 1 from spells.h
     ubyte abilities[MAX_ABILITIES + 1]; //abilities
 
     /* Feats */
@@ -3556,6 +3557,8 @@ struct player_special_data_saved
     int grasp_of_the_dead_timer;
     int incorporeal_form_uses;
     int incorporeal_form_timer;
+
+    int psionic_energy_type;        // this is the element that will be used when using psionic energy powers
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3599,7 +3602,8 @@ struct player_special_data
     int travel_locale;          // used for carriage and airship systems
     int bane_race;              // used in applyoil command to create a proper bane weapon
     int bane_subrace;           // used in applyoil command to create a proper bane weapon
-    int augment_psp;              // used when augmenting psionic powers
+    int augment_psp;            // used when augmenting psionic powers
+    int temp_attack_roll_bonus; // used when needing to add to an attack roll from outside, and before calling the attack_roll function
 };
 
 /** Special data used by NPCs, not PCs */

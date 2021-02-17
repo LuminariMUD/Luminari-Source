@@ -502,9 +502,9 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     {
       while (ch->affected)
       {
-        if (spell_info[ch->affected->spell].wear_off_msg)
+        if (get_wearoff(ch->affected->spell))
           send_to_char(ch, "%s\r\n",
-                       spell_info[ch->affected->spell].wear_off_msg);
+                       get_wearoff(ch->affected->spell));
         affect_remove(ch, ch->affected);
       }
       if (AFF_FLAGGED(ch, AFF_WILD_SHAPE))

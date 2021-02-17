@@ -53,6 +53,7 @@ if ($_POST)
     $augment = $_POST['augment'];
     $augment = str_replace("Augment ", "	DAugment: 	n", $augment);
     $augment = wordwrap($augment, 80, "\n	n");
+    $psp_cost = $_POST['psp_cost'];
 
     $output = "
 	D>Usage:           	W ".$cast_command." '".$spell_name."'".$can_target."	n
@@ -62,7 +63,10 @@ if ($_POST)
 	D>Target(s):       	W ".$targets." 	n
 	D>Magic Resist:    	W ".$magic_resist." 	n
 	D>Saving Throw:    	W ".$saving_throw." 	n
-	D>Damage Type:     	W ".$damage_type." 	n
+	D>Damage Type:     	W ".$damage_type." 	n".
+    ((strlen($psp_cost) > 0) ?
+"
+	D>PSP Cost:        	W ".$psp_cost." 	n": "")."
 	D>Description:	n
 	n
 	n".$description."
@@ -187,6 +191,10 @@ else{
     <div class="row pt-1 pb-1">
         <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="Damage type">Damage Type</div>
         <div class="col-sm-6"><input class="w-100" type="text" name="damage_type" /></div>
+    </div>
+    <div class="row pt-1 pb-1">
+        <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="Psionic power point (PSP) cost to use.">PSP Cost (psionics only)</div>
+        <div class="col-sm-6"><input class="w-100" type="text" name="psp_cost" /></div>
     </div>
     <div class="row pt-1 pb-1">
         <div class="col-sm-6 w-100 text-right font-weight-bold" data-toggle="tooltip" data-placement="bottom" title="Augment, if any, for psionic power">Augment (optional)</div>

@@ -8635,7 +8635,7 @@ ACMD(do_showwearoff)
       send_to_char(ch, "Spell/Skill: %s\r\n"
                        "Wearoff Msg: %s.\r\n",
                    spell_info[i].name,
-                   spell_info[i].wear_off_msg);
+                   get_wearoff(i));
       return;
     }
   }

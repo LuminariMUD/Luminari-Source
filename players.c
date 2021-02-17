@@ -513,6 +513,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_GRAND_DISCOVERY(ch) = 0;
     for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
       STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
+    GET_PSIONIC_ENERGY_TYPE(ch) = PFDEF_PSIONIC_ENERGY_TYPE;
 
     ch->sticky_bomb[0] = 0;
     ch->sticky_bomb[1] = 0;
@@ -883,6 +884,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_PREFERRED_DIVINE(ch) = atoi(line);
         else if (!strcmp(tag, "PSP"))
           load_HMVS(ch, line, LOAD_PSP);
+        else if (!strcmp(tag, "PsET"))
+          GET_PSIONIC_ENERGY_TYPE(ch) = atoi(line);
         else if (!strcmp(tag, "PxDU"))
           PIXIE_DUST_USES(ch) = atoi(line);
         else if (!strcmp(tag, "PxDT"))
@@ -1532,6 +1535,9 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "InFU: %d\n", INCORPOREAL_FORM_USES(ch));
   if (INCORPOREAL_FORM_TIMER(ch) != PFDEF_INCORPOREAL_FORM_TIMER)
     fprintf(fl, "InFT: %d\n", INCORPOREAL_FORM_TIMER(ch));
+
+  if (GET_PSIONIC_ENERGY_TYPE(ch) != PFDEF_PSIONIC_ENERGY_TYPE)
+    fprintf(fl, "PsET: %d\n", GET_PSIONIC_ENERGY_TYPE(ch));
 
   if (GET_OLC_ZONE(ch) != PFDEF_OLC)
     fprintf(fl, "Olc : %d\n", GET_OLC_ZONE(ch));

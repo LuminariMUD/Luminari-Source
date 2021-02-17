@@ -1438,6 +1438,15 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
 
   /* object level (min level to use) */
   GET_OBJ_LEVEL(obj) = bonus_value * 5;
+  /** we're dropping the min level a bit here, because
+   *  we recently increased bonuses on random treasure
+   *  bonuses by +1 across the board in an effort to make
+   *  random treasure more useful. -- Gicker, Feb 16, 2021
+   *  Arcanite crystals are the exception, as min level determines
+   *  max bonus on items created using it.
+   */  
+  if (GET_OBJ_TYPE(obj) != ITEM_CRYSTAL)
+    GET_OBJ_LEVEL(obj) = MAX(1, GET_OBJ_LEVEL(obj) - 5);
 
   if (cp_type == CP_TYPE_AMMO)
     ;
