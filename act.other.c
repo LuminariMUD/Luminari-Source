@@ -4750,6 +4750,11 @@ ACMD(do_steal)
   if (ohoh && IS_NPC(vict) && AWAKE(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
+  if (affected_by_spell(ch, PSIONIC_BREACH))
+  {
+    affect_from_char(ch, PSIONIC_BREACH);
+  }
+
   /* Add wait state, stealing isn't free! */
   USE_STANDARD_ACTION(ch);
 }

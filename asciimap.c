@@ -139,10 +139,10 @@ static struct map_info_type map_info[] = {
   { SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"},
   { SECT_D_ROAD_INT, "\tc[\ty+\tc]\tn"},
   { SECT_CAVE, "\tc[\tD\t=C\tc]\tn"},
-  { SECT_JUNGLE, "\tg&\tn"},
-  { SECT_TUNDRA, "\tW.\tn"},
-  { SECT_TAIGA, "\tgA\tn"},
-  { SECT_BEACH, "\ty:\tn"},
+  { SECT_JUNGLE, "\tc[\tg&\tc]\tn"},
+  { SECT_TUNDRA, "\tc[\tW.\tc]\tn"},
+  { SECT_TAIGA, "\tc[\tgA\tc]\tn"},
+  { SECT_BEACH, "\tc[\ty:\tc]\tn"},
   { SECT_SEAPORT, "\tc[\tRS\tc]\tn"}, /* 34 */
 
   { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */

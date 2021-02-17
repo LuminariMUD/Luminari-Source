@@ -2190,6 +2190,11 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
     return (1);
 
   skill_lvl = compute_ability(ch, ABILITY_SLEIGHT_OF_HAND);
+  if (affected_by_spell(ch, PSIONIC_BREACH))
+  {
+    affect_from_char(ch, PSIONIC_BREACH);
+  }
+  
 
   /* this is a hack of sorts, we have some abuse of charmies being used to pick
      locks, so we add some penalties and restirctions here */

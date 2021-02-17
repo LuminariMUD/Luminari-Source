@@ -698,8 +698,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type enhancement (equipment) */
-  if (is_touch)
-    bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
+  bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
   bonuses[BONUS_TYPE_ENHANCEMENT] += get_defending_weapon_bonus(ch, false);
   /**/
 
@@ -2851,6 +2850,8 @@ int compute_concealment(struct char_data *ch)
     concealment += 20;
   else if (AFF_FLAGGED(ch, AFF_BLINKING))
     concealment += 20;
+  else if (affected_by_spell(ch, PSIONIC_CONCEALING_AMORPHA)) // this is here to prevent overpowered combinations of buffs
+    concealment += 20;
   else if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
 
@@ -2934,6 +2935,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     int concealment = compute_concealment(victim);
     // seeking weapons (ranged weapons only) bypass concealment always
     if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
+      concealment = 0;
+    if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
       concealment = 0;
     if (dice(1, 100) <= compute_concealment(victim) && !is_spell)
     {
@@ -5160,8 +5163,8 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
       {
         affect_from_char(victim, dr->spell);
 
-        if (spell_info[dr->spell].wear_off_msg)
-          send_to_char(victim, "%s\r\n", spell_info[dr->spell].wear_off_msg);
+        if (get_wearoff(dr->spell))
+          send_to_char(victim, "%s\r\n", get_wearoff(dr->spell));
       }
     }
   }
@@ -5595,6 +5598,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
    10/14/2014 Zusuk */
   calc_bab += GET_HITROLL(ch);
   /******/
+
+  calc_bab += GET_TEMP_ATTACK_ROLL_BONUS(ch);
+  GET_TEMP_ATTACK_ROLL_BONUS(ch) = 0;
 
   /* Circumstance bonus (stacks)*/
   switch (GET_POS(ch))
@@ -6524,6 +6530,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
     affect_from_char(ch, SPELL_TRUE_STRIKE);
+  }
+  if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
+  {
+    send_to_char(ch, "[\tWINEVITABLE-STRIKE\tn] ");
+    affect_from_char(ch, PSIONIC_INEVITABLE_STRIKE);
   }
   /* rage powers */
   if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY))

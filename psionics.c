@@ -60,7 +60,7 @@ void assign_psionic_powers(void)
     // level 1 psionic powers
     psiono(PSIONIC_BROKER, "broker", 1, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic persuasive edge expires.", 1);
     psiono(PSIONIC_CALL_TO_MIND, "call to mind", 1, true, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic knowledge of lore fades away.", 1);
-    psiono(PSIONIC_CATFALL, "catfall", 1, true, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your ability to catfall hs expired.", 1);
+    psiono(PSIONIC_CATFALL, "catfall", 1, true, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your ability to catfall has expired.", 1);
     psiono(PSIONIC_CRYSTAL_SHARD, "crystal shard", 1, true, METACREATIVITY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 1);
     psiono(PSIONIC_DECELERATION, "deceleration", 1, true, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "Your psychic deceleration expires.", 1);
     psiono(PSIONIC_DEMORALIZE, "demoralize", 1, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, "You are no longer demoralized.", 1);
@@ -88,7 +88,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_ELFSIGHT, "elfsight", 3, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your elfsight wears off.", 2);
     psiono(PSIONIC_ENERGY_ADAPTATION_SPECIFIED, "specified energy adaptation", 3, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your specified energy adaptation has expired.", 2);
     psiono(PSIONIC_ENERGY_PUSH, "energy push", 3, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 2);
-    psiono(PSIONIC_ENERGY_STUN, "energy stun", 3, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 2);
+    psiono(PSIONIC_ENERGY_STUN, "energy stun", 3, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, NULL, 2);
     psiono(PSIONIC_INFLICT_PAIN, "inflict pain", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "The psychic pain tormenting you finally ends.", 2);
     psiono(PSIONIC_MENTAL_DISRUPTION, "mental disruption", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, "THe psychic mental disruption affecting you expires.", 2);
     psiono(PSIONIC_PSIONIC_LOCK, "psionic lock", 3, false, PSYCHOPORTATION, TAR_IGNORE, false, MAG_MANUAL, NULL, 2);
@@ -171,6 +171,12 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_TIMELESS_BODY, "timeless body", 17, false, PSYCHOPORTATION, TAR_CHAR_ROOM|TAR_SELF_ONLY, false, MAG_AFFECTS, "Your timeless body effect expires.", 9);
 }
 
+#define MANIFEST_NO_ARG "You must specify the number of power points to augment your power with, or 0.\r\n" \
+                         "You must follow that with the power name in single quotes, optionally followed by the target where applicable.\r\n" \
+                         "Example: manifest 2 'mind thrust' ogre\r\n" \
+                         "This will manifest the mind thrust against the first target named ogre and with the power augmented with 2 power points.\r\n" \
+                         "You may also type manifest energytype (fire|ice|lightning|acid|sonic) to set your energy type for energy based powers.\r\n"
+
 ACMD(do_manifest)
 {
 
@@ -180,26 +186,58 @@ ACMD(do_manifest)
 
     if (!*augment || !*pass_arg)
     {
-        send_to_char(ch, "You must specify the number of power points to augment your power with, or 0.\r\n"
-                         "You must follow that with the power name in single quotes, optionally followed by the target where applicable.\r\n"
-                         "Example: manifest 2 'mind thrust' ogre\r\n"
-                         "This will manifest the mind thrust against the first target named ogre and with the power augmented with 2 power points.\r\n"
-        );
+        send_to_char(ch, MANIFEST_NO_ARG);
         return;
     }
     if (!isdigit(*augment))
     {
-        send_to_char(ch, "You must specify the number of power points to augment your power with, or 0.\r\n"
-                         "You must follow that with the power name in single quotes, optionally followed by the target where applicable.\r\n"
-                         "Example: manifest 2 'mind thrust' ogre\r\n"
-                         "This will manifest the mind thrust against the first target named ogre and with the power augmented with 2 power points.\r\n"
-        );
-        return;
+        if (is_abbrev(augment, "energytype"))
+        {
+            if (is_abbrev(pass_arg, "fire"))
+            {
+                GET_PSIONIC_ENERGY_TYPE(ch) = DAM_FIRE;
+                send_to_char(ch, "You've set your psionic energy type to fire.\r\n");
+            }
+            else if (is_abbrev(pass_arg, "ice"))
+            {
+                GET_PSIONIC_ENERGY_TYPE(ch) = DAM_COLD;
+                send_to_char(ch, "You've set your psionic energy type to ice.\r\n");
+            }
+            else if (is_abbrev(pass_arg, "lightning"))
+            {
+                GET_PSIONIC_ENERGY_TYPE(ch) = DAM_ELECTRIC;
+                send_to_char(ch, "You've set your psionic energy type to lightning.\r\n");
+            }
+            else if (is_abbrev(pass_arg, "acid"))
+            {
+                GET_PSIONIC_ENERGY_TYPE(ch) = DAM_ACID;
+                send_to_char(ch, "You've set your psionic energy type to acid.\r\n");
+            }
+            else if (is_abbrev(pass_arg, "lightning"))
+            {
+                GET_PSIONIC_ENERGY_TYPE(ch) = DAM_SOUND;
+                send_to_char(ch, "You've set your psionic energy type to sonic.\r\n");
+            }
+            else
+            {
+                send_to_char(ch, MANIFEST_NO_ARG);
+            }
+            return;
+        }
+        else
+        {
+            send_to_char(ch, MANIFEST_NO_ARG);
+            return;
+        }
     }
+
     int extra_pp = atoi(augment);
     GET_AUGMENT_PSP(ch) = extra_pp;
     do_gen_cast(ch, (const char *) pass_arg, cmd, SCMD_CAST_PSIONIC);
+    GET_AUGMENT_PSP(ch) = 0;
 }
+
+#undef MANIFEST_NO_ARG
 
 int max_augment_psp_allowed(struct char_data *ch, int spellnum)
 {
@@ -219,3 +257,4 @@ int adjust_augment_psp_for_spell(struct char_data *ch, int spellnum)
     }
     return GET_AUGMENT_PSP(ch);
 }
+

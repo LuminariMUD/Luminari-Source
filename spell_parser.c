@@ -339,6 +339,8 @@ bool isEpicSpell(int spellnum)
  * this because you can guarantee > 0 and <= TOP_SPELL_DEFINE. */
 const char *skill_name(int num)
 {
+        if (skill_info[num].schoolOfMagic > 0)
+                return (skill_info[num].name);
         if (num > 0 && num <= TOP_SPELL_DEFINE)
                 return (spell_info[num].name);
         else if (num == -1)
@@ -1481,6 +1483,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
         {
           HAS_ELDRITCH_SPELL_CRIT(ch) = false;
           casting_time = 0;
+        }
+
+        if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED)
+        {
+                GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+                GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
+                GET_PSP(ch) -= MIN(4, GET_AUGMENT_PSP(ch));
+                if (GET_AUGMENT_PSP(ch) >= 4)
+                        casting_time = 0;
         }
 
         /* handle spells with no casting time */

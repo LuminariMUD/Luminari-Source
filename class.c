@@ -5021,6 +5021,19 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_PSIONICIST, "psionicist", "Psn", "\tCPsn\tn", "f) \tCPsionicist\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         30, Y, N, L, 4, 0, 1, 2, N, 0, 0,
+         /*prestige spell progression*/ "none",
+         /*descrip*/ "The powers of the mind are varied and limitless, and the psion "
+                     "learns how to unlock them. The psion learns to manifest psionic "
+                     "powers that alter himself and the world around him. Due to the "
+                     "limited powers that any one psion knows, each psion is unique in "
+                     "his capabilities, as his latent abilities are drawn out and shaped "
+                     "into the psionic powers that define the psion.");
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WEAPON_MASTER, "weaponmaster", "WpM", "\tcWpM\tn", "e) \tcWeaponMaster\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
@@ -5482,7 +5495,7 @@ void load_class_list(void)
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CA, CC, CA, CC, CA, CC,
                      /*survival,swim,use_magic_device,perform*/
-                     CC, CA, CC, CC);
+                     CA, CA, CC, CC);
   assign_class_titles(CLASS_SHIFTER,              /* class number */
                       "",                         /* <= 4  */
                       "the Shape Changer",        /* <= 9  */

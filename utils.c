@@ -3957,6 +3957,24 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     return TRUE;
   }
 
+  if (IS_CONSTRUCT(victim))
+  {
+    if (display) {
+      send_to_char(ch, "%s is a construct and thus immune to mind affecting spells and abilities!", GET_NAME(victim));
+      send_to_char(victim, "You are a construct and thus are immune to %s's mind-affecting spells and abilities!", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
+  if (IS_OOZE(victim))
+  {
+    if (display) {
+      send_to_char(ch, "%s is of racial type 'ooze' and thus immune to mind affecting spells and abilities!", GET_NAME(victim));
+      send_to_char(victim, "You are of racial type 'ooze' and thus are immune to %s's mind-affecting spells and abilities!", GET_NAME(ch));
+    }
+    return TRUE;
+  }
+
   if (AFF_FLAGGED(victim, AFF_MIND_BLANK)) {
     if (display) {
       send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
@@ -4391,4 +4409,40 @@ int d20(struct char_data *ch)
   }
   
   return roll;
+}
+
+const char * get_wearoff(int abilnum)
+{
+  if (skill_info[abilnum].schoolOfMagic == ACTIVE_SKILL)
+    return (const char *) skill_info[abilnum].wear_off_msg;
+
+  return (const char *)spell_info[abilnum].wear_off_msg;
+}
+
+int damage_type_to_resistance_type(int type)
+{
+  switch (type)
+  {
+    case DAM_FIRE: return APPLY_RES_FIRE;
+    case DAM_COLD: return APPLY_RES_COLD;
+    case DAM_AIR: return APPLY_RES_AIR;
+    case DAM_EARTH: return APPLY_RES_EARTH;
+    case DAM_ACID: return APPLY_RES_ACID;
+    case DAM_HOLY: return APPLY_RES_HOLY;
+    case DAM_ELECTRIC: return APPLY_RES_ELECTRIC;
+    case DAM_UNHOLY: return APPLY_RES_UNHOLY;
+    case DAM_SLICE: return APPLY_RES_SLICE;
+    case DAM_PUNCTURE: return APPLY_RES_PUNCTURE;
+    case DAM_FORCE: return APPLY_RES_FORCE;
+    case DAM_SOUND: return APPLY_RES_SOUND;
+    case DAM_POISON: return APPLY_RES_POISON;
+    case DAM_DISEASE: return APPLY_RES_DISEASE;
+    case DAM_NEGATIVE: return APPLY_RES_NEGATIVE;
+    case DAM_ILLUSION: return APPLY_RES_ILLUSION;
+    case DAM_MENTAL: return APPLY_RES_MENTAL;
+    case DAM_LIGHT: return APPLY_RES_LIGHT;
+    case DAM_ENERGY: return APPLY_RES_ENERGY;
+    case DAM_WATER: return APPLY_RES_WATER;
+  }
+  return APPLY_NONE;
 }

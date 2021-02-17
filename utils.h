@@ -109,6 +109,7 @@ int compute_arcane_level(struct char_data *ch);
 int compute_divine_level(struct char_data *ch);
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
 int compute_dexterity_bonus(struct char_data *ch);
+int damage_type_to_resistance_type(int type);
 int stats_point_left(struct char_data *ch);
 int comp_total_stat_points(struct char_data *ch);
 int comp_cha_cost(struct char_data *ch, int number);
@@ -154,6 +155,7 @@ bool can_fly(struct char_data *ch);
 void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result);
 int get_line(FILE *fl, char *buf);
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name);
+const char * get_wearoff(int abilnum);
 time_t mud_time_to_secs(struct time_info_data *now);
 struct time_info_data *age(struct char_data *ch);
 int num_pc_in_room(struct room_data *room);
@@ -732,6 +734,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_PSIONIC_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST))
+#define IS_PSIONIC(ch)  (GET_PSIONIC_LEVEL(ch) > 0)
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -1117,6 +1120,7 @@ void char_from_furniture(struct char_data *ch);
 
 /** The current skill level of ch for skill i. */
 #define GET_SKILL(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.skills[i]))
+#define GET_SPELL(ch, i) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.spells[i]))
 
 /** Copy the current skill level i of ch to pct. */
 #define SET_SKILL(ch, i, pct)                                                 \
@@ -2129,6 +2133,12 @@ void char_from_furniture(struct char_data *ch);
 
 #define LOOTBOX_LEVEL(obj) (GET_OBJ_VAL(obj, 0))
 #define LOOTBOX_TYPE(obj) (GET_OBJ_VAL(obj, 1))
+
+// Psionic related stuff
+#define GET_PSIONIC_ENERGY_TYPE(ch)   CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
+
+// Misc combat stuff
+#define GET_TEMP_ATTACK_ROLL_BONUS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->temp_attack_roll_bonus))
 
 #define ARENA_START 138600
 #define ARENA_END 138608

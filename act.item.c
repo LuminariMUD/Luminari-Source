@@ -3623,6 +3623,10 @@ ACMD(do_loot)
   if (pilfer)
   {
     send_to_char(ch, "You deftly maneuver your way to the treasure unseen.\r\n");
+    if (affected_by_spell(ch, PSIONIC_BREACH))
+    {
+      affect_from_char(ch, PSIONIC_BREACH);
+    }
   }
 
   obj_vnum vnum = GET_OBJ_VNUM(obj);
