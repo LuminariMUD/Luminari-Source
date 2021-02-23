@@ -147,6 +147,7 @@ typedef enum
   eSLA_STRENGTH,                          /* innate strength*/
   eSLA_ENLARGE,                          /* innate enlarge */
   eSLA_INVIS,                          /* innate invisibility */
+  eCONCUSSIVEONSLAUGHT,     // concussive onsalught psionic power
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -202,6 +203,7 @@ EVENTFUNC(event_casting);
 EVENTFUNC(event_preparing);
 EVENTFUNC(event_crafting);
 EVENTFUNC(event_acid_arrow);
+EVENTFUNC(event_concussive_onslaught);
 EVENTFUNC(event_implode);
 EVENTFUNC(event_ice_storm);
 EVENTFUNC(event_chain_lightning);

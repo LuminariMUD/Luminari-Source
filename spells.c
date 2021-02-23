@@ -31,6 +31,7 @@
 #include "domains_schools.h"
 #include "oasis.h"
 #include "genzon.h" /* for real_zone_by_thing */
+#include "psionics.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -2003,6 +2004,82 @@ ASPELL(spell_wizard_eye)
   ch->desc->original = ch;
   eye->desc = ch->desc;
   ch->desc = NULL;
+}
+
+ASPELL(psionic_concussive_onslaught)
+{
+  int x = 0;
+
+  if (ch == NULL)
+    return;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You blast out wave after wave of concussive kinetic energy!\r\n");
+  act("$n blasts out wave after wave of concussive kinetic energy!", FALSE, ch, 0, 0, TO_ROOM);
+
+  GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, PSIONIC_CONCUSSIVE_ONSLAUGHT);
+  // we need to correct the psp cost below, because the power only benefits from 2 augment points at a time.
+  GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+  ch->player_specials->dam_co_holder_ndice = 3 + (GET_AUGMENT_PSP(ch) / 2);
+  ch->player_specials->dam_co_holder_sdice = 6;
+  ch->player_specials->save_co_holder_dc_bonus = GET_AUGMENT_PSP(ch) / 2;
+  GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+
+  for (x = 0; x < GET_PSIONIC_LEVEL(ch); x++)
+  {
+    NEW_EVENT(eCONCUSSIVEONSLAUGHT, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+  }
+}
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_concussive_onslaught)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  if (ch == NULL)
+    return 0;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  level = GET_PSIONIC_LEVEL(ch);
+  int ndice = ch->player_specials->dam_co_holder_ndice;
+  int sdice = ch->player_specials->dam_co_holder_sdice;
+
+  for (victim = world[IN_ROOM(ch)].people; victim; victim = victim->next_in_room)
+  {
+    if (!aoeOK(ch, victim, PSIONIC_CONCUSSIVE_ONSLAUGHT)) continue;
+    if (power_resistance(ch, victim, 0)) continue;
+    GET_DC_BONUS(ch) += ch->player_specials->save_co_holder_dc_bonus;
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
+      damage(ch, victim, (dice(ndice, sdice) / 2), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
+    else
+      damage(ch, victim, dice(ndice, sdice), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
+    update_pos(victim);
+  }
+
+  return 0;
 }
 
 #define ZOCMD zone_table[zrnum].cmd[subcmd]

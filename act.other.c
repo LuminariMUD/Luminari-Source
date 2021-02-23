@@ -2017,6 +2017,7 @@ ACMD(do_respec)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   int class = -1;
+  struct follow_type *f = NULL;
 
   if (IS_NPC(ch) || !ch->desc)
     return;
@@ -2083,6 +2084,11 @@ ACMD(do_respec)
       send_to_char(ch, "You return to your normal form.\r\n");
     }
 
+    leave_group(ch);
+    stop_follower(ch);
+    for (f = ch->followers; f; f = f->next)
+      stop_follower(f->follower);
+    
     do_start(ch);
     HAS_SET_STATS_STUDY(ch) = FALSE;
     GET_EXP(ch) = tempXP;

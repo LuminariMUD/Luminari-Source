@@ -2145,14 +2145,19 @@ void assign_feats(void)
         "further reduce memorization time.");
 
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-        "+1 to all spell dcs for all spells in school/domain",
+        "wizard only, +1 to all spell dcs for all spells in school/domain",
         "+1 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+  feat_prereq_class_level(FEAT_SPELL_FOCUS, CLASS_WIZARD, 1);
   feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-        "+2 to all spell dcs for all spells in school/domain",
+        "wizard only, +2 to all spell dcs for all spells in school/domain",
         "+2 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+  feat_prereq_class_level(FEAT_GREATER_SPELL_FOCUS, CLASS_WIZARD, 1);
+  feat_prereq_feat(FEAT_GREATER_SPELL_FOCUS, FEAT_SPELL_FOCUS, 1);
   feato(FEAT_EPIC_SPELL_FOCUS, "epic spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-        "+3 to all spell dcs for all spells in school/domain",
+        "wizard only, +3 to all spell dcs for all spells in school/domain",
         "+3 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+  feat_prereq_class_level(FEAT_EPIC_SPELL_FOCUS, CLASS_WIZARD, 1);
+  feat_prereq_feat(FEAT_EPIC_SPELL_FOCUS, FEAT_GREATER_SPELL_FOCUS, 1);
 
   feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "your familiar gets more powerful",

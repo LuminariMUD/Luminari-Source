@@ -219,6 +219,10 @@ bool pvp_ok(struct char_data *ch, struct char_data *target);
 bool is_pc_idnum_in_room(struct char_data *ch, long int idnum);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 int find_ability_num_by_name(char *name);
+bool power_resistance(struct char_data *ch, struct char_data *victim, int modifier);
+int get_power_penetrate_mod(struct char_data *ch);
+int get_power_resist_mod(struct char_data *ch);
+bool is_spellnum_psionic(int spellnum);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -733,7 +737,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
-#define GET_PSIONIC_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_PSIONICIST))
+#define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch)  (GET_PSIONIC_LEVEL(ch) > 0)
 
 /* Password of PC. */

@@ -703,6 +703,11 @@ ACMD(do_map) {
     send_to_char(ch, "You can't see the map while blind!\r\n");
     return;
   }
+  else if (GET_LEVEL(ch) < LVL_IMMORT && ROOM_FLAGGED(IN_ROOM(ch), ROOM_FOG))
+  {
+    send_to_char(ch, "THe fog in this room prevents you from seeing beyond your immediate surroundings!\r\n");
+    return;
+  }
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
     send_to_char(ch, "%s\r\n", gen_ascii_wilderness_map(30, X_LOC(ch), Y_LOC(ch), MAP_TYPE_WEATHER));
   else
