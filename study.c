@@ -2777,7 +2777,7 @@ void study_parse(struct descriptor_data *d, char *arg)
               LEVELUP(d->character)->spell_circle)
           {
             if (*arg2 && is_abbrev(arg2, "help")) {
-              snprintf(buf, sizeof(buf), "spell %s", spell_info[counter].name);
+              snprintf(buf, sizeof(buf), "%s", spell_info[counter].name);
               do_help(d->character, buf, 0, 0);
               return;
             }

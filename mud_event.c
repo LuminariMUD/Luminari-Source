@@ -162,6 +162,7 @@ struct mud_event_list mud_event_index[] = {
     {"Strength", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_STRENGTH
     {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_ENLARGE
     {"Invis", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_INVIS
+    {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR}, //eCONCUSSIVEONSLAUGHT
 
 };
 

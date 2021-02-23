@@ -2242,9 +2242,11 @@
 #define APPLY_DR 48
 #define APPLY_FEAT 49
 #define APPLY_SKILL 50
+#define APPLY_SPECIAL 51
+#define APPLY_POWERR_RES 52
 
 /** Total number of applies */
-#define NUM_APPLIES 51
+#define NUM_APPLIES 53
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS 5
@@ -3245,7 +3247,7 @@ struct char_ability_data
 #define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
-#define NUM_DAM_TYPES 23
+#define NUM_DAM_TYPES 24
 
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data
@@ -3372,6 +3374,8 @@ struct char_special_data
 
     struct char_data *grapple_target;   /**< Target of grapple attempt; else NULL */
     struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
+
+    bool energy_retort_used;            // used with energy retort ability, which only fires once per round.
 };
 
 /* old memorization struct */
@@ -3604,6 +3608,10 @@ struct player_special_data
     int bane_subrace;           // used in applyoil command to create a proper bane weapon
     int augment_psp;            // used when augmenting psionic powers
     int temp_attack_roll_bonus; // used when needing to add to an attack roll from outside, and before calling the attack_roll function
+    int dam_co_holder_ndice;    // a holder for number of damage dice for psionic_concussive_onslaught
+    int dam_co_holder_sdice;    // a holder for size of damage dice for psionic_concussive_onslaught
+    int dam_co_holder_bonus;    // a holder for bonus to damage for psionic_concussive_onslaught
+    int save_co_holder_dc_bonus;// a holder for bonus to save dc for psionic_concussive_onslaught
 };
 
 /** Special data used by NPCs, not PCs */

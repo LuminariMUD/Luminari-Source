@@ -1005,8 +1005,9 @@
 #define DAM_WATER 20
 #define DAM_CELESTIAL_POISON 21
 #define DAM_BLEEDING 22
+#define DAM_TEMPORAL 23
 /* ------------------------------*/
-#define NUM_DAM_TYPES 23
+#define NUM_DAM_TYPES 24
 /* =============================*/
 
 /*********************************/
@@ -1185,6 +1186,8 @@ ASPELL(spell_wall_of_fire);
 ASPELL(spell_wall_of_thorns);
 ASPELL(spell_wall_of_force);
 ASPELL(spell_wizard_eye);
+// psionics
+ASPELL(psionic_concussive_onslaught);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

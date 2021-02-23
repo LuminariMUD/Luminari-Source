@@ -3270,7 +3270,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         continue;
       }
     }
-    if (PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
+    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
     {
       attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
     }
@@ -5599,8 +5599,11 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   calc_bab += GET_HITROLL(ch);
   /******/
 
-  calc_bab += GET_TEMP_ATTACK_ROLL_BONUS(ch);
-  GET_TEMP_ATTACK_ROLL_BONUS(ch) = 0;
+  if (!IS_NPC(ch))
+  {
+    calc_bab += GET_TEMP_ATTACK_ROLL_BONUS(ch);
+    GET_TEMP_ATTACK_ROLL_BONUS(ch) = 0;
+  }
 
   /* Circumstance bonus (stacks)*/
   switch (GET_POS(ch))
@@ -6924,6 +6927,10 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
                         int attack_type, int dam)
 {
   int return_val = 0;
+  int energy = 0;
+  int save_type = 0;
+  int power_resist_bonus = 0;
+  int dam_bonus = 0;
 
   if (attack_type != ATTACK_TYPE_RANGED)
   {
@@ -6946,6 +6953,36 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
              IS_AFFECTED(victim, AFF_ASHIELD))
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
+    }
+    if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) && !victim->char_specials.energy_retort_used)
+    {
+      victim->char_specials.energy_retort_used = true;
+      
+      energy = get_char_affect_modifier(victim, PSIONIC_ENERGY_RETORT, APPLY_SPECIAL);
+      if (energy == DAM_ELECTRIC || energy == DAM_SOUND) {
+        GET_DC_BONUS(victim) += 2;
+        power_resist_bonus -= 2;
+      }
+
+      // let's do this now, because if resisted we don't need to worry about below code.
+      power_resistance(victim, ch, power_resist_bonus);
+
+      if (energy == DAM_COLD)
+        save_type = SAVING_FORT;
+      else
+        save_type = SAVING_REFL;
+      
+      if (energy == DAM_FIRE || energy == DAM_COLD || energy == DAM_ACID)
+        dam_bonus = 4;
+      
+      if (mag_savingthrow(victim, ch, save_type, 0, CAST_SPELL, GET_PSIONIC_LEVEL(victim), 0))
+      {
+       return_val = damage(victim, ch, (dice(4, 6) + dam_bonus) / 2, PSIONIC_ENERGY_RETORT, energy, attack_type);
+      }
+      else
+      {
+        return_val = damage(victim, ch, dice(4, 6) + dam_bonus, PSIONIC_ENERGY_RETORT, energy, attack_type);
+      }
     }
   }
 
@@ -8360,6 +8397,7 @@ void perform_violence(struct char_data *ch, int phase)
   GET_TOTAL_AOO(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
+  ch->char_specials.energy_retort_used = false;
   remove_fear_affects(ch, TRUE);
 
   if (FIGHTING(ch) == NULL || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch)))

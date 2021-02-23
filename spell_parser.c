@@ -873,6 +873,10 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case SPELL_WORD_OF_RECALL:
                         MANUAL_SPELL(spell_recall);
                         break;
+                // psionics
+                case PSIONIC_CONCUSSIVE_ONSLAUGHT:
+                        MANUAL_SPELL(psionic_concussive_onslaught);
+                        break;
                 } /* end manual spells */
 
         /* finished routine handling, now we have some code to engage */
@@ -1593,10 +1597,10 @@ ACMDU(do_gen_cast)
         }
 
         /* Here I needed to change a bit to grab the metamagic keywords.  
-   * Valid keywords are:
-   *
-   *   quickened - Speed up casting
-   *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
+        * Valid keywords are:
+        *
+        *   quickened - Speed up casting
+        *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
 
         /* get: blank, spell name, target name */
         spell_arg = strtok(argument, "'");
@@ -1701,7 +1705,7 @@ ACMDU(do_gen_cast)
                 return;
         }
 
-        if (GET_SKILL(ch, spellnum) == 0)
+        if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT)
         {
                 send_to_char(ch, "You are unfamiliar with that %s.\r\n", do_cast_types[subcmd][2]);
                 return;

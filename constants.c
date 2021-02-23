@@ -747,6 +747,7 @@ const char *damtypes[] = {
     "water",
     "celestial poison",
     "bleeding",
+    "temporal",
     "\n"};
 CHECK_TABLE_SIZE(damtypes, NUM_DAM_TYPES + 1);
 
@@ -774,6 +775,7 @@ const char *damtype_display[] = {
     "Damage Water",
     "Damage Celestial Poison",
     "Damage Bleeding",
+    "Damage Temporal",
     "\n"};
 CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 
@@ -2003,6 +2005,8 @@ const char *apply_types[] = {
     "Damage-Reduction",
     "Grant-Feat",
     "Skill-Bonus",
+    "Special",
+    "Power-Resist",
     "\n" /*51*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);

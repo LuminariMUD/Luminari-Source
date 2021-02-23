@@ -3984,6 +3984,20 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     return TRUE;
   }
 
+  if (affected_by_spell(victim, PSIONIC_THOUGHT_SHIELD))
+  {
+    int resist = get_char_affect_modifier(victim, PSIONIC_THOUGHT_SHIELD, APPLY_SPECIAL) + get_power_resist_mod(victim);
+    int penetrate = d20(ch) + GET_PSIONIC_LEVEL(ch) + get_power_penetrate_mod(ch);
+    if (resist > penetrate)
+    {
+      if (display) {
+        send_to_char(ch, "Thought shield protects %s!", GET_NAME(victim));
+        send_to_char(victim, "Thought shield protects you from %s!", GET_NAME(ch));
+      }
+      return TRUE;
+    }
+  }
+
   return FALSE;
 }
 
@@ -4445,4 +4459,36 @@ int damage_type_to_resistance_type(int type)
     case DAM_WATER: return APPLY_RES_WATER;
   }
   return APPLY_NONE;
+}
+
+int get_power_penetrate_mod(struct char_data *ch)
+{
+  int bonus = 0;
+
+  return bonus;
+}
+
+int get_power_resist_mod(struct char_data *ch)
+{
+  int bonus = 0;
+
+  return bonus;
+}
+
+bool power_resistance(struct char_data *ch, struct char_data *victim, int modifier)
+{
+  int resist = get_power_resist_mod(victim);
+  int penetrate = d20(ch) + GET_PSIONIC_LEVEL(ch) + get_power_penetrate_mod(ch) + modifier;
+
+  return (penetrate < resist);
+}
+
+/** returns true if the spell is a psionic power, or false if
+ *  it is a spell or spell-like affect */
+bool is_spellnum_psionic(int spellnum)
+{
+  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    return true;
+
+  return false;
 }

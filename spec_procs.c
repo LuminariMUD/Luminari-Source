@@ -814,6 +814,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
     return -1;
 
   //universal bonuses/penalties
+  if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
+    value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))
     value += 2;
   else if (affected_by_spell(ch, SPELL_GREATER_HEROISM))

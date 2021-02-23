@@ -2719,3 +2719,15 @@ void mount_char(struct char_data *ch, struct char_data *mount)
   RIDING(ch) = mount;
   RIDDEN_BY(mount) = ch;
 }
+
+int get_char_affect_modifier(struct char_data *ch, int spellnum, int location)
+{
+  struct affected_type *af = NULL;
+
+  for (af = ch->affected; af; af = af->next)
+  {
+    if (af->spell == spellnum && af->location == location)
+      return af->modifier;
+  }
+  return 0;
+}

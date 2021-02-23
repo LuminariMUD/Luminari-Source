@@ -100,7 +100,7 @@ void assign_psionic_powers(void)
 
     // level 3 psionic powers
     psiono(PSIONIC_BODY_ADJUSTMENT, "body adjustment", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_POINTS, NULL, 3);
-    psiono(PSIONIC_CONCUSSIVE_ONSLAUGHT, "concussive onslaught", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 3);
+    psiono(PSIONIC_CONCUSSIVE_ONSLAUGHT, "concussive onslaught", 5, true, PSYCHOKINESIS, TAR_IGNORE, true, MAG_MANUAL, NULL, 3);
     psiono(PSIONIC_DISPEL_PSIONICS, "dispel psionic", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_MANUAL, NULL, 3);
     psiono(PSIONIC_ENDORPHIN_SURGE, "endorphin surge", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your endorphin surge wears off.", 3);
     psiono(PSIONIC_ENERGY_BURST, "energy burst", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 3);
@@ -180,7 +180,7 @@ void assign_psionic_powers(void)
 ACMD(do_manifest)
 {
 
-    char augment[200], pass_arg[200];
+    char augment[200], pass_arg[200], final_pass[201];
 
     half_chop((char *)argument, augment, pass_arg);
 
@@ -233,7 +233,9 @@ ACMD(do_manifest)
 
     int extra_pp = atoi(augment);
     GET_AUGMENT_PSP(ch) = extra_pp;
-    do_gen_cast(ch, (const char *) pass_arg, cmd, SCMD_CAST_PSIONIC);
+    snprintf(final_pass, sizeof(final_pass), " %s", pass_arg);
+    //send_to_char(ch, "PASS ARG:---%s---\r\n", final_pass);
+    do_gen_cast(ch, (const char *) final_pass, cmd, SCMD_CAST_PSIONIC);
     GET_AUGMENT_PSP(ch) = 0;
 }
 

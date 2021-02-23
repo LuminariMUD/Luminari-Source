@@ -2380,7 +2380,7 @@ ACMD(do_kill)
       return;
     }
     else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
-             PRF_FLAGGED(vict, PRF_NOHASSLE))
+             (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_NOHASSLE)))
     {
       do_hit(ch, argument, cmd, subcmd);
       return;
