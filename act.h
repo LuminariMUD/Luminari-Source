@@ -333,6 +333,7 @@ ACMD_DECL(do_wear);
 ACMD_DECL(do_wield);
 ACMD_DECL(do_auction);
 ACMD_DECL(do_bid);
+ACMD_DECL(do_channelspell);
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c

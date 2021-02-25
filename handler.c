@@ -301,6 +301,10 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg
     break;
   case APPLY_SKILL:
     break;
+  case APPLY_POWER_RES:
+    break;
+  case APPLY_SPECIAL:
+    break;
     /* end Do Not Use */
 
   default:

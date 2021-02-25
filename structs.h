@@ -360,7 +360,8 @@
 #define CLASS_SACRED_FIST 19
 #define CLASS_ELDRITCH_KNIGHT 20
 #define CLASS_PSIONICIST 21
-//#define CLASS_PSION CLASS_PSIONICIST
+#define CLASS_PSION CLASS_PSIONICIST
+#define CLASS_SPELLSWORD 22
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -372,7 +373,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 22
+#define NUM_CLASSES 23
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1822,13 +1823,16 @@
 #define FEAT_ONE_OF_US 667
 #define FEAT_EPIC_SPELL_PENETRATION 668
 #define FEAT_BOON_COMPANION 669
+#define FEAT_IGNORE_SPELL_FAILURE 670
+#define FEAT_CHANNEL_SPELL 671
+#define FEAT_MULTIPLE_CHANNEL_SPELL 672
 
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 670
+#define FEAT_LAST_FEAT 673
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 671
+#define NUM_FEATS 674
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -2243,7 +2247,7 @@
 #define APPLY_FEAT 49
 #define APPLY_SKILL 50
 #define APPLY_SPECIAL 51
-#define APPLY_POWERR_RES 52
+#define APPLY_POWER_RES 52
 
 /** Total number of applies */
 #define NUM_APPLIES 53
@@ -2857,6 +2861,7 @@
 
 // other MAX_ defines
 #define MAX_WEAPON_SPELLS 3
+#define MAX_WEAPON_CHANNEL_SPELLS 2
 #define MAX_BAB 50
 #define MAX_DAM_BONUS 120
 #define MAX_AC 60
@@ -2981,6 +2986,7 @@ struct weapon_spells
     int level;    // level at which it will cast spellnum
     int percent;  // chance spellnum will fire per round
     int inCombat; // will spellnum fire only in combat?
+    int uses_left; // If it'd a temporary effect, this is the number of uses left
 };
 
 /* For special abilities for weapons, armor and 'wonderous items' - Ornir */
@@ -3055,6 +3061,8 @@ struct obj_data
     struct obj_special_ability *special_abilities; /**< List used to store special abilities */
 
     long missile_id; //non saving variable to id missiles
+
+    struct weapon_spells channel_spells[MAX_WEAPON_CHANNEL_SPELLS];
 };
 
 /** Instance info for an object that gets saved to disk.

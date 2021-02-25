@@ -148,6 +148,7 @@ typedef enum
   eSLA_ENLARGE,                          /* innate enlarge */
   eSLA_INVIS,                          /* innate invisibility */
   eCONCUSSIVEONSLAUGHT,     // concussive onsalught psionic power
+  eCHANNELSPELL,            // countdown for channel spell ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

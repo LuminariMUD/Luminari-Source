@@ -464,6 +464,16 @@
 #define LAST_SPELL_DEFINE 398
 /*******************************/
 
+/** We're setting apart some numbers for spell affects.
+ * These are not spells or powers, but they are used in
+ * the code in implementing spells or power affects.
+ * For example, the mind trap psionic ability can
+ * cause nausea against attackers, so it needs a separate
+ * 'spell name' for that nausea.
+ */
+
+#define SPELL_AFFECT_MIND_TRAP_NAUSEA   1200
+
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -1277,6 +1287,7 @@ void unused_spell(int spl);
 void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
+bool is_spell_mind_affecting(int snum);
 /**/
 
 /* Global variables exported */

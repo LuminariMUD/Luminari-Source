@@ -1272,6 +1272,13 @@ void char_from_furniture(struct char_data *ch);
 #define GET_WEAPON_SPELL_PCT(obj, i) ((obj)->wpn_spells[i].percent)
 #define GET_WEAPON_SPELL_AGG(obj, i) ((obj)->wpn_spells[i].inCombat)
 
+// weapon channel spells for spellsword class
+#define GET_WEAPON_CHANNEL_SPELL(obj, i) ((obj)->channel_spells[i].spellnum)
+#define GET_WEAPON_CHANNEL_SPELL_LVL(obj, i) ((obj)->channel_spells[i].level ? (obj)->channel_spells[i].level : (LVL_IMMORT / 2))
+#define GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) ((obj)->channel_spells[i].percent)
+#define GET_WEAPON_CHANNEL_SPELL_AGG(obj, i) ((obj)->channel_spells[i].inCombat)
+#define GET_WEAPON_CHANNEL_SPELL_USES(obj, i) ((obj)->channel_spells[i].uses_left)
+
 /** If ch is a mob, return the special function, else return NULL. */
 #define GET_MOB_SPEC(ch) (IS_MOB(ch) ? mob_index[(ch)->nr].func : NULL)
 

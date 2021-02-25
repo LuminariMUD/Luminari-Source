@@ -1305,6 +1305,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_SACRED_FIST:
   case CLASS_ALCHEMIST:
   case CLASS_ELDRITCH_KNIGHT:
+  case CLASS_SPELLSWORD:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1380,6 +1381,8 @@ int parse_class(char arg)
     return CLASS_WARRIOR;
   case 'x':
     return CLASS_ELDRITCH_KNIGHT;
+  case 'y':
+    return CLASS_SPELLSWORD;
     /* empty letters */
     /* empty letters */
     /* empty letters */
@@ -1444,6 +1447,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_ELDRITCH_KNIGHT;
   if (is_abbrev(arg, "eldritch-knight"))
     return CLASS_ELDRITCH_KNIGHT;
+  if (is_abbrev(arg, "spellsword"))
+    return CLASS_SPELLSWORD;
+  if (is_abbrev(arg, "spell-sword"))
+    return CLASS_SPELLSWORD;
   if (is_abbrev(arg, "stalwartdefender"))
     return CLASS_STALWART_DEFENDER;
   if (is_abbrev(arg, "stalwart-defender"))
@@ -2873,6 +2880,10 @@ void advance_level(struct char_data *ch, int class)
   {
     class_feats++;
   }
+  if (class == CLASS_SPELLSWORD && CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 2)
+  {
+    class_feats++;
+  }
 
   /* epic class feat progresion */
   if (CLSLIST_EFEATP(class) && !(CLASS_LEVEL(ch, class) % CLSLIST_EFEATP(class)) && IS_EPIC(ch))
@@ -3096,6 +3107,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_CLERIC:
   case CLASS_MYSTIC_THEURGE:
   case CLASS_ALCHEMIST:
+  case CLASS_SPELLSWORD:
     level--;
     if (level < 0)
       level = 0;
@@ -5335,6 +5347,146 @@ void load_class_list(void)
   class_prereq_feat(CLASS_ELDRITCH_KNIGHT, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
 
   /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_SPELLSWORD, "spellsword", "SSw", "\tWS\tGSw\tn", "n) \tWSpell\tGSword\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, H, 8, 0, 2, 2, Y, 5000, 0,
+         /*prestige spell progression*/ "Arcane advancement at level one and every second level after",
+         /*descrip*/ "The dream of melding magic and weaponplay is fulfilled in the person "
+                     "of the spellsword. A student of both arcane rituals and martial techniques, "
+                     "the spellsword gradually learns to cast spells in armor with less chance of "
+                     "failure. Moreover, he can cast spells through his weapon, bypassing his "
+                     "opponent's defenses. Despite the class's name, a spellsword can use any "
+                     "weapon or even switch weapons. 'Spellaxe,' 'spellspear,' and other appellations "
+                     "for this prestige class are certainly possible but not commonly used. The "
+                     "requirements for this prestige class make it most attractive to multiclass "
+                     "wizard/warriors or sorcerer/warriors, although bard/warriors can meet the "
+                     "requirements just as easily. Feared by other martial characters because of "
+                     "his ability to use spells, and feared by spellcasters because of his ability "
+                     "to cast those spells while wearing armor, a spellsword often walks the world alone.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_SPELLSWORD, G, B, G, G, B);
+  assign_class_abils(CLASS_SPELLSWORD, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CC, CC, CC, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CA, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CC, CC, CC, CC, CC, CC,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CA, CC);
+  assign_class_titles(CLASS_SPELLSWORD,          /* class number */
+                      "",                           /* <= 4  */
+                      "the Spell Sword",         /* <= 9  */
+                      "the Spell Sword",          /* <= 14 */
+                      "the Spell Sword",          /* <= 19 */
+                      "the Spell Sword",        /* <= 24 */
+                      "the Spell Sword",         /* <= 29 */
+                      "the Spell Sword",        /* <= 30 */
+                      "the Spell Sword",  /* <= LVL_IMMORT */
+                      "the Spell Sword", /* <= LVL_STAFF */
+                      "the Spell Sword",    /* <= LVL_GRSTAFF */
+                      "the Spell Sword"            /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                             cfeat lvl stack */
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 1, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 3, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 4, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 5, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 6, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 7, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 8, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 9, Y);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_MULTIPLE_CHANNEL_SPELL, Y, 10, Y);
+    /* list of class feats */
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SPECIALIZATION_HEAVY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_BLIND_FIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_COMBAT_EXPERTISE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_COMBAT_REFLEXES, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_DEFLECT_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_DAMAGE_REDUCTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_DODGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EXOTIC_WEAPON_PROFICIENCY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_FAR_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREAT_CLEAVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREATER_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREATER_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREATER_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_BULL_RUSH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_DISARM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_FEINT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_GRAPPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_INITIATIVE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_OVERRUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_SHIELD_PUNCH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_KNOCKDOWN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SHIELD_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SHIELD_SLAM, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_SUNDER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_TRIP, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_IMPROVED_UNARMED_STRIKE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_MANYSHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_MOBILITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_MOUNTED_ARCHERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_MOUNTED_COMBAT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_POINT_BLANK_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_POWER_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_PRECISE_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_QUICK_DRAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_RAPID_RELOAD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_RAPID_SHOT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_RIDE_BY_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ROBILARS_GAMBIT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SHOT_ON_THE_RUN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SNATCH_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SPIRITED_CHARGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SPRING_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_STUNNING_FIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SWARM_OF_ARROWS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_TRAMPLE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_TWO_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_TWO_WEAPON_FIGHTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_FINESSE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WHIRLWIND_ATTACK, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_FAST_HEALING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EXTEND_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_ENHANCE_SPELL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_SILENT_SPELL, Y, NOASSIGN_FEAT, N);
+  /* epic class */
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREAT_DEXTERITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_GREAT_CONSTITUTION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EPIC_TOUGHNESS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SPELLSWORD, FEAT_EPIC_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_spellcasting(CLASS_SPELLSWORD, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_bab(CLASS_SPELLSWORD, 4);
+  class_prereq_ability(CLASS_SPELLSWORD, ABILITY_LORE, 6);
+  class_prereq_feat(CLASS_SPELLSWORD, FEAT_MARTIAL_WEAPON_PROFICIENCY, 1);
+  class_prereq_feat(CLASS_SPELLSWORD, FEAT_SIMPLE_WEAPON_PROFICIENCY, 1);
+  class_prereq_feat(CLASS_SPELLSWORD, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  class_prereq_feat(CLASS_SPELLSWORD, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+  class_prereq_feat(CLASS_SPELLSWORD, FEAT_ARMOR_PROFICIENCY_HEAVY, 1);
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/

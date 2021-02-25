@@ -163,6 +163,7 @@ struct mud_event_list mud_event_index[] = {
     {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_ENLARGE
     {"Invis", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_INVIS
     {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR}, //eCONCUSSIVEONSLAUGHT
+    {"Channel Spell", event_daily_use_cooldown, EVENT_CHAR},         //eCHANNELSPELL
 
 };
 
@@ -300,6 +301,9 @@ EVENTFUNC(event_countdown)
     break;
   case eRAGE:
     send_to_char(ch, "You are now able to Rage again.\r\n");
+    break;
+  case eCHANNELSPELL:
+    send_to_char(ch, "You are now able to Channel Spells again.\r\n");
     break;
   case eSACRED_FLAMES:
     send_to_char(ch, "You are now able to use Sacred Flames again.\r\n");
@@ -605,6 +609,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eRAGE:
     featnum = FEAT_RAGE;
     send_to_char(ch, "One of your rage uses has recovered.\r\n");
+    break;
+  case eCHANNELSPELL:
+    featnum = FEAT_CHANNEL_SPELL;
+    send_to_char(ch, "One of your channel spell uses has recovered.\r\n");
     break;
   case eSACRED_FLAMES:
     featnum = FEAT_SACRED_FLAMES;

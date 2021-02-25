@@ -1251,6 +1251,10 @@ int compute_gear_spell_failure(struct char_data *ch)
 
   /* 5% improvement in spell success with this feat */
   spell_failure -= HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING) * 5;
+  // Spellsword ignore spell fail
+  if (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE))
+    spell_failure -= ((1 + HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE)) * 5);
+    
 
   if (spell_failure < 0)
     spell_failure = 0;

@@ -2086,8 +2086,12 @@ ACMD(do_respec)
 
     leave_group(ch);
     stop_follower(ch);
-    for (f = ch->followers; f; f = f->next)
-      stop_follower(f->follower);
+    for (f = ch->followers; f; f = f->next) {
+      if (f->follower) {
+        f->follower->master = NULL;
+      }
+    }
+    ch->followers = NULL; // I know this is bad.  Will need to revisit.
     
     do_start(ch);
     HAS_SET_STATS_STUDY(ch) = FALSE;
@@ -2188,7 +2192,12 @@ ACMD(do_gain)
     /* need to spend their points before advancing */
     if ((GET_PRACTICES(ch) != 0) ||
         (GET_TRAINS(ch) > 1) ||
-        (GET_BOOSTS(ch) != 0))
+        (GET_BOOSTS(ch) != 0) ||
+        (GET_CLASS_FEATS(ch, class) != 0) ||
+        (GET_EPIC_CLASS_FEATS(ch, class) != 0) ||
+        (GET_FEAT_POINTS(ch) != 0) ||
+        (GET_EPIC_FEAT_POINTS(ch) != 0)
+        )
     { //    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
                (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
@@ -2202,13 +2211,29 @@ ACMD(do_gain)
       //      if (GET_PRACTICES(ch) != 0)
       //        send_to_char(ch, "You must use all practices before gaining another level.  You have %d practice%s remaining.\r\n", GET_PRACTICES(ch), (GET_PRACTICES(ch) > 1 ? "s" : ""));
       if (GET_TRAINS(ch) > 1)
-        send_to_char(ch, "You must use all but one of your trains before gaining "
-                         "another level.  You have %d train%s remaining.\r\n",
+        send_to_char(ch, "You must use all but one of your skill points before gaining "
+                         "another level.  You have %d skill point%s remaining.\r\n",
                      GET_TRAINS(ch), (GET_TRAINS(ch) > 1 ? "s" : ""));
       if (GET_BOOSTS(ch) != 0)
-        send_to_char(ch, "You must use all boosts before gaining another level.  "
+        send_to_char(ch, "You must use all ability score boosts before gaining another level.  "
                          "You have %d boost%s remaining.\r\n",
                      GET_BOOSTS(ch), (GET_BOOSTS(ch) > 1 ? "s" : ""));
+      if (GET_FEAT_POINTS(ch) != 0)
+        send_to_char(ch, "You must use all feat points before gaining another level.  "
+                         "You have %d feat point%s remaining.\r\n",
+                     GET_FEAT_POINTS(ch), (GET_FEAT_POINTS(ch) > 1 ? "s" : ""));
+      if (GET_CLASS_FEATS(ch, class) != 0)
+        send_to_char(ch, "You must use all class feat points before gaining another level.  "
+                         "You have %d class feat%s remaining.\r\n",
+                     GET_CLASS_FEATS(ch, class), (GET_CLASS_FEATS(ch, class) > 1 ? "s" : ""));
+      if (GET_EPIC_CLASS_FEATS(ch, class) != 0)
+        send_to_char(ch, "You must use all epic class feat points before gaining another level.  "
+                         "You have %d epic class feat%s remaining.\r\n",
+                     GET_EPIC_CLASS_FEATS(ch, class), (GET_EPIC_CLASS_FEATS(ch, class) > 1 ? "s" : ""));
+      if (GET_EPIC_FEAT_POINTS(ch) != 0)
+        send_to_char(ch, "You must use all epic feat points before gaining another level.  "
+                         "You have %d epic feat point%s remaining.\r\n",
+                     GET_EPIC_FEAT_POINTS(ch), (GET_EPIC_FEAT_POINTS(ch) > 1 ? "s" : ""));
       return;
     }
     else if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&

@@ -42,6 +42,7 @@
 #include "crafts.h"
 #include "hunts.h"
 #include "class.h"
+#include "spell_prep.h"
 
 /* local function prototypes */
 /* do_get utility functions */
@@ -4478,6 +4479,142 @@ ACMD(do_setbaneweapon)
     ch->player_specials->bane_subrace = i;
     send_to_char(ch, "You set your bane weapon subrace type to '%s'.\r\n", npc_subrace_types[ch->player_specials->bane_subrace]);
   }
+
+}
+
+#define CHANNEL_SPELL_INFO  "You need to specify the weapon to channel into and the spell name of a spell you have prepared to channel into the weapon.\r\n" \
+                            "Eg. channel longsword magic missile\r\n" \
+                            "You can also use the info tag to view any spells currently channeled into the weapon. Eg. channel longsword info\r\n"
+
+ACMD(do_channelspell)
+{
+  char weapon[100], spell[100];
+  struct obj_data *obj = NULL;
+  int spellnum = 0, i = 0, chclass = CLASS_UNDEFINED, circle = 0, num = 0;
+  bool found = true;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_CHANNEL_SPELL))
+  {
+    send_to_char(ch, "You are not able to use this ability.\r\n");
+    return;
+  }
+
+  half_chop_c(argument, weapon, sizeof(weapon), spell, sizeof(spell));
+
+  if (!*weapon)
+  {
+    send_to_char(ch, CHANNEL_SPELL_INFO);
+    return;
+  }
+
+  if (!*spell)
+  {
+    send_to_char(ch, CHANNEL_SPELL_INFO);
+    return;
+  }
+  
+  if ((num = get_obj_pos_in_equip_vis(ch, weapon, NULL, ch->equipment)) < 0)
+  {
+    if (!(obj = get_obj_in_list_vis(ch, weapon, NULL, ch->carrying)))
+    {
+      send_to_char(ch, "There's nothing you're wearing or in your inventory by that description.\r\n");
+      return;
+    }
+  }
+  else
+  {
+    obj = GET_EQ(ch, num);
+    if (!obj)
+    {
+      send_to_char(ch, "There's nothing you're wearing or in your inventory by that description.\r\n");
+      return;
+    }
+  }
+
+  if (is_abbrev(spell, "info"))
+  {
+    send_to_char(ch, "Your weapon has the following channeled spell%s:\r\n", HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL) ? "s" : "");
+    for (i = 0; i < (1 + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)); i++)
+    {
+      if (GET_WEAPON_CHANNEL_SPELL(obj, i) > 0)
+        send_to_char(ch, "%-25s level %d %d uses left\r\n", spell_info[GET_WEAPON_CHANNEL_SPELL(obj, i)].name,
+                     GET_WEAPON_CHANNEL_SPELL_LVL(obj, i), GET_WEAPON_CHANNEL_SPELL_USES(obj, i));
+    }
+    return;
+  }
+
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_CHANNEL_SPELL, "You must recover before you can channel a spell into a weapon.\r\n");
+  }
+
+  spellnum = find_skill_num(spell);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+  {
+    send_to_char(ch, "There is no spell by that description\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(ch) < LVL_IMMORT && (chclass = spell_prep_gen_check(ch, spellnum, 0)) == CLASS_UNDEFINED && !isEpicSpell(spellnum))
+  {
+    send_to_char(ch, "You do not have that spell prepared... (help preparation)\r\n");
+    return;
+  }
+  
+  circle = spell_info[spellnum].min_level[chclass] + 1;
+  circle /= 2;
+  circle = MIN(9, circle);
+
+  if (circle > (HAS_FEAT(ch, FEAT_CHANNEL_SPELL) + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)))
+  {
+    send_to_char(ch, "You can only channel spells of level %d%s.\r\n", HAS_FEAT(ch, FEAT_CHANNEL_SPELL) + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL),
+                 HAS_FEAT(ch, FEAT_CHANNEL_SPELL) > 1 ? " or below" : "");
+    return;
+  }
+
+  if (!spell_info[spellnum].violent)
+  {
+    send_to_char(ch, "You can only channel harmful spells on your weapon.\r\n");
+    return;
+  }
+
+  for (i = 0; i < (1 + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)); i++)
+  {
+    if (GET_WEAPON_CHANNEL_SPELL(obj, i) <= 0)
+      found = false;
+  }
+
+  if (found)
+  {
+    send_to_char(ch, "Your weapon already has a channeled spell:\r\n");
+    for (i = 0; i < (1 + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)); i++)
+    {
+      if (GET_WEAPON_CHANNEL_SPELL(obj, i) > 0)
+        send_to_char(ch, "%-25s level %d %d uses left\r\n", spell_info[GET_WEAPON_CHANNEL_SPELL(obj, i)].name,
+                     GET_WEAPON_CHANNEL_SPELL_LVL(obj, i), GET_WEAPON_CHANNEL_SPELL_USES(obj, i));
+    }
+    return;
+  }
+
+  for (i = 0; i < (1 + HAS_FEAT(ch, FEAT_MULTIPLE_CHANNEL_SPELL)); i++)
+  {
+    if (GET_WEAPON_CHANNEL_SPELL(obj, i) <= 0)
+      break;
+  }
+
+  GET_WEAPON_CHANNEL_SPELL(obj, i) = spellnum;
+  obj->channel_spells[i].level = ARCANE_LEVEL(ch);
+  GET_WEAPON_CHANNEL_SPELL_PCT(obj, i) = 5;
+  GET_WEAPON_CHANNEL_SPELL_AGG(obj, i) = true;
+  GET_WEAPON_CHANNEL_SPELL_USES(obj, i) = 5;
+  spell_prep_gen_extract(ch, spellnum, 0);
+  send_to_char(ch, "You channel the spell '%s' into %s.\r\n", spell_info[spellnum].name, obj->short_description);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_RAGE);
+
+  USE_STANDARD_ACTION(ch);
 
 }
 
