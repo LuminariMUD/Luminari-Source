@@ -264,6 +264,9 @@ extern "C"
    /* return the number of unspent new arcana slots obtained via the arcane sorcerer bloodline */
    int free_arcana_slots(struct char_data *ch);
 
+   // Returns true if the spell is an epic spell
+   bool isEpicSpell(int spellnum);
+
    /** END functions **/
 
    /** Start ACMD **/

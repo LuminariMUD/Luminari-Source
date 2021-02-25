@@ -1489,6 +1489,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
           casting_time = 0;
         }
 
+        if (spellnum == PSIONIC_MIND_TRAP)
+        {
+                casting_time = 0;
+        }
+
         if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED)
         {
                 GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
@@ -1579,6 +1584,7 @@ ACMDU(do_gen_cast)
         struct obj_data *tobj = NULL;
         char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL;
         int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
+        struct affected_type af;
 
         if (IS_NPC(ch))
                 return;
@@ -1625,52 +1631,55 @@ ACMDU(do_gen_cast)
         //log("DEBUG: Argument = %s", argument);
 
         /* Check for metamagic. */
-        for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\''; metamagic_arg = strtok(NULL, " "))
+        if (subcmd != SCMD_CAST_PSIONIC)
         {
-                if (is_abbrev(metamagic_arg, "quickened"))
+                for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\''; metamagic_arg = strtok(NULL, " "))
                 {
-                        if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL))
+                        if (is_abbrev(metamagic_arg, "quickened"))
                         {
-                                SET_BIT(metamagic, METAMAGIC_QUICKEN);
-                        }
-                        else
-                        {
-                                send_to_char(ch, "You don't know how to quicken your %s!\r\n",
-                                             do_cast_types[subcmd][4]);
-                                return;
-                        }
-                        //log("DEBUG: Quickened metamagic used.");
-                }
-                else if (is_abbrev(metamagic_arg, "maximized"))
-                {
-                        if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL))
-                        {
-                                SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
-                        }
-                        else
-                        {
-                                send_to_char(ch, "You don't know how to maximize your %s!\r\n",
-                                             do_cast_types[subcmd][4]);
-                                return;
-                        }
-                }
-                else if (is_abbrev(metamagic_arg, "metamagicadept"))
-                {
-                        if (HAS_FEAT(ch, FEAT_METAMAGIC_ADEPT))
-                        {
-                                if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0)
+                                if (HAS_FEAT(ch, FEAT_QUICKEN_SPELL))
                                 {
-                                        send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
+                                        SET_BIT(metamagic, METAMAGIC_QUICKEN);
+                                }
+                                else
+                                {
+                                        send_to_char(ch, "You don't know how to quicken your %s!\r\n",
+                                                do_cast_types[subcmd][4]);
                                         return;
                                 }
-                                if (!IS_NPC(ch))
-                                        start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
-                                SET_BIT(metamagic, METAMAGIC_ARCANE_ADEPT);
+                                //log("DEBUG: Quickened metamagic used.");
                         }
-                        else
+                        else if (is_abbrev(metamagic_arg, "maximized"))
                         {
-                                send_to_char(ch, "You do not know the secrets of metamagic adepts!\r\n");
-                                return;
+                                if (HAS_FEAT(ch, FEAT_MAXIMIZE_SPELL))
+                                {
+                                        SET_BIT(metamagic, METAMAGIC_MAXIMIZE);
+                                }
+                                else
+                                {
+                                        send_to_char(ch, "You don't know how to maximize your %s!\r\n",
+                                                do_cast_types[subcmd][4]);
+                                        return;
+                                }
+                        }
+                        else if (is_abbrev(metamagic_arg, "metamagicadept"))
+                        {
+                                if (HAS_FEAT(ch, FEAT_METAMAGIC_ADEPT))
+                                {
+                                        if (!IS_NPC(ch) && (daily_uses_remaining(ch, FEAT_METAMAGIC_ADEPT)) == 0)
+                                        {
+                                                send_to_char(ch, "You must recover before you can use your metamagic adept ability again.\r\n");
+                                                return;
+                                        }
+                                        if (!IS_NPC(ch))
+                                                start_daily_use_cooldown(ch, FEAT_METAMAGIC_ADEPT);
+                                        SET_BIT(metamagic, METAMAGIC_ARCANE_ADEPT);
+                                }
+                                else
+                                {
+                                        send_to_char(ch, "You do not know the secrets of metamagic adepts!\r\n");
+                                        return;
+                                }
                         }
                 }
         }
@@ -1699,10 +1708,21 @@ ACMDU(do_gen_cast)
                 return;
         }
 
-        if (!IS_CASTER(ch))
+        if (subcmd == SCMD_CAST_PSIONIC)
         {
-                send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
-                return;
+                if (!IS_PSIONIC(ch))
+                {
+                        send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
+                        return;
+                }
+        }
+        else
+        {
+                if (!IS_CASTER(ch))
+                {
+                        send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
+                        return;
+                }
         }
 
         if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT)
@@ -1788,7 +1808,7 @@ ACMDU(do_gen_cast)
                  BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
-                 //          BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
+                 BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_ALCHEMIST) + CLASS_LEVEL(ch, CLASS_ALCHEMIST) < SINFO.min_level[CLASS_ALCHEMIST]))
         {
@@ -1796,13 +1816,25 @@ ACMDU(do_gen_cast)
                 return;
         }
 
-        /* SPELL PREPARATION HOOK */
-        if (GET_LEVEL(ch) < LVL_IMMORT && spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
-            !isEpicSpell(spellnum))
+        if (subcmd == SCMD_CAST_PSIONIC)
         {
-                send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
-                             do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
-                return;
+                if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
+                {
+                        send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
+                        return;
+                }
+                GET_PSP(ch) -= psionic_powers[spellnum].psp_cost;
+        }
+        else
+        {
+                /* SPELL PREPARATION HOOK */
+                if (GET_LEVEL(ch) < LVL_IMMORT && spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
+                !isEpicSpell(spellnum))
+                {
+                        send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
+                                do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
+                        return;
+                }
         }
 
         /* further restrictions, this needs updating!
@@ -1842,6 +1874,11 @@ ACMDU(do_gen_cast)
         if (CLASS_LEVEL(ch, CLASS_DRUID) && GET_WIS(ch) < 10)
         {
                 send_to_char(ch, "You are not wise enough to cast spells...\r\n");
+                return;
+        }
+        if (CLASS_LEVEL(ch, CLASS_PSIONICIST) && GET_INT(ch) < 10)
+        {
+                send_to_char(ch, "You are not smart enough to manifest psionic powers...\r\n");
                 return;
         }
 
@@ -1948,9 +1985,18 @@ ACMDU(do_gen_cast)
 
         if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC))
         {
-                send_to_char(ch, "Your magic fizzles out and dies.\r\n");
-                act("$n's magic fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
-                return;
+                if (subcmd == SCMD_CAST_PSIONIC)
+                {
+                        send_to_char(ch, "Your power fizzles out and dies.\r\n");
+                        act("$n's power fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
+                        return;
+                }
+                else
+                {
+                        send_to_char(ch, "Your magic fizzles out and dies.\r\n");
+                        act("$n's magic fizzles out and dies.", FALSE, ch, 0, 0, TO_ROOM);
+                        return;
+                }
         }
 
         if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) &&
@@ -1966,6 +2012,33 @@ ACMDU(do_gen_cast)
         {
                 send_to_char(ch, "You can only use extracts upon yourself!\r\n");
                 return;
+        }
+
+        if (tch && affected_by_spell(tch, PSIONIC_MIND_TRAP) && !is_player_grouped(ch, tch))
+        {
+                if (psionic_powers[spellnum].power_type == TELEPATHY || is_spell_mind_affecting(spellnum))
+                {
+                        if (IS_PSIONIC(ch)) {
+                                GET_PSP(ch) -= dice(1, 6);
+                                GET_PSP(ch) = MAX(0, GET_PSP(ch));
+                                act("Your mental attack on $N triggered $S mind trap, and you feel some power lost!", false, ch, 0, tch, TO_CHAR);
+                                act("$n's mental attack on YOU has drained $m of some power, due to your mind trap affect!", false, ch, 0, tch, TO_VICT);
+                        }
+                        else
+                        {
+                                if (!mag_savingthrow(tch, ch, SAVING_FORT, 0, CAST_SPELL, GET_PSIONIC_LEVEL(tch), NOSCHOOL))
+                                {
+                                        new_affect(&af);
+                                        af.spell = SPELL_AFFECT_MIND_TRAP_NAUSEA;
+                                        af.duration = 1;
+                                        SET_BIT_AR(af.bitvector, AFF_NAUSEATED);
+                                        act("Your mental attack on $N has made YOU nauseated!", false, ch, 0, tch, TO_CHAR);
+                                        act("$n's mental attack on YOU has made $m nauseated, due to your mind trap affect!", false, ch, 0, tch, TO_VICT);
+                                        act("$n's mental attack on $N has made $m nauseated!", false, ch, 0, tch, TO_NOTVICT);
+                                }
+
+                        }
+                }
         }
 
         cast_spell(ch, tch, tobj, spellnum, metamagic);

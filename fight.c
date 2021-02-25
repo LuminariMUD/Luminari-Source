@@ -5330,14 +5330,45 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
         random = rand_number(1, 100);
         if (GET_WEAPON_SPELL_PCT(wpn, i) >= random)
         {
-          act("$p leaps to action with an attack of its own.",
-              TRUE, ch, wpn, 0, TO_CHAR);
-          act("$p leaps to action with an attack of its own.",
-              TRUE, ch, wpn, 0, TO_ROOM);
-          if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i), 0,
-                         GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
-
+          act("$p leaps to action with an attack of its own.", TRUE, ch, wpn, 0, TO_CHAR);
+          act("$p leaps to action with an attack of its own.", TRUE, ch, wpn, 0, TO_ROOM);
+          if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i), 0, GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
             return;
+        }
+      }
+    }
+  }
+
+  if (wpn)
+  {
+    for (i = 0; i < MAX_WEAPON_CHANNEL_SPELLS; i++)
+    { /* increment this weapons spells */
+      if (GET_WEAPON_CHANNEL_SPELL(wpn, i) && GET_WEAPON_CHANNEL_SPELL_AGG(wpn, i))
+      {
+        if (ch->in_room != vict->in_room)
+        {
+          if (FIGHTING(ch) && FIGHTING(ch) == vict)
+            stop_fighting(ch);
+          return;
+        }
+        random = rand_number(1, 100);
+        if (GET_WEAPON_CHANNEL_SPELL_PCT(wpn, i) >= random)
+        {
+          GET_WEAPON_CHANNEL_SPELL_USES(wpn, i)--;
+          act("Your channelled spell erupts from $p.", TRUE, ch, wpn, 0, TO_CHAR);
+          act("A channelled spell erupts from $p.", TRUE, ch, wpn, 0, TO_ROOM);
+          if (call_magic(ch, vict, wpn, GET_WEAPON_CHANNEL_SPELL(wpn, i), 0, GET_WEAPON_CHANNEL_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
+            return;
+        }
+        if (GET_WEAPON_CHANNEL_SPELL_USES(wpn, i) <= 0)
+        {
+          send_to_char(ch, "\tMYour channelled spell '\tW%s\tn' on %s has expired.\r\n\tn", spell_info[GET_WEAPON_CHANNEL_SPELL(wpn, i)].name, wpn->short_description);
+          GET_WEAPON_CHANNEL_SPELL(wpn, i) = 0;
+          wpn->channel_spells[i].level = 0;
+          GET_WEAPON_CHANNEL_SPELL_PCT(wpn, i) = 0;
+          GET_WEAPON_CHANNEL_SPELL_AGG(wpn, i) = 0;
+          GET_WEAPON_CHANNEL_SPELL_USES(wpn, i) = 0;
+          continue;
         }
       }
     }

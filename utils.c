@@ -154,6 +154,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
         bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4
                     +  CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW)
                     +  CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT)
+                    +  ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2)
                     +  CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
       break;
     case CLASS_CLERIC:
@@ -183,6 +184,7 @@ int compute_arcane_level(struct char_data *ch) {
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
   arcane_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE)/2;
   arcane_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
+  arcane_level += (CLASS_LEVEL(ch, CLASS_SPELLSWORD) + 1) / 2;
 
   return arcane_level;
 }
@@ -2202,9 +2204,12 @@ void stop_follower(struct char_data *ch) {
     }    
     
   } else {
-    act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
-    act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
-    act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
+    if (ch->master)
+    {
+      act("You stop following $N.", FALSE, ch, 0, ch->master, TO_CHAR);
+      act("$n stops following $N.", TRUE, ch, 0, ch->master, TO_NOTVICT);
+      act("$n stops following you.", TRUE, ch, 0, ch->master, TO_VICT);
+    }
   }
 
   stop_follower_engine(ch); /* moved this out to function above -zusuk */
@@ -3541,6 +3546,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_REMOVE_DISEASE:
       daily_uses += HAS_FEAT(ch, FEAT_REMOVE_DISEASE);
       break;
+    case FEAT_CHANNEL_SPELL:
+      daily_uses += 2 + HAS_FEAT(ch, FEAT_CHANNEL_SPELL);
+      break;
     case FEAT_SLA_INVIS:
     case FEAT_SLA_STRENGTH:
     case FEAT_SLA_ENLARGE:
@@ -4475,6 +4483,9 @@ int get_power_resist_mod(struct char_data *ch)
   return bonus;
 }
 
+// TRUE = resisted
+// FALSE = Failed to resist
+// modifier applies to victim, higher the better (for the victim)
 bool power_resistance(struct char_data *ch, struct char_data *victim, int modifier)
 {
   int resist = get_power_resist_mod(victim);

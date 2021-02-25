@@ -2555,6 +2555,27 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
     break;
 
+  case PSIONIC_MIND_TRAP:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    af[0].duration = (1 + GET_AUGMENT_PSP(ch));
+    af[0].location = APPLY_NONE;
+    to_vict = "You create a psychic trap against mental attacks.";
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+
+  case PSIONIC_PSIONIC_BLAST:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    if (power_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      return;
+    af[0].duration = 1 + GET_AUGMENT_PSP(ch) / 2;
+    SET_BIT_AR(af[0].bitvector, AFF_STUN);
+    to_vict = "You have been stunned by $N's psionic blast!";
+    to_room = "$n has been stunned by $N's psionic blast!";
+    break;
+
   // spells and other effects
 
   case SPELL_ACID_SHEATH: //divination
@@ -4970,6 +4991,13 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+  case PSIONIC_PSIONIC_BLAST:
+   GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+   GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
+   GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+   isEffect = TRUE;
+   skip_groups = true;
+   break;
   case PSIONIC_INFLICT_PAIN:
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
@@ -6900,4 +6928,13 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     act(to_room, TRUE, ch, 0, 0, TO_ROOM);
   else if (to_char != NULL)
     act(to_char, TRUE, ch, 0, 0, TO_ROOM);
+}
+
+bool is_spell_mind_affecting(int snum)
+{
+  switch (snum)
+  {
+
+  }
+  return false;
 }

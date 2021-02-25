@@ -1827,6 +1827,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Enlarge Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_INVIS)))
     send_to_char(ch, "Invisibility Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCHANNELSPELL)))
+    send_to_char(ch, "Channel Spell Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
 
   if (PIXIE_DUST_TIMER(ch) > 0)

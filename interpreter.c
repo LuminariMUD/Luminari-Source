@@ -197,6 +197,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"changelog", "cha", POS_DEAD, do_changelog, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"channelspell", "channel", POS_RECLINING, do_channelspell, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"check", "ch", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkload", "checkl", POS_DEAD, do_checkloadstatus, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"close", "clo", POS_SITTING, do_gen_door, 0, SCMD_CLOSE, FALSE, ACTION_MOVE, {0, 6}, NULL},

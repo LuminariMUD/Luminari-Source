@@ -2112,15 +2112,30 @@ void assign_feats(void)
         "theurge previously had access to, but only for purposes of daily spells and spell "
         "circles available.");
 
-  feato(FEAT_SPELL_CRITICAL, "spell critical", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_SPELL_CRITICAL, "spell critical", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Can cast a spell immediately after scoring a critical hit.",
         "Upon landing a successful critical hit with a weapon or unarmed attack, the "
         "eldritch knight can then cast a spell immediately, without waiting for the "
         "spell casting countdown to occur.");
 
-  feato(FEAT_DIVERSE_TRAINING, "diverse training", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+  feato(FEAT_DIVERSE_TRAINING, "diverse training", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Adds eldritch knight levels to warrior levels when determining feat eligibility.",
         "Adds eldritch knight levels to warrior levels when determining feat eligibility.");
+
+  // spellswords
+  feato(FEAT_IGNORE_SPELL_FAILURE, "ignore spell failure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank. ",
+        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank.");
+  feato(FEAT_CHANNEL_SPELL, "channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "You can channel a spell into your weapon.",
+        "You can channel a spell into your weapon. You can only channel a harmful spell of a spell level "
+        "the or lower as the number of ranks in this feat. Once imbued, the weapon has a 5% chance "
+        "per hit to cast that spell when it hits, up to 5 times until it is expended. This ability "
+        "can be used 3 times per day at level 4, 4 times at level 6 and 5 times at spellsword level 8. "
+        "This feat uses the channelspell command.");
+  feato(FEAT_MULTIPLE_CHANNEL_SPELL, "multiple channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "You can channel two spells into your weapon.",
+        "As per channel spell, except allows you to channel two spells into a single weapon.");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -3587,6 +3602,7 @@ void assign_feats(void)
   dailyfeat(FEAT_PIXIE_DUST, ePIXIEDUST);
   dailyfeat(FEAT_EFREETI_MAGIC, eEFREETIMAGIC);
   dailyfeat(FEAT_DRAGON_MAGIC, eDRAGONMAGIC);
+  dailyfeat(FEAT_CHANNEL_SPELL, eCHANNELSPELL);
   /** END **/
 }
 
@@ -5416,6 +5432,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_IGNORE_SPELL_FAILURE)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d%%)", feat_list[i].name, 5 + (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 5));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d%%)", feat_list[i].name, 5 + (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 5));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_CHANNEL_SPELL)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d/day)", feat_list[i].name, 2 + (HAS_FEAT(ch, FEAT_CHANNEL_SPELL)));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d/day)", feat_list[i].name, 2 + (HAS_FEAT(ch, FEAT_CHANNEL_SPELL)));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
