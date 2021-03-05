@@ -149,6 +149,14 @@ ACMD(do_mode)
   {
     one_argument(argument, arg, sizeof(arg));
   }
+  if (affected_by_spell(ch, PSIONIC_INCITE_PASSION))
+  {
+    if (mode == MODE_COMBAT_EXPERTISE || mode == MODE_TOTAL_DEFENSE)
+    {
+      send_to_char(ch, "You can't do that while your passions are incited.\r\n");
+      return;
+    }
+  }
   if (is_mode_enabled(ch, mode) &&
       ((combat_mode_info[mode].has_value == FALSE) ||
        ((combat_mode_info[mode].has_value == TRUE) &&

@@ -47,6 +47,8 @@ struct combat_mode_data
 
 extern struct combat_mode_data combat_mode_info[MAX_MODES];
 
+void disable_combat_mode(struct char_data *ch, int mode);
+
 ACMD_DECL(do_mode);
 ACMD_DECL(do_powerattack);
 ACMD_DECL(do_flurryofblows);

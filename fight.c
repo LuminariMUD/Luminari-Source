@@ -492,15 +492,16 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
   if (!ch)
     return FALSE;
 
+  if (affected_by_spell(ch, PSIONIC_UBIQUITUS_VISION))
+    return FALSE;
+
   /* most common scenario */
-  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) &&
-      !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
+  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
     return TRUE;
 
   /* ok so ch is fighting AND it is not the attacker tanking, by default
    * this is flanked, but we have to check for uncanny dodge */
-  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) &&
-      HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
+  if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
   {
 
     int attacker_level = CLASS_LEVEL(attacker, CLASS_BERSERKER) +
@@ -2995,6 +2996,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* energy absorption system */
+    absorb_energy_conversion(ch, dam_type, dam);
     int damage_reduction = compute_energy_absorb(ch, dam_type);
     dam -= compute_energy_absorb(ch, dam_type);
     if (dam <= 0 && (ch != victim))
@@ -3091,15 +3093,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* inertial barrier - damage absorption using psp */
     if (AFF_FLAGGED(victim, AFF_INERTIAL_BARRIER) && dam && !rand_number(0, 1))
     {
-      send_to_char(ch, "\twYour attack is absorbed by some manner of "
-                       "invisible barrier.\tn\r\n");
+      send_to_char(ch, "\twYour attack is absorbed by some manner of invisible barrier.\tn\r\n");
       GET_PSP(victim) -= (1 + (dam / 5));
       if (GET_PSP(victim) <= 0)
       {
         //affect_from_char(victim, SPELL_INERTIAL_BARRIER);
         REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_INERTIAL_BARRIER);
-        send_to_char(victim, "Your mind can not maintain the barrier "
-                             "anymore.\r\n");
+        send_to_char(victim, "Your mind can not maintain the barrier anymore.\r\n");
       }
       dam = 0;
     }
@@ -5660,6 +5660,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;
   if (IS_FRIGHTENED(ch))
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+  if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_DIFFICULT_TERRAIN))
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
 
   /* Competence bonus */
 
@@ -6984,6 +6986,13 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
              IS_AFFECTED(victim, AFF_ASHIELD))
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
+    }
+    if (dam && victim && GET_HIT(victim) >= -1 && affected_by_spell(ch, PSIONIC_EMPATHIC_FEEDBACK))
+    {
+      if (!power_resistance(ch, victim, 0))
+        if (!is_immune_mind_affecting(ch, victim, 0))
+          if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, GET_PSIONIC_LEVEL(ch), 0))
+            return_val = damage(victim, ch, dice(4, get_char_affect_modifier(ch, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)), PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
     }
     if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) && !victim->char_specials.energy_retort_used)
     {
@@ -8579,6 +8588,15 @@ void perform_violence(struct char_data *ch, int phase)
   if (GET_POS(ch) < POS_SITTING && GET_POS(ch) != POS_RECLINING)
   {
     send_to_char(ch, "You are in no position to fight!!\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, PSIONIC_DEATH_URGE))
+  {
+    stop_fighting(ch);
+    hit(ch, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    send_to_char(ch, "\tDCrazed self-harm\tc overcomes you and you lash out against yourself!\tn  ");
+    act("$n \tcis overcome with \tDcrazed self-harm and lashes out against $mself\tc!\tn", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
 

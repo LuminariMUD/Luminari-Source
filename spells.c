@@ -84,6 +84,13 @@ struct wall_information wallinfo[NUM_WALL_TYPES] = {
      "\tna wall of \tRp\tYr\tBi\tMs\tWm\tn",
      "wall prism",
      0},
+    /* WALL_TYPE_ECTOPLASM 5 */
+    {TRUE,
+     PSIONIC_WALL_OF_ECTOPLASM,
+     "\tnA sphere of ectoplasm forms a wall towards the %s.\tn",
+     "\tna wall of ectoplasm",
+     "wall ectoplasm",
+     10},
 };
 
 /* called from movement, etc..  basically make the wall work - we will try
@@ -1813,6 +1820,69 @@ ASPELL(spell_teleport)
   greet_memory_mtrigger(ch);
 }
 
+ASPELL(psionic_psychoportation)
+{
+  room_rnum to_room = NOWHERE;
+
+  if (ch == NULL)
+    return;
+
+  if (!victim)
+  {
+    victim = ch;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_NOTELEPORT))
+  {
+    send_to_char(ch, "Your manifestation fails to target that victim!\r\n");
+    return;
+  }
+
+  to_room = IN_ROOM(victim);
+
+  if (!valid_mortal_tele_dest(ch, to_room, TRUE))
+  {
+    send_to_char(ch, "A bright flash prevents your manifestation from working!");
+    return;
+  }
+
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE))
+  {
+    send_to_char(ch, "A bright flash prevents your manifestation from working!");
+    return;
+  }
+
+  /* no teleporting on the outter planes */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "This power won't help you travel on this plane!\r\n");
+    return;
+  }
+
+  /* no teleporting off the prime plane to another */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "Your target is beyond the reach of your power!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You slowly fade out of existence...\r\n");
+  act("$n slowly fades out of existence and is gone.",
+      FALSE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, to_room);
+  act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You slowly fade back into existence...\r\n");
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+}
+
 ASPELL(spell_transport_via_plants)
 {
   obj_vnum obj_num = NOTHING;
@@ -1980,6 +2050,31 @@ ASPELL(spell_wall_of_force)
    */
 }
 
+ASPELL(psionic_wall_of_ectoplasm)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir = -1;
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+
+  one_argument(cast_arg2, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+    return;
+  }
+
+  dir = search_block(arg, dirs, FALSE);
+  if (dir >= 0)
+  {
+    create_wall(ch, ch->in_room, dir, WALL_TYPE_ECTOPLASM, GET_LEVEL(ch));
+  }
+  else
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+
+}
+
 ASPELL(spell_wizard_eye)
 {
   struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
@@ -2077,6 +2172,50 @@ EVENTFUNC(event_concussive_onslaught)
     else
       damage(ch, victim, dice(ndice, sdice), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
     update_pos(victim);
+  }
+
+  return 0;
+}
+
+EVENTFUNC(event_power_leech)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  if (ch == NULL)
+    return 0;
+
+  if (ch && FIGHTING(ch)) //assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+  if (GET_PSP(victim) > 0 && GET_PSP(ch) < GET_MAX_PSP(ch))
+  {
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return 0;
+    if (power_resistance(ch, victim, 0))
+      return 0;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      return 0;
+
+    GET_PSP(victim) -= dice(1, 4);
+    GET_PSP(victim) = MAX(0, GET_PSP(victim));
+    GET_PSP(ch) = MIN(GET_MAX_PSP(ch), GET_PSP(ch) + 1);
+
+    act("You drain some of $N's psychic power.", FALSE, ch, 0, victim, TO_CHAR);
+    act("$n drains some of YOUR psychic power.", FALSE, ch, 0, victim, TO_VICT);
+    act("$n drains some of $N's psychic power.", FALSE, ch, 0, victim, TO_NOTVICT);
   }
 
   return 0;

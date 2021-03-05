@@ -223,6 +223,7 @@ bool power_resistance(struct char_data *ch, struct char_data *victim, int modifi
 int get_power_penetrate_mod(struct char_data *ch);
 int get_power_resist_mod(struct char_data *ch);
 bool is_spellnum_psionic(int spellnum);
+void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -1205,6 +1206,9 @@ void char_from_furniture(struct char_data *ch);
 #define HAS_WEAPON_FLAG(obj, flag) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0)
 #define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
 #define GET_ENHANCEMENT_BONUS(obj) (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) || (GET_OBJ_TYPE(obj) == ITEM_MISSILE)) ? GET_OBJ_VAL(obj, 4) : 0)
+#define IS_WEAPON_SHARP(obj)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON && \
+                               (weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_PIERCING|| \
+                               weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_SLASHING))
 
 /* armor related macro's */
 #define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 1) : SPEC_ARMOR_TYPE_UNDEFINED)

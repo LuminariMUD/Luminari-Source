@@ -1052,7 +1052,17 @@ void affect_from_char(struct char_data *ch, int spell)
   {
     next = hjp->next;
     if (hjp->spell == spell)
+    {
       affect_remove(ch, hjp);
+      if (spell == PSIONIC_ENERGY_CONVERSION)
+      {
+        ch->player_specials->energy_conversion[DAM_FIRE] = 0;
+        ch->player_specials->energy_conversion[DAM_COLD] = 0;
+        ch->player_specials->energy_conversion[DAM_ACID] = 0;
+        ch->player_specials->energy_conversion[DAM_SOUND] = 0;
+        ch->player_specials->energy_conversion[DAM_ELECTRIC] = 0;
+      }
+    }
   }
 }
 

@@ -2086,6 +2086,8 @@ ACMD(do_respec)
 
     leave_group(ch);
     stop_follower(ch);
+    // for some reason we're crashing on stop_follower, so we've done this hack.
+    // It needs to be looked at and fixed at some point though.
     for (f = ch->followers; f; f = f->next) {
       if (f->follower) {
         f->follower->master = NULL;

@@ -33,6 +33,7 @@
 #include "alchemy.h"
 #include "missions.h"
 #include "psionics.h"
+#include "combat_modes.h"
 
 //external
 extern struct raff_node *raff_list;
@@ -872,6 +873,90 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
     mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
+    break;
+
+    case PSIONIC_DEADLY_FEAR:
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return (0);
+    if (is_immune_fear(ch, victim, 0))
+      return (0);
+    // saving throw is handled special below
+    bonus = GET_AUGMENT_PSP(ch) / 2;
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_MENTAL;
+    num_dice = 1;
+    size_dice = 1;
+    break;
+
+    case PSIONIC_PSYCHIC_CRUSH:
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return (0);
+    // saving throw is handled special below
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    bonus = GET_AUGMENT_PSP(ch) / 2;
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_MENTAL;
+    num_dice = 1;
+    size_dice = 1;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+
+    case PSIONIC_SHRAPNEL_BURST:
+      bonus = 0;
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = DAM_PUNCTURE;
+      num_dice = 9 + GET_AUGMENT_PSP(ch) / 2;
+      size_dice = 6;
+      GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+      break;
+
+    case PSIONIC_UPHEAVAL:
+      GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+      bonus = 0;
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = DAM_EARTH;
+      num_dice = 9;
+      size_dice = 6;
+      break;
+
+    case PSIONIC_BREATH_OF_THE_BLACK_DRAGON:
+      GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+      bonus = 0;
+      save = SAVING_REFL;
+      mag_resist = TRUE;
+      element = DAM_ACID;
+      num_dice = 11 + GET_AUGMENT_PSP(ch) / 2;
+      size_dice = 6;
+      GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+      break;
+
+    case PSIONIC_DISINTEGRATION:
+    if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+    {
+      act("$n fires a ray of disintigration at $N, but it goes wide.", FALSE, ch, 0, victim, TO_NOTVICT);
+      act("You fire a ray of disintigration at $N, but it goes wide.", FALSE, ch, 0, victim, TO_CHAR);
+      act("$n fires a ray of disintigration at YOU, but it goes wide.", FALSE, ch, 0, victim, TO_VICT);
+      return 0;
+    }
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_CHAOS;
+    num_dice = 22 + (GET_AUGMENT_PSP(ch) * 2);
+    size_dice = 6;
+    bonus = 0;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
     break;
 
     /*******************************************\
@@ -1801,6 +1886,33 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       }
     }
   }
+  else if (spellnum == PSIONIC_DEADLY_FEAR)
+  {
+    GET_DC_BONUS(ch) += bonus;
+    if (!mag_savingthrow(ch, victim, save, race_bonus, SAVING_WILL, level, NOSCHOOL))
+    {
+      GET_DC_BONUS(ch) += bonus;
+      if (mag_savingthrow(ch, victim, save, race_bonus, SAVING_FORT, level, NOSCHOOL))
+        dam = dice(3, 6);
+      else
+        dam = GET_HIT(victim) + 100;
+    }
+  }
+  else if (spellnum == PSIONIC_PSYCHIC_CRUSH)
+  {
+    GET_DC_BONUS(ch) += bonus - 4;
+    if (!mag_savingthrow(ch, victim, save, race_bonus, SAVING_WILL, level, NOSCHOOL))
+      dam = dice(3 + bonus, 6);
+    else
+      dam = GET_HIT(victim) + 100;
+  }
+  else if (spellnum == PSIONIC_DISINTEGRATION)
+  {
+    // on a fort save, disintigrate will always do 5d6 damage
+    if (mag_savingthrow(ch, victim, save, race_bonus, savetype, level, NOSCHOOL))
+      dam = dice(5, 6);
+    // otherwise we'll let things proceeed as normal
+  }
   else if (dam && (save != -1))
   {
     //saving throw for half damage if applies
@@ -1950,7 +2062,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   struct affected_type af[MAX_SPELL_AFFECTS];
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
-  int i, j, spell_school = NOSCHOOL, caster_level = 0;
+  int i, j, x, spell_school = NOSCHOOL, caster_level = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL;
@@ -2427,6 +2539,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     break;
 
+  case PSIONIC_ENERGY_ADAPTATION:
+    af[0].duration = level * 100;
+    af[0].location = APPLY_RES_ACID;
+    af[0].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[1].duration = level * 100;
+    af[1].location = APPLY_RES_FIRE;
+    af[1].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[2].duration = level * 100;
+    af[2].location = APPLY_RES_COLD;
+    af[2].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[3].duration = level * 100;
+    af[3].location = APPLY_RES_ELECTRIC;
+    af[3].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[4].duration = level * 100;
+    af[4].location = APPLY_RES_SOUND;
+    af[4].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    accum_duration = FALSE;
+    to_vict = "Your elemental resistances have improved!";
+    break;
+
   case PSIONIC_ENERGY_STUN:
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
@@ -2575,6 +2707,194 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You have been stunned by $N's psionic blast!";
     to_room = "$n has been stunned by $N's psionic blast!";
     break;
+
+  case PSIONIC_SHARPENED_EDGE:
+    af[0].duration = level * 100;
+    af[0].location = APPLY_SPECIAL;
+    to_vict = "Any slashing or piercing weapon you wield becomes extremely sharp through your psychic abilities.";
+    break;
+
+  case PSIONIC_UBIQUITUS_VISION:
+    af[0].duration = level * 100;
+    af[0].location = APPLY_SPECIAL;
+    to_vict = "You gain the ability to see 360 degrees around you.";
+    break;
+
+  case PSIONIC_DEATH_URGE:
+    if (power_resistance(ch, victim, 0))
+      return;
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return;
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      return;
+    af[0].duration = 2 + (GET_AUGMENT_PSP(ch) / 4);
+    af[0].location = APPLY_SPECIAL;
+    to_vict = "You suddenly have an unavoidable urge to harm yourself!";
+    to_room = "$n becomes crazed and begins to harm $mself!";
+    break;
+
+  case PSIONIC_EMPATHIC_FEEDBACK:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 3;
+    GET_AUGMENT_PSP(ch) = MIN(6, GET_AUGMENT_PSP(ch));
+    af[0].duration = level * 100;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 6 + (GET_AUGMENT_PSP(ch) / 3 * 2);
+    to_vict = "You gain the ability reflect melee damage back on your attacker as psychic damage.";
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+
+  case PSIONIC_INCITE_PASSION:
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return;
+    if (power_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      return;
+    
+    af[0].duration = level;
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[1].duration = level;
+    af[1].location = APPLY_INT;
+    af[1].modifier = -4;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    
+    af[2].duration = level;
+    af[2].location = APPLY_AC_NEW;
+    af[2].modifier = -2;
+    af[2].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    disable_combat_mode(victim, MODE_TOTAL_DEFENSE);
+    disable_combat_mode(victim, MODE_COMBAT_EXPERTISE);
+    
+    to_vict = "Your passions become extremely incited and your ability to reason and oncentrate reduced.";
+    to_room = "$n gets an intense gleam in $s eyes.";
+    break;
+
+  case PSIONIC_INTELLECT_FORTRESS:
+    af[0].duration = level * 10;
+    af[0].location = APPLY_RES_MENTAL;
+    af[0].modifier = 50;
+    to_vict = "Your resistance against psionic damage improves.";
+    break;
+
+  case PSIONIC_MOMENT_OF_TERROR:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
+    GET_AUGMENT_PSP(ch) = MIN(4, GET_AUGMENT_PSP(ch));
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return;
+    if (is_immune_fear(ch, victim, 0))
+      return;
+    if (power_resistance(ch, victim, 0))
+      return;
+    if (GET_AUGMENT_PSP(ch) < 4 && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      return;
+    change_position(victim, POS_SITTING);
+    af[0].duration = 600;
+    af[0].location = APPLY_SAVING_WILL;
+    af[0].modifier = -2;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    to_vict = "You fall to the ground, your mind filled with thoughts of terror!";
+    to_room = "$n falls to the ground and begins to frantically look about with eyes filled with terror!";
+    break;
+
+  case PSIONIC_POWER_LEECH:
+    to_vict = "You reach out to your opponent and begin to drain $s psychic energies.";
+    to_room = "$N reaches out to $N opponent and begin to drain $s psychic energies.";
+    for (x = 0; x < GET_PSIONIC_LEVEL(ch); x++)
+    {
+      NEW_EVENT(ePOWERLEECH, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+    }
+    break;
+
+  case PSIONIC_SLIP_THE_BONDS:
+    af[0].duration = level * 100;
+    SET_BIT_AR(af[0].bitvector, AFF_FREE_MOVEMENT);
+    accum_duration = FALSE;
+    to_vict = "You are now free from movement impairing affects.";
+    break;
+
+  case PSIONIC_WITHER:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    if (power_resistance(ch, victim, 0))
+      return;
+    af[0].duration = level;
+    af[0].location = APPLY_STR;
+    af[0].modifier = dice(2 + (GET_AUGMENT_PSP(ch) / 4), 4);
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+      af[0].modifier /= 2;
+    to_vict = "You feel your body and strength wither!";
+    to_room = "$n begins to wither before your eyes!";
+    break;
+
+  case PSIONIC_PIERCE_VEIL:
+    af[0].duration = level * 10;
+    SET_BIT_AR(af[0].bitvector, AFF_TRUE_SIGHT);
+    accum_duration = FALSE;
+    to_vict = "You are now able to see the true forms of all beings.";
+    break;
+
+  case PSIONIC_POWER_RESISTANCE:
+    af[0].duration = level * 10;
+    af[0].modifier = 12 + level;
+    af[0].location = APPLY_POWER_RES;
+    accum_duration = FALSE;
+    to_vict = "You are now resistant to psionic manifestations.";
+    break;
+
+  case PSIONIC_TOWER_OF_IRON_WILL:
+    af[0].duration = level + (GET_AUGMENT_PSP(ch) / 2);
+    af[0].modifier = 19 + (GET_AUGMENT_PSP(ch) / 2);
+    af[0].location = APPLY_POWER_RES;
+    accum_duration = FALSE;
+    to_vict = "You are now resistant to psionic manifestations.";
+    break;
+
+  case PSIONIC_SUSTAINED_FLIGHT:
+    af[0].duration = level * 100;
+    SET_BIT_AR(af[0].bitvector, AFF_FLYING);
+    accum_duration = FALSE;
+    to_vict = "You rise into the air, obtaining the ability to fly.";
+    break;
+
+  case PSIONIC_COSMIC_AWARENESS:
+    af[0].duration = level * 10;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = GET_PSIONIC_LEVEL(ch);
+    accum_duration = FALSE;
+    to_vict = "You gain the ability to alter probability in your favour. (cosmicawareness command)";
+    break;
+
+  case PSIONIC_ENERGY_CONVERSION:
+    af[0].duration = level * 100;
+    af[0].location = APPLY_RES_ACID;
+    af[0].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[1].duration = level * 100;
+    af[1].location = APPLY_RES_FIRE;
+    af[1].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[2].duration = level * 100;
+    af[2].location = APPLY_RES_COLD;
+    af[2].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[3].duration = level * 100;
+    af[3].location = APPLY_RES_ELECTRIC;
+    af[3].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    af[4].duration = level * 100;
+    af[4].location = APPLY_RES_SOUND;
+    af[4].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
+    accum_duration = FALSE;
+    to_vict = "Your elemental resistances have improved, and you've gained the ability to release energy absorbed! (discharge command)";
+    break;  
 
   // spells and other effects
 
@@ -4355,6 +4675,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(victim, "Your haste spell is dispelled!\r\n");
       return;
     }
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
+      return;
+    }
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, ABJURATION))
@@ -4684,6 +5010,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your opponent doesn't seem webbable.\r\n");
       return;
     }
+    if (affected_by_spell(victim, PSIONIC_SLIP_THE_BONDS))
+    {
+      send_to_char(ch, "Your spell is resisted!\r\n");
+      send_to_char(victim, "You avoid the effect due to your slip the bonds manifestation!\r\n");
+      return;
+    }
     if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
     {
       send_to_char(ch, "You fail.\r\n");
@@ -4883,6 +5215,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_SHADOW_WALK:
     mag_affects(level, ch, tch, obj, SPELL_SHADOW_WALK, savetype, casttype, 0);
     break;
+  case PSIONIC_INTELLECT_FORTRESS:
+    mag_affects(level, ch, tch, obj, PSIONIC_INTELLECT_FORTRESS, savetype, casttype, 0);
+    break;
+  case PSIONIC_TOWER_OF_IRON_WILL:
+    mag_affects(level, ch, tch, obj, PSIONIC_TOWER_OF_IRON_WILL, savetype, casttype, 0);
+    break;
   }
 }
 
@@ -4941,6 +5279,14 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ANIMAL_SHAPES:
     to_char = "You transform your group!\tn";
     to_room = "$n transforms $s group!\tn";
+    break;
+  case PSIONIC_INTELLECT_FORTRESS:
+    to_char = "You manifest a psychic fortress against psionic attacks!";
+    to_room = "$n manifests a psychic fortress against psionic attacks!";
+    break;
+  case PSIONIC_TOWER_OF_IRON_WILL:
+    to_char = "You manifest a tower of iron will against psionic attacks!";
+    to_room = "$n manifests a tower of iron will against psionic attacks!";
     break;
   }
 
@@ -5022,6 +5368,23 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_unaffects, we do it here.
+    isUnEffect = TRUE;
+    skip_groups = true;
+    break;
+  case PSIONIC_DEADLY_FEAR:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+    if (GET_AUGMENT_PSP(ch) < 8)
+    {
+      // need to spend 4 augmented psp or more in order for it to be an AoE effect
+      mag_affects(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
+      return;
+    }
+    isEffect = TRUE;
+    skip_groups = true;
+    break;
+  case PSIONIC_SHATTER_MIND_BLANK:
     isUnEffect = TRUE;
     skip_groups = true;
     break;
@@ -5301,6 +5664,23 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case PSIONIC_ENERGY_BURST:
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+  case PSIONIC_UPHEAVAL:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+  case PSIONIC_SHRAPNEL_BURST:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+  case PSIONIC_BREATH_OF_THE_BLACK_DRAGON:
+    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    break;
+
     /** NPC **/
   case SPELL_FIRE_BREATHE:
     to_char = "You exhale breathing out fire!";
@@ -5502,6 +5882,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_WIGHT 58             // great animation
 #define MOB_BLADE_OF_DISASTER 59 // black blade of disaster
 #define MOB_DIRE_RAT 9400        // summon natures ally i
+#define MOB_ECTOPLASMIC_SHAMBLER 93 // ectoplasmic shambler psionic ability
 
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
                  int spellnum, int savetype, int casttype)
@@ -5790,6 +6171,17 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       break;
        */
 
+  // psionics
+
+  case PSIONIC_ECTOPLASMIC_SHAMBLER:
+    handle_corpse = FALSE;
+    msg = 23;
+    fmsg = rand_number(2, 6); /* Random fail message. */
+    mob_num = MOB_ECTOPLASMIC_SHAMBLER;
+    mob_level = (GET_PSIONIC_LEVEL(ch) > 20) ? ((GET_PSIONIC_LEVEL(ch) - 20) / 2) + 20 : GET_PSIONIC_LEVEL(ch);
+    pfail = 0;
+    break;
+
   default:
     return;
   }
@@ -5991,6 +6383,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 #undef MOB_EARTH_ELEMENTAL
 #undef MOB_AIR_ELEMENTAL
 #undef MOB_WATER_ELEMENTAL
+#undef MOB_ECTOPLASMIC_SHAMBLER
 
 /*----------------------------------------------------------------------------*/
 /* End Magic Summoning - Generic Routines and Local Globals */
@@ -6262,6 +6655,14 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     to_notvict = "$N is revealed by $n's psychic manifestation.";
     break;
 
+  case PSIONIC_SHATTER_MIND_BLANK:
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, level, NOSCHOOL))
+      return;
+    affect = AFF_MIND_BLANK;
+    to_char = "You shatter $N's mind blank!";
+    to_vict = "$n shatters your mind blank!";
+    break;
+
   default:
     log("SYSERR: unknown spellnum %d passed to mag_unaffects.", spellnum);
     return;
@@ -6425,6 +6826,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       object_vnum = 9405;
     break;
   case SPELL_GATE:
+  case PSIONIC_PLANAR_TRAVEL:
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
     to_room = "$n \tnfolds \tMtime\tn and \tDspace\tn, and creates $p\tn.";
     obj_to_floor = TRUE;
@@ -6436,7 +6838,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     one_argument(cast_arg2, arg, sizeof(arg));
     if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE))
     {
-      send_to_char(ch, "A bright flash prevents your spell from working!");
+      send_to_char(ch, "A bright flash prevents your %s from working!", spellnum == SPELL_GATE ? "spell" : "manifestation");
       return;
     }
 
@@ -6508,7 +6910,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     }
     if (!valid_mortal_tele_dest(ch, gate_dest, FALSE))
     {
-      send_to_char(ch, "Your magic is being blocked at the destination!\r\n");
+      send_to_char(ch, "Your %s is being blocked at the destination!\r\n", spellnum == SPELL_GATE ? "magic" : "power");
       return;
     }
 
@@ -6781,6 +7183,13 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n creates a barrier of spinning blades!";
     aff = RAFF_BLADE_BARRIER;
     rounds = DIVINE_LEVEL(ch);
+    break;
+
+  case PSIONIC_UPHEAVAL:
+    to_char = "Your psionic upheaval makes the ground jagged and uneven.";
+    to_room = "$n causes the ground to become jagged and uneven!";
+    aff = RAFF_DIFFICULT_TERRAIN;
+    rounds = GET_PSIONIC_LEVEL(ch);
     break;
 
   case SPELL_OBSCURING_MIST: // conjuration

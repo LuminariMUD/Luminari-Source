@@ -529,6 +529,8 @@ ACMD_DECL(do_favoredenemies);
 ACMD_DECL(do_summon);
 ACMD_DECL(do_applyoil);
 ACMD_DECL(do_setbaneweapon);
+ACMD_DECL(do_cosmic_awareness);
+ACMD_DECL(do_discharge);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

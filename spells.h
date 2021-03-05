@@ -1016,8 +1016,9 @@
 #define DAM_CELESTIAL_POISON 21
 #define DAM_BLEEDING 22
 #define DAM_TEMPORAL 23
+#define DAM_CHAOS 24
 /* ------------------------------*/
-#define NUM_DAM_TYPES 24
+#define NUM_DAM_TYPES 25
 /* =============================*/
 
 /*********************************/
@@ -1138,8 +1139,9 @@ struct wall_information
 #define WALL_TYPE_THORNS 2
 #define WALL_TYPE_FOG 3
 #define WALL_TYPE_PRISM 4
+#define WALL_TYPE_ECTOPLASM 5
 /******/
-#define NUM_WALL_TYPES 5
+#define NUM_WALL_TYPES 6
 /****/
 #define WALL_ITEM 101220
 /* object values for walls */
@@ -1198,6 +1200,8 @@ ASPELL(spell_wall_of_force);
 ASPELL(spell_wizard_eye);
 // psionics
 ASPELL(psionic_concussive_onslaught);
+ASPELL(psionic_wall_of_ectoplasm);
+ASPELL(psionic_psychoportation);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

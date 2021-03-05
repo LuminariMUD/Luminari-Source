@@ -149,6 +149,7 @@ typedef enum
   eSLA_INVIS,                          /* innate invisibility */
   eCONCUSSIVEONSLAUGHT,     // concussive onsalught psionic power
   eCHANNELSPELL,            // countdown for channel spell ability
+  ePOWERLEECH,              // power leach ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -205,11 +206,11 @@ EVENTFUNC(event_preparing);
 EVENTFUNC(event_crafting);
 EVENTFUNC(event_acid_arrow);
 EVENTFUNC(event_concussive_onslaught);
+EVENTFUNC(event_power_leech);
 EVENTFUNC(event_implode);
 EVENTFUNC(event_ice_storm);
 EVENTFUNC(event_chain_lightning);
 EVENTFUNC(event_falling);
-;
 EVENTFUNC(event_check_occupied);
 EVENTFUNC(event_tracks);
 EVENTFUNC(event_combat_round);

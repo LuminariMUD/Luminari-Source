@@ -4429,6 +4429,13 @@ int d20(struct char_data *ch)
     if (PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
   }
+
+  if (!IS_NPC(ch) && ch->player_specials->cosmic_awareness)
+  {
+    roll += GET_PSIONIC_LEVEL(ch);
+    ch->player_specials->cosmic_awareness = false;
+    send_to_char(ch, "\tY[Cosmic Awareness Bonus! +%d]\tn\r\n", GET_PSIONIC_LEVEL(ch));
+  }
   
   return roll;
 }
@@ -4480,6 +4487,11 @@ int get_power_resist_mod(struct char_data *ch)
 {
   int bonus = 0;
 
+  if (affected_by_spell(ch, PSIONIC_POWER_RESISTANCE))
+    bonus += get_char_affect_modifier(ch, PSIONIC_POWER_RESISTANCE, APPLY_POWER_RES);
+  if (affected_by_spell(ch, PSIONIC_TOWER_OF_IRON_WILL))
+    bonus = MAX(bonus, get_char_affect_modifier(ch, PSIONIC_TOWER_OF_IRON_WILL, APPLY_POWER_RES));
+
   return bonus;
 }
 
@@ -4502,4 +4514,25 @@ bool is_spellnum_psionic(int spellnum)
     return true;
 
   return false;
+}
+
+void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam)
+{
+  switch(dam_type)
+  {
+    case DAM_FIRE:
+    case DAM_COLD:
+    case DAM_ACID:
+    case DAM_SOUND:
+    case DAM_ELECTRIC:
+      if (!IS_NPC(ch) && affected_by_spell(ch, PSIONIC_ENERGY_CONVERSION) && dam >= 2 && ch->player_specials->energy_conversion[dam_type] < GET_PSIONIC_LEVEL(ch))
+      {
+        dam /= 2;
+        if ((dam + ch->player_specials->energy_conversion[dam_type]) > GET_PSIONIC_LEVEL(ch))
+          dam = GET_PSIONIC_LEVEL(ch) - ch->player_specials->energy_conversion[dam_type];
+        ch->player_specials->energy_conversion[dam_type] += dam;
+        send_to_char(ch, "\tY[Energy Conversion Absorb %s! +%d]\tn\r\n", damtypes[dam_type], dam / 2);
+      }
+      break;
+  }
 }

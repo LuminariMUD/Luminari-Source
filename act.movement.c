@@ -1104,6 +1104,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
     need_movement--;
 
+  if (ROOM_AFFECTED(going_to, RAFF_DIFFICULT_TERRAIN))
+    need_movement *= 2;
   /* if in "spot-mode" double cost of movement */
   if (AFF_FLAGGED(ch, AFF_SPOT))
     need_movement *= 2;
@@ -2228,7 +2230,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   if (FIGHTING(ch))
     skill_lvl += d20(ch);
   else
-    skill_lvl += 20; // take 20
+    skill_lvl += MAX(20, d20(ch)); // take 20
 
   /* thief tools */
   /*

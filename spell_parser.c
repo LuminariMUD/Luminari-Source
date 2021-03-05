@@ -877,6 +877,12 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case PSIONIC_CONCUSSIVE_ONSLAUGHT:
                         MANUAL_SPELL(psionic_concussive_onslaught);
                         break;
+                case PSIONIC_WALL_OF_ECTOPLASM:
+                        MANUAL_SPELL(psionic_wall_of_ectoplasm);
+                        break;
+                case PSIONIC_PSYCHOPORTATION:
+                        MANUAL_SPELL(psionic_psychoportation);
+                        break;
                 } /* end manual spells */
 
         /* finished routine handling, now we have some code to engage */
@@ -1494,7 +1500,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 casting_time = 0;
         }
 
-        if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED)
+        if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
         {
                 GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
                 GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
@@ -3049,8 +3055,7 @@ void mag_assign_spells(void)
                NULL, 11, 23, CONJURATION, FALSE);
         spello(SPELL_ELEMENTAL_SWARM, "elemental swarm", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
                FALSE, MAG_SUMMONS, NULL, 12, 23, CONJURATION, FALSE);
-        spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
-               MAG_CREATIONS, NULL, 9, 23, CONJURATION, FALSE);
+        spello(SPELL_GATE, "gate", 51, 36, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 9, 23, CONJURATION, FALSE);
         spello(SPELL_SHAMBLER, "shambler", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE,
                MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
         spello(SPELL_SUMMON_CREATURE_9, "summon creature ix", 0, 0, 0,
