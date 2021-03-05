@@ -4612,7 +4612,7 @@ ACMD(do_channelspell)
   send_to_char(ch, "You channel the spell '%s' into %s.\r\n", spell_info[spellnum].name, obj->short_description);
 
   if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_RAGE);
+    start_daily_use_cooldown(ch, FEAT_CHANNEL_SPELL);
 
   USE_STANDARD_ACTION(ch);
 

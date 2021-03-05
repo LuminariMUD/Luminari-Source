@@ -304,6 +304,14 @@ ACMD(do_grapple)
       grapple_penalty = attack_of_opportunity(vict, ch, 0);
     }
 
+     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
+     {
+       act("You can't seem to get a grip on $N.", FALSE, ch, 0, vict, TO_CHAR);
+       act("$n isn't able to get a grip on YOU.", FALSE, ch, 0, vict, TO_VICT);
+       act("$n isn't able to get a grip on $N.", FALSE, ch, 0, vict, TO_NOTVICT);
+       return;
+     }
+
     if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_INIT_GRAPPLE, -(grapple_penalty)) > 0)
     {
       /* success! */

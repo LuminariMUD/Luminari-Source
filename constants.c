@@ -737,7 +737,7 @@ const char *damtypes[] = {
     "slice",
     "puncture",
     "force",
-    "sound",
+    "sonic",
     "poison",
     "disease",
     "negative",
@@ -749,6 +749,7 @@ const char *damtypes[] = {
     "celestial poison",
     "bleeding",
     "temporal",
+    "chaos",
     "\n"};
 CHECK_TABLE_SIZE(damtypes, NUM_DAM_TYPES + 1);
 
@@ -777,6 +778,7 @@ const char *damtype_display[] = {
     "Damage Celestial Poison",
     "Damage Bleeding",
     "Damage Temporal",
+    "Damage Chaos",
     "\n"};
 CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 
@@ -868,6 +870,7 @@ const char *room_affections[] = {
     "Holy",
     "Unholy",
     "Obscuring-Mist",
+    "Difficult-Terrain",
     "\n"};
 CHECK_TABLE_SIZE(room_affections, NUM_RAFF + 1);
 

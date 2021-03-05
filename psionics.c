@@ -120,7 +120,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_EMPATHIC_FEEDBACK, "empathetic feedback", 7, true, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your empathetic feedback protection ends.", 4);
     psiono(PSIONIC_ENERGY_ADAPTATION, "energy adaptation", 7, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your specified energy adaptation has expired.", 4);
     psiono(PSIONIC_INCITE_PASSION, "incite passion", 7, false, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "Your irrationally heightened animal instics return to normal.", 4);
-    psiono(PSIONIC_INTELLECT_FORTRESS, "intellect fortress", 7, true, PSYCHOKINESIS, TAR_CHAR_ROOM, false, MAG_GROUPS, "The intellect fortress guarding your mind expires.", 4);
+    psiono(PSIONIC_INTELLECT_FORTRESS, "intellect fortress", 7, false, PSYCHOKINESIS, TAR_CHAR_ROOM, false, MAG_GROUPS, "The intellect fortress guarding your mind expires.", 4);
     psiono(PSIONIC_MOMENT_OF_TERROR, "moment of terror", 7, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "Your terrors finally fade away.", 4);
     psiono(PSIONIC_POWER_LEECH, "power leech", 7, false, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "You finally expel the power leech from your psyche.", 4);
     psiono(PSIONIC_SLIP_THE_BONDS, "slip the bonds", 7, false, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic ability to slip bonds has expired.", 4);
@@ -260,3 +260,113 @@ int adjust_augment_psp_for_spell(struct char_data *ch, int spellnum)
     return GET_AUGMENT_PSP(ch);
 }
 
+ACMDU(do_cosmic_awareness)
+{
+    if (!affected_by_spell(ch, PSIONIC_COSMIC_AWARENESS))
+    {
+        send_to_char(ch, "You are not under the effect of the cosmic awareness psionic power.\r\n");
+        return;
+    }
+
+    skip_spaces(&argument);
+
+    if (!*argument)
+    {
+        send_to_char(ch, "To use your cosmic awareness ability, type: cosmicawareness use\r\n");
+        return;
+    }
+
+    if (!is_abbrev(argument, "use"))
+    {
+        send_to_char(ch, "To use your cosmic awareness ability, type: cosmicawareness use\r\n");
+        return;
+    }
+
+    if (ch->player_specials->cosmic_awareness)
+    {
+        send_to_char(ch, "You have already used your cosmic awareness.  It will take effect the next time you have to roll a d20, such as attack rolls, skill checks, saving throws, etc.\r\n");
+        return;
+    }
+
+    ch->player_specials->cosmic_awareness = true;
+    send_to_char(ch, "You use your cosmic awareness ability.  The next d20 roll you make will add a +%d to the roll.\r\n"
+                     "Some example d20 rolls are: attack rolls, skill checks, saving throws, etc.\r\n", GET_PSIONIC_LEVEL(ch));
+    affect_from_char(ch, PSIONIC_COSMIC_AWARENESS);
+}
+
+ACMDU(do_discharge)
+{
+    int dam_type;
+    struct char_data *victim = NULL;
+    char buf[MEDIUM_STRING];
+    skip_spaces(&argument);
+
+    if (!affected_by_spell(ch, PSIONIC_ENERGY_CONVERSION))
+    {
+        send_to_char(ch, "You are not under the effect of the energy conversion power.\r\n");
+        return;
+    }
+    if (!*argument)
+    {
+        send_to_char(ch, "You can discharge any of the following by typing 'discharge (energy type)'\r\n"
+                         "fire      [%-2d] damage absorbed\r\n"
+                         "cold      [%-2d] damage absorbed\r\n"
+                         "acid      [%-2d] damage absorbed\r\n"
+                         "sonic     [%-2d] damage absorbed\r\n"
+                         "electric  [%-2d] damage absorbed\r\n",
+                         ch->player_specials->energy_conversion[DAM_FIRE],
+                         ch->player_specials->energy_conversion[DAM_COLD],
+                         ch->player_specials->energy_conversion[DAM_ACID],
+                         ch->player_specials->energy_conversion[DAM_SOUND],
+                         ch->player_specials->energy_conversion[DAM_ELECTRIC]);
+        return;
+    }
+    
+    if (!FIGHTING(ch))
+    {
+        send_to_char(ch, "This ability can only be used in combat.\r\n");
+        return;
+    }
+
+    dam_type = search_block(argument, damtypes, FALSE);
+    victim = FIGHTING(ch);
+
+    switch (dam_type)
+    {
+        case DAM_FIRE:
+        case DAM_COLD:
+        case DAM_ACID:
+        case DAM_SOUND:
+        case DAM_ELECTRIC:
+            if (ch->player_specials->energy_conversion[dam_type] <= 0)
+            {
+                send_to_char(ch, "You do not have any %s energy absorbed right now.\r\n", damtypes[dam_type]);
+                return;
+            }
+            if (power_resistance(ch, victim, 0))
+            {
+                return;
+            }
+            if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+            {
+                snprintf(buf, sizeof(buf), "A beam of %s energy fired by $n at $N goes wide.", damtypes[dam_type]);
+                act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
+                snprintf(buf, sizeof(buf), "Your beam of %s energy fired at $N goes wide.", damtypes[dam_type]);
+                act(buf, FALSE, ch, 0, victim, TO_CHAR);
+                snprintf(buf, sizeof(buf), "$n's beam of %s energy fired at YOU goes wide.", damtypes[dam_type]);
+                act(buf, FALSE, ch, 0, victim, TO_VICT);
+                return;
+            }
+            snprintf(buf, sizeof(buf), "$n fires a beam of %s at $N!", damtypes[dam_type]);
+            act(buf, FALSE, ch, 0, victim, TO_NOTVICT);
+            snprintf(buf, sizeof(buf), "You fire a beam of %s at $N!", damtypes[dam_type]);
+            act(buf, FALSE, ch, 0, victim, TO_CHAR);
+            snprintf(buf, sizeof(buf), "$n fires a beam of %s at YOU!", damtypes[dam_type]);
+            act(buf, FALSE, ch, 0, victim, TO_VICT);
+            damage(ch, victim, ch->player_specials->energy_conversion[dam_type], PSIONIC_ENERGY_CONVERSION, dam_type, FALSE);
+            ch->player_specials->energy_conversion[dam_type] = 0;
+            return;
+    }
+
+    send_to_char(ch, "That is not a valid energy type.  Please choose from among: fire, cold, acid, sonic, electric\r\n");
+}

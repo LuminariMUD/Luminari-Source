@@ -950,6 +950,11 @@ int compute_ability(struct char_data *ch, int abilityNum)
       /* Unnamed bonus */
       value += 2;
     }
+    if (affected_by_spell(ch, PSIONIC_UBIQUITUS_VISION))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
     if (AFF_FLAGGED(ch, AFF_DAZZLED))
       value--;
     if (AFF_FLAGGED(ch, AFF_DEAF))

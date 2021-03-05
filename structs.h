@@ -200,8 +200,9 @@
 #define RAFF_HOLY (1 << 10)
 #define RAFF_UNHOLY (1 << 11)
 #define RAFF_OBSCURING_MIST (1 << 12)
+#define RAFF_DIFFICULT_TERRAIN (1 << 13)
 /** The total number of Room Affections */
-#define NUM_RAFF 13
+#define NUM_RAFF 14
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED 0       /**< Zone is closed - players cannot enter */
@@ -3255,7 +3256,7 @@ struct char_ability_data
 #define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
-#define NUM_DAM_TYPES 24
+#define NUM_DAM_TYPES 25
 
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data
@@ -3284,7 +3285,6 @@ struct char_point_data
     /* note - if you add something new here, make sure to check
      handler.c reset_char_points() to see if it needs to be added */
 };
-#undef NUM_DAM_TYPES
 
 /** char_special_data_saved: specials which both a PC and an NPC have in
  * common, but which must be saved to the players file for PC's. */
@@ -3620,6 +3620,8 @@ struct player_special_data
     int dam_co_holder_sdice;    // a holder for size of damage dice for psionic_concussive_onslaught
     int dam_co_holder_bonus;    // a holder for bonus to damage for psionic_concussive_onslaught
     int save_co_holder_dc_bonus;// a holder for bonus to save dc for psionic_concussive_onslaught
+    bool cosmic_awareness;      // cosmic awareness psionic power and command
+    int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
 };
 
 /** Special data used by NPCs, not PCs */
@@ -4312,4 +4314,5 @@ struct race_data
 
 extern struct race_data race_list[];
 
+#undef NUM_DAM_TYPES
 #endif /* _STRUCTS_H_ */

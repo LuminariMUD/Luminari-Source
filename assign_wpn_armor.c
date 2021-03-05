@@ -20,6 +20,8 @@
 #include "modify.h"
 #include "domains_schools.h"
 #include "spec_abilities.h"
+#include "handler.h"
+#include "spells.h"
 
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];
@@ -2250,14 +2252,19 @@ bool is_using_keen_weapon(struct char_data *ch)
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
-    
+  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
+    return true;    
   
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
+  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
+    return true;
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
+    return true;
+  if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
     return true;
 
   return false;

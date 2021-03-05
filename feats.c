@@ -2124,15 +2124,15 @@ void assign_feats(void)
 
   // spellswords
   feato(FEAT_IGNORE_SPELL_FAILURE, "ignore spell failure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank. ",
-        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank.");
+        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank above one. ",
+        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank above one.");
   feato(FEAT_CHANNEL_SPELL, "channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "You can channel a spell into your weapon.",
         "You can channel a spell into your weapon. You can only channel a harmful spell of a spell level "
-        "the or lower as the number of ranks in this feat. Once imbued, the weapon has a 5% chance "
+        "the same level or lower as the number of ranks in this feat. Once imbued, the weapon has a 5% chance "
         "per hit to cast that spell when it hits, up to 5 times until it is expended. This ability "
         "can be used 3 times per day at level 4, 4 times at level 6 and 5 times at spellsword level 8. "
-        "This feat uses the channelspell command.");
+        "This feat uses the channelspell command. This effect does not save over play sessions, reboots, or copyovers.");
   feato(FEAT_MULTIPLE_CHANNEL_SPELL, "multiple channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "You can channel two spells into your weapon.",
         "As per channel spell, except allows you to channel two spells into a single weapon.");
@@ -2162,16 +2162,13 @@ void assign_feats(void)
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +1 to all spell dcs for all spells in school/domain",
         "+1 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
-  feat_prereq_class_level(FEAT_SPELL_FOCUS, CLASS_WIZARD, 1);
   feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +2 to all spell dcs for all spells in school/domain",
         "+2 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
-  feat_prereq_class_level(FEAT_GREATER_SPELL_FOCUS, CLASS_WIZARD, 1);
   feat_prereq_feat(FEAT_GREATER_SPELL_FOCUS, FEAT_SPELL_FOCUS, 1);
   feato(FEAT_EPIC_SPELL_FOCUS, "epic spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +3 to all spell dcs for all spells in school/domain",
         "+3 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
-  feat_prereq_class_level(FEAT_EPIC_SPELL_FOCUS, CLASS_WIZARD, 1);
   feat_prereq_feat(FEAT_EPIC_SPELL_FOCUS, FEAT_GREATER_SPELL_FOCUS, 1);
 
   feato(FEAT_IMPROVED_FAMILIAR, "improved familiar", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
@@ -2616,9 +2613,13 @@ void assign_feats(void)
   /* manyshot */
   /* epic */
   /* epic manyshot */
-  feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Extra attack with offhand weapon",
         "Extra attack with offhand weapon while wearing light or lighter armor");
+  feat_prereq_feat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING, 1);
+  feat_prereq_attribute(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, AB_DEX, 21);
+  epicfeat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING);
+
   feato(FEAT_BANE_OF_ENEMIES, "bane of enemies", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "weapon acts as bane",
         "Any weapon you wield that strikes an opponent that is a favored enemy will "
@@ -4362,19 +4363,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return TRUE;
       if (is_proficient_with_weapon(ch, iarg) &&
           has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
-        return TRUE;
-      return FALSE;
-
-    case FEAT_SPELL_FOCUS:
-      if (CLASS_LEVEL(ch, CLASS_WIZARD))
-        return TRUE;
-      return FALSE;
-    case FEAT_GREATER_SPELL_FOCUS:
-      if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat_requirement_check(ch, FEAT_SPELL_FOCUS))
-        return TRUE;
-      return FALSE;
-    case FEAT_EPIC_SPELL_FOCUS:
-      if (CLASS_LEVEL(ch, CLASS_WIZARD) && has_feat_requirement_check(ch, FEAT_GREATER_SPELL_FOCUS))
         return TRUE;
       return FALSE;
 
