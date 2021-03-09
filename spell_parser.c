@@ -2801,9 +2801,6 @@ void mag_assign_spells(void)
         spello(SPELL_WAVES_OF_FATIGUE, "waves of fatigue", 65, 50, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical fatigue fade away.", 7,
                9, NECROMANCY, FALSE);
-        spello(TYPE_SPECAB_EXHAUSTION, "exhaustion", 65, 50, 1, POS_FIGHTING,
-               TAR_IGNORE, TRUE, MAG_AFFECTS, "You feel your fatigue fade away.", 7,
-               9, NECROMANCY, FALSE);
         /* enchantment */
         spello(SPELL_DOMINATE_PERSON, "dominate person", 51, 36, 1, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,

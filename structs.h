@@ -2179,8 +2179,9 @@
 #define ITEM_ANTI_ARCANE_SHADOW 89
 #define ITEM_ANTI_SACRED_FIST 90
 #define ITEM_ANTI_ELDRITCH_KNIGHT 91
+#define ITEM_SHOCK 92 // for shocking weapons
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 92
+#define NUM_ITEM_FLAGS 93
 
 /* homeland-port */
 /*
@@ -2827,10 +2828,12 @@
  * This should be set >= SECS_PER_MUD_HOUR */
 #define PULSE_TIMESAVE (30 * 60 RL_SEC)
 /* Variables for the output buffering system */
-#define MAX_SOCK_BUF (24 * 1024) /**< Size of kernel's sock buf   */
+//#define MAX_SOCK_BUF (24 * 1024) /**< Size of kernel's sock buf   */ // original setting - gicker
+#define MAX_SOCK_BUF (72 * 1024) /**< Size of kernel's sock buf   */
 #define MAX_PROMPT_LENGTH 400    /**< Max length of prompt        */
 #define GARBAGE_SPACE 32         /**< Space for **OVERFLOW** etc  */
-#define SMALL_BUFSIZE 1024       /**< Static output buffer size   */
+#define SMALL_BUFSIZE 4096       /**< Static output buffer size   */
+//#define SMALL_BUFSIZE 1024       /**< Static output buffer size   */ // original setting - gicker
 /** Max amount of output that can be buffered */
 #define LARGE_BUFSIZE (MAX_SOCK_BUF - GARBAGE_SPACE - MAX_PROMPT_LENGTH)
 
@@ -2840,7 +2843,8 @@
 #define LONG_STRING 512
 #define LONGER_STRING 1024
 
-#define MAX_STRING_LENGTH 49152          /**< Max length of string, as defined */
+//#define MAX_STRING_LENGTH 49152          /**< Max length of string, as defined */ // original setting - gicker
+#define MAX_STRING_LENGTH 65535          /**< Max length of string, as defined */
 #define MAX_INPUT_LENGTH 512             /**< Max length per *line* of input */
 #define MAX_RAW_INPUT_LENGTH (12 * 1024) /**< Max size of *raw* input */
 #define MAX_MESSAGES 200                 /**< Max Different attack message types */

@@ -3513,9 +3513,10 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       {
         /* somehow there is no SKILL_ or SPELL_ message for this damage
            so we have a fallback message here */
-        act("$n winces in visible pain.",
-            TRUE, victim, 0, 0, TO_ROOM);
+        act("$n winces in visible pain.", TRUE, victim, 0, 0, TO_ROOM);
         send_to_char(victim, "You wince in pain!\r\n");
+        //if (FIGHTING(victim))
+          //send_to_char(FIGHTING(victim), "%s winces in pain! %d\r\n", GET_NAME(victim), w_type);
       }
 
       /* we now should be handling damage done via weapons */
@@ -3549,7 +3550,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   {
     /* w_type is -1, ideally shouldn't arrive here, but got a fallback msg */
     act("$n winces in visible pain...", TRUE, victim, 0, 0, TO_ROOM);
-    send_to_char(victim, "You wince in pain!!!\r\n");
+    send_to_char(victim, "You wince in pain!\r\n");
+    //if (FIGHTING(victim))
+      //send_to_char(FIGHTING(victim), "%s winces in pain! %d\r\n", GET_NAME(victim), w_type);
   }
 
   switch (GET_POS(victim))
