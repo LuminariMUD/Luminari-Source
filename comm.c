@@ -3364,10 +3364,10 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
         dg_victim = (struct char_data *)vict_obj;
         break;
       case 'o':
-        CHECK_NULL(obj, OBJN(obj, to));
+        CHECK_NULL(obj, OBJS(obj, to));
         break;
       case 'O':
-        CHECK_NULL(vict_obj, OBJN((const struct obj_data *)vict_obj, to));
+        CHECK_NULL(vict_obj, OBJS((const struct obj_data *)vict_obj, to));
         dg_target = (struct obj_data *)vict_obj;
         break;
       case 'p':

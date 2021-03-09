@@ -2608,6 +2608,8 @@ void assign_feats(void)
   feato(FEAT_GREATER_DUAL_WEAPON_FIGHTING, "greater dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,
         "gives an additional offhand weapon attack at -10 penalty",
         "gives an additional offhand weapon attack at -10 penalty while wearing light or lighter armor");
+  feat_prereq_feat(FEAT_GREATER_DUAL_WEAPON_FIGHTING, FEAT_DUAL_WEAPON_FIGHTING, 1);
+  feat_prereq_attribute(FEAT_GREATER_DUAL_WEAPON_FIGHTING, AB_DEX, 19);
   /* point blank shot */
   /* rapid shot */
   /* manyshot */
@@ -2616,7 +2618,7 @@ void assign_feats(void)
   feato(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, "perfect dual weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Extra attack with offhand weapon",
         "Extra attack with offhand weapon while wearing light or lighter armor");
-  feat_prereq_feat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING, 1);
+  feat_prereq_feat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, FEAT_GREATER_DUAL_WEAPON_FIGHTING, 1);
   feat_prereq_attribute(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, AB_DEX, 21);
   epicfeat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING);
 

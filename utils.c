@@ -4421,6 +4421,8 @@ bool can_flee_speed(struct char_data *ch)
 
 int d20(struct char_data *ch)
 {
+  if (!ch) return dice(1, 20);
+  
   int roll = dice(1, 20);
 
   if (dice(1, 100) <= 10 && get_lucky_weapon_bonus(ch))

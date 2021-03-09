@@ -156,10 +156,10 @@ void initialize_special_abilities(void)
 
   daily_item_specab(ARMOR_SPECAB_BLINDING, eARMOR_SPECAB_BLINDING, 2);
 
-  add_weapon_special_ability(WEAPON_SPECAB_ADAPTIVE, "Adaptive", 12, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_ADAPTIVE, "Adaptive", 12, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, weapon_specab_adaptive);
 
-  add_weapon_special_ability(WEAPON_SPECAB_AGILE, "Agile", 12, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_AGILE, "Agile", 12, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, weapon_specab_agile);
 
   add_weapon_special_ability(WEAPON_SPECAB_ANARCHIC, "Anarchic", 7, ACTMTD_NONE,
@@ -174,7 +174,7 @@ void initialize_special_abilities(void)
   add_weapon_special_ability(WEAPON_SPECAB_BEWILDERING, "Bewildering", 8, ACTMTD_ON_CRIT,
                              TAR_FIGHT_VICT, FALSE, 0, ENCHANTMENT, 1, weapon_specab_bewildering);
 
-  add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMTD_ON_CRIT,
+  add_weapon_special_ability(WEAPON_SPECAB_BLINDING, "Blinding (Weapon)", 8, ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
                              TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_blinding);
 
   add_weapon_special_ability(WEAPON_SPECAB_BRILLIANT_ENERGY, "Brilliant Energy", 16, ACTMTD_NONE,
@@ -189,10 +189,10 @@ void initialize_special_abilities(void)
   add_weapon_special_ability(WEAPON_SPECAB_DANCING, "Dancing", 15, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 4, NULL);
 
-  add_weapon_special_ability(WEAPON_SPECAB_DEFENDING, "Defending", 8, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_DEFENDING, "Defending", 8, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, ABJURATION, 1, weapon_specab_defending);
 
-  add_weapon_special_ability(WEAPON_SPECAB_DISRUPTION, "Disruption", 14, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_DISRUPTION, "Disruption", 14, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, CONJURATION, 2, weapon_specab_disruption);
 
   add_weapon_special_ability(WEAPON_SPECAB_DISTANCE, "Distance", 6, ACTMTD_NONE,
@@ -207,7 +207,7 @@ add_weapon_special_ability(WEAPON_SPECAB_EXHAUSTING, "Exhausting", 8, ACTMTD_ON_
   add_weapon_special_ability(WEAPON_SPECAB_FLAMING_BURST, "Flaming Burst", 12, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_flaming_burst);
 
-  add_weapon_special_ability(WEAPON_SPECAB_FROST, "Frost", 8, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
+  add_weapon_special_ability(WEAPON_SPECAB_FROST, "Frost", 8, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_frost);
 
   add_weapon_special_ability(WEAPON_SPECAB_GHOST_TOUCH, "Ghost Touch", 9, ACTMTD_NONE,
@@ -216,7 +216,7 @@ add_weapon_special_ability(WEAPON_SPECAB_EXHAUSTING, "Exhausting", 8, ACTMTD_ON_
   add_weapon_special_ability(WEAPON_SPECAB_HOLY, "Holy", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability(WEAPON_SPECAB_ICY_BURST, "Icy Burst", 10, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_ICY_BURST, "Icy Burst", 10, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
 add_weapon_special_ability(WEAPON_SPECAB_INVIGORATING, "Invigorating", 18, ACTMTD_NONE,
@@ -240,14 +240,14 @@ add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
   add_weapon_special_ability(WEAPON_SPECAB_RETURNING, "Returning", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
-  add_weapon_special_ability(WEAPON_SPECAB_SEEKING, "Seeking", 12, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_SEEKING, "Seeking", 12, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, DIVINATION, 1, weapon_specab_seeking);
 
-  add_weapon_special_ability(WEAPON_SPECAB_SHOCK, "Shock", 8, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SHOCK, "Shock", 8, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
+                             TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_shock);
 
-  add_weapon_special_ability(WEAPON_SPECAB_SHOCKING_BURST, "Shocking Burst", 9, ACTMTD_NONE,
-                             TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
+  add_weapon_special_ability(WEAPON_SPECAB_SHOCKING_BURST, "Shocking Burst", 9, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
+                             TAR_IGNORE, FALSE, 0, EVOCATION, 2, weapon_specab_shocking_burst);
 
   add_weapon_special_ability(WEAPON_SPECAB_SPEED, "Speed", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 3, NULL);
@@ -255,8 +255,8 @@ add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
   add_weapon_special_ability(WEAPON_SPECAB_SPELL_STORING, "Spell Storing", 12, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 1, NULL);
 
-  add_weapon_special_ability(WEAPON_SPECAB_THUNDERING, "Thundering", 5, ACTMTD_ON_HIT | ACTMTD_ON_CRIT,
-                             TAR_IGNORE, FALSE, 0, NECROMANCY, 1, weapon_specab_thundering);
+  add_weapon_special_ability(WEAPON_SPECAB_THUNDERING, "Thundering", 10, ACTMTD_ON_CRIT,
+                             TAR_IGNORE, FALSE, 0, EVOCATION, 1, weapon_specab_thundering);
 
   add_weapon_special_ability(WEAPON_SPECAB_THROWING, "Throwing", 5, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
@@ -267,10 +267,10 @@ add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
 add_weapon_special_ability(WEAPON_SPECAB_VAMPIRIC, "Vampiric", 18, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_vampiric);
 
-  add_weapon_special_ability(WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, NECROMANCY, 1, weapon_specab_vicious);
 
-  add_weapon_special_ability(WEAPON_SPECAB_VORPAL, "Vorpal", 18, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_VORPAL, "Vorpal", 18, ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_vorpal);
 
   add_weapon_special_ability(WEAPON_SPECAB_WOUNDING, "Wounding", 10, ACTMTD_NONE,
@@ -1213,6 +1213,118 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost)
   }
 }
 
+
+/* A weapon with the shock special ability generates cold, becoming enveloped with electric energy and dealing
+ * electric damage on a regular hit. */
+WEAPON_SPECIAL_ABILITY(weapon_specab_shock)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the shock ability.
+       *  - Set the shock bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_SHOCK))
+    {
+      /* Shocking is on, turn it off. */
+      send_to_char(ch, "The magical lightning sheathing your weapon vanishes.\r\n");
+      act("The magical lightning sheathing $n's $o vanishes.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_SHOCK);
+    }
+    else
+    {
+      /* lightning ON! */
+      send_to_char(ch, "Magical lightning spreads down the length of your weapon!\r\n");
+      act("Magical lightning spreads down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_SHOCK);
+    }
+    break;
+  case ACTMTD_ON_HIT:                    /* Called whenever a weapon hits an enemy. */
+    if (OBJ_FLAGGED(weapon, ITEM_SHOCK)) /* Freeze 'em. */
+      if (victim)
+      {
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_SHOCK, DAM_ELECTRIC, FALSE);
+      }
+    break;
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+
+/* A weapon with shocking burst functions as a shocking weapon, except on critical hits it
+ * performs an electric burst for 1d10 extra damage. */
+WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst)
+{
+  /*
+   * level
+   * weapon
+   * ch
+   * victim
+   * obj
+   */
+  switch (actmtd)
+  {
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+  case ACTMTD_USE:          /* User USEs the item. */
+    /* Activate the shocking ability.
+       *  - Set the shocking bit on the weapon (this affects the display,
+       *    and is used to toggle the effect.)
+       */
+    if (OBJ_FLAGGED(weapon, ITEM_SHOCK))
+    {
+      /* shocking is on, turn it off. */
+      send_to_char(ch, "The magical lightning wreathing your weapon vanish.\r\n");
+      act("The magical lightning wreathing $n's $o vanish.", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      REMOVE_OBJ_FLAG(weapon, ITEM_SHOCK);
+    }
+    else
+    {
+      /* FLAME ON! */
+      send_to_char(ch, "Magical lightning spreads down the length of your weapon!\r\n");
+      act("Magical lightning spreads down the length of $n's $o!", FALSE, ch, weapon, NULL, TO_ROOM);
+
+      SET_OBJ_FLAG(weapon, ITEM_SHOCK);
+    }
+    break;
+  case ACTMTD_ON_HIT:                      /* Called whenever a weapon hits an enemy. */
+    if (OBJ_FLAGGED(weapon, ITEM_SHOCK)) /* shcok 'em. */
+      if (victim)
+      {
+        /*send_to_char(ch, "\tr[spcab]\tn");*/
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_SHOCK, DAM_ELECTRIC, FALSE);
+      }
+    break;
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    /* We don't care if the shocking property is active, it bursts anyway! */
+    if (victim)
+    {
+      /* send_to_char(ch,"\tr[burst]\tn");*/
+      damage(ch, victim, dice(1, 10), TYPE_SPECAB_SHCOKING_BURST, DAM_ELECTRIC, FALSE);
+    }
+    break;
+  case ACTMTD_WEAR: /* Called whenever the item is worn. */
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
 int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *victim)
 {
   int dam = dice(1, 6);
@@ -1390,8 +1502,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_defending)
 WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
 {
   
-  struct affected_type af[2];
-  int i = 0;
+  struct affected_type af, af2;
   /*
    * level
    * weapon
@@ -1415,32 +1526,28 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
         return;
       }
 
-      af[0].spell = SPELL_BLINDNESS;
-      af[0].location = APPLY_HITROLL;
-      af[0].modifier = -4;
-      af[0].duration = 1;
-      af[0].bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+      new_affect(&af);
+      new_affect(&af2);
 
-      af[1].spell = SPELL_BLINDNESS;
-      af[1].location = APPLY_AC_NEW;
-      af[1].modifier = -4;
-      af[1].duration = 1;
-      af[1].bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+      af.spell = SPELL_BLINDNESS;
+      af.location = APPLY_HITROLL;
+      af.modifier = -4;
+      af.duration = 1;
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af.bitvector, AFF_BLIND);
+
+      af2.spell = SPELL_BLINDNESS;
+      af2.location = APPLY_AC_NEW;
+      af2.modifier = -4;
+      af2.duration = 1;
+      af2.bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af2.bitvector, AFF_BLIND);
 
       act("You have been blinded!", FALSE, victim, 0, ch, TO_CHAR);
       act("$n seems to be blinded!", TRUE, victim, 0, ch, TO_ROOM);
 
-      for (i = 0; i < 2; i++)
-      {
-        if (af[i].bitvector[0] || af[i].bitvector[1] ||
-            af[i].bitvector[2] || af[i].bitvector[3] ||
-            (af[i].location != APPLY_NONE))
-        {
-          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
-        }
-      }
+      affect_to_char(victim, &af);
+      affect_to_char(victim, &af2);
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
@@ -1455,8 +1562,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
 WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 {
   
-  struct affected_type af[2];
-  int i = 0;
+  struct affected_type af;
   /*
    * level
    * weapon
@@ -1476,9 +1582,11 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
         return;
       }
 
-      af[0].duration = 2;
-      af[0].location = SPELL_WAVES_OF_EXHAUSTION;
-      SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+      new_affect(&af);
+
+      af.duration = 2;
+      af.location = SPELL_WAVES_OF_EXHAUSTION;
+      SET_BIT_AR(af.bitvector, AFF_FATIGUED);
       GET_MOVE(victim) -= 20;
       if (GET_MOVE(victim) < 0)
         GET_MOVE(victim) = 0;
@@ -1486,15 +1594,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
       act("You have been inflicted with heavy fatigue!", FALSE, victim, 0, ch, TO_CHAR);
       act("$n seems to be inflicted with heavy fatigue!", TRUE, victim, 0, ch, TO_ROOM);
 
-      for (i = 0; i < 1; i++)
-      {
-        if (af[i].bitvector[0] || af[i].bitvector[1] ||
-            af[i].bitvector[2] || af[i].bitvector[3] ||
-            (af[i].location != APPLY_NONE))
-        {
-          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
-        }
-      }
+      affect_to_char(victim, &af);
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
@@ -1509,8 +1609,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 {
   
-  struct affected_type af[2];
-  int i = 0;
+  struct affected_type af;
   /*
    * level
    * weapon
@@ -1523,7 +1622,10 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
 
-      damage(ch, victim, dice(2, 8), TYPE_SPECAB_THUNDERING, DAM_SOUND, FALSE);
+      if (!victim)
+        break;
+
+      damage(ch, victim, dice(2, 10), TYPE_SPECAB_THUNDERING, DAM_SOUND, FALSE);
 
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
       {
@@ -1532,22 +1634,17 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
         return;
       }
 
-      af[0].duration = 2;
-      af[0].location = SPELL_DEAFNESS;
-      SET_BIT_AR(af[0].bitvector, AFF_DEAF);
+      new_affect(&af);
+      af.duration = 2;
+      af.spell = SPELL_DEAFNESS;
+      SET_BIT_AR(af.bitvector, AFF_DEAF);
 
       act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
       act("$n seems to have been deafened!", TRUE, victim, 0, ch, TO_ROOM);
 
-      for (i = 0; i < 1; i++)
-      {
-        if (af[i].bitvector[0] || af[i].bitvector[1] ||
-            af[i].bitvector[2] || af[i].bitvector[3] ||
-            (af[i].location != APPLY_NONE))
-        {
-          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
-        }
-      }
+      affect_to_char(victim, &af);
+
+      
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
@@ -1562,8 +1659,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
 {
   
-  struct affected_type af[2];
-  int i = 0;
+  struct affected_type af;
   /*
    * level
    * weapon
@@ -1587,25 +1683,20 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
         return;
       }
 
-      af[0].spell = SPELL_CONFUSION;
-      af[0].location = APPLY_NONE;
-      af[0].modifier = 0;
-      af[0].duration = 1;
-      af[0].bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
+      new_affect(&af);
+
+      af.spell = SPELL_CONFUSION;
+      af.location = APPLY_NONE;
+      af.modifier = 0;
+      af.duration = 1;
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af.bitvector, AFF_CONFUSED);
 
       act("You feel extremely confused.", FALSE, victim, 0, ch, TO_CHAR);
       act("$n seems extremely confused.", TRUE, victim, 0, ch, TO_ROOM);
 
-      for (i = 0; i < 1; i++)
-      {
-        if (af[i].bitvector[0] || af[i].bitvector[1] ||
-            af[i].bitvector[2] || af[i].bitvector[3] ||
-            (af[i].location != APPLY_NONE))
-        {
-          affect_join(victim, af + i, FALSE, FALSE, FALSE, FALSE);
-        }
-      }
+      affect_to_char(victim, &af);
+
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
@@ -1620,8 +1711,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
 WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
 {
   
-  struct affected_type af[2];
-  int i = 0;
+  struct affected_type af;
+
   /*
    * level
    * weapon
@@ -1640,12 +1731,14 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
          (GET_NPC_RACE(ch) == RACE_TYPE_OOZE))
          return;
 
-      af[0].spell = TYPE_SPECAB_BLEEDING;
-      af[0].location = APPLY_NONE;
-      af[0].modifier = 1;
-      af[0].duration = 3;
-      af[0].bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af[0].bitvector, AFF_BLEED);
+      new_affect(&af);
+
+      af.spell = TYPE_SPECAB_BLEEDING;
+      af.location = APPLY_SPECIAL;
+      af.modifier = 1 + MAX(0, get_char_affect_modifier(victim, TYPE_SPECAB_BLEEDING, APPLY_SPECIAL));
+      af.duration = 3;
+      af.bonus_type = BONUS_TYPE_UNDEFINED;
+      SET_BIT_AR(af.bitvector, AFF_BLEED);
 
       if (AFF_FLAGGED(victim, AFF_BLEED))
       {
@@ -1656,15 +1749,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
         act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
       }
 
-      for (i = 0; i < 1; i++)
-      {
-        if (af[i].bitvector[0] || af[i].bitvector[1] ||
-            af[i].bitvector[2] || af[i].bitvector[3] ||
-            (af[i].location != APPLY_NONE))
-        {
-          affect_join(victim, af + i, FALSE, FALSE, TRUE, FALSE);
-        }
-      }
+      affect_to_char(victim, &af);
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
@@ -1690,6 +1775,9 @@ char * get_weapon_specab_default_command_word(int specab)
     case WEAPON_SPECAB_FROST:
     case WEAPON_SPECAB_ICY_BURST:
       return strdup("glacier");
+    case WEAPON_SPECAB_SHOCK:
+    case WEAPON_SPECAB_SHOCKING_BURST:
+      return strdup("spark");
     case WEAPON_SPECAB_VICIOUS:
       return strdup("ferocity");
     case WEAPON_SPECAB_VORPAL:

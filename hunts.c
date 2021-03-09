@@ -393,7 +393,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   Y_LOC(mob) = world[room].coords[1];
   char_to_room(mob, room);
   
-  send_to_room(room, "\tYYou've come across a hunt target: %s!\tn\r\n", CAP(mob->player.short_descr));
+  send_to_room(room, "\tYYou've come across a hunt target: %s!\tn\r\n", mob->player.short_descr);
 }
 
 void select_hunt_coords(int which_hunt)
