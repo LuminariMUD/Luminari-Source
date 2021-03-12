@@ -1251,6 +1251,11 @@ int compute_gear_spell_failure(struct char_data *ch)
     spell_failure = spell_failure / count;
   }
 
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    spell_failure += 25;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    spell_failure += 35;  
+
   /* 5% improvement in spell success with this feat */
   spell_failure -= HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING) * 5;
   // Spellsword ignore spell fail
@@ -1298,6 +1303,11 @@ int compute_gear_armor_penalty(struct char_data *ch)
       }
     }
   }
+
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    armor_penalty -= 4;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    armor_penalty -= 6;
 
   // for masterwork armor, all 4 pieces need to be masterwork to get the benefit
   if ((masterwork_bonus / 4) >= 1)

@@ -2499,7 +2499,7 @@ ACMD(do_eat)
     if (GET_LEVEL(ch) < LVL_IMMORT || !PRF_FLAGGED(ch, PRF_NOHASSLE))
       attach_mud_event(new_mud_event(eMAGIC_FOOD, ch, NULL), 3000);
   }
-  if (GET_OBJ_VAL(food, 3) && (GET_LEVEL(ch) < LVL_IMMORT))
+  if (GET_OBJ_VAL(food, 3) && (GET_LEVEL(ch) < LVL_IMMORT) && can_poison(ch))
   {
     /* The crap was poisoned ! */
     send_to_char(ch, "Oops, that tasted rather strange!\r\n");

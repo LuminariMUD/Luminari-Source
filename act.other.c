@@ -2017,10 +2017,16 @@ ACMD(do_respec)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char arg2[MAX_INPUT_LENGTH] = {'\0'};
   int class = -1;
-  struct follow_type *f = NULL;
 
   if (IS_NPC(ch) || !ch->desc)
     return;
+
+  if (GROUP(ch) || ch->master || ch->followers)
+  {
+    send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to respec.\r\n"
+                     "You can dismiss npc followers with the 'dismiss' command.\r\n");
+    return;
+  }
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
@@ -2086,14 +2092,6 @@ ACMD(do_respec)
 
     leave_group(ch);
     stop_follower(ch);
-    // for some reason we're crashing on stop_follower, so we've done this hack.
-    // It needs to be looked at and fixed at some point though.
-    for (f = ch->followers; f; f = f->next) {
-      if (f->follower) {
-        f->follower->master = NULL;
-      }
-    }
-    ch->followers = NULL; // I know this is bad.  Will need to revisit.
     
     do_start(ch);
     HAS_SET_STATS_STUDY(ch) = FALSE;
@@ -5493,6 +5491,18 @@ ACMD(do_use)
   int check_result;
   int spell;
   int umd_ability_score;
+
+  if (subcmd == SCMD_QUAFF && affected_by_spell(ch, PSIONIC_OAK_BODY))
+  {
+    send_to_char(ch, "You can't quaff potions while in oak body form.\r\n");
+    return;
+  }
+
+  if (subcmd == SCMD_QUAFF && affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+  {
+    send_to_char(ch, "You can't quaff potions while in iron body form.\r\n");
+    return;
+  }
 
   half_chop_c(argument, arg, sizeof(arg), buf, sizeof(buf));
 

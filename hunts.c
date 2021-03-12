@@ -573,17 +573,18 @@ SPECIAL(huntsmaster)
       send_to_char(ch, "%-20s %-5d %-16s %s\r\n", hunt_table[active_hunts[i][0]].name, hunt_table[active_hunts[i][0]].level, reported, (GET_LEVEL(ch) >= LVL_IMMORT) ? actual : "");
     }
 
+    hours = hunt_reset_timer / 600;
+    minutes = (hunt_reset_timer - (hours * 600)) / 10;
+    seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
+
+    send_to_char(ch, "\r\nTime until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
+
     if (count == 0)
     {
       send_to_char(ch, "There are no active hunts right now.\r\n");
       return 1;
     }
 
-    hours = hunt_reset_timer / 600;
-    minutes = (hunt_reset_timer - (hours * 600)) / 10;
-    seconds = hunt_reset_timer - ((hours * 600) + (minutes * 10));
-
-    send_to_char(ch, "\r\nTime until next hunt targets: %d hour(s), %d minute(s), %d seconds", hours, minutes, seconds * 6 );
   }
   else if (CMD_IS("list"))
   {
