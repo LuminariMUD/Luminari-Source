@@ -198,7 +198,7 @@ void initialize_special_abilities(void)
   add_weapon_special_ability(WEAPON_SPECAB_DISTANCE, "Distance", 6, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, DIVINATION, 1, NULL);
 
-add_weapon_special_ability(WEAPON_SPECAB_EXHAUSTING, "Exhausting", 8, ACTMTD_ON_CRIT,
+  add_weapon_special_ability(WEAPON_SPECAB_EXHAUSTING, "Exhausting", 8, ACTMTD_ON_CRIT,
                              TAR_FIGHT_VICT, FALSE, 0, CONJURATION, 1, weapon_specab_exhausting);
 
   add_weapon_special_ability(WEAPON_SPECAB_FLAMING, "Flaming", 10, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
@@ -219,7 +219,7 @@ add_weapon_special_ability(WEAPON_SPECAB_EXHAUSTING, "Exhausting", 8, ACTMTD_ON_
   add_weapon_special_ability(WEAPON_SPECAB_ICY_BURST, "Icy Burst", 10, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-add_weapon_special_ability(WEAPON_SPECAB_INVIGORATING, "Invigorating", 18, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_INVIGORATING, "Invigorating", 18, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_invigorating);
 
   add_weapon_special_ability(WEAPON_SPECAB_KEEN, "Keen", 10, ACTMTD_NONE,
@@ -228,7 +228,7 @@ add_weapon_special_ability(WEAPON_SPECAB_INVIGORATING, "Invigorating", 18, ACTMT
   add_weapon_special_ability(WEAPON_SPECAB_KI_FOCUS, "Ki Focus", 8, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, TRANSMUTATION, 1, NULL);
 
-add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, ENCHANTMENT, 1, NULL);
 
   add_weapon_special_ability(WEAPON_SPECAB_MERCIFUL, "Merciful", 5, ACTMTD_NONE,
@@ -264,7 +264,7 @@ add_weapon_special_ability(WEAPON_SPECAB_LUCKY, "Lucky", 6, ACTMTD_NONE,
   add_weapon_special_ability(WEAPON_SPECAB_UNHOLY, "Unholy", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-add_weapon_special_ability(WEAPON_SPECAB_VAMPIRIC, "Vampiric", 18, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_VAMPIRIC, "Vampiric", 18, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_vampiric);
 
   add_weapon_special_ability(WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,
@@ -614,7 +614,7 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
       }
 
       found = TRUE;
-      if (MOB_FLAGGED(tch, MOB_NOBLIND))
+      if (!can_blind(tch))
       {
         continue;
       }
@@ -1514,7 +1514,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
   {
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
-    if (MOB_FLAGGED(victim, MOB_NOBLIND))
+    if (!can_blind(victim))
       {
         return;
       }
@@ -1627,6 +1627,12 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 
       damage(ch, victim, dice(2, 10), TYPE_SPECAB_THUNDERING, DAM_SOUND, FALSE);
 
+      if (!can_deafen(victim))
+      {
+        send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
+        return;
+      }
+
       if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
       {
         act("You resist the thunderlcap from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
@@ -1673,6 +1679,12 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
     if (MOB_FLAGGED(victim, MOB_NOCONFUSE))
       {
+        return;
+      }
+
+      if (!can_confuse(victim))
+      {
+        send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
         return;
       }
 

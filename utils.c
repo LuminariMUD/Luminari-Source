@@ -4538,3 +4538,104 @@ void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam)
       break;
   }
 }
+
+// returns true if the target doesn't have immunity to blindness
+bool can_blind(struct char_data *ch)
+{
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOBLIND))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to deafness
+bool can_deafen(struct char_data *ch)
+{
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NODEAF))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to disease
+bool can_disease(struct char_data *ch)
+{
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
+    return false;
+  if (IS_CONSTRUCT(ch))
+    return false;
+  if (IS_UNDEAD(ch))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to poison
+bool can_poison(struct char_data *ch)
+{
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
+    return false;
+  if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
+    return false;
+  if (IS_CONSTRUCT(ch))
+    return false;
+  if (IS_UNDEAD(ch))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to stun
+bool can_stun(struct char_data *ch)
+{
+  if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return false;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+
+  return true;
+}
+
+// returns true if the target doesn't have immunity to confusion
+bool can_confuse(struct char_data *ch)
+{
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_NOCONFUSE))
+    return false;
+
+  return true;
+}
+
+// returns true if under the effect of psionic body forms such as oak body, shadow body, body of iron
+bool has_psionic_body_form_active(struct char_data *ch)
+{
+    if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    return true;
+  if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return true;
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+    return true;
+
+  return false;
+}

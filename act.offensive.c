@@ -1367,7 +1367,7 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict)
     dam = dice(1, GET_LEVEL(ch));
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
 
-    if (!savingthrow(vict, SAVING_REFL, 0, (10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch))))
+    if (!savingthrow(vict, SAVING_REFL, 0, (10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch))) && can_blind(vict))
     {
       new_affect(&af);
       af.spell = SKILL_DIRT_KICK;
@@ -1376,12 +1376,9 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict)
       af.duration = dice(1, GET_LEVEL(ch) / 5);
       af.location = APPLY_HITROLL;
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
-      act("$n blinds $N with the debris!!",
-          FALSE, ch, NULL, vict, TO_NOTVICT);
-      act("You blind $N with debris!",
-          FALSE, ch, NULL, vict, TO_CHAR);
-      act("$n blinds you with debris!!",
-          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
+      act("$n blinds $N with the debris!!", FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You blind $N with debris!", FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n blinds you with debris!!", FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
     }
   }
   else

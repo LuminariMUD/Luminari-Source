@@ -1316,6 +1316,11 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     to_room = "The acid burns into $n's flash";
     break;
   case BOMB_BLINDING:
+    if (!can_blind(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+      return;
+    }
     af.spell = BOMB_AFFECT_BLINDING;
     af.duration = 10;
     af.location = APPLY_HITROLL;
@@ -1340,6 +1345,11 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     to_room = "$n starts to bleed.";
     break;
   case BOMB_CONCUSSIVE:
+    if (!can_deafen(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
+      return;
+    }
     af.spell = BOMB_AFFECT_CONCUSSIVE;
     af.duration = 10;
     SET_BIT_AR(af.bitvector, AFF_DEAF);
@@ -1347,6 +1357,11 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     to_room = "$n has been deafened!";
     break;
   case BOMB_CONFUSION:
+    if (!can_confuse(victim))
+    {
+      send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
+      return;
+    }
     af.spell = BOMB_AFFECT_CONFUSION;
     af.duration = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
     SET_BIT_AR(af.bitvector, AFF_CONFUSED);
@@ -1407,6 +1422,11 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
     to_room = "$n looks dazzled.";
     break;
   case BOMB_SUNLIGHT:
+    if (!can_blind(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+      return;
+    }
     af.spell = BOMB_AFFECT_SUNLIGHT;
     af.duration = 10;
     af.location = APPLY_HITROLL;
@@ -3037,6 +3057,12 @@ ACMD(do_poisontouch)
   if (!vict)
   {
     send_to_char(ch, "You can only use this ability in combat.\r\n");
+    return;
+  }
+
+  if (!can_poison(vict))
+  {
+    send_to_char(ch, "Your opponent doesn't seem susceptible to poison.\r\n");
     return;
   }
 

@@ -224,6 +224,13 @@ int get_power_penetrate_mod(struct char_data *ch);
 int get_power_resist_mod(struct char_data *ch);
 bool is_spellnum_psionic(int spellnum);
 void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam);
+bool can_blind(struct char_data *ch);
+bool can_deafen(struct char_data *ch);
+bool can_disease(struct char_data *ch);
+bool can_poison(struct char_data *ch);
+bool can_stun(struct char_data *ch);
+bool can_confuse(struct char_data *ch);
+bool has_psionic_body_form_active(struct char_data *ch);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

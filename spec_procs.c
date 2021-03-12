@@ -1794,7 +1794,7 @@ void yan_windgust(struct char_data *ch)
       act("\tw$N is blasted by a \tCf\tci\twer\tcc\tCe\tc gust\tw of wind hurled by $n.\tn",
           FALSE, ch, 0, vict, TO_NOTVICT);
       damage(ch, vict, dam, -1, DAM_AIR, FALSE); //-1 type = no dam mess
-      if (dice(1, 40) > GET_CON(vict))
+      if (dice(1, 40) > GET_CON(vict) && can_stun(vict))
       {
         new_affect(&af);
         af.spell = SKILL_CHARGE;
@@ -6366,7 +6366,7 @@ SPECIAL(fog_dagger)
           ch, vict, (struct obj_data *)me, 0);
 
       // Sets the vict blind for 1-3 rounds
-      if (!AFF_FLAGGED(vict, AFF_BLIND))
+      if (!AFF_FLAGGED(vict, AFF_BLIND) && can_blind(vict))
       {
         new_affect(&af);
         af.spell = SPELL_BLINDNESS;
@@ -7628,6 +7628,7 @@ SPECIAL(halberd)
   switch (rand_number(0, 30))
   {
   case 27:
+    if (!can_stun(vict)) return FALSE;
     // A slight chance to stun
     weapons_spells(
         "\tcYour\tn $p \tcreverberates loudly as it sends\tn\r\n"

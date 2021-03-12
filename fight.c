@@ -369,6 +369,20 @@ void appear(struct char_data *ch, bool forced)
       return;
   }
 
+  if (affected_by_spell(ch, PSIONIC_SHADOW_BODY))
+  {
+    if (forced)
+    {
+      affect_from_char(ch, SPELL_INVISIBLE);
+      if (AFF_FLAGGED(ch, AFF_INVISIBLE))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
+      send_to_char(ch, "You snap into visibility...\r\n");
+      act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
+    }
+    else
+      return;
+  }
+
   /* this has to come after greater_invis */
   if (AFF_FLAGGED(ch, AFF_INVISIBLE))
   {
@@ -2932,6 +2946,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
   if (dam > 0 && ok_damage_handling(attacktype) && victim != ch)
   {
 
+    if (dam_type == DAM_POISON && !can_poison(victim))
+      return 0;
     /* handle concealment */
     int concealment = compute_concealment(victim);
     // seeking weapons (ranged weapons only) bypass concealment always
@@ -3313,6 +3329,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
+  struct affected_type af;
 
   if (offhand == 2)
     is_ranged = TRUE;
@@ -3628,7 +3645,26 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     appear(ch, FALSE);
 
   if (GET_POS(victim) == POS_DEAD) // victim died
+  {
+    if (w_type == PSIONIC_ASSIMILATE)
+    {
+      if (affected_by_spell(ch, PSIONIC_ASSIMILATE))
+        GET_HIT(ch) -= get_char_affect_modifier(ch, PSIONIC_ASSIMILATE, APPLY_HIT);
+      GET_HIT(ch) = MAX(1, GET_HIT(ch));
+      affect_from_char(ch, PSIONIC_ASSIMILATE);
+      new_affect(&af);
+      af.spell = PSIONIC_ASSIMILATE;
+      af.location = APPLY_HIT;
+      af.modifier = 5 * GET_LEVEL(victim);
+      af.duration = 600;
+      GET_HIT(ch) += af.modifier;
+      affect_to_char(ch, &af);
+      act("You fully assimilate the form of $N gaining some of $S power.", false, ch, 0, victim, TO_CHAR);
+      act("$n fully assimilates your form, gaining some of your power.", false, ch, 0, victim, TO_VICT);
+      act("$n fully assimilates the form of $N gaining some of $S power.", false, ch, 0, victim, TO_NOTVICT);
+    }
     return (dam_killed_vict(ch, victim));
+  }
 
   return (dam);
 }
@@ -4200,8 +4236,16 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
       }
       else
       {
-        *diceOne = 1;
-        *diceTwo = 2;
+        if (affected_by_spell(ch, PSIONIC_OAK_BODY) || affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+        {
+          *diceOne = 1;
+          *diceTwo = 6;
+        }
+        else
+        {
+          *diceOne = 1;
+          *diceTwo = 2;
+        }
       }
     }
   }
@@ -4556,6 +4600,9 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     FIGHTING(ch)->preserve_organs_procced = TRUE;
     return FALSE;
   }
+
+  if (FIGHTING(ch) && (affected_by_spell(FIGHTING(ch), PSIONIC_BODY_OF_IRON) || affected_by_spell(FIGHTING(ch), PSIONIC_SHADOW_BODY)))
+    return FALSE;
 
   threat_range = determine_threat_range(ch, wielded);
 

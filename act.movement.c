@@ -3610,6 +3610,10 @@ int get_speed(struct char_data *ch, sbyte to_display)
     speed /= 2;
   else if (affected_by_spell(ch, PSIONIC_DECELERATION))
     speed /= 2;
+  else if (affected_by_spell(ch, PSIONIC_OAK_BODY))
+    speed /= 2;
+  else if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    speed /= 2;
 
   return speed;
 }

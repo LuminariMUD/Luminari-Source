@@ -528,11 +528,17 @@ void regen_update(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_REGEN))
     hp *= 2;
 
+  if (affected_by_spell(ch, PSIONIC_TRUE_METABOLISM))
+    hp += 10;
+
   /****/
 
+  // we don't have hunger and thirst here.
+  /*
   if (rand_number(0, 3) && GET_LEVEL(ch) <= LVL_IMMORT && !IS_NPC(ch) &&
       (GET_COND(ch, THIRST) == 0 || GET_COND(ch, HUNGER) == 0))
     hp = 0;
+  */
 
   /* blackmantle stops natural regeneration */
   if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
@@ -543,8 +549,7 @@ void regen_update(struct char_data *ch)
   {
     if (!rand_number(0, 1))
     {
-      GET_HIT(ch)
-      --;
+      GET_HIT(ch)--;
     }
   }
   else
@@ -554,8 +559,7 @@ void regen_update(struct char_data *ch)
 
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
-    GET_MOVE(ch)
-    --;
+    GET_MOVE(ch)--;
   }
   else if (!AFF_FLAGGED(ch, AFF_FATIGUED))
   {
@@ -574,8 +578,7 @@ void regen_update(struct char_data *ch)
 
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
-    GET_PSP(ch)
-    --;
+    GET_PSP(ch)--;
   }
   else
   {

@@ -345,6 +345,11 @@ EVENTFUNC(event_trap_triggered)
         break;
 
       case TRAP_EFFECT_POISON_GAS:
+        if (!can_poison(ch))
+        {
+          send_to_char(ch, "You are not susceptible to the trap's poison.\r\n");
+          return 0;
+        }
         af.duration = 10;
         to_char = "\tgPoisonous gas seeps out entering your lungs!  You feel ill!\tn";
         to_room = "\tgPoisonous gas seeps out into the area!!!\tn";
