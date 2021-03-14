@@ -1416,7 +1416,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
         GET_SKILL(ch, skillnum)++;
       }
       break;
-    case SKILL_SUPRISE_ACCURACY:
+    case SKILL_SURPRISE_ACCURACY:
       if (!use) {
         notched = TRUE;
         GET_SKILL(ch, skillnum)++;

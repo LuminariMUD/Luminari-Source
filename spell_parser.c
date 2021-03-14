@@ -3392,7 +3392,7 @@ void mag_assign_spells(void)
           NULL, 0, 0, NOSCHOOL, FALSE);
    */
 
-        spello(SKILL_SUPRISE_ACCURACY, "surprise accuracy", 0, 0, 0, POS_STANDING, // 529
+        spello(SKILL_SURPRISE_ACCURACY, "surprise accuracy", 0, 0, 0, POS_STANDING, // 529
                TAR_IGNORE, FALSE, 0,
                "The effects of your surprise accuracy have expired.", 0, 0, NOSCHOOL, FALSE);
         spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
@@ -3596,7 +3596,7 @@ void mag_assign_spells(void)
         skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL);                     //526
         skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL);                 //527
         skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL);               //528
-        skillo(SKILL_SUPRISE_ACCURACY, "suprise accuracy", ACTIVE_SKILL);           //529
+        skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);           //529
         skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL);                 //530
         skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL);                   //531
         skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL);             //532

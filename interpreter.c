@@ -639,7 +639,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldcharge},
     {"shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldslam},
     {"springleap", "springleap", POS_RECLINING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
-    {"supriseaccuracy", "supriseaccuracy", POS_FIGHTING, do_supriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_supriseaccuracy},
+    {"surpriseaccuracy", "surpriseaccuracy", POS_FIGHTING, do_surpriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_surpriseaccuracy},
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"seekerarrow", "seekerarrow", POS_FIGHTING, do_seekerarrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_seekerarrow},
     {"survey", "survey", POS_RECLINING, do_survey, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
