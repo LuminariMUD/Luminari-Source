@@ -162,20 +162,20 @@ void perform_stunningfist(struct char_data *ch)
   act("$n's focuses $s Ki, preparing a disabling unarmed attack!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-/* rp_suprise_accuracy engine */
+/* rp_surprise_accuracy engine */
 
-/* The suprise-accuracy is reliant on rage */
-void perform_supriseaccuracy(struct char_data *ch)
+/* The surprise-accuracy is reliant on rage */
+void perform_surpriseaccuracy(struct char_data *ch)
 {
   struct affected_type af;
 
   new_affect(&af);
-  af.spell = SKILL_SUPRISE_ACCURACY;
+  af.spell = SKILL_SURPRISE_ACCURACY;
   af.duration = 24;
 
   affect_to_char(ch, &af);
 
-  attach_mud_event(new_mud_event(eSUPRISE_ACCURACY, ch, NULL), SECS_PER_MUD_DAY * 1);
+  attach_mud_event(new_mud_event(eSURPRISE_ACCURACY, ch, NULL), SECS_PER_MUD_DAY * 1);
 
   send_to_char(ch, "You focus your rage and prepare a surprise accurate attack.\r\n");
   act("$n's focuses $s rage, preparing a surprise accuracy attack!", FALSE, ch, 0, 0, TO_ROOM);
@@ -1892,9 +1892,9 @@ void clear_rage(struct char_data *ch)
   }
 
   /* clearing some rage powers */
-  if (char_has_mud_event(ch, eSUPRISE_ACCURACY))
+  if (char_has_mud_event(ch, eSURPRISE_ACCURACY))
   {
-    change_event_duration(ch, eSUPRISE_ACCURACY, 0);
+    change_event_duration(ch, eSURPRISE_ACCURACY, 0);
   }
   if (char_has_mud_event(ch, ePOWERFUL_BLOW))
   {
@@ -5101,23 +5101,23 @@ ACMD(do_stunningfist)
   perform_stunningfist(ch);
 }
 
-ACMDCHECK(can_supriseaccuracy)
+ACMDCHECK(can_surpriseaccuracy)
 {
-  ACMDCHECK_PREREQ_HASFEAT(FEAT_RP_SUPRISE_ACCURACY, "You have no idea how.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_SUPRISE_ACCURACY), "You have already focused your rage into accuracy!\r\n");
-  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eSUPRISE_ACCURACY), "You are too exhausted to use suprise accuracy again!\r\n");
-  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), "You are are too fatigued to use suprise accuracy!\r\n");
-  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_RAGE), "You need to be raging to use suprise accuracy!\r\n");
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_RP_SURPRISE_ACCURACY, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, SKILL_SURPRISE_ACCURACY), "You have already focused your rage into accuracy!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(char_has_mud_event(ch, eSURPRISE_ACCURACY), "You are too exhausted to use surprise accuracy again!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(AFF_FLAGGED(ch, AFF_FATIGUED), "You are are too fatigued to use surprise accuracy!\r\n");
+  ACMDCHECK_TEMPFAIL_IF(!affected_by_spell(ch, SKILL_RAGE), "You need to be raging to use surprise accuracy!\r\n");
   return CAN_CMD;
 }
 
-ACMD(do_supriseaccuracy)
+ACMD(do_surpriseaccuracy)
 {
 
   PREREQ_NOT_NPC();
-  PREREQ_CHECK(can_supriseaccuracy);
+  PREREQ_CHECK(can_surpriseaccuracy);
 
-  perform_supriseaccuracy(ch);
+  perform_surpriseaccuracy(ch);
 }
 
 ACMDCHECK(can_comeandgetme)

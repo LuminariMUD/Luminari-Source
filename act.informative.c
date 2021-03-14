@@ -1754,8 +1754,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Animate Dead Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSTUNNINGFIST)))
     send_to_char(ch, "Stunning Fist Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eSUPRISE_ACCURACY)))
-    send_to_char(ch, "Suprise Accuracy Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSURPRISE_ACCURACY)))
+    send_to_char(ch, "Surprise Accuracy Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCOME_AND_GET_ME)))
     send_to_char(ch, "Come and Get Me! Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePOWERFUL_BLOW)))

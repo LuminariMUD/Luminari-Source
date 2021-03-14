@@ -80,7 +80,7 @@ typedef enum
   eQUIVERINGPALM,                         /* cooldown for quivering palm */
   /*50*/ eSWIFTACTION,                    /* Swift action cooldown */
   eTRAPTRIGGERED,                         /* Trap Triggered */
-  eSUPRISE_ACCURACY,                      /* rage power suprise accuracy */
+  eSURPRISE_ACCURACY,                      /* rage power surprise accuracy */
   ePOWERFUL_BLOW,                         /* rage power powerful blow */
   eRENEWEDVIGOR,                          /* Renewed Vigor, Berserker Healing Feat */
   /*55*/ eCOME_AND_GET_ME,                /* rage power 'come and get me' */

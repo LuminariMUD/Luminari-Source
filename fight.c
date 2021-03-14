@@ -5739,7 +5739,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* Luck bonus */
 
   /* Morale bonus */
-  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY))
+  if (affected_by_spell(ch, SKILL_SURPRISE_ACCURACY))
   {
     bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
   }
@@ -6536,10 +6536,10 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, SKILL_QUIVERING_PALM);
   }
 
-  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY))
+  if (affected_by_spell(ch, SKILL_SURPRISE_ACCURACY))
   {
-    send_to_char(ch, "You fail to land your suprise accuracy attack!  ");
-    affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
+    send_to_char(ch, "You fail to land your surprise accuracy attack!  ");
+    affect_from_char(ch, SKILL_SURPRISE_ACCURACY);
   }
 
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW))
@@ -6623,10 +6623,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     affect_from_char(ch, PSIONIC_INEVITABLE_STRIKE);
   }
   /* rage powers */
-  if (affected_by_spell(ch, SKILL_SUPRISE_ACCURACY))
+  if (affected_by_spell(ch, SKILL_SURPRISE_ACCURACY))
   {
-    send_to_char(ch, "[\tWSUPRISE_ACCURACY\tn] ");
-    affect_from_char(ch, SKILL_SUPRISE_ACCURACY);
+    send_to_char(ch, "[\tWSURPRISE_ACCURACY\tn] ");
+    affect_from_char(ch, SKILL_SURPRISE_ACCURACY);
   }
   int powerful_blow_bonus = 0;
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW))

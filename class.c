@@ -4273,7 +4273,7 @@ void load_class_list(void)
   feat_assignment(CLASS_BERSERKER, FEAT_UNCANNY_DODGE, Y, 2, N);
   feat_assignment(CLASS_BERSERKER, FEAT_TRAP_SENSE, Y, 3, Y);
   /* rage power (level 3) */
-  feat_assignment(CLASS_BERSERKER, FEAT_RP_SUPRISE_ACCURACY, Y, 3, N);
+  feat_assignment(CLASS_BERSERKER, FEAT_RP_SURPRISE_ACCURACY, Y, 3, N);
   feat_assignment(CLASS_BERSERKER, FEAT_RAGE, Y, 4, Y);
   feat_assignment(CLASS_BERSERKER, FEAT_SHRUG_DAMAGE, Y, 4, Y);
   feat_assignment(CLASS_BERSERKER, FEAT_IMPROVED_UNCANNY_DODGE, Y, 5, N);

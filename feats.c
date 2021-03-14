@@ -2886,7 +2886,7 @@ void assign_feats(void)
   /*temporary mechanic*/ feato(FEAT_FAST_MOVEMENT, "fast movement", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
                                "reduces movement usage, and increases movement regen",
                                "Reduces movement usage, and increases movement regeneration.  This is a temporary mechanic.");
-  /*rage power*/ feato(FEAT_RP_SUPRISE_ACCURACY, "suprise accuracy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*rage power*/ feato(FEAT_RP_SURPRISE_ACCURACY, "surprise accuracy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                        "bonus hitroll once/rage",
                        "Gain a +1 morale bonus on one attack roll.  This bonus increases by +1 for "
                        "every 4 berserker levels attained. This power is used as a swift action.  This power "
