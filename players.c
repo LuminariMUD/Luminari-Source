@@ -2751,11 +2751,20 @@ void save_char_pets(struct char_data *ch)
 
   struct follow_type *f = NULL;
   struct char_data *tch = NULL;
-  char query[200];
+  char query[MEDIUM_STRING];
+  char query2[MEDIUM_STRING];
+  char query3[MEDIUM_STRING];
+  char finalQuery[MEDIUM_STRING*2];
+  char *end = NULL, *end2 = NULL;
 
   mysql_ping(conn);
 
-  snprintf(query, sizeof(query), "DELETE FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+  end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");
+  *end++ = '\'';
+  end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
+  *end++ = '\'';
+  *end++ = '\0';
+
   if (mysql_query(conn, query))
   {
     log("SYSERR: Unable to DELETE from pet_data: %s", mysql_error(conn));
@@ -2769,11 +2778,19 @@ void save_char_pets(struct char_data *ch)
     tch = f->follower;
     if (!IS_NPC(tch)) continue;
     if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
-    snprintf(query, sizeof(query), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,"
-                    "'%s','%d','%d','%d','%d','%d','%d','%d','%d')",
-                    GET_NAME(ch), GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,");
+
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,");
+    *end2++ = '\'';
+    end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
+    *end2++ = '\'';
+    *end2++ = '\0';
+
+    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d')",
+                    GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
                     GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch));
-    if (mysql_query(conn, query))
+    snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
+    if (mysql_query(conn, finalQuery))
     {
       log("SYSERR: Unable to INSERT INTO pet_data: %s", mysql_error(conn));
       return;
