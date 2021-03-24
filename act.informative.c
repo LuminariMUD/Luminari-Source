@@ -5650,8 +5650,11 @@ int is_weapon_proficient(int weapon, int type)
   {
     switch (weapon)
     {
-    case WEAPON_TYPE_DWARVEN_WAR_AXE:
-    case WEAPON_TYPE_DWARVEN_URGOSH:
+      case WEAPON_TYPE_BATTLE_AXE:
+      case WEAPON_TYPE_HEAVY_PICK:
+      case WEAPON_TYPE_WARHAMMER:
+      case WEAPON_TYPE_DWARVEN_WAR_AXE:
+      case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
     }
   }
@@ -5659,8 +5662,11 @@ int is_weapon_proficient(int weapon, int type)
   {
     switch (weapon)
     {
-    case WEAPON_TYPE_DWARVEN_WAR_AXE:
-    case WEAPON_TYPE_DWARVEN_URGOSH:
+      case WEAPON_TYPE_BATTLE_AXE:
+      case WEAPON_TYPE_HEAVY_PICK:
+      case WEAPON_TYPE_WARHAMMER:
+      case WEAPON_TYPE_DWARVEN_WAR_AXE:
+      case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
     }
   }

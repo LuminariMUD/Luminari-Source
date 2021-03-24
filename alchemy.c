@@ -2157,6 +2157,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
     {
+      af.modifier = 6;
       af3.location = APPLY_CON;
       af3.modifier = 4;
     }
@@ -2179,6 +2180,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     }
     else if (KNOWS_DISCOVERY(ch, ALC_DISC_GREATER_MUTAGEN))
     {
+      af.modifier = 6;
       af3.location = APPLY_STR;
       af3.modifier = 4;
     }

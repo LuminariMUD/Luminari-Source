@@ -2102,7 +2102,7 @@ void assign_feats(void)
         "At sorcerer level 20, your physical form begins to rot, and undead see you as "
         "one of them. You gain immunity to cold damage, nonlethal damage, and DR 5/- from all other damage. "
         "You also gain immunity to paralysis and sleep affects. Undead NPCs will not aggro "
-        "you. You receive a +4 moral bonus on saving throws made against spells and spell-like "
+        "you. You receive a +4 morale bonus on saving throws made against spells and spell-like "
         "abilities cast by undead.");
 
   feato(FEAT_THEURGE_SPELLCASTING, "theurge spellcasting", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,

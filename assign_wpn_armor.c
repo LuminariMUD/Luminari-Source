@@ -152,22 +152,26 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     }
   }
 
-  if (IS_DWARF(ch) &&
-      HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY))
+  if (IS_DWARF(ch))
   {
     switch (weapon)
     {
+    case WEAPON_TYPE_BATTLE_AXE:
+    case WEAPON_TYPE_HEAVY_PICK:
+    case WEAPON_TYPE_WARHAMMER:
     case WEAPON_TYPE_DWARVEN_WAR_AXE:
     case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
     }
   }
 
-  if (IS_DUERGAR(ch) &&
-      HAS_FEAT(ch, FEAT_MARTIAL_WEAPON_PROFICIENCY))
+  if (IS_DUERGAR(ch))
   {
     switch (weapon)
     {
+    case WEAPON_TYPE_BATTLE_AXE:
+    case WEAPON_TYPE_HEAVY_PICK:
+    case WEAPON_TYPE_WARHAMMER:
     case WEAPON_TYPE_DWARVEN_WAR_AXE:
     case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;

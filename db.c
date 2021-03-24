@@ -4348,7 +4348,7 @@ int is_empty(zone_rnum zone_nr)
 /* read and allocate space for a '~'-terminated string from a given file */
 char *fread_string(FILE *fl, const char *error)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513]; // = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[513] = {'\0'};
   char *point = NULL;
   int done = 0, length = 0, templength = 0;
 
