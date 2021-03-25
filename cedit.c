@@ -160,6 +160,29 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->happy_hour.gold = CONFIG_HAPPY_HOUR_GOLD;
   OLC_CONFIG(d)->happy_hour.treasure = CONFIG_HAPPY_HOUR_TREASURE;
 
+  /* Player config stuff */
+
+  OLC_CONFIG(d)->player_config.psionic_power_damage_bonus = CONFIG_PSIONIC_DAMAGE;
+  OLC_CONFIG(d)->player_config.divine_spell_damage_bonus = CONFIG_DIVINE_DAMAGE;
+  OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus = CONFIG_ARCANE_DAMAGE;
+  OLC_CONFIG(d)->player_config.psionic_mem_times = CONFIG_PSIONIC_PREP_TIME;
+  OLC_CONFIG(d)->player_config.divine_mem_times = CONFIG_DIVINE_PREP_TIME;
+  OLC_CONFIG(d)->player_config.arcane_mem_times = CONFIG_ARCANE_PREP_TIME;
+  OLC_CONFIG(d)->player_config.extra_hp_per_level = CONFIG_EXTRA_PLAYER_HP_PER_LEVEL;
+  OLC_CONFIG(d)->player_config.extra_mv_per_level = CONFIG_EXTRA_PLAYER_MV_PER_LEVEL;
+  OLC_CONFIG(d)->player_config.armor_class_cap = CONFIG_PLAYER_AC_CAP;
+  OLC_CONFIG(d)->player_config.group_level_difference_restriction = CONFIG_EXP_LEVEL_DIFFERENCE;
+  OLC_CONFIG(d)->player_config.death_exp_loss_penalty = CONFIG_DEATH_EXP_LOSS;
+  OLC_CONFIG(d)->player_config.level_1_10_summon_hp = CONFIG_SUMMON_LEVEL_1_10_HP;
+  OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam = CONFIG_SUMMON_LEVEL_1_10_HIT_DAM;
+  OLC_CONFIG(d)->player_config.level_1_10_summon_ac = CONFIG_SUMMON_LEVEL_1_10_AC;
+  OLC_CONFIG(d)->player_config.level_11_20_summon_hp = CONFIG_SUMMON_LEVEL_11_20_HP;
+  OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam = CONFIG_SUMMON_LEVEL_11_20_HIT_DAM;
+  OLC_CONFIG(d)->player_config.level_11_20_summon_ac = CONFIG_SUMMON_LEVEL_11_20_AC;
+  OLC_CONFIG(d)->player_config.level_21_30_summon_hp = CONFIG_SUMMON_LEVEL_21_30_HP;
+  OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam = CONFIG_SUMMON_LEVEL_21_30_HIT_DAM;
+  OLC_CONFIG(d)->player_config.level_21_30_summon_ac  = CONFIG_SUMMON_LEVEL_21_30_AC;
+
   /* Allocate space for the strings. */
   OLC_CONFIG(d)->play.OK = str_udup(CONFIG_OK);
   OLC_CONFIG(d)->play.NOPERSON = str_udup(CONFIG_NOPERSON);
@@ -269,6 +292,27 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_HAPPY_HOUR_QP = OLC_CONFIG(d)->happy_hour.qp;
   CONFIG_HAPPY_HOUR_GOLD = OLC_CONFIG(d)->happy_hour.gold;
   CONFIG_HAPPY_HOUR_TREASURE = OLC_CONFIG(d)->happy_hour.treasure;
+
+  CONFIG_PSIONIC_DAMAGE = OLC_CONFIG(d)->player_config.psionic_power_damage_bonus;
+  CONFIG_DIVINE_DAMAGE = OLC_CONFIG(d)->player_config.divine_spell_damage_bonus;
+  CONFIG_ARCANE_DAMAGE = OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus;
+  CONFIG_PSIONIC_PREP_TIME = OLC_CONFIG(d)->player_config.psionic_mem_times;
+  CONFIG_DIVINE_PREP_TIME = OLC_CONFIG(d)->player_config.divine_mem_times;
+  CONFIG_ARCANE_PREP_TIME = OLC_CONFIG(d)->player_config.arcane_mem_times;
+  CONFIG_EXTRA_PLAYER_HP_PER_LEVEL = OLC_CONFIG(d)->player_config.extra_hp_per_level;
+  CONFIG_EXTRA_PLAYER_MV_PER_LEVEL = OLC_CONFIG(d)->player_config.extra_mv_per_level;
+  CONFIG_PLAYER_AC_CAP = OLC_CONFIG(d)->player_config.armor_class_cap;
+  CONFIG_EXP_LEVEL_DIFFERENCE = OLC_CONFIG(d)->player_config.group_level_difference_restriction;
+  CONFIG_DEATH_EXP_LOSS = OLC_CONFIG(d)->player_config.death_exp_loss_penalty;
+  CONFIG_SUMMON_LEVEL_1_10_HP = OLC_CONFIG(d)->player_config.level_1_10_summon_hp;
+  CONFIG_SUMMON_LEVEL_1_10_HIT_DAM = OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam;
+  CONFIG_SUMMON_LEVEL_1_10_AC = OLC_CONFIG(d)->player_config.level_1_10_summon_ac;
+  CONFIG_SUMMON_LEVEL_11_20_HP = OLC_CONFIG(d)->player_config.level_11_20_summon_hp;
+  CONFIG_SUMMON_LEVEL_11_20_HIT_DAM = OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam;
+  CONFIG_SUMMON_LEVEL_11_20_AC = OLC_CONFIG(d)->player_config.level_11_20_summon_ac;
+  CONFIG_SUMMON_LEVEL_21_30_HP = OLC_CONFIG(d)->player_config.level_21_30_summon_hp;
+  CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam;
+  CONFIG_SUMMON_LEVEL_21_30_AC = OLC_CONFIG(d)->player_config.level_21_30_summon_ac;
 
   /* Allocate space for the strings. */
   if (CONFIG_OK)
@@ -643,6 +687,53 @@ int save_config(IDXTYPE nowhere)
   fprintf(fl, "* Percent Increase for chance of random treasure during automated happy hour.\n"
               "happy_hour_treasure_bonus = %d\n\n", CONFIG_HAPPY_HOUR_TREASURE);
 
+  // Player stats stuff
+  fprintf(fl, "* Percent increase on psionic power damage .\n"
+              "psionic_power_damage = %d\n\n", CONFIG_PSIONIC_DAMAGE);
+  fprintf(fl, "* Percent increase on divine spell damage .\n"
+              "divine_spell_damage = %d\n\n", CONFIG_DIVINE_DAMAGE);
+  fprintf(fl, "* Percent increase on arcane spell damage .\n"
+              "arcane_spell_damage = %d\n\n", CONFIG_ARCANE_DAMAGE);
+
+  fprintf(fl, "* Percent of psionic psp regen rate .\n"
+              "psionic_mem_times = %d\n\n", CONFIG_PSIONIC_PREP_TIME);
+  fprintf(fl, "* Percent of divine spell prep time .\n"
+              "divine_mem_times = %d\n\n", CONFIG_DIVINE_PREP_TIME);
+  fprintf(fl, "* Percent of arcane spell prep time .\n"
+              "arcane_mem_times = %d\n\n", CONFIG_ARCANE_PREP_TIME);
+
+  fprintf(fl, "* Extra hp per level for players.\n"
+              "extra_level_hp = %d\n\n", CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);  
+  fprintf(fl, "* Extra mv per level for players.\n"
+              "extra_level_mv = %d\n\n", CONFIG_EXTRA_PLAYER_MV_PER_LEVEL);
+  fprintf(fl, "* Maximum player armor class.\n"
+              "ac_cap = %d\n\n", CONFIG_PLAYER_AC_CAP);
+  fprintf(fl, "* Maximum difference in player and mob level for exp.\n"
+              "exp_level_difference = %d\n\n", CONFIG_EXP_LEVEL_DIFFERENCE);
+  fprintf(fl, "* Percentage compared to normal, for exp loss when a player dies.\n"
+              "death_exp_loss_penalty = %d\n\n", CONFIG_DEATH_EXP_LOSS);
+
+  fprintf(fl, "* Percentage of summoned charmies hp compared to normal, level 1-10 summons.\n"
+              "summon_1_10_hp = %d\n\n", CONFIG_SUMMON_LEVEL_1_10_HP);
+  fprintf(fl, "* Percentage of summoned charmies hit and dam compared to normal, level 1-10 summons.\n"
+              "summon_1_10_hit_dam = %d\n\n", CONFIG_SUMMON_LEVEL_1_10_HIT_DAM);
+  fprintf(fl, "* Percentage of summoned charmies ac compared to normal, level 1-10 summons.\n"
+              "summon_1_10_ac = %d\n\n", CONFIG_SUMMON_LEVEL_1_10_AC);
+
+  fprintf(fl, "* Percentage of summoned charmies hp compared to normal, level 11-20 summons.\n"
+              "summon_11_20_hp = %d\n\n", CONFIG_SUMMON_LEVEL_11_20_HP);
+  fprintf(fl, "* Percentage of summoned charmies hit and dam compared to normal, level 11-20 summons.\n"
+              "summon_11_20_hit_dam = %d\n\n", CONFIG_SUMMON_LEVEL_11_20_HIT_DAM);
+  fprintf(fl, "* Percentage of summoned charmies ac compared to normal, level 11-20 summons.\n"
+              "summon_11_20_ac = %d\n\n", CONFIG_SUMMON_LEVEL_11_20_AC);
+
+  fprintf(fl, "* Percentage of summoned charmies hp compared to normal, level 21-30 summons.\n"
+              "summon_21_30_hp = %d\n\n", CONFIG_SUMMON_LEVEL_21_30_HP);
+  fprintf(fl, "* Percentage of summoned charmies hit and dam compared to normal, level 21-30 summons.\n"
+              "summon_21_30_hit_dam = %d\n\n", CONFIG_SUMMON_LEVEL_21_30_HIT_DAM);
+  fprintf(fl, "* Percentage of summoned charmies ac compared to normal, level 21-30 summons.\n"
+              "summon_21_30_ac = %d\n\n", CONFIG_SUMMON_LEVEL_21_30_AC);
+
   fclose(fl);
 
   if (in_save_list(NOWHERE, SL_CFG))
@@ -667,9 +758,11 @@ static void cedit_disp_menu(struct descriptor_data *d)
                   "%sO%s) Operation Options\r\n"
                   "%sA%s) Autowiz Options\r\n"
                   "%sH%s) Happy Hour Options\r\n"
+                  "%sP%s) Player Stat Options\r\n"
                   "%sQ%s) Quit\r\n"
                   "Enter your choice : ",
 
+                  grn, nrm,
                   grn, nrm,
                   grn, nrm,
                   grn, nrm,
@@ -683,8 +776,6 @@ static void cedit_disp_menu(struct descriptor_data *d)
 
 static void cedit_disp_happy_hour_options(struct descriptor_data *d)
 {
-  int m_opt;
-  m_opt = OLC_CONFIG(d)->play.map_option;
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -706,6 +797,74 @@ static void cedit_disp_happy_hour_options(struct descriptor_data *d)
                   grn, nrm);
 
   OLC_MODE(d) = CEDIT_HAPPY_HOUR_MENU;  
+
+}
+
+static void cedit_disp_player_options(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d, "\r\n\r\n"
+                     "PLAYER OPTIONS\r\n"
+                     "%s1%s) Psionic Power Damage Bonus                   : %s%s%d%%\r\n"
+                     "%s2%s) Divine Spell Damage Bonus                    : %s%s%d%%\r\n"
+                     "%s3%s) Arcane Spell Damage Bonus                    : %s%s%d%%\r\n"
+                     "\r\n"
+                     "%s4%s) Psionic Prep Time                            : %s%d%%\r\n"
+                     "%s5%s) Divine Prep Time                             : %s%d%%\r\n"
+                     "%s6%s) Arcane Prep Time                             : %s%d%%\r\n"
+                     "\r\n"
+                     "%s7%s) Extra Hit Points per Level                   : %s%d\r\n"
+                     "%s8%s) Extra Movement Points per Level              : %s%d\r\n"
+                     "%s9%s) Armor Class Cap                              : %s%d\r\n"
+                     "%sA%s) Player-Mob Level Difference to Gain Exp      : %s%d\r\n"
+                     "%sB%s) Death Experience Less Penalty                : %s%d%%\r\n"
+                     "\r\n"
+                     "%sC%s) Level 1-10 Summon HP Percentage              : %s%d%%\r\n"
+                     "%sD%s) Level 1-10 Summon Hit & Dam Roll Percentage  : %s%d%%\r\n"
+                     "%sE%s) Level 1-10 Summon AC Percentage              : %s%d%%\r\n"
+                     "\r\n"
+                     "%sF%s) Level 11-20 Summon HP Percentage             : %s%d%%\r\n"
+                     "%sG%s) Level 11-20 Summon Hit & Dam Roll Percentage : %s%d%%\r\n"
+                     "%sH%s) Level 11-20 Summon AC Percentage             : %s%d%%\r\n"
+                     "\r\n"
+                     "%sI%s) Level 21-30 Summon HP Percentage             : %s%d%%\r\n"
+                     "%sJ%s) Level 21-30 Summon Hit & Dam Roll Percentage : %s%d%%\r\n"
+                     "%sK%s) Level 21-30 Summon AC Percentage             : %s%d%%\r\n"
+                     "\r\n"
+                     "%sQ%s) Exit To The Main Menu\r\n"
+                     "Enter your choice : ",
+
+                  grn, nrm, cyn, (OLC_CONFIG(d)->player_config.psionic_power_damage_bonus > 0) ? "+" : "", OLC_CONFIG(d)->player_config.psionic_power_damage_bonus, // 1
+                  grn, nrm, cyn, (OLC_CONFIG(d)->player_config.divine_spell_damage_bonus > 0) ? "+" : "", OLC_CONFIG(d)->player_config.divine_spell_damage_bonus, // 2
+                  grn, nrm, cyn, (OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus > 0) ? "+" : "", OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus, // 3
+
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.psionic_mem_times, // 4
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.divine_mem_times, // 5
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.arcane_mem_times, // 6
+
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.extra_hp_per_level, // 7
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.extra_mv_per_level, // 8
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.armor_class_cap, // 9
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.group_level_difference_restriction, // A
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.death_exp_loss_penalty, // B
+
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_hp, // C
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam, // D
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_ac, // E
+
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_hp, // F
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam, // G
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_ac, // H
+
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_hp, // I
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam, // J
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_ac, // K
+
+                  grn, nrm);
+
+  OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_MENU;  
 
 }
 
@@ -951,6 +1110,13 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = CEDIT_HAPPY_HOUR_MENU;
       break;
 
+    case 'p':
+    case 'P':
+      cedit_disp_player_options(d);
+      OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_MENU;
+      break;
+
+
     case 'c':
     case 'C':
       cedit_disp_crash_save_options(d);
@@ -1018,6 +1184,112 @@ void cedit_parse(struct descriptor_data *d, char *arg)
       default:
         write_to_output(d, "\r\nThat is an invalid choice!\r\n");
         cedit_disp_happy_hour_options(d);
+    }
+    return;
+
+  case CEDIT_PLAYER_OPTIONS_MENU:
+  switch (*arg)
+    {
+      case '1':
+        write_to_output(d, "Enter the percent bonus for psionic damage : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_PSIONIC_DAMAGE;
+        return;
+      case '2':
+        write_to_output(d, "Enter the percent bonus for divine damage : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_DIVINE_DAMAGE;
+        return;
+      case '3':
+        write_to_output(d, "Enter the percent bonus for arcane damage : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_ARCANE_DAMAGE;
+        return;
+      case '4':
+        write_to_output(d, "Enter the percentage compared to normal for Psionic PSP Regen Rates : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_PSIONIC_PREP_TIME;
+        return;
+      case '5':
+        write_to_output(d, "Enter the percentage compared to normal for Divine Spell Prep Times : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_DIVINE_PREP_TIME;
+        return;
+      case '6':
+        write_to_output(d, "Enter the percentage compared to normal for arcane Spell Prep Times : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_ARCANE_PREP_TIME;
+        return;
+      case '7':
+        write_to_output(d, "Enter the number of extra hit points players should get per level : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXTRA_HP;
+        return;
+      case '8':
+        write_to_output(d, "Enter the number of extra movement points players should get per level : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXTRA_MV;
+        return;
+      case '9':
+        write_to_output(d, "Enter the cap on player armor class : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_AC_CAP;
+        return;
+      case 'a':
+      case 'A':
+        write_to_output(d, "Enter the maximum difference in player-mob level in order to gain experience from the kill : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXP_LEVEL_DIFF;
+        return;
+      case 'b':
+      case 'B':
+        write_to_output(d, "Enter the percentage compared to normal for experience loss when a player dies. : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_DEATH_EXP_LOSS;
+        return;
+      case 'c':
+      case 'C':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit points, summons level 1-10: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_10_HP;
+        return;
+      case 'd':
+      case 'D':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit and dam roll, summons level 1-10: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_10_HITDAM;
+        return;
+      case 'e':
+      case 'E':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs armor class, summons level 1-10: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_10_AC;
+        return;
+      case 'f':
+      case 'F':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit points, summons level 11-20: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_20_HP;
+        return;
+      case 'g':
+      case 'G':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit and dam roll, summons level 11-20: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_20_HITDAM;
+        return;
+      case 'h':
+      case 'H':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs armor class, summons level 11-20: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_20_AC;
+        return;
+      case 'i':
+      case 'I':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit points, summons level 21-30: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_30_HP;
+        return;
+      case 'j':
+      case 'J':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit and dam roll, summons level 21-30: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_30_HITDAM;
+        return;
+      case 'k':
+      case 'K':
+        write_to_output(d, "Enter the percentage compared to normal for summoned mobs armor class, summons level 21-30: ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_30_AC;
+        return;
+
+      case 'q':
+      case 'Q':
+        cedit_disp_menu(d);
+        return; 
+      
+      default:
+        write_to_output(d, "\r\nThat is an invalid choice!\r\n");
+        cedit_disp_player_options(d);
     }
     return;
 
@@ -1458,6 +1730,280 @@ void cedit_parse(struct descriptor_data *d, char *arg)
 
     cedit_disp_autowiz_options(d);
     return;
+
+  case CEDIT_PLAYER_OPTIONS_PSIONIC_DAMAGE:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage bonus for psionic power damage : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.psionic_power_damage_bonus = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  
+  case CEDIT_PLAYER_OPTIONS_DIVINE_DAMAGE:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage bonus for divine power damage : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.divine_spell_damage_bonus = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_ARCANE_DAMAGE:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage bonus for arcane power damage : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.arcane_spell_damage_bonus = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  
+  case CEDIT_PLAYER_OPTIONS_PSIONIC_PREP_TIME:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for Psionic PSP regen : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.psionic_mem_times = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_DIVINE_PREP_TIME:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for divine spell prep time : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.divine_mem_times = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_ARCANE_PREP_TIME:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for arcane spell prep time : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.arcane_mem_times = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_EXTRA_HP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the number of extra hit points players should get when they gain a level : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.extra_hp_per_level = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_EXTRA_MV:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the number of extra movement points players should get when they gain a level : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.extra_mv_per_level = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_AC_CAP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the maximum armor class a player can have : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.armor_class_cap = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_EXP_LEVEL_DIFF:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the maximum difference in level between player and mob for the player to gain exp on the kill : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.group_level_difference_restriction = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_DEATH_EXP_LOSS:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for experience lost when a player dies : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.death_exp_loss_penalty = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_SUMMON_10_HP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs hit points, for summons level 1-10: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_1_10_summon_hp = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  case CEDIT_PLAYER_OPTIONS_SUMMON_10_HITDAM:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs hit and dam roll, for summons level 1-10: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  case CEDIT_PLAYER_OPTIONS_SUMMON_10_AC:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs armor class, for summons level 1-10: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_1_10_summon_ac = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_SUMMON_20_HP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs hit points, for summons level 11-20: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_11_20_summon_hp = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  case CEDIT_PLAYER_OPTIONS_SUMMON_20_HITDAM:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs hit and dam roll, for summons level 11-20: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  case CEDIT_PLAYER_OPTIONS_SUMMON_20_AC:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs armor class, for summons level 11-20: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_11_20_summon_ac = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_SUMMON_30_HP:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs hit points, for summons level 21-30: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_21_30_summon_hp = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  case CEDIT_PLAYER_OPTIONS_SUMMON_30_HITDAM:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs hit and dam roll, for summons level 21-30: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+  case CEDIT_PLAYER_OPTIONS_SUMMON_30_AC:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for summoned mobs armor class, for summons level 21-30: ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.level_21_30_summon_ac = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
 
   case CEDIT_HAPPY_HOUR_CHANCE:
     if (!*arg)

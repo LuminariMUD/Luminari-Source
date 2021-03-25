@@ -1786,6 +1786,8 @@ void char_from_furniture(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_SHIFTER ||        \
                            GET_CLASS(ch) == CLASS_BARD)
 
+#define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
+
 /* 1 if ch is race, 0 if not */
 #define IS_HUMAN(ch) (!IS_NPC(ch) && \
                       (GET_RACE(ch) == RACE_HUMAN))
@@ -2135,6 +2137,47 @@ void char_from_furniture(struct char_data *ch);
 /** Percent increase of chance for random treasure during automated happy hour */
 #define CONFIG_HAPPY_HOUR_TREASURE config_info.happy_hour.treasure
 
+/* Player config data stuff! */
+/** Percent increase on psionic power damage */
+#define CONFIG_PSIONIC_DAMAGE config_info.player_config.psionic_power_damage_bonus
+/** Percent increase on divine spell damage */
+#define CONFIG_DIVINE_DAMAGE config_info.player_config.divine_spell_damage_bonus
+/** Percent increase on arcane spell damage */
+#define CONFIG_ARCANE_DAMAGE config_info.player_config.arcane_spell_damage_bonus
+/** Extra hit points awarded to players each level */
+#define CONFIG_EXTRA_PLAYER_HP_PER_LEVEL  config_info.player_config.extra_hp_per_level
+/** Extra movement points awarded to players each level */
+#define CONFIG_EXTRA_PLAYER_MV_PER_LEVEL  config_info.player_config.extra_mv_per_level
+/** this is the maximum ac a player can have */
+#define CONFIG_PLAYER_AC_CAP config_info.player_config.armor_class_cap
+/** This is the maximum difference between player and mob level to gain exp */
+#define CONFIG_EXP_LEVEL_DIFFERENCE config_info.player_config.group_level_difference_restriction
+/** This is the percentage of level 1-10 player summons hit points compared to normal */
+#define CONFIG_SUMMON_LEVEL_1_10_HP config_info.player_config.level_1_10_summon_hp
+/** This is the percentage of level 1-10 player summons hit and dam rolls compared to normal */
+#define CONFIG_SUMMON_LEVEL_1_10_HIT_DAM config_info.player_config.level_1_10_summon_hit_and_dam
+/** This is the percentage of level 1-10 player summons ac compared to normal */
+#define CONFIG_SUMMON_LEVEL_1_10_AC config_info.player_config.level_1_10_summon_ac
+/** This is the percentage of level 11-20 player summons hit points compared to normal */
+#define CONFIG_SUMMON_LEVEL_11_20_HP config_info.player_config.level_11_20_summon_hp
+/** This is the percentage of level 11-20 player summons hit and dam rolls compared to normal */
+#define CONFIG_SUMMON_LEVEL_11_20_HIT_DAM config_info.player_config.level_11_20_summon_hit_and_dam
+/** This is the percentage of level 11-20 player summons ac compared to normal */
+#define CONFIG_SUMMON_LEVEL_11_20_AC config_info.player_config.level_11_20_summon_ac
+/** This is the percentage of level 21-30 player summons hit points compared to normal */
+#define CONFIG_SUMMON_LEVEL_21_30_HP config_info.player_config.level_21_30_summon_hp
+/** This is the percentage of level 21-30 player summons hit and dam rolls compared to normal */
+#define CONFIG_SUMMON_LEVEL_21_30_HIT_DAM config_info.player_config.level_21_30_summon_hit_and_dam
+/** This is the percentage of level 21-30 player summons ac compared to normal */
+#define CONFIG_SUMMON_LEVEL_21_30_AC config_info.player_config.level_21_30_summon_ac
+/** This is the percentage value compared to normal for psionic psp regeneration */
+#define CONFIG_PSIONIC_PREP_TIME config_info.player_config.psionic_mem_times
+/** This is the percentage value compared to normal for divine spell prep times */
+#define CONFIG_DIVINE_PREP_TIME config_info.player_config.divine_mem_times
+/** This is the percentage value compared to normal for arcane spell prep times */
+#define CONFIG_ARCANE_PREP_TIME config_info.player_config.arcane_mem_times
+/** This is the modified percentage of experience lost when a player dies */
+#define CONFIG_DEATH_EXP_LOSS config_info.player_config.death_exp_loss_penalty
 
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)

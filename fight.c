@@ -927,7 +927,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   }
 
   /* value for normal mode */
-  return (MIN(MAX_AC, armorclass));
+  return (MIN(CONFIG_PLAYER_AC_CAP, armorclass));
 }
 
 // the whole update_pos system probably needs to be rethought -zusuk
@@ -1528,9 +1528,9 @@ void die(struct char_data *ch, struct char_data *killer)
 
   struct char_data *temp;
   struct descriptor_data *pt;
-  int xp_to_lvl =
-      level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
+  int xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
   int penalty = xp_to_lvl / XP_LOSS_FACTOR;
+  penalty = penalty * CONFIG_DEATH_EXP_LOSS / 100;
 
   if (GET_LEVEL(ch) <= 6)
   {
@@ -1629,12 +1629,10 @@ static void perform_group_gain(struct char_data *ch, int base,
   }
 
   if (share > 1)
-    send_to_char(ch, "You receive your share of experience -- %d points.\r\n",
-                 gain_exp(ch, share, GAIN_EXP_MODE_GROUP));
+    send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gain_exp(ch, share, GAIN_EXP_MODE_GROUP));
   else
   {
-    send_to_char(ch, "You receive your share of experience -- "
-                     "one measly little point!\r\n");
+    send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
     gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
   }
 
@@ -1691,8 +1689,8 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
   else
     base = 0;
 
-  /* if mob isn't within 3 levels, don't give xp -zusuk */
-  if ((GET_LEVEL(victim) + 3) < party_level)
+  /* if mob isn't within X levels, don't give xp -zusuk */
+  if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < party_level)
     base = 1;
 
   /* XP bonus for groupping */
@@ -1730,8 +1728,8 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   /* minimum of 1 xp point */
   exp = MAX(exp, 1);
 
-  /* if mob isn't within 3 levels, don't give xp -zusuk */
-  if ((GET_LEVEL(victim) + 3) < GET_LEVEL(ch))
+  /* if mob isn't within X levels, don't give xp -zusuk */
+  if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
     exp = 1;
 
   /* avoid xp abuse in PvP */
@@ -3009,6 +3007,36 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         affect_from_char(victim, SPELL_MIRROR_IMAGE);
         affect_from_char(victim, SPELL_GREATER_MIRROR_IMAGE);
       }
+    }
+
+    // we'll apply the cedit configuration for altered spell damage
+    if (is_spell && !IS_NPC(ch) && GET_CASTING_CLASS(ch) != CLASS_UNDEFINED)
+    {
+      switch (GET_CASTING_CLASS(ch))
+      {
+        case CLASS_WIZARD:
+        case CLASS_SORCERER:
+        case CLASS_BARD:
+         dam = dam * ( 100 + CONFIG_ARCANE_DAMAGE) / 100;
+         break;
+
+        case CLASS_CLERIC:
+        case CLASS_DRUID:
+        case CLASS_PALADIN:
+        case CLASS_RANGER:
+          dam = dam * ( 100 + CONFIG_DIVINE_DAMAGE) / 100;
+          break;
+
+        case CLASS_PSIONICIST:
+          dam = dam * ( 100 + CONFIG_PSIONIC_DAMAGE) / 100;
+          break;
+
+        case CLASS_ALCHEMIST:
+          // place holder in case we want to adjust alchemy damage down the line -- Gicker
+          break;
+      }
+      // To ensure they don't get the bonus on subsequent spells/powers unless casting_class has been set again
+      GET_CASTING_CLASS(ch) = CLASS_UNDEFINED;
     }
 
     /* energy absorption system */

@@ -329,3 +329,50 @@ int special_in_comm = YES;
 
 /* debug mode on or off? */
 int debug_mode = NO;
+
+// Player stat modifiers
+
+// spell damage.  This is the percent of extra damage done.
+// if 0, damage is normal.  If 20, damage will be 120% normal.
+// if -20, damage will be 80% normal.
+int psionic_power_damage = 0; // % value
+int divine_spell_damage  = 0;  // % value
+int arcane_spell_damage  = 0;  // % value
+
+// These determine times for memorizing/preparing spells/powers
+int psionic_mem_times = 100;
+int divine_mem_times  = 100;
+int arcane_mem_times  = 100;
+
+int extra_level_hp = 0; // This amount of hp will be added every time a player gains a level
+int extra_level_mv = 0; // This amount of mv will be added every time a player gains a level
+
+// No player armor class can go above this value
+int ac_cap = 60;
+
+// This is the maximum difference in level between the
+// level of the player and the mob, to gain exp.
+// If 3, and the player level is 20, the player will
+// gain exp over any mobs level 17+. Anything 16 or
+// less will yeild no exp.
+int exp_level_difference = 3;
+
+// This affects how much exp is lost when a player dies.
+int death_exp_loss_penalty = 100;
+
+// these values apply to mobs created with any kind
+// of summoning spell, such as summon creature, dragon knight,
+// mummy dust, etc.
+// The value is a percentage of the normal values. If 100
+// then the stats are unchanged.  If 80, the stats are 80%
+// of normal.  if 120, the stats are 120% normal.
+int summon_1_10_hp           = 100;
+int summon_1_10_hit_and_dam  = 100;
+int summon_1_10_ac           = 100;
+int summon_11_20_hp          = 100;
+int summon_11_20_hit_and_dam = 100;
+int summon_11_20_ac          = 100;
+int summon_21_30_hp          = 100;
+int summon_21_30_hit_and_dam = 100;
+int summon_21_30_ac          = 100;
+

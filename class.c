@@ -2831,6 +2831,9 @@ void advance_level(struct char_data *ch, int class)
 
   add_hp = GET_CON_BONUS(ch);
 
+  add_hp += CONFIG_EXTRA_PLAYER_HP_PER_LEVEL;
+  add_move += CONFIG_EXTRA_PLAYER_MV_PER_LEVEL;
+
   /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1)
   {

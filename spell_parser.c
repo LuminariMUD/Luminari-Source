@@ -1591,6 +1591,7 @@ ACMDU(do_gen_cast)
         char *spell_arg = NULL, *target_arg = NULL, *metamagic_arg = NULL;
         int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
         struct affected_type af;
+        int class_num = CLASS_UNDEFINED;
 
         if (IS_NPC(ch))
                 return;
@@ -1834,7 +1835,7 @@ ACMDU(do_gen_cast)
         else
         {
                 /* SPELL PREPARATION HOOK */
-                if (GET_LEVEL(ch) < LVL_IMMORT && spell_prep_gen_check(ch, spellnum, metamagic) == CLASS_UNDEFINED &&
+                if (GET_LEVEL(ch) < LVL_IMMORT && (class_num = spell_prep_gen_check(ch, spellnum, metamagic)) == CLASS_UNDEFINED &&
                 !isEpicSpell(spellnum))
                 {
                         send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
@@ -1842,6 +1843,9 @@ ACMDU(do_gen_cast)
                         return;
                 }
         }
+
+        if (!IS_NPC(ch))
+                GET_CASTING_CLASS(ch) = class_num;
 
         /* further restrictions, this needs updating!
         * what we need to do is loop through the class-array to find the min. stat

@@ -1293,6 +1293,10 @@ void mag_assign_spells(void);
 void resetCastingData(struct char_data *ch);
 int lowest_spell_level(int spellnum);
 bool is_spell_mind_affecting(int snum);
+
+/* magic.c */
+bool isSummonMob(int vnum);
+
 /**/
 
 /* Global variables exported */

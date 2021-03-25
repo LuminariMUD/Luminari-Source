@@ -6242,6 +6242,46 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_RAT 9400        // summon natures ally i
 #define MOB_ECTOPLASMIC_SHAMBLER 93 // ectoplasmic shambler psionic ability
 
+bool isSummonMob(int vnum)
+{
+  switch (vnum)
+  {
+    case MOB_ZOMBIE:
+    case MOB_GHOUL:
+    case MOB_GIANT_SKELETON:
+    case MOB_MUMMY:
+    case MOB_MUMMY_LORD:
+    case MOB_RED_DRAGON:
+    case MOB_SHELGARNS_BLADE:
+    case MOB_DIRE_BADGER:
+    case MOB_DIRE_BOAR:
+    case MOB_DIRE_WOLF:
+    case MOB_PHANTOM_STEED:
+    case MOB_DIRE_SPIDER:
+    case MOB_DIRE_BEAR:
+    case MOB_HOUND:
+    case MOB_DIRE_TIGER:
+    case MOB_FIRE_ELEMENTAL:
+    case MOB_EARTH_ELEMENTAL:
+    case MOB_AIR_ELEMENTAL:
+    case MOB_WATER_ELEMENTAL:
+    case MOB_GHOST:
+    case MOB_SPECTRE:
+    case MOB_BANSHEE:
+    case MOB_WIGHT:
+    case MOB_BLADE_OF_DISASTER:
+    case MOB_DIRE_RAT:
+    case MOB_ECTOPLASMIC_SHAMBLER:
+    case 9412:
+    case 9413:
+    case 9414:
+    case 9415:
+    case 9499:
+      return true;
+  }
+  return false;
+}
+
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
                  int spellnum, int savetype, int casttype)
 {
@@ -6631,6 +6671,36 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       mob->player.name = strdup(GET_NAME(ch));
       mob->player.short_descr = strdup(GET_NAME(ch));
       break;
+    }
+
+    // cedit configuration changes
+    // We'll do this before adding other bonuses in order to not nerf those bonuses
+    if (GET_LEVEL(mob) <= 10)
+    {
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * CONFIG_SUMMON_LEVEL_1_10_HP / 100;
+      GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_1_10_AC / 100;
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+    }
+    else if (GET_LEVEL(mob) <= 20)
+    {
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * CONFIG_SUMMON_LEVEL_11_20_HP / 100;
+      GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_11_20_AC / 100;
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+    }
+    else
+    {
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) = GET_MAX_HIT(mob) * CONFIG_SUMMON_LEVEL_21_30_HP / 100;
+      GET_REAL_AC(mob) = GET_REAL_AC(mob) * CONFIG_SUMMON_LEVEL_21_30_AC / 100;
+      GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
     }
 
     /* summon augmentation feat */

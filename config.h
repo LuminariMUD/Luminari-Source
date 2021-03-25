@@ -94,6 +94,28 @@ extern int auto_pwipe;
 extern struct pclean_criteria_data pclean_criteria[];
 extern int selfdelete_fastwipe;
 
+// player settings
+extern int psionic_power_damage;
+extern int divine_spell_damage;
+extern int arcane_spell_damage;
+extern int extra_level_hp;
+extern int extra_level_mv;
+extern int ac__cap;
+extern int exp_level_difference;
+extern int summon_1_10_hp;
+extern int summon_1_10_hit_and_dam;
+extern int summon_1_10_ac;
+extern int summon_11_20_hp;
+extern int summon_11_20_hit_and_dam;
+extern int summon_11_20_ac;
+extern int summon_21_30_hp;
+extern int summon_21_30_hit_and_dam;
+extern int summon_21_30_ac;
+extern int death_exp_loss_penalty;
+extern int psionic_mem_times;
+extern int divine_mem_times;
+extern int arcane_mem_times;
+
 #endif /* __CONFIG_C__ */
 
 #endif /* _CONFIG_H_*/
