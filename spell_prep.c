@@ -1939,6 +1939,31 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   /** end bonus calculations **/
 
   prep_time -= bonus_time;
+
+  switch (class)
+  {
+    case CLASS_WIZARD:
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+      prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
+      break;
+
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+      prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
+      break;
+
+    case CLASS_PSIONICIST:
+      // Psionicists use PSP which recharges along with hp and mv
+      break;
+
+    case CLASS_ALCHEMIST:
+      // place holder in case we want to adjust alchemy concoction prep time down the line -- Gicker
+      break;
+  }
+
   if (prep_time <= 0)
     prep_time = 1;
 

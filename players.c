@@ -2826,8 +2826,32 @@ void load_char_pets(struct char_data *ch)
 
   while ((row = mysql_fetch_row(result)))
   {
-    mob = read_mobile(atoi(row[0]), VIRTUAL);
+      mob = read_mobile(atoi(row[0]), VIRTUAL);
       if (!mob) continue;
+      if (isSummonMob(atoi(row[0])))
+      {
+       if (GET_LEVEL(mob) <= 10)
+        {
+          GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+          mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+        }
+        else if (GET_LEVEL(mob) <= 20)
+        {
+          GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+          mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+        }
+        else
+        {
+          GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+          mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+        } 
+      }
       log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
       if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
       {

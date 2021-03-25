@@ -5764,6 +5764,12 @@ void load_config(void)
         CONFIG_AUTOSAVE_TIME = num;
       else if (!str_cmp(tag, "auto_save_olc"))
         CONFIG_OLC_SAVE = num;
+      else if (!str_cmp(tag, "arcane_spelll_damage"))
+        CONFIG_ARCANE_DAMAGE = num;
+      else if (!str_cmp(tag, "ac_cap"))
+        CONFIG_PLAYER_AC_CAP = num;
+      else if (!str_cmp(tag, "arcane_mem_times"))
+        CONFIG_ARCANE_PREP_TIME = num;
       break;
 
     case 'c':
@@ -5780,6 +5786,10 @@ void load_config(void)
         CONFIG_DIAGONAL_DIRS = num;
       else if (!str_cmp(tag, "dts_are_dumps"))
         CONFIG_DTS_ARE_DUMPS = num;
+      else if (!str_cmp(tag, "divine_mem_times"))
+        CONFIG_DIVINE_PREP_TIME = num;
+      else if (!str_cmp(tag, "death_exp_loss_penalty"))
+        CONFIG_DEATH_EXP_LOSS = num;
       else if (!str_cmp(tag, "donation_room_1"))
         if (num == -1)
           CONFIG_DON_ROOM_1 = NOWHERE;
@@ -5819,6 +5829,17 @@ void load_config(void)
         CONFIG_MAP_SIZE = num;
       else if (!str_cmp(tag, "default_minimap_size"))
         CONFIG_MINIMAP_SIZE = num;
+      else if (!str_cmp(tag, "divine_spell_damage"))
+        CONFIG_DIVINE_DAMAGE = num;
+      break;
+
+    case 'e':
+      if (!str_cmp(tag, "extra_level_hp"))
+        CONFIG_EXTRA_PLAYER_HP_PER_LEVEL = num;
+      else if (!str_cmp(tag, "extra_level_mv"))
+        CONFIG_EXTRA_PLAYER_MV_PER_LEVEL = num;
+      else if (!str_cmp(tag, "exp_level_difference"))
+        CONFIG_EXP_LEVEL_DIFFERENCE = num;
       break;
 
     case 'f':
@@ -5952,6 +5973,10 @@ void load_config(void)
         CONFIG_PROTOCOL_NEGOTIATION = num;
       else if (!str_cmp(tag, "pt_allowed"))
         CONFIG_PT_ALLOWED = num;
+      else if (!str_cmp(tag, "psionic_power_damage"))
+        CONFIG_PSIONIC_DAMAGE = num;
+      else if (!str_cmp(tag, "psionic_mem_times"))
+        CONFIG_PSIONIC_PREP_TIME = num;
       break;
 
     case 'r':
@@ -5974,6 +5999,24 @@ void load_config(void)
         CONFIG_START_MESSG = fread_string(fl, buf);
         parse_at(CONFIG_START_MESSG);
       }
+      else if (!str_cmp(tag, "summon_1_10_hp"))
+        CONFIG_SUMMON_LEVEL_1_10_HP = num;
+      else if (!str_cmp(tag, "summon_1_10_hit_dam"))
+        CONFIG_SUMMON_LEVEL_1_10_HIT_DAM = num;
+      else if (!str_cmp(tag, "summon_1_10_ac"))
+        CONFIG_SUMMON_LEVEL_1_10_AC = num;
+      else if (!str_cmp(tag, "summon_11_20_hp"))
+        CONFIG_SUMMON_LEVEL_11_20_HP = num;
+      else if (!str_cmp(tag, "summon_11_20_hit_dam"))
+        CONFIG_SUMMON_LEVEL_11_20_HIT_DAM = num;
+      else if (!str_cmp(tag, "summon_11_20_ac"))
+        CONFIG_SUMMON_LEVEL_11_20_AC = num;
+      else if (!str_cmp(tag, "summon_21_30_hp"))
+        CONFIG_SUMMON_LEVEL_21_30_HP = num;
+      else if (!str_cmp(tag, "summon_21_30_hit_dam"))
+        CONFIG_SUMMON_LEVEL_21_30_HIT_DAM = num;
+      else if (!str_cmp(tag, "summon_21_30_ac"))
+        CONFIG_SUMMON_LEVEL_21_30_AC = num;
       break;
 
     case 't':

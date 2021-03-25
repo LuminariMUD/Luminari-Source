@@ -3623,6 +3623,8 @@ struct player_special_data
     int save_co_holder_dc_bonus;// a holder for bonus to save dc for psionic_concussive_onslaught
     bool cosmic_awareness;      // cosmic awareness psionic power and command
     int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
+
+    int casting_class;          // The class number that is currently casting a spell
 };
 
 /** Special data used by NPCs, not PCs */
@@ -4195,6 +4197,53 @@ struct autowiz_data
     int min_wizlist_lev; /**< Minimun level to show on wizlist.  */
 };
 
+struct player_config_data
+{
+    // spell damage.  This is the percent of extra damage done.
+    // if 0, damage is normal.  If 20, damage will be 120% normal.
+    // if -20, damage will be 80% normal.
+    int psionic_power_damage_bonus;
+    int divine_spell_damage_bonus;
+    int arcane_spell_damage_bonus;
+
+    int extra_hp_per_level;
+    int extra_mv_per_level;
+
+    // No player armor class can go above this value
+    int armor_class_cap;
+
+    // This is the maximum difference in level between the
+    // level of the player and the mob, to gain exp.
+    // If 3, and the player level is 20, the player will
+    // gain exp over any mobs level 17+. Anything 16 or
+    // less will yeild no exp.
+    int group_level_difference_restriction;
+
+    // these values apply to mobs created with any kind
+    // of summoning spell, such as summon creature, dragon knight,
+    // mummy dust, etc.
+    // The value is a percentage of the normal values. If 100
+    // then the stats are unchanged.  If 80, the stats are 80%
+    // of normal.  if 120, the stats are 120% normal.
+    int level_1_10_summon_hp;
+    int level_1_10_summon_hit_and_dam;
+    int level_1_10_summon_ac;
+    int level_11_20_summon_hp;
+    int level_11_20_summon_hit_and_dam;
+    int level_11_20_summon_ac;
+    int level_21_30_summon_hp;
+    int level_21_30_summon_hit_and_dam;
+    int level_21_30_summon_ac;
+
+    // spell/power prep time modifiers
+    int psionic_mem_times;
+    int divine_mem_times;
+    int arcane_mem_times;
+
+    // death penalty exp loss modifier
+    int death_exp_loss_penalty;
+};
+
 /**
  Main Game Configuration Structure.
  Global variables that can be changed within the game are held within this
@@ -4220,6 +4269,8 @@ struct config_data
     struct autowiz_data autowiz;
     /** Automatic happy hour activation options */
     struct happy_hour_data happy_hour;
+    /** player stat config data */
+    struct player_config_data player_config;
 };
 
 #ifdef MEMORY_DEBUG
