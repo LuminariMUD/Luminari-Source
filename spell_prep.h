@@ -130,6 +130,10 @@ extern "C"
    int count_known_spells_by_circle(struct char_data *ch, int class, int circle);
    /* total # of slots consumed by circle X */
    int count_total_slots(struct char_data *ch, int class, int circle);
+   /* for psionicists - how many total powers do you know */
+   int num_psionicist_powers_known(struct char_data *ch);
+   /* returns the number of powers a psionicist may know in total from any and all power circles */
+   int num_psionicist_powers_available(struct char_data *ch);
 
    /* in: ch, class, spellnum, metamagic, domain
        out: bool - is it in our prep queue? */
@@ -199,6 +203,13 @@ extern "C"
      * out: returns # of total slots based on class-level and stat bonus
          of given circle */
    int compute_slots_by_circle(struct char_data *ch, int class, int circle);
+
+   /* in: spellnum, class, metamagic
+    * out: the circle this power (now) belongs, above num-circles if failed
+    * given above info, compute which circle this spell belongs to
+    * in addition we have metamagic that can modify the spell-circle as well */
+    int compute_powers_circle(int class, int spellnum, int metamagic);
+    
    /**** UNDER CONSTRUCTION *****/
    /* in: class we need to assign spell slots to
      * at bootup, we initialize class-data, which includes assignment

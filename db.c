@@ -5764,12 +5764,14 @@ void load_config(void)
         CONFIG_AUTOSAVE_TIME = num;
       else if (!str_cmp(tag, "auto_save_olc"))
         CONFIG_OLC_SAVE = num;
-      else if (!str_cmp(tag, "arcane_spelll_damage"))
+      else if (!str_cmp(tag, "arcane_spell_damage"))
         CONFIG_ARCANE_DAMAGE = num;
       else if (!str_cmp(tag, "ac_cap"))
         CONFIG_PLAYER_AC_CAP = num;
       else if (!str_cmp(tag, "arcane_mem_times"))
         CONFIG_ARCANE_PREP_TIME = num;
+      else if (!str_cmp(tag, "alchemy_mem_times"))
+        CONFIG_ALCHEMY_PREP_TIME = num;
       break;
 
     case 'c':

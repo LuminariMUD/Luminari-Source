@@ -168,6 +168,7 @@ static void cedit_setup(struct descriptor_data *d)
   OLC_CONFIG(d)->player_config.psionic_mem_times = CONFIG_PSIONIC_PREP_TIME;
   OLC_CONFIG(d)->player_config.divine_mem_times = CONFIG_DIVINE_PREP_TIME;
   OLC_CONFIG(d)->player_config.arcane_mem_times = CONFIG_ARCANE_PREP_TIME;
+  OLC_CONFIG(d)->player_config.alchemy_mem_times = CONFIG_ALCHEMY_PREP_TIME;
   OLC_CONFIG(d)->player_config.extra_hp_per_level = CONFIG_EXTRA_PLAYER_HP_PER_LEVEL;
   OLC_CONFIG(d)->player_config.extra_mv_per_level = CONFIG_EXTRA_PLAYER_MV_PER_LEVEL;
   OLC_CONFIG(d)->player_config.armor_class_cap = CONFIG_PLAYER_AC_CAP;
@@ -299,6 +300,7 @@ static void cedit_save_internally(struct descriptor_data *d)
   CONFIG_PSIONIC_PREP_TIME = OLC_CONFIG(d)->player_config.psionic_mem_times;
   CONFIG_DIVINE_PREP_TIME = OLC_CONFIG(d)->player_config.divine_mem_times;
   CONFIG_ARCANE_PREP_TIME = OLC_CONFIG(d)->player_config.arcane_mem_times;
+  CONFIG_ALCHEMY_PREP_TIME = OLC_CONFIG(d)->player_config.alchemy_mem_times;
   CONFIG_EXTRA_PLAYER_HP_PER_LEVEL = OLC_CONFIG(d)->player_config.extra_hp_per_level;
   CONFIG_EXTRA_PLAYER_MV_PER_LEVEL = OLC_CONFIG(d)->player_config.extra_mv_per_level;
   CONFIG_PLAYER_AC_CAP = OLC_CONFIG(d)->player_config.armor_class_cap;
@@ -701,6 +703,8 @@ int save_config(IDXTYPE nowhere)
               "divine_mem_times = %d\n\n", CONFIG_DIVINE_PREP_TIME);
   fprintf(fl, "* Percent of arcane spell prep time .\n"
               "arcane_mem_times = %d\n\n", CONFIG_ARCANE_PREP_TIME);
+  fprintf(fl, "* Percent of alchemy concoction prep time .\n"
+              "alchemy_mem_times = %d\n\n", CONFIG_ALCHEMY_PREP_TIME);
 
   fprintf(fl, "* Extra hp per level for players.\n"
               "extra_level_hp = %d\n\n", CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);  
@@ -814,24 +818,25 @@ static void cedit_disp_player_options(struct descriptor_data *d)
                      "%s4%s) Psionic Prep Time                            : %s%d%%\r\n"
                      "%s5%s) Divine Prep Time                             : %s%d%%\r\n"
                      "%s6%s) Arcane Prep Time                             : %s%d%%\r\n"
+                     "%s7%s) Alchemy Prep Time                            : %s%d%%\r\n"
                      "\r\n"
-                     "%s7%s) Extra Hit Points per Level                   : %s%d\r\n"
-                     "%s8%s) Extra Movement Points per Level              : %s%d\r\n"
-                     "%s9%s) Armor Class Cap                              : %s%d\r\n"
-                     "%sA%s) Player-Mob Level Difference to Gain Exp      : %s%d\r\n"
-                     "%sB%s) Death Experience Less Penalty                : %s%d%%\r\n"
+                     "%s8%s) Extra Hit Points per Level                   : %s%d\r\n"
+                     "%s9%s) Extra Movement Points per Level              : %s%d\r\n"
+                     "%sA%s) Armor Class Cap                              : %s%d\r\n"
+                     "%sB%s) Player-Mob Level Difference to Gain Exp      : %s%d\r\n"
+                     "%sC%s) Death Experience Less Penalty                : %s%d%%\r\n"
                      "\r\n"
-                     "%sC%s) Level 1-10 Summon HP Percentage              : %s%d%%\r\n"
-                     "%sD%s) Level 1-10 Summon Hit & Dam Roll Percentage  : %s%d%%\r\n"
-                     "%sE%s) Level 1-10 Summon AC Percentage              : %s%d%%\r\n"
+                     "%sD%s) Level 1-10 Summon HP Percentage              : %s%d%%\r\n"
+                     "%sE%s) Level 1-10 Summon Hit & Dam Roll Percentage  : %s%d%%\r\n"
+                     "%sF%s) Level 1-10 Summon AC Percentage              : %s%d%%\r\n"
                      "\r\n"
-                     "%sF%s) Level 11-20 Summon HP Percentage             : %s%d%%\r\n"
-                     "%sG%s) Level 11-20 Summon Hit & Dam Roll Percentage : %s%d%%\r\n"
-                     "%sH%s) Level 11-20 Summon AC Percentage             : %s%d%%\r\n"
+                     "%sG%s) Level 11-20 Summon HP Percentage             : %s%d%%\r\n"
+                     "%sH%s) Level 11-20 Summon Hit & Dam Roll Percentage : %s%d%%\r\n"
+                     "%sI%s) Level 11-20 Summon AC Percentage             : %s%d%%\r\n"
                      "\r\n"
-                     "%sI%s) Level 21-30 Summon HP Percentage             : %s%d%%\r\n"
-                     "%sJ%s) Level 21-30 Summon Hit & Dam Roll Percentage : %s%d%%\r\n"
-                     "%sK%s) Level 21-30 Summon AC Percentage             : %s%d%%\r\n"
+                     "%sJ%s) Level 21-30 Summon HP Percentage             : %s%d%%\r\n"
+                     "%sK%s) Level 21-30 Summon Hit & Dam Roll Percentage : %s%d%%\r\n"
+                     "%sL%s) Level 21-30 Summon AC Percentage             : %s%d%%\r\n"
                      "\r\n"
                      "%sQ%s) Exit To The Main Menu\r\n"
                      "Enter your choice : ",
@@ -843,24 +848,25 @@ static void cedit_disp_player_options(struct descriptor_data *d)
                   grn, nrm, cyn, OLC_CONFIG(d)->player_config.psionic_mem_times, // 4
                   grn, nrm, cyn, OLC_CONFIG(d)->player_config.divine_mem_times, // 5
                   grn, nrm, cyn, OLC_CONFIG(d)->player_config.arcane_mem_times, // 6
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.alchemy_mem_times, // 7
 
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.extra_hp_per_level, // 7
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.extra_mv_per_level, // 8
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.armor_class_cap, // 9
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.group_level_difference_restriction, // A
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.death_exp_loss_penalty, // B
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.extra_hp_per_level, // 8
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.extra_mv_per_level, // 9
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.armor_class_cap, // A
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.group_level_difference_restriction, // B
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.death_exp_loss_penalty, // C
 
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_hp, // C
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam, // D
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_ac, // E
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_hp, // D
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_hit_and_dam, // E
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_1_10_summon_ac, // F
 
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_hp, // F
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam, // G
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_ac, // H
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_hp, // G
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_hit_and_dam, // H
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_11_20_summon_ac, // I
 
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_hp, // I
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam, // J
-                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_ac, // K
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_hp, // J
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_hit_and_dam, // K
+                  grn, nrm, cyn, OLC_CONFIG(d)->player_config.level_21_30_summon_ac, // L
 
                   grn, nrm);
 
@@ -1215,69 +1221,74 @@ void cedit_parse(struct descriptor_data *d, char *arg)
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_ARCANE_PREP_TIME;
         return;
       case '7':
+        write_to_output(d, "Enter the percentage compared to normal for alchemy concoction prep times : ");
+        OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_ALCHEMY_PREP_TIME;
+        return;
+      case '8':
         write_to_output(d, "Enter the number of extra hit points players should get per level : ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXTRA_HP;
         return;
-      case '8':
+      case '9':
         write_to_output(d, "Enter the number of extra movement points players should get per level : ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXTRA_MV;
         return;
-      case '9':
+      case 'a':
+      case 'A':
         write_to_output(d, "Enter the cap on player armor class : ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_AC_CAP;
         return;
-      case 'a':
-      case 'A':
+      case 'b':
+      case 'B':
         write_to_output(d, "Enter the maximum difference in player-mob level in order to gain experience from the kill : ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_EXP_LEVEL_DIFF;
         return;
-      case 'b':
-      case 'B':
+      case 'c':
+      case 'C':
         write_to_output(d, "Enter the percentage compared to normal for experience loss when a player dies. : ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_DEATH_EXP_LOSS;
         return;
-      case 'c':
-      case 'C':
+      case 'd':
+      case 'D':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit points, summons level 1-10: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_10_HP;
         return;
-      case 'd':
-      case 'D':
+      case 'e':
+      case 'E':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit and dam roll, summons level 1-10: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_10_HITDAM;
         return;
-      case 'e':
-      case 'E':
+      case 'f':
+      case 'F':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs armor class, summons level 1-10: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_10_AC;
         return;
-      case 'f':
-      case 'F':
+      case 'g':
+      case 'G':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit points, summons level 11-20: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_20_HP;
         return;
-      case 'g':
-      case 'G':
+      case 'h':
+      case 'H':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit and dam roll, summons level 11-20: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_20_HITDAM;
         return;
-      case 'h':
-      case 'H':
+      case 'i':
+      case 'I':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs armor class, summons level 11-20: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_20_AC;
         return;
-      case 'i':
-      case 'I':
+      case 'j':
+      case 'J':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit points, summons level 21-30: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_30_HP;
         return;
-      case 'j':
-      case 'J':
+      case 'k':
+      case 'K':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs hit and dam roll, summons level 21-30: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_30_HITDAM;
         return;
-      case 'k':
-      case 'K':
+      case 'l':
+      case 'L':
         write_to_output(d, "Enter the percentage compared to normal for summoned mobs armor class, summons level 21-30: ");
         OLC_MODE(d) = CEDIT_PLAYER_OPTIONS_SUMMON_30_AC;
         return;
@@ -1811,6 +1822,20 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     else
     {
       OLC_CONFIG(d)->player_config.arcane_mem_times = atoi(arg);
+      cedit_disp_player_options(d);
+    }
+    break;
+
+  case CEDIT_PLAYER_OPTIONS_ALCHEMY_PREP_TIME:
+    if (!*arg)
+    {
+      write_to_output(d,
+                      "That is an invalid choice!\r\n"
+                      "Enter the percentage compared to normal for alchemy concoction prep time : ");
+    }
+    else
+    {
+      OLC_CONFIG(d)->player_config.alchemy_mem_times = atoi(arg);
       cedit_disp_player_options(d);
     }
     break;

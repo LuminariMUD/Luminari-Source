@@ -1827,13 +1827,47 @@
 #define FEAT_IGNORE_SPELL_FAILURE 670
 #define FEAT_CHANNEL_SPELL 671
 #define FEAT_MULTIPLE_CHANNEL_SPELL 672
-
+#define FEAT_WEAPON_PROFICIENCY_PSIONICIST 673
+#define FEAT_PSIONICIST_1ST_CIRCLE 674
+#define FEAT_PSIONICIST_2ND_CIRCLE 675
+#define FEAT_PSIONICIST_3RD_CIRCLE 676
+#define FEAT_PSIONICIST_4TH_CIRCLE 677
+#define FEAT_PSIONICIST_5TH_CIRCLE 678
+#define FEAT_PSIONICIST_6TH_CIRCLE 679
+#define FEAT_PSIONICIST_7TH_CIRCLE 680
+#define FEAT_PSIONICIST_8TH_CIRCLE 681
+#define FEAT_PSIONICIST_9TH_CIRCLE 682
+#define FEAT_ALIGNED_ATTACK_GOOD   683
+#define FEAT_ALIGNED_ATTACK_EVIL   684
+#define FEAT_ALIGNED_ATTACK_CHAOS  685
+#define FEAT_ALIGNED_ATTACK_LAW    686
+#define FEAT_COMBAT_MANIFESTATION  687
+#define FEAT_CRITICAL_FOCUS        688
+#define FEAT_ELEMENTAL_FOCUS_FIRE  689
+#define FEAT_ELEMENTAL_FOCUS_ACID  690
+#define FEAT_ELEMENTAL_FOCUS_SOUND 691
+#define FEAT_ELEMENTAL_FOCUS_ELECTRICITY 692
+#define FEAT_ELEMENTAL_FOCUS_COLD  693
+#define FEAT_POWER_PENETRATION     694
+#define FEAT_GREATER_POWER_PENETRATION 695
+#define FEAT_QUICK_MIND            696
+#define FEAT_PSIONIC_RECOVERY      697
+#define FEAT_PROFICIENT_PSIONICIST 698
+#define FEAT_ENHANCED_POWER_DAMAGE 699
+#define FEAT_EXPANDED_KNOWLEDGE    700
+#define FEAT_PSIONIC_ENDOWMENT     701
+#define FEAT_PSIONIC_FOCUS         702
+#define FEAT_EMPOWERED_PSIONICS    703
+#define FEAT_EPIC_POWER_PENETRATION 704
+#define FEAT_BREACH_POWER_RESISTANCE 705
+#define FEAT_DOUBLE_MANIFEST 706
+#define FEAT_PERPETUAL_FORESIGHT 707
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 673
+#define FEAT_LAST_FEAT 708
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 674
+#define NUM_FEATS 709
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -2850,7 +2884,8 @@
 #define MAX_TITLE_LENGTH 80              /**< Max PC title length */
 #define HOST_LENGTH 40                   /**< Max hostname resolution length */
 #define PLR_DESC_LENGTH 4096             /**< Max length for PC description */
-#define MAX_SKILLS 600                   /**< Max number of skills/spells */
+#define MAX_SKILLS 600                   /**< Max number of skills */
+#define MAX_SPELLS 2000                  /**< Max number of spells */
 #define MAX_ABILITIES 200                /**< Max number of abilities */
 #define MAX_AFFECT 32                    /**< Max number of player affections */
 #define MAX_OBJ_AFFECT 6                 /**< Max object affects */
@@ -3436,7 +3471,7 @@ struct innate_magic_data
 struct player_special_data_saved
 {
     int skills[MAX_SKILLS + 1];         //saved skills
-    int spells[2001];                   //saved spells, should be MAX_SPELLS + 1 from spells.h
+    int spells[MAX_SPELLS];                   //saved spells, should be MAX_SPELLS + 1 from spells.h
     ubyte abilities[MAX_ABILITIES + 1]; //abilities
 
     /* Feats */
@@ -3572,6 +3607,10 @@ struct player_special_data_saved
     int incorporeal_form_timer;
 
     int psionic_energy_type;        // this is the element that will be used when using psionic energy powers
+
+    int potions[MAX_SPELLS];        // used in new consumables system store/unstore/quaff
+    int scrolls[MAX_SPELLS];        // used in new consumables system store/unstore/recite
+    int wands[MAX_SPELLS];          // used in new consumables system store/unstore/use
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3763,7 +3802,7 @@ struct level_data
     int feat_skills[NUM_FEATS];
     /*        int spells_known[NUM_SPELLS];*/
     int spell_slots[10];
-    int spells_learned[MAX_SKILLS+1];
+    int spells_learned[MAX_SPELLS];
 
     /* setting stats */
     int str;
@@ -4239,6 +4278,7 @@ struct player_config_data
     int psionic_mem_times;
     int divine_mem_times;
     int arcane_mem_times;
+    int alchemy_mem_times;
 
     // death penalty exp loss modifier
     int death_exp_loss_penalty;

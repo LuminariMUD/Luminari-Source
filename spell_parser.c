@@ -155,7 +155,9 @@ bool concentration_check(struct char_data *ch, int spellnum)
         }
         concentration_dc += spell_level;
 
-        if (HAS_FEAT(ch, FEAT_COMBAT_CASTING))
+        if (spellnum > 0 && spellnum < NUM_SPELLS && HAS_FEAT(ch, FEAT_COMBAT_CASTING))
+                concentration_dc -= 4;
+        if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END && HAS_FEAT(ch, FEAT_COMBAT_MANIFESTATION))
                 concentration_dc -= 4;
         if (!is_tanking(ch))
                 concentration_dc -= 10;
@@ -669,6 +671,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case CLASS_ALCHEMIST:
                         spell_level = level;
                         break;
+                case CLASS_PSIONICIST:
+                        spell_level = level;
+                        break;
                 }
 
         default:
@@ -904,6 +909,12 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 }
         }
 
+        // Always set to zero after applying dc_bonus. We do this here so that AoE spells
+        // will give the dc bonus to all targets, not just the first, which occurred when it
+        // was removed in mag_savingthrow
+        GET_DC_BONUS(caster) = 0;
+
+
         return (1);
 }
 
@@ -1119,6 +1130,8 @@ void resetCastingData(struct char_data *ch)
         CASTING_SPELLNUM(ch) = 0;
         CASTING_TCH(ch) = NULL;
         CASTING_TOBJ(ch) = NULL;
+        GET_AUGMENT_PSP(ch) = 0;
+        GET_DC_BONUS(ch) = 0; // another redundancy, but doesn't hurt.  Also removed in mag_saving_throws
 }
 
 int castingCheckOk(struct char_data *ch)
@@ -1182,10 +1195,29 @@ int castingCheckOk(struct char_data *ch)
 
 void finishCasting(struct char_data *ch)
 {
+        if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS) {
+                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC))
+                        GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC);
+        }
+        else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END) {
+                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS))
+                        GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS);
+                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PSIONIC_ENDOWMENT))
+                        GET_DC_BONUS(ch) += 3;
+                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
+                        GET_DC_BONUS(ch) += 1;
+        }
         say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
         send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : "complete your spell");
         call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
-                   CASTER_LEVEL(ch), CAST_SPELL);
+                   (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+        if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
+        {
+                send_to_char(ch, "\tW[DOUBLE MANIFEST!]\tn");
+                call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+                   (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+                affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
+        }
         resetCastingData(ch);
 }
 
@@ -1242,9 +1274,22 @@ EVENTFUNC(event_casting)
                         strlcat(buf, "\r\n", sizeof(buf));
                         send_to_char(ch, "%s", buf);
 
-                        if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
-                                if (rand_number(0, 1))
+                        if (spellnum > 0 && spellnum < NUM_SPELLS) {
+                                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT)) {
+                                        if (rand_number(0, 1)) {
+                                                CASTING_TIME(ch)--;
+                                        }
+                                }
+                        }
+                        else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END) {
+                                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_MIND)) {
+                                        if (rand_number(0, 1)) {
+                                                CASTING_TIME(ch)--;
+                                        }
+                                }
+                                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
                                         CASTING_TIME(ch)--;
+                        }
 
                         CASTING_TIME(ch)--;
 
@@ -1439,20 +1484,28 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 }
                 else
                 {
-                        /* SPELL PREPARATION HOOK */
-                        /* NEW SPELL PREP SYSTEM */
-                        ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
-                        if (ch_class == CLASS_UNDEFINED)
+                        if (psionic_powers[spellnum].psp_cost > 0)
                         {
-                                send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
-                                log("spell_prep_gen_extract() failed in cast_spell()");
-                                return 0;
+                                clevel = GET_PSIONIC_LEVEL(ch);
+                                CASTING_CLASS(ch) = CLASS_PSIONICIST;
                         }
+                        else
+                        {
+                                /* SPELL PREPARATION HOOK */
+                                /* NEW SPELL PREP SYSTEM */
+                                ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
+                                if (ch_class == CLASS_UNDEFINED)
+                                {
+                                        send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
+                                        log("spell_prep_gen_extract() failed in cast_spell()");
+                                        return 0;
+                                }
 
-                        /* level to cast this particular spell as */
-                        clevel = CLASS_LEVEL(ch, ch_class);
-                        CASTING_CLASS(ch) = ch_class;
-                        /* npc class */
+                                /* level to cast this particular spell as */
+                                clevel = CLASS_LEVEL(ch, ch_class);
+                                CASTING_CLASS(ch) = ch_class;
+                                /* npc class */
+                        }
                 }
         }
         else if (IS_NPC(ch))
@@ -1732,7 +1785,7 @@ ACMDU(do_gen_cast)
                 }
         }
 
-        if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT)
+        if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_PSIONIC)
         {
                 send_to_char(ch, "You are unfamiliar with that %s.\r\n", do_cast_types[subcmd][2]);
                 return;
@@ -1825,6 +1878,11 @@ ACMDU(do_gen_cast)
 
         if (subcmd == SCMD_CAST_PSIONIC)
         {
+                if (!is_a_known_spell(ch, CLASS_PSIONICIST, spellnum))
+                {
+                        send_to_char(ch, "You are not proficient in the use of that power.\r\n");
+                        return;
+                }
                 if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
                 {
                         send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
@@ -2705,6 +2763,9 @@ void mag_assign_spells(void)
 
         // 4th circle
         /* evocation */
+        spello(SPELL_LESSER_MISSILE_STORM, "lesser missile storm", 72, 57, 1, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+               NULL, 4, 13, EVOCATION, FALSE);
         spello(SPELL_ICE_STORM, "ice storm", 58, 43, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 5, 13, EVOCATION, FALSE);
@@ -3390,6 +3451,18 @@ void mag_assign_spells(void)
         spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_STANDING,
                TAR_IGNORE, FALSE, MAG_ROOM,
                "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
+
+        spello(SPELL_AFFECT_MIND_TRAP_NAUSEA, "mind trap", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "The mind trap's nausea fades.", 1, 1, NOSCHOOL, FALSE);
+
+        spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "Your psionic focus expires.", 1, 1, NOSCHOOL, FALSE); 
+        spello(PSIONIC_ABILITY_DOUBLE_MANIFESTATION, "double manifestation", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "Your double manifest expires.", 1, 1, NOSCHOOL, FALSE);        
+
         /*
    spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,

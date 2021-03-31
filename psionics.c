@@ -27,6 +27,7 @@
 #include "alchemy.h"
 #include "missions.h"
 #include "psionics.h"
+#include "act.h"
 
 struct psionic_power_data psionic_powers[MAX_SPELLS+1];
 
@@ -54,7 +55,7 @@ void assign_psionic_powers(void)
 {
     int i = 0;
 
-    for (i = 0; i <= TOP_SPELL_DEFINE; i++)
+    for (i = PSIONIC_POWER_START; i <= PSIONIC_POWER_END; i++)
         unused_psionic_power(i);
 
     // level 1 psionic powers
@@ -112,7 +113,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_PSIONIC_BLAST, "psionic blast", 5, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, "The stunning affect of being hit by a psionic blast expires.", 3);
     psiono(PSIONIC_FORCED_SHARED_PAIN, "forced shared pain", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "You're no longer being forced to share pain.", 3);
     psiono(PSIONIC_SHARPENED_EDGE, "sharpened edge", 5, false, METACREATIVITY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "The sharpened edge of your weapons fades.", 3);
-    psiono(PSIONIC_UBIQUITUS_VISION, "ubiquitus vision", 5, false, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your ubiquitus vision fades.", 3);
+    psiono(PSIONIC_UBIQUITUS_VISION, "ubiquitous vision", 5, false, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your ubiquitus vision fades.", 3);
 
     // level 4 psionic powers
     psiono(PSIONIC_DEADLY_FEAR, "deadly fear", 7, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 4);
@@ -236,7 +237,6 @@ ACMD(do_manifest)
     snprintf(final_pass, sizeof(final_pass), " %s", pass_arg);
     //send_to_char(ch, "PASS ARG:---%s---\r\n", final_pass);
     do_gen_cast(ch, (const char *) final_pass, cmd, SCMD_CAST_PSIONIC);
-    GET_AUGMENT_PSP(ch) = 0;
 }
 
 #undef MANIFEST_NO_ARG
@@ -252,10 +252,12 @@ int adjust_augment_psp_for_spell(struct char_data *ch, int spellnum)
 {
     if (GET_AUGMENT_PSP(ch) > 0)
     {
-      if (GET_AUGMENT_PSP(ch) > max_augment_psp_allowed(ch, spellnum))
+      if (GET_AUGMENT_PSP(ch) > max_augment_psp_allowed(ch, spellnum)) {
         GET_AUGMENT_PSP(ch) = max_augment_psp_allowed(ch, spellnum);
-      if (GET_PSP(ch) > GET_AUGMENT_PSP(ch))
+      }
+      if (GET_PSP(ch) < GET_AUGMENT_PSP(ch)) {
         GET_AUGMENT_PSP(ch) = GET_PSP(ch);
+      }
     }
     return GET_AUGMENT_PSP(ch);
 }
@@ -369,4 +371,57 @@ ACMDU(do_discharge)
     }
 
     send_to_char(ch, "That is not a valid energy type.  Please choose from among: fire, cold, acid, sonic, electric\r\n");
+}
+
+ACMDCHECK(can_psionic_focus)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_PSIONIC_FOCUS, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_psionic_focus)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_psionic_focus);
+  PREREQ_HAS_USES(FEAT_PSIONIC_FOCUS, "You have not yet recovered your psionic focus.\r\n");
+
+  struct affected_type af;
+
+  new_affect(&af);
+
+  start_daily_use_cooldown(ch, FEAT_PSIONIC_FOCUS);
+
+  af.duration = 10;
+
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "You enter a deep psionic focus.\r\n");
+  act("$n seems to enter a deep focus.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMDCHECK(can_double_manifest)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DOUBLE_MANIFEST, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_double_manifest)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_double_manifest);
+  PREREQ_HAS_USES(FEAT_DOUBLE_MANIFEST, "You have not yet able to perform a double manifest.\r\n");
+
+  struct affected_type af;
+
+  new_affect(&af);
+
+  start_daily_use_cooldown(ch, FEAT_DOUBLE_MANIFEST);
+
+  af.duration = 100;
+
+  affect_to_char(ch, &af);
+
+  send_to_char(ch, "You prepare to perform a double manifest.\r\n");
 }

@@ -272,7 +272,6 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   }
 
   challenge += GET_DC_BONUS(ch);
-  GET_DC_BONUS(ch) = 0; // Always set to zero after applying dc_bonus
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
     savethrow += 2;
@@ -523,7 +522,7 @@ void affect_update(void)
       { /* affect wore off! */
         /* handle spells/skills (use to just handle spells) */
 
-        if ((af->spell > 0) && (af->spell <= MAX_SKILLS))
+        if ((af->spell > 0) && (af->spell <= MAX_SPELLS))
         { /*valid spellnum?*/
 
           /* this is our check to avoid duplicate wear-off messages */
@@ -1227,6 +1226,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = level;
     break;
 
+  case SPELL_LESSER_MISSILE_STORM: //evocation
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    num_dice = MIN(20, level);
+    size_dice = 10;
+    bonus = level;
+    break;
+
   case SPELL_NEGATIVE_ENERGY_RAY: //necromancy
     save = SAVING_WILL;
     mag_resist = TRUE;
@@ -1830,8 +1838,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
     GET_DC_BONUS(ch) += 1;
 
-  if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
-    dam += num_dice;
+  if (spellnum > 0 && spellnum < NUM_SPELLS) {
+    if (HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE))
+      dam += num_dice * HAS_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE);
+  }
+  else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END) {
+    if (HAS_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE))
+      dam += num_dice * HAS_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE);
+  }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
@@ -1888,6 +1902,40 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
           return 0;
       }
     }
+  }
+
+  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+  {
+    switch (element)
+    {
+      case DAM_FIRE:
+        if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_FIRE))
+        bonus += num_dice;
+        GET_DC_BONUS(ch)++;
+        break;
+      case DAM_ACID:
+        if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_ACID))
+        bonus += num_dice;
+        GET_DC_BONUS(ch)++;
+        break;
+      case DAM_COLD:
+        if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_COLD))
+        bonus += num_dice;
+        GET_DC_BONUS(ch)++;
+        break;
+      case DAM_SOUND:
+        if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_SOUND))
+        bonus += num_dice;
+        GET_DC_BONUS(ch)++;
+        break;
+      case DAM_ELECTRIC:
+        if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_ELEMENTAL_FOCUS_ELECTRICITY))
+        bonus += num_dice;
+        GET_DC_BONUS(ch)++;
+        break;
+    }
+    if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
+      dam *= 0.10;
   }
 
   //dwarven racial bonus to magic, gnomes to illusion
@@ -5396,10 +5444,6 @@ case PSIONIC_BODY_OF_IRON:
     to_room = "$n's wisdom increases!";
     break;
   }
-
-  // sanity check.   it should be reset to zero via mag_savinthrow, but let's do it here just in
-  // case an offensive (violent) spell doesn't call for a saving throw.
-  GET_DC_BONUS(ch) = 0;
 
   /* slippery mind */
   if (!IS_NPC(victim) &&

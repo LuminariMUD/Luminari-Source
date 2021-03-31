@@ -117,6 +117,21 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     }
   }
 
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_PSIONICIST) ||
+      CLASS_LEVEL(ch, CLASS_WIZARD) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_QUARTERSTAFF:
+    case WEAPON_TYPE_CLUB:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_SHORTSPEAR:
+      return TRUE;
+    }
+  }
+
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DROW) ||
       IS_DROW(ch))
   {

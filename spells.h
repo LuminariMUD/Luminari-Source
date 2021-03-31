@@ -458,10 +458,11 @@
 #define SPELL_GRASP_OF_THE_DEAD 395
 #define SPELL_GRAVE_TOUCH 396
 #define SPELL_INCORPOREAL_FORM 397
+#define SPELL_LESSER_MISSILE_STORM 398
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 398
-#define LAST_SPELL_DEFINE 398
+#define NUM_SPELLS 399
+#define LAST_SPELL_DEFINE 399
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -473,6 +474,8 @@
  */
 
 #define SPELL_AFFECT_MIND_TRAP_NAUSEA   1200
+#define PSIONIC_ABILITY_PSIONIC_FOCUS   1201
+#define PSIONIC_ABILITY_DOUBLE_MANIFESTATION 1202
 
 
 /** we're going to start psionic powers at 1500.

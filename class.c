@@ -1306,6 +1306,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_ALCHEMIST:
   case CLASS_ELDRITCH_KNIGHT:
   case CLASS_SPELLSWORD:
+  case CLASS_PSIONICIST:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1383,6 +1384,8 @@ int parse_class(char arg)
     return CLASS_ELDRITCH_KNIGHT;
   case 'y':
     return CLASS_SPELLSWORD;
+  case 'z':
+    return CLASS_PSIONICIST;
     /* empty letters */
     /* empty letters */
     /* empty letters */
@@ -1470,6 +1473,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_MYSTICTHEURGE;
   if (is_abbrev(arg, "alchemist"))
     return CLASS_ALCHEMIST;
+  if (is_abbrev(arg, "psionicist"))
+    return CLASS_PSIONICIST;
 
   return CLASS_UNDEFINED;
 }
@@ -2114,6 +2119,7 @@ void newbieEquipment(struct char_data *ch)
     obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); //spellbook
     /* switch fallthrough */
   case CLASS_SORCERER:
+  case CLASS_PSIONICIST:
     obj = read_object(NOOB_CLOTH_SLEEVES, VIRTUAL);
     GET_OBJ_SIZE(obj) = GET_SIZE(ch);
     obj_to_char(obj, ch); // cloth sleeves
@@ -2287,7 +2293,7 @@ void init_start_char(struct char_data *ch)
   GET_REAL_HITROLL(ch) = 0;
   GET_REAL_DAMROLL(ch) = 0;
   GET_REAL_MAX_HIT(ch) = 20;
-  GET_REAL_MAX_PSP(ch) = 15;
+  GET_REAL_MAX_PSP(ch) = 3;
   GET_REAL_MAX_MOVE(ch) = 820;
   GET_PRACTICES(ch) = 0;
   GET_TRAINS(ch) = 0;
@@ -2370,8 +2376,7 @@ void init_start_char(struct char_data *ch)
   {
   case RACE_HUMAN:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    GET_FEAT_POINTS(ch)
-    ++;
+    GET_FEAT_POINTS(ch)++;
     trains += 3;
     break;
   case RACE_ELF:
@@ -2419,8 +2424,7 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-  ++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -2429,8 +2433,7 @@ void init_start_char(struct char_data *ch)
   trains += MAX(1, (CLSLIST_TRAINS(GET_CLASS(ch)) + (int)(int_bonus)) * 3);
 
   /* finalize */
-  GET_FEAT_POINTS(ch)
-  ++; /* 1st level feat. */
+  GET_FEAT_POINTS(ch)++; /* 1st level feat. */
   send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", GET_FEAT_POINTS(ch));
   send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
   GET_TRAINS(ch) += trains;
@@ -2819,7 +2822,7 @@ void process_level_feats(struct char_data *ch, int class)
 /* our function for leveling up */
 void advance_level(struct char_data *ch, int class)
 {
-  int add_hp = 0, at_armor = 100,
+  int add_hp = 0, at_armor = 100, 
       add_psp = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
@@ -2833,6 +2836,16 @@ void advance_level(struct char_data *ch, int class)
 
   add_hp += CONFIG_EXTRA_PLAYER_HP_PER_LEVEL;
   add_move += CONFIG_EXTRA_PLAYER_MV_PER_LEVEL;
+
+  if (class == CLASS_PSIONICIST)
+  {
+    add_psp += GET_LEVEL(ch) + 2;
+    if (CLASS_LEVEL(ch, class) == 1)
+      add_psp += GET_REAL_INT_BONUS(ch);
+    if (HAS_REAL_FEAT(ch, FEAT_PROFICIENT_PSIONICIST))
+      add_psp++;
+
+  }
 
   /* first level in a class?  might have some inits to do! */
   if (CLASS_LEVEL(ch, class) == 1)
@@ -2851,10 +2864,6 @@ void advance_level(struct char_data *ch, int class)
   /* calculate moves gain */
   add_move += rand_number(1, CLSLIST_MVS(class));
 
-  /* calculate psp gain */
-  //add_psp += rand_number(CLSLIST_PSP(class)/2, CLSLIST_PSP(class));
-  add_psp = 0;
-
   /* calculate trains gained */
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
 
@@ -2865,6 +2874,11 @@ void advance_level(struct char_data *ch, int class)
       class_feats++; // wizards get a bonus class feat every 5 levels
     //else if (IS_EPIC(ch))
     //epic_class_feats++;
+  }
+  if (class == CLASS_PSIONICIST && (!(CLASS_LEVEL(ch, CLASS_PSIONICIST) % 5) || CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1))
+  {
+    if (CLASS_LEVEL(ch, CLASS_PSIONICIST) <= 20)
+      class_feats++; // psionicists get a bonus class feat every 5 levels
   }
   if (class == CLASS_WARRIOR)
   {
@@ -2966,6 +2980,10 @@ void advance_level(struct char_data *ch, int class)
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
   GET_REAL_MAX_MOVE(ch) += MAX(1, add_move);
   send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
+  if (add_psp > 0) {
+    GET_REAL_MAX_PSP(ch) += MAX(1, add_psp);
+    send_to_char(ch, "\tMTotal Power Points:\tn %d\r\n", MAX(1, add_psp));
+  }
   if (GET_LEVEL(ch) > 1)
   {
     GET_REAL_MAX_PSP(ch) += add_psp;
@@ -3111,6 +3129,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_MYSTIC_THEURGE:
   case CLASS_ALCHEMIST:
   case CLASS_SPELLSWORD:
+  case CLASS_PSIONICIST:
     level--;
     if (level < 0)
       level = 0;
@@ -3178,7 +3197,7 @@ void load_class_list(void)
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WIZARD, "wizard", "Wiz", "\tmWiz\tn", "m) \tmWizard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
-         -1, N, N, L, 4, 0, 1, 2, Y, 0, 5,
+         -1, N, N, L, 6, 0, 1, 2, Y, 0, 5,
          /*prestige spell progression*/ "none",
          /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
                      "power. The works of beings beyond mortals, the legends of realms where titans "
@@ -3337,6 +3356,7 @@ void load_class_list(void)
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_LESSER_MISSILE_STORM, 7);
   spell_assignment(CLASS_WIZARD, SPELL_COLD_SHIELD, 7);
   spell_assignment(CLASS_WIZARD, SPELL_ICE_STORM, 7);
   spell_assignment(CLASS_WIZARD, SPELL_BILLOWING_CLOUD, 7);
@@ -4336,7 +4356,7 @@ void load_class_list(void)
   /*     class-number     name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SORCERER, "sorcerer", "Sor", "\tMSor\tn", "s) \tMSorcerer\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, L, 4, 0, 1, 2, Y, 0, 0,
+         -1, N, N, L, 6, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "Scions of innately magical bloodlines, the chosen of deities, "
                      "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
@@ -4488,6 +4508,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_CHARISMA, 6);
   /*              class num      spell                   level acquired */
   /* 4th circle */
+  spell_assignment(CLASS_SORCERER, SPELL_LESSER_MISSILE_STORM, 8);
   spell_assignment(CLASS_SORCERER, SPELL_FIRE_SHIELD, 8);
   spell_assignment(CLASS_SORCERER, SPELL_COLD_SHIELD, 8);
   spell_assignment(CLASS_SORCERER, SPELL_ICE_STORM, 8);
@@ -5038,7 +5059,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_PSIONICIST, "psionicist", "Psn", "\tCPsn\tn", "f) \tCPsionicist\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         30, Y, N, L, 4, 0, 1, 2, N, 0, 0,
+         30, N, N, L, 6, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "The powers of the mind are varied and limitless, and the psion "
                      "learns how to unlock them. The psion learns to manifest psionic "
@@ -5046,6 +5067,177 @@ void load_class_list(void)
                      "limited powers that any one psion knows, each psion is unique in "
                      "his capabilities, as his latent abilities are drawn out and shaped "
                      "into the psionic powers that define the psion.");
+
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_PSIONICIST, B, B, G, B, G);
+  assign_class_abils(CLASS_PSIONICIST, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CA, CA, CC, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CA, CA, CC, CA, CC, CC, CC, CC,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CC, CC, CC, CC, CC, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CA, CC);
+  assign_class_titles(CLASS_PSIONICIST,                /* class number */
+                      "",                        /* <= 4  */
+                      "the Novice of the Mind",           /* <= 9  */
+                      "the Adept of the Mind", /* <= 14 */
+                      "the Psionicist",          /* <= 19 */
+                      "the Mind Shaper",        /* <= 24 */
+                      "the Master of the Mind",            /* <= 29 */
+                      "the Master of the Mind",             /* <= 30 */
+                      "the Immortal Mind", /* <= LVL_IMMORT */
+                      "the Master of Minds",     /* <= LVL_STAFF */
+                      "the Omniscient",       /* <= LVL_GRSTAFF */
+                      "the Psionicist"                 /* default */
+  );
+
+  /* feat assignment */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_PSIONICIST, FEAT_WEAPON_PROFICIENCY_PSIONICIST, Y, 1, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONIC_FOCUS, Y, 1, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_2ND_CIRCLE, Y, 3, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_3RD_CIRCLE, Y, 5, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_4TH_CIRCLE, Y, 7, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_BREACH_POWER_RESISTANCE, Y, 8, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_5TH_CIRCLE, Y, 9, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_6TH_CIRCLE, Y, 11, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_7TH_CIRCLE, Y, 13, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_DOUBLE_MANIFEST, Y, 14, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_8TH_CIRCLE, Y, 15, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_9TH_CIRCLE, Y, 17, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PERPETUAL_FORESIGHT, Y, 20, N);
+  /*epic*/
+  //feat_assignment(CLASS_PSIONICIST, FEAT_SORCERER_EPIC_SPELL, Y, 21, N);
+  /* list of class feats */
+  feat_assignment(CLASS_PSIONICIST, FEAT_COMBAT_MANIFESTATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ALIGNED_ATTACK_GOOD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ALIGNED_ATTACK_EVIL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ALIGNED_ATTACK_CHAOS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ALIGNED_ATTACK_LAW, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_CRITICAL_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ELEMENTAL_FOCUS_FIRE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ELEMENTAL_FOCUS_ACID, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ELEMENTAL_FOCUS_COLD, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ELEMENTAL_FOCUS_ELECTRICITY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ELEMENTAL_FOCUS_SOUND, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_POWER_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_GREATER_POWER_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EPIC_POWER_PENETRATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_QUICK_MIND, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONIC_RECOVERY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PROFICIENT_PSIONICIST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_ENHANCED_POWER_DAMAGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EXPANDED_KNOWLEDGE, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PSIONIC_ENDOWMENT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EMPOWERED_PSIONICS, Y, NOASSIGN_FEAT, N);
+
+  /**** spell assign ****/
+  /*              class num      spell                   level acquired */
+  /* 1st circle */
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BROKER, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_CALL_TO_MIND, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_CATFALL, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_CRYSTAL_SHARD, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DECELERATION, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DEMORALIZE, 1);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHEEN, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_RAY, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCE_SCREEN, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_FORTIFY, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_INERTIAL_ARMOR, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_INEVITABLE_STRIKE, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_MIND_THRUST, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DEFENSIVE_PRECOGNITION, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_OFFENSIVE_PRECOGNITION, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_OFFENSIVE_PRESCIENCE, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SLUMBER, 1);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_VIGOR, 1);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BESTOW_POWER, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BIOFEEDBACK, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_EQUILLIBRIUM, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BREACH, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCEALING_AMORPHA, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCUSSION_BLAST, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DETECT_HOSTILE_INTENT, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ELFSIGHT, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_ADAPTATION_SPECIFIED, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_PUSH, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_STUN, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_INFLICT_PAIN, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_MENTAL_DISRUPTION, 3);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_PSIONIC_LOCK, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHIC_BODYGUARD, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_RECALL_AGONY, 3);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARE_PAIN, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SWARM_OF_CRYSTALS, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_THOUGHT_SHIELD, 3);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_ADJUSTMENT, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCUSSIVE_ONSLAUGHT, 5);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_DISPEL_PSIONICS, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENDORPHIN_SURGE, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_BURST, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_RETORT, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ERADICATE_INVISIBILITY, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_HEIGHTENED_VISION, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_MENTAL_BARRIER, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_MIND_TRAP, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PSIONIC_BLAST, 5);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCED_SHARED_PAIN, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARPENED_EDGE, 5);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_UBIQUITUS_VISION, 5);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DEADLY_FEAR, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DEATH_URGE, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_EMPATHIC_FEEDBACK, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_ADAPTATION, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_INCITE_PASSION, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_INTELLECT_FORTRESS, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_MOMENT_OF_TERROR, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_POWER_LEECH, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SLIP_THE_BONDS, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_WITHER, 7);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_WALL_OF_ECTOPLASM, 7);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHAMBLER, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PIERCE_VEIL, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PLANAR_TRAVEL, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_POWER_RESISTANCE, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHIC_CRUSH, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHOPORTATION, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SHATTER_MIND_BLANK, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SHRAPNEL_BURST, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_TOWER_OF_IRON_WILL, 9);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_UPHEAVAL, 9);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BREATH_OF_THE_BLACK_DRAGON, 11);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BRUTALIZE_WOUNDS, 11);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_DISINTEGRATION, 11);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_REMOTE_VIEW_TRAP, 11);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SUSTAINED_FLIGHT, 11);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_COSMIC_AWARENESS, 13);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_CONVERSION, 13);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_WAVE, 13);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_EVADE_BURST, 13);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_OAK_BODY, 13);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHOSIS, 13);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ULTRABLAST, 13);
+
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_OF_IRON, 15);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_RECALL_DEATH, 15);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_SHADOW_BODY, 15);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_TRUE_METABOLISM, 15);
+  
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_APOPSI, 17);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_ASSIMILATE, 17);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/

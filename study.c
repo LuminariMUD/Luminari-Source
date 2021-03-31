@@ -26,6 +26,7 @@
 #include "alchemy.h"
 #include "race.h"
 #include "premadebuilds.h"
+#include "psionics.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -745,6 +746,56 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SORC_KNOWN_SPELLS_MENU;
 }
 
+
+static void psionicist_known_powers_disp_menu(struct descriptor_data *d)
+{
+  //  int sorc_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
+  //                     BONUS_CASTER_LEVEL(d->character, CLASS_SORCERER);
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  char arcana_slots[100];
+  if (free_arcana_slots(d->character) > 0)
+    snprintf(arcana_slots, sizeof(arcana_slots), "%s A%s) Assign New Arcana Circle\r\n\r\n", grn, nrm);
+  else
+    snprintf(arcana_slots, sizeof(arcana_slots), "%s", nrm);
+
+  write_to_output(d,
+                  "\r\n"
+                  "-- %sPowers Known Menu\r\n"
+                  "\r\n"
+                  "%s 1%s) 1st Circle\r\n"
+                  "%s 2%s) 2nd Circle\r\n"
+                  "%s 3%s) 3rd Circle\r\n"
+                  "%s 4%s) 4th Circle\r\n"
+                  "%s 5%s) 5th Circle\r\n"
+                  "%s 6%s) 6th Circle\r\n"
+                  "%s 7%s) 7th Circle\r\n"
+                  "%s 8%s) 8th Circle\r\n"
+                  "%s 9%s) 9th Circle\r\n"
+                  "\r\n"
+                  "%s%d%s of %s%d%s powers selected.\r\n"
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
+
+                  mgn,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  grn, nrm,
+                  yel, num_psionicist_powers_known(d->character), nrm, yel, num_psionicist_powers_available(d->character), nrm,
+                  grn, nrm);
+
+  OLC_MODE(d) = STUDY_PSIONICIST_KNOWN_POWERS_MENU;
+}
+
 void sorc_study_menu(struct descriptor_data *d, int circle)
 {
   int counter, columns = 0;
@@ -861,6 +912,40 @@ void bard_study_menu(struct descriptor_data *d, int circle)
                   nrm);
 
   OLC_MODE(d) = BARD_STUDY_SPELLS;
+}
+
+void psionicist_study_menu(struct descriptor_data *d, int circle)
+{
+  int counter, columns = 0;
+
+  LEVELUP(d->character)->spell_circle = circle;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  /* SPELL PREPARATION HOOK */
+  for (counter = PSIONIC_POWER_START; counter <= PSIONIC_POWER_END; counter++)
+  {
+    if (compute_powers_circle(CLASS_PSIONICIST, counter, METAMAGIC_NONE) == circle)
+    {
+      if (is_a_known_spell(d->character, CLASS_PSIONICIST, counter))
+        write_to_output(d, "%s%2d%s)%s+%-25.25s %s", grn, counter, nrm, mgn,
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+      else
+        write_to_output(d, "%s%2d%s) %s%-25.25s %s", grn, counter, nrm, yel,
+                        spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+    }
+  }
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
+                      num_psionicist_powers_available(d->character) - num_psionicist_powers_known(d->character));
+  write_to_output(d, "\tCType the power number followed by 'help' to see help on that power.  Eg. 81 help\r\n\tn");
+  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
+  write_to_output(d, "%sEnter power choice, to add or remove "
+                     "(Q to exit to main menu) : ", nrm);
+
+
+  OLC_MODE(d) = PSIONICIST_STUDY_POWERS;
 }
 
 /***********************end bard******************************************/
@@ -1840,14 +1925,15 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s 1%s) Ability Score Boosts%s\r\n"
                   "%s 2%s) Feats%s\r\n"
                   "%s 3%s) Known Spells%s\r\n"
-                  "%s 4%s) Choose Familiar%s\r\n"
-                  "%s 5%s) Animal Companion%s\r\n"
-                  "%s 6%s) Ranger Favored Enemy%s\r\n"
-                  "%s 7%s) Cleric Domain Selection%s\r\n"
-                  "%s 8%s) Wizard School Selection%s\r\n"
-                  "%s 9%s) Preferred Caster Classes (Prestige)%s\r\n"
-                  "%s A%s) Sorcerer Bloodline Selection%s\r\n"
-                  "%s B%s) Alchemist Discoveries Selection%s\r\n"
+                  "%s 4%s) Known Psionic Powers%s\r\n"
+                  "%s 5%s) Choose Familiar%s\r\n"
+                  "%s 6%s) Animal Companion%s\r\n"
+                  "%s 7%s) Ranger Favored Enemy%s\r\n"
+                  "%s 8%s) Cleric Domain Selection%s\r\n"
+                  "%s 9%s) Wizard School Selection%s\r\n"
+                  "%s A%s) Preferred Caster Classes (Prestige)%s\r\n"
+                  "%s B%s) Sorcerer Bloodline Selection%s\r\n"
+                  "%s C%s) Alchemist Discoveries Selection%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -1860,15 +1946,16 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(CAN_STUDY_BOOSTS(ch)), CAN_STUDY_BOOSTS(ch) ? "" : "*",                                     //1
                   MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*",                                       //2
                   MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*",                         //3
-                  MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*",                                 //4
-                  MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*",                               //5
-                  MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*",                       //6
-                  MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*",                                         //7
-                  MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*",                                         //8
-                  MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                                     //9
-                  MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               //A
-                  MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //B
-                  MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
+                  MENU_OPT(CAN_STUDY_KNOWN_PSIONICS(ch)), CAN_STUDY_KNOWN_PSIONICS(ch) ? "" : "*",                     //4
+                  MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*",                                 //5
+                  MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*",                               //6
+                  MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*",                       //7
+                  MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*",                                         //8
+                  MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*",                                         //9
+                  MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                                     //A
+                  MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               //B
+                  MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //C
+                  MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         //R
                   grn, nrm);
 
   OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
@@ -2117,6 +2204,22 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       break;
     case '4':
+    if (LEVELUP(ch) && LEVELUP(ch)->inte != GET_REAL_INT(ch))
+      {
+        send_to_char(ch, "\tYSince you have changed your intelligence ability score, you need to save and\r\nquit from study before you can select your powers.\r\n");
+        break;
+      }
+      if (CAN_STUDY_KNOWN_PSIONICS(ch))
+      {
+          psionicist_known_powers_disp_menu(d);
+      }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+    case '5':
       if (CAN_STUDY_FAMILIAR(ch))
         familiar_menu(d);
       else
@@ -2125,7 +2228,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    case '5':
+    case '6':
       if (CAN_STUDY_COMPANION(ch))
         animal_companion_menu(d);
       else
@@ -2134,7 +2237,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    case '6':
+    case '7':
       if (CAN_STUDY_FAVORED_ENEMY(ch))
         favored_enemy_menu(d);
       else
@@ -2153,7 +2256,7 @@ void study_parse(struct descriptor_data *d, char *arg)
           }
           break;
         */
-    case '7':
+    case '8':
       if (CAN_SET_DOMAIN(ch))
         set_domain_menu(d);
       else
@@ -2162,7 +2265,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    case '8':
+    case '9':
       if (CAN_SET_SCHOOL(ch))
         set_school_menu(d);
       else
@@ -2171,7 +2274,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    case '9':
+    case 'a':
+    case 'A':
       if (CAN_SET_P_CASTER(ch))
         set_preferred_caster(d);
       else
@@ -2180,8 +2284,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    case 'A':
-    case 'a':
+    case 'b':
+    case 'B':
       if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
       {
         write_to_output(d, "Please choose your feat(s) first.\r\n");
@@ -2194,8 +2298,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    case 'B':
-    case 'b':
+    case 'c':
+    case 'C':
       if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
       {
         write_to_output(d, "Please choose your feat(s) first.\r\n");
@@ -2891,6 +2995,92 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
     /******* end bard **********/
+
+    /******* start psionicist **********/
+
+    case STUDY_PSIONICIST_KNOWN_POWERS_MENU:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
+      break;
+    // these are our power level menus
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      if (((CLASS_LEVEL(d->character, CLASS_PSIONICIST) + 1) / 2) < atoi(arg))
+      {
+        send_to_char(d->character, "You are not yet able to learn psionic powers of that level.\r\n");
+        break;
+      }
+      psionicist_study_menu(d, atoi(arg));
+      OLC_MODE(d) = PSIONICIST_STUDY_POWERS;
+      break;
+    default:
+      write_to_output(d, "That is an invalid choice!\r\n");
+      psionicist_known_powers_disp_menu(d);
+      break;
+    }
+    break;
+
+    case PSIONICIST_STUDY_POWERS:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      psionicist_known_powers_disp_menu(d);
+      break;
+
+    default:
+      number = atoi(arg);
+
+      /* SPELL PREPARATION HOOK */
+      for (counter = PSIONIC_POWER_START; counter <= PSIONIC_POWER_END; counter++)
+      {
+        if (counter == number)
+        {
+          if (compute_powers_circle(CLASS_PSIONICIST, counter, METAMAGIC_NONE) == LEVELUP(d->character)->spell_circle)
+          {
+            if (*arg2 && is_abbrev(arg2, "help")) {
+              snprintf(buf, sizeof(buf), "power %s", spell_info[counter].name);
+              do_help(d->character, buf, 0, 0);
+              return;
+            }
+            if (is_a_known_spell(d->character, CLASS_PSIONICIST, counter)) {
+              if (!LEVELUP(d->character)->spells_learned[counter]) {
+                send_to_char(d->character, "\tCYou cannot remove powers known, unless it is a power you already chose this level. "
+                                         "To change past choices, you need to respec your character.\r\n\tn");
+                break;        
+              } else {
+                known_spells_remove_by_class(d->character, CLASS_PSIONICIST, counter);
+                LEVELUP(d->character)->spells_learned[counter] = 0; 
+              }
+            }
+            else {
+              can_add_spell = known_spells_add(d->character, CLASS_PSIONICIST, counter, FALSE);        
+              if (!can_add_spell) {
+                write_to_output(d, "You are all FULL for powers!\r\n");
+                break;
+              } else {
+                LEVELUP(d->character)->spells_learned[counter] = 1; 
+              }
+            }
+          }
+        }
+      }
+      psionicist_study_menu(d, LEVELUP(d->character)->spell_circle);
+      break;
+    }
+    break;
+
+    /******* end psionicist **********/ 
 
   case SET_1ST_DOMAIN:
     number = atoi(arg);

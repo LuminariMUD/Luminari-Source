@@ -882,7 +882,7 @@ int load_char(const char *name, struct char_data *ch)
           GET_PREFERRED_ARCANE(ch) = atoi(line);
         else if (!strcmp(tag, "PCDi"))
           GET_PREFERRED_DIVINE(ch) = atoi(line);
-        else if (!strcmp(tag, "PSP"))
+        else if (!strcmp(tag, "PSP "))
           load_HMVS(ch, line, LOAD_PSP);
         else if (!strcmp(tag, "PsET"))
           GET_PSIONIC_ENERGY_TYPE(ch) = atoi(line);
@@ -1442,7 +1442,7 @@ void save_char(struct char_data *ch, int mode)
   if (GET_HIT(ch) != PFDEF_HIT || GET_MAX_HIT(ch) != PFDEF_MAXHIT)
     fprintf(fl, "Hit : %d/%d\n", GET_HIT(ch), GET_MAX_HIT(ch));
   if (GET_PSP(ch) != PFDEF_PSP || GET_MAX_PSP(ch) != PFDEF_MAXPSP)
-    fprintf(fl, "PSP: %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
+    fprintf(fl, "PSP : %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
   if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE)
     fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
 
@@ -1874,6 +1874,11 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELSPELL)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, ePSIONICFOCUS)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDOUBLEMANIFEST)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    
     fprintf(fl, "-1 -1\n");
   }
 

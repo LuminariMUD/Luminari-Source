@@ -1141,7 +1141,7 @@ void prefedit_Restore_Defaults(struct descriptor_data *d)
 
   /* Other (non-toggle) options */
   PREFEDIT_GET_WIMP_LEV = 0;     /* Wimpy off by default */
-  PREFEDIT_GET_PAGELENGTH = 22;  /* Default telnet screen is 22 lines   */
+  PREFEDIT_GET_PAGELENGTH = 40;  /* Default telnet screen is 22 lines, but who uses that?  So 40 is a good baseline -- Gicker   */
   PREFEDIT_GET_SCREENWIDTH = 80; /* Default telnet screen is 80 columns */
 }
 

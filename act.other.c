@@ -2240,8 +2240,7 @@ ACMD(do_gain)
              GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     {
       GET_LEVEL(ch) += 1;
-      CLASS_LEVEL(ch, class)
-      ++;
+      CLASS_LEVEL(ch, class)++;
       GET_CLASS(ch) = class;
       num_levels++;
       advance_level(ch, class);
