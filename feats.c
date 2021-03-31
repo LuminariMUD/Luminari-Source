@@ -1949,6 +1949,34 @@ void assign_feats(void)
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
 
+  feato(FEAT_PSIONICIST_1ST_CIRCLE, "1st circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 1st circle psionicist powers",
+        "You now have access to 1st circle psionicist powers.");
+  feato(FEAT_PSIONICIST_2ND_CIRCLE, "2nd circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 2nd circle psionicist powers",
+        "You now have access to 2nd circle psionicist powers.");
+  feato(FEAT_PSIONICIST_3RD_CIRCLE, "3rd circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 3rd circle psionicist powers",
+        "You now have access to 3rd circle psionicist powers.");
+  feato(FEAT_PSIONICIST_4TH_CIRCLE, "4th circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 4th circle psionicist powers",
+        "You now have access to 4th circle psionicist powers.");
+  feato(FEAT_PSIONICIST_5TH_CIRCLE, "5th circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 5th circle psionicist powers",
+        "You now have access to 5th circle psionicist powers.");
+  feato(FEAT_PSIONICIST_6TH_CIRCLE, "6th circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 6th circle psionicist powers",
+        "You now have access to 6th circle psionicist powers.");
+  feato(FEAT_PSIONICIST_7TH_CIRCLE, "7th circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 7th circle psionicist powers",
+        "You now have access to 7th circle psionicist powers.");
+  feato(FEAT_PSIONICIST_8TH_CIRCLE, "8th circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 8th circle psionicist powers",
+        "You now have access to 8th circle psionicist powers.");
+  feato(FEAT_PSIONICIST_9TH_CIRCLE, "9th circle psionicist powers", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 9th circle psionicist powers",
+        "You now have access to 9th circle psionicist powers.");
+
   feato(FEAT_SORCERER_BLOODLINE_DRACONIC, "draconic bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "1 level as sorcerer & select the draconic bloodline",
         "The draconic bloodline allows the sorcerer to take upon them traits "
@@ -2186,15 +2214,15 @@ void assign_feats(void)
         "constitution.  Note: this will not augment your familiar, called companions, "
         "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
 
-  feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+  feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "+1 spell damage per die rolled",
         "You gain +1 spell damage per die rolled, example:  if you are level 10 and "
         "normally create a 10d6 damage fireball, with this feat your fireball would "
-        "do 10d6+10.");
+        "do 10d6+10. Maximum of 3 ranks, rank 1-any spellcaster level, rank 2, spellcaster level 5+, rank 3, spellcaster level 10+");
 
   feato(FEAT_COMBAT_CASTING, "combat casting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "+4 to concentration checks made in combat or when grappled ",
-        "+4 to concentration checks made in combat or when grappled ");
+        "+4 to spell concentration checks made in combat or when grappled ",
+        "+4 to spell concentration checks made in combat or when grappled ");
 
   /* epic type spellcasting feats */
   feato(FEAT_MUMMY_DUST, "mummy dust", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -2940,6 +2968,145 @@ void assign_feats(void)
         "proficiency in wizard weapons",
         "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
 
+  /* Psionicist */
+  feato(FEAT_WEAPON_PROFICIENCY_PSIONICIST, "weapon proficiency - psionicist", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
+        "proficiency in psioncist weapons",
+        "You are proficient in the usage of clubs, daggers, heavy crossbows, light crossbows quarterstaves and shortspears.");
+
+  feato(FEAT_COMBAT_MANIFESTATION, "combat manifestation", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+4 to manifestation concentration checks made in combat or when grappled ",
+        "+4 to manifestation concentration checks made in combat or when grappled ");
+  feat_prereq_class_level(FEAT_COMBAT_MANIFESTATION, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_ALIGNED_ATTACK_GOOD, "aligned attack (good)", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Attacks against good targets receive a +1 bonus to hit and +2 bonus to damage.",
+        "Attacks against good targets receive a +1 bonus to hit and +2 bonus to damage. "
+        "This bonus will not stack with other aligned attack feats.  For example, if you "
+        "have both aligned attack good and aligned attack lawful, you cannot gain double "
+        "the bonus against a lawful good target.");
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_GOOD, 6);
+  feato(FEAT_ALIGNED_ATTACK_EVIL, "aligned attack (evil)", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Attacks against evil targets receive a +1 bonus to hit and +2 bonus to damage.",
+        "Attacks against evil targets receive a +1 bonus to hit and +2 bonus to damage."
+        "This bonus will not stack with other aligned attack feats.  For example, if you "
+        "have both aligned attack good and aligned attack lawful, you cannot gain double "
+        "the bonus against a lawful good target.");
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_EVIL, 6);  
+  feato(FEAT_ALIGNED_ATTACK_CHAOS, "aligned attack (chaotic)", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Attacks against chaotic targets receive a +1 bonus to hit and +2 bonus to damage.",
+        "Attacks against chaotic targets receive a +1 bonus to hit and +2 bonus to damage."
+        "This bonus will not stack with other aligned attack feats.  For example, if you "
+        "have both aligned attack good and aligned attack lawful, you cannot gain double "
+        "the bonus against a lawful good target.");
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_CHAOS, 6);  
+  feato(FEAT_ALIGNED_ATTACK_LAW, "aligned attack (lawful)", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Attacks against lawful targets receive a +1 bonus to hit and +2 bonus to damage.",
+        "Attacks against lawful targets receive a +1 bonus to hit and +2 bonus to damage."
+        "This bonus will not stack with other aligned attack feats.  For example, if you "
+        "have both aligned attack good and aligned attack lawful, you cannot gain double "
+        "the bonus against a lawful good target.");
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_LAW, 6);  
+
+  feato(FEAT_CRITICAL_FOCUS, "critical focus", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "When psionic focus is active, your critical hits land more often and for more damage.",
+        "When psionic focus is active, your critical threat range increases by one and critical "
+        "hit damage increases by +2.");
+  feat_prereq_feat(FEAT_CRITICAL_FOCUS, FEAT_PSIONIC_FOCUS, 1);
+  feat_prereq_feat(FEAT_CRITICAL_FOCUS, FEAT_IMPROVED_CRITICAL, 1);
+  feat_prereq_bab(FEAT_CRITICAL_FOCUS, 8);
+  feat_prereq_class_level(FEAT_CRITICAL_FOCUS, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_ELEMENTAL_FOCUS_ACID, "elemental focus (acid)", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, your acid damage energy manifestations receive +1 damage to die and +1 to save dc.",
+        "While psionic focus is active, your acid damage energy manifestations receive +1 damage to die and +1 to save dc.");
+  feat_prereq_feat(FEAT_ELEMENTAL_FOCUS_ACID, FEAT_PSIONIC_FOCUS, 1);
+  feat_prereq_class_level(FEAT_ELEMENTAL_FOCUS_ACID, CLASS_PSIONICIST, 1);
+  feato(FEAT_ELEMENTAL_FOCUS_FIRE, "elemental focus (fire)", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, your fire damage energy manifestations receive +1 damage to die and +1 to save dc.",
+        "While psionic focus is active, your fire damage energy manifestations receive +1 damage to die and +1 to save dc.");
+  feat_prereq_feat(FEAT_ELEMENTAL_FOCUS_FIRE, FEAT_PSIONIC_FOCUS, 1);
+  feat_prereq_class_level(FEAT_ELEMENTAL_FOCUS_FIRE, CLASS_PSIONICIST, 1);
+  feato(FEAT_ELEMENTAL_FOCUS_COLD, "elemental focus (cold)", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, your cold damage energy manifestations receive +1 damage to die and +1 to save dc.",
+        "While psionic focus is active, your cold damage energy manifestations receive +1 damage to die and +1 to save dc.");
+  feat_prereq_feat(FEAT_ELEMENTAL_FOCUS_COLD, FEAT_PSIONIC_FOCUS, 1);
+  feat_prereq_class_level(FEAT_ELEMENTAL_FOCUS_COLD, CLASS_PSIONICIST, 1);
+  feato(FEAT_ELEMENTAL_FOCUS_ELECTRICITY, "elemental focus (electric)", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, your electric damage energy manifestations receive +1 damage to die and +1 to save dc.",
+        "While psionic focus is active, your electric damage energy manifestations receive +1 damage to die and +1 to save dc.");
+  feat_prereq_feat(FEAT_ELEMENTAL_FOCUS_ELECTRICITY, FEAT_PSIONIC_FOCUS, 1);
+  feat_prereq_class_level(FEAT_ELEMENTAL_FOCUS_ELECTRICITY, CLASS_PSIONICIST, 1);
+  feato(FEAT_ELEMENTAL_FOCUS_SOUND, "elemental focus (sonic)", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, your sonic damage energy manifestations receive +1 damage to die and +1 to save dc.",
+        "While psionic focus is active, your sonic damage energy manifestations receive +1 damage to die and +1 to save dc.");
+  feat_prereq_feat(FEAT_ELEMENTAL_FOCUS_SOUND, FEAT_PSIONIC_FOCUS, 1);
+  feat_prereq_class_level(FEAT_ELEMENTAL_FOCUS_SOUND, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_POWER_PENETRATION, "power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+2 bonus on manifester level checks to defeat power resistance",
+        "+2 bonus on manifester level checks to defeat power resistance");
+  feato(FEAT_GREATER_POWER_PENETRATION, "greater power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+2 to manifester level checks to defeat power resistance",
+        "+2 to manifester level checks to defeat power resistance");
+  feat_prereq_feat(FEAT_GREATER_POWER_PENETRATION, FEAT_POWER_PENETRATION, 1);
+  feato(FEAT_EPIC_POWER_PENETRATION, "greater power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+2 to manifester level checks to defeat power resistance",
+        "+2 to manifester level checks to defeat power resistance");
+  feat_prereq_feat(FEAT_EPIC_POWER_PENETRATION, FEAT_GREATER_POWER_PENETRATION, 1);
+
+  feato(FEAT_BREACH_POWER_RESISTANCE, "breach power resistance", TRUE, FALSE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, gain your intelligence bonus on attempts to overcome power resistance.",
+        "While psionic focus is active, gain your intelligence bonus on attempts to overcome power resistance.");
+
+  feato(FEAT_DOUBLE_MANIFEST, "double manifest", TRUE, FALSE, FALSE, FEAT_TYPE_PSIONIC,
+        "When activated (with the doublemanifest command) the next manifestation you perform will be executed twice.",
+        "When activated (with the doublemanifest command) the next manifestation you perform will be executed twice.");
+  feato(FEAT_PERPETUAL_FORESIGHT, "perpetual foresight", TRUE, FALSE, FALSE, FEAT_TYPE_PSIONIC,
+        "While psionic focus is active, most d20 rolls have a 10 percent chance to add your intelligence bonus to the roll.",
+        "While psionic focus is active, most d20 rolls have a 10 percent chance to add your intelligence bonus to the roll.");
+  feato(FEAT_PSIONIC_FOCUS, "psionic focus", TRUE, FALSE, FALSE, FEAT_TYPE_PSIONIC,
+        "When activated (with the psionicfocus command) power manifestation time is reduced, damage is increased by 10% and dcs are increased by +2.",
+        "When activated (with the psionicfocus command) power manifestation time is reduced, "
+        "damage is increased by 10% and dcs are increased by +1. It can also activate benefits "
+        "from other feats that depend on psionic focus being active.");
+
+  feato(FEAT_QUICK_MIND, "quick mind", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Reduces power manifestation time.",
+        "Reduces power manifestation time.");
+  feat_prereq_class_level(FEAT_QUICK_MIND, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_PSIONIC_RECOVERY, "psionic recovery", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Regain power points (psp) at a faster rate.",
+        "Regain power points (psp) at a faster rate.");
+  feat_prereq_class_level(FEAT_PSIONIC_RECOVERY, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_PROFICIENT_PSIONICIST, "proficient psionicist", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Gain an extra power point (psp) per psionicist level.",
+        "Gain an extra power point (psp) per psionicist level.");
+  feat_prereq_class_level(FEAT_PROFICIENT_PSIONICIST, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_ENHANCED_POWER_DAMAGE, "enhanced power damage", TRUE, TRUE, TRUE, FEAT_TYPE_PSIONIC,
+        "+1 power damage per die rolled",
+        "You gain +1 power damage per die rolled, example:  if you are level 10 and "
+        "normally create a 10d6 damage energy burst, with this feat your energy burst would "
+        "do 10d6+10. Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
+  feat_prereq_class_level(FEAT_ENHANCED_POWER_DAMAGE, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_EMPOWERED_PSIONICS, "empowered magic", FALSE, TRUE, TRUE, FEAT_TYPE_PSIONIC, 
+        "+1 to all power dcs", 
+        "+1 to all power dcs. . Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
+  feat_prereq_class_level(FEAT_EMPOWERED_PSIONICS, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_EXPANDED_KNOWLEDGE, "expanded knowledge", TRUE, TRUE, TRUE, FEAT_TYPE_PSIONIC,
+        "Each rank gives you an extra power you can learn.",
+        "Each rank gives you an extra power you can learn. Maximum 5 ranks.");
+  feat_prereq_class_level(FEAT_EXPANDED_KNOWLEDGE, CLASS_PSIONICIST, 1);
+
+  feato(FEAT_PSIONIC_ENDOWMENT, "psionic endowment", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "When psionic focus is active, save dcs for manifested powers are at +3.",
+        "When psionic focus is active, save dcs for manifested powers are at +3.");
+  feat_prereq_class_level(FEAT_PSIONIC_ENDOWMENT, CLASS_PSIONICIST, 1);  
+
   /* weapon master */
   /*lvl 1*/ feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                   "All weapons with weapon focus gain special abilities",
@@ -3103,19 +3270,19 @@ void assign_feats(void)
               "no limit to number of times a shifter changes shapes");
   /*2*/ feato(FEAT_SHIFTER_SHAPES_1, "shifter shapes i", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "magical beast shape",
-              "magical beast shape");
+              "You can shift into the form of a manticore.");
   /*4*/ feato(FEAT_SHIFTER_SHAPES_2, "shifter shapes ii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "fey shape",
-              "fey shape");
+              "You can shift into the form of a pixie.");
   /*6*/ feato(FEAT_SHIFTER_SHAPES_3, "shifter shapes iii", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "construct shape",
-              "construct shape");
+              "You can shift into the form of an iron golem.");
   /*8*/ feato(FEAT_SHIFTER_SHAPES_4, "shifter shapes iv", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "outsider shape",
-              "outsider shape");
+              "You can shift into the form of an efreeti.");
   /*10*/ feato(FEAT_SHIFTER_SHAPES_5, "shifter shapes v", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                "dragon shape",
-               "dragon shape");
+               "You can shift into the form of a dragon.");
   feato(FEAT_IRON_GOLEM_IMMUNITY, "iron golem immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immunity to all magic, except fire and lightning.",
         "immunity to all magic, except fire and lightning. Fire will heal the golem instead.  Electric damage will slow the golem instead.");
@@ -3471,7 +3638,7 @@ void assign_feats(void)
   feato(FEAT_STILL_SPELL, "still spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_WIDEN_SPELL, "widen spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_EMPOWER_SPELL, "empower spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all variable numerical effects of a spell are increased by one half ", "all variable numerical effects of a spell are increased by one half ");
-  feato(FEAT_EMPOWERED_MAGIC, "empowered magic", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "+1 to all spell dcs", "+1 to all spell dcs");
+  feato(FEAT_EMPOWERED_MAGIC, "empowered magic", TRUE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "+1 to all spell dcs", "+1 to all spell dcs. . Maximum of 3 ranks, rank 1-any level, rank 2, level 5+, rank 3, level 10+");
   feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50 percent longer when enabled ", "durations of spells are 50 percent longer when enabled ");
   /*spellcasting*/
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");
@@ -3606,6 +3773,8 @@ void assign_feats(void)
   dailyfeat(FEAT_EFREETI_MAGIC, eEFREETIMAGIC);
   dailyfeat(FEAT_DRAGON_MAGIC, eDRAGONMAGIC);
   dailyfeat(FEAT_CHANNEL_SPELL, eCHANNELSPELL);
+  dailyfeat(FEAT_PSIONIC_FOCUS, ePSIONICFOCUS);
+  dailyfeat(FEAT_DOUBLE_MANIFEST, eDOUBLEMANIFEST);
   /** END **/
 }
 
@@ -3973,10 +4142,40 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return TRUE;
 
     case FEAT_EMPOWERED_MAGIC:
+      if (!IS_SPELLCASTER(ch))
+        return FALSE;
+      if (GET_LEVEL(ch) < (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_MAGIC) * 5))
+        return FALSE;
+      if (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_MAGIC) >=3)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_EMPOWERED_PSIONICS:
+      if (!IS_PSIONIC(ch))
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_PSIONICS) * 5))
+        return FALSE;
+      if (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_PSIONICS) >=3)
+        return FALSE;
+      return TRUE;
+
     case FEAT_ENHANCED_SPELL_DAMAGE:
-      if (IS_SPELLCASTER(ch))
-        return TRUE;
-      return FALSE;
+      if (!IS_SPELLCASTER(ch))
+        return FALSE;
+      if (CASTER_LEVEL(ch) < (HAS_REAL_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE) * 5))
+        return FALSE;
+      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE) >=3)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_ENHANCED_POWER_DAMAGE:
+      if (!IS_PSIONIC(ch))
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) * 5))
+        return FALSE;
+      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) >=3)
+        return FALSE;
+      return TRUE;
 
     case FEAT_AUGMENT_SUMMONING:
       if (has_feat_requirement_check(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
@@ -5212,6 +5411,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (%d / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_DEFENSIVE_STANCE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_ENHANCED_POWER_DAMAGE)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d dam / die)", feat_list[i].name, HAS_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_EMPOWERED_PSIONICS)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (+%d to dcs)", feat_list[i].name, HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

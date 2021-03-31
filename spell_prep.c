@@ -432,8 +432,7 @@ void collection_add(struct char_data *ch, int ch_class, int spellnum, int metama
 /* add a spell to a character's known spells linked list */
 bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loading)
 {
-  int circle = compute_spells_circle(ch_class, spellnum,
-                                     METAMAGIC_NONE, DOMAIN_UNDEFINED);
+  int circle = compute_spells_circle(ch_class, spellnum, METAMAGIC_NONE, DOMAIN_UNDEFINED);
   int caster_level = CLASS_LEVEL(ch, ch_class) + BONUS_CASTER_LEVEL(ch, ch_class);
 
   if (!loading)
@@ -451,6 +450,10 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
               //sorcerer_known[caster_level][circle] -
               count_known_spells_by_circle(ch, ch_class, circle) <=
           0)
+        return FALSE;
+      break;
+    case CLASS_PSIONICIST:
+      if ((num_psionicist_powers_available(ch) - num_psionicist_powers_known(ch)) <= 0)
         return FALSE;
       break;
     }
@@ -649,6 +652,44 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
 
   return counter;
 }
+
+/* for psionicists - how many total powers do you know */
+int num_psionicist_powers_known(struct char_data *ch)
+{
+  int counter = 0;
+  struct known_spell_data *current = KNOWN_SPELLS(ch, CLASS_PSIONICIST);
+  struct known_spell_data *next;
+
+  for (; current; current = next)
+  {
+    next = current->next;
+
+    if (current->spell < PSIONIC_POWER_START || current->spell > PSIONIC_POWER_END)
+      continue;
+
+    counter++;
+
+  }   /*end slot loop*/
+
+  return counter;
+}
+
+/* returns the number of powers a psionicist may know in total from any and all power circles */
+int num_psionicist_powers_available(struct char_data *ch)
+{
+  int i = 0, level = GET_PSIONIC_LEVEL(ch), num_powers = 1;
+
+  num_powers += GET_REAL_INT_BONUS(ch);
+
+  num_powers += HAS_FEAT(ch, FEAT_EXPANDED_KNOWLEDGE);
+
+  for (i = 1; i <= level; i++)
+    num_powers += 2;
+
+  return num_powers; 
+
+}
+
 /* total # of slots consumed by circle X */
 int count_total_slots(struct char_data *ch, int class, int circle)
 {
@@ -742,7 +783,9 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
   {
     next = current->next;
     if (current->spell == spellnum)
+    {
       return TRUE;
+    }
   }
 
   return FALSE;
@@ -855,7 +898,9 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   int metamagic_mod = 0;
   int spell_circle = 0;
 
-  if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
+  if (class != CLASS_PSIONICIST && (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS))
+    return (NUM_CIRCLES + 1);
+  else if (class == CLASS_PSIONICIST && (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
     return (NUM_CIRCLES + 1);
 
   /* Here we add the circle changes resulting from metamagic use: */
@@ -1017,6 +1062,50 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
       return (NUM_CIRCLES + 1);
     }
     return (MAX(1, spell_circle));
+  case CLASS_PSIONICIST:
+    spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+    spell_circle += metamagic_mod;
+    if (spell_circle > TOP_CIRCLE)
+    {
+      return (NUM_CIRCLES + 1);
+    }
+    return (MAX(1, spell_circle));
+  default:
+    return (NUM_CIRCLES + 1);
+  }
+  return (NUM_CIRCLES + 1);
+}
+
+/* in: spellnum, class, metamagic
+ * out: the circle this power (now) belongs, above num-circles if failed
+ * given above info, compute which circle this spell belongs to
+ * in addition we have metamagic that can modify the spell-circle as well */
+int compute_powers_circle(int class, int spellnum, int metamagic)
+{
+  int metamagic_mod = 0;
+  int spell_circle = 0;
+
+  if (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END)
+    return (NUM_CIRCLES + 1);
+
+  /* Here we add the circle changes resulting from metamagic use: */
+  /*
+  if (IS_SET(metamagic, METAMAGIC_QUICKEN))
+    metamagic_mod += 4;
+  if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
+    metamagic_mod += 3;
+  */
+
+  switch (class)
+  {
+  case CLASS_PSIONICIST:
+    spell_circle = (spell_info[spellnum].min_level[class] + 1) / 2;
+    spell_circle += metamagic_mod;
+    if (spell_circle > TOP_CIRCLE)
+    {
+      return (NUM_CIRCLES + 1);
+    }
+    return (MAX(1, spell_circle));
   default:
     return (NUM_CIRCLES + 1);
   }
@@ -1034,7 +1123,7 @@ int get_class_highest_circle(struct char_data *ch, int class)
   if (IS_NPC(ch))
     return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
   /* if pc has no caster classes, he/she has no business here */
-  if (!IS_CASTER(ch))
+  if (!IS_CASTER(ch) && !IS_PSIONIC(ch))
     return (FALSE);
   /* no levels in this class? */
   if (!CLASS_LEVEL(ch, class))
@@ -1100,6 +1189,8 @@ int get_class_highest_circle(struct char_data *ch, int class)
   case CLASS_DRUID:
     return (MAX(1, MIN(9, (class_level + 1) / 2)));
   case CLASS_CLERIC:
+    return (MAX(1, MIN(9, (class_level + 1) / 2)));
+  case CLASS_PSIONICIST:
     return (MAX(1, MIN(9, (class_level + 1) / 2)));
   default:
     return FALSE;
@@ -1960,7 +2051,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
       break;
 
     case CLASS_ALCHEMIST:
-      // place holder in case we want to adjust alchemy concoction prep time down the line -- Gicker
+      prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
       break;
   }
 

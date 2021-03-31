@@ -3214,10 +3214,11 @@ const char *feat_types[] = {
     "craft feat", //5
     "wild feat",
     "divine feat",
+    "psionic feat",
     "class feat",
-    "innate ability",
-    "domain power",     //10
-    "performance feat", //11
+    "innate ability", // 10
+    "domain power",     
+    "performance feat", //12
     "\n"};
 
 const char *ability_names[] = {

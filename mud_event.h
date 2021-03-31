@@ -149,7 +149,9 @@ typedef enum
   eSLA_INVIS,                          /* innate invisibility */
   eCONCUSSIVEONSLAUGHT,     // concussive onsalught psionic power
   eCHANNELSPELL,            // countdown for channel spell ability
-  ePOWERLEECH,              // power leach ability
+  ePOWERLEECH,              // power leech ability
+  ePSIONICFOCUS,             // psionic focus ability
+  eDOUBLEMANIFEST             // double manifest ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

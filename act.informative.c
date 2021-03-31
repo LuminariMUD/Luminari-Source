@@ -86,6 +86,7 @@ int boot_high = 0;
 #define WPT_ELF 10
 #define WPT_DWARF 11
 #define WPT_DUERGAR 11
+#define WPT_PSIONICIST 12
 
 /*******  UTILITY FUNCTIONS ***********/
 
@@ -1842,7 +1843,10 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Invisibility Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCHANNELSPELL)))
     send_to_char(ch, "Channel Spell Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-
+  if ((pMudEvent = char_has_mud_event(k, ePSIONICFOCUS)))
+    send_to_char(ch, "Psionic Focus Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eDOUBLEMANIFEST)))
+    send_to_char(ch, "Double Manifest Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (PIXIE_DUST_TIMER(ch) > 0)
     send_to_char(ch, "Pixie Dust Cooldown - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
@@ -2874,7 +2878,7 @@ ACMD(do_defenses)
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
-  send_to_char(ch, "\tn\r\nNote that AC caps at 60, but having over 60 is beneficial due to position changes and debuffs.\r\n");
+  send_to_char(ch, "\tn\r\nNote that AC caps at %d, but having over %d is beneficial due to position changes and debuffs.\r\n", CONFIG_PLAYER_AC_CAP, CONFIG_PLAYER_AC_CAP);
 }
 
 /*
@@ -2974,8 +2978,8 @@ ACMD(do_score)
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
-  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %d\r\n",
-               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), get_speed(ch, TRUE));
+  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcPower Points:\tn %d(%d) \tcSpeed:\tn %d\r\n",
+               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), GET_PSP(ch), GET_MAX_PSP(ch), get_speed(ch, TRUE));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
@@ -5615,6 +5619,19 @@ int is_weapon_proficient(int weapon, int type)
       return TRUE;
     }
   }
+  else if (type == WPT_PSIONICIST)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_QUARTERSTAFF:
+    case WEAPON_TYPE_CLUB:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_SHORTSPEAR:
+      return TRUE;
+    }
+  }
   else if (type == WPT_DROW)
   {
     switch (weapon)
@@ -5694,6 +5711,7 @@ ACMD(do_weaponproficiencies)
                      "elf\r\n"
                      "dwarf\r\n"
                      "duergar\r\n"
+                     "psionicist\r\n"
                      "\r\n");
     return;
   }
@@ -5748,6 +5766,10 @@ ACMD(do_weaponproficiencies)
   {
     type = WPT_DUERGAR;
   }
+  else if (is_abbrev(argument, "psionicist"))
+  {
+    type = WPT_PSIONICIST;
+  }
   else
   {
     send_to_char(ch, "Please specify one of the following weapon proficiency types:\r\n"
@@ -5763,6 +5785,7 @@ ACMD(do_weaponproficiencies)
                      "elf\r\n"
                      "dwarf\r\n"
                      "duergar\r\n"
+                     "psionicist\r\n"
                      "\r\n");
     return;
   }

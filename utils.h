@@ -104,6 +104,7 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
 void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
+bool can_study_known_psionics(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
 int compute_arcane_level(struct char_data *ch);
 int compute_divine_level(struct char_data *ch);
@@ -1245,6 +1246,7 @@ void char_from_furniture(struct char_data *ch);
                                                                : 0))
 
 #define CAN_STUDY_KNOWN_SPELLS(ch) (can_study_known_spells(ch))
+#define CAN_STUDY_KNOWN_PSIONICS(ch) (can_study_known_psionics(ch))
 
 #define CAN_STUDY_FAMILIAR(ch) (HAS_FEAT(ch, FEAT_SUMMON_FAMILIAR) ? 1 : 0)
 #define CAN_STUDY_COMPANION(ch) (HAS_FEAT(ch, FEAT_ANIMAL_COMPANION) ? 1 : 0)
@@ -2176,6 +2178,8 @@ void char_from_furniture(struct char_data *ch);
 #define CONFIG_DIVINE_PREP_TIME config_info.player_config.divine_mem_times
 /** This is the percentage value compared to normal for arcane spell prep times */
 #define CONFIG_ARCANE_PREP_TIME config_info.player_config.arcane_mem_times
+/** This is the percentage value compared to normal for alchemy concoction prep times */
+#define CONFIG_ALCHEMY_PREP_TIME config_info.player_config.alchemy_mem_times
 /** This is the modified percentage of experience lost when a player dies */
 #define CONFIG_DEATH_EXP_LOSS config_info.player_config.death_exp_loss_penalty
 

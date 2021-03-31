@@ -514,6 +514,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_HP 83
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_HITDAM 84
 #define CEDIT_PLAYER_OPTIONS_SUMMON_30_AC 85
+#define CEDIT_PLAYER_OPTIONS_ALCHEMY_PREP_TIME 86
 
 /* Hedit Submodes of connectedness. */
 #define HEDIT_CONFIRM_SAVESTRING 0
@@ -633,6 +634,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define STUDY_MAIN_SKILLS_MENU 41
 #define STUDY_MAIN_BOOSTS_MENU 42
 #define STUDY_CONFIRM_RESET 43
+#define STUDY_PSIONICIST_KNOWN_POWERS_MENU 44
+#define PSIONICIST_STUDY_POWERS 45
 
 int save_config(IDXTYPE nowhere);
 

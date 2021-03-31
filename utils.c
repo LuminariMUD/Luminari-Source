@@ -140,6 +140,16 @@ bool can_study_known_spells(struct char_data *ch) {
   return FALSE;
 }
 
+/* can this CH select the option to change their 'known' psionic powers in the study system? */
+bool can_study_known_psionics(struct char_data *ch) {
+
+  if (LEVELUP(ch)->class == CLASS_PSIONICIST)
+    return TRUE;
+
+  /* nope! */
+  return FALSE;
+}
+
 /* ch, given class we're computing bonus spells for, figure out
  if one of our other classes (probably just prestige, example is
  arcane archer) is adding bonus caster levels */
@@ -3549,6 +3559,12 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_CHANNEL_SPELL:
       daily_uses += 2 + HAS_FEAT(ch, FEAT_CHANNEL_SPELL);
       break;
+    case FEAT_PSIONIC_FOCUS:
+      daily_uses += (CLASS_LEVEL(ch, CLASS_PSIONICIST) >= 1) ? 1 + (CLASS_LEVEL(ch, CLASS_PSIONICIST) / 10) : 0;
+      break;
+    case FEAT_DOUBLE_MANIFEST:
+      daily_uses = 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PSIONICIST) - 14) / 5);
+      break;
     case FEAT_SLA_INVIS:
     case FEAT_SLA_STRENGTH:
     case FEAT_SLA_ENLARGE:
@@ -4438,6 +4454,12 @@ int d20(struct char_data *ch)
     ch->player_specials->cosmic_awareness = false;
     send_to_char(ch, "\tY[Cosmic Awareness Bonus! +%d]\tn\r\n", GET_PSIONIC_LEVEL(ch));
   }
+
+  if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
+    if (dice(1, 10) == 1) {
+      roll += GET_INT_BONUS(ch);
+      send_to_char(ch, "\tY[Perpetual Foresight Bonus! +%d]\tn\r\n", GET_INT_BONUS(ch));
+    }
   
   return roll;
 }
@@ -4481,6 +4503,17 @@ int damage_type_to_resistance_type(int type)
 int get_power_penetrate_mod(struct char_data *ch)
 {
   int bonus = 0;
+
+  //insert challenge bonuses here (ch)
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POWER_PENETRATION))
+    bonus += 2;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_POWER_PENETRATION))
+    bonus += 2;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_POWER_PENETRATION))
+    bonus += 2;
+
+  if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_BREACH_POWER_RESISTANCE))
+    bonus += MAX(0, GET_INT_BONUS(ch));
 
   return bonus;
 }

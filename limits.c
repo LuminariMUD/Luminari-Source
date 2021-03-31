@@ -576,6 +576,7 @@ void regen_update(struct char_data *ch)
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
 
+/*
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
     GET_PSP(ch)--;
@@ -584,6 +585,7 @@ void regen_update(struct char_data *ch)
   {
     GET_PSP(ch) = MIN(GET_PSP(ch) + (hp * 2), GET_MAX_PSP(ch));
   }
+*/
 
   update_pos(ch);
   return;
@@ -596,9 +598,32 @@ void regen_update(struct char_data *ch)
  * that a character's age will now only affect the HMV gain per tick, and _not_
  * the HMV maximums. */
 
+void regen_psp(void)
+{
+  struct descriptor_data *d = NULL;
+
+  for (d = descriptor_list; d; d = d->next)
+  {
+    if (STATE(d) != CON_PLAYING) continue;
+    if (!d->character) continue;
+    if (IN_ROOM(d->character) == NOWHERE) continue;
+    if (FIGHTING(d->character)) continue;
+    if (GET_POS(d->character) > POS_SITTING) continue;
+    GET_PSP(d->character)++;
+    if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY) && dice(1, 4) == 1)
+      GET_PSP(d->character)++;
+    if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
+      GET_PSP(d->character) = GET_MAX_PSP(d->character);
+  }
+}
+
 /* psppoint gain pr. game hour */
+/* this isn't used anymore -- Gicker */
 int psp_gain(struct char_data *ch)
 {
+
+  return 0;
+
   int gain;
 
   if (IS_NPC(ch))

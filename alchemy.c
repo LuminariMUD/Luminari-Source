@@ -115,7 +115,7 @@ const char *alchemical_discovery_descriptions[NUM_ALC_DISCOVERIES] = {
     "bonus to deflection ac, up to a maximum of 5 at alchemist level 20.  The alchemist can 'launch' one spirit per round "
     "which will make the target frightened if a mind-affecting fear save is failed.  Uses the 'psychokinetic' command.",
     "Deals 1d6/rank electricity damage with chance to dazzle direct targets for 1d4 rounds.",
-    "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist level x2.",
+    "Can heal self 5 hp once per round as a free action, for a total healing amount of alchemist level x2. Uses the curingtouch command.",
     "Causes damage dealing bombs to deal an extra round of splash damage, and causes affect causing bombs to last an additional round.",
     "Makes all targets nauseated on failed save for 1 round / bomb rank",
     "Deals 1d6/rank radiant damage, chance to blind, Undead take +2 damage/bomb rank and are staggered on failed save.",

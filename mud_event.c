@@ -315,6 +315,12 @@ EVENTFUNC(event_countdown)
   case eMUTAGEN:
     send_to_char(ch, "You are now able to prepare another mutagen or cognatogen again.\r\n");
     break;
+  case ePSIONICFOCUS:
+    send_to_char(ch, "You are now able to perform another psionic focus.\r\n");
+    break;
+  case eDOUBLEMANIFEST:
+    send_to_char(ch, "You are now able to perform another double manifest.\r\n");
+    break;
   case ePSYCHOKINETIC:
     send_to_char(ch, "You are now able to apply a new psychokinetic tincture.\r\n");
     break;
@@ -626,6 +632,14 @@ EVENTFUNC(event_daily_use_cooldown)
   case eMUTAGEN:
     featnum = FEAT_MUTAGEN;
     send_to_char(ch, "One of your mutagens or cognatogens are ready to prepare.\r\n");
+    break;
+  case ePSIONICFOCUS:
+    featnum = FEAT_PSIONIC_FOCUS;
+    send_to_char(ch, "One of your psionic foci is able to perform.\r\n");
+    break;
+  case eDOUBLEMANIFEST:
+    featnum = FEAT_DOUBLE_MANIFEST;
+    send_to_char(ch, "One of your double manifestations are able to be performed.\r\n");
     break;
   case ePSYCHOKINETIC:
     featnum = FEAT_PSYCHOKINETIC;

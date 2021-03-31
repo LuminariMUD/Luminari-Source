@@ -3640,6 +3640,7 @@ const struct set_struct
     {"arcaneshadow", LVL_STAFF, PC, NUMBER},     /* 91 */
     {"sacredfist", LVL_STAFF, PC, NUMBER},       /* 92 */
     {"premadebuild", LVL_STAFF, PC, MISC},       /* 93 */
+    {"psionicist", LVL_STAFF, PC, MISC},         /* 94 */
 
     {"\n", 0, BOTH, MISC}};
 
@@ -4300,6 +4301,10 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return (0);
     }
     GET_PREMADE_BUILD_CLASS(vict) = i;
+    break;
+  case 94: // psionicist
+    CLASS_LEVEL(vict, CLASS_PSIONICIST) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
     break;
 
   default:

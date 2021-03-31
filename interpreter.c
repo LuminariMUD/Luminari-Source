@@ -257,6 +257,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"donate", "don", POS_RECLINING, do_drop, 0, SCMD_DONATE, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"doublemanifest", "doublemanifest", POS_FIGHTING, do_double_manifest, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_double_manifest},
     {"drink", "dri", POS_RECLINING, do_drink, 0, SCMD_DRINK, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"drop", "dro", POS_RECLINING, do_drop, 0, SCMD_DROP, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dismount", "dismount", POS_FIGHTING, do_dismount, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -521,6 +522,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pixieinvis", "pixieinvis", POS_RECLINING, do_pixieinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixieinvis},
     {"players", "players", POS_DEAD, do_players, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"psionicfocus", "psionicfocus", POS_FIGHTING, do_psionic_focus, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_psionic_focus},
     {"psychokinetic", "psychokinetic", POS_FIGHTING, do_psychokinetic, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"push", "push", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -2693,6 +2695,9 @@ void nanny(struct descriptor_data *d, char *arg)
     case CLASS_ALCHEMIST:
       perform_help(d, "class-alchemist");
       break;
+    case CLASS_PSIONICIST:
+      perform_help(d, "class-psionicist");
+      break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;
@@ -2723,6 +2728,29 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                          "what to pick): ");
       STATE(d) = CON_QCLASS;
+      return;
+    }
+
+    // we don't have a premade build yet.  To be added later.
+    if (GET_CLASS(d->character) == CLASS_PSIONICIST)
+    {
+      /* start initial alignment selection code */
+      write_to_output(d, "\r\nSelect Alignment\r\n"
+                        "Note: you may be restricted by your class\r\n"
+                        "Note: If you don't know which to select, select 'true neutral'\r\n"
+                        "\r\nGood characters and creatures protect innocent life. Evil characters "
+                        "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
+                        "\r\nLawful characters tell the truth, keep their word, respect authority, "
+                        "honor tradition, and judge those who fall short of their duties. Chaotic "
+                        "characters follow their consciences, resent being told what to do, favor "
+                        "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
+      for (i = 0; i < NUM_ALIGNMENTS; i++)
+      {
+        if (valid_align_by_class(i, GET_CLASS(d->character)))
+          write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
+      }
+      write_to_output(d, "\r\n");
+      STATE(d) = CON_QALIGN;
       return;
     }
 

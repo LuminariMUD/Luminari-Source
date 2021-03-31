@@ -187,6 +187,7 @@ void update_player_last_on(void);
 void check_auto_shutdown(void);
 void update_player_misc(void);
 void check_auto_happy_hour(void);
+void regen_psp(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1150,6 +1151,9 @@ void heartbeat(int heart_pulse)
     PERF_PROF_EXIT(pr_msdp_update_);
     travel_tickdown();
   }
+
+  if (!(heart_pulse % (PASSES_PER_SEC * 10)))
+    regen_psp();
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))
   { // every minute

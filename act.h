@@ -827,4 +827,11 @@ ACMD_DECL(do_resetpassword);
 ACMD_DECL(do_encounterinfo);
 ACMD_DECL(do_encounter);
 
+// psionics.c
+
+ACMD_DECL(do_psionic_focus);
+ACMDCHECK(can_psionic_focus);
+ACMD_DECL(do_double_manifest);
+ACMDCHECK(can_double_manifest);
+
 #endif /* _ACT_H_ */
