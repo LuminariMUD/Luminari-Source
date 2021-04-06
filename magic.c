@@ -2267,13 +2267,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
     GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
     af[0].location = APPLY_SKILL;
     af[0].duration = level;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
     af[0].specific = ABILITY_DIPLOMACY;
+    
+    af[1].location = APPLY_SKILL;
+    af[1].duration = level;
+    af[1].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
+    af[1].specific = ABILITY_APPRAISE;
+    
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
     accum_duration = FALSE;
-    to_vict = "Your dipomatic abilities have been enhanced.";
+    to_vict = "Your dipomatic and appraising abilities have been enhanced.";
     break;
 
   case PSIONIC_CALL_TO_MIND:
@@ -2291,7 +2298,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case PSIONIC_CATFALL:
     af[0].location = APPLY_DEX;
-    af[0].duration = 100;
+    af[0].duration = 120;
     af[0].modifier =  2;
     SET_BIT_AR(af[0].bitvector, AFF_SAFEFALL);
     to_vict = "You gain the ability to fall safely like a cat.";
@@ -2315,7 +2322,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
       return;
     af[0].location = APPLY_DEX;
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].modifier = -2;
     to_room = "$N starts to move much more slowly.";
     to_vict = "You start to move much more slowly.";
@@ -2337,7 +2344,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return;
     af[0].location = APPLY_WIS;
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].modifier = -1;
     SET_BIT_AR(af[0].bitvector, AFF_SHAKEN);
     to_room = "$N looks shaken and demoralized.";
@@ -2345,16 +2352,21 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_FORCE_SCREEN:
+    if (affected_by_spell(ch, PSIONIC_FORCE_SCREEN))
+    {
+      send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
+      return;
+    }
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
     GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 4);
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_SHIELD;
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
-    accum_duration = FALSE;
+    accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible shield of force appear in front of you.";
     break;
 
@@ -2366,17 +2378,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     af[0].location = APPLY_SAVING_FORT;
     af[0].bonus_type = BONUS_TYPE_RESISTANCE;
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
 
     af[1].location = APPLY_SAVING_WILL;
     af[1].bonus_type = BONUS_TYPE_RESISTANCE;
-    af[1].duration = level * 10;
+    af[1].duration = level * 12;
     af[1].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
 
     af[2].location = APPLY_SAVING_REFL;
     af[2].bonus_type = BONUS_TYPE_RESISTANCE;
-    af[2].duration = level * 10;
+    af[2].duration = level * 12;
     af[2].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
 
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
@@ -2385,6 +2397,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_INERTIAL_ARMOR:
+    if (affected_by_spell(ch, PSIONIC_INERTIAL_ARMOR))
+    {
+      send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
+      return;
+    }
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
@@ -2394,7 +2411,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = level * 600;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
-    accum_duration = FALSE;
+    accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible armor of force surround you.";
     break;
 
@@ -2508,7 +2525,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     }
 
-    af[0].duration = (level * 10);
+    af[0].duration = (level * 12);
     SET_BIT_AR(af[0].bitvector, AFF_SLEEP);
 
     if (GET_POS(victim) > POS_SLEEPING)
@@ -2526,13 +2543,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_VIGOR:
+    if (affected_by_spell(ch, PSIONIC_VIGOR))
+    {
+      send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
+      return;
+    }
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 3;
     af[0].location = APPLY_HIT;
-    af[0].duration = level;
-    af[0].modifier = 5 + (GET_AUGMENT_PSP(ch) * 5);
-    GET_HIT(ch) += af[0].modifier; 
+    af[0].duration = 12 * level;
+    af[0].modifier = 5 + ((GET_AUGMENT_PSP(ch) / 3) * 5);
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
     accum_duration = FALSE;
+    accum_affect = FALSE;
     to_vict = "You feel enhanced vigor and durability.";
     break;
 
@@ -2543,7 +2566,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     
     af[0].location = APPLY_DR;
     af[0].modifier = 0;
-    af[0].duration = 10 * level;
+    af[0].duration = 12 * level;
 
     to_vict = "Your skin becomes much more dense through psychic biofeedback.";
 
@@ -2569,7 +2592,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_duration = FALSE;
     break;
 
-  case PSIONIC_BODY_EQUILLIBRIUM:
+  case PSIONIC_BODY_EQUILIBRIUM:
     af[0].duration = 100 * level;
     SET_BIT_AR(af[0].bitvector, AFF_WATERWALK);
     af[1].duration = 100 * level;
@@ -2580,7 +2603,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_BREACH:
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     af[0].location = APPLY_SKILL;
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].modifier = 2 + GET_AUGMENT_PSP(ch);
     af[0].specific = ABILITY_SLEIGHT_OF_HAND;
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
@@ -2595,21 +2618,23 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You need to augment this power with 3 psp points to use it on another being.\r\n");
       return;
     }
-    af[0].duration = level * 10;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 20;
+    af[0].duration = level * 12;
     GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
     accum_duration = FALSE;
     to_vict = "You have been covered in a film of transulcent, amorphous membrane.";
     break;
 
   case PSIONIC_DETECT_HOSTILE_INTENT:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     SET_BIT_AR(af[0].bitvector, AFF_DANGERSENSE);
     accum_duration = FALSE;
     to_vict = "You have gained the ability to sense danger in a specified direction.";
     break;
 
   case PSIONIC_ELFSIGHT:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = APPLY_SKILL;
     af[0].modifier = 2;
     af[0].specific = ABILITY_PERCEPTION;
@@ -2619,7 +2644,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_ADAPTATION_SPECIFIED:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = damage_type_to_resistance_type(GET_PSIONIC_ENERGY_TYPE(ch));
     af[0].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
     accum_duration = FALSE;
@@ -2634,19 +2659,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_ADAPTATION:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = APPLY_RES_ACID;
     af[0].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[1].duration = level * 100;
+    af[1].duration = level * 120;
     af[1].location = APPLY_RES_FIRE;
     af[1].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[2].duration = level * 100;
+    af[2].duration = level * 120;
     af[2].location = APPLY_RES_COLD;
     af[2].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[3].duration = level * 100;
+    af[3].duration = level * 120;
     af[3].location = APPLY_RES_ELECTRIC;
     af[3].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[4].duration = level * 100;
+    af[4].duration = level * 120;
     af[4].location = APPLY_RES_SOUND;
     af[4].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
     accum_duration = FALSE;
@@ -2770,7 +2795,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_HEIGHTENED_VISION:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     SET_BIT_AR(af[0].bitvector, AFF_ULTRAVISION);
     accum_duration = FALSE;
     to_vict = "You can now see in the dark as well as in the light.";
@@ -2813,13 +2838,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_SHARPENED_EDGE:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = APPLY_SPECIAL;
     to_vict = "Any slashing or piercing weapon you wield becomes extremely sharp through your psychic abilities.";
     break;
 
   case PSIONIC_UBIQUITUS_VISION:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = APPLY_SPECIAL;
     to_vict = "You gain the ability to see 360 degrees around you.";
     break;
@@ -2844,7 +2869,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
     GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 3;
     GET_AUGMENT_PSP(ch) = MIN(6, GET_AUGMENT_PSP(ch));
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 6 + (GET_AUGMENT_PSP(ch) / 3 * 2);
     to_vict = "You gain the ability reflect melee damage back on your attacker as psychic damage.";
@@ -2882,7 +2907,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_INTELLECT_FORTRESS:
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].location = APPLY_RES_MENTAL;
     af[0].modifier = 50;
     to_vict = "Your resistance against psionic damage improves.";
@@ -2920,7 +2945,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_SLIP_THE_BONDS:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     SET_BIT_AR(af[0].bitvector, AFF_FREE_MOVEMENT);
     accum_duration = FALSE;
     to_vict = "You are now free from movement impairing affects.";
@@ -2943,14 +2968,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_PIERCE_VEIL:
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     SET_BIT_AR(af[0].bitvector, AFF_TRUE_SIGHT);
     accum_duration = FALSE;
     to_vict = "You are now able to see the true forms of all beings.";
     break;
 
   case PSIONIC_POWER_RESISTANCE:
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].modifier = 12 + level;
     af[0].location = APPLY_POWER_RES;
     accum_duration = FALSE;
@@ -2966,14 +2991,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_SUSTAINED_FLIGHT:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     SET_BIT_AR(af[0].bitvector, AFF_FLYING);
     accum_duration = FALSE;
     to_vict = "You rise into the air, obtaining the ability to fly.";
     break;
 
   case PSIONIC_COSMIC_AWARENESS:
-    af[0].duration = level * 10;
+    af[0].duration = level * 12;
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = GET_PSIONIC_LEVEL(ch);
     accum_duration = FALSE;
@@ -2981,19 +3006,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_CONVERSION:
-    af[0].duration = level * 100;
+    af[0].duration = level * 120;
     af[0].location = APPLY_RES_ACID;
     af[0].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[1].duration = level * 100;
+    af[1].duration = level * 120;
     af[1].location = APPLY_RES_FIRE;
     af[1].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[2].duration = level * 100;
+    af[2].duration = level * 120;
     af[2].location = APPLY_RES_COLD;
     af[2].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[3].duration = level * 100;
+    af[3].duration = level * 120;
     af[3].location = APPLY_RES_ELECTRIC;
     af[3].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
-    af[4].duration = level * 100;
+    af[4].duration = level * 120;
     af[4].location = APPLY_RES_SOUND;
     af[4].modifier = (level >= 11) ? 60 : (level >= 7) ? 40 : 20;
     accum_duration = FALSE;
@@ -3026,28 +3051,28 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     
     af[0].location = APPLY_DR;
     af[0].modifier = 0;
-    af[0].duration = 10 * level + GET_AUGMENT_PSP(ch);
+    af[0].duration = 12 * level + GET_AUGMENT_PSP(ch);
 
     af[1].location = APPLY_AC_NEW;
     af[1].modifier = 5;
     af[1].bonus_type = BONUS_TYPE_NATURALARMOR;
-    af[1].duration = 10 * level + GET_AUGMENT_PSP(ch);
+    af[1].duration = 12 * level + GET_AUGMENT_PSP(ch);
 
     af[2].location = APPLY_RES_COLD;
     af[2].modifier = 50;
-    af[2].duration = 10 * level + GET_AUGMENT_PSP(ch);
+    af[2].duration = 12 * level + GET_AUGMENT_PSP(ch);
 
     af[3].location = APPLY_RES_FIRE;
     af[3].modifier = -50;
-    af[3].duration = 10 * level + GET_AUGMENT_PSP(ch);
+    af[3].duration = 12 * level + GET_AUGMENT_PSP(ch);
 
     af[4].location = APPLY_STR;
     af[4].modifier = 4;
-    af[4].duration = 10 * level + GET_AUGMENT_PSP(ch);
+    af[4].duration = 12 * level + GET_AUGMENT_PSP(ch);
 
     af[5].location = APPLY_DEX;
     af[5].modifier = -2;
-    af[5].duration = 10 * level + GET_AUGMENT_PSP(ch);
+    af[5].duration = 12 * level + GET_AUGMENT_PSP(ch);
 
     to_vict = "Your body becomes like that of a great oak tree.";
     to_room = "$N's body becomes like that of a great oak tree.";
@@ -3082,31 +3107,31 @@ case PSIONIC_BODY_OF_IRON:
     }
     af[0].location = APPLY_DR;
     af[0].modifier = 0;
-    af[0].duration = 10 * level;
+    af[0].duration = 12 * level;
     SET_BIT_AR(af[0].bitvector, AFF_WATER_BREATH);
 
     af[1].location = APPLY_RES_ACID;
     af[1].modifier = 50;
-    af[1].duration = 10 * level;
+    af[1].duration = 12 * level;
 
     af[2].location = APPLY_RES_ELECTRIC;
     af[2].modifier = 100;
-    af[2].duration = 10 * level;
+    af[2].duration = 12 * level;
 
     af[3].location = APPLY_RES_FIRE;
     af[3].modifier = 50;
-    af[3].duration = 10 * level;
+    af[3].duration = 12 * level;
 
     af[4].location = APPLY_STR;
     af[4].modifier = 6;
-    af[4].duration = 10 * level;
+    af[4].duration = 12 * level;
 
     af[5].location = APPLY_DEX;
     af[5].modifier = -6;
-    af[5].duration = 10 * level;
+    af[5].duration = 12 * level;
 
-    to_vict = "Your body becomes like that of a great oak tree.";
-    to_room = "$N's body becomes like that of a great oak tree.";
+    to_vict = "Your body becomes like solid iron.";
+    to_room = "$N's body becomes like solid iron.";
 
     CREATE(new_dr, struct damage_reduction_type, 1);
 
@@ -3138,32 +3163,32 @@ case PSIONIC_BODY_OF_IRON:
     }
     af[0].location = APPLY_DR;
     af[0].modifier = 0;
-    af[0].duration = 10 * level;
+    af[0].duration = 12 * level;
     SET_BIT_AR(af[0].bitvector, AFF_ULTRAVISION);
 
     af[1].location = APPLY_RES_ACID;
     af[1].modifier = 50;
-    af[1].duration = 10 * level;
+    af[1].duration = 12 * level;
     SET_BIT_AR(af[1].bitvector, AFF_WATER_BREATH);
 
     af[2].location = APPLY_RES_ELECTRIC;
     af[2].modifier = 50;
-    af[2].duration = 10 * level;
+    af[2].duration = 12 * level;
     SET_BIT_AR(af[2].bitvector, AFF_INVISIBLE);
 
     af[3].location = APPLY_RES_FIRE;
     af[3].modifier = 50;
-    af[3].duration = 10 * level;
+    af[3].duration = 12 * level;
 
     af[4].location = APPLY_SKILL;
     af[4].modifier = 10;
     af[4].specific = ABILITY_STEALTH;
-    af[4].duration = 10 * level;
+    af[4].duration = 12 * level;
 
     af[5].location = APPLY_SKILL;
     af[5].modifier = 15;
     af[5].specific = ABILITY_CLIMB;
-    af[5].duration = 10 * level;
+    af[5].duration = 12 * level;
 
     to_vict = "Your body becomes like that of a living shadow.";
     to_room = "$N's body becomes like that of a living shadow.";
@@ -3191,7 +3216,7 @@ case PSIONIC_BODY_OF_IRON:
     break;
 
   case PSIONIC_TRUE_METABOLISM:
-    af[0].duration = 10 * level;
+    af[0].duration = 12 * level;
     af[0].location = APPLY_SPECIAL;
     break;
 
@@ -3299,7 +3324,7 @@ case PSIONIC_BODY_OF_IRON:
       af[0].modifier = 3;
     else
       af[0].modifier = 2;
-    af[0].duration = (level * 200); // divine level * 10, * 20 for minutes
+    af[0].duration = (level * 200); // divine level * 12, * 20 for minutes
     af[0].bonus_type = BONUS_TYPE_NATURALARMOR;
     accum_affect = FALSE;
     accum_duration = FALSE;
@@ -3618,7 +3643,7 @@ case PSIONIC_BODY_OF_IRON:
     break;
 
   case SPELL_DEATH_WARD: // necromancy
-    af[0].duration = 10 * level;
+    af[0].duration = 12 * level;
     SET_BIT_AR(af[0].bitvector, AFF_DEATH_WARD);
 
     accum_affect = FALSE;
@@ -5492,6 +5517,12 @@ case PSIONIC_BODY_OF_IRON:
       // if it's a buff, we want to replace it instead of failing
       affect_from_char(victim, spellnum);
     }
+  }
+
+  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+  {
+    // tidier this way
+    accum_affect = FALSE;
   }
 
   if (to_vict != NULL)

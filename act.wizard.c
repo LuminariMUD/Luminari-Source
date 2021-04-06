@@ -3832,7 +3832,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     }
     break;
   case 16: /* exp */
-    vict->points.exp = RANGE(0, 50000000);
+    vict->points.exp = value;
     break;
   case 17: /* frozen */
     if (ch == vict && on)

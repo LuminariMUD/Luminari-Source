@@ -65,7 +65,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_CRYSTAL_SHARD, "crystal shard", 1, true, METACREATIVITY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 1);
     psiono(PSIONIC_DECELERATION, "deceleration", 1, true, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "Your psychic deceleration expires.", 1);
     psiono(PSIONIC_DEMORALIZE, "demoralize", 1, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, "You are no longer demoralized.", 1);
-    psiono(PSIONIC_ECTOPLASMIC_SHEEN, "ectoplasmic sheen", 1, true, METACREATIVITY, TAR_IGNORE, false, MAG_ROOM, "The ectoplasmic sheen evaporates completely.", 1);
+    //psiono(PSIONIC_ECTOPLASMIC_SHEEN, "ectoplasmic sheen", 1, true, METACREATIVITY, TAR_IGNORE, false, MAG_ROOM, "The ectoplasmic sheen evaporates completely.", 1);
     psiono(PSIONIC_ENERGY_RAY, "energy ray", 1, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 1);
     psiono(PSIONIC_FORCE_SCREEN, "force screen", 1, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your force screen blinks out of existence.", 1);
     psiono(PSIONIC_FORTIFY, "fortify", 1, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic fortification has subsided.", 1);
@@ -81,9 +81,9 @@ void assign_psionic_powers(void)
     // level 2 psionic powers
     psiono(PSIONIC_BESTOW_POWER, "bestow power", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_POINTS, NULL, 2);
     psiono(PSIONIC_BIOFEEDBACK, "biofeedback", 3, true, TELEPATHY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "You feel your biofeedback protection expire.", 2);
-    psiono(PSIONIC_BODY_EQUILLIBRIUM, "body equillibrium", 3, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "You feel your body equillibrium fade.", 2);
+    psiono(PSIONIC_BODY_EQUILIBRIUM, "body equilibrium", 3, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "You feel your body equillibrium fade.", 2);
     psiono(PSIONIC_BREACH, "breach", 3, false, PSYCHOPORTATION, TAR_IGNORE, false, MAG_MANUAL, NULL, 2);
-    psiono(PSIONIC_CONCEALING_AMORPHA, "concealing amorpha", 3, true, METACREATIVITY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_GROUPS, "The concealing amorpha surrounding you dissipates.", 2);
+    psiono(PSIONIC_CONCEALING_AMORPHA, "concealing amorpha", 3, true, METACREATIVITY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "The concealing amorpha surrounding you dissipates.", 2);
     psiono(PSIONIC_CONCUSSION_BLAST, "concussion blast", 3, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 2);
     psiono(PSIONIC_DETECT_HOSTILE_INTENT, "detect hostile intent", 3, false, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic ability to detect nearby danger has passed.", 2);
     psiono(PSIONIC_ELFSIGHT, "elfsight", 3, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your elfsight wears off.", 2);
@@ -92,17 +92,17 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_ENERGY_STUN, "energy stun", 3, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, NULL, 2);
     psiono(PSIONIC_INFLICT_PAIN, "inflict pain", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "The psychic pain tormenting you finally ends.", 2);
     psiono(PSIONIC_MENTAL_DISRUPTION, "mental disruption", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, "THe psychic mental disruption affecting you expires.", 2);
-    psiono(PSIONIC_PSIONIC_LOCK, "psionic lock", 3, false, PSYCHOPORTATION, TAR_IGNORE, false, MAG_MANUAL, NULL, 2);
+    //psiono(PSIONIC_PSIONIC_LOCK, "psionic lock", 3, false, PSYCHOPORTATION, TAR_IGNORE, false, MAG_MANUAL, NULL, 2);
     psiono(PSIONIC_PSYCHIC_BODYGUARD, "psychic bodyguard", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_AFFECTS, "Your psychic bodyguard affect expires.", 2);
     psiono(PSIONIC_RECALL_AGONY, "recall agony", 3, true, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 2);
-    psiono(PSIONIC_SHARE_PAIN, "share pain", 3, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_AFFECTS, "You are no longer sharing pain weith you ally.", 2);
+    //psiono(PSIONIC_SHARE_PAIN, "share pain", 3, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_AFFECTS, "You are no longer sharing pain weith you ally.", 2);
     psiono(PSIONIC_SWARM_OF_CRYSTALS, "swarm of crystals", 3, true, METACREATIVITY, TAR_CHAR_ROOM |TAR_NOT_SELF, true, MAG_AREAS, NULL, 2);
     psiono(PSIONIC_THOUGHT_SHIELD, "thought shield", 3, true, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your thought shield expires.", 2);
 
     // level 3 psionic powers
     psiono(PSIONIC_BODY_ADJUSTMENT, "body adjustment", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_POINTS, NULL, 3);
     psiono(PSIONIC_CONCUSSIVE_ONSLAUGHT, "concussive onslaught", 5, true, PSYCHOKINESIS, TAR_IGNORE, true, MAG_MANUAL, NULL, 3);
-    psiono(PSIONIC_DISPEL_PSIONICS, "dispel psionic", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_MANUAL, NULL, 3);
+    //psiono(PSIONIC_DISPEL_PSIONICS, "dispel psionic", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_MANUAL, NULL, 3);
     psiono(PSIONIC_ENDORPHIN_SURGE, "endorphin surge", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your endorphin surge wears off.", 3);
     psiono(PSIONIC_ENERGY_BURST, "energy burst", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 3);
     psiono(PSIONIC_ENERGY_RETORT, "energy retort", 5, true, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your energy retort protection fades.", 3);
@@ -111,7 +111,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_MENTAL_BARRIER, "mental barrier", 5, true, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your mental barrier blinks out of existence.", 3);
     psiono(PSIONIC_MIND_TRAP, "mind trap", 5, true, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your mind trap triggers!", 3);
     psiono(PSIONIC_PSIONIC_BLAST, "psionic blast", 5, true, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_MASSES, "The stunning affect of being hit by a psionic blast expires.", 3);
-    psiono(PSIONIC_FORCED_SHARED_PAIN, "forced shared pain", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "You're no longer being forced to share pain.", 3);
+    //psiono(PSIONIC_FORCED_SHARED_PAIN, "forced shared pain", 5, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "You're no longer being forced to share pain.", 3);
     psiono(PSIONIC_SHARPENED_EDGE, "sharpened edge", 5, false, METACREATIVITY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "The sharpened edge of your weapons fades.", 3);
     psiono(PSIONIC_UBIQUITUS_VISION, "ubiquitous vision", 5, false, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your ubiquitus vision fades.", 3);
 
@@ -129,7 +129,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_WALL_OF_ECTOPLASM, "wall of ectoplasm", 7, false, METACREATIVITY, TAR_IGNORE, false, MAG_MANUAL, "The wall of ectoplasm hardens and falls to dust.", 4);
 
     // level 5 psionic powers
-    psiono(PSIONIC_ADAPT_BODY, "adapt body", 9, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic adaptability has ended.", 5);
+    //psiono(PSIONIC_ADAPT_BODY, "adapt body", 9, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic adaptability has ended.", 5);
     psiono(PSIONIC_ECTOPLASMIC_SHAMBLER, "ectoplasmic shambler", 9, false, METACREATIVITY, TAR_IGNORE, false, MAG_SUMMONS, NULL, 5);
     psiono(PSIONIC_PIERCE_VEIL, "pierce the veils", 9, false, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your ability to pierce hidden veils has expired.", 5);
     psiono(PSIONIC_PLANAR_TRAVEL, "planar travel", 9, false, PSYCHOPORTATION, TAR_IGNORE, false, MAG_CREATIONS, NULL, 5);
@@ -145,18 +145,18 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_BREATH_OF_THE_BLACK_DRAGON, "breath of the black dragon", 11, true, PSYCHOMETABOLISM, TAR_IGNORE, true, MAG_AREAS, NULL, 6);
     psiono(PSIONIC_BRUTALIZE_WOUNDS, "brutalize wounds", 11, false, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "The psychic brutalizing of your wounds suddenly ends.", 6);
     psiono(PSIONIC_DISINTEGRATION, "disintegration", 11, true, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 6);
-    psiono(PSIONIC_REMOTE_VIEW_TRAP, "remote view trap", 11, false, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your remote view trap expires.", 6);
+    //psiono(PSIONIC_REMOTE_VIEW_TRAP, "remote view trap", 11, false, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your remote view trap expires.", 6);
     psiono(PSIONIC_SUSTAINED_FLIGHT, "sustained flight", 11, false, PSYCHOPORTATION, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your sustained flight ends.", 6);
 
     // level 7 psionic powers
     psiono(PSIONIC_BARRED_MIND_PERSONAL, "personal barred mind", 13, true, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your barred mind effect passes.", 7);
     psiono(PSIONIC_COSMIC_AWARENESS, "cosmic awareness", 13, true, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your cosmic awareness expires.", 7);
     psiono(PSIONIC_ENERGY_CONVERSION, "energy conversion", 13, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your energy conversion ability has expired.", 7);
-    psiono(PSIONIC_ENERGY_WAVE, "energy wave", 13, true, PSYCHOKINESIS, TAR_IGNORE, true, MAG_AREAS, NULL, 7);
+    //psiono(PSIONIC_ENERGY_WAVE, "energy wave", 13, true, PSYCHOKINESIS, TAR_IGNORE, true, MAG_AREAS, NULL, 7);
     psiono(PSIONIC_EVADE_BURST, "evade burst", 13, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your evade burst ability has ended.", 7);
     psiono(PSIONIC_OAK_BODY, "oak body", 13, true, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your oak body returns to normal.", 7);
     psiono(PSIONIC_PSYCHOSIS, "psychosis", 13, true, TELEPATHY, TAR_CHAR_ROOM |TAR_NOT_SELF, true, MAG_AFFECTS, "You no longer feel any signs of psychosis.", 7);
-    psiono(PSIONIC_ULTRABLAST, "ultrabast", 13, true, TELEPATHY, TAR_IGNORE, true, MAG_AREAS, NULL, 7);
+    psiono(PSIONIC_ULTRABLAST, "ultrablast", 13, true, TELEPATHY, TAR_IGNORE, true, MAG_AREAS, NULL, 7);
 
     // level 8 psionic powers
     psiono(PSIONIC_BARRED_MIND, "barred mind", 15, true, TELEPATHY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "Your barred mind effect passes.", 8);
@@ -167,16 +167,16 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_TRUE_METABOLISM, "true metabolism", 15, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM|TAR_SELF_ONLY, false, MAG_AFFECTS, "Your enhanced metabolism returns to normal.", 8);
 
     // level 9 psionic powers
-    psiono(PSIONIC_APOPSI, "apopsi", 17, false, TELEPATHY, TAR_CHAR_ROOM|TAR_NOT_SELF, true, MAG_AFFECTS, "Your addled mind returns to normal.", 9);
+    //psiono(PSIONIC_APOPSI, "apopsi", 17, false, TELEPATHY, TAR_CHAR_ROOM|TAR_NOT_SELF, true, MAG_AFFECTS, "Your addled mind returns to normal.", 9);
     psiono(PSIONIC_ASSIMILATE, "assimilate", 17, false, PSYCHOMETABOLISM, TAR_CHAR_ROOM|TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 9);
-    psiono(PSIONIC_TIMELESS_BODY, "timeless body", 17, false, PSYCHOPORTATION, TAR_CHAR_ROOM|TAR_SELF_ONLY, false, MAG_AFFECTS, "Your timeless body effect expires.", 9);
+    //psiono(PSIONIC_TIMELESS_BODY, "timeless body", 17, false, PSYCHOPORTATION, TAR_CHAR_ROOM|TAR_SELF_ONLY, false, MAG_AFFECTS, "Your timeless body effect expires.", 9);
 }
 
 #define MANIFEST_NO_ARG "You must specify the number of power points to augment your power with, or 0.\r\n" \
                          "You must follow that with the power name in single quotes, optionally followed by the target where applicable.\r\n" \
                          "Example: manifest 2 'mind thrust' ogre\r\n" \
                          "This will manifest the mind thrust against the first target named ogre and with the power augmented with 2 power points.\r\n" \
-                         "You may also type manifest energytype (fire|ice|lightning|acid|sonic) to set your energy type for energy based powers.\r\n"
+                         "You may also type manifest energytype (fire|cold|lightning|acid|sonic) to set your energy type for energy based powers.\r\n"
 
 ACMD(do_manifest)
 {
@@ -199,10 +199,10 @@ ACMD(do_manifest)
                 GET_PSIONIC_ENERGY_TYPE(ch) = DAM_FIRE;
                 send_to_char(ch, "You've set your psionic energy type to fire.\r\n");
             }
-            else if (is_abbrev(pass_arg, "ice"))
+            else if (is_abbrev(pass_arg, "cold"))
             {
                 GET_PSIONIC_ENERGY_TYPE(ch) = DAM_COLD;
-                send_to_char(ch, "You've set your psionic energy type to ice.\r\n");
+                send_to_char(ch, "You've set your psionic energy type to cold.\r\n");
             }
             else if (is_abbrev(pass_arg, "lightning"))
             {
@@ -235,7 +235,6 @@ ACMD(do_manifest)
     int extra_pp = atoi(augment);
     GET_AUGMENT_PSP(ch) = extra_pp;
     snprintf(final_pass, sizeof(final_pass), " %s", pass_arg);
-    //send_to_char(ch, "PASS ARG:---%s---\r\n", final_pass);
     do_gen_cast(ch, (const char *) final_pass, cmd, SCMD_CAST_PSIONIC);
 }
 
@@ -392,7 +391,7 @@ ACMD(do_psionic_focus)
 
   start_daily_use_cooldown(ch, FEAT_PSIONIC_FOCUS);
 
-  af.duration = 10;
+  af.duration = 12;
 
   affect_to_char(ch, &af);
 
@@ -419,7 +418,7 @@ ACMD(do_double_manifest)
 
   start_daily_use_cooldown(ch, FEAT_DOUBLE_MANIFEST);
 
-  af.duration = 100;
+  af.duration = 120;
 
   affect_to_char(ch, &af);
 

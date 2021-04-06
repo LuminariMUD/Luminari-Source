@@ -983,12 +983,12 @@ bool display_class_info(struct char_data *ch, const char *classname)
     draw_line(ch, line_length, '-', '-');
     send_to_char(ch, "\tcSpell Prep Command  : \tn%s\r\n", spell_prep_dict[class][0]);
     send_to_char(ch, "\tcSpell Forget Command: \tn%s\r\n", spell_consign_dict[class][0]);
-    send_to_char(ch, "\tcSpell Cast Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? "cast" : "imbibe");
+    send_to_char(ch, "\tcSpell Cast Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? "cast" : "manifest") : "imbibe");
     char spellList[30];
     snprintf(spellList, sizeof(spellList), "spells %s", CLSLIST_NAME(class));
     for (i = 0; i < strlen(spellList); i++)
       spellList[i] = tolower(spellList[i]);
-    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? spellList : "extracts");
+    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist"): "extracts");
   }
 
   send_to_char(ch, "\tC");
@@ -2984,12 +2984,14 @@ void advance_level(struct char_data *ch, int class)
     GET_REAL_MAX_PSP(ch) += MAX(1, add_psp);
     send_to_char(ch, "\tMTotal Power Points:\tn %d\r\n", MAX(1, add_psp));
   }
+  /*
   if (GET_LEVEL(ch) > 1)
   {
     GET_REAL_MAX_PSP(ch) += add_psp;
     if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMTotal PSP:\tn %d\r\n", add_psp);
   }
+  */
   GET_FEAT_POINTS(ch) += feats;
   if (feats)
     if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
@@ -5076,7 +5078,7 @@ void load_class_list(void)
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
                      CA, CA, CC, CA, CC, CC, CC, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
-                     CC, CC, CC, CC, CC, CA,
+                     CA, CC, CC, CC, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CA, CC);
   assign_class_titles(CLASS_PSIONICIST,                /* class number */
@@ -5158,7 +5160,7 @@ void load_class_list(void)
 
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BESTOW_POWER, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BIOFEEDBACK, 3);
-  spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_EQUILLIBRIUM, 3);
+  spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_EQUILIBRIUM, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BREACH, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCEALING_AMORPHA, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCUSSION_BLAST, 3);
@@ -5203,7 +5205,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WITHER, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WALL_OF_ECTOPLASM, 7);
 
-  spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHAMBLER, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PIERCE_VEIL, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PLANAR_TRAVEL, 9);

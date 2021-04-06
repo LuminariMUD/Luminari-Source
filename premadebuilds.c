@@ -161,6 +161,15 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 16) //int goes up to 20
         give_premade_skill(ch, verbose, ABILITY_SENSE_MOTIVE, amount);
       break;
+    case CLASS_PSIONICIST:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      give_premade_skill(ch, verbose, ABILITY_DISCIPLINE, amount);
+      give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_USE_MAGIC_DEVICE, amount);
 
   }
 
@@ -382,6 +391,21 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
             GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
             GET_REAL_INT(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+          break;
+          case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_INT(ch)++;
+            break;
+        }
+      break;
+    case CLASS_PSIONICIST:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) =  8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
           break;
@@ -621,6 +645,150 @@ void add_premade_alchemist_discoveries(struct char_data *ch, int level)
       do_help(ch, grand_alchemical_discovery_names[disc], 0, 0);
       break;
   }
+}
+
+void add_premade_psionicist_powers(struct char_data *ch, int level)
+{
+  int chclass = CLASS_SORCERER;
+  switch (level) {
+    case 1:
+      known_spells_add(ch, chclass, PSIONIC_INERTIAL_ARMOR, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_FORCE_SCREEN, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_MIND_THRUST, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_VIGOR, FALSE);
+      break;
+    case 2:
+      known_spells_add(ch, chclass, PSIONIC_FORTIFY, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_ENERGY_RAY, FALSE);
+      break;
+    case 3:
+      known_spells_add(ch, chclass, PSIONIC_BIOFEEDBACK, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_MENTAL_BARRIER, FALSE);
+      break;
+    case 4:
+      known_spells_add(ch, chclass, PSIONIC_CONCEALING_AMORPHA, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_ENERGY_PUSH, FALSE);
+      break;
+    case 5:
+      known_spells_add(ch, chclass, PSIONIC_SHARPENED_EDGE, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_OFFENSIVE_PRECOGNITION, FALSE);
+      break;
+    case 6:
+      known_spells_add(ch, chclass, PSIONIC_DEFENSIVE_PRECOGNITION, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_SWARM_OF_CRYSTALS, FALSE);
+      break;
+    case 7:
+      known_spells_add(ch, chclass, PSIONIC_SLIP_THE_BONDS, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_ENERGY_ADAPTATION, FALSE);
+      break;
+    case 8:
+      known_spells_add(ch, chclass, PSIONIC_OFFENSIVE_PRESCIENCE, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_BODY_ADJUSTMENT, FALSE);
+      break;
+    case 9:
+      known_spells_add(ch, chclass, PSIONIC_ECTOPLASMIC_SHAMBLER, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_PSYCHOPORTATION, FALSE);
+      break;
+    case 10:
+      known_spells_add(ch, chclass, PSIONIC_SHRAPNEL_BURST, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_PIERCE_VEIL, FALSE);
+      break;
+    case 11:
+      known_spells_add(ch, chclass, PSIONIC_SUSTAINED_FLIGHT, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_DISINTEGRATION, FALSE);
+      break;
+    case 12:
+      known_spells_add(ch, chclass, PSIONIC_BRUTALIZE_WOUNDS, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_BREATH_OF_THE_BLACK_DRAGON, FALSE);
+      break;
+    case 13:
+      known_spells_add(ch, chclass, PSIONIC_EVADE_BURST, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_ENERGY_CONVERSION, FALSE);
+      break;
+    case 14:
+      known_spells_add(ch, chclass, PSIONIC_OAK_BODY, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_PSYCHOSIS, FALSE);
+      break;
+    case 15:
+      known_spells_add(ch, chclass, PSIONIC_RECALL_DEATH, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_TRUE_METABOLISM, FALSE);
+      break;
+    case 16:
+      known_spells_add(ch, chclass, PSIONIC_SHADOW_BODY, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_BODY_OF_IRON, FALSE);
+      break;
+    case 17:
+      known_spells_add(ch, chclass, PSIONIC_ASSIMILATE, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_ULTRABLAST, FALSE);
+      break;
+    case 18:
+      known_spells_add(ch, chclass, PSIONIC_TOWER_OF_IRON_WILL, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_POWER_RESISTANCE, FALSE);
+      break;
+    case 19:
+      known_spells_add(ch, chclass, PSIONIC_PLANAR_TRAVEL, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_WITHER, FALSE);
+      break;
+    case 20:
+      known_spells_add(ch, chclass, PSIONIC_POWER_LEECH, FALSE);
+      known_spells_add(ch, chclass, PSIONIC_INCITE_PASSION, FALSE);
+      break;
+  }
+}
+
+void levelup_psionicist(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_PSIONICIST;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_PROFICIENT_PSIONICIST, 0);
+      give_premade_feat(ch, verbose, FEAT_PSIONIC_RECOVERY, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      }
+      break;
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_POWER_DAMAGE, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 5:
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_POWER_DAMAGE, 0);
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_POWER_DAMAGE, 0);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_QUICK_MIND, 0);
+      break;
+    case 10:
+      give_premade_feat(ch, verbose, FEAT_COMBAT_MANIFESTATION, 0);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      give_premade_feat(ch, verbose, FEAT_POWER_PENETRATION, 0);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_EMPOWERED_PSIONICS, 0);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_EMPOWERED_PSIONICS, 0);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      give_premade_feat(ch, verbose, FEAT_EMPOWERED_PSIONICS, 0);
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+  add_premade_psionicist_powers(ch, level);
 }
 
 void levelup_warrior(struct char_data *ch, int level, bool verbose)
@@ -1304,6 +1472,9 @@ void advance_premade_build(struct char_data *ch)
       break;
     case CLASS_ALCHEMIST:
       levelup_alchemist(ch, level, TRUE);
+      break;
+    case CLASS_PSIONICIST:
+      levelup_psionicist(ch, level, TRUE);
       break;
     default:
       send_to_char(ch, "ERROR.  Please inform staff, error code PREBLD001.\r\n");

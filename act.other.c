@@ -5066,13 +5066,17 @@ static void print_group(struct char_data *ch)
 
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
     //send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]M [%4d/%-4d]V%s\r\n",
-    send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]V%s\r\n",
-                 count_color_chars(GET_NAME(k)) + 22, GET_NAME(k),
+    send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]V [%4d/%-4d]P [%d XP TNL]%s\r\n",
+                 count_color_chars(GET_NAME(k)) + 28, GET_NAME(k),
                  GROUP_LEADER(GROUP(ch)) == k ? CBGRN(ch, C_NRM) : CCGRN(ch, C_NRM),
                  GET_HIT(k), GET_MAX_HIT(k),
-                 //GET_PSP(k), GET_MAX_PSP(k),
                  GET_MOVE(k), GET_MAX_MOVE(k),
-                 CCNRM(ch, C_NRM));
+                 GET_PSP(k), GET_MAX_PSP(k),
+                 MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
+                 CCNRM(ch, C_NRM)
+                 );
+
+
 }
 
 /* Putting this here - no better place to put it really. */
@@ -5380,10 +5384,12 @@ ACMD(do_report)
 
   /* generalized output due to send_to_room */
   //send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
-  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV\r\n",
+  send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV, %d/%dP, %d XP TNL\r\n",
                GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-               //GET_PSP(ch), GET_MAX_PSP(ch),
-               GET_MOVE(ch), GET_MAX_MOVE(ch));
+               GET_MOVE(ch), GET_MAX_MOVE(ch),
+               GET_PSP(ch), GET_MAX_PSP(ch),
+               MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))
+               );
 }
 
 ACMD(do_split)
@@ -6886,5 +6892,30 @@ ACMD(do_summon)
 #undef WILDSHAPE_AFFECTS
 #undef TOG_OFF
 #undef TOG_ON
+
+ACMDU(do_revoke)
+{
+  int spellnum = 0;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please specify which affect you'd like to revoke. (See the affects command for the affect name)\r\n");
+    return;
+  }
+
+  spellnum = find_skill_num(argument);
+
+  if (can_spell_be_revoked(spellnum))
+  {
+    send_to_char(ch, "You revoke the affect '%s' from your person.\r\n", spell_info[spellnum].name);
+    affect_from_char(ch, spellnum);
+  }
+  else{
+    send_to_char(ch, "Either that is not a valid affect name or that affect cannot be revoked.\r\n");
+  }
+
+}
 
 /*EOF*/

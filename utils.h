@@ -232,6 +232,7 @@ bool can_poison(struct char_data *ch);
 bool can_stun(struct char_data *ch);
 bool can_confuse(struct char_data *ch);
 bool has_psionic_body_form_active(struct char_data *ch);
+bool can_spell_be_revoked(int spellnum);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

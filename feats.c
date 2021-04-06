@@ -3090,12 +3090,10 @@ void assign_feats(void)
         "You gain +1 power damage per die rolled, example:  if you are level 10 and "
         "normally create a 10d6 damage energy burst, with this feat your energy burst would "
         "do 10d6+10. Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
-  feat_prereq_class_level(FEAT_ENHANCED_POWER_DAMAGE, CLASS_PSIONICIST, 1);
 
   feato(FEAT_EMPOWERED_PSIONICS, "empowered magic", FALSE, TRUE, TRUE, FEAT_TYPE_PSIONIC, 
         "+1 to all power dcs", 
         "+1 to all power dcs. . Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
-  feat_prereq_class_level(FEAT_EMPOWERED_PSIONICS, CLASS_PSIONICIST, 1);
 
   feato(FEAT_EXPANDED_KNOWLEDGE, "expanded knowledge", TRUE, TRUE, TRUE, FEAT_TYPE_PSIONIC,
         "Each rank gives you an extra power you can learn.",
@@ -3105,7 +3103,7 @@ void assign_feats(void)
   feato(FEAT_PSIONIC_ENDOWMENT, "psionic endowment", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
         "When psionic focus is active, save dcs for manifested powers are at +3.",
         "When psionic focus is active, save dcs for manifested powers are at +3.");
-  feat_prereq_class_level(FEAT_PSIONIC_ENDOWMENT, CLASS_PSIONICIST, 1);  
+  feat_prereq_class_level(FEAT_PSIONIC_ENDOWMENT, CLASS_PSIONICIST, 1);
 
   /* weapon master */
   /*lvl 1*/ feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

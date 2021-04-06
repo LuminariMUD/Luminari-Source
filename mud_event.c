@@ -165,6 +165,8 @@ struct mud_event_list mud_event_index[] = {
     {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR}, //eCONCUSSIVEONSLAUGHT
     {"Channel Spell", event_daily_use_cooldown, EVENT_CHAR},         //eCHANNELSPELL
     {"Power Leech", event_power_leech, EVENT_CHAR}, //ePOWERLEECH
+    {"Psionic Focus", event_daily_use_cooldown, EVENT_CHAR}, //ePSIONICFOCUS
+    {"Double Manifest", event_daily_use_cooldown, EVENT_CHAR}, //eDOUBLEMANIFEST
 
 };
 

@@ -1304,7 +1304,7 @@ void perform_bomb_direct_effect(struct char_data *ch, struct char_data *victim, 
   new_affect(&af2);
   new_affect(&af3);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = af3.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   switch (bomb_type)
   {
@@ -2115,7 +2115,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   new_affect(&af6);
   new_affect(&af7);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2293,7 +2293,7 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
   new_affect(&af);
   new_affect(&af2);
 
-  af.bonus_type = af2.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = BONUS_TYPE_ENHANCEMENT;
   af.modifier = af2.modifier = 5;
 
   /* duration */
@@ -2390,7 +2390,7 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
   new_affect(&af6);
   new_affect(&af7);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2569,7 +2569,7 @@ void perform_inspiring_cognatogen(struct char_data *ch)
   new_affect(&af5);
   new_affect(&af6);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -3086,7 +3086,7 @@ ACMD(do_poisontouch)
       SET_BIT_AR(af.bitvector, AFF_POISON);
       af.location = APPLY_CON;
       af.modifier = -dice(1, 3);
-      af.bonus_type = BONUS_TYPE_ALCHEMICAL;
+      af.bonus_type = BONUS_TYPE_ENHANCEMENT;
       af.duration = 10 + (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON) ? 5 : 0);
 
       affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);

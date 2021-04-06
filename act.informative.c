@@ -2978,8 +2978,8 @@ ACMD(do_score)
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
 
-  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcPower Points:\tn %d(%d) \tcSpeed:\tn %d\r\n",
-               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), GET_PSP(ch), GET_MAX_PSP(ch), get_speed(ch, TRUE));
+  send_to_char(ch, "\tcHit points:\tn %d(%d)   \tcMoves:\tn %d(%d)   \tcSpeed:\tn %d\r\n",
+               GET_HIT(ch), GET_MAX_HIT(ch), GET_MOVE(ch), GET_MAX_MOVE(ch), get_speed(ch, TRUE));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tyExperience\tC", line_length, '-', '-');
@@ -2989,7 +2989,7 @@ ACMD(do_score)
                    "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
                    "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n"
                    "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
-               GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
+               GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch), 
                GET_EXP(ch), (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)),
                GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
                compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
@@ -3049,6 +3049,18 @@ ACMD(do_score)
   default:
     send_to_char(ch, "Floating\r\n");
     break;
+  }
+
+  if (GET_PSIONIC_LEVEL(ch) > 0)
+  {
+    text_line(ch, "\tyPsionic Info\tC", line_length, '-', '-');
+    send_to_char(ch, "\tcPower Points:\tn %d(%d)   \tcPsionic Level:\tn %d   \tcEnergy Type:\tn %s\r\n"
+                "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
+                GET_PSP(ch), GET_MAX_PSP(ch), 
+                GET_PSIONIC_LEVEL(ch), 
+                damtypes[GET_PSIONIC_ENERGY_TYPE(ch)],
+                GET_PSIONIC_LEVEL(ch)
+    );    
   }
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
