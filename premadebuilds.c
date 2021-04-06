@@ -649,7 +649,7 @@ void add_premade_alchemist_discoveries(struct char_data *ch, int level)
 
 void add_premade_psionicist_powers(struct char_data *ch, int level)
 {
-  int chclass = CLASS_SORCERER;
+  int chclass = CLASS_PSIONICIST;
   switch (level) {
     case 1:
       known_spells_add(ch, chclass, PSIONIC_INERTIAL_ARMOR, FALSE);
