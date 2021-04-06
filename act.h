@@ -531,7 +531,7 @@ ACMD_DECL(do_applyoil);
 ACMD_DECL(do_setbaneweapon);
 ACMD_DECL(do_cosmic_awareness);
 ACMD_DECL(do_discharge);
-
+ACMD_DECL(do_revoke);
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
  ****************************************************************************/

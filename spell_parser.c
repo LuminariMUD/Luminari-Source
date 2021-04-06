@@ -1202,13 +1202,16 @@ void finishCasting(struct char_data *ch)
         else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END) {
                 if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS))
                         GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS);
-                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PSIONIC_ENDOWMENT))
-                        GET_DC_BONUS(ch) += 3;
-                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
+                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS)) {
                         GET_DC_BONUS(ch) += 1;
+                        if (HAS_FEAT(ch, FEAT_PSIONIC_ENDOWMENT))
+                                GET_DC_BONUS(ch) += 3;
+                }
+                        
         }
         say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
-        send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : "complete your spell");
+        send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : 
+                                (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
         call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
                    (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
         if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
@@ -1590,6 +1593,11 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                         send_to_char(ch, "You begin preparing your extract...\r\n");
                         act("$n begins preparing an extract.\r\n", FALSE, ch, 0, 0, TO_ROOM);
                 }
+                else if (CASTING_CLASS(ch) == CLASS_PSIONICIST)
+                {
+                        send_to_char(ch, "You begin to manifest your power...\r\n");
+                        act("$n begins manifesting a power.\r\n", FALSE, ch, 0, 0, TO_ROOM);
+                }
                 else
                 {
                         send_to_char(ch, "You begin casting your spell...\r\n");
@@ -1878,7 +1886,7 @@ ACMDU(do_gen_cast)
 
         if (subcmd == SCMD_CAST_PSIONIC)
         {
-                if (!is_a_known_spell(ch, CLASS_PSIONICIST, spellnum))
+                if (!is_a_known_spell(ch, CLASS_PSIONICIST, spellnum)  && GET_LEVEL(ch) < LVL_IMMORT)
                 {
                         send_to_char(ch, "You are not proficient in the use of that power.\r\n");
                         return;
@@ -2000,8 +2008,14 @@ ACMDU(do_gen_cast)
                         if ((tobj = get_obj_vis(ch, target_arg, &number)) != NULL)
                                 target = TRUE;
         }
+        else if (!target && FIGHTING(ch) && SINFO.violent)
+        {
+                target = TRUE;
+                tch = FIGHTING(ch);
+        }
         else
         { /* if target string is empty */
+
                 if (!target && IS_SET(SINFO.targets, TAR_FIGHT_SELF))
                         if (FIGHTING(ch) != NULL)
                         {

@@ -775,7 +775,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst)
     if (victim)
     {
       /* send_to_char(ch,"\tr[burst]\tn");*/
-      damage(ch, victim, dice(1, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
+      damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
     }
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
@@ -832,7 +832,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive_burst)
     if (victim)
     {
       /* send_to_char(ch,"\tr[burst]\tn");*/
-      damage(ch, victim, dice(1, 10), TYPE_SPECAB_CORROSIVE, DAM_ACID, FALSE);
+      damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_CORROSIVE, DAM_ACID, FALSE);
     }
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
@@ -1315,7 +1315,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst)
     if (victim)
     {
       /* send_to_char(ch,"\tr[burst]\tn");*/
-      damage(ch, victim, dice(1, 10), TYPE_SPECAB_SHCOKING_BURST, DAM_ELECTRIC, FALSE);
+      damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_SHCOKING_BURST, DAM_ELECTRIC, FALSE);
     }
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */

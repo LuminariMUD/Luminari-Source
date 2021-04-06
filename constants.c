@@ -3754,7 +3754,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                       /* arcane shadow 18 */
     {"", "", "", ""},                                       /* sacred fist 19 */
     {"", "", "", ""},                                       /* eldritch knight 20 */
-    {"", "", "", ""},                                       /* psionicist 21 */
+    {"rest", "manifesting", "manifested", "manifestations"},/* psionicist 21 */
     {"", "", "", ""},                                       /* spellsword 2 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */

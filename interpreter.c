@@ -509,6 +509,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"poisontouch", "poisont", POS_FIGHTING, do_poisontouch, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"policy", "pol", POS_DEAD, do_gen_ps, 0, SCMD_POLICIES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"pour", "pour", POS_STANDING, do_pour, 0, SCMD_POUR, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"powers", "powers", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"powerattack", "powerattack", POS_FIGHTING, do_mode, 1, MODE_POWER_ATTACK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"prompt", "pro", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"prefedit", "pre", POS_DEAD, do_oasis_prefedit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -566,6 +567,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"return", "retu", POS_DEAD, do_return, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"redit", "redit", POS_DEAD, do_oasis_redit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"reglist", "reglist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_REGLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"revoke", "revoke", POS_RECLINING, do_revoke, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"rlist", "rlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_RLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rcopy", "rcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_REDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"roomflags", "roomflags", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_SHOWVNUMS, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2728,29 +2730,6 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                          "what to pick): ");
       STATE(d) = CON_QCLASS;
-      return;
-    }
-
-    // we don't have a premade build yet.  To be added later.
-    if (GET_CLASS(d->character) == CLASS_PSIONICIST)
-    {
-      /* start initial alignment selection code */
-      write_to_output(d, "\r\nSelect Alignment\r\n"
-                        "Note: you may be restricted by your class\r\n"
-                        "Note: If you don't know which to select, select 'true neutral'\r\n"
-                        "\r\nGood characters and creatures protect innocent life. Evil characters "
-                        "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
-                        "\r\nLawful characters tell the truth, keep their word, respect authority, "
-                        "honor tradition, and judge those who fall short of their duties. Chaotic "
-                        "characters follow their consciences, resent being told what to do, favor "
-                        "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
-      for (i = 0; i < NUM_ALIGNMENTS; i++)
-      {
-        if (valid_align_by_class(i, GET_CLASS(d->character)))
-          write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
-      }
-      write_to_output(d, "\r\n");
-      STATE(d) = CON_QALIGN;
       return;
     }
 

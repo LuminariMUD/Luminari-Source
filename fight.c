@@ -7095,7 +7095,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
       if (!power_resistance(ch, victim, 0))
         if (!is_immune_mind_affecting(ch, victim, 0))
           if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, GET_PSIONIC_LEVEL(ch), 0))
-            return_val = damage(victim, ch, dice(4, get_char_affect_modifier(ch, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)), PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
+            return_val = damage(ch, victim, dice(4, get_char_affect_modifier(ch, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)), PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
     }
     if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) && !victim->char_specials.energy_retort_used)
     {

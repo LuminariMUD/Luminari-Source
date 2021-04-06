@@ -609,9 +609,9 @@ void regen_psp(void)
     if (IN_ROOM(d->character) == NOWHERE) continue;
     if (FIGHTING(d->character)) continue;
     if (GET_POS(d->character) > POS_SITTING) continue;
-    GET_PSP(d->character)++;
-    if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY) && dice(1, 4) == 1)
-      GET_PSP(d->character)++;
+    GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 10);
+    if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
+      GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
       GET_PSP(d->character) = GET_MAX_PSP(d->character);
   }

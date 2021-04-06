@@ -502,7 +502,7 @@
 #define PSIONIC_VIGOR                   1517
 #define PSIONIC_BESTOW_POWER            1518
 #define PSIONIC_BIOFEEDBACK             1519
-#define PSIONIC_BODY_EQUILLIBRIUM       1520
+#define PSIONIC_BODY_EQUILIBRIUM        1520
 #define PSIONIC_BREACH                  1521
 #define PSIONIC_CONCEALING_AMORPHA      1522
 #define PSIONIC_CONCUSSION_BLAST        1523

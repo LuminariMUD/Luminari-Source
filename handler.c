@@ -979,6 +979,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   int i;
   struct affected_type *temp;
   int empty_bits[AF_ARRAY_MAX];
+  bool is_ac_new = false;
 
   for (i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
@@ -988,6 +989,9 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
     core_dump();
     return;
   }
+
+  if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
+    is_ac_new = true;
 
   if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
     ch->confuser_idnum = 0;
@@ -1028,6 +1032,9 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
    on first run of affect_total() ?  unknown, need to trace and figure it out
    eventually though */
   //affect_total(ch);
+  
+  if (is_ac_new && ch && ch->desc && STATE(ch->desc) == CON_PLAYING && IN_ROOM(ch) != NOWHERE)
+    save_char(ch, 0);
 }
 
 /* Call affect_remove with every affect from the bitvector "type" */
