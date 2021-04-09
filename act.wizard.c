@@ -2503,7 +2503,7 @@ void show_full_last_command(struct char_data *ch)
   MYSQL_ROW row;
 
   send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
-  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 20;");
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -8707,6 +8707,132 @@ ACMD(do_resetpassword)
 
   send_to_char(ch, "There was an error saving the new password to the database.  Password not changed.\r\n");
   
+}
+
+
+ACMD(do_award)
+{
+
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING], arg3[MEDIUM_STRING];
+  struct char_data *victim = NULL;
+  int i = 0;
+  long int amount = 0;
+
+  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Your need to specify who you want to award.\r\n");
+    return;
+  }
+
+  if (!(victim = get_char_vis(ch, arg1, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "There is no one online by that name.\r\n");
+    return;
+  }
+
+  if (IS_NPC(victim))
+  {
+    send_to_char(ch, "You can only award players.\r\n");
+    return;
+  }
+
+  if (!ch->desc || !ch->desc->account || STATE(ch->desc) != CON_PLAYING)
+  {
+    send_to_char(ch, "You can only award online players who are not in a menu of any sort.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "Please specify what you would like to award:\r\n");
+    for (i = 0; i < NUM_AWARD_TYPES; i++)
+    {
+      send_to_char(ch, "%s\r\n", award_types[i]);
+    }
+    return;
+  }
+  
+  for (i = 0; i < NUM_AWARD_TYPES; i++)
+  {
+    if (is_abbrev(arg2, award_types[i]))
+      break;
+  }
+
+  if (i >= NUM_AWARD_TYPES)
+  {
+    send_to_char(ch, "That is not a valid award type.\r\n");
+    send_to_char(ch, "Please specify what you would like to award:\r\n");
+    for (i = 0; i < NUM_AWARD_TYPES; i++)
+    {
+      send_to_char(ch, "%s\r\n", award_types[i]);
+    }
+    return;
+  }
+
+  if (!*arg3)
+  {
+    send_to_char(ch, "Please specify how much you wish to award.\r\n");
+    return;
+  }
+
+  amount = atol(arg3);
+
+  if (amount <= 0)
+  {
+    send_to_char(ch, "That is not a valid amount to award.\r\n");
+    return;
+  }
+
+  switch (i)
+  {
+    case 0: // experience
+      GET_EXP(victim) += amount;
+      break;
+    case 1: // questpoints
+      GET_QUESTPOINTS(victim) += amount;
+      break;
+    case 2: // accountexperience
+      victim->desc->account->experience += amount;
+      break;
+    case 3: //gold
+      GET_GOLD(victim) += amount;
+      break;
+    case 4: // bank gold
+      GET_BANK_GOLD(victim) += amount;
+      break;
+    case 5: // skill points
+      GET_TRAINS(victim) += amount;
+      break;
+    case 6: // feats
+      GET_FEAT_POINTS(victim) += amount;
+      break;
+    case 7: // class feats
+      GET_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
+      break;
+    case 8: // epic feats
+      GET_EPIC_FEAT_POINTS(victim) += amount;
+      break;
+    case 9: // epic class feats
+      GET_EPIC_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
+      break;
+    case 10: // ability score boosts
+      GET_BOOSTS(victim) += amount;
+      break;
+    default:
+      send_to_char(ch, "That is not a valid award type.\r\n");
+      send_to_char(ch, "Please specify what you would like to award:\r\n");
+      for (i = 0; i < NUM_AWARD_TYPES; i++)
+      {
+        send_to_char(ch, "%s\r\n", award_types[i]);
+      }
+      return;
+  }
+  
+  send_to_char(ch, "You have increased %s's %s by %ld.\r\n", GET_NAME(victim), award_types[i], amount);
+  send_to_char(victim, "%s has increased your %s by %ld.\r\n", CAN_SEE(victim, ch) ? GET_NAME(ch) : "Someone", award_types[i], amount);
+  save_char(victim, 0);
 }
 
 /* EOF */

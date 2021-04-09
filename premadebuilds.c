@@ -201,7 +201,7 @@ void give_premade_feat(struct char_data *ch, bool verbose, int feat, int subfeat
       break;
     }
   } else {
-    SET_FEAT(ch, feat, 1);
+    SET_FEAT(ch, feat, HAS_REAL_FEAT(ch, feat) + 1);
     if (verbose) {
       send_to_char(ch, "You have learned the %s feat.\r\n", feat_list[feat].name);
       do_help(ch, feat_list[feat].name, 0, 0);
@@ -758,7 +758,7 @@ void levelup_psionicist(struct char_data *ch, int level, bool verbose)
       give_premade_feat(ch, verbose, FEAT_ENHANCED_POWER_DAMAGE, 0);
       break;
     case 6:
-      give_premade_feat(ch, verbose, FEAT_ENHANCED_POWER_DAMAGE, 0);
+      give_premade_feat(ch, verbose, FEAT_PROFICIENT_AUGMENTING, 0);
       break;
     case 8:
       set_premade_stats(ch, chclass, 8);
@@ -771,10 +771,10 @@ void levelup_psionicist(struct char_data *ch, int level, bool verbose)
       break;
     case 12:
       set_premade_stats(ch, chclass, 12);
-      give_premade_feat(ch, verbose, FEAT_POWER_PENETRATION, 0);
+      give_premade_feat(ch, verbose, FEAT_ENHANCED_POWER_DAMAGE, 0);
       break;
     case 15:
-      give_premade_feat(ch, verbose, FEAT_EMPOWERED_PSIONICS, 0);
+      give_premade_feat(ch, verbose, FEAT_EXPERT_AUGMENTING, 0);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);

@@ -822,6 +822,8 @@ ACMD_DECL(do_efreetimagic);
 ACMDCHECK(can_dragonmagic);
 ACMD_DECL(do_dragonmagic);
 ACMD_DECL(do_resetpassword);
+ACMD_DECL(do_holyweapon);
+ACMD_DECL(do_award);
 
 // encounters.c
 ACMD_DECL(do_encounterinfo);

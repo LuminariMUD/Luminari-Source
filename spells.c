@@ -2116,13 +2116,11 @@ ASPELL(psionic_concussive_onslaught)
   send_to_char(ch, "You blast out wave after wave of concussive kinetic energy!\r\n");
   act("$n blasts out wave after wave of concussive kinetic energy!", FALSE, ch, 0, 0, TO_ROOM);
 
-  GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, PSIONIC_CONCUSSIVE_ONSLAUGHT);
   // we need to correct the psp cost below, because the power only benefits from 2 augment points at a time.
-  GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
   ch->player_specials->dam_co_holder_ndice = 3 + (GET_AUGMENT_PSP(ch) / 2);
   ch->player_specials->dam_co_holder_sdice = 6;
   ch->player_specials->save_co_holder_dc_bonus = GET_AUGMENT_PSP(ch) / 2;
-  GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+  
 
   for (x = 0; x < GET_PSIONIC_LEVEL(ch); x++)
   {

@@ -353,6 +353,22 @@ const char *race_family_types_plural[] = {
     "\n"};
 CHECK_TABLE_SIZE(race_family_types_plural, NUM_RACE_TYPES + 1);
 
+const char *award_types[] = {
+    "experience",
+    "quest-points",
+    "account-experience",
+    "gold",
+    "bank-gold",
+    "skill-points",
+    "feats",
+    "class-feats",
+    "epic-feats",
+    "epic-class-feats",
+    "ability-boosts",
+    "\n"
+};
+CHECK_TABLE_SIZE(award_types, NUM_AWARD_TYPES + 1);
+
 const char *class_names[] = {
     "Wizard", //0
     "Cleric",
