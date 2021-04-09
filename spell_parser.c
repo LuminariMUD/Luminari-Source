@@ -1199,7 +1199,7 @@ void finishCasting(struct char_data *ch)
                 if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC))
                         GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC);
         }
-        else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END) {
+        else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END) {          
                 if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS))
                         GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS);
                 if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS)) {
@@ -1285,6 +1285,9 @@ EVENTFUNC(event_casting)
                                 }
                         }
                         else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END) {
+                                // add augment casting time adjustment
+
+                                // add above
                                 if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_MIND)) {
                                         if (rand_number(0, 1)) {
                                                 CASTING_TIME(ch)--;
@@ -1556,11 +1559,13 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 casting_time = 0;
         }
 
+        if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+        {
+                casting_time += get_augment_casting_time_adjustment(ch);
+        }
+
         if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
         {
-                GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-                GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
-                GET_PSP(ch) -= MIN(4, GET_AUGMENT_PSP(ch));
                 if (GET_AUGMENT_PSP(ch) >= 4)
                         casting_time = 0;
         }
@@ -1886,17 +1891,40 @@ ACMDU(do_gen_cast)
 
         if (subcmd == SCMD_CAST_PSIONIC)
         {
+                // has the character added the power via study menu?
                 if (!is_a_known_spell(ch, CLASS_PSIONICIST, spellnum)  && GET_LEVEL(ch) < LVL_IMMORT)
                 {
                         send_to_char(ch, "You are not proficient in the use of that power.\r\n");
                         return;
                 }
+                
+                // First, see what is the maximum augment usage allowed
+                GET_AUGMENT_PSP(ch) = MIN(GET_AUGMENT_PSP(ch), max_augment_psp_allowed(ch, spellnum));
+                
+                // then adjust it to the specifications of the level and power used
+                GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+                
+                // we mainly separate the next two checks for the different messages to characters
                 if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
                 {
                         send_to_char(ch, "You don't have enough psp to manifest that power.\r\n");
                         return;
                 }
-                GET_PSP(ch) -= psionic_powers[spellnum].psp_cost;
+                if (GET_PSP(ch) < (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch)))
+                {
+                        send_to_char(ch, "You don't have enough psp to manifest that power at that augmented amount.\r\n");
+                        return;
+                }
+                // All is well, deduct the psp and augment psp
+                GET_PSP(ch) -= (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch));
+
+                
+                // many powers only benefit from certain intervals of augment psp such
+                // as damage bonus = augment psp / 2.  So if their augment psp has a remainder
+                // after that calculation, we'll just refund the remainder psp
+                if (psionic_powers[spellnum].augment_amount > 1)
+                        GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % psionic_powers[spellnum].augment_amount);
+                
         }
         else
         {
@@ -2478,7 +2506,7 @@ void mag_assign_spells(void)
 
         // paladin
         /* = =  4th circle  = = */
-        spello(SPELL_HOLY_SWORD, "holy sword", 37, 22, 1, POS_FIGHTING,
+        spello(SPELL_HOLY_SWORD, "holy weapon", 37, 22, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_CREATIONS,
                NULL, 2, 23, NOSCHOOL, FALSE);
 

@@ -362,7 +362,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   {
     if (actmtd == ACTMTD_ON_CRIT && !alcBurst && CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10)
     {
-      damage(ch, victim, dice(1, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
+      damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
     }
     else if (actmtd == ACTMTD_ON_HIT && !alcFire && CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 0 && victim)
     {

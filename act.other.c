@@ -2090,8 +2090,9 @@ ACMD(do_respec)
       send_to_char(ch, "You return to your normal form.\r\n");
     }
 
-    leave_group(ch);
-    stop_follower(ch);
+    // removed because we checked for group and followers above already -- gicker apr 8 2021
+    //leave_group(ch);
+    //stop_follower(ch);
     
     do_start(ch);
     HAS_SET_STATS_STUDY(ch) = FALSE;
@@ -6916,6 +6917,36 @@ ACMDU(do_revoke)
     send_to_char(ch, "Either that is not a valid affect name or that affect cannot be revoked.\r\n");
   }
 
+}
+
+ACMDU(do_holyweapon)
+{
+
+  int i = 0;
+
+  skip_spaces(&argument);
+
+  if (!*argument) {
+    send_to_char(ch, "Please specify a weapon type you'd like to use with your holy weapon spell.\r\n");
+    send_to_char(ch, "Your current holy weapon type is '%s'.\r\n", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+    return;
+  }
+
+  for (i = 0; i < NUM_WEAPON_TYPES; i++)
+  {
+    if (is_abbrev(argument, weapon_list[i].name))
+      break;
+  }
+
+  if (i >= NUM_WEAPON_TYPES)
+  {
+    send_to_char(ch, "That is not a valid weapon type.\r\n");
+    return;
+  }
+
+  GET_HOLY_WEAPON_TYPE(ch) = i;
+  send_to_char(ch, "You have set your holy weapon type to %s.\r\n", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+  save_char(ch, 0);
 }
 
 /*EOF*/

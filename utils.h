@@ -1218,6 +1218,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_WEAPON_SHARP(obj)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON && \
                                (weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_PIERCING|| \
                                weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_SLASHING))
+#define GET_HOLY_WEAPON_TYPE(ch)  (ch->player_specials->saved.holy_weapon_type)
 
 /* armor related macro's */
 #define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 1) : SPEC_ARMOR_TYPE_UNDEFINED)
@@ -2206,6 +2207,9 @@ void char_from_furniture(struct char_data *ch);
 
 // Psionic related stuff
 #define GET_PSIONIC_ENERGY_TYPE(ch)   CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
+
+#define BRUTALIZE_WOUNDS_SAVE_SUCCESS 2
+#define BRUTALIZE_WOUNDS_SAVE_FAIL    1
 
 // Misc combat stuff
 #define GET_TEMP_ATTACK_ROLL_BONUS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->temp_attack_roll_bonus))

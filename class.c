@@ -5135,6 +5135,9 @@ void load_class_list(void)
   feat_assignment(CLASS_PSIONICIST, FEAT_EXPANDED_KNOWLEDGE, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_PSIONICIST, FEAT_PSIONIC_ENDOWMENT, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_PSIONICIST, FEAT_EMPOWERED_PSIONICS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_PROFICIENT_AUGMENTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EXPERT_AUGMENTING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_MASTER_AUGMENTING, Y, NOASSIGN_FEAT, N);
 
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
@@ -5223,7 +5226,7 @@ void load_class_list(void)
   //spell_assignment(CLASS_PSIONICIST, PSIONIC_REMOTE_VIEW_TRAP, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SUSTAINED_FLIGHT, 11);
 
-  spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
+  //spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_COSMIC_AWARENESS, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_CONVERSION, 13);
   //spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_WAVE, 13);

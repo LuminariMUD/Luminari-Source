@@ -1862,12 +1862,16 @@
 #define FEAT_BREACH_POWER_RESISTANCE 705
 #define FEAT_DOUBLE_MANIFEST 706
 #define FEAT_PERPETUAL_FORESIGHT 707
+#define FEAT_PROFICIENT_AUGMENTING 708
+#define FEAT_EXPERT_AUGMENTING 709
+#define FEAT_MASTER_AUGMENTING 710
+
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 708
+#define FEAT_LAST_FEAT 711
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 709
+#define NUM_FEATS 712
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -2287,6 +2291,9 @@
 
 /** Total number of applies */
 #define NUM_APPLIES 53
+
+// number of award types.  do_award in act.wizard.c
+#define NUM_AWARD_TYPES 11
 
 /* Equals the total number of SAVING_* defines in spells.h */
 #define NUM_OF_SAVING_THROWS 5
@@ -3611,6 +3618,8 @@ struct player_special_data_saved
     int potions[MAX_SPELLS];        // used in new consumables system store/unstore/quaff
     int scrolls[MAX_SPELLS];        // used in new consumables system store/unstore/recite
     int wands[MAX_SPELLS];          // used in new consumables system store/unstore/use
+
+    int holy_weapon_type;           // type of weapon to use withn holy weapon spell, also known as holy sword spell
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

@@ -3105,6 +3105,27 @@ void assign_feats(void)
         "When psionic focus is active, save dcs for manifested powers are at +3.");
   feat_prereq_class_level(FEAT_PSIONIC_ENDOWMENT, CLASS_PSIONICIST, 1);
 
+  feato(FEAT_PROFICIENT_AUGMENTING, "proficient augmenting", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "The manifesting time increase from augmenting a psionic power is reduced by 1.",
+        "The manifesting time increase from augmenting a psionic power is reduced by 1. "
+        "While psionic focus is active, your maximum augmenting limit is increased by 1."
+        "This feat does not affect the 'augment' crafting command.");
+  feat_prereq_class_level(FEAT_PROFICIENT_AUGMENTING, CLASS_PSIONICIST, 1);
+  feato(FEAT_EXPERT_AUGMENTING, "expert augmenting", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "The manifesting time increase from augmenting a psionic power is reduced by 2.",
+        "The manifesting time increase from augmenting a psionic power is reduced by 2. "
+        "While psionic focus is active, your maximum augmenting limit is increased by 2."
+        "This feat does not affect the 'augment' crafting command.");
+  feat_prereq_class_level(FEAT_EXPERT_AUGMENTING, CLASS_PSIONICIST, 10);
+  feat_prereq_feat(FEAT_EXPERT_AUGMENTING, FEAT_PROFICIENT_AUGMENTING, 1);
+  feato(FEAT_MASTER_AUGMENTING, "master augmenting", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "The manifesting time increase from augmenting a psionic power is reduced by 3.",
+        "The manifesting time increase from augmenting a psionic power is reduced by 3. "
+        "While psionic focus is active, your maximum augmenting limit is increased by 3."
+        "This feat does not affect the 'augment' crafting command.");
+  feat_prereq_class_level(FEAT_MASTER_AUGMENTING, CLASS_PSIONICIST, 20);
+  feat_prereq_feat(FEAT_MASTER_AUGMENTING, FEAT_EXPERT_AUGMENTING, 1);
+
   /* weapon master */
   /*lvl 1*/ feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                   "All weapons with weapon focus gain special abilities",
@@ -3712,6 +3733,7 @@ void assign_feats(void)
   epicfeat(FEAT_EPIC_WARDING);
   epicfeat(FEAT_EPIC_WILDSHAPE);
   epicfeat(FEAT_EPIC_SPELL_FOCUS);
+  epicfeat(FEAT_MASTER_AUGMENTING);
 
   epicfeat(FEAT_LAST_FEAT);
 

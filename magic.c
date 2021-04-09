@@ -733,19 +733,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       act("A crystal shard you fired at $N goes wide.", FALSE, ch, 0, victim, TO_CHAR);
       return 0;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     save = -1; // no save
     mag_resist = FALSE;
     element = DAM_PUNCTURE;
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     size_dice = 6;
     bonus = 0;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_MIND_THRUST:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return 0;
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
@@ -771,14 +771,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       act(desc, FALSE, ch, 0, victim, TO_VICT);
       return 0;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     save = -1; // no save
     mag_resist = TRUE;
     element = GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     size_dice = 6;
     bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
     case PSIONIC_CONCUSSION_BLAST:
@@ -791,15 +791,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
     case PSIONIC_ENERGY_PUSH:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    
+    
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = GET_PSIONIC_ENERGY_TYPE(ch);
     num_dice = 2 + (GET_AUGMENT_PSP(ch) / 2);
     size_dice = 6;
     bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
     mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
@@ -822,8 +822,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_ENERGY_STUN:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    if (GET_AUGMENT_PSP(ch) == DAM_COLD)
+    
+    if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD)
       save = SAVING_FORT;
     else
       save = SAVING_REFL;
@@ -832,14 +832,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     size_dice = 6;
     bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
     mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
     break;
 
     case PSIONIC_RECALL_AGONY:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     save = SAVING_WILL;
     mag_resist = TRUE;
@@ -847,7 +847,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 1 + GET_AUGMENT_PSP(ch);
     size_dice = 6;
     bonus = 0;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
     case PSIONIC_SWARM_OF_CRYSTALS:
@@ -860,7 +860,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
     case PSIONIC_ENERGY_BURST:
-    if (GET_AUGMENT_PSP(ch) == DAM_COLD)
+    if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD)
       save = SAVING_FORT;
     else
       save = SAVING_REFL;
@@ -896,15 +896,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     if (is_immune_mind_affecting(ch, victim, 0))
       return (0);
     // saving throw is handled special below
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    
+    
     bonus = GET_AUGMENT_PSP(ch) / 2;
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_MENTAL;
     num_dice = 1;
     size_dice = 1;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_RECALL_DEATH:
@@ -926,7 +926,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_PUNCTURE;
       num_dice = 9 + GET_AUGMENT_PSP(ch) / 2;
       size_dice = 6;
-      GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+      
       break;
 
     case PSIONIC_UPHEAVAL:
@@ -947,7 +947,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_ACID;
       num_dice = 11 + GET_AUGMENT_PSP(ch) / 2;
       size_dice = 6;
-      GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+      
       break;
 
     case PSIONIC_DISINTEGRATION:
@@ -958,8 +958,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       act("$n fires a ray of disintigration at YOU, but it goes wide.", FALSE, ch, 0, victim, TO_VICT);
       return 0;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
+    
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     save = SAVING_FORT;
     mag_resist = TRUE;
@@ -967,7 +967,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = 22 + (GET_AUGMENT_PSP(ch) * 2);
     size_dice = 6;
     bonus = 0;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
     case PSIONIC_ULTRABLAST:
@@ -2263,10 +2263,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   // psionic powers 1st
 
   case PSIONIC_BROKER:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
     
     af[0].location = APPLY_SKILL;
     af[0].duration = level;
@@ -2278,21 +2278,21 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[1].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
     af[1].specific = ABILITY_APPRAISE;
     
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "Your dipomatic and appraising abilities have been enhanced.";
     break;
 
   case PSIONIC_CALL_TO_MIND:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
     af[0].location = APPLY_SKILL;
     af[0].duration = level;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
     af[0].specific = ABILITY_LORE;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     to_vict = "Your knowledge and lore expertise have been enhanced.";
     break;
 
@@ -2305,16 +2305,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_DECELERATION:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (GET_SIZE(victim) > (SIZE_MEDIUM + (GET_AUGMENT_PSP(ch) / 2)))
     {
       send_to_char(ch, "Your attempt to decelerate your foe fails, as they are too large.\r\n");
-      GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+      
       return;
     }
     if (power_resistance(ch, victim, 0))
@@ -2329,12 +2329,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_DEMORALIZE:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     if (is_immune_fear(ch, victim, TRUE))
       return;
     if (is_immune_mind_affecting(ch, victim, TRUE))
@@ -2357,24 +2357,23 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 4);
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_SHIELD;
     af[0].duration = level * 12;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible shield of force appear in front of you.";
     break;
 
   case PSIONIC_FORTIFY:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
 
     af[0].location = APPLY_SAVING_FORT;
     af[0].bonus_type = BONUS_TYPE_RESISTANCE;
@@ -2391,7 +2390,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[2].duration = level * 12;
     af[2].modifier = 2 + (GET_AUGMENT_PSP(ch) / 2);
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "You feel your resistances become fortified.";
     break;
@@ -2402,26 +2401,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_ARMOR;
     af[0].duration = level * 600;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 2);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = accum_affect = FALSE;
     to_vict = "You feel an invisible armor of force surround you.";
     break;
 
   case PSIONIC_INEVITABLE_STRIKE:
-    GET_AUGMENT_PSP(ch) = MIN(3, adjust_augment_psp_for_spell(ch, spellnum));
+    
     af[0].location = APPLY_HITROLL;
     af[0].bonus_type = BONUS_TYPE_INSIGHT;
     af[0].duration = 600;
     af[0].modifier = MIN(25, 20 + (GET_AUGMENT_PSP(ch)*2));
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "You feel your hand-eye coordination and accuracy soar!";
     break;
@@ -2432,10 +2431,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You are already benefitting from a precognition effect.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 3 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 3);
+    
     
     af[0].location = APPLY_AC_NEW;
     af[0].bonus_type = BONUS_TYPE_INSIGHT;
@@ -2457,7 +2456,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[3].duration = 10 + level;
     af[3].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "You gain the ability to sense attacks moments before they occur.";
     break;
@@ -2468,40 +2467,40 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You are already benefitting from a precognition effect.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 3 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 3);
+    
     
     af[0].location = APPLY_HITROLL;
     af[0].bonus_type = BONUS_TYPE_INSIGHT;
     af[0].duration = 10 + level;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "You gain the ability to sense openings in your opponents defenses moments before they occur.";
     break;
 
   case PSIONIC_OFFENSIVE_PRESCIENCE:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only
     // benefits from 3 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 3);
+    
     
     af[0].location = APPLY_DAMROLL;
     af[0].bonus_type = BONUS_TYPE_INSIGHT;
     af[0].duration = 10 + level;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "You gain the ability to sense your opponent's weak spots.";
     break;
 
     case PSIONIC_SLUMBER:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    if (GET_LEVEL(victim) > (4+GET_AUGMENT_PSP(ch)) || is_immune_sleep)
+    
+    if (GET_LEVEL(victim) > ( 4 + GET_AUGMENT_PSP(ch)) || is_immune_sleep)
     {
       send_to_char(ch, "The target is too powerful for you to make it slumber!\r\n");
       return;
@@ -2538,7 +2537,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (FIGHTING(ch) == victim)
         stop_fighting(ch);
     }
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     break;
 
@@ -2548,24 +2547,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 3;
+    
+    
     af[0].location = APPLY_HIT;
     af[0].duration = 12 * level;
     af[0].modifier = 5 + ((GET_AUGMENT_PSP(ch) / 3) * 5);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     accum_affect = FALSE;
     to_vict = "You feel enhanced vigor and durability.";
     break;
 
   case PSIONIC_BIOFEEDBACK:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    // we need to correct the psp cost below, because the power only benefits from 3 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 3);
     
+    if (affected_by_spell(ch, PSIONIC_BIOFEEDBACK))
+    {
+      send_to_char(ch, "This power can't stack.  Use the revoke command if you wish to replace it.\r\n");
+      return;
+    }
     af[0].location = APPLY_DR;
-    af[0].modifier = 0;
+    af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) / 3);
     af[0].duration = 12 * level;
 
     to_vict = "Your skin becomes much more dense through psychic biofeedback.";
@@ -2588,7 +2589,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     break;
 
@@ -2601,18 +2602,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_BREACH:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     af[0].location = APPLY_SKILL;
     af[0].duration = level * 12;
     af[0].modifier = 2 + GET_AUGMENT_PSP(ch);
     af[0].specific = ABILITY_SLEIGHT_OF_HAND;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "Your sleight of hand abilities have been enhanced.";
     break;
 
   case PSIONIC_CONCEALING_AMORPHA:
-    GET_AUGMENT_PSP(ch) = MIN(3, adjust_augment_psp_for_spell(ch, spellnum));
+    
     if (ch != victim && GET_AUGMENT_PSP(ch) < 3)
     {
       send_to_char(ch, "You need to augment this power with 3 psp points to use it on another being.\r\n");
@@ -2621,7 +2622,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 20;
     af[0].duration = level * 12;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     to_vict = "You have been covered in a film of transulcent, amorphous membrane.";
     break;
@@ -2684,7 +2685,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "It seems your opponent cannot be stunned.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
@@ -2699,7 +2700,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_INFLICT_PAIN:
     if (power_resistance(ch, victim, 0))
       return;
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
     {
@@ -2719,7 +2720,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_MENTAL_DISRUPTION:
     if (power_resistance(ch, victim, 0))
       return;
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return;
@@ -2730,8 +2731,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_PSYCHIC_BODYGUARD:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
+    
     af[0].bonus_type = BONUS_TYPE_INSIGHT;
     af[0].location = APPLY_SAVING_WILL;
     af[0].modifier = MAX(0, compute_mag_saves(ch, SAVING_WILL, 0) - compute_mag_saves(victim, SAVING_WILL, 0));
@@ -2743,22 +2744,22 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[1].modifier = 100;
     else
       af[1].modifier = 1 + (GET_AUGMENT_PSP(ch) / 2);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_THOUGHT_SHIELD:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     af[0].duration = 1 + GET_AUGMENT_PSP(ch);
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 13 + GET_AUGMENT_PSP(ch);
     accum_duration = FALSE;
     to_vict = "Your resistance against mind affecting powersm has increased.";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_ENDORPHIN_SURGE:
-    GET_AUGMENT_PSP(ch) = MIN(6, adjust_augment_psp_for_spell(ch, spellnum));
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 6);
+    
+    
     af[0].location = APPLY_STR;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) >= 6 ? 2 : 0);
     af[0].bonus_type = BONUS_TYPE_MORALE;
@@ -2780,18 +2781,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[4].bonus_type = BONUS_TYPE_MORALE;
     to_vict = "You go into a \tRR\trA\tRG\trE\tn!";
     to_room = "$n goes into a \tRR\trA\tRG\trE\tn!";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_ENERGY_RETORT:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     af[0].duration = (level + GET_AUGMENT_PSP(ch)) * 10;
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = GET_PSIONIC_ENERGY_TYPE(ch);
     accum_duration = FALSE;
     to_vict = "You are surrounded by a psychic shield of elemental energy.";
     to_room = "$n is surrounded by a psychic shield of elemental energy.";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_HEIGHTENED_VISION:
@@ -2802,21 +2803,21 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_MENTAL_BARRIER:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     af[0].duration = (1 + GET_AUGMENT_PSP(ch)) * 10;
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
     accum_duration = FALSE;
     to_vict = "You create a psychic barrier of deflective force around you.";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_MIND_TRAP:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     af[0].duration = (1 + GET_AUGMENT_PSP(ch));
     af[0].location = APPLY_NONE;
     to_vict = "You create a psychic trap against mental attacks.";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_PSIONIC_BLAST:
@@ -2825,7 +2826,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "It seems your opponent cannot be stunned.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (power_resistance(ch, victim, 0))
       return;
@@ -2854,9 +2855,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (is_immune_mind_affecting(ch, victim, 0))
       return;
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 2 + (GET_AUGMENT_PSP(ch) / 4);
@@ -2866,14 +2867,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_EMPATHIC_FEEDBACK:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 3;
-    GET_AUGMENT_PSP(ch) = MIN(6, GET_AUGMENT_PSP(ch));
+    
+    
+    
     af[0].duration = level * 120;
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 6 + (GET_AUGMENT_PSP(ch) / 3 * 2);
     to_vict = "You gain the ability reflect melee damage back on your attacker as psychic damage.";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
 
   case PSIONIC_INCITE_PASSION:
@@ -2914,10 +2915,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_MOMENT_OF_TERROR:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
-    GET_AUGMENT_PSP(ch) = MIN(4, GET_AUGMENT_PSP(ch));
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+       
     if (is_immune_mind_affecting(ch, victim, 0))
       return;
     if (is_immune_fear(ch, victim, 0))
@@ -2952,9 +2950,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_WITHER:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
+    
     if (power_resistance(ch, victim, 0))
       return;
     af[0].duration = level;
@@ -2988,6 +2986,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_POWER_RES;
     accum_duration = FALSE;
     to_vict = "You are now resistant to psionic manifestations.";
+    break;
+
+  case PSIONIC_BRUTALIZE_WOUNDS:
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return;
+    if (power_resistance(ch, victim, 0))
+      return;
+    af[0].duration = level;
+    af[0].modifier = mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL) ? BRUTALIZE_WOUNDS_SAVE_SUCCESS : BRUTALIZE_WOUNDS_SAVE_FAIL;
+    af[0].location = APPLY_SPECIAL;
+    accum_duration = FALSE;
+    to_vict = "Your body has become more vulnerable to physical attacks.";
+    to_room = "$n's body has become more vulnerable to physical attacks.";
     break;
 
   case PSIONIC_SUSTAINED_FLIGHT:
@@ -3026,10 +3037,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;  
 
   case PSIONIC_EVADE_BURST:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_AUGMENT_PSP(ch) = MIN(4, GET_AUGMENT_PSP(ch));
-    GET_AUGMENT_PSP(ch) += GET_AUGMENT_PSP(ch) % 4;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
+    
+    
     af[0].duration = level;
     af[0].location = APPLY_FEAT;
     if (GET_AUGMENT_PSP(ch) == 4)
@@ -3047,7 +3058,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     }
     
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     
     af[0].location = APPLY_DR;
     af[0].modifier = 0;
@@ -3095,7 +3106,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     break;
 
@@ -3151,7 +3162,7 @@ case PSIONIC_BODY_OF_IRON:
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     break;
 
@@ -3211,7 +3222,7 @@ case PSIONIC_BODY_OF_IRON:
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;
 
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     accum_duration = FALSE;
     break;
 
@@ -5749,16 +5760,16 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     skip_groups = true;
     break;
   case PSIONIC_PSIONIC_BLAST:
-   GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-   GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-   GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+   
+    // because this only benefits from intervals of 2 psp.
+    // we aren't deducting psp in mag_damage, we do it here.
    isEffect = TRUE;
    skip_groups = true;
    break;
   case PSIONIC_INFLICT_PAIN:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+    
+     // because this only benefits from intervals of 2 psp.
+     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 4)
     {
       // need to spend 4 augmented psp or more in order for it to be an AoE effect
@@ -5769,23 +5780,23 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     skip_groups = true;
     break;
   case PSIONIC_MENTAL_DISRUPTION:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+    
+     // because this only benefits from intervals of 2 psp.
+     // we aren't deducting psp in mag_damage, we do it here.
     isEffect = TRUE;
     skip_groups = true;
     break;
   case PSIONIC_ERADICATE_INVISIBILITY:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_unaffects, we do it here.
+    
+     // because this only benefits from intervals of 2 psp.
+     // we aren't deducting psp in mag_unaffects, we do it here.
     isUnEffect = TRUE;
     skip_groups = true;
     break;
   case PSIONIC_DEADLY_FEAR:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+    
+     // because this only benefits from intervals of 2 psp.
+     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 8)
     {
       // need to spend 4 augmented psp or more in order for it to be an AoE effect
@@ -6054,9 +6065,9 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
   /** Psionics **/
   case PSIONIC_CONCUSSION_BLAST:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+    
+     // because this only benefits from intervals of 2 psp.
+     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 4)
     {
       // need to spend 4 augmented psp or more in order for it to be an AoE effect
@@ -6067,36 +6078,36 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "A massive blast of concussive force explodes from around $n!";
     break;
     case PSIONIC_SWARM_OF_CRYSTALS:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_damage, we do it here.
+    
+     // we aren't deducting psp in mag_damage, we do it here.
     to_char = "You spread your arms, shooting out thousands of tiny crystal shards!";
     to_room = "$n spreads $s arms, shooting out thousands of tiny crystal shards!";
     break;
   case PSIONIC_ENERGY_BURST:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
     break;
   case PSIONIC_UPHEAVAL:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
+    
     break;
   case PSIONIC_SHRAPNEL_BURST:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
+    
     break;
   case PSIONIC_BREATH_OF_THE_BLACK_DRAGON:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2;
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
+    
     break;
 
   case PSIONIC_PSYCHOSIS:
     isEffect = TRUE;
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) += GET_AUGMENT_PSP(ch) % 2; // because this only benefits from intervals of 2 psp.
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch); // we aren't deducting psp in mag_affects, we do it here.
+    
+     // because this only benefits from intervals of 2 psp.
+     // we aren't deducting psp in mag_affects, we do it here.
     if (GET_AUGMENT_PSP(ch) < 6)
     {
       // need to spend 6 augmented psp or more in order for it to be an AoE effect
@@ -6108,8 +6119,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_ULTRABLAST:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
+    
     to_char = "You manifest a psychic shriek that assails the minds of all nearby!";
     to_room = "A psychic shriek from $n assails your mind with severe anguish!";
     break;
@@ -6746,6 +6757,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       mob->player.name = strdup(GET_NAME(ch));
       mob->player.short_descr = strdup(GET_NAME(ch));
       break;
+    case PSIONIC_ECTOPLASMIC_SHAMBLER:
+      GET_LEVEL(mob) = mob_level;
+      autoroll_mob(mob, TRUE, TRUE);
+      break;
     }
 
     // cedit configuration changes
@@ -6986,13 +7001,13 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_BODY_ADJUSTMENT:
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only benefits from 2 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 2);
+    
     healing = dice(1 + (GET_AUGMENT_PSP(ch) / 2), 12);
     to_notvict = "$n concentrates and some of $s wounds close.";
     to_char = "You concentrate and some of your wounds close.";
-    GET_PSP(ch) -= GET_AUGMENT_PSP(ch);
+    
     break;
   case PSIONIC_BESTOW_POWER:
     if (IS_NPC(victim) || !IS_PSIONIC(victim))
@@ -7000,9 +7015,9 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You cannot use this power on someone without psionic ability.\r\n");
       return;
     }
-    GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
+    
     // we need to correct the psp cost below, because the power only benefits from 3 augment points at a time.
-    GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % 3);
+    
     max_psp = GET_PSIONIC_LEVEL(victim);
     if ((max_psp * 3) < (GET_AUGMENT_PSP(ch) + 3))
       GET_AUGMENT_PSP(ch) = MAX(0, (max_psp * 3) - 3);
@@ -7303,6 +7318,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool gate_process = FALSE;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum gate_dest = NOWHERE;
+  char buf[MEDIUM_STRING];
 
   if (ch == NULL)
     return;
@@ -7604,6 +7620,18 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   {
     /* a little convenient idea, item should match char size */
     GET_OBJ_SIZE(tobj) = GET_SIZE(ch);
+    if (spellnum == SPELL_HOLY_SWORD)
+    {
+      send_to_char(ch, "You can change your holy weapon type with the 'holyweapon' command. The default type is long sword.\r\n");
+      snprintf(buf, sizeof(buf), "holy avenger gloriously shining %s", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+      tobj->name = strdup(buf);
+      snprintf(buf, sizeof(buf), "A gloriously shining %s hovers above the ground, pointed skyward.", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+      tobj->description = strdup(buf);
+      GET_OBJ_VAL(tobj, 0) = GET_HOLY_WEAPON_TYPE(ch);
+      GET_OBJ_VAL(tobj, 1) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;
+      GET_OBJ_VAL(tobj, 2) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].diceSize;
+      GET_OBJ_SIZE(tobj) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].size;
+    }
   }
 
   if (obj_to_floor)

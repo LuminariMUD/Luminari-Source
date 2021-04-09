@@ -4626,6 +4626,14 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       return (diceOne * diceTwo); /* max damage! */
   }
 
+  if (victim && affected_by_spell(victim, PSIONIC_BRUTALIZE_WOUNDS))
+  {
+    if (get_char_affect_modifier(victim, PSIONIC_BRUTALIZE_WOUNDS, APPLY_SPECIAL) == BRUTALIZE_WOUNDS_SAVE_SUCCESS)
+      return dice(diceOne, diceTwo) + diceOne;
+    else
+      return (diceOne * diceTwo) + diceOne; /* max damage! And more! */
+  }
+
   return dice(diceOne, diceTwo);
 }
 

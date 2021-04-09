@@ -136,6 +136,7 @@ extern const char *do_cast_types[][6];
 extern const char *ability_score_names[6];
 extern const char * const faction_names[];
 extern const char * const faction_names_lwr[];
+extern const char *award_types[];
 
 /* NewCraft */
 extern const char *craft_flags[];
