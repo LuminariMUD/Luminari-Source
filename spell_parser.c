@@ -1862,10 +1862,13 @@ ACMDU(do_gen_cast)
                         {
                                 PREREQ_HAS_USES(FEAT_SHADOW_CALL, "You are not yet able to shadowcast this spell until you recover a shadow call use.\r\n");
                                 circle = MIN(circle, compute_spells_circle(CLASS_WIZARD, spellnum, 0, 0));
-                                if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10 && circle > 6)
+                                if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10)
                                 {
-                                        send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
-                                        return;
+                                        if (circle > 6)
+                                        {
+                                                send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
+                                                return;
+                                        }
                                 }
                                 else if (circle > 3)
                                 {
@@ -1877,10 +1880,13 @@ ACMDU(do_gen_cast)
                         {
                                 PREREQ_HAS_USES(FEAT_SHADOW_POWER, "You are not yet able to shadowcast this spell until you recover a shadow power use.\r\n");
                                 circle = MIN(circle, compute_spells_circle(CLASS_WIZARD, spellnum, 0, 0));
-                                if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10 && circle > 7)
+                                if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10)
                                 {
-                                        send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
-                                        return;
+                                        if (circle > 7)
+                                        {
+                                                send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
+                                                return;
+                                        }
                                 }
                                 else if (circle > 4)
                                 {
