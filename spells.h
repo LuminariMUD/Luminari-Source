@@ -459,10 +459,11 @@
 #define SPELL_GRAVE_TOUCH 396
 #define SPELL_INCORPOREAL_FORM 397
 #define SPELL_LESSER_MISSILE_STORM 398
+#define SPELL_SHADOW_JUMP 399
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 399
-#define LAST_SPELL_DEFINE 399
+#define NUM_SPELLS 400
+#define LAST_SPELL_DEFINE 400
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -1197,6 +1198,7 @@ ASPELL(spell_spellstaff);
 ASPELL(spell_storm_of_vengeance);
 ASPELL(spell_summon);
 ASPELL(spell_teleport);
+ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);
 ASPELL(spell_wall_of_fire);
 ASPELL(spell_wall_of_thorns);
@@ -1285,10 +1287,12 @@ ACMD_DECL(do_scribe);
 
 /* from spell_parser.c */
 ACMD_DECL(do_gen_cast);
-#define SCMD_CAST_SPELL 0 /* don't forget to add to constants.c */
+#define SCMD_CAST_SPELL   0 /* don't forget to add to constants.c */
 #define SCMD_CAST_PSIONIC 1
 #define SCMD_CAST_EXTRACT 2
+#define SCMD_CAST_SHADOW  3
 ACMD_DECL(do_manifest);
+void display_shadowcast_spells(struct char_data *ch);
 
 ACMD_DECL(do_abort);
 void unused_spell(int spl);

@@ -151,7 +151,12 @@ typedef enum
   eCHANNELSPELL,            // countdown for channel spell ability
   ePOWERLEECH,              // power leech ability
   ePSIONICFOCUS,             // psionic focus ability
-  eDOUBLEMANIFEST             // double manifest ability
+  eDOUBLEMANIFEST,             // double manifest ability
+  eSUMMONSHADOW,            // shadowdancer summon shadow
+  eSHADOWILLUSION,          // shadowdancer shadow illusion
+  eSHADOWCALL,              // shadowdancer  shadow call
+  eSHADOWJUMP,              // shadowdancer  shadow jump
+  eSHADOWPOWER             // shadowdancer  shadow power
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

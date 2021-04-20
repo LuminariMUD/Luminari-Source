@@ -1420,6 +1420,26 @@ void perform_call(struct char_data *ch, int call_type, int level)
     mob_num = GET_FAMILIAR(ch);
 
     break;
+
+  case MOB_SHADOW:
+    /* do they even have a valid selection yet? */
+    if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
+    {
+      send_to_char(ch, "You cannot summon a shadow");
+      return;
+    }
+
+    /* is the ability on cooldown? */
+    if (char_has_mud_event(ch, eSUMMONSHADOW))
+    {
+      send_to_char(ch, "You must wait longer before you can use this ability again.\r\n");
+      return;
+    }
+
+    mob_num = 60289;
+
+    break;
+
   case MOB_C_MOUNT:
     /* for now just one selection for paladins, soon to be changed */
     if (HAS_FEAT(ch, FEAT_EPIC_MOUNT))
@@ -1458,7 +1478,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
   }
 
   /* couple of dummy checks */
-  if (mob_num <= 0 || mob_num > 99) //zone 0 for mobiles
+  if ((mob_num <= 0 || mob_num > 99) && mob_num != 60289) //zone 0 for mobiles, except for the shadow
     return;
   if (level >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
@@ -1495,6 +1515,12 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_REAL_HITROLL(mob) += level / 3;
     GET_REAL_DAMROLL(mob) += level / 3;
     GET_REAL_AC(mob) += (level * 5); /* 15 ac at level 30 */
+    break;
+  case MOB_SHADOW:
+    GET_LEVEL(mob) = level;
+    autoroll_mob(mob, true, true);
+    GET_REAL_MAX_HIT(mob) += 20;
+    GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     break;
   case MOB_C_FAMILIAR:
     GET_REAL_MAX_HIT(mob) += 10;
@@ -1545,13 +1571,17 @@ void perform_call(struct char_data *ch, int call_type, int level)
   {
     attach_mud_event(new_mud_event(eC_ANIMAL, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
-  if (call_type == MOB_C_FAMILIAR)
+  else if (call_type == MOB_C_FAMILIAR)
   {
     attach_mud_event(new_mud_event(eC_FAMILIAR, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
-  if (call_type == MOB_C_MOUNT)
+  else if (call_type == MOB_C_MOUNT)
   {
     attach_mud_event(new_mud_event(eC_MOUNT, ch, NULL), 4 * SECS_PER_MUD_DAY);
+  }
+  else if (call_type == MOB_SHADOW)
+  {
+    attach_mud_event(new_mud_event(eSUMMONSHADOW, ch, NULL), 4 * SECS_PER_MUD_DAY);
   }
 
   send_to_char(ch, "You can 'call' your companion even if you get separated.  "
@@ -1571,7 +1601,7 @@ ACMD(do_call)
    */
   if (!argument)
   {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
+    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow>\r\n");
     return;
   }
   else if (is_abbrev(argument, "companion"))
@@ -1629,9 +1659,27 @@ ACMD(do_call)
 
     call_type = MOB_C_MOUNT;
   }
+  else if (is_abbrev(argument, "shadow"))
+  {
+    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SHADOWDANCER) * 2.5);
+
+    if (!HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
+    {
+      send_to_char(ch, "You do not have a shadow that you can call.\r\n");
+      return;
+    }
+
+    if (level <= 0)
+    {
+      send_to_char(ch, "You are too inexperienced to use this ability!\r\n");
+      return;
+    }
+
+    call_type = MOB_SHADOW;
+  }
   else
   {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount>\r\n");
+    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow>\r\n");
     return;
   }
 
@@ -1734,7 +1782,7 @@ ACMD(do_dismiss)
           change_event_duration(ch, eC_ANIMAL, (59 * PASSES_PER_SEC));
         }
       }
-      if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
+      else if (MOB_FLAGGED(vict, MOB_C_FAMILIAR))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_FAMILIAR)) &&
             event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
@@ -1742,12 +1790,20 @@ ACMD(do_dismiss)
           change_event_duration(ch, eC_FAMILIAR, (59 * PASSES_PER_SEC));
         }
       }
-      if (MOB_FLAGGED(vict, MOB_C_MOUNT))
+      else if (MOB_FLAGGED(vict, MOB_C_MOUNT))
       {
         if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)) &&
             event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
         {
           change_event_duration(ch, eC_MOUNT, (59 * PASSES_PER_SEC));
+        }
+      }
+      else if (MOB_FLAGGED(vict, MOB_SHADOW))
+      {
+        if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)) &&
+            event_time(pMudEvent->pEvent) > (59 * PASSES_PER_SEC))
+        {
+          change_event_duration(ch, eSUMMONSHADOW, (59 * PASSES_PER_SEC));
         }
       }
 

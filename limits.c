@@ -1120,10 +1120,10 @@ void update_player_misc(void)
       continue;
 
     save_char_pets(ch);
+    affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)
-    --;
+      GET_MISSION_COOLDOWN(ch)--;
 
     if (!are_mission_mobs_loaded(ch))
     {

@@ -393,6 +393,7 @@ const char *class_names[] = {
     "Eldritch Knight",
     "Psionicist",
     "Spellsword",
+    "Shadow Dancer",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -1152,7 +1153,7 @@ const char *action_bits[] = {
     "No-AI", //40
     "Mercenary",
     "Encounter",
-    "unused",
+    "Shadow",
     "unused", //45
     "unused",
     "unused",
@@ -3771,7 +3772,8 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                       /* sacred fist 19 */
     {"", "", "", ""},                                       /* eldritch knight 20 */
     {"rest", "manifesting", "manifested", "manifestations"},/* psionicist 21 */
-    {"", "", "", ""},                                       /* spellsword 2 */
+    {"", "", "", ""},                                       /* spellsword 22 */
+    {"", "", "", ""},                                       /* shadowdancer 23 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -3807,6 +3809,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        /* eldritch knight 20 */
     {"", "", "", ""},                                        /* psionicist 21 */
     {"", "", "", ""},                                        /* spellsword 22 */
+    {"", "", "", ""},                                        /* shadow dancer 23 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -3828,12 +3831,13 @@ const char *do_cast_types[][6] = {
     {"Cast", "cast", "Spell", "Magic", "magic", "caster"},
     {"Manifest", "manfest", "Manifestation", "Psionic", "psionics", "psionicist"},
     {"Imbibe", "imbibe", "Extract", "Alchemy", "extracts", "alchemist"},
+    {"Shadowcast", "shadowcast", "Shadow Spell", "Shadow Magic", "shadow magic", "caster"},
     /* end with this */
     {"\n", "\n", "\n", "\n", "\n", "\n"}};
 
-const char *const faction_names[] = {"Adventurers' Guild", "Rebel Alliance", "Galactic Empire", "Hutt Cartels", "\n"};
+const char *const faction_names[] = {"Adventurers' Guild", "", "", "", "\n"};
 
-const char *const faction_names_lwr[] = {"adventurers' guild", "rebel alliance", "galactic empire", "hutt cartels", "\n"};
+const char *const faction_names_lwr[] = {"adventurers' guild", "", "", "", "\n"};
 
 /* --- End of constants arrays. --- */
 

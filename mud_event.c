@@ -167,6 +167,11 @@ struct mud_event_list mud_event_index[] = {
     {"Power Leech", event_power_leech, EVENT_CHAR}, //ePOWERLEECH
     {"Psionic Focus", event_daily_use_cooldown, EVENT_CHAR}, //ePSIONICFOCUS
     {"Double Manifest", event_daily_use_cooldown, EVENT_CHAR}, //eDOUBLEMANIFEST
+    {"Call Shadow", event_countdown, EVENT_CHAR}, // eSUMMONSHADOW
+    {"Shadow Illusion", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWILLUSION
+    {"Shadow Call", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWCALL
+    {"Shadow Jump", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWJUMP
+    {"Shadow Power", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWPOWER
 
 };
 
@@ -322,6 +327,18 @@ EVENTFUNC(event_countdown)
     break;
   case eDOUBLEMANIFEST:
     send_to_char(ch, "You are now able to perform another double manifest.\r\n");
+    break;
+  case eSHADOWILLUSION:
+    send_to_char(ch, "You are now able to perform another shadow illusion.\r\n");
+    break;
+  case eSHADOWCALL:
+    send_to_char(ch, "You are now able to perform another shadow call.\r\n");
+    break;
+  case eSHADOWJUMP:
+    send_to_char(ch, "You are now able to perform another shadow jump.\r\n");
+    break;
+  case eSHADOWPOWER:
+    send_to_char(ch, "You are now able to perform another shadow power.\r\n");
     break;
   case ePSYCHOKINETIC:
     send_to_char(ch, "You are now able to apply a new psychokinetic tincture.\r\n");
@@ -642,6 +659,22 @@ EVENTFUNC(event_daily_use_cooldown)
   case eDOUBLEMANIFEST:
     featnum = FEAT_DOUBLE_MANIFEST;
     send_to_char(ch, "One of your double manifestations are able to be performed.\r\n");
+    break;
+  case eSHADOWILLUSION:
+    featnum = FEAT_SHADOW_ILLUSION;
+    send_to_char(ch, "One of your shadow illusions are able to be performed.\r\n");
+    break;
+  case eSHADOWCALL:
+    featnum = FEAT_SHADOW_CALL;
+    send_to_char(ch, "One of your shadow calls are able to be performed.\r\n");
+    break;
+  case eSHADOWJUMP:
+    featnum = FEAT_SHADOW_JUMP;
+    send_to_char(ch, "One of your shadow jumps are able to be performed.\r\n");
+    break;
+  case eSHADOWPOWER:
+    featnum = FEAT_SHADOW_POWER;
+    send_to_char(ch, "One of your shadow powers are able to be performed.\r\n");
     break;
   case ePSYCHOKINETIC:
     featnum = FEAT_PSYCHOKINETIC;

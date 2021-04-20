@@ -363,18 +363,18 @@
 #define CLASS_PSIONICIST 21
 #define CLASS_PSION CLASS_PSIONICIST
 #define CLASS_SPELLSWORD 22
+#define CLASS_SHADOW_DANCER     23
+#define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
 //#define CLASS_SOUL_KNIFE CLASS_SOULKNIFE
 //#define CLASS_WILDER            19
-//#define CLASS_SHADOW_DANCER     20
-//#define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
 //#define CLASS_ASSASSIN          21
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 23
+#define NUM_CLASSES 24
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -750,7 +750,7 @@
 #define MOB_NO_AI 40
 #define MOB_MERCENARY 41 // for buying mercenary charmies, only one per person
 #define MOB_ENCOUNTER 42 // this mob is used in a wilderness based random encounter
-#define MOB_UNUSED_6 43
+#define MOB_SHADOW 43    // call shadow for shadowdancers
 #define MOB_UNUSED_7 44
 #define MOB_UNUSED_8 45
 #define MOB_UNUSED_9 46
@@ -1865,13 +1865,19 @@
 #define FEAT_PROFICIENT_AUGMENTING 708
 #define FEAT_EXPERT_AUGMENTING 709
 #define FEAT_MASTER_AUGMENTING 710
-
+#define FEAT_SHADOW_ILLUSION 711
+#define FEAT_SUMMON_SHADOW  712
+#define FEAT_SHADOW_CALL   713
+#define FEAT_SHADOW_JUMP 714
+#define FEAT_SHADOW_POWER 715
+#define FEAT_SHADOW_MASTER 716
+#define FEAT_WEAPON_PROFICIENCY_SHADOWDANCER 717
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 711
+#define FEAT_LAST_FEAT 718
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 712
+#define NUM_FEATS 719
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -3618,6 +3624,7 @@ struct player_special_data_saved
     int potions[MAX_SPELLS];        // used in new consumables system store/unstore/quaff
     int scrolls[MAX_SPELLS];        // used in new consumables system store/unstore/recite
     int wands[MAX_SPELLS];          // used in new consumables system store/unstore/use
+    int staves[MAX_SPELLS];         // used in new consumables system store/unstore/use
 
     int holy_weapon_type;           // type of weapon to use withn holy weapon spell, also known as holy sword spell
 };

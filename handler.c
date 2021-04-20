@@ -1122,6 +1122,7 @@ void affect_join(struct char_data *ch, struct affected_type *af,
   /* no matches in our current affection list, so throw the affection on */
   if (!found)
     affect_to_char(ch, af);
+
 }
 
 /* function to update number of lights in a room */
@@ -2751,4 +2752,36 @@ int get_char_affect_modifier(struct char_data *ch, int spellnum, int location)
       return af->modifier;
   }
   return 0;
+}
+
+// checks if a character is affected by a certain apply_ type
+bool has_affect_modifier_type(struct char_data *ch, int location)
+{
+  struct affected_type *af = NULL;
+
+  for (af = ch->affected; af; af = af->next)
+  {
+    if (af->location == location)
+      return true;
+  }
+  return false;
+}
+
+// saves all characters only if they're affected by apply_ac_new
+// This is a hack to fix a bug with ac_new_bonuses of different
+// types not updating ac properly after expiring
+void save_chars(void)
+{
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+
+  for (d = descriptor_list; d; d = d->next)
+  {
+    ch = d->character;
+    if (!ch) continue;
+    if (STATE(d) != CON_PLAYING) continue;
+    if (IN_ROOM(ch) == NOWHERE) continue;
+    if (!d->account) continue;
+    save_char(ch, 0);
+  }
 }

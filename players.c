@@ -81,6 +81,10 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode);
 static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
 static void load_bombs(FILE *fl, struct char_data *ch);
+static void load_potions(FILE *fl, struct char_data *ch);
+static void load_scrolls(FILE *fl, struct char_data *ch);
+static void load_wands(FILE *fl, struct char_data *ch);
+static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
 void save_char_pets(struct char_data *ch);
 
@@ -525,6 +529,10 @@ int load_char(const char *name, struct char_data *ch)
     ch->mute_equip_messages = 0;
 
     GET_HOLY_WEAPON_TYPE(ch) = PFDEF_HOLY_WEAPON_TYPE;
+    for (i = 0; i < MAX_SPELLS; i++)
+    {
+      STORED_POTIONS(ch, i) = STORED_SCROLLS(ch, i) = STORED_WANDS(ch, i) = STORED_STAVES(ch, i) = 0;
+    }
 
     /* finished inits, start loading from file */
 
@@ -722,6 +730,10 @@ int load_char(const char *name, struct char_data *ch)
           FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
           GET_FEAT_POINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "FSWT"))
+          FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "FSWU"))
+          FEY_SHADOW_WALK_USES(ch) = atoi(line);
 
         break;
 
@@ -845,6 +857,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_PAGE_LENGTH(ch) = atoi(line);
         else if (!strcmp(tag, "Pass"))
           strcpy(GET_PASSWD(ch), line);
+        else if (!strcmp(tag, "Potn"))
+          load_potions(fl, ch);
         else if (!strcmp(tag, "Plyd"))
           ch->player.time.played = atoi(line);
         else if (!strcmp(tag, "PreB"))
@@ -975,10 +989,8 @@ int load_char(const char *name, struct char_data *ch)
           }
           ch->char_specials.saved.school_feats[i] = asciiflag_conv(f1);
         }
-        else if (!strcmp(tag, "FSWT"))
-          FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
-        else if (!strcmp(tag, "FSWU"))
-          FEY_SHADOW_WALK_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "Scrl"))
+          load_scrolls(fl, ch);
         else if (!strcmp(tag, "ScrW"))
           GET_SCREEN_WIDTH(ch) = atoi(line);
         else if (!strcmp(tag, "Skil"))
@@ -991,6 +1003,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_REAL_SPELL_RES(ch) = atoi(line);
         else if (!strcmp(tag, "Size"))
           GET_REAL_SIZE(ch) = atoi(line);
+        else if (!strcmp(tag, "Stav"))
+          load_staves(fl, ch);
         else if (!strcmp(tag, "SySt"))
           HAS_SET_STATS_STUDY(ch) = atoi(line);
         else if (!strcmp(tag, "Str "))
@@ -1056,6 +1070,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'W':
         if (!strcmp(tag, "Wate"))
           GET_WEIGHT(ch) = atoi(line);
+        else if (!strcmp(tag, "Wand"))
+          load_wands(fl, ch);
         else if (!strcmp(tag, "Wimp"))
           GET_WIMP_LEV(ch) = atoi(line);
         else if (!strcmp(tag, "Ward"))
@@ -1611,6 +1627,32 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "%d\n", GET_BOMB(ch, i));
   fprintf(fl, "-1\n");
 
+  // Save consumables: potions, scrolls, wands and staves
+  fprintf(fl, "Potn:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_POTIONS(ch, i) > 0)
+      fprintf(fl, "%d %d\n", i, STORED_POTIONS(ch, i));
+  fprintf(fl, "-1\n");
+
+  fprintf(fl, "Scrl:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_SCROLLS(ch, i) > 0)
+      fprintf(fl, "%d %d\n", i, STORED_SCROLLS(ch, i));
+  fprintf(fl, "-1\n");
+
+  fprintf(fl, "Stav:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_STAVES(ch, i) > 0)
+      fprintf(fl, "%d %d\n", i, STORED_STAVES(ch, i));
+  fprintf(fl, "-1\n");
+
+  fprintf(fl, "Wand:\n");
+  for (i = 0; i < MAX_SPELLS; i++)
+    if (STORED_WANDS(ch, i) > 0)
+      fprintf(fl, "%d %d\n", i, STORED_WANDS(ch, i));
+  fprintf(fl, "-1\n");
+  // End save consumables
+
   fprintf(fl, "Disc:\n");
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
     fprintf(fl, "%d\n", KNOWS_DISCOVERY(ch, i));
@@ -1866,6 +1908,8 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTURN_UNDEAD)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSPELLBATTLE)))
@@ -1883,6 +1927,14 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, ePSIONICFOCUS)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDOUBLEMANIFEST)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSHADOWCALL)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSHADOWJUMP)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+      if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     
     fprintf(fl, "-1 -1\n");
@@ -2517,6 +2569,62 @@ static void load_favored_enemy(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
     if (num != -1)
       GET_FAVORED_ENEMY(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_potions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      STORED_POTIONS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_scrolls(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      STORED_SCROLLS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_wands(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      STORED_WANDS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_staves(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      STORED_STAVES(ch, num) = num2;
   } while (num != -1);
 }
 

@@ -2496,6 +2496,7 @@ static struct char_data *is_in_game(long idnum)
   return NULL;
 }
 
+// will show last 40 logins per character with account name, character name and last login time
 void show_full_last_command(struct char_data *ch)
 {
   char query[2048];
@@ -2504,6 +2505,27 @@ void show_full_last_command(struct char_data *ch)
 
   send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
   snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id ORDER BY a.last_online DESC LIMIT 40;");
+  mysql_query(conn, query);
+  res = mysql_use_result(conn);
+  if (res != NULL)
+  {
+    while ((row = mysql_fetch_row(res)) != NULL)
+    {
+      send_to_char(ch, "%-20s %-20s %-15s\r\n", row[2], row[0], row[1]);
+    }
+  }
+  mysql_free_result(res);
+}
+
+// will only show latest login per account
+void show_full_last_command_unique(struct char_data *ch)
+{
+  char query[2048];
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+
+  send_to_char(ch, "%-20s %-20s %s\r\n", "ACCOUNT", "NAME", "LAST ONLINE (SERVER TIME)");
+  snprintf(query, sizeof(query), "SELECT a.name, a.last_online, b.name AS account_name FROM player_data a LEFT JOIN account_data b ON a.account_id=b.id GROUP BY b.name ORDER BY a.last_online DESC LIMIT 40;");
   mysql_query(conn, query);
   res = mysql_use_result(conn);
   if (res != NULL)
@@ -2534,6 +2556,11 @@ ACMDU(do_last)
     if (!strcmp(arg, "complete") || !strcmp(arg, "full"))
     {
       show_full_last_command(ch);
+      return;
+    }
+    if (!strcmp(arg, "unique") || !strcmp(arg, "accounts"))
+    {
+      show_full_last_command_unique(ch);
       return;
     }
     while (*arg)
@@ -2626,6 +2653,10 @@ ACMDU(do_last)
     recs--;
   }
   fclose(fp);
+  send_to_char(ch, "\r\n"
+                   "Type last complete to see the last 40 logins with account name, character name and login time.\r\n"
+                   //"Type last unique to see the last 40 logins, only showing the most recent login per account.\r\n"
+                    );
 }
 
 ACMD(do_force)
@@ -5532,6 +5563,10 @@ void perform_do_copyover()
       if (char_has_mud_event(och, eC_MOUNT))
       {
         event_cancel_specific(och, eC_MOUNT);
+      }
+      if (char_has_mud_event(och, eSUMMONSHADOW))
+      {
+        event_cancel_specific(och, eSUMMONSHADOW);
       }
 
       /* end special handling */

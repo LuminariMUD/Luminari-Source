@@ -3283,6 +3283,43 @@ void assign_feats(void)
                "defender’s attacks are resolved, he suffers the normal effect of the attack that provoked "
                "this ability.");
 
+  /* Shadow Dancer */
+  feato(FEAT_SHADOW_ILLUSION, "shadow illusion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Grants the ability to cast the mirror image spell with the shadowcast command.",
+              "Grants the ability to cast the mirror image spell with the shadowcast command.");
+  feato(FEAT_SUMMON_SHADOW, "summon shadow", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Allows the shadowdancer to call a shadow to assist them in combat, using the call command.",
+              "Allows the shadowdancer to call a shadow to assist them in combat, using the call command.");
+  feato(FEAT_SHADOW_CALL, "shadow call", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Grants the ability to cast any wizard spell from the conjuration school or circle 3 or lower.  "
+              "At shadow dancer level 10, the spell circle can be 6 or below. Uses the shadowcast command.",
+              "Grants the ability to cast any wizard spell from the conjuration school or circle 3 or lower.  "
+              "At shadow dancer level 10, the spell circle can be 6 or below. Uses the shadowcast command.");
+  feato(FEAT_SHADOW_JUMP, "shadow jump", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Grants the ability to cast the shadow jump spell with the shadowcast command. This spell "
+              "functions as the teleport spell, but only if both source room and target room are either "
+              "outside at night, or inside without any magical light.",
+              "Grants the ability to cast the shadow jump spell with the shadowcast command. This spell "
+              "functions as the teleport spell, but only if both source room and target room are either "
+              "outside at night, or inside without any magical light.");
+  feato(FEAT_SHADOW_POWER, "shadow power", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Grants the ability to cast any wizard spell from the evocation school or circle 4 or lower.  "
+              "At shadow dancer level 10, the spell circle can be 7 or below. Uses the shadowcast command.",
+              "Grants the ability to cast any wizard spell from the evocation school or circle 4 or lower.  "
+              "At shadow dancer level 10, the spell circle can be 7 or below. Uses the shadowcast command.");
+  feato(FEAT_SHADOW_MASTER, "shadow master", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Whenever inside or outside at night, the shadow dancer has DR 5/- and a +2 luck bonus on "
+              "all saving throws.  In addition any critical hit within these conditions will "
+              "blind the foe for 1d6 rounds.",
+              "Whenever inside or outside at night, the shadow dancer has DR 5/- and a +2 luck bonus on "
+              "all saving throws.  In addition any critical hit within these conditions will "
+              "blind the foe for 1d6 rounds.");
+  feato(FEAT_WEAPON_PROFICIENCY_SHADOWDANCER, "weapon proficiency - shadowdancer", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+              "Grants the character the ability to use shadowdancer weapons without penalty.  "
+              "Use the weaponprof command for the list of specific weapons.",
+              "Grants the character the ability to use shadowdancer weapons without penalty.  "
+              "Use the weaponprof command for the list of specific weapons.");
+
   /* Shifter */
   /*1*/ feato(FEAT_LIMITLESS_SHAPES, "limitless shapes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "no limit to number of times a shifter changes shapes",
@@ -3795,6 +3832,10 @@ void assign_feats(void)
   dailyfeat(FEAT_CHANNEL_SPELL, eCHANNELSPELL);
   dailyfeat(FEAT_PSIONIC_FOCUS, ePSIONICFOCUS);
   dailyfeat(FEAT_DOUBLE_MANIFEST, eDOUBLEMANIFEST);
+  dailyfeat(FEAT_SHADOW_ILLUSION, eSHADOWILLUSION);
+  dailyfeat(FEAT_SHADOW_CALL, eSHADOWCALL);
+  dailyfeat(FEAT_SHADOW_JUMP, eSHADOWJUMP);
+  dailyfeat(FEAT_SHADOW_POWER, eSHADOWPOWER);
   /** END **/
 }
 
@@ -5791,6 +5832,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (%dx / day)", feat_list[i].name, HAS_FEAT(ch, FEAT_IMPROMPTU_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_SHADOW_ILLUSION || i == FEAT_SHADOW_CALL || i == FEAT_SHADOW_POWER || i == FEAT_SHADOW_JUMP)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx / day)", feat_list[i].name, get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx / day)", feat_list[i].name, get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

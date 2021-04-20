@@ -1820,6 +1820,82 @@ ASPELL(spell_teleport)
   greet_memory_mtrigger(ch);
 }
 
+
+ASPELL(spell_shadow_jump)
+{
+  room_rnum to_room = NOWHERE;
+
+  if (ch == NULL)
+    return;
+
+  if (!victim)
+  {
+    victim = ch;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_NOTELEPORT))
+  {
+    send_to_char(ch, "Your spell fails to target that victim!\r\n");
+    return;
+  }
+
+  to_room = IN_ROOM(victim);
+
+  if (!valid_mortal_tele_dest(ch, to_room, TRUE))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  /* no teleporting on the outter planes */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "This magic won't help you travel on this plane!\r\n");
+    return;
+  }
+
+  /* no teleporting off the prime plane to another */
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ELEMENTAL) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ETH_PLANE) ||
+      ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_ASTRAL_PLANE))
+  {
+    send_to_char(ch, "Your target is beyond the reach of your magic!\r\n");
+    return;
+  }
+
+  if ((OUTSIDE(victim) || OUTSIDE(ch)) && weather_info.sunlight != SUN_DARK)
+  {
+    send_to_char(ch, "It must be night time for you to shadow jump.\r\n");
+    return;
+  }
+
+  if (IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
+  {
+    send_to_char(ch, "Either your current or target room is too bright to perform a shadow jump.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You slowly fade into the shadows...\r\n");
+  act("$n slowly fades into the shadows and is gone.",
+      FALSE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, to_room);
+  act("$n slowly fades in from the shadows.", FALSE, ch, 0, 0, TO_ROOM);
+  send_to_char(ch, "You slowly fade back in from the shadows...\r\n");
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+}
+
 ASPELL(psionic_psychoportation)
 {
   room_rnum to_room = NOWHERE;

@@ -87,6 +87,7 @@ int boot_high = 0;
 #define WPT_DWARF 11
 #define WPT_DUERGAR 11
 #define WPT_PSIONICIST 12
+#define WPT_SHADOWDANCER 13
 
 /*******  UTILITY FUNCTIONS ***********/
 
@@ -1777,6 +1778,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
     send_to_char(ch, "Call Mount Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+    if ((pMudEvent = char_has_mud_event(k, eSUMMONSHADOW)))
+    send_to_char(ch, "Call Shadow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMBUE_ARROW)))
     send_to_char(ch, "Imbue Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eARROW_SWARM)))
@@ -1847,6 +1850,14 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Psionic Focus Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDOUBLEMANIFEST)))
     send_to_char(ch, "Double Manifest Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSHADOWILLUSION)))
+    send_to_char(ch, "Shadow Illusion Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSHADOWCALL)))
+    send_to_char(ch, "Shadow Call Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSHADOWPOWER)))
+    send_to_char(ch, "Shadow Power Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eSHADOWJUMP)))
+    send_to_char(ch, "Shadow Jump Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (PIXIE_DUST_TIMER(ch) > 0)
     send_to_char(ch, "Pixie Dust Cooldown - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
@@ -5644,6 +5655,33 @@ int is_weapon_proficient(int weapon, int type)
       return TRUE;
     }
   }
+  else if (type == WPT_SHADOWDANCER)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_CLUB:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KUKRI:
+    case WEAPON_TYPE_DART:
+    case WEAPON_TYPE_LIGHT_MACE:
+    case WEAPON_TYPE_HEAVY_MACE:
+    case WEAPON_TYPE_MORNINGSTAR:
+    case WEAPON_TYPE_QUARTERSTAFF:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_SAP:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+    case WEAPON_TYPE_SHORT_SWORD:
+      return TRUE;
+    }
+  }
   else if (type == WPT_DROW)
   {
     switch (weapon)
@@ -5724,6 +5762,7 @@ ACMD(do_weaponproficiencies)
                      "dwarf\r\n"
                      "duergar\r\n"
                      "psionicist\r\n"
+                     "shadowdancer\r\n"
                      "\r\n");
     return;
   }
@@ -5782,6 +5821,10 @@ ACMD(do_weaponproficiencies)
   {
     type = WPT_PSIONICIST;
   }
+  else if (is_abbrev(argument, "shadowdancer"))
+  {
+    type = WPT_SHADOWDANCER;
+  }
   else
   {
     send_to_char(ch, "Please specify one of the following weapon proficiency types:\r\n"
@@ -5798,6 +5841,7 @@ ACMD(do_weaponproficiencies)
                      "dwarf\r\n"
                      "duergar\r\n"
                      "psionicist\r\n"
+                     "shadowdancer\r\n"
                      "\r\n");
     return;
   }

@@ -749,6 +749,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch)  (GET_PSIONIC_LEVEL(ch) > 0)
+#define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD  || c == CLASS_CLERIC    || c == CLASS_SORCERER || c == CLASS_DRUID || \
+                                 c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER   || c == CLASS_BARD)
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -1903,6 +1905,9 @@ void char_from_furniture(struct char_data *ch);
 #define ROOM_OUTDOORS(room) (is_room_outdoors(room))
 #define OUTSIDE(ch) (is_outdoors(ch))
 #define ROOM_OUTSIDE(room) (is_room_outdoors(room))
+#define IS_SHADOW_CONDITIONS(ch) (ch && IN_ROOM(ch) != NOWHERE && \
+                                  ((!OUTSIDE(ch) && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_LIGHT) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_MAGICLIGHT)) || \
+                                  (OUTSIDE(ch) && weather_info.sunlight != SUN_LIGHT)))
 
 /** A little more specific macro than above **/
 #define IN_NATURE(ch) (world[IN_ROOM(ch)].sector_type == SECT_FIELD ||         \
@@ -2216,6 +2221,11 @@ void char_from_furniture(struct char_data *ch);
 
 #define ARENA_START 138600
 #define ARENA_END 138608
+
+#define STORED_POTIONS(ch, snum)      (ch->player_specials->saved.potions[snum])
+#define STORED_SCROLLS(ch, snum)      (ch->player_specials->saved.scrolls[snum])
+#define STORED_WANDS(ch, snum)        (ch->player_specials->saved.wands[snum])
+#define STORED_STAVES(ch, snum)       (ch->player_specials->saved.staves[snum])
 
 #endif /* _UTILS_H_ */
 
