@@ -5889,7 +5889,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SHADOWDANCER,"shadowdancer", "ShD", "\trSh\tDf\tn", "f) \trSh\tDf\tn",
+  classo(CLASS_SHADOWDANCER,"shadowdancer", "ShD", "\trSh\tDd\tn", "f) \trSh\tDd\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 1, 6, Y, 5000, 0,
          /*prestige spell progression*/ "none",
