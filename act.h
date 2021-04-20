@@ -286,6 +286,7 @@ void auc_stat(struct char_data *ch, struct obj_data *obj);
 void stop_auction(int type, struct char_data *ch);
 void check_auction(void);
 void auc_send_to_all(char *messg, bool buyer);
+void list_consumables(struct char_data *ch, int type);
 
 /* functions with subcommands */
 /* do_drop */
@@ -334,6 +335,9 @@ ACMD_DECL(do_wield);
 ACMD_DECL(do_auction);
 ACMD_DECL(do_bid);
 ACMD_DECL(do_channelspell);
+ACMD_DECL(do_store);
+ACMD_DECL(do_unstore);
+ACMD_DECL(do_use_consumable);
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c
@@ -608,6 +612,7 @@ ACMD_DECL(do_use);
 #define SCMD_USE 0
 #define SCMD_QUAFF 1
 #define SCMD_RECITE 2
+#define SCMD_INVOKE 3
 /* do_utter */
 ACMD_DECL(do_utter);
 /* do_diplomacy */

@@ -443,7 +443,7 @@ ACMD(do_double_manifest)
 
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_double_manifest);
-  PREREQ_HAS_USES(FEAT_DOUBLE_MANIFEST, "You have not yet able to perform a double manifest.\r\n");
+  PREREQ_HAS_USES(FEAT_DOUBLE_MANIFEST, "You are not yet able to perform a double manifest.\r\n");
 
   struct affected_type af;
 

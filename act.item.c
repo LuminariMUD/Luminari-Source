@@ -4618,4 +4618,794 @@ ACMD(do_channelspell)
 
 }
 
+void list_consumables(struct char_data *ch, int type)
+{
+
+  int i = 0;
+  bool found = false;
+
+  send_to_char(ch, "%s %-22s %-s\r\n", item_types[type], "Spell", "# Stored / Charges");
+
+  switch (type)
+  {
+    case ITEM_POTION:
+      for (i = 0; i < MAX_SPELLS; i++)
+      {
+        if (STORED_POTIONS(ch, i) > 0)
+        {
+          send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_POTIONS(ch, i));
+          found = true;
+        }
+      }
+      if (!found)
+      {
+        send_to_char(ch, "You don't seem to have any potions stored.\r\n");
+      }
+      break;
+
+    case ITEM_SCROLL:
+      for (i = 0; i < MAX_SPELLS; i++)
+      {
+        if (STORED_SCROLLS(ch, i) > 0)
+        {
+          send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_SCROLLS(ch, i));
+          found = true;
+        }
+      }
+      if (!found)
+      {
+        send_to_char(ch, "You don't seem to have any scrolls stored.\r\n");
+      }
+      break;
+
+    case ITEM_WAND:
+      for (i = 0; i < MAX_SPELLS; i++)
+      {
+        if (STORED_WANDS(ch, i) > 0)
+        {
+          send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_WANDS(ch, i));
+          found = true;
+        }
+      }
+      if (!found)
+      {
+        send_to_char(ch, "You don't seem to have any wands stored.\r\n");
+      }
+      break;
+
+      case ITEM_STAFF:
+      for (i = 0; i < MAX_SPELLS; i++)
+      {
+        if (STORED_STAVES(ch, i) > 0)
+        {
+          send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_STAVES(ch, i));
+          found = true;
+        }
+      }
+      if (!found)
+      {
+        send_to_char(ch, "You don't seem to have any magical staves stored.\r\n");
+      }
+      break;
+  }
+
+}
+
+ACMD(do_store)
+{
+  struct obj_data *obj = NULL;
+  int i = 0;
+  bool found = false;
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify a wand, scroll, potion or staff to store.\r\n"
+                     "You can also append the word 'list' to the type to see what you're currently carrying for that consumable type.\r\n");
+    return;
+  }
+
+  if (!is_abbrev(arg1, "list"))
+  {
+    if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
+    {
+      send_to_char(ch, "You don't seem to be carrying anything by that description.\r\n");
+      return;
+    }
+    if (GET_OBJ_VAL(obj, i) <= 0 || GET_OBJ_VAL(obj, i) >= NUM_SPELLS || !strcmp(spell_info[GET_OBJ_VAL(obj, i)].name, "!UNUSED!"))
+    {
+      send_to_char(ch, "The spell on that item is not valid for storing.\r\n");
+      return;
+    }
+  }
+  else
+  {
+      if (!*arg2)
+      {
+        send_to_char(ch, "Please specify whether you wish to list your potions, scrolls, wands of staves.\r\n");
+        return;
+      }
+      if (is_abbrev(arg2, "potions"))
+      {
+        list_consumables(ch, ITEM_POTION);
+        return;
+      }
+      else if (is_abbrev(arg2, "scrolls"))
+      {
+        list_consumables(ch, ITEM_SCROLL);
+        return;
+      }
+      else if (is_abbrev(arg2, "wands"))
+      {
+        list_consumables(ch, ITEM_WAND);
+        return;
+      }
+      else if (is_abbrev(arg2, "staves"))
+      {
+        list_consumables(ch, ITEM_STAFF);
+        return;
+      }
+      else {
+        send_to_char(ch, "Please specify whether you wish to list your potions, scrolls, wands of staves.\r\n");
+        return;
+      }
+  }
+
+  switch (GET_OBJ_TYPE(obj))
+  {
+    case ITEM_POTION:
+      for (i = 1; i <= 3; i++)
+      {
+        if (GET_OBJ_VAL(obj, i) > 0)
+        {
+          if (spell_info[GET_OBJ_VAL(obj, i)].violent)
+          {
+            found = true;
+            continue;
+          }
+          STORED_POTIONS(ch, GET_OBJ_VAL(obj, i))++;
+          send_to_char(ch, "You have stored a potion of '%s'.\r\n", spell_info[GET_OBJ_VAL(obj, i)].name);
+          GET_OBJ_VAL(obj, i) = 0;
+        }
+      }
+      if (found)
+      {
+        send_to_char(ch, "One or more of your potion spells could not be stored.\r\n");
+      }
+      else
+      {
+        obj_from_char(obj);
+        extract_obj(obj);
+      }
+      break;
+
+    case ITEM_SCROLL:
+      for (i = 1; i <= 3; i++)
+      {
+        if (GET_OBJ_VAL(obj, i) > 0)
+        {
+          STORED_SCROLLS(ch, GET_OBJ_VAL(obj, i))++;
+          send_to_char(ch, "You have stored a scroll of '%s'.\r\n", spell_info[GET_OBJ_VAL(obj, i)].name);
+        }
+      }
+
+      obj_from_char(obj);
+      extract_obj(obj);
+      break;
+
+    case ITEM_WAND:
+      STORED_WANDS(ch, GET_OBJ_VAL(obj, 3)) += GET_OBJ_VAL(obj, 2);
+      send_to_char(ch, "You have stored a wand of '%s' with %d charges.\r\n", spell_info[GET_OBJ_VAL(obj, 3)].name, GET_OBJ_VAL(obj, 2));
+      obj_from_char(obj);
+      extract_obj(obj);
+      break;
+
+    case ITEM_STAFF:
+      STORED_STAVES(ch, GET_OBJ_VAL(obj, 3)) += GET_OBJ_VAL(obj, 2);
+      send_to_char(ch, "You have stored a staff of '%s' with %d charges.\r\n", spell_info[GET_OBJ_VAL(obj, 3)].name, GET_OBJ_VAL(obj, 2));
+      obj_from_char(obj);
+      extract_obj(obj);
+      break;    
+  }
+  save_char(ch, 0);
+}
+
+ACMDU(do_unstore)
+{
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  struct obj_data *obj = NULL;
+  int spellnum = 0, spell_level = 99, i = 0, charges = 0;
+  char buf[MEDIUM_STRING];
+
+  half_chop(argument, arg1, arg2);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify What you want to unstore: potion, scroll, wand or staff.\r\n");
+    return;
+  }
+  if (is_abbrev(arg1, "potion"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "You need to specify the spell name of the potion you wish to unstore.  To see what you have type 'store list potions'.\r\n");
+      return;
+    }
+
+    spellnum = find_skill_num(arg2);
+
+    if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+    {
+      send_to_char(ch, "That is not a valid spell name.\r\n");
+      return;
+    }
+
+    if (STORED_POTIONS(ch, spellnum) <= 0)
+    {
+      send_to_char(ch, "You don't have any potions of that type stored.\r\n");
+      return;
+    }
+
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      if (!IS_SPELLCASTER_CLASS(i)) continue;
+      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    }
+
+    if (spell_level <= 0 || spell_level > 9)
+    {
+      send_to_char(ch, "There is an error in retrieving that potion. Report to a staff member ERRUNSTORE1.\r\n");
+      return;
+    }
+
+    if ((obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
+    {
+      log("SYSERR:  do_unstore returned NULL");
+      return;
+    }
+
+    if (KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) &&
+      spell_level < CLASS_LEVEL(ch, CLASS_ALCHEMIST))
+          spell_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+
+    spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+    GET_OBJ_TYPE(obj) = ITEM_POTION;
+    GET_OBJ_VAL(obj, 0) = spell_level;
+    GET_OBJ_VAL(obj, 1) = spellnum;
+
+    GET_OBJ_MATERIAL(obj) = MATERIAL_GLASS;
+    GET_OBJ_COST(obj) = 1;
+    GET_OBJ_LEVEL(obj) = 1;
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+
+    snprintf(buf, sizeof(buf), "potion %s", spell_info[spellnum].name);
+    obj->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "a potion of %s", spell_info[spellnum].name);
+    obj->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A potion of %s lies here.", spell_info[spellnum].name);
+    obj->description = strdup(buf);
+
+    obj_to_char(obj, ch);
+
+    STORED_POTIONS(ch, spellnum)--;
+
+    send_to_char(ch, "You have retrieved %s from your potion storage.\r\n", obj->short_description);
+    return;
+  }
+  else if (is_abbrev(arg1, "scroll"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "You need to specify the spell name of the scroll you wish to unstore.  To see what you have type 'store list scrolls'.\r\n");
+      return;
+    }
+
+    spellnum = find_skill_num(arg2);
+
+    if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+    {
+      send_to_char(ch, "That is not a valid spell name.\r\n");
+      return;
+    }
+
+    if (STORED_SCROLLS(ch, spellnum) <= 0)
+    {
+      send_to_char(ch, "You don't have any scrolls of that type stored.\r\n");
+      return;
+    }
+
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      if (!IS_SPELLCASTER_CLASS(i)) continue;
+      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    }
+
+    if (spell_level <= 0 || spell_level > 9)
+    {
+      send_to_char(ch, "There is an error in retrieving that scroll. Report to a staff member ERRUNSTORE2.\r\n");
+      return;
+    }
+
+    if ((obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
+    {
+      log("SYSERR:  do_unstore returned NULL");
+      return;
+    }
+
+    spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+    GET_OBJ_TYPE(obj) = ITEM_SCROLL;
+    GET_OBJ_VAL(obj, 0) = spell_level;
+    GET_OBJ_VAL(obj, 1) = spellnum;
+
+    GET_OBJ_MATERIAL(obj) = MATERIAL_PAPER;
+    GET_OBJ_COST(obj) = 1;
+    GET_OBJ_LEVEL(obj) = 1;
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+
+    snprintf(buf, sizeof(buf), "scroll %s", spell_info[spellnum].name);
+    obj->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "a scroll of %s", spell_info[spellnum].name);
+    obj->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A scroll of %s lies here.", spell_info[spellnum].name);
+    obj->description = strdup(buf);
+
+    obj_to_char(obj, ch);
+
+    STORED_SCROLLS(ch, spellnum)--;
+
+    send_to_char(ch, "You have retrieved %s from your scroll storage.\r\n", obj->short_description);
+    return;
+  }
+  else if (is_abbrev(arg1, "wand"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "You need to specify the spell name of the wand you wish to unstore.  To see what you have type 'store list wands'.\r\n");
+      return;
+    }
+
+    spellnum = find_skill_num(arg2);
+
+    if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+    {
+      send_to_char(ch, "That is not a valid spell name.\r\n");
+      return;
+    }
+
+    if (STORED_WANDS(ch, spellnum) <= 0)
+    {
+      send_to_char(ch, "You don't have any wands of that type stored.\r\n");
+      return;
+    }
+
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      if (!IS_SPELLCASTER_CLASS(i)) continue;
+      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    }
+
+    if (spell_level <= 0 || spell_level > 9)
+    {
+      send_to_char(ch, "There is an error in retrieving that wand. Report to a staff member ERRUNSTORE3.\r\n");
+      return;
+    }
+
+    if ((obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
+    {
+      log("SYSERR:  do_unstore returned NULL");
+      return;
+    }
+
+    spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+    charges = MIN(10, STORED_WANDS(ch, spellnum));
+
+    GET_OBJ_TYPE(obj) = ITEM_WAND;
+    GET_OBJ_VAL(obj, 0) = spell_level;
+    GET_OBJ_VAL(obj, 3) = spellnum;
+    GET_OBJ_VAL(obj, 2) = charges;
+    GET_OBJ_VAL(obj, 1) = 10;
+
+    GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
+    GET_OBJ_COST(obj) = 1;
+    GET_OBJ_LEVEL(obj) = 1;
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+
+    snprintf(buf, sizeof(buf), "wand %s", spell_info[spellnum].name);
+    obj->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "a wand of %s", spell_info[spellnum].name);
+    obj->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A wand of %s lies here.", spell_info[spellnum].name);
+    obj->description = strdup(buf);
+
+    obj_to_char(obj, ch);
+
+    STORED_WANDS(ch, spellnum) -= charges;
+
+    send_to_char(ch, "You have retrieved %s from your wand storage.\r\n", obj->short_description);
+    return;
+  }
+  else if (is_abbrev(arg1, "staff"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "You need to specify the spell name of the staff you wish to unstore.  To see what you have type 'store list staves'.\r\n");
+      return;
+    }
+
+    spellnum = find_skill_num(arg2);
+
+    if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+    {
+      send_to_char(ch, "That is not a valid spell name.\r\n");
+      return;
+    }
+
+    if (STORED_STAVES(ch, spellnum) <= 0)
+    {
+      send_to_char(ch, "You don't have any staves of that type stored.\r\n");
+      return;
+    }
+
+    for (i = 0; i < NUM_CLASSES; i++)
+    {
+      if (!IS_SPELLCASTER_CLASS(i)) continue;
+      spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+    }
+
+    if (spell_level <= 0 || spell_level > 9)
+    {
+      send_to_char(ch, "There is an error in retrieving that staff. Report to a staff member ERRUNSTORE4.\r\n");
+      return;
+    }
+
+    if ((obj = read_object(ITEM_PROTOTYPE, VIRTUAL)) == NULL)
+    {
+      log("SYSERR:  do_unstore returned NULL");
+      return;
+    }
+
+    spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+    charges = MIN(5, STORED_STAVES(ch, spellnum));
+
+    GET_OBJ_TYPE(obj) = ITEM_STAFF;
+    GET_OBJ_VAL(obj, 0) = spell_level;
+    GET_OBJ_VAL(obj, 3) = spellnum;
+    GET_OBJ_VAL(obj, 2) = charges;
+    GET_OBJ_VAL(obj, 1) = 5;
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+
+    GET_OBJ_MATERIAL(obj) = MATERIAL_WOOD;
+    GET_OBJ_COST(obj) = 1;
+    GET_OBJ_LEVEL(obj) = 1;
+
+    snprintf(buf, sizeof(buf), "staff %s", spell_info[spellnum].name);
+    obj->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "a staff of %s", spell_info[spellnum].name);
+    obj->short_description = strdup(buf);
+    snprintf(buf, sizeof(buf), "A staff of %s lies here.", spell_info[spellnum].name);
+    obj->description = strdup(buf);
+
+    obj_to_char(obj, ch);
+
+    STORED_STAVES(ch, spellnum) -= charges;
+
+    send_to_char(ch, "You have retrieved %s from your staff storage.\r\n", obj->short_description);
+    return;
+  }
+  else
+  {
+    send_to_char(ch, "Please specify What you want to unstore: potion, scroll, wand or staff.\r\n");
+    return;
+  }
+  
+}
+
+void quaff_potion(struct char_data *ch, char *argument)
+{
+  int spellnum = 0, i = 0, spell_level = 99;
+  char buf[MEDIUM_STRING];
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You need to specify the spell name of the potion you wish to quaff.\r\n");
+    return;
+  }
+
+  spellnum = find_skill_num(argument);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+  {
+    send_to_char(ch, "That is not a valid spell name.\r\n");
+    return;
+  }
+
+  if (STORED_POTIONS(ch, spellnum) <= 0)
+  {
+    send_to_char(ch, "You don't have any potions of that type stored.\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (!IS_SPELLCASTER_CLASS(i)) continue;
+    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+  }
+
+  if (spell_level <= 0 || spell_level > 9)
+  {
+    send_to_char(ch, "There is an error in quaffing that potion. Report to a staff member ERRQUAFF1.\r\n");
+    return;
+  }
+
+  if (KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) &&
+    spell_level < CLASS_LEVEL(ch, CLASS_ALCHEMIST))
+        spell_level = CLASS_LEVEL(ch, CLASS_ALCHEMIST);
+
+  spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+  STORED_POTIONS(ch, spellnum)--;
+
+  snprintf(buf, sizeof(buf), "You quaff a potion of '%s'.", spell_info[spellnum].name);
+  act(buf, TRUE, ch, 0, 0, TO_CHAR);
+  act("$n quaffs a potion", TRUE, ch, 0, 0, TO_ROOM);
+
+  call_magic(ch, ch, NULL, spellnum, 0, spell_level, CAST_POTION);
+  USE_SWIFT_ACTION(ch);
+
+  save_char(ch, 0);
+}
+
+void recite_scroll(struct char_data *ch, char *argument)
+{
+  int spellnum = 0, i = 0, spell_level = 99;
+  char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  struct char_data *vict = NULL;
+
+  half_chop(argument, arg1, arg2);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify the person you wish to recite the scroll on.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify the spell name of the potion you wish to quaff.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
+  {
+    send_to_char(ch, "There doesn't seem to be anyone here by that description.\r\n");
+    send_to_char(ch, "Syntax: recite (target) (spell name)\r\n");
+    return;
+  }
+
+  spellnum = find_skill_num(arg2);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+  {
+    send_to_char(ch, "That is not a valid spell name.\r\n");
+    return;
+  }
+
+  if (STORED_SCROLLS(ch, spellnum) <= 0)
+  {
+    send_to_char(ch, "You don't have any scrolls of that type stored.\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (!IS_SPELLCASTER_CLASS(i)) continue;
+    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+  }
+
+  if (spell_level <= 0 || spell_level > 9)
+  {
+    send_to_char(ch, "There is an error in reciting that scroll. Report to a staff member ERRRECITE1.\r\n");
+    return;
+  }
+
+  spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+  STORED_SCROLLS(ch, spellnum)--;
+
+  snprintf(buf, sizeof(buf), "You recite a scroll of '%s'.", spell_info[spellnum].name);
+  act(buf, TRUE, ch, 0, 0, TO_CHAR);
+  act("$n recites a scroll.", TRUE, ch, 0, 0, TO_ROOM);
+
+  call_magic(ch, vict, NULL, spellnum, 0, spell_level, CAST_SCROLL);
+  USE_SWIFT_ACTION(ch);
+
+  save_char(ch, 0);
+}
+
+void use_wand(struct char_data *ch, char *argument)
+{
+  int spellnum = 0, i = 0, spell_level = 99;
+  char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  struct char_data *vict = NULL;
+
+  half_chop(argument, arg1, arg2);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify the person you wish to use the wand on.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "You need to specify the spell name of the wand you wish to use.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
+  {
+    send_to_char(ch, "There doesn't seem to be anyone here by that description.\r\n");
+    send_to_char(ch, "Syntax: use (target) (spell name)\r\n");
+    return;
+  }
+
+  spellnum = find_skill_num(arg2);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+  {
+    send_to_char(ch, "That is not a valid spell name.\r\n");
+    return;
+  }
+
+  if (STORED_WANDS(ch, spellnum) <= 0)
+  {
+    send_to_char(ch, "You don't have any wands of that type stored.\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (!IS_SPELLCASTER_CLASS(i)) continue;
+    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+  }
+
+  if (spell_level <= 0 || spell_level > 9)
+  {
+    send_to_char(ch, "There is an error in using that wand. Report to a staff member ERRUSE1.\r\n");
+    return;
+  }
+
+  spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+
+  if (APOTHEOSIS_SLOTS(ch) >= 3)
+  {
+    APOTHEOSIS_SLOTS(ch) -= 3;
+    send_to_char(ch, "You power the wand with your focused arcane energy!\r\n");
+  }
+  else
+  {
+    STORED_WANDS(ch, spellnum)--;
+  }
+
+  snprintf(buf, sizeof(buf), "You point a wand of '%s' at $N.", spell_info[spellnum].name);
+  act(buf, TRUE, ch, 0, vict, TO_CHAR);
+  act("$n points a wand at YOU!", TRUE, ch, 0, vict, TO_VICT);
+  act("$n points a wand at $N.", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  call_magic(ch, vict, NULL, spellnum, 0, spell_level, CAST_WAND);
+  USE_SWIFT_ACTION(ch);
+
+  save_char(ch, 0);
+}
+
+void invoke_staff(struct char_data *ch, char *argument)
+{
+  int spellnum = 0, i = 0, spell_level = 99;
+  char buf[MEDIUM_STRING];
+  struct char_data *tch = NULL;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You need to specify the spell name of the staff you wish to invoke.\r\n");
+    return;
+  }
+
+  spellnum = find_skill_num(argument);
+
+  if ((spellnum < 1) || (spellnum > MAX_SPELLS))
+  {
+    send_to_char(ch, "That is not a valid spell name.\r\n");
+    return;
+  }
+
+  if (STORED_STAVES(ch, spellnum) <= 0)
+  {
+    send_to_char(ch, "You don't have any staves of that type stored.\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (!IS_SPELLCASTER_CLASS(i)) continue;
+    spell_level = MIN(spell_level, compute_spells_circle(i, spellnum, 0, 0));
+  }
+
+  if (spell_level <= 0 || spell_level > 9)
+  {
+    send_to_char(ch, "There is an error with invoking that staff. Report to a staff member ERRINVOKE1.\r\n");
+    return;
+  }
+
+  spell_level += skill_roll(ch, ABILITY_USE_MAGIC_DEVICE) / 3;
+
+  if (APOTHEOSIS_SLOTS(ch) >= 3)
+  {
+    APOTHEOSIS_SLOTS(ch) -= 3;
+    send_to_char(ch, "You power the staff with your focused arcane energy!\r\n");
+  }
+  else
+  {
+    STORED_STAVES(ch, spellnum)--;
+  }
+
+  snprintf(buf, sizeof(buf), "You invoke a staff of '%s'.", spell_info[spellnum].name);
+  act(buf, TRUE, ch, 0, 0, TO_CHAR);
+  act("$n invokes a staff.", TRUE, ch, 0, 0, TO_ROOM);
+
+  if (HAS_SPELL_ROUTINE(spellnum, MAG_MASSES | MAG_AREAS))
+  {
+    call_magic(ch, NULL, NULL, spellnum, 0, spell_level, CAST_STAFF);
+  }
+  else
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (spell_info[spellnum].violent && is_player_grouped(ch, tch))
+        continue;
+      call_magic(ch, tch, NULL, spellnum, 0, spell_level, CAST_STAFF);
+    }
+  }
+  USE_SWIFT_ACTION(ch);
+
+  save_char(ch, 0);
+}
+
+ACMD(do_use_consumable)
+{
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  switch (subcmd)
+  {
+    case SCMD_QUAFF:
+      quaff_potion(ch, (char *) argument);
+      return;
+    case SCMD_RECITE:
+      recite_scroll(ch, (char *) argument);
+      return;
+    case SCMD_USE:
+      use_wand(ch, (char *) argument);
+      return;
+    case SCMD_INVOKE:
+      invoke_staff(ch, (char *) argument);
+      return;
+  }
+
+}
+
 /* EOF */

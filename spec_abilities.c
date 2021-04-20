@@ -1804,6 +1804,8 @@ char * get_weapon_specab_default_command_word(int specab)
       return strdup("fleet");
     case WEAPON_SPECAB_DEFENDING:
       return strdup("aegis");
+    case WEAPON_SPECAB_VAMPIRIC:
+      return strdup("drain");
   }
   return NULL;
 }

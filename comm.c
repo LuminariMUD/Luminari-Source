@@ -1226,6 +1226,10 @@ void heartbeat(int heart_pulse)
   {
     check_auction();
   }
+  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
+  {
+    save_chars();
+  }
 
   // every 2 hours
   if (!(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))

@@ -1465,6 +1465,8 @@ SPECIAL(tiamat)
   {
     for (i = character_list; i; i = i->next)
     {
+      if (!ch || !i) continue;
+      if (IN_ROOM(ch) == NOWHERE || IN_ROOM(i) == NOWHERE) continue;
       if (world[ch->in_room].zone == world[i->in_room].zone && !IS_NPC(i))
       {
         /* Moonblade */

@@ -171,6 +171,8 @@ int compute_mag_saves(struct char_data *vict,
     saves += CLASS_LEVEL(vict, CLASS_CLERIC) / 6;
   if (!IS_NPC(vict) && IS_DAYLIT(IN_ROOM(vict)) && HAS_FEAT(vict, FEAT_LIGHT_BLINDNESS))
     saves -= 1;
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_SHADOW_MASTER) && IS_SHADOW_CONDITIONS(vict))
+    saves += 2;
 
   /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))

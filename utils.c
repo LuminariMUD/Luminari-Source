@@ -3575,6 +3575,16 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_SLA_DARKNESS:
       daily_uses = 3;
       break;
+    case FEAT_SHADOW_ILLUSION:
+      daily_uses += CLASS_LEVEL(ch, CLASS_SHADOWDANCER) / 2;
+      break;
+    case FEAT_SHADOW_CALL:
+    case FEAT_SHADOW_JUMP:
+      daily_uses += MAX(0, (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) - 2) / 2);
+      break;
+    case FEAT_SHADOW_POWER:
+      daily_uses += MAX(0, (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) - 6) / 2);
+      break;
     case FEAT_BATTLE_RAGE:/*fallthrough*/
     case FEAT_MASS_INVIS:/*fallthrough*/
     case FEAT_COPYCAT:/*fallthrough*/

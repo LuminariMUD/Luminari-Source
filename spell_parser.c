@@ -30,6 +30,7 @@
 #include "alchemy.h"
 #include "missions.h"
 #include "psionics.h"
+#include "act.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -860,6 +861,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case SPELL_TELEPORT:
                         MANUAL_SPELL(spell_teleport);
                         break;
+                case SPELL_SHADOW_JUMP:
+                        MANUAL_SPELL(spell_shadow_jump);
+                        break;
                 case SPELL_TRANSPORT_VIA_PLANTS:
                         MANUAL_SPELL(spell_transport_via_plants);
                         break;
@@ -963,8 +967,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                         }
                         else
                         {
-                                GET_OBJ_VAL(obj, 2)
-                                --;
+                                GET_OBJ_VAL(obj, 2)--;
                         }
                         USE_STANDARD_ACTION(ch);
 
@@ -1041,8 +1044,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                 }
                 else
                 {
-                        GET_OBJ_VAL(obj, 2)
-                        --;
+                        GET_OBJ_VAL(obj, 2)--;
                 }
                 USE_STANDARD_ACTION(ch);
 
@@ -1209,6 +1211,28 @@ void finishCasting(struct char_data *ch)
                 }
                         
         }
+        if (GET_CASTING_CLASS(ch) == CLASS_SHADOWDANCER)
+        {
+                
+                if (CASTING_SPELLNUM(ch) == SPELL_MIRROR_IMAGE)
+                {
+                        
+                        start_daily_use_cooldown(ch, FEAT_SHADOW_ILLUSION);
+                }
+                else if (CASTING_SPELLNUM(ch) == SPELL_SHADOW_JUMP)
+                {
+                        start_daily_use_cooldown(ch, FEAT_SHADOW_JUMP);
+                }
+                else if (spell_info[CASTING_SPELLNUM(ch)].schoolOfMagic == CONJURATION)
+                {
+                        start_daily_use_cooldown(ch, FEAT_SHADOW_CALL);
+                }
+                else if (spell_info[CASTING_SPELLNUM(ch)].schoolOfMagic == EVOCATION)
+                {
+                        start_daily_use_cooldown(ch, FEAT_SHADOW_POWER);
+                }
+        }
+        
         say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
         send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : 
                                 (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
@@ -1268,7 +1292,8 @@ EVENTFUNC(event_casting)
                                 return 0;
 
                         //display time left to finish spell
-                        snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : "Casting",
+                        snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : 
+                                 (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
                                  (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
                                  (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                                  SINFO.name);
@@ -1499,17 +1524,24 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                         {
                                 /* SPELL PREPARATION HOOK */
                                 /* NEW SPELL PREP SYSTEM */
-                                ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
-                                if (ch_class == CLASS_UNDEFINED)
+                                if (GET_CASTING_CLASS(ch) != CLASS_SHADOWDANCER)
                                 {
-                                        send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
-                                        log("spell_prep_gen_extract() failed in cast_spell()");
-                                        return 0;
-                                }
+                                        ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
+                                        if (ch_class == CLASS_UNDEFINED)
+                                        {
+                                                send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
+                                                log("spell_prep_gen_extract() failed in cast_spell()");
+                                                return 0;
+                                        }
 
-                                /* level to cast this particular spell as */
-                                clevel = CLASS_LEVEL(ch, ch_class);
-                                CASTING_CLASS(ch) = ch_class;
+                                        /* level to cast this particular spell as */
+                                        clevel = CLASS_LEVEL(ch, ch_class);
+                                        CASTING_CLASS(ch) = ch_class;
+                                }
+                                else
+                                {
+                                        clevel = ARCANE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_SHADOWDANCER);
+                                }
                                 /* npc class */
                         }
                 }
@@ -1658,6 +1690,7 @@ ACMDU(do_gen_cast)
         int number = 0, spellnum = 0, i = 0, target = 0, metamagic = 0;
         struct affected_type af;
         int class_num = CLASS_UNDEFINED;
+        int circle = 99, school = 0;
 
         if (IS_NPC(ch))
                 return;
@@ -1670,6 +1703,13 @@ ACMDU(do_gen_cast)
         case SCMD_CAST_PSIONIC:
                 break;
         case SCMD_CAST_EXTRACT:
+                break;
+        case SCMD_CAST_SHADOW:
+                if (!*argument)
+                {
+                        display_shadowcast_spells(ch);
+                        return;
+                }
                 break;
         default:
                 break;
@@ -1704,7 +1744,7 @@ ACMDU(do_gen_cast)
         //log("DEBUG: Argument = %s", argument);
 
         /* Check for metamagic. */
-        if (subcmd != SCMD_CAST_PSIONIC)
+        if (subcmd != SCMD_CAST_PSIONIC && subcmd != SCMD_CAST_SHADOW)
         {
                 for (metamagic_arg = strtok(argument, " "); metamagic_arg && metamagic_arg[0] != '\''; metamagic_arg = strtok(NULL, " "))
                 {
@@ -1789,6 +1829,72 @@ ACMDU(do_gen_cast)
                         return;
                 }
         }
+        else if (subcmd == SCMD_CAST_SHADOW)
+        {
+                PREREQ_NOT_NPC();
+
+                if (spellnum == SPELL_MIRROR_IMAGE)
+                {
+                        if (!HAS_REAL_FEAT(ch, FEAT_SHADOW_ILLUSION))
+                        {
+                                send_to_char(ch, "You do not have the shadow illusion feat necessary to shadowcast this.\r\n");
+                                return;
+                        }
+                        
+                        PREREQ_HAS_USES(FEAT_SHADOW_ILLUSION, "You are not yet able to perform a shadow illusion.\r\n");
+
+                }
+                else if (spellnum == SPELL_SHADOW_JUMP)
+                {
+                        if (!HAS_REAL_FEAT(ch, FEAT_SHADOW_JUMP))
+                        {
+                                send_to_char(ch, "You do not have the shadow jump feat necessary to shadowcast this.\r\n");
+                                return;
+                        }
+                        
+                        PREREQ_HAS_USES(FEAT_SHADOW_JUMP, "You are not yet able to perform a shadow jump.\r\n");
+
+                }
+                else
+                {
+                        school = spell_info[spellnum].schoolOfMagic;
+                        if (school == CONJURATION && HAS_REAL_FEAT(ch, FEAT_SHADOW_CALL))
+                        {
+                                PREREQ_HAS_USES(FEAT_SHADOW_CALL, "You are not yet able to shadowcast this spell until you recover a shadow call use.\r\n");
+                                circle = MIN(circle, compute_spells_circle(CLASS_WIZARD, spellnum, 0, 0));
+                                if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10 && circle > 6)
+                                {
+                                        send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
+                                        return;
+                                }
+                                else if (circle > 3)
+                                {
+                                        send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
+                                        return;
+                                }
+                        }
+                        else if (school == EVOCATION && HAS_REAL_FEAT(ch, FEAT_SHADOW_POWER))
+                        {
+                                PREREQ_HAS_USES(FEAT_SHADOW_POWER, "You are not yet able to shadowcast this spell until you recover a shadow power use.\r\n");
+                                circle = MIN(circle, compute_spells_circle(CLASS_WIZARD, spellnum, 0, 0));
+                                if (CLASS_LEVEL(ch, CLASS_SHADOWDANCER) == 10 && circle > 7)
+                                {
+                                        send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
+                                        return;
+                                }
+                                else if (circle > 4)
+                                {
+                                        send_to_char(ch, "That spell is too powerful for you to shadowcast.\r\n");
+                                        return;
+                                }
+                        }
+                        else
+                        {
+                                send_to_char(ch, "You are not able to shadowcast that spell.\r\n");
+                                return;
+                        }
+                }
+        }
         else
         {
                 if (!IS_CASTER(ch))
@@ -1798,7 +1904,7 @@ ACMDU(do_gen_cast)
                 }
         }
 
-        if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_PSIONIC)
+        if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_PSIONIC && subcmd != SCMD_CAST_SHADOW)
         {
                 send_to_char(ch, "You are unfamiliar with that %s.\r\n", do_cast_types[subcmd][2]);
                 return;
@@ -1870,7 +1976,7 @@ ACMDU(do_gen_cast)
                         return;
                 }
         }
-        else if (GET_LEVEL(ch) < LVL_IMMORT &&
+        else if (GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_SHADOW &&
                 (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
                  //          BONUS_CASTER_LEVEL(ch, CLASS_PSY_WARR) + CLASS_LEVEL(ch, CLASS_PSY_WARR) < SINFO.min_level[CLASS_PSY_WARR] &&
                  //          BONUS_CASTER_LEVEL(ch, CLASS_SOULKNIFE) + CLASS_LEVEL(ch, CLASS_SOULKNIFE) < SINFO.min_level[CLASS_SOULKNIFE] &&
@@ -1930,7 +2036,7 @@ ACMDU(do_gen_cast)
         {
                 /* SPELL PREPARATION HOOK */
                 if (GET_LEVEL(ch) < LVL_IMMORT && (class_num = spell_prep_gen_check(ch, spellnum, metamagic)) == CLASS_UNDEFINED &&
-                !isEpicSpell(spellnum))
+                !isEpicSpell(spellnum) && subcmd != SCMD_CAST_SHADOW)
                 {
                         send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
                                 do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
@@ -1939,7 +2045,15 @@ ACMDU(do_gen_cast)
         }
 
         if (!IS_NPC(ch))
-                GET_CASTING_CLASS(ch) = class_num;
+        {
+                if (subcmd != SCMD_CAST_SHADOW) {
+                        GET_CASTING_CLASS(ch) = class_num;
+                }
+                else
+                {
+                        GET_CASTING_CLASS(ch) = CLASS_SHADOWDANCER;
+                }
+        }
 
         /* further restrictions, this needs updating!
         * what we need to do is loop through the class-array to find the min. stat
@@ -3078,6 +3192,9 @@ void mag_assign_spells(void)
         spello(SPELL_TELEPORT, "teleport", 72, 57, 1, POS_FIGHTING,
                TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
                NULL, 2, 19, TRANSMUTATION, FALSE);
+        spello(SPELL_SHADOW_JUMP, "shadow jump", 72, 57, 1, POS_FIGHTING,
+               TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
+               NULL, 2, 19, TRANSMUTATION, FALSE);
         //mass wisdom - shared
         //mass charisma - shared
         //mass cunning - shared
@@ -3754,6 +3871,92 @@ void mag_assign_spells(void)
         /* end songs */
 
         /****note weapon specialist and luck of heroes inserted in free slots ***/
+}
+
+void display_shadowcast_spells(struct char_data *ch)
+{
+
+        int i = 0, circle = 0, max_circle = 4;
+        bool found = false;
+
+        if (!ch) return;
+
+        //shadowdancers can't cast anything until level 3
+        if (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) < 3)
+        {
+                send_to_char(ch, "You can't shadowcast anything.\r\n");
+                return;
+        }
+
+        if (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) >= 10)
+        {
+                max_circle = 7;
+        }
+        else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_POWER))
+        {
+                max_circle = 4;
+        }
+        else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_JUMP))
+        {
+                max_circle = 4;
+        }
+        else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_CALL))
+        {
+                max_circle = 3;
+        }
+        else if (HAS_REAL_FEAT(ch, FEAT_SHADOW_ILLUSION))
+        {
+                max_circle = 2;
+        }
+        
+        send_to_char(ch, "\tMShadowcast Spells Available\tn\r\n");
+
+        for (circle = 1; circle <= max_circle; circle++)
+        {
+                found = false;
+                for (i = 0; i < NUM_SPELLS; i++)
+                {
+                        if (circle == compute_spells_circle(CLASS_WIZARD, i, 0, 0))
+                        {
+                                if (i == SPELL_MIRROR_IMAGE && HAS_REAL_FEAT(ch, FEAT_SHADOW_ILLUSION))
+                                {
+                                        if (!found)
+                                                send_to_char(ch, "\r\nSpell Circle %d\r\n", circle);
+                                        found = true;
+                                        send_to_char(ch, "%-22s (shadow illusion)\r\n", spell_info[i].name);
+                                }
+                                else if (i == SPELL_SHADOW_JUMP && HAS_REAL_FEAT(ch, FEAT_SHADOW_JUMP))
+                                {
+                                        if (!found)
+                                                send_to_char(ch, "\r\nSpell Circle %d\r\n", circle);
+                                        found = true;
+                                        send_to_char(ch, "%-22s (shadow jump)\r\n", spell_info[i].name);
+                                }
+                                else if (spell_info[i].schoolOfMagic == CONJURATION && HAS_REAL_FEAT(ch, FEAT_SHADOW_CALL))
+                                {
+                                        if (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) < 10 && circle > 3)
+                                                continue;
+                                        if (circle > 6)
+                                                continue;
+                                        if (!found)
+                                                send_to_char(ch, "\r\nSpell Circle %d\r\n", circle);
+                                        found = true;
+                                        send_to_char(ch, "%-22s (shadow call)\r\n", spell_info[i].name);
+                                }
+                                else if (spell_info[i].schoolOfMagic == EVOCATION && HAS_REAL_FEAT(ch, FEAT_SHADOW_POWER))
+                                {
+                                        if (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) < 10 && circle > 4)
+                                                continue;
+                                        if (circle > 7)
+                                                continue;
+                                        if (!found)
+                                                send_to_char(ch, "\r\nSpell Circle %d\r\n", circle);
+                                        found = true;
+                                        send_to_char(ch, "%-22s (shadow power)\r\n", spell_info[i].name);
+                                }
+                        }
+                }
+        }
 }
 
 /* must be at end of file */

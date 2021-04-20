@@ -42,6 +42,7 @@
 #include "alchemy.h"
 #include "missions.h"
 #include "hunts.h"
+#include "domains_schools.h"
 
 /* return results from hit() */
 #define HIT_MISS 0
@@ -2821,6 +2822,9 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
     else
       damage_reduction += 1;
   }
+
+  if (IS_SHADOW_CONDITIONS(ch) && HAS_FEAT(ch, FEAT_SHADOW_MASTER))
+    damage_reduction += 5;
 
   if (GET_EQ(ch, WEAR_BODY) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_BODY)) == ITEM_ARMOR &&
      ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONHIDE) ||
@@ -6665,6 +6669,25 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     {
       send_to_char(ch, "[\tWSPELL-CRITICAL\tn] ");
       HAS_ELDRITCH_SPELL_CRIT(ch) = true;
+    }
+    if (!IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER) && victim && 
+        !AFF_FLAGGED(victim, AFF_BLIND) && IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
+    {
+      if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
+      {
+        send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
+        new_affect(&af);
+        af.spell = SPELL_BLINDNESS;
+        af.duration = dice(1, 6);
+        af.location = APPLY_NONE;
+        af.modifier = 0;
+        SET_BIT_AR(af.bitvector, AFF_BLIND);
+        affect_to_char(victim, &af);
+      }
+      else
+      {
+        send_to_char(ch, "[\tWSHADOW-BLIND FAILED!\tn] ");
+      }
     }
   }
 

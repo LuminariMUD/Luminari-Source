@@ -149,5 +149,7 @@ struct last_entry
 
 void add_llog_entry(struct char_data *ch, int type);
 struct last_entry *find_llog_entry(int punique, long idnum);
+bool has_affect_modifier_type(struct char_data *ch, int location);
+void save_chars(void);
 
 #endif /* _HANDLER_H_ */

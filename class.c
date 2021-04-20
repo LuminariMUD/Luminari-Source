@@ -990,6 +990,13 @@ bool display_class_info(struct char_data *ch, const char *classname)
       spellList[i] = tolower(spellList[i]);
     send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist"): "extracts");
   }
+  else if (class == CLASS_SHADOW_DANCER)
+  {
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+    send_to_char(ch, "\tcSpell Cast Command  : \tnshadowcast (spell name)\r\n");
+    send_to_char(ch, "\tcSpell List Command  : \tnshadowcast\r\n");
+  }
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -1299,7 +1306,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_STALWART_DEFENDER:
   case CLASS_DUELIST:
   case CLASS_SHIFTER:
-    //    case CLASS_SHADOW_DANCER:
+  case CLASS_SHADOW_DANCER:
   case CLASS_SORCERER:
   case CLASS_MYSTIC_THEURGE:
   case CLASS_SACRED_FIST:
@@ -1436,8 +1443,10 @@ int parse_class_long(const char *arg_in)
     return CLASS_WEAPON_MASTER;
   if (is_abbrev(arg, "weapon-master"))
     return CLASS_WEAPON_MASTER;
-  //  if (is_abbrev(arg, "shadow-dancer")) return CLASS_SHADOW_DANCER;
-  //  if (is_abbrev(arg, "shadowdancer")) return CLASS_SHADOW_DANCER;
+  if (is_abbrev(arg, "shadow-dancer"))
+    return CLASS_SHADOW_DANCER;
+  if (is_abbrev(arg, "shadowdancer"))
+    return CLASS_SHADOW_DANCER;
   if (is_abbrev(arg, "arcanearcher"))
     return CLASS_ARCANE_ARCHER;
   if (is_abbrev(arg, "arcane-archer"))
@@ -3119,7 +3128,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_SHIFTER:
   case CLASS_DUELIST:
     //    case CLASS_ASSASSIN:
-    //    case CLASS_SHADOW_DANCER:
+  case CLASS_SHADOW_DANCER:
   case CLASS_ARCANE_ARCHER:
   case CLASS_ARCANE_SHADOW:
   case CLASS_ELDRITCH_KNIGHT:
@@ -3378,6 +3387,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_SHRINK_PERSON, 7);
   spell_assignment(CLASS_WIZARD, SPELL_CONFUSION, 7);
   spell_assignment(CLASS_WIZARD, SPELL_FEAR, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_SHADOW_JUMP, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
@@ -3700,7 +3710,7 @@ void load_class_list(void)
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
-         -1, N, N, M, 6, 0, 2, 8, Y, 0, 0,
+         -1, N, N, M, 8, 0, 2, 8, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "Life is an endless adventure for those who live by their wits. "
                      "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
@@ -4531,6 +4541,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_SHRINK_PERSON, 8);
   spell_assignment(CLASS_SORCERER, SPELL_CONFUSION, 8);
   spell_assignment(CLASS_SORCERER, SPELL_FEAR, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_SHADOW_JUMP, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);
@@ -5025,6 +5036,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_REMOVE_CURSE, 11);
   spell_assignment(CLASS_BARD, SPELL_ICE_STORM, 11);
   spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC, 11);
+  spell_assignment(CLASS_BARD, SPELL_SHADOW_JUMP, 11);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_5, 14);
@@ -5873,6 +5885,76 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   class_prereq_class_level(CLASS_SHIFTER, CLASS_DRUID, 10);
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_SHADOWDANCER,"shadowdancer", "ShD", "\trSh\tDf\tn", "f) \trSh\tDf\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         10, Y, Y, M, 8, 0, 1, 6, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
+         /*descrip*/ "Shadowdancers exist in the boundary between light and darkness, "
+                     "where they weave together the shadows to become half-seen artists "
+                     "of deception. Unbound by any specified morality or traditional code, "
+                     "shadowdancers encompass a wide variety of adventuring types who have "
+                     "seen the value of the dark.");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_SHADOWDANCER, B, G, B, G, B);
+  assign_class_abils(CLASS_SHADOWDANCER, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CA, CA, CA, CA, CC, CC, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CC, CC, CA, CA, CC, CA, CA,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CA, CA, CC, CC,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CC, CC, CA);
+  assign_class_titles(CLASS_SHADOWDANCER,              /* class number */
+                      "",                       /* <= 4  */
+                      "the Shadow Dancer",      /* <= 9  */
+                      "the Shadow Dancer",      /* <= 14 */
+                      "the Shadow Dancer",      /* <= 19 */
+                      "the Shadow Dancer",      /* <= 24 */
+                      "the Shadow Dancer",      /* <= 29 */
+                      "the Shadow Dancer",      /* <= 30 */
+                      "the Shadow Dancer",      /* <= LVL_IMMORT */
+                      "the Shadow Dancer",      /* <= LVL_STAFF */
+                      "the Shadow Dancer",      /* <= LVL_GRSTAFF */
+                      "the Shadow Dancer"       /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                                 cfeat lvl stack */
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_HIDE_IN_PLAIN_SIGHT, Y, 1, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_WEAPON_PROFICIENCY_SHADOWDANCER, Y, 1, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_EVASION, Y, 2, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_INFRAVISION, Y, 2, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_UNCANNY_DODGE, Y, 2, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SNEAK_ATTACK, Y, 3, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_ILLUSION, Y, 3, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SUMMON_SHADOW, Y, 3, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_CALL, Y, 4, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_JUMP, Y, 4, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_DEFENSIVE_ROLL, Y, 5, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_IMPROVED_UNCANNY_DODGE, Y, 5, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SNEAK_ATTACK, Y, 6, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_JUMP, Y, 6, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SLIPPERY_MIND, Y, 7, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_JUMP, Y, 8, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_POWER, Y, 8, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SNEAK_ATTACK, Y, 9, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_IMPROVED_EVASION, Y, 10, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_JUMP, Y, 10, N);
+  feat_assignment(CLASS_SHADOWDANCER, FEAT_SHADOW_MASTER, Y, 10, N);
+
+  /* no class feats */
+  /* no spell assignment */
+  /* class prereqs */
+  class_prereq_feat(CLASS_SHADOWDANCER, FEAT_COMBAT_REFLEXES, 1);
+  class_prereq_feat(CLASS_SHADOWDANCER, FEAT_DODGE, 1);
+  class_prereq_feat(CLASS_SHADOWDANCER, FEAT_MOBILITY, 1);
+  class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_STEALTH, 5);
+  class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_PERFORM, 2);
   /****************************************************************************/
 
   /****************************************************************************/
