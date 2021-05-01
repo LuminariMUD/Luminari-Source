@@ -1970,6 +1970,11 @@ bool perform_give(struct char_data *ch, struct char_data *vict,
     act("$E can't carry that much weight.", FALSE, ch, 0, vict, TO_CHAR);
     return FALSE;
   }
+  if (IS_NPC(vict) && obj->mob_recepient > 0 && obj->mob_recepient != GET_MOB_VNUM(vict))
+  {
+    send_to_char(ch, "This object cannot be given to that mob.\r\n");
+    return FALSE;
+  }
   obj_from_char(obj);
   obj_to_char(obj, vict);
   act("You give $p to $N.", FALSE, ch, obj, vict, TO_CHAR);
@@ -4631,6 +4636,7 @@ void list_consumables(struct char_data *ch, int type)
     case ITEM_POTION:
       for (i = 0; i < MAX_SPELLS; i++)
       {
+        if (!strcmp(spell_info[i].name, "!UNUSED!")) continue;
         if (STORED_POTIONS(ch, i) > 0)
         {
           send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_POTIONS(ch, i));
@@ -4646,6 +4652,7 @@ void list_consumables(struct char_data *ch, int type)
     case ITEM_SCROLL:
       for (i = 0; i < MAX_SPELLS; i++)
       {
+        if (!strcmp(spell_info[i].name, "!UNUSED!")) continue;
         if (STORED_SCROLLS(ch, i) > 0)
         {
           send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_SCROLLS(ch, i));
@@ -4661,6 +4668,7 @@ void list_consumables(struct char_data *ch, int type)
     case ITEM_WAND:
       for (i = 0; i < MAX_SPELLS; i++)
       {
+        if (!strcmp(spell_info[i].name, "!UNUSED!")) continue;
         if (STORED_WANDS(ch, i) > 0)
         {
           send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_WANDS(ch, i));
@@ -4676,6 +4684,7 @@ void list_consumables(struct char_data *ch, int type)
       case ITEM_STAFF:
       for (i = 0; i < MAX_SPELLS; i++)
       {
+        if (!strcmp(spell_info[i].name, "!UNUSED!")) continue;
         if (STORED_STAVES(ch, i) > 0)
         {
           send_to_char(ch, "%-25s %d\r\n", spell_info[i].name, STORED_STAVES(ch, i));
@@ -5162,18 +5171,18 @@ void quaff_potion(struct char_data *ch, char *argument)
 
   save_char(ch, 0);
 }
-
 void recite_scroll(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
   char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
   struct char_data *vict = NULL;
+  struct obj_data *obj = NULL;
 
   half_chop(argument, arg1, arg2);
 
   if (!*arg1)
   {
-    send_to_char(ch, "You need to specify the person you wish to recite the scroll on.\r\n");
+    send_to_char(ch, "You need to specify the person or object you wish to recite the scroll on.\r\n");
     return;
   }
 
@@ -5183,19 +5192,31 @@ void recite_scroll(struct char_data *ch, char *argument)
     return;
   }
 
-  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
-  {
-    send_to_char(ch, "There doesn't seem to be anyone here by that description.\r\n");
-    send_to_char(ch, "Syntax: recite (target) (spell name)\r\n");
-    return;
-  }
-
   spellnum = find_skill_num(arg2);
 
   if ((spellnum < 1) || (spellnum > MAX_SPELLS))
   {
     send_to_char(ch, "That is not a valid spell name.\r\n");
     return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
+  {
+    if (IS_SET(spell_info[spellnum].targets, TAR_OBJ_INV))
+    {
+      if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
+      {
+        send_to_char(ch, "There doesn't seem to be an object in your inventory by that description.\r\n");
+        send_to_char(ch, "Syntax: recite (target) (spell name)\r\n");
+        return;
+      }
+    }
+    else 
+    {
+      send_to_char(ch, "There doesn't seem to be anyone here by that description.\r\n");
+      send_to_char(ch, "Syntax: recite (target) (spell name)\r\n");
+      return;
+    }
   }
 
   if (STORED_SCROLLS(ch, spellnum) <= 0)
@@ -5224,7 +5245,7 @@ void recite_scroll(struct char_data *ch, char *argument)
   act(buf, TRUE, ch, 0, 0, TO_CHAR);
   act("$n recites a scroll.", TRUE, ch, 0, 0, TO_ROOM);
 
-  call_magic(ch, vict, NULL, spellnum, 0, spell_level, CAST_SCROLL);
+  call_magic(ch, vict, obj, spellnum, 0, spell_level, CAST_SCROLL);
   USE_SWIFT_ACTION(ch);
 
   save_char(ch, 0);
@@ -5235,6 +5256,7 @@ void use_wand(struct char_data *ch, char *argument)
   int spellnum = 0, i = 0, spell_level = 99;
   char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
   struct char_data *vict = NULL;
+  struct obj_data *obj = NULL;
 
   half_chop(argument, arg1, arg2);
 
@@ -5250,19 +5272,31 @@ void use_wand(struct char_data *ch, char *argument)
     return;
   }
 
-  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
-  {
-    send_to_char(ch, "There doesn't seem to be anyone here by that description.\r\n");
-    send_to_char(ch, "Syntax: use (target) (spell name)\r\n");
-    return;
-  }
-
   spellnum = find_skill_num(arg2);
 
   if ((spellnum < 1) || (spellnum > MAX_SPELLS))
   {
     send_to_char(ch, "That is not a valid spell name.\r\n");
     return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
+  {
+    if (IS_SET(spell_info[spellnum].targets, TAR_OBJ_INV))
+    {
+      if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
+      {
+        send_to_char(ch, "There doesn't seem to be an object in your inventory by that description.\r\n");
+        send_to_char(ch, "Syntax: recite (target) (spell name)\r\n");
+        return;
+      }
+    }
+    else 
+    {
+      send_to_char(ch, "There doesn't seem to be anyone here by that description.\r\n");
+      send_to_char(ch, "Syntax: recite (target) (spell name)\r\n");
+      return;
+    }
   }
 
   if (STORED_WANDS(ch, spellnum) <= 0)

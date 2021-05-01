@@ -652,6 +652,7 @@ ACMDU(do_gen_comm)
     switch (STATE(i))
     {
     case CON_OEDIT:
+    case CON_IEDIT:
     case CON_REDIT:
     case CON_ZEDIT:
     case CON_MEDIT:

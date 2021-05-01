@@ -1576,6 +1576,7 @@ const char *connected_types[] = {
     "House Edit",
     "Composing Mail Message",
     "Confirm Premade",
+    "Iedit Menu",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
 CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);

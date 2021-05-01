@@ -1065,7 +1065,8 @@
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT    /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE CON_CRAFTEDIT /**< The last CON_ state that is an OLC  */
-#define NUM_CON_STATES 50
+#define CON_IEDIT 50
+#define NUM_CON_STATES 51
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -3113,6 +3114,8 @@ struct obj_data
     long missile_id; //non saving variable to id missiles
 
     struct weapon_spells channel_spells[MAX_WEAPON_CHANNEL_SPELLS];
+
+    mob_vnum mob_recepient; // if this is set, then the object can only be given to a mob with this vnum (or any player)
 };
 
 /** Instance info for an object that gets saved to disk.

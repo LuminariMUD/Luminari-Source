@@ -2902,6 +2902,7 @@ void close_socket(struct descriptor_data *d)
   switch (d->connected)
   {
   case CON_OEDIT:
+  case CON_IEDIT:
   case CON_REDIT:
   case CON_ZEDIT:
   case CON_MEDIT:

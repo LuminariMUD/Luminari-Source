@@ -264,7 +264,7 @@ void initialize_special_abilities(void)
   add_weapon_special_ability(WEAPON_SPECAB_UNHOLY, "Unholy", 7, ACTMTD_NONE,
                              TAR_IGNORE, FALSE, 0, EVOCATION, 2, NULL);
 
-  add_weapon_special_ability(WEAPON_SPECAB_VAMPIRIC, "Vampiric", 18, ACTMTD_NONE,
+  add_weapon_special_ability(WEAPON_SPECAB_VAMPIRIC, "Vampiric", 18, ACTMTD_ON_HIT | ACTMTD_ON_CRIT | ACTMTD_COMMAND_WORD,
                              TAR_IGNORE, FALSE, 0, NECROMANCY /* TRANSMUTATION TOO */, 5, weapon_specab_vampiric);
 
   add_weapon_special_ability(WEAPON_SPECAB_VICIOUS, "Vicious", 9, ACTMTD_ON_HIT | ACTMTD_COMMAND_WORD,

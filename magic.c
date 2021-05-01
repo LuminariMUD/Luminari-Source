@@ -7074,6 +7074,8 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
 {
   int spell = 0, msg_not_affected = TRUE, affect = 0, affect2 = 0, found = FALSE;
   const char *to_vict = NULL, *to_char = NULL, *to_notvict = NULL;
+  int i = 0;
+  struct obj_data *eq = NULL;
 
   struct affected_type *af = NULL;
 
@@ -7110,6 +7112,27 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     to_char = "You remove the curse from $N.";
     to_vict = "$n removes the curse upon you.";
     to_notvict = "$N briefly glows blue.";
+    for (i = 0; i < NUM_WEARS; i++)
+    {
+      eq = GET_EQ(ch, i);
+      if (eq && OBJ_FLAGGED(eq, ITEM_NODROP))
+      {
+        REMOVE_BIT_AR(GET_OBJ_EXTRA(eq), ITEM_NODROP);
+        if (GET_OBJ_TYPE(eq) == ITEM_WEAPON)
+          GET_OBJ_VAL(eq, 2)++;
+        to_char = "$p briefly glows blue.";
+      }
+    }
+    for (eq = ch->carrying; eq; eq = eq->next_content)
+    {
+      if (eq && OBJ_FLAGGED(eq, ITEM_NODROP))
+      {
+        REMOVE_BIT_AR(GET_OBJ_EXTRA(eq), ITEM_NODROP);
+        if (GET_OBJ_TYPE(eq) == ITEM_WEAPON)
+          GET_OBJ_VAL(eq, 2)++;
+        to_char = "$p briefly glows blue.";
+      }
+    }
     break;
 
   case SPELL_REMOVE_DISEASE:
