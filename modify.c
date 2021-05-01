@@ -219,6 +219,7 @@ void string_add(struct descriptor_data *d, char *str)
     case CON_REDIT:
     case CON_MEDIT:
     case CON_OEDIT:
+    case CON_IEDIT:
     case CON_PLR_DESC:
     case CON_TRIGEDIT:
     case CON_HEDIT:

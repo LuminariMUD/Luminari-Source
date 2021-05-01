@@ -396,6 +396,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"imbibe", "imb", POS_SITTING, do_gen_cast, 1, SCMD_CAST_EXTRACT, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"imotd", "imo", POS_DEAD, do_gen_ps, LVL_IMMORT, SCMD_IMOTD, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"immlist", "imm", POS_DEAD, do_gen_ps, 0, SCMD_IMMLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1854,6 +1855,7 @@ void nanny(struct descriptor_data *d, char *arg)
     void (*func)(struct descriptor_data *, char *);
   } olc_functions[] = {
       {CON_OEDIT, oedit_parse},
+      {CON_IEDIT, oedit_parse},
       {CON_ZEDIT, zedit_parse},
       {CON_SEDIT, sedit_parse},
       {CON_MEDIT, medit_parse},

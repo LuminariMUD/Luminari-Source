@@ -348,6 +348,11 @@ int save_objects(zone_rnum zone_num)
       fprintf(fp, "I\n"
                   "%d\n",
               GET_OBJ_SIZE(obj));
+      
+      // J:  vnum of mob that can receive item
+      fprintf(fp, "J\n"
+                  "%d\n",
+              obj->mob_recepient);
 
       // S:  weapon spells
       for (counter2 = 0; counter2 < MAX_WEAPON_SPELLS; counter2++)

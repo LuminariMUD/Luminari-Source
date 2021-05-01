@@ -118,6 +118,7 @@ struct oasis_olc_data
    /* NewCraft */
    struct craft_data *craft;     /* used for 'craftedit'     */
    struct requirement_data *req; /*           ditto          */
+   struct obj_data *iobj;         /* used for 'iedit'         */
 
    /* Wilderness editing */
    struct region_data *region; /* Used for 'regedit' */
@@ -147,6 +148,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_STORAGE(d) (OLC(d)->storage) /**< char pointer.	*/
 #define OLC_ROOM(d) (OLC(d)->room)       /**< Room structure.	*/
 #define OLC_OBJ(d) (OLC(d)->obj)         /**< Object structure.	*/
+#define OLC_IOBJ(d) 	(OLC(d)->iobj)		/* Individual object structure.	*/
 #define OLC_ZONE(d) (OLC(d)->zone)       /**< Zone structure.	*/
 #define OLC_MOB(d) (OLC(d)->mob)         /**< Mob structure.	*/
 #define OLC_SHOP(d) (OLC(d)->shop)       /**< Shop structure.	*/
@@ -263,6 +265,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OEDIT_APPLY_BONUS_TYPE 53
 #define OEDIT_APPLYSPEC 54
 #define OEDIT_APPLY_SPECIFIC 55
+#define OEDIT_MOB_RECIPIENT 56
 
 /* Submodes of REDIT connectedness. */
 #define REDIT_MAIN_MENU 1
@@ -662,6 +665,10 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator);
 void oedit_disp_armor_type_menu(struct descriptor_data *d);
 void oedit_disp_weapon_type_menu(struct descriptor_data *d);
 ACMD_DECL(do_oasis_oedit);
+
+// iedit
+void iedit_setup_existing(struct descriptor_data *d, struct obj_data *obj);
+ACMD_DECL(do_iedit);
 
 /* public functions from redit.c */
 void redit_setup_existing(struct descriptor_data *d, int rnum);

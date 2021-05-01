@@ -1432,7 +1432,7 @@ void char_from_furniture(struct char_data *ch);
 #define STATE(d) ((d)->connected)
 
 /** Defines whether d is using an OLC or not. */
-#define IS_IN_OLC(d) ((STATE(d) >= FIRST_OLC_STATE) && (STATE(d) <= LAST_OLC_STATE))
+#define IS_IN_OLC(d) (((STATE(d) >= FIRST_OLC_STATE) && (STATE(d) <= LAST_OLC_STATE)) || STATE(d) == CON_IEDIT)
 
 /** Defines whether d is playing or not. */
 #define IS_PLAYING(d) (IS_IN_OLC(d) || STATE(d) == CON_PLAYING)

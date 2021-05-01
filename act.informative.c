@@ -3630,6 +3630,8 @@ ACMD(do_who)
 
         if (d->connected == CON_OEDIT)
           send_to_char(ch, " (Object Edit)");
+        if (d->connected == CON_IEDIT)
+          send_to_char(ch, " (Object Edit)");
         if (d->connected == CON_MEDIT)
           send_to_char(ch, " (Mobile Edit)");
         if (d->connected == CON_ZEDIT)

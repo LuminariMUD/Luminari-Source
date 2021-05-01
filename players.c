@@ -740,6 +740,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'G':
         if (!strcmp(tag, "Gold"))
           GET_GOLD(ch) = atoi(line);
+        else if (!strcmp(tag, "GMCP") && ch->desc)
+          ch->desc->pProtocol->bGMCP = atoi(line);
         else if (!strcmp(tag, "GrDs"))
           GET_GRAND_DISCOVERY(ch) = atoi(line);
         else if (!strcmp(tag, "GTCT"))
@@ -1062,6 +1064,11 @@ int load_char(const char *name, struct char_data *ch)
         }
         break;
 
+      case 'U':
+        if (!strcmp(tag, "UTF8") && ch->desc)
+          ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = atoi(line);
+        break;
+
       case 'V':
         if (!strcmp(tag, "Vars"))
           read_saved_vars_ascii(fl, ch, atoi(line));
@@ -1078,6 +1085,11 @@ int load_char(const char *name, struct char_data *ch)
           load_warding(fl, ch);
         else if (!strcmp(tag, "Wis "))
           GET_REAL_WIS(ch) = atoi(line);
+        break;
+
+      case 'X':
+        if (!strcmp(tag, "XTrm") && ch->desc)
+          ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = atoi(line);
         break;
 
       default:
@@ -1592,6 +1604,13 @@ void save_char(struct char_data *ch, int mode)
   {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
       fprintf(fl, "Trig: %d\n", GET_TRIG_VNUM(t));
+  }
+
+  if (ch->desc)
+  {
+    fprintf(fl, "GMCP: %d\n", ch->desc->pProtocol->bGMCP);
+    fprintf(fl, "XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt);
+    fprintf(fl, "UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
   }
 
   if (GET_PREMADE_BUILD_CLASS(ch) != PFDEF_PREMADE_BUILD)

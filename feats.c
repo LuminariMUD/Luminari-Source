@@ -3361,8 +3361,8 @@ void assign_feats(void)
         "Can use dragon magic",
         "Can use dragon magic.  Command is dragonmagic.");
   feato(FEAT_EPIC_WILDSHAPE, "epic wildshape", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
-        "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.",
-        "Each rank gives +1 to strength, constitution, decterity and natural armor class when wildshaped.  Max 5 ranks.");
+        "Each rank gives +1 to strength, constitution, dexterity and natural armor class when wildshaped.",
+        "Each rank gives +1 to strength, constitution, dexterity and natural armor class when wildshaped.  Max 5 ranks.");
 
   /* Assassin */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
