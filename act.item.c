@@ -5418,6 +5418,12 @@ void invoke_staff(struct char_data *ch, char *argument)
 ACMD(do_use_consumable)
 {
 
+  if (!PRF_FLAGGED(ch, PRF_USE_STORED_CONSUMABLES))
+  {
+    do_use(ch, argument, 0, subcmd);
+    return;
+  }
+
   if (!is_action_available(ch, atSWIFT, FALSE))
   {
     send_to_char(ch, "You have already used your swift action this round.\r\n");

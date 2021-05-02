@@ -6209,6 +6209,9 @@ ACMD(do_gen_tog)
       /* 44 */
       {"You will now allow charmies to rescue you and other group members.\r\n",
        "You will no longer allow charmies to rescue you and other group members\r\n"},
+      /* 45 */
+      {"You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
+       "You will no use the stock consumables system (HELP USE).\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -6216,6 +6219,9 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+  case SCMD_USE_STORED_CONSUMABLES:
+    result = PRF_TOG_CHK(ch, PRF_USE_STORED_CONSUMABLES);
+    break;
   case SCMD_NOCHARMIERESCUES:
     result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);
     break;
