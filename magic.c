@@ -3856,7 +3856,7 @@ case PSIONIC_BODY_OF_IRON:
       return;
     }
 
-    af[0].duration = caster_level * 1000;
+    af[0].duration = 600;
     SET_BIT_AR(af[0].bitvector, AFF_DISEASE);
     to_vict = "You feel a powerful necromantic disease overcome you.";
     to_room = "$n suffers visibly as a powerful necromantic disease strikes $m!";

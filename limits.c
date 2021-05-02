@@ -203,8 +203,7 @@ void affliction_tick(struct char_data *ch)
     else if (GET_HIT(ch) > (GET_MAX_HIT(ch) * 3 / 5))
     {
       send_to_char(ch, "The \tYdisease\tn you have causes you to suffer!\r\n");
-      act("$n suffers from a \tYdisease\tn!", TRUE, ch, 0, NULL,
-          TO_ROOM);
+      act("$n suffers from a \tYdisease\tn!", TRUE, ch, 0, NULL, TO_ROOM);
       GET_HIT(ch) = GET_MAX_HIT(ch) * 3 / 5;
     }
   }
