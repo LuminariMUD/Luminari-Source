@@ -2061,6 +2061,45 @@ ACMDU(do_gen_cast)
                 }
         }
 
+        circle = compute_spells_circle(GET_CASTING_CLASS(ch), spellnum, 0, 0);
+
+        switch (GET_CASTING_CLASS(ch))
+        {
+                case CLASS_WIZARD:
+                case CLASS_ALCHEMIST:
+                case CLASS_PSIONICIST:
+                        if ((10 + circle) > GET_INT(ch))
+                        {
+                        send_to_char(ch, "You need to have a minimum intelligence of %d to %s a circle %d %s.\r\n",
+                                                10 + circle, GET_CASTING_CLASS(ch) == CLASS_WIZARD ? "cast" : 
+                                                ((GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST) ? "imbibe" : "manifest"),
+                                                circle, GET_CASTING_CLASS(ch) == CLASS_WIZARD ? "spell" : 
+                                                ((GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST) ? "extract" : "power"));
+                        return;
+                        }
+                        break;
+                case CLASS_CLERIC:
+                case CLASS_DRUID:
+                case CLASS_PALADIN:
+                case CLASS_RANGER:
+                        if ((10 + circle) > GET_WIS(ch))
+                        {
+                                send_to_char(ch, "You need to have a minimum wisdom of %d to cast a circle %d spell.\r\n",
+                                                 10 + circle, circle);
+                                return;
+                        }
+                        break;
+                case CLASS_BARD:
+                case CLASS_SORCERER:
+                        if ((10 + circle) > GET_CHA(ch))
+                        {
+                                send_to_char(ch, "You need to have a minimum charisma of %d to cast a circle %d spell.\r\n",
+                                                 10 + circle, circle);
+                                return;
+                        }
+                        break;
+        }
+
         /* further restrictions, this needs updating!
         * what we need to do is loop through the class-array to find the min. stat
         * then compare to the classes - spell-level vs stat
