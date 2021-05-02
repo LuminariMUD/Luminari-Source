@@ -697,6 +697,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"unstore", "unstore", POS_FIGHTING, do_unstore, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"uptime", "uptime", POS_DEAD, do_date, LVL_STAFF, SCMD_UPTIME, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"use", "use", POS_FIGHTING, do_use_consumable, 0, SCMD_USE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
+    {"usestoredconsumables", "usestoredconsumables", POS_DEAD, do_gen_tog, 0, SCMD_USE_STORED_CONSUMABLES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"users", "users", POS_DEAD, do_users, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"utter", "ut", POS_RECLINING, do_utter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unadjure", "unadjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},

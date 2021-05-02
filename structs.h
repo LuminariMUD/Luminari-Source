@@ -853,9 +853,10 @@
 #define PRF_NO_CHARMIE_RESCUE 53 // charmie mobs won't rescue you
 #define PRF_SEEK_ENCOUNTERS 54 // will try to find random encounters in wilderness
 #define PRF_AVOID_ENCOUNTERS 55 // will try to avoid random encounters in wilderness
+#define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 56
+#define NUM_PRF_FLAGS 57
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

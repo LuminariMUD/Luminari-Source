@@ -1258,6 +1258,7 @@ const char *preference_bits[] = {
     "No-Charmie-Rescues",
     "Seek-Encounters",
     "Avoid-Encoutners",
+    "Use-Stored-Consumables",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 

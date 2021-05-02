@@ -154,8 +154,8 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
                PREFEDIT_FLAGGED(PRF_AVOID_ENCOUNTERS) ? "Avoid" : (PREFEDIT_FLAGGED(PRF_SEEK_ENCOUNTERS) ? "Seek" : "Default"), 
                CCCYN(d->character, C_NRM));              
 
-  send_to_char(d->character, "%sT%s) Toggle Preferences...\r\n",
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character, "%sT%s) Toggle Preferences...\r\n", CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+  send_to_char(d->character, "%sM%s) More Preferences...\r\n", CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
 
   /* Imm Prefs */
   if (GET_LEVEL(PREFEDIT_GET_CHAR) >= LVL_IMMORT)
@@ -197,6 +197,36 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Bottom of the menu */
 
   OLC_MODE(d) = PREFEDIT_MAIN_MENU;
+}
+
+static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
+{
+  struct char_data *vict;
+
+  /* Set up the required variables and strings */
+  vict = OLC_PREFS(d)->ch;
+
+  /* Top of the menu */
+  send_to_char(d->character, "Toggle preferences for %s%-20s\r\n",
+               CBGRN(d->character, C_NRM), GET_NAME(vict));
+
+  send_to_char(d->character, "\r\n"
+                             "%sAuto-flags                 Channels\r\n",
+               CBWHT(d->character, C_NRM));
+
+  /* The top section of the actual menu */
+  send_to_char(d->character, "%s1%s) Use Stored Consumables %s[%s%3s%s]    \r\n",
+               /* Line 1 (1) - use stored consumables */
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), 
+               PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES)), CCCYN(d->character, C_NRM)
+               /*end*/);
+
+  /* Finishing Off */
+  send_to_char(d->character, "%sQ%s) Quit extra toggle preferences...\r\n",
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
+
+  OLC_MODE(d) = PREFEDIT_EXTRA_TOGGLE_MENU;
 }
 
 static void prefedit_disp_toggles_menu(struct descriptor_data *d)
@@ -492,6 +522,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     case 't':
     case 'T':
       prefedit_disp_toggles_menu(d);
+      return;
+
+    case 'm':
+    case 'M':
+      prefedit_extra_disp_toggles_menu(d);
       return;
 
     case 'd':
@@ -828,6 +863,30 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     /* Set the 'value has changed' flag thing */
     OLC_VAL(d) = 1;
     prefedit_disp_toggles_menu(d);
+
+    return;
+
+  case PREFEDIT_EXTRA_TOGGLE_MENU:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+    case 'x':
+    case 'X':
+      prefedit_disp_main_menu(d);
+      return;
+
+    case '1':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_USE_STORED_CONSUMABLES);
+      break;
+
+     default:
+      send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
+      return;
+    }
+    /* Set the 'value has changed' flag thing */
+    OLC_VAL(d) = 1;
+    prefedit_extra_disp_toggles_menu(d);
 
     return;
 
