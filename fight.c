@@ -7121,12 +7121,12 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
-    if (dam && victim && GET_HIT(victim) >= -1 && affected_by_spell(ch, PSIONIC_EMPATHIC_FEEDBACK))
+    if (dam && victim && GET_HIT(victim) >= -1 && affected_by_spell(victim, PSIONIC_EMPATHIC_FEEDBACK))
     {
       if (!power_resistance(ch, victim, 0))
         if (!is_immune_mind_affecting(ch, victim, 0))
           if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_SPELL, GET_PSIONIC_LEVEL(ch), 0))
-            return_val = damage(ch, victim, dice(4, get_char_affect_modifier(ch, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)), PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
+            return_val = damage(victim, ch, dice(4, get_char_affect_modifier(victim, PSIONIC_EMPATHIC_FEEDBACK, APPLY_SPECIAL)), PSIONIC_EMPATHIC_FEEDBACK, DAM_MENTAL, attack_type);
     }
     if (dam && affected_by_spell(victim, PSIONIC_ENERGY_RETORT) && !victim->char_specials.energy_retort_used)
     {
@@ -7139,23 +7139,24 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
       }
 
       // let's do this now, because if resisted we don't need to worry about below code.
-      power_resistance(victim, ch, power_resist_bonus);
-
-      if (energy == DAM_COLD)
-        save_type = SAVING_FORT;
-      else
-        save_type = SAVING_REFL;
-      
-      if (energy == DAM_FIRE || energy == DAM_COLD || energy == DAM_ACID)
-        dam_bonus = 4;
-      
-      if (mag_savingthrow(victim, ch, save_type, 0, CAST_SPELL, GET_PSIONIC_LEVEL(victim), 0))
+      if (!power_resistance(victim, ch, power_resist_bonus))
       {
-       return_val = damage(victim, ch, (dice(4, 6) + dam_bonus) / 2, PSIONIC_ENERGY_RETORT, energy, attack_type);
-      }
-      else
-      {
-        return_val = damage(victim, ch, dice(4, 6) + dam_bonus, PSIONIC_ENERGY_RETORT, energy, attack_type);
+        if (energy == DAM_COLD)
+          save_type = SAVING_FORT;
+        else
+          save_type = SAVING_REFL;
+        
+        if (energy == DAM_FIRE || energy == DAM_COLD || energy == DAM_ACID)
+          dam_bonus = 4;
+        
+        if (mag_savingthrow(victim, ch, save_type, 0, CAST_SPELL, GET_PSIONIC_LEVEL(victim), 0))
+        {
+        return_val = damage(victim, ch, (dice(4, 6) + dam_bonus) / 2, PSIONIC_ENERGY_RETORT, energy, attack_type);
+        }
+        else
+        {
+          return_val = damage(victim, ch, dice(4, 6) + dam_bonus, PSIONIC_ENERGY_RETORT, energy, attack_type);
+        }
       }
     }
   }

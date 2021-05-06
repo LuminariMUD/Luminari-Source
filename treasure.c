@@ -1132,7 +1132,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
           if (loop_counter >= 999)
             return;
         } while (spell_level < spell_info[spell_num].min_level[class] ||
-                !valid_item_spell(spell_num));
+                !valid_item_spell(spell_num) || spell_info[spell_num].violent);
         break;
     }
   } else {
