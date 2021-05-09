@@ -3128,19 +3128,25 @@ ACMD(do_breathe)
   snprintf(buf, sizeof(buf), "$n exhales breathing %s!", damtypes[dam_type]);
   act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
+  int dam = dice(GET_LEVEL(ch), GET_LEVEL(ch) > 30 ? 14 : 6);
+  if (IS_MORPHED(ch))
+    dam = dice(cast_level, 6);
+
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
     next_vict = vict->next_in_room;
 
     if (aoeOK(ch, vict, SPELL_FIRE_BREATHE))
     {
+      if (process_iron_golem_immunity(ch, vict, dam_type, dam))
+        continue;
       if (IS_MORPHED(ch))
       {
-        damage(ch, vict, dice(cast_level, 6), spellnum, dam_type, FALSE);
+        damage(ch, vict, dam, spellnum, dam_type, FALSE);
       }
       else
       {
-          damage(ch, vict, dice(GET_LEVEL(ch), GET_LEVEL(ch) > 30 ? 14 : 6), SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+          damage(ch, vict, dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
       }
     }
   }
@@ -4352,18 +4358,22 @@ ACMD(do_sorcerer_breath_weapon)
   snprintf(to_room, sizeof(to_room), "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)));
   act(to_room, FALSE, ch, 0, 0, TO_ROOM);
 
+  int damtype = draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)];
+  int dam = 0;
+  if (GET_LEVEL(ch) <= 15)
+    dam = dice(GET_LEVEL(ch), 6);
+  else
+    dam = dice(GET_LEVEL(ch), 14);
+
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
     next_vict = vict->next_in_room;
 
     if (aoeOK(ch, vict, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON))
     {
-      if (GET_LEVEL(ch) <= 15)
-        damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, DAM_FIRE,
-               FALSE);
-      else
-        damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, DAM_FIRE,
-               FALSE);
+      if (process_iron_golem_immunity(ch, vict, damtype, dam))
+        continue;
+        damage(ch, vict, dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, damtype, FALSE);
     }
   }
   if (!IS_NPC(ch))
