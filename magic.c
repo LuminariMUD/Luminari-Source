@@ -1865,32 +1865,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     return 1;
   }
 
-  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_FIRE)
-  {
-    GET_HIT(victim) += dam;
-    if (GET_HIT(victim) > GET_MAX_HIT(victim))
-      GET_HIT(victim) = GET_MAX_HIT(victim);
-    act("The spell heals you instead!", TRUE, ch, 0, victim, TO_VICT);
-    act("The spell heals $N instead!", TRUE, ch, 0, victim, TO_ROOM);
+  if (process_iron_golem_immunity(ch, victim, element, dam))
     return 1;
-  }
-  if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && element == DAM_ELECTRIC)
-  {
-    struct affected_type af;
-    new_affect(&af);
-    af.spell = SPELL_SLOW;
-    af.duration = 3;
-    SET_BIT_AR(af.bitvector, AFF_SLOW);
-    affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
-    act("The spell deals no damage, but slows you instead!", TRUE, ch, 0, victim, TO_CHAR);
-    act("The spell deals no damage, but slows $N instead!", TRUE, ch, 0, victim, TO_ROOM);
-    return 1;
-  }
 
   //resistances to magic, message in mag_resistance
   if (dam && mag_resist)
   {
-    if (HAS_FEAT(victim, FEAT_IRON_GOLEM_IMMUNITY) && (element == DAM_FIRE || element == DAM_ELECTRIC))
+    if (process_iron_golem_immunity(ch, victim, element, dam))
       ;
     else {
       if (is_spellnum_psionic(spellnum))
