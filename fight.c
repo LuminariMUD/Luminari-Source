@@ -57,7 +57,7 @@ struct char_data *combat_list = NULL;
 
 // external functions
 void save_char_pets(struct char_data *ch);
-
+bool is_using_keen_weapon(struct char_data *ch);
 int hands_used(struct char_data *ch);
 
 /* Weapon attack texts
@@ -4371,14 +4371,11 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
     threat_range = 20;
 
   /* mods */
-  if (wielded && obj_has_special_ability(wielded, WEAPON_SPECAB_KEEN))
-  {
-    threat_range -= weapon_list[GET_OBJ_VAL(wielded, 0)].critRange;
-  }
-  else if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) )
+  if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) || is_using_keen_weapon(ch))
   { /* Check the weapon type, make sure it matches. */
-    if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
+    if ((((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_IMPROVED_CRITICAL), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
+        || is_using_keen_weapon(ch))
     {
       if ((wielded == NULL) || weapon_list[GET_OBJ_VAL(wielded, 0)].critRange == 0)
       {
