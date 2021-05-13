@@ -897,8 +897,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       return (0);
     if (is_immune_mind_affecting(ch, victim, 0))
       return (0);
-    // saving throw is handled special below
-    
+    // saving throw is handled special below    
     
     bonus = GET_AUGMENT_PSP(ch) / 2;
     save = SAVING_WILL;
@@ -1971,7 +1970,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   else if (spellnum == PSIONIC_PSYCHIC_CRUSH)
   {
     GET_DC_BONUS(ch) += bonus - 4;
-    if (!mag_savingthrow(ch, victim, save, race_bonus, SAVING_WILL, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, save, race_bonus, SAVING_WILL, level, NOSCHOOL))
       dam = dice(3 + bonus, 6);
     else
       dam = GET_HIT(victim) + 100;
@@ -2849,13 +2848,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n becomes crazed and begins to harm $mself!";
     break;
 
-  case PSIONIC_EMPATHIC_FEEDBACK:
-    
-    
-    
+  case PSIONIC_EMPATHIC_FEEDBACK:  
     af[0].duration = level * 120;
     af[0].location = APPLY_SPECIAL;
-    af[0].modifier = 6 + (GET_AUGMENT_PSP(ch) / 3 * 2);
+    af[0].modifier = MIN(10, 6 + (GET_AUGMENT_PSP(ch) * 2 / 3));
     to_vict = "You gain the ability reflect melee damage back on your attacker as psychic damage.";
     
     break;
@@ -2940,7 +2936,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     af[0].duration = level;
     af[0].location = APPLY_STR;
-    af[0].modifier = dice(2 + (GET_AUGMENT_PSP(ch) / 4), 4);
+    af[0].modifier = -dice(2 + (GET_AUGMENT_PSP(ch) / 4), 4);
     af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
     if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
       af[0].modifier /= 2;

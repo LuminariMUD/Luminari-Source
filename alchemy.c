@@ -2093,7 +2093,7 @@ ACMDCHECK(can_swallow)
   return CAN_CMD;
 }
 
-void perform_mutagen(struct char_data *ch, char *arg2)
+void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 {
   /* dummy check */
   if (!ch)
@@ -2115,7 +2115,10 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   new_affect(&af6);
   new_affect(&af7);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  if (alchemical_bonus)
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  else
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2203,7 +2206,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
     af.modifier  = af5.modifier = af3.modifier = af4.modifier = 8;
-    af2.modifier = af6.modifier = af7.modifier;
+    af6.modifier = af7.modifier = af2.modifier;
     af2.location = APPLY_INT;
     af6.location = APPLY_WIS;
     af7.location = APPLY_CHA;
@@ -2222,6 +2225,14 @@ void perform_mutagen(struct char_data *ch, char *arg2)
   else
   {
     af5.modifier = 2;
+  }
+
+  if (alchemical_bonus)
+  {
+    af.modifier /= 2;
+    af3.modifier /= 2;
+    af4.modifier /= 2;
+    af5.modifier /= 2;
   }
 
   if (af.modifier != 0)
@@ -2276,7 +2287,7 @@ void perform_mutagen(struct char_data *ch, char *arg2)
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
 }
 
-void perform_elemental_mutagen(struct char_data *ch, char *arg2)
+void perform_elemental_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 {
   /* dummy check */
   if (!ch)
@@ -2293,7 +2304,10 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
   new_affect(&af);
   new_affect(&af2);
 
-  af.bonus_type = af2.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  if (alchemical_bonus)
+    af.bonus_type = af2.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  else
+    af.bonus_type = af2.bonus_type = BONUS_TYPE_ENHANCEMENT;
   af.modifier = af2.modifier = 5;
 
   /* duration */
@@ -2346,6 +2360,12 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
     af2.modifier += 2;
   }
 
+  if (alchemical_bonus)
+  {
+    af.modifier /= 2;
+    af2.modifier /= 2;
+  }
+
   if (af.modifier != 0)
   {
     af.spell = SKILL_MUTAGEN;
@@ -2368,7 +2388,7 @@ void perform_elemental_mutagen(struct char_data *ch, char *arg2)
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
 }
 
-void perform_cognatogen(struct char_data *ch, char *arg2)
+void perform_cognatogen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 {
   /* dummy check */
   if (!ch)
@@ -2390,7 +2410,10 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
   new_affect(&af6);
   new_affect(&af7);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  if (alchemical_bonus)
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  else
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = af6.bonus_type = af7.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2496,6 +2519,14 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
     af5.modifier = 2;
   }
 
+  if (alchemical_bonus)
+  {
+    af.modifier /= 2;
+    af3.modifier /= 2;
+    af4.modifier /= 2;
+    af5.modifier /= 2;
+  }
+
   if (af.modifier != 0)
   {
     af.spell = SKILL_COGNATOGEN;
@@ -2548,7 +2579,7 @@ void perform_cognatogen(struct char_data *ch, char *arg2)
     start_daily_use_cooldown(ch, FEAT_MUTAGEN);
 }
 
-void perform_inspiring_cognatogen(struct char_data *ch)
+void perform_inspiring_cognatogen(struct char_data *ch, bool alchemical_bonus)
 {
   /* dummy check */
   if (!ch)
@@ -2569,7 +2600,10 @@ void perform_inspiring_cognatogen(struct char_data *ch)
   new_affect(&af5);
   new_affect(&af6);
 
-  af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  if (alchemical_bonus)
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ALCHEMICAL;
+  else
+    af.bonus_type = af2.bonus_type = af3.bonus_type = af4.bonus_type = af5.bonus_type = BONUS_TYPE_ENHANCEMENT;
 
   /* duration */
   duration = 100 * CLASS_LEVEL(ch, CLASS_ALCHEMIST);
@@ -2603,6 +2637,14 @@ void perform_inspiring_cognatogen(struct char_data *ch)
   {
     af.modifier = 2;
     af5.modifier = 2;
+  }
+
+  if (alchemical_bonus)
+  {
+    af.modifier /= 2;
+    af2.modifier /= 2;
+    af5.modifier /= 2;
+    af6.modifier /= 2;
   }
 
   if (af.modifier != 0)
@@ -2649,7 +2691,8 @@ ACMD(do_swallow)
   if (!ch)
     return;
 
-  char arg1[100], arg2[100];
+  char arg1[100], arg2[100], arg3[200];
+  bool alchemical_bonus = false;
 
   // If currently raging, all this does is stop.
   if (affected_by_spell(ch, SKILL_MUTAGEN))
@@ -2673,7 +2716,7 @@ ACMD(do_swallow)
 
   PREREQ_CHECK(can_swallow);
 
-  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+  three_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2), arg3, sizeof(arg3));
 
   if (!*arg1)
   {
@@ -2688,7 +2731,7 @@ ACMD(do_swallow)
       send_to_char(ch, "Do you want your mutagen to affect your strength (-int), dexterity (-wis) or constitution (-cha)?\r\n");
       return;
     }
-    perform_mutagen(ch, strdup(arg2));
+    perform_mutagen(ch, strdup(arg2), alchemical_bonus);
   }
   else if (is_abbrev(arg1, "elemental-mutagen"))
   {
@@ -2703,7 +2746,7 @@ ACMD(do_swallow)
                        "You will gain resistance 5 in the associated element and +5 to the associated skill.\r\n");
       return;
     }
-    perform_elemental_mutagen(ch, strdup(arg2));
+    perform_elemental_mutagen(ch, strdup(arg2), alchemical_bonus);
   }
   else if (is_abbrev(arg1, "cognatogen"))
   {
@@ -2717,7 +2760,7 @@ ACMD(do_swallow)
       send_to_char(ch, "Do you want your cognatogen to affect your intelligence (-str), wisdom (-dex) or charisma (-con)?\r\n");
       return;
     }
-    perform_cognatogen(ch, strdup(arg2));
+    perform_cognatogen(ch, strdup(arg2), alchemical_bonus);
   }
   else if (is_abbrev(arg1, "inspiring-cognatogen"))
   {
@@ -2726,7 +2769,7 @@ ACMD(do_swallow)
       send_to_char(ch, "You don't know how to prepare an isnpiring cognatogen.\r\n");
       return;
     }
-    perform_inspiring_cognatogen(ch);
+    perform_inspiring_cognatogen(ch, alchemical_bonus);
   }
   else
   {
