@@ -346,6 +346,9 @@ void travel_tickdown(void)
     if (IS_NPC(ch) || !ch->desc)
       continue;
 
+    if (STATE(ch->desc) != CON_PLAYING) continue;
+    if (IN_ROOM(ch) == NOWHERE) continue;
+
     if (world[IN_ROOM(ch)].number < 66700 || world[IN_ROOM(ch)].number > 66799)
       continue;
 

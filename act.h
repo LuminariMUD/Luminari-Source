@@ -702,6 +702,7 @@ ACMD_DECL(do_gen_memorize);
 #define SCMD_ADJURE 6
 #define SCMD_COMPOSE 7
 #define SCMD_CONCOCT 8
+#define SCMD_POWERS 9
 
 /*****************************************************************************
  * Begin Functions and defines for act.wizard.c
