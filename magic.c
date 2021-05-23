@@ -3196,7 +3196,7 @@ case PSIONIC_BODY_OF_IRON:
 
     new_dr->amount = 10;
     new_dr->max_damage = -1;
-    new_dr->spell = PSIONIC_BODY_OF_IRON;
+    new_dr->spell = PSIONIC_SHADOW_BODY;
     new_dr->feat = FEAT_UNDEFINED;
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;

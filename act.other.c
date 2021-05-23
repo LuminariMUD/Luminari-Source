@@ -4861,7 +4861,7 @@ ACMD(do_spells)
 
   two_arguments(argument, arg, sizeof(arg), arg1, sizeof(arg1));
 
-  if (!*arg && subcmd != SCMD_CONCOCT)
+  if (!*arg && subcmd != SCMD_CONCOCT && subcmd != SCMD_POWERS)
   {
     send_to_char(ch, "The spells command requires at least one argument - Usage:  spells <class name> <circle>\r\n");
   }
@@ -4869,6 +4869,8 @@ ACMD(do_spells)
   {
     if (subcmd == SCMD_CONCOCT)
       class = CLASS_ALCHEMIST;
+    else if (subcmd == SCMD_POWERS)
+      class = CLASS_PSIONICIST;
     else
       class = get_class_by_name(arg);
     if (class < 0 || class >= NUM_CLASSES)
@@ -4900,6 +4902,8 @@ ACMD(do_spells)
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (subcmd == SCMD_CONCOCT)
     send_to_char(ch, "\tDType 'extractlist' to see all of your extracts.\tn\r\n");
+  else if (subcmd == SCMD_POWERS)
+    send_to_char(ch, "\tDType 'powerslist' to see all possible powers.\tn\r\n");
   else
     send_to_char(ch, "\tDType 'spelllist <classname>' to see all your class spells\tn\r\n");
 }
@@ -4928,6 +4932,19 @@ ACMD(do_spelllist)
       if (circle < 1 || circle > 9)
       {
         send_to_char(ch, "That is an invalid extract circle!\r\n");
+        return;
+      }
+    }
+  }
+  else if (subcmd == SCMD_POWERS)
+  {
+    class = CLASS_PSIONICIST;
+    if (*arg)
+    {
+      circle = atoi(arg);
+      if (circle < 1 || circle > 9)
+      {
+        send_to_char(ch, "That is an invalid power circle!\r\n");
         return;
       }
     }
@@ -4965,6 +4982,8 @@ ACMD(do_spelllist)
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (subcmd == SCMD_CONCOCT)
     send_to_char(ch, "\tDType 'extracts' to see your currently known extracts\tn\r\n");
+  if (subcmd == SCMD_POWERS)
+    send_to_char(ch, "\tDType 'powers' to see your currently known powers\tn\r\n");
   else
     send_to_char(ch, "\tDType 'spells <classname>' to see your currently known spells\tn\r\n");
 }

@@ -184,15 +184,16 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
   case ITEM_SCROLL: /* 2 */ /* fallthrough */
   case ITEM_POTION:         /* 10 */
-    send_to_char(ch, "Spells: (Level %d) %s, %s, %s\r\n", GET_OBJ_VAL(item, 0),
-                 skill_name(GET_OBJ_VAL(item, 1)), skill_name(GET_OBJ_VAL(item, 2)),
-                 skill_name(GET_OBJ_VAL(item, 3)));
+    send_to_char(ch, "Spells: (Level %d) %s%s%s%s%s\r\n", GET_OBJ_VAL(item, 0),
+                 GET_OBJ_VAL(item, 1) > 0 ? spell_info[GET_OBJ_VAL(item, 1)].name : "", 
+                 GET_OBJ_VAL(item, 2) > 0 ? ", " : "", GET_OBJ_VAL(item, 2) > 0 ? spell_info[GET_OBJ_VAL(item, 2)].name : "",
+                 GET_OBJ_VAL(item, 3) > 0 ? ", " : "", GET_OBJ_VAL(item, 3) > 0 ? spell_info[GET_OBJ_VAL(item, 3)].name : "");
     break;
 
   case ITEM_WAND: /* 3 */ /* fallthrough */
   case ITEM_STAFF:        /* 4 */
     send_to_char(ch, "Spell: %s at level %d, %d (of %d) charges remaining\r\n",
-                 skill_name(GET_OBJ_VAL(item, 3)), GET_OBJ_VAL(item, 0),
+                 spell_info[GET_OBJ_VAL(item, 3)].name, GET_OBJ_VAL(item, 0),
                  GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 1));
     break;
 

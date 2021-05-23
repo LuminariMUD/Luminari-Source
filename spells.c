@@ -2240,7 +2240,7 @@ EVENTFUNC(event_concussive_onslaught)
   {
     if (!aoeOK(ch, victim, PSIONIC_CONCUSSIVE_ONSLAUGHT)) continue;
     if (power_resistance(ch, victim, 0)) continue;
-    GET_DC_BONUS(ch) += ch->player_specials->save_co_holder_dc_bonus;
+    GET_DC_BONUS(ch) = ch->player_specials->save_co_holder_dc_bonus;
     if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
       damage(ch, victim, (dice(ndice, sdice) / 2), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
     else
