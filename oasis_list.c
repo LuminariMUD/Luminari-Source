@@ -29,6 +29,7 @@
 #include "class.h"
 #include "genshp.h"
 #include "wilderness.h"
+#include "assign_wpn_armor.h"
 
 #define MAX_OBJ_LIST 100
 
@@ -1305,8 +1306,8 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
   }
 
   len = strlcpy(buf,
-                "Index VNum    #  D Object Name                                  Object Type\r\n"
-                "----- ------- -- - -------------------------------------------- ----------------\r\n",
+                "Index VNum    #  D Object Name                                    Object Type     Cost      Specific Type\r\n"
+                "----- ------- -- - ---------------------------------------------- ---------------- -------- -------------------------\r\n",
                 sizeof(buf));
 
   if (!top_of_objt)
@@ -1330,13 +1331,16 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
         }
       }
 
-      len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%s]%s%s\r\n",
+            len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%-14s]%s %8d %s%s%s %s\r\n",
                       QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM, num_found,
                       (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"),
-                      QCYN, count_color_chars(obj_proto[i].short_description) + 44,
+                      QCYN, count_color_chars(obj_proto[i].short_description) + 48,
                       obj_proto[i].short_description, QYEL,
                       item_types[obj_proto[i].obj_flags.type_flag], QNRM,
-                      obj_proto[i].proto_script ? " [TRIG]" : "");
+                      obj_proto[i].obj_flags.cost, QYEL,
+                      obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : 
+                      (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : ""),
+                      QNRM, obj_proto[i].proto_script ? " [TRIG]" : "");
 
       if (len > sizeof(buf))
         break;

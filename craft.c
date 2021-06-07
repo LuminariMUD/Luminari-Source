@@ -1792,7 +1792,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   if (GET_SKILL(ch, skill) / 3 < obj_level)
   {
     send_to_char(ch, "Your skill in %s (%d) is too low to create that item, you need %d.\r\n",
-                 spell_info[skill].name, GET_SKILL(ch, skill), obj_level * 3);
+                 skill_info[skill].name, GET_SKILL(ch, skill), obj_level * 3);
     return 1;
   }
 

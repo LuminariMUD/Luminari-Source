@@ -1632,6 +1632,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   "%sB%s) Timer       : %s%d\r\n"
                   "%sC%s) Values      : %s%d %d %d %d %d %d %d %d\r\n"
                   "                 %d %d %d %d %d %d %d %d\r\n"
+                  "%s%s%s"
                   "%sD%s) Applies menu\r\n"
                   "%sE%s) Extra descriptions menu: %s%s%s\r\n"
                   "%sF%s) Weapon Spells          : %s%s\r\n"
@@ -1660,6 +1661,10 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   GET_OBJ_VAL(obj, 4), GET_OBJ_VAL(obj, 5), GET_OBJ_VAL(obj, 6), GET_OBJ_VAL(obj, 7),
                   GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
                   GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
+                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? "Armor Type: " : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? "Weapon Type: " : ""),
+                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? armor_list[GET_OBJ_VAL(obj, 1)].name : 
+                  (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name : ""),
+                  (GET_OBJ_TYPE(obj) == ITEM_ARMOR || GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? "\r\n" : "",
                   grn, nrm, grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn,
                   grn, nrm, cyn, HAS_SPELLS(obj) ? "Set." : "Not set.",
                   grn, nrm, cyn, HAS_SPECIAL_ABILITIES(obj) ? "Set." : "Not Set.",
