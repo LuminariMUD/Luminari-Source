@@ -245,6 +245,7 @@ ACMD_DECL(do_track);
 ACMD_DECL(do_hp);
 ACMD_DECL(do_tnl);
 ACMD_DECL(do_moves);
+ACMD_DECL(do_divine_bond);
 
 /*****************************************************************************
  * Begin Functions and defines for rank.c

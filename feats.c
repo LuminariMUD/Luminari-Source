@@ -2516,7 +2516,7 @@ void assign_feats(void)
   feato(FEAT_DIVINE_BOND, "divine bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "bonuses to attack and damage rolls",
         "Hitroll and Damage bonus of 1 + paladin-level/3 for levels above 5, the "
-        "bonus caps at 6");
+        "bonus caps at 6, plus other benefits as your paladin level increases. See the divinebond command.");
   feato(FEAT_GLORIOUS_RIDER, "glorious rider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "use cha instead of dex for ride checks",
         "Normally ride checks for performing skills while mounted, uses your dexterity "
