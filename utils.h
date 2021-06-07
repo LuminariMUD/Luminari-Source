@@ -112,6 +112,8 @@ bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
 int compute_dexterity_bonus(struct char_data *ch);
 int damage_type_to_resistance_type(int type);
 int stats_point_left(struct char_data *ch);
+int smite_evil_target_type(struct char_data *ch);
+int smite_good_target_type(struct char_data *ch);
 int comp_total_stat_points(struct char_data *ch);
 int comp_cha_cost(struct char_data *ch, int number);
 int comp_base_cha(struct char_data *ch);
@@ -1855,6 +1857,9 @@ void char_from_furniture(struct char_data *ch);
 #define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) || \
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
                        (IS_IRON_GOLEM(ch)))
+#define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
+                          IS_ELEMENTAL(ch) || IS_EFREETI(ch) || \
+                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)

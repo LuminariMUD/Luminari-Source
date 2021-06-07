@@ -994,12 +994,16 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     /* do a climb check */
     int climb_dc = 13 + ZONE_MINLVL(GET_ROOM_ZONE(going_to));
     send_to_char(ch, "Climb DC: %d - ", climb_dc);
-    if (!skill_check(ch, ABILITY_CLIMB, climb_dc))
+    if (!skill_check(ch, ABILITY_CLIMB, climb_dc) && !AFF_FLAGGED(ch, AFF_FLYING))
     {
       send_to_char(ch, "You attempt to climb to that area, but fall and get hurt!\r\n");
       damage((ch), (ch), dice(climb_dc - 10, 4), -1, -1, -1);
       update_pos(ch);
       return 0;
+    }
+    else if (AFF_FLAGGED(ch, AFF_FLYING))
+    {
+      send_to_char(ch, "You fly up beyond the steep obstacle.: ");
     }
     else
     { /*success!*/

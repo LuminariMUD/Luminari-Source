@@ -3536,7 +3536,9 @@ void assign_feats(void)
   feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
   feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_DIEHARD, "diehard", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "will stay alive and conscious until -10 hp or lower", "will stay alive and conscious until -10 hp or lower");
+    feato(FEAT_DIEHARD, "diehard", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, 
+    "Gives you a 33% chance to avoid a killing blow.", 
+    "Gives you a 33% chance to avoid a killing blow.");
   feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
 
   feato(FEAT_IMPROVED_POWER_ATTACK, "improved power attack", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "unfinished", "unfinished");

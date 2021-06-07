@@ -4881,3 +4881,33 @@ bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim,
   }
   return false;
 }
+
+int smite_evil_target_type(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+  
+  if (!IS_EVIL(ch))
+    return 0;
+
+  if (IS_DRAGON(ch) || IS_OUTSIDER(ch) || IS_UNDEAD(ch))
+    return 2;
+  
+  return 1;
+}
+
+int smite_good_target_type(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  if (!IS_GOOD(ch))
+    return 0;
+  
+  if (IS_DRAGON(ch) || IS_OUTSIDER(ch) || 
+      CLASS_LEVEL(ch, CLASS_CLERIC) > 0 || 
+      CLASS_LEVEL(ch, CLASS_PALADIN) > 0)
+    return 2;
+  
+  return 1;
+}

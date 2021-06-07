@@ -5051,6 +5051,34 @@ SPECIAL(pet_shops)
     pet = read_mobile(GET_MOB_RNUM(pet), REAL);
     GET_EXP(pet) = 0;
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    if (GET_LEVEL(pet) <= 10)
+    {
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_1_10_HP / 100;
+      GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_1_10_AC / 100;
+      GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      pet->mob_specials.damnodice = pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      pet->mob_specials.damsizedice = pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+    }
+    else if (GET_LEVEL(pet) <= 20)
+    {
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_11_20_HP / 100;
+      GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_11_20_AC / 100;
+      GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      pet->mob_specials.damnodice = pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      pet->mob_specials.damsizedice = pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+    }
+    else
+    {
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) = GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_21_30_HP / 100;
+      GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_21_30_AC / 100;
+      GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      pet->mob_specials.damnodice = pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      pet->mob_specials.damsizedice = pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+    }
+    GET_HIT(pet) = GET_MAX_HIT(pet);
 
     if (*pet_name)
     {

@@ -2902,7 +2902,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
       ITEM_WEAR_ABOUT, ITEM_WEAR_WAIST, ITEM_WEAR_WRIST, ITEM_WEAR_WRIST,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_WIELD, ITEM_WEAR_TAKE,
       ITEM_WEAR_WIELD, ITEM_WEAR_TAKE, ITEM_WEAR_FACE, ITEM_WEAR_AMMO_POUCH,
-      ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE, };
+      ITEM_WEAR_EAR, ITEM_WEAR_EAR, ITEM_WEAR_EYES, ITEM_WEAR_BADGE };
 
   const char * const already_wearing[NUM_WEARS] = {
       "You're already using a light.\r\n",                                  //0
@@ -5154,6 +5154,8 @@ void quaff_potion(struct char_data *ch, char *argument)
     send_to_char(ch, "There is an error in quaffing that potion. Report to a staff member ERRQUAFF1.\r\n");
     return;
   }
+
+  spell_level = MAX(1, spell_level * 2 - 1);
 
   if (KNOWS_DISCOVERY(ch, ALC_DISC_ENHANCE_POTION) &&
     spell_level < CLASS_LEVEL(ch, CLASS_ALCHEMIST))

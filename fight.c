@@ -945,7 +945,18 @@ void update_pos_dam(struct char_data *victim)
   }
 
   if (GET_HIT(victim) <= -11)
-    change_position(victim, POS_DEAD);
+  {
+    if (HAS_REAL_FEAT(victim, FEAT_DIEHARD) && dice(1, 3) == 1)
+    {
+      act("\tYYour die hard toughness let's you push through.\tn", FALSE, victim, 0, 0, TO_CHAR);
+      act("$n's die hard toughness let's $m push through.", FALSE, victim, 0, 0, TO_ROOM);
+      GET_HIT(victim) = 1;
+    }
+    else
+    {
+      change_position(victim, POS_DEAD);
+    }
+  }
   else if (GET_HIT(victim) <= -6)
     change_position(victim, POS_MORTALLYW);
   else if (GET_HIT(victim) <= -3)
@@ -1149,6 +1160,16 @@ void stop_fighting(struct char_data *ch)
   /* Reset the combat data */
   GET_TOTAL_AOO(ch) = 0;
   REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+  if (affected_by_spell(ch, SKILL_SMITE_EVIL))
+  {
+    affect_from_char(ch, SKILL_SMITE_EVIL);
+    send_to_char(ch, "Your smite evil affect expires.\r\n");
+  }
+  if (affected_by_spell(ch, SKILL_SMITE_GOOD))
+  {
+    send_to_char(ch, "Your smite good affect expires.\r\n");
+    affect_from_char(ch, SKILL_SMITE_GOOD);
+  }
 }
 
 /* function for creating corpses, ch just died */
@@ -4063,25 +4084,20 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Crystal fist bonus: \tR3\tn\r\n");
   }
 
-  /* smite evil (remove after one attack) */
+ /* smite evil (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict && IS_EVIL(vict))
   {
     if (display_mode)
       send_to_char(ch, "Smite Evil bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_PALADIN));
-    dambonus += CLASS_LEVEL(ch, CLASS_PALADIN);
-    if (mode == MODE_NORMAL_HIT && !display_mode)
-      affect_from_char(ch, SKILL_SMITE_EVIL);
+    dambonus += CLASS_LEVEL(ch, CLASS_PALADIN) * smite_evil_target_type(vict);
   }
   /* smite good (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_GOOD) && vict && IS_GOOD(vict))
   {
-    /*
     if (display_mode)
       send_to_char(ch, "Smite Good bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_BLACKGUARD));
-    dambonus += CLASS_LEVEL(ch, CLASS_BLACKGUARD);
-    if (mode == MODE_NORMAL_HIT && !display_mode)
-      affect_from_char(ch, SKILL_SMITE_GOOD);
-    */
+    
+      dambonus += CLASS_LEVEL(ch, CLASS_BLACKGUARD) * smite_good_target_type(vict);
   }
   /* destructive smite (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION) && vict)
@@ -5896,10 +5912,19 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED]++;
   }
 
-  /* smite! */
-  if (affected_by_spell(ch, SKILL_SMITE_EVIL) || affected_by_spell(ch, SKILL_SMITE_GOOD))
+  if (ch && victim)
   {
-    bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(ch);
+    // add charisma bonus for a valid smite situation
+    if (affected_by_spell(ch, SKILL_SMITE_EVIL) && smite_evil_target_type(victim))
+      bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(victim);
+    if (affected_by_spell(ch, SKILL_SMITE_GOOD) && smite_good_target_type(victim))
+      bonuses[BONUS_TYPE_UNDEFINED] += GET_CHA_BONUS(victim);
+    
+    // smite gives a +4 bonus to ac against their current target.  We'll just translate into a -4 to hit for the opponent
+    if (affected_by_spell(victim, SKILL_SMITE_EVIL) && smite_evil_target_type(ch))
+      bonuses[BONUS_TYPE_UNDEFINED] -= 4;
+    if (affected_by_spell(victim, SKILL_SMITE_GOOD) && smite_good_target_type(ch))
+      bonuses[BONUS_TYPE_UNDEFINED] -= 4;
   }
 
   /* EPIC PROWESS feat stacks, +1 for each time the feat is taken. */

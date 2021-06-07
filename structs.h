@@ -365,6 +365,7 @@
 #define CLASS_SPELLSWORD 22
 #define CLASS_SHADOW_DANCER     23
 #define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
+#define CLASS_BLACKGUARD CLASS_PALADIN // temporarily set as paladin until fully implemented
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18

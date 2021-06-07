@@ -4065,7 +4065,7 @@ void load_class_list(void)
   assign_class_saves(CLASS_DRUID, G, B, G, B, B);
   assign_class_abils(CLASS_DRUID, /* class number */
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
-                     CC, CC, CC, CA, CC, CA, CA,
+                     CC, CC, CA, CA, CC, CA, CA,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
                      CC, CC, CA, CA, CA, CC, CC, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
