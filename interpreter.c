@@ -257,6 +257,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"discoveries", "discov", POS_RECLINING, do_discoveries, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"donate", "don", POS_RECLINING, do_drop, 0, SCMD_DONATE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"doublemanifest", "doublemanifest", POS_FIGHTING, do_double_manifest, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_double_manifest},
     {"drink", "dri", POS_RECLINING, do_drink, 0, SCMD_DRINK, FALSE, ACTION_MOVE, {0, 6}, NULL},

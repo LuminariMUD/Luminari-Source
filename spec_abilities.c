@@ -370,6 +370,22 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
+    //  Paladin divine bond
+  if (victim && HAS_FEAT(ch, FEAT_DIVINE_BOND))
+  {
+    if (actmtd == ACTMTD_ON_HIT)
+    {
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 20)
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 10 && !IS_GOOD(victim))
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+    }
+    if (actmtd == ACTMTD_ON_CRIT && CLASS_LEVEL(ch, CLASS_PALADIN) >= 30)
+    {
+      damage(ch, victim, dice(2, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
+    }
+  }
+
   return activated_abilities;
 }
 

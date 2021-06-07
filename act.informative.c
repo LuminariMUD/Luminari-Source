@@ -6074,6 +6074,32 @@ SPECIAL(eqstats)
   return TRUE;
 }
 
+ACMD(do_divine_bond)
+{
+
+  if (!HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
+    send_to_char(ch, "You do not have the paladin feat divine bond.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Your divine bond with your weapon gives you the following bonuses:\r\n\r\n");
+
+  send_to_char(ch, "+%d to hit and damage rolls when wielding a weapon.\r\n", 
+               MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3)));
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 10)
+    send_to_char(ch, "+1d6 holy damage against non-good foes.\r\n");
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 20)
+    send_to_char(ch, "+1d6 fire damage.\r\n");
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 30)
+    send_to_char(ch, "+2d10 fire damage on critical hits.\r\n");
+
+  send_to_char(ch, "\r\n");
+
+}
+
 #undef WPT_SIMPLE
 #undef WPT_MARTIAL
 #undef WPT_EXOTIC
