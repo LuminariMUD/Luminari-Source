@@ -246,6 +246,8 @@ ACMD_DECL(do_hp);
 ACMD_DECL(do_tnl);
 ACMD_DECL(do_moves);
 ACMD_DECL(do_divine_bond);
+ACMD_DECL(do_mercies);
+ACMD_DECL(do_maxhp);
 
 /*****************************************************************************
  * Begin Functions and defines for rank.c

@@ -1891,6 +1891,28 @@
 #define NUM_ALC_DISCOVERIES 44
 #define NUM_GR_ALC_DISCOVERIES 5
 
+// Paladin Mercies
+#define PALADIN_MERCY_NONE          0
+#define PALADIN_MERCY_DECEIVED      1
+#define PALADIN_MERCY_FATIGUED      2
+#define PALADIN_MERCY_SHAKEN        3
+#define PALADIN_MERCY_DAZED         4
+#define PALADIN_MERCY_ENFEEBLED     5
+#define PALADIN_MERCY_STAGGERED     6
+#define PALADIN_MERCY_CONFUSED      7
+#define PALADIN_MERCY_CURSED        8
+#define PALADIN_MERCY_FRIGHTENED    9
+#define PALADIN_MERCY_INJURED       10
+#define PALADIN_MERCY_NAUSEATED     11
+#define PALADIN_MERCY_POISONED      12
+#define PALADIN_MERCY_BLINDED       13
+#define PALADIN_MERCY_DEAFENED      14
+#define PALADIN_MERCY_ENSORCELLED   15
+#define PALADIN_MERCY_PARALYZED     16
+#define PALADIN_MERCY_STUNNED       17
+
+#define NUM_PALADIN_MERCIES         18
+
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL 0
 #define CFEAT_WEAPON_FINESSE 1
@@ -3632,6 +3654,7 @@ struct player_special_data_saved
     int staves[MAX_SPELLS];         // used in new consumables system store/unstore/use
 
     int holy_weapon_type;           // type of weapon to use withn holy weapon spell, also known as holy sword spell
+    int paladin_mercies[NUM_PALADIN_MERCIES]; // stores a paladin's mercies known
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3840,6 +3863,8 @@ struct level_data
     int tempDiscovery;
     int grand_discovery;
     int skills[MAX_SKILLS + 1];
+    int paladin_mercies[NUM_PALADIN_MERCIES];
+    int tempMercy;
 };
 
 /** The list element that makes up a list of characters following this

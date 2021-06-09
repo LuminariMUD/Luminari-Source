@@ -127,6 +127,13 @@ int comp_str_cost(struct char_data *ch, int number);
 int comp_base_str(struct char_data *ch);
 int comp_dex_cost(struct char_data *ch, int number);
 int comp_base_dex(struct char_data *ch);
+void dismiss_all_followers(struct char_data *ch);
+void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display);
+bool can_learn_paladin_mercy(struct char_data *ch, int mercy);
+int num_paladin_mercies_known(struct char_data *ch);
+sbyte has_paladin_mercies_unchosen(struct char_data *ch);
+sbyte has_paladin_mercies_unchosen_study(struct char_data *ch);
+void calculate_max_hp(struct char_data *ch, bool display);
 int compute_level_domain_spell_is_granted(int domain, int spell);
 int compute_current_size(struct char_data *ch);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
@@ -1905,6 +1912,8 @@ void char_from_furniture(struct char_data *ch);
 #define IS_IMMUNE_CRITS(ch) (IS_UNDEAD(ch) || \
                              (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
 #define IS_FRIGHTENED(ch) (AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))
+
+#define KNOWS_MERCY(ch, i)  (ch->player_specials->saved.paladin_mercies[i])
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))

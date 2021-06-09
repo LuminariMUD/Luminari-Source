@@ -2087,7 +2087,6 @@ ACMDU(do_gen_cast)
                                 break;
                         case CLASS_CLERIC:
                         case CLASS_DRUID:
-                        case CLASS_PALADIN:
                         case CLASS_RANGER:
                                 if ((10 + circle) > GET_WIS(ch))
                                 {
@@ -2098,6 +2097,7 @@ ACMDU(do_gen_cast)
                                 break;
                         case CLASS_BARD:
                         case CLASS_SORCERER:
+                        case CLASS_PALADIN:
                                 if ((10 + circle) > GET_CHA(ch))
                                 {
                                         send_to_char(ch, "You need to have a minimum charisma of %d to cast a circle %d spell.\r\n",
@@ -3653,6 +3653,10 @@ void mag_assign_spells(void)
         spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
+        
+        spello(PALADIN_MERCY_INJURED_FAST_HEALING, "paladin mercy fast healing", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+
         spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AFFECTS,
                NULL, 0, 0, NOSCHOOL, FALSE);

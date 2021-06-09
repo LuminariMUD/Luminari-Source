@@ -369,6 +369,75 @@ const char *award_types[] = {
 };
 CHECK_TABLE_SIZE(award_types, NUM_AWARD_TYPES + 1);
 
+const char *paladin_mercies[] = {
+    "",
+    "Deceived",
+    "Fatigued",
+    "Shaken",
+    "Dazed",
+    "Enfeebled",
+    "Staggered",
+    "Confused",
+    "Cursed",
+    "Frightened",
+    "Injured",
+    "Nauseated",
+    "Poisoned",
+    "Blinded",
+    "Deafened",
+    "Ensorcelled",
+    "Paralyzed",
+    "Stunned",
+    "\n"
+};
+CHECK_TABLE_SIZE(paladin_mercies, NUM_PALADIN_MERCIES + 1);
+
+const char *paladin_mercy_descriptions[] = {
+    "does nothing",
+    "removes effects from taunt or intimidate",
+    "removes fatigue from rage or other sources",
+    "removes shaken status", 
+    "removes dazed status",
+    "removes effects that reduce strength or constitution",
+    "removes staggered status",
+    "removes confused status",
+    "removes curses on a person (not items though)",
+    "removes feat status",
+    "gives regeneration of 3 hp/round for duration of 1/2 paladin levels",
+    "removes nauseated status",
+    "removes posion status",
+    "removes blindess",
+    "removes deafness",
+    "removes 1 random negative effect",
+    "removes paralysis",
+    "removes stunned status",
+    "\n"
+};
+CHECK_TABLE_SIZE(paladin_mercy_descriptions, NUM_PALADIN_MERCIES + 1);
+
+const int paladin_mercy_levels[] = {
+    0, // none
+    3, // decevied
+    3, // fatigued
+    3, // shaken
+    6, // dazed
+    6, // enfeebled
+    6, // staggered
+    6, // confused
+    9, // cursed
+    9, // frightened
+    9, // injured
+    9, // nauseated
+    9, // poisoned
+    12, // blinded
+    12, // deafened
+    12, // ensorcelled
+    12, // paralyzed
+    12, // stunned
+    0, // end
+};
+CHECK_TABLE_SIZE(paladin_mercy_levels, NUM_PALADIN_MERCIES + 1);
+
 const char *class_names[] = {
     "Wizard", //0
     "Cleric",

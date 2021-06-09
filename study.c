@@ -451,6 +451,13 @@ void finalize_study(struct descriptor_data *d)
       ch->player_specials->saved.discoveries[i] = TRUE;
   }
 
+  // Assign chosen paladin mercies
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+  {
+    if (LEVELUP(ch)->paladin_mercies[i])
+      ch->player_specials->saved.paladin_mercies[i] = TRUE;
+  }
+
   /* set spells learned for domain */
   assign_domain_spells(ch);
 
@@ -1466,6 +1473,46 @@ static void select_alchemist_discoveries(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SELECT_ALC_DISCOVERY;
 }
 
+static void select_paladin_mercies(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  int i = 0;
+  int mercies_known = (CLASS_LEVEL(d->character, CLASS_PALADIN) / 3) - num_paladin_mercies_known(d->character);
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+    if (LEVELUP(d->character)->paladin_mercies[i])
+      mercies_known--;
+
+  write_to_output(d,
+                  "\r\n-- %sSelect Paladin Mercies%s\r\n"
+                  "\r\n", mgn, nrm);
+
+  for (i = 1; i < NUM_PALADIN_MERCIES; i++)
+  {
+    if ((i < 1) ||
+        (i >= NUM_PALADIN_MERCIES) ||
+        (KNOWS_MERCY(d->character, i)) ||
+        (LEVELUP(d->character)->paladin_mercies[i]) ||
+        (!can_learn_paladin_mercy(d->character, i)))
+      continue;
+    write_to_output(d, "%s %2d%s) %s : %s\r\n",
+                    grn, i, nrm, paladin_mercies[i], paladin_mercy_descriptions[i]);
+  }
+
+  write_to_output(d, "\r\n"
+                     "%s -1%s) Quit\r\n"
+                     "\r\n"
+                     "%d mercies can be selected\r\n"
+                     "\r\n"
+                     "If you wish to change the choices made in this screen, please quit the study session without saving.\r\n"
+                     "\r\n"
+                     "Enter Choice : ",
+                  grn, nrm, mercies_known);
+
+  OLC_MODE(d) = STUDY_SELECT_PAL_MERCY;
+}
+
 static void set_domain_submenu(struct descriptor_data *d)
 {
   const char *domain_names[NUM_DOMAINS];
@@ -1934,6 +1981,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s A%s) Preferred Caster Classes (Prestige)%s\r\n"
                   "%s B%s) Sorcerer Bloodline Selection%s\r\n"
                   "%s C%s) Alchemist Discoveries Selection%s\r\n"
+                  "%s D%s) Paladin Mercies%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -1955,6 +2003,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                                     //A
                   MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               //B
                   MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //C
+                  MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             //D
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         //R
                   grn, nrm);
 
@@ -2314,6 +2363,24 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
+    
+    case 'd':
+    case 'D':
+      if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+      {
+        write_to_output(d, "Please choose your feat(s) first.\r\n");
+      }
+      else if (has_paladin_mercies_unchosen(ch))
+      {
+        select_paladin_mercies(d);
+      }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+
     // reset levelup, level 1 only.
     case 'R':
     case 'r':
@@ -2561,6 +2628,44 @@ void study_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = STUDY_CONFIRM_ADD_DISCOVERY;
     break;
 
+    case STUDY_SELECT_PAL_MERCY:
+    number = atoi(arg);
+    if (number == -1)
+    {
+      display_main_menu(d);
+      break;
+    }
+
+    /* Check if the discovery is available. */
+    if ((number < 1) ||
+        (number >= NUM_PALADIN_MERCIES) ||
+        (KNOWS_MERCY(d->character, number)) ||
+        (LEVELUP(d->character)->paladin_mercies[number] == TRUE) ||
+        (!can_learn_paladin_mercy(d->character, number)))
+    {
+      write_to_output(d, "Invalid mercy, try again.\r\n");
+      break;
+    }
+
+    if (!has_paladin_mercies_unchosen_study(ch))
+    {
+      send_to_char(ch, "You cannot choose new mercies at this time.  "
+                      "If you wish to change your choices in this study session, "
+                      "quit the study menu without saving the changes.\r\n");
+      break;
+    }
+
+    /* Store the mercy choice in the work area in the data structure. */
+    LEVELUP(d->character)->tempMercy = number;
+
+    /* Display the description of the feat, and give the player an option. */
+    write_to_output(d, "%s%s%s: %s\r\n\r\n"
+                       "Choose this mercy? (y/n) : ",
+                    nrm, paladin_mercies[number], nrm, paladin_mercy_descriptions[number]);
+
+    OLC_MODE(d) = STUDY_CONFIRM_ADD_MERCY;
+    break;
+
   case STUDY_CONFIRM_ADD_DISCOVERY:
     switch (*arg)
     {
@@ -2574,6 +2679,23 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Alchemist Discovery %s chosen!\r\n", alchemical_discovery_names[LEVELUP(ch)->tempDiscovery]);
       LEVELUP(ch)->tempDiscovery = 0;
       select_alchemist_discoveries(d);
+      break;
+    }
+    break;
+
+    case STUDY_CONFIRM_ADD_MERCY:
+    switch (*arg)
+    {
+    case 'n':
+    case 'N':
+      select_paladin_mercies(d);
+      break;
+    case 'y':
+    case 'Y':
+      LEVELUP(d->character)->paladin_mercies[LEVELUP(ch)->tempMercy] = TRUE;
+      write_to_output(d, "Paladin Mercy %s chosen!\r\n", paladin_mercies[LEVELUP(ch)->tempMercy]);
+      LEVELUP(ch)->tempMercy = 0;
+      select_paladin_mercies(d);
       break;
     }
     break;

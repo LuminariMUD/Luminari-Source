@@ -1093,6 +1093,8 @@ void check_idling(struct char_data *ch)
         ch->desc = NULL;
       }
       save_char_pets(ch);
+      dismiss_all_followers(ch);
+
       if (CONFIG_FREE_RENT)
         Crash_rentsave(ch, 0);
       else

@@ -87,6 +87,7 @@ static void load_wands(FILE *fl, struct char_data *ch);
 static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
 void save_char_pets(struct char_data *ch);
+static void load_mercies(FILE *fl, struct char_data *ch);
 
 // external functions
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
@@ -515,6 +516,8 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
       KNOWS_DISCOVERY(ch, i) = 0;
     GET_GRAND_DISCOVERY(ch) = 0;
+    for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+      KNOWS_MERCY(ch, i) = 0;
     for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
       STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
     GET_PSIONIC_ENERGY_TYPE(ch) = PFDEF_PSIONIC_ENERGY_TYPE;
@@ -815,6 +818,8 @@ int load_char(const char *name, struct char_data *ch)
           load_HMVS(ch, line, LOAD_MOVE);
         else if (!strcmp(tag, "Mrph"))
           IS_MORPHED(ch) = atol(line);
+        else if (!strcmp(tag, "Mrcy"))
+          load_mercies(fl, ch);
         // Faction mission system
         else if (!strcmp(tag, "MiCu"))
             GET_CURRENT_MISSION(ch) = atoi(line);
@@ -1678,6 +1683,11 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "-1\n");
   fprintf(fl, "GrDs: %d\n", GET_GRAND_DISCOVERY(ch));
 
+  fprintf(fl, "Mrcy:\n");
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+    fprintf(fl, "%d\n", KNOWS_MERCY(ch, i));
+  fprintf(fl, "-1\n");
+
   /* Save Combat Feats */
   for (i = 0; i < NUM_CFEATS; i++)
   {
@@ -2540,6 +2550,23 @@ static void load_spec_abil(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
     if (num != -1)
       GET_SPEC_ABIL(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_mercies(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      KNOWS_MERCY(ch, i) = num;
+      i++;
+    }
   } while (num != -1);
 }
 

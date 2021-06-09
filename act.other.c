@@ -816,8 +816,20 @@ ACMD(do_imbuearrow)
   arrow = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying);
   if (!arrow)
   {
-    send_to_char(ch, "You do not carry that ammo!\r\n");
-    return;
+    if (GET_EQ(ch, WEAR_AMMO_POUCH))
+    {
+      arrow = get_obj_in_list_vis(ch, arg1, NULL, GET_EQ(ch, WEAR_AMMO_POUCH)->contains);
+      if (!arrow)
+      {
+        send_to_char(ch, "You do not carry that ammo!\r\n");
+        return;
+      }
+    }
+    else
+    {
+      send_to_char(ch, "You do not carry that ammo!\r\n");
+      return;
+    }
   }
   if (GET_OBJ_TYPE(arrow) != ITEM_MISSILE)
   {
@@ -1565,6 +1577,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
     join_group(mob, GROUP(ch));
   save_char_pets(ch);
+  dismiss_all_followers(ch);
 
   /* finally attach cooldown, approximately 14 minutes right now */
   if (call_type == MOB_C_ANIMAL)

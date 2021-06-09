@@ -2868,7 +2868,9 @@ void advance_level(struct char_data *ch, int class)
   send_to_char(ch, "\tMGAINS:\tn\r\n");
 
   /* calculate hps gain */
-  add_hp += rand_number(CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
+  // we're not doing random amounts anymore.  Instead they get full hit dice each level
+  //add_hp += rand_number(CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
+  add_hp += CLSLIST_HPS(class);
 
   /* calculate moves gain */
   add_move += rand_number(1, CLSLIST_MVS(class));
@@ -4784,6 +4786,138 @@ void load_class_list(void)
   //assign_feat_spell_slots(CLASS_PALADIN);
   /****************************************************************************/
 
+/****************************************************************************/
+  /*     class-number   name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_BLACKGUARD, "blackguard", "BkG", "\tDBkG\tn", "z) \tDBlackguard\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         -1, Y, N, H, 10, 0, 1, 2, N, 0, 0,
+         /*prestige spell progression*/ "none",
+         /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
+         "champions of evil in Faerun. They lead armies of dread forces such as undead, "
+         "fiends, and other extra-planar beings, often in the name of the more malevolent "
+         "deities. These individuals had the reputation as some of most reviled villains. "
+         "They are just as equally feared as they are despised by the free folk of the "
+         "Realms. They acted as killers, led as commanders, and even served as agents "
+         "for more forces that are even more malignant than they. They accomplished their "
+         "goals by any means necessary, whether through subterfuge, dark magic, anarchic "
+         "destruction, or overwhelming force. Blackguards possess distinct auras of evil "
+         "and despair, carrying blessings bestowed upon them by the forces of darkness. "
+         "They are particularly adept at instilling fear in their foes. They are quite adept "
+         "at readily uncovering good beings, and can also smite them in battle. Blackguards "
+         "can carry out smiting more often as the longer they carried out their dark deeds.");
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_BLACKGUARD, B, B, G, B, B);
+  assign_class_abils(CLASS_BLACKGUARD, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CA, CC, CA, CA, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CA, CA, CA, CC, CC, CA,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CC, CC, CA, CC, CA, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CC, CC);
+  assign_class_titles(CLASS_BLACKGUARD,                    /* class number */
+                      "",                               /* <= 4  */
+                      "the Novice Blackguard",                  /* <= 9  */
+                      "the Adaept Blackguard",                   /* <= 14 */
+                      "the Veteran Blackguard",              /* <= 19 */
+                      "the Master Blackguard",           /* <= 24 */
+                      "the Champion Blackguard",         /* <= 29 */
+                      "the Chosen Blackguard",      /* <= 30 */
+                      "the Immortal Blackguard",          /* <= LVL_IMMORT */
+                      "the Immortal Blackguard",    /* <= LVL_STAFF */
+                      "the Immortal Blackguard", /* <= LVL_GRSTAFF */
+                      "the Blackguard"                     /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                            cfeat lvl stack */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_PROFICIENCY_HEAVY, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_GOOD, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_DETECT_EVIL, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 1, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_DIVINE_GRACE, Y, 2, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_LAYHANDS, Y, 3, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_TURN_UNDEAD, Y, 3, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_COURAGE, Y, 4, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_DIVINE_HEALTH, Y, 5, N);
+  /* bonus feat - mounted combat 5 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_MOUNTED_COMBAT, Y, 5, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 5, Y);
+  /* bonus feat - ride by attack 6 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_RIDE_BY_ATTACK, Y, 6, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 6, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_CALL_MOUNT, Y, 7, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_DIVINE_BOND, Y, 8, N);
+  /* bonus feat - spirited charge 9 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SPIRITED_CHARGE, Y, 9, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 9, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 10, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 12, Y);
+  /* bonus feat - mounted archery 13 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_MOUNTED_ARCHERY, Y, 13, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 14, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 15, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 18, Y);
+  /* bonus feat - glorious rider 19 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_GLORIOUS_RIDER, Y, 19, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 19, Y);
+  /* spell circles */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_1ST_CIRCLE, Y, 6, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_2ND_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_3RD_CIRCLE, Y, 12, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_4TH_CIRCLE, Y, 15, N);
+  /*epic*/
+  /* bonus epic feat - legendary rider 21 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_LEGENDARY_RIDER, Y, 21, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 22, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 25, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 26, Y);
+  /* bonus epic feat - epic mount 27 */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_EPIC_MOUNT, Y, 27, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 30, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 30, Y);
+  /* paladin has no class feats */
+  /**** spell assign ****/
+  /*              class num      spell                   level acquired */
+  /* 1st circle */
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_LIGHT, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_ENDURANCE, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_ARMOR, 6);
+  /*              class num      spell                   level acquired */
+  /* 2nd circle */
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CREATE_FOOD, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CREATE_WATER, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_POISON, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_MODERATE, 10);
+  /*              class num      spell                   level acquired */
+  /* 3rd circle */
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_ALIGN, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_BLIND, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_BLESS, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_SERIOUS, 12);
+  /*              class num      spell                   level acquired */
+  /* 4th circle */
+  spell_assignment(CLASS_BLACKGUARD, SPELL_AID, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_INFRAVISION, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_REMOVE_CURSE, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_REMOVE_POISON, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_CRITIC, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_HOLY_SWORD, 15);
+  /* class prerequisites */
+  class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
+  class_prereq_align(CLASS_BLACKGUARD, NEUTRAL_EVIL);
+  class_prereq_align(CLASS_BLACKGUARD, CHAOTIC_EVIL);
+  /*****/
+  /* INIT spell slots, assignement of spell slots based on
+     tables in constants.c */
+  //assign_feat_spell_slots(CLASS_PALADIN);
+  /**************************************************************************/
+
   /****************************************************************************/
   /*     class-number  name      abrv   clr-abrv     menu-name*/
   classo(CLASS_RANGER, "ranger", "Ran", "\tYRan\tn", "r) \tYRanger\tn",
@@ -6340,6 +6474,99 @@ bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output
       if (!(IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ELDRITCH_KNIGHT))) { if (output) send_to_char(ch, "You must have levels as an eldritch knight to use %s.\r\n", obj->short_description); return false; }
 
   return true;
+}
+
+int num_paladin_mercies_known(struct char_data *ch)
+{
+  /* dummy check */
+  if (!ch)
+    return 0;
+
+  int i = 0;
+  int num_chosen = 0;
+
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+    if (KNOWS_MERCY(ch, i))
+      num_chosen++;
+  return num_chosen;
+}
+
+sbyte has_paladin_mercies_unchosen(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  int num_avail = CLASS_LEVEL(ch, CLASS_PALADIN) / 3;
+  int num_chosen = num_paladin_mercies_known(ch);
+
+  if ((num_avail - num_chosen) > 0)
+    return TRUE;
+
+  return FALSE;
+}
+
+sbyte has_paladin_mercies_unchosen_study(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  int num_avail = CLASS_LEVEL(ch, CLASS_PALADIN) / 3;
+  int num_chosen = num_paladin_mercies_known(ch);
+  int i = 0;
+  int num_study = 0;
+
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+    if (LEVELUP(ch)->paladin_mercies[i])
+      num_study++;
+
+  if ((num_avail - num_chosen - num_study) > 0)
+    return TRUE;
+
+  return FALSE;
+}
+
+bool can_learn_paladin_mercy(struct char_data *ch, int mercy)
+{
+  if (!ch) return false;
+
+  switch (mercy)
+  {
+    case PALADIN_MERCY_DECEIVED:
+    case PALADIN_MERCY_FATIGUED:
+    case PALADIN_MERCY_SHAKEN:
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 3) return true;
+      break;
+    case PALADIN_MERCY_DAZED:
+    case PALADIN_MERCY_ENFEEBLED:
+    case PALADIN_MERCY_STAGGERED:
+    case PALADIN_MERCY_CONFUSED:
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 6) return true;
+      break;
+    case PALADIN_MERCY_CURSED:
+    case PALADIN_MERCY_FRIGHTENED:
+    case PALADIN_MERCY_INJURED:
+    case PALADIN_MERCY_NAUSEATED:
+    case PALADIN_MERCY_POISONED:
+    case PALADIN_MERCY_BLINDED:
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 9) return true;
+      break;
+    case PALADIN_MERCY_DEAFENED:
+    case PALADIN_MERCY_ENSORCELLED:
+    case PALADIN_MERCY_PARALYZED:
+    case PALADIN_MERCY_STUNNED:
+      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 12) return true;
+      break;
+  }
+
+  return false;
 }
 
 /** LOCAL UNDEFINES **/

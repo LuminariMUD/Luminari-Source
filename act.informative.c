@@ -1890,6 +1890,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
     send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
     send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+    send_to_char(ch, "\tDType 'maxhp' to see hown your maximum hit points are calculated.\tn\r\n");
   }
 }
 
@@ -6098,6 +6099,44 @@ ACMD(do_divine_bond)
 
   send_to_char(ch, "\r\n");
 
+}
+
+ACMD(do_mercies)
+{
+ if (CLASS_LEVEL(ch, CLASS_PALADIN) < 3) 
+ {
+   send_to_char(ch, "You don't know any paladin mercies.\r\n");
+   return;
+ }
+
+  int i = 0;
+
+  send_to_char(ch, "Paladin Mercies Known\r\n");
+  for (i = 0; i < 80; i++)
+    send_to_char(ch, "-");
+  send_to_char(ch, "\r\n");
+
+  for (i = 1; i < NUM_PALADIN_MERCIES; i++)
+  {
+    send_to_char(ch, "[");
+    if (KNOWS_MERCY(ch, i))
+    {
+      send_to_char(ch, "\tg%-7s\tn", "KNOWN");
+    }
+    else
+    {
+      send_to_char(ch, "\tr%-7s\tn", "UNKNOWN");
+    }
+    send_to_char(ch, "] %-15s : %s\r\n", paladin_mercies[i], paladin_mercy_descriptions[i]);
+  }
+
+  send_to_char(ch, "\r\nSee HELP MERCIES and HELP LAYONHANDS for more information on how mercies work.\r\n\r\n");
+
+}
+
+ACMD(do_maxhp)
+{
+  calculate_max_hp(ch, true);
 }
 
 #undef WPT_SIMPLE
