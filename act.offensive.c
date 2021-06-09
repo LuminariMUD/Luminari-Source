@@ -6637,11 +6637,22 @@ int perform_feint(struct char_data *ch, struct char_data *vict)
   }
 
   /* calculate our final bluff skill check (feint attempt) */
-  bluff_skill_check = d20(ch) + compute_ability(ch, ABILITY_BLUFF);
+  bluff_skill_check = d20(ch) + compute_ability(ch, ABILITY_BLUFF) + (HAS_FEAT(ch, FEAT_IMPROVED_FEINT) ? 4 : 0);
   if (IS_NPC(vict) && GET_NPC_RACE(vict) != RACE_TYPE_HUMANOID)
-    bluff_skill_check -= 4;
+  {
+    if (HAS_FEAT(ch, FEAT_IMPROVED_FEINT))
+      bluff_skill_check -= 2;
+    else
+      bluff_skill_check -= 4;
+  }
+    
   if (GET_INT(vict) <= 2)
-    bluff_skill_check -= 8;
+  {
+    if (HAS_FEAT(ch, FEAT_IMPROVED_FEINT))
+      bluff_skill_check -= 4;
+    else
+      bluff_skill_check -= 8; 
+  }
 
   /* calculate the defense (DC) */
   dc_bab_wisdom = 10 + BAB(vict) + GET_WIS_BONUS(vict);
@@ -6667,14 +6678,7 @@ int perform_feint(struct char_data *ch, struct char_data *vict)
     act("\ty$n fails to feint $N!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
   }
 
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_FEINT))
-  {
-    USE_MOVE_ACTION(ch);
-  }
-  else
-  {
-    USE_STANDARD_ACTION(ch);
-  }
+  USE_SWIFT_ACTION(ch);
 
   if (vict != ch)
   {

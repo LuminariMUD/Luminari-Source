@@ -2677,6 +2677,11 @@ void mag_assign_spells(void)
                TAR_IGNORE, FALSE, MAG_CREATIONS,
                NULL, 2, 23, NOSCHOOL, FALSE);
 
+        // blackguard
+        spello(SPELL_UNHOLY_SWORD, "unholy weapon", 37, 22, 1, POS_FIGHTING,
+               TAR_IGNORE, FALSE, MAG_CREATIONS,
+               NULL, 2, 23, NOSCHOOL, FALSE);
+
         // magical
 
         /* = =  cantrips  = = */
