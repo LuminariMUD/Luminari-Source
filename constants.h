@@ -137,6 +137,9 @@ extern const char *ability_score_names[6];
 extern const char * const faction_names[];
 extern const char * const faction_names_lwr[];
 extern const char *award_types[];
+extern const char *paladin_mercy_descriptions[];
+extern const char *paladin_mercies[];
+extern const int paladin_mercy_levels[];
 
 /* NewCraft */
 extern const char *craft_flags[];

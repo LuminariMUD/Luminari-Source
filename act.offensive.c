@@ -1129,6 +1129,136 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
   }
 }
 
+void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict) return;
+
+  struct affected_type *af = NULL;
+  struct affected_type af2;
+  bool found = false;
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_DECEIVED))
+  {
+    if (char_has_mud_event(vict, eINTIMIDATED))
+    {
+      event_cancel_specific(ch, eINTIMIDATED);
+      send_to_char(ch, "You are no longer intimidated.\r\n");
+    }
+    if (char_has_mud_event(vict, eTAUNTED))
+    {
+      event_cancel_specific(ch, eTAUNTED);
+      send_to_char(ch, "You are no longer feeliong taunted.\r\n");
+    }      
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_FATIGUED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_FATIGUED, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_SHAKEN))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_SHAKEN, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_DAZED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_DAZED, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_ENFEEBLED))
+  {
+    for (af = vict->affected; af; af = af->next)
+    {
+      if ((af->location == APPLY_STR || af->location == APPLY_CON) && af->modifier < 0)
+      {
+        send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[af->spell].name);
+        send_to_char(ch, "%s's Affect '%s' has been healed!\r\n", GET_NAME(vict), spell_info[af->spell].name);
+        affect_from_char(vict, af->spell);
+      }
+    }
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_STAGGERED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_STAGGERED, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_CONFUSED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_CONFUSED, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_CURSED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_CURSE, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_FRIGHTENED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_FEAR, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_INJURED))
+  {
+    new_affect(&af2);
+    af2.spell = PALADIN_MERCY_INJURED_FAST_HEALING;
+    af2.bonus_type = BONUS_TYPE_MORALE;
+    af2.location = APPLY_SPECIAL;
+    af2.modifier = 3;
+    af2.duration = CLASS_LEVEL(ch, CLASS_PALADIN) / 2;
+    send_to_char(ch, "%s gains fast healing of 3 hp/round for %d rounds.\r\n", GET_NAME(vict), af2.duration);
+    send_to_char(vict, "You gain fast healing of 3 hp/round for %d rounds.\r\n", af2.duration);
+    affect_to_char(ch, &af2);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_NAUSEATED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_NAUSEATED, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_POISONED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_POISON, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_BLINDED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_BLIND, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_DEAFENED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_DEAF, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_PARALYZED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_PARALYZED, true);
+  }
+
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_STUNNED))
+  {
+    remove_any_spell_with_aff_flag(ch, vict, AFF_STUN, true);
+  }
+
+  // this goes last so that all of the above mercies take precedent and
+  // don't have their usefuless reduced by the ensorcelled mercy 
+  if (KNOWS_MERCY(ch, PALADIN_MERCY_ENSORCELLED))
+  {
+    for (af = vict->affected; af; af = af->next)
+    {
+      if (spell_info[af->spell].violent && dice(1, 2) == 1 && !found)
+      {
+        found = true;
+        send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[af->spell].name);
+        send_to_char(ch, "%s's Affect '%s' has been healed!\r\n", GET_NAME(vict), spell_info[af->spell].name);
+        affect_from_char(vict, af->spell);
+      }
+    }
+  }
+}
+
 /* engine for layonhands skill */
 void perform_layonhands(struct char_data *ch, struct char_data *vict)
 {
@@ -1161,6 +1291,7 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
     start_daily_use_cooldown(ch, FEAT_LAYHANDS);
 
   GET_HIT(vict) += heal_amount;
+  apply_paladin_mercies(ch, vict);
   update_pos(vict);
 
   if (ch != vict)

@@ -4911,3 +4911,233 @@ int smite_good_target_type(struct char_data *ch)
   
   return 1;
 }
+
+/** This will run every 6 seconds as well as whenever a new affect is added or removed
+ *  from a character, such as receiving or losing a spell affect, wearing or removing
+ *  a piece of gear, etc. This should only ever be used upon players, not NPCs.
+ */
+void calculate_max_hp(struct char_data *ch, bool display)
+{
+  if (!ch || IS_NPC(ch) || !ch->desc)
+    return;
+
+  int i = 0, j = 0;
+  int max_hp = 20; // start point
+  int max_value[NUM_BONUS_TYPES];
+  int max_val_spell[NUM_BONUS_TYPES];
+  int max_val_worn_slot[NUM_BONUS_TYPES];
+  struct obj_data *obj = NULL;
+  struct affected_type *aff = NULL;
+  char affect_buf[2400], gear_buf[2400], temp_buf[200];
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++) {
+    max_value[i] = 0;
+    max_val_spell[i] = -1;
+    max_val_worn_slot[i] = -1;
+  }
+  snprintf(affect_buf, sizeof(affect_buf), "\tn");
+  snprintf(gear_buf, sizeof(gear_buf), "\tn");
+
+  // base amount
+  if (display)
+    send_to_char(ch, "%-40s = +20\r\n", "Base Amount");
+
+  // classes
+  for  (i = 0; i < NUM_CLASSES; i++)
+  {
+    max_hp += CLASS_LEVEL(ch, i) * class_list[i].hit_dice;
+    if (display && CLASS_LEVEL(ch, i) > 0) {
+      snprintf(temp_buf, sizeof(temp_buf), "%d levels in %s", CLASS_LEVEL(ch, i), class_list[i].name);
+      send_to_char(ch, "%-40s = +%d\r\n", temp_buf, CLASS_LEVEL(ch, i) * class_list[i].hit_dice);
+    }
+  }
+
+  // con
+  max_hp += GET_LEVEL(ch) * GET_CON_BONUS(ch);
+  if (display && GET_CON_BONUS(ch) != 0)
+  {
+    send_to_char(ch, "%-40s = %s%d\r\n", "Constitution bonus", GET_CON_BONUS(ch) > 0 ? "+" : "", GET_CON_BONUS(ch) * GET_LEVEL(ch));
+  }
+
+  // We'll do spells then gear.  We want to make sure that bonus
+  // types don't stack
+
+  // spells
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->location == APPLY_HIT)
+    {
+      // some bonus types always stack, so we'll just add this right on now
+      if (BONUS_TYPE_STACKS(aff->bonus_type))
+      {
+        max_hp += aff->modifier;
+        if (display)
+        {
+          snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
+          snprintf(affect_buf, sizeof(affect_buf), "%s%-40s = %s%d\r\n", affect_buf, temp_buf, aff->modifier > 0 ? "+" : "", aff->modifier);
+        }
+      }
+      // penalties and debuffs are always applied
+      else if (aff->modifier < 0)
+      {
+        max_hp -= aff->modifier;
+        if (display) {
+          snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[aff->spell].name);
+          snprintf(affect_buf, sizeof(affect_buf), "%s%-40s = %d\r\n", affect_buf, temp_buf, aff->modifier);
+        }
+      }
+      // we only want the maximum per bonus type
+      else if (aff->modifier > max_value[aff->bonus_type])
+      {
+        max_value[aff->bonus_type] = aff->modifier;
+        max_val_spell[aff->bonus_type] = aff->spell;
+        max_val_worn_slot[aff->bonus_type] = -1;
+      }
+    }
+  }
+
+  // gear
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (!(obj = GET_EQ(ch, i))) continue;
+    for (j = 0; j < MAX_OBJ_AFFECT; j++)
+    {
+      if (obj->affected[j].location == APPLY_HIT)
+      {
+        // some bonus types always stack, so we'll just add this right on now
+        if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+        {
+          max_hp += obj->affected[j].modifier;
+          if (display)
+          {
+            snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
+            snprintf(gear_buf, sizeof(gear_buf), "%s%-40s = %s%d\r\n", gear_buf,  temp_buf, obj->affected[j].modifier > 0 ? "+" : "",  obj->affected[j].modifier);
+          }
+        }
+        // penalties and debuffs are always applied
+        else if (obj->affected[j].modifier < 0)
+        {
+          max_hp -= obj->affected[j].modifier;
+          if (display)
+          {
+            snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", obj->short_description);
+            snprintf(gear_buf, sizeof(gear_buf), "%s%-40s = %s%d\r\n", gear_buf,  temp_buf, obj->affected[j].modifier > 0 ? "+" : "",  obj->affected[j].modifier);
+          }
+        }
+        // we only want the maximum per bonus type
+        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        {
+          max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          max_val_spell[obj->affected[j].bonus_type] = -1;
+          max_val_worn_slot[obj->affected[j].bonus_type] = i;
+
+        }
+      }
+    }
+  }
+
+  // now let's add up all of the highest per bonus type from spells and gear
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+  {
+    if (BONUS_TYPE_STACKS(i)) continue;
+    max_hp += max_value[i];
+    if (display)
+    {
+      if (max_val_spell[i] != -1) {
+        snprintf(temp_buf, sizeof(temp_buf), "Affect '%s'", spell_info[max_val_spell[i]].name);
+        snprintf(affect_buf, sizeof(affect_buf), "%s%-40s = %s%d\r\n", affect_buf, temp_buf, max_value[i] > 0 ? "+" : "", max_value[i]);
+      }
+      else if (max_val_worn_slot[i] != -1) {
+        for (j = 0; j < MAX_OBJ_AFFECT; j++){
+          if (GET_EQ(ch, max_val_worn_slot[i])->affected[j].location == APPLY_HIT)
+          {
+            snprintf(temp_buf, sizeof(temp_buf), "Worn Item '%s'", GET_EQ(ch, max_val_worn_slot[i])->short_description);
+            snprintf(gear_buf, sizeof(gear_buf), "%s%-40s = %s%d\r\n", gear_buf, temp_buf,
+                            GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier > 0 ? "+" : "", 
+                            GET_EQ(ch, max_val_worn_slot[i])->affected[j].modifier);
+          }
+        }
+      }
+    }
+  }
+  if (display)
+  {
+    send_to_char(ch, "%s", affect_buf);
+    send_to_char(ch, "%s", gear_buf);
+  }
+
+  // feats
+  if (HAS_FEAT(ch, FEAT_TOUGHNESS))
+  {
+    max_hp += GET_LEVEL(ch) * HAS_FEAT(ch, FEAT_TOUGHNESS);
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Feat 'Toughness'", GET_LEVEL(ch) * HAS_FEAT(ch, FEAT_TOUGHNESS));
+  }
+  if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS))
+  {
+    max_hp += GET_LEVEL(ch) * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS);
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Feat 'Epic Toughness'", 30 * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS));
+  }
+
+  // race
+  if (GET_REAL_RACE(ch) == RACE_CRYSTAL_DWARF)
+  {
+    max_hp += GET_LEVEL(ch) * 4;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Crystal Dwarf Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
+  if (GET_REAL_RACE(ch) == RACE_TRELUX)
+  {
+    max_hp += GET_LEVEL(ch) * 4;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Trelux Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
+
+  // misc
+  max_hp += CONFIG_EXTRA_PLAYER_HP_PER_LEVEL * GET_LEVEL(ch);
+  if (display && CONFIG_EXTRA_PLAYER_HP_PER_LEVEL > 0)
+    send_to_char(ch, "%-40s = +%d\r\n", "Game Setting 'Extra HP Gains'", GET_LEVEL(ch) * CONFIG_EXTRA_PLAYER_HP_PER_LEVEL);
+
+  if (display)
+  {
+    for (i = 0; i < 80; i++)
+      send_to_char(ch, "-");
+
+    send_to_char(ch, "\r\n\tY%-40s = %d\tn\r\n", "Final Maximum Hit Points", max_hp);
+  }
+
+  GET_REAL_MAX_HIT(ch) = GET_MAX_HIT(ch) = max_hp;
+}
+
+void dismiss_all_followers(struct char_data *ch)
+{
+  if (!ch || ch->master || IS_NPC(ch)) return;
+
+  struct follow_type *k = NULL;
+
+  for (k = ch->followers; k; k = k->next)
+      if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM))
+        extract_char(k->follower);
+}
+
+void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display)
+{
+  if (!ch || !vict) return;
+
+  if (aff_flag == AFF_DONTUSE) return;
+
+  struct affected_type *af = NULL;
+
+  for (af = vict->affected; af; af = af->next)
+  {
+    if (IS_SET_AR(af->bitvector, aff_flag))
+    {
+      if (display) {
+        send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[af->spell].name);
+        send_to_char(ch, "%s's Affect '%s' has been healed!\r\n", GET_NAME(vict), spell_info[af->spell].name);
+      }
+      affect_from_char(vict, af->spell);
+    }
+  }
+} 

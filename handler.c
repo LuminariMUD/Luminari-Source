@@ -175,7 +175,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg
     GET_MAX_PSP(ch) += mod;
     break;
   case APPLY_HIT:
-    GET_MAX_HIT(ch) += mod;
+    //GET_MAX_HIT(ch) += mod;
     break;
   case APPLY_MOVE:
     GET_MAX_MOVE(ch) += mod;
@@ -819,7 +819,10 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   compute_char_cap(ch);
 
   /* any dynamic stats need to be modified? (example, con -> hps) */
-  GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
+   if (IS_NPC(ch))
+    GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
+  else
+    calculate_max_hp(ch, false);
 }
 
 void cleanup_disguise(struct char_data *ch)

@@ -2493,8 +2493,10 @@ void assign_feats(void)
         "Immunity to fear attacks, +4 bonus to fear saves for group members",
         "Immunity to fear attacks, +4 bonus to fear saves for group members");
   feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "add level to hit roll and charisma bonus to damage",
-        "add level to hit roll and charisma bonus to damage");
+        "add charisma bonus to hit roll and paladin level to damage",
+        "add charisma bonus to hit roll and paladin level to damage against good aligned targets. "
+        "against evil outsiders, evil dragons, or undead, "
+        "2x paladin level is added to damage instead.");
   feato(FEAT_DETECT_EVIL, "detect evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "able to detect evil alignments",
         "able to detect evil alignments");
@@ -3423,8 +3425,10 @@ void assign_feats(void)
 
   /* Blackguard */ /* knight of the skull (dragonlance) */
   feato(FEAT_SMITE_GOOD, "smite good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "add level to hit roll and charisma bonus to damage",
-        "add level to hit roll and charisma bonus to damage against good aligned targets");
+        "add charisma bonus to hit roll and blackguard level to damage",
+        "add charisma bonus to hit roll and blackguard level to damage against good aligned targets. "
+        "against good outsiders, good dragons, or any creature with cleric or paladin levels, "
+        "2x blackguard level is added to damage instead.");
 
   /* Pale/Death Master */
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
