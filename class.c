@@ -4885,29 +4885,46 @@ void load_class_list(void)
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_LIGHT, 6);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_ENDURANCE, 6);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_ARMOR, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_COMMAND, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_POISON, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DOOM, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_LIGHT_WOUNDS, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_PROT_FROM_GOOD, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_1, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CREATE_FOOD, 10);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CREATE_WATER, 10);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_POISON, 10);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_MODERATE, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_BLINDNESS, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DEAFNESS, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_STRENGTH, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DARKNESS, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_INFRAVISION, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CHARISMA, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_HOLD_PERSON, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_INVISIBLE, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_IRONSKIN, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_2, 10);
+  
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_ALIGN, 12);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_BLIND, 12);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_BLESS, 12);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_SERIOUS, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_ANIMATE_DEAD, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CURSE, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CONTAGION, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DISPEL_MAGIC, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_MODERATE_WOUNDS, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CIRCLE_A_GOOD, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_3, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_VAMPIRIC_TOUCH, 12);
+  
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(CLASS_BLACKGUARD, SPELL_AID, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_INFRAVISION, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_REMOVE_CURSE, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_REMOVE_POISON, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_CURE_CRITIC, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_HOLY_SWORD, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_DISPEL_GOOD, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_FEAR, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_SERIOUS_WOUNDS, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_GREATER_INVIS, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_POISON, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_4, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   /* class prerequisites */
   class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
   class_prereq_align(CLASS_BLACKGUARD, NEUTRAL_EVIL);

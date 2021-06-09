@@ -7021,8 +7021,8 @@ ACMDU(do_holyweapon)
   skip_spaces(&argument);
 
   if (!*argument) {
-    send_to_char(ch, "Please specify a weapon type you'd like to use with your holy weapon spell.\r\n");
-    send_to_char(ch, "Your current holy weapon type is '%s'.\r\n", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+    send_to_char(ch, "Please specify a weapon type you'd like to use with your %sholy weapon spell.\r\n", subcmd ? "un" : "");
+    send_to_char(ch, "Your current %sholy weapon type is '%s'.\r\n", subcmd ? "un" : "", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
     return;
   }
 
@@ -7039,7 +7039,7 @@ ACMDU(do_holyweapon)
   }
 
   GET_HOLY_WEAPON_TYPE(ch) = i;
-  send_to_char(ch, "You have set your holy weapon type to %s.\r\n", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+  send_to_char(ch, "You have set your %sholy weapon type to %s.\r\n",  subcmd ? "un" : "", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
   save_char(ch, 0);
 }
 

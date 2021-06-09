@@ -460,10 +460,11 @@
 #define SPELL_INCORPOREAL_FORM 397
 #define SPELL_LESSER_MISSILE_STORM 398
 #define SPELL_SHADOW_JUMP 399
+#define SPELL_UNHOLY_SWORD 400
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 400
-#define LAST_SPELL_DEFINE 400
+#define NUM_SPELLS 401
+#define LAST_SPELL_DEFINE 401
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.

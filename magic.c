@@ -7446,6 +7446,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     to_room = "$n summons $p.";
     object_vnum = 810;
     break;
+  case SPELL_UNHOLY_SWORD:
+    to_char = "You summon $p.";
+    to_room = "$n summons $p.";
+    object_vnum = 897;
+    break;
   case SPELL_MAGIC_STONE:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
@@ -7628,6 +7633,18 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       snprintf(buf, sizeof(buf), "holy avenger gloriously shining %s", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
       tobj->name = strdup(buf);
       snprintf(buf, sizeof(buf), "A gloriously shining %s hovers above the ground, pointed skyward.", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+      tobj->description = strdup(buf);
+      GET_OBJ_VAL(tobj, 0) = GET_HOLY_WEAPON_TYPE(ch);
+      GET_OBJ_VAL(tobj, 1) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;
+      GET_OBJ_VAL(tobj, 2) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].diceSize;
+      GET_OBJ_SIZE(tobj) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].size;
+    }
+    if (spellnum == SPELL_UNHOLY_SWORD)
+    {
+      send_to_char(ch, "You can change your unholy weapon type with the 'unholyweapon' command. The default type is long sword.\r\n");
+      snprintf(buf, sizeof(buf), "unholy avenger red shadow %s", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+      tobj->name = strdup(buf);
+      snprintf(buf, sizeof(buf), "A baleful-looking %s hovers above the ground, pointed skyward.", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
       tobj->description = strdup(buf);
       GET_OBJ_VAL(tobj, 0) = GET_HOLY_WEAPON_TYPE(ch);
       GET_OBJ_VAL(tobj, 1) = weapon_list[GET_HOLY_WEAPON_TYPE(ch)].numDice;

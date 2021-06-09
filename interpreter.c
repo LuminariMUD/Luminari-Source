@@ -328,7 +328,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"fly", "fly", POS_FIGHTING, do_fly, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"fire", "fire", POS_FIGHTING, do_fire, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"flurryofblows", "flurryofblows", POS_FIGHTING, do_mode, 1, MODE_FLURRY_OF_BLOWS, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"feint", "feint", POS_FIGHTING, do_process_attack, 1, AA_FEINT, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"feint", "feint", POS_FIGHTING, do_process_attack, 1, AA_FEINT, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"firebolt", "firebolt", POS_FIGHTING, do_firebolt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"freegrapple", "freegrapple", POS_RECLINING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"faeriefire", "faeriefire", POS_FIGHTING, do_process_attack, 1, AA_FAERIE_FIRE, FALSE, ACTION_NONE, {0, 0}, can_faeriefire},
@@ -694,6 +694,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+    {"unholyweapon", "unholyw", POS_DEAD, do_holyweapon, 1, 1, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unlock", "unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unban", "unban", POS_DEAD, do_unban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"unaffect", "unaffect", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_UNAFFECT, TRUE, ACTION_NONE, {0, 0}, NULL},

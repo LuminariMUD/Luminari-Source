@@ -956,9 +956,8 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_IMPROVED_DISARM, 1);
 
   feato(FEAT_IMPROVED_FEINT, "improved feint", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-        "can feint as a move action",
-        "You can make a Bluff check to feint in combat as a move action as opposed "
-        "to standard action.");
+                "feint checks get a +4 bonus, and penalties to check for low intelligence or non-humanoid targets is halved.",
+        "feint checks get a +4 bonus, and penalties to check for low intelligence or non-humanoid targets is halved.");
   feat_prereq_attribute(FEAT_IMPROVED_FEINT, AB_INT, 13);
   feat_prereq_feat(FEAT_IMPROVED_FEINT, FEAT_COMBAT_EXPERTISE, 1);
 
