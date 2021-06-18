@@ -1577,7 +1577,6 @@ void perform_call(struct char_data *ch, int call_type, int level)
   if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
     join_group(mob, GROUP(ch));
   save_char_pets(ch);
-  dismiss_all_followers(ch);
 
   /* finally attach cooldown, approximately 14 minutes right now */
   if (call_type == MOB_C_ANIMAL)
@@ -3901,6 +3900,7 @@ ACMD(do_quit)
     act("$n has left the game.", TRUE, ch, 0, 0, TO_ROOM);
     mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s has quit the game.", GET_NAME(ch));
     save_char_pets(ch);
+    dismiss_all_followers(ch);
 
     if (GET_QUEST_TIME(ch) != -1)
       quest_timeout(ch);

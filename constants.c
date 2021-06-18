@@ -463,6 +463,7 @@ const char *class_names[] = {
     "Psionicist",
     "Spellsword",
     "Shadow Dancer",
+    "Blackguard",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -3845,6 +3846,7 @@ const char *spell_prep_dict[][4] = {
     {"rest", "manifesting", "manifested", "manifestations"},/* psionicist 21 */
     {"", "", "", ""},                                       /* spellsword 22 */
     {"", "", "", ""},                                       /* shadowdancer 23 */
+    {"condemn", "condemning", "condemned", "condemnations"}, /* blackguard 24 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -3881,11 +3883,11 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        /* psionicist 21 */
     {"", "", "", ""},                                        /* spellsword 22 */
     {"", "", "", ""},                                        /* shadow dancer 23 */
+    {"uncondemn", "uncondemned", "uncondemning", "uncondemned"}, /* blackguard 24 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
     //  {"",          "",            "",           ""            }, /* wilder 21 */
-    //  {"",          "",            "",           ""            }, /* shadow dancer 22 */
     //  {"",          "",            "",           ""            }, /* assassin 23 */
 };
 CHECK_TABLE_SIZE(spell_consign_dict, NUM_CLASSES);

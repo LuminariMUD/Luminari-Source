@@ -3977,14 +3977,16 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
-  if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(vict))
-    dambonus += 2;
-  else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(vict))
-    dambonus += 2;
-  else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(vict))
-    dambonus += 2;
-  else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(vict))
-    dambonus += 2;
+  if (vict) {
+    if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(vict))
+      dambonus += 2;
+    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(vict))
+      dambonus += 2;
+    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(vict))
+      dambonus += 2;
+    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(vict))
+      dambonus += 2;
+  }
 
   if (HAS_FEAT(ch, FEAT_GREATER_WEAPON_SPECIALIZATION))
   {
@@ -5931,15 +5933,17 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))
     bonuses[BONUS_TYPE_UNDEFINED] += HAS_FEAT(ch, FEAT_EPIC_PROWESS);
 
-  
-  if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(victim))
-    bonuses[BONUS_TYPE_UNDEFINED] += 1;
-  else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(victim))
-    bonuses[BONUS_TYPE_UNDEFINED] += 1;
-  else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(victim))
-    bonuses[BONUS_TYPE_UNDEFINED] += 1;
-  else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(victim))
-    bonuses[BONUS_TYPE_UNDEFINED] += 1;
+  if (victim)
+  {
+    if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(victim))
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
+    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_EVIL) && IS_EVIL(victim))
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
+    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_CHAOS) && IS_CHAOTIC(victim))
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
+    else if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_LAW) && IS_LAWFUL(victim))
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
+  }
 
   /* paladin's divine bond, maximum of 6 hitroll: 1 + level / 3 (past level 5) */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DIVINE_BOND))
