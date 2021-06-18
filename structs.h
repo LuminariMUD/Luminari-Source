@@ -365,7 +365,7 @@
 #define CLASS_SPELLSWORD 22
 #define CLASS_SHADOW_DANCER     23
 #define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
-#define CLASS_BLACKGUARD CLASS_PALADIN // temporarily set as paladin until fully implemented
+#define CLASS_BLACKGUARD 24
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -375,7 +375,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 24
+#define NUM_CLASSES 25
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
