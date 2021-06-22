@@ -2202,6 +2202,7 @@ ASPELL(psionic_concussive_onslaught)
   {
     NEW_EVENT(eCONCUSSIVEONSLAUGHT, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
+  ch->player_specials->concussive_onslaught_duration = GET_PSIONIC_LEVEL(ch);
 }
 
 /* The "return" of the event function is the time until the event is called

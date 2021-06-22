@@ -458,6 +458,13 @@ void finalize_study(struct descriptor_data *d)
       ch->player_specials->saved.paladin_mercies[i] = TRUE;
   }
 
+  // Assign chosen blackguard cruelties
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+  {
+    if (LEVELUP(ch)->blackguard_cruelties[i])
+      ch->player_specials->saved.blackguard_cruelties[i] = TRUE;
+  }
+
   /* set spells learned for domain */
   assign_domain_spells(ch);
 
@@ -1513,6 +1520,48 @@ static void select_paladin_mercies(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SELECT_PAL_MERCY;
 }
 
+
+static void select_blackguard_cruelties(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  int i = 0;
+  int cruelties_known = (CLASS_LEVEL(d->character, CLASS_BLACKGUARD) / 3) - num_blackguard_cruelties_known(d->character);
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    if (LEVELUP(d->character)->blackguard_cruelties[i])
+      cruelties_known--;
+
+  write_to_output(d,
+                  "\r\n-- %sSelect Blackguard Cruelties%s\r\n"
+                  "\r\n", mgn, nrm);
+
+  for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
+  {
+    if ((i < 1) ||
+        (i >= NUM_BLACKGUARD_CRUELTIES) ||
+        (KNOWS_CRUELTY(d->character, i)) ||
+        (LEVELUP(d->character)->blackguard_cruelties[i]) ||
+        (!can_learn_blackguard_cruelty(d->character, i)))
+      continue;
+    write_to_output(d, "%s %2d%s) %s : %s\r\n",
+                    grn, i, nrm, blackguard_cruelties[i], blackguard_cruelty_descriptions[i]);
+  }
+
+  write_to_output(d, "\r\n"
+                     "%s -1%s) Quit\r\n"
+                     "\r\n"
+                     "%d cruelties can be selected\r\n"
+                     "\r\n"
+                     "If you wish to change the choices made in this screen, please quit the study session without saving.\r\n"
+                     "\r\n"
+                     "Enter Choice : ",
+                  grn, nrm, cruelties_known);
+
+  OLC_MODE(d) = STUDY_SELECT_BG_CRUELTY;
+}
+
+
 static void set_domain_submenu(struct descriptor_data *d)
 {
   const char *domain_names[NUM_DOMAINS];
@@ -1982,6 +2031,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s B%s) Sorcerer Bloodline Selection%s\r\n"
                   "%s C%s) Alchemist Discoveries Selection%s\r\n"
                   "%s D%s) Paladin Mercies%s\r\n"
+                  "%s E%s) Blackguard Cruelties%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -2004,6 +2054,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               //B
                   MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //C
                   MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             //D
+                  MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   //E
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         //R
                   grn, nrm);
 
@@ -2381,6 +2432,24 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       break;
 
+    case 'e':
+    case 'E':
+      if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+      {
+        write_to_output(d, "Please choose your feat(s) first.\r\n");
+      }
+      else if (has_blackguard_cruelties_unchosen(ch))
+      {
+        select_blackguard_cruelties(d);
+      }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+
+
     // reset levelup, level 1 only.
     case 'R':
     case 'r':
@@ -2666,6 +2735,45 @@ void study_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = STUDY_CONFIRM_ADD_MERCY;
     break;
 
+
+  case STUDY_SELECT_BG_CRUELTY:
+    number = atoi(arg);
+    if (number == -1)
+    {
+      display_main_menu(d);
+      break;
+    }
+
+    /* Check if the discovery is available. */
+    if ((number < 1) ||
+        (number >= NUM_BLACKGUARD_CRUELTIES) ||
+        (KNOWS_CRUELTY(d->character, number)) ||
+        (LEVELUP(d->character)->blackguard_cruelties[number] == TRUE) ||
+        (!can_learn_blackguard_cruelty(d->character, number)))
+    {
+      write_to_output(d, "Invalid cruelty, try again.\r\n");
+      break;
+    }
+
+    if (!has_blackguard_cruelties_unchosen_study(ch))
+    {
+      send_to_char(ch, "You cannot choose new cruelties at this time.  "
+                      "If you wish to change your choices in this study session, "
+                      "quit the study menu without saving the changes.\r\n");
+      break;
+    }
+
+    /* Store the mercy choice in the work area in the data structure. */
+    LEVELUP(d->character)->tempCruelty = number;
+
+    /* Display the description of the feat, and give the player an option. */
+    write_to_output(d, "%s%s%s: %s\r\n\r\n"
+                       "Choose this cruelty? (y/n) : ",
+                    nrm, blackguard_cruelties[number], nrm, blackguard_cruelty_descriptions[number]);
+
+    OLC_MODE(d) = STUDY_CONFIRM_ADD_CRUELTY;
+    break;
+
   case STUDY_CONFIRM_ADD_DISCOVERY:
     switch (*arg)
     {
@@ -2696,6 +2804,23 @@ void study_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Paladin Mercy %s chosen!\r\n", paladin_mercies[LEVELUP(ch)->tempMercy]);
       LEVELUP(ch)->tempMercy = 0;
       select_paladin_mercies(d);
+      break;
+    }
+    break;
+
+  case STUDY_CONFIRM_ADD_CRUELTY:
+    switch (*arg)
+    {
+    case 'n':
+    case 'N':
+      select_blackguard_cruelties(d);
+      break;
+    case 'y':
+    case 'Y':
+      LEVELUP(d->character)->blackguard_cruelties[LEVELUP(ch)->tempCruelty] = TRUE;
+      write_to_output(d, "Blackguard Cruelty %s chosen!\r\n", blackguard_cruelties[LEVELUP(ch)->tempCruelty]);
+      LEVELUP(ch)->tempCruelty = 0;
+      select_blackguard_cruelties(d);
       break;
     }
     break;

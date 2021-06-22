@@ -360,7 +360,7 @@ void appear(struct char_data *ch, bool forced)
   {
     if (forced)
     {
-      affect_from_char(ch, SPELL_INVISIBLE);
+      affect_from_char(ch, SPELL_GREATER_INVIS);
       if (AFF_FLAGGED(ch, AFF_INVISIBLE))
         REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_INVISIBLE);
       send_to_char(ch, "You snap into visibility...\r\n");
@@ -1043,11 +1043,13 @@ void check_killer(struct char_data *ch, struct char_data *vict)
     return;
   }
 
+  /* // We don't use the killer flag anymore -- gicker june 18, 2021
   SET_BIT_AR(PLR_FLAGS(ch), PLR_KILLER);
   send_to_char(ch, "If you want to be a PLAYER KILLER, so be it...\r\n");
   mudlog(BRF, LVL_IMMORT, TRUE, "PC Killer bit set on %s for "
                                 "initiating attack on %s at %s.",
          GET_NAME(ch), GET_NAME(vict), world[IN_ROOM(vict)].name);
+  */
 }
 
 /* a function that sets ch fighting victim */
@@ -1170,6 +1172,7 @@ void stop_fighting(struct char_data *ch)
     send_to_char(ch, "Your smite good affect expires.\r\n");
     affect_from_char(ch, SKILL_SMITE_GOOD);
   }
+  ch->player_specials->has_banishment_been_attempted = false;
 }
 
 /* function for creating corpses, ch just died */
@@ -2844,6 +2847,20 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
       damage_reduction += 1;
   }
 
+  if (HAS_FEAT(ch, FEAT_AURA_OF_DEPRAVITY))
+    damage_reduction += 1;
+  if (HAS_FEAT(ch, FEAT_AURA_OF_RIGHTEOUSNESS))
+    damage_reduction += 1;
+
+  if (HAS_FEAT(ch, FEAT_HOLY_WARRIOR))
+    damage_reduction += 2;
+  if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION))
+    damage_reduction += 2;
+  if (HAS_FEAT(ch, FEAT_UNHOLY_WARRIOR))
+    damage_reduction += 2;
+  if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION))
+    damage_reduction += 2;
+
   if (IS_SHADOW_CONDITIONS(ch) && HAS_FEAT(ch, FEAT_SHADOW_MASTER))
     damage_reduction += 5;
 
@@ -3773,6 +3790,27 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   dambonus += GET_DAMROLL(ch);
   if (display_mode)
     send_to_char(ch, "Damroll: \tR%d\tn\r\n", GET_DAMROLL(ch));
+
+  if (affected_by_aura_of_sin(ch))
+  {
+    dambonus++;
+    if (display_mode)
+      send_to_char(ch, "Aura of Sin: \tR1\tn\r\n");
+  }
+
+  if (affected_by_aura_of_faith(ch))
+  {
+    dambonus++;
+    if (display_mode)
+      send_to_char(ch, "Aura of Faith: \tR1\tn\r\n");
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SICKENED))
+  {
+    dambonus -= 2;
+    if (display_mode)
+      send_to_char(ch, "Sickened Status: \tR-2\tn\r\n");
+  }
 
   /* strength bonus */
   switch (attack_type)
@@ -5813,6 +5851,14 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   {
     bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
   }
+
+  if (affected_by_aura_of_sin(ch) || affected_by_aura_of_faith(ch))
+  {
+    bonuses[BONUS_TYPE_MORALE] += 1;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SICKENED))
+    bonuses[BONUS_TYPE_UNDEFINED] -= 2;
 
   /* masterwork bonus */
   // only if the weapon doesn't already have a magical enhancement

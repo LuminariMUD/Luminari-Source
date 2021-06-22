@@ -1624,6 +1624,15 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
+            // display time
+      if (PRF_FLAGGED(d->character, PRF_DISPTIME) && len < sizeof(prompt))
+      {
+        count = snprintf(prompt + len, sizeof(prompt) - len, "%sTime:%s%d%s ",
+                        CCYEL(d->character, C_NRM), CCNRM(ch, C_NRM), (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12), (time_info.hours >= 12) ? "pm" : "am");
+
+        if (count >= 0)
+          len += count;
+      }
     } /* end prompt itself, start extra */
 
     if (HAS_WAIT(d->character) && len < sizeof(prompt))

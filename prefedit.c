@@ -114,13 +114,14 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   /* Set up the required variables and strings */
   vict = PREFEDIT_GET_CHAR;
 
-  snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s",
+  snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
           PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
           PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+          PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
           PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
           PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
           PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
@@ -373,13 +374,14 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
   if (PREFEDIT_FLAGGED(PRF_DISPAUTO))
     snprintf(prompt_string, sizeof(prompt_string), "<Auto>");
   else
-    snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s",
+    snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
             PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
             PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
             PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
             PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
             PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
             PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+            PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
             PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
             PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
             PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
@@ -395,10 +397,12 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
                              "%s8%s) Toggle Memtimes\r\n"
                              "%s9%s) Toggle Actions\r\n"
                              "%s10%s) Toggle Gold\r\n"
+                             "%s11%s) Toggle Game Time\r\n"
                              "\r\n"
                              "%sCurrent Prompt: %s%s%s\r\n\r\n"
                              "%s0%s) Quit (to main menu)\r\n",
                CBWHT(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
@@ -995,6 +999,13 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
             REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPGOLD);
           else
             SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPGOLD);
+        }
+        else if (number == 11)
+        {
+          if (PREFEDIT_FLAGGED(PRF_DISPTIME))
+            REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPTIME);
+          else
+            SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_DISPTIME);
         }
         prefedit_disp_prompt_menu(d);
       }

@@ -33,6 +33,7 @@
 #include "missions.h"
 #include "domains_schools.h"
 #include "encounters.h"
+#include "constants.h"
 
 /* defines */
 #define RAGE_AFFECTS 5
@@ -2002,6 +2003,74 @@ ACMD(do_turnundead)
   start_daily_use_cooldown(ch, FEAT_TURN_UNDEAD);
 }
 
+ACMDCHECK(can_channel_energy)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_CHANNEL_ENERGY, "You do not possess divine favor!\r\n");
+  return CAN_CMD;
+}
+
+ACMDU(do_channelenergy)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_channel_energy);
+
+  skip_spaces(&argument);
+  int level = 0;
+
+  if (IS_NEUTRAL(ch) && ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NONE)
+  {
+    if (!*argument ) {
+      send_to_char(ch, "As a neutral cleric you need to devote yourself to positive or negative energy.\r\n"
+                      "This can only be changed with a respec. Ie. 'channel positive|negative'.\r\n");
+      return;
+    }
+    if (is_abbrev(argument, "positive"))
+    {
+      ch->player_specials->saved.channel_energy_type = CHANNEL_ENERGY_TYPE_POSITIVE;
+      send_to_char(ch, "You have devoted yourself to positive channeled energy.\r\n");
+      return;
+    }
+    else if (is_abbrev(argument, "negative"))
+    {
+      ch->player_specials->saved.channel_energy_type = CHANNEL_ENERGY_TYPE_NEGATIVE;
+      send_to_char(ch, "You have devoted yourself to negative channeled energy.\r\n");
+      return;
+    }
+    else
+    {
+      send_to_char(ch, "As a neutral cleric you need to devote yourself to positive or negative energy.\r\n"
+                      "This can only be changed with a respec. Ie. 'channel positive|negative'.\r\n");
+      return;
+    }
+  }
+
+  PREREQ_HAS_USES(FEAT_CHANNEL_ENERGY, "You must recover the divine energy required to channel energy.\r\n");
+
+  level = compute_channel_energy_level(ch);
+
+  if (IS_GOOD(ch) || ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_POSITIVE)
+  {
+    act("You channel positive energy.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n channels positive energy.", FALSE, ch, 0, 0, TO_ROOM);
+    call_magic(ch, NULL, NULL, ABILITY_CHANNEL_POSITIVE_ENERGY, 0, level, CAST_INNATE);
+  }
+  else if (IS_EVIL(ch) || ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NEGATIVE)
+  {
+    act("You channel negative energy.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n channels negative energy.", FALSE, ch, 0, 0, TO_ROOM);
+    call_magic(ch, NULL, NULL, ABILITY_CHANNEL_NEGATIVE_ENERGY, 0, level, CAST_INNATE);
+  }
+  else
+  {
+    send_to_char(ch, "Error channeling energy. Please tell a staff member ERRCHANEN001.\r\n");
+    return;
+  }
+
+  /* Actions */
+  USE_STANDARD_ACTION(ch);
+  start_daily_use_cooldown(ch, FEAT_CHANNEL_ENERGY);
+}
+
 /* a function to clear rage and do other dirty work associated with that */
 void clear_rage(struct char_data *ch)
 {
@@ -3076,7 +3145,11 @@ ACMD(do_frightful)
       {
         if (IN_ROOM(tch) != IN_ROOM(ch))
           continue;
-        if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+        if (affected_by_aura_of_cowardice(tch))
+        {
+          modifier -= 4;
+        }
+        if (has_aura_of_courage(tch))
         {
           modifier += 4;
           /* Can only have one morale bonus. */
@@ -3094,7 +3167,7 @@ ACMD(do_frightful)
           TO_NOTVICT);
 
       /* Check the save. */
-      if (HAS_FEAT(vict, FEAT_AURA_OF_COURAGE))
+      if (has_aura_of_courage(vict) && !affected_by_aura_of_cowardice(vict))
         send_to_char(vict, "You are unaffected!\r\n");
       else if (savingthrow(vict, SAVING_WILL, modifier, dc))
       {
@@ -3187,7 +3260,7 @@ ACMD(do_dragonfear)
         continue;
       if (mag_resistance(ch, vict, 0))
         continue;
-      if (mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
+      if (mag_savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
         continue;
       // success
       act("You have been shaken by the dragon's might.", FALSE, ch, 0, vict, TO_VICT);
@@ -4334,7 +4407,7 @@ ACMD(do_grave_magic)
     }
     else
     {
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
+      if (mag_savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, CASTING_TYPE_ARCANE, compute_arcane_level(ch), NECROMANCY))
       {
         act("You touch $N, who shakes off the fear affect immediately.", false, ch, 0, victim, TO_CHAR);
         act("$n touches you, but you shake off the fear affect immediately.", false, ch, 0, victim, TO_VICT);
@@ -5327,6 +5400,66 @@ ACMD(do_smitegood)
 
   perform_smite(ch, SMITE_TYPE_GOOD);
 }
+
+
+ACMD(do_aura_of_vengeance)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_smitegood);
+  PREREQ_HAS_USES(FEAT_SMITE_GOOD, "You must recover the divine energy required to enact an aura of vengeance.\r\n");
+
+  struct char_data *tch = NULL;
+  struct affected_type af;
+
+  send_to_char(ch, "You enact an aura of vengeance upon your present allies.\r\n");
+  act("$n enacts an aura of vengeance around $m and $s present allies.", TRUE, ch, 0, 0, TO_ROOM);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (GROUP(ch) != GROUP(tch)) continue;
+    if (ch == tch) continue;
+    new_affect(&af);
+    af.spell = SKILL_SMITE_GOOD;
+    af.duration = 24;
+    affect_to_char(tch, &af);
+
+    act("$n gives you the ability to smite good against your current target.", FALSE, ch, 0, tch, TO_VICT);
+    act("You give $N the ability to smite good against your current target.", FALSE, ch, 0, tch, TO_CHAR);
+  }
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SMITE_GOOD);
+}
+
+ACMD(do_aura_of_justice)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_smiteevil);
+  PREREQ_HAS_USES(FEAT_SMITE_EVIL, "You must recover the divine energy required to enact an aura of justice.\r\n");
+
+  struct char_data *tch = NULL;
+  struct affected_type af;
+
+  send_to_char(ch, "You enact an aura of justice upon your present allies.\r\n");
+  act("$n enacts an aura of justice around $m and $s present allies.", TRUE, ch, 0, 0, TO_ROOM);
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (GROUP(ch) != GROUP(tch)) continue;
+    if (ch == tch) continue;
+    new_affect(&af);
+    af.spell = SKILL_SMITE_EVIL;
+    af.duration = 24;
+    affect_to_char(tch, &af);
+
+    act("$n gives you the ability to smite evil against your current target.", FALSE, ch, 0, tch, TO_VICT);
+    act("You give $N the ability to smite evil against your current target.", FALSE, ch, 0, tch, TO_CHAR);
+  }
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_SMITE_EVIL);
+}
+
 
 ACMDCHECK(can_smiteevil)
 {
@@ -6946,6 +7079,230 @@ ACMD(do_process_attack)
   {
     do_hit(ch, argument, cmd, subcmd);
   }
+}
+
+
+/* can 'curse' an opponent with your touch */
+ACMD(do_touch_of_corruption)
+{
+  int uses_remaining = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_TOUCH_OF_CORRUPTION))
+  {
+    send_to_char(ch, "You do not have that ability!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_TOUCH_OF_CORRUPTION)) == 0)
+  {
+    send_to_char(ch, "You must recover the profane energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
+      vict = FIGHTING(ch);
+    }
+    else
+    {
+      send_to_char(ch, "Target who?\r\n");
+      return;
+    }
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "You cannot use this ability on yourself\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  int amount = 20 + GET_CHA_BONUS(ch) + dice(CLASS_LEVEL(ch, CLASS_BLACKGUARD), 6);
+
+  if (IS_UNDEAD(vict))
+  {
+    char buf[200];
+    snprintf(buf, sizeof(buf), "You reach out and touch $N with a withering finger, and the surge of negative energy heals him for %d hp.", amount);
+    act(buf, FALSE, ch, 0, vict, TO_CHAR);
+    snprintf(buf, sizeof(buf), "$n reaches out and touches you with a withering finger, and the surge of negative energy heals you for %d hp.", amount);
+    act(buf, FALSE, ch, 0, vict, TO_VICT);
+    act("$n reaches out and touches $N with a withering finger, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_NOTVICT);
+  }
+
+  if (!pvp_ok(ch, vict, true))
+    return;
+
+  if (!attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, TRUE, 0))
+  {
+    act("You reach out to touch $N with a withering finger, but $E avoids you.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n reaches out to touch you with a withering finger, but you avoid $m.", FALSE, ch, 0, vict, TO_VICT);
+    act("$n reaches out to touch $N with a withering finger, but $E avoids it.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+
+  act("You reach out and touch $N with a withering finger, and $E wilts before you.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n reaches out and touches you with a withering finger, causing you to wilt before $m.", FALSE, ch, 0, vict, TO_VICT);
+  act("$n reaches out and touches $N with a withering finger, causing him to wilt before you.", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  damage(ch, vict, amount, BLACKGUARD_TOUCH_OF_CORRUPTION, DAM_NEGATIVE, FALSE);
+
+  if (*arg2)
+  {
+    apply_blackguard_cruelty(ch, vict, strdup(arg2));
+  }
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_TOUCH_OF_CORRUPTION);
+
+  USE_STANDARD_ACTION(ch);
+}
+
+void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char * cruelty)
+{
+  if (!ch || !vict)
+    return;
+
+  if (!*cruelty)
+  {
+    return;
+  }
+  
+  int i = 0, duration = 0;
+  int which_cruelty = BLACKGUARD_CRUELTY_NONE;
+  int save_mod = 0;
+  
+  for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
+  {
+    if (is_abbrev(cruelty, blackguard_cruelties[i]))
+    {
+      which_cruelty = i;
+      break;
+    }
+  }
+
+  if (i >= NUM_BLACKGUARD_CRUELTIES || i < 1)
+  {
+    send_to_char(ch, "That is not a valid cruelty type.  See the cruelties command for a list.\r\n");
+    return;
+  }
+
+  // check for immunities
+  switch (which_cruelty)
+  {
+    case BLACKGUARD_CRUELTY_SHAKEN:
+    case BLACKGUARD_CRUELTY_FRIGHTENED:
+      if (is_immune_fear(ch, vict, true)) return;
+      if (is_immune_mind_affecting(ch, vict, true)) return;
+      if (affected_by_aura_of_cowardice(vict))
+        save_mod = -4;
+      break;
+    case BLACKGUARD_CRUELTY_SICKENED:
+    case BLACKGUARD_CRUELTY_DISEASED:
+      if (!can_disease(vict))
+      {
+        act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
+        return;
+      }
+      break;
+    case BLACKGUARD_CRUELTY_POISONED:
+      if (!can_poison(vict))
+      {
+        act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
+        return;
+      }
+      break;
+    case BLACKGUARD_CRUELTY_BLINDED:
+      if (!can_blind(vict))
+      {
+        act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
+        return;
+      }
+      break;
+    case BLACKGUARD_CRUELTY_DEAFENED:
+      if (!can_deafen(vict))
+      {
+        act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
+        return;
+      }
+      break;
+    case BLACKGUARD_CRUELTY_PARALYZED:
+      if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
+      {
+        act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
+        return;
+      }
+      break;
+    case BLACKGUARD_CRUELTY_STUNNED:
+      if (!can_stun(vict))
+      {
+        act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
+        return;
+      }
+      break;
+  }
+
+  // figure out duration
+  switch (which_cruelty)
+  {
+    case BLACKGUARD_CRUELTY_DAZED:
+    case BLACKGUARD_CRUELTY_PARALYZED:
+      duration = 1;
+      break;
+    case BLACKGUARD_CRUELTY_STAGGERED:
+    case BLACKGUARD_CRUELTY_FRIGHTENED:
+      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2;
+      break;
+    case BLACKGUARD_CRUELTY_NAUSEATED:
+      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 3;
+      break;
+    case BLACKGUARD_CRUELTY_STUNNED:
+      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
+      break;
+    default:
+      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD);
+      break;
+  }
+
+  if (mag_savingthrow(ch, vict, SAVING_FORT, save_mod, CAST_CRUELTY, CLASS_LEVEL(ch, CLASS_BLACKGUARD), NOSCHOOL))
+  {
+    return;
+  }
+
+  struct affected_type af;
+
+  new_affect(&af);
+
+  af.spell = BLACKGUARD_CRUELTY_AFFECTS;
+  SET_BIT_AR(af.bitvector, blackguard_cruelty_affect_types[which_cruelty]);
+  af.duration = duration;
+
+  affect_to_char(vict, &af);
+
 }
 
 /* cleanup! */

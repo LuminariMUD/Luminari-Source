@@ -88,6 +88,7 @@ static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
 void save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
+static void load_cruelties(FILE *fl, struct char_data *ch);
 
 // external functions
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
@@ -521,6 +522,10 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
       STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
     GET_PSIONIC_ENERGY_TYPE(ch) = PFDEF_PSIONIC_ENERGY_TYPE;
+    for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+      KNOWS_CRUELTY(ch, i) = 0;
+    ch->player_specials->saved.fiendish_boons = 0;
+    ch->player_specials->saved.channel_energy_type = 0;
 
     ch->sticky_bomb[0] = 0;
     ch->sticky_bomb[1] = 0;
@@ -649,6 +654,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_CLAN(ch) = atoi(line);
         else if (!strcmp(tag, "Clrk"))
           GET_CLANRANK(ch) = atoi(line);
+        else if (!strcmp(tag, "Clty"))
+          load_cruelties(fl, ch);
         else if (!strcmp(tag, "CPts"))
           GET_CLANPOINTS(ch) = atoi(line);
         else if (!strcmp(tag, "Cvnm"))
@@ -665,6 +672,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_AUTOCQUEST_DESC(ch) = strdup(line);
         else if (!strcmp(tag, "Cmat"))
           GET_AUTOCQUEST_MATERIAL(ch) = atoi(line);
+        else if (!strcmp(tag, "ChEn"))
+          ch->player_specials->saved.channel_energy_type = atoi(line);
 
         break;
 
@@ -729,6 +738,8 @@ int load_char(const char *name, struct char_data *ch)
           load_feats(fl, ch);
         else if (!strcmp(tag, "FLGT"))
           FLEETING_GLANCE_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "FdBn"))
+          ch->player_specials->saved.fiendish_boons = atoi(line);
         else if (!strcmp(tag, "FLGU"))
           FLEETING_GLANCE_USES(ch) = atoi(line);
         else if (!strcmp(tag, "Ftpt"))
@@ -1425,6 +1436,10 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Invs: %d\n", GET_INVIS_LEV(ch));
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
     fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
+  if (ch->player_specials->saved.fiendish_boons != 0)
+    fprintf(fl, "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);  
+  if (ch->player_specials->saved.channel_energy_type != 0)
+    fprintf(fl, "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);  
 
   fprintf(fl, "FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
 
@@ -1688,6 +1703,11 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "%d\n", KNOWS_MERCY(ch, i));
   fprintf(fl, "-1\n");
 
+  fprintf(fl, "Clty:\n");
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    fprintf(fl, "%d\n", KNOWS_CRUELTY(ch, i));
+  fprintf(fl, "-1\n");
+
   /* Save Combat Feats */
   for (i = 0; i < NUM_CFEATS; i++)
   {
@@ -1888,6 +1908,10 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eSLA_FAERIE_FIRE)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFCORRUPTION)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eCHANNELENERGY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eEMPTYBODY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
@@ -2565,6 +2589,23 @@ static void load_mercies(FILE *fl, struct char_data *ch)
     if (num != -1)
     {
       KNOWS_MERCY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_cruelties(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      KNOWS_CRUELTY(ch, i) = num;
       i++;
     }
   } while (num != -1);

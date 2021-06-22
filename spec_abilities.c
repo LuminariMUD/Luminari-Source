@@ -314,6 +314,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   int activated_abilities = 0;
   struct obj_special_ability *specab; /* struct for iterating through the object's abilities. */
   int alcFire = FALSE, alcBurst = FALSE;
+  struct affected_type af;
 
   if (!weapon)
   {
@@ -383,6 +384,163 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     if (actmtd == ACTMTD_ON_CRIT && CLASS_LEVEL(ch, CLASS_PALADIN) >= 30)
     {
       damage(ch, victim, dice(2, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
+    }
+  }
+
+
+  if (victim)
+  {
+    if (actmtd == ACTMTD_ON_HIT)
+    {
+      // flaming
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_FLAMING))
+      {
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+      }
+      // vicious
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_VICIOUS))
+      {
+        damage(ch, victim, dice(2, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+        damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+      }
+      // anarchic
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_ANARCHIC) && IS_LAWFUL(victim))
+      {
+        damage(ch, victim, dice(2, 6), TYPE_SPECAB_ANARCHIC, DAM_NEGATIVE, FALSE);
+      }
+      // unholy
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_UNHOLY) && IS_GOOD(victim))
+      {
+        damage(ch, victim, dice(2, 6), TYPE_SPECAB_UNHOLY, DAM_NEGATIVE, FALSE);
+      }
+      // wounding
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_WOUNDING) && !((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
+          (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) || (GET_NPC_RACE(victim) == RACE_TYPE_OOZE)))
+      {
+                  
+        new_affect(&af);
+
+        af.spell = TYPE_SPECAB_BLEEDING;
+        af.location = APPLY_SPECIAL;
+        af.modifier = 1 + MAX(0, get_char_affect_modifier(victim, TYPE_SPECAB_BLEEDING, APPLY_SPECIAL));
+        af.duration = 3;
+        af.bonus_type = BONUS_TYPE_UNDEFINED;
+        SET_BIT_AR(af.bitvector, AFF_BLEED);
+
+        if (AFF_FLAGGED(victim, AFF_BLEED))
+        {
+          act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
+        } else {
+          act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
+        }
+
+        affect_to_char(victim, &af);
+      }
+    }
+    if (actmtd == ACTMTD_ON_CRIT)
+    {
+      // flaming burst
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_FLAMING_BURST))
+      {
+        damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+      }
+      //flaming
+      else if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_FLAMING))
+      {
+        damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+      }
+      // vicious
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_VICIOUS))
+      {
+        damage(ch, victim, dice(3, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+        damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+      }
+      // anarchic
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_ANARCHIC) && IS_LAWFUL(victim))
+      {
+        damage(ch, victim, dice(2, 6), TYPE_SPECAB_ANARCHIC, DAM_NEGATIVE, FALSE);
+      }
+      // unholy
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_UNHOLY) && IS_GOOD(victim))
+      {
+        damage(ch, victim, dice(2, 6), TYPE_SPECAB_UNHOLY, DAM_NEGATIVE, FALSE);
+      }
+      // wounding
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_WOUNDING) && !((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
+          (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) || (GET_NPC_RACE(victim) == RACE_TYPE_OOZE)))
+      {
+                  
+        new_affect(&af);
+
+        af.spell = TYPE_SPECAB_BLEEDING;
+        af.location = APPLY_SPECIAL;
+        af.modifier = 1 + MAX(0, get_char_affect_modifier(victim, TYPE_SPECAB_BLEEDING, APPLY_SPECIAL));
+        af.duration = 3;
+        af.bonus_type = BONUS_TYPE_UNDEFINED;
+        SET_BIT_AR(af.bitvector, AFF_BLEED);
+
+        if (AFF_FLAGGED(victim, AFF_BLEED))
+        {
+          act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
+        } else {
+          act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
+          act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
+        }
+
+        affect_to_char(victim, &af);
+      }
+      // vorpal
+      if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_VORPAL))
+      {
+        if (dice(1, 20) == 1) { // 5% chance on a critical hit
+        if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
+           (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT) &&
+           (GET_NPC_RACE(victim) != RACE_TYPE_OOZE)) { // they need to have or a head or not be able to function without a head
+          if (!MOB_FLAGGED(victim, MOB_NOCHARM)) { // a fail safe for boss type mobs and shopkeepers, etc.
+            damage(ch, victim, GET_HIT(victim) + 100, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE); // should kill them outright
+          }
+        }
+      }
+      }
+    }
+  }
+
+  if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_EVIL(victim) && 
+      (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOCHARM)))
+  {
+    if (victim->player_specials->has_banishment_been_attempted)
+      ;
+    else if (mag_resistance(ch, victim, 0))
+      victim->player_specials->has_banishment_been_attempted = true;
+    else if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, CLASS_LEVEL(ch, CLASS_PALADIN), SCHOOL_NOSCHOOL))
+      victim->player_specials->has_banishment_been_attempted = true;
+    else
+    {
+      damage(ch, victim, GET_HIT(victim) * 10, TYPE_SPECAB_HOLY, DAM_HOLY, FALSE); // should kill them outright
+      act("You have banished $N!", FALSE, ch, 0, victim, TO_CHAR);
+      act("$n has banished YOU!", FALSE, ch, 0, victim, TO_VICT);
+      act("$n has banished $N!", FALSE, ch, 0, victim, TO_NOTVICT);
+    }
+  }
+
+  if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_GOOD(victim) && 
+      (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOCHARM)))
+  {
+    if (victim->player_specials->has_banishment_been_attempted)
+      ;
+    else if (mag_resistance(ch, victim, 0))
+      victim->player_specials->has_banishment_been_attempted = true;
+    else if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, CLASS_LEVEL(ch, CLASS_BLACKGUARD), SCHOOL_NOSCHOOL))
+      victim->player_specials->has_banishment_been_attempted = true;
+    else
+    {
+      damage(ch, victim, GET_HIT(victim) * 10, TYPE_SPECAB_UNHOLY, DAM_UNHOLY, FALSE); // should kill them outright
+      act("You have banished $N!", FALSE, ch, 0, victim, TO_CHAR);
+      act("$n has banished YOU!", FALSE, ch, 0, victim, TO_VICT);
+      act("$n has banished $N!", FALSE, ch, 0, victim, TO_NOTVICT);
     }
   }
 
@@ -1331,7 +1489,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst)
     if (victim)
     {
       /* send_to_char(ch,"\tr[burst]\tn");*/
-      damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_SHCOKING_BURST, DAM_ELECTRIC, FALSE);
+      damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_SHOCKING_BURST, DAM_ELECTRIC, FALSE);
     }
     break;
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
@@ -1754,9 +1912,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
   case ACTMTD_ON_HIT: 
   case ACTMTD_ON_CRIT:
     
-      if ((GET_NPC_RACE(ch) == RACE_TYPE_CONSTRUCT) ||
-         (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD) ||
-         (GET_NPC_RACE(ch) == RACE_TYPE_OOZE))
+      if ((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
+         (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) ||
+         (GET_NPC_RACE(victim) == RACE_TYPE_OOZE))
          return;
 
       new_affect(&af);

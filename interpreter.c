@@ -163,7 +163,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autoreload", "autoreload", POS_DEAD, do_gen_tog, 0, SCMD_AUTORELOAD, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"accexp", "accexp", POS_DEAD, do_accexp, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"aciddart", "aciddart", POS_FIGHTING, do_aciddart, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"auraofjustice", "auraofjustice", POS_FIGHTING, do_aura_of_justice, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_smiteevil},
     {"auraofprotection", "auraofprotection", POS_FIGHTING, do_auraofprotection, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"auraofvengeance", "auraofvengeance", POS_FIGHTING, do_aura_of_vengeance, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_smitegood},
     {"armorlist", "armorlist", POS_DEAD, do_armorlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -198,7 +200,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"changelog", "cha", POS_DEAD, do_changelog, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"channelspell", "channel", POS_RECLINING, do_channelspell, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"channelenergy", "channele", POS_FIGHTING, do_channelenergy, 1, 0, TRUE, ACTION_STANDARD, {0, 0}, can_channel_energy},
+    {"channelspell", "channels", POS_RECLINING, do_channelspell, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"check", "ch", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkload", "checkl", POS_DEAD, do_checkloadstatus, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"close", "clo", POS_SITTING, do_gen_door, 0, SCMD_CLOSE, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -318,6 +321,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"fiendishboon", "fiendishb", POS_DEAD, do_fiendishboon, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"fill", "fil", POS_STANDING, do_pour, 0, SCMD_FILL, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"file", "file", POS_SLEEPING, do_file, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"flee", "fl", POS_FIGHTING, do_flee, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -613,6 +617,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"send", "send", POS_SLEEPING, do_send, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"set", "set", POS_DEAD, do_set, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    { "setroomname", "setr", POS_DEAD, do_setroomname, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    { "setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    { "setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    { "setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -708,6 +716,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"unadjure", "unadjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unbind", "unbind", POS_DEAD, do_unbind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"unlead", "unlead", POS_RECLINING, do_unlead, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"uncondemn", "uncondemn", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCONDEMN, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -2689,6 +2698,9 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case CLASS_PALADIN:
       perform_help(d, "class-paladin");
+      break;
+    case CLASS_BLACKGUARD:
+      perform_help(d, "class-blackguard");
       break;
     case CLASS_MONK:
       perform_help(d, "class-monk");

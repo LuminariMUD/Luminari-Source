@@ -1132,6 +1132,16 @@ void update_player_misc(void)
       clear_mission(ch);
     }
 
+    if (ch->player_specials->concussive_onslaught_duration > 0)
+    {
+      ch->player_specials->concussive_onslaught_duration--;
+      if (ch->player_specials->concussive_onslaught_duration <= 0)
+      {
+        send_to_char(ch, "Your concussive onslaught ends.\r\n");
+        act("Waves of concussive force stop emenating from $n.", FALSE, ch, 0, 0, TO_ROOM);
+      }
+    }
+
     if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
     {
       EFREETI_MAGIC_TIMER(ch)--;

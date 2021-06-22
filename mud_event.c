@@ -172,6 +172,8 @@ struct mud_event_list mud_event_index[] = {
     {"Shadow Call", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWCALL
     {"Shadow Jump", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWJUMP
     {"Shadow Power", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWPOWER
+    {"Touch of Corruption", event_daily_use_cooldown, EVENT_CHAR}, // eTOUCHOFCORRUPTION
+    {"Channel Energy", event_daily_use_cooldown, EVENT_CHAR}, // eCHANNELENERGY
 
 };
 
@@ -288,6 +290,12 @@ EVENTFUNC(event_countdown)
     break;
   case eLAYONHANDS:
     send_to_char(ch, "You are now able to lay on hands again.\r\n");
+    break;
+  case eTOUCHOFCORRUPTION:
+    send_to_char(ch, "You are now able to use your touch of corruption again.\r\n");
+    break;
+  case eCHANNELENERGY:
+    send_to_char(ch, "You are now able to channel energy again.\r\n");
     break;
   case eMAGIC_FOOD:
     send_to_char(ch, "You feel able to eat magical food again.\r\n");
@@ -627,6 +635,14 @@ EVENTFUNC(event_daily_use_cooldown)
   case eLAYONHANDS:
     featnum = FEAT_LAYHANDS;
     send_to_char(ch, "One of your lay on hands uses has recovered.\r\n");
+    break;
+  case eTOUCHOFCORRUPTION:
+    featnum = FEAT_TOUCH_OF_CORRUPTION;
+    send_to_char(ch, "One of your touch of corruption uses has recovered.\r\n");
+    break;
+  case eCHANNELENERGY:
+    featnum = FEAT_CHANNEL_ENERGY;
+    send_to_char(ch, "One of your channel energy uses has recovered.\r\n");
     break;
   case ePURIFY:
     featnum = FEAT_REMOVE_DISEASE;

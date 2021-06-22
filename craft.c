@@ -1089,6 +1089,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
   /* Thazull wanted very cheap at low level for RP fun */
   switch (GET_OBJ_LEVEL(obj))
   {
+  case 0:
   case 1:
   case 2:
   case 3:

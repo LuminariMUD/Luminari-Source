@@ -59,6 +59,7 @@
 #define CAST_TRAP 8
 #define CAST_FOOD_DRINK 9
 #define CAST_BOMB 10
+#define CAST_CRUELTY 11
 
 #define MAG_DAMAGE (1 << 0)
 #define MAG_AFFECTS (1 << 1)
@@ -480,7 +481,10 @@
 #define PSIONIC_ABILITY_DOUBLE_MANIFESTATION    1202
 #define SPELL_DRAGONBORN_ANCESTRY_BREATH        1203
 #define PALADIN_MERCY_INJURED_FAST_HEALING      1204
-
+#define BLACKGUARD_TOUCH_OF_CORRUPTION          1205
+#define BLACKGUARD_CRUELTY_AFFECTS              1206
+#define ABILITY_CHANNEL_POSITIVE_ENERGY         1207
+#define ABILITY_CHANNEL_NEGATIVE_ENERGY         1208
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -790,7 +794,9 @@
 #define TYPE_SPECAB_THUNDERING 607
 #define TYPE_SPECAB_BLEEDING   608
 #define TYPE_SPECAB_SHOCK     609
-#define TYPE_SPECAB_SHCOKING_BURST 610
+#define TYPE_SPECAB_SHOCKING_BURST 610
+#define TYPE_SPECAB_ANARCHIC 611
+#define TYPE_SPECAB_UNHOLY 612
 
 #define SKILL_LANG_COMMON 601
 #define SKILL_LANG_BASIC SKILL_LANG_COMMON
@@ -1262,6 +1268,8 @@ int compute_mag_saves(struct char_data *vict,
                       int type, int modifier);
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school);
+int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
+                    int type, int modifier, int casttype, int level, int school, int spellnum);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);

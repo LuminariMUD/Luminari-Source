@@ -848,6 +848,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
     value -= 1;
   if (IS_FRIGHTENED(ch))
     value -= 2;
+  if (AFF_FLAGGED(ch, AFF_SICKENED))
+    value -= 2;
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set

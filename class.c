@@ -617,12 +617,14 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
       if (!(IS_CLERIC(ch) ||
             IS_DRUID(ch) ||
             IS_PALADIN(ch) ||
+            (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0) ||
             IS_RANGER(ch)))
         return FALSE;
       if (prereq->values[2] > 0)
       {
         if (compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 &&
+            compute_slots_by_circle(ch, CLASS_BLACKGUARD, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0)
           return FALSE;
@@ -1294,6 +1296,15 @@ int valid_align_by_class(int alignment, int class)
       return TRUE;
     else
       return FALSE;
+  case CLASS_BLACKGUARD:
+    if (alignment == LAWFUL_EVIL)
+      return TRUE;
+    else if (alignment == NEUTRAL_EVIL)
+      return TRUE;
+    else if (alignment == CHAOTIC_EVIL)
+      return TRUE;
+    else
+      return FALSE;
     /* default, no alignment restrictions */
   case CLASS_WIZARD:
   case CLASS_CLERIC:
@@ -1362,7 +1373,8 @@ int parse_class(char arg)
     return CLASS_SHIFTER;
   case 'i':
     return CLASS_DUELIST;
-    //    case 'j': return CLASS_SHADOW_DANCER;
+  case 'j': 
+    return CLASS_SHADOW_DANCER;
     //    case 'k': return CLASS_ASSASSIN;
   case 'l':
     return CLASS_MYSTICTHEURGE;
@@ -1374,7 +1386,8 @@ int parse_class(char arg)
     return CLASS_MONK;
   case 'p':
     return CLASS_PALADIN;
-    /* empty letters */
+  case 'q':
+    return CLASS_BLACKGUARD;
   case 'r':
     return CLASS_RANGER;
   case 's':
@@ -1484,6 +1497,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_ALCHEMIST;
   if (is_abbrev(arg, "psionicist"))
     return CLASS_PSIONICIST;
+  if (is_abbrev(arg, "blackguard"))
+    return CLASS_BLACKGUARD;
 
   return CLASS_UNDEFINED;
 }
@@ -1984,6 +1999,7 @@ void newbieEquipment(struct char_data *ch)
   switch (GET_CLASS(ch))
   {
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
     /*fallthrough*/
   case CLASS_CLERIC:
     // holy symbol, not implemented so took out
@@ -2238,6 +2254,13 @@ void init_start_char(struct char_data *ch)
   GET_DISGUISE_RACE(ch) = 0;
   cleanup_disguise(ch);
   GET_SPECIALTY_SCHOOL(ch) = 0;
+
+  for (i = 0; i < NUM_PALADIN_MERCIES; i++)
+    KNOWS_MERCY(ch, i) = 0;
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    KNOWS_CRUELTY(ch, i) = 0;
+  ch->player_specials->saved.fiendish_boons = 0;
+  ch->player_specials->saved.channel_energy_type = 0;
 
   /* clear immortal flags */
   if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
@@ -2777,6 +2800,7 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
     GRANT_SPELL_CIRCLE(CLASS_SORCERER, FEAT_SORCERER_1ST_CIRCLE, FEAT_SORCERER_EPIC_SPELL);
     GRANT_SPELL_CIRCLE(CLASS_PALADIN, FEAT_PALADIN_1ST_CIRCLE, FEAT_PALADIN_4TH_CIRCLE);
     GRANT_SPELL_CIRCLE(CLASS_RANGER, FEAT_RANGER_1ST_CIRCLE, FEAT_RANGER_4TH_CIRCLE);
+    GRANT_SPELL_CIRCLE(CLASS_BLACKGUARD, FEAT_BLACKGUARD_1ST_CIRCLE, FEAT_BLACKGUARD_4TH_CIRCLE);
   }
   break;
   }
@@ -3121,6 +3145,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_WIZARD:
   case CLASS_SORCERER:
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
   case CLASS_MONK:
   case CLASS_DRUID:
   case CLASS_RANGER:
@@ -3553,7 +3578,7 @@ void load_class_list(void)
   feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
   feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
   feat_assignment(CLASS_CLERIC, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
-  feat_assignment(CLASS_CLERIC, FEAT_TURN_UNDEAD, Y, 1, N);
+  feat_assignment(CLASS_CLERIC, FEAT_CHANNEL_ENERGY, Y, 1, N);
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_1ST_CIRCLE, Y, 1, N);
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_2ND_CIRCLE, Y, 3, N);
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_3RD_CIRCLE, Y, 5, N);
@@ -3580,6 +3605,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_STRENGTH, 1);
   spell_assignment(CLASS_CLERIC, SPELL_GRACE, 1);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_FEAR, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_DOOM, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_CLERIC, SPELL_AUGURY, 3);
@@ -4712,7 +4738,7 @@ void load_class_list(void)
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 1, Y);
   feat_assignment(CLASS_PALADIN, FEAT_DIVINE_GRACE, Y, 2, N);
   feat_assignment(CLASS_PALADIN, FEAT_LAYHANDS, Y, 3, N);
-  feat_assignment(CLASS_PALADIN, FEAT_TURN_UNDEAD, Y, 3, N);
+  feat_assignment(CLASS_PALADIN, FEAT_CHANNEL_ENERGY, Y, 4, N);
   feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_COURAGE, Y, 4, N);
   feat_assignment(CLASS_PALADIN, FEAT_DIVINE_HEALTH, Y, 5, N);
   /* bonus feat - mounted combat 5 */
@@ -4727,15 +4753,19 @@ void load_class_list(void)
   feat_assignment(CLASS_PALADIN, FEAT_SPIRITED_CHARGE, Y, 9, N);
   feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 9, Y);
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 10, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_JUSTICE, Y, 11, Y);
   feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 12, Y);
   /* bonus feat - mounted archery 13 */
   feat_assignment(CLASS_PALADIN, FEAT_MOUNTED_ARCHERY, Y, 13, N);
   feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 14, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_FAITH, Y, 14, Y);
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 15, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_AURA_OF_RIGHTEOUSNESS, Y, 17, Y);
   feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 18, Y);
   /* bonus feat - glorious rider 19 */
   feat_assignment(CLASS_PALADIN, FEAT_GLORIOUS_RIDER, Y, 19, N);
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 19, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_HOLY_WARRIOR, Y, 20, Y);
   /* spell circles */
   feat_assignment(CLASS_PALADIN, FEAT_PALADIN_1ST_CIRCLE, Y, 6, N);
   feat_assignment(CLASS_PALADIN, FEAT_PALADIN_2ND_CIRCLE, Y, 10, N);
@@ -4751,6 +4781,7 @@ void load_class_list(void)
   feat_assignment(CLASS_PALADIN, FEAT_EPIC_MOUNT, Y, 27, N);
   feat_assignment(CLASS_PALADIN, FEAT_REMOVE_DISEASE, Y, 30, Y);
   feat_assignment(CLASS_PALADIN, FEAT_SMITE_EVIL, Y, 30, Y);
+  feat_assignment(CLASS_PALADIN, FEAT_HOLY_CHAMPION, Y, 30, Y);
   /* paladin has no class feats */
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
@@ -4790,7 +4821,7 @@ void load_class_list(void)
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_BLACKGUARD, "blackguard", "BkG", "\tDBkG\tn", "z) \tDBlackguard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, Y, N, H, 10, 0, 1, 2, N, 0, 0,
+         -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
          "champions of evil in Faerun. They lead armies of dread forces such as undead, "
@@ -4837,60 +4868,86 @@ void load_class_list(void)
   feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_PROFICIENCY_MEDIUM, Y, 1, N);
   feat_assignment(CLASS_BLACKGUARD, FEAT_ARMOR_PROFICIENCY_SHIELD, Y, 1, N);
   feat_assignment(CLASS_BLACKGUARD, FEAT_MARTIAL_WEAPON_PROFICIENCY, Y, 1, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_GOOD, Y, 1, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_DETECT_EVIL, Y, 1, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 1, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_DIVINE_GRACE, Y, 2, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_LAYHANDS, Y, 3, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_TURN_UNDEAD, Y, 3, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_COURAGE, Y, 4, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_DIVINE_HEALTH, Y, 5, N);
-  /* bonus feat - mounted combat 5 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_MOUNTED_COMBAT, Y, 5, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 5, Y);
-  /* bonus feat - ride by attack 6 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_RIDE_BY_ATTACK, Y, 6, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 6, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_CALL_MOUNT, Y, 7, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_DIVINE_BOND, Y, 8, N);
-  /* bonus feat - spirited charge 9 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SPIRITED_CHARGE, Y, 9, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 9, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 10, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 12, Y);
-  /* bonus feat - mounted archery 13 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_MOUNTED_ARCHERY, Y, 13, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 14, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 15, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 18, Y);
-  /* bonus feat - glorious rider 19 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_GLORIOUS_RIDER, Y, 19, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 19, Y);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_EVIL, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_DETECT_GOOD, Y, 1, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 1, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_UNHOLY_RESILIENCE, Y, 2, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_TOUCH_OF_CORRUPTION, Y, 2, N);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_COWARDICE, Y, 3, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_PLAGUE_BRINGER, Y, 3, N);
+  // cruelty slot - 3
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_CHANNEL_ENERGY, Y, 4, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 4, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_FIENDISH_BOON, Y, 5, N);
+
+  // cruelty slot - 6
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 7, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_DESPAIR, Y, 8, N);
+
+  // cruelty slot - 9
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 10, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_VENGEANCE, Y, 11, N);
+
+  // cruelty slot - 12
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 13, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_SIN, Y, 14, Y);
+
+  // cruelty slot - 15
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 16, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_AURA_OF_DEPRAVITY, Y, 14, Y);
+
+  // cruelty slot - 18
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 19, Y);
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_UNHOLY_WARRIOR, Y, 20, Y);
+
+  // epic
+
+  // cruelty slot - 21
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 22, Y);
+
+  // cruelty slot - 24
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 25, Y);
+
+  // cruelty slot - 27
+
+  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_GOOD, Y, 28, Y);
+
+  // cruelty slot - 30
+  feat_assignment(CLASS_BLACKGUARD, FEAT_UNHOLY_CHAMPION, Y, 30, Y);
+
   /* spell circles */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_1ST_CIRCLE, Y, 6, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_2ND_CIRCLE, Y, 10, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_3RD_CIRCLE, Y, 12, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_PALADIN_4TH_CIRCLE, Y, 15, N);
-  /*epic*/
-  /* bonus epic feat - legendary rider 21 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_LEGENDARY_RIDER, Y, 21, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 22, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 25, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 26, Y);
-  /* bonus epic feat - epic mount 27 */
-  feat_assignment(CLASS_BLACKGUARD, FEAT_EPIC_MOUNT, Y, 27, N);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_REMOVE_DISEASE, Y, 30, Y);
-  feat_assignment(CLASS_BLACKGUARD, FEAT_SMITE_EVIL, Y, 30, Y);
-  /* paladin has no class feats */
+  feat_assignment(CLASS_BLACKGUARD, FEAT_BLACKGUARD_1ST_CIRCLE, Y, 6, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_BLACKGUARD_2ND_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_BLACKGUARD_3RD_CIRCLE, Y, 12, N);
+  feat_assignment(CLASS_BLACKGUARD, FEAT_BLACKGUARD_4TH_CIRCLE, Y, 15, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_BLACKGUARD, SPELL_COMMAND, 6);
+  //spell_assignment(CLASS_BLACKGUARD, SPELL_COMMAND, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_POISON, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_DOOM, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_LIGHT_WOUNDS, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_PROT_FROM_GOOD, 6);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_1, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_3, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_ENDURANCE, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_NEGATIVE_ENERGY_RAY, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_ENDURE_ELEMENTS, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_BLACKGUARD, SPELL_BLINDNESS, 10);
@@ -4902,8 +4959,8 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_HOLD_PERSON, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_INVISIBLE, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_IRONSKIN, 10);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_2, 10);
+  //spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_4, 10);
   
   /*              class num      spell                   level acquired */
   /* 3rd circle */
@@ -4913,7 +4970,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_DISPEL_MAGIC, 12);
   spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_MODERATE_WOUNDS, 12);
   spell_assignment(CLASS_BLACKGUARD, SPELL_CIRCLE_A_GOOD, 12);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_3, 12);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_6, 12);
   spell_assignment(CLASS_BLACKGUARD, SPELL_VAMPIRIC_TOUCH, 12);
   
   /*              class num      spell                   level acquired */
@@ -4923,7 +4980,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_SERIOUS_WOUNDS, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_GREATER_INVIS, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_POISON, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_4, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   /* class prerequisites */
   class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
@@ -5130,12 +5187,12 @@ void load_class_list(void)
   feat_assignment(CLASS_BARD, FEAT_ACT_OF_FORGETFULNESS, Y, 15, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_ROOTING, Y, 17, N);
   /* spell circles */
-  feat_assignment(CLASS_BARD, FEAT_BARD_1ST_CIRCLE, Y, 3, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_2ND_CIRCLE, Y, 5, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_3RD_CIRCLE, Y, 8, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_4TH_CIRCLE, Y, 11, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_5TH_CIRCLE, Y, 14, N);
-  feat_assignment(CLASS_BARD, FEAT_BARD_6TH_CIRCLE, Y, 17, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_2ND_CIRCLE, Y, 4, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_3RD_CIRCLE, Y, 7, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_4TH_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_5TH_CIRCLE, Y, 13, N);
+  feat_assignment(CLASS_BARD, FEAT_BARD_6TH_CIRCLE, Y, 16, N);
   /*epic*/
   feat_assignment(CLASS_BARD, FEAT_BARD_EPIC_SPELL, Y, 21, N);
   feat_assignment(CLASS_BARD, FEAT_SONG_OF_DRAGONS, Y, 22, N);
@@ -5144,66 +5201,66 @@ void load_class_list(void)
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM, 3);
-  spell_assignment(CLASS_BARD, SPELL_SHIELD, 3);
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_1, 3);
-  spell_assignment(CLASS_BARD, SPELL_CHARM, 3);
-  spell_assignment(CLASS_BARD, SPELL_ENDURE_ELEMENTS, 3);
-  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_EVIL, 3);
-  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_GOOD, 3);
-  spell_assignment(CLASS_BARD, SPELL_MAGIC_MISSILE, 3);
-  spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT, 3);
+  spell_assignment(CLASS_BARD, SPELL_HORIZIKAULS_BOOM, 1);
+  spell_assignment(CLASS_BARD, SPELL_SHIELD, 1);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_1, 1);
+  spell_assignment(CLASS_BARD, SPELL_CHARM, 1);
+  spell_assignment(CLASS_BARD, SPELL_ENDURE_ELEMENTS, 1);
+  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_EVIL, 1);
+  spell_assignment(CLASS_BARD, SPELL_PROT_FROM_GOOD, 1);
+  spell_assignment(CLASS_BARD, SPELL_MAGIC_MISSILE, 1);
+  spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_2, 5);
-  spell_assignment(CLASS_BARD, SPELL_DEAFNESS, 5);
-  spell_assignment(CLASS_BARD, SPELL_HIDEOUS_LAUGHTER, 5);
-  spell_assignment(CLASS_BARD, SPELL_MIRROR_IMAGE, 5);
-  spell_assignment(CLASS_BARD, SPELL_DETECT_INVIS, 5);
-  spell_assignment(CLASS_BARD, SPELL_DETECT_MAGIC, 5);
-  spell_assignment(CLASS_BARD, SPELL_INVISIBLE, 5);
-  spell_assignment(CLASS_BARD, SPELL_ENDURANCE, 5);
-  spell_assignment(CLASS_BARD, SPELL_STRENGTH, 5);
-  spell_assignment(CLASS_BARD, SPELL_GRACE, 5);
-  spell_assignment(CLASS_BARD, SPELL_CURE_MODERATE, 5);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_2, 4);
+  spell_assignment(CLASS_BARD, SPELL_DEAFNESS, 4);
+  spell_assignment(CLASS_BARD, SPELL_HIDEOUS_LAUGHTER, 4);
+  spell_assignment(CLASS_BARD, SPELL_MIRROR_IMAGE, 4);
+  spell_assignment(CLASS_BARD, SPELL_DETECT_INVIS, 4);
+  spell_assignment(CLASS_BARD, SPELL_DETECT_MAGIC, 4);
+  spell_assignment(CLASS_BARD, SPELL_INVISIBLE, 4);
+  spell_assignment(CLASS_BARD, SPELL_ENDURANCE, 4);
+  spell_assignment(CLASS_BARD, SPELL_STRENGTH, 4);
+  spell_assignment(CLASS_BARD, SPELL_GRACE, 4);
+  spell_assignment(CLASS_BARD, SPELL_CURE_MODERATE, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 8);
-  spell_assignment(CLASS_BARD, SPELL_LIGHTNING_BOLT, 8);
-  spell_assignment(CLASS_BARD, SPELL_DEEP_SLUMBER, 8);
-  spell_assignment(CLASS_BARD, SPELL_HASTE, 8);
-  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_EVIL, 8);
-  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_GOOD, 8);
-  spell_assignment(CLASS_BARD, SPELL_CUNNING, 8);
-  spell_assignment(CLASS_BARD, SPELL_WISDOM, 8);
-  spell_assignment(CLASS_BARD, SPELL_CHARISMA, 8);
-  spell_assignment(CLASS_BARD, SPELL_CURE_SERIOUS, 8);
-  spell_assignment(CLASS_BARD, SPELL_CONFUSION, 8);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 7);
+  spell_assignment(CLASS_BARD, SPELL_LIGHTNING_BOLT, 7);
+  spell_assignment(CLASS_BARD, SPELL_DEEP_SLUMBER, 7);
+  spell_assignment(CLASS_BARD, SPELL_HASTE, 7);
+  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_EVIL, 7);
+  spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_GOOD, 7);
+  spell_assignment(CLASS_BARD, SPELL_CUNNING, 7);
+  spell_assignment(CLASS_BARD, SPELL_WISDOM, 7);
+  spell_assignment(CLASS_BARD, SPELL_CHARISMA, 7);
+  spell_assignment(CLASS_BARD, SPELL_CURE_SERIOUS, 7);
+  spell_assignment(CLASS_BARD, SPELL_CONFUSION, 7);
   /*              class num      spell                   level acquired */
   /* 4th circle */
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_4, 11);
-  spell_assignment(CLASS_BARD, SPELL_GREATER_INVIS, 11);
-  spell_assignment(CLASS_BARD, SPELL_RAINBOW_PATTERN, 11);
-  spell_assignment(CLASS_BARD, SPELL_REMOVE_CURSE, 11);
-  spell_assignment(CLASS_BARD, SPELL_ICE_STORM, 11);
-  spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC, 11);
-  spell_assignment(CLASS_BARD, SPELL_SHADOW_JUMP, 11);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_4, 10);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_INVIS, 10);
+  spell_assignment(CLASS_BARD, SPELL_RAINBOW_PATTERN, 10);
+  spell_assignment(CLASS_BARD, SPELL_REMOVE_CURSE, 10);
+  spell_assignment(CLASS_BARD, SPELL_ICE_STORM, 10);
+  spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC, 10);
+  spell_assignment(CLASS_BARD, SPELL_SHADOW_JUMP, 10);
   /*              class num      spell                   level acquired */
   /* 5th circle */
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_5, 14);
-  spell_assignment(CLASS_BARD, SPELL_ACID_SHEATH, 14);
-  spell_assignment(CLASS_BARD, SPELL_CONE_OF_COLD, 14);
-  spell_assignment(CLASS_BARD, SPELL_NIGHTMARE, 14);
-  spell_assignment(CLASS_BARD, SPELL_MIND_FOG, 14);
-  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT, 14);
-  spell_assignment(CLASS_BARD, SPELL_SHADOW_WALK, 14);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_5, 13);
+  spell_assignment(CLASS_BARD, SPELL_ACID_SHEATH, 13);
+  spell_assignment(CLASS_BARD, SPELL_CONE_OF_COLD, 13);
+  spell_assignment(CLASS_BARD, SPELL_NIGHTMARE, 13);
+  spell_assignment(CLASS_BARD, SPELL_MIND_FOG, 13);
+  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT, 13);
+  spell_assignment(CLASS_BARD, SPELL_SHADOW_WALK, 13);
   /*              class num      spell                   level acquired */
   /* 6th circle */
-  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7, 17);
-  spell_assignment(CLASS_BARD, SPELL_FREEZING_SPHERE, 17);
-  spell_assignment(CLASS_BARD, SPELL_GREATER_HEROISM, 17);
-  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_MODERATE, 17);
-  spell_assignment(CLASS_BARD, SPELL_STONESKIN, 17);
+  spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7, 16);
+  spell_assignment(CLASS_BARD, SPELL_FREEZING_SPHERE, 16);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_HEROISM, 16);
+  spell_assignment(CLASS_BARD, SPELL_MASS_CURE_MODERATE, 16);
+  spell_assignment(CLASS_BARD, SPELL_STONESKIN, 16);
   /*epic*/
   spell_assignment(CLASS_BARD, SPELL_MUMMY_DUST, 21);
   spell_assignment(CLASS_BARD, SPELL_GREATER_RUIN, 21);
@@ -6580,6 +6637,97 @@ bool can_learn_paladin_mercy(struct char_data *ch, int mercy)
     case PALADIN_MERCY_PARALYZED:
     case PALADIN_MERCY_STUNNED:
       if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 12) return true;
+      break;
+  }
+
+  return false;
+}
+
+
+int num_blackguard_cruelties_known(struct char_data *ch)
+{
+  /* dummy check */
+  if (!ch)
+    return 0;
+
+  int i = 0;
+  int num_chosen = 0;
+
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    if (KNOWS_CRUELTY(ch, i))
+      num_chosen++;
+  return num_chosen;
+}
+
+sbyte has_blackguard_cruelties_unchosen(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  int num_avail = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 3;
+  int num_chosen = num_blackguard_cruelties_known(ch);
+
+  if ((num_avail - num_chosen) > 0)
+    return TRUE;
+
+  return FALSE;
+}
+
+sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  int num_avail = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 3;
+  int num_chosen = num_blackguard_cruelties_known(ch);
+  int i = 0;
+  int num_study = 0;
+
+  for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
+    if (LEVELUP(ch)->blackguard_cruelties[i])
+      num_study++;
+
+  if ((num_avail - num_chosen - num_study) > 0)
+    return TRUE;
+
+  return FALSE;
+}
+
+bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy)
+{
+  if (!ch) return false;
+
+  switch (mercy)
+  {
+    case BLACKGUARD_CRUELTY_FATIGUED:
+    case BLACKGUARD_CRUELTY_SHAKEN:
+    case BLACKGUARD_CRUELTY_SICKENED:
+      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 3) return true;
+      break;
+    case BLACKGUARD_CRUELTY_DAZED:
+    case BLACKGUARD_CRUELTY_DISEASED:
+    case BLACKGUARD_CRUELTY_STAGGERED:
+      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 6) return true;
+      break;
+    case BLACKGUARD_CRUELTY_CURSED:
+    case BLACKGUARD_CRUELTY_FRIGHTENED:
+    case BLACKGUARD_CRUELTY_NAUSEATED:
+    case BLACKGUARD_CRUELTY_POISONED:
+      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 9) return true;
+      break;
+    case BLACKGUARD_CRUELTY_BLINDED:
+    case BLACKGUARD_CRUELTY_DEAFENED:
+    case BLACKGUARD_CRUELTY_PARALYZED:
+    case BLACKGUARD_CRUELTY_STUNNED:
+      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12) return true;
       break;
   }
 

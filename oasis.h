@@ -641,6 +641,8 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define PSIONICIST_STUDY_POWERS 45
 #define STUDY_SELECT_PAL_MERCY 46
 #define STUDY_CONFIRM_ADD_MERCY 47
+#define STUDY_SELECT_BG_CRUELTY 53
+#define STUDY_CONFIRM_ADD_CRUELTY 54
 
 int save_config(IDXTYPE nowhere);
 

@@ -430,6 +430,9 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch)
   if (OBJ_FLAGGED(obj, ITEM_BLESS) && (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD)))
     send_to_char(ch, " \tn..It glows \tBblue\tn!");
 
+  if (OBJ_FLAGGED(obj, ITEM_NODROP) && HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+    send_to_char(ch, " \tn..It glows \tRred\tn!");
+
   if (OBJ_FLAGGED(obj, ITEM_MAGIC) && AFF_FLAGGED(ch, AFF_DETECT_MAGIC))
     send_to_char(ch, " \tn..It glows \tYyellow\tn!");
 
@@ -732,14 +735,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (IS_EVIL(i))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
     }
     else if (IS_GOOD(i))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
       {
         send_to_char(ch, "\tB(Blue Aura)\tn ");
       }
@@ -788,14 +791,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (IS_EVIL(i))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)|| HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
     }
     else if (IS_GOOD(i))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
       {
         send_to_char(ch, "\tB(Blue Aura)\tn ");
       }
@@ -935,14 +938,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (IS_EVIL(i))
   {
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL))
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)|| HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
     {
       send_to_char(ch, "\tR(Red Aura)\tn ");
     }
   }
   else if (IS_GOOD(i))
   {
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
     {
       send_to_char(ch, "\tB(Blue Aura)\tn ");
     }
@@ -1858,6 +1861,10 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Shadow Power Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSHADOWJUMP)))
     send_to_char(ch, "Shadow Jump Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eTOUCHOFCORRUPTION)))
+    send_to_char(ch, "Touch of Corruption Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCHANNELENERGY)))
+    send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (PIXIE_DUST_TIMER(ch) > 0)
     send_to_char(ch, "Pixie Dust Cooldown - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
@@ -1999,7 +2006,6 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char buf3[MAX_STRING_LENGTH] = {'\0'};
 
-  struct char_data *tch = NULL;
   struct affected_type *aff = NULL;
   struct mud_event_data *pMudEvent = NULL;
 
@@ -2099,32 +2105,14 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   send_to_char(ch, "\tn");
 
   /* Check to see if the victim is affected by an AURA OF COURAGE */
-  bool has_aura_of_courage = FALSE;
-  //  if (GROUP(k) != NULL) {
-  //    while ((tch = (struct char_data *) simple_list(GROUP(k)->members)) != NULL) {
-
-  if (GROUP(k) && GROUP(k)->members && GROUP(k)->members->iSize)
-  {
-    struct iterator_data Iterator;
-
-    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(k)->members);
-    for (; tch; tch = next_in_list(&Iterator))
-    {
-      if (IN_ROOM(tch) != IN_ROOM(k))
-        continue;
-      if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
-      {
-        has_aura_of_courage = TRUE;
-        /* Can only have one morale bonus. */
-        break;
-      }
-    }
-    remove_iterator(&Iterator);
-  }
-
-  if (has_aura_of_courage)
+  if (has_aura_of_courage(ch))
   {
     send_to_char(ch, "Aura of Courage (bonus resistance against fear-affects)\r\n");
+  }
+
+  if (affected_by_aura_of_cowardice(ch))
+  {
+    send_to_char(ch, "Aura of Cowardice (penalty against fear-affects)\r\n");
   }
 
   /* salvation */
@@ -2159,6 +2147,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
+    send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -6111,7 +6101,7 @@ ACMD(do_mercies)
 
   int i = 0;
 
-  send_to_char(ch, "Paladin Mercies Known\r\n");
+  send_to_char(ch, "Paladin Mercies\r\n");
   for (i = 0; i < 80; i++)
     send_to_char(ch, "-");
   send_to_char(ch, "\r\n");
@@ -6131,6 +6121,39 @@ ACMD(do_mercies)
   }
 
   send_to_char(ch, "\r\nSee HELP MERCIES and HELP LAYONHANDS for more information on how mercies work.\r\n\r\n");
+
+}
+
+ACMD(do_cruelties)
+{
+ if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) < 3) 
+ {
+   send_to_char(ch, "You don't know any blackguard cruelties.\r\n");
+   return;
+ }
+
+  int i = 0;
+
+  send_to_char(ch, "Blackguard Cruelties\r\n");
+  for (i = 0; i < 80; i++)
+    send_to_char(ch, "-");
+  send_to_char(ch, "\r\n");
+
+  for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
+  {
+    send_to_char(ch, "[");
+    if (KNOWS_CRUELTY(ch, i))
+    {
+      send_to_char(ch, "\tg%-7s\tn", "KNOWN");
+    }
+    else
+    {
+      send_to_char(ch, "\tr%-7s\tn", "UNKNOWN");
+    }
+    send_to_char(ch, "] %-15s : %s\r\n", blackguard_cruelties[i], blackguard_cruelty_descriptions[i]);
+  }
+
+  send_to_char(ch, "\r\nSee HELP CRUELTIES and HELP TOUCH-OF-CORRUPTION for more information on how cruelties work.\r\n\r\n");
 
 }
 
