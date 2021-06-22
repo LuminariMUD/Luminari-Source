@@ -294,6 +294,7 @@ extern "C"
 #define TOP_BARD_CIRCLE 6
 #define TOP_RANGER_CIRCLE 4
 #define TOP_PALADIN_CIRCLE TOP_RANGER_CIRCLE
+#define TOP_BLACKGUARD_CIRCLE TOP_RANGER_CIRCLE
 
 /* assuming wizard as our standard, this is the base mem time for a 1st
      * circle spell without any bonuses*/
@@ -308,6 +309,7 @@ extern "C"
          them to easily adjust preparation time for spell */
 #define RANGER_PREP_TIME_FACTOR 4.0
 #define PALADIN_PREP_TIME_FACTOR 4.0
+#define BLACKGUARD_PREP_TIME_FACTOR 4.0
 #define DRUID_PREP_TIME_FACTOR 3.0
 #define WIZ_PREP_TIME_FACTOR 2.5
 #define CLERIC_PREP_TIME_FACTOR 3.0
@@ -325,6 +327,8 @@ extern "C"
 #define SCMD_ADJURE 6
 #define SCMD_COMPOSE 7
 #define SCMD_CONCOCT 8
+#define SCMD_POWERS 9
+#define SCMD_CONDEMN 10
 
 /* these are the subcommands for the prep system command:
      *  do_consign_to_oblivion */
@@ -334,6 +338,7 @@ extern "C"
 #define SCMD_OMIT 4
 #define SCMD_UNADJURE 5
 #define SCMD_DISCARD 6
+#define SCMD_UNCONDEMN 7
 
 /* MODE for searching from our lists */
 #define SPREP_SERACH_NORMAL 0

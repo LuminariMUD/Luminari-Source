@@ -663,6 +663,9 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                 case CLASS_PALADIN:
                         spell_level = level;
                         break;
+                case CLASS_BLACKGUARD:
+                        spell_level = level;
+                        break;
                 case CLASS_RANGER:
                         spell_level = level;
                         break;
@@ -1997,6 +2000,7 @@ ACMDU(do_gen_cast)
                  BONUS_CASTER_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
+                 BONUS_CASTER_LEVEL(ch, CLASS_BLACKGUARD) + CLASS_LEVEL(ch, CLASS_BLACKGUARD) < SINFO.min_level[CLASS_BLACKGUARD] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
                  BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
@@ -2098,6 +2102,7 @@ ACMDU(do_gen_cast)
                         case CLASS_BARD:
                         case CLASS_SORCERER:
                         case CLASS_PALADIN:
+                        case CLASS_BLACKGUARD:
                                 if ((10 + circle) > GET_CHA(ch))
                                 {
                                         send_to_char(ch, "You need to have a minimum charisma of %d to cast a circle %d spell.\r\n",
@@ -2138,7 +2143,12 @@ ACMDU(do_gen_cast)
                 }
                 if (CLASS_LEVEL(ch, CLASS_PALADIN) && GET_CHA(ch) < 10)
                 {
-                        send_to_char(ch, "You are not wise enough to cast spells...\r\n");
+                        send_to_char(ch, "You are not charismatic enough to cast spells...\r\n");
+                        return;
+                }
+                if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) && GET_CHA(ch) < 10)
+                {
+                        send_to_char(ch, "You are not charismatic enough to cast spells...\r\n");
                         return;
                 }
                 if (CLASS_LEVEL(ch, CLASS_DRUID) && GET_WIS(ch) < 10)
@@ -3404,6 +3414,8 @@ void mag_assign_spells(void)
         spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
                NULL, 3, 8, NOSCHOOL, FALSE);
+        spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, 
+                "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
         //endurance - shared
         //negative energy ray - shared
         //endure elements - shared
@@ -3629,8 +3641,6 @@ void mag_assign_spells(void)
         spello(SPELL_CSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AFFECTS,
                NULL, 0, 0, NOSCHOOL, FALSE);
-        spello(SPELL_DOOM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
-               TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
         spello(SPELL_DEATHCLOUD, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
@@ -3658,9 +3668,17 @@ void mag_assign_spells(void)
         spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
+
+        spello(BLACKGUARD_CRUELTY_AFFECTS, "blackguard cruelty", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AFFECTS, "A blackguard cruelty effect has expired.", 0, 0, NOSCHOOL, FALSE);
         
         spello(PALADIN_MERCY_INJURED_FAST_HEALING, "paladin mercy fast healing", 0, 0, 0, POS_FIGHTING,
           TAR_IGNORE, FALSE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+
+        spello(ABILITY_CHANNEL_POSITIVE_ENERGY, "channel positive energy", 85, 70, 1, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS | MAG_GROUPS, NULL, 9, 23, NOSCHOOL, FALSE);
+        spello(ABILITY_CHANNEL_NEGATIVE_ENERGY, "channel negative energy", 85, 70, 1, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS | MAG_GROUPS, NULL, 9, 23, NOSCHOOL, FALSE);
 
         spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AFFECTS,

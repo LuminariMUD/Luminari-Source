@@ -2280,6 +2280,9 @@ bool has_speed_weapon(struct char_data *ch)
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
     return true;
 
+  if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_SPEED))
+    return true;
+
   return false;
 }
 
@@ -2323,6 +2326,9 @@ bool is_using_keen_weapon(struct char_data *ch)
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
+    return true;
+
+  if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_KEEN))
     return true;
 
   return false;

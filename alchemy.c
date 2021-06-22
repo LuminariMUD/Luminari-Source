@@ -631,7 +631,7 @@ ACMD(do_bombs)
       }
     }
 
-    if (!is_player_grouped(ch, target) && !IS_NPC(target) && !pvp_ok(ch, target))
+    if (!is_player_grouped(ch, target) && !IS_NPC(target) && !pvp_ok(ch, target, false))
     {
       switch (type)
       {
@@ -3028,7 +3028,7 @@ ACMD(do_psychokinetic)
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
-    if (mag_savingthrow(ch, victim, SAVING_WILL, GET_RESISTANCES(victim, DAM_MENTAL), CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, CAST_BOMB, CLASS_LEVEL(ch, CLASS_ALCHEMIST), SCHOOL_NOSCHOOL))
     {
       act("$N resists the fear effect.", FALSE, ch, 0, victim, TO_CHAR);
       act("You resist the fear effect.", FALSE, ch, 0, victim, TO_VICT);

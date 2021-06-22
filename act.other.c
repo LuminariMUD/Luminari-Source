@@ -7043,4 +7043,93 @@ ACMDU(do_holyweapon)
   save_char(ch, 0);
 }
 
+int total_fiendish_boon_levels(struct char_data *ch)
+{
+  int num = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 30)
+    num++;
+  return num;
+}
+
+int active_fiendish_boon_levels(struct char_data *ch)
+{
+  int i = 0, num = 0;
+
+  for (i = 0; i < NUM_FIENDISH_BOONS; i++)
+  {
+    
+    if (FIENDISH_BOON_ACTIVE(ch, i))
+      num += fiendish_boon_slots[i];
+  }
+  return num;
+}
+
+ACMDU(do_fiendishboon)
+{
+  if (!HAS_FEAT(ch, FEAT_FIENDISH_BOON))
+  {
+    send_to_char(ch, "You do not benefit from fiendish boons.\r\n");
+    return;
+  }
+
+  int i = 0, j = 0;
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Fiendish Boons Available:\r\n");
+    for (j = 0; j < 80; j++)
+      send_to_char(ch, "-");
+    send_to_char(ch, "\r\n");
+    for (i = 1; i < NUM_FIENDISH_BOONS; i++)
+    {
+      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) < fiendish_boon_levels[i])
+        continue;
+      send_to_char(ch, "-%d slots- [", fiendish_boon_slots[i]);
+      if (FIENDISH_BOON_ACTIVE(ch, i))
+      {
+        send_to_char(ch, "\tg%-8s\tn", "ACTIVE");
+      }
+      else
+      {
+        send_to_char(ch, "\tr%-8s\tn", "INACTIVE");
+      }
+      send_to_char(ch, "] %-15s : %s\r\n", fiendish_boons[i], fiendish_boon_descriptions[i]);
+    }
+    for (j = 0; j < 80; j++)
+      send_to_char(ch, "-");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Total slots available: %d, Total slots used: %d.\r\n", total_fiendish_boon_levels(ch), active_fiendish_boon_levels(ch));
+    return;
+  }
+
+  for (i = 1; i < NUM_FIENDISH_BOONS; i++)
+  {
+    if (is_abbrev(argument, fiendish_boons[i]))
+      break;
+  }
+
+  if (i < 1 || i >= NUM_FIENDISH_BOONS)
+  {
+    send_to_char(ch, "That is not a valid fiendish boon. Please type 'fiendishboons' to see a list.\r\n");
+    return;
+  }
+
+  if (FIENDISH_BOON_ACTIVE(ch, i))
+  {
+    REMOVE_FIENDISH_BOON(ch, i);
+    send_to_char(ch, "You deactivate your '%s' fiendish boon.\r\n", fiendish_boons[i]);
+    return;
+  }
+
+  if ((active_fiendish_boon_levels(ch) + fiendish_boon_slots[i]) > total_fiendish_boon_levels(ch))
+  {
+    send_to_char(ch, "You do not have enough fiendish boon slots available.  Type 'fiendishboons' for a breakdown.\r\n");
+    return;
+  }
+
+  SET_FIENDISH_BOON(ch, i);
+  send_to_char(ch, "You have activated your '%s' fiendish boon.\r\n", fiendish_boons[i]);
+}
+
 /*EOF*/

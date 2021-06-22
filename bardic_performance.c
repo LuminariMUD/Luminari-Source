@@ -408,7 +408,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
   /* enemy fight less effective / flee */
   case SKILL_SONG_OF_FEAR:
-    if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+    if (!IS_NPC(tch) && has_aura_of_courage(tch) && !affected_by_aura_of_cowardice(tch))
       break;
     if (!IS_NPC(tch) && HAS_FEAT(tch, FEAT_RP_FEARLESS_RAGE) &&
         affected_by_spell(tch, SKILL_RAGE))

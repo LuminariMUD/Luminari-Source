@@ -386,10 +386,10 @@ void hunt_victim(struct char_data *ch)
   {
     if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict))) < 0)
     {
-      char buf[MAX_INPUT_LENGTH];
+      //char buf[MAX_INPUT_LENGTH];
 
-      snprintf(buf, sizeof(buf), "!?!");
-      do_say(ch, buf, 0, 0);
+      //snprintf(buf, sizeof(buf), "!?!");
+      //do_say(ch, buf, 0, 0);
       HUNTING(ch) = NULL;
     }
     else

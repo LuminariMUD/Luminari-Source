@@ -209,11 +209,26 @@ int compute_divine_level(struct char_data *ch) {
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
   divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
   divine_level += CLASS_LEVEL(ch, CLASS_PALADIN)/2;
+  divine_level += CLASS_LEVEL(ch, CLASS_BLACKGUARD)/2;
   divine_level += CLASS_LEVEL(ch, CLASS_RANGER)/2;
   divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE)/2;
   divine_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
 
   return divine_level;
+}
+
+int compute_channel_energy_level(struct char_data *ch)
+{
+  if (!ch) return 0;
+
+  int level = 0;
+
+  level += CLASS_LEVEL(ch, CLASS_CLERIC);
+  level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 4);
+  level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 4);
+  level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
+
+  return level;
 }
 
 /* check to see if CH has a weapon attached to a combat feat
@@ -3547,7 +3562,11 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
       break;
+    case FEAT_TOUCH_OF_CORRUPTION:
+      daily_uses += CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2 + GET_CHA_BONUS(ch);
+      break;
     case FEAT_TURN_UNDEAD:
+    case FEAT_CHANNEL_ENERGY:
       daily_uses += 3 + GET_CHA_BONUS(ch) + HAS_FEAT(ch, FEAT_EXTRA_TURNING) * 2;
       break;
     case FEAT_BARDIC_MUSIC:
@@ -3953,7 +3972,12 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 }
 
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display) {
-  if (!IS_NPC(victim) && HAS_FEAT(victim, FEAT_AURA_OF_COURAGE)) {
+  if (affected_by_aura_of_cowardice(victim))
+  {
+    return FALSE;
+  }
+
+  if (!IS_NPC(victim) && has_aura_of_courage(victim)) {
     if (display) {
       send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
       send_to_char(victim, "Your divine courage protects you!\r\n");
@@ -4048,10 +4072,164 @@ sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte disp
   return FALSE;
 }
 
+
+bool has_aura_of_courage(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_COURAGE)) return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+  
+}
+
+bool affected_by_aura_of_sin(struct char_data *ch)
+{
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+  if (!IS_EVIL(ch)) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) return false;
+    if (GROUP(ch) != GROUP(tch)) return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_SIN)) return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_faith(struct char_data *ch)
+{
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+  if (!IS_GOOD(ch)) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) return false;
+    if (GROUP(ch) != GROUP(tch)) return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_FAITH)) return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_righteousness(struct char_data *ch)
+{
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) return false;
+    if (GROUP(ch) != GROUP(tch)) return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_RIGHTEOUSNESS)) return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_cowardice(struct char_data *ch)
+{
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) return false;
+    if (GROUP(ch) == GROUP(tch)) return false;
+    if (!pvp_ok_single(ch, false)) return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_COWARDICE)) return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_depravity(struct char_data *ch)
+{
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) return false;
+    if (GROUP(ch) == GROUP(tch)) return false;
+    if (!pvp_ok_single(ch, false)) return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_DEPRAVITY)) return true;
+  }
+
+  return true;
+}
+
+bool affected_by_aura_of_despair(struct char_data *ch)
+{
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (ch == tch) return false;
+    if (GROUP(ch) == GROUP(tch)) return false;
+    if (!pvp_ok_single(ch, false)) return false;
+    if (HAS_FEAT(tch, FEAT_AURA_OF_DESPAIR)) return true;
+  }
+
+  return true;
+}
+
+bool is_fear_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+    case SPELL_DOOM:
+      return true;
+  }
+  return false;
+}
+
 void remove_fear_affects(struct char_data *ch, sbyte display) {
+  // aura of cowardice nullifies any fear immunity
+  if (affected_by_aura_of_cowardice(ch))
+    return;
+
   /* fear -> skill-courage*/
   if ((AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN)) && (!IS_NPC(ch) &&
-          HAS_FEAT(ch, FEAT_AURA_OF_COURAGE))) {
+          has_aura_of_courage(ch))) {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FEAR);
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SHAKEN);
     send_to_char(ch, "Your divine courage overcomes the fear!\r\n");
@@ -4238,11 +4416,15 @@ void do_study_spell_help(struct char_data *ch, int spellnum)
   }
 }
 
-bool pvp_ok(struct char_data *ch, struct char_data *target)
+bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
 {
 
+  if (!ch || !target) return false;
+
+  bool pvp_ok = true;
+
   // right now, there's no opt-in pvp, so we'll return true until we add that in
-  return true;
+  return pvp_ok;
 
   if (PRF_FLAGGED(ch, PRF_PVP) && PRF_FLAGGED(target, PRF_PVP))
     return true;
@@ -4253,6 +4435,31 @@ bool pvp_ok(struct char_data *ch, struct char_data *target)
       return true;
 
   return false;
+}
+
+
+bool pvp_ok_single(struct char_data *ch, bool display)
+{
+
+  bool pvp_ok = true;
+
+  if (!ch)
+  {
+    pvp_ok = false;
+  }
+
+  if (IS_NPC(ch) && ch->master && !IS_NPC(ch->master) && !PRF_FLAGGED(ch->master, PRF_PVP)) pvp_ok = false;
+
+  if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_PVP)) pvp_ok = false;
+
+  // are they in the arena?
+  if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END)
+      pvp_ok = true;
+
+  if (!pvp_ok && display)
+    send_to_char(ch, "That would be a PvP action, and is not eligible because you do not have pvp enabled.\r\n");
+
+  return pvp_ok;
 }
 
 bool is_pc_idnum_in_room(struct char_data *ch, long int idnum)
@@ -4620,6 +4827,8 @@ bool can_disease(struct char_data *ch)
   if (HAS_FEAT(ch, FEAT_DIVINE_HEALTH))
     return false;
   if (HAS_FEAT(ch, FEAT_DIAMOND_BODY))
+    return false;
+  if (HAS_FEAT(ch, FEAT_PLAGUE_BRINGER))
     return false;
   if (IS_CONSTRUCT(ch))
     return false;
@@ -5129,13 +5338,12 @@ void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict
 
   struct affected_type *af = NULL;
 
-  int bit = 0, spell = 0;
+  int spell = 0;
 
   for (af = vict->affected; af; af = af->next)
   {
     if (IS_SET_AR(af->bitvector, aff_flag))
     {
-      bit = aff_flag;
       spell = af->spell;
       if (spell < 1 || spell >= NUM_SPELLS) continue;
       if (display) {

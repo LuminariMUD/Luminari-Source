@@ -25,6 +25,8 @@
 #include "helpers.h" /* for UPPER */
 #include "perfmon.h"
 
+#define FLAG(n) (1 << (n))
+
 /** Definition of the action command, for the do_ series of in game functions.
  * This macro is placed here (for now) because it's too general of a macro
  * to be first defined in interpreter.h. The reason for using a macro is
@@ -115,6 +117,21 @@ int stats_point_left(struct char_data *ch);
 int smite_evil_target_type(struct char_data *ch);
 int smite_good_target_type(struct char_data *ch);
 int comp_total_stat_points(struct char_data *ch);
+int compute_channel_energy_level(struct char_data *ch);
+bool affected_by_aura_of_cowardice(struct char_data *ch);
+bool affected_by_aura_of_sin(struct char_data *ch);
+bool affected_by_aura_of_faith(struct char_data *ch);
+bool affected_by_aura_of_depravity(struct char_data *ch);
+bool affected_by_aura_of_righteousness(struct char_data *ch);
+bool is_fear_spell(int spellnum);
+bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
+int num_blackguard_cruelties_known(struct char_data *ch);
+sbyte has_blackguard_cruelties_unchosen(struct char_data *ch);
+sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch);
+bool affected_by_aura_of_cowardice(struct char_data *ch);
+bool affected_by_aura_of_despair(struct char_data *ch);
+bool has_aura_of_courage(struct char_data *ch);
+bool pvp_ok_single(struct char_data *ch, bool display);
 int comp_cha_cost(struct char_data *ch, int number);
 int comp_base_cha(struct char_data *ch);
 int comp_wis_cost(struct char_data *ch, int number);
@@ -226,7 +243,7 @@ int start_daily_use_cooldown(struct char_data *ch, int featnum);
 int daily_uses_remaining(struct char_data *ch, int featnum);
 int daily_item_specab_uses_remaining(struct obj_data *obj, int specab);
 int start_item_specab_daily_use_cooldown(struct obj_data *obj, int specab);
-bool pvp_ok(struct char_data *ch, struct char_data *target);
+bool pvp_ok(struct char_data *ch, struct char_data *target, bool display);
 bool is_pc_idnum_in_room(struct char_data *ch, long int idnum);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 int find_ability_num_by_name(char *name);
@@ -1775,12 +1792,13 @@ void char_from_furniture(struct char_data *ch);
 #define IS_PALADIN(ch) (CLASS_LEVEL(ch, CLASS_PALADIN))
 #define IS_RANGER(ch) (CLASS_LEVEL(ch, CLASS_RANGER))
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
+#define IS_BLACKGUARD(ch) (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT || \
                       IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||            \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
-                       IS_ELDRITCH_KNIGHT(ch))
+                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -1914,6 +1932,10 @@ void char_from_furniture(struct char_data *ch);
 #define IS_FRIGHTENED(ch) (AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))
 
 #define KNOWS_MERCY(ch, i)  (ch->player_specials->saved.paladin_mercies[i])
+#define KNOWS_CRUELTY(ch, i)  (ch->player_specials->saved.blackguard_cruelties[i])
+#define FIENDISH_BOON_ACTIVE(ch, i)  (IS_SET(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define SET_FIENDISH_BOON(ch, i)     (SET_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define REMOVE_FIENDISH_BOON(ch, i)  (REMOVE_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))

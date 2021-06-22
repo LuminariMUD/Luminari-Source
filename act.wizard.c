@@ -8870,4 +8870,136 @@ ACMD(do_award)
   save_char(victim, 0);
 }
 
+
+ACMDU(do_setroomname)
+{
+
+  skip_spaces(&argument);
+
+  if (!*argument) {
+    send_to_char(ch, "You must specify a new room name, less than 60 characters.\r\n");
+    return;
+  }
+
+  if (strlen(argument) > 60) {
+    send_to_char(ch, "You must specify a new room name, less than 60 characters.\r\n");
+    return;
+  }
+
+  world[IN_ROOM(ch)].name = strdup(argument);
+  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+
+  send_to_char(ch, "You have this room's name to: %s.\r\n", argument);
+
+}
+
+ACMDU(do_setroomdesc)
+{
+
+  skip_spaces(&argument);
+
+  if (!*argument) {
+    send_to_char(ch, "You must specify a new room description, less than 600 characters.\r\n");
+    return;
+  }
+
+  if (strlen(argument) > 600) {
+    send_to_char(ch, "You must specify a new room description, less than 600 characters.\r\n");
+    return;
+  }
+
+  world[IN_ROOM(ch)].description = strdup(argument);
+  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+
+  send_to_char(ch, "You have this room's description to: %s.\r\n", argument);
+
+}
+
+ACMDU(do_setworldsect)
+{
+
+  skip_spaces(&argument);
+
+  int i = 0, j = 0;
+
+  if (!*argument) {
+    send_to_char(ch, "You must select a sector type from:\r\n");
+    for (i = 0; i < NUM_ROOM_SECTORS; i++)
+      send_to_char(ch, "%s\r\n", sector_types[i]);
+    return;
+  }
+
+  char buf[200];
+  char arg[200];
+  sprintf(arg, "%s", argument);
+  for (j = 0; j < strlen(arg); j++)
+    arg[j] = tolower(arg[j]);
+
+  for (i = 0; i < NUM_ROOM_SECTORS; i++) {
+    sprintf(buf, "%s", sector_types[i]);
+    for (j = 0; j < strlen(buf); j++)
+      buf[j] = tolower(buf[j]);
+    if (is_abbrev(arg, buf)) break;
+  }
+
+  if (i >= NUM_ROOM_SECTORS) {
+    send_to_char(ch, "You must select a sector type from:\r\n");
+    for (i = 0; i < NUM_ROOM_SECTORS; i++)
+      send_to_char(ch, "%s\r\n", sector_types[i]);
+    return;
+  }
+
+
+  SET_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_WORLDMAP);
+  world[IN_ROOM(ch)].sector_type = i;
+
+  send_to_char(ch, "You have set this room as a worldmap room using sector type: %s.\r\n", sector_types[i]);
+
+  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+
+}
+
+ACMDU(do_setroomsect)
+{
+
+  skip_spaces(&argument);
+
+  int i = 0, j = 0;
+
+  if (!*argument) {
+    send_to_char(ch, "You must select a sector type from:\r\n");
+    for (i = 0; i < NUM_ROOM_SECTORS; i++)
+      send_to_char(ch, "%s\r\n", sector_types[i]);
+    return;
+  }
+
+  char buf[200];
+  char arg[200];
+  sprintf(arg, "%s", argument);
+  for (j = 0; j < strlen(arg); j++)
+    arg[j] = tolower(arg[j]);
+
+  for (i = 0; i < NUM_ROOM_SECTORS; i++) {
+    sprintf(buf, "%s", sector_types[i]);
+    for (j = 0; j < strlen(buf); j++)
+      buf[j] = tolower(buf[j]);
+    if (is_abbrev(arg, buf)) break;
+  }
+
+  if (i >= NUM_ROOM_SECTORS) {
+    send_to_char(ch, "You must select a sector type from:\r\n");
+    for (i = 0; i < NUM_ROOM_SECTORS; i++)
+      send_to_char(ch, "%s\r\n", sector_types[i]);
+    return;
+  }
+
+
+  world[IN_ROOM(ch)].sector_type = i;
+
+  send_to_char(ch, "You have set this room as a worldmap room using sector type: %s.\r\n", sector_types[i]);
+
+  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+
+}
+
 /* EOF */

@@ -156,7 +156,9 @@ typedef enum
   eSHADOWILLUSION,          // shadowdancer shadow illusion
   eSHADOWCALL,              // shadowdancer  shadow call
   eSHADOWJUMP,              // shadowdancer  shadow jump
-  eSHADOWPOWER             // shadowdancer  shadow power
+  eSHADOWPOWER,             // shadowdancer  shadow power
+  eTOUCHOFCORRUPTION,       // touch of corruption - blackguard
+  eCHANNELENERGY            // channel positive/negative energy
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

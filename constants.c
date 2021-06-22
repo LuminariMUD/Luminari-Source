@@ -77,6 +77,7 @@ const char *npc_subrace_types[] = {
     "Swarm",        /**/
     "Water",        /**/
     "Darkling",     /**/
+    "Vampire",      /**/
     "\n"};
 CHECK_TABLE_SIZE(npc_subrace_types, NUM_SUB_RACES + 1);
 
@@ -105,6 +106,7 @@ const char *npc_subrace_abbrevs[] = {
     "\tySwarm\tn",
     "\tBWater\tn",
     "\tDDarkling\tn",
+    "\tRVampire\tn",
     "\n"};
 CHECK_TABLE_SIZE(npc_subrace_abbrevs, NUM_SUB_RACES + 1);
 
@@ -127,7 +129,9 @@ const char *npc_race_menu =
     "12) \tMOoze\tn\r\n"
     "13) \tDOut\twsider\tn\r\n"
     "14) \tGPlant\tn\r\n"
-    "15) \tyVermin\tn\r\n";
+    "15) \tyVermin\tn\r\n"
+    "16) \tRLycanthrope\tn\r\n"
+    ;
 
 // shapechange morph messages to_room, original system
 const char *morph_to_room[] = {
@@ -168,6 +172,8 @@ const char *morph_to_room[] = {
     "Thin vines and shoots curl away from $n's body as $s skin changes to a "
     "\tGmottled green plant\tn.",
     /* Vermin */
+    " ",
+    // Lycanthrope
     " ",
     /*END*/ "\n"};
 CHECK_TABLE_SIZE(morph_to_room, NUM_RACE_TYPES + 1);
@@ -211,6 +217,8 @@ const char *morph_to_char[] = {
     "Thin vines and shoots curl away from your body as your skin changes to a "
     "\tGmottled green plant\tn.",
     /* Vermin */
+    " ",
+    // Lycanthrope
     " ",
     /*END*/ "\n"};
 CHECK_TABLE_SIZE(morph_to_char, NUM_RACE_TYPES + 1);
@@ -290,6 +298,7 @@ const char *race_family_abbrevs[] = {
     "\tDOut\tws\tn",
     "\tGPlnt\tn",
     "\tyVrmn\tn",
+    "\tGLyc\tn",
     "\n"};
 CHECK_TABLE_SIZE(race_family_abbrevs, NUM_RACE_TYPES + 1);
 
@@ -310,6 +319,7 @@ const char *race_family_short[] = {
     "Out",
     "Plt",
     "Ver",
+    "Lyc",
     "\n"};
 CHECK_TABLE_SIZE(race_family_short, NUM_RACE_TYPES + 1);
 
@@ -330,6 +340,7 @@ const char *race_family_types[] = {
     "Outsider",
     "Plant",
     "Vermin", //15
+    "Lycanthrope",
     "\n"};
 CHECK_TABLE_SIZE(race_family_types, NUM_RACE_TYPES + 1);
 
@@ -350,6 +361,7 @@ const char *race_family_types_plural[] = {
     "Outsiders",
     "Plants",
     "Vermin", //15
+    "Lycanthropes",
     "\n"};
 CHECK_TABLE_SIZE(race_family_types_plural, NUM_RACE_TYPES + 1);
 
@@ -437,6 +449,146 @@ const int paladin_mercy_levels[] = {
     0, // end
 };
 CHECK_TABLE_SIZE(paladin_mercy_levels, NUM_PALADIN_MERCIES + 1);
+
+const char *fiendish_boons[] = {
+    "",
+    "flaming",
+    "keen",
+    "vicious",
+    "anarchic",
+    "flaming burst",
+    "unholy",
+    "wounding",
+    "speed",
+    "vorpal",
+    "\n"
+};
+CHECK_TABLE_SIZE(fiendish_boons, NUM_FIENDISH_BOONS + 1);
+
+const char *fiendish_boon_descriptions[] = {
+    "",
+    "adds 1d6 fire damage per hit",
+    "increases weapon threat range (won't stack with itself or improved critical)",
+    "deals 2d6 negative damage to target and 1d6 negative damage to wielder each hit",
+    "deals 2d6 negative damage on lawful creatures",
+    "adds 2d10 fire damage or more on a critical hit",
+    "adds 1d6 negative damage per hit",
+    "causes bleed damage each hit",
+    "gives an extra attack per round (won't stack with itself or haste)",
+    "5 percent chance on a critical hit to kill the target outright (won't work on undead, constructs or oozes)",
+    "\n"
+};
+CHECK_TABLE_SIZE(fiendish_boon_descriptions, NUM_FIENDISH_BOONS + 1);
+
+const int fiendish_boon_levels[] = {
+    0,
+    5, // flaming
+    5, // keen
+    5, // vicious
+    8, // anarchic
+    8, // flaming burst
+    8, // unholy
+    8, // wounding
+    11, // speed
+    14, // vorpal
+    0 
+};
+CHECK_TABLE_SIZE(fiendish_boon_levels, NUM_FIENDISH_BOONS + 1);
+
+const int fiendish_boon_slots[] = {
+    0,
+    1, // flaming
+    1, // keen
+    1, // vicious
+    2, // anarchic
+    2, // flaming burst
+    2, // unholy
+    2, // wounding
+    3, // speed
+    5, // vorpal
+    0 
+};
+CHECK_TABLE_SIZE(fiendish_boon_slots, NUM_FIENDISH_BOONS + 1);
+
+const char *blackguard_cruelties[] = {
+    "",
+    "Fatigued",
+    "Shaken",
+    "Sickened",
+    "Dazed",
+    "Diseased",
+    "Staggered",
+    "Cursed",
+    "Frightened",
+    "Nauseated",
+    "Poisoned",
+    "Blinded",
+    "Deafened",
+    "Paralyzed",
+    "Stunned",
+    "\n"
+};
+CHECK_TABLE_SIZE(blackguard_cruelties, NUM_BLACKGUARD_CRUELTIES + 1);
+
+const char *blackguard_cruelty_descriptions[] = {
+    "does nothing",
+    "Causes fatigue on a failed save",
+    "applies shaken status on failed saved",
+    "applies sickened status on failed saved",
+    "dazes target on failed saved",
+    "inflict target with disease on failed saved",
+    "staggers target on failed saved",
+    "curses target on failed saved",
+    "causes fear on target with failed saved",
+    "causes nausea on target with failed saved",
+    "poisons target on failed saved",
+    "blinds target on failed saved",
+    "deafens target on failed saved",
+    "paralyzes target on failed saved",
+    "stuns target on failed saved",
+    "\n"
+};
+CHECK_TABLE_SIZE(blackguard_cruelty_descriptions, NUM_BLACKGUARD_CRUELTIES + 1);
+
+const int blackguard_cruelty_levels[] = {
+    0, // none
+    3, //Fatigued
+    3, //Shaken
+    3, //Sickened
+    6, //Dazed
+    6, //Diseased
+    6, //Staggered
+    9, //Cursed
+    9, //Frightened
+    9, //Nauseated
+    9, //Poisoned
+    12, //Blinded
+    12, //Deafened
+    12, //Paralyzed
+    12, //Stunned
+    0, // end
+};
+CHECK_TABLE_SIZE(blackguard_cruelty_levels, NUM_BLACKGUARD_CRUELTIES + 1);
+
+const int blackguard_cruelty_affect_types[] = {
+    AFF_DONTUSE, // none
+    AFF_FATIGUED, //Fatigued
+    AFF_SHAKEN, //Shaken
+    AFF_SICKENED, //Sickened
+    AFF_DAZED, //Dazed
+    AFF_DISEASE, //Diseased
+    AFF_STAGGERED, //Staggered
+    AFF_CURSE, //Cursed
+    AFF_FEAR, //Frightened
+    AFF_NAUSEATED, //Nauseated
+    AFF_POISON, //Poisoned
+    AFF_BLIND, //Blinded
+    AFF_DEAF, //Deafened
+    AFF_PARALYZED, //Paralyzed
+    AFF_STUN, //Stunned
+    AFF_DONTUSE, // end
+};
+CHECK_TABLE_SIZE(blackguard_cruelty_affect_types, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const char *class_names[] = {
     "Wizard", //0
@@ -1329,6 +1481,7 @@ const char *preference_bits[] = {
     "Seek-Encounters",
     "Avoid-Encoutners",
     "Use-Stored-Consumables",
+    "Display-Game-Time",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -1470,6 +1623,7 @@ const char *affected_bits[] = {
     "Dazzled",
     "Shaken",
     "Electric-Shielded",
+    "Sickened",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1590,6 +1744,7 @@ const char *affected_bit_descs[] = {
     "You are dazzled and will suffer -1 to attacks and perception checks!",
     "You are shaken: -2 to attack rolls, saves and skills checks!",
     "You are surrounded by a shield of sparking electricity.",
+    "You feel sickened and weak.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
@@ -3483,43 +3638,44 @@ const int sorcerer_slots[][NUM_CIRCLES + 1] = {
 };
 CHECK_TABLE_SIZE(sorcerer_slots, LVL_IMPL + 1);
 
+
 const int bard_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0}, //7
-    {0, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0}, //9
-    {0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0}, //11
-    {0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0},
-    {0, 3, 3, 3, 2, 0, 0, 0, 0, 0, 0}, //13
-    {0, 3, 3, 3, 3, 1, 0, 0, 0, 0, 0},
-    {0, 4, 3, 3, 3, 2, 0, 0, 0, 0, 0}, //15
-    {0, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0},
-    {0, 4, 4, 4, 3, 3, 1, 0, 0, 0, 0}, //17
-    {0, 4, 4, 4, 4, 3, 2, 0, 0, 0, 0},
-    {0, 4, 4, 4, 4, 4, 3, 0, 0, 0, 0},
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //20
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //21
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //22
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //23
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //24
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //25
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //26
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //27
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //28
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //29
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //30
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //31
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //32
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}, //33
-    {0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0}  //34
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, //9
+    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, //11
+    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
+    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, //13
+    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
+    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, //15
+    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
+    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, //17
+    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //20
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //21
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //22
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //23
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //24
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //25
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //26
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //27
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //28
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //29
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //30
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //31
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //32
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //33
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0} //34
 };
 CHECK_TABLE_SIZE(bard_slots, LVL_IMPL + 1);
 
@@ -3568,40 +3724,40 @@ CHECK_TABLE_SIZE(sorcerer_known, LVL_IMPL + 1);
 const int bard_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, //7
-    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0}, //9
-    {0, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0}, //11
-    {0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0},
-    {0, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0}, //13
-    {0, 4, 4, 4, 4, 3, 0, 0, 0, 0, 0},
-    {0, 4, 4, 4, 4, 3, 0, 0, 0, 0, 0}, //15
-    {0, 5, 4, 4, 4, 4, 2, 0, 0, 0, 0},
-    {0, 5, 5, 4, 4, 4, 3, 0, 0, 0, 0}, //17
-    {0, 5, 5, 5, 4, 4, 3, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 4, 4, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //20
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //21
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //22
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //23
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //24
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //25
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //26
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //27
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //28
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //29
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //30
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //31
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //32
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}, //33
-    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0}  //34
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, //9
+    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
+    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, //11
+    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
+    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, //13
+    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
+    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, //15
+    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
+    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, //17
+    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
+    {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //20
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //21
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //22
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //23
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //24
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //25
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //26
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //27
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //28
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //29
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //30
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //31
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //32
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //33
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  //34
 };
 CHECK_TABLE_SIZE(bard_known, LVL_IMPL + 1);
 

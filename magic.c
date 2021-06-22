@@ -161,6 +161,8 @@ int compute_mag_saves(struct char_data *vict,
     saves += 1; /* halfling feat */
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DIVINE_GRACE))
     saves += GET_CHA_BONUS(vict);
+    if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_UNHOLY_RESILIENCE))
+    saves += GET_CHA_BONUS(vict);
   if (!IS_NPC(vict) && GET_SKILL(vict, SKILL_LUCK_OF_HEROES))
     saves++;
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_GRACE))
@@ -185,12 +187,18 @@ int compute_mag_saves(struct char_data *vict,
   return MIN(99, MAX(saves, 0));
 }
 
+int mag_savingthrow(struct char_data *ch, struct char_data *vict,
+                    int type, int modifier, int casttype, int level, int school)
+{
+  return mag_savingthrow_full(ch, vict, type, modifier, casttype, level, school, 0);
+}
+
 const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
 // TRUE = resisted
 // FALSE = Failed to resist
 // modifier applies to victim, higher the better (for the victim)
-int mag_savingthrow(struct char_data *ch, struct char_data *vict,
-                    int type, int modifier, int casttype, int level, int school)
+int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
+                    int type, int modifier, int casttype, int level, int school, int spellnum)
 {
   int challenge = 10, // 10 is base DC
       diceroll = d20(ch),
@@ -218,6 +226,14 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     {
       challenge += CLASS_LEVEL(ch, CLASS_ALCHEMIST) / 2;
       stat_bonus = GET_INT_BONUS(ch);
+      challenge += stat_bonus;
+    }
+    break;
+  case CAST_CRUELTY:
+    if (ch)
+    {
+      challenge += (CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2);
+      stat_bonus =  GET_CHA_BONUS(ch);
       challenge += stat_bonus;
     }
     break;
@@ -283,6 +299,18 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
     savethrow += get_poison_save_mod(ch, vict);
   if (IS_FRIGHTENED(ch))
     savethrow -= 2;
+  if (affected_by_aura_of_despair(vict))
+    savethrow -= 2;
+  if (AFF_FLAGGED(vict, AFF_SICKENED))
+    savethrow -= 2;
+
+  if (school == ENCHANTMENT)
+  {
+    if (affected_by_aura_of_depravity(vict))
+      savethrow -= 4;
+    if (affected_by_aura_of_righteousness(vict))
+      savethrow += 4;
+  }
 
   if (type == SAVING_WILL && affected_by_spell(vict, PSIONIC_PSYCHIC_BODYGUARD))
   {
@@ -885,6 +913,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       return (0);
     // saving throw is handled special below
     bonus = GET_AUGMENT_PSP(ch) / 2;
+    if (affected_by_aura_of_cowardice(victim))
+      bonus -= 4;
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_MENTAL;
@@ -1122,6 +1152,42 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = MIN(15, level);
     size_dice = 10;
     bonus = 0;
+    break;
+
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_HOLY;
+    bonus = 0;
+    num_dice = (compute_channel_energy_level(ch) + 1) / 2;
+    size_dice = 6;
+    if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION))
+    {
+      num_dice = 1;
+      size_dice = 1;
+      bonus = ((compute_channel_energy_level(ch) + 1) / 2) * 7;
+    }
+    else if (HAS_FEAT(ch, FEAT_HOLY_WARRIOR)) {
+      bonus = (compute_channel_energy_level(ch) + 1) / 2;
+    }
+    break;
+
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_UNHOLY;
+    num_dice = (compute_channel_energy_level(ch) + 1) / 2;
+    size_dice = 6;
+    bonus = 0;
+    if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION))
+    {
+      num_dice = 1;
+      size_dice = 1;
+      bonus = ((compute_channel_energy_level(ch) + 1) / 2) * 7;
+    }
+    else if (HAS_FEAT(ch, FEAT_UNHOLY_WARRIOR)) {
+      bonus = (compute_channel_energy_level(ch) + 1) / 2;
+    }
     break;
 
   case SPELL_FIREBRAND: //transmutation
@@ -1597,16 +1663,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = level;
     size_dice = 4;
     bonus = 0;
-    break;
-
-  case SPELL_DOOM: // creeping doom (conjuration)
-    //AoE
-    save = SAVING_REFL;
-    mag_resist = TRUE;
-    element = DAM_FIRE;
-    num_dice = level;
-    size_dice = 5;
-    bonus = level;
     break;
 
   case SPELL_FLAMING_SPHERE: // evocation
@@ -2323,7 +2379,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, NOSCHOOL))
       return;
     af[0].location = APPLY_WIS;
     af[0].duration = level * 12;
@@ -2901,7 +2957,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       return;
     if (power_resistance(ch, victim, 0))
       return;
-    if (GET_AUGMENT_PSP(ch) < 4 && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (GET_AUGMENT_PSP(ch) < 4 && mag_savingthrow(ch, victim, SAVING_WILL, affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, NOSCHOOL))
       return;
     change_position(victim, POS_SITTING);
     af[0].duration = 600;
@@ -3070,7 +3126,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     CREATE(new_dr, struct damage_reduction_type, 1);
 
     new_dr->bypass_cat[0] = DR_BYPASS_CAT_DAMTYPE;
-    new_dr->bypass_val[0] = DAM_SLICE;
+    new_dr->bypass_val[0] = DR_DAMTYPE_SLASHING;
 
     new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
     new_dr->bypass_val[1] = 0; /* Unused. */
@@ -3390,6 +3446,28 @@ case PSIONIC_BODY_OF_IRON:
 
     to_room = "$n seems to be blinded!";
     to_vict = "You have been blinded!";
+    break;
+
+  case SPELL_DOOM: //necromancy
+    if (is_immune_fear(ch, victim, 1))
+      return;
+    if (is_immune_mind_affecting(ch, victim, 1))
+      return;
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+    {
+      send_to_char(ch, "The sense of doom is resisted!\r\n");
+      return;
+    }
+
+    af[0].location = APPLY_NONE;
+    af[0].modifier = 0;
+    af[0].duration = 10 * level;
+    SET_BIT_AR(af[0].bitvector, AFF_SHAKEN);
+
+    to_room = "$n has been filled with a sense of doom!";
+    to_vict = "You feel overwhelming feelings of doom!";
     break;
 
   case SPELL_BLUR:               //illusion
@@ -4051,9 +4129,9 @@ case PSIONIC_BODY_OF_IRON:
     break;
 
   case SPELL_GREATER_MAGIC_FANG:
-    if (!IS_NPC(victim) || GET_RACE(victim) != RACE_TYPE_ANIMAL)
+    if ((!IS_NPC(victim) && !IS_WILDSHAPED(victim)) || GET_RACE(victim) != RACE_TYPE_ANIMAL)
     {
-      send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
+      send_to_char(ch, "Magic fang can only be cast upon animals or druids in wildshaped form.\r\n");
       return;
     }
     af[0].location = APPLY_HITROLL;
@@ -4074,11 +4152,13 @@ case PSIONIC_BODY_OF_IRON:
     break;
 
   case SPELL_GREATER_MIRROR_IMAGE: //illusion
-    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
-        affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
+    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE))
     {
-      send_to_char(ch, "Your target already has mirror images!\r\n");
-      return;
+      affect_from_char(victim, SPELL_MIRROR_IMAGE);
+    }
+    if (affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
+    {
+      affect_from_char(victim, SPELL_GREATER_MIRROR_IMAGE);
     }
     af[0].duration = 300;
     SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
@@ -4587,11 +4667,9 @@ case PSIONIC_BODY_OF_IRON:
     break;
 
   case SPELL_MIRROR_IMAGE: //illusion
-    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE) ||
-        affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
+    if (affected_by_spell(victim, SPELL_MIRROR_IMAGE))
     {
-      send_to_char(ch, "Your target already has mirror images!\r\n");
-      return;
+      affect_from_char(victim, SPELL_MIRROR_IMAGE);
     }
     af[0].duration = 300;
     SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
@@ -4894,7 +4972,7 @@ case PSIONIC_BODY_OF_IRON:
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, ILLUSION))
     {
       return;
     }
@@ -4919,7 +4997,7 @@ case PSIONIC_BODY_OF_IRON:
       return;
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION))
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, ILLUSION))
     {
       return;
     }
@@ -5337,7 +5415,7 @@ case PSIONIC_BODY_OF_IRON:
 
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+    if (mag_savingthrow(ch, victim, SAVING_FORT, affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, NECROMANCY))
     {
       return;
     }
@@ -5545,6 +5623,14 @@ static void perform_mag_groups(int level, struct char_data *ch,
   {
   case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
+    break;
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+    if (!IS_UNDEAD(tch))
+      mag_points(level, ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY, savetype, casttype);
+    break;
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+    if (IS_UNDEAD(tch))
+      mag_points(level, ch, tch, obj, ABILITY_CHANNEL_NEGATIVE_ENERGY, savetype, casttype);
     break;
   case SPELL_GROUP_ARMOR:
     mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype, 0);
@@ -5934,8 +6020,6 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     break;
   case SPELL_DEATHCLOUD: //cloudkill
     break;
-  case SPELL_DOOM: // creeping doom
-    break;
   case SPELL_EARTHQUAKE:
     to_char = "You gesture and the earth begins to shake all around you!";
     to_room = "$n gracefully gestures and the earth begins to shake violently!";
@@ -6082,6 +6166,15 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     
     break;
 
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+    to_char = "You channel a massive wave of holy energy!";
+    to_room = "A massive wave of holy energy envelops $n!";
+    break;
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+    to_char = "You channel a massive wave of unholy energy!";
+    to_room = "A massive wave of unholy energy envelops $n!";
+    break;
+
   case PSIONIC_PSYCHOSIS:
     isEffect = TRUE;
     
@@ -6167,6 +6260,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
     if (aoeOK(ch, tch, spellnum))
     {
+      if (spellnum == ABILITY_CHANNEL_POSITIVE_ENERGY && !IS_UNDEAD(tch))
+         continue;
+      else if (spellnum == ABILITY_CHANNEL_NEGATIVE_ENERGY && IS_UNDEAD(tch))
+         continue;
       if (is_eff_and_dam)
       {
         mag_damage(level, ch, tch, obj, spellnum, metamagic, 1, casttype);
@@ -6967,6 +7064,40 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     to_notvict = "$N's wounds are \tWhealed\tn by \tRvampiric\tD magic\tn.";
     send_to_char(victim, "A \tWwarm feeling\tn floods your body as \tRvampiric "
                          "\tDmagic\tn takes over.\r\n");
+    break;
+    
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+    healing = dice((compute_channel_energy_level(ch) + 1) / 2, 6);
+    if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION))
+    {
+      healing = ((compute_channel_energy_level(ch) + 1) / 2) * 7;
+    }
+    else if (HAS_FEAT(ch, FEAT_HOLY_WARRIOR)) {
+      healing += (compute_channel_energy_level(ch) + 1) / 2;
+    }
+    to_notvict = "$n \tWheals\tn $N.";
+    if (ch == victim)
+      to_char = "You \tWheal\tn yourself.";
+    else
+      to_char = "You \tWheal\tn $N.";
+    to_vict = "$n \tWheals\tn you.";
+    break;
+
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+    healing = dice((compute_channel_energy_level(ch) + 1) / 2, 6);
+    if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION))
+    {
+      healing = ((compute_channel_energy_level(ch) + 1) / 2) * 7;
+    }
+    else if (HAS_FEAT(ch, FEAT_UNHOLY_WARRIOR)) {
+      healing += (compute_channel_energy_level(ch) + 1) / 2;
+    }
+    to_notvict = "$n \tWheals\tn $N.";
+    if (ch == victim)
+      to_char = "You \tWheal\tn yourself.";
+    else
+      to_char = "You \tWheal\tn $N.";
+    to_vict = "$n \tWheals\tn you.";
     break;
   case SPELL_REGENERATION:
     healing = dice(4, 4) + 15 + MIN(20, level);

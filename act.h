@@ -246,7 +246,10 @@ ACMD_DECL(do_hp);
 ACMD_DECL(do_tnl);
 ACMD_DECL(do_moves);
 ACMD_DECL(do_divine_bond);
+ACMD_DECL(do_fiendishboon);
 ACMD_DECL(do_mercies);
+ACMD_DECL(do_cruelties);
+ACMD_DECL(do_touch_of_corruption);
 ACMD_DECL(do_maxhp);
 
 /*****************************************************************************
@@ -338,6 +341,8 @@ ACMD_DECL(do_wield);
 ACMD_DECL(do_auction);
 ACMD_DECL(do_bid);
 ACMD_DECL(do_channelspell);
+ACMDCHECK(can_channel_energy);
+ACMD_DECL(do_channelenergy);
 ACMD_DECL(do_store);
 ACMD_DECL(do_unstore);
 ACMD_DECL(do_use_consumable);
@@ -406,6 +411,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
 bool perform_backstab(struct char_data *ch, struct char_data *vict);
 int perform_collect(struct char_data *ch, bool silent);
+void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char * cruelty);
 /* Functions with subcommands */
 /* do_hit */
 ACMD_DECL(do_hit);
@@ -420,6 +426,8 @@ ACMDCHECK(can_grave_magic);
 ACMD_DECL(do_exchange);
 //ACMD(do_exchange);
 ACMD_DECL(do_fire);
+ACMD_DECL(do_aura_of_vengeance);
+ACMD_DECL(do_aura_of_justice);
 ACMD_DECL(do_reload);
 ACMD_DECL(do_autofire);
 ACMD_DECL(do_collect);
@@ -747,6 +755,10 @@ ACMD_DECL(do_wizutil);
 #define SCMD_THAW 5
 #define SCMD_UNAFFECT 6
 /* Functions without subcommands */
+ACMD_DECL(do_setroomsect);
+ACMD_DECL(do_setworldsect);
+ACMD_DECL(do_setroomname);
+ACMD_DECL(do_setroomdesc);
 ACMD_DECL(do_hlqlist);
 ACMD_DECL(do_advance);
 ACMD_DECL(do_objlist);

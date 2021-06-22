@@ -948,25 +948,27 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   case CLASS_BARD:
     switch (spell_info[spellnum].min_level[class])
     {
+    case 1:
+    case 2:
     case 3:
-    case 4:
       return 1 + metamagic_mod;
+    case 4:
     case 5:
     case 6:
-    case 7:
       return 2 + metamagic_mod;
+    case 7:
     case 8:
     case 9:
-    case 10:
       return 3 + metamagic_mod;
+    case 10:
     case 11:
     case 12:
-    case 13:
       return 4 + metamagic_mod;
+    case 13:
     case 14:
     case 15:
-    case 16:
       return 5 + metamagic_mod;
+    case 16:
     case 17:
     case 18:
     case 19:
@@ -977,6 +979,7 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
     }
     break;
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
     switch (spell_info[spellnum].min_level[class])
     {
     case 6:
@@ -1133,6 +1136,7 @@ int get_class_highest_circle(struct char_data *ch, int class)
   switch (class)
   {
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
     if (class_level < 6)
       return FALSE;
     else if (class_level < 10)
@@ -1155,17 +1159,15 @@ int get_class_highest_circle(struct char_data *ch, int class)
     else
       return 4;
   case CLASS_BARD:
-    if (class_level < 3)
-      return FALSE;
-    else if (class_level < 5)
+    if (class_level < 4)
       return 1;
-    else if (class_level < 8)
+    else if (class_level < 7)
       return 2;
-    else if (class_level < 11)
+    else if (class_level < 10)
       return 3;
-    else if (class_level < 14)
+    else if (class_level < 13)
       return 4;
-    else if (class_level < 17)
+    else if (class_level < 16)
       return 5;
     else
       return 6;
@@ -1373,6 +1375,7 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle)
     spell_slots += ranger_slots[class_level][circle];
     break;
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
     spell_slots += spell_bonus[GET_CHA(ch)][circle];
     spell_slots += paladin_slots[class_level][circle];
     break;
@@ -1474,6 +1477,9 @@ void assign_feat_spell_slots(int ch_class)
   case CLASS_PALADIN:
     feat_index = PLD_SLT_0;
     break;
+  case CLASS_BLACKGUARD:
+    feat_index = BKG_SLT_0;
+    break;
   case CLASS_ALCHEMIST:
     feat_index = ALC_SLT_0;
     break;
@@ -1518,6 +1524,7 @@ void assign_feat_spell_slots(int ch_class)
         slots_had[circle_counter] = ranger_slots[level_counter - 1][circle_counter];
         break;
       case CLASS_PALADIN:
+      case CLASS_BLACKGUARD:
         slots_have[circle_counter] = paladin_slots[level_counter][circle_counter];
         slots_had[circle_counter] = paladin_slots[level_counter - 1][circle_counter];
         break;
@@ -1909,6 +1916,7 @@ void print_prep_collection_data(struct char_data *ch, int class)
   case CLASS_DRUID:
   case CLASS_PALADIN:
   case CLASS_ALCHEMIST:
+  case CLASS_BLACKGUARD:
     print_collection(ch, class);
     print_prep_queue(ch, class);
     display_available_slots(ch, class);
@@ -1972,6 +1980,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     stat_bonus = GET_WIS_BONUS(ch);
     break;
   case CLASS_PALADIN:
+  case CLASS_BLACKGUARD:
     prep_time *= PALADIN_PREP_TIME_FACTOR;
     stat_bonus = GET_CHA_BONUS(ch);
     break;
@@ -2043,6 +2052,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     case CLASS_DRUID:
     case CLASS_PALADIN:
     case CLASS_RANGER:
+    case CLASS_BLACKGUARD:
       prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
       break;
 
@@ -2272,6 +2282,9 @@ ACMDU(do_consign_to_oblivion)
   case SCMD_OMIT:
     class = CLASS_PALADIN;
     break;
+  case SCMD_UNCONDEMN:
+    class = CLASS_BLACKGUARD;
+    break;
   case SCMD_UNCOMMUNE:
     class = CLASS_DRUID;
     break;
@@ -2476,6 +2489,9 @@ ACMDU(do_gen_preparation)
   case SCMD_CHANT:
     class = CLASS_PALADIN;
     break;
+  case SCMD_CONDEMN:
+    class = CLASS_BLACKGUARD;
+    break;
   case SCMD_COMMUNE:
     class = CLASS_DRUID;
     break;
@@ -2495,8 +2511,7 @@ ACMDU(do_gen_preparation)
 
   if (!get_class_highest_circle(ch, class))
   {
-    send_to_char(ch, "Try changing professions (type score to view respective "
-                     "preparation commands for your class(es)!\r\n");
+    send_to_char(ch, "Try changing professions (type score to view respective preparation commands for your class(es)!\r\n");
     return;
   }
 

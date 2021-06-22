@@ -140,6 +140,14 @@ extern const char *award_types[];
 extern const char *paladin_mercy_descriptions[];
 extern const char *paladin_mercies[];
 extern const int paladin_mercy_levels[];
+extern const char *fiendish_boons[];
+extern const int fiendish_boon_levels[];
+extern const char *fiendish_boon_descriptions[];
+extern const int fiendish_boon_slots[];
+extern const char *blackguard_cruelties[];
+extern const char *blackguard_cruelty_descriptions[];
+extern const int blackguard_cruelty_levels[];
+extern const int blackguard_cruelty_affect_types[];
 
 /* NewCraft */
 extern const char *craft_flags[];

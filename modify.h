@@ -35,7 +35,7 @@ void string_write(struct descriptor_data *d, char **txt, size_t len, long mailto
 void string_add(struct descriptor_data *d, char *str);
 void page_string(struct descriptor_data *d, char *str, int keep_internal);
 /* page string function & defines */
-#define PAGE_LENGTH 22
+#define PAGE_LENGTH 40
 #define PAGE_WIDTH 80
 
 #endif /* _MODIFY_H_*/

@@ -618,8 +618,9 @@
 #define SUBRACE_SWARM 19
 #define SUBRACE_WATER 20
 #define SUBRACE_DARKLING 21
+#define SUBRACE_VAMPIRE 22
 //total
-#define NUM_SUB_RACES 22
+#define NUM_SUB_RACES 23
 /* how many subrace-types can a mobile have? */
 /* note, if this is changed, a lot of other places have
  * to be changed as well -zusuk */
@@ -654,8 +655,9 @@
 #define RACE_TYPE_OUTSIDER 13
 #define RACE_TYPE_PLANT 14
 #define RACE_TYPE_VERMIN 15
+#define RACE_TYPE_LYCANTHROPE 16
 /**/
-#define NUM_RACE_TYPES 16
+#define NUM_RACE_TYPES 17
 /**/
 
 /* Sex */
@@ -855,9 +857,10 @@
 #define PRF_SEEK_ENCOUNTERS 54 // will try to find random encounters in wilderness
 #define PRF_AVOID_ENCOUNTERS 55 // will try to avoid random encounters in wilderness
 #define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
+#define PRF_DISPTIME 57           // shows game time in prompt
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 57
+#define NUM_PRF_FLAGS 58
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -977,8 +980,9 @@
 #define AFF_DAZZLED 106            /* suffers -1 to attacks and perception checks */
 #define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
 #define AFF_ESHIELD 108            // electric shield - reflect damage
+#define AFF_SICKENED 109           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
 /*---*/
-#define NUM_AFF_FLAGS 109
+#define NUM_AFF_FLAGS 110
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -1892,12 +1896,24 @@
 #define FEAT_AURA_OF_SIN 732
 #define FEAT_AURA_OF_DEPRAVITY 733
 #define FEAT_UNHOLY_CHAMPION 734
+#define FEAT_BLACKGUARD_1ST_CIRCLE 735
+#define FEAT_BLACKGUARD_2ND_CIRCLE 736
+#define FEAT_BLACKGUARD_3RD_CIRCLE 737
+#define FEAT_BLACKGUARD_4TH_CIRCLE 738
+#define FEAT_BLACKGUARD_1ST_CIRCLE_SLOT 739
+#define FEAT_BLACKGUARD_2ND_CIRCLE_SLOT 740
+#define FEAT_BLACKGUARD_3RD_CIRCLE_SLOT 741
+#define FEAT_BLACKGUARD_4TH_CIRCLE_SLOT 742
+#define BKG_SLT_0 (FEAT_BLACKGUARD_1ST_CIRCLE_SLOT - 1)
+#define FEAT_CHANNEL_ENERGY 743
+#define FEAT_HOLY_WARRIOR 744
+#define FEAT_UNHOLY_WARRIOR 745
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 735
+#define FEAT_LAST_FEAT 746
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 736
+#define NUM_FEATS 747
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -1929,6 +1945,45 @@
 #define PALADIN_MERCY_STUNNED       17
 
 #define NUM_PALADIN_MERCIES         18
+
+
+// Blackguard Cruelties
+#define BLACKGUARD_CRUELTY_NONE         0
+#define BLACKGUARD_CRUELTY_FATIGUED     1
+#define BLACKGUARD_CRUELTY_SHAKEN       2
+#define BLACKGUARD_CRUELTY_SICKENED     3
+#define BLACKGUARD_CRUELTY_DAZED        4
+#define BLACKGUARD_CRUELTY_DISEASED     5
+#define BLACKGUARD_CRUELTY_STAGGERED    6
+#define BLACKGUARD_CRUELTY_CURSED       7
+#define BLACKGUARD_CRUELTY_FRIGHTENED   8
+#define BLACKGUARD_CRUELTY_NAUSEATED    9
+#define BLACKGUARD_CRUELTY_POISONED     10
+#define BLACKGUARD_CRUELTY_BLINDED      11
+#define BLACKGUARD_CRUELTY_DEAFENED     12
+#define BLACKGUARD_CRUELTY_PARALYZED    13
+#define BLACKGUARD_CRUELTY_STUNNED      14
+
+#define NUM_BLACKGUARD_CRUELTIES        15
+
+// Blackguard fiendish boons
+#define FIENDISH_BOON_NONE              0
+#define FIENDISH_BOON_FLAMING           1
+#define FIENDISH_BOON_KEEN              2
+#define FIENDISH_BOON_VICIOUS           3
+#define FIENDISH_BOON_ANARCHIC          4
+#define FIENDISH_BOON_FLAMING_BURST     5
+#define FIENDISH_BOON_UNHOLY            6
+#define FIENDISH_BOON_WOUNDING          7
+#define FIENDISH_BOON_SPEED             8
+#define FIENDISH_BOON_VORPAL            9
+
+#define NUM_FIENDISH_BOONS              10
+
+#define CHANNEL_ENERGY_TYPE_NONE        0
+#define CHANNEL_ENERGY_TYPE_POSITIVE    1
+#define CHANNEL_ENERGY_TYPE_NEGATIVE    2
+
 
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL 0
@@ -3672,6 +3727,9 @@ struct player_special_data_saved
 
     int holy_weapon_type;           // type of weapon to use withn holy weapon spell, also known as holy sword spell
     int paladin_mercies[NUM_PALADIN_MERCIES]; // stores a paladin's mercies known
+    int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
+    int fiendish_boons;             // active fiendish boons by blackguard
+    int channel_energy_type;        // neutral clerics must decide either positive or negative
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3725,6 +3783,9 @@ struct player_special_data
     int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
 
     int casting_class;          // The class number that is currently casting a spell
+
+    int concussive_onslaught_duration;
+    bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt
 };
 
 /** Special data used by NPCs, not PCs */
@@ -3882,6 +3943,8 @@ struct level_data
     int skills[MAX_SKILLS + 1];
     int paladin_mercies[NUM_PALADIN_MERCIES];
     int tempMercy;
+    int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES];
+    int tempCruelty;
 };
 
 /** The list element that makes up a list of characters following this

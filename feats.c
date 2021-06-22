@@ -1976,6 +1976,56 @@ void assign_feats(void)
         "gain access to 9th circle psionicist powers",
         "You now have access to 9th circle psionicist powers.");
 
+  feato(FEAT_BLACKGUARD_1ST_CIRCLE, "1st circle blackguard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 1st circle blackguard spells",
+        "You now have access to 1st circle blackguard spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BLACKGUARD_2ND_CIRCLE, "2nd circle blackguard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 2nd circle blackguard spells",
+        "You now have access to 2nd circle blackguard spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BLACKGUARD_3RD_CIRCLE, "3rd circle blackguard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 3rd circle blackguard spells",
+        "You now have access to 3rd circle blackguard spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BLACKGUARD_4TH_CIRCLE, "4th circle blackguard spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 4th circle blackguard spells",
+        "You now have access to 4th circle blackguard spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_BLACKGUARD_1ST_CIRCLE_SLOT, "1st circle blackguard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "blackguard 1st circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_BLACKGUARD_2ND_CIRCLE_SLOT, "1st circle blackguard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "blackguard 2nd circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_BLACKGUARD_3RD_CIRCLE_SLOT, "1st circle blackguard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "blackguard 3rd circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_BLACKGUARD_4TH_CIRCLE_SLOT, "1st circle blackguard slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "blackguard 4th circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");        
+
+
   feato(FEAT_SORCERER_BLOODLINE_DRACONIC, "draconic bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "1 level as sorcerer & select the draconic bloodline",
         "The draconic bloodline allows the sorcerer to take upon them traits "
@@ -2480,6 +2530,16 @@ void assign_feats(void)
         "can cause fear in or destroy undead based on class level and charisma bonus",
         "can cause fear in or destroy undead based on class level and charisma bonus");
 
+  feato(FEAT_CHANNEL_ENERGY, "channel energy", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "If good, will damage undead and heal living.  If evil, will damage living and heal undead.",
+        "Channelling divine energy will cause 1d6 damage to all undead in the area per two cleric levels.  "
+        "It will also heal all living creatures for the same amount in the same area. "
+        "These effects are for channelers with good alignments.  If evil, then undead are healed "
+        "and living are damaged.  Neutral channelers must decide, and this choice cannot "
+        "be undone without a respec. "
+        "Paladins and Blackguards can add their class levels to any cleric levels. Mystic theurges can add half. "
+        "See the 'channelenergy' command.");
+
   /* Paladin / Champion of Torm */
   feato(FEAT_DIVINE_GRACE, "divine grace", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "charisma bonus added to all saving throw checks",
@@ -2502,6 +2562,12 @@ void assign_feats(void)
   feato(FEAT_AURA_OF_GOOD, "aura of good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "able to detect good alignments",
         "able to detect good alignments");
+  feato(FEAT_AURA_OF_FAITH, "aura of faith", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Good allies in the paladin's presence gain a +1 to attack and damage rolls.",
+        "Good allies in the paladin's presence gain a +1 to attack and damage rolls.");
+  feato(FEAT_AURA_OF_JUSTICE, "aura of justice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Use a smite evil slot to give all allies in your presence a single smite evil use. See 'auraofjustice' command.",
+        "Use a smite evil slot to give all allies in your presence a single smite evil use. See 'auraofjustice' command.");   
   feato(FEAT_DIVINE_HEALTH, "divine health", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immune to disease",
         "immune to disease");
@@ -2531,6 +2597,67 @@ void assign_feats(void)
   feato(FEAT_EPIC_MOUNT, "epic mount", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "you get a more powerful mount",
         "You get an epic level mount with some special abilities.");
+  feato(FEAT_AURA_OF_RIGHTEOUSNESS, "aura of righteousness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allies get +4 bonus to enchantment spells.  Paladin gains damage reduction 1/-",
+        "Allies get +4 bonus to enchantment spells.  Paladin gains damage reduction 1/-");
+  feato(FEAT_HOLY_WARRIOR, "holy warrior", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When using layonhands or channel energy, the healing amount is increased, or if used on undead the damage is increased.",
+        "When using layonhands or channel energy, the healing amount is increased, or if used on undead the damage is increased. "
+        "Additionally the paladin's damage reduction is increased by 2/-. This stacks with aura of righteousness");
+  feato(FEAT_HOLY_CHAMPION, "holy champion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When using layonhands or channel energy, the healing amount is maximized, or on undead the damage is maximized.",
+        "When using layonhands or channel energy, the healing amount is maximized, or on undead the damage is maximized. "
+        "Additionally the paladin's damage reduction is increased by 2/-. This stacks with aura of righteousness, and holy warrior. "
+        "Finally, anytime smite evil is used on an evil outsider, the outsider has a chance to be banished.  This may not work on boss-type mobs.");
+
+  // Blackguard
+  feato(FEAT_TOUCH_OF_CORRUPTION, "touch of corruption", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "With a touch, a blackguard can inflict negative damage and add cruelty effects as they grow in power.",
+        "With a touch, a blackguard can inflict negative damage and add cruelty effects as they grow in power. See 'corruptingtouch' command.");
+  feato(FEAT_DETECT_GOOD, "detect good", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "able to detect good alignments",
+        "able to detect good alignments");
+  feato(FEAT_AURA_OF_EVIL, "aura of evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "able to detect evil alignments",
+        "able to detect evil alignments");
+  feato(FEAT_AURA_OF_DESPAIR, "aura of despair", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "All non-allies in your presence suffer a -2 penalty to saving throws.",
+        "All non-allies in your presence suffer a -2 penalty to saving throws.");
+  feato(FEAT_AURA_OF_COWARDICE, "aura of cowardice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Imposes penalties to fear-based saving throws or fear-immunity abilities.",
+        "All non-allies in your presence suffer a -4 penalty to fear-based saving throws. "
+        "If the target is under the effect of some form of fear-immunity, this aura instead "
+        "will cancel that immunity out, and not impose a penalty to fear saves.");
+  feato(FEAT_AURA_OF_VENGEANCE, "aura of vengeance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Use a smite good slot to give all allies in your presence a single smite good use. See 'auraofvengeance' command.",
+        "Use a smite good slot to give all allies in your presence a single smite good use. See 'auraofvengeance' command.");   
+  feato(FEAT_UNHOLY_RESILIENCE, "unholy resilience", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "charisma bonus added to all saving throw checks",
+        "charisma bonus added to all saving throw checks");
+  feato(FEAT_PLAGUE_BRINGER, "plague bringer", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "the blackguard is immune to disease.",
+        "the blackguard is immune to disease.");
+  feato(FEAT_FIENDISH_BOON, "fiendish boon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "the blackguard gains the ability to add certain affects to his weapons.  See 'fiendishboon' command.",
+        "the blackguard gains the ability to add certain affects to his weapons.  See 'fiendishboon' command.");
+  feato(FEAT_CRUELTY, "blackguard cruelties", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "the blackguard is able to add negative effects to his touch of corruption.  See 'cruelties' command.",
+        "the blackguard is able to add negative effects to his touch of corruption.  See 'cruelties' command.");
+  feato(FEAT_AURA_OF_SIN, "aura of sin", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Evil allies in the blackguard's presence gain a +1 to attack and damage rolls.",
+        "Evil allies in the blackguard's presence gain a +1 to attack and damage rolls.");
+  feato(FEAT_AURA_OF_DEPRAVITY, "aura of depravity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Foes get -4 penalty to enchantment spells.  Blackguard gains damage reduction 1/-",
+        "Foes get -4 penalty to enchantment spells.  Blackguard gains damage reduction 1/-");
+  feato(FEAT_UNHOLY_WARRIOR, "unholy warrior", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When using corrupting touch or channel energy, the healing amount on undead is increased, or otherwise the damage is increased.",
+        "When using corrupting touch or channel energy, the healing amount on undead is increased, or otherwise the damage is increased. "
+        "Additionally the blackguard's damage reduction is increased by 2/-. This stacks with aura of depravity.");
+  feato(FEAT_UNHOLY_CHAMPION, "unholy champion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When using corrupting touch or channel energy, the healing amount on undead is maximized, or otherwise the damage is maximized.",
+        "When using corrupting touch or channel energy, the healing amount on undead is maximized, or otherwise the damage is maximized. "
+        "Additionally the blackguard's damage reduction is increased by 2/-. This stacks with aura of depravity, and holy warrior. "
+        "Finally, anytime smite good is used on a good outsider, the outsider has a chance to be banished.  This may not work on boss-type mobs.");
 
   /* Rogue */
   /* trap sense below (shared with berserker) */
@@ -3637,8 +3764,6 @@ void assign_feats(void)
 
   /* knight of the skull (dragonlance) */
   feato(FEAT_DARK_BLESSING, "dark blessing", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_AURA_OF_EVIL, "aura of evil", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
-  feato(FEAT_DETECT_GOOD, "detect good", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "ask staff", "ask staff");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
@@ -3841,6 +3966,8 @@ void assign_feats(void)
   dailyfeat(FEAT_SHADOW_CALL, eSHADOWCALL);
   dailyfeat(FEAT_SHADOW_JUMP, eSHADOWJUMP);
   dailyfeat(FEAT_SHADOW_POWER, eSHADOWPOWER);
+  dailyfeat(FEAT_TOUCH_OF_CORRUPTION, eTOUCHOFCORRUPTION);
+  dailyfeat(FEAT_CHANNEL_ENERGY, eCHANNELENERGY);
   /** END **/
 }
 
@@ -4349,6 +4476,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
     case FEAT_AURA_OF_COURAGE:
       if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
+        return true;
+      return false;
+
+    case FEAT_TOUCH_OF_CORRUPTION:
+      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 1)
         return true;
       return false;
 
@@ -5717,6 +5849,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (+%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_SNEAK_ATTACK));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_TOUCH_OF_CORRUPTION)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dd6)", feat_list[i].name, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dd6)", feat_list[i].name, CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
