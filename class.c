@@ -1629,7 +1629,7 @@ int BAB(struct char_data *ch)
   /* added float for more(?) accuracy */
   for (i = 0; i < MAX_CLASSES; i++)
   {
-    level = CLASS_LEVEL(ch, i);
+    level = MIN(20, CLASS_LEVEL(ch, i));
     if (level)
     {
       switch (CLSLIST_BAB(i))
@@ -1647,6 +1647,8 @@ int BAB(struct char_data *ch)
       }
     }
   }
+
+  bab += CLASS_LEVEL(ch, i) - 20;
 
   bab = (int)counter;
 
@@ -3338,6 +3340,8 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_EXPEDITIOUS_RETREAT, 1);
   spell_assignment(CLASS_WIZARD, SPELL_IRON_GUTS, 1);
   spell_assignment(CLASS_WIZARD, SPELL_SHIELD, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_STUNNING_BARRIER, 1);
+  spell_assignment(CLASS_WIZARD, SPELL_RESISTANCE, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_WIZARD, SPELL_SHOCKING_GRASP, 3);
@@ -3364,6 +3368,8 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_ENDURANCE, 3);
   spell_assignment(CLASS_WIZARD, SPELL_STRENGTH, 3);
   spell_assignment(CLASS_WIZARD, SPELL_GRACE, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_TACTICAL_ACUMEN, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_BESTOW_WEAPON_PROFICIENCY, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_WIZARD, SPELL_LIGHTNING_BOLT, 5);
@@ -3606,6 +3612,10 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_GRACE, 1);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_FEAR, 1);
   spell_assignment(CLASS_CLERIC, SPELL_DOOM, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_DIVINE_FAVOR, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_SUN_METAL, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_STUNNING_BARRIER, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_HEDGING_WEAPONS, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_CLERIC, SPELL_AUGURY, 3);
@@ -3621,6 +3631,9 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_RESIST_ENERGY, 3);
   spell_assignment(CLASS_CLERIC, SPELL_WISDOM, 3);
   spell_assignment(CLASS_CLERIC, SPELL_CHARISMA, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_BESTOW_WEAPON_PROFICIENCY, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_SHIELD_OF_FORTIFICATION, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_LESSER_RESTORATION, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_CLERIC, SPELL_BLESS, 5);
@@ -3981,7 +3994,7 @@ void load_class_list(void)
   /*     class-number  name    abrv   clr-abrv     menu-name*/
   classo(CLASS_MONK, "monk", "Mon", "\tgMon\tn", "o) \tgMonk\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, M, 8, 0, 2, 4, Y, 0, 0,
+         -1, N, N, H, 8, 0, 2, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "For the truly exemplary, martial skill transcends the "
                      "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
@@ -4175,6 +4188,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_PRODUCE_FLAME, 1);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_1, 1);
   spell_assignment(CLASS_DRUID, SPELL_ENTANGLE, 1);
+  spell_assignment(CLASS_DRUID, SPELL_RESISTANCE, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_DRUID, SPELL_BARKSKIN, 3);
@@ -4187,6 +4201,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_2, 3);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_SWARM, 3);
   spell_assignment(CLASS_DRUID, SPELL_WISDOM, 3);
+  spell_assignment(CLASS_DRUID, SPELL_LESSER_RESTORATION, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING, 5);
@@ -4493,6 +4508,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_EXPEDITIOUS_RETREAT, 1);
   spell_assignment(CLASS_SORCERER, SPELL_IRON_GUTS, 1);
   spell_assignment(CLASS_SORCERER, SPELL_SHIELD, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_STUNNING_BARRIER, 1);
+  spell_assignment(CLASS_SORCERER, SPELL_RESISTANCE, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_SORCERER, SPELL_SHOCKING_GRASP, 4);
@@ -4519,6 +4536,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_ENDURANCE, 4);
   spell_assignment(CLASS_SORCERER, SPELL_STRENGTH, 4);
   spell_assignment(CLASS_SORCERER, SPELL_GRACE, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_TACTICAL_ACUMEN, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_BESTOW_WEAPON_PROFICIENCY, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_SORCERER, SPELL_LIGHTNING_BOLT, 6);
@@ -4789,18 +4808,36 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_CURE_LIGHT, 6);
   spell_assignment(CLASS_PALADIN, SPELL_ENDURANCE, 6);
   spell_assignment(CLASS_PALADIN, SPELL_ARMOR, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_DIVINE_FAVOR, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_ENDURE_ELEMENTS, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_PROT_FROM_EVIL, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_RESISTANCE, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_LESSER_RESTORATION, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_HEDGING_WEAPONS, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_HONEYED_TONGUE, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_SHIELD_OF_FORTIFICATION, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_STUNNING_BARRIER, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_SUN_METAL, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_TACTICAL_ACUMEN, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_VEIL_OF_POSITIVE_ENERGY, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_PALADIN, SPELL_CREATE_FOOD, 10);
   spell_assignment(CLASS_PALADIN, SPELL_CREATE_WATER, 10);
   spell_assignment(CLASS_PALADIN, SPELL_DETECT_POISON, 10);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_MODERATE, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_STRENGTH, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_CHARISMA, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_WISDOM, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_RESIST_ENERGY, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_BESTOW_WEAPON_PROFICIENCY, 10);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_PALADIN, SPELL_DETECT_ALIGN, 12);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_BLIND, 12);
   spell_assignment(CLASS_PALADIN, SPELL_BLESS, 12);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_SERIOUS, 12);
+  spell_assignment(CLASS_PALADIN, SPELL_HEAL_MOUNT, 12);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_PALADIN, SPELL_AID, 15);
@@ -4809,6 +4846,8 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_REMOVE_POISON, 15);
   spell_assignment(CLASS_PALADIN, SPELL_CURE_CRITIC, 15);
   spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD, 15);
+  spell_assignment(CLASS_PALADIN, SPELL_STONESKIN, 15);
+
   /* class prerequisites */
   class_prereq_align(CLASS_PALADIN, LAWFUL_GOOD);
   /*****/
@@ -4948,6 +4987,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_ENDURANCE, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_NEGATIVE_ENERGY_RAY, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_ENDURE_ELEMENTS, 6);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_HEDGING_WEAPONS, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_BLACKGUARD, SPELL_BLINDNESS, 10);
@@ -4958,9 +4998,9 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_CHARISMA, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_HOLD_PERSON, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_INVISIBLE, 10);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_IRONSKIN, 10);
   //spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_4, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_BESTOW_WEAPON_PROFICIENCY, 10);
   
   /*              class num      spell                   level acquired */
   /* 3rd circle */
@@ -4982,6 +5022,8 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_POISON, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
+
   /* class prerequisites */
   class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
   class_prereq_align(CLASS_BLACKGUARD, NEUTRAL_EVIL);
@@ -5093,6 +5135,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_MAGIC_FANG, 6);
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_1, 6);
   spell_assignment(CLASS_RANGER, SPELL_ENTANGLE, 6);
+  spell_assignment(CLASS_RANGER, SPELL_SUN_METAL, 6);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_RANGER, SPELL_ENDURANCE, 10);
@@ -5210,6 +5253,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_PROT_FROM_GOOD, 1);
   spell_assignment(CLASS_BARD, SPELL_MAGIC_MISSILE, 1);
   spell_assignment(CLASS_BARD, SPELL_CURE_LIGHT, 1);
+  spell_assignment(CLASS_BARD, SPELL_RESISTANCE, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_2, 4);
@@ -5223,6 +5267,8 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_STRENGTH, 4);
   spell_assignment(CLASS_BARD, SPELL_GRACE, 4);
   spell_assignment(CLASS_BARD, SPELL_CURE_MODERATE, 4);
+  spell_assignment(CLASS_BARD, SPELL_HONEYED_TONGUE, 4);
+  spell_assignment(CLASS_BARD, SPELL_TACTICAL_ACUMEN, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 7);
@@ -5296,7 +5342,7 @@ void load_class_list(void)
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
                      CC, CC, CA, CA, CC, CA, CA,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CA, CA, CC, CA, CC, CC, CC, CC,
+                     CA, CA, CC, CA, CA, CC, CC, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CA, CC, CC, CC, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
@@ -6363,9 +6409,10 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_CUNNING, 4);
   spell_assignment(CLASS_ALCHEMIST, SPELL_INVISIBLE, 4);
   spell_assignment(CLASS_ALCHEMIST, SPELL_WISDOM, 4);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_BESTOW_WEAPON_PROFICIENCY, 4);
   spell_assignment(CLASS_ALCHEMIST, SPELL_RESIST_ENERGY, 4);
   spell_assignment(CLASS_ALCHEMIST, SPELL_DETECT_INVIS, 4);
-
+  spell_assignment(CLASS_ALCHEMIST, SPELL_LESSER_RESTORATION, 4);
   /* concoction circle 3 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_SERIOUS, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_DISPLACEMENT, 7);

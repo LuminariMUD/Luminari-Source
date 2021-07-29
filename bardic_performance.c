@@ -249,7 +249,7 @@ ACMD(do_perform)
 }
 
 /* function for processing individual effects */
-#define BARD_AFFECTS 5
+
 int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum, int effectiveness, int aoe)
 {
   int return_val = 1, i = 0;

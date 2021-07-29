@@ -46,6 +46,24 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door,
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
                    int scmd, int door);
 
+#define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
+                                                    ITEM_CONTAINER) ||                      \
+                                                   GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && \
+                                                  OBJVAL_FLAGGED(obj, CONT_CLOSEABLE))      \
+                                               : (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
+#define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
+                                                              CONT_CLOSED)) \
+                                           : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
+#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
+                                                                  CONT_LOCKED)) \
+                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED)))
+#define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
+                                                                  CONT_PICKPROOF)) \
+                                                : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
+#define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
+#define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
+#define DOOR_KEY(ch, obj, door) ((obj) ? (GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
+
 /***** start file body *****/
 
 /* doorbash - unfinished */
@@ -1033,6 +1051,59 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     send_to_char(ch, "(OOC)  This zone is above your recommended level.\r\n");
   }
 
+  struct char_data *mob;
+  sbyte block = FALSE;
+
+  for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room) {
+    if (!IS_NPC(mob))
+      continue;
+
+    if (dir == NORTH && MOB_FLAGGED(mob, MOB_BLOCK_N))
+      block = TRUE;
+    else if (dir == EAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == SOUTH && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == WEST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == NORTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == SOUTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == SOUTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == NORTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == UP && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+    else if (dir == DOWN && MOB_FLAGGED(mob, MOB_BLOCK_E))
+      block = TRUE;
+
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_RACE) && GET_RACE(ch) == GET_RACE(mob))
+      block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_CLASS) && GET_CLASS(ch) == GET_CLASS(mob))
+      block = FALSE;
+    //if (block && MOB_FLAGGED(mob, MOB_BLOCK_RACE_FAMILY) && race_list[GET_RACE(ch)].family == race_list[GET_RACE(mob)].family)
+    //  block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_LEVEL) && GET_LEVEL(ch) > GET_LEVEL(mob))
+      block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_ALIGN) && IS_GOOD(ch) > IS_GOOD(mob))
+      block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_ALIGN) && IS_EVIL(ch) > IS_EVIL(mob))
+      block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_ALIGN) && IS_NEUTRAL(ch) > IS_NEUTRAL(mob))
+      block = FALSE;
+
+    if (block)
+      break;
+  }
+
+  if (block && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
+    act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
+    act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
+    return 0;
+  }
+
   //acrobatics check
 
   /* for now acrobatics check disabled */
@@ -1140,11 +1211,11 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   speed_mod = speed_mod - 30;
   need_movement -= speed_mod;
 
-  // regardless of bonuses, we'll never use less than 10 moves per room, unless using shadow walk
+  // regardless of bonuses, we'll never use less than 5 moves per room, unless using shadow walk
   if (affected_by_spell(riding ? RIDING(ch) : ch, SPELL_SHADOW_WALK))
     need_movement = MAX(1, need_movement);
   else
-    need_movement = MAX(10, need_movement);
+    need_movement = MAX(5, need_movement);
 
   /* Move Point Requirement Check */
   if (riding)
@@ -1886,6 +1957,8 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if ((!EXIT(ch, dir) && !buildwalk(ch, dir)) || EXIT(ch, dir)->to_room == NOWHERE)
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN) && GET_LEVEL(ch) < LVL_IMMORT)
+    send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if (char_has_mud_event(ch, eFALLING))
     send_to_char(ch, "You can't, you are falling!!!\r\n");
   else if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
@@ -1993,7 +2066,9 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
         {
           if (isname(type, EXIT(ch, door)->keyword) || is_abbrev(type, dirs[door]))
           {
-            if ((!IS_NPC(ch)) && (!PRF_FLAGGED(ch, PRF_AUTODOOR)))
+            if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && GET_LEVEL(ch) < LVL_IMMORT)
+              ;
+            else if ((!IS_NPC(ch)) && (!PRF_FLAGGED(ch, PRF_AUTODOOR)))
               return door;
             else if (is_abbrev(cmdname, "open"))
             {
@@ -2158,7 +2233,13 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     }
     else
     {
-      if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+      //if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+      //  return;
+    }
+    if (!ok_pick(ch, 0, EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF), SCMD_PICK, door))
+    {
+      send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
+      WAIT_STATE(ch, PULSE_VIOLENCE * 1);
         return;
     }
     TOGGLE_LOCK(IN_ROOM(ch), obj, door);
@@ -2273,24 +2354,6 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   USE_MOVE_ACTION(ch);
   return (0);
 }
-
-#define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
-                                                    ITEM_CONTAINER) ||                      \
-                                                   GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH) && \
-                                                  OBJVAL_FLAGGED(obj, CONT_CLOSEABLE))      \
-                                               : (EXIT_FLAGGED(EXIT(ch, door), EX_ISDOOR)))
-#define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
-                                                              CONT_CLOSED)) \
-                                           : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
-#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
-                                                                  CONT_LOCKED)) \
-                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED)))
-#define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
-                                                                  CONT_PICKPROOF)) \
-                                                : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
-#define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
-#define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
-#define DOOR_KEY(ch, obj, door) ((obj) ? (GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
 
 ACMD(do_gen_door)
 {

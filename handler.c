@@ -896,7 +896,7 @@ void update_msdp_affects(struct char_data *ch)
                    "%c",
               (char)MSDP_VAL,
               (char)MSDP_TABLE_OPEN,
-              (char)MSDP_VAR, "NAME", (char)MSDP_VAL, skill_name(af->spell),
+              (char)MSDP_VAR, "NAME", (char)MSDP_VAL, spell_name(af->spell),
               (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int)af->location],
               (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, af->modifier,
               (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
@@ -1870,6 +1870,19 @@ void object_list_new_owner(struct obj_data *list, struct char_data *ch)
 /* Extract an object from the world */
 void extract_obj(struct obj_data *obj)
 {
+
+  struct descriptor_data *d = NULL;
+
+  // before we extract it we need to ensure we've removed it from any characters
+  // who might be working on it with the outfit command, else some buggy stuff
+  // will happen, crashes and worse.
+  for (d = descriptor_list; d; d = d->next)
+  {
+    if (!d->character) continue;
+    if (d->character->player_specials->outfit_obj == obj)
+      d->character->player_specials->outfit_obj = NULL;
+  }
+
   struct char_data *ch = NULL, *next = NULL;
   struct obj_data *temp = NULL;
 

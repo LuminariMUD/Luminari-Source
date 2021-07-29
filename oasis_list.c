@@ -361,12 +361,12 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           v1 = (obj_proto[num].obj_flags.value[1]);
           v2 = (obj_proto[num].obj_flags.value[3]);
           tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s]%s (%dx%s) %s%s%s\r\n",
-                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, skill_name(v2), QCYN, obj_proto[r_num].short_description, QNRM);
+                             QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM, v1, spell_name(v2), QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_POISON:
           tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s%7d%s (Poison:%s%s|Level:%d|Applications:%d|Hits/App:%d) %s%s\r\n",
-                             QGRN, ++found, QNRM, QYEL, ov, QNRM, skill_name(v1), QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
+                             QGRN, ++found, QNRM, QYEL, ov, QNRM, spell_name(v1), QNRM, v2, v3, v4, obj_proto[r_num].short_description, QNRM);
           break;
 
         case ITEM_WEAPON:
@@ -1288,11 +1288,12 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
 /* List all objects in a zone. */
 static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax)
 {
-  obj_rnum i = 0;
+  obj_rnum i = 0, j = 0;
   obj_vnum bottom = 0, top = 0;
   char buf[MAX_STRING_LENGTH];
-  int counter = 0, num_found = 0, len = 0;
+  int counter = 0, num_found = 0, len = 0, len2 = 0;
   struct obj_data *l = NULL;
+  char wears_text[LONG_STRING];
 
   if (rnum != NOWHERE)
   {
@@ -1306,8 +1307,8 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
   }
 
   len = strlcpy(buf,
-                "Index VNum    #  D Object Name                                    Object Type     Cost      Specific Type\r\n"
-                "----- ------- -- - ---------------------------------------------- ---------------- -------- -------------------------\r\n",
+                "Index VNum    #  D Object Name                                              Object Type        Cost     Specific Type\r\n"
+                "----- ------- -- - -------------------------------------------------------- -----------------  -------- -------------------------\r\n",
                 sizeof(buf));
 
   if (!top_of_objt)
@@ -1331,15 +1332,28 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
         }
       }
 
-            len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%-14s]%s %8d %s%s%s %s\r\n",
+      len2 = strlcpy(wears_text, "\ty", sizeof(wears_text));
+      if (obj_proto[i].obj_flags.type_flag == ITEM_WORN)
+      {
+        for (j = 1; j < NUM_ITEM_WEARS; j++)
+        {
+          if (IS_SET_AR(obj_proto[i].obj_flags.wear_flags, j))
+            len2 += snprintf(wears_text + len2, sizeof(wears_text) - len2, "%s ", wear_bits[j]);
+        }
+      }
+
+      len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%-14s]%s %8d %s%s%s %s\r\n",
                       QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM, num_found,
                       (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"),
-                      QCYN, count_color_chars(obj_proto[i].short_description) + 48,
+                      QCYN, count_color_chars(obj_proto[i].short_description) + 58,
                       obj_proto[i].short_description, QYEL,
                       item_types[obj_proto[i].obj_flags.type_flag], QNRM,
                       obj_proto[i].obj_flags.cost, QYEL,
+                      obj_proto[i].obj_flags.type_flag == ITEM_WORN ? wears_text : 
+                      (
                       obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : 
-                      (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : ""),
+                      (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : "")
+                      ),
                       QNRM, obj_proto[i].proto_script ? " [TRIG]" : "");
 
       if (len > sizeof(buf))

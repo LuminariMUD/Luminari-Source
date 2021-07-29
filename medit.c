@@ -630,6 +630,7 @@ static void medit_disp_menu(struct descriptor_data *d)
                   "%sJ%s) Walk-In   : %s%s\r\n"
                   "%sK%s) Walk-Out  : %s%s\r\n"
                   "%sL%s) Echo Menu...\r\n"
+                  "%sM%s) Create Plot Mob (Shopkeepers, Questmasters, Etc.)\r\n"
                   //          "%s-%s) Echo Menu : IS ZONE: %d FREQ: %d%% COUNT: %d Echo: %s\r\n"
                   "%sA%s) NPC Flags : %s%s\r\n"
                   "%sB%s) AFF Flags : %s%s\r\n"
@@ -653,6 +654,7 @@ static void medit_disp_menu(struct descriptor_data *d)
                   grn, nrm, yel, size_names[GET_SIZE(mob)],
                   grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
                   grn, nrm, yel, GET_WALKOUT(mob) ? GET_WALKOUT(mob) : "Default.",
+                  grn, nrm,
                   grn, nrm,
                   //         grn, nrm, ECHO_IS_ZONE(mob), ECHO_FREQ(mob), ECHO_AMOUNT(mob),
                   //         (ECHO_ENTRIES(mob)[0] ? ECHO_ENTRIES(mob)[0] : "None."),
@@ -826,6 +828,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
 {
   int i = -1, j;
   char *oldtext = NULL;
+  char t_buf[200];
 
   if (OLC_MODE(d) > MEDIT_NUMERICAL_RESPONSE)
   {
@@ -1012,6 +1015,34 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'X':
       write_to_output(d, "Are you sure you want to delete this mobile? ");
       OLC_MODE(d) = MEDIT_DELETE;
+      return;
+    case 'm':
+    case 'M':
+      // We're setting this mob up with random descs/name and the right mob flags
+      GET_REAL_RACE(OLC_MOB(d)) = RACE_TYPE_HUMANOID;
+      GET_SEX(OLC_MOB(d)) = dice(1, 2);
+      snprintf(t_buf, sizeof(t_buf), "%s %s", GET_SEX(OLC_MOB(d)) == SEX_MALE ? random_male_names[dice(1, NUM_MALE_NAMES)-1] : 
+              random_female_names[dice(1, NUM_FEMALE_NAMES)-1], random_surnames[dice(1, NUM_SURNAMES)-1]);
+      OLC_MOB(d)->player.name = strdup(t_buf);
+      OLC_MOB(d)->player.short_descr = strdup(t_buf);
+      snprintf(t_buf, sizeof(t_buf), "%s is here before you.", OLC_MOB(d)->player.short_descr);
+      OLC_MOB(d)->player.long_descr = strdup(t_buf);
+      snprintf(t_buf, sizeof(t_buf), "%s is a %s %s.\n", OLC_MOB(d)->player.short_descr, genders[GET_SEX(OLC_MOB(d))], race_list[dice(1, NUM_RACES)-1].name);
+      OLC_MOB(d)->player.description = strdup(t_buf);
+      GET_CLASS(OLC_MOB(d)) = CLASS_WARRIOR;
+      GET_LEVEL(OLC_MOB(d)) = 10;
+      medit_autoroll_stats(d);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_SENTIENT); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_SENTINEL);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_AWARE); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOCHARM); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSUMMON);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSLEEP); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOBASH); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOBLIND);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOKILL); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NODEAF); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOFIGHT);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOGRAPPLE); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSTEAL); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NO_AI);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOCONFUSE);
+      GET_REAL_SIZE(OLC_MOB(d)) = SIZE_MEDIUM;
+      (OLC_MOB(d))->points.size = GET_REAL_SIZE(OLC_MOB(d));
+      OLC_VAL(d) = TRUE;
+      medit_disp_menu(d);
+      write_to_output(d, "\r\nThe mob has been set with appropriate flags and a random name/description.\r\n\r\n");
       return;
     case 'v':
     case 'V':

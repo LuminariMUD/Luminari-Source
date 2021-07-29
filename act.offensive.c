@@ -1208,8 +1208,15 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
     af2.location = APPLY_SPECIAL;
     af2.modifier = 3;
     af2.duration = CLASS_LEVEL(ch, CLASS_PALADIN) / 2;
-    send_to_char(ch, "%s gains fast healing of 3 hp/round for %d rounds.\r\n", GET_NAME(vict), af2.duration);
-    send_to_char(vict, "You gain fast healing of 3 hp/round for %d rounds.\r\n", af2.duration);
+    if (ch != vict)
+    {
+      send_to_char(ch, "%s gains fast healing of 3 hp/round for %d rounds.\r\n", GET_NAME(vict), af2.duration);
+      send_to_char(vict, "You gain fast healing of 3 hp/round for %d rounds.\r\n", af2.duration);
+    }
+    else
+    {
+      send_to_char(ch, "You gain fast healing of 3 hp/round for %d rounds.\r\n", af2.duration);
+    }
     affect_to_char(ch, &af2);
   }
 
@@ -2864,9 +2871,15 @@ int perform_taunt(struct char_data *ch, struct char_data *vict)
   int success = 0;
 
   /* we started with base roll and defense in the variable declaration */
-  if (!IS_NPC(ch))
+  if (!IS_NPC(ch)) {
+    if (affected_by_spell(ch, SPELL_HONEYED_TONGUE))
+    {
+      attempt = MAX(attempt, d20(ch));
+    }
     attempt += compute_ability(ch, ABILITY_DIPLOMACY);
-  else
+  } else {
+    attempt += GET_LEVEL(ch);
+  }
     attempt += GET_LEVEL(ch);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
@@ -6295,9 +6308,19 @@ ACMD(do_charge)
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
+    else {
+      send_to_char(ch, "You are not in combat, nor have you specified a target to charge.\r\n");
+      return;
+    }
   }
   else
     vict = get_char_room_vis(ch, arg, NULL);
+
+  if (!vict)
+  {
+    send_to_char(ch, "You are not in combat, nor have you specified a target to charge.\r\n");
+    return;
+  }
 
   perform_charge(ch, vict);
 }
@@ -7211,6 +7234,12 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     return;
   }
 
+  if (!KNOWS_CRUELTY(ch, i))
+  {
+    send_to_char(ch, "You do not know that cruelty.\r\n");
+    return;
+  }
+
   // check for immunities
   switch (which_cruelty)
   {
@@ -7303,6 +7332,48 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
 
   affect_to_char(vict, &af);
 
+}
+
+void throw_hedging_weapon(struct char_data *ch)
+{
+  if (!ch || !FIGHTING(ch)) return;
+  if (!affected_by_spell(ch, SPELL_HEDGING_WEAPONS)) return;
+
+  struct affected_type *af = ch->affected;
+  bool remove = false;
+  int roll = 0, defense = 0, dam = 0;
+
+  for (af = ch->affected; af; af = af->next)
+  {
+    if (af->spell != SPELL_HEDGING_WEAPONS) continue;
+    if (af->modifier < 1)
+    {
+      remove = true; break;
+    }
+    else
+    {
+      roll = d20(ch) + compute_attack_bonus(ch, FIGHTING(ch), ATTACK_TYPE_RANGED);
+      defense = compute_armor_class(ch, FIGHTING(ch), TRUE, MODE_ARMOR_CLASS_NORMAL);
+      if (roll >= defense)
+      {
+        dam = dice(2, 4) + GET_CHA_BONUS(ch);
+      }
+      else
+      {
+        dam = 0;
+      }
+      damage(ch, FIGHTING(ch), dam, SPELL_HEDGING_WEAPONS, DAM_FORCE, FALSE);
+      af->modifier--;
+      if (af->modifier < 1)
+        remove = true;
+      break;
+    }
+  }
+  if (remove)
+  {
+    affect_from_char(ch, SPELL_HEDGING_WEAPONS);
+  }
+  save_char(ch, 0);
 }
 
 /* cleanup! */

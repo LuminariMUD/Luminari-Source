@@ -32,6 +32,9 @@
 
 /***********/
 
+void npc_offensive_spells(struct char_data *ch);
+void npc_racial_behave(struct char_data *ch);
+
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
 #define SPELLUP_SPELLS 55
@@ -597,6 +600,27 @@ int can_continue(struct char_data *ch, bool fighting)
   return 1;
 }
 
+void npc_ability_behave(struct char_data *ch)
+{
+  if (dice(1, 2) == 1)
+    npc_racial_behave(ch);
+  else
+    npc_offensive_spells(ch);
+  return;
+  // we need to code the abilities before we go ahead with this
+  struct char_data *vict = NULL;
+  int num_targets = 0;
+
+  if (!can_continue(ch, TRUE))
+    return;
+
+  /* retrieve random valid target and number of targets */
+  if (!(vict = npc_find_target(ch, &num_targets)))
+    return;
+
+  
+}
+
 /*** END UTILITY FUNCTIONS ***/
 
 /*** RACE TYPES ***/
@@ -1081,6 +1105,14 @@ void npc_spellup(struct char_data *ch)
     return;
   }
 
+  // charmies should not cast invis
+  if (IS_MOB(ch) && AFF_FLAGGED(ch, AFF_CHARM) &&
+      (spellnum == SPELL_GREATER_INVIS ||
+       spellnum == SPELL_INVISIBLE))
+  {
+    return;
+  }
+
   /* end special restrictions */
 
   if (loop_counter < (MAX_LOOPS))
@@ -1250,8 +1282,10 @@ void mobile_activity(void)
       if (FIGHTING(ch))
       {
         // 50% chance will react off of class, 50% chance will react off of race
-        if (rand_number(0, 1))
+        if (dice(1, 3) == 1)
           npc_racial_behave(ch);
+        else if (dice(1, 3) == 2)
+          npc_ability_behave(ch);
         else if (IS_NPC_CASTER(ch))
           npc_offensive_spells(ch);
         else

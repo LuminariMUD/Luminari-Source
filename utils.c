@@ -208,10 +208,10 @@ int compute_divine_level(struct char_data *ch) {
   divine_level += CLASS_LEVEL(ch, CLASS_CLERIC);
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
   divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
-  divine_level += CLASS_LEVEL(ch, CLASS_PALADIN)/2;
-  divine_level += CLASS_LEVEL(ch, CLASS_BLACKGUARD)/2;
-  divine_level += CLASS_LEVEL(ch, CLASS_RANGER)/2;
-  divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE)/2;
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 3);
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 3);
+  divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_RANGER) - 3);
+  divine_level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
   divine_level += compute_arcana_golem_level(ch) - (SPELLBATTLE(ch) / 2);
 
   return divine_level;
@@ -651,6 +651,7 @@ bool is_room_outdoors(room_rnum room_number) {
 
   switch (SECT(room_number)) {
     case SECT_INSIDE:
+    case SECT_INSIDE_ROOM:
     case SECT_OCEAN:
     case SECT_UD_WILD:
     case SECT_UD_CITY:
@@ -696,6 +697,7 @@ bool ultra_blind(struct char_data *ch, room_rnum room_number) {
 
   switch (SECT(room_number)) {
     case SECT_INSIDE:
+    case SECT_INSIDE_ROOM:
     case SECT_FOREST:
     case SECT_MARSHLAND:
     case SECT_UNDERWATER:
@@ -929,6 +931,11 @@ bool can_see_hidden(struct char_data *ch, struct char_data *hider) {
 /* function to calculate a skill roll for given ch */
 int skill_roll(struct char_data *ch, int skillnum) {
   int roll = d20(ch);
+
+  if (skillnum == ABILITY_DIPLOMACY && affected_by_spell(ch, SPELL_HONEYED_TONGUE))
+  {
+    roll = MAX(roll, d20(ch));
+  }
 
   /*if (PRF_FLAGGED(ch, PRF_TAKE_TEN))
     roll = 10;*/
@@ -2573,6 +2580,8 @@ bool room_is_daylit(room_rnum room) {
   /* sectors */
   if (SECT(room) == SECT_INSIDE)
     return (FALSE);
+  if (SECT(room) == SECT_INSIDE_ROOM)
+    return (FALSE);
   if (SECT(room) == SECT_UNDERWATER)
     return (FALSE);
   if (SECT(room) == SECT_PLANES)
@@ -2619,7 +2628,7 @@ bool room_is_dark(room_rnum room) {
     return (FALSE);
   }
 
-  if (SECT(room) == SECT_INSIDE || SECT(room) == SECT_CITY)
+  if (SECT(room) == SECT_INSIDE || SECT(room) == SECT_INSIDE_ROOM || SECT(room) == SECT_CITY)
     return (FALSE);
 
   if (ROOM_FLAGGED(room, ROOM_MAGICLIGHT))
@@ -4222,6 +4231,18 @@ bool is_fear_spell(int spellnum)
   return false;
 }
 
+// returns true if the spell should NOT be listed in spell lists
+bool do_not_list_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+    // no spells here yet
+    //  return true;
+    default: return false;
+  }
+  return false;
+}
+
 void remove_fear_affects(struct char_data *ch, sbyte display) {
   // aura of cowardice nullifies any fear immunity
   if (affected_by_aura_of_cowardice(ch))
@@ -4683,6 +4704,9 @@ int d20(struct char_data *ch)
 
 const char * get_wearoff(int abilnum)
 {
+  if (spell_info[abilnum].schoolOfMagic != NOSCHOOL)
+    return (const char *) spell_info[abilnum].wear_off_msg;
+
   if (skill_info[abilnum].schoolOfMagic == ACTIVE_SKILL)
     return (const char *) skill_info[abilnum].wear_off_msg;
 
@@ -5005,6 +5029,17 @@ bool can_spell_be_revoked(int spellnum)
     case SPELL_MASS_FALSE_LIFE:
     case SPELL_SHADOW_WALK:
     case SPELL_INCORPOREAL_FORM:
+    case SPELL_HEAL_MOUNT:
+    case SPELL_RESISTANCE:
+    case SPELL_LESSER_RESTORATION:
+    case SPELL_HEDGING_WEAPONS:
+    case SPELL_HONEYED_TONGUE:
+    case SPELL_SHIELD_OF_FORTIFICATION:
+    case SPELL_STUNNING_BARRIER:
+    case SPELL_SUN_METAL:
+    case SPELL_TACTICAL_ACUMEN:
+    case SPELL_VEIL_OF_POSITIVE_ENERGY:
+    case SPELL_BESTOW_WEAPON_PROFICIENCY:
 
     // psionic powers
     case PSIONIC_BROKER:
@@ -5354,3 +5389,38 @@ void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict
     }
   }
 } 
+
+char * randstring(int length)
+{
+  if (length < 1 || length > 255) return NULL;
+
+  char buf[length+1];
+  char char_list[64];
+  int i = 0;
+
+  snprintf(char_list, sizeof(char_list), "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890");
+
+  for (i = 0; i < length; i++)
+    buf[i] = char_list[dice(1, 63) - 1];
+
+  buf[length + 1] = '\0';
+  return strdup(buf);
+}
+
+bool is_paladin_mount(struct char_data *ch, struct char_data *victim)
+{
+  if (!victim) return false;
+  if (!IS_NPC(victim)) return false;
+  if (!AFF_FLAGGED(victim, AFF_CHARM)) return false;
+  if (victim->master != ch) return false;
+
+  switch (GET_MOB_VNUM(victim))
+  {
+    case MOB_PALADIN_MOUNT:
+    case MOB_PALADIN_MOUNT_SMALL:
+    case MOB_EPIC_PALADIN_MOUNT:
+    case MOB_EPIC_PALADIN_MOUNT_SMALL:
+      return true;
+  }
+  return false;
+}

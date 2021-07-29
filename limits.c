@@ -187,7 +187,7 @@ void affliction_tick(struct char_data *ch)
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE))
   {
-    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY)))
+    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_DIVINE_HEALTH) || HAS_FEAT(ch, FEAT_DIAMOND_BODY) || HAS_FEAT(ch, FEAT_PLAGUE_BRINGER)))
     {
       if (affected_by_spell(ch, SPELL_EYEBITE))
         affect_from_char(ch, SPELL_EYEBITE);
@@ -200,11 +200,11 @@ void affliction_tick(struct char_data *ch)
           "fades away!",
           TRUE, ch, 0, NULL, TO_ROOM);
     }
-    else if (GET_HIT(ch) > (GET_MAX_HIT(ch) * 3 / 5))
+    else if (GET_HIT(ch) > MAX(GET_MAX_HIT(ch) - 1000, GET_MAX_HIT(ch) * 3 / 5))
     {
       send_to_char(ch, "The \tYdisease\tn you have causes you to suffer!\r\n");
       act("$n suffers from a \tYdisease\tn!", TRUE, ch, 0, NULL, TO_ROOM);
-      GET_HIT(ch) = GET_MAX_HIT(ch) * 3 / 5;
+      GET_HIT(ch) = MAX(GET_MAX_HIT(ch) - 1000, GET_MAX_HIT(ch) * 3 / 5);
     }
   }
 
@@ -1328,6 +1328,7 @@ void point_update(void)
     HAPPY_GOLD = 0;
     HAPPY_TIME = 0;
     game_info("Happy hour has ended!");
+    set_db_happy_hour(2);
   }
 
   /*********/
@@ -1751,6 +1752,14 @@ void update_damage_and_effects_over_time(void)
         GET_HIT(ch) = GET_MAX_HIT(ch);
     }
 
+    // paladin fast healing mercy effect
+    if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING))
+    {
+      GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
+      if (GET_HIT(ch) > GET_MAX_HIT(ch))
+        GET_HIT(ch) = GET_MAX_HIT(ch);
+    }
+
     if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))
     {
       for (affects = ch->affected; affects; affects = affects->next)
@@ -1798,6 +1807,7 @@ void check_auto_happy_hour(void)
       HAPPY_TIME = 47;
 
       game_info("An automated happy hour has started!");
+      set_db_happy_hour(1);
     }
   }
 }

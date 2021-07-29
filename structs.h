@@ -220,20 +220,24 @@
 /** The total number of Zone Flags */
 #define NUM_ZONE_FLAGS 12
 
+#define NUM_FEMALE_NAMES 110
+#define NUM_MALE_NAMES   110
+#define NUM_SURNAMES     210
+
 /* Exit info: used in room_data.dir_option.exit_info */
 #define EX_ISDOOR (1 << 0) /**< Exit is a door */
 #define EX_CLOSED (1 << 1) /**< The door is closed */
-#define EX_LOCKED EX_LOCKED_EASY | EX_LOCKED_MEDIUM | EX_LOCKED_HARD
+#define EX_LOCKED (1 << 2)
 #define EX_PICKPROOF (1 << 3)     /**< Lock can't be picked */
-#define EX_HIDDEN_EASY (1 << 4)   /**< Exit is hidden, easy difficulty to find. */
+#define EX_HIDDEN  (1 << 4)   /**< Exit is hidden, easy difficulty to find. */
 #define EX_HIDDEN_MEDIUM (1 << 5) /**< Exit is hidden, medium difficulty to find. */
 #define EX_HIDDEN_HARD (1 << 6)   /**< Exit is hidden, hard difficulty to find. */
-#define EX_HIDDEN EX_HIDDEN_EASY | EX_HIDDEN_MEDIUM | EX_HIDDEN_HARD
-#define EX_LOCKED_EASY (1 << 2)   /**< The door is locked, easy to pick */
 #define EX_LOCKED_MEDIUM (1 << 7) /**< The door is locked, medium difficulty to pick. */
 #define EX_LOCKED_HARD (1 << 8)   /**< The door is locked, hard difficulty to pick. */
+#define EX_LOCKED_EASY (1 << 9)   /**< The door is locked, easy to pick */
+#define EX_HIDDEN_EASY (1 << 10)
 /** The total number of Exit Bits */
-#define NUM_EXIT_BITS 9
+#define NUM_EXIT_BITS 11
 
 /* Sector types: used in room_data.sector_type */
 #define SECT_INSIDE 0         /**< Indoors, connected to SECT macro. */
@@ -274,9 +278,10 @@
 #define SECT_TAIGA 32  // boreal forest, higher elevations, cold.
 #define SECT_BEACH 33  // beach, borders low areas and water.
 #define SECT_SEAPORT 34
+#define SECT_INSIDE_ROOM 35
 /* End wilderness sectors. These can (and should!) be used in zones too! */
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS 35
+#define NUM_ROOM_SECTORS 36
 
 /* char and mob-related defines */
 
@@ -412,6 +417,66 @@
 #define DOMAIN_WAR 15
 /****************/
 #define NUM_DOMAINS 16
+
+// Domains not yet implemented
+#define DOMAIN_ANIMAL 0
+#define DOMAIN_DEATH 0
+#define DOMAIN_LUCK 0
+#define DOMAIN_MAGIC 0
+#define DOMAIN_PLANT 0
+#define DOMAIN_STRENGTH 0
+#define DOMAIN_SUN 0
+#define DOMAIN_UNIVERSAL 0
+#define DOMAIN_ARTIFICE 0
+#define DOMAIN_CHARM 0
+#define DOMAIN_COMMUNITY 0
+#define DOMAIN_CREATION 0
+#define DOMAIN_DARKNESS 0
+#define DOMAIN_GLORY 0
+#define DOMAIN_LIBERATION 0
+#define DOMAIN_MADNESS 0
+#define DOMAIN_NOBILITY 0
+#define DOMAIN_REPOSE 0
+#define DOMAIN_RUNE 0
+#define DOMAIN_SCALYKIND 0
+#define DOMAIN_WEATHER 0
+#define DOMAIN_MEDITATION 0
+#define DOMAIN_FORGE 0
+#define DOMAIN_PASSION 0
+#define DOMAIN_INSIGHT 0
+#define DOMAIN_TREACHERY 0
+#define DOMAIN_STORM 0
+#define DOMAIN_PESTILENCE 0
+#define DOMAIN_SUFFERING 0
+#define DOMAIN_RETRIBUTION 0
+#define DOMAIN_PLANNING 0
+#define DOMAIN_CRAFT 0
+#define DOMAIN_DWARF 0
+#define DOMAIN_TIME 0
+#define DOMAIN_FAMILY 0
+#define DOMAIN_MOON 0
+#define DOMAIN_DROW 0
+#define DOMAIN_ELF 0
+#define DOMAIN_CAVERN 0
+#define DOMAIN_ILLUSION 0
+#define DOMAIN_SPELL 0
+#define DOMAIN_HATRED 0
+#define DOMAIN_TYRANNY 0
+#define DOMAIN_FATE 0
+#define DOMAIN_RENEWAL 0
+#define DOMAIN_METAL 0
+#define DOMAIN_OCEAN 0
+#define DOMAIN_MOBILITY 0
+#define DOMAIN_PORTAL 0
+#define DOMAIN_TRADE 0
+#define DOMAIN_UNDEATH 0
+#define DOMAIN_MENTALISM 0
+#define DOMAIN_GNOME 0
+#define DOMAIN_HALFLING 0
+#define DOMAIN_ORC 0
+#define DOMAIN_SPIDER 0
+#define DOMAIN_SLIME 0
+#define DOMAIN_MEDIATION 0
 
 // warding spells that need to be saved
 #define MIRROR 0
@@ -754,22 +819,22 @@
 #define MOB_MERCENARY 41 // for buying mercenary charmies, only one per person
 #define MOB_ENCOUNTER 42 // this mob is used in a wilderness based random encounter
 #define MOB_SHADOW 43    // call shadow for shadowdancers
-#define MOB_UNUSED_7 44
-#define MOB_UNUSED_8 45
-#define MOB_UNUSED_9 46
-#define MOB_UNUSED_10 47
-#define MOB_UNUSED_11 48
-#define MOB_UNUSED_12 49
-#define MOB_UNUSED_13 50
-#define MOB_UNUSED_14 51
-#define MOB_UNUSED_15 52
-#define MOB_UNUSED_16 53
-#define MOB_UNUSED_17 54
-#define MOB_UNUSED_18 55
-#define MOB_UNUSED_19 56
-#define MOB_UNUSED_20 57
-#define MOB_UNUSED_21 58
-#define MOB_UNUSED_22 59
+#define MOB_IS_OBJ 44    // when using a mob to represent an object: ie a quest board
+#define MOB_BLOCK_N 45
+#define MOB_BLOCK_E 46
+#define MOB_BLOCK_S 47
+#define MOB_BLOCK_W 48
+#define MOB_BLOCK_NE 49
+#define MOB_BLOCK_SE 50
+#define MOB_BLOCK SW 51
+#define MOB_BLOCK_NW 52
+#define MOB_BLOCK_U 53
+#define MOB_BLOCK_D 54
+#define MOB_BLOCK_CLASS 55
+#define MOB_BLOCK_RACE 56
+#define MOB_BLOCK_LEVEL 57
+#define MOB_BLOCK_ALIGN 58
+#define MOB_BLOCK_ETHOS 59
 #define MOB_UNUSED_23 60
 #define MOB_UNUSED_24 61
 #define MOB_NOCONFUSE 62
@@ -798,6 +863,17 @@
 
 /**********************/
 #define NUM_MOB_FLAGS 85
+
+#define SHAPE_AFFECTS 3
+#define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
+#define MOB_GHOUL 35          // " " level 11+
+#define MOB_GIANT_SKELETON 36 // " " level 21+
+#define MOB_MUMMY 37          // " " level 30
+#define BARD_AFFECTS 7
+#define MOB_PALADIN_MOUNT 70
+#define MOB_PALADIN_MOUNT_SMALL 91
+#define MOB_EPIC_PALADIN_MOUNT 79
+#define MOB_EPIC_PALADIN_MOUNT_SMALL 92
 
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF 0              /**< Room descs won't normally be shown */
@@ -2076,8 +2152,9 @@
 #define ITEM_TREASURE_CHEST 48 /* used with the loot command. */
 #define ITEM_HUNT_TROPHY 49    // used to mark a hunt target mob
 #define ITEM_WEAPON_OIL 50
+#define ITEM_GEAR_OUTFIT 51
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 51 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 52 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile
@@ -2108,6 +2185,18 @@
 /******/
 #define NUM_LOOTBOX_TYPES 8
 /******/
+
+#define OUTFIT_TYPE_WEAPON          1
+#define OUTFIT_TYPE_ARMOR_SET       2
+
+#define NUM_OUTFIT_TYPES            2
+
+#define OUTFIT_VAL_TYPE             0
+#define OUTFIT_VAL_BONUS            1
+#define OUTFIT_VAL_MATERIAL         2
+#define OUTFIT_VAL_APPLY_LOC        3
+#define OUTFIT_VAL_APPLY_MOD        4
+#define OUTFIT_VAL_APPLY_BONUS      5
 
 /* Item profs: used by obj_data.obj_flags.prof_flag
  * constants.c = item_profs */
@@ -2618,6 +2707,9 @@
 #define SPEC_ARMOR_TYPE_SMALL_SHIELD 15
 #define SPEC_ARMOR_TYPE_LARGE_SHIELD 16
 #define SPEC_ARMOR_TYPE_TOWER_SHIELD 17
+
+#define NUM_SPEC_ARMOR_SUIT_TYPES 18
+
 /**/
 /* this is the extension added by zusuk for piecemeal system */
 #define SPEC_ARMOR_TYPE_CLOTHING_HEAD 18
@@ -3730,6 +3822,7 @@ struct player_special_data_saved
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
     int fiendish_boons;             // active fiendish boons by blackguard
     int channel_energy_type;        // neutral clerics must decide either positive or negative
+    int deity;                      // what deity does the person follow?
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3786,6 +3879,10 @@ struct player_special_data
 
     int concussive_onslaught_duration;
     bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt
+    struct obj_data *outfit_obj;
+    int outfit_type;
+    char *outfit_desc;
+    char *outfit_confirmation;
 };
 
 /** Special data used by NPCs, not PCs */

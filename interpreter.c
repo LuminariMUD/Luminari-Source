@@ -253,6 +253,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    //{"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"discard", "discard", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_DISCARD, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -504,6 +505,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"omit", "omit", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_OMIT, FALSE, ACTION_NONE, {0, 0}, NULL},
     //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"obind", "obind", POS_DEAD, do_obind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"outfit", "outfit", POS_RECLINING, do_outfit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -689,7 +691,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"trip", "trip", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "_trip", "_trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"trigedit", "trigedit", POS_DEAD, do_oasis_trigedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"turnundead", "turnundead", POS_FIGHTING, do_turnundead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_turnundead},
+    //{"turnundead", "turnundead", POS_FIGHTING, do_turnundead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_turnundead},
     {"typo", "typo", POS_DEAD, do_ibt, 0, SCMD_TYPO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tlist", "tlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_TLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tcopy", "tcopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_TRIGEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},

@@ -346,6 +346,7 @@ ACMD_DECL(do_channelenergy);
 ACMD_DECL(do_store);
 ACMD_DECL(do_unstore);
 ACMD_DECL(do_use_consumable);
+ACMD_DECL(do_outfit);
 
 /*****************************************************************************
  * Begin Functions and defines for act.movement.c
@@ -412,6 +413,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict);
 bool perform_backstab(struct char_data *ch, struct char_data *vict);
 int perform_collect(struct char_data *ch, bool silent);
 void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char * cruelty);
+void throw_hedging_weapon(struct char_data *ch);
 /* Functions with subcommands */
 /* do_hit */
 ACMD_DECL(do_hit);
@@ -857,5 +859,8 @@ ACMD_DECL(do_psionic_focus);
 ACMDCHECK(can_psionic_focus);
 ACMD_DECL(do_double_manifest);
 ACMDCHECK(can_double_manifest);
+
+// deities.c
+ACMD_DECL(do_devote);
 
 #endif /* _ACT_H_ */

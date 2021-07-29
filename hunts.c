@@ -422,6 +422,8 @@ void select_hunt_coords(int which_hunt)
         case SECT_UNDERWATER:
         case SECT_WATER_NOSWIM:
         case SECT_WATER_SWIM:
+        case SECT_INSIDE:
+        case SECT_INSIDE_ROOM:
           select_hunt_coords(which_hunt);
           return;
     }

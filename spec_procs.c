@@ -548,6 +548,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 
       for (i = 1; i < MAX_SPELLS; i++)
       {
+        if (do_not_list_spell(i)) continue;
         sinfo = spell_info[i].min_level[class];
 
         /* SPELL PREPARATION HOOK (spellCircle) */

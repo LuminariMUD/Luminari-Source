@@ -2854,12 +2854,12 @@ void assign_feats(void)
         "Unarmed attacks are considered to be weapons regarding bonuses and penetration.  In addition "
         "the unarmed damage increases by monk level: Level 1-3: 1d6, 4-7: 1d8, 8-11: 1d10, 12-15: 2d6, "
         "16-19: 4d4, 20-24: 4d5, 25-29: 4d6, 30: 7d5.");
-  feato(FEAT_WIS_AC_BONUS, "apply wisdom bonus to AC", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  feato(FEAT_WIS_AC_BONUS, "monk wisdom bonus to AC", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "With this feat, one gets to apply their wisdom bonus to AC",
         "With this feat, one gets to apply their wisdom bonus to AC.");
-  feato(FEAT_LVL_AC_BONUS, "AC increases with level", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  feato(FEAT_LVL_AC_BONUS, "monk innate ac bonus", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Get AC bonus every 4 levels of monk",
-        "Get +1 to AC Bonus at monk-levels 4, 8, 12, 16, 20, 24, 28");
+        "Get +1 to AC Bonus at monk-levels 1, 4, 8, 12, 16, 20, 24, 28");
   /* improved unarmed strike monks get for free */
   /*unfinished*/ feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                        "unarmed attack considered a magical weapon (unfinished)",

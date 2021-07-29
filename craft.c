@@ -661,6 +661,8 @@ void reset_harvesting_rooms(void)
       continue;
     if (world[cnt].sector_type == SECT_INSIDE)
       continue;
+    if (world[cnt].sector_type == SECT_INSIDE_ROOM)
+      continue;
     if (world[cnt].sector_type == SECT_WATER_NOSWIM)
       continue;
     if (world[cnt].sector_type == SECT_OUTTER_PLANES)
@@ -692,6 +694,8 @@ void reset_harvesting_rooms(void)
     if (world[cnt].sector_type == SECT_CITY)
       continue;
     if (world[cnt].sector_type == SECT_INSIDE)
+      continue;
+    if (world[cnt].sector_type == SECT_INSIDE_ROOM)
       continue;
     if (world[cnt].sector_type == SECT_WATER_NOSWIM)
       continue;

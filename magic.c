@@ -187,6 +187,9 @@ int compute_mag_saves(struct char_data *vict,
   return MIN(99, MAX(saves, 0));
 }
 
+// TRUE = resisted
+// FALSE = Failed to resist
+// modifier applies to victim, higher the better (for the victim)
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school)
 {
@@ -303,6 +306,8 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow -= 2;
   if (AFF_FLAGGED(vict, AFF_SICKENED))
     savethrow -= 2;
+  if (IS_UNDEAD(ch) && affected_by_spell(vict, SPELL_VEIL_OF_POSITIVE_ENERGY))
+    savethrow += 2;
 
   if (school == ENCHANTMENT)
   {
@@ -748,6 +753,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_POISON;
     num_dice = 1;
     size_dice = 8;
+    bonus = 0;
+    break;
+
+  case WEAPON_POISON_BLACK_ADDER_VENOM:
+    if (!can_poison(victim))
+      return 0;
+    save = SAVING_FORT;
+    element = DAM_POISON;
+    num_dice = 3;
+    size_dice = 4;
     bonus = 0;
     break;
 
@@ -3304,6 +3319,22 @@ case PSIONIC_BODY_OF_IRON:
     to_room = "$n is surrounded by shield of acid.";
     break;
 
+  case SPELL_DIVINE_FAVOR:
+
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = MIN(3, MAX(1, level / 3));
+    af[0].duration = 10;
+    af[0].bonus_type = BONUS_TYPE_LUCK;
+    
+    af[1].location = APPLY_DAMROLL;
+    af[1].modifier = MIN(3, MAX(1, level / 3));
+    af[1].duration = 10;
+    af[1].bonus_type = BONUS_TYPE_LUCK;
+    to_vict = "A feeling of divine favor fills you.";
+    to_room = "$n appears bolstered and strengthened.";
+    break;
+
+
   case SPELL_AID:
     if (affected_by_spell(victim, SPELL_BLESS) ||
         affected_by_spell(victim, SPELL_PRAYER))
@@ -3355,6 +3386,109 @@ case PSIONIC_BODY_OF_IRON:
     af[0].duration = 400;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by magical armor!";
+    break;
+
+  case SPELL_VEIL_OF_POSITIVE_ENERGY:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 2;
+    af[0].duration = level * 100;
+    af[0].bonus_type = BONUS_TYPE_SACRED;
+    to_vict = "A translucent veil of yellow light envelops you.";
+    to_room = "A translucent veil of yellow light envelops $n.";
+    break;
+  
+  case SPELL_BESTOW_WEAPON_PROFICIENCY:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = level * 100;
+    af[0].bonus_type = BONUS_TYPE_SACRED;
+    to_vict = "A wave of knowledge and muscle memory surge inside you.";
+    to_room = "A wave of energy flows over $n, and $e looks more confident.";
+    break;
+
+  case SPELL_TACTICAL_ACUMEN:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = MAX(2, MIN(level / 4, 5));
+    af[0].duration = 600 * level;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+    to_vict = "You feel your tactical abilities increase.";
+    to_room = "$n seems more aware and attuned to the circumstances.";
+    break;
+
+  case SPELL_STUNNING_BARRIER:
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = 1;
+    af[0].duration = 10 * level;
+    af[0].bonus_type = BONUS_TYPE_DEFLECTION;
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 1;
+    af[1].duration = 10 * level;
+    af[1].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[2].location = APPLY_SAVING_FORT;
+    af[2].modifier = 1;
+    af[2].duration = 10 * level;
+    af[2].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[3].location = APPLY_SAVING_REFL;
+    af[3].modifier = 1;
+    af[3].duration = 10 * level;
+    af[3].bonus_type = BONUS_TYPE_RESISTANCE;
+    to_vict = "You feel protected by a shimmering, pulsing field.";
+    to_room = "$n is surrounded by a shimmering, pulsing field!";
+    break;
+
+  case SPELL_SHIELD_OF_FORTIFICATION:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    af[0].duration = 10 * level;
+    af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+    to_vict = "You feel fortified against critical hits and sneak attacks!";
+    to_room = "$n is fortified by a shifting, transparent field!";
+    break;
+
+  case SPELL_SUN_METAL:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 2;
+    af[0].duration = 50 + (1 * level);
+    af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+    to_vict = "Flames surround your weapons!";
+    to_room = "Flames surround $n's weapons!";
+    break;
+
+  case SPELL_RESISTANCE:
+
+    af[0].location = APPLY_SAVING_REFL;
+    af[0].modifier = 1;
+    af[0].duration = 12;
+    af[0].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[1].location = APPLY_SAVING_FORT;
+    af[1].modifier = 1;
+    af[1].duration = 12;
+    af[1].bonus_type = BONUS_TYPE_RESISTANCE;
+    af[2].location = APPLY_SAVING_WILL;
+    af[2].modifier = 1;
+    af[2].duration = 12;
+    af[2].bonus_type = BONUS_TYPE_RESISTANCE;
+    to_vict = "You feel more resistant!";
+    to_room = "$n appears more durable!";
+    break;
+
+  case SPELL_HEDGING_WEAPONS:
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = 2 + MIN(3, (level - 6) / 4);
+    af[0].duration = 10 * level;
+    af[0].bonus_type = BONUS_TYPE_DEFLECTION;
+    to_vict = "You are surrounded by floating defending weapons!";
+    to_room = "$n is surrounded by floating, defending weapons!";
+    break;
+
+  case SPELL_HONEYED_TONGUE:
+    af[0].location = APPLY_SKILL;
+    af[0].specific = ABILITY_DIPLOMACY;
+    af[0].modifier = 5;
+    af[0].duration = 100 * level;
+    af[0].bonus_type = BONUS_TYPE_COMPETENCE;
+    to_vict = "You are bolstered with a silver tongue!";
+    to_room = "$n looks more confident and personable!";
     break;
 
   case SPELL_BARKSKIN: // transmutation
@@ -5635,6 +5769,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_ARMOR:
     mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype, 0);
     break;
+  case SPELL_TACTICAL_ACUMEN:
+    mag_affects(level, ch, tch, obj, SPELL_TACTICAL_ACUMEN, savetype, casttype, 0);
+    break;
   case SPELL_MASS_FALSE_LIFE:
     mag_affects(level, ch, tch, obj, SPELL_FALSE_LIFE, savetype, casttype, 0);
     break;
@@ -5731,6 +5868,10 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
 
   switch (spellnum)
   {
+  case SPELL_TACTICAL_ACUMEN:
+    to_char = "You speak words of combat tactics and courage!\tn";
+    to_room = "$n speaks words of combat tactics and courage!\tn";
+    break;
   case SPELL_GROUP_HEAL:
     to_char = "You summon massive beams of healing light!\tn";
     to_room = "$n summons massive beams of healing light!\tn";
@@ -5775,6 +5916,12 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You manifest a tower of iron will against psionic attacks!";
     to_room = "$n manifests a tower of iron will against psionic attacks!";
     break;
+  }
+
+  if ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) == NULL)
+  {
+    send_to_char(ch, "You must be part of a group to cast this spell. See HELP GROUPS.\r\n");
+    return;
   }
 
   if (to_char != NULL)
@@ -7057,6 +7204,17 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       to_char = "You \tWheal\tn $N.";
     to_vict = "$n \tWheals\tn you.";
     break;
+  case SPELL_HEAL_MOUNT:
+    if (!is_paladin_mount(ch, victim))
+    {
+      send_to_char(ch, "You can only cast this upon your paladin mount.\r\n");
+      return;
+    }
+    healing = level * 10 + 20;
+    to_notvict = "$n \tWheals\tn $N.";
+    to_char = "You \tWheal\tn $N.";
+    to_vict = "$n \tWheals\tn you.";
+    break;
   case SPELL_VAMPIRIC_TOUCH:
     victim = ch;
     healing = dice(MIN(15, CASTER_LEVEL(ch)), 4);
@@ -7257,6 +7415,14 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     affect2 = AFF_SHAKEN;
     to_char = "You remove the fear from $N.";
     to_vict = "$n removes the fear upon you.";
+    to_notvict = "$N looks brave again.";
+    break;
+
+  case SPELL_LESSER_RESTORATION:
+    spell = SPELL_CHILL_TOUCH;
+    affect = AFF_FATIGUED;
+    to_char = "You remove the fatigue from $N.";
+    to_vict = "$n removes the fatigue upon you.";
     to_notvict = "$N looks brave again.";
     break;
 
