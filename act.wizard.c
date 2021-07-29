@@ -55,6 +55,7 @@
 #include "premadebuilds.h"
 #include "perfmon.h"
 #include "missions.h"
+#include "deities.h"
 
 /* local utility functions with file scope */
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg);
@@ -3672,6 +3673,7 @@ const struct set_struct
     {"sacredfist", LVL_STAFF, PC, NUMBER},       /* 92 */
     {"premadebuild", LVL_STAFF, PC, MISC},       /* 93 */
     {"psionicist", LVL_STAFF, PC, MISC},         /* 94 */
+    {"deity", LVL_BUILDER, PC, MISC},            /* 95 */
 
     {"\n", 0, BOTH, MISC}};
 
@@ -4336,6 +4338,23 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 94: // psionicist
     CLASS_LEVEL(vict, CLASS_PSIONICIST) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
+    break;
+
+    case 95:
+    for (i = 0; i < NUM_DEITIES; i++)
+    {
+          if (deity_list[i].pantheon != DEITY_PANTHEON_ALL) continue;
+          if (is_abbrev(val_arg, deity_list[i].name))
+          {
+                break;
+          }
+    }
+    if (i < 0 || i >= NUM_DEITIES)
+    {
+          send_to_char(ch, "There is no deity by that name.\r\n");
+          return (0);
+    }
+    GET_DEITY(vict) = i;
     break;
 
   default:
@@ -8059,11 +8078,11 @@ ACMD(do_findmagic)
 
   if (hits > 0)
   {
-    send_to_char(ch, "%d %ss found with the '%s' spell\r\n", hits, objname, skill_name(spellnum));
+    send_to_char(ch, "%d %ss found with the '%s' spell\r\n", hits, objname, spell_name(spellnum));
   }
   else
   {
-    send_to_char(ch, "Sorry, no %ss found with the '%s' spell\r\n", objname, skill_name(spellnum));
+    send_to_char(ch, "Sorry, no %ss found with the '%s' spell\r\n", objname, spell_name(spellnum));
   }
 
   return;
@@ -8908,7 +8927,12 @@ ACMDU(do_setroomdesc)
     return;
   }
 
-  world[IN_ROOM(ch)].description = strdup(argument);
+  char buf[LONG_STRING];
+
+  snprintf(buf, sizeof(buf), "%s\n", argument);
+
+  world[IN_ROOM(ch)].description = strdup(buf);
+  
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
   send_to_char(ch, "You have this room's description to: %s.\r\n", argument);

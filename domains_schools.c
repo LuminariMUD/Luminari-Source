@@ -644,7 +644,7 @@ void domain_spell_level(int spell, int level, int domain)
 
   if (level < 1 || level > LVL_IMPL)
   {
-    log("SYSERR: assigning domain '%s' to illegal level %d/%d.", skill_name(spell),
+    log("SYSERR: assigning domain '%s' to illegal level %d/%d.", spell_name(spell),
         level, LVL_IMPL);
     bad = 1;
   }

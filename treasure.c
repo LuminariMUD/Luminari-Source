@@ -25,6 +25,7 @@
 #include "oasis.h"
 #include "item.h"
 #include "staff_events.h"
+#include "feats.h"
 
 /***  utility functions ***/
 
@@ -618,6 +619,11 @@ int apply_bonus_feat(int rare_grade)
     feat_num = FEAT_UNDEFINED;
   if (feat_num >= NUM_FEATS)
     feat_num = FEAT_UNDEFINED;
+
+  if (!feat_list[feat_num].can_learn)
+  {
+   return apply_bonus_feat(rare_grade); 
+  }
 
   return feat_num;
 }
@@ -1406,6 +1412,10 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   {
     feat_num = apply_bonus_feat(rare_grade);
     //send_to_char(ch, "debug: %d\r\n", feat_num);
+    while (!proper_feat(obj, feat_num))
+    {
+      feat_num = apply_bonus_feat(rare_grade);
+    }
     if (feat_num != FEAT_UNDEFINED)
     {
       obj->affected[1].location = APPLY_FEAT;
@@ -4315,4 +4325,57 @@ int get_random_healing_potion(int spell_level)
     }
   }
   return SPELL_CURE_LIGHT;
+}
+
+bool proper_feat(struct obj_data *obj, int feat_num)
+{
+  if (!obj || feat_num == FEAT_UNDEFINED || feat_num >= FEAT_LAST_FEAT)
+    return false;
+
+  switch (GET_OBJ_TYPE(obj))
+  {
+    case ITEM_ARMOR:
+      switch (armor_list[GET_OBJ_VAL(obj, 1)].armorType)
+      {
+        case ARMOR_TYPE_HEAVY:
+          if (feat_num == FEAT_ARMOR_SPECIALIZATION_LIGHT)
+            return false;
+          if (feat_num == FEAT_ARMOR_SPECIALIZATION_MEDIUM)
+            return false;
+          if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
+            return false;
+          if (feat_num == FEAT_ARMOR_PROFICIENCY_MEDIUM)
+            return false;
+          break;
+        case ARMOR_TYPE_MEDIUM:
+          if (feat_num == FEAT_ARMOR_SPECIALIZATION_LIGHT)
+            return false;
+          if (feat_num == FEAT_ARMOR_SPECIALIZATION_HEAVY)
+            return false;
+          if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
+            return false;
+          if (feat_num == FEAT_ARMOR_PROFICIENCY_MEDIUM)
+            return false;
+          break;
+        case ARMOR_TYPE_LIGHT:
+          if (feat_num == FEAT_ARMOR_SPECIALIZATION_MEDIUM)
+            return false;
+          if (feat_num == FEAT_ARMOR_SPECIALIZATION_HEAVY)
+            return false;
+          if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
+            return false;
+          break;
+      }
+      break;
+    case ITEM_WEAPON:
+      if (feat_num == FEAT_SIMPLE_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_SIMPLE))
+            return false;
+      if (feat_num == FEAT_MARTIAL_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_MARTIAL))
+            return false;
+      if (feat_num == FEAT_EXOTIC_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_EXOTIC))
+            return false;
+      break;
+
+  }
+  return true;
 }

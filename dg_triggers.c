@@ -622,7 +622,7 @@ int cast_mtrigger(char_data *actor, char_data *ch, int spellnum)
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       snprintf(buf, sizeof(buf), "%d", spellnum);
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
-      add_var(&GET_TRIG_VARS(t), "spellname", skill_name(spellnum), 0);
+      add_var(&GET_TRIG_VARS(t), "spellname", spell_name(spellnum), 0);
       return script_driver(&ch, t, MOB_TRIGGER, TRIG_NEW);
     }
   }
@@ -1011,7 +1011,7 @@ int cast_otrigger(char_data *actor, obj_data *obj, int spellnum)
       ADD_UID_VAR(buf, t, actor, "actor", 0);
       snprintf(buf, sizeof(buf), "%d", spellnum);
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
-      add_var(&GET_TRIG_VARS(t), "spellname", skill_name(spellnum), 0);
+      add_var(&GET_TRIG_VARS(t), "spellname", spell_name(spellnum), 0);
       return script_driver(&obj, t, OBJ_TRIGGER, TRIG_NEW);
     }
   }
@@ -1306,7 +1306,7 @@ int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum
         ADD_UID_VAR(buf, t, obj, "object", 0);
       snprintf(buf, sizeof(buf), "%d", spellnum);
       add_var(&GET_TRIG_VARS(t), "spell", buf, 0);
-      add_var(&GET_TRIG_VARS(t), "spellname", skill_name(spellnum), 0);
+      add_var(&GET_TRIG_VARS(t), "spellname", spell_name(spellnum), 0);
       return script_driver(&room, t, WLD_TRIGGER, TRIG_NEW);
     }
   }

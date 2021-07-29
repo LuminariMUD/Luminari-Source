@@ -1692,7 +1692,7 @@ void print_prep_queue(struct char_data *ch, int ch_class)
     int prep_time = current->prep_time;
     total_time += prep_time;
     send_to_char(ch, " \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
-                 skill_name(current->spell),
+                 spell_info[current->spell].name,
                  spell_circle,
                  (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
                  prep_time,
@@ -1819,7 +1819,7 @@ void print_collection(struct char_data *ch, int ch_class)
             send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%s%13s%s\r\n",
                          high_circle,
                          (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th",
-                         skill_name(current->spell),
+                         spell_info[current->spell].name,
                          (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                          (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
                          current->domain ? "\tc[\tn" : "",
@@ -1830,7 +1830,7 @@ void print_collection(struct char_data *ch, int ch_class)
           {
             send_to_char(ch, "%4s \tW%20s\tn %12s%12s%s%13s%s\r\n",
                          "    ",
-                         skill_name(current->spell),
+                         spell_info[current->spell].name,
                          (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                          (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
                          current->domain ? "\tc[\tn" : "",
@@ -2417,7 +2417,7 @@ ACMDU(do_consign_to_oblivion)
     {
       send_to_char(ch, "You %s \tW%s\tn %s%s from your %s preparation queue!\r\n",
                    spell_consign_dict[class][0],
-                   skill_name(spellnum),
+                   spell_name(spellnum),
                    (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                    (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
                    class == CLASS_ALCHEMIST ? "extract" : "spell");
@@ -2432,7 +2432,7 @@ ACMDU(do_consign_to_oblivion)
     {
       send_to_char(ch, "You %s \tW%s\tn %s%s from your %s collection!\r\n",
                    spell_consign_dict[class][0],
-                   skill_name(spellnum),
+                   spell_name(spellnum),
                    (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                    (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
                    (class == CLASS_ALCHEMIST ? "extract" : "spell"));

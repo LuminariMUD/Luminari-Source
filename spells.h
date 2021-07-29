@@ -462,10 +462,23 @@
 #define SPELL_LESSER_MISSILE_STORM 398
 #define SPELL_SHADOW_JUMP 399
 #define SPELL_UNHOLY_SWORD 400
+#define SPELL_DIVINE_FAVOR 401
+#define SPELL_SILVERYMOON_RECALL 402
+#define SPELL_HEAL_MOUNT 403
+#define SPELL_RESISTANCE 404
+#define SPELL_LESSER_RESTORATION 405
+#define SPELL_HEDGING_WEAPONS 406
+#define SPELL_HONEYED_TONGUE 407
+#define SPELL_SHIELD_OF_FORTIFICATION 408
+#define SPELL_STUNNING_BARRIER 409
+#define SPELL_SUN_METAL 410
+#define SPELL_TACTICAL_ACUMEN 411
+#define SPELL_VEIL_OF_POSITIVE_ENERGY 412
+#define SPELL_BESTOW_WEAPON_PROFICIENCY 413
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 401
-#define LAST_SPELL_DEFINE 401
+#define NUM_SPELLS 414
+#define LAST_SPELL_DEFINE 414
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -485,6 +498,8 @@
 #define BLACKGUARD_CRUELTY_AFFECTS              1206
 #define ABILITY_CHANNEL_POSITIVE_ENERGY         1207
 #define ABILITY_CHANNEL_NEGATIVE_ENERGY         1208
+#define WEAPON_POISON_BLACK_ADDER_VENOM         1209
+#define SPELL_AFFECT_STUNNING_BARRIER           1210
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -1256,6 +1271,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 void spell_level(int spell, int chclass, int level);
 void init_spell_levels(void);
 const char *skill_name(int num);
+const char *spell_name(int num);
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 
 /* spells.c */

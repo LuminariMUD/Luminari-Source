@@ -122,6 +122,7 @@ void set_encounter_terrain_any(int encounter_record)
 void set_encounter_terrain_all_surface(int encounter_record)
 {
   encounter_table[encounter_record].sector_types[ SECT_INSIDE] = true;
+  encounter_table[encounter_record].sector_types[ SECT_INSIDE_ROOM] = true;
   encounter_table[encounter_record].sector_types[ SECT_CITY] = true;
   encounter_table[encounter_record].sector_types[ SECT_FIELD] = true;
   encounter_table[encounter_record].sector_types[ SECT_FOREST] = true;
@@ -360,7 +361,7 @@ void populate_encounter_table(void)
       TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, NEUTRAL_EVIL, RACE_TYPE_ABERRATION, 
       SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, SUBRACE_UNKNOWN, HOSTILE, NON_SENTIENT, SIZE_TINY );
     add_encounter_sector(ENCOUNTER_TYPE_SAGARI, SECT_INSIDE);      add_encounter_sector(ENCOUNTER_TYPE_SAGARI, SECT_FOREST);
-    add_encounter_sector(ENCOUNTER_TYPE_SAGARI, SECT_TAIGA);  
+    add_encounter_sector(ENCOUNTER_TYPE_SAGARI, SECT_TAIGA); add_encounter_sector(ENCOUNTER_TYPE_SAGARI, SECT_INSIDE_ROOM); 
 
     add_encounter_record(ENCOUNTER_TYPE_VIPER, ENCOUNTER_CLASS_COMBAT, 1, 15, ENCOUNTER_GROUP_TYPE_VIPER, "viper", 100, 1, 1, 
       TREASURE_TABLE_NONE, CLASS_WARRIOR, ENCOUNTER_STRENGTH_NORMAL, TRUE_NEUTRAL, RACE_TYPE_ANIMAL, 

@@ -510,6 +510,9 @@ bool is_flanked(struct char_data *attacker, struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_UBIQUITUS_VISION))
     return FALSE;
 
+  if (affected_by_spell(ch, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1)
+    return FALSE;
+
   /* most common scenario */
   if (FIGHTING(ch) && (FIGHTING(ch) != attacker) && !HAS_FEAT(ch, FEAT_IMPROVED_UNCANNY_DODGE))
     return TRUE;
@@ -736,6 +739,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
 
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_LVL_AC_BONUS))
+    {
+      bonuses[BONUS_TYPE_DODGE] += 1 + ((CLASS_LEVEL(ch, CLASS_MONK) + CLASS_LEVEL(ch, CLASS_SACRED_FIST)) / 4);
+    }
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_AC_BONUS))
     {
       bonuses[BONUS_TYPE_DODGE] += HAS_FEAT(ch, FEAT_AC_BONUS);
@@ -883,6 +891,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
   }
   /**/
+
+  // Sacred Bonus
+  if (attacker && IS_UNDEAD(attacker) && affected_by_spell(ch, SPELL_VEIL_OF_POSITIVE_ENERGY))
+    bonuses[BONUS_TYPE_SACRED] = MAX(bonuses[BONUS_TYPE_SACRED], 2);
 
   /* Add up all the bonuses */
   if (is_touch)
@@ -2389,7 +2401,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction -= 50;
     if (affected_by_spell(ch, SPELL_ENDURE_ELEMENTS))
       damtype_reduction += 10;
-    if (affected_by_spell(ch, SPELL_FIRE_SHIELD))
+    if (AFF_FLAGGED(ch, AFF_FSHIELD))
       damtype_reduction += 50;
     if (HAS_FEAT(ch, FEAT_DEATHS_GIFT))
     {
@@ -5367,9 +5379,10 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   /* weapon or claws not poisoned */
   if (is_trelux && (TRLX_PSN_VAL(ch) <= 0 || TRLX_PSN_VAL(ch) >= NUM_SPELLS))
     return;
-  else if (!is_trelux && (wielded->weapon_poison.poison <= 0 ||
-                          wielded->weapon_poison.poison >= NUM_SPELLS)) /* this weapon is not poisoned */
-    return;
+  else if (!is_trelux && (wielded->weapon_poison.poison <= 0 || wielded->weapon_poison.poison >= MAX_SPELLS)) /* this weapon is not poisoned */
+  {
+    return; 
+  }
 
   /* decrement strength and hits on weapon */
   if (is_trelux)
@@ -5445,11 +5458,8 @@ void weapon_poison(struct char_data *ch, struct char_data *victim,
   }
   else
   {
-
-    act("The \tGpoison\tn from $p attaches to $n.",
-        FALSE, victim, wielded, 0, TO_ROOM);
-    call_magic(ch, victim, wielded, wielded->weapon_poison.poison, 0, wielded->weapon_poison.poison_level,
-               CAST_WEAPON_POISON);
+    act("The \tGpoison\tn from $p attaches to $n.", FALSE, victim, wielded, 0, TO_ROOM);
+    call_magic(ch, victim, wielded, wielded->weapon_poison.poison, 0, wielded->weapon_poison.poison_level, CAST_WEAPON_POISON);
   }
 }
 
@@ -5851,6 +5861,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   {
     bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4 + 1;
   }
+
+  if (affected_by_spell(ch, SPELL_TACTICAL_ACUMEN) && FIGHTING(ch) && 
+      (is_flanked(ch, victim) || !CAN_SEE(FIGHTING(ch), ch)))
+    bonuses[BONUS_TYPE_MORALE] += get_char_affect_modifier(ch, SPELL_TACTICAL_ACUMEN, APPLY_SPECIAL);
 
   if (affected_by_aura_of_sin(ch) || affected_by_aura_of_faith(ch))
   {
@@ -7118,6 +7132,25 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
   }
 
+  if (affected_by_spell(victim, SPELL_STUNNING_BARRIER))
+  {
+      if (!mag_savingthrow(victim, ch, SAVING_WILL, 0, CASTING_TYPE_ANY, CASTER_LEVEL(victim), CONJURATION))
+      {
+        new_affect(&af);
+        af.spell = SPELL_AFFECT_STUNNING_BARRIER;
+        af.duration = 1;
+        af.location = APPLY_AC_NEW;
+        af.modifier = -4;
+        affect_to_char(ch, &af);
+
+        act("$n's stunning barrier stuns you!", FALSE, ch, wielded, victim, TO_CHAR);
+        act("Your stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_VICT);
+        act("$n's stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_NOTVICT);
+
+        affect_from_char(victim, SPELL_STUNNING_BARRIER);
+      }
+  }
+
   /* weapon spells - deprecated, although many weapons still have these.  Weapon Special Abilities supercede
    * this implementation. */
   if (ch && victim && wielded && !victim_is_dead)
@@ -7475,7 +7508,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     diceroll = d20(ch) + HAS_FEAT(ch, FEAT_WEAPON_TRAINING);
   else
     diceroll = d20(ch);
-  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac))
+  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(victim))
   {
     dam = TRUE;
     is_critical = TRUE;
@@ -8687,6 +8720,9 @@ void perform_violence(struct char_data *ch, int phase)
                 }
                  */
   }
+
+  // if they're affected by hedging weapon, we'll throw one at our current fighting target
+  throw_hedging_weapon(ch);
 
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
   {

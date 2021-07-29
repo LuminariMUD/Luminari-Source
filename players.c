@@ -522,6 +522,7 @@ int load_char(const char *name, struct char_data *ch)
     for (i = 0; i < STAFF_RAN_EVENTS_VAR; i++)
       STAFFRAN_PVAR(ch, i) = PFDEF_STAFFRAN_EVENT_VAR;
     GET_PSIONIC_ENERGY_TYPE(ch) = PFDEF_PSIONIC_ENERGY_TYPE;
+    GET_DEITY(ch) = 0;
     for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
       KNOWS_CRUELTY(ch, i) = 0;
     ch->player_specials->saved.fiendish_boons = 0;
@@ -754,6 +755,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'G':
         if (!strcmp(tag, "Gold"))
           GET_GOLD(ch) = atoi(line);
+        if (!strcmp(tag, "God "))
+          GET_DEITY(ch) = atoi(line);
         else if (!strcmp(tag, "GMCP") && ch->desc)
           ch->desc->pProtocol->bGMCP = atoi(line);
         else if (!strcmp(tag, "GrDs"))
@@ -1530,6 +1533,7 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "SpRs: %d\n", GET_SPELL_RES(ch));
   if (IS_MORPHED(ch) != PFDEF_MORPHED)
     fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
+  fprintf(fl, "God : %d\n", GET_DEITY(ch));
 
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
     fprintf(fl, "Cvnm: %d\n", GET_AUTOCQUEST_VNUM(ch));

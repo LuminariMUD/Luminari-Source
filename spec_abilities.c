@@ -370,6 +370,11 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
     }
   }
+  //  Sun metal spell
+  else if (affected_by_spell(ch, SPELL_SUN_METAL))
+  {
+    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+  }
 
     //  Paladin divine bond
   if (victim && HAS_FEAT(ch, FEAT_DIVINE_BOND))
@@ -422,7 +427,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
 
         af.spell = TYPE_SPECAB_BLEEDING;
         af.location = APPLY_SPECIAL;
-        af.modifier = 1 + MAX(0, get_char_affect_modifier(victim, TYPE_SPECAB_BLEEDING, APPLY_SPECIAL));
+        af.modifier = dice(1, 4);
         af.duration = 3;
         af.bonus_type = BONUS_TYPE_UNDEFINED;
         SET_BIT_AR(af.bitvector, AFF_BLEED);
@@ -476,7 +481,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
 
         af.spell = TYPE_SPECAB_BLEEDING;
         af.location = APPLY_SPECIAL;
-        af.modifier = 1 + MAX(0, get_char_affect_modifier(victim, TYPE_SPECAB_BLEEDING, APPLY_SPECIAL));
+        af.modifier = dice(1, 4);
         af.duration = 3;
         af.bonus_type = BONUS_TYPE_UNDEFINED;
         SET_BIT_AR(af.bitvector, AFF_BLEED);
@@ -509,7 +514,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   }
 
   if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_EVIL(victim) && 
-      (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOCHARM)))
+	      (!IS_NPC(victim) || (!MOB_FLAGGED(victim, MOB_NOCHARM) && GET_MAX_HIT(victim) < 1000)))
   {
     if (victim->player_specials->has_banishment_been_attempted)
       ;
@@ -527,7 +532,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   }
 
   if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_GOOD(victim) && 
-      (!IS_NPC(victim) || !MOB_FLAGGED(victim, MOB_NOCHARM)))
+	  (!IS_NPC(victim) || (!MOB_FLAGGED(victim, MOB_NOCHARM) && GET_MAX_HIT(victim) < 1000)))
   {
     if (victim->player_specials->has_banishment_been_attempted)
       ;
@@ -1921,7 +1926,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
 
       af.spell = TYPE_SPECAB_BLEEDING;
       af.location = APPLY_SPECIAL;
-      af.modifier = 1 + MAX(0, get_char_affect_modifier(victim, TYPE_SPECAB_BLEEDING, APPLY_SPECIAL));
+      af.modifier = dice(1, 4);
       af.duration = 3;
       af.bonus_type = BONUS_TYPE_UNDEFINED;
       SET_BIT_AR(af.bitvector, AFF_BLEED);

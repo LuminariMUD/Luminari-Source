@@ -45,6 +45,7 @@
 #include "spec_procs.h"
 #include "transport.h"
 #include "encounters.h"
+#include "deities.h"
 
 /* prototypes of local functions */
 /* do_diagnose utility functions */
@@ -131,13 +132,17 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
                  age(tch)->day, age(tch)->hours);
   send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
                has_subrace ? subraces : "");
-  send_to_char(ch, "Alignment: %s.\r\n",
-               get_align_by_num(GET_ALIGNMENT(tch)));
+  send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
+  if (IS_NPC(tch))
+    send_to_char(ch, "Class: %s.\r\n", class_list[GET_CLASS(tch)].name);
   send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
                GET_HIT(tch), GET_PSP(tch));
   send_to_char(ch, "AC: %d, Hitroll: %d, Damroll: %d\r\n",
                compute_armor_class(NULL, tch, FALSE, MODE_ARMOR_CLASS_NORMAL),
                GET_HITROLL(tch), GET_DAMROLL(tch));
+  if (IS_NPC(tch))
+    send_to_char(ch, "Will: %d, Fort: %d, Refl: %d\r\n",
+               compute_mag_saves(tch, SAVING_WILL, 0), compute_mag_saves(tch, SAVING_FORT, 0), compute_mag_saves(tch, SAVING_REFL, 0));
   send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
                GET_STR(tch), GET_ADD(tch), GET_INT(tch),
                GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
@@ -610,6 +615,9 @@ static void look_at_char(struct char_data *i, struct char_data *ch)
   else
     act("You see nothing special about $m.", FALSE, i, 0, ch, TO_VICT);
 
+    if (IS_NPC(i) && MOB_FLAGGED(i, MOB_IS_OBJ))
+    return;
+
   diag_char_to_char(i, ch);
 
   // mounted
@@ -708,7 +716,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (PRF_FLAGGED(ch, PRF_AUTOCON) && IS_NPC(i))
+    if (PRF_FLAGGED(ch, PRF_AUTOCON) && IS_NPC(i) && !MOB_FLAGGED(i, MOB_IS_OBJ))
     {
       int level_diff = GET_LEVEL(i) - GET_LEVEL(ch);
       if (level_diff < -5)
@@ -1024,11 +1032,10 @@ static void do_auto_exits(struct char_data *ch)
     if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) &&
         !PRF_FLAGGED(ch, PRF_HOLYLIGHT))
       continue;
-    if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED))
+    if (EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED) && !EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
       send_to_char(ch, "%s(%s)%s ", EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) ? CCWHT(ch, C_NRM) : CCRED(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
-    else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN))
-      send_to_char(ch, "%s%s%s ", CCWHT(ch, C_NRM), autoexits[door],
-                   CCCYN(ch, C_NRM));
+    else if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN) && GET_LEVEL(ch) >= LVL_IMMORT)
+      send_to_char(ch, "%s%s%s ", CCWHT(ch, C_NRM), autoexits[door], CCCYN(ch, C_NRM));
     else
       send_to_char(ch, "\t(%s\t) ", autoexits[door]);
     slen++;
@@ -1337,7 +1344,9 @@ static void look_in_direction(struct char_data *ch, int dir)
 
   if (EXIT(ch, dir))
   {
-    if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && EXIT(ch, dir)->keyword)
+    if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN) && GET_LEVEL(ch) < LVL_IMMORT)
+      ;
+    else if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is closed.\r\n", fname(EXIT(ch, dir)->keyword));
     else if (EXIT_FLAGGED(EXIT(ch, dir), EX_ISDOOR) && EXIT(ch, dir)->keyword)
       send_to_char(ch, "The %s is open.\r\n", fname(EXIT(ch, dir)->keyword));
@@ -1944,7 +1953,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     {
       /* This is from a spell */
       send_to_char(ch, "%s%-19s%s ",
-                   CCCYN(ch, C_NRM), skill_name(dr->spell), CCNRM(ch, C_NRM));
+                   CCCYN(ch, C_NRM), spell_name(dr->spell), CCNRM(ch, C_NRM));
     }
     else if (dr->feat != FEAT_UNDEFINED)
     {
@@ -2071,7 +2080,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
         snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
       }
       snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-               CCCYN(ch, C_NRM), skill_name(aff->spell), CCNRM(ch, C_NRM));
+               CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
       strlcat(buf, buf2, sizeof(buf));
 
       buf2[0] = '\0';
@@ -2918,6 +2927,7 @@ ACMD(do_score)
   float height = GET_HEIGHT(ch);
   int w_type = 0;
   int line_length = 80;
+  char dname[SMALL_STRING];
 
   // get some initial info before score display
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
@@ -2971,6 +2981,8 @@ ACMD(do_score)
   send_to_char(ch, "\tcSex  : \tn%-20s ",
                (GET_SEX(ch) == SEX_MALE ? "Male" : (GET_SEX(ch) == SEX_FEMALE ? "Female" : "Neutral")));
   ;
+  snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+  send_to_char(ch, "\tcDeity: \tn%-20s ", CAP(dname));
   send_to_char(ch, "\tcAlignment : \tn%s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
   send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);

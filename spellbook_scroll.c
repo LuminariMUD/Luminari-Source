@@ -44,11 +44,11 @@ void display_scroll(struct char_data *ch, struct obj_data *obj)
   send_to_char(ch, "The scroll contains the following spell(s):\r\n");
   send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
   if (GET_OBJ_VAL(obj, 1) >= 1)
-    send_to_char(ch, "%-20s\r\n", skill_name(GET_OBJ_VAL(obj, 1)));
+    send_to_char(ch, "%-20s\r\n", spell_name(GET_OBJ_VAL(obj, 1)));
   if (GET_OBJ_VAL(obj, 2) >= 1)
-    send_to_char(ch, "%-20s\r\n", skill_name(GET_OBJ_VAL(obj, 2)));
+    send_to_char(ch, "%-20s\r\n", spell_name(GET_OBJ_VAL(obj, 2)));
   if (GET_OBJ_VAL(obj, 3) >= 1)
-    send_to_char(ch, "%-20s\r\n", skill_name(GET_OBJ_VAL(obj, 3)));
+    send_to_char(ch, "%-20s\r\n", spell_name(GET_OBJ_VAL(obj, 3)));
 
   return;
 }

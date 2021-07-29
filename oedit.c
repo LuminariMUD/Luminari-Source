@@ -53,6 +53,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d);
 static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
 static void oedit_disp_val5_menu(struct descriptor_data *d);
+static void oedit_disp_val6_menu(struct descriptor_data *d);
 //static void oedit_disp_prof_menu(struct descriptor_data *d);
 static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
@@ -966,6 +967,12 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_1;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "\r\n"
+                        "1) Weapon\r\n"
+                        "2) Armor Set\r\n"
+                        "Choose the Type of Outfit: ");
+    break;
   case ITEM_SWITCH:
     write_to_output(d, "What command to activate switch? (0=pull, 1=push) : ");
     break;
@@ -1056,6 +1063,9 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_2;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "What is the enhancement bonus? ");
+    break;
   case ITEM_SWITCH:
     write_to_output(d, "Which room vnum to manipulate? : ");
     break;
@@ -1160,6 +1170,9 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_3;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_GEAR_OUTFIT:
+    oedit_disp_mats_menu(d);
+    break;
   case ITEM_SWITCH:
     write_to_output(d, "Which direction? (0=n, 1=e, 2=s, 3=w, 4=u, 5=d) : ");
     break;
@@ -1232,6 +1245,14 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_4;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_GEAR_OUTFIT:
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, apply_types, NUM_APPLIES, TRUE);
+    write_to_output(d, "\r\nEnter apply type (0 is no apply)\r\n");
+    write_to_output(d, "Please select an apply type to add to the item, or select none for nothing.\r\n");
+    write_to_output(d, "Enter your choice: ");
+    break;
   case ITEM_SWITCH:
     write_to_output(d, "Which command (0=unhide, 1=unlock, 2=open) : ");
     break;
@@ -1279,6 +1300,9 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_5;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_GEAR_OUTFIT:
+    write_to_output(d, "Apply modifier amount: ");
+    break;
   case ITEM_WEAPON:
     write_to_output(d, "Enhancement bonus : ");
     break;
@@ -1287,6 +1311,27 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
     break;
   case ITEM_MISSILE:
     write_to_output(d, "Enhancement bonus : ");
+    break;
+  default:
+    oedit_disp_menu(d);
+  }
+}
+
+/* Object value #6 */
+static void oedit_disp_val6_menu(struct descriptor_data *d)
+{
+  int i = 0;
+  OLC_MODE(d) = OEDIT_VALUE_6;
+  switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+  {
+  case ITEM_GEAR_OUTFIT:
+    for (i = 0; i < NUM_BONUS_TYPES; i++)
+    {
+      write_to_output(d, " %s%2d%s) %-20s", nrm, i, nrm, bonus_types[i]);
+      if (((i + 1) % 3) == 0)
+        write_to_output(d, "\r\n");
+    }
+    write_to_output(d, "\r\nEnter the bonus type for this affect : ");
     break;
   default:
     oedit_disp_menu(d);
@@ -1685,8 +1730,8 @@ static void oedit_disp_menu(struct descriptor_data *d)
 /* main loop (of sorts).. basically interpreter throws all input to here. */
 void oedit_parse(struct descriptor_data *d, char *arg)
 {
-  int number, min_val, i = 0, count = 0;
-  long max_val;
+  int number, min_val = 0, i = 0, count = 0;
+  long max_val = 0;
   char *oldtext = NULL;
   struct obj_data *obj;
   obj_rnum robj;
@@ -2118,6 +2163,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), 1);
       break;
 
+    case ITEM_GEAR_OUTFIT:
+      if (number < 1 || number > NUM_OUTFIT_TYPES)
+        oedit_disp_val1_menu(d);
+      else
+      {
+        GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_TYPE) = number;
+        oedit_disp_val2_menu(d);
+      }
+
     case ITEM_FURNITURE:
       if (number < 0 || number > MAX_PEOPLE)
         oedit_disp_val1_menu(d);
@@ -2188,6 +2242,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_GEAR_OUTFIT:
+      if (number < 0 || number > 20)
+        oedit_disp_val2_menu(d);
+      else
+      {
+        GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_BONUS) = number;
+        oedit_disp_val3_menu(d);
+      }
+      break;
     case ITEM_INSTRUMENT: /* reduce difficulty */
       GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 0, 30);
       oedit_disp_val3_menu(d);
@@ -2266,6 +2329,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     /* Quick'n'easy error checking. */
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_GEAR_OUTFIT:
+      if (number < 1 || number > NUM_MATERIALS)
+      {
+        write_to_output(d, "That is not a valid selection.\r\n");
+        return;
+      }
+      min_val = 1;
+      max_val = NUM_MATERIALS - 1;
+      break;
     case ITEM_SCROLL:
     case ITEM_POTION:
       if (number == 0 || number == -1)
@@ -2333,6 +2405,16 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_GEAR_OUTFIT:
+      if (number == APPLY_SKILL || number == APPLY_FEAT)
+      {
+        write_to_output(d, "You cannot use those apply types on outfit items.\r\n");
+        return;
+      }
+      min_val = 0;
+      max_val = NUM_APPLIES;
+      number--;
+      break;
     case ITEM_SCROLL:
     case ITEM_POTION:
       if (number == 0 || number == -1)
@@ -2386,6 +2468,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_GEAR_OUTFIT:
+      GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_APPLY_MOD) = number;
+      oedit_disp_val6_menu(d);
+      return;
     case ITEM_MISSILE:
       min_val = 0;
       max_val = 10;
@@ -2405,6 +2491,22 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       break;
     }
     GET_OBJ_VAL(OLC_OBJ(d), 4) = LIMIT(number, min_val, max_val);
+    break;
+
+    case OEDIT_VALUE_6:
+    number = atoi(arg);
+    switch (GET_OBJ_TYPE(OLC_OBJ(d)))
+    {
+    case ITEM_GEAR_OUTFIT:
+      min_val = 0;
+      max_val = NUM_BONUS_TYPES - 1;
+      break;
+    default:
+      min_val = -65000;
+      max_val = 65000;
+      break;
+    }
+    GET_OBJ_VAL(OLC_OBJ(d), 5) = LIMIT(number, min_val, max_val);
     break;
 
     //    }

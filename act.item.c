@@ -488,7 +488,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_POISON: /* 33 */
-    send_to_char(ch, "Poison:       %s\r\n", skill_name(GET_OBJ_VAL(item, 0)));
+    send_to_char(ch, "Poison:       %s\r\n", spell_name(GET_OBJ_VAL(item, 0)));
     send_to_char(ch, "Level:        %d\r\n", GET_OBJ_VAL(item, 1));
     send_to_char(ch, "Applications: %d\r\n", GET_OBJ_VAL(item, 2));
     send_to_char(ch, "Hits/App:     %d\r\n", GET_OBJ_VAL(item, 3));
@@ -710,6 +710,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_WEAPON_OIL: /* 50 */
+    break;
+
+    case ITEM_GEAR_OUTFIT:
+    send_to_char(ch, "Outfit Crate Type: %s\r\n", GET_OBJ_VAL(item, OUTFIT_VAL_TYPE) == OUTFIT_TYPE_WEAPON ? "Weapons" : "Full Armor Set/Shield");
+    send_to_char(ch, "Enhancement Bonus: %d\r\n", GET_OBJ_VAL(item, OUTFIT_VAL_BONUS));
+    send_to_char(ch, "Object Material: %s\r\n", material_name[GET_OBJ_VAL(item, OUTFIT_VAL_MATERIAL)]);
+    send_to_char(ch, "Object Bonus Affects: +%d to %s (%s)\r\n", GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_MOD), apply_types[GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_LOC)],
+                      bonus_types[GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_BONUS)]);
     break;
 
   default:
@@ -3739,7 +3747,7 @@ ACMD(do_loot)
     recMagic = true;
     break;
   case LOOTBOX_TYPE_ARMOR:
-    award_magic_armor(ch, max_grade, -1);
+    award_magic_armor_suit(ch, max_grade);
     chance = 12;
     recArmor = true;
     recMagic = true;
@@ -5449,6 +5457,660 @@ ACMD(do_use_consumable)
       return;
   }
 
+}
+
+
+void perform_outfit_show(struct char_data *ch)
+{
+  char buf[MEDIUM_STRING*4];
+
+  if (!GET_OUTFIT_DESC(ch))
+  {
+    snprintf(buf, sizeof(buf), "Not Set");
+  }
+  else
+  {
+    if (GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET && !IS_SHIELD(GET_OUTFIT_TYPE(ch)))
+    {
+      snprintf(buf, sizeof(buf), "\r\n"
+                                 "%s (chest)\r\n"
+                                 "%s (head)\r\n"
+                                 "%s (arms)\r\n"
+                                 "%s (legs)",
+                                 GET_OUTFIT_DESC(ch), GET_OUTFIT_DESC(ch), GET_OUTFIT_DESC(ch), GET_OUTFIT_DESC(ch));
+    }
+    else
+    {
+      snprintf(buf, sizeof(buf), "%s", GET_OUTFIT_DESC(ch));
+    }
+  }
+
+  send_to_char(ch, "Your current outfit information:\r\n"
+                   "\r\n"
+                   "Outfit Object       : %s\r\n"
+                   "Outfit Type         : %s\r\n"
+                   "Outfit Description  : %s\r\n"
+                   "Outfit Confirm Code : %s\r\n"
+                   "\r\n",
+                   GET_OUTFIT_OBJ(ch) ? GET_OUTFIT_OBJ(ch)->short_description : "Not Set",
+                   GET_OUTFIT_TYPE(ch) ? (
+                     GET_OUTFIT_OBJ(ch) ? (
+                       GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET ? armor_suit_types[GET_OUTFIT_TYPE(ch)] : weapon_list[GET_OUTFIT_TYPE(ch)].name
+                     ) : "Not Set"
+                   ) : "Not Set",
+                   buf,
+                   GET_OUTFIT_CONFIRM(ch) ? GET_OUTFIT_CONFIRM(ch) : "Not Set"
+
+  );
+}
+
+#define OUTFIT_WEAPON_PROTO 211
+#define OUTFIT_ARMOR_PROTO  212
+
+int outfit_type_to_armor_type(int type, int wear)
+{
+  switch (type)
+  {
+    case SPEC_ARMOR_TYPE_CLOTHING:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_CLOTHING_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_CLOTHING_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_CLOTHING_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_CLOTHING;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_PADDED:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_PADDED_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_PADDED_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_PADDED_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_PADDED;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_LEATHER:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_LEATHER_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_LEATHER_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_LEATHER_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_LEATHER;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_STUDDED_LEATHER:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_STUDDED_LEATHER;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_LIGHT_CHAIN:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_LIGHT_CHAIN;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_SCALE:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_SCALE_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_SCALE_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_SCALE_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_SCALE;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_CHAINMAIL:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_CHAINMAIL_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_CHAINMAIL_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_CHAINMAIL_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_CHAINMAIL;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_PIECEMEAL:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_PIECEMEAL_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_PIECEMEAL_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_PIECEMEAL_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_PIECEMEAL;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_SPLINT:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_SPLINT_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_SPLINT_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_SPLINT_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_SPLINT;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_BANDED:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_BANDED_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_BANDED_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_BANDED_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_BANDED;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_HALF_PLATE:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_HALF_PLATE_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_HALF_PLATE_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_HALF_PLATE_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_HALF_PLATE;
+      }
+      break;
+    case SPEC_ARMOR_TYPE_FULL_PLATE:
+      switch (wear)
+      {
+        case ITEM_WEAR_HEAD:
+          return SPEC_ARMOR_TYPE_FULL_PLATE_HEAD;
+        case ITEM_WEAR_ARMS:
+          return SPEC_ARMOR_TYPE_FULL_PLATE_ARMS;
+        case ITEM_WEAR_LEGS:
+          return SPEC_ARMOR_TYPE_FULL_PLATE_LEGS;
+        case ITEM_WEAR_BODY:
+          return SPEC_ARMOR_TYPE_FULL_PLATE;
+      }
+      break;
+  }
+  return 1;
+}
+
+// will set up an item produced by an outfit object.
+// must read_object first and then set the wear slots.
+// calling this function should do the rest.
+// returns false if there's an error in setting things up.
+// in which case calling function should relate that to the player
+// and terminate any further outfit item processing.
+bool setup_outfit_item(struct char_data *ch, struct obj_data *obj)
+{
+  if (!ch || ! obj) return false;
+  char descA[MEDIUM_STRING+30];
+  char descB[MEDIUM_STRING+30];
+  char descC[MEDIUM_STRING+30];
+
+  if (CAN_WEAR(obj, ITEM_WEAR_BODY))
+  {
+    snprintf(descA, sizeof(descA), "chest %s", GET_OUTFIT_DESC(ch));
+    snprintf(descB, sizeof(descB), "%s (chest)", GET_OUTFIT_DESC(ch));
+    CAP(GET_OUTFIT_DESC(ch));
+    snprintf(descC, sizeof(descC), "%s (chest) lies here.\r\n", GET_OUTFIT_DESC(ch));
+    set_armor_object(obj, outfit_type_to_armor_type(GET_OUTFIT_TYPE(ch), ITEM_WEAR_BODY));
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_HEAD))
+  {
+    snprintf(descA, sizeof(descA), "helm %s", GET_OUTFIT_DESC(ch));
+    snprintf(descB, sizeof(descB), "%s (helm)", GET_OUTFIT_DESC(ch));
+    CAP(GET_OUTFIT_DESC(ch));
+    snprintf(descC, sizeof(descC), "%s (helm) lies here.\r\n", GET_OUTFIT_DESC(ch));
+    set_armor_object(obj, outfit_type_to_armor_type(GET_OUTFIT_TYPE(ch), ITEM_WEAR_HEAD));
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_ARMS))
+  {
+    snprintf(descA, sizeof(descA), "sleeves %s", GET_OUTFIT_DESC(ch));
+    snprintf(descB, sizeof(descB), "%s (sleeves)", GET_OUTFIT_DESC(ch));
+    CAP(GET_OUTFIT_DESC(ch));
+    snprintf(descC, sizeof(descC), "%s (sleeves) lies here.\r\n", GET_OUTFIT_DESC(ch));
+    set_armor_object(obj, outfit_type_to_armor_type(GET_OUTFIT_TYPE(ch), ITEM_WEAR_ARMS));
+  }
+  else if (CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  {
+    snprintf(descA, sizeof(descA), "leggings %s", GET_OUTFIT_DESC(ch));
+    snprintf(descB, sizeof(descB), "%s (leggings)", GET_OUTFIT_DESC(ch));
+    CAP(GET_OUTFIT_DESC(ch));
+    snprintf(descC, sizeof(descC), "%s (leggings) lies here.\r\n", GET_OUTFIT_DESC(ch));
+    set_armor_object(obj, outfit_type_to_armor_type(GET_OUTFIT_TYPE(ch), ITEM_WEAR_LEGS));
+  }
+  else
+  {
+    snprintf(descA, sizeof(descA), "%s", GET_OUTFIT_DESC(ch));
+    snprintf(descB, sizeof(descB), "%s", GET_OUTFIT_DESC(ch));
+    CAP(GET_OUTFIT_DESC(ch));
+    snprintf(descC, sizeof(descC), "%s lies here.\r\n", GET_OUTFIT_DESC(ch));
+  }
+  obj->name = strdup(descA);
+  obj->short_description = strdup(descB);
+  obj->description = strdup(descC);
+
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+    set_weapon_object(obj, GET_OUTFIT_TYPE(ch));
+  else if (CAN_WEAR(obj, ITEM_WEAR_SHIELD))
+    set_armor_object(obj, GET_OUTFIT_TYPE(ch));
+
+  GET_OBJ_WEIGHT(obj) = GET_OBJ_TYPE(GET_OUTFIT_OBJ(ch)) == ITEM_WEAPON ? weapon_list[GET_OUTFIT_TYPE(ch)].weight : armor_list[GET_OUTFIT_TYPE(ch)].weight;
+  GET_OBJ_VAL(obj, 4) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_BONUS);
+  GET_OBJ_LEVEL(obj) = MAX(0, MIN(30, (GET_OBJ_VAL(obj, 4) * 5) - 5));
+  GET_OBJ_MATERIAL(obj) = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_MATERIAL);
+  
+  // we are only adding apply bonuses to weapons, shields or body armor
+  if (!CAN_WEAR(obj, ITEM_WEAR_HEAD) && !CAN_WEAR(obj, ITEM_WEAR_ARMS) && !CAN_WEAR(obj, ITEM_WEAR_LEGS))
+  {
+    obj->affected[0].location = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_LOC);
+    obj->affected[0].modifier = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_MOD);
+    obj->affected[0].bonus_type = GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_APPLY_BONUS);
+  }
+
+  GET_OBJ_COST(obj) = (1 + GET_OBJ_LEVEL(obj)) * (100 + (GET_OBJ_VAL(obj, 4) * 5));
+  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
+  return true;
+}
+
+void clear_outfit_info(struct char_data *ch)
+{
+  GET_OUTFIT_OBJ(ch) = NULL;
+  GET_OUTFIT_TYPE(ch) = 0;
+  GET_OUTFIT_DESC(ch) = NULL;  
+  GET_OUTFIT_CONFIRM(ch) = NULL;
+}
+
+ACMDU(do_outfit)
+{
+
+  if (IS_NPC(ch))
+  {
+    return;
+  }
+
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  int i = 0;
+  struct obj_data *obj = NULL;
+
+  half_chop(argument, arg1, arg2);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify one of the following options:\r\n"
+                     "outfit obj (keyword of outfit obj in your inventory)\r\n"
+                     "outfit list\r\n"
+                     "outfit type (armor/weapon type)\r\n"
+                     "outfit description (short description of the item)\r\n"
+                     "outfit show\r\n"
+                     "outfit confirm\r\n"
+    );
+    return;
+  }
+
+  if (strlen(arg1) > MEDIUM_STRING)
+  {
+    send_to_char(ch, "That word is too long and doesn't match the outfit command options.\r\n");
+    return;
+  }
+
+  if (*arg2 && strlen(arg2) > MEDIUM_STRING)
+  {
+    send_to_char(ch, "That option is too long. It cannot exceed %d characters, includig color codes.\r\n", MEDIUM_STRING);
+    return;
+  }
+
+  if (is_abbrev(arg1, "obj"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the keyword(s) of the outfit object in your inventory to use.\r\n");
+      return;
+    }
+    if (!(obj = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying)))
+    {
+      send_to_char(ch, "There doesn't seem to be any objects in your inventory by that descriptions.\r\n");
+      return;
+    }
+    if (GET_OBJ_TYPE(obj) != ITEM_GEAR_OUTFIT)
+    {
+      send_to_char(ch, "That item is not a gear outfit.\r\n");
+      return;
+    }
+    GET_OUTFIT_OBJ(ch) = obj;
+    send_to_char(ch, "You set your outfit object to: %s\r\n", obj->short_description);
+    return;
+  }
+  else if (is_abbrev(arg1, "list"))
+  {
+    if (!GET_OUTFIT_OBJ(ch))
+    {
+      send_to_char(ch, "Please select an outfit object first: outfit obj (obj in your inventory)\r\n");
+      return;
+    }
+    send_to_char(ch, "Potential outfit types:\r\n");
+    if (GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET)
+    {
+      for (i = 1; i < NUM_SPEC_ARMOR_SUIT_TYPES; i++)
+      {
+        send_to_char(ch, "%-25s", armor_suit_types[i]);
+        if ((i % 4) == 3)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    else // weapon
+    {
+      for (i = 1; i < NUM_WEAPON_TYPES; i++)
+      {
+        send_to_char(ch, "%-25s", weapon_list[i].name);
+        if ((i % 4) == 3)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if ((i % 4) != 3)
+        send_to_char(ch, "\r\n");
+    send_to_char(ch, "Type: outfit type (type above) to set the type desired.\r\n");
+    return;
+  }
+  else if (is_abbrev(arg1, "type"))
+  {
+    if (!GET_OUTFIT_OBJ(ch))
+    {
+      send_to_char(ch, "Please select an outfit object first: outfit obj (obj in your inventory)\r\n");
+      return;
+    }
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the type of %s you want to collect.\r\n", 
+                  GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET ? "armor suit" : "weapon");
+      return;
+    }
+    if (GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET)
+    {
+      for (i = 1; i < NUM_SPEC_ARMOR_SUIT_TYPES; i++)
+      {
+        if (is_abbrev(arg2, armor_suit_types[i])) break;
+      }
+      if (i < 1 || i >= NUM_SPEC_ARMOR_SUIT_TYPES)
+      {
+        send_to_char(ch, "That is not a valid armor suit type.\r\n");
+        return;
+      }
+      send_to_char(ch, "You have set your outfit type to: %s\r\n", armor_suit_types[i]);
+    }
+    else // weapon
+    {
+      for (i = 1; i < NUM_WEAPON_TYPES; i++)
+      {
+        if (is_abbrev(arg2, weapon_list[i].name)) break;
+      }
+      if (i < 1 || i >= NUM_WEAPON_TYPES)
+      {
+        send_to_char(ch, "That is not a valid weapon type.\r\n");
+        return;
+      }
+      send_to_char(ch, "You have set your outfit type to: %s\r\n", weapon_list[i].name);
+    }
+    GET_OUTFIT_TYPE(ch) = i;
+    return;
+  }
+  else if (is_abbrev(arg1, "description"))
+  {
+    if (!GET_OUTFIT_OBJ(ch))
+    {
+      send_to_char(ch, "Please select an outfit object first: outfit obj (obj in your inventory)\r\n");
+      return;
+    }
+    if (!GET_OUTFIT_TYPE(ch))
+    {
+      send_to_char(ch, "Please select an outfit type: 'outfit type (type)' or 'outfit list'.\r\n");
+      return;
+    }
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the description you would like the object to have.\r\n"
+                       "For example: If you type: outfit description a long, silver long sword\r\n"
+                       "You'll get:"
+                       "Keywords  : a long, silver long sword\r\n"
+                       "Short Desc: a long, silver long sword\r\n"
+                       "Long Desc : A long, silver long sword lies here.\r\n"
+                       );
+      return;
+    }
+    if (GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET)
+    {
+      if (!strstr(arg2, armor_suit_types[GET_OUTFIT_TYPE(ch)]))
+      {
+        send_to_char(ch, "Your description must include: %s\r\n", armor_suit_types[GET_OUTFIT_TYPE(ch)]);
+        return;
+      }
+    }
+    else
+    {
+      if (!strstr(arg2, weapon_list[GET_OUTFIT_TYPE(ch)].name))
+      {
+        send_to_char(ch, "Your description must include: %s\r\n", weapon_list[GET_OUTFIT_TYPE(ch)].name);
+        return;
+      }
+    }
+
+    // we want to end with a color terminator so ciolor won't bleedif the player neglects to add it themselves
+    char buf[MEDIUM_STRING+2];
+    snprintf(buf, sizeof(buf), "%s\tn", arg2);
+
+    if (GET_OUTFIT_DESC(ch))
+      free(GET_OUTFIT_DESC(ch));
+    GET_OUTFIT_DESC(ch) = strdup(buf);
+    send_to_char(ch, "You have set your outfit item description to: %s\r\n", GET_OUTFIT_DESC(ch));
+    return;
+  }
+  else if (is_abbrev(arg1, "show"))
+  {
+    perform_outfit_show(ch);
+    return;
+  }
+  else if (is_abbrev(arg1, "confirm"))
+  {
+    if (!GET_OUTFIT_OBJ(ch))
+    {
+      send_to_char(ch, "You must specify an outfit object first.\r\n");
+      return;
+    }
+    if (!GET_OUTFIT_TYPE(ch))
+    {
+      send_to_char(ch, "You must specify an outfit item type first.\r\n");
+      return;
+    }
+    if (!GET_OUTFIT_DESC(ch))
+    {
+      send_to_char(ch, "You must specify an outfit item description first.\r\n");
+      return;
+    }
+    if (!GET_OUTFIT_CONFIRM(ch))
+    {
+      GET_OUTFIT_CONFIRM(ch) = randstring(6);
+      perform_outfit_show(ch);
+      send_to_char(ch, "To confirm this object type: outfit confirm %s\r\n", GET_OUTFIT_CONFIRM(ch));
+      return;
+    }
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specfiy the confirmation code to complete the outfit: %s\r\n", GET_OUTFIT_CONFIRM(ch));
+      return;
+    }
+    if (strcmp(arg2, GET_OUTFIT_CONFIRM(ch)))
+    {
+      send_to_char(ch, "The confirmation code does not match.  You typed %s and it should be %s\r\n", arg2, GET_OUTFIT_CONFIRM(ch));
+      return;
+    }
+    perform_outfit_show(ch);
+
+    struct obj_data *itemA, *itemB, *itemC, *itemD;
+
+    if (GET_OBJ_VAL(GET_OUTFIT_OBJ(ch), OUTFIT_VAL_TYPE) == OUTFIT_TYPE_ARMOR_SET)
+    {
+     if (IS_SHIELD(GET_OUTFIT_TYPE(ch)))
+     {
+       itemA = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+       if (!itemA)
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTSH1\r\n");
+         return;
+       }
+       SET_BIT_AR(GET_OBJ_WEAR(itemA), ITEM_WEAR_SHIELD);
+       if (!setup_outfit_item(ch, itemA))
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTSH2\r\n");
+         return;
+       }
+       obj_to_char(itemA, ch);
+       send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
+       extract_obj(GET_OUTFIT_OBJ(ch));
+       clear_outfit_info(ch);
+       return;
+     }
+     else
+     {
+       // chest piece
+       itemA = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+       if (!itemA)
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA1\r\n");
+         return;
+       }
+       SET_BIT_AR(GET_OBJ_WEAR(itemA), ITEM_WEAR_BODY);
+       if (!setup_outfit_item(ch, itemA))
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA2\r\n");
+         return;
+       }
+       obj_to_char(itemA, ch);
+       send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
+
+       // head piece
+       itemB = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+       if (!itemB)
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMB1\r\n");
+         return;
+       }
+       SET_BIT_AR(GET_OBJ_WEAR(itemB), ITEM_WEAR_HEAD);
+       if (!setup_outfit_item(ch, itemB))
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMB2\r\n");
+         return;
+       }
+       obj_to_char(itemB, ch);
+       send_to_char(ch, "You retrieve %s from your %s.\r\n", itemB->short_description, GET_OUTFIT_OBJ(ch)->short_description);
+
+       // arms piece
+       itemC = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+       if (!itemC)
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMC1\r\n");
+         return;
+       }
+       SET_BIT_AR(GET_OBJ_WEAR(itemC), ITEM_WEAR_ARMS);
+       if (!setup_outfit_item(ch, itemC))
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMC2\r\n");
+         return;
+       }
+       obj_to_char(itemC, ch);
+       send_to_char(ch, "You retrieve %s from your %s.\r\n", itemC->short_description, GET_OUTFIT_OBJ(ch)->short_description);
+
+       // legs piece
+       itemD = read_object(OUTFIT_ARMOR_PROTO, VIRTUAL);
+       if (!itemD)
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMD1\r\n");
+         return;
+       }
+       SET_BIT_AR(GET_OBJ_WEAR(itemD), ITEM_WEAR_LEGS);
+       if (!setup_outfit_item(ch, itemD))
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMD2\r\n");
+         return;
+       }
+       obj_to_char(itemD, ch);
+       send_to_char(ch, "You retrieve %s from your %s.\r\n", itemD->short_description, GET_OUTFIT_OBJ(ch)->short_description);
+       extract_obj(GET_OUTFIT_OBJ(ch));
+       clear_outfit_info(ch);
+       return;
+     }
+    }
+    else
+    {
+      // weapon
+      itemA = read_object(OUTFIT_WEAPON_PROTO, VIRTUAL);
+       if (!itemA)
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA1\r\n");
+         return;
+       }
+       SET_BIT_AR(GET_OBJ_WEAR(itemA), ITEM_WEAR_WIELD);
+       if (!setup_outfit_item(ch, itemA))
+       {
+         send_to_char(ch, "There was an error creating your item.  Please inform staff ERROUTARMA2\r\n");
+         return;
+       }
+       obj_to_char(itemA, ch);
+       send_to_char(ch, "You retrieve %s from your %s.\r\n", itemA->short_description, GET_OUTFIT_OBJ(ch)->short_description);
+       extract_obj(GET_OUTFIT_OBJ(ch));
+       clear_outfit_info(ch);
+       return;
+    }
+    // outfit complete successfully!
+  }
+  else
+  {
+    send_to_char(ch, "Please specify one of the following options:\r\n"
+                     "outfit obj (keyword of outfit obj in your inventory)\r\n"
+                     "outfit list\r\n"
+                     "outfit type (armor/weapon type)\r\n"
+                     "outfit description (short description of the item)\r\n"
+                     "outfit show\r\n"
+                     "outfit confirm\r\n"
+    );
+    return;
+  }
 }
 
 /* EOF */

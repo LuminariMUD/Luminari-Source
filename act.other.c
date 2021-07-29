@@ -50,17 +50,6 @@
 #include "premadebuilds.h"
 #include "staff_events.h"
 
-#define SHAPE_AFFECTS 3
-#define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
-#define MOB_GHOUL 35          // " " level 11+
-#define MOB_GIANT_SKELETON 36 // " " level 21+
-#define MOB_MUMMY 37          // " " level 30
-#define BARD_AFFECTS 7
-#define MOB_PALADIN_MOUNT 70
-#define MOB_PALADIN_MOUNT_SMALL 91
-#define MOB_EPIC_PALADIN_MOUNT 79
-#define MOB_EPIC_PALADIN_MOUNT_SMALL 92
-
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
 #define MODE_CLASSLIST_RESPEC 1
@@ -1518,53 +1507,46 @@ void perform_call(struct char_data *ch, int call_type, int level)
   /* setting mob strength according to 'level' */
   switch (call_type)
   {
-  case MOB_C_ANIMAL:
-    if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
-      level += 5;
-    GET_REAL_MAX_HIT(mob) += 20;
-    for (i = 0; i < level; i++)
-      GET_REAL_MAX_HIT(mob) += dice(1, 20) + 1;
-    GET_REAL_HITROLL(mob) += level / 3;
-    GET_REAL_DAMROLL(mob) += level / 3;
-    GET_REAL_AC(mob) += (level * 5); /* 15 ac at level 30 */
-    break;
-  case MOB_SHADOW:
-    GET_LEVEL(mob) = level;
-    autoroll_mob(mob, true, true);
-    GET_REAL_MAX_HIT(mob) += 20;
-    GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-    break;
-  case MOB_C_FAMILIAR:
-    GET_REAL_MAX_HIT(mob) += 10;
-    for (i = 0; i < level; i++)
-      GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
-    if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR))
-    {
-      GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
-      GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
-      GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-      GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-      GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-    }
-    break;
-  case MOB_C_MOUNT:
-    GET_REAL_MAX_HIT(mob) += 20;
-    GET_REAL_HITROLL(mob) += level / 3;
-    GET_REAL_DAMROLL(mob) += level / 4;
-    for (i = 0; i < level; i++)
-    {
-      if (GET_MOUNT(ch) == MOB_EPIC_PALADIN_MOUNT)
-        GET_REAL_MAX_HIT(mob) += dice(2, 12) + 1;
+    case MOB_C_ANIMAL:
+      GET_LEVEL(mob) = MIN(20, level);
+      if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
+        level += 5;
+      autoroll_mob(mob, true, true);
+      GET_REAL_MAX_HIT(mob) += 20;
+      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+      break;
+    case MOB_SHADOW:
+      GET_LEVEL(mob) = MIN(20, level);
+      autoroll_mob(mob, true, true);
+      GET_REAL_MAX_HIT(mob) += 20;
+      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+      break;
+    case MOB_C_FAMILIAR:
+      GET_REAL_MAX_HIT(mob) += 10;
+      for (i = 0; i < level; i++)
+        GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
+      if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR))
+      {
+        GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+        GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+        GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+        GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+        GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+      }
+      GET_LEVEL(mob) = MIN(20, level);
+      break;
+    case MOB_C_MOUNT:
+      if (mob_num == MOB_EPIC_PALADIN_MOUNT || mob_num == MOB_EPIC_PALADIN_MOUNT_SMALL)
+        GET_LEVEL(mob) = MIN(27, level);
       else
-        GET_REAL_MAX_HIT(mob) += dice(1, 12) + 1;
-    }
-    GET_REAL_AC(mob) += (level * 4); /* 12 ac at level 30 */
-    /* make sure paladin mount is appropriate size to ride */
-    GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
-    GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
-    break;
+        GET_LEVEL(mob) = MIN(20, level);
+      autoroll_mob(mob, true, true);
+      GET_REAL_MAX_HIT(mob) += 20;
+      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+      GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
+      GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+      break;
   }
-  GET_LEVEL(mob) = level;
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
 
   affect_total(mob);
@@ -4366,6 +4348,7 @@ ACMD(do_search)
   //  struct obj_data *cont = NULL;
   //  struct obj_data *next_obj = NULL;
   int search_dc = 0;
+  int search_roll = 0;
 
   if (FIGHTING(ch))
   {
@@ -4387,7 +4370,7 @@ ACMD(do_search)
 
   skip_spaces_c(&argument);
 
-  if (!*argument)
+  if (!*argument || true) // we're only doing full room searches right now -- gicker july 12, 2021
   {
     /*
         for (obj = objlist; obj; obj = obj->next_content) {
@@ -4426,9 +4409,11 @@ ACMD(do_search)
         {
           /* Get the DC */
           search_dc = get_hidden_door_dc(ch, door);
+          search_roll = d20(ch) + compute_ability(ch, ABILITY_PERCEPTION);
           /* Roll the dice... */
-          if (skill_check(ch, ABILITY_PERCEPTION, search_dc))
+          if (search_roll >= search_dc)
           {
+            send_to_char(ch, "roll %d vs. dc %d\r\n", search_roll, search_dc);
             act("You find a secret entrance!", FALSE, ch, 0, 0, TO_CHAR);
             act("$n finds a secret entrance!", FALSE, ch, 0, 0, TO_ROOM);
             REMOVE_BIT(EXIT(ch, door)->exit_info, EX_HIDDEN);
@@ -4462,6 +4447,8 @@ ACMD(do_search)
     send_to_char(ch, "You don't find anything you didn't see before.\r\n");
   }
 
+  send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
+  WAIT_STATE(ch, PULSE_VIOLENCE * 1);
   USE_FULL_ROUND_ACTION(ch);
 }
 
@@ -6519,9 +6506,14 @@ ACMD(do_happyhour)
   {
     num = MIN(MAX((atoi(val)), 0), 1000);
     if (HAPPY_TIME && !num)
+    {
       game_info("Happyhour has been stopped!");
-    else if (!HAPPY_TIME && num)
+      set_db_happy_hour(2);
+    }
+    else if (!HAPPY_TIME && num) {
       game_info("A Happyhour has started!");
+      set_db_happy_hour(1);
+    }
 
     HAPPY_TIME = num;
     send_to_char(ch, "Happy Hour Time set to %d ticks (%d hours %d mins and %d secs)\r\n",
@@ -6973,14 +6965,6 @@ ACMD(do_summon)
 
 /* some cleanup */
 #undef NUM_HINTS
-#undef SHAPE_AFFECTS
-#undef MOB_ZOMBIE
-#undef MOB_GHOUL
-#undef MOB_GIANT_SKELETON
-#undef MOB_MUMMY
-#undef BARD_AFFECTS
-#undef MOB_PALADIN_MOUNT
-#undef MOB_EPIC_PALADIN_MOUNT
 #undef MODE_CLASSLIST_NORMAL
 #undef MODE_CLASSLIST_RESPEC
 #undef MULTICAP
@@ -7099,6 +7083,7 @@ ACMDU(do_fiendishboon)
     for (j = 0; j < 80; j++)
       send_to_char(ch, "-");
     send_to_char(ch, "\r\n");
+    send_to_char(ch, "Type 'fiendishboon (boon type) to toggle on and off.\r\n");
     send_to_char(ch, "Total slots available: %d, Total slots used: %d.\r\n", total_fiendish_boon_levels(ch), active_fiendish_boon_levels(ch));
     return;
   }

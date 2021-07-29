@@ -102,17 +102,17 @@ static void another_hour(int mode)
       /* we are resetting dailies (such as shapechange) every 6 game hours */
       reset_dailies();
       break;
-    case 17:
-      weather_info.sunlight = SUN_SET;
-      send_to_outdoor("\tDThe \tYsun\tD slowly disappears in the west.\tn\r\n");
-      break;
-    case 18:
-      weather_info.sunlight = SUN_DARK;
-      send_to_outdoor("\tDThe night has begun.\tn\r\n");
-      break;
     case 19:
       /* we are resetting dailies (such as shapechange) every 6 game hours */
       reset_dailies();
+      break;
+    case 21:
+      weather_info.sunlight = SUN_SET;
+      send_to_outdoor("\tDThe \tYsun\tD slowly disappears in the west.\tn\r\n");
+      break;
+    case 22:
+      weather_info.sunlight = SUN_DARK;
+      send_to_outdoor("\tDThe night has begun.\tn\r\n");
       break;
     case 24:
       send_to_outdoor("\tDThe \tRintense\tD darkness of midnight envelops you.\tn\r\n");

@@ -224,7 +224,7 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
         dc_of_id = 20; //DC of identifying the spell
 
         *buf = '\0';
-        strlcpy(lbuf, skill_name(spellnum), sizeof(lbuf));
+        strlcpy(lbuf, spell_name(spellnum), sizeof(lbuf));
 
         while (lbuf[ofs])
         {
@@ -280,7 +280,7 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                         format = "\tn$n \tcbegins chanting the words, '\tC%s\tc'.\tn";
         }
 
-        snprintf(buf1, sizeof(buf1), format, skill_name(spellnum));
+        snprintf(buf1, sizeof(buf1), format, spell_name(spellnum));
         snprintf(buf2, sizeof(buf2), format, buf);
 
         for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
@@ -312,13 +312,23 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
         {
                 if (!start)
                         snprintf(buf1, sizeof(buf1), "\tn$n \tcstares at you and utters the words, '\tC%s\tc'.\tn",
-                                 attempt > dc_of_id ? skill_name(spellnum) : buf);
+                                 attempt > dc_of_id ? spell_name(spellnum) : buf);
                 else
                         snprintf(buf1, sizeof(buf1),
                                  "\tn$n \tcweaves $s hands in an intricate pattern and begins to chant the words, '\tC%s\tc' at you.\tn",
-                                 attempt > dc_of_id ? skill_name(spellnum) : buf);
+                                 attempt > dc_of_id ? spell_name(spellnum) : buf);
                 act(buf1, FALSE, ch, NULL, tch, TO_VICT);
         }
+}
+
+const char *spell_name(int num)
+{
+        if (num > 0 && num <= TOP_SPELL_DEFINE)
+                return (spell_info[num].name);
+        else if (num == -1)
+                return ("Not-Used");
+        else
+                return ("Non-Spell-Effect");
 }
 
 /* checks if a spellnum corresponds to an epic spell */
@@ -489,6 +499,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
             (casttype != CAST_WEAPON_SPELL) &&
             (casttype != CAST_FOOD_DRINK) &&
             (casttype != CAST_BOMB) &&
+            (casttype != CAST_SCROLL) &&
+            (casttype != CAST_STAFF) &&
             (casttype != CAST_WAND) && !IS_NPC(caster))
                 switch (CASTING_CLASS(caster))
                 {
@@ -1831,7 +1843,7 @@ ACMDU(do_gen_cast)
 
         if (subcmd == SCMD_CAST_PSIONIC)
         {
-                if (!IS_PSIONIC(ch))
+                if (!IS_PSIONIC(ch) && !IS_EPIC_SPELL(spellnum))
                 {
                         send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
                         return;
@@ -2258,8 +2270,12 @@ ACMDU(do_gen_cast)
 
         if (!target)
         {
-                send_to_char(ch, "Cannot find the target of your %s!\r\n",
-                             do_cast_types[subcmd][2]);
+                send_to_char(ch, "Cannot find the target of your %s!\r\n", do_cast_types[subcmd][2]);
+                if (subcmd == SCMD_CAST_PSIONIC)
+                {
+                        GET_PSP(ch) += psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch);
+                        GET_AUGMENT_PSP(ch) = 0;
+                }
                 return;
         }
 
@@ -2343,14 +2359,14 @@ void spell_level(int spell, int chclass, int level)
 
         if (chclass < 0 || chclass >= NUM_CLASSES)
         {
-                log("SYSERR: assigning '%s' to illegal class %d/%d.", skill_name(spell),
+                log("SYSERR: assigning '%s' to illegal class %d/%d.", spell_name(spell),
                     chclass, NUM_CLASSES - 1);
                 bad = 1;
         }
 
         if (level < 1 || level > LVL_IMPL)
         {
-                log("SYSERR: assigning '%s' to illegal level %d/%d.", skill_name(spell),
+                log("SYSERR: assigning '%s' to illegal level %d/%d.", spell_name(spell),
                     level, LVL_IMPL);
                 bad = 1;
         }
@@ -3404,9 +3420,32 @@ void mag_assign_spells(void)
 
         // divine spells
         // 1st circle
-        spello(SPELL_CURE_LIGHT, "cure light", 30, 15, 1, POS_FIGHTING,
-               TAR_CHAR_ROOM, FALSE, MAG_POINTS,
-               NULL, 1, 8, NOSCHOOL, FALSE);
+        spello(SPELL_CURE_LIGHT, "cure light", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+                NULL, 1, 8, CONJURATION, FALSE);
+        spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, 
+                NULL, 2, 8, NOSCHOOL, FALSE);
+        spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+                "You feel less protected.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_BESTOW_WEAPON_PROFICIENCY, "bestow weapon proficiency", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+                "You feel less proficient.", 4, 8, ENCHANTMENT, FALSE);
+        spello(SPELL_TACTICAL_ACUMEN, "tactical acumen", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS, 
+                "You feel your enhances tactical abilities fade.", 4, 8, ENCHANTMENT, FALSE);
+        spello(SPELL_VEIL_OF_POSITIVE_ENERGY, "veil of positive energy", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+                "You feel the veil of positive energy fade.", 4, 8, ABJURATION, FALSE);
+        spello(SPELL_SUN_METAL, "sun metal", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+                "The flames around your weapon dissipate.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_STUNNING_BARRIER, "stunning barrier", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+                "You feel the stunning barrier dissipate.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_SHIELD_OF_FORTIFICATION, "shield of fortification", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+                "You feel less fortified.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_RESISTANCE, "resistance", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less resistant.", 4, 8, ABJURATION, FALSE);
+        spello(SPELL_HONEYED_TONGUE, "honeyed tongue", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "You feel your silver tongue become less influential.", 4, 8, TRANSMUTATION, FALSE);
+        spello(SPELL_HEDGING_WEAPONS, "hedging weapons", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "The last of your hedging weapons dissipates.", 4, 8, ABJURATION, FALSE);
+        spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
+        spello(SPELL_LESSER_RESTORATION, "lesser restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
+        spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,  "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
+        spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
+
         spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
         spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
@@ -3534,6 +3573,9 @@ void mag_assign_spells(void)
                NULL, 7, 18, NOSCHOOL, FALSE);
         spello(SPELL_HEAL, "heal", 65, 50, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_POINTS | MAG_UNAFFECTS,
+               NULL, 5, 18, NOSCHOOL, FALSE);
+        spello(SPELL_HEAL_MOUNT, "heal mount", 65, 50, 1, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_POINTS | MAG_UNAFFECTS,
                NULL, 5, 18, NOSCHOOL, FALSE);
         spello(SPELL_DISPEL_GOOD, "dispel good", 65, 50, 1, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
@@ -3694,6 +3736,10 @@ void mag_assign_spells(void)
         spello(SPELL_AFFECT_MIND_TRAP_NAUSEA, "mind trap", 0, 0, 0, POS_FIGHTING,
                 TAR_IGNORE, FALSE, MAG_AFFECTS,
                 "The mind trap's nausea fades.", 1, 1, NOSCHOOL, FALSE);
+        spello(SPELL_AFFECT_STUNNING_BARRIER, "stunning barrier effect", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "You are no longer stunned by a stunning barrier.", 1, 1, CONJURATION, FALSE);
+
 
         spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,
                 TAR_IGNORE, FALSE, MAG_AFFECTS,
@@ -3773,6 +3819,10 @@ void mag_assign_spells(void)
         spello(PSYCHOKINETIC_FEAR, "psychokinetic fear", 0, 0, 0, POS_SITTING,
                TAR_IGNORE, TRUE, 0,
                NULL, 0, 0, NOSCHOOL, FALSE);
+
+        spello(WEAPON_POISON_BLACK_ADDER_VENOM, "black adder venom", 85, 70, 1, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE, "The black adder poison fully passes through your system.",
+               9, 23, NOSCHOOL, FALSE);
 
         spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
                TAR_IGNORE, TRUE, 0,

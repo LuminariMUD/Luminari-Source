@@ -318,7 +318,10 @@ long get_mission_reward(char_data *ch, int reward_type)
     if (reward_type != MISSION_CREDITS)
       reward = (int) (reward * 0.25); // we'll adjust this based on what the cooldown is
 
-    int bonus = d20(ch) + compute_ability(ch, ABILITY_DIPLOMACY);
+    int bonus = d20(ch);
+    if (affected_by_spell(ch, SPELL_HONEYED_TONGUE))
+        bonus = MAX(bonus, d20(ch));
+    bonus += compute_ability(ch, ABILITY_DIPLOMACY);
     reward = (reward * (100+bonus)) / 100;
 
     return MAX(1, reward);

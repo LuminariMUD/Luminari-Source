@@ -181,6 +181,7 @@ static void load_default_config(void);
 static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int hsort(const void *a, const void *b);
+void assign_deities(void) ;
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
 struct
@@ -638,6 +639,9 @@ void boot_world(void)
 
   log("Loading Homeland quests.");
   index_boot(DB_BOOT_HLQST);
+
+  log("Loading Deities");
+  assign_deities();
 
   log("Loading Domains.");
   assign_domains();
@@ -5616,7 +5620,7 @@ static int check_object_spell_number(struct obj_data *obj, int val)
     return (error);
 
   /* Now check for unnamed spells. */
-  spellname = skill_name(GET_OBJ_VAL(obj, val));
+  spellname = spell_name(GET_OBJ_VAL(obj, val));
 
   if ((spellname == unused_spellname || !str_cmp("UNDEFINED", spellname)) && (error = TRUE))
     log("SYSERR: Object #%d (%s) uses '%s' spell #%d.",
@@ -6085,7 +6089,38 @@ struct char_data *new_char()
   ch->player_specials->saved.completed_quests = NULL;
   ch->player_specials->saved.num_completed_quests = 0;
 
+ 
+ 
   return ch;
+}
+
+
+// status 0 is no happy hour
+// status 1 is happy hour started
+// status 2 is happy hour ended
+void set_db_happy_hour(int status)
+{
+
+  if (CONFIG_DFLT_PORT != 4100) return;
+
+  char query[LONG_STRING];
+
+  mysql_ping(conn);
+
+  snprintf(query, sizeof(query), "DELETE FROM happy_hour_info");
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to DELETE from happy_hour_info: %s", mysql_error(conn));
+  }
+
+  snprintf(query, sizeof(query), "INSERT INTO happy_hour_info (happy_hour_status) VALUES('%s')", status == 0 ? "none" : (status == 1 ? "started" : "ended"));
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to INSERT INTO happy_hour_info: %s", mysql_error(conn));
+  }
+
 }
 
 /* EOF */

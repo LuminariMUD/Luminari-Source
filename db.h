@@ -263,6 +263,7 @@ struct obj_save_data_t
 typedef struct obj_save_data_t obj_save_data;
 
 /* public procedures in db.c */
+void set_db_happy_hour(int status);
 void boot_db(void);
 void destroy_db(void);
 char *fread_action(FILE *fl, int nr);

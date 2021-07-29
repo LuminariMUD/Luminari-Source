@@ -413,6 +413,8 @@ else{
                 <option value="SECT_TUNDRA">Tundra</option>
                 <option value="SECT_TAIGA">Taiga</option>
                 <option value="SECT_BEACH">Beach</option>
+                <option value="SECT_SEAPORT">Sea Port</option>
+                <option value="SECT_INSIDE_ROOM">Inside Room (Eg. Buildings, non-hallway)</option>
             </select>
         </div>
     </div>

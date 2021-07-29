@@ -171,6 +171,9 @@ int touch(const char *path);
 void mudlog(int type, int level, int file, const char *str, ...) __attribute__((format(printf, 4, 5)));
 int rand_number(int from, int to);
 float rand_float(float from, float to);
+bool do_not_list_spell(int spellnum);
+bool is_paladin_mount(struct char_data *ch, struct char_data *victim);
+char * randstring(int length);
 int combat_skill_roll(struct char_data *ch, int skillnum);
 int dice(int number, int size);
 size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t reslen);
@@ -1253,6 +1256,15 @@ void char_from_furniture(struct char_data *ch);
 #define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 1) : SPEC_ARMOR_TYPE_UNDEFINED)
 #define GET_ARMOR_TYPE_PROF(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorType : ARMOR_TYPE_NONE)
 
+#define GET_OUTFIT_OBJ(ch)  (ch->player_specials->outfit_obj)
+#define GET_OUTFIT_DESC(ch)  (ch->player_specials->outfit_desc)
+#define GET_OUTFIT_TYPE(ch)  (ch->player_specials->outfit_type)
+#define GET_OUTFIT_CONFIRM(ch)  (ch->player_specials->outfit_confirmation)
+
+#define IS_SHIELD(type)       (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD || \
+                               type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
+
+
 /* MACROS for the study system */
 #define CAN_STUDY_FEATS(ch) ((GET_LEVELUP_FEAT_POINTS(ch) +                  \
                                           GET_LEVELUP_CLASS_FEATS(ch) +      \
@@ -1417,6 +1429,23 @@ void char_from_furniture(struct char_data *ch);
 #define IS_LE(ch) (GET_ALIGNMENT(ch) <= -350 && GET_ALIGNMENT(ch) > -575)
 #define IS_NE(ch) (GET_ALIGNMENT(ch) <= -575 && GET_ALIGNMENT(ch) > -800)
 #define IS_CE(ch) (GET_ALIGNMENT(ch) <= -800)
+
+#define ETHOS_LAWFUL      1000
+#define ETHOS_NEUTRAL     0
+#define ETHOS_CHAOTIC     -1000
+#define ALIGNMENT_GOOD    1000
+#define ALIGNMENT_NEUTRAL 0
+#define ALIGNMENT_EVIL    -1000
+
+#define GET_ALIGN_ABBREV(e, a)  (e > 250 ? (a > 250 ? "LG" : (a < -250 ? "LE" : "LN")) : ( \
+                                 e < -250 ? (a > 250 ? "CG" : (a < -250 ? "CE" : "CN")) : ( \
+                                 (a > 250 ? "NG" : (a < -250 ? "NE" : "TN")) ) ) )
+
+#define GET_ALIGN_STRING(e, a)  (e > 250 ? (a > 250 ? "Lawful Good" : (a < -250 ? "Lawful Evil" : "Lawful Neutral")) : ( \
+                                 e < -250 ? (a > 250 ? "Chaotic Good" : (a < -250 ? "Chaotic Evil" : "Chaotic Neutral")) : ( \
+                                 (a > 250 ? "Neutral Good" : (a < -250 ? "Neutral Evil" : "True Neutral")) ) ) )
+
+#define GET_DEITY(ch)     (ch->player_specials->saved.deity)
 
 /** Defines if ch is good. */
 //#define IS_GOOD(ch) (GET_ALIGNMENT(ch) >= 350) // old system
@@ -1928,7 +1957,9 @@ void char_from_furniture(struct char_data *ch);
 #define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
 
 #define IS_IMMUNE_CRITS(ch) (IS_UNDEAD(ch) || \
-                             (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
+                             (!IS_NPC(ch) && (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1)) || \
+                             (affected_by_spell(ch, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1))
+
 #define IS_FRIGHTENED(ch) (AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))
 
 #define KNOWS_MERCY(ch, i)  (ch->player_specials->saved.paladin_mercies[i])

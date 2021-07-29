@@ -32,6 +32,9 @@ const char *weapon_type[NUM_WEAPON_TYPES];
 int is_proficient_with_weapon(struct char_data *ch, int weapon)
 {
 
+  if (affected_by_spell(ch, SPELL_BESTOW_WEAPON_PROFICIENCY))
+    return true;
+
   /* :) */
   if (weapon == WEAPON_TYPE_UNARMED && MONK_TYPE((ch)))
     return TRUE;

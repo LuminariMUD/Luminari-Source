@@ -336,15 +336,17 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
     if (obj->affected[counter2].modifier != temp->affected[counter2].modifier)
     {
-      fprintf(fp, "Aff : %d %d %d\n",
+      fprintf(fp, "Aff : %d %d %d %d\n",
               counter2,
               obj->affected[counter2].location,
-              obj->affected[counter2].modifier);
+              obj->affected[counter2].modifier,
+              obj->affected[counter2].bonus_type);
 #ifdef OBJSAVE_DB
-      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d\n",
+      snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
               counter2,
               obj->affected[counter2].location,
-              obj->affected[counter2].modifier);
+              obj->affected[counter2].modifier,
+              obj->affected[counter2].bonus_type);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
@@ -1636,11 +1638,12 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "Aff "))
       {
-        sscanf(line, "%d %d %d", &t[0], &t[1], &t[2]);
+       sscanf(line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
         if (t[0] < MAX_OBJ_AFFECT)
         {
           temp->affected[t[0]].location = t[1];
           temp->affected[t[0]].modifier = t[2];
+          temp->affected[t[0]].bonus_type = t[3];
         }
       }
       break;
@@ -1966,11 +1969,12 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          sscanf(*line, "%d %d %d", &t[0], &t[1], &t[2]);
+          sscanf(*line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
           if (t[0] < MAX_OBJ_AFFECT)
           {
             temp->affected[t[0]].location = t[1];
             temp->affected[t[0]].modifier = t[2];
+            temp->affected[t[0]].bonus_type = t[3];
           }
         }
         break;

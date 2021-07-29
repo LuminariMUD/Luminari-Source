@@ -315,6 +315,10 @@ int get_armor_piece_by_style(int style, int wear_loc);
 void award_magic_armor_suit(struct char_data *ch, int grade);
 /*  Will return a random healing potion based on level */
 int get_random_healing_potion(int spell_level);
+/* Will determine whether a feat makes sense on a particular object.
+ * For example, having medium armor specialization on a piece of light armor
+ */
+bool proper_feat(struct obj_data *obj, int feat_num);
 
 /* Procedures for loading mobs with items, rather than simply handing them out
  * automaticalyl after death.  Used with random treasure load resets.
