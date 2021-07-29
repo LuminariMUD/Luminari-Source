@@ -6540,6 +6540,7 @@ ACMD(do_happyhour)
     HAPPY_TREASURE = 20;
     HAPPY_TIME = 48;
     game_info("A Happyhour has started!");
+    set_db_happy_hour(1);
   }
   else
   {
