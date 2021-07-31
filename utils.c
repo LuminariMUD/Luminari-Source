@@ -3981,9 +3981,18 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 }
 
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display) {
+
   if (affected_by_aura_of_cowardice(victim))
   {
     return FALSE;
+  }
+
+  if (affected_by_spell(victim, SPELL_LITANY_OF_DEFENSE)) {
+    if (display) {
+      send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Your litany of defense protects you!\r\n");
+    }
+    return TRUE;
   }
 
   if (!IS_NPC(victim) && has_aura_of_courage(victim)) {
@@ -4102,6 +4111,109 @@ bool has_aura_of_courage(struct char_data *ch)
       if (IN_ROOM(tch) != IN_ROOM(ch))
         continue;
       if (HAS_FEAT(tch, FEAT_AURA_OF_COURAGE))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+  
+}
+
+
+bool has_aura_of_good(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOOD || GET_SUBRACE(ch, 1) == SUBRACE_GOOD || GET_SUBRACE(ch, 2) == SUBRACE_GOOD))
+    return true;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_GOOD)) return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_GOOD))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+  
+}
+
+bool has_aura_of_evil(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_EVIL || GET_SUBRACE(ch, 1) == SUBRACE_EVIL || GET_SUBRACE(ch, 2) == SUBRACE_EVIL))
+    return true;
+
+  if (HAS_FEAT(ch, FEAT_AURA_OF_EVIL)) return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (HAS_FEAT(tch, FEAT_AURA_OF_EVIL))
+      {
+        has_aura = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return has_aura;
+  
+}
+
+bool group_member_affected_by_spell(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  if (affected_by_spell(ch, spellnum)) return true;
+
+  struct char_data *tch = NULL;
+
+  bool has_aura = FALSE;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (affected_by_spell(tch, spellnum))
       {
         has_aura = TRUE;
         break;

@@ -1135,6 +1135,7 @@ const char *room_affections[] = {
     "Unholy",
     "Obscuring-Mist",
     "Difficult-Terrain",
+    "Sacred-Space",
     "\n"};
 CHECK_TABLE_SIZE(room_affections, NUM_RAFF + 1);
 
@@ -1971,6 +1972,52 @@ const char *armor_type[] = {
     "Tower Shield",
     "\n"};
 CHECK_TABLE_SIZE(armor_type, NUM_ARMOR_TYPES + 1);
+
+const int armor_suit_ac_bonus[] = {
+  0,
+  0,
+  1,
+  2,
+  3,
+  4,
+  4,
+  4,
+  5,
+  5,
+  6,
+  6,
+  7,
+  8,
+  1,
+  1,
+  2,
+  4,
+  0
+};
+CHECK_TABLE_SIZE(armor_suit_ac_bonus, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
+
+const int armor_suit_weight[] = {
+  0,
+  3,
+  10,
+  15,
+  20,
+  25,
+  25,
+  30,
+  40,
+  30,
+  45,
+  35,
+  50,
+  50,
+  5,
+  5,
+  10,
+  45,
+  0
+};
+CHECK_TABLE_SIZE(armor_suit_weight, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
 
 // labels for item proficiency category
 const char *item_profs[] = {

@@ -839,7 +839,7 @@ bool is_using_double_weapon(struct char_data *ch)
 
 static void setweapon(int type, const char *name, int numDice, int diceSize, int critRange, int critMult,
                       int weaponFlags, int cost, int damageTypes, int weight, int range, int weaponFamily, int size,
-                      int material, int handle_type, int head_type)
+                      int material, int handle_type, int head_type, const char *description)
 {
   weapon_type[type] = strdup(name);
   weapon_list[type].name = name;
@@ -866,11 +866,13 @@ static void setweapon(int type, const char *name, int numDice, int diceSize, int
   weapon_list[type].material = material;
   weapon_list[type].handle_type = handle_type;
   weapon_list[type].head_type = head_type;
+  weapon_list[type].description = description;
 }
 
 void initialize_weapons(int type)
 {
   weapon_list[type].name = "unused weapon";
+  weapon_list[type].description = "unused weapon";
   weapon_list[type].numDice = 1;
   weapon_list[type].diceSize = 1;
   weapon_list[type].critRange = 0;
@@ -897,209 +899,284 @@ void load_weapons(void)
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost,
    * damageType, weight, range, weaponFamily, Size, material,
    * handle, head) */
-  setweapon(WEAPON_TYPE_UNARMED, "unarmed", 1, 3, 0, 2, WEAPON_FLAG_SIMPLE, 2,
+  setweapon(WEAPON_TYPE_UNARMED, "knuckle", 1, 3, 0, 2, WEAPON_FLAG_SIMPLE, 2,
             DAMAGE_TYPE_BLUDGEONING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_ORGANIC,
-            HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST);
+            HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST,
+            "A knuckle can be any type of unarmed weapon, such as a spiked gauntlet, brass knuckles, hand wraps, cesti, and so forth.");
   setweapon(WEAPON_TYPE_DAGGER, "dagger", 1, 4, 1, 2, WEAPON_FLAG_THROWN | WEAPON_FLAG_SIMPLE, 2, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_SMALL_BLADE, SIZE_TINY,
-            MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "A dagger has a blade that is about 1 foot in length.");
   setweapon(WEAPON_TYPE_LIGHT_MACE, "light mace", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 5,
             DAMAGE_TYPE_BLUDGEONING, 4, 0, WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
-  setweapon(WEAPON_TYPE_SICKLE, "sickle", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 6,
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A light mace is made up of an ornate metal head attached to a simple wooden or metal shaft.");
+  setweapon(WEAPON_TYPE_SICKLE, "sickle", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_TRIP, 6,
             DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE,
+            "A sickle is usually used for harvesting crops, but can also be used as a weapon.  It has a curving C-shaped blade.");
   setweapon(WEAPON_TYPE_CLUB, "club", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 1,
             DAMAGE_TYPE_BLUDGEONING, 3, 0, WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_WOOD,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "This weapon is usually just a shaped piece of wood, sometimes with a few nails or studs embedded in it.");
   setweapon(WEAPON_TYPE_HEAVY_MACE, "heavy mace", 1, 8, 0, 2, WEAPON_FLAG_SIMPLE, 12,
             DAMAGE_TYPE_BLUDGEONING, 8, 0, WEAPON_FAMILY_CLUB, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A heavy mace has a larger head and a longer handle than a normal (light) mace.");
   setweapon(WEAPON_TYPE_MORNINGSTAR, "morningstar", 1, 8, 0, 2, WEAPON_FLAG_SIMPLE, 8,
             DAMAGE_TYPE_BLUDGEONING | DAMAGE_TYPE_PIERCING, 6, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM,
-            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A morningstar is a spiked metal ball, affixed to the top of a long handle.");
   setweapon(WEAPON_TYPE_SHORTSPEAR, "shortspear", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_PIERCING, 3, 20, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM,
-            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A shortspear is about 3 feet in length, making it a suitable thrown weapon.");
   setweapon(WEAPON_TYPE_LONGSPEAR, "longspear", 1, 8, 0, 3, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_REACH, 5, DAMAGE_TYPE_PIERCING, 9, 0, WEAPON_FAMILY_SPEAR, SIZE_LARGE,
-            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A longspear is about 8 feet in length.");
   setweapon(WEAPON_TYPE_QUARTERSTAFF, "quarterstaff", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE,
             1, DAMAGE_TYPE_BLUDGEONING, 4, 0, WEAPON_FAMILY_MONK, SIZE_LARGE,
-            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD,
+            "A quarterstaff is a simple piece of wood, about 5 feet in length.");
   setweapon(WEAPON_TYPE_SPEAR, "spear", 1, 8, 0, 3, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_REACH, 2, DAMAGE_TYPE_PIERCING, 6, 20, WEAPON_FAMILY_SPEAR, SIZE_LARGE,
-            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A spear is 5 feet in length and can be thrown.");
   setweapon(WEAPON_TYPE_HEAVY_CROSSBOW, "heavy crossbow", 1, 10, 1, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 50, DAMAGE_TYPE_PIERCING, 8, 120,
-            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW,
+            "A heavy crossbow is, as its namesake, a larger version than a regular (light) crossbow. It fires with greater force but takes a -4 penalty to hit if fired with one hand.");
   setweapon(WEAPON_TYPE_LIGHT_CROSSBOW, "light crossbow", 1, 8, 1, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_SLOW_RELOAD | WEAPON_FLAG_RANGED, 35, DAMAGE_TYPE_PIERCING, 4, 80,
-            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW,
+            "A light crossbow is a lighter version of a normal crossbow. It fires with less force than a heavy crossbow, and takes a -2 penalty to hit if fired with one hand.");
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_DART, "dart", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING, 1, 20, WEAPON_FAMILY_THROWN, SIZE_TINY,
-            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "Darts are missile weapons, designed to fly such that a sharp, often weighted point will strike first. They can be distinguished from javelins by fletching (i.e., feathers on the tail) and a shaft that is shorter and/or more flexible, and from arrows by the fact that they are not of the right length to use with a normal bow.");
   setweapon(WEAPON_TYPE_JAVELIN, "javelin", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_THROWN | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_PIERCING, 2, 30,
-            WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            WEAPON_FAMILY_SPEAR, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A javelin is a thin throwing spear.");
   setweapon(WEAPON_TYPE_SLING, "sling", 1, 4, 0, 2, WEAPON_FLAG_SIMPLE | WEAPON_FLAG_RANGED, 1, DAMAGE_TYPE_BLUDGEONING, 1, 50, WEAPON_FAMILY_THROWN, SIZE_SMALL,
-            MATERIAL_LEATHER, HANDLE_TYPE_STRAP, HEAD_TYPE_POUCH);
+            MATERIAL_LEATHER, HANDLE_TYPE_STRAP, HEAD_TYPE_POUCH,
+            "A sling is little more than a leather cup attached to a pair of strings.");
   setweapon(WEAPON_TYPE_THROWING_AXE, "throwing axe", 1, 6, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_THROWN, 8, DAMAGE_TYPE_SLASHING, 2, 10, WEAPON_FAMILY_AXE, SIZE_SMALL,
-            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE,
+            "This is a small axe balanced for throwing.");
   setweapon(WEAPON_TYPE_LIGHT_HAMMER, "light hammer", 1, 4, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_BLUDGEONING, 2, 20, WEAPON_FAMILY_HAMMER, SIZE_SMALL,
-            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A lighter version of a warhammer, this weapon usually has a sleek metal head with one striking surface.");
   setweapon(WEAPON_TYPE_HAND_AXE, "hand axe", 1, 6, 0, 3, WEAPON_FLAG_MARTIAL, 6,
             DAMAGE_TYPE_SLASHING, 3, 0, WEAPON_FAMILY_AXE, SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HANDLE,
-            HEAD_TYPE_BLADE);
+            HEAD_TYPE_BLADE,
+            "This one-handed axe is short (roughly 1 foot long) and designed for use with one hand. Unlike throwing axes, it is not well balanced for a graceful tumbling motion, and is instead heavier at its head. Tomahawks, war hatchets, and other such names usually refer to hand axes.");
   setweapon(WEAPON_TYPE_KUKRI, "kukri", 1, 4, 2, 2, WEAPON_FLAG_MARTIAL, 8,
             DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "A kukri is a curved blade, about 1 foot in length.");
   setweapon(WEAPON_TYPE_LIGHT_PICK, "light pick", 1, 4, 0, 4, WEAPON_FLAG_MARTIAL, 4,
             DAMAGE_TYPE_PIERCING, 3, 0, WEAPON_FAMILY_PICK, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "This weapon, adapted from the pickaxe tool, has a head with a slightly curved, armorpiercing spike and a hammerlike counterweight.");
   setweapon(WEAPON_TYPE_SAP, "sap", 1, 6, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_NONLETHAL, 1, DAMAGE_TYPE_BLUDGEONING | DAMAGE_TYPE_NONLETHAL, 2, 0,
-            WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            WEAPON_FAMILY_CLUB, SIZE_SMALL, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "This weapon consists of a soft wrapping around a hard, dense core, typically a leather sheath around a lead rod. The head is wider than the handle and designed to spread out the force of the blow, making it less likely to draw blood or break bones.");
   setweapon(WEAPON_TYPE_SHORT_SWORD, "short sword", 1, 6, 1, 2, WEAPON_FLAG_MARTIAL,
             10, DAMAGE_TYPE_PIERCING, 2, 0, WEAPON_FAMILY_SMALL_BLADE, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "Short swords are some of the most common weapons found in any martial society, and thus designs are extremely varied, depending on the region and creator. Most are around 2 feet in length. Their blades can be curved or straight, single- or double-edged, and wide or narrow. Hilts may be ornate or simple, with crossguards, basket hilts, or no guard at all. Such weapons are often used on their own, but can also be paired as a matched set, or used in conjunction with a dagger or longer sword.");
   setweapon(WEAPON_TYPE_BATTLE_AXE, "battle axe", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL, 10,
             DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE,
+            "The handle of this axe is long enough that you can wield it one-handed or two-handed. The head may have one blade or two, with blade shapes ranging from half-moons to squared edges like narrower versions of woodcutting axes. The wooden haft may be protected and strengthened with metal bands called langets.");
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_FLAIL, "flail", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL, 8,
             DAMAGE_TYPE_BLUDGEONING, 5, 0, WEAPON_FAMILY_FLAIL, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A flail consists of a weighted striking end connected to a handle by a sturdy chain. Though often imagined as a ball, sometimes spiked like the head of a morningstar, the head of a light flail can actually take many different shapes, such as short bars. Military flails are sturdier evolutions of agricultural flails, which are used for threshing – beating stacks of grains to separate the useful grains from their husks.");
   setweapon(WEAPON_TYPE_LONG_SWORD, "long sword", 1, 8, 1, 2, WEAPON_FLAG_MARTIAL, 15,
             DAMAGE_TYPE_SLASHING, 4, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "This sword is about 3 1/2 feet in length.");
   setweapon(WEAPON_TYPE_HEAVY_PICK, "heavy pick", 1, 6, 0, 4, WEAPON_FLAG_MARTIAL, 8,
             DAMAGE_TYPE_PIERCING, 6, 0, WEAPON_FAMILY_PICK, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "This variant of the light pick has a longer handle and can be used with one or two hands. It is a common, inexpensive weapon for mounted soldiers since it can be used effectively from horseback.");
   setweapon(WEAPON_TYPE_RAPIER, "rapier", 1, 6, 2, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_BALANCED, 20, DAMAGE_TYPE_PIERCING, 2, 0, WEAPON_FAMILY_SMALL_BLADE,
-            SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            SIZE_SMALL, MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "A thin, light sharp-pointed sword used for thrusting.");
   setweapon(WEAPON_TYPE_SCIMITAR, "scimitar", 1, 6, 2, 2, WEAPON_FLAG_MARTIAL, 15,
             DAMAGE_TYPE_SLASHING, 4, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "This curved sword is shorter than a longsword and longer than a shortsword. Only the outer edge is sharp, and the back is flat, giving the blade a triangular cross-section.");
   setweapon(WEAPON_TYPE_TRIDENT, "trident", 1, 8, 0, 2, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_THROWN, 15, DAMAGE_TYPE_PIERCING, 4, 0, WEAPON_FAMILY_SPEAR, SIZE_MEDIUM,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A trident has three metal prongs at the end of a 4-foot-long shaft.");
   setweapon(WEAPON_TYPE_WARHAMMER, "warhammer", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL, 12,
             DAMAGE_TYPE_BLUDGEONING, 5, 0, WEAPON_FAMILY_HAMMER, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "This weapon consists of a wooden haft and a heavy, metal head. The head may be single (like a carpenter’s hammer) or double (like a sledgehammer). The haft is long enough that you may wield it one- or two-handed. Though heavy and relatively slow to wield, warhammers are capable of delivering immense blows, crushing armor and flesh alike.");
   setweapon(WEAPON_TYPE_FALCHION, "falchion", 2, 4, 2, 2, WEAPON_FLAG_MARTIAL, 75,
             DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "This sword has one curved, sharp edge like a scimitar, with the back edge unsharpened and either flat or slightly curved. Its weight is greater toward the end, making it better for chopping rather than stabbing.");
   setweapon(WEAPON_TYPE_GLAIVE, "glaive", 1, 10, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 8, DAMAGE_TYPE_SLASHING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "A glaive is composed of a simple blade mounted on the end of a pole about 7 feet in length.");
   setweapon(WEAPON_TYPE_GREAT_AXE, "great axe", 1, 12, 0, 3, WEAPON_FLAG_MARTIAL, 20,
             DAMAGE_TYPE_SLASHING, 12, 0, WEAPON_FAMILY_AXE, SIZE_LARGE, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE,
+            "This two-handed battle axe is heavy enough that you can’t wield it with one hand. The head may have one blade or two, and may be “bearded” (meaning hooked or trailing at the bottom) to increase cleaving power and help pull down enemy shields. The haft is usually 3 to 4 feet long.");
   setweapon(WEAPON_TYPE_GREAT_CLUB, "great club", 1, 10, 0, 2, WEAPON_FLAG_MARTIAL, 5,
             DAMAGE_TYPE_BLUDGEONING, 8, 0, WEAPON_FAMILY_CLUB, SIZE_LARGE, MATERIAL_WOOD,
-            HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD,
+            "This larger, bulkier version of the common club is heavy enough that you can’t wield it with one hand. It may be ornate and carved, reinforced with metal, or a simple branch from a tree. Like simple clubs, greatclubs have many names, such as cudgels, bludgeons, shillelaghs, and more.");
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_HEAVY_FLAIL, "heavy flail", 1, 10, 1, 2, WEAPON_FLAG_MARTIAL,
             15, DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_FLAIL, SIZE_LARGE, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "Similar to a light flail, a heavy flail has a larger metal ball and a longer handle.");
   setweapon(WEAPON_TYPE_GREAT_SWORD, "great sword", 2, 6, 1, 2, WEAPON_FLAG_MARTIAL,
             50, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_LARGE_BLADE, SIZE_LARGE, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "This immense two-handed sword is about 5 feet in length. A greatsword may have a dulled lower blade that can be gripped.");
   setweapon(WEAPON_TYPE_GUISARME, "guisarme", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 9, DAMAGE_TYPE_SLASHING, 12, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "A guisarme is an 8-foot-long shaft with a blade and a hook mounted at the tip.");
   setweapon(WEAPON_TYPE_HALBERD, "halberd", 1, 10, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 12, 0,
-            WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "A halberd is similar to a 5-foot-long spear, but it also has a small, axe-like head mounted near the tip.");
   setweapon(WEAPON_TYPE_LANCE, "lance", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH | WEAPON_FLAG_CHARGE, 10, DAMAGE_TYPE_PIERCING, 10, 0,
-            WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            WEAPON_FAMILY_POLEARM, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "A steel-tipped spear carried by mounted knights or light cavalry.");
   setweapon(WEAPON_TYPE_RANSEUR, "ranseur", 2, 4, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_REACH, 10, DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_POINT,
+            "Similar in appearance to a trident, a ranseur has a single spear at its tip, f lanked by a pair of short, curving blades.");
   setweapon(WEAPON_TYPE_SCYTHE, "scythe", 2, 4, 0, 4, WEAPON_FLAG_MARTIAL, 18,
             DAMAGE_TYPE_SLASHING | DAMAGE_TYPE_PIERCING, 10, 0, WEAPON_FAMILY_POLEARM, SIZE_LARGE,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "This weapon consists of a long wooden shaft with protruding handles and a sharp curved blade set at a right angle. Derived from a farm tool used to mow down crops, a scythe requires two hands to use, and is unwieldy but capable of inflicting grievous wounds. Its connotations as a symbol of death make it an intimidating weapon.");
   setweapon(WEAPON_TYPE_LONG_BOW, "long bow", 1, 8, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 3, 100, WEAPON_FAMILY_BOW, SIZE_MEDIUM,
-            MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "At almost 5 feet in height, a longbow is made up of one solid piece of carefully curved wood.");
 
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW, "composite long bow", 1, 8, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 100, DAMAGE_TYPE_PIERCING, 3, 110,
-            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_2, "composite long bow (2)", 1, 8, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 200, DAMAGE_TYPE_PIERCING, 3, 110,
-            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_3, "composite long bow (3)", 1, 8, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 300, DAMAGE_TYPE_PIERCING, 3, 110,
-            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_4, "composite long bow (4)", 1, 8, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 400, DAMAGE_TYPE_PIERCING, 3, 110,
-            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_LONGBOW_5, "composite long bow (5)", 1, 8, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 500, DAMAGE_TYPE_PIERCING, 3, 110,
-            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
 
   setweapon(WEAPON_TYPE_SHORT_BOW, "short bow", 1, 6, 0, 3, WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 30, DAMAGE_TYPE_PIERCING, 2, 60, WEAPON_FAMILY_BOW, SIZE_MEDIUM,
-            MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A shortbow is made up of one piece of wood, about 3 feet in length.");
 
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW, "composite short bow", 1, 6, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 75, DAMAGE_TYPE_PIERCING, 2, 70,
-            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_2, "composite short bow (2)", 1, 6, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 175, DAMAGE_TYPE_PIERCING, 2, 70,
-            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_3, "composite short bow (3)", 1, 6, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 275, DAMAGE_TYPE_PIERCING, 2, 70,
-            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_4, "composite short bow (4)", 1, 6, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 375, DAMAGE_TYPE_PIERCING, 2, 70,
-            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
   setweapon(WEAPON_TYPE_COMPOSITE_SHORTBOW_5, "composite short bow (5)", 1, 6, 0, 3,
             WEAPON_FLAG_MARTIAL | WEAPON_FLAG_RANGED, 475, DAMAGE_TYPE_PIERCING, 2, 70,
-            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_BOW, SIZE_SMALL, MATERIAL_WOOD, HANDLE_TYPE_STRING, HEAD_TYPE_BOW,
+            "A composite bow is a traditional bow made from horn, wood, and sinew laminated together, a form of laminated bow. The horn is on the belly, facing the archer, and sinew on the outer side of a wooden core.");
 
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_KAMA, "kama", 1, 6, 0, 2, WEAPON_FLAG_EXOTIC, 2,
             DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE,
+            "Similar to a sickle-and in some regions still used to reap grain-a kama is a short, curved blade attached to a simple handle, usually made of wood. It is sometimes also referred to as a kai, and is frequently used in pairs by martial artists.");
   setweapon(WEAPON_TYPE_NUNCHAKU, "nunchaku", 1, 6, 1, 2, WEAPON_FLAG_EXOTIC, 2,
             DAMAGE_TYPE_BLUDGEONING, 2, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_WOOD,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A nunchaku is made up of two wooden or metal bars connected by a small length of rope or chain.");
   setweapon(WEAPON_TYPE_SAI, "sai", 1, 4, 1, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN,
             1, DAMAGE_TYPE_BLUDGEONING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT,
+            "A sai is a metal spike flanked by a pair of prongs used to trap an enemy’s weapon. Though pointed, a sai is not usually used for stabbing. Instead, it is used primarily to bludgeon foes, punching with the hilt, or else to catch and disarm weapons between its tines. Sais are often wielded in pairs.");
   setweapon(WEAPON_TYPE_SIANGHAM, "siangham", 1, 6, 1, 2, WEAPON_FLAG_EXOTIC, 3,
             DAMAGE_TYPE_PIERCING, 1, 0, WEAPON_FAMILY_MONK, SIZE_SMALL, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_POINT,
+            "This weapon is a handheld shaft fitted with a pointed tip for stabbing foes. It resembles a (much sturdier) arrow with a grip designed for melee combat.");
   setweapon(WEAPON_TYPE_BASTARD_SWORD, "bastard sword", 1, 10, 1, 2, WEAPON_FLAG_EXOTIC,
             35, DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "A bastard sword is about 4 feet in length, making it too large to use in one hand without special training");
   setweapon(WEAPON_TYPE_KHOPESH, "khopesh", 1, 8, 2, 2, WEAPON_FLAG_EXOTIC,
             35, DAMAGE_TYPE_SLASHING, 6, 0, WEAPON_FAMILY_MEDIUM_BLADE, SIZE_MEDIUM, MATERIAL_STEEL,
-            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE);
+            HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "This heavy blade has a convex curve near the end, making its overall shape similar to that of a battleaxe. A typical khopesh is 20 to 24 inches in length. Its curved shape allows the wielder to hook around defenses and trip foes. The elegant shape of a khopesh leads some artisans to cover them in ornate decorations.");
   setweapon(WEAPON_TYPE_DWARVEN_WAR_AXE, "dwarven war axe", 1, 10, 0, 3,
             WEAPON_FLAG_EXOTIC, 30, DAMAGE_TYPE_SLASHING, 8, 0, WEAPON_FAMILY_AXE, SIZE_MEDIUM,
-            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_HANDLE, HEAD_TYPE_BLADE,
+            "A dwarven waraxe has a large, ornate head mounted to a thick handle, making it too large to use in one hand without special training.");
   setweapon(WEAPON_TYPE_WHIP, "whip", 1, 3, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 1, DAMAGE_TYPE_SLASHING, 2, 0, WEAPON_FAMILY_WHIP,
-            SIZE_MEDIUM, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_CORD);
+            SIZE_MEDIUM, MATERIAL_LEATHER, HANDLE_TYPE_HANDLE, HEAD_TYPE_CORD,
+            "An instrument consisting usually of a handle and lash forming a flexible rod that is used for whipping");
   setweapon(WEAPON_TYPE_SPIKED_CHAIN, "spiked chain", 2, 4, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_REACH | WEAPON_FLAG_DISARM | WEAPON_FLAG_TRIP | WEAPON_FLAG_BALANCED, 25, DAMAGE_TYPE_PIERCING, 10, 0,
-            WEAPON_FAMILY_WHIP, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_CHAIN);
+            WEAPON_FAMILY_WHIP, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_CHAIN,
+            "A spiked chain is about 4 feet in length, covered in wicked barbs.");
   setweapon(WEAPON_TYPE_DOUBLE_AXE, "double-headed axe", 1, 8, 0, 3, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 65, DAMAGE_TYPE_SLASHING, 15, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "This polearm has a reinforced wooden haft with a double-bladed battleaxe head at each tip.");
   setweapon(WEAPON_TYPE_DIRE_FLAIL, "dire flail", 1, 8, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 90, DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_DOUBLE, SIZE_LARGE,
-            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+            MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD,
+            "A dire flail consists of two spheres of spiked iron dangling from chains at opposite ends of a long haft. This weapon excels at short but powerful strikes, and is typically swung in a constant churning motion. The wielder of a dire flail must have great strength, both to use the weapon effectively and to keep from tiring out.");
   setweapon(WEAPON_TYPE_HOOKED_HAMMER, "hooked hammer", 1, 6, 0, 4, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 20, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_BLUDGEONING, 6, 0,
-            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD);
+            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD,
+            "A gnome hooked hammer is a double weapon-an ingenious tool with a hammer head at one end of its haft and a long, curved pick at the other.");
   /*	(weapon num, name, numDamDice, sizeDamDice, critRange, critMult, weapon flags, cost, damageType, weight, range, weaponFamily, Size, material, handle, head) */
   setweapon(WEAPON_TYPE_2_BLADED_SWORD, "two-bladed sword", 1, 8, 1, 2,
             WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 100, DAMAGE_TYPE_SLASHING, 10, 0,
-            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "A two-bladed sword is a double weapon-twin blades extend from either side of a central, short haft, allowing the wielder to attack with graceful but deadly flourishes.");
   setweapon(WEAPON_TYPE_DWARVEN_URGOSH, "dwarven urgosh", 1, 7, 0, 3, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_DOUBLE, 50, DAMAGE_TYPE_PIERCING | DAMAGE_TYPE_SLASHING, 12, 0,
-            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE);
+            WEAPON_FAMILY_DOUBLE, SIZE_LARGE, MATERIAL_STEEL, HANDLE_TYPE_SHAFT, HEAD_TYPE_BLADE,
+            "A dwarven urgrosh is a double weapon-an axe head and a spear point on opposite ends of a long haft.");
   setweapon(WEAPON_TYPE_HAND_CROSSBOW, "hand crossbow", 1, 4, 1, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED, 100, DAMAGE_TYPE_PIERCING, 2, 30, WEAPON_FAMILY_CROSSBOW, SIZE_SMALL,
-            MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW,
+            "A hand crossbow is a miniature crossbow that can be wielded and reloaded with one hand.");
   setweapon(WEAPON_TYPE_HEAVY_REP_XBOW, "heavy repeating crossbow", 1, 10, 1, 2,
             WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED | WEAPON_FLAG_REPEATING, 400, DAMAGE_TYPE_PIERCING, 12, 120,
-            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW,
+            "The repeating heavy crossbow holds 5 crossbow bolts. As long as it holds bolts, you can reload it by pulling the reloading lever (a free action).");
   setweapon(WEAPON_TYPE_LIGHT_REP_XBOW, "light repeating crossbow", 1, 8, 1, 2,
             WEAPON_FLAG_EXOTIC | WEAPON_FLAG_RANGED, 250, DAMAGE_TYPE_PIERCING, 6, 80,
-            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW);
+            WEAPON_FAMILY_CROSSBOW, SIZE_MEDIUM, MATERIAL_WOOD, HANDLE_TYPE_HANDLE, HEAD_TYPE_BOW,
+            "The repeating heavy crossbow holds 5 crossbow bolts. As long as it holds bolts, you can reload it by pulling the reloading lever (a free action).");
   setweapon(WEAPON_TYPE_BOLA, "bola", 1, 4, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN | WEAPON_FLAG_TRIP, 5, DAMAGE_TYPE_BLUDGEONING, 2, 10, WEAPON_FAMILY_THROWN, SIZE_MEDIUM,
-            MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_CORD);
+            MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_CORD,
+            "A bolas is a pair of wooden, stone, or metal weights connected by a thin rope or cord.");
   setweapon(WEAPON_TYPE_NET, "net", 1, 1, 0, 1, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN | WEAPON_FLAG_ENTANGLE, 20, DAMAGE_TYPE_BLUDGEONING, 6, 10, WEAPON_FAMILY_THROWN, SIZE_LARGE,
-            MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_MESH);
+            MATERIAL_LEATHER, HANDLE_TYPE_GRIP, HEAD_TYPE_MESH,
+            "Nets can be fitted with weighted edges making them useful for entangling animals and humanoids the same size as the net or smaller.");
   setweapon(WEAPON_TYPE_SHURIKEN, "shuriken", 1, 2, 0, 2, WEAPON_FLAG_EXOTIC | WEAPON_FLAG_THROWN, 1, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_MONK, SIZE_SMALL,
-            MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_BLADE);
+            MATERIAL_STEEL, HANDLE_TYPE_GRIP, HEAD_TYPE_BLADE,
+            "A shuriken is a small piece of metal with sharpened edges, designed for throwing.");
   setweapon(WEAPON_TYPE_WARMAUL, "war maul", 2, 6, 0, 3, WEAPON_FLAG_EXOTIC, 50,
             DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_HAMMER, SIZE_LARGE, MATERIAL_STEEL,
-            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD);
+            HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
+            "A warmaul has one damaging end with two heads; one axe and one hammer.");
 }
 
 /************** ------- ARMOR ----------************************************/
@@ -1188,6 +1265,11 @@ int compute_gear_enhancement_bonus(struct char_data *ch)
     counter += (float)GET_OBJ_VAL(obj, 4) * 1.01;
     /* DON'T increment num_pieces, should get full bang for buck on shields */
   }
+
+  // this spell doubles armor enhancement bonus
+  if (affected_by_spell(ch, SPELL_LITANY_OF_DEFENSE))
+    counter *= 2;
+
   enhancement_bonus += counter;
   counter = 0.1; /* reset the counter for all other slots */
   /* end SPECIAL HANDLING FOR SHIELD */
@@ -1369,6 +1451,9 @@ int compute_gear_armor_penalty(struct char_data *ch)
     armor_penalty = armor_penalty / count;
     armor_penalty += HAS_FEAT(ch, FEAT_ARMOR_TRAINING);
   }
+
+  if (affected_by_spell(ch, SPELL_EFFORTLESS_ARMOR))
+    armor_penalty += get_char_affect_modifier(ch, SPELL_EFFORTLESS_ARMOR, APPLY_SPECIAL);
 
   if (armor_penalty > 0)
     armor_penalty = 0;
@@ -1597,7 +1682,7 @@ int is_proficient_with_armor(struct char_data *ch)
 
 static void setarmor(int type, const char *name, int armorType, int cost, int armorBonus,
                      int dexBonus, int armorCheck, int spellFail, int thirtyFoot,
-                     int twentyFoot, int weight, int material, int wear)
+                     int twentyFoot, int weight, int material, int wear, const char *description)
 {
   armor_list[type].name = name;
   armor_list[type].armorType = armorType;
@@ -1611,11 +1696,13 @@ static void setarmor(int type, const char *name, int armorType, int cost, int ar
   armor_list[type].weight = weight;
   armor_list[type].material = material;
   armor_list[type].wear = wear;
+  armor_list[type].description = description;
 }
 
 void initialize_armor(int type)
 {
   armor_list[type].name = "unused armor";
+  armor_list[type].description = "unused armor";
   armor_list[type].armorType = 0;
   armor_list[type].cost = 0;
   armor_list[type].armorBonus = 0;
@@ -1642,133 +1729,134 @@ void load_armor(void)
   /* UNARMORED */
   setarmor(SPEC_ARMOR_TYPE_CLOTHING, "robe", ARMOR_TYPE_NONE,
            10, 0, 99, 0, 0, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_BODY);
+           1, MATERIAL_COTTON, ITEM_WEAR_BODY,
+           "This can pertain to any type of unarmored clothing.");
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_HEAD, "hood", ARMOR_TYPE_NONE,
            10, 0, 99, 0, 0, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+           1, MATERIAL_COTTON, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_ARMS, "sleeves", ARMOR_TYPE_NONE,
            10, 0, 99, 0, 0, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+           1, MATERIAL_COTTON, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_CLOTHING_LEGS, "pants", ARMOR_TYPE_NONE,
            10, 0, 99, 0, 0, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+           1, MATERIAL_COTTON, ITEM_WEAR_LEGS, "");
 
   /* LIGHT ARMOR ********************/
   setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
            50, 9, 8, 0, 5, 30, 20,
-           7, MATERIAL_COTTON, ITEM_WEAR_BODY);
+           7, MATERIAL_COTTON, ITEM_WEAR_BODY, "More than simple clothing, padded armor combines heavy, quilted cloth and layers of densely packed stuffing to create a cheap and basic protection. It is typically worn by those not intending to face lethal combat or those who wish their maneuverability to be impacted as little as possible.");
   setarmor(SPEC_ARMOR_TYPE_PADDED_HEAD, "padded armor helm", ARMOR_TYPE_LIGHT,
            50, 1, 8, 0, 5, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_HEAD);
+           1, MATERIAL_COTTON, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_PADDED_ARMS, "padded armor sleeves", ARMOR_TYPE_LIGHT,
            50, 1, 8, 0, 5, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_ARMS);
+           1, MATERIAL_COTTON, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_PADDED_LEGS, "padded armor leggings", ARMOR_TYPE_LIGHT,
            50, 1, 8, 0, 5, 30, 20,
-           1, MATERIAL_COTTON, ITEM_WEAR_LEGS);
+           1, MATERIAL_COTTON, ITEM_WEAR_LEGS, "");
 
   setarmor(SPEC_ARMOR_TYPE_LEATHER, "leather armor", ARMOR_TYPE_LIGHT,
            100, 14, 6, 0, 10, 30, 20,
-           9, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+           9, MATERIAL_LEATHER, ITEM_WEAR_BODY, "Leather armor is made up of multiple overlapping pieces of leather, boiled to increase their natural toughness and then deliberately stitched together. Although not as sturdy as metal armor, the flexibility it allows wearers makes it among the most widely used types of armor.");
   setarmor(SPEC_ARMOR_TYPE_LEATHER_HEAD, "leather helm", ARMOR_TYPE_LIGHT,
            100, 4, 6, 0, 10, 30, 20,
-           2, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+           2, MATERIAL_LEATHER, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_LEATHER_ARMS, "leather sleeves", ARMOR_TYPE_LIGHT,
            100, 4, 6, 0, 10, 30, 20,
-           2, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+           2, MATERIAL_LEATHER, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_LEATHER_LEGS, "leather leggings", ARMOR_TYPE_LIGHT,
            100, 4, 6, 0, 10, 30, 20,
-           2, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+           2, MATERIAL_LEATHER, ITEM_WEAR_LEGS, "");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER, "studded leather armor", ARMOR_TYPE_LIGHT,
            250, 20, 5, -1, 15, 30, 20,
-           11, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+           11, MATERIAL_LEATHER, ITEM_WEAR_BODY, "An improved form of leather armor, studded leather armor is covered with dozens of metal protuberances. While these rounded studs offer little defense individually, in the numbers they are arrayed in upon such armor, they help catch lethal edges and channel them away from vital spots. The rigidity caused by the additional metal does, however, result in less mobility than is afforded by a suit of normal leather armor.");
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD, "studded leather helm", ARMOR_TYPE_LIGHT,
            250, 6, 5, -1, 15, 30, 20,
-           3, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+           3, MATERIAL_LEATHER, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS, "studded leather sleeves", ARMOR_TYPE_LIGHT,
            250, 6, 5, -1, 15, 30, 20,
-           3, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+           3, MATERIAL_LEATHER, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS, "studded leather leggings", ARMOR_TYPE_LIGHT,
            250, 6, 5, -1, 15, 30, 20,
-           3, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+           3, MATERIAL_LEATHER, ITEM_WEAR_LEGS, "");
 
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN, "light chainmail armor", ARMOR_TYPE_LIGHT,
            1000, 24, 4, -2, 20, 30, 20,
-           13, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           13, MATERIAL_STEEL, ITEM_WEAR_BODY, "This armor is made up of thousands of interlocking metal rings, laid on top of leather armor.");
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD, "light chainmail helm", ARMOR_TYPE_LIGHT,
            1000, 9, 4, -2, 20, 30, 20,
-           4, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           4, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS, "light chainmail sleeves", ARMOR_TYPE_LIGHT,
            1000, 9, 4, -2, 20, 30, 20,
-           4, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           4, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS, "light chainmail leggings", ARMOR_TYPE_LIGHT,
            1000, 9, 4, -2, 20, 30, 20,
-           4, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           4, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   /******************* MEDIUM ARMOR *******************************************/
 
   setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
            150, 26, 4, -3, 20, 20, 15,
-           13, MATERIAL_LEATHER, ITEM_WEAR_BODY);
+           13, MATERIAL_LEATHER, ITEM_WEAR_BODY, "Hide armor is made from the tanned skin of particularly thick-hided beasts, stitched with either multiple overlapping layers of crude leather or exterior pieces of leather stuffed with padding or fur. Damage to the armor is typically repaired by restitching gashes or adding new pieces of hide, giving the most heavily used suits a distinctively patchwork quality.");
   setarmor(SPEC_ARMOR_TYPE_HIDE_HEAD, "hide helm", ARMOR_TYPE_MEDIUM,
            150, 10, 4, -3, 20, 20, 15,
-           4, MATERIAL_LEATHER, ITEM_WEAR_HEAD);
+           4, MATERIAL_LEATHER, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_HIDE_ARMS, "hide sleeves", ARMOR_TYPE_MEDIUM,
            150, 10, 4, -3, 20, 20, 15,
-           4, MATERIAL_LEATHER, ITEM_WEAR_ARMS);
+           4, MATERIAL_LEATHER, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_HIDE_LEGS, "hide leggings", ARMOR_TYPE_MEDIUM,
            150, 10, 4, -3, 20, 20, 15,
-           4, MATERIAL_LEATHER, ITEM_WEAR_LEGS);
+           4, MATERIAL_LEATHER, ITEM_WEAR_LEGS, "");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SCALE, "scale armor", ARMOR_TYPE_MEDIUM,
            500, 32, 3, -4, 25, 20, 15,
-           15, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           15, MATERIAL_STEEL, ITEM_WEAR_BODY, "Scale mail is made up of dozens of small, overlapping metal plates. Similar to both splint mail and banded mail, scalemail has a flexible arrangement of scales in an attempt to avoid hindering the wearer’s mobility, but at the expense of omitting additional protective layers of armor. A suit of scale mail includes gauntlets.");
   setarmor(SPEC_ARMOR_TYPE_SCALE_HEAD, "scale helm", ARMOR_TYPE_MEDIUM,
            500, 12, 3, -4, 25, 20, 15,
-           5, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           5, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_SCALE_ARMS, "scale sleeves", ARMOR_TYPE_MEDIUM,
            500, 12, 3, -4, 25, 20, 15,
-           5, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           5, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_SCALE_LEGS, "scale leggings", ARMOR_TYPE_MEDIUM,
            500, 12, 3, -4, 25, 20, 15,
-           5, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           5, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL, "chainmail armor", ARMOR_TYPE_MEDIUM,
            1500, 37, 2, -5, 30, 20, 15,
-           27, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           27, MATERIAL_STEEL, ITEM_WEAR_BODY, "Chainmail protects the wearer with a complete mesh of chain links that cover the torso and arms, and extends below the waist. Multiple interconnected pieces offer additional protection over vital areas. The suit includes gauntlets. It uses thicker rings and heavier leather than light chainmail.");
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
            1500, 15, 2, -5, 30, 20, 15,
-           11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           11, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   /* duplicate item */
   setarmor(SPEC_ARMOR_TYPE_CHAIN_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
            1500, 15, 2, -5, 30, 20, 15,
-           11, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           11, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_ARMS, "chainmail sleeves", ARMOR_TYPE_MEDIUM,
            1500, 15, 2, -5, 30, 20, 15,
-           11, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           11, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_LEGS, "chainmail leggings", ARMOR_TYPE_MEDIUM,
            1500, 15, 2, -5, 30, 20, 15,
-           11, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           11, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL, "piecemeal armor", ARMOR_TYPE_MEDIUM,
            2000, 35, 3, -4, 25, 20, 15,
-           19, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           19, MATERIAL_STEEL, ITEM_WEAR_BODY, "This type of armor typically consists of a metal breastplate and mismatched pieces of other different armor types patched together. Though certainly not fashionable, it is nonetheless fairly functional.");
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_HEAD, "piecemeal helm", ARMOR_TYPE_MEDIUM,
            2000, 14, 3, -4, 25, 20, 15,
-           7, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           7, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_ARMS, "piecemeal sleeves", ARMOR_TYPE_MEDIUM,
            2000, 14, 3, -4, 25, 20, 15,
-           7, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           7, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_LEGS, "piecemeal leggings", ARMOR_TYPE_MEDIUM,
            2000, 14, 3, -4, 25, 20, 15,
-           7, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           7, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   /******************* HEAVY ARMOR *******************************************/
 
@@ -1777,74 +1865,74 @@ void load_armor(void)
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SPLINT, "splint mail armor", ARMOR_TYPE_HEAVY,
            2000, 46, 0, -7, 40, 20, 15,
-           21, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           21, MATERIAL_STEEL, ITEM_WEAR_BODY, "Splint mail is made up of overlapping layers of metal strips attached to a backing of leather or sturdy fabric. These splints are of greater size and durability than those that compose a suit of scale mail, improving the protection they afford the wearer, but at the cost of flexibility. A suit of splint mail includes gauntlets.");
   setarmor(SPEC_ARMOR_TYPE_SPLINT_HEAD, "splint mail helm", ARMOR_TYPE_HEAVY,
            2000, 19, 0, -7, 40, 20, 15,
-           8, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           8, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_SPLINT_ARMS, "splint mail sleeves", ARMOR_TYPE_HEAVY,
            2000, 19, 0, -7, 40, 20, 15,
-           8, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           8, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_SPLINT_LEGS, "splint mail leggings", ARMOR_TYPE_HEAVY,
            2000, 19, 0, -7, 40, 20, 15,
-           8, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           8, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   setarmor(SPEC_ARMOR_TYPE_BANDED, "banded mail armor", ARMOR_TYPE_HEAVY,
            2500, 47, 1, -6, 35, 20, 15,
-           17, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           17, MATERIAL_STEEL, ITEM_WEAR_BODY, "Banded mail is made up of overlapping strips of metal, fastened to a sturdy backing of leather and chain. The size of the metal plates, interconnected metal bands, and layers of underlying armor make it a more significant defense than similar armors, like scale mail or splint mail.");
   setarmor(SPEC_ARMOR_TYPE_BANDED_HEAD, "banded mail helm", ARMOR_TYPE_HEAVY,
            2500, 20, 1, -6, 35, 20, 15,
-           6, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           6, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_BANDED_ARMS, "banded mail sleeves", ARMOR_TYPE_HEAVY,
            2500, 20, 1, -6, 35, 20, 15,
-           6, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           6, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_BANDED_LEGS, "banded mail leggings", ARMOR_TYPE_HEAVY,
            2500, 20, 1, -6, 35, 20, 15,
-           6, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           6, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE, "half plate armor", ARMOR_TYPE_HEAVY,
            6000, 52, 1, -6, 40, 20, 15,
-           23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           23, MATERIAL_STEEL, ITEM_WEAR_BODY, "Half-plate armor combines elements of full plate and chainmail, incorporating several sizable plates of sculpted metal with an underlying mesh of chain links. While this suit protects vital areas with several layers of armor, it is not sculpted to a single individual’s frame, reducing its wearer’s mobility even more than a suit of full plate. Half-plate armor includes gauntlets and a helm.");
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_HEAD, "half plate helm", ARMOR_TYPE_HEAVY,
            6000, 22, 1, -6, 40, 20, 15,
-           9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           9, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_ARMS, "half plate sleeves", ARMOR_TYPE_HEAVY,
            6000, 22, 1, -6, 40, 20, 15,
-           9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           9, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_LEGS, "half plate leggings", ARMOR_TYPE_HEAVY,
            6000, 22, 1, -6, 40, 20, 15,
-           9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           9, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE, "full plate armor", ARMOR_TYPE_HEAVY,
            15000, 60, 1, -6, 35, 20, 15,
-           23, MATERIAL_STEEL, ITEM_WEAR_BODY);
+           23, MATERIAL_STEEL, ITEM_WEAR_BODY, "This metal suit comprises multiple pieces of interconnected and overlaying metal plates, incorporating the benefits of numerous types of lesser armor. A complete suit of full plate (or platemail, as it is often called) includes gauntlets, heavy leather boots, a visored helmet, and a thick layer of padding that is worn underneath the armor.");
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_HEAD, "full plate helm", ARMOR_TYPE_HEAVY,
            15000, 25, 1, -6, 35, 20, 15,
-           9, MATERIAL_STEEL, ITEM_WEAR_HEAD);
+           9, MATERIAL_STEEL, ITEM_WEAR_HEAD, "");
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_ARMS, "full plate sleeves", ARMOR_TYPE_HEAVY,
            15000, 25, 1, -6, 35, 20, 15,
-           9, MATERIAL_STEEL, ITEM_WEAR_ARMS);
+           9, MATERIAL_STEEL, ITEM_WEAR_ARMS, "");
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_LEGS, "full plate leggings", ARMOR_TYPE_HEAVY,
            15000, 25, 1, -6, 35, 20, 15,
-           9, MATERIAL_STEEL, ITEM_WEAR_LEGS);
+           9, MATERIAL_STEEL, ITEM_WEAR_LEGS, "");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_BUCKLER, "buckler shield", ARMOR_TYPE_SHIELD,
            150, 10, 99, -1, 5, 999, 999,
-           5, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           5, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "");
   setarmor(SPEC_ARMOR_TYPE_SMALL_SHIELD, "light shield", ARMOR_TYPE_SHIELD,
            90, 15, 99, -1, 5, 999, 999,
-           6, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           6, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "");
   setarmor(SPEC_ARMOR_TYPE_LARGE_SHIELD, "heavy shield", ARMOR_TYPE_SHIELD,
            200, 20, 99, -2, 15, 999, 999,
-           13, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           13, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "");
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
            300, 40, 2, -10, 50, 999, 999,
-           45, MATERIAL_WOOD, ITEM_WEAR_SHIELD);
+           45, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "");
 }
 
 /******* special mixed checks (such as monk) */
@@ -1959,7 +2047,7 @@ ACMD(do_weaponlist_old)
 }
 
 /* list all the weapon defines in-game */
-ACMD(do_armorlist)
+ACMD(do_armorlist_old)
 {
   int i = 0;
   char buf[MAX_STRING_LENGTH];

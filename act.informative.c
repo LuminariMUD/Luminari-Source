@@ -5569,6 +5569,22 @@ ACMD(do_weaponlist)
   column_list(ch, 4, cmd_weapon_names, j, TRUE);
 }
 
+ACMD(do_armorlist)
+{
+
+  const char *cmd_armor_names[NUM_SPEC_ARMOR_SUIT_TYPES-1];
+
+  int j = 0;
+
+  for (j = 1; j < NUM_SPEC_ARMOR_SUIT_TYPES; j++)
+  {
+    cmd_armor_names[j-1] = armor_list[j].name;
+  }
+
+  column_list(ch, 3, cmd_armor_names, j-1, TRUE);
+}
+
+
 int is_weapon_proficient(int weapon, int type)
 {
 
@@ -5877,6 +5893,8 @@ ACMD(do_weaponinfo)
   char buf[MAX_STRING_LENGTH];
   char buf2[100];
   char buf3[100];
+  char buf4[100];
+  char buf5[800];
   size_t len = 0;
   int crit_multi = 0;
   sbyte found = false;
@@ -5886,6 +5904,18 @@ ACMD(do_weaponinfo)
 
     if (!is_abbrev(argument, weapon_list[type].name))
       continue;
+
+    switch (type)
+    {
+      case WEAPON_TYPE_WHIP:
+        snprintf(buf4, sizeof(buf4), "+5 to disarm and trip attempts");
+        break;
+      default:
+        snprintf(buf4, sizeof(buf4), "N/A");
+        break;
+    }
+
+    snprintf(buf5, sizeof(buf5), "%s", weapon_list[type].description);
 
     /* have to do some calculations beforehand */
     switch (weapon_list[type].critMult)
@@ -5910,22 +5940,96 @@ ACMD(do_weaponinfo)
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
-                    "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
-                    "Handle: %s, Head: %s.\r\n",
+                    "\tAType       : \tW%s\tn\n"
+                    "\tADam        : \tW%dd%d\tn\n"
+                    "\tAThreat     : \tW%d%s\tn\n"
+                    "\tACrit-Multi : \tWx%d\tn\n"
+                    "\tAFlags      : \tW%s\tn\n"
+                    "\tACost       : \tW%d\tn\n"
+                    "\tADam-Types  : \tW%s\tn\n"
+                    "\tAWeight     : \tW%d\tn\n"
+                    "\tARange      : \tW%d\tn\n"
+                    "\tAFamily     : \tW%s\tn\n"
+                    "\tASize       : \tW%s\tn\n"
+                    "\tAMaterial   : \tW%s\tn\n"
+                    "\tAHandle     : \tW%s\tn\n"
+                    "\tAHead       : \tW%s\tn\n"
+                    "\tASpecial    : \tW%s\tn\n"
+                    "\tADescription: \r\n\tn%s\tn\n",
                     weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
-                    (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
+                    (20 - weapon_list[type].critRange), weapon_list[type].critRange > 0 ? "-20" : "", crit_multi, buf2, weapon_list[type].cost,
                     buf3, weapon_list[type].weight, weapon_list[type].range,
                     weapon_family[weapon_list[type].weaponFamily],
                     sizes[weapon_list[type].size], material_name[weapon_list[type].material],
                     weapon_handle_types[weapon_list[type].handle_type],
-                    weapon_head_types[weapon_list[type].head_type]);
+                    weapon_head_types[weapon_list[type].head_type],
+                    buf4, strfrmt(buf5, 80, 1, FALSE, FALSE, FALSE));
     found = true;
+    break;
   }
 
   if (!found)
   {
     send_to_char(ch, "That is not a valid weapon type.\r\n");
+    return;
+  }
+
+  page_string(ch->desc, buf, 1);
+}
+
+
+ACMD(do_armorinfo)
+{
+
+  skip_spaces_c(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please specify an armor suit type.\r\n"
+                     "A list can be seen by using the armorlist command.\r\n");
+    return;
+  }
+
+  int type = 0;
+  char buf[MAX_STRING_LENGTH];
+  char buf2[800];
+  size_t len = 0;
+  sbyte found = false;
+
+  for (type = 1; type < NUM_SPEC_ARMOR_SUIT_TYPES; type++)
+  {
+
+    if (!is_abbrev(argument, armor_list[type].name))
+      continue;
+
+    snprintf(buf2, sizeof(buf2), "%s", armor_list[type].description);
+
+    len += snprintf(buf + len, sizeof(buf) - len,
+                    "\tAName          : \tW%s\tn\n"
+                    "\tAType          : \tW%s\tn\n"
+                    "\tACost          : \tW%d\tn\n"
+                    "\tAAC            : \tW%d\tn\n"
+                    "\tAMax Dex       : \tW%d\tn\n"
+                    "\tAArmor Penalty : \tW%s%d\tn\n"
+                    "\tASpell Fail    : \tW%d%%\tn\n"
+                    "\tAWeight        : \tW%d\tn\n"
+                    "\tAMaterial      : \tW%s\tn\n"
+                    "\tADescription   : \r\n\tn%s\tn\n",
+                    armor_list[type].name, armor_type[armor_list[type].armorType],
+                    armor_list[type].cost, armor_suit_ac_bonus[type],
+                    armor_list[type].dexBonus, armor_list[type].armorCheck > 0 ? "-" : "", 
+                    armor_list[type].armorCheck, armor_list[type].spellFail,
+                    armor_suit_weight[type], material_name[armor_list[type].material],
+                    strfrmt(buf2, 80, 1, FALSE, FALSE, FALSE)
+                    );
+                    
+    found = true;
+    break;
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "That is not a valid armor suit type.\r\n");
     return;
   }
 

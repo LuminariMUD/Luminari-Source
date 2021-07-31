@@ -99,6 +99,9 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
 sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyte display);
 void remove_fear_affects(struct char_data *ch, sbyte display);
+bool has_aura_of_good(struct char_data *ch);
+bool has_aura_of_evil(struct char_data *ch);
+bool group_member_affected_by_spell(struct char_data *ch, int spellnum);
 void gui_combat_wrap_open(struct char_data *ch);
 void gui_combat_wrap_notvict_open(struct char_data *ch, struct char_data *vict_obj);
 void gui_combat_wrap_close(struct char_data *ch);

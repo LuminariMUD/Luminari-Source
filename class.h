@@ -109,6 +109,8 @@ bitvector_t find_class_bitvector(const char *arg);
 int invalid_class(struct char_data *ch, struct obj_data *obj);
 int level_exp(struct char_data *ch, int level);
 int parse_class(char arg);
+bool display_weapon_info(struct char_data *ch, const char *weapon);
+bool display_armor_info(struct char_data *ch, const char *armor);
 int parse_class_long(const char *arg);
 void roll_real_abils(struct char_data *ch);
 byte saving_throws(struct char_data *, int type);

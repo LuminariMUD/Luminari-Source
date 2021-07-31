@@ -475,10 +475,17 @@
 #define SPELL_TACTICAL_ACUMEN 411
 #define SPELL_VEIL_OF_POSITIVE_ENERGY 412
 #define SPELL_BESTOW_WEAPON_PROFICIENCY 413
+#define SPELL_EFFORTLESS_ARMOR 414
+#define SPELL_FIRE_OF_ENTANGLEMENT 415
+#define SPELL_LIFE_SHIELD 416
+#define SPELL_LITANY_OF_DEFENSE 417
+#define SPELL_LITANY_OF_RIGHTEOUSNESS 418
+#define SPELL_RIGHTEOUS_VIGOR 419
+#define SPELL_SACRED_SPACE 420
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 414
-#define LAST_SPELL_DEFINE 414
+#define NUM_SPELLS 421
+#define LAST_SPELL_DEFINE 421
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -500,6 +507,8 @@
 #define ABILITY_CHANNEL_NEGATIVE_ENERGY         1208
 #define WEAPON_POISON_BLACK_ADDER_VENOM         1209
 #define SPELL_AFFECT_STUNNING_BARRIER           1210
+#define AFFECT_ENTANGLING_FLAMES                1211
+#define SPELL_EFFECT_DAZZLED                    1212
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
