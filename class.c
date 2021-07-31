@@ -904,6 +904,43 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   return TRUE;
 }
 
+
+/* display a specific weapon details */
+bool display_weapon_info(struct char_data *ch, const char *weapon)
+{
+  int i = 0;
+
+  for (i = 0; i < NUM_WEAPON_TYPES; i++)
+  {
+    if (is_abbrev(weapon, weapon_list[i].name))
+      break;
+  }
+  if (i < 0 || i >= NUM_WEAPON_TYPES)
+  {
+    return FALSE;
+  }
+  do_weaponinfo(ch, weapon, 0, 0);
+  return TRUE;
+}
+
+/* display a specific armor type details */
+bool display_armor_info(struct char_data *ch, const char *armor)
+{
+  int i = 0;
+
+  for (i = 1; i < NUM_SPEC_ARMOR_SUIT_TYPES; i++)
+  {
+    if (is_abbrev(armor, armor_list[i].name))
+      break;
+  }
+  if (i < 0 || i >= NUM_SPEC_ARMOR_SUIT_TYPES)
+  {
+    return FALSE;
+  }
+  do_armorinfo(ch, armor, 0, 0);
+  return TRUE;
+}
+
 /* display a specific classes details */
 bool display_class_info(struct char_data *ch, const char *classname)
 {
@@ -3616,6 +3653,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_SUN_METAL, 1);
   spell_assignment(CLASS_CLERIC, SPELL_STUNNING_BARRIER, 1);
   spell_assignment(CLASS_CLERIC, SPELL_HEDGING_WEAPONS, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_EFFORTLESS_ARMOR, 3);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_CLERIC, SPELL_AUGURY, 3);
@@ -3634,6 +3672,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_BESTOW_WEAPON_PROFICIENCY, 3);
   spell_assignment(CLASS_CLERIC, SPELL_SHIELD_OF_FORTIFICATION, 3);
   spell_assignment(CLASS_CLERIC, SPELL_LESSER_RESTORATION, 3);
+  spell_assignment(CLASS_CLERIC, SPELL_LIFE_SHIELD, 5);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_CLERIC, SPELL_BLESS, 5);
@@ -4213,6 +4252,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_REMOVE_POISON, 5);
   spell_assignment(CLASS_DRUID, SPELL_SPIKE_GROWTH, 5);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_3, 5);
+  spell_assignment(CLASS_DRUID, SPELL_LIFE_SHIELD, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_DRUID, SPELL_BLIGHT, 7);
@@ -4831,6 +4871,11 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_WISDOM, 10);
   spell_assignment(CLASS_PALADIN, SPELL_RESIST_ENERGY, 10);
   spell_assignment(CLASS_PALADIN, SPELL_BESTOW_WEAPON_PROFICIENCY, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_EFFORTLESS_ARMOR, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_FIRE_OF_ENTANGLEMENT, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_LIFE_SHIELD, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_LITANY_OF_DEFENSE, 10);
+  spell_assignment(CLASS_PALADIN, SPELL_LITANY_OF_RIGHTEOUSNESS, 10);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_PALADIN, SPELL_DETECT_ALIGN, 12);
@@ -5001,6 +5046,7 @@ void load_class_list(void)
   //spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_4, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_BESTOW_WEAPON_PROFICIENCY, 10);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_LITANY_OF_DEFENSE, 10);
   
   /*              class num      spell                   level acquired */
   /* 3rd circle */
@@ -5145,6 +5191,7 @@ void load_class_list(void)
   spell_assignment(CLASS_RANGER, SPELL_WISDOM, 10);
   spell_assignment(CLASS_RANGER, SPELL_STRENGTH, 10);
   spell_assignment(CLASS_RANGER, SPELL_SUMMON_NATURES_ALLY_2, 10);
+  spell_assignment(CLASS_RANGER, SPELL_EFFORTLESS_ARMOR, 10);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_RANGER, SPELL_SPIKE_GROWTH, 12);

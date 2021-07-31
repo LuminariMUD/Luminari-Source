@@ -81,7 +81,6 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
 
 // TRUE = reisted
 // FALSE = Failed to resist
-
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
 {
 
@@ -291,6 +290,9 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   {
     challenge += 2;
   }
+
+  if (IN_ROOM(vict) != NOWHERE && ROOM_AFFECTED(IN_ROOM(vict), RAFF_SACRED_SPACE) && IS_EVIL(vict))
+    challenge += 1;
 
   challenge += GET_DC_BONUS(ch);
 
@@ -3386,6 +3388,44 @@ case PSIONIC_BODY_OF_IRON:
     af[0].duration = 400;
     to_vict = "You feel someone protecting you.";
     to_room = "$n is surrounded by magical armor!";
+    break;
+
+
+  case SPELL_RIGHTEOUS_VIGOR:
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = 1;
+    af[0].duration = level;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    to_vict = "Your accuracy improves.";
+    to_room = "$n looks a little stronger.";
+    break;
+
+  case SPELL_LITANY_OF_DEFENSE:
+    if (affected_by_spell(ch, SPELL_LITANY_OF_RIGHTEOUSNESS))
+    {
+      send_to_char(ch, "This spell cannot be cast when you are already under the effect of a 'litany' type spell.\r\n");
+      return;
+    }
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = 10;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    to_vict = "The defensive prowess of your armor is increased.";
+    to_room = "The defensive prowess of $n's armor is increased.";
+    break;
+
+  case SPELL_LITANY_OF_RIGHTEOUSNESS:
+    if (affected_by_spell(ch, SPELL_LITANY_OF_DEFENSE))
+    {
+      send_to_char(ch, "This spell cannot be cast when you are already under the effect of a 'litany' type spell.\r\n");
+      return;
+    }
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = 3;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    to_vict = "You create an aura of righteousness around you and your allies.";
+    to_room = "$n creates an aura of righteousness around $m and $s allies.";
     break;
 
   case SPELL_VEIL_OF_POSITIVE_ENERGY:
@@ -8061,6 +8101,13 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "$n creates a blanket of pitch black.";
     aff = RAFF_DARKNESS;
     rounds = 15;
+    break;
+
+  case SPELL_SACRED_SPACE: //divination
+    to_char = "You create an aura of sacredness in this room.";
+    to_room = "$n creates an aura of sacredness in this room.";
+    aff = RAFF_SACRED_SPACE;
+    rounds = 50;
     break;
 
   case SPELL_DAYLIGHT: //illusion

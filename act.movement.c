@@ -3657,7 +3657,7 @@ int get_speed(struct char_data *ch, sbyte to_display)
   if (monk_gear_ok(ch))
     speed += MIN(60, CLASS_LEVEL(ch, CLASS_MONK) / 3 * 10);
   else if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
-    if (compute_gear_armor_type(ch) <= ARMOR_TYPE_MEDIUM)
+    if (compute_gear_armor_type(ch) <= ARMOR_TYPE_MEDIUM || affected_by_spell(ch, SPELL_EFFORTLESS_ARMOR))
       speed += 10;
 
   if (affected_by_spell(ch, SPELL_GREASE))

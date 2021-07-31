@@ -201,8 +201,9 @@
 #define RAFF_UNHOLY (1 << 11)
 #define RAFF_OBSCURING_MIST (1 << 12)
 #define RAFF_DIFFICULT_TERRAIN (1 << 13)
+#define RAFF_SACRED_SPACE (1 << 14)
 /** The total number of Room Affections */
-#define NUM_RAFF 14
+#define NUM_RAFF 15
 
 /* Zone info: Used in zone_data.zone_flags */
 #define ZONE_CLOSED 0       /**< Zone is closed - players cannot enter */

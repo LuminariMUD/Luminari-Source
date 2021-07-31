@@ -104,6 +104,8 @@ extern const struct con_app_type con_app[];
 extern const struct int_app_type int_app[];
 extern const struct wis_app_type wis_app[];
 extern const struct cha_app_type cha_app[];
+extern const int armor_suit_ac_bonus[];
+extern const int armor_suit_weight[];
 extern int lore_app[];
 extern int rev_dir[];
 extern int movement_loss[];

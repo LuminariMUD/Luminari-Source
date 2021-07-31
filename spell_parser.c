@@ -3424,6 +3424,14 @@ void mag_assign_spells(void)
                 NULL, 1, 8, CONJURATION, FALSE);
         spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, 
                 NULL, 2, 8, NOSCHOOL, FALSE);
+        spello(SPELL_RIGHTEOUS_VIGOR, "righteous vigor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+                "You feel less accurate.", 4, 8, ENCHANTMENT, FALSE);
+        spello(SPELL_LIFE_SHIELD, "life shield", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+                "The dome of positive energy flashes and disappears.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_EFFORTLESS_ARMOR, "effortless armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+                "You feel less agile in your armor.", 4, 8, TRANSMUTATION, FALSE);
+        spello(SPELL_FIRE_OF_ENTANGLEMENT, "fire of entanglement", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+                "The entangling flame around your weapons disappears.", 4, 8, EVOCATION, FALSE);
         spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
                 "You feel less protected.", 4, 8, CONJURATION, FALSE);
         spello(SPELL_BESTOW_WEAPON_PROFICIENCY, "bestow weapon proficiency", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
@@ -3739,7 +3747,12 @@ void mag_assign_spells(void)
         spello(SPELL_AFFECT_STUNNING_BARRIER, "stunning barrier effect", 0, 0, 0, POS_FIGHTING,
                 TAR_IGNORE, FALSE, MAG_AFFECTS,
                 "You are no longer stunned by a stunning barrier.", 1, 1, CONJURATION, FALSE);
-
+        spello(AFFECT_ENTANGLING_FLAMES, "entangling flames effect", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "You are no longer entangled.", 1, 1, EVOCATION, FALSE);
+        spello(SPELL_EFFECT_DAZZLED, "dazzled effect", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "You are no longer dazzled.", 1, 1, EVOCATION, FALSE);        
 
         spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,
                 TAR_IGNORE, FALSE, MAG_AFFECTS,

@@ -3093,6 +3093,25 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       GET_CASTING_CLASS(ch) = CLASS_UNDEFINED;
     }
 
+    else if (!is_spell && victim && IS_EVIL(victim) && group_member_affected_by_spell(ch, SPELL_LITANY_OF_RIGHTEOUSNESS) && has_aura_of_good(ch))
+    {
+      dam *= 2;
+      if (has_aura_of_evil(victim) && !affected_by_spell(victim, SPELL_EFFECT_DAZZLED))
+      {
+        struct affected_type af;
+        new_affect(&af);
+        af.spell = SPELL_EFFECT_DAZZLED;
+        af.location = APPLY_SPECIAL;
+        af.modifier = 0;
+        af.duration = dice(1, 4);
+        SET_BIT_AR(af.bitvector, AFF_DAZZLED);
+        affect_to_char(ch, &af);
+        act("You are dazzled by $n's attack.", false, ch, 0, victim, TO_VICT);
+        act("$N is dazzled by Your attack.", false, ch, 0, victim, TO_CHAR);
+        act("$N is dazzled by $n's attack.", false, ch, 0, victim, TO_NOTVICT);        
+      }
+    }
+
     /* energy absorption system */
     absorb_energy_conversion(ch, dam_type, dam);
     int damage_reduction = compute_energy_absorb(ch, dam_type);
@@ -3557,6 +3576,43 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   dam = MAX(MIN(dam, 999), 0); //damage cap
   GET_HIT(victim) -= dam;
 
+
+  // check for life shield spell
+  if (victim && ch != victim && IS_UNDEAD(ch) && affected_by_spell(victim, SPELL_LIFE_SHIELD))
+  {
+    int threshold = get_char_affect_modifier(victim, SPELL_LIFE_SHIELD, APPLY_SPECIAL);
+    int lifedam = 0;
+    struct affected_type *af = NULL;
+    bool remove_spell = false;
+
+    if (threshold > dam / 2)
+    {
+      threshold -= dam / 2;
+    }
+    else
+    {
+      threshold = dam / 2;
+    }
+    lifedam = dam / 2;
+    damage(victim, ch, lifedam, SPELL_LIFE_SHIELD, DAM_HOLY, FALSE);
+    for (af = victim->affected; af; af = af->next)
+    {
+      if (af->spell == SPELL_LIFE_SHIELD && af->location == APPLY_SPECIAL)
+      {
+        af->modifier -= threshold;
+        if (af->modifier <= 0)
+        {
+          remove_spell = true;
+          break;
+        }
+      }
+    }
+    if (remove_spell)
+    {
+      affect_from_char(victim, SPELL_LIFE_SHIELD);
+    }
+  }
+
   /* xp gain for damage, limiting it more -zusuk */
   if (ch != victim && GET_EXP(victim) && (GET_LEVEL(ch) - GET_LEVEL(victim)) <= 3)
     gain_exp(ch, GET_LEVEL(victim) * dam, GAIN_EXP_MODE_DAMAGE);
@@ -4013,6 +4069,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   dambonus += size_modifiers[GET_SIZE(ch)];
   if (display_mode)
     send_to_char(ch, "Size modifier: \tR%d\tn\r\n", size_modifiers[GET_SIZE(ch)]);
+
+  if (IN_ROOM(ch) != NOWHERE && ROOM_AFFECTED(IN_ROOM(ch), RAFF_SACRED_SPACE) && IS_EVIL(ch))
+  {
+    dambonus -= 1;
+  if (display_mode)
+    send_to_char(ch, "Sacred Space Effect: \tR-1\tn\r\n");
+  }
 
   /* weapon specialist */
   if (HAS_FEAT(ch, FEAT_WEAPON_SPECIALIZATION))
@@ -5822,6 +5885,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     break;
   }
 
+  if (IN_ROOM(ch) != NOWHERE && ROOM_AFFECTED(IN_ROOM(ch), RAFF_SACRED_SPACE) && IS_EVIL(ch))
+    bonuses[BONUS_TYPE_SACRED] -= 1;
+
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
   if (AFF_FLAGGED(ch, AFF_DAZZLED))
@@ -6668,6 +6734,18 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
                           struct obj_data *missile)
 {
 
+  if (affected_by_spell(ch, SPELL_RIGHTEOUS_VIGOR))
+  {
+    struct affected_type *aff = NULL;
+    for (aff = ch->affected; aff; aff = aff->next)
+    {
+      if (aff->spell == SPELL_RIGHTEOUS_VIGOR)
+      {
+        aff->modifier = 1;
+      }
+    }
+  }
+
   /* stunning fist, quivering palm, etc need to be expended even if you miss */
   if (affected_by_spell(ch, SKILL_STUNNING_FIST))
   {
@@ -6746,6 +6824,20 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
 
+  if (affected_by_spell(ch, SPELL_RIGHTEOUS_VIGOR))
+  {
+    struct affected_type *aff = NULL;
+    for (aff = ch->affected; aff; aff = aff->next)
+    {
+      if (aff->spell == SPELL_RIGHTEOUS_VIGOR)
+      {
+        aff->modifier = MIN(4, aff->modifier + 1);
+        GET_HIT(ch) += 2;
+        break;
+      }
+    }
+  }
+
   /* Wrap the message in tags for GUI mode. JTM 1/5/18 */
   //gui_combat_wrap_open(ch);
 
@@ -6815,6 +6907,24 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       send_to_char(victim, "[\tRSMITE-EVIL\tn] ");
       act("$n performs a \tYsmiting\tn attack on $N!",
           FALSE, ch, wielded, victim, TO_NOTVICT);
+    }
+    if (affected_by_spell(ch, SPELL_FIRE_OF_ENTANGLEMENT) && dice(1, 5) == 1)
+    {
+      if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, CASTING_TYPE_DIVINE, DIVINE_LEVEL(ch), EVOCATION) &&
+          !affected_by_spell(victim, AFFECT_ENTANGLING_FLAMES) && !mag_resistance(ch, victim, 0))
+      {
+        send_to_char(ch, "[ENTANGLING-FLAMES] ");
+        send_to_char(victim, "[\tRENTANGLING-FLAMES\tn] ");
+        act("$n entangles $N in chains of flickering flame!", FALSE, ch, wielded, victim, TO_NOTVICT);
+
+        new_affect(&af);
+        af.spell = AFFECT_ENTANGLING_FLAMES;
+        af.duration = DIVINE_LEVEL(ch);
+        af.location = APPLY_NONE;
+        af.modifier = 0;
+        SET_BIT_AR(af.bitvector, AFF_ENTANGLED);
+        affect_to_char(victim, &af);
+      }
     }
   }
   if (affected_by_spell(ch, SKILL_SMITE_GOOD))

@@ -258,7 +258,16 @@ ACMDU(do_help)
   }
   raw_argument = strdup(argument);
   space_to_minus(argument);
-
+  if (display_weapon_info(ch, raw_argument))
+  {
+    free(raw_argument);
+    return;
+  }
+  if (display_armor_info(ch, raw_argument))
+  {
+    free(raw_argument);
+    return;
+  }
   if (display_class_info(ch, raw_argument))
   {
     free(raw_argument);

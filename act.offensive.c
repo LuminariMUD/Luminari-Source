@@ -620,6 +620,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     break;
   case SKILL_TRIP:
     attack_check = GET_DEX_BONUS(ch);
+    // whips give a +5 bonus to the check
+    if (GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP ||
+      GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP ||
+      GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP)
+    {
+      attack_check += 5;  
+    }
     if (is_flying(vict))
     {
       send_to_char(ch, "Impossible, your target is flying!\r\n");
@@ -6950,6 +6957,14 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
   {
     // Trying an unarmed disarm, -4.
     mod -= 4;
+  }
+
+  // whips give a +5 bonus to the check
+  if (GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP ||
+    GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP ||
+    GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP)
+  {
+    mod += 5;  
   }
 
   int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM, mod);
