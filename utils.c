@@ -5203,6 +5203,7 @@ bool can_spell_be_revoked(int spellnum)
     case PSIONIC_BARRED_MIND_PERSONAL:
     case PSIONIC_TRUE_METABOLISM:
     case PSIONIC_ASSIMILATE:
+    case PSIONIC_CONCUSSIVE_ONSLAUGHT:
       return true;
   }
   return false;

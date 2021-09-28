@@ -355,6 +355,7 @@ ACMD_DECL(do_outfit);
 int has_boat(struct char_data *ch, room_rnum going_to);
 int has_flight(struct char_data *ch);
 int change_position(struct char_data *ch, int position);
+int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive);
 
 /* Functions with subcommands */
 /* do_gen_door */
