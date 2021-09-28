@@ -5940,22 +5940,22 @@ ACMD(do_weaponinfo)
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tAType       : \tW%s\tn\n"
-                    "\tADam        : \tW%dd%d\tn\n"
-                    "\tAThreat     : \tW%d%s\tn\n"
-                    "\tACrit-Multi : \tWx%d\tn\n"
-                    "\tAFlags      : \tW%s\tn\n"
-                    "\tACost       : \tW%d\tn\n"
-                    "\tADam-Types  : \tW%s\tn\n"
-                    "\tAWeight     : \tW%d\tn\n"
-                    "\tARange      : \tW%d\tn\n"
-                    "\tAFamily     : \tW%s\tn\n"
-                    "\tASize       : \tW%s\tn\n"
-                    "\tAMaterial   : \tW%s\tn\n"
-                    "\tAHandle     : \tW%s\tn\n"
-                    "\tAHead       : \tW%s\tn\n"
-                    "\tASpecial    : \tW%s\tn\n"
-                    "\tADescription: \r\n\tn%s\tn\n",
+                    "\tCType       : \tW%s\tn\n"
+                    "\tCDam        : \tW%dd%d\tn\n"
+                    "\tCThreat     : \tW%d%s\tn\n"
+                    "\tCCrit-Multi : \tWx%d\tn\n"
+                    "\tCFlags      : \tW%s\tn\n"
+                    "\tCCost       : \tW%d\tn\n"
+                    "\tCDam-Types  : \tW%s\tn\n"
+                    "\tCWeight     : \tW%d\tn\n"
+                    "\tCRange      : \tW%d\tn\n"
+                    "\tCFamily     : \tW%s\tn\n"
+                    "\tCSize       : \tW%s\tn\n"
+                    "\tCMaterial   : \tW%s\tn\n"
+                    "\tCHandle     : \tW%s\tn\n"
+                    "\tCHead       : \tW%s\tn\n"
+                    "\tCSpecial    : \tW%s\tn\n"
+                    "\tCDescription: \r\n\tn%s\tn\n",
                     weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
                     (20 - weapon_list[type].critRange), weapon_list[type].critRange > 0 ? "-20" : "", crit_multi, buf2, weapon_list[type].cost,
                     buf3, weapon_list[type].weight, weapon_list[type].range,
@@ -6005,16 +6005,16 @@ ACMD(do_armorinfo)
     snprintf(buf2, sizeof(buf2), "%s", armor_list[type].description);
 
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tAName          : \tW%s\tn\n"
-                    "\tAType          : \tW%s\tn\n"
-                    "\tACost          : \tW%d\tn\n"
-                    "\tAAC            : \tW%d\tn\n"
-                    "\tAMax Dex       : \tW%d\tn\n"
-                    "\tAArmor Penalty : \tW%s%d\tn\n"
-                    "\tASpell Fail    : \tW%d%%\tn\n"
-                    "\tAWeight        : \tW%d\tn\n"
-                    "\tAMaterial      : \tW%s\tn\n"
-                    "\tADescription   : \r\n\tn%s\tn\n",
+                    "\tCName          : \tW%s\tn\n"
+                    "\tCType          : \tW%s\tn\n"
+                    "\tCCost          : \tW%d\tn\n"
+                    "\tCAC            : \tW%d\tn\n"
+                    "\tCMax Dex       : \tW%d\tn\n"
+                    "\tCArmor Penalty : \tW%s%d\tn\n"
+                    "\tCSpell Fail    : \tW%d%%\tn\n"
+                    "\tCWeight        : \tW%d\tn\n"
+                    "\tCMaterial      : \tW%s\tn\n"
+                    "\tCDescription   : \r\n\tn%s\tn\n",
                     armor_list[type].name, armor_type[armor_list[type].armorType],
                     armor_list[type].cost, armor_suit_ac_bonus[type],
                     armor_list[type].dexBonus, armor_list[type].armorCheck > 0 ? "-" : "", 

@@ -621,9 +621,9 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   case SKILL_TRIP:
     attack_check = GET_DEX_BONUS(ch);
     // whips give a +5 bonus to the check
-    if (GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP ||
-      GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP ||
-      GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP)
+    if ((GET_EQ(ch, WEAR_WIELD_1) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP) ||
+      (GET_EQ(ch, WEAR_WIELD_2H) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
+      (GET_EQ(ch, WEAR_WIELD_OFFHAND) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
     {
       attack_check += 5;  
     }
@@ -4244,6 +4244,9 @@ ACMD(do_fey_magic)
     act("You touch $N, who bursts into uncontrolable laughter.", false, ch, 0, victim, TO_CHAR);
     act("$n touches you causing you to burst into uncontrolable laughter.", false, ch, 0, victim, TO_VICT);
     act("$n touches $N, who bursts into uncontrolable laughter.", false, ch, 0, victim, TO_NOTVICT);
+    
+    call_magic(ch, ch, NULL, SPELL_HIDEOUS_LAUGHTER, 0, compute_arcane_level(ch), CAST_INNATE);
+
     USE_STANDARD_ACTION(victim);
 
     if (LAUGHING_TOUCH_TIMER(ch) <= 0)
@@ -6960,9 +6963,9 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
   }
 
   // whips give a +5 bonus to the check
-  if (GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP ||
-    GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP ||
-    GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP)
+  if ((GET_EQ(ch, WEAR_WIELD_1) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP) ||
+      (GET_EQ(ch, WEAR_WIELD_2H) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
+      (GET_EQ(ch, WEAR_WIELD_OFFHAND) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
   {
     mod += 5;  
   }

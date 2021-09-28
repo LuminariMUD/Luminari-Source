@@ -1944,8 +1944,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
 int perform_move(struct char_data *ch, int dir, int need_specials_check)
 {
+  return perform_move_full(ch, dir, need_specials_check, true);
+}
+
+int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive)
+{
   room_rnum was_in;
   struct follow_type *k, *next;
+  char open_cmd[MEDIUM_STRING];
 
   if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS)
     return (0);
@@ -1963,10 +1969,22 @@ int perform_move(struct char_data *ch, int dir, int need_specials_check)
     send_to_char(ch, "You can't, you are falling!!!\r\n");
   else if (EXIT_FLAGGED(EXIT(ch, dir), EX_CLOSED) && (GET_LEVEL(ch) < LVL_IMMORT || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))))
   {
-    if (EXIT(ch, dir)->keyword)
-      send_to_char(ch, "The %s seems to be closed.\r\n", fname(EXIT(ch, dir)->keyword));
+    if ((!IS_NPC(ch)) && (PRF_FLAGGED(ch, PRF_AUTODOOR)) && recursive)
+    {
+      snprintf(open_cmd, sizeof(open_cmd), " %s", dirs[dir]);
+      //send_to_char(ch, "CMD: %s\r\n", open_cmd);
+      do_gen_door(ch, open_cmd, 0, SCMD_OPEN);
+      snprintf(open_cmd, sizeof(open_cmd), "You open the %s to the %s.", EXIT(ch, dir)->keyword, dirs[dir]);
+      act(open_cmd, FALSE, ch, 0, 0, TO_CHAR);
+      return perform_move_full(ch, dir, need_specials_check, false);
+    }
     else
-      send_to_char(ch, "It seems to be closed.\r\n");
+    {
+      if (EXIT(ch, dir)->keyword)
+        send_to_char(ch, "The %s seems to be closed.\r\n", fname(EXIT(ch, dir)->keyword));
+      else
+        send_to_char(ch, "It seems to be closed.\r\n");
+    }
   }
   else if (in_encounter_room(ch) && !is_peaceful_encounter(ch))
   {
