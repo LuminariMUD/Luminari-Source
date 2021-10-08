@@ -424,6 +424,7 @@ ACMD_DECL(do_fey_magic);
 ACMDCHECK(can_fey_magic);
 ACMD_DECL(do_grave_magic);
 ACMDCHECK(can_grave_magic);
+ACMD_DECL(do_mark);
 
 /* Functions without subcommands */
 ACMD_DECL(do_exchange);

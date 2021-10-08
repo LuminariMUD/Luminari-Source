@@ -35,6 +35,7 @@ extern struct char_data *character_list;
 // External Functions
 room_rnum find_target_room(struct char_data *ch, char *rawroomstr);
 int is_player_grouped(struct char_data *target, struct char_data *group);
+int find_first_step(room_rnum src, room_rnum target);
 
 // To get the map coords, use the coords found in the wilderness area where the zone connects.
 // Same applies to the airship map points below. Map point will be the spot where the airship tower is.
@@ -83,6 +84,27 @@ const char *airship_locales[][7] = {
   {"Continent1",                      "15209", "3000",   "No Faction", "Low and mid level zones, main questline", "0", "0"},
   {"Continent2",                      "15208", "3000",   "No Faction", "home of the dragonarmies & knights of takhisis", "500", "500"},
   {"always the last item",            "0",     "0",      "Nowhere", "nothing", "0", "0"}
+};
+
+const char * walkto_landmarks[][4] = {
+  // Ashenport
+  {"1030", "103009", "jade jug inn",     "Alerion, Henchmen, Huntsmaster, Missions"},
+  {"1030", "103006", "bazaar",           "Purchase gear with quest points"},
+  {"1030", "103000", "north gate",       "north gate of ashenport, fast travel carriages"},
+  {"1030", "103451", "east gate",        "east gate of ashenport"},
+  {"1030", "103002", "south gate",       "south gate of ashenport"},
+  {"1030", "103051", "magic shop",       "magic items"},
+  {"1030", "103022", "general store",    "general items, bags, lights"},
+  {"1030", "103059", "crafting shop",    "weapon molds for crafting"},
+  {"1030", "103456", "bard guild",       "musical instruments"},
+  {"1030", "103465", "black market",     "rogue tools, weapon poisons"},
+  {"1030", "103385", "stables",          "mounts for sale"},
+  {"1030", "103021", "bank",             "deposit and withdraw coins"},
+  {"1030", "103047", "library",          "research wizard spells"},
+  {"1030", "103487", "armor shop",       "sells +1 armor"},
+  {"1030", "103488", "weapon shop",      "sells +1 weapons"},
+  {"1030", "103016", "post office",      "send and receive mail"},
+  {"0",    "", "always last item", ""}
 };
 
 ACMDU(do_carriage) {
@@ -434,4 +456,148 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
   distance /= 2;
 
   return distance;
+}
+
+const char *get_walkto_location_name(int locale_vnum)
+{
+
+  int i = 0;
+
+  if (locale_vnum == 0)
+  {
+    return "WALKTO NAME ERROR 1!";
+  }
+
+  while (atoi(walkto_landmarks[i][0]) != 0) {
+    if (locale_vnum == atoi(walkto_landmarks[i][1]))
+    {
+      return walkto_landmarks[i][2];
+    }
+    i++;
+  }
+
+  return "WALKTO NAME ERROR 2!";
+
+}
+
+ACMDU(do_walkto)
+{
+
+  int i = 0;
+  bool found = false;
+  int zone = 0;
+  int landmark = 0;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You need to specify the landmark you wish to travel to.  Type 'LANDMARKS' for a list.\r\n");
+    send_to_char(ch, "You can type 'walkto cancel' to cancel your current walkto action.\r\n");
+    return;
+  }
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "You cannot use this command here.\r\n");
+    return;
+  }
+
+  if (is_abbrev(argument, "cancel"))
+  {
+    send_to_char(ch, "You stop walking to the %s", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+    GET_WALKTO_LOC(ch) = 0;
+    return;
+  }
+
+  while ((zone = atoi(walkto_landmarks[i][0])) != 0) {
+    if (zone == zone_table[world[IN_ROOM(ch)].zone].number)
+    {
+      if (is_abbrev(argument, walkto_landmarks[i][2]))
+      {
+        landmark = atoi(walkto_landmarks[i][1]);
+        found = true;
+        break;
+      }
+    }
+    i++;
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "That is not a valid landmark you to travel to.  Type 'LANDMARKS' for a list.\r\n");
+    return;
+  }
+
+  GET_WALKTO_LOC(ch) = landmark;
+  send_to_char(ch, "You begin walking to the %s.\r\n", get_walkto_location_name(landmark));
+
+}
+
+ACMD(do_landmarks)
+{
+  int i = 0, zone = 0, count = 0;
+  bool found = false;
+
+  if (IN_ROOM(ch) == NOWHERE)
+  {
+    send_to_char(ch, "You cannot use this command right now.\r\n");
+    return;
+  }
+  
+  while ((zone = atoi(walkto_landmarks[i][0])) != 0) {
+    if (zone == zone_table[world[IN_ROOM(ch)].zone].number)
+    {
+      if (count == 0)
+      {
+        send_to_char(ch, "\tC%-25s - %s\tn\r\n", "LANDMARK NAME", "DESCRIPTION");
+      }
+      send_to_char(ch, "%-25s - %s\r\n", walkto_landmarks[i][2], walkto_landmarks[i][3]);
+      found = true;
+      count++;
+    }
+    i++;
+  }
+
+  send_to_char(ch, "\r\n");
+
+  if (!found)
+    send_to_char(ch, "There are no landmarks in this area.\r\n");
+}
+
+void process_walkto_actions(void)
+{
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+  int dir = 0;
+  room_rnum destination = NOWHERE;
+
+  for (d = descriptor_list; d; d = d->next)
+  {
+    ch = d->character;
+    if (!ch) continue;
+    if (!GET_WALKTO_LOC(ch)) continue;
+    destination = real_room(GET_WALKTO_LOC(ch));
+    if (destination == NOWHERE) continue;
+    if ((dir = find_first_step(IN_ROOM(ch), destination)) < 0)
+    {
+      send_to_char(ch, "Your walk to the %s has been interrupted %d.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)), dir);
+      GET_WALKTO_LOC(ch) = 0;
+      continue;
+    }
+    else
+    {
+      perform_move(ch, dir, 1);
+      if (IN_ROOM(ch) == destination)
+      {
+        send_to_char(ch, "You have arrived at the %s.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+        GET_WALKTO_LOC(ch) = 0;
+      }
+      else
+      {
+        send_to_char(ch, "You continue walking to the %s.  Type walkto cancel to stop.\r\n", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+      }
+    }
+
+  }
 }

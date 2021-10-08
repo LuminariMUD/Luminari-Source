@@ -36,6 +36,7 @@
 #include "encounters.h"
 #include "hunts.h"
 #include "class.h"
+#include "transport.h"
 
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
@@ -1237,6 +1238,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         send_to_char(ch, "You are too exhausted to follow.\r\n");
       else
         send_to_char(ch, "You are too exhausted.\r\n");
+
+      send_to_char(ch, "You stop walking to the %s", get_walkto_location_name(GET_WALKTO_LOC(ch)));
+      GET_WALKTO_LOC(ch) = 0;
 
       return (0);
     }

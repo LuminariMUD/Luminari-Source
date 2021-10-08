@@ -4420,6 +4420,8 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
   if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
     bonus -= 4;
 
+  bonus += HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS);
+
   return bonus;
 }
 
@@ -5536,4 +5538,56 @@ bool is_paladin_mount(struct char_data *ch, struct char_data *victim)
       return true;
   }
   return false;
+}
+
+
+// determines if vict is a valid mark target for various
+// assassin feat functionality
+bool is_marked_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!ch || !vict) return false;
+
+  if (!HAS_FEAT(ch, FEAT_DEATH_ATTACK))
+    return false;
+
+  if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+    return true;
+
+  if (GET_MARK(ch) == vict && GET_MARK_ROUNDS(ch) >= 3)
+    return true;
+
+  return false;
+}
+
+// applies any special affects an assassin has when performing a backstab on
+// a marked target
+void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict)
+{
+
+  if (is_marked_target(ch, vict))
+  {
+    if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
+    {
+      GET_MARK_HIT_BONUS(ch) += 2;
+      GET_MARK_DAM_BONUS(ch) += 10;
+    }
+    if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+    {
+      GET_MARK_HIT_BONUS(ch) += 3;
+      GET_MARK_DAM_BONUS(ch) += 10;
+    }
+    if (HAS_FEAT(ch, FEAT_QUIET_DEATH) && !affected_by_spell(ch, SPELL_GREATER_INVIS) && !affected_by_spell(ch, SPELL_INVISIBLE))
+    {
+      act("You fade from view as you perform your death attack.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n fades into invisibility as $e performs a death attack.", TRUE, ch, 0, 0, TO_ROOM);
+      
+      struct affected_type invis_effect;
+
+      new_affect(&invis_effect);
+      invis_effect.spell = SPELL_GREATER_INVIS;
+      invis_effect.duration = 3;
+      SET_BIT_AR(invis_effect.bitvector, AFF_INVISIBLE);
+      affect_join(ch, &invis_effect, TRUE, FALSE, FALSE, FALSE);
+    }
+  }
 }

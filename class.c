@@ -1362,6 +1362,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_ELDRITCH_KNIGHT:
   case CLASS_SPELLSWORD:
   case CLASS_PSIONICIST:
+  case CLASS_ASSASSIN:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1536,6 +1537,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_PSIONICIST;
   if (is_abbrev(arg, "blackguard"))
     return CLASS_BLACKGUARD;
+  if (is_abbrev(arg, "assassin"))
+    return CLASS_ASSASSIN;  
 
   return CLASS_UNDEFINED;
 }
@@ -3193,7 +3196,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_STALWART_DEFENDER:
   case CLASS_SHIFTER:
   case CLASS_DUELIST:
-    //    case CLASS_ASSASSIN:
+  case CLASS_ASSASSIN:
   case CLASS_SHADOW_DANCER:
   case CLASS_ARCANE_ARCHER:
   case CLASS_ARCANE_SHADOW:
@@ -6576,6 +6579,80 @@ void load_class_list(void)
   /* no spell assignment */
   /* class prereqs */
   /****************************************************************************/
+
+/****************************************************************************/
+  /*     class-number  name     abrv   clr-abrv     menu-name*/
+  classo(CLASS_ASSASSIN, "assassin", "Asn", "\tDAsn\tn", "t) \tDAssassin\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
+         10, Y, Y, M, 8, 0, 2, 4, Y, 5000, 0,
+         /*prestige spell progression*/ "none",
+         /*descrip*/ "A mercenary undertaking his task with cold, professional detachment, the assassin "
+        "is equally adept at espionage, bounty hunting, and terrorism. At his core, an "
+        "assassin is an artisan, and his medium is death. Trained in a variety of killing "
+        "techniques, assassins are among the most feared classes. Assassins tend to be "
+        "loners by nature, seeing companions as liabilities at best. Sometimes an "
+        "assassin's missions put him in the company of adventurers for long stretches at "
+        "a time, but few people are comfortable trusting a professional assassin to watch "
+        "their backs in a fight, and are more likely to let the emotionless killer scout "
+        "ahead or help prepare ambushes.");
+  /* class-number then saves: fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_ASSASSIN, B, G, B, B, B);
+  assign_class_abils(CLASS_ASSASSIN, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CA, CA, CA, CA, CA, CC, CC,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CC, CA, CA, CA, CA, CA,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CC, CA, CA, CA, CC, CA,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CA, CA, CC);
+  assign_class_titles(CLASS_ASSASSIN,                 /* class number */
+                      "",                             /* <= 4  */
+                      "the Assassin",                 /* <= 9  */
+                      "the Assassin",                 /* <= 14 */
+                      "the Assassin",                 /* <= 19 */
+                      "the Assassin",                 /* <= 24 */
+                      "the Assassin",                 /* <= 29 */
+                      "the Assassin",                 /* <= 30 */
+                      "the Assassin",                 /* <= LVL_IMMORT */
+                      "the Assassin",                 /* <= LVL_STAFF */
+                      "the Assassin",                 /* <= LVL_GRSTAFF */
+                      "the Assassin"                  /* default */
+  );
+  /* feat assignment */
+  /*              class num     feat                           cfeat lvl stack */
+  feat_assignment(CLASS_ASSASSIN, FEAT_WEAPON_PROFICIENCY_ASSASSIN, Y, 1, N);
+  feat_assignment(CLASS_ASSASSIN, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 1, Y);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 2, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_UNCANNY_DODGE, Y, 2, N);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 3, Y);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_HIDDEN_WEAPONS, Y, 4, N);
+  feat_assignment(CLASS_ASSASSIN, FEAT_TRUE_DEATH, Y, 4, N);
+  feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 4, Y);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 5, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_IMPROVED_UNCANNY_DODGE, Y, 5, N);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 6, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_QUIET_DEATH, Y, 6, N);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 7, Y);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 8, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_HIDE_IN_PLAIN_SIGHT, Y, 8, N);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 9, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_SWIFT_DEATH, Y, 9, N);
+
+  feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 10, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_ANGEL_OF_DEATH, Y, 10, N);
+
+  class_prereq_ability(CLASS_ASSASSIN, ABILITY_PERFORM, 2);
+  class_prereq_ability(CLASS_ASSASSIN, ABILITY_STEALTH, 5);
 
   /****************************************************************************/
   /****************************************************************************/

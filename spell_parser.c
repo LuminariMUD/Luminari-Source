@@ -3761,6 +3761,10 @@ void mag_assign_spells(void)
                 TAR_IGNORE, FALSE, MAG_AFFECTS,
                 "Your double manifest expires.", 1, 1, NOSCHOOL, FALSE);        
 
+        spello(SPELL_AFFECT_DEATH_ATTACK, "death attack paralyzation", 0, 0, 0, POS_FIGHTING,
+                TAR_IGNORE, FALSE, MAG_AFFECTS,
+                "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
+                
         /*
    spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,

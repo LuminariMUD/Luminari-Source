@@ -434,6 +434,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
+    {"landmarks", "landmarks", POS_DEAD, do_landmarks, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"levels", "lev", POS_DEAD, do_levels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -458,6 +459,7 @@ cpp_extern const struct command_info cmd_info[] = {
     //  { "mail", "mail", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mail", "mail", POS_STANDING, do_new_mail, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -734,6 +736,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"wake", "wake", POS_SLEEPING, do_wake, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"walkto", "walkto", POS_STANDING, do_walkto, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"wear", "wea", POS_RESTING, do_wear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"weather", "weather", POS_RECLINING, do_weather, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"who", "wh", POS_DEAD, do_who, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

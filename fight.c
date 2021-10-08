@@ -1500,6 +1500,9 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
 
+  GET_MARK(killer) = NULL;
+  GET_MARK_ROUNDS(killer) = 0;
+
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
   {
@@ -4090,6 +4093,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  if (!display_mode)
+  {
+    // Assassin stuff
+    dambonus += GET_MARK_DAM_BONUS(ch);
+    GET_MARK_DAM_BONUS(ch) = 0;
+  }
+
   if (vict) {
     if (HAS_FEAT(ch, FEAT_ALIGNED_ATTACK_GOOD) && IS_GOOD(vict))
       dambonus += 2;
@@ -6054,6 +6064,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     if (affected_by_spell(victim, SKILL_SMITE_GOOD) && smite_good_target_type(ch))
       bonuses[BONUS_TYPE_UNDEFINED] -= 4;
   }
+
+  // Assassin stuff
+  bonuses[BONUS_TYPE_UNDEFINED] += GET_MARK_HIT_BONUS(ch);
+  GET_MARK_HIT_BONUS(ch) = 0;
 
   /* EPIC PROWESS feat stacks, +1 for each time the feat is taken. */
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_PROWESS))

@@ -2298,6 +2298,17 @@ void char_from_furniture(struct char_data *ch);
 #define STORED_WANDS(ch, snum)        (ch->player_specials->saved.wands[snum])
 #define STORED_STAVES(ch, snum)       (ch->player_specials->saved.staves[snum])
 
+// Assassin feats and functionality
+#define GET_MARK_ROUNDS(ch)       (ch->player_specials->mark_rounds)
+#define GET_MARK(ch)              (ch->player_specials->mark_target)
+#define GET_MARK_HIT_BONUS(ch)    (ch->player_specials->death_attack_hit_bonus)
+#define GET_MARK_DAM_BONUS(ch)    (ch->player_specials->death_attack_dam_bonus)
+bool is_marked_target(struct char_data *ch, struct char_data *vict);
+void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
+
+// Walkto functionality
+#define GET_WALKTO_LOC(ch)        (ch->player_specials->walkto_location)
+
 #endif /* _UTILS_H_ */
 
 /*EOF*/

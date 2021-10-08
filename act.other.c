@@ -1134,7 +1134,7 @@ ACMD(do_applypoison)
   }
 
   /* 5% of failure */
-  if (rand_number(0, 19))
+  if (rand_number(0, 19) || HAS_FEAT(ch, FEAT_POISON_USE))
   {
     char buf1[MEDIUM_STRING] = {'\0'};
     char buf2[MEDIUM_STRING] = {'\0'};
@@ -1151,9 +1151,9 @@ ACMD(do_applypoison)
     }
     else
     {
-      weapon->weapon_poison.poison_hits = GET_OBJ_VAL(poison, 3);
+      weapon->weapon_poison.poison_hits = (int) (GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
-      weapon->weapon_poison.poison_level = GET_OBJ_VAL(poison, 1);
+      weapon->weapon_poison.poison_level = (int) MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
                poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
