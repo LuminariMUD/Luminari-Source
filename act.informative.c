@@ -89,6 +89,7 @@ int boot_high = 0;
 #define WPT_DUERGAR 11
 #define WPT_PSIONICIST 12
 #define WPT_SHADOWDANCER 13
+#define WPT_ASSASSIN 14
 
 /*******  UTILITY FUNCTIONS ***********/
 
@@ -5758,6 +5759,26 @@ int is_weapon_proficient(int weapon, int type)
       return TRUE;
     }
   }
+  else if (type == WPT_ASSASSIN)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_DART:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+    case WEAPON_TYPE_SHORT_SWORD:
+      return TRUE;
+    }
+  }
 
   /* nothing! */
   return false;
@@ -5784,6 +5805,7 @@ ACMD(do_weaponproficiencies)
                      "duergar\r\n"
                      "psionicist\r\n"
                      "shadowdancer\r\n"
+                     "assassin\r\n"
                      "\r\n");
     return;
   }
@@ -5846,6 +5868,10 @@ ACMD(do_weaponproficiencies)
   {
     type = WPT_SHADOWDANCER;
   }
+  else if (is_abbrev(argument, "assassin"))
+  {
+    type = WPT_ASSASSIN;
+  }
   else
   {
     send_to_char(ch, "Please specify one of the following weapon proficiency types:\r\n"
@@ -5863,6 +5889,7 @@ ACMD(do_weaponproficiencies)
                      "duergar\r\n"
                      "psionicist\r\n"
                      "shadowdancer\r\n"
+                     "assassin\r\n"
                      "\r\n");
     return;
   }

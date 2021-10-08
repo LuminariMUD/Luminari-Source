@@ -1223,6 +1223,15 @@ void update_player_misc(void)
         send_to_char(ch, "Your incorporeal form (undead bloodline) uses have been refreshed.\r\n");
       }
     }
+    
+    if (GET_MARK(ch) && GET_MARK_ROUNDS(ch) < 3)
+    {
+        GET_MARK_ROUNDS(ch) += 1;
+        if (GET_MARK_ROUNDS(ch) == 3)
+            send_to_char(ch, "You have finished marking your target.\r\n");
+        else
+            send_to_char(ch, "You continue to mark your target.\r\n");
+    }
   }
 }
 

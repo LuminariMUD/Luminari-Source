@@ -1716,8 +1716,14 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     }
     else
     {
+      apply_assassin_backstab_bonuses(ch, vict);
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
       make_aware = TRUE;
+      // hidden weapons feat grants an extra attack
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(ch, ABILITY_PERCEPTION)))
+      {
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
     }
     successful++;
   }
@@ -1740,6 +1746,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     }
     else
     {
+      apply_assassin_backstab_bonuses(ch, vict);
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
       make_aware = TRUE;
     }
@@ -1764,8 +1771,14 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     }
     else
     {
+      apply_assassin_backstab_bonuses(ch, vict);
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
       make_aware = TRUE;
+      // hidden weapons feat grants an extra attack
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(ch, ABILITY_PERCEPTION)))
+      {
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
     }
     successful++;
   }
@@ -1783,7 +1796,26 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       affect_join(vict, &aware_affect, TRUE, FALSE, FALSE, FALSE);
     }
 
-    if (HAS_FEAT(ch, FEAT_BACKSTAB) <= 0)
+    if (is_marked_target(ch, vict))
+    {
+      if (!AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
+          !mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_ASSASSIN), NOSCHOOL))
+      {
+        struct affected_type death_attack;
+
+        new_affect(&death_attack);
+        death_attack.spell = SPELL_AFFECT_DEATH_ATTACK;
+        death_attack.duration = 2;
+        SET_BIT_AR(death_attack.bitvector, AFF_PARALYZED);
+        affect_join(vict, &death_attack, TRUE, FALSE, FALSE, FALSE);
+      }
+    }
+
+    if (HAS_FEAT(ch, FEAT_SWIFT_DEATH))
+    {
+      USE_SWIFT_ACTION(ch);
+    }
+    else if (HAS_FEAT(ch, FEAT_BACKSTAB) <= 0)
     {
       USE_FULL_ROUND_ACTION(ch);
     }
@@ -7392,6 +7424,29 @@ void throw_hedging_weapon(struct char_data *ch)
     affect_from_char(ch, SPELL_HEDGING_WEAPONS);
   }
   save_char(ch, 0);
+}
+
+ACMD(do_mark)
+{
+    struct char_data *vict = NULL;
+    char arg[100];
+
+    one_argument(argument, arg, sizeof(arg));
+
+    if (!*arg)
+    {
+        send_to_char(ch, "Who would you like to mark for assassination?\r\n");
+        return;
+    }
+
+    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
+        send_to_char(ch, "That person isn't here right now.\r\n");
+        return;
+    }
+
+    act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
+    GET_MARK(ch) = vict;
 }
 
 /* cleanup! */

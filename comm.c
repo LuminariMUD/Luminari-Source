@@ -188,6 +188,7 @@ void check_auto_shutdown(void);
 void update_player_misc(void);
 void check_auto_happy_hour(void);
 void regen_psp(void);
+void process_walkto_actions(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1154,6 +1155,9 @@ void heartbeat(int heart_pulse)
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))
     regen_psp();
+
+  if (!(heart_pulse % (int) (PASSES_PER_SEC * 0.75)))
+    process_walkto_actions();
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))
   { // every minute

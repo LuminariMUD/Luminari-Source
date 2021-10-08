@@ -92,6 +92,28 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     }
   }
 
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ASSASSIN) ||
+      CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_LIGHT_CROSSBOW:
+    case WEAPON_TYPE_HEAVY_CROSSBOW:
+    case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_DART:
+    case WEAPON_TYPE_RAPIER:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+    case WEAPON_TYPE_SHORT_SWORD:
+      return TRUE;
+    }
+  }
+
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_ROGUE) ||
       CLASS_LEVEL(ch, CLASS_ROGUE) > 0)
   {

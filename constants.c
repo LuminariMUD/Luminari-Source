@@ -641,11 +641,11 @@ const char *class_names[] = {
     "Spellsword",
     "Shadow Dancer",
     "Blackguard",
+    "Assassin",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
     //  "Shadow Dancer", //20
-    //  "Assassin",
     "\n"};
 CHECK_TABLE_SIZE(class_names, NUM_CLASSES + 1);
 
@@ -4081,12 +4081,12 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                       /* spellsword 22 */
     {"", "", "", ""},                                       /* shadowdancer 23 */
     {"condemn", "condemning", "condemned", "condemnations"}, /* blackguard 24 */
+    {"",         "",           "",          ""            }, /* assassin */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
     //  {"",         "",           "",          ""            }, /* wilder */
     //  {"",         "",           "",          ""            }, /* shadow dancer */
-    //  {"",         "",           "",          ""            }, /* assassin */
 };
 CHECK_TABLE_SIZE(spell_prep_dict, NUM_CLASSES);
 
@@ -4118,11 +4118,11 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                        /* spellsword 22 */
     {"", "", "", ""},                                        /* shadow dancer 23 */
     {"uncondemn", "uncondemned", "uncondemning", "uncondemned"}, /* blackguard 24 */
+    {"",          "",            "",           ""            }, /* assassin 25 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
     //  {"",          "",            "",           ""            }, /* wilder 21 */
-    //  {"",          "",            "",           ""            }, /* assassin 23 */
 };
 CHECK_TABLE_SIZE(spell_consign_dict, NUM_CLASSES);
 

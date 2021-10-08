@@ -4,6 +4,7 @@
 
 extern const char *airship_locales[][7];
 extern const char *carriage_locales[][7];
+extern const char *walkto_landmarks[][4];
 
 int get_travel_time(struct char_data *ch, int speed, int locale, int here, int type);
 int get_distance(struct char_data *ch, int locale, int here, int type);
@@ -12,3 +13,6 @@ void enter_transport(struct char_data *ch, int locale, int type, int here);
 int valid_airship_travel(int here, int i);
 ACMD_DECL(do_airship);
 ACMD_DECL(do_carriage);
+ACMD_DECL(do_walkto);
+ACMD_DECL(do_landmarks);
+const char *get_walkto_location_name(int locale_vnum);

@@ -509,6 +509,7 @@
 #define SPELL_AFFECT_STUNNING_BARRIER           1210
 #define AFFECT_ENTANGLING_FLAMES                1211
 #define SPELL_EFFECT_DAZZLED                    1212
+#define SPELL_AFFECT_DEATH_ATTACK               1213
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c

@@ -467,6 +467,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_ACCOUNT_NAME(ch) = NULL;
     LEVELUP(ch) = NULL;
     GET_DR(ch) = NULL;
+    GET_WALKTO_LOC(ch) = 0;
     GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
     GET_PREMADE_BUILD_CLASS(ch) = PFDEF_PREMADE_BUILD;
     init_spell_prep_queue(ch);

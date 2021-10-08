@@ -3775,10 +3775,35 @@ void assign_feats(void)
   feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for paralytic or instant death touch", "allows for paralytic or instant death touch");
   feato(FEAT_UNDEAD_FAMILIAR, "undead familiar", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for undead familiars", "allows for undead familiars");
 
-  /* Assassin */
-  feato(FEAT_DEATH_ATTACK, "death attack", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.", "Chance to kill a target with sneak attack or Paralysis after 3 rounds of hidden study.");
-  feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Assassin level 2", "Bonus to all saves against poison.");
-  feato(FEAT_POISON_USE, "poison use", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "Trained use in poisons without risk of poisoning self.", "Trained use in poisons without risk of poisoning self.");
+/* Assassin */
+  feato(FEAT_DEATH_ATTACK, "death attack", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+        "Allows assassin to mark an opponent and paralyze opponents when performing a backstab.", 
+        "Allows assassin to mark an opponent and paralyze opponents when performing a backstab. Also opens up effect of other assassin abilities. Uses the 'mark' command.");
+  feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, 
+        "Improves chance to resist or reduce effect of poisons and poison based damage.", 
+        "Improves chance to resist or reduce effect of poisons and poison based damage.");
+  feato(FEAT_POISON_USE, "poison use", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
+        "Trained use in poisons without risk of failure or poisoning self. Also improves effect of weapon poisons.", 
+        "Trained use in poisons without risk of failure or poisoning self. Also increases number of hits and level by 50 percent for weapon applied poisons.");
+  feato(FEAT_WEAPON_PROFICIENCY_ASSASSIN, "weapon proficiency - assassin", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Assassins can use any crossbow or short bow, daggers, rapiers, sap, darts and short swords.",
+        "Assassins can use any crossbow or short bow, daggers, rapiers, sap, darts and short swords.");
+  feato(FEAT_QUIET_DEATH, "quiet death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Grants greater invisibility for 3 rounds when backstabbing a marked target.",
+        "Grants greater invisibility for 3 rounds when backstabbing a marked target. Will not work if already invisible.");
+  feato(FEAT_SWIFT_DEATH, "swift death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Backstabs use a swift action.",
+        "Backstabs use a swift action.");
+  feato(FEAT_ANGEL_OF_DEATH, "angel of death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Backstabs have a +3 to attack roll and +10 to damage.  Stacks with true death. Also removes requirement to wait 3 rounds to mark a target.",
+        "Backstabs have a +3 to attack roll and +10 to damage.  Stacks with true death. Also removes requirement to wait 3 rounds to mark a target.");
+  feato(FEAT_HIDDEN_WEAPONS, "hidden weapons", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Chance for a second, regular attack, when backstabbing.",
+        "Chance for a second, regular attack, when backstabbing. Requires a sleight of hand vs. perception check.");
+  feato(FEAT_TRUE_DEATH, "true death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Backstabs have a +2 to attack roll and +10 to damage. Stacks with angel of death.",
+        "Backstabs have a +2 to attack roll and +10 to damage. Stacks with angel of death.");
+
 
   /* favored soul */
   feato(FEAT_DEITY_WEAPON_PROFICIENCY, "deity's weapon proficiency", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use the weapon of your deity", "allows you to use the weapon of your deity");

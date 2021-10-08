@@ -372,16 +372,16 @@
 #define CLASS_SHADOW_DANCER     23
 #define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
 #define CLASS_BLACKGUARD 24
+#define CLASS_ASSASSIN 25
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
 //#define CLASS_SOUL_KNIFE CLASS_SOULKNIFE
 //#define CLASS_WILDER            19
-//#define CLASS_ASSASSIN          21
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 25
+#define NUM_CLASSES 26
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1985,12 +1985,18 @@
 #define FEAT_CHANNEL_ENERGY 743
 #define FEAT_HOLY_WARRIOR 744
 #define FEAT_UNHOLY_WARRIOR 745
+#define FEAT_QUIET_DEATH 797
+#define FEAT_SWIFT_DEATH 798
+#define FEAT_ANGEL_OF_DEATH 799
+#define FEAT_WEAPON_PROFICIENCY_ASSASSIN 800
+#define FEAT_HIDDEN_WEAPONS 801
+#define FEAT_TRUE_DEATH 802
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 746
+#define FEAT_LAST_FEAT 803
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 747
+#define NUM_FEATS 804
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -3884,6 +3890,12 @@ struct player_special_data
     int outfit_type;
     char *outfit_desc;
     char *outfit_confirmation;
+
+    short mark_rounds;              // number of rounds a character has marked their opponent for
+    struct char_data *mark_target;  // person the character is marking for assassination
+    int death_attack_hit_bonus;
+    int death_attack_dam_bonus;
+    room_vnum walkto_location;
 };
 
 /** Special data used by NPCs, not PCs */
