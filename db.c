@@ -1735,6 +1735,7 @@ void setup_dir(FILE *fl, int room, int dir)
 /* make sure the start rooms exist & resolve their vnums to rnums */
 static void check_start_rooms(void)
 {
+
   if ((r_mortal_start_room = real_room(CONFIG_MORTAL_START)) == NOWHERE)
   {
     log("SYSERR:  Mortal start room does not exist.  Change in config.c.");

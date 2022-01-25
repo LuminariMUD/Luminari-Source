@@ -176,7 +176,7 @@ int rand_number(int from, int to);
 float rand_float(float from, float to);
 bool do_not_list_spell(int spellnum);
 bool is_paladin_mount(struct char_data *ch, struct char_data *victim);
-char * randstring(int length);
+char *randstring(int length);
 int combat_skill_roll(struct char_data *ch, int skillnum);
 int dice(int number, int size);
 size_t sprintbit(bitvector_t vektor, const char *names[], char *result, size_t reslen);
@@ -188,7 +188,7 @@ bool can_fly(struct char_data *ch);
 void sprintbitarray(int bitvector[], const char *names[], int maxar, char *result);
 int get_line(FILE *fl, char *buf);
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name);
-const char * get_wearoff(int abilnum);
+const char *get_wearoff(int abilnum);
 time_t mud_time_to_secs(struct time_info_data *now);
 struct time_info_data *age(struct char_data *ch);
 int num_pc_in_room(struct room_data *room);
@@ -781,9 +781,9 @@ void char_from_furniture(struct char_data *ch);
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
-#define IS_PSIONIC(ch)  (GET_PSIONIC_LEVEL(ch) > 0)
-#define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD  || c == CLASS_CLERIC    || c == CLASS_SORCERER || c == CLASS_DRUID || \
-                                 c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER   || c == CLASS_BARD)
+#define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0)
+#define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID || \
+                                 c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD)
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -811,7 +811,8 @@ void char_from_furniture(struct char_data *ch);
 #define GET_NPC_RACE(ch) (IS_NPC(ch) ? (ch)->player.race : RACE_UNDEFINED)
 
 #define GET_RACE(ch) ((GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_RACE(ch) : GET_REAL_RACE(ch))
-#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_WILDSHAPED(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color))))
+#define RACE_ABBR(ch) (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_WILDSHAPED(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color \
+                                                                                          : ((IS_MORPHED(ch) ? race_list[IS_MORPHED(ch)].abbrev_color : (GET_DISGUISE_RACE(ch) ? race_list[GET_DISGUISE_RACE(ch)].abbrev_color : race_list[GET_RACE(ch)].abbrev_color))))
 /*#define RACE_ABBR(ch)  (IS_NPC(ch) ? race_family_abbrevs[GET_RACE(ch)] : IS_MORPHED(ch) ? \
   race_family_abbrevs[IS_MORPHED(ch)] : (GET_DISGUISE_RACE(ch)) ? \
   race_list[GET_DISGUISE_RACE(ch)].abbrev : race_list[GET_RACE(ch)].abbrev)*/
@@ -1250,23 +1251,22 @@ void char_from_furniture(struct char_data *ch);
 #define HAS_WEAPON_FLAG(obj, flag) ((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].weaponFlags, flag) : 0)
 #define HAS_DAMAGE_TYPE(obj, flag)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) ? IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, flag) : 0)
 #define GET_ENHANCEMENT_BONUS(obj) (((GET_OBJ_TYPE(obj) == ITEM_WEAPON) || (GET_OBJ_TYPE(obj) == ITEM_FIREWEAPON) || (GET_OBJ_TYPE(obj) == ITEM_ARMOR) || (GET_OBJ_TYPE(obj) == ITEM_MISSILE)) ? GET_OBJ_VAL(obj, 4) : 0)
-#define IS_WEAPON_SHARP(obj)  (GET_OBJ_TYPE(obj) == ITEM_WEAPON && \
-                               (weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_PIERCING|| \
+#define IS_WEAPON_SHARP(obj) (GET_OBJ_TYPE(obj) == ITEM_WEAPON &&                                       \
+                              (weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_PIERCING || \
                                weapon_list[GET_WEAPON_TYPE(obj)].damageTypes == DAMAGE_TYPE_SLASHING))
-#define GET_HOLY_WEAPON_TYPE(ch)  (ch->player_specials->saved.holy_weapon_type)
+#define GET_HOLY_WEAPON_TYPE(ch) (ch->player_specials->saved.holy_weapon_type)
 
 /* armor related macro's */
 #define GET_ARMOR_TYPE(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? GET_OBJ_VAL(obj, 1) : SPEC_ARMOR_TYPE_UNDEFINED)
 #define GET_ARMOR_TYPE_PROF(obj) ((GET_OBJ_TYPE(obj) == ITEM_ARMOR) ? armor_list[GET_OBJ_VAL(obj, 1)].armorType : ARMOR_TYPE_NONE)
 
-#define GET_OUTFIT_OBJ(ch)  (ch->player_specials->outfit_obj)
-#define GET_OUTFIT_DESC(ch)  (ch->player_specials->outfit_desc)
-#define GET_OUTFIT_TYPE(ch)  (ch->player_specials->outfit_type)
-#define GET_OUTFIT_CONFIRM(ch)  (ch->player_specials->outfit_confirmation)
+#define GET_OUTFIT_OBJ(ch) (ch->player_specials->outfit_obj)
+#define GET_OUTFIT_DESC(ch) (ch->player_specials->outfit_desc)
+#define GET_OUTFIT_TYPE(ch) (ch->player_specials->outfit_type)
+#define GET_OUTFIT_CONFIRM(ch) (ch->player_specials->outfit_confirmation)
 
-#define IS_SHIELD(type)       (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD || \
-                               type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
-
+#define IS_SHIELD(type) (type == SPEC_ARMOR_TYPE_BUCKLER || type == SPEC_ARMOR_TYPE_SMALL_SHIELD || \
+                         type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
 
 /* MACROS for the study system */
 #define CAN_STUDY_FEATS(ch) ((GET_LEVELUP_FEAT_POINTS(ch) +                  \
@@ -1402,8 +1402,9 @@ void char_from_furniture(struct char_data *ch);
                             GET_SUBRACE(ch, 2) == i)
 
 /** Return the equivalent strength of ch if ch has level 18 strength. */
-#define STRENGTH_APPLY_INDEX(ch) \
-  (((GET_ADD(ch) == 0) || (GET_STR(ch) != 18)) ? GET_STR(ch) : (GET_ADD(ch) <= 50) ? 26 : ((GET_ADD(ch) <= 75) ? 27 : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
+#define STRENGTH_APPLY_INDEX(ch)                                                        \
+  (((GET_ADD(ch) == 0) || (GET_STR(ch) != 18)) ? GET_STR(ch) : (GET_ADD(ch) <= 50) ? 26 \
+                                                                                   : ((GET_ADD(ch) <= 75) ? 27 : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
 
 /** Return how much weight ch can carry. */
 #define CAN_CARRY_W(ch) (str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
@@ -1433,22 +1434,18 @@ void char_from_furniture(struct char_data *ch);
 #define IS_NE(ch) (GET_ALIGNMENT(ch) <= -575 && GET_ALIGNMENT(ch) > -800)
 #define IS_CE(ch) (GET_ALIGNMENT(ch) <= -800)
 
-#define ETHOS_LAWFUL      1000
-#define ETHOS_NEUTRAL     0
-#define ETHOS_CHAOTIC     -1000
-#define ALIGNMENT_GOOD    1000
+#define ETHOS_LAWFUL 1000
+#define ETHOS_NEUTRAL 0
+#define ETHOS_CHAOTIC -1000
+#define ALIGNMENT_GOOD 1000
 #define ALIGNMENT_NEUTRAL 0
-#define ALIGNMENT_EVIL    -1000
+#define ALIGNMENT_EVIL -1000
 
-#define GET_ALIGN_ABBREV(e, a)  (e > 250 ? (a > 250 ? "LG" : (a < -250 ? "LE" : "LN")) : ( \
-                                 e < -250 ? (a > 250 ? "CG" : (a < -250 ? "CE" : "CN")) : ( \
-                                 (a > 250 ? "NG" : (a < -250 ? "NE" : "TN")) ) ) )
+#define GET_ALIGN_ABBREV(e, a) (e > 250 ? (a > 250 ? "LG" : (a < -250 ? "LE" : "LN")) : (e < -250 ? (a > 250 ? "CG" : (a < -250 ? "CE" : "CN")) : ((a > 250 ? "NG" : (a < -250 ? "NE" : "TN")))))
 
-#define GET_ALIGN_STRING(e, a)  (e > 250 ? (a > 250 ? "Lawful Good" : (a < -250 ? "Lawful Evil" : "Lawful Neutral")) : ( \
-                                 e < -250 ? (a > 250 ? "Chaotic Good" : (a < -250 ? "Chaotic Evil" : "Chaotic Neutral")) : ( \
-                                 (a > 250 ? "Neutral Good" : (a < -250 ? "Neutral Evil" : "True Neutral")) ) ) )
+#define GET_ALIGN_STRING(e, a) (e > 250 ? (a > 250 ? "Lawful Good" : (a < -250 ? "Lawful Evil" : "Lawful Neutral")) : (e < -250 ? (a > 250 ? "Chaotic Good" : (a < -250 ? "Chaotic Evil" : "Chaotic Neutral")) : ((a > 250 ? "Neutral Good" : (a < -250 ? "Neutral Evil" : "True Neutral")))))
 
-#define GET_DEITY(ch)     (ch->player_specials->saved.deity)
+#define GET_DEITY(ch) (ch->player_specials->saved.deity)
 
 /** Defines if ch is good. */
 //#define IS_GOOD(ch) (GET_ALIGNMENT(ch) >= 350) // old system
@@ -1713,8 +1710,9 @@ void char_from_furniture(struct char_data *ch);
    CAN_SEE_OBJ((ch), (obj)))
 
 /** If vict can see ch, return ch name, else return "someone". */
-#define PERS(ch, vict) \
-  (!CAN_SEE(vict, ch) ? "someone" : !GET_DISGUISE_RACE(ch) ? GET_NAME(ch) : race_list[GET_DISGUISE_RACE(ch)].name)
+#define PERS(ch, vict)                                                    \
+  (!CAN_SEE(vict, ch) ? "someone" : !GET_DISGUISE_RACE(ch) ? GET_NAME(ch) \
+                                                           : race_list[GET_DISGUISE_RACE(ch)].name)
 
 /** If vict can see obj, return obj short description, else return
  * "something". */
@@ -1826,9 +1824,9 @@ void char_from_furniture(struct char_data *ch);
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_BLACKGUARD(ch) (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
 
-#define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT || \
-                      IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) || \
-                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||            \
+#define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
+                       IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
+                       IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
                        IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch))
 
@@ -1837,19 +1835,19 @@ void char_from_furniture(struct char_data *ch);
                         CLASS_LEVEL(ch, CLASS_BERSERKER) || CLASS_LEVEL(ch, CLASS_PALADIN) ||         \
                         CLASS_LEVEL(ch, CLASS_RANGER))
 
-#define IS_NPC_CASTER(ch) (GET_CLASS(ch) == CLASS_CLERIC ||         \
-                           GET_CLASS(ch) == CLASS_WIZARD ||         \
-                           GET_CLASS(ch) == CLASS_DRUID ||          \
-                           GET_CLASS(ch) == CLASS_SORCERER ||       \
-                           GET_CLASS(ch) == CLASS_PALADIN ||        \
-                           GET_CLASS(ch) == CLASS_RANGER ||         \
-                           GET_CLASS(ch) == CLASS_ALCHEMIST ||      \
-                           GET_CLASS(ch) == CLASS_MYSTIC_THEURGE || \
-                           GET_CLASS(ch) == CLASS_ARCANE_ARCHER ||  \
-                           GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||  \
-                           GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT ||  \
-                           GET_CLASS(ch) == CLASS_SACRED_FIST ||    \
-                           GET_CLASS(ch) == CLASS_SHIFTER ||        \
+#define IS_NPC_CASTER(ch) (GET_CLASS(ch) == CLASS_CLERIC ||          \
+                           GET_CLASS(ch) == CLASS_WIZARD ||          \
+                           GET_CLASS(ch) == CLASS_DRUID ||           \
+                           GET_CLASS(ch) == CLASS_SORCERER ||        \
+                           GET_CLASS(ch) == CLASS_PALADIN ||         \
+                           GET_CLASS(ch) == CLASS_RANGER ||          \
+                           GET_CLASS(ch) == CLASS_ALCHEMIST ||       \
+                           GET_CLASS(ch) == CLASS_MYSTIC_THEURGE ||  \
+                           GET_CLASS(ch) == CLASS_ARCANE_ARCHER ||   \
+                           GET_CLASS(ch) == CLASS_ARCANE_SHADOW ||   \
+                           GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT || \
+                           GET_CLASS(ch) == CLASS_SACRED_FIST ||     \
+                           GET_CLASS(ch) == CLASS_SHIFTER ||         \
                            GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
@@ -1886,11 +1884,11 @@ void char_from_furniture(struct char_data *ch);
 #define IS_DARK_ELF(ch) (!IS_NPC(ch) && \
                          (GET_RACE(ch) == RACE_DROW))
 #define IS_DUERGAR(ch) (!IS_NPC(ch) && \
-                     (GET_RACE(ch) == RACE_DUERGAR))
+                        (GET_RACE(ch) == RACE_DUERGAR))
 #define IS_GRAY_DWARF(ch) (!IS_NPC(ch) && \
-                     (GET_RACE(ch) == RACE_DUERGAR))
+                           (GET_RACE(ch) == RACE_DUERGAR))
 #define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
-                     (GET_RACE(ch) == RACE_DUERGAR))
+                           (GET_RACE(ch) == RACE_DUERGAR))
 
 // shifter forms
 #define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))
@@ -1911,12 +1909,12 @@ void char_from_furniture(struct char_data *ch);
                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_PLANT))
 #define IS_OOZE(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OOZE) || \
                      (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OOZE))
-#define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) || \
-                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
-                       (IS_IRON_GOLEM(ch)))
+#define IS_CONSTRUCT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_CONSTRUCT) ||    \
+                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_CONSTRUCT) || \
+                          (IS_IRON_GOLEM(ch)))
 #define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
-                          IS_ELEMENTAL(ch) || IS_EFREETI(ch) || \
-                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER))
+                         IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||                 \
+                         (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
@@ -1933,11 +1931,11 @@ void char_from_furniture(struct char_data *ch);
 
 #define FLEETING_GLANCE_USES(ch) (ch->player_specials->saved.fleeting_glance_uses)
 #define FLEETING_GLANCE_TIMER(ch) (ch->player_specials->saved.fleeting_glance_timer)
-#define FLEETING_GLANCE_USES_PER_DAY  3
+#define FLEETING_GLANCE_USES_PER_DAY 3
 
 #define FEY_SHADOW_WALK_USES(ch) (ch->player_specials->saved.fey_shadow_walk_uses)
 #define FEY_SHADOW_WALK_TIMER(ch) (ch->player_specials->saved.fey_shadow_walk_timer)
-#define FEY_SHADOW_WALK_USES_PER_DAY  1
+#define FEY_SHADOW_WALK_USES_PER_DAY 1
 
 #define DRAGON_MAGIC_USES(ch) (ch->player_specials->saved.dragon_magic_uses)
 #define DRAGON_MAGIC_TIMER(ch) (ch->player_specials->saved.dragon_magic_timer)
@@ -1949,8 +1947,7 @@ void char_from_furniture(struct char_data *ch);
 
 #define GRASP_OF_THE_DEAD_USES(ch) (ch->player_specials->saved.grasp_of_the_dead_uses)
 #define GRASP_OF_THE_DEAD_TIMER(ch) (ch->player_specials->saved.grasp_of_the_dead_timer)
-#define GRASP_OF_THE_DEAD_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 ? 3 : \
-                                            (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 ? 2 : 1))
+#define GRASP_OF_THE_DEAD_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 ? 3 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 17 ? 2 : 1))
 
 #define INCORPOREAL_FORM_USES(ch) (ch->player_specials->saved.incorporeal_form_uses)
 #define INCORPOREAL_FORM_TIMER(ch) (ch->player_specials->saved.incorporeal_form_timer)
@@ -1959,26 +1956,26 @@ void char_from_furniture(struct char_data *ch);
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
 
-#define IS_IMMUNE_CRITS(ch) (IS_UNDEAD(ch) || \
+#define IS_IMMUNE_CRITS(ch) (IS_UNDEAD(ch) ||                                                                       \
                              (!IS_NPC(ch) && (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1)) || \
                              (affected_by_spell(ch, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1))
 
 #define IS_FRIGHTENED(ch) (AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))
 
-#define KNOWS_MERCY(ch, i)  (ch->player_specials->saved.paladin_mercies[i])
-#define KNOWS_CRUELTY(ch, i)  (ch->player_specials->saved.blackguard_cruelties[i])
-#define FIENDISH_BOON_ACTIVE(ch, i)  (IS_SET(ch->player_specials->saved.fiendish_boons, FLAG(i)))
-#define SET_FIENDISH_BOON(ch, i)     (SET_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
-#define REMOVE_FIENDISH_BOON(ch, i)  (REMOVE_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define KNOWS_MERCY(ch, i) (ch->player_specials->saved.paladin_mercies[i])
+#define KNOWS_CRUELTY(ch, i) (ch->player_specials->saved.blackguard_cruelties[i])
+#define FIENDISH_BOON_ACTIVE(ch, i) (IS_SET(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define SET_FIENDISH_BOON(ch, i) (SET_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
+#define REMOVE_FIENDISH_BOON(ch, i) (REMOVE_BIT(ch->player_specials->saved.fiendish_boons, FLAG(i)))
 
 /** Defines if ch is outdoors or not. */
 #define OUTDOORS(ch) (is_outdoors(ch))
 #define ROOM_OUTDOORS(room) (is_room_outdoors(room))
 #define OUTSIDE(ch) (is_outdoors(ch))
 #define ROOM_OUTSIDE(room) (is_room_outdoors(room))
-#define IS_SHADOW_CONDITIONS(ch) (ch && IN_ROOM(ch) != NOWHERE && \
+#define IS_SHADOW_CONDITIONS(ch) (ch && IN_ROOM(ch) != NOWHERE &&                                                                              \
                                   ((!OUTSIDE(ch) && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_LIGHT) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_MAGICLIGHT)) || \
-                                  (OUTSIDE(ch) && weather_info.sunlight != SUN_LIGHT)))
+                                   (OUTSIDE(ch) && weather_info.sunlight != SUN_LIGHT)))
 
 /** A little more specific macro than above **/
 #define IN_NATURE(ch) (world[IN_ROOM(ch)].sector_type == SECT_FIELD ||         \
@@ -2145,6 +2142,7 @@ void char_from_furniture(struct char_data *ch);
 
 /* Room Numbers */
 /** Get the mortal start room. */
+#define NUM_MORT_START_ROOMS 2 /* a mechanic to enable multiple start rooms */
 #define CONFIG_MORTAL_START config_info.room_nums.mortal_start_room
 /** Get the immortal start room. */
 #define CONFIG_IMMORTAL_START config_info.room_nums.immort_start_room
@@ -2198,7 +2196,6 @@ void char_from_furniture(struct char_data *ch);
 /** Activate debug mode? */
 #define CONFIG_DEBUG_MODE config_info.operation.debug_mode
 
-
 /* Autowiz */
 /** Use autowiz or not? */
 #define CONFIG_USE_AUTOWIZ config_info.autowiz.use_autowiz
@@ -2225,9 +2222,9 @@ void char_from_furniture(struct char_data *ch);
 /** Percent increase on arcane spell damage */
 #define CONFIG_ARCANE_DAMAGE config_info.player_config.arcane_spell_damage_bonus
 /** Extra hit points awarded to players each level */
-#define CONFIG_EXTRA_PLAYER_HP_PER_LEVEL  config_info.player_config.extra_hp_per_level
+#define CONFIG_EXTRA_PLAYER_HP_PER_LEVEL config_info.player_config.extra_hp_per_level
 /** Extra movement points awarded to players each level */
-#define CONFIG_EXTRA_PLAYER_MV_PER_LEVEL  config_info.player_config.extra_mv_per_level
+#define CONFIG_EXTRA_PLAYER_MV_PER_LEVEL config_info.player_config.extra_mv_per_level
 /** this is the maximum ac a player can have */
 #define CONFIG_PLAYER_AC_CAP config_info.player_config.armor_class_cap
 /** This is the maximum difference between player and mob level to gain exp */
@@ -2282,10 +2279,10 @@ void char_from_furniture(struct char_data *ch);
 #define LOOTBOX_TYPE(obj) (GET_OBJ_VAL(obj, 1))
 
 // Psionic related stuff
-#define GET_PSIONIC_ENERGY_TYPE(ch)   CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
+#define GET_PSIONIC_ENERGY_TYPE(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.psionic_energy_type))
 
 #define BRUTALIZE_WOUNDS_SAVE_SUCCESS 2
-#define BRUTALIZE_WOUNDS_SAVE_FAIL    1
+#define BRUTALIZE_WOUNDS_SAVE_FAIL 1
 
 // Misc combat stuff
 #define GET_TEMP_ATTACK_ROLL_BONUS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->temp_attack_roll_bonus))
@@ -2293,21 +2290,21 @@ void char_from_furniture(struct char_data *ch);
 #define ARENA_START 138600
 #define ARENA_END 138608
 
-#define STORED_POTIONS(ch, snum)      (ch->player_specials->saved.potions[snum])
-#define STORED_SCROLLS(ch, snum)      (ch->player_specials->saved.scrolls[snum])
-#define STORED_WANDS(ch, snum)        (ch->player_specials->saved.wands[snum])
-#define STORED_STAVES(ch, snum)       (ch->player_specials->saved.staves[snum])
+#define STORED_POTIONS(ch, snum) (ch->player_specials->saved.potions[snum])
+#define STORED_SCROLLS(ch, snum) (ch->player_specials->saved.scrolls[snum])
+#define STORED_WANDS(ch, snum) (ch->player_specials->saved.wands[snum])
+#define STORED_STAVES(ch, snum) (ch->player_specials->saved.staves[snum])
 
 // Assassin feats and functionality
-#define GET_MARK_ROUNDS(ch)       (ch->player_specials->mark_rounds)
-#define GET_MARK(ch)              (ch->player_specials->mark_target)
-#define GET_MARK_HIT_BONUS(ch)    (ch->player_specials->death_attack_hit_bonus)
-#define GET_MARK_DAM_BONUS(ch)    (ch->player_specials->death_attack_dam_bonus)
+#define GET_MARK_ROUNDS(ch) (ch->player_specials->mark_rounds)
+#define GET_MARK(ch) (ch->player_specials->mark_target)
+#define GET_MARK_HIT_BONUS(ch) (ch->player_specials->death_attack_hit_bonus)
+#define GET_MARK_DAM_BONUS(ch) (ch->player_specials->death_attack_dam_bonus)
 bool is_marked_target(struct char_data *ch, struct char_data *vict);
 void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
 
 // Walkto functionality
-#define GET_WALKTO_LOC(ch)        (ch->player_specials->walkto_location)
+#define GET_WALKTO_LOC(ch) (ch->player_specials->walkto_location)
 
 #endif /* _UTILS_H_ */
 
