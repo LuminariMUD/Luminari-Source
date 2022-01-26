@@ -1657,7 +1657,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_ACID;
-    num_dice = level;
+    num_dice = MAX(6, level);
     size_dice = 2;
     bonus = 10;
     break;
@@ -7419,7 +7419,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         REMOVE_BIT_AR(GET_OBJ_EXTRA(eq), ITEM_NODROP);
         if (GET_OBJ_TYPE(eq) == ITEM_WEAPON)
           GET_OBJ_VAL(eq, 2)
-          ++;
+        ++;
         to_char = "$p briefly glows blue.";
       }
     }
@@ -7430,7 +7430,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         REMOVE_BIT_AR(GET_OBJ_EXTRA(eq), ITEM_NODROP);
         if (GET_OBJ_TYPE(eq) == ITEM_WEAPON)
           GET_OBJ_VAL(eq, 2)
-          ++;
+        ++;
         to_char = "$p briefly glows blue.";
       }
     }
@@ -8043,7 +8043,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You create a thick bank of acid fog!";
     to_room = "$n creates a thick bank of acid fog!";
     aff = RAFF_ACID_FOG;
-    rounds = MAGIC_LEVEL(ch);
+    rounds = MAX(4, MAGIC_LEVEL(ch));
     break;
 
   case SPELL_ANTI_MAGIC_FIELD: //illusion
@@ -8064,7 +8064,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You create a barrier of spinning blades!";
     to_room = "$n creates a barrier of spinning blades!";
     aff = RAFF_BLADE_BARRIER;
-    rounds = DIVINE_LEVEL(ch);
+    rounds = MAX(4, DIVINE_LEVEL(ch));
     break;
 
   case PSIONIC_UPHEAVAL:
@@ -8086,7 +8086,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
       return;
     }
     aff = RAFF_OBSCURING_MIST;
-    rounds = DIVINE_LEVEL(ch);
+    rounds = MAX(4, DIVINE_LEVEL(ch));
     to_char = "You create an obscuring mist that fills the room!";
     to_room = "An obscuring mist suddenly fills the room from $n!";
     break;
@@ -8130,7 +8130,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "Large spikes suddenly protrude from the ground.";
     to_room = "Large spikes suddenly protrude from the ground.";
     aff = RAFF_SPIKE_GROWTH;
-    rounds = DIVINE_LEVEL(ch);
+    rounds = MAX(4, DIVINE_LEVEL(ch));
     break;
 
   case SPELL_SPIKE_STONES: // transmutation
@@ -8142,7 +8142,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "Large stone spikes suddenly protrude from the ground.";
     to_room = "Large stone spikes suddenly protrude from the ground.";
     aff = RAFF_SPIKE_STONES;
-    rounds = DIVINE_LEVEL(ch);
+    rounds = MAX(4, DIVINE_LEVEL(ch));
     break;
 
   case SPELL_STINKING_CLOUD: //conjuration

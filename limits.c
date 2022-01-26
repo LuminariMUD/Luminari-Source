@@ -548,7 +548,8 @@ void regen_update(struct char_data *ch)
   {
     if (!rand_number(0, 1))
     {
-      GET_HIT(ch)--;
+      GET_HIT(ch)
+      --;
     }
   }
   else
@@ -558,7 +559,8 @@ void regen_update(struct char_data *ch)
 
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
-    GET_MOVE(ch)--;
+    GET_MOVE(ch)
+    --;
   }
   else if (!AFF_FLAGGED(ch, AFF_FATIGUED))
   {
@@ -575,7 +577,7 @@ void regen_update(struct char_data *ch)
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
 
-/*
+  /*
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
     GET_PSP(ch)--;
@@ -603,11 +605,16 @@ void regen_psp(void)
 
   for (d = descriptor_list; d; d = d->next)
   {
-    if (STATE(d) != CON_PLAYING) continue;
-    if (!d->character) continue;
-    if (IN_ROOM(d->character) == NOWHERE) continue;
-    if (FIGHTING(d->character)) continue;
-    if (GET_POS(d->character) > POS_SITTING) continue;
+    if (STATE(d) != CON_PLAYING)
+      continue;
+    if (!d->character)
+      continue;
+    if (IN_ROOM(d->character) == NOWHERE)
+      continue;
+    if (FIGHTING(d->character))
+      continue;
+    if (GET_POS(d->character) > POS_SITTING)
+      continue;
     GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 10);
     if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
       GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
@@ -843,7 +850,8 @@ int gain_exp(struct char_data *ch, int gain, int mode)
 
   xp_to_lvl_cap = level_exp(ch, GET_LEVEL(ch) + 2);
 
-  if (GET_EXP(ch) > xp_to_lvl_cap  && gain > 0 && GET_LEVEL(ch) < 30) {
+  if (GET_EXP(ch) > xp_to_lvl_cap && gain > 0 && GET_LEVEL(ch) < 30)
+  {
     send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
     return 0;
   }
@@ -914,13 +922,13 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     default:
       xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
 
-/* The no cap for below level 6 was causing serious power levelling issues. -- Gicker May 28, 2020
+      /* The no cap for below level 6 was causing serious power levelling issues. -- Gicker May 28, 2020
       if (GET_LEVEL(ch) < 6)
       {
         gain_cap = gain; // no cap
       }
       else 
-*/      
+*/
       if (GET_LEVEL(ch) < 11)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
@@ -1124,7 +1132,8 @@ void update_player_misc(void)
     affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)--;
+      GET_MISSION_COOLDOWN(ch)
+      --;
 
     if (!are_mission_mobs_loaded(ch))
     {
@@ -1144,8 +1153,10 @@ void update_player_misc(void)
 
     if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
     {
-      EFREETI_MAGIC_TIMER(ch)--;
-      if (EFREETI_MAGIC_TIMER(ch) <= 0) {
+      EFREETI_MAGIC_TIMER(ch)
+      --;
+      if (EFREETI_MAGIC_TIMER(ch) <= 0)
+      {
         EFREETI_MAGIC_TIMER(ch) = 0;
         EFREETI_MAGIC_USES(ch) = EFREETI_MAGIC_USES_PER_DAY;
         send_to_char(ch, "Your efreeti magic uses have been refreshed.\r\n");
@@ -1153,8 +1164,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_DRAGON_MAGIC) && IS_DRAGON(ch) && DRAGON_MAGIC_TIMER(ch) > 0)
     {
-      DRAGON_MAGIC_TIMER(ch)--;
-      if (DRAGON_MAGIC_TIMER(ch) <= 0) {
+      DRAGON_MAGIC_TIMER(ch)
+      --;
+      if (DRAGON_MAGIC_TIMER(ch) <= 0)
+      {
         DRAGON_MAGIC_TIMER(ch) = 0;
         DRAGON_MAGIC_USES(ch) = DRAGON_MAGIC_USES_PER_DAY;
         send_to_char(ch, "Your dragon magic uses have been refreshed.\r\n");
@@ -1162,8 +1175,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
     {
-      PIXIE_DUST_TIMER(ch)--;
-      if (PIXIE_DUST_TIMER(ch) <= 0) {
+      PIXIE_DUST_TIMER(ch)
+      --;
+      if (PIXIE_DUST_TIMER(ch) <= 0)
+      {
         PIXIE_DUST_TIMER(ch) = 0;
         PIXIE_DUST_USES(ch) = PIXIE_DUST_USES_PER_DAY(ch);
         send_to_char(ch, "Your pixie dust uses have been refreshed.\r\n");
@@ -1171,8 +1186,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_LAUGHING_TOUCH) && LAUGHING_TOUCH_TIMER(ch) > 0)
     {
-      LAUGHING_TOUCH_TIMER(ch)--;
-      if (LAUGHING_TOUCH_TIMER(ch) <= 0) {
+      LAUGHING_TOUCH_TIMER(ch)
+      --;
+      if (LAUGHING_TOUCH_TIMER(ch) <= 0)
+      {
         LAUGHING_TOUCH_TIMER(ch) = 0;
         LAUGHING_TOUCH_USES(ch) = LAUGHING_TOUCH_USES_PER_DAY(ch);
         send_to_char(ch, "Your laughing touch uses have been refreshed.\r\n");
@@ -1180,8 +1197,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_FLEETING_GLANCE) && FLEETING_GLANCE_TIMER(ch) > 0)
     {
-      FLEETING_GLANCE_TIMER(ch)--;
-      if (FLEETING_GLANCE_TIMER(ch) <= 0) {
+      FLEETING_GLANCE_TIMER(ch)
+      --;
+      if (FLEETING_GLANCE_TIMER(ch) <= 0)
+      {
         FLEETING_GLANCE_TIMER(ch) = 0;
         FLEETING_GLANCE_USES(ch) = FLEETING_GLANCE_USES_PER_DAY;
         send_to_char(ch, "Your fleeting glance uses have been refreshed.\r\n");
@@ -1189,8 +1208,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY) && FEY_SHADOW_WALK_TIMER(ch) > 0)
     {
-      FEY_SHADOW_WALK_TIMER(ch)--;
-      if (FEY_SHADOW_WALK_TIMER(ch) <= 0) {
+      FEY_SHADOW_WALK_TIMER(ch)
+      --;
+      if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
+      {
         FEY_SHADOW_WALK_TIMER(ch) = 0;
         FEY_SHADOW_WALK_USES(ch) = FEY_SHADOW_WALK_USES_PER_DAY;
         send_to_char(ch, "Your fey shadow walk uses have been refreshed.\r\n");
@@ -1198,8 +1219,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_GRAVE_TOUCH) && GRAVE_TOUCH_TIMER(ch) > 0)
     {
-      GRAVE_TOUCH_TIMER(ch)--;
-      if (GRAVE_TOUCH_TIMER(ch) <= 0) {
+      GRAVE_TOUCH_TIMER(ch)
+      --;
+      if (GRAVE_TOUCH_TIMER(ch) <= 0)
+      {
         GRAVE_TOUCH_TIMER(ch) = 0;
         GRAVE_TOUCH_USES(ch) = GRAVE_TOUCH_USES_PER_DAY(ch);
         send_to_char(ch, "Your grave touch uses have been refreshed.\r\n");
@@ -1207,8 +1230,10 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_GRASP_OF_THE_DEAD) && GRASP_OF_THE_DEAD_TIMER(ch) > 0)
     {
-      GRASP_OF_THE_DEAD_TIMER(ch)--;
-      if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0) {
+      GRASP_OF_THE_DEAD_TIMER(ch)
+      --;
+      if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
+      {
         GRASP_OF_THE_DEAD_TIMER(ch) = 0;
         GRASP_OF_THE_DEAD_USES(ch) = GRASP_OF_THE_DEAD_USES_PER_DAY(ch);
         send_to_char(ch, "Your grasp of the dead uses have been refreshed.\r\n");
@@ -1216,25 +1241,26 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_INCORPOREAL_FORM) && INCORPOREAL_FORM_TIMER(ch) > 0)
     {
-      INCORPOREAL_FORM_TIMER(ch)--;
-      if (INCORPOREAL_FORM_TIMER(ch) <= 0) {
+      INCORPOREAL_FORM_TIMER(ch)
+      --;
+      if (INCORPOREAL_FORM_TIMER(ch) <= 0)
+      {
         INCORPOREAL_FORM_TIMER(ch) = 0;
         INCORPOREAL_FORM_USES(ch) = INCORPOREAL_FORM_USES_PER_DAY(ch);
         send_to_char(ch, "Your incorporeal form (undead bloodline) uses have been refreshed.\r\n");
       }
     }
-    
+
     if (GET_MARK(ch) && GET_MARK_ROUNDS(ch) < 3)
     {
-        GET_MARK_ROUNDS(ch) += 1;
-        if (GET_MARK_ROUNDS(ch) == 3)
-            send_to_char(ch, "You have finished marking your target.\r\n");
-        else
-            send_to_char(ch, "You continue to mark your target.\r\n");
+      GET_MARK_ROUNDS(ch) += 1;
+      if (GET_MARK_ROUNDS(ch) == 3)
+        send_to_char(ch, "You have finished marking your target.\r\n");
+      else
+        send_to_char(ch, "You continue to mark your target.\r\n");
     }
   }
 }
-
 
 // every 6 seconds
 void proc_d20_round(void)
@@ -1247,7 +1273,6 @@ void proc_d20_round(void)
 
     if (!IS_NPC(i)) // players only
     {
-
     }
     else // mobs only
     {
@@ -1288,24 +1313,25 @@ void proc_d20_round(void)
         {
           switch (i->mob_specials.aggro_timer)
           {
-            case 5:
-              act("\tR$n looks very hostile towards you.\tn", true, i, 0, 0, TO_ROOM);
-              break;
-            case 4:
-              act("\tR$n seems to be getting even more hostile.\tN", true, i, 0, 0, TO_ROOM);
-              break;
-            case 3:
-              act("\tR$n looks to be losing $s patience.\tN", true, i, 0, 0, TO_ROOM);
-              break;
-            case 2:
-              act("\tR$n looks like $e may attack you.\tN", true, i, 0, 0, TO_ROOM);
-              break;
-            case 1:
-              act("\tR$n is preparing to attack you.\tN", true, i, 0, 0, TO_ROOM);
-              break;
+          case 5:
+            act("\tR$n looks very hostile towards you.\tn", true, i, 0, 0, TO_ROOM);
+            break;
+          case 4:
+            act("\tR$n seems to be getting even more hostile.\tN", true, i, 0, 0, TO_ROOM);
+            break;
+          case 3:
+            act("\tR$n looks to be losing $s patience.\tN", true, i, 0, 0, TO_ROOM);
+            break;
+          case 2:
+            act("\tR$n looks like $e may attack you.\tN", true, i, 0, 0, TO_ROOM);
+            break;
+          case 1:
+            act("\tR$n is preparing to attack you.\tN", true, i, 0, 0, TO_ROOM);
+            break;
           }
           i->mob_specials.aggro_timer--;
-          if (i->mob_specials.aggro_timer == 0) {
+          if (i->mob_specials.aggro_timer == 0)
+          {
             SET_BIT_AR(MOB_FLAGS(i), MOB_AGGRESSIVE);
             REMOVE_BIT_AR(MOB_FLAGS(i), MOB_HELPER); // helper and aggro flags conflict
           }
@@ -1426,7 +1452,6 @@ void point_update(void)
     }
     else // mobs only
     {
-      
     }
   }
 
@@ -1665,12 +1690,12 @@ void update_damage_and_effects_over_time(void)
       {
         if (IS_SET_AR(affects->bitvector, AFF_BLEED))
         {
-         dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
+          dam = damage(ch, ch, affects->modifier, TYPE_SUFFERING, DAM_BLEEDING, TYPE_SPECAB_BLEEDING);
 
           if (dam <= 0)
           { /* they died */
             break;
-          } 
+          }
         }
       }
     }
