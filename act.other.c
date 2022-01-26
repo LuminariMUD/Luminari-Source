@@ -2062,14 +2062,14 @@ ACMD(do_tame)
 }
 
 /* the guts of the respec mechanic */
-void respec_engine(struct char_data *ch, int class, bool silent)
+void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
 {
   /* in the clear! */
   int tempXP = GET_EXP(ch);
 
   GET_CLASS(ch) = class;
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
-  if (*arg2 && is_abbrev(arg2, "premade"))
+  if (*arg && is_abbrev(arg, "premade"))
     GET_PREMADE_BUILD_CLASS(ch) = class;
 
   /* Make sure that players can't make wildshaped forms permanent.*/
@@ -2167,7 +2167,7 @@ ACMD(do_respec)
     }
   }
 
-  respec_engine(ch, class, FALSE);
+  respec_engine(ch, class, arg2, FALSE);
 }
 
 /* level advancement, with multi-class support */

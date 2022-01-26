@@ -569,7 +569,7 @@ void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, const char *argument, int mode);
 void show_hints(void);
 void display_todo(struct char_data *ch, struct char_data *vict);
-void respec_engine(struct char_data *ch, int class, bool silent);
+void respec_engine(struct char_data *ch, int class, char *arg, bool silent);
 
 /* do_gen_tog */
 ACMD_DECL(do_gen_tog);
