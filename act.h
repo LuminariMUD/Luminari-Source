@@ -413,7 +413,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
 bool perform_backstab(struct char_data *ch, struct char_data *vict);
 int perform_collect(struct char_data *ch, bool silent);
-void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char * cruelty);
+void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char *cruelty);
 void throw_hedging_weapon(struct char_data *ch);
 /* Functions with subcommands */
 /* do_hit */
@@ -569,6 +569,7 @@ void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, const char *argument, int mode);
 void show_hints(void);
 void display_todo(struct char_data *ch, struct char_data *vict);
+void respec_engine(struct char_data *ch, int class, bool silent);
 
 /* do_gen_tog */
 ACMD_DECL(do_gen_tog);

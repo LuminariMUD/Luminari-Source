@@ -575,11 +575,16 @@
 #define RACE_GRAY_DWARF RACE_DUERGAR
 #define RACE_DARK_DWARF RACE_DUERGAR
 #define RACE_DUERGAR_DWARF RACE_DUERGAR
-//NUM_RACES = last playable race +1, set below [12]
+
+/* last playable race above +1 */
+#define NUM_RACES 13
+
+#define RACE_LICH 13 /*quest only race*/
+
 /* coming soon!*/
-#define RACE_H_OGRE 13 // not yet implemented
+#define RACE_H_OGRE 14 // not yet implemented
 #define RACE_HALF_OGRE RACE_H_OGRE
-#define RACE_RAT 14
+
 #define RACE_HORSE 15
 #define RACE_HALF_DROW 16
 #define RACE_ROCK_GNOME 17
@@ -654,10 +659,10 @@
 #define RACE_RED_DRAGON 85
 #define RACE_MANTICORE 86
 #define RACE_EFREETI 87
+#define RACE_RAT 88
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_RACES 13
-#define NUM_EXTENDED_RACES 88
+#define NUM_EXTENDED_RACES 89
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these

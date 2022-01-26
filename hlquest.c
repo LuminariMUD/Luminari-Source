@@ -320,8 +320,7 @@ bool is_object_in_a_quest(struct obj_data *obj)
 
 /* this is the main driver for the quest-out quest-reward system */
 /* temporary definition for initial compile by zusuk */
-#define CLASS_LICH 0
-#define RACE_LICH 0
+#define CLASS_LICH CLASS_STALWART_DEFENDER
 
 void perform_out_chain(struct char_data *ch, struct char_data *victim,
                        struct quest_entry *quest, char *name)
@@ -425,6 +424,27 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
       /* unfinished for luminari port */
     case QUEST_COMMAND_KIT:
+        if (qcom->value == CLASS_LICH)
+        {
+          //hack for lich remort..
+
+          GET_REAL_RACE(ch) = RACE_LICH;
+          //GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
+
+          respec_engine(ch, CLASS_WIZARD, TRUE);
+          GET_EXP(ch) = 0;
+
+          send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
+                           " and you realize\tn\r\n"
+                           "\tLthat you are dieing. Your body is now merely a "
+                           "vessel for your power.\tn\r\n");
+
+        send_to_char(ch, "You are now a LICH!");
+        log("Quest Log : %s have changed into to a LICH!", GET_NAME(ch));
+
+          return;
+        }
+
       if (GET_CLASS(ch) != qcom->location)
       {
         if (qcom->location <= CLASS_UNDEFINED || qcom->location >= NUM_CLASSES)
@@ -478,28 +498,13 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        ch->player.chclass = qcom->value;
+        if (qcom->value != CLASS_LICH)
+          ch->player.chclass = qcom->value;
         destroy_spell_prep_queue(ch);
         destroy_innate_magic_queue(ch);
         destroy_spell_collection(ch);
         destroy_known_spells(ch);
 
-        if (qcom->value == CLASS_LICH)
-        {
-          //hack for lich remort..
-
-          GET_REAL_RACE(ch) = RACE_LICH;
-          GET_LEVEL(ch) -= 9;
-          //GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
-
-          if (GET_EXP(ch) > level_exp(ch, GET_LEVEL(ch)))
-            GET_EXP(ch) = level_exp(ch, GET_LEVEL(ch));
-
-          send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
-                           " and you realize\tn\r\n"
-                           "\tLthat you are dieing. Your body is now merely a "
-                           "vessel for your power.\tn\r\n");
-        }
 
         for (i = 0; i < MAX_SKILLS; i++)
         {
@@ -546,7 +551,6 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
   }
 }
 #undef CLASS_LICH
-#undef RACE_LICH
 
 /* quest_room is the function that launches quest out if you bring in
    a specific mobile into the (given) room (the quest mobile) */
