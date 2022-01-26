@@ -424,26 +424,26 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
       /* unfinished for luminari port */
     case QUEST_COMMAND_KIT:
-        if (qcom->value == CLASS_LICH)
-        {
-          //hack for lich remort..
+      if (qcom->value == CLASS_LICH)
+      {
+        //hack for lich remort..
 
-          GET_REAL_RACE(ch) = RACE_LICH;
-          //GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
+        GET_REAL_RACE(ch) = RACE_LICH;
+        //GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
 
-          respec_engine(ch, CLASS_WIZARD, TRUE);
-          GET_EXP(ch) = 0;
+        respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
+        GET_EXP(ch) = 0;
 
-          send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
-                           " and you realize\tn\r\n"
-                           "\tLthat you are dieing. Your body is now merely a "
-                           "vessel for your power.\tn\r\n");
+        send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
+                         " and you realize\tn\r\n"
+                         "\tLthat you are dieing. Your body is now merely a "
+                         "vessel for your power.\tn\r\n");
 
         send_to_char(ch, "You are now a LICH!");
         log("Quest Log : %s have changed into to a LICH!", GET_NAME(ch));
 
-          return;
-        }
+        return;
+      }
 
       if (GET_CLASS(ch) != qcom->location)
       {
@@ -504,7 +504,6 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         destroy_innate_magic_queue(ch);
         destroy_spell_collection(ch);
         destroy_known_spells(ch);
-
 
         for (i = 0; i < MAX_SKILLS; i++)
         {
