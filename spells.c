@@ -519,7 +519,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
         wildshape = true;
       for (i = 0; i < AF_ARRAY_MAX; i++)
         AFF_FLAGS(ch)
-        [i] = 0;
+      [i] = 0;
       if (wildshape)
         SET_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
     }
@@ -630,7 +630,9 @@ EVENTFUNC(event_acid_arrow)
   /* For the sake of simplicity, we will place the event data in easily
    * referenced pointers */
   pMudEvent = (struct mud_event_data *)event_obj;
+
   ch = (struct char_data *)pMudEvent->pStruct;
+
   if (ch && FIGHTING(ch)) //assign victim, if none escape
     victim = FIGHTING(ch);
   else
@@ -638,6 +640,7 @@ EVENTFUNC(event_acid_arrow)
 
   if (ch == NULL || victim == NULL)
     return 0;
+
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
   {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
@@ -649,6 +652,7 @@ EVENTFUNC(event_acid_arrow)
 
   /* how about wands and everything else?? */
   level = CASTER_LEVEL(ch);
+
   if (level < 1)
     level = 15; /* so lame */
 
@@ -660,6 +664,7 @@ EVENTFUNC(event_acid_arrow)
            FALSE);
 
   update_pos(victim);
+
   return 0;
 }
 
@@ -720,7 +725,7 @@ EVENTFUNC(event_implode)
 
 ASPELL(spell_acid_arrow)
 {
-  int x = 0;
+  int x = 0, num_arrows = 1;
 
   if (ch == NULL || victim == NULL)
     return;
@@ -733,7 +738,9 @@ ASPELL(spell_acid_arrow)
   send_to_char(ch, "You send out an arrow of acid towards your opponent!\r\n");
   act("$n sends out an arrow of acid!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (x = 0; x < (MAGIC_LEVEL(ch) / 3); x++)
+  num_arrows += CASTER_LEVEL(ch) / 3;
+
+  for (x = 0; x < num_arrows; x++)
   {
     NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
@@ -1047,16 +1054,23 @@ ASPELL(spell_enchant_item) // enchantment
   /* Make sure no other affections. */
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
     if (obj->affected[i].location != APPLY_NONE)
-      { eligible = false; break; }
+    {
+      eligible = false;
+      break;
+    }
 
   for (i = 0; i < NUM_WEARS; i++)
     if (GET_EQ(ch, i) == obj)
-      { eligible = false; break; }
+    {
+      eligible = false;
+      break;
+    }
 
   if (GET_OBJ_VAL(obj, 4) > 0)
     eligible = false;
 
-  if (!eligible) {
+  if (!eligible)
+  {
     send_to_char(ch, "Your spell failed.\r\n"
                      "This spell will only work on nonmagical weapons and armor that offer no stat modifications.\r\n"
                      "It will also fail on any worn equipment.  The item must be in your inventory");
@@ -1072,21 +1086,21 @@ ASPELL(spell_enchant_item) // enchantment
 
   switch (bonus)
   {
-    case 1:
-      GET_OBJ_LEVEL(obj) = 1;
-      break;
-    case 2:
-      GET_OBJ_LEVEL(obj) = 8;
-      break;
-    case 3:
-      GET_OBJ_LEVEL(obj) = 16;
-      break;
-    case 4:
-      GET_OBJ_LEVEL(obj) = 25;
-      break;
-    default:
-      GET_OBJ_LEVEL(obj) = 31;
-      break;
+  case 1:
+    GET_OBJ_LEVEL(obj) = 1;
+    break;
+  case 2:
+    GET_OBJ_LEVEL(obj) = 8;
+    break;
+  case 3:
+    GET_OBJ_LEVEL(obj) = 16;
+    break;
+  case 4:
+    GET_OBJ_LEVEL(obj) = 25;
+    break;
+  default:
+    GET_OBJ_LEVEL(obj) = 31;
+    break;
   }
 
   act("$p glows \tYyellow\tn.", FALSE, ch, obj, 0, TO_CHAR);
@@ -1394,7 +1408,8 @@ ASPELL(spell_polymorph)
   if (IS_NPC(ch) || !ch->desc)
     return;
 
-  if (IS_WILDSHAPED(ch)) {
+  if (IS_WILDSHAPED(ch))
+  {
     send_to_char(ch, "You cannot polymorph while wildshaped.\r\n");
     return;
   }
@@ -1820,7 +1835,6 @@ ASPELL(spell_teleport)
   greet_memory_mtrigger(ch);
 }
 
-
 ASPELL(spell_shadow_jump)
 {
   room_rnum to_room = NOWHERE;
@@ -2148,7 +2162,6 @@ ASPELL(psionic_wall_of_ectoplasm)
   }
   else
     send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
-
 }
 
 ASPELL(spell_wizard_eye)
@@ -2196,7 +2209,6 @@ ASPELL(psionic_concussive_onslaught)
   ch->player_specials->dam_co_holder_ndice = 3 + (GET_AUGMENT_PSP(ch) / 2);
   ch->player_specials->dam_co_holder_sdice = 6;
   ch->player_specials->save_co_holder_dc_bonus = GET_AUGMENT_PSP(ch) / 2;
-  
 
   for (x = 0; x < GET_PSIONIC_LEVEL(ch); x++)
   {
@@ -2239,8 +2251,10 @@ EVENTFUNC(event_concussive_onslaught)
 
   for (victim = world[IN_ROOM(ch)].people; victim; victim = victim->next_in_room)
   {
-    if (!aoeOK(ch, victim, PSIONIC_CONCUSSIVE_ONSLAUGHT)) continue;
-    if (power_resistance(ch, victim, 0)) continue;
+    if (!aoeOK(ch, victim, PSIONIC_CONCUSSIVE_ONSLAUGHT))
+      continue;
+    if (power_resistance(ch, victim, 0))
+      continue;
     GET_DC_BONUS(ch) = ch->player_specials->save_co_holder_dc_bonus;
     if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, EVOCATION))
       damage(ch, victim, (dice(ndice, sdice) / 2), PSIONIC_CONCUSSIVE_ONSLAUGHT, DAM_FORCE, FALSE);
