@@ -45,11 +45,11 @@ const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearof
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start);
 void spello(int spl, const char *name, int max_psp, int min_psp,
-                   int psp_change, int minpos, int targets, int violent, int routines,
-                   const char *wearoff, int time, int memtime, int school, bool quest);
+            int psp_change, int minpos, int targets, int violent, int routines,
+            const char *wearoff, int time, int memtime, int school, bool quest);
 static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                   int psp_change, int minpos, int targets, int violent, int routines,
-                   const char *wearoff, int time, int memtime, int school, bool quest);
+                        int psp_change, int minpos, int targets, int violent, int routines,
+                        const char *wearoff, int time, int memtime, int school, bool quest);
 //static int mag_pspcost(struct char_data *ch, int spellnum);
 
 /* Local (File Scope) Variables */
@@ -933,7 +933,6 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         // was removed in mag_savingthrow
         GET_DC_BONUS(caster) = 0;
 
-
         return (1);
 }
 
@@ -982,7 +981,8 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                         }
                         else
                         {
-                                GET_OBJ_VAL(obj, 2)--;
+                                GET_OBJ_VAL(obj, 2)
+                                --;
                         }
                         USE_STANDARD_ACTION(ch);
 
@@ -1059,7 +1059,8 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                 }
                 else
                 {
-                        GET_OBJ_VAL(obj, 2)--;
+                        GET_OBJ_VAL(obj, 2)
+                        --;
                 }
                 USE_STANDARD_ACTION(ch);
 
@@ -1212,26 +1213,28 @@ int castingCheckOk(struct char_data *ch)
 
 void finishCasting(struct char_data *ch)
 {
-        if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS) {
+        if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS)
+        {
                 if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC))
                         GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC);
         }
-        else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END) {          
+        else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
+        {
                 if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS))
                         GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_PSIONICS);
-                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS)) {
+                if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
+                {
                         GET_DC_BONUS(ch) += 1;
                         if (HAS_FEAT(ch, FEAT_PSIONIC_ENDOWMENT))
                                 GET_DC_BONUS(ch) += 3;
                 }
-                        
         }
         if (GET_CASTING_CLASS(ch) == CLASS_SHADOWDANCER)
         {
-                
+
                 if (CASTING_SPELLNUM(ch) == SPELL_MIRROR_IMAGE)
                 {
-                        
+
                         start_daily_use_cooldown(ch, FEAT_SHADOW_ILLUSION);
                 }
                 else if (CASTING_SPELLNUM(ch) == SPELL_SHADOW_JUMP)
@@ -1247,17 +1250,16 @@ void finishCasting(struct char_data *ch)
                         start_daily_use_cooldown(ch, FEAT_SHADOW_POWER);
                 }
         }
-        
+
         say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
-        send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : 
-                                (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
+        send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
         call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
                    (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
         if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
         {
                 send_to_char(ch, "\tW[DOUBLE MANIFEST!]\tn");
                 call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
-                   (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+                           (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
                 affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
         }
         resetCastingData(ch);
@@ -1307,8 +1309,7 @@ EVENTFUNC(event_casting)
                                 return 0;
 
                         //display time left to finish spell
-                        snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : 
-                                 (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
+                        snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
                                  (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
                                  (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
                                  SINFO.name);
@@ -1317,27 +1318,37 @@ EVENTFUNC(event_casting)
                         strlcat(buf, "\r\n", sizeof(buf));
                         send_to_char(ch, "%s", buf);
 
-                        if (spellnum > 0 && spellnum < NUM_SPELLS) {
-                                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT)) {
-                                        if (rand_number(0, 1)) {
-                                                CASTING_TIME(ch)--;
+                        if (spellnum > 0 && spellnum < NUM_SPELLS)
+                        {
+                                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
+                                {
+                                        if (rand_number(0, 1))
+                                        {
+                                                CASTING_TIME(ch)
+                                                --;
                                         }
                                 }
                         }
-                        else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END) {
+                        else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+                        {
                                 // add augment casting time adjustment
 
                                 // add above
-                                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_MIND)) {
-                                        if (rand_number(0, 1)) {
-                                                CASTING_TIME(ch)--;
+                                if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_MIND))
+                                {
+                                        if (rand_number(0, 1))
+                                        {
+                                                CASTING_TIME(ch)
+                                                --;
                                         }
                                 }
                                 if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
-                                        CASTING_TIME(ch)--;
+                                        CASTING_TIME(ch)
+                                        --;
                         }
 
-                        CASTING_TIME(ch)--;
+                        CASTING_TIME(ch)
+                        --;
 
                         //chance quick chant bumped us to finish early
                         if (CASTING_TIME(ch) <= 0)
@@ -1379,8 +1390,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 {
         if (GET_LEVEL(ch) >= LVL_IMMORT)
         {
-          // imms can cast any spell
-          return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
+                // imms can cast any spell
+                return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
         }
 
         int position = GET_POS(ch);
@@ -1602,8 +1613,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
         if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
         {
-          HAS_ELDRITCH_SPELL_CRIT(ch) = false;
-          casting_time = 0;
+                HAS_ELDRITCH_SPELL_CRIT(ch) = false;
+                casting_time = 0;
         }
 
         if (spellnum == PSIONIC_MIND_TRAP)
@@ -1777,7 +1788,7 @@ ACMDU(do_gen_cast)
                                 else
                                 {
                                         send_to_char(ch, "You don't know how to quicken your %s!\r\n",
-                                                do_cast_types[subcmd][4]);
+                                                     do_cast_types[subcmd][4]);
                                         return;
                                 }
                                 //log("DEBUG: Quickened metamagic used.");
@@ -1791,7 +1802,7 @@ ACMDU(do_gen_cast)
                                 else
                                 {
                                         send_to_char(ch, "You don't know how to maximize your %s!\r\n",
-                                                do_cast_types[subcmd][4]);
+                                                     do_cast_types[subcmd][4]);
                                         return;
                                 }
                         }
@@ -1860,9 +1871,8 @@ ACMDU(do_gen_cast)
                                 send_to_char(ch, "You do not have the shadow illusion feat necessary to shadowcast this.\r\n");
                                 return;
                         }
-                        
-                        PREREQ_HAS_USES(FEAT_SHADOW_ILLUSION, "You are not yet able to perform a shadow illusion.\r\n");
 
+                        PREREQ_HAS_USES(FEAT_SHADOW_ILLUSION, "You are not yet able to perform a shadow illusion.\r\n");
                 }
                 else if (spellnum == SPELL_SHADOW_JUMP)
                 {
@@ -1871,9 +1881,8 @@ ACMDU(do_gen_cast)
                                 send_to_char(ch, "You do not have the shadow jump feat necessary to shadowcast this.\r\n");
                                 return;
                         }
-                        
-                        PREREQ_HAS_USES(FEAT_SHADOW_JUMP, "You are not yet able to perform a shadow jump.\r\n");
 
+                        PREREQ_HAS_USES(FEAT_SHADOW_JUMP, "You are not yet able to perform a shadow jump.\r\n");
                 }
                 else
                 {
@@ -2003,20 +2012,20 @@ ACMDU(do_gen_cast)
                 }
         }
         else if (GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_SHADOW &&
-                (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
-                 //          BONUS_CASTER_LEVEL(ch, CLASS_PSY_WARR) + CLASS_LEVEL(ch, CLASS_PSY_WARR) < SINFO.min_level[CLASS_PSY_WARR] &&
-                 //          BONUS_CASTER_LEVEL(ch, CLASS_SOULKNIFE) + CLASS_LEVEL(ch, CLASS_SOULKNIFE) < SINFO.min_level[CLASS_SOULKNIFE] &&
-                 //          BONUS_CASTER_LEVEL(ch, CLASS_WILDER) + CLASS_LEVEL(ch, CLASS_WILDER) < SINFO.min_level[CLASS_WILDER] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_BLACKGUARD) + CLASS_LEVEL(ch, CLASS_BLACKGUARD) < SINFO.min_level[CLASS_BLACKGUARD] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
-                 BONUS_CASTER_LEVEL(ch, CLASS_ALCHEMIST) + CLASS_LEVEL(ch, CLASS_ALCHEMIST) < SINFO.min_level[CLASS_ALCHEMIST]))
+                 (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
+                  //          BONUS_CASTER_LEVEL(ch, CLASS_PSY_WARR) + CLASS_LEVEL(ch, CLASS_PSY_WARR) < SINFO.min_level[CLASS_PSY_WARR] &&
+                  //          BONUS_CASTER_LEVEL(ch, CLASS_SOULKNIFE) + CLASS_LEVEL(ch, CLASS_SOULKNIFE) < SINFO.min_level[CLASS_SOULKNIFE] &&
+                  //          BONUS_CASTER_LEVEL(ch, CLASS_WILDER) + CLASS_LEVEL(ch, CLASS_WILDER) < SINFO.min_level[CLASS_WILDER] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_BLACKGUARD) + CLASS_LEVEL(ch, CLASS_BLACKGUARD) < SINFO.min_level[CLASS_BLACKGUARD] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
+                  BONUS_CASTER_LEVEL(ch, CLASS_ALCHEMIST) + CLASS_LEVEL(ch, CLASS_ALCHEMIST) < SINFO.min_level[CLASS_ALCHEMIST]))
         {
                 send_to_char(ch, "You do not know that %s!\r\n", do_cast_types[subcmd][2]);
                 return;
@@ -2025,18 +2034,18 @@ ACMDU(do_gen_cast)
         if (subcmd == SCMD_CAST_PSIONIC)
         {
                 // has the character added the power via study menu?
-                if (!is_a_known_spell(ch, CLASS_PSIONICIST, spellnum)  && GET_LEVEL(ch) < LVL_IMMORT)
+                if (!is_a_known_spell(ch, CLASS_PSIONICIST, spellnum) && GET_LEVEL(ch) < LVL_IMMORT)
                 {
                         send_to_char(ch, "You are not proficient in the use of that power.\r\n");
                         return;
                 }
-                
+
                 // First, see what is the maximum augment usage allowed
                 GET_AUGMENT_PSP(ch) = MIN(GET_AUGMENT_PSP(ch), max_augment_psp_allowed(ch, spellnum));
-                
+
                 // then adjust it to the specifications of the level and power used
                 GET_AUGMENT_PSP(ch) = adjust_augment_psp_for_spell(ch, spellnum);
-                
+
                 // we mainly separate the next two checks for the different messages to characters
                 if (GET_PSP(ch) < psionic_powers[spellnum].psp_cost)
                 {
@@ -2051,29 +2060,28 @@ ACMDU(do_gen_cast)
                 // All is well, deduct the psp and augment psp
                 GET_PSP(ch) -= (psionic_powers[spellnum].psp_cost + GET_AUGMENT_PSP(ch));
 
-                
                 // many powers only benefit from certain intervals of augment psp such
                 // as damage bonus = augment psp / 2.  So if their augment psp has a remainder
                 // after that calculation, we'll just refund the remainder psp
                 if (psionic_powers[spellnum].augment_amount > 1)
                         GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % psionic_powers[spellnum].augment_amount);
-                
         }
         else
         {
                 /* SPELL PREPARATION HOOK */
                 if (GET_LEVEL(ch) < LVL_IMMORT && (class_num = spell_prep_gen_check(ch, spellnum, metamagic)) == CLASS_UNDEFINED &&
-                !isEpicSpell(spellnum) && subcmd != SCMD_CAST_SHADOW)
+                    !isEpicSpell(spellnum) && subcmd != SCMD_CAST_SHADOW)
                 {
                         send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
-                                do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
+                                     do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
                         return;
                 }
         }
 
         if (!IS_NPC(ch))
         {
-                if (subcmd != SCMD_CAST_SHADOW) {
+                if (subcmd != SCMD_CAST_SHADOW)
+                {
                         GET_CASTING_CLASS(ch) = class_num;
                 }
                 else
@@ -2088,40 +2096,38 @@ ACMDU(do_gen_cast)
         {
                 switch (GET_CASTING_CLASS(ch))
                 {
-                        case CLASS_WIZARD:
-                        case CLASS_ALCHEMIST:
-                        case CLASS_PSIONICIST:
-                                if ((10 + circle) > GET_INT(ch))
-                                {
+                case CLASS_WIZARD:
+                case CLASS_ALCHEMIST:
+                case CLASS_PSIONICIST:
+                        if ((10 + circle) > GET_INT(ch))
+                        {
                                 send_to_char(ch, "You need to have a minimum intelligence of %d to %s a circle %d %s.\r\n",
-                                                        10 + circle, GET_CASTING_CLASS(ch) == CLASS_WIZARD ? "cast" : 
-                                                        ((GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST) ? "imbibe" : "manifest"),
-                                                        circle, GET_CASTING_CLASS(ch) == CLASS_WIZARD ? "spell" : 
-                                                        ((GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST) ? "extract" : "power"));
+                                             10 + circle, GET_CASTING_CLASS(ch) == CLASS_WIZARD ? "cast" : ((GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST) ? "imbibe" : "manifest"),
+                                             circle, GET_CASTING_CLASS(ch) == CLASS_WIZARD ? "spell" : ((GET_CASTING_CLASS(ch) == CLASS_ALCHEMIST) ? "extract" : "power"));
                                 return;
-                                }
-                                break;
-                        case CLASS_CLERIC:
-                        case CLASS_DRUID:
-                        case CLASS_RANGER:
-                                if ((10 + circle) > GET_WIS(ch))
-                                {
-                                        send_to_char(ch, "You need to have a minimum wisdom of %d to cast a circle %d spell.\r\n",
-                                                        10 + circle, circle);
-                                        return;
-                                }
-                                break;
-                        case CLASS_BARD:
-                        case CLASS_SORCERER:
-                        case CLASS_PALADIN:
-                        case CLASS_BLACKGUARD:
-                                if ((10 + circle) > GET_CHA(ch))
-                                {
-                                        send_to_char(ch, "You need to have a minimum charisma of %d to cast a circle %d spell.\r\n",
-                                                        10 + circle, circle);
-                                        return;
-                                }
-                                break;
+                        }
+                        break;
+                case CLASS_CLERIC:
+                case CLASS_DRUID:
+                case CLASS_RANGER:
+                        if ((10 + circle) > GET_WIS(ch))
+                        {
+                                send_to_char(ch, "You need to have a minimum wisdom of %d to cast a circle %d spell.\r\n",
+                                             10 + circle, circle);
+                                return;
+                        }
+                        break;
+                case CLASS_BARD:
+                case CLASS_SORCERER:
+                case CLASS_PALADIN:
+                case CLASS_BLACKGUARD:
+                        if ((10 + circle) > GET_CHA(ch))
+                        {
+                                send_to_char(ch, "You need to have a minimum charisma of %d to cast a circle %d spell.\r\n",
+                                             10 + circle, circle);
+                                return;
+                        }
+                        break;
                 }
 
                 /* further restrictions, this needs updating!
@@ -2321,7 +2327,8 @@ ACMDU(do_gen_cast)
         {
                 if (psionic_powers[spellnum].power_type == TELEPATHY || is_spell_mind_affecting(spellnum))
                 {
-                        if (IS_PSIONIC(ch)) {
+                        if (IS_PSIONIC(ch))
+                        {
                                 GET_PSP(ch) -= dice(1, 6);
                                 GET_PSP(ch) = MAX(0, GET_PSP(ch));
                                 act("Your mental attack on $N triggered $S mind trap, and you feel some power lost!", false, ch, 0, tch, TO_CHAR);
@@ -2339,7 +2346,6 @@ ACMDU(do_gen_cast)
                                         act("$n's mental attack on YOU has made $m nauseated, due to your mind trap affect!", false, ch, 0, tch, TO_VICT);
                                         act("$n's mental attack on $N has made $m nauseated!", false, ch, 0, tch, TO_NOTVICT);
                                 }
-
                         }
                 }
         }
@@ -2377,9 +2383,9 @@ void spell_level(int spell, int chclass, int level)
 
 /* Assign the spells on boot up */
 void spello(int spl, const char *name, int max_psp, int min_psp,
-                   int psp_change, int minpos, int targets, int violent,
-                   int routines, const char *wearoff, int time, int memtime, int school,
-                   bool quest)
+            int psp_change, int minpos, int targets, int violent,
+            int routines, const char *wearoff, int time, int memtime, int school,
+            bool quest)
 {
         int i;
 
@@ -2412,9 +2418,9 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
 }
 
 static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                   int psp_change, int minpos, int targets, int violent,
-                   int routines, const char *wearoff, int time, int memtime, int school,
-                   bool quest)
+                        int psp_change, int minpos, int targets, int violent,
+                        int routines, const char *wearoff, int time, int memtime, int school,
+                        bool quest)
 {
         int i;
 
@@ -3421,37 +3427,37 @@ void mag_assign_spells(void)
         // divine spells
         // 1st circle
         spello(SPELL_CURE_LIGHT, "cure light", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
-                NULL, 1, 8, CONJURATION, FALSE);
-        spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, 
-                NULL, 2, 8, NOSCHOOL, FALSE);
-        spello(SPELL_RIGHTEOUS_VIGOR, "righteous vigor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
-                "You feel less accurate.", 4, 8, ENCHANTMENT, FALSE);
-        spello(SPELL_LIFE_SHIELD, "life shield", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
-                "The dome of positive energy flashes and disappears.", 4, 8, CONJURATION, FALSE);
-        spello(SPELL_EFFORTLESS_ARMOR, "effortless armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
-                "You feel less agile in your armor.", 4, 8, TRANSMUTATION, FALSE);
-        spello(SPELL_FIRE_OF_ENTANGLEMENT, "fire of entanglement", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
-                "The entangling flame around your weapons disappears.", 4, 8, EVOCATION, FALSE);
-        spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
-                "You feel less protected.", 4, 8, CONJURATION, FALSE);
-        spello(SPELL_BESTOW_WEAPON_PROFICIENCY, "bestow weapon proficiency", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
-                "You feel less proficient.", 4, 8, ENCHANTMENT, FALSE);
-        spello(SPELL_TACTICAL_ACUMEN, "tactical acumen", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS, 
-                "You feel your enhances tactical abilities fade.", 4, 8, ENCHANTMENT, FALSE);
-        spello(SPELL_VEIL_OF_POSITIVE_ENERGY, "veil of positive energy", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
-                "You feel the veil of positive energy fade.", 4, 8, ABJURATION, FALSE);
-        spello(SPELL_SUN_METAL, "sun metal", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
-                "The flames around your weapon dissipate.", 4, 8, CONJURATION, FALSE);
-        spello(SPELL_STUNNING_BARRIER, "stunning barrier", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
-                "You feel the stunning barrier dissipate.", 4, 8, CONJURATION, FALSE);
-        spello(SPELL_SHIELD_OF_FORTIFICATION, "shield of fortification", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
-                "You feel less fortified.", 4, 8, CONJURATION, FALSE);
+               NULL, 1, 8, CONJURATION, FALSE);
+        spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+               NULL, 2, 8, NOSCHOOL, FALSE);
+        spello(SPELL_RIGHTEOUS_VIGOR, "righteous vigor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "You feel less accurate.", 4, 8, ENCHANTMENT, FALSE);
+        spello(SPELL_LIFE_SHIELD, "life shield", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "The dome of positive energy flashes and disappears.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_EFFORTLESS_ARMOR, "effortless armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+               "You feel less agile in your armor.", 4, 8, TRANSMUTATION, FALSE);
+        spello(SPELL_FIRE_OF_ENTANGLEMENT, "fire of entanglement", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+               "The entangling flame around your weapons disappears.", 4, 8, EVOCATION, FALSE);
+        spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "You feel less protected.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_BESTOW_WEAPON_PROFICIENCY, "bestow weapon proficiency", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "You feel less proficient.", 4, 8, ENCHANTMENT, FALSE);
+        spello(SPELL_TACTICAL_ACUMEN, "tactical acumen", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_GROUPS,
+               "You feel your enhances tactical abilities fade.", 4, 8, ENCHANTMENT, FALSE);
+        spello(SPELL_VEIL_OF_POSITIVE_ENERGY, "veil of positive energy", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+               "You feel the veil of positive energy fade.", 4, 8, ABJURATION, FALSE);
+        spello(SPELL_SUN_METAL, "sun metal", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "The flames around your weapon dissipate.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_STUNNING_BARRIER, "stunning barrier", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+               "You feel the stunning barrier dissipate.", 4, 8, CONJURATION, FALSE);
+        spello(SPELL_SHIELD_OF_FORTIFICATION, "shield of fortification", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "You feel less fortified.", 4, 8, CONJURATION, FALSE);
         spello(SPELL_RESISTANCE, "resistance", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less resistant.", 4, 8, ABJURATION, FALSE);
         spello(SPELL_HONEYED_TONGUE, "honeyed tongue", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "You feel your silver tongue become less influential.", 4, 8, TRANSMUTATION, FALSE);
         spello(SPELL_HEDGING_WEAPONS, "hedging weapons", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "The last of your hedging weapons dissipates.", 4, 8, ABJURATION, FALSE);
         spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
         spello(SPELL_LESSER_RESTORATION, "lesser restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
-        spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,  "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
+        spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
         spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
 
         spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
@@ -3461,8 +3467,8 @@ void mag_assign_spells(void)
         spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
                NULL, 3, 8, NOSCHOOL, FALSE);
-        spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, 
-                "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
+        spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+               "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
         //endurance - shared
         //negative energy ray - shared
         //endure elements - shared
@@ -3720,10 +3726,10 @@ void mag_assign_spells(void)
                NULL, 0, 0, NOSCHOOL, FALSE);
 
         spello(BLACKGUARD_CRUELTY_AFFECTS, "blackguard cruelty", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AFFECTS, "A blackguard cruelty effect has expired.", 0, 0, NOSCHOOL, FALSE);
-        
+               TAR_IGNORE, TRUE, MAG_AFFECTS, "A blackguard cruelty effect has expired.", 0, 0, NOSCHOOL, FALSE);
+
         spello(PALADIN_MERCY_INJURED_FAST_HEALING, "paladin mercy fast healing", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+               TAR_IGNORE, FALSE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
 
         spello(ABILITY_CHANNEL_POSITIVE_ENERGY, "channel positive energy", 85, 70, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS | MAG_GROUPS, NULL, 9, 23, NOSCHOOL, FALSE);
@@ -3742,29 +3748,29 @@ void mag_assign_spells(void)
                "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
 
         spello(SPELL_AFFECT_MIND_TRAP_NAUSEA, "mind trap", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "The mind trap's nausea fades.", 1, 1, NOSCHOOL, FALSE);
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "The mind trap's nausea fades.", 1, 1, NOSCHOOL, FALSE);
         spello(SPELL_AFFECT_STUNNING_BARRIER, "stunning barrier effect", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "You are no longer stunned by a stunning barrier.", 1, 1, CONJURATION, FALSE);
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "You are no longer stunned by a stunning barrier.", 1, 1, CONJURATION, FALSE);
         spello(AFFECT_ENTANGLING_FLAMES, "entangling flames effect", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "You are no longer entangled.", 1, 1, EVOCATION, FALSE);
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "You are no longer entangled.", 1, 1, EVOCATION, FALSE);
         spello(SPELL_EFFECT_DAZZLED, "dazzled effect", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "You are no longer dazzled.", 1, 1, EVOCATION, FALSE);        
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "You are no longer dazzled.", 1, 1, EVOCATION, FALSE);
 
         spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "Your psionic focus expires.", 1, 1, NOSCHOOL, FALSE); 
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "Your psionic focus expires.", 1, 1, NOSCHOOL, FALSE);
         spello(PSIONIC_ABILITY_DOUBLE_MANIFESTATION, "double manifestation", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "Your double manifest expires.", 1, 1, NOSCHOOL, FALSE);        
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "Your double manifest expires.", 1, 1, NOSCHOOL, FALSE);
 
         spello(SPELL_AFFECT_DEATH_ATTACK, "death attack paralyzation", 0, 0, 0, POS_FIGHTING,
-                TAR_IGNORE, FALSE, MAG_AFFECTS,
-                "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
-                
+               TAR_IGNORE, FALSE, MAG_AFFECTS,
+               "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
+
         /*
    spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
           TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
@@ -3979,7 +3985,7 @@ void mag_assign_spells(void)
         skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL);                     //526
         skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL);                 //527
         skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL);               //528
-        skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);           //529
+        skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);         //529
         skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL);                 //530
         skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL);                   //531
         skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL);             //532
@@ -4026,7 +4032,8 @@ void display_shadowcast_spells(struct char_data *ch)
         int i = 0, circle = 0, max_circle = 4;
         bool found = false;
 
-        if (!ch) return;
+        if (!ch)
+                return;
 
         //shadowdancers can't cast anything until level 3
         if (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) < 3)
@@ -4055,7 +4062,7 @@ void display_shadowcast_spells(struct char_data *ch)
         {
                 max_circle = 2;
         }
-        
+
         send_to_char(ch, "\tMShadowcast Spells Available\tn\r\n");
 
         for (circle = 1; circle <= max_circle; circle++)
