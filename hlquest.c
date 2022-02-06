@@ -429,7 +429,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
 
       /* unfinished for luminari port */
     case QUEST_COMMAND_KIT:
-      if (qcom->value == CLASS_LICH)
+      if (qcom->value == CLASS_LICH || qcom->location == CLASS_LICH)
       {
         // hack for lich remort..
 
@@ -495,7 +495,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         give_back_items(victim, ch, quest);
       }
       else if (GET_LEVEL(ch) < (LVL_IMMORT - 1) &&
-               qcom->value == CLASS_LICH)
+               (qcom->value == CLASS_LICH || qcom->location == CLASS_LICH))
       {
         send_to_char(ch, "You are too low level (min 30) to do this now.\r\n");
         log("quest_log : %s failed to do a kitquest.(too low level)",
@@ -1061,7 +1061,7 @@ ACMD(do_qinfo)
                 }
                 else if (qcmd->type == QUEST_COMMAND_KIT)
                 {
-                  if (qcmd->value == CLASS_LICH)
+                  if (qcmd->value == CLASS_LICH || qcmd->location == CLASS_LICH)
                   {
                     snprintf(buf, sizeof(buf), "and changes your race to LICH");
                     strlcat(buf, buf2, sizeof(buf));
@@ -1151,7 +1151,8 @@ ACMD(do_kitquests)
         {
           if (qcom->type == QUEST_COMMAND_KIT)
           {
-            if (qcom->value == CLASS_LICH)
+
+            if (qcom->location == CLASS_LICH || qcom->value == CLASS_LICH)
             {
               snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n", "LICH", mob_proto[i].player.short_descr, mob_index[i].vnum);
               send_to_char(ch, buf);
