@@ -1,8 +1,8 @@
 /**************************************************************************
-*  File: race.c                                               LuminariMUD *
-*  Usage: Source file for race-specific code.                             *
-*  Authors:  Nashak and Zusuk                                             *
-**************************************************************************/
+ *  File: race.c                                               LuminariMUD *
+ *  Usage: Source file for race-specific code.                             *
+ *  Authors:  Nashak and Zusuk                                             *
+ **************************************************************************/
 
 /** Help buffer the global variable definitions */
 #define __RACE_C__
@@ -1034,8 +1034,8 @@ void assign_races(void)
                                "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
                                "might simply kill another or drive him insane. "
                                "\r\n\r\n"
-                               "Please note that a Lich has all the advantages/disadvantages of being Undead."
-                               /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
+                               "Please note that a Lich has all the advantages/disadvantages of being Undead.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
   set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
   set_race_abilities(RACE_LICH, 0, 2, 6, 0, 2, 0);           /* str con int wis dex cha */
@@ -1641,13 +1641,13 @@ void assign_races(void)
   /* magical beast */
   /*
   add_race(RACE_BLINK_DOG, "blink dog", "BlinkDog", "Blink Dog", "BlDg", "BlDg",
-           // race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? 
+           // race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic?
            RACE_TYPE_MAGICAL_BEAST, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
 
   set_race_attack_types(RACE_BLINK_DOG,
-                      // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce 
+                      // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce
                       N, N, N, N, Y, N, N, N, Y, N, N, N,
-                      // blast punch stab slice thrust hack rake peck smash trample charge gore 
+                      // blast punch stab slice thrust hack rake peck smash trample charge gore
                       N, N, N, N, N, N, N, N, N, N, N, N);
   */
   add_race(RACE_MANTICORE, "manticore", "Mnticore", "Manticore", "Mntc", "Mntc",
@@ -1694,7 +1694,7 @@ void assign_races(void)
                         // blast p slice thrust hack rake peck smash trample charge gore
                         N, N, N, N, N, N, N, N, N, N, N, N);
 
-  /* 
+  /*
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   */
