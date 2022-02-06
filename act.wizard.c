@@ -1063,7 +1063,8 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
   send_to_char(ch, "\tCStoneskin: \tn%d\tC, Mirror Images: \tn%d\tC, Cloudkill/Inc/Doom:"
                    " \tn%d/%d/%d\tC, Spell Resist: \tn%d\r\n",
-               GET_STONESKIN(k), GET_IMAGES(k), CLOUDKILL(k), INCENDIARY(k), DOOM(k), GET_SPELL_RES(k));
+               GET_STONESKIN(k), GET_IMAGES(k), CLOUDKILL(k), INCENDIARY(k), DOOM(k),
+               compute_spell_res(ch, k, 0));
 
   send_to_char(ch, "\tCMemming? \tn%d\tC, Praying? \tn%d\tC, Communing? \tn%d\tC,"
                    " Meditating? \tn%d\tn\r\n",
@@ -1511,8 +1512,8 @@ ACMD(do_switch)
   struct char_data *victim;
 
   /* temporarily disabled while adapting to wilderness */
-  //send_to_char(ch, "Under construction.\r\n");   /**/
-  //return;                                        /**/
+  // send_to_char(ch, "Under construction.\r\n");   /**/
+  // return;                                        /**/
   /* temporarily disabled while adapting to wilderness */
 
   one_argument(argument, arg, sizeof(arg));
@@ -2656,8 +2657,8 @@ ACMDU(do_last)
   fclose(fp);
   send_to_char(ch, "\r\n"
                    "Type last complete to see the last 40 logins with account name, character name and login time.\r\n"
-                   //"Type last unique to see the last 40 logins, only showing the most recent login per account.\r\n"
-                    );
+               //"Type last unique to see the last 40 logins, only showing the most recent login per account.\r\n"
+  );
 }
 
 ACMD(do_force)
@@ -3000,7 +3001,7 @@ ACMD(do_wizutil)
           affect_remove(vict, vict->affected);
         for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
           AFF_FLAGS(vict)
-          [taeller] = 0;
+        [taeller] = 0;
         send_to_char(vict, "There is a brief flash of light!\r\nYou feel slightly different.\r\n");
         send_to_char(ch, "All spells removed.\r\n");
       }
@@ -3013,7 +3014,7 @@ ACMD(do_wizutil)
     default:
       log("\tnSYSERR: Unknown subcmd %d passed to do_wizutil (%s)", subcmd, __FILE__);
       /*  SYSERR_DESC: This is the same as the unhandled case in do_gen_ps(),
-         *  but this function handles 'reroll', 'pardon', 'freeze', etc. */
+       *  but this function handles 'reroll', 'pardon', 'freeze', etc. */
       break;
     }
     save_char(vict, 0);
@@ -3021,7 +3022,7 @@ ACMD(do_wizutil)
 }
 
 /* single zone printing fn used by "show zone" so it's not repeated in the
-   code 3 times ... -je, 4/6/93 FIXME: overflow possible 
+   code 3 times ... -je, 4/6/93 FIXME: overflow possible
    listall = list all the zones in game or not */
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall)
 {
@@ -3143,7 +3144,7 @@ ACMD(do_show)
       {"popularity", LVL_IMMORT},
       {"bab", LVL_IMMORT},
       {"exp", LVL_IMMORT},
-      {"colour", LVL_IMMORT}, //15
+      {"colour", LVL_IMMORT}, // 15
       {"citizen", LVL_IMMORT},
       {"guard", LVL_IMMORT},
       {"crafts", LVL_IMMORT},
@@ -3245,7 +3246,7 @@ ACMD(do_show)
     CREATE(vict->player_specials, struct player_special_data, 1);
     new_mobile_data(vict);
     /* Allocate mobile event list */
-    //vict->events = create_list();
+    // vict->events = create_list();
     if (load_char(value, vict) < 0)
     {
       send_to_char(ch, "There is no such player.\r\n");
@@ -3286,16 +3287,16 @@ ACMD(do_show)
     for (vict = character_list; vict; vict = vict->next)
     {
       if (IS_NPC(vict))
-        j++; //mobile in game count
+        j++; // mobile in game count
       else if (CAN_SEE(ch, vict))
       {
-        i++; //player in game count
+        i++; // player in game count
         if (vict->desc)
-          con++; //how many connected
+          con++; // how many connected
       }
     }
     for (obj = object_list; obj; obj = obj->next)
-      k++; //number of objects in game
+      k++; // number of objects in game
     for (l = 0; l < top_of_mobt; l++)
     {
       if (mob_proto[l].mob_specials.quest)
@@ -3447,7 +3448,7 @@ ACMD(do_show)
     page_string(ch->desc, buf, TRUE);
     break;
 
-  case 16: //show citizen
+  case 16: // show citizen
     if (*value && is_number(value))
       j = atoi(value);
     else
@@ -3477,7 +3478,7 @@ ACMD(do_show)
     page_string(ch->desc, buf, 1);
     break;
 
-  case 17: //show guard
+  case 17: // show guard
     if (*value && is_number(value))
       j = atoi(value);
     else
@@ -3508,7 +3509,7 @@ ACMD(do_show)
     break;
 
     /* NewCraft */
-  case 18: //show craft
+  case 18: // show craft
     if (!*value)
       list_all_crafts(ch);
     else
@@ -3584,22 +3585,22 @@ const struct set_struct
     {"align", LVL_BUILDER, BOTH, NUMBER},
     {"bank", LVL_BUILDER, PC, NUMBER},
     {"brief", LVL_STAFF, PC, BINARY}, /* 5  */
-    {"cha", LVL_BUILDER, BOTH, NUMBER},
+    {"cha", LVL_IMPL, BOTH, NUMBER},
     {"clan", LVL_STAFF, PC, NUMBER},
     {"clanrank", LVL_STAFF, PC, NUMBER},
-    {"class", LVL_BUILDER, BOTH, MISC},
+    {"class", LVL_IMPL, BOTH, MISC},
     {"color", LVL_STAFF, PC, BINARY},
-    {"con", LVL_BUILDER, BOTH, NUMBER},
-    {"damroll", LVL_BUILDER, BOTH, NUMBER}, /* 12 */
+    {"con", LVL_IMPL, BOTH, NUMBER},
+    {"damroll", LVL_IMPL, BOTH, NUMBER}, /* 12 */
     {"deleted", LVL_IMPL, PC, BINARY},
     {"dex", LVL_BUILDER, BOTH, NUMBER},
     {"drunk", LVL_BUILDER, BOTH, MISC},
-    {"exp", LVL_STAFF, BOTH, NUMBER},
+    {"exp", LVL_IMPL, BOTH, NUMBER},
     {"frozen", LVL_GRSTAFF, PC, BINARY}, /* 17 */
-    {"gold", LVL_BUILDER, BOTH, NUMBER},
+    {"gold", LVL_IMPL, BOTH, NUMBER},
     {"height", LVL_BUILDER, BOTH, NUMBER},
-    {"hitpoints", LVL_BUILDER, BOTH, NUMBER},
-    {"hitroll", LVL_BUILDER, BOTH, NUMBER},
+    {"hitpoints", LVL_IMPL, BOTH, NUMBER},
+    {"hitroll", LVL_IMPL, BOTH, NUMBER},
     {"hunger", LVL_BUILDER, BOTH, MISC}, /* 22 */
     {"int", LVL_BUILDER, BOTH, NUMBER},
     {"invis", LVL_STAFF, PC, NUMBER},
@@ -3607,11 +3608,11 @@ const struct set_struct
     {"killer", LVL_STAFF, PC, BINARY},
     {"level", LVL_GRSTAFF, BOTH, NUMBER}, /* 27 */
     {"loadroom", LVL_BUILDER, PC, MISC},
-    {"psp", LVL_BUILDER, BOTH, NUMBER},
-    {"maxhit", LVL_BUILDER, BOTH, NUMBER},
-    {"maxpsp", LVL_BUILDER, BOTH, NUMBER},
-    {"maxmove", LVL_BUILDER, BOTH, NUMBER}, /* 32 */
-    {"move", LVL_BUILDER, BOTH, NUMBER},
+    {"psp", LVL_IMPL, BOTH, NUMBER},
+    {"maxhit", LVL_IMPL, BOTH, NUMBER},
+    {"maxpsp", LVL_IMPL, BOTH, NUMBER},
+    {"maxmove", LVL_IMPL, BOTH, NUMBER}, /* 32 */
+    {"move", LVL_IMPL, BOTH, NUMBER},
     {"name", LVL_IMMORT, PC, MISC},
     {"nodelete", LVL_STAFF, PC, BINARY},
     {"nohassle", LVL_STAFF, PC, BINARY},
@@ -3621,82 +3622,97 @@ const struct set_struct
     {"password", LVL_GRSTAFF, PC, MISC},
     {"poofin", LVL_IMMORT, PC, MISC},
     {"poofout", LVL_IMMORT, PC, MISC}, /* 42 */
-    {"practices", LVL_STAFF, PC, NUMBER},
+    {"practices", LVL_IMPL, PC, NUMBER},
     {"quest", LVL_STAFF, PC, BINARY},
     {"room", LVL_BUILDER, BOTH, NUMBER},
     {"screenwidth", LVL_STAFF, PC, NUMBER},
     {"sex", LVL_STAFF, BOTH, MISC}, /* 47 */
     {"showvnums", LVL_BUILDER, PC, BINARY},
     {"siteok", LVL_STAFF, PC, BINARY},
-    {"str", LVL_BUILDER, BOTH, NUMBER},
-    {"stradd", LVL_BUILDER, BOTH, NUMBER},
+    {"str", LVL_IMPL, BOTH, NUMBER},
+    {"stradd", LVL_IMPL, BOTH, NUMBER},
     {"thief", LVL_STAFF, PC, BINARY}, /* 52 */
     {"thirst", LVL_BUILDER, BOTH, MISC},
     {"title", LVL_STAFF, PC, MISC},
     {"variable", LVL_GRSTAFF, PC, MISC},
     {"weight", LVL_BUILDER, BOTH, NUMBER},
-    {"wis", LVL_BUILDER, BOTH, NUMBER}, /* 57 */
-    {"questpoints", LVL_STAFF, PC, NUMBER},
+    {"wis", LVL_IMPL, BOTH, NUMBER}, /* 57 */
+    {"questpoints", LVL_IMPL, PC, NUMBER},
     {"questhistory", LVL_STAFF, PC, NUMBER},
-    {"trains", LVL_STAFF, PC, NUMBER}, /* 60 */
-    {"race", LVL_STAFF, BOTH, MISC},
-    {"spellres", LVL_STAFF, PC, NUMBER},         /* 62 */
-    {"size", LVL_STAFF, PC, NUMBER},             /* 63 */
-    {"wizard", LVL_STAFF, PC, NUMBER},           /* 64 */
-    {"cleric", LVL_STAFF, PC, NUMBER},           /* 65 */
-    {"rogue", LVL_STAFF, PC, NUMBER},            /* 66 */
-    {"warrior", LVL_STAFF, PC, NUMBER},          /* 67 */
-    {"monk", LVL_STAFF, PC, NUMBER},             /* 68 */
-    {"druid", LVL_STAFF, PC, NUMBER},            /* 69 */
-    {"boost", LVL_STAFF, PC, NUMBER},            /* 70 */
-    {"berserker", LVL_STAFF, PC, NUMBER},        /* 71 */
-    {"sorcerer", LVL_STAFF, PC, NUMBER},         /* 72 */
-    {"paladin", LVL_STAFF, PC, NUMBER},          /* 73 */
-    {"ranger", LVL_STAFF, PC, NUMBER},           /* 74 */
-    {"bard", LVL_STAFF, PC, NUMBER},             /* 75 */
-    {"featpoints", LVL_STAFF, PC, NUMBER},       /* 76 */
-    {"epicfeatpoints", LVL_STAFF, PC, NUMBER},   /* 77 */
-    {"classfeats", LVL_STAFF, PC, MISC},         /* 78 */
-    {"epicclassfeats", LVL_STAFF, PC, MISC},     /* 79 */
-    {"accexp", LVL_IMPL, PC, NUMBER},            /* 80 */
-    {"weaponmaster", LVL_STAFF, PC, NUMBER},     /* 81 */
-    {"arcanearcher", LVL_STAFF, PC, NUMBER},     /* 82 */
-    {"stalwartdefender", LVL_STAFF, PC, NUMBER}, /* 83 */
-    {"shifter", LVL_STAFF, PC, NUMBER},          /* 84 */
-    {"duelist", LVL_STAFF, PC, NUMBER},          /* 85 */
-    {"guimode", LVL_BUILDER, PC, BINARY},        /* 86 */
-    {"rpmode", LVL_BUILDER, PC, BINARY},         /* 87 */
-    {"mystictheurge", LVL_STAFF, PC, NUMBER},    /* 88 */
-    {"addaccexp", LVL_IMPL, PC, ADDER},          /* 89 */
-    {"alchemist", LVL_STAFF, PC, NUMBER},        /* 90 */
-    {"arcaneshadow", LVL_STAFF, PC, NUMBER},     /* 91 */
-    {"sacredfist", LVL_STAFF, PC, NUMBER},       /* 92 */
-    {"premadebuild", LVL_STAFF, PC, MISC},       /* 93 */
-    {"psionicist", LVL_STAFF, PC, MISC},         /* 94 */
-    {"deity", LVL_BUILDER, PC, MISC},            /* 95 */
+    {"trains", LVL_IMPL, PC, NUMBER}, /* 60 */
+    {"race", LVL_IMPL, BOTH, MISC},
+    {"spellres", LVL_IMPL, PC, NUMBER},         /* 62 */
+    {"size", LVL_IMPL, PC, NUMBER},             /* 63 */
+    {"wizard", LVL_IMPL, PC, NUMBER},           /* 64 */
+    {"cleric", LVL_IMPL, PC, NUMBER},           /* 65 */
+    {"rogue", LVL_IMPL, PC, NUMBER},            /* 66 */
+    {"warrior", LVL_IMPL, PC, NUMBER},          /* 67 */
+    {"monk", LVL_IMPL, PC, NUMBER},             /* 68 */
+    {"druid", LVL_IMPL, PC, NUMBER},            /* 69 */
+    {"boost", LVL_IMPL, PC, NUMBER},            /* 70 */
+    {"berserker", LVL_IMPL, PC, NUMBER},        /* 71 */
+    {"sorcerer", LVL_IMPL, PC, NUMBER},         /* 72 */
+    {"paladin", LVL_IMPL, PC, NUMBER},          /* 73 */
+    {"ranger", LVL_IMPL, PC, NUMBER},           /* 74 */
+    {"bard", LVL_IMPL, PC, NUMBER},             /* 75 */
+    {"featpoints", LVL_IMPL, PC, NUMBER},       /* 76 */
+    {"epicfeatpoints", LVL_IMPL, PC, NUMBER},   /* 77 */
+    {"classfeats", LVL_IMPL, PC, MISC},         /* 78 */
+    {"epicclassfeats", LVL_IMPL, PC, MISC},     /* 79 */
+    {"accexp", LVL_IMPL, PC, NUMBER},           /* 80 */
+    {"weaponmaster", LVL_IMPL, PC, NUMBER},     /* 81 */
+    {"arcanearcher", LVL_IMPL, PC, NUMBER},     /* 82 */
+    {"stalwartdefender", LVL_IMPL, PC, NUMBER}, /* 83 */
+    {"shifter", LVL_IMPL, PC, NUMBER},          /* 84 */
+    {"duelist", LVL_IMPL, PC, NUMBER},          /* 85 */
+    {"guimode", LVL_BUILDER, PC, BINARY},       /* 86 */
+    {"rpmode", LVL_BUILDER, PC, BINARY},        /* 87 */
+    {"mystictheurge", LVL_IMPL, PC, NUMBER},    /* 88 */
+    {"addaccexp", LVL_IMPL, PC, ADDER},         /* 89 */
+    {"alchemist", LVL_IMPL, PC, NUMBER},        /* 90 */
+    {"arcaneshadow", LVL_IMPL, PC, NUMBER},     /* 91 */
+    {"sacredfist", LVL_IMPL, PC, NUMBER},       /* 92 */
+    {"premadebuild", LVL_STAFF, PC, MISC},      /* 93 */
+    {"psionicist", LVL_IMPL, PC, MISC},         /* 94 */
+    {"deity", LVL_BUILDER, PC, MISC},           /* 95 */
+
+    {"eldritchknight", LVL_IMPL, PC, MISC}, /* 96 */
+    {"spellsword", LVL_IMPL, PC, MISC},     /* 97 */
+    {"shadowdancer", LVL_IMPL, PC, MISC},   /* 98 */
+    {"blackguard", LVL_IMPL, PC, MISC},     /* 99 */
+    {"assassin", LVL_IMPL, PC, MISC},       /* 100 */
 
     {"\n", 0, BOTH, MISC}};
 
 /*  adding this to remind me to add new classes to the perform_set list
-CLASS_WIZARD
-CLASS_CLERIC
-CLASS_ROGUE
-CLASS_WARRIOR
-CLASS_MONK
-CLASS_DRUID
-CLASS_BERSERKER
-CLASS_SORCERER
-CLASS_BARD
-CLASS_PALADIN
-CLASS_RANGER
-CLASS_WEAPON_MASTER
-CLASS_ARCANE_ARCHER
-CLASS_ARCANE_SHADOW
-CLASS_SACRED_FIST
+ * CLASS_WIZARD
+ * CLASS_CLERIC
+ * CLASS_ROGUE
+ * CLASS_WARRIOR
+ * CLASS_MONK
+ * CLASS_DRUID
+ * CLASS_BERSERKER
+ * CLASS_SORCERER
+ * CLASS_BARD
+ * CLASS_PALADIN
+ * CLASS_RANGER
+ * CLASS_WEAPON_MASTER
+ * CLASS_ARCANE_ARCHER
+ * CLASS_ARCANE_SHADOW
+ * CLASS_SACRED_FIST
  * CLASS_STALWART_DEFENDER
  * CLASS_SHIFTER
  * CLASS_DUELIST
  * CLASS_MYSTIC_THEURGE
+ * CLASS_ALCHEMIST
+ * CLASS_ARCANE_SHADOW
+ * CLASS_SACRED_FIST
+ * CLASS_ELDRITCH_KNIGHT
+ * CLASS_PSIONICIST
+ * CLASS_SPELLSWORD
+ * CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
+ * CLASS_BLACKGUARD
+ * CLASS_ASSASSIN
  */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg)
@@ -3767,8 +3783,8 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       return (0);
     }
     /* NOTE: May not display the exact age specified due to the integer
-       * division used elsewhere in the code.  Seems to only happen for
-       * some values below the starting age (17) anyway. -gg 5/27/98 */
+     * division used elsewhere in the code.  Seems to only happen for
+     * some values below the starting age (17) anyway. -gg 5/27/98 */
     vict->player.time.birth = time(0) - ((value - 17) * SECS_PER_MUD_YEAR);
     break;
   case 3: /* align */
@@ -4252,7 +4268,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 77: /* epicfeatpoints */
     GET_EPIC_FEAT_POINTS(vict) = RANGE(0, 20);
     break;
-  case 78: /* classfeats (points) */
+  case 78:                                                          /* classfeats (points) */
     two_arguments(val_arg, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* set <name> classfeats <class> <#> */
     class = parse_class_long(arg1);
     if (class == CLASS_UNDEFINED)
@@ -4264,7 +4280,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     GET_CLASS_FEATS(vict, class) = RANGE(0, 20);
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
     break;
-  case 79: /* epicclassfeats (points) */
+  case 79:                                                          /* epicclassfeats (points) */
     two_arguments(val_arg, arg1, sizeof(arg1), arg2, sizeof(arg2)); /* set <name> epicclassfeats <class> <#> */
     class = parse_class_long(arg1);
     if (class == CLASS_UNDEFINED)
@@ -4340,21 +4356,47 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     affect_total(vict);
     break;
 
-    case 95:
+  case 95:
     for (i = 0; i < NUM_DEITIES; i++)
     {
-          if (deity_list[i].pantheon != DEITY_PANTHEON_ALL) continue;
-          if (is_abbrev(val_arg, deity_list[i].name))
-          {
-                break;
-          }
+      if (deity_list[i].pantheon != DEITY_PANTHEON_ALL)
+        continue;
+      if (is_abbrev(val_arg, deity_list[i].name))
+      {
+        break;
+      }
     }
     if (i < 0 || i >= NUM_DEITIES)
     {
-          send_to_char(ch, "There is no deity by that name.\r\n");
-          return (0);
+      send_to_char(ch, "There is no deity by that name.\r\n");
+      return (0);
     }
     GET_DEITY(vict) = i;
+    break;
+
+  case 96: // eldritch knight
+    CLASS_LEVEL(vict, CLASS_ELDRITCH_KNIGHT) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    break;
+
+  case 97: // spellsword
+    CLASS_LEVEL(vict, CLASS_SPELLSWORD) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    break;
+
+  case 98: // shadowdancer
+    CLASS_LEVEL(vict, CLASS_SHADOW_DANCER) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    break;
+
+  case 99: // blackguard
+    CLASS_LEVEL(vict, CLASS_BLACKGUARD) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    break;
+
+  case 100: // assassin
+    CLASS_LEVEL(vict, CLASS_ASSASSIN) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
     break;
 
   default:
@@ -4468,7 +4510,7 @@ ACMD(do_set)
     CREATE(cbuf->player_specials, struct player_special_data, 1);
     new_mobile_data(cbuf);
     /* Allocate mobile event list */
-    //cbuf->events = create_list();
+    // cbuf->events = create_list();
     if ((player_i = load_char(name, cbuf)) > -1)
     {
       if (GET_LEVEL(cbuf) > GET_LEVEL(ch))
@@ -4540,12 +4582,12 @@ ACMD(do_saveall)
   {
     save_all();
     House_save_all();
-    //hlqedit_save_to_disk(OLC_ZNUM(d));
+    // hlqedit_save_to_disk(OLC_ZNUM(d));
     send_to_char(ch, "World and house files saved.\n\r");
   }
 }
 
-/* for a given zone, find key vnums that don't match the zone 
+/* for a given zone, find key vnums that don't match the zone
    just a simple utility to help clean up imported zones
    keycheck
    keycheck .
@@ -4757,25 +4799,25 @@ const struct zcheck_armor
   int ac_allowed;        /* Max. AC allowed for this body part  */
   const char *message;   /* phrase for error message            */
 } zarmor[TOTAL_WEAR_CHECKS] = {
-    {ITEM_WEAR_FINGER, 1, "Ring"}, //0
+    {ITEM_WEAR_FINGER, 1, "Ring"}, // 0
     {ITEM_WEAR_NECK, 1, "Necklace"},
     {ITEM_WEAR_BODY, 35, "Body armor"},
     {ITEM_WEAR_HEAD, 15, "Head gear"},
     {ITEM_WEAR_LEGS, 15, "Legwear"},
-    {ITEM_WEAR_FEET, 1, "Footwear"}, //5
+    {ITEM_WEAR_FEET, 1, "Footwear"}, // 5
     {ITEM_WEAR_HANDS, 1, "Glove"},
     {ITEM_WEAR_ARMS, 15, "Armwear"},
     {ITEM_WEAR_SHIELD, 40, "Shield"},
     {ITEM_WEAR_ABOUT, 1, "Cloak"},
-    {ITEM_WEAR_WAIST, 1, "Belt"}, //10
+    {ITEM_WEAR_WAIST, 1, "Belt"}, // 10
     {ITEM_WEAR_WRIST, 1, "Wristwear"},
     {ITEM_WEAR_WIELD, 1, "Weapon"},
     {ITEM_WEAR_HOLD, 1, "Held item"},
     {ITEM_WEAR_FACE, 1, "Face"},
-    {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"}, //15
+    {ITEM_WEAR_AMMO_POUCH, 1, "Ammo pouch"}, // 15
     {ITEM_WEAR_EAR, 1, "Earring"},
     {ITEM_WEAR_EYES, 1, "Eyewear"},
-    {ITEM_WEAR_BADGE, 1, "Badge"} //18
+    {ITEM_WEAR_BADGE, 1, "Badge"} // 18
 };
 
 /*These are strictly boolean*/
@@ -4793,53 +4835,53 @@ const struct zcheck_affs
   int max_aff;         /*max. allowed value*/
   const char *message; /*phrase for error message*/
 } zaffs[NUM_APPLIES] = {
-    {APPLY_NONE, 0, -99, "unused0"}, //0
+    {APPLY_NONE, 0, -99, "unused0"}, // 0
     {APPLY_STR, -5, 9, "strength"},
     {APPLY_DEX, -5, 9, "dexterity"},
     {APPLY_INT, -5, 9, "intelligence"},
     {APPLY_WIS, -5, 9, "wisdom"},
-    {APPLY_CON, -5, 9, "constitution"}, //5
+    {APPLY_CON, -5, 9, "constitution"}, // 5
     {APPLY_CHA, -5, 9, "charisma"},
     {APPLY_CLASS, 0, 0, "class"},
     {APPLY_LEVEL, 0, 0, "level"},
     {APPLY_AGE, 0, 0, "age"},
-    {APPLY_CHAR_WEIGHT, 0, 0, "character weight"}, //10
+    {APPLY_CHAR_WEIGHT, 0, 0, "character weight"}, // 10
     {APPLY_CHAR_HEIGHT, 0, 0, "character height"},
     {APPLY_PSP, -90, 120, "psp"},
     {APPLY_HIT, -90, 120, "hit points"},
     {APPLY_MOVE, -90, 120, "movement"},
-    {APPLY_GOLD, 0, 0, "gold"}, //15
+    {APPLY_GOLD, 0, 0, "gold"}, // 15
     {APPLY_EXP, 0, 0, "experience"},
     {APPLY_AC, -10, 10, "!Unused!"},
     {APPLY_HITROLL, 0, -99, "hitroll"},                     /* Handled seperately below */
     {APPLY_DAMROLL, 0, -99, "damroll"},                     /* Handled seperately below */
-    {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"}, //20
+    {APPLY_SAVING_FORT, -5, 9, "saving throw (fortitude)"}, // 20
     {APPLY_SAVING_REFL, -5, 9, "saving throw (reflex)"},
     {APPLY_SAVING_WILL, -5, 9, "saving throw (willpower)"},
     {APPLY_SAVING_POISON, -5, 9, "saving throw (poison)"},
     {APPLY_SAVING_DEATH, -5, 9, "saving throw (death)"},
-    {APPLY_SPELL_RES, -90, 99, "spell resistance"}, //25
+    {APPLY_SPELL_RES, -90, 99, "spell resistance"}, // 25
     {APPLY_SIZE, -1, 1, "size mod"},
     {APPLY_AC_NEW, -2, 2, "magical AC"},
 
     {APPLY_RES_FIRE, -20, 20, "fire resistance"},
     {APPLY_RES_COLD, -20, 20, "cold resistance"},
-    {APPLY_RES_AIR, -20, 20, "air resistance"}, //30
+    {APPLY_RES_AIR, -20, 20, "air resistance"}, // 30
     {APPLY_RES_EARTH, -20, 20, "earth resistance"},
     {APPLY_RES_ACID, -20, 20, "acid resistance"},
     {APPLY_RES_HOLY, -20, 20, "holy resistance"},
     {APPLY_RES_ELECTRIC, -20, 20, "electric resistance"},
-    {APPLY_RES_UNHOLY, -20, 20, "unholy resistance"}, //35
+    {APPLY_RES_UNHOLY, -20, 20, "unholy resistance"}, // 35
     {APPLY_RES_SLICE, -20, 20, "slice resistance"},
     {APPLY_RES_PUNCTURE, -20, 20, "puncture resistance"},
     {APPLY_RES_FORCE, -20, 20, "force resistance"},
     {APPLY_RES_SOUND, -20, 20, "sound resistance"},
-    {APPLY_RES_POISON, -20, 20, "poison resistance"}, //40
+    {APPLY_RES_POISON, -20, 20, "poison resistance"}, // 40
     {APPLY_RES_DISEASE, -20, 20, "disease resistance"},
     {APPLY_RES_NEGATIVE, -20, 20, "negative resistance"},
     {APPLY_RES_ILLUSION, -20, 20, "illusion resistance"},
     {APPLY_RES_MENTAL, -20, 20, "mental resistance"},
-    {APPLY_RES_LIGHT, -20, 20, "light resistance"}, //45
+    {APPLY_RES_LIGHT, -20, 20, "light resistance"}, // 45
     {APPLY_RES_ENERGY, -20, 20, "energy resistance"},
     {APPLY_RES_WATER, -20, 20, "water resistance"},
     {APPLY_DR, -20, 20, "damage reduction"},
@@ -4867,7 +4909,7 @@ ACMD(do_zcheck)
   char buf[MAX_STRING_LENGTH];
   float avg_dam;
   size_t len = 0;
-  //struct extra_descr_data *ext, *ext2;
+  // struct extra_descr_data *ext, *ext2;
   one_argument(argument, buf, sizeof(buf));
 
   if (!is_number(buf) || !strcmp(buf, "."))
@@ -6285,7 +6327,7 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
     CREATE(temp_ch->player_specials, struct player_special_data, 1);
     new_mobile_data(temp_ch);
     /* Allocate mobile event list */
-    //temp_ch->events = create_list();
+    // temp_ch->events = create_list();
     if ((plr_i = load_char(new_name, temp_ch)) > -1)
     {
       free_char(temp_ch);
@@ -6837,7 +6879,7 @@ ACMD(do_objlist)
     j = atoi(value);
   else
     j = zone_table[world[ch->in_room].zone].number;
-  //j *= 100;
+  // j *= 100;
   if (real_zone(j) == NOWHERE)
   {
     snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
@@ -7009,14 +7051,14 @@ ACMD(do_hlqlist)
       else
       {
         /* debug */
-        //send_to_char(ch, "NO QUEST\r\n");
+        // send_to_char(ch, "NO QUEST\r\n");
       }
       /* end has-quest check */
     }
     else
     {
       /* debug */
-      //send_to_char(ch, "NOBODY\r\n");
+      // send_to_char(ch, "NOBODY\r\n");
     }
     /* end NOBODY check */
   }
@@ -7260,12 +7302,12 @@ ACMD(do_acconvert)
  * */
 ACMD(do_oconvert)
 {
-  //struct object_data *obj = NULL;
+  // struct object_data *obj = NULL;
   int i = 0, j = 0;
   int hitroll = 0, damroll = 0;
   int num, found = 0, total = 0;
-  //obj_vnum ov;
-  //char buf[MAX_STRING_LENGTH];
+  // obj_vnum ov;
+  // char buf[MAX_STRING_LENGTH];
 
   char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
   int iarg;
@@ -7565,6 +7607,7 @@ int get_eq_score(obj_rnum a)
       case ITEM_ANTI_GNOME:
       case ITEM_ANTI_BERSERKER:
       case ITEM_ANTI_TRELUX:
+      case ITEM_ANTI_LICH:
       case ITEM_ANTI_SORCERER:
       case ITEM_ANTI_PALADIN:
       case ITEM_ANTI_RANGER:
@@ -8716,7 +8759,6 @@ ACMD(do_resetpassword)
   {
     send_to_char(ch, "Please specify the account for which you would like to change the password.\r\n");
     return;
-
   }
   if (!*arg2)
   {
@@ -8756,13 +8798,11 @@ ACMD(do_resetpassword)
   if (!mysql_query(conn, query))
   {
     send_to_char(ch, "You have updated account %s's password to '%s'.\r\n", arg1, arg2);
-    return;  
+    return;
   }
 
   send_to_char(ch, "There was an error saving the new password to the database.  Password not changed.\r\n");
-  
 }
-
 
 ACMD(do_award)
 {
@@ -8807,7 +8847,7 @@ ACMD(do_award)
     }
     return;
   }
-  
+
   for (i = 0; i < NUM_AWARD_TYPES; i++)
   {
     if (is_abbrev(arg2, award_types[i]))
@@ -8841,66 +8881,67 @@ ACMD(do_award)
 
   switch (i)
   {
-    case 0: // experience
-      GET_EXP(victim) += amount;
-      break;
-    case 1: // questpoints
-      GET_QUESTPOINTS(victim) += amount;
-      break;
-    case 2: // accountexperience
-      victim->desc->account->experience += amount;
-      break;
-    case 3: //gold
-      GET_GOLD(victim) += amount;
-      break;
-    case 4: // bank gold
-      GET_BANK_GOLD(victim) += amount;
-      break;
-    case 5: // skill points
-      GET_TRAINS(victim) += amount;
-      break;
-    case 6: // feats
-      GET_FEAT_POINTS(victim) += amount;
-      break;
-    case 7: // class feats
-      GET_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
-      break;
-    case 8: // epic feats
-      GET_EPIC_FEAT_POINTS(victim) += amount;
-      break;
-    case 9: // epic class feats
-      GET_EPIC_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
-      break;
-    case 10: // ability score boosts
-      GET_BOOSTS(victim) += amount;
-      break;
-    default:
-      send_to_char(ch, "That is not a valid award type.\r\n");
-      send_to_char(ch, "Please specify what you would like to award:\r\n");
-      for (i = 0; i < NUM_AWARD_TYPES; i++)
-      {
-        send_to_char(ch, "%s\r\n", award_types[i]);
-      }
-      return;
+  case 0: // experience
+    GET_EXP(victim) += amount;
+    break;
+  case 1: // questpoints
+    GET_QUESTPOINTS(victim) += amount;
+    break;
+  case 2: // accountexperience
+    victim->desc->account->experience += amount;
+    break;
+  case 3: // gold
+    GET_GOLD(victim) += amount;
+    break;
+  case 4: // bank gold
+    GET_BANK_GOLD(victim) += amount;
+    break;
+  case 5: // skill points
+    GET_TRAINS(victim) += amount;
+    break;
+  case 6: // feats
+    GET_FEAT_POINTS(victim) += amount;
+    break;
+  case 7: // class feats
+    GET_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
+    break;
+  case 8: // epic feats
+    GET_EPIC_FEAT_POINTS(victim) += amount;
+    break;
+  case 9: // epic class feats
+    GET_EPIC_CLASS_FEATS(victim, GET_CLASS(victim)) += amount;
+    break;
+  case 10: // ability score boosts
+    GET_BOOSTS(victim) += amount;
+    break;
+  default:
+    send_to_char(ch, "That is not a valid award type.\r\n");
+    send_to_char(ch, "Please specify what you would like to award:\r\n");
+    for (i = 0; i < NUM_AWARD_TYPES; i++)
+    {
+      send_to_char(ch, "%s\r\n", award_types[i]);
+    }
+    return;
   }
-  
+
   send_to_char(ch, "You have increased %s's %s by %ld.\r\n", GET_NAME(victim), award_types[i], amount);
   send_to_char(victim, "%s has increased your %s by %ld.\r\n", CAN_SEE(victim, ch) ? GET_NAME(ch) : "Someone", award_types[i], amount);
   save_char(victim, 0);
 }
-
 
 ACMDU(do_setroomname)
 {
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "You must specify a new room name, less than 60 characters.\r\n");
     return;
   }
 
-  if (strlen(argument) > 60) {
+  if (strlen(argument) > 60)
+  {
     send_to_char(ch, "You must specify a new room name, less than 60 characters.\r\n");
     return;
   }
@@ -8909,7 +8950,6 @@ ACMDU(do_setroomname)
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
   send_to_char(ch, "You have this room's name to: %s.\r\n", argument);
-
 }
 
 ACMDU(do_setroomdesc)
@@ -8917,12 +8957,14 @@ ACMDU(do_setroomdesc)
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "You must specify a new room description, less than 600 characters.\r\n");
     return;
   }
 
-  if (strlen(argument) > 600) {
+  if (strlen(argument) > 600)
+  {
     send_to_char(ch, "You must specify a new room description, less than 600 characters.\r\n");
     return;
   }
@@ -8932,11 +8974,10 @@ ACMDU(do_setroomdesc)
   snprintf(buf, sizeof(buf), "%s\n", argument);
 
   world[IN_ROOM(ch)].description = strdup(buf);
-  
+
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 
   send_to_char(ch, "You have this room's description to: %s.\r\n", argument);
-
 }
 
 ACMDU(do_setworldsect)
@@ -8946,7 +8987,8 @@ ACMDU(do_setworldsect)
 
   int i = 0, j = 0;
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "You must select a sector type from:\r\n");
     for (i = 0; i < NUM_ROOM_SECTORS; i++)
       send_to_char(ch, "%s\r\n", sector_types[i]);
@@ -8959,20 +9001,22 @@ ACMDU(do_setworldsect)
   for (j = 0; j < strlen(arg); j++)
     arg[j] = tolower(arg[j]);
 
-  for (i = 0; i < NUM_ROOM_SECTORS; i++) {
+  for (i = 0; i < NUM_ROOM_SECTORS; i++)
+  {
     sprintf(buf, "%s", sector_types[i]);
     for (j = 0; j < strlen(buf); j++)
       buf[j] = tolower(buf[j]);
-    if (is_abbrev(arg, buf)) break;
+    if (is_abbrev(arg, buf))
+      break;
   }
 
-  if (i >= NUM_ROOM_SECTORS) {
+  if (i >= NUM_ROOM_SECTORS)
+  {
     send_to_char(ch, "You must select a sector type from:\r\n");
     for (i = 0; i < NUM_ROOM_SECTORS; i++)
       send_to_char(ch, "%s\r\n", sector_types[i]);
     return;
   }
-
 
   SET_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_WORLDMAP);
   world[IN_ROOM(ch)].sector_type = i;
@@ -8980,7 +9024,6 @@ ACMDU(do_setworldsect)
   send_to_char(ch, "You have set this room as a worldmap room using sector type: %s.\r\n", sector_types[i]);
 
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
-
 }
 
 ACMDU(do_setroomsect)
@@ -8990,7 +9033,8 @@ ACMDU(do_setroomsect)
 
   int i = 0, j = 0;
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "You must select a sector type from:\r\n");
     for (i = 0; i < NUM_ROOM_SECTORS; i++)
       send_to_char(ch, "%s\r\n", sector_types[i]);
@@ -9003,27 +9047,28 @@ ACMDU(do_setroomsect)
   for (j = 0; j < strlen(arg); j++)
     arg[j] = tolower(arg[j]);
 
-  for (i = 0; i < NUM_ROOM_SECTORS; i++) {
+  for (i = 0; i < NUM_ROOM_SECTORS; i++)
+  {
     sprintf(buf, "%s", sector_types[i]);
     for (j = 0; j < strlen(buf); j++)
       buf[j] = tolower(buf[j]);
-    if (is_abbrev(arg, buf)) break;
+    if (is_abbrev(arg, buf))
+      break;
   }
 
-  if (i >= NUM_ROOM_SECTORS) {
+  if (i >= NUM_ROOM_SECTORS)
+  {
     send_to_char(ch, "You must select a sector type from:\r\n");
     for (i = 0; i < NUM_ROOM_SECTORS; i++)
       send_to_char(ch, "%s\r\n", sector_types[i]);
     return;
   }
 
-
   world[IN_ROOM(ch)].sector_type = i;
 
   send_to_char(ch, "You have set this room as a worldmap room using sector type: %s.\r\n", sector_types[i]);
 
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
-
 }
 
 /* EOF */

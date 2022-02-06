@@ -299,7 +299,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {":", ":", POS_RECLINING, do_echo, 1, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"enter", "ent", POS_STANDING, do_enter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"encounter", "enc", POS_RECLINING, do_encounter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"encounterinfo", "encounterinfo", POS_DEAD, do_encounterinfo, LVL_IMMORT,  0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"encounterinfo", "encounterinfo", POS_DEAD, do_encounterinfo, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"enlarge", "enlarge", POS_FIGHTING, do_enlarge, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"equipment", "eq", POS_SLEEPING, do_equipment, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"eqstats", "eqst", POS_SLEEPING, do_not_here, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -620,12 +620,12 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sell", "sell", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sedit", "sedit", POS_DEAD, do_oasis_sedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"send", "send", POS_SLEEPING, do_send, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"set", "set", POS_DEAD, do_set, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"set", "set", POS_DEAD, do_set, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
-    { "setroomname", "setr", POS_DEAD, do_setroomname, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    { "setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    { "setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    { "setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1804,7 +1804,7 @@ int enter_player_game(struct descriptor_data *d)
   login_wtrigger(&world[IN_ROOM(d->character)], d->character);
 
   // this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak
-  //MXPSendTag(d, "<VERSION>");
+  // MXPSendTag(d, "<VERSION>");
 
   new_mail_alert(d->character, FALSE);
 
@@ -1858,7 +1858,7 @@ EVENTFUNC(get_protocols)
   write_to_output(d, buf, 0);
 
   write_to_output(d, GREETINGS, 0);
-  STATE(d) = CON_ACCOUNT_NAME; //CON_GET_NAME;
+  STATE(d) = CON_ACCOUNT_NAME; // CON_GET_NAME;
   return 0;
 }
 
@@ -1867,7 +1867,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0; //incrementor
+  int i = 0; // incrementor
 
   /* OasisOLC states */
   struct
@@ -2122,7 +2122,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
       new_mobile_data(d->character);
       /* Allocate mobile event list */
-      //d->character->events = create_list();
+      // d->character->events = create_list();
 
       GET_HOST(d->character) = strdup(d->host);
       d->character->desc = d;
@@ -2187,7 +2187,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
       new_mobile_data(d->character);
       /* Allocate mobile event list */
-      //d->character->events = create_list();
+      // d->character->events = create_list();
 
       GET_HOST(d->character) = strdup(d->host);
       d->character->desc = d;
@@ -2212,7 +2212,7 @@ void nanny(struct descriptor_data *d, char *arg)
         if (PLR_FLAGGED(d->character, PLR_DELETED))
         {
           /* Make sure old files are removed so the new player doesn't get the
-             * deleted player's equipment. */
+           * deleted player's equipment. */
           if ((player_i = get_ptable_by_name(tmp_name)) >= 0)
             remove_player(player_i);
 
@@ -2231,7 +2231,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
           new_mobile_data(d->character);
           /* Allocate mobile event list */
-          //d->character->events = create_list();
+          // d->character->events = create_list();
 
           if (GET_HOST(d->character))
             free(GET_HOST(d->character));
@@ -2337,7 +2337,7 @@ void nanny(struct descriptor_data *d, char *arg)
     else
     {
       /* Success! */
-      //save_char(d->character, 0);
+      // save_char(d->character, 0);
 
       for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
         ;
@@ -2358,14 +2358,14 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
   case CON_PASSWORD: /* get pwd for known player      */
     /* To really prevent duping correctly, the player's record should be reloaded
-       * from disk at this point (after the password has been typed).  However I'm
-       * afraid that trying to load a character over an already loaded character is
-       * going to cause some problem down the road that I can't see at the moment.
-       * So to compensate, I'm going to (1) add a 15 or 20-second time limit for
-       * entering a password, and (2) re-add the code to cut off duplicates when a
-       * player quits.  JE 6 Feb 96 */
+     * from disk at this point (after the password has been typed).  However I'm
+     * afraid that trying to load a character over an already loaded character is
+     * going to cause some problem down the road that I can't see at the moment.
+     * So to compensate, I'm going to (1) add a 15 or 20-second time limit for
+     * entering a password, and (2) re-add the code to cut off duplicates when a
+     * player quits.  JE 6 Feb 96 */
 
-    //echo_on(d);
+    // echo_on(d);
     ProtocolNoEcho(d, false); /* turn echo back on */
 
     /* New echo_on() eats the return on telnet. Extra space better than none. */
@@ -2379,7 +2379,7 @@ void nanny(struct descriptor_data *d, char *arg)
       {
         mudlog(BRF, LVL_STAFF, TRUE, "Bad PW: %s [%s]", d->account->name, d->host);
         d->account->bad_password_count++;
-        //save_char(d->character, 0);
+        // save_char(d->character, 0);
         if (++(d->bad_pws) >= CONFIG_MAX_BAD_PWS)
         { /* 3 strikes and you're out. */
           write_to_output(d, "Wrong password... disconnecting.\r\n");
@@ -2388,7 +2388,7 @@ void nanny(struct descriptor_data *d, char *arg)
         else
         {
           write_to_output(d, "Wrong password.\r\nPassword: ");
-          //echo_off(d);
+          // echo_off(d);
           ProtocolNoEcho(d, true);
         }
         return;
@@ -2481,7 +2481,7 @@ void nanny(struct descriptor_data *d, char *arg)
         STATE(d) = CON_CHPWD_GETNEW;
       return;
     }
-    //echo_on(d);
+    // echo_on(d);
     ProtocolNoEcho(d, false);
 
     if (STATE(d) == CON_CNFPASSWD)
@@ -2591,6 +2591,9 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case RACE_TRELUX:
       perform_help(d, "race-trelux");
+      break;
+    case RACE_LICH:
+      perform_help(d, "race-lich");
       break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
@@ -2811,14 +2814,14 @@ void nanny(struct descriptor_data *d, char *arg)
 
   case CON_QSTATS:
     /* This is displayed when the player has changed an ability score,
-       * so we need to capture the changed score and apply changes, then
-       * display the remaining points.
-       *
-       * Formula is : Start at 8, 1:1 to 14, 1:2 to 16, 1:3 to 18
-       * Standard point buy is 25.
-       *
-       * If the value is '?' then we need to get help.  If the value is 'Q'
-       * then we get confirmation and then move on to the next step. */
+     * so we need to capture the changed score and apply changes, then
+     * display the remaining points.
+     *
+     * Formula is : Start at 8, 1:1 to 14, 1:2 to 16, 1:3 to 18
+     * Standard point buy is 25.
+     *
+     * If the value is '?' then we need to get help.  If the value is 'Q'
+     * then we get confirmation and then move on to the next step. */
     if (UPPER(*arg) == 'Q')
       write_to_output(d, "\r\nBase ability scores set!\r\n");
     else if (UPPER(*arg) == '?')
@@ -2832,7 +2835,7 @@ void nanny(struct descriptor_data *d, char *arg)
       if (is_abbrev(arg, "str"))
       {
         /* Calculate the maximum we can set this stat to (based on points) and display
-           * that to the player. Don't forget the racial bonuses! */
+         * that to the player. Don't forget the racial bonuses! */
       }
       if (is_abbrev(arg, "dex"))
       {
@@ -2988,7 +2991,7 @@ void nanny(struct descriptor_data *d, char *arg)
       act("$n has entered the game.", TRUE, d->character, 0, 0, TO_ROOM);
 
       STATE(d) = CON_PLAYING;
-      //MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
+      // MXPSendTag( d, "<VERSION>" ); this is already called in perform_dupe_check() before we get here, shouldn't be needed here.. -Nashak
       if (GET_LEVEL(d->character) == 0)
       {
         do_start(d->character);
@@ -3018,7 +3021,7 @@ void nanny(struct descriptor_data *d, char *arg)
       {
         write_to_output(d, "Current description:\r\n%s", d->character->player.description);
         /* Don't free this now... so that the old description gets loaded as the
-             * current buffer in the editor.  Do setup the ABORT buffer here, however. */
+         * current buffer in the editor.  Do setup the ABORT buffer here, however. */
         d->backstr = strdup(d->character->player.description);
       }
       write_to_output(d, "Enter the new text you'd like others to see when they look at you.\r\n");
@@ -3035,14 +3038,14 @@ void nanny(struct descriptor_data *d, char *arg)
 
     case '4':
       write_to_output(d, "\r\nEnter your old password: ");
-      //echo_off(d);
+      // echo_off(d);
       ProtocolNoEcho(d, true);
       STATE(d) = CON_CHPWD_GETOLD;
       break;
 
     case '5':
       write_to_output(d, "\r\nEnter your password for verification: ");
-      //echo_off(d);
+      // echo_off(d);
       ProtocolNoEcho(d, true);
       STATE(d) = CON_DELCNF1;
       break;
@@ -3057,7 +3060,7 @@ void nanny(struct descriptor_data *d, char *arg)
   case CON_CHPWD_GETOLD:
     if (strncmp(CRYPT(arg, d->account->password), d->account->password, MAX_PWD_LENGTH))
     {
-      //echo_on(d);
+      // echo_on(d);
       ProtocolNoEcho(d, false);
       write_to_output(d, "\r\nIncorrect password.\r\n%s", CONFIG_MENU);
       STATE(d) = CON_MENU;
@@ -3070,7 +3073,7 @@ void nanny(struct descriptor_data *d, char *arg)
     return;
 
   case CON_DELCNF1:
-    //echo_on(d);
+    // echo_on(d);
     ProtocolNoEcho(d, false);
     if (strncmp(CRYPT(arg, d->account->password), d->account->password, MAX_PWD_LENGTH))
     {
@@ -3101,7 +3104,7 @@ void nanny(struct descriptor_data *d, char *arg)
       save_char(d->character, 0);
       Crash_delete_file(GET_NAME(d->character));
       /* If the selfdelete_fastwipe flag is set (in config.c), remove all the
-         * player's immediately. */
+       * player's immediately. */
       if (selfdelete_fastwipe)
         if ((player_i = get_ptable_by_name(GET_NAME(d->character))) >= 0)
         {
@@ -3124,7 +3127,7 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
     /* It is possible, if enough pulses are missed, to kick someone off while they
-       * are at the password prompt. We'll let the game_loop()axe them. */
+     * are at the password prompt. We'll let the game_loop()axe them. */
   case CON_CLOSE:
     break;
 

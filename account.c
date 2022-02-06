@@ -39,19 +39,20 @@ void load_account_unlocks(struct account_data *account);
 /**/
 
 static const int locked_races_cost[NUM_RACES] = {
-    0,     /*Human*/
-    0,     /*Elf*/
-    0,     /*Dwarf*/
-    1000,  /*Half Troll (advanced)*/
-    30000, /*crystal dwarf (epic)*/
-    0,     /*halfling*/
-    0,     /*half elf*/
-    0,     /*half orc*/
-    0,     /*gnome*/
-    30000, /*trelux (epic)*/
-    1000,  /*arcana golem (advanced)*/
-    1000,  /*drow (advanced)*/
-    1000,  /*duergar (advanced)*/
+    0,            /*Human*/
+    0,            /*Elf*/
+    0,            /*Dwarf*/
+    1000,         /*Half Troll (advanced)*/
+    30000,        /*crystal dwarf (epic)*/
+    0,            /*halfling*/
+    0,            /*half elf*/
+    0,            /*half orc*/
+    0,            /*gnome*/
+    30000,        /*trelux (epic)*/
+    1000,         /*arcana golem (advanced)*/
+    1000,         /*drow (advanced)*/
+    1000,         /*duergar (advanced)*/
+    999999999999, /*lich*/
 };
 
 const bool locked_races[NUM_RACES] = {
@@ -68,11 +69,12 @@ const bool locked_races[NUM_RACES] = {
     Y, /*arcana golem (advanced)*/
     Y, /*drow (advanced)*/
     Y, /*duergar (advanced)*/
+    Y, /*lich*/
 };
 
 int has_unlocked_race(struct char_data *ch, int race)
 {
-  if (!ch || !ch->desc || !ch->desc->account)
+  if (!ch || !ch->desc || !ch->desc->account || race = RACE_LICH)
     return FALSE;
 
   if (!locked_races[race])

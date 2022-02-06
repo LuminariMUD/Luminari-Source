@@ -1005,6 +1005,7 @@ void gain_exp_regardless(struct char_data *ch, int gain)
       CLASS_LEVEL(ch, GET_CLASS(ch))
       ++;
       num_levels++;
+      /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, GET_CLASS(ch));
       is_altered = TRUE;
     }
@@ -1133,7 +1134,7 @@ void update_player_misc(void)
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
       GET_MISSION_COOLDOWN(ch)
-      --;
+    --;
 
     if (!are_mission_mobs_loaded(ch))
     {

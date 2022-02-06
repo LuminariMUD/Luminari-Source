@@ -103,193 +103,193 @@
 #define SPELL_RESERVED_DBC 0 /* SKILL NUMBER ZERO -- RESERVED */
 
 /* PLAYER SPELLS -- Numbered from 1 to MAX_SPELLS */
-#define SPELL_ARMOR 1         //done
-#define SPELL_TELEPORT 2      //done (no longer stock)
-#define SPELL_BLESS 3         //done
-#define SPELL_BLINDNESS 4     //done
-#define SPELL_BURNING_HANDS 5 //done
+#define SPELL_ARMOR 1         // done
+#define SPELL_TELEPORT 2      // done (no longer stock)
+#define SPELL_BLESS 3         // done
+#define SPELL_BLINDNESS 4     // done
+#define SPELL_BURNING_HANDS 5 // done
 #define SPELL_CALL_LIGHTNING 6
-#define SPELL_CHARM 7        //done
-#define SPELL_CHILL_TOUCH 8  //done
-#define SPELL_CLONE 9        //done
-#define SPELL_COLOR_SPRAY 10 //done
+#define SPELL_CHARM 7        // done
+#define SPELL_CHILL_TOUCH 8  // done
+#define SPELL_CLONE 9        // done
+#define SPELL_COLOR_SPRAY 10 // done
 #define SPELL_CONTROL_WEATHER 11
-#define SPELL_CREATE_FOOD 12    //done
-#define SPELL_CREATE_WATER 13   //done
-#define SPELL_CURE_BLIND 14     //done
-#define SPELL_CURE_CRITIC 15    //done
-#define SPELL_CURE_LIGHT 16     //done
-#define SPELL_CURSE 17          //done
-#define SPELL_DETECT_ALIGN 18   //done
-#define SPELL_DETECT_INVIS 19   //done
-#define SPELL_DETECT_MAGIC 20   //done
-#define SPELL_DETECT_POISON 21  //done
-#define SPELL_DISPEL_EVIL 22    //done
-#define SPELL_EARTHQUAKE 23     //done
-#define SPELL_ENCHANT_ITEM 24   //done
-#define SPELL_ENERGY_DRAIN 25   //done
-#define SPELL_FIREBALL 26       //done
-#define SPELL_HARM 27           //done
-#define SPELL_HEAL 28           //done
-#define SPELL_INVISIBLE 29      //done
-#define SPELL_LIGHTNING_BOLT 30 //done
-#define SPELL_LOCATE_OBJECT 31  //done
-#define SPELL_MAGIC_MISSILE 32  //done
-#define SPELL_POISON 33         //done
-#define SPELL_PROT_FROM_EVIL 34 //done
-#define SPELL_REMOVE_CURSE 35   //done
-#define SPELL_SANCTUARY 36      //done
-#define SPELL_SHOCKING_GRASP 37 //done
-#define SPELL_SLEEP 38          //done
-#define SPELL_STRENGTH 39       //done
-#define SPELL_SUMMON 40         //done
+#define SPELL_CREATE_FOOD 12    // done
+#define SPELL_CREATE_WATER 13   // done
+#define SPELL_CURE_BLIND 14     // done
+#define SPELL_CURE_CRITIC 15    // done
+#define SPELL_CURE_LIGHT 16     // done
+#define SPELL_CURSE 17          // done
+#define SPELL_DETECT_ALIGN 18   // done
+#define SPELL_DETECT_INVIS 19   // done
+#define SPELL_DETECT_MAGIC 20   // done
+#define SPELL_DETECT_POISON 21  // done
+#define SPELL_DISPEL_EVIL 22    // done
+#define SPELL_EARTHQUAKE 23     // done
+#define SPELL_ENCHANT_ITEM 24   // done
+#define SPELL_ENERGY_DRAIN 25   // done
+#define SPELL_FIREBALL 26       // done
+#define SPELL_HARM 27           // done
+#define SPELL_HEAL 28           // done
+#define SPELL_INVISIBLE 29      // done
+#define SPELL_LIGHTNING_BOLT 30 // done
+#define SPELL_LOCATE_OBJECT 31  // done
+#define SPELL_MAGIC_MISSILE 32  // done
+#define SPELL_POISON 33         // done
+#define SPELL_PROT_FROM_EVIL 34 // done
+#define SPELL_REMOVE_CURSE 35   // done
+#define SPELL_SANCTUARY 36      // done
+#define SPELL_SHOCKING_GRASP 37 // done
+#define SPELL_SLEEP 38          // done
+#define SPELL_STRENGTH 39       // done
+#define SPELL_SUMMON 40         // done
 #define SPELL_VENTRILOQUATE 41
-#define SPELL_WORD_OF_RECALL 42        //done
-#define SPELL_REMOVE_POISON 43         //done
-#define SPELL_SENSE_LIFE 44            //done
-#define SPELL_ANIMATE_DEAD 45          //done
-#define SPELL_DISPEL_GOOD 46           //done
-#define SPELL_GROUP_ARMOR 47           //done
-#define SPELL_GROUP_HEAL 48            //done
-#define SPELL_GROUP_RECALL 49          //done
-#define SPELL_INFRAVISION 50           //done
-#define SPELL_WATERWALK 51             //done
-#define SPELL_IDENTIFY 52              //done
-#define SPELL_FLY 53                   //done
-#define SPELL_BLUR 54                  //done
-#define SPELL_MIRROR_IMAGE 55          //done
-#define SPELL_STONESKIN 56             //done
-#define SPELL_ENDURANCE 57             //done
-#define SPELL_MUMMY_DUST 58            //done, epic
-#define SPELL_DRAGON_KNIGHT 59         //done, epic
-#define SPELL_GREATER_RUIN 60          //done, epic
-#define SPELL_HELLBALL 61              //done, epic
-#define SPELL_EPIC_MAGE_ARMOR 62       //done, epic
-#define SPELL_EPIC_WARDING 63          //done, epic
-#define SPELL_CAUSE_LIGHT_WOUNDS 64    //done
-#define SPELL_CAUSE_MODERATE_WOUNDS 65 //done
-#define SPELL_CAUSE_SERIOUS_WOUNDS 66  //done
-#define SPELL_CAUSE_CRITICAL_WOUNDS 67 //done
-#define SPELL_FLAME_STRIKE 68          //done
-#define SPELL_DESTRUCTION 69           //done
-#define SPELL_ICE_STORM 70             //done
-#define SPELL_BALL_OF_LIGHTNING 71     //done
-#define SPELL_MISSILE_STORM 72         //done
-#define SPELL_CHAIN_LIGHTNING 73       //done
-#define SPELL_METEOR_SWARM 74          //done
-#define SPELL_PROT_FROM_GOOD 75        //done
-#define SPELL_FIRE_BREATHE 76          //done, [not spell]
-#define SPELL_POLYMORPH 77             //done
-#define SPELL_ENDURE_ELEMENTS 78       //done
-#define SPELL_EXPEDITIOUS_RETREAT 79   //done
-#define SPELL_GREASE 80                //done
-#define SPELL_HORIZIKAULS_BOOM 81      //done
-#define SPELL_ICE_DAGGER 82            //done
-#define SPELL_IRON_GUTS 83             //done
-#define SPELL_MAGE_ARMOR 84            //done
-#define SPELL_NEGATIVE_ENERGY_RAY 85   //done
-#define SPELL_RAY_OF_ENFEEBLEMENT 86   //done
-#define SPELL_SCARE 87                 //done
-#define SPELL_SHELGARNS_BLADE 88       //done
-#define SPELL_SHIELD 89                //done
-#define SPELL_SUMMON_CREATURE_1 90     //done
-#define SPELL_TRUE_STRIKE 91           //done
-#define SPELL_WALL_OF_FOG 92           //done
-#define SPELL_DARKNESS 93              //done
-#define SPELL_SUMMON_CREATURE_2 94     //done
-#define SPELL_WEB 95                   //done
-#define SPELL_ACID_ARROW 96            //done
-#define SPELL_DAZE_MONSTER 97          //done
-#define SPELL_HIDEOUS_LAUGHTER 98      //done
-#define SPELL_TOUCH_OF_IDIOCY 99       //done
-#define SPELL_CONTINUAL_FLAME 100      //done
-#define SPELL_SCORCHING_RAY 101        //done
-#define SPELL_DEAFNESS 102             //done
-#define SPELL_FALSE_LIFE 103           //done
-#define SPELL_GRACE 104                //done
-#define SPELL_RESIST_ENERGY 105        //done
-#define SPELL_ENERGY_SPHERE 106        //done
-#define SPELL_WATER_BREATHE 107        //done
-#define SPELL_PHANTOM_STEED 108        //done
-#define SPELL_STINKING_CLOUD 109       //done
-#define SPELL_SUMMON_CREATURE_3 110    //done
-#define SPELL_HALT_UNDEAD 111          //done
-#define SPELL_HEROISM 112              //done
-#define SPELL_VAMPIRIC_TOUCH 113       //done
-#define SPELL_HOLD_PERSON 114          //done
-#define SPELL_DEEP_SLUMBER 115         //done
-#define SPELL_INVISIBILITY_SPHERE 116  //done
-#define SPELL_DAYLIGHT 117             //done
-#define SPELL_CLAIRVOYANCE 118         //done
-#define SPELL_NON_DETECTION 119        //done
-#define SPELL_HASTE 120                //done
-#define SPELL_SLOW 121                 //done
-#define SPELL_DISPEL_MAGIC 122         //done
-#define SPELL_CIRCLE_A_EVIL 123        //done
-#define SPELL_CIRCLE_A_GOOD 124        //done
-#define SPELL_CUNNING 125              //done
-#define SPELL_WISDOM 126               //done
-#define SPELL_CHARISMA 127             //done
-#define SPELL_STENCH 128               //done - stinking cloud proc
+#define SPELL_WORD_OF_RECALL 42        // done
+#define SPELL_REMOVE_POISON 43         // done
+#define SPELL_SENSE_LIFE 44            // done
+#define SPELL_ANIMATE_DEAD 45          // done
+#define SPELL_DISPEL_GOOD 46           // done
+#define SPELL_GROUP_ARMOR 47           // done
+#define SPELL_GROUP_HEAL 48            // done
+#define SPELL_GROUP_RECALL 49          // done
+#define SPELL_INFRAVISION 50           // done
+#define SPELL_WATERWALK 51             // done
+#define SPELL_IDENTIFY 52              // done
+#define SPELL_FLY 53                   // done
+#define SPELL_BLUR 54                  // done
+#define SPELL_MIRROR_IMAGE 55          // done
+#define SPELL_STONESKIN 56             // done
+#define SPELL_ENDURANCE 57             // done
+#define SPELL_MUMMY_DUST 58            // done, epic
+#define SPELL_DRAGON_KNIGHT 59         // done, epic
+#define SPELL_GREATER_RUIN 60          // done, epic
+#define SPELL_HELLBALL 61              // done, epic
+#define SPELL_EPIC_MAGE_ARMOR 62       // done, epic
+#define SPELL_EPIC_WARDING 63          // done, epic
+#define SPELL_CAUSE_LIGHT_WOUNDS 64    // done
+#define SPELL_CAUSE_MODERATE_WOUNDS 65 // done
+#define SPELL_CAUSE_SERIOUS_WOUNDS 66  // done
+#define SPELL_CAUSE_CRITICAL_WOUNDS 67 // done
+#define SPELL_FLAME_STRIKE 68          // done
+#define SPELL_DESTRUCTION 69           // done
+#define SPELL_ICE_STORM 70             // done
+#define SPELL_BALL_OF_LIGHTNING 71     // done
+#define SPELL_MISSILE_STORM 72         // done
+#define SPELL_CHAIN_LIGHTNING 73       // done
+#define SPELL_METEOR_SWARM 74          // done
+#define SPELL_PROT_FROM_GOOD 75        // done
+#define SPELL_FIRE_BREATHE 76          // done, [not spell]
+#define SPELL_POLYMORPH 77             // done
+#define SPELL_ENDURE_ELEMENTS 78       // done
+#define SPELL_EXPEDITIOUS_RETREAT 79   // done
+#define SPELL_GREASE 80                // done
+#define SPELL_HORIZIKAULS_BOOM 81      // done
+#define SPELL_ICE_DAGGER 82            // done
+#define SPELL_IRON_GUTS 83             // done
+#define SPELL_MAGE_ARMOR 84            // done
+#define SPELL_NEGATIVE_ENERGY_RAY 85   // done
+#define SPELL_RAY_OF_ENFEEBLEMENT 86   // done
+#define SPELL_SCARE 87                 // done
+#define SPELL_SHELGARNS_BLADE 88       // done
+#define SPELL_SHIELD 89                // done
+#define SPELL_SUMMON_CREATURE_1 90     // done
+#define SPELL_TRUE_STRIKE 91           // done
+#define SPELL_WALL_OF_FOG 92           // done
+#define SPELL_DARKNESS 93              // done
+#define SPELL_SUMMON_CREATURE_2 94     // done
+#define SPELL_WEB 95                   // done
+#define SPELL_ACID_ARROW 96            // done
+#define SPELL_DAZE_MONSTER 97          // done
+#define SPELL_HIDEOUS_LAUGHTER 98      // done
+#define SPELL_TOUCH_OF_IDIOCY 99       // done
+#define SPELL_CONTINUAL_FLAME 100      // done
+#define SPELL_SCORCHING_RAY 101        // done
+#define SPELL_DEAFNESS 102             // done
+#define SPELL_FALSE_LIFE 103           // done
+#define SPELL_GRACE 104                // done
+#define SPELL_RESIST_ENERGY 105        // done
+#define SPELL_ENERGY_SPHERE 106        // done
+#define SPELL_WATER_BREATHE 107        // done
+#define SPELL_PHANTOM_STEED 108        // done
+#define SPELL_STINKING_CLOUD 109       // done
+#define SPELL_SUMMON_CREATURE_3 110    // done
+#define SPELL_HALT_UNDEAD 111          // done
+#define SPELL_HEROISM 112              // done
+#define SPELL_VAMPIRIC_TOUCH 113       // done
+#define SPELL_HOLD_PERSON 114          // done
+#define SPELL_DEEP_SLUMBER 115         // done
+#define SPELL_INVISIBILITY_SPHERE 116  // done
+#define SPELL_DAYLIGHT 117             // done
+#define SPELL_CLAIRVOYANCE 118         // done
+#define SPELL_NON_DETECTION 119        // done
+#define SPELL_HASTE 120                // done
+#define SPELL_SLOW 121                 // done
+#define SPELL_DISPEL_MAGIC 122         // done
+#define SPELL_CIRCLE_A_EVIL 123        // done
+#define SPELL_CIRCLE_A_GOOD 124        // done
+#define SPELL_CUNNING 125              // done
+#define SPELL_WISDOM 126               // done
+#define SPELL_CHARISMA 127             // done
+#define SPELL_STENCH 128               // done - stinking cloud proc
 #define SPELL_ACID_SPLASH 129          // cantrip, unfinished
 #define SPELL_RAY_OF_FROST 130         // cantrip, unfinished
-#define SPELL_WIZARD_EYE 131           //done
-#define SPELL_FIRE_SHIELD 132          //done
-#define SPELL_COLD_SHIELD 133          //done
-#define SPELL_BILLOWING_CLOUD 134      //done
-#define SPELL_SUMMON_CREATURE_4 135    //done
-#define SPELL_GREATER_INVIS 136        //done
-#define SPELL_RAINBOW_PATTERN 137      //done
-#define SPELL_LOCATE_CREATURE 138      //done
-#define SPELL_MINOR_GLOBE 139          //done
-#define SPELL_ENLARGE_PERSON 140       //done
-#define SPELL_SHRINK_PERSON 141        //done
-#define SPELL_FSHIELD_DAM 142          //done, fire shield proc
-#define SPELL_CSHIELD_DAM 143          //done, cold shield proc
-#define SPELL_ASHIELD_DAM 144          //done, acid shield proc
-#define SPELL_ACID_SHEATH 145          //done
-#define SPELL_INTERPOSING_HAND 146     //done
-#define SPELL_WALL_OF_FORCE 147        //done
-#define SPELL_CLOUDKILL 148            //done
-#define SPELL_SUMMON_CREATURE_5 149    //done
-#define SPELL_WAVES_OF_FATIGUE 150     //done
-#define SPELL_SYMBOL_OF_PAIN 151       //done
-#define SPELL_DOMINATE_PERSON 152      //done
-#define SPELL_FEEBLEMIND 153           //done
-#define SPELL_NIGHTMARE 154            //done
-#define SPELL_MIND_FOG 155             //done
-#define SPELL_FAITHFUL_HOUND 156       //done
-#define SPELL_DISMISSAL 157            //done
-#define SPELL_CONE_OF_COLD 158         //done
-#define SPELL_TELEKINESIS 159          //done
-#define SPELL_FIREBRAND 160            //done
-#define SPELL_DEATHCLOUD 161           //done - cloudkill proc
-#define SPELL_FREEZING_SPHERE 162      //done
-#define SPELL_ACID_FOG 163             //done
-#define SPELL_SUMMON_CREATURE_6 164    //done
-#define SPELL_TRANSFORMATION 165       //done
-#define SPELL_EYEBITE 166              //done
-#define SPELL_MASS_HASTE 167           //done
-#define SPELL_GREATER_HEROISM 168      //done
-#define SPELL_ANTI_MAGIC_FIELD 169     //done
-#define SPELL_GREATER_MIRROR_IMAGE 170 //done
-#define SPELL_TRUE_SEEING 171          //done
-#define SPELL_GLOBE_OF_INVULN 172      //done
-#define SPELL_GREATER_DISPELLING 173   //done
-#define SPELL_GRASPING_HAND 174        //done
-#define SPELL_SUMMON_CREATURE_7 175    //done
-#define SPELL_POWER_WORD_BLIND 176     //done
-#define SPELL_WAVES_OF_EXHAUSTION 177  //done
-#define SPELL_MASS_HOLD_PERSON 178     //done
-#define SPELL_MASS_FLY 179             //done
-#define SPELL_DISPLACEMENT 180         //done
-#define SPELL_PRISMATIC_SPRAY 181      //done
-#define SPELL_POWER_WORD_STUN 182      //done
-#define SPELL_PROTECT_FROM_SPELLS 183  //done
-#define SPELL_THUNDERCLAP 184          //done
-#define SPELL_SPELL_MANTLE 185         //done
-#define SPELL_MASS_WISDOM 186          //done
-#define SPELL_MASS_CHARISMA 187        //done
+#define SPELL_WIZARD_EYE 131           // done
+#define SPELL_FIRE_SHIELD 132          // done
+#define SPELL_COLD_SHIELD 133          // done
+#define SPELL_BILLOWING_CLOUD 134      // done
+#define SPELL_SUMMON_CREATURE_4 135    // done
+#define SPELL_GREATER_INVIS 136        // done
+#define SPELL_RAINBOW_PATTERN 137      // done
+#define SPELL_LOCATE_CREATURE 138      // done
+#define SPELL_MINOR_GLOBE 139          // done
+#define SPELL_ENLARGE_PERSON 140       // done
+#define SPELL_SHRINK_PERSON 141        // done
+#define SPELL_FSHIELD_DAM 142          // done, fire shield proc
+#define SPELL_CSHIELD_DAM 143          // done, cold shield proc
+#define SPELL_ASHIELD_DAM 144          // done, acid shield proc
+#define SPELL_ACID_SHEATH 145          // done
+#define SPELL_INTERPOSING_HAND 146     // done
+#define SPELL_WALL_OF_FORCE 147        // done
+#define SPELL_CLOUDKILL 148            // done
+#define SPELL_SUMMON_CREATURE_5 149    // done
+#define SPELL_WAVES_OF_FATIGUE 150     // done
+#define SPELL_SYMBOL_OF_PAIN 151       // done
+#define SPELL_DOMINATE_PERSON 152      // done
+#define SPELL_FEEBLEMIND 153           // done
+#define SPELL_NIGHTMARE 154            // done
+#define SPELL_MIND_FOG 155             // done
+#define SPELL_FAITHFUL_HOUND 156       // done
+#define SPELL_DISMISSAL 157            // done
+#define SPELL_CONE_OF_COLD 158         // done
+#define SPELL_TELEKINESIS 159          // done
+#define SPELL_FIREBRAND 160            // done
+#define SPELL_DEATHCLOUD 161           // done - cloudkill proc
+#define SPELL_FREEZING_SPHERE 162      // done
+#define SPELL_ACID_FOG 163             // done
+#define SPELL_SUMMON_CREATURE_6 164    // done
+#define SPELL_TRANSFORMATION 165       // done
+#define SPELL_EYEBITE 166              // done
+#define SPELL_MASS_HASTE 167           // done
+#define SPELL_GREATER_HEROISM 168      // done
+#define SPELL_ANTI_MAGIC_FIELD 169     // done
+#define SPELL_GREATER_MIRROR_IMAGE 170 // done
+#define SPELL_TRUE_SEEING 171          // done
+#define SPELL_GLOBE_OF_INVULN 172      // done
+#define SPELL_GREATER_DISPELLING 173   // done
+#define SPELL_GRASPING_HAND 174        // done
+#define SPELL_SUMMON_CREATURE_7 175    // done
+#define SPELL_POWER_WORD_BLIND 176     // done
+#define SPELL_WAVES_OF_EXHAUSTION 177  // done
+#define SPELL_MASS_HOLD_PERSON 178     // done
+#define SPELL_MASS_FLY 179             // done
+#define SPELL_DISPLACEMENT 180         // done
+#define SPELL_PRISMATIC_SPRAY 181      // done
+#define SPELL_POWER_WORD_STUN 182      // done
+#define SPELL_PROTECT_FROM_SPELLS 183  // done
+#define SPELL_THUNDERCLAP 184          // done
+#define SPELL_SPELL_MANTLE 185         // done
+#define SPELL_MASS_WISDOM 186          // done
+#define SPELL_MASS_CHARISMA 187        // done
 #define SPELL_CLENCHED_FIST 188        // done
 #define SPELL_INCENDIARY_CLOUD 189     // done
 #define SPELL_SUMMON_CREATURE_8 190    // done
@@ -304,51 +304,51 @@
 #define SPELL_SPELL_TURNING 199        // done
 #define SPELL_MIND_BLANK 200           // done
 #define SPELL_IRONSKIN 201             // done
-#define SPELL_MASS_CUNNING 202         //done
-#define SPELL_BLADE_OF_DISASTER 203    //done
-#define SPELL_SUMMON_CREATURE_9 204    //done
-#define SPELL_GATE 205                 //done
-#define SPELL_WAIL_OF_THE_BANSHEE 206  //done
-#define SPELL_POWER_WORD_KILL 207      //done
-#define SPELL_ENFEEBLEMENT 208         //done
-#define SPELL_WEIRD 209                //done
-#define SPELL_SHADOW_SHIELD 210        //done
-#define SPELL_PRISMATIC_SPHERE 211     //done
-#define SPELL_IMPLODE 212              //done
-#define SPELL_TIMESTOP 213             //done
-#define SPELL_GREATER_SPELL_MANTLE 214 //done
-#define SPELL_MASS_ENHANCE 215         //done
-#define SPELL_PORTAL 216               //done
-#define SPELL_ACID 217                 //acid fog proc
-#define SPELL_HOLY_SWORD 218           //done (paladin)
+#define SPELL_MASS_CUNNING 202         // done
+#define SPELL_BLADE_OF_DISASTER 203    // done
+#define SPELL_SUMMON_CREATURE_9 204    // done
+#define SPELL_GATE 205                 // done
+#define SPELL_WAIL_OF_THE_BANSHEE 206  // done
+#define SPELL_POWER_WORD_KILL 207      // done
+#define SPELL_ENFEEBLEMENT 208         // done
+#define SPELL_WEIRD 209                // done
+#define SPELL_SHADOW_SHIELD 210        // done
+#define SPELL_PRISMATIC_SPHERE 211     // done
+#define SPELL_IMPLODE 212              // done
+#define SPELL_TIMESTOP 213             // done
+#define SPELL_GREATER_SPELL_MANTLE 214 // done
+#define SPELL_MASS_ENHANCE 215         // done
+#define SPELL_PORTAL 216               // done
+#define SPELL_ACID 217                 // acid fog proc
+#define SPELL_HOLY_SWORD 218           // done (paladin)
 #define SPELL_INCENDIARY 219           // incendiary cloud proc
 /* some cleric spells */
-#define SPELL_CURE_MODERATE 220      //done
-#define SPELL_CURE_SERIOUS 221       //done
-#define SPELL_REMOVE_FEAR 222        //done
-#define SPELL_CURE_DEAFNESS 223      //done
-#define SPELL_FAERIE_FOG 224         //done
-#define SPELL_MASS_CURE_LIGHT 225    //done
-#define SPELL_AID 226                //done
-#define SPELL_BRAVERY 227            //done
-#define SPELL_MASS_CURE_MODERATE 228 //done
-#define SPELL_REGENERATION 229       //done
-#define SPELL_FREE_MOVEMENT 230      //done
-#define SPELL_STRENGTHEN_BONE 231    //done
-#define SPELL_MASS_CURE_SERIOUS 232  //done
-#define SPELL_PRAYER 233             //done
-#define SPELL_REMOVE_DISEASE 234     //done
-#define SPELL_WORD_OF_FAITH 235      //done
-#define SPELL_DIMENSIONAL_LOCK 236   //done
-#define SPELL_SALVATION 237          //done
-#define SPELL_SPRING_OF_LIFE 238     //done
-#define SPELL_PLANE_SHIFT 239        //done
-#define SPELL_STORM_OF_VENGEANCE 240 //done
+#define SPELL_CURE_MODERATE 220      // done
+#define SPELL_CURE_SERIOUS 221       // done
+#define SPELL_REMOVE_FEAR 222        // done
+#define SPELL_CURE_DEAFNESS 223      // done
+#define SPELL_FAERIE_FOG 224         // done
+#define SPELL_MASS_CURE_LIGHT 225    // done
+#define SPELL_AID 226                // done
+#define SPELL_BRAVERY 227            // done
+#define SPELL_MASS_CURE_MODERATE 228 // done
+#define SPELL_REGENERATION 229       // done
+#define SPELL_FREE_MOVEMENT 230      // done
+#define SPELL_STRENGTHEN_BONE 231    // done
+#define SPELL_MASS_CURE_SERIOUS 232  // done
+#define SPELL_PRAYER 233             // done
+#define SPELL_REMOVE_DISEASE 234     // done
+#define SPELL_WORD_OF_FAITH 235      // done
+#define SPELL_DIMENSIONAL_LOCK 236   // done
+#define SPELL_SALVATION 237          // done
+#define SPELL_SPRING_OF_LIFE 238     // done
+#define SPELL_PLANE_SHIFT 239        // done
+#define SPELL_STORM_OF_VENGEANCE 240 // done
 #define SPELL_DEATH_SHIELD 241       // unfinished
 #define SPELL_COMMAND 242            // unfinished
 #define SPELL_AIR_WALKER 243         // unfinished
-#define SPELL_GROUP_SUMMON 244       //done
-#define SPELL_MASS_CURE_CRIT 245     //done
+#define SPELL_GROUP_SUMMON 244       // done
+#define SPELL_MASS_CURE_CRIT 245     // done
 /* some druid spells */
 #define SPELL_CHARM_ANIMAL 246
 #define SPELL_FAERIE_FIRE 247
@@ -375,11 +375,11 @@
 #define SPELL_SUMMON_SWARM 268
 #define SPELL_CONTAGION 269
 #define SPELL_GREATER_MAGIC_FANG 270
-#define SPELL_FROST_BREATHE 271 //done, [not spell]
+#define SPELL_FROST_BREATHE 271 // done, [not spell]
 #define SPELL_SPIKE_GROWTH 272
 #define SPELL_BLIGHT 273
 #define SPELL_REINCARNATE 274
-#define SPELL_LIGHTNING_BREATHE 275 //done, [not spell]
+#define SPELL_LIGHTNING_BREATHE 275 // done, [not spell]
 #define SPELL_SPIKE_STONES 276
 #define SPELL_BALEFUL_POLYMORPH 277
 #define SPELL_DEATH_WARD 278
@@ -408,9 +408,9 @@
 #define SPELL_SHAMBLER 301
 #define SPELL_SHAPECHANGE 302 // hey b, maybe use polymorph
 /* some more cleric spells */
-#define SPELL_BLADE_BARRIER 303 //done
-#define SPELL_BLADES 304        //done - blades (for blade barrier)
-#define SPELL_BATTLETIDE 305    //done
+#define SPELL_BLADE_BARRIER 303 // done
+#define SPELL_BLADES 304        // done - blades (for blade barrier)
+#define SPELL_BATTLETIDE 305    // done
 /**/
 #define SPELL_I_DARKNESS 306 // room event test spell
 #define SPELL_DOOM 307       // creeping doom damage proc
@@ -437,7 +437,7 @@
  * INSIDE THIS BRACKET OF OPEN SPELL NUMS
  * */
 
-#define SPELL_ESHIELD_DAM 382          //done, acid shield proc
+#define SPELL_ESHIELD_DAM 382 // done, acid shield proc
 /* end unfinished list */
 
 /* alchemist */
@@ -496,125 +496,128 @@
  * 'spell name' for that nausea.
  */
 
-#define SPELL_AFFECT_MIND_TRAP_NAUSEA           1200
-#define PSIONIC_ABILITY_PSIONIC_FOCUS           1201
-#define PSIONIC_ABILITY_DOUBLE_MANIFESTATION    1202
-#define SPELL_DRAGONBORN_ANCESTRY_BREATH        1203
-#define PALADIN_MERCY_INJURED_FAST_HEALING      1204
-#define BLACKGUARD_TOUCH_OF_CORRUPTION          1205
-#define BLACKGUARD_CRUELTY_AFFECTS              1206
-#define ABILITY_CHANNEL_POSITIVE_ENERGY         1207
-#define ABILITY_CHANNEL_NEGATIVE_ENERGY         1208
-#define WEAPON_POISON_BLACK_ADDER_VENOM         1209
-#define SPELL_AFFECT_STUNNING_BARRIER           1210
-#define AFFECT_ENTANGLING_FLAMES                1211
-#define SPELL_EFFECT_DAZZLED                    1212
-#define SPELL_AFFECT_DEATH_ATTACK               1213
+#define SPELL_AFFECT_MIND_TRAP_NAUSEA 1200
+#define PSIONIC_ABILITY_PSIONIC_FOCUS 1201
+#define PSIONIC_ABILITY_DOUBLE_MANIFESTATION 1202
+#define SPELL_DRAGONBORN_ANCESTRY_BREATH 1203
+#define PALADIN_MERCY_INJURED_FAST_HEALING 1204
+#define BLACKGUARD_TOUCH_OF_CORRUPTION 1205
+#define BLACKGUARD_CRUELTY_AFFECTS 1206
+#define ABILITY_CHANNEL_POSITIVE_ENERGY 1207
+#define ABILITY_CHANNEL_NEGATIVE_ENERGY 1208
+#define WEAPON_POISON_BLACK_ADDER_VENOM 1209
+#define SPELL_AFFECT_STUNNING_BARRIER 1210
+#define AFFECT_ENTANGLING_FLAMES 1211
+#define SPELL_EFFECT_DAZZLED 1212
+#define SPELL_AFFECT_DEATH_ATTACK 1213
+#define RACIAL_LICH_TOUCH 1214
+#define RACIAL_LICH_FEAR 1215
+#define RACIAL_LICH_REJUV 1216
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
  */
 
-#define PSIONIC_BROKER                  1500
-#define PSIONIC_CALL_TO_MIND            1501
-#define PSIONIC_CATFALL                 1502
-#define PSIONIC_CRYSTAL_SHARD           1503
-#define PSIONIC_DECELERATION            1504
-#define PSIONIC_DEMORALIZE              1505
-#define PSIONIC_ECTOPLASMIC_SHEEN       1506
-#define PSIONIC_ENERGY_RAY              1507
-#define PSIONIC_FORCE_SCREEN            1508
-#define PSIONIC_FORTIFY                 1509
-#define PSIONIC_INERTIAL_ARMOR          1510
-#define PSIONIC_INEVITABLE_STRIKE       1511
-#define PSIONIC_MIND_THRUST             1512
-#define PSIONIC_DEFENSIVE_PRECOGNITION  1513
-#define PSIONIC_OFFENSIVE_PRECOGNITION  1514
-#define PSIONIC_OFFENSIVE_PRESCIENCE    1515
-#define PSIONIC_SLUMBER                 1516
-#define PSIONIC_VIGOR                   1517
-#define PSIONIC_BESTOW_POWER            1518
-#define PSIONIC_BIOFEEDBACK             1519
-#define PSIONIC_BODY_EQUILIBRIUM        1520
-#define PSIONIC_BREACH                  1521
-#define PSIONIC_CONCEALING_AMORPHA      1522
-#define PSIONIC_CONCUSSION_BLAST        1523
-#define PSIONIC_DETECT_HOSTILE_INTENT   1524
-#define PSIONIC_ELFSIGHT                1525
+#define PSIONIC_BROKER 1500
+#define PSIONIC_CALL_TO_MIND 1501
+#define PSIONIC_CATFALL 1502
+#define PSIONIC_CRYSTAL_SHARD 1503
+#define PSIONIC_DECELERATION 1504
+#define PSIONIC_DEMORALIZE 1505
+#define PSIONIC_ECTOPLASMIC_SHEEN 1506
+#define PSIONIC_ENERGY_RAY 1507
+#define PSIONIC_FORCE_SCREEN 1508
+#define PSIONIC_FORTIFY 1509
+#define PSIONIC_INERTIAL_ARMOR 1510
+#define PSIONIC_INEVITABLE_STRIKE 1511
+#define PSIONIC_MIND_THRUST 1512
+#define PSIONIC_DEFENSIVE_PRECOGNITION 1513
+#define PSIONIC_OFFENSIVE_PRECOGNITION 1514
+#define PSIONIC_OFFENSIVE_PRESCIENCE 1515
+#define PSIONIC_SLUMBER 1516
+#define PSIONIC_VIGOR 1517
+#define PSIONIC_BESTOW_POWER 1518
+#define PSIONIC_BIOFEEDBACK 1519
+#define PSIONIC_BODY_EQUILIBRIUM 1520
+#define PSIONIC_BREACH 1521
+#define PSIONIC_CONCEALING_AMORPHA 1522
+#define PSIONIC_CONCUSSION_BLAST 1523
+#define PSIONIC_DETECT_HOSTILE_INTENT 1524
+#define PSIONIC_ELFSIGHT 1525
 #define PSIONIC_ENERGY_ADAPTATION_SPECIFIED 1526
-#define PSIONIC_ENERGY_PUSH             1527
-#define PSIONIC_ENERGY_STUN             1528
-#define PSIONIC_INFLICT_PAIN            1529
-#define PSIONIC_MENTAL_DISRUPTION       1530
-#define PSIONIC_MASS_MISSIVE            1531
-#define PSIONIC_PSIONIC_LOCK            1532
-#define PSIONIC_PSYCHIC_BODYGUARD       1533
-#define PSIONIC_RECALL_AGONY            1534
-#define PSIONIC_SHARE_PAIN              1535
-#define PSIONIC_SWARM_OF_CRYSTALS       1536
-#define PSIONIC_THOUGHT_SHIELD          1537
-#define PSIONIC_BODY_ADJUSTMENT         1538
-#define PSIONIC_CONCUSSIVE_ONSLAUGHT    1539
-#define PSIONIC_DISPEL_PSIONICS         1540
-#define PSIONIC_ENDORPHIN_SURGE         1541
-#define PSIONIC_ENERGY_BURST            1542
-#define PSIONIC_ENERGY_RETORT           1543
-#define PSIONIC_ERADICATE_INVISIBILITY  1544
-#define PSIONIC_HEIGHTENED_VISION       1545
-#define PSIONIC_MENTAL_BARRIER          1546
-#define PSIONIC_MIND_TRAP               1547
-#define PSIONIC_PSIONIC_BLAST           1548
-#define PSIONIC_FORCED_SHARED_PAIN      1549
-#define PSIONIC_SHARPENED_EDGE          1550
-#define PSIONIC_UBIQUITUS_VISION        1551
-#define PSIONIC_DEADLY_FEAR             1552
-#define PSIONIC_DEATH_URGE              1553
-#define PSIONIC_EMPATHIC_FEEDBACK       1554
-#define PSIONIC_ENERGY_ADAPTATION       1555
-#define PSIONIC_INCITE_PASSION          1556
-#define PSIONIC_INTELLECT_FORTRESS      1557
-#define PSIONIC_MOMENT_OF_TERROR        1558
-#define PSIONIC_POWER_LEECH             1559
-#define PSIONIC_SLIP_THE_BONDS          1560
-#define PSIONIC_WITHER                  1561
-#define PSIONIC_WALL_OF_ECTOPLASM       1562
-#define PSIONIC_ADAPT_BODY              1563
-#define PSIONIC_ECTOPLASMIC_SHAMBLER    1564
-#define PSIONIC_PIERCE_VEIL             1565
-#define PSIONIC_PLANAR_TRAVEL           1566
-#define PSIONIC_POWER_RESISTANCE        1567
-#define PSIONIC_PSYCHIC_CRUSH           1568
-#define PSIONIC_PSYCHOPORTATION         1569
-#define PSIONIC_SHATTER_MIND_BLANK      1570
-#define PSIONIC_SHRAPNEL_BURST          1571
-#define PSIONIC_TOWER_OF_IRON_WILL      1572
-#define PSIONIC_UPHEAVAL                1573
+#define PSIONIC_ENERGY_PUSH 1527
+#define PSIONIC_ENERGY_STUN 1528
+#define PSIONIC_INFLICT_PAIN 1529
+#define PSIONIC_MENTAL_DISRUPTION 1530
+#define PSIONIC_MASS_MISSIVE 1531
+#define PSIONIC_PSIONIC_LOCK 1532
+#define PSIONIC_PSYCHIC_BODYGUARD 1533
+#define PSIONIC_RECALL_AGONY 1534
+#define PSIONIC_SHARE_PAIN 1535
+#define PSIONIC_SWARM_OF_CRYSTALS 1536
+#define PSIONIC_THOUGHT_SHIELD 1537
+#define PSIONIC_BODY_ADJUSTMENT 1538
+#define PSIONIC_CONCUSSIVE_ONSLAUGHT 1539
+#define PSIONIC_DISPEL_PSIONICS 1540
+#define PSIONIC_ENDORPHIN_SURGE 1541
+#define PSIONIC_ENERGY_BURST 1542
+#define PSIONIC_ENERGY_RETORT 1543
+#define PSIONIC_ERADICATE_INVISIBILITY 1544
+#define PSIONIC_HEIGHTENED_VISION 1545
+#define PSIONIC_MENTAL_BARRIER 1546
+#define PSIONIC_MIND_TRAP 1547
+#define PSIONIC_PSIONIC_BLAST 1548
+#define PSIONIC_FORCED_SHARED_PAIN 1549
+#define PSIONIC_SHARPENED_EDGE 1550
+#define PSIONIC_UBIQUITUS_VISION 1551
+#define PSIONIC_DEADLY_FEAR 1552
+#define PSIONIC_DEATH_URGE 1553
+#define PSIONIC_EMPATHIC_FEEDBACK 1554
+#define PSIONIC_ENERGY_ADAPTATION 1555
+#define PSIONIC_INCITE_PASSION 1556
+#define PSIONIC_INTELLECT_FORTRESS 1557
+#define PSIONIC_MOMENT_OF_TERROR 1558
+#define PSIONIC_POWER_LEECH 1559
+#define PSIONIC_SLIP_THE_BONDS 1560
+#define PSIONIC_WITHER 1561
+#define PSIONIC_WALL_OF_ECTOPLASM 1562
+#define PSIONIC_ADAPT_BODY 1563
+#define PSIONIC_ECTOPLASMIC_SHAMBLER 1564
+#define PSIONIC_PIERCE_VEIL 1565
+#define PSIONIC_PLANAR_TRAVEL 1566
+#define PSIONIC_POWER_RESISTANCE 1567
+#define PSIONIC_PSYCHIC_CRUSH 1568
+#define PSIONIC_PSYCHOPORTATION 1569
+#define PSIONIC_SHATTER_MIND_BLANK 1570
+#define PSIONIC_SHRAPNEL_BURST 1571
+#define PSIONIC_TOWER_OF_IRON_WILL 1572
+#define PSIONIC_UPHEAVAL 1573
 #define PSIONIC_BREATH_OF_THE_BLACK_DRAGON 1574
-#define PSIONIC_BRUTALIZE_WOUNDS        1575
-#define PSIONIC_DISINTEGRATION          1576
-#define PSIONIC_REMOTE_VIEW_TRAP        1577
-#define PSIONIC_SUSTAINED_FLIGHT        1578
-#define PSIONIC_BARRED_MIND             1579
-#define PSIONIC_COSMIC_AWARENESS        1580
-#define PSIONIC_ENERGY_CONVERSION       1581
-#define PSIONIC_ENERGY_WAVE             1582
-#define PSIONIC_EVADE_BURST             1583
-#define PSIONIC_OAK_BODY                1584
-#define PSIONIC_PSYCHOSIS               1585
-#define PSIONIC_ULTRABLAST              1586
-#define PSIONIC_BODY_OF_IRON            1587
+#define PSIONIC_BRUTALIZE_WOUNDS 1575
+#define PSIONIC_DISINTEGRATION 1576
+#define PSIONIC_REMOTE_VIEW_TRAP 1577
+#define PSIONIC_SUSTAINED_FLIGHT 1578
+#define PSIONIC_BARRED_MIND 1579
+#define PSIONIC_COSMIC_AWARENESS 1580
+#define PSIONIC_ENERGY_CONVERSION 1581
+#define PSIONIC_ENERGY_WAVE 1582
+#define PSIONIC_EVADE_BURST 1583
+#define PSIONIC_OAK_BODY 1584
+#define PSIONIC_PSYCHOSIS 1585
+#define PSIONIC_ULTRABLAST 1586
+#define PSIONIC_BODY_OF_IRON 1587
 #define PSIONIC_GREATER_PSYCHOPORTATION 1588
-#define PSIONIC_RECALL_DEATH            1589
-#define PSIONIC_SHADOW_BODY             1590
-#define PSIONIC_APOPSI                  1591
-#define PSIONIC_ASSIMILATE              1592
-#define PSIONIC_TIMELESS_BODY           1593
-#define PSIONIC_BARRED_MIND_PERSONAL    1594
-#define PSIONIC_PSYCHOPORT_GREATER      1595
-#define PSIONIC_TRUE_METABOLISM         1596
+#define PSIONIC_RECALL_DEATH 1589
+#define PSIONIC_SHADOW_BODY 1590
+#define PSIONIC_APOPSI 1591
+#define PSIONIC_ASSIMILATE 1592
+#define PSIONIC_TIMELESS_BODY 1593
+#define PSIONIC_BARRED_MIND_PERSONAL 1594
+#define PSIONIC_PSYCHOPORT_GREATER 1595
+#define PSIONIC_TRUE_METABOLISM 1596
 
-#define PSIONIC_POWER_START             1500
-#define PSIONIC_POWER_END               1596
+#define PSIONIC_POWER_START 1500
+#define PSIONIC_POWER_END 1596
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
@@ -631,88 +634,88 @@
 
 /* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
 #define SKILL_BACKSTAB 401          // implemented
-#define SKILL_BASH 402              //implemented
-#define SKILL_MUMMY_DUST 403        //implemented
-#define SKILL_KICK 404              //implemented
-#define SKILL_WEAPON_SPECIALIST 405 //implemented
-#define SKILL_WHIRLWIND 406         //implemented
-#define SKILL_RESCUE 407            //implemented
-#define SKILL_DRAGON_KNIGHT 408     //implemented
-#define SKILL_LUCK_OF_HEROES 409    //implemented
-#define SKILL_TRACK 410             //implemented
-#define SKILL_QUICK_CHANT 411       //implemented
-#define SKILL_AMBIDEXTERITY 412     //implemented
-#define SKILL_DIRTY_FIGHTING 413    //implemented
-#define SKILL_DODGE 414             //implemented
-#define SKILL_IMPROVED_CRITICAL 415 //implemented
-#define SKILL_MOBILITY 416          //implemented
-#define SKILL_SPRING_ATTACK 417     //implemented
-#define SKILL_TOUGHNESS 418         //implemented
-#define SKILL_TWO_WEAPON_FIGHT 419  //implemented
-#define SKILL_FINESSE 420           //implemented
-#define SKILL_ARMOR_SKIN 421        //implemented
-#define SKILL_BLINDING_SPEED 422    //implemented
-#define SKILL_DAMAGE_REDUC_1 423    //implemented
-#define SKILL_DAMAGE_REDUC_2 424    //implemented
-#define SKILL_DAMAGE_REDUC_3 425    //implemented
-#define SKILL_EPIC_TOUGHNESS 426    //implemented
-#define SKILL_OVERWHELMING_CRIT 427 //implemented
-#define SKILL_SELF_CONCEAL_1 428    //implemented
-#define SKILL_SELF_CONCEAL_2 429    //implemented
-#define SKILL_SELF_CONCEAL_3 430    //implemented
-#define SKILL_TRIP 431              //implemented
-#define SKILL_IMPROVED_WHIRL 432    //implemented
+#define SKILL_BASH 402              // implemented
+#define SKILL_MUMMY_DUST 403        // implemented
+#define SKILL_KICK 404              // implemented
+#define SKILL_WEAPON_SPECIALIST 405 // implemented
+#define SKILL_WHIRLWIND 406         // implemented
+#define SKILL_RESCUE 407            // implemented
+#define SKILL_DRAGON_KNIGHT 408     // implemented
+#define SKILL_LUCK_OF_HEROES 409    // implemented
+#define SKILL_TRACK 410             // implemented
+#define SKILL_QUICK_CHANT 411       // implemented
+#define SKILL_AMBIDEXTERITY 412     // implemented
+#define SKILL_DIRTY_FIGHTING 413    // implemented
+#define SKILL_DODGE 414             // implemented
+#define SKILL_IMPROVED_CRITICAL 415 // implemented
+#define SKILL_MOBILITY 416          // implemented
+#define SKILL_SPRING_ATTACK 417     // implemented
+#define SKILL_TOUGHNESS 418         // implemented
+#define SKILL_TWO_WEAPON_FIGHT 419  // implemented
+#define SKILL_FINESSE 420           // implemented
+#define SKILL_ARMOR_SKIN 421        // implemented
+#define SKILL_BLINDING_SPEED 422    // implemented
+#define SKILL_DAMAGE_REDUC_1 423    // implemented
+#define SKILL_DAMAGE_REDUC_2 424    // implemented
+#define SKILL_DAMAGE_REDUC_3 425    // implemented
+#define SKILL_EPIC_TOUGHNESS 426    // implemented
+#define SKILL_OVERWHELMING_CRIT 427 // implemented
+#define SKILL_SELF_CONCEAL_1 428    // implemented
+#define SKILL_SELF_CONCEAL_2 429    // implemented
+#define SKILL_SELF_CONCEAL_3 430    // implemented
+#define SKILL_TRIP 431              // implemented
+#define SKILL_IMPROVED_WHIRL 432    // implemented
 #define SKILL_CLEAVE 433
 #define SKILL_GREAT_CLEAVE 434
-#define SKILL_SPELLPENETRATE 435   //implemented
-#define SKILL_SPELLPENETRATE_2 436 //implemented
-#define SKILL_PROWESS 437          //implemented
-#define SKILL_EPIC_PROWESS 438     //implemented
-#define SKILL_EPIC_2_WEAPON 439    //implemented
-#define SKILL_SPELLPENETRATE_3 440 //implemented
-#define SKILL_SPELL_RESIST_1 441   //implemented
-#define SKILL_SPELL_RESIST_2 442   //implemented
-#define SKILL_SPELL_RESIST_3 443   //implemented
-#define SKILL_SPELL_RESIST_4 444   //implemented
-#define SKILL_SPELL_RESIST_5 445   //implemented
-#define SKILL_INITIATIVE 446       //implemented
-#define SKILL_EPIC_CRIT 447        //implemented
-#define SKILL_IMPROVED_BASH 448    //implemented
-#define SKILL_IMPROVED_TRIP 449    //implemented
-#define SKILL_POWER_ATTACK 450     //implemented
-#define SKILL_EXPERTISE 451        //implemented
-#define SKILL_GREATER_RUIN 452     //implemented
-#define SKILL_HELLBALL 453         //implemented
-#define SKILL_EPIC_MAGE_ARMOR 454  //implemented
-#define SKILL_EPIC_WARDING 455     //implemented
-#define SKILL_RAGE 456             //implemented
-#define SKILL_PROF_MINIMAL 457     //implemented
-#define SKILL_PROF_BASIC 458       //implemented
-#define SKILL_PROF_ADVANCED 459    //implemented
-#define SKILL_PROF_MASTER 460      //implemented
-#define SKILL_PROF_EXOTIC 461      //implemented
-#define SKILL_PROF_LIGHT_A 462     //implemented
-#define SKILL_PROF_MEDIUM_A 463    //implemented
-#define SKILL_PROF_HEAVY_A 464     //implemented
-#define SKILL_PROF_SHIELDS 465     //implemented
-#define SKILL_PROF_T_SHIELDS 466   //implemented
+#define SKILL_SPELLPENETRATE 435   // implemented
+#define SKILL_SPELLPENETRATE_2 436 // implemented
+#define SKILL_PROWESS 437          // implemented
+#define SKILL_EPIC_PROWESS 438     // implemented
+#define SKILL_EPIC_2_WEAPON 439    // implemented
+#define SKILL_SPELLPENETRATE_3 440 // implemented
+#define SKILL_SPELL_RESIST_1 441   // implemented
+#define SKILL_SPELL_RESIST_2 442   // implemented
+#define SKILL_SPELL_RESIST_3 443   // implemented
+#define SKILL_SPELL_RESIST_4 444   // implemented
+#define SKILL_SPELL_RESIST_5 445   // implemented
+#define SKILL_INITIATIVE 446       // implemented
+#define SKILL_EPIC_CRIT 447        // implemented
+#define SKILL_IMPROVED_BASH 448    // implemented
+#define SKILL_IMPROVED_TRIP 449    // implemented
+#define SKILL_POWER_ATTACK 450     // implemented
+#define SKILL_EXPERTISE 451        // implemented
+#define SKILL_GREATER_RUIN 452     // implemented
+#define SKILL_HELLBALL 453         // implemented
+#define SKILL_EPIC_MAGE_ARMOR 454  // implemented
+#define SKILL_EPIC_WARDING 455     // implemented
+#define SKILL_RAGE 456             // implemented
+#define SKILL_PROF_MINIMAL 457     // implemented
+#define SKILL_PROF_BASIC 458       // implemented
+#define SKILL_PROF_ADVANCED 459    // implemented
+#define SKILL_PROF_MASTER 460      // implemented
+#define SKILL_PROF_EXOTIC 461      // implemented
+#define SKILL_PROF_LIGHT_A 462     // implemented
+#define SKILL_PROF_MEDIUM_A 463    // implemented
+#define SKILL_PROF_HEAVY_A 464     // implemented
+#define SKILL_PROF_SHIELDS 465     // implemented
+#define SKILL_PROF_T_SHIELDS 466   // implemented
 #define SKILL_MURMUR 467
 #define SKILL_PROPAGANDA 468
 #define SKILL_LOBBY 469
-#define SKILL_STUNNING_FIST 470 //implemented
+#define SKILL_STUNNING_FIST 470 // implemented
 /* initial crafting skills */
 #define TOP_CRAFT_SKILL 471
 /**/
-#define SKILL_MINING 471          //implemented
-#define SKILL_HUNTING 472         //implemented
-#define SKILL_FORESTING 473       //implemented
-#define SKILL_KNITTING 474        //implemented
-#define SKILL_CHEMISTRY 475       //implemented
-#define SKILL_ARMOR_SMITHING 476  //implemented
-#define SKILL_WEAPON_SMITHING 477 //implemented
-#define SKILL_JEWELRY_MAKING 478  //implemented
-#define SKILL_LEATHER_WORKING 479 //implemented
-#define SKILL_FAST_CRAFTER 480    //implemented
+#define SKILL_MINING 471          // implemented
+#define SKILL_HUNTING 472         // implemented
+#define SKILL_FORESTING 473       // implemented
+#define SKILL_KNITTING 474        // implemented
+#define SKILL_CHEMISTRY 475       // implemented
+#define SKILL_ARMOR_SMITHING 476  // implemented
+#define SKILL_WEAPON_SMITHING 477 // implemented
+#define SKILL_JEWELRY_MAKING 478  // implemented
+#define SKILL_LEATHER_WORKING 479 // implemented
+#define SKILL_FAST_CRAFTER 480    // implemented
 #define SKILL_BONE_ARMOR 481
 #define SKILL_ELVEN_CRAFTING 482
 #define SKILL_MASTERWORK_CRAFTING 483
@@ -721,38 +724,38 @@
 /* */
 #define BOTTOM_CRAFT_SKILL 486
 /* finish batch crafting skills */
-#define SKILL_LIGHTNING_REFLEXES 486 //implemented
-#define SKILL_GREAT_FORTITUDE 487    //implemented
-#define SKILL_IRON_WILL 488          //implemented
-#define SKILL_EPIC_REFLEXES 489      //implemented
-#define SKILL_EPIC_FORTITUDE 490     //implemented
-#define SKILL_EPIC_WILL 491          //implemented
-#define SKILL_SHIELD_SPECIALIST 492  //implemented
-#define SKILL_USE_MAGIC 493          //implemented
-#define SKILL_EVASION 494            //implemented
-#define SKILL_IMP_EVASION 495        //implemented
-#define SKILL_CRIP_STRIKE 496        //implemented
-#define SKILL_SLIPPERY_MIND 497      //implemented
-#define SKILL_DEFENSE_ROLL 498       //implemented
-#define SKILL_GRACE 499              //implemented
-#define SKILL_DIVINE_HEALTH 500      //implemented
-#define SKILL_LAY_ON_HANDS 501       //implemented
-#define SKILL_COURAGE 502            //implemented
-#define SKILL_SMITE_EVIL 503         //implemented
-#define SKILL_REMOVE_DISEASE 504     //implemented
-#define SKILL_RECHARGE 505           //implemented
-#define SKILL_STEALTHY 506           //implemented
-#define SKILL_NATURE_STEP 507        //implemented
-#define SKILL_FAVORED_ENEMY 508      //implemented
-#define SKILL_DUAL_WEAPONS 509       //implemented
-#define SKILL_ANIMAL_COMPANION 510   //implemented
-#define SKILL_PALADIN_MOUNT 511      //implemented
-#define SKILL_CALL_FAMILIAR 512      //implemented
-#define SKILL_PERFORM 513            //implemented
-#define SKILL_SCRIBE 514             //implemented
-#define SKILL_TURN_UNDEAD 515        //implemented
-#define SKILL_WILDSHAPE 516          //implemented
-#define SKILL_SPELLBATTLE 517        //implemented
+#define SKILL_LIGHTNING_REFLEXES 486 // implemented
+#define SKILL_GREAT_FORTITUDE 487    // implemented
+#define SKILL_IRON_WILL 488          // implemented
+#define SKILL_EPIC_REFLEXES 489      // implemented
+#define SKILL_EPIC_FORTITUDE 490     // implemented
+#define SKILL_EPIC_WILL 491          // implemented
+#define SKILL_SHIELD_SPECIALIST 492  // implemented
+#define SKILL_USE_MAGIC 493          // implemented
+#define SKILL_EVASION 494            // implemented
+#define SKILL_IMP_EVASION 495        // implemented
+#define SKILL_CRIP_STRIKE 496        // implemented
+#define SKILL_SLIPPERY_MIND 497      // implemented
+#define SKILL_DEFENSE_ROLL 498       // implemented
+#define SKILL_GRACE 499              // implemented
+#define SKILL_DIVINE_HEALTH 500      // implemented
+#define SKILL_LAY_ON_HANDS 501       // implemented
+#define SKILL_COURAGE 502            // implemented
+#define SKILL_SMITE_EVIL 503         // implemented
+#define SKILL_REMOVE_DISEASE 504     // implemented
+#define SKILL_RECHARGE 505           // implemented
+#define SKILL_STEALTHY 506           // implemented
+#define SKILL_NATURE_STEP 507        // implemented
+#define SKILL_FAVORED_ENEMY 508      // implemented
+#define SKILL_DUAL_WEAPONS 509       // implemented
+#define SKILL_ANIMAL_COMPANION 510   // implemented
+#define SKILL_PALADIN_MOUNT 511      // implemented
+#define SKILL_CALL_FAMILIAR 512      // implemented
+#define SKILL_PERFORM 513            // implemented
+#define SKILL_SCRIBE 514             // implemented
+#define SKILL_TURN_UNDEAD 515        // implemented
+#define SKILL_WILDSHAPE 516          // implemented
+#define SKILL_SPELLBATTLE 517        // implemented
 #define SKILL_HITALL 518
 #define SKILL_CHARGE 519
 #define SKILL_BODYSLAM 520
@@ -763,10 +766,10 @@
 #define SKILL_SAP 525
 #define SKILL_SHIELD_SLAM 526
 #define SKILL_SHIELD_CHARGE 527
-#define SKILL_QUIVERING_PALM 528 //implemented
+#define SKILL_QUIVERING_PALM 528 // implemented
 #define SKILL_SURPRISE_ACCURACY 529
 #define SKILL_POWERFUL_BLOW 530
-#define SKILL_RAGE_FATIGUE 531 //implemented
+#define SKILL_RAGE_FATIGUE 531 // implemented
 #define SKILL_COME_AND_GET_ME 532
 #define SKILL_FEINT 533
 #define SKILL_SMITE_GOOD 534
@@ -785,7 +788,7 @@
 #define SKILL_PSYCHOKINETIC 547
 #define SKILL_INNER_FIRE 548
 #define SKILL_SACRED_FLAMES 549
-#define SKILL_EPIC_WILDSHAPE 550    //implemented
+#define SKILL_EPIC_WILDSHAPE 550 // implemented
 
 /* reserving this space for different performances 580 - 599*/
 #define TOP_OF_PERFORMANCES 580
@@ -809,16 +812,16 @@
 
 /* Special Abilities for weapons */
 
-#define TYPE_SPECAB_FLAMING   600
+#define TYPE_SPECAB_FLAMING 600
 #define TYPE_SPECAB_FLAMING_BURST 601
-#define TYPE_SPECAB_FROST     602
+#define TYPE_SPECAB_FROST 602
 #define TYPE_SPECAB_ICY_BURST 603
 #define TYPE_SPECAB_CORROSIVE 604
-#define TYPE_SPECAB_HOLY      605
+#define TYPE_SPECAB_HOLY 605
 #define TYPE_SPECAB_CORROSIVE_BURST 606
 #define TYPE_SPECAB_THUNDERING 607
-#define TYPE_SPECAB_BLEEDING   608
-#define TYPE_SPECAB_SHOCK     609
+#define TYPE_SPECAB_BLEEDING 608
+#define TYPE_SPECAB_SHOCK 609
 #define TYPE_SPECAB_SHOCKING_BURST 610
 #define TYPE_SPECAB_ANARCHIC 611
 #define TYPE_SPECAB_UNHOLY 612
@@ -1031,7 +1034,7 @@
 /*-------------------------------------------------------------------------*/
 
 // ******** DAM_ *********
-#define DAM_RESERVED_DBC 0 //reserve
+#define DAM_RESERVED_DBC 0 // reserve
 #define DAM_FIRE 1
 #define DAM_COLD 2
 #define DAM_AIR 3
@@ -1295,7 +1298,7 @@ int compute_mag_saves(struct char_data *vict,
 int mag_savingthrow(struct char_data *ch, struct char_data *vict,
                     int type, int modifier, int casttype, int level, int school);
 int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
-                    int type, int modifier, int casttype, int level, int school, int spellnum);
+                         int type, int modifier, int casttype, int level, int school, int spellnum);
 void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
@@ -1324,10 +1327,10 @@ ACMD_DECL(do_scribe);
 
 /* from spell_parser.c */
 ACMD_DECL(do_gen_cast);
-#define SCMD_CAST_SPELL   0 /* don't forget to add to constants.c */
+#define SCMD_CAST_SPELL 0 /* don't forget to add to constants.c */
 #define SCMD_CAST_PSIONIC 1
 #define SCMD_CAST_EXTRACT 2
-#define SCMD_CAST_SHADOW  3
+#define SCMD_CAST_SHADOW 3
 ACMD_DECL(do_manifest);
 void display_shadowcast_spells(struct char_data *ch);
 

@@ -850,6 +850,11 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
         ;
       else
         return FALSE;
+    case RACE_LICH:
+      if (classnum == i) /* char class selection and current class match? */
+        ;
+      else
+        return FALSE;
     default:
       break;
     }
@@ -1836,6 +1841,27 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_PINCERS},
 
     /* class, race, stacks?, level, feat_ name */
+    /* Lich */
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_VITAL},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_HARDY},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ULTRAVISION},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_UNARMED_STRIKE},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_IMPROVED_UNARMED_STRIKE},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_SPELL_RESIST},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_DAM_RESIST},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_TOUCH},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_REJUV},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_FEAR},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ELECTRIC_IMMUNITY},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_COLD_IMMUNITY},
+
+    /* class, race, stacks?, level, feat_ name */
     /* elf */
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
@@ -2485,6 +2511,9 @@ void init_start_char(struct char_data *ch)
     GET_REAL_SIZE(ch) = SIZE_SMALL;
     GET_MAX_HIT(ch) += 10;
     break;
+  case RACE_LICH:
+    GET_MAX_HIT(ch) += 10;
+    break;
   case RACE_ARCANA_GOLEM:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     break;
@@ -2499,7 +2528,7 @@ void init_start_char(struct char_data *ch)
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
     GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-    ++; /* Bonus Feat */
+  ++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -2522,6 +2551,7 @@ void do_start(struct char_data *ch)
   init_start_char(ch);
 
   //from level 0 -> level 1
+  /* our function for leveling up, takes in class that is being advanced */
   advance_level(ch, GET_CLASS(ch));
   GET_HIT(ch) = GET_MAX_HIT(ch);
   GET_PSP(ch) = GET_MAX_PSP(ch);
@@ -2896,7 +2926,7 @@ void process_level_feats(struct char_data *ch, int class)
   send_to_char(ch, "%s", featbuf);
 }
 
-/* our function for leveling up */
+/* our function for leveling up, takes in class that is being advanced */
 void advance_level(struct char_data *ch, int class)
 {
   int add_hp = 0, at_armor = 100,
@@ -3013,6 +3043,9 @@ void advance_level(struct char_data *ch, int class)
     add_hp += 4;
     break;
   case RACE_TRELUX:
+    add_hp += 4;
+    break;
+  case RACE_LICH:
     add_hp += 4;
     break;
   default:
@@ -3247,6 +3280,9 @@ int level_exp(struct char_data *ch, int level)
     exp *= 8;
     break;
   case RACE_TRELUX:
+    exp *= 8;
+    break;
+  case RACE_LICH:
     exp *= 8;
     break;
 
