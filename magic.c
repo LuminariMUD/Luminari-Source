@@ -7197,6 +7197,8 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int healing
   GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
   GET_MOVE(victim) = MIN(GET_MAX_MOVE(victim), GET_MOVE(victim) + move);
   update_pos(victim);
+
+  return TRUE;
 }
 
 void mag_points(int level, struct char_data *ch, struct char_data *victim,

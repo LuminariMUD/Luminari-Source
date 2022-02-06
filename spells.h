@@ -1303,6 +1303,7 @@ void affect_update(void);
 int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier);
 int compute_spell_res(struct char_data *ch, struct char_data *vict, int mod);
 int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum);
+bool process_healing(struct char_data *ch, struct char_data *victim, int healing, int move);
 
 // Sorcerer Bloodline Types
 #define SORC_BLOODLINE_NONE 0
