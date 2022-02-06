@@ -80,7 +80,7 @@ typedef enum
   eQUIVERINGPALM,                         /* cooldown for quivering palm */
   /*50*/ eSWIFTACTION,                    /* Swift action cooldown */
   eTRAPTRIGGERED,                         /* Trap Triggered */
-  eSURPRISE_ACCURACY,                      /* rage power surprise accuracy */
+  eSURPRISE_ACCURACY,                     /* rage power surprise accuracy */
   ePOWERFUL_BLOW,                         /* rage power powerful blow */
   eRENEWEDVIGOR,                          /* Renewed Vigor, Berserker Healing Feat */
   /*55*/ eCOME_AND_GET_ME,                /* rage power 'come and get me' */
@@ -143,22 +143,25 @@ typedef enum
   eINNER_FIRE,              /*inner fire, lots of juicy bonuses!*/
   ePIXIEDUST,               // pixie dust used with shifter form: pixie
   eEFREETIMAGIC,            // efreeti magic used with shifter form: efreeti
-  /*115*/eDRAGONMAGIC,            // dragon magic used with shifter form: dragon
-  eSLA_STRENGTH,                          /* innate strength*/
-  eSLA_ENLARGE,                          /* innate enlarge */
-  eSLA_INVIS,                          /* innate invisibility */
+  /*115*/ eDRAGONMAGIC,     // dragon magic used with shifter form: dragon
+  eSLA_STRENGTH,            /* innate strength*/
+  eSLA_ENLARGE,             /* innate enlarge */
+  eSLA_INVIS,               /* innate invisibility */
   eCONCUSSIVEONSLAUGHT,     // concussive onsalught psionic power
-  eCHANNELSPELL,            // countdown for channel spell ability
+  /*120*/ eCHANNELSPELL,    // countdown for channel spell ability
   ePOWERLEECH,              // power leech ability
-  ePSIONICFOCUS,             // psionic focus ability
-  eDOUBLEMANIFEST,             // double manifest ability
+  ePSIONICFOCUS,            // psionic focus ability
+  eDOUBLEMANIFEST,          // double manifest ability
   eSUMMONSHADOW,            // shadowdancer summon shadow
-  eSHADOWILLUSION,          // shadowdancer shadow illusion
+  /*125*/ eSHADOWILLUSION,  // shadowdancer shadow illusion
   eSHADOWCALL,              // shadowdancer  shadow call
   eSHADOWJUMP,              // shadowdancer  shadow jump
   eSHADOWPOWER,             // shadowdancer  shadow power
   eTOUCHOFCORRUPTION,       // touch of corruption - blackguard
-  eCHANNELENERGY            // channel positive/negative energy
+  /*130*/ eCHANNELENERGY,   // channel positive/negative energy
+  eLICH_TOUCH,              // lich touch event
+  eLICH_REJUV,              // lich rejuv event
+  eLICH_FEAR,               // lich fear event
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

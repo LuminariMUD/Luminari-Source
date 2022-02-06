@@ -2177,9 +2177,11 @@ ACMD(do_gain)
   int is_altered = FALSE, num_levels = 0;
   int class = -1, i = 0, classCount = 0;
 
+  /* easy outs */
   if (IS_NPC(ch) || !ch->desc)
     return;
 
+  /* limitations, have to be in 'normal' form to advance */
   if (GET_DISGUISE_RACE(ch) || IS_MORPHED(ch))
   {
     send_to_char(ch, "You have to remove disguises, wildshape and/or polymorph "
@@ -2187,12 +2189,14 @@ ACMD(do_gain)
     return;
   }
 
+  /* level limits */
   if (GET_LEVEL(ch) >= LVL_IMMORT - 1)
   {
     send_to_char(ch, "You have reached the level limit! You can not go above level %d!\r\n", LVL_IMMORT - 1);
     return;
   }
 
+  /* have enough xp? */
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
         GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1)))
   {
@@ -2309,6 +2313,7 @@ ACMD(do_gain)
       ++;
       GET_CLASS(ch) = class;
       num_levels++;
+      /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, class);
       is_altered = TRUE;
     }

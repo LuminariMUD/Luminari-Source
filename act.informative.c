@@ -143,7 +143,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
                GET_HITROLL(tch), GET_DAMROLL(tch));
   if (IS_NPC(tch))
     send_to_char(ch, "Will: %d, Fort: %d, Refl: %d\r\n",
-               compute_mag_saves(tch, SAVING_WILL, 0), compute_mag_saves(tch, SAVING_FORT, 0), compute_mag_saves(tch, SAVING_REFL, 0));
+                 compute_mag_saves(tch, SAVING_WILL, 0), compute_mag_saves(tch, SAVING_FORT, 0), compute_mag_saves(tch, SAVING_REFL, 0));
   send_to_char(ch, "Str: %d/%d, Int: %d, Wis: %d, Dex: %d, Con: %d, Cha: %d\r\n",
                GET_STR(tch), GET_ADD(tch), GET_INT(tch),
                GET_WIS(tch), GET_DEX(tch), GET_CON(tch), GET_CHA(tch));
@@ -616,7 +616,7 @@ static void look_at_char(struct char_data *i, struct char_data *ch)
   else
     act("You see nothing special about $m.", FALSE, i, 0, ch, TO_VICT);
 
-    if (IS_NPC(i) && MOB_FLAGGED(i, MOB_IS_OBJ))
+  if (IS_NPC(i) && MOB_FLAGGED(i, MOB_IS_OBJ))
     return;
 
   diag_char_to_char(i, ch);
@@ -786,7 +786,6 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
       act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
-    
 
     return;
 
@@ -800,7 +799,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (IS_EVIL(i))
     {
-      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)|| HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+      if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
@@ -947,7 +946,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (IS_EVIL(i))
   {
-    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL)|| HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
+    if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
     {
       send_to_char(ch, "\tR(Red Aura)\tn ");
     }
@@ -981,9 +980,9 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     act("...$e has two large wings sprouting from $s back.", FALSE, i, 0, ch, TO_VICT);
   }
   if (affected_by_spell(i, PSIONIC_OAK_BODY))
-      act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
-    if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-      act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+    act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
+    act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
 }
 
 /*  The CAN_SEE and CAN_INFRA macros are both going to do a hide-check
@@ -1166,25 +1165,29 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     }
   }
 
-   if (rm->number >= 66700 && rm->number <= 66799) {
+  if (rm->number >= 66700 && rm->number <= 66799)
+  {
 
-    if (ch->player_specials->travel_type == TRAVEL_CARRIAGE) {
+    if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
+    {
       rm->name = strdup("A Horse-Drawn Carriage");
       snprintf(buf, sizeof(buf), "This small carriage is pulled by two brown draft horses, led by a weathered old man smoking a pipe and wearing a long, brown overcoat.\r\n"
-                     "The inside of the carriage is big enough for about 6 people, with benches on either side, and a small table in the middle.  An oil based lantern\r\n"
-                     "hangs overhead, supplying light, and windows are real glass, and able to be opened or closed, with small rain canopies keeping the weather out for the most part.\r\n"
-                     "Judging by how far you've gone so far, you have about you have \r\n"
-                     "about %d minutes and %d seconds to go until you get to %s.\r\n",
-                               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, carriage_locales[ch->player_specials->travel_locale][0]);
+                                 "The inside of the carriage is big enough for about 6 people, with benches on either side, and a small table in the middle.  An oil based lantern\r\n"
+                                 "hangs overhead, supplying light, and windows are real glass, and able to be opened or closed, with small rain canopies keeping the weather out for the most part.\r\n"
+                                 "Judging by how far you've gone so far, you have about you have \r\n"
+                                 "about %d minutes and %d seconds to go until you get to %s.\r\n",
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, carriage_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
-    } else if (ch->player_specials->travel_type == TRAVEL_AIRSHIP) {
+    }
+    else if (ch->player_specials->travel_type == TRAVEL_AIRSHIP)
+    {
       rm->name = strdup("A Small Wooden Airship");
       snprintf(buf, sizeof(buf),
-             "This small airship is powered by aracana crystals and is of a sleek, if compact design.\r\n"
-             "The airship itself has seating for about 6 people, on wooden benches that line the railed side of the airship.\r\n"
-             "The view below is nothing short of amazing.  Judging by how far you've gone so far you should arrive in\r\n"
-             "about %d minutes and %d seconds to your destination: %s.\r\n",
-                               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, airship_locales[ch->player_specials->travel_locale][0]);
+               "This small airship is powered by aracana crystals and is of a sleek, if compact design.\r\n"
+               "The airship itself has seating for about 6 people, on wooden benches that line the railed side of the airship.\r\n"
+               "The view below is nothing short of amazing.  Judging by how far you've gone so far you should arrive in\r\n"
+               "about %d minutes and %d seconds to your destination: %s.\r\n",
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, airship_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
     }
   }
@@ -1312,8 +1315,10 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   }
 
   int i = 0;
-  while (atoi(carriage_locales[i][1]) != 0) {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(carriage_locales[i][1])) {
+  while (atoi(carriage_locales[i][1]) != 0)
+  {
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(carriage_locales[i][1]))
+    {
       send_to_char(ch, "\r\nThis room is a carriage stop.  Use the \tYcarriage\tn command to see options.\r\n");
       break;
     }
@@ -1781,6 +1786,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Quivering Palm Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eD_ROLL)))
     send_to_char(ch, "Defensive Roll Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eLICH_REJUV)))
+    send_to_char(ch, "Lich Rejuvenation Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAST_WORD)))
     send_to_char(ch, "Last Word Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, ePURIFY)))
@@ -1791,7 +1798,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Call Familiar Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eC_MOUNT)))
     send_to_char(ch, "Call Mount Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-    if ((pMudEvent = char_has_mud_event(k, eSUMMONSHADOW)))
+  if ((pMudEvent = char_has_mud_event(k, eSUMMONSHADOW)))
     send_to_char(ch, "Call Shadow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMBUE_ARROW)))
     send_to_char(ch, "Imbue Arrow Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
@@ -2758,6 +2765,26 @@ ACMD(do_innates)
       send_to_char(ch, "spell-like ability 3/day: enlarge\r\n");
       send_to_char(ch, "spell-like ability 3/day: strength\r\n");
       break;
+    case RACE_LICH:
+      send_to_char(ch, "vital (start with +10 hps bonus)\r\n");
+      send_to_char(ch, "hardy (+4 hps bonus per level)\r\n");
+      send_to_char(ch, "lich constitution (+2 con)\r\n");
+      send_to_char(ch, "lich dexterity (+2 dex)\r\n");
+      send_to_char(ch, "lich intelligence (+6 int)\r\n");
+      send_to_char(ch, "armor skin +5\r\n");
+      send_to_char(ch, "ultravision\r\n");
+      send_to_char(ch, "is undead\r\n");
+      send_to_char(ch, "spell resist 15 + level\r\n");
+      send_to_char(ch, "damage resist 4\r\n");
+      send_to_char(ch, "immunity cold\r\n");
+      send_to_char(ch, "immunity electricity\r\n");
+      send_to_char(ch, "lich touch\r\n");
+      send_to_char(ch, "rejuvenation\r\n");
+      send_to_char(ch, "fear aura\r\n");
+      send_to_char(ch, "unarmed combat\r\n");
+      send_to_char(ch, "improve unarmed combat\r\n");
+      send_to_char(ch, "+8 racial bonus on Perception, Sense Motive, and Stealth checks\r\n");
+      break;
     default:
       send_to_char(ch, "No Racials (yet)\r\n");
       break;
@@ -2772,6 +2799,7 @@ ACMD(do_innates)
     }
   }
 }
+
 
 /* compartmentalized affects, so wizard command (stat affect)
  *  and this can share */
@@ -3004,7 +3032,7 @@ ACMD(do_score)
                    "\tC-------------\tyAbility Scores\tC--------------------------\tySaving Throws\tC--------------\r\n"
                    "\tcStr:\tn %2d[%2d]  \tcDex:\tn %2d[%2d]  \tcCon:\tn %2d[%2d]  \tC|  \tcFort    : \tn%-2d  \tcWill    : \tn%-2d\tn\r\n"
                    "\tcInt:\tn %2d[%2d]  \tcWis:\tn %2d[%2d]  \tcCha:\tn %2d[%2d]  \tC|  \tcReflex  : \tn%-2d\tn\r\n",
-               GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch), 
+               GET_LEVEL(ch), CASTER_LEVEL(ch), DIVINE_LEVEL(ch), MAGIC_LEVEL(ch),
                GET_EXP(ch), (GET_LEVEL(ch) >= LVL_IMMORT ? 0 : level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)),
                GET_STR(ch), GET_STR_BONUS(ch), GET_DEX(ch), GET_DEX_BONUS(ch), GET_CON(ch), GET_CON_BONUS(ch),
                compute_mag_saves(ch, SAVING_FORT, 0), compute_mag_saves(ch, SAVING_WILL, 0),
@@ -3070,12 +3098,11 @@ ACMD(do_score)
   {
     text_line(ch, "\tyPsionic Info\tC", line_length, '-', '-');
     send_to_char(ch, "\tcPower Points:\tn %d(%d)   \tcPsionic Level:\tn %d   \tcEnergy Type:\tn %s\r\n"
-                "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
-                GET_PSP(ch), GET_MAX_PSP(ch), 
-                GET_PSIONIC_LEVEL(ch), 
-                damtypes[GET_PSIONIC_ENERGY_TYPE(ch)],
-                GET_PSIONIC_LEVEL(ch)
-    );    
+                     "\tcMax Augment PSP:\tn %d - power psp cost\r\n",
+                 GET_PSP(ch), GET_MAX_PSP(ch),
+                 GET_PSIONIC_LEVEL(ch),
+                 damtypes[GET_PSIONIC_ENERGY_TYPE(ch)],
+                 GET_PSIONIC_LEVEL(ch));
   }
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
@@ -3838,7 +3865,8 @@ ACMD(do_users)
       strlcpy(idletime, "     ", sizeof(idletime));
 
     snprintf(line, sizeof(line), "%3d %-7s %-12s %-14s %-3s %-8s ", d->desc_num, classname,
-             d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name : "UNDEFINED",
+             d->original && d->original->player.name ? d->original->player.name : d->character && d->character->player.name ? d->character->player.name
+                                                                                                                            : "UNDEFINED",
              state, idletime, timeptr);
 
     if (d->host && *d->host)
@@ -4710,9 +4738,9 @@ ACMD(do_commands)
 
   send_to_char(ch, "The following %s%s are available to %s:\r\n",
                wizhelp ? "privileged " : "",
-               socials ? "socials"
-                       : maneuvers ? "combat maneuvers"
-                                   : "commands",
+               socials     ? "socials"
+               : maneuvers ? "combat maneuvers"
+                           : "commands",
                vict == ch ? "you" : GET_NAME(vict));
 
   /* cmd_num starts at 1, not 0, to remove 'RESERVED' */
@@ -5573,18 +5601,17 @@ ACMD(do_weaponlist)
 ACMD(do_armorlist)
 {
 
-  const char *cmd_armor_names[NUM_SPEC_ARMOR_SUIT_TYPES-1];
+  const char *cmd_armor_names[NUM_SPEC_ARMOR_SUIT_TYPES - 1];
 
   int j = 0;
 
   for (j = 1; j < NUM_SPEC_ARMOR_SUIT_TYPES; j++)
   {
-    cmd_armor_names[j-1] = armor_list[j].name;
+    cmd_armor_names[j - 1] = armor_list[j].name;
   }
 
-  column_list(ch, 3, cmd_armor_names, j-1, TRUE);
+  column_list(ch, 3, cmd_armor_names, j - 1, TRUE);
 }
-
 
 int is_weapon_proficient(int weapon, int type)
 {
@@ -5739,11 +5766,11 @@ int is_weapon_proficient(int weapon, int type)
   {
     switch (weapon)
     {
-      case WEAPON_TYPE_BATTLE_AXE:
-      case WEAPON_TYPE_HEAVY_PICK:
-      case WEAPON_TYPE_WARHAMMER:
-      case WEAPON_TYPE_DWARVEN_WAR_AXE:
-      case WEAPON_TYPE_DWARVEN_URGOSH:
+    case WEAPON_TYPE_BATTLE_AXE:
+    case WEAPON_TYPE_HEAVY_PICK:
+    case WEAPON_TYPE_WARHAMMER:
+    case WEAPON_TYPE_DWARVEN_WAR_AXE:
+    case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
     }
   }
@@ -5751,11 +5778,11 @@ int is_weapon_proficient(int weapon, int type)
   {
     switch (weapon)
     {
-      case WEAPON_TYPE_BATTLE_AXE:
-      case WEAPON_TYPE_HEAVY_PICK:
-      case WEAPON_TYPE_WARHAMMER:
-      case WEAPON_TYPE_DWARVEN_WAR_AXE:
-      case WEAPON_TYPE_DWARVEN_URGOSH:
+    case WEAPON_TYPE_BATTLE_AXE:
+    case WEAPON_TYPE_HEAVY_PICK:
+    case WEAPON_TYPE_WARHAMMER:
+    case WEAPON_TYPE_DWARVEN_WAR_AXE:
+    case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
     }
   }
@@ -5934,12 +5961,12 @@ ACMD(do_weaponinfo)
 
     switch (type)
     {
-      case WEAPON_TYPE_WHIP:
-        snprintf(buf4, sizeof(buf4), "+5 to disarm and trip attempts");
-        break;
-      default:
-        snprintf(buf4, sizeof(buf4), "N/A");
-        break;
+    case WEAPON_TYPE_WHIP:
+      snprintf(buf4, sizeof(buf4), "+5 to disarm and trip attempts");
+      break;
+    default:
+      snprintf(buf4, sizeof(buf4), "N/A");
+      break;
     }
 
     snprintf(buf5, sizeof(buf5), "%s", weapon_list[type].description);
@@ -6004,7 +6031,6 @@ ACMD(do_weaponinfo)
   page_string(ch->desc, buf, 1);
 }
 
-
 ACMD(do_armorinfo)
 {
 
@@ -6044,12 +6070,11 @@ ACMD(do_armorinfo)
                     "\tCDescription   : \r\n\tn%s\tn\n",
                     armor_list[type].name, armor_type[armor_list[type].armorType],
                     armor_list[type].cost, armor_suit_ac_bonus[type],
-                    armor_list[type].dexBonus, armor_list[type].armorCheck > 0 ? "-" : "", 
+                    armor_list[type].dexBonus, armor_list[type].armorCheck > 0 ? "-" : "",
                     armor_list[type].armorCheck, armor_list[type].spellFail,
                     armor_suit_weight[type], material_name[armor_list[type].material],
-                    strfrmt(buf2, 80, 1, FALSE, FALSE, FALSE)
-                    );
-                    
+                    strfrmt(buf2, 80, 1, FALSE, FALSE, FALSE));
+
     found = true;
     break;
   }
@@ -6211,14 +6236,15 @@ SPECIAL(eqstats)
 ACMD(do_divine_bond)
 {
 
-  if (!HAS_FEAT(ch, FEAT_DIVINE_BOND)) {
+  if (!HAS_FEAT(ch, FEAT_DIVINE_BOND))
+  {
     send_to_char(ch, "You do not have the paladin feat divine bond.\r\n");
     return;
   }
 
   send_to_char(ch, "Your divine bond with your weapon gives you the following bonuses:\r\n\r\n");
 
-  send_to_char(ch, "+%d to hit and damage rolls when wielding a weapon.\r\n", 
+  send_to_char(ch, "+%d to hit and damage rolls when wielding a weapon.\r\n",
                MIN(6, 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PALADIN) - 5) / 3)));
 
   if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 10)
@@ -6231,16 +6257,15 @@ ACMD(do_divine_bond)
     send_to_char(ch, "+2d10 fire damage on critical hits.\r\n");
 
   send_to_char(ch, "\r\n");
-
 }
 
 ACMD(do_mercies)
 {
- if (CLASS_LEVEL(ch, CLASS_PALADIN) < 3) 
- {
-   send_to_char(ch, "You don't know any paladin mercies.\r\n");
-   return;
- }
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) < 3)
+  {
+    send_to_char(ch, "You don't know any paladin mercies.\r\n");
+    return;
+  }
 
   int i = 0;
 
@@ -6264,16 +6289,15 @@ ACMD(do_mercies)
   }
 
   send_to_char(ch, "\r\nSee HELP MERCIES and HELP LAYONHANDS for more information on how mercies work.\r\n\r\n");
-
 }
 
 ACMD(do_cruelties)
 {
- if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) < 3) 
- {
-   send_to_char(ch, "You don't know any blackguard cruelties.\r\n");
-   return;
- }
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) < 3)
+  {
+    send_to_char(ch, "You don't know any blackguard cruelties.\r\n");
+    return;
+  }
 
   int i = 0;
 
@@ -6297,7 +6321,6 @@ ACMD(do_cruelties)
   }
 
   send_to_char(ch, "\r\nSee HELP CRUELTIES and HELP TOUCH-OF-CORRUPTION for more information on how cruelties work.\r\n\r\n");
-
 }
 
 ACMD(do_maxhp)

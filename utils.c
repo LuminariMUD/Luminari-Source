@@ -2564,6 +2564,8 @@ bool char_has_ultra(struct char_data *ch) {
     return TRUE;
   if (GET_RACE(ch) == RACE_TRELUX)
     return TRUE;
+  if (GET_RACE(ch) == RACE_LICH)
+    return TRUE;
 
   return FALSE;
 }
@@ -3592,6 +3594,12 @@ int get_daily_uses(struct char_data *ch, int featnum) {
       break;
     case FEAT_DOUBLE_MANIFEST:
       daily_uses = 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PSIONICIST) - 14) / 5);
+      break;
+    case FEAT_LICH_TOUCH:
+      daily_uses = 3 + (GET_LEVEL(ch) / 3);
+      break;
+    case FEAT_LICH_FEAR:
+      daily_uses = 3;
       break;
     case FEAT_SLA_INVIS:
     case FEAT_SLA_STRENGTH:
@@ -5451,6 +5459,12 @@ void calculate_max_hp(struct char_data *ch, bool display)
     max_hp += GET_LEVEL(ch) * 4;
     if (display)
       send_to_char(ch, "%-40s = +%d\r\n", "Trelux Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
+  }
+  if (GET_REAL_RACE(ch) == RACE_LICH)
+  {
+    max_hp += GET_LEVEL(ch) * 4;
+    if (display)
+      send_to_char(ch, "%-40s = +%d\r\n", "Lich Racial Hit Point Bonus", GET_LEVEL(ch) * 4);
   }
 
   // misc

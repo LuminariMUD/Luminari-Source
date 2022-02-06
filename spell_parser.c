@@ -50,7 +50,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
 static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
                         int psp_change, int minpos, int targets, int violent, int routines,
                         const char *wearoff, int time, int memtime, int school, bool quest);
-//static int mag_pspcost(struct char_data *ch, int spellnum);
+// static int mag_pspcost(struct char_data *ch, int spellnum);
 
 /* Local (File Scope) Variables */
 struct syllable
@@ -221,7 +221,7 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
         struct char_data *i;
         int j, ofs = 0, dc_of_id = 0, attempt = 0;
 
-        dc_of_id = 20; //DC of identifying the spell
+        dc_of_id = 20; // DC of identifying the spell
 
         *buf = '\0';
         strlcpy(lbuf, spell_name(spellnum), sizeof(lbuf));
@@ -526,7 +526,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
                         break;
                 }
 
-        //attach event for epic spells, increase skill
+        // attach event for epic spells, increase skill
         switch (spellnum)
         {
         case SPELL_MUMMY_DUST:
@@ -562,7 +562,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
         }
 
         /* globe of invulernability spell(s)
-   * and spell mantles */
+         * and spell mantles */
         if (cvict)
         {
                 int lvl = lowest_spell_level(spellnum);
@@ -990,7 +990,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                         k = GET_OBJ_VAL(obj, 0) ? GET_OBJ_VAL(obj, 0) : DEFAULT_STAFF_LVL;
 
                         /* Area/mass spells on staves can cause crashes. So we use special cases
-         * for those spells spells here. */
+                         * for those spells spells here. */
                         if (HAS_SPELL_ROUTINE(GET_OBJ_VAL(obj, 3), MAG_MASSES | MAG_AREAS))
                         {
                                 for (i = 0, tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
@@ -1272,14 +1272,14 @@ EVENTFUNC(event_casting)
         int x, time_stopped = FALSE;
         char buf[MAX_INPUT_LENGTH];
 
-        //initialize everything and dummy checks
+        // initialize everything and dummy checks
         if (event_obj == NULL)
                 return 0;
         pMudEvent = (struct mud_event_data *)event_obj;
         ch = (struct char_data *)pMudEvent->pStruct;
 
         /* we need this or npc's don't have casting time */
-        //if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
+        // if (!IS_NPC(ch) && !IS_PLAYING(ch->desc)) return 0;
 
         int spellnum = CASTING_SPELLNUM(ch);
 
@@ -1299,7 +1299,7 @@ EVENTFUNC(event_casting)
             (GET_LEVEL(ch) < LVL_STAFF || IS_NPC(ch)))
         {
 
-                //checking positions, targets
+                // checking positions, targets
                 if (!castingCheckOk(ch))
                         return 0;
                 else
@@ -1308,7 +1308,7 @@ EVENTFUNC(event_casting)
                         if (!concentration_check(ch, spellnum))
                                 return 0;
 
-                        //display time left to finish spell
+                        // display time left to finish spell
                         snprintf(buf, sizeof(buf), "%s: %s%s%s ", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "Preparing" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "Manifesting" : "Casting"),
                                  (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_QUICKEN) ? "quickened " : ""),
                                  (IS_SET(CASTING_METAMAGIC(ch), METAMAGIC_MAXIMIZE) ? "maximized " : ""),
@@ -1344,17 +1344,17 @@ EVENTFUNC(event_casting)
                                 }
                                 if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
                                         CASTING_TIME(ch)
-                                        --;
+                                --;
                         }
 
                         CASTING_TIME(ch)
                         --;
 
-                        //chance quick chant bumped us to finish early
+                        // chance quick chant bumped us to finish early
                         if (CASTING_TIME(ch) <= 0)
                         {
 
-                                //do all our checks
+                                // do all our checks
                                 if (!castingCheckOk(ch))
                                         return 0;
 
@@ -1365,12 +1365,12 @@ EVENTFUNC(event_casting)
                                 return (10);
                 }
 
-                //spell needs to be completed now (casting time <= 0)
+                // spell needs to be completed now (casting time <= 0)
         }
         else
         {
 
-                //do all our checks
+                // do all our checks
                 if (!castingCheckOk(ch))
                         return 0;
                 else
@@ -1417,7 +1417,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 return 0;
         }
 
-        //epic spell cooldown
+        // epic spell cooldown
         if (char_has_mud_event(ch, eMUMMYDUST) && spellnum == SPELL_MUMMY_DUST)
         {
                 send_to_char(ch, "You must wait longer before you can use this spell again.\r\n");
@@ -1690,7 +1690,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                 /* mandatory wait-state for any spell */
                 USE_MOVE_ACTION(ch);
         }
-        //this return value has to be checked -zusuk
+        // this return value has to be checked -zusuk
         return (1);
 }
 
@@ -1746,11 +1746,11 @@ ACMDU(do_gen_cast)
                 break;
         }
 
-        /* Here I needed to change a bit to grab the metamagic keywords.  
-        * Valid keywords are:
-        *
-        *   quickened - Speed up casting
-        *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
+        /* Here I needed to change a bit to grab the metamagic keywords.
+         * Valid keywords are:
+         *
+         *   quickened - Speed up casting
+         *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
 
         /* get: blank, spell name, target name */
         spell_arg = strtok(argument, "'");
@@ -1771,8 +1771,8 @@ ACMDU(do_gen_cast)
 
         target_arg = strtok(NULL, "\0");
 
-        //log("DEBUG: target t = %s", target_arg);
-        //log("DEBUG: Argument = %s", argument);
+        // log("DEBUG: target t = %s", target_arg);
+        // log("DEBUG: Argument = %s", argument);
 
         /* Check for metamagic. */
         if (subcmd != SCMD_CAST_PSIONIC && subcmd != SCMD_CAST_SHADOW)
@@ -1791,7 +1791,7 @@ ACMDU(do_gen_cast)
                                                      do_cast_types[subcmd][4]);
                                         return;
                                 }
-                                //log("DEBUG: Quickened metamagic used.");
+                                // log("DEBUG: Quickened metamagic used.");
                         }
                         else if (is_abbrev(metamagic_arg, "maximized"))
                         {
@@ -2131,9 +2131,9 @@ ACMDU(do_gen_cast)
                 }
 
                 /* further restrictions, this needs updating!
-                * what we need to do is loop through the class-array to find the min. stat
-                * then compare to the classes - spell-level vs stat
-                * -zusuk */
+                 * what we need to do is loop through the class-array to find the min. stat
+                 * then compare to the classes - spell-level vs stat
+                 * -zusuk */
                 if (CLASS_LEVEL(ch, CLASS_WIZARD) && GET_INT(ch) < 10)
                 {
                         send_to_char(ch, "You are not smart enough to cast spells...\r\n");
@@ -2556,8 +2556,8 @@ void mag_assign_spells(void)
         /* abjuration */
         /* transmutation */
 
-        //shared
-        spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING, //enchant
+        // shared
+        spello(SPELL_INFRAVISION, "infravision", 0, 0, 0, POS_FIGHTING, // enchant
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "Your night vision seems to fade.", 13, 13,
                ENCHANTMENT, FALSE); // wizard 4, cleric 4
@@ -2565,7 +2565,7 @@ void mag_assign_spells(void)
                TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
                "The detect poison wears off.", 19, 10,
                DIVINATION, FALSE);                            // wizard 7, cleric 2
-        spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING, //enchantment
+        spello(SPELL_POISON, "poison", 0, 0, 0, POS_FIGHTING, // enchantment
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_INV, TRUE,
                MAG_AFFECTS | MAG_ALTER_OBJS,
                "You feel less sick.", 5, 13,
@@ -2574,7 +2574,7 @@ void mag_assign_spells(void)
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_MANUAL,
                NULL, 9, 23,
                NECROMANCY, FALSE);                                        // wizard 9, cleric 9
-        spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING, //abjur
+        spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING, // abjur
                TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
                MAG_UNAFFECTS | MAG_ALTER_OBJS,
                NULL, 4, 13, ABJURATION, FALSE); // wizard 4, cleric 4
@@ -2606,74 +2606,74 @@ void mag_assign_spells(void)
                NULL, 1, 7, NECROMANCY, FALSE); // wiz 1, cleric 1
         spello(SPELL_ENDURE_ELEMENTS, "endure elements", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "You feel your element protection wear off.", 2, 7, ABJURATION, FALSE); //wiz1 cle1
+               "You feel your element protection wear off.", 2, 7, ABJURATION, FALSE); // wiz1 cle1
         spello(SPELL_PROT_FROM_EVIL, "protection from evil", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "You feel less protected from evil.", 5, 7, ABJURATION, FALSE); //wiz1 cle1
+               "You feel less protected from evil.", 5, 7, ABJURATION, FALSE); // wiz1 cle1
         spello(SPELL_PROT_FROM_GOOD, "protection from good", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "You feel less protected from good.", 5, 7, ABJURATION, FALSE); //wiz1 cle1
+               "You feel less protected from good.", 5, 7, ABJURATION, FALSE); // wiz1 cle1
         spello(SPELL_SUMMON_CREATURE_1, "summon creature i", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
-               NULL, 5, 10, CONJURATION, FALSE); //wiz1, cle1
+               NULL, 5, 10, CONJURATION, FALSE); // wiz1, cle1
         spello(SPELL_STRENGTH, "strength", 65, 50, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "You feel weaker.", 2, 7, TRANSMUTATION, FALSE); //wiz2, cle1
+               "You feel weaker.", 2, 7, TRANSMUTATION, FALSE); // wiz2, cle1
         spello(SPELL_GRACE, "grace", 65, 50, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "You feel less dextrous.", 2, 7, TRANSMUTATION, FALSE); //wiz2, cle1
+               "You feel less dextrous.", 2, 7, TRANSMUTATION, FALSE); // wiz2, cle1
         spello(SPELL_SCARE, "scare", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-               "You no longer feel scared.", 1, 7, ILLUSION, FALSE); //wiz1, cle2
+               "You no longer feel scared.", 1, 7, ILLUSION, FALSE); // wiz1, cle2
         spello(SPELL_FEAR, "cause fear", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-               "You no longer feel afraid.", 1, 7, ILLUSION, FALSE); //wiz4, cle5
+               "You no longer feel afraid.", 1, 7, ILLUSION, FALSE); // wiz4, cle5
         spello(SPELL_SUMMON_CREATURE_2, "summon creature ii", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
-               NULL, 6, 9, CONJURATION, FALSE); //wiz2, cle2
+               NULL, 6, 9, CONJURATION, FALSE); // wiz2, cle2
         spello(SPELL_DETECT_MAGIC, "detect magic", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "The detect magic wears off.", 1, 9, DIVINATION, FALSE); //wiz2, cle2
+               "The detect magic wears off.", 1, 9, DIVINATION, FALSE); // wiz2, cle2
         spello(SPELL_DARKNESS, "darkness", 0, 0, 0, POS_STANDING,
                TAR_IGNORE, FALSE, MAG_ROOM,
-               "The cloak of darkness in the area dissolves.", 5, 9, DIVINATION, FALSE); //wiz2, cle2
+               "The cloak of darkness in the area dissolves.", 5, 9, DIVINATION, FALSE); // wiz2, cle2
         spello(SPELL_SUMMON_CREATURE_3, "summon creature iii", 95, 80, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
-               NULL, 7, 11, CONJURATION, FALSE); //wiz3, cle3
+               NULL, 7, 11, CONJURATION, FALSE); // wiz3, cle3
         spello(SPELL_DEAFNESS, "deafness", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
                "You feel like you can hear again.", 3, 11,
-               NECROMANCY, FALSE); //wiz2, cle3
+               NECROMANCY, FALSE); // wiz2, cle3
         spello(SPELL_DISPEL_MAGIC, "dispel magic", 65, 50, 1, POS_FIGHTING,
                TAR_OBJ_ROOM | TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,
-               NULL, 4, 11, DIVINATION, FALSE); //wiz3, cle3
+               NULL, 4, 11, DIVINATION, FALSE); // wiz3, cle3
         spello(SPELL_ANIMATE_DEAD, "animate dead", 72, 57, 1, POS_FIGHTING,
                TAR_OBJ_ROOM, FALSE, MAG_SUMMONS,
-               NULL, 10, 13, NECROMANCY, FALSE); //wiz4, cle3
+               NULL, 10, 13, NECROMANCY, FALSE); // wiz4, cle3
         spello(SPELL_SUMMON_CREATURE_4, "summon creature iv", 95, 80, 1,
-               POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 13, CONJURATION, FALSE); //wiz4, cle4
+               POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 8, 13, CONJURATION, FALSE); // wiz4, cle4
         spello(SPELL_BLINDNESS, "blindness", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
                "You feel a cloak of blindness dissolve.", 3, 11,
                NECROMANCY, FALSE); // wiz2, cle3
         spello(SPELL_CIRCLE_A_EVIL, "circle against evil", 58, 43, 1,
                POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-               NULL, 7, 13, ABJURATION, FALSE); //wiz3 cle4
+               NULL, 7, 13, ABJURATION, FALSE); // wiz3 cle4
         spello(SPELL_CIRCLE_A_GOOD, "circle against good", 58, 43, 1,
                POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
-               NULL, 7, 13, ABJURATION, FALSE); //wiz3 cle4
+               NULL, 7, 13, ABJURATION, FALSE); // wiz3 cle4
         spello(SPELL_CURSE, "curse", 0, 0, 0, POS_FIGHTING,
-               TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS, "You feel more optimistic.", 7, 13, NECROMANCY, FALSE); //wiz4 cle4
+               TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_OBJ_INV, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS, "You feel more optimistic.", 7, 13, NECROMANCY, FALSE); // wiz4 cle4
         spello(SPELL_DAYLIGHT, "daylight", 50, 25, 5, POS_STANDING,
                TAR_IGNORE, FALSE, MAG_ROOM,
-               "The artificial daylight fades away.", 6, 13, ILLUSION, FALSE); //wiz3, cle4
+               "The artificial daylight fades away.", 6, 13, ILLUSION, FALSE); // wiz3, cle4
         spello(SPELL_SUMMON_CREATURE_6, "summon creature vi", 0, 0, 0,
-               POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 17, CONJURATION, FALSE); //wiz6 cle6
+               POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 9, 17, CONJURATION, FALSE); // wiz6 cle6
         spello(SPELL_EYEBITE, "eyebite", 0, 0, 0, POS_FIGHTING,
-               TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 17, NECROMANCY, FALSE); //wiz6 cle6
-        spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,                                                              //wiz7, cle6
-               FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 19, TRANSMUTATION, FALSE);                                                  //wiz7, cle6
-        spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,                                                          //wiz7, cle6
+               TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS | MAG_ALTER_OBJS, "You feel the disease fade away.", 6, 17, NECROMANCY, FALSE); // wiz6 cle6
+        spello(SPELL_MASS_WISDOM, "mass wisdom", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,                                                              // wiz7, cle6
+               FALSE, MAG_GROUPS, "The wisdom spell fades away.", 5, 19, TRANSMUTATION, FALSE);                                                  // wiz7, cle6
+        spello(SPELL_MASS_CHARISMA, "mass charisma", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,                                                          // wiz7, cle6
                FALSE, MAG_GROUPS, "The charisma spell fades away.", 5, 19, TRANSMUTATION, FALSE);
         spello(SPELL_MASS_CUNNING, "mass cunning", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
                FALSE, MAG_GROUPS, "The cunning spell fades away.", 5, 19, TRANSMUTATION, FALSE);
@@ -2685,7 +2685,7 @@ void mag_assign_spells(void)
                FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 19, TRANSMUTATION, FALSE);
         /**  end shared list **/
 
-        //shared epic
+        // shared epic
         spello(SPELL_DRAGON_KNIGHT, "dragon knight", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
                NULL, 12, 1,
@@ -2780,7 +2780,7 @@ void mag_assign_spells(void)
         spello(SPELL_COLOR_SPRAY, "color spray", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
                NULL, 1, 7, ILLUSION, FALSE);
-        //scare - shared
+        // scare - shared
         spello(SPELL_TRUE_STRIKE, "true strike", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel you are no longer able to strike true!", 0, 7, ILLUSION, FALSE);
@@ -2846,7 +2846,7 @@ void mag_assign_spells(void)
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 5, 9, EVOCATION, FALSE);
         /* conjuration */
-        //summon creature 2 - shared
+        // summon creature 2 - shared
         spello(SPELL_SUMMON_NATURES_ALLY_2, "natures ally ii", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
                NULL, 4, 9, CONJURATION, FALSE);
@@ -2858,7 +2858,7 @@ void mag_assign_spells(void)
                "You feel the sticky strands of the magical web dissolve.", 2, 9,
                CONJURATION, FALSE);
         /* necromancy */
-        //blindness - shared
+        // blindness - shared
         spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your necromantic-life drain away.", 4, 9, NECROMANCY, FALSE);
@@ -2902,10 +2902,10 @@ void mag_assign_spells(void)
         spello(SPELL_DETECT_INVIS, "detect invisibility", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "Your eyes stop tingling.", 1, 9, DIVINATION, FALSE);
-        //detect magic - shared
-        //darkness - shared
+        // detect magic - shared
+        // darkness - shared
         /* abjuration */
-        //resist energy
+        // resist energy
         spello(SPELL_ENERGY_SPHERE, "energy sphere", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
                NULL, 2, 9, ABJURATION, FALSE);
@@ -2913,9 +2913,9 @@ void mag_assign_spells(void)
         spello(SPELL_BARKSKIN, "barkskin", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your barkskin wear off.", 3, 9, TRANSMUTATION, FALSE);
-        //endurance - shared
-        //strengrth - shared
-        //grace - shared
+        // endurance - shared
+        // strengrth - shared
+        // grace - shared
 
         // 3rd cricle
         /* evocation */
@@ -2932,7 +2932,7 @@ void mag_assign_spells(void)
         spello(SPELL_SUMMON_NATURES_ALLY_3, "natures ally iii", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
                NULL, 5, 11, CONJURATION, FALSE);
-        //summon creature 3 - shared
+        // summon creature 3 - shared
         spello(SPELL_PHANTOM_STEED, "phantom steed", 95, 80, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
                NULL, 7, 11, CONJURATION, FALSE);
@@ -2976,7 +2976,7 @@ void mag_assign_spells(void)
         spello(SPELL_INVISIBILITY_SPHERE, "invisibility sphere", 58, 43, 1,
                POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
                NULL, 7, 11, ILLUSION, FALSE);
-        //daylight - shared
+        // daylight - shared
         /* divination */
         spello(SPELL_CLAIRVOYANCE, "clairvoyance", 65, 50, 1, POS_FIGHTING,
                TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
@@ -2985,7 +2985,7 @@ void mag_assign_spells(void)
         spello(SPELL_NON_DETECTION, "nondetection", 37, 22, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "Your non-detection spell wore off.", 6, 11, DIVINATION, FALSE);
-        //dispel magic - shared
+        // dispel magic - shared
         /* abjuration */
         spello(SPELL_HASTE, "haste", 37, 22, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -2994,8 +2994,8 @@ void mag_assign_spells(void)
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
                "You feel the slow spell wear off.", 4, 11,
                ABJURATION, FALSE);
-        //circle against evil - shared
-        //circle against good - shared
+        // circle against evil - shared
+        // circle against good - shared
         /* transmutation */
         spello(SPELL_GREATER_MAGIC_FANG, "greater magic fang", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -3003,9 +3003,9 @@ void mag_assign_spells(void)
         spello(SPELL_SPIKE_GROWTH, "spike growth", 0, 0, 0, POS_STANDING,
                TAR_IGNORE, FALSE, MAG_ROOM,
                "The large spikes retract back into the earth.", 5, 11, TRANSMUTATION, FALSE);
-        //cunning - shared
-        //wisdom - shared
-        //charisma - shared
+        // cunning - shared
+        // wisdom - shared
+        // charisma - shared
 
         // 4th circle
         /* evocation */
@@ -3029,12 +3029,12 @@ void mag_assign_spells(void)
         spello(SPELL_SUMMON_NATURES_ALLY_4, "natures ally iv", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_SUMMONS,
                NULL, 6, 13, CONJURATION, FALSE);
-        //summon creature 4 - shared
+        // summon creature 4 - shared
         /* necromancy */
-        //curse - shared
+        // curse - shared
         /* enchantment */
-        //infra - shared
-        //poison - shared
+        // infra - shared
+        // poison - shared
         /* illusion */
         spello(SPELL_GREATER_INVIS, "greater invisibility", 58, 43, 1,
                POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
@@ -3061,7 +3061,7 @@ void mag_assign_spells(void)
         spello(SPELL_MINOR_GLOBE, "minor globe", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your minor globe has faded away.", 8,
                13, ABJURATION, FALSE);
-        //remove curse
+        // remove curse
         /* transmutation */
         spello(SPELL_ENLARGE_PERSON, "enlarge person", 37, 22, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -3162,7 +3162,7 @@ void mag_assign_spells(void)
                TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 7, 17, CONJURATION, FALSE);
         spello(SPELL_TRANSPORT_VIA_PLANTS, "transport via plants", 0, 0, 0, POS_STANDING,
                TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 8, 17, CONJURATION, FALSE);
-        //summon creature 6 - shared
+        // summon creature 6 - shared
         /* necromancy */
         spello(SPELL_TRANSFORMATION, "transformation", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
@@ -3178,7 +3178,7 @@ void mag_assign_spells(void)
                TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AFFECTS, NULL, 5, 17, NECROMANCY, FALSE);
         spello(SPELL_INCORPOREAL_FORM, "incorporeal form (undead bloodline)", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AREAS, NULL, 5, 17, NECROMANCY, FALSE);
-        //eyebite - shared
+        // eyebite - shared
         /* enchantment */
         spello(SPELL_MASS_HASTE, "mass haste", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
                FALSE, MAG_GROUPS, "The haste spell fades away.", 8, 17, ENCHANTMENT, FALSE);
@@ -3225,7 +3225,7 @@ void mag_assign_spells(void)
                TAR_IGNORE, TRUE, MAG_AREAS, NULL, 7, 19, EVOCATION, FALSE);
         spello(SPELL_GRASPING_HAND, "grasping hand", 72, 57, 1, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-               NULL, 6, 19, EVOCATION, FALSE); //grapples opponent
+               NULL, 6, 19, EVOCATION, FALSE); // grapples opponent
         spello(SPELL_MISSILE_STORM, "missile storm", 72, 57, 1, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
                NULL, 6, 19, EVOCATION, FALSE);
@@ -3240,7 +3240,7 @@ void mag_assign_spells(void)
                TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 10, 19, CONJURATION, FALSE);
         spello(SPELL_SUMMON_CREATURE_7, "summon creature vii", 0, 0, 0,
                POS_FIGHTING, TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 10, 19, CONJURATION, FALSE);
-        //control weather, enhances some spells (shared)
+        // control weather, enhances some spells (shared)
         /* necromancy */
         spello(SPELL_POWER_WORD_BLIND, "power word blind", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -3248,7 +3248,7 @@ void mag_assign_spells(void)
                NECROMANCY, FALSE);
         spello(SPELL_WAVES_OF_EXHAUSTION, "waves of exhaustion", 65, 50, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical exhaustion fade away.", 8,
-               19, NECROMANCY, FALSE); //like waves of fatigue, but no save?
+               19, NECROMANCY, FALSE); // like waves of fatigue, but no save?
         /* enchantment */
         spello(SPELL_MASS_HOLD_PERSON, "mass hold person", 65, 50, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS, "You feel the magical hold fade away.", 8,
@@ -3270,11 +3270,11 @@ void mag_assign_spells(void)
         spello(SPELL_PROTECT_FROM_SPELLS, "protection from spells", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your spell protection wear off.", 6, 19, DIVINATION, FALSE);
-        //detect poison - shared
+        // detect poison - shared
         /* abjuration */
         spello(SPELL_THUNDERCLAP, "thunderclap", 79, 64, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
-               NULL, 7, 19, ABJURATION, FALSE); //aoe damage and affect
+               NULL, 7, 19, ABJURATION, FALSE); // aoe damage and affect
         spello(SPELL_SPELL_MANTLE, "spell mantle", 0, 0, 0, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your spell mantle wear off.", 6, 19, ABJURATION, FALSE);
@@ -3285,9 +3285,9 @@ void mag_assign_spells(void)
         spello(SPELL_SHADOW_JUMP, "shadow jump", 72, 57, 1, POS_FIGHTING,
                TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
                NULL, 2, 19, TRANSMUTATION, FALSE);
-        //mass wisdom - shared
-        //mass charisma - shared
-        //mass cunning - shared
+        // mass wisdom - shared
+        // mass charisma - shared
+        // mass cunning - shared
 
         // 8th circle
         /* evocation */
@@ -3469,14 +3469,14 @@ void mag_assign_spells(void)
                NULL, 3, 8, NOSCHOOL, FALSE);
         spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
                "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
-        //endurance - shared
-        //negative energy ray - shared
-        //endure elements - shared
-        //protect from evil - shared
-        //protect from good - shared
-        //summon creature i - shared
-        //strength - shared
-        //grace - shared
+        // endurance - shared
+        // negative energy ray - shared
+        // endure elements - shared
+        // protect from evil - shared
+        // protect from good - shared
+        // summon creature i - shared
+        // strength - shared
+        // grace - shared
 
         // 2nd circle
         spello(SPELL_CREATE_FOOD, "create food", 37, 22, 1, POS_FIGHTING, TAR_IGNORE,
@@ -3490,14 +3490,14 @@ void mag_assign_spells(void)
                NULL, 3, 10, NOSCHOOL, FALSE);
         spello(SPELL_AUGURY, "augury", 30, 15, 1, POS_STANDING,
                TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 2, 10, NOSCHOOL, FALSE);
-        //detect poison - shared
-        //scare - shared
-        //summon creature ii - shared
-        //detect magic - shared
-        //darkness - shared
-        //resist energy - shared
-        //wisdom - shared
-        //charisma - shared
+        // detect poison - shared
+        // scare - shared
+        // summon creature ii - shared
+        // detect magic - shared
+        // darkness - shared
+        // resist energy - shared
+        // wisdom - shared
+        // charisma - shared
 
         // 3rd circle
         spello(SPELL_DETECT_ALIGN, "detect alignment", 44, 29, 1, POS_FIGHTING,
@@ -3519,11 +3519,11 @@ void mag_assign_spells(void)
                NULL, 5, 12, NOSCHOOL, FALSE);
         spello(SPELL_FAERIE_FOG, "faerie fog", 65, 50, 1, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS, NULL, 4, 12, NOSCHOOL, FALSE);
-        //summon creature 3 - shared
-        //deafness - shared
-        //cunning - shared
-        //dispel magic - shared
-        //animate dead - shared
+        // summon creature 3 - shared
+        // deafness - shared
+        // cunning - shared
+        // dispel magic - shared
+        // animate dead - shared
 
         // 4th circle
         spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING,
@@ -3540,13 +3540,13 @@ void mag_assign_spells(void)
         spello(SPELL_BRAVERY, "bravery", 44, 29, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS | MAG_AFFECTS,
                "You feel your bravery spell wear off.", 8, 14, NOSCHOOL, FALSE);
-        //summon creature iv - shared
-        //remove curse - shared
-        //infravision - shared
-        //circle against evil - shared
-        //circle against good - shared
-        //curse - shared
-        //daylight - shared
+        // summon creature iv - shared
+        // remove curse - shared
+        // infravision - shared
+        // circle against evil - shared
+        // circle against good - shared
+        // curse - shared
+        // daylight - shared
 
         // 5th circle
         spello(SPELL_REMOVE_POISON, "remove poison", 65, 50, 1, POS_FIGHTING,
@@ -3572,11 +3572,11 @@ void mag_assign_spells(void)
         spello(SPELL_STRENGTHEN_BONE, "strengthen bones", 58, 43, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your undead bones weaken again.", 5, 16, NOSCHOOL, FALSE);
-        //poison - shared
-        //summon creature 5 - shared
-        //waterbreath - shared
-        //waterwalk - shared
-        //levitate - shared
+        // poison - shared
+        // summon creature 5 - shared
+        // waterbreath - shared
+        // waterwalk - shared
+        // levitate - shared
 
         // 6th circle
         spello(SPELL_DISPEL_EVIL, "dispel evil", 65, 50, 1, POS_FIGHTING,
@@ -3602,11 +3602,11 @@ void mag_assign_spells(void)
         spello(SPELL_REMOVE_DISEASE, "remove disease", 44, 29, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
                NULL, 7, 18, NOSCHOOL, FALSE);
-        //summon creature 6 - shared
-        //eyebite - shared
-        //mass wisdom - shared
-        //mass charisma - shared
-        //mass cunning - shared
+        // summon creature 6 - shared
+        // eyebite - shared
+        // mass wisdom - shared
+        // mass charisma - shared
+        // mass cunning - shared
 
         // 7th circle
         spello(SPELL_CALL_LIGHTNING, "call lightning", 72, 57, 1, POS_FIGHTING,
@@ -3634,10 +3634,10 @@ void mag_assign_spells(void)
         spello(SPELL_SPELL_RESISTANCE, "magic resistance", 79, 64, 1, POS_FIGHTING,
                TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
                "You feel your spell resistance fade.", 8, 20, NOSCHOOL, FALSE);
-        //control weather - shared
-        //summon creature 7 - shared
-        //greater dispelling - shared
-        //mass enhance - shared
+        // control weather - shared
+        // summon creature 7 - shared
+        // greater dispelling - shared
+        // mass enhance - shared
 
         // 8th circle
         spello(SPELL_SANCTUARY, "sanctuary", 79, 64, 1, POS_FIGHTING,
@@ -3659,7 +3659,7 @@ void mag_assign_spells(void)
                NULL, 8, 22, NOSCHOOL, FALSE);
         spello(SPELL_SPRING_OF_LIFE, "spring of life", 37, 22, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 14, 22, NOSCHOOL, FALSE);
-        //druid spell
+        // druid spell
         spello(SPELL_ANIMAL_SHAPES, "animal shapes", 85, 70, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_GROUPS,
                "The primal spell wears off!", 5, 22, NOSCHOOL, FALSE);
@@ -3679,7 +3679,7 @@ void mag_assign_spells(void)
         spello(SPELL_STORM_OF_VENGEANCE, "storm of vengeance", 85, 70, 1, POS_FIGHTING,
                TAR_IGNORE, FALSE, MAG_MANUAL,
                NULL, 12, 25, NOSCHOOL, FALSE);
-        //energy drain - shared
+        // energy drain - shared
 
         // epic divine
         // end divine
@@ -3724,6 +3724,16 @@ void mag_assign_spells(void)
         spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AREAS,
                NULL, 0, 0, NOSCHOOL, FALSE);
+
+        spello(RACIAL_LICH_FEAR, "lich fear", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AREAS,
+               "A lich fear effect has expired.", 0, 0, NOSCHOOL, FALSE);
+        spello(FEAT_LICH_TOUCH, "lich touch", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+               "A lich touch effect has expired.", 0, 0, NOSCHOOL, FALSE);
+        spello(RACIAL_LICH_REJUV, "lich rejuvenation", 0, 0, 0, POS_FIGHTING,
+               TAR_IGNORE, TRUE, MAG_AFFECTS,
+               "A lich rejuvenation effect has expired.", 0, 0, NOSCHOOL, FALSE);
 
         spello(BLACKGUARD_CRUELTY_AFFECTS, "blackguard cruelty", 0, 0, 0, POS_FIGHTING,
                TAR_IGNORE, TRUE, MAG_AFFECTS, "A blackguard cruelty effect has expired.", 0, 0, NOSCHOOL, FALSE);
@@ -3852,151 +3862,151 @@ void mag_assign_spells(void)
                NULL, 0, 0, NOSCHOOL, FALSE);
 
         /* Declaration of skills - this assigns categories and also will set it up
-   * so that immortals can use these skills by default.  The min level to use
-   * the skill for other classes is set up in class.c
-   * to-date all skills are assigned to all classes, and a separate function
-   * in spec_procs.c checks if the player has the pre-reqs for the skill
-   * to be obtained fully. */
-        skillo(SKILL_BACKSTAB, "backstab", ACTIVE_SKILL); //401
+         * so that immortals can use these skills by default.  The min level to use
+         * the skill for other classes is set up in class.c
+         * to-date all skills are assigned to all classes, and a separate function
+         * in spec_procs.c checks if the player has the pre-reqs for the skill
+         * to be obtained fully. */
+        skillo(SKILL_BACKSTAB, "backstab", ACTIVE_SKILL); // 401
         skillo(SKILL_BASH, "bash", ACTIVE_SKILL);
         skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
         skillo(SKILL_KICK, "kick", ACTIVE_SKILL);
-        skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); //405
+        skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); // 405
         skillo(SKILL_WHIRLWIND, "weapon whirlwind", ACTIVE_SKILL);
         skillo(SKILL_RESCUE, "rescue", ACTIVE_SKILL);
         skillo(SKILL_DRAGON_KNIGHT, "es dragon knight", CASTER_SKILL);
         skillo(SKILL_LUCK_OF_HEROES, "luck of heroes", PASSIVE_SKILL);
-        skillo(SKILL_TRACK, "track", ACTIVE_SKILL); //410
+        skillo(SKILL_TRACK, "track", ACTIVE_SKILL); // 410
         skillo(SKILL_QUICK_CHANT, "quick chant", CASTER_SKILL);
         skillo(SKILL_AMBIDEXTERITY, "ambidexterity", PASSIVE_SKILL);
         skillo(SKILL_DIRTY_FIGHTING, "dirty fighting", PASSIVE_SKILL);
         skillo(SKILL_DODGE, "dodge", PASSIVE_SKILL);
-        skillo(SKILL_IMPROVED_CRITICAL, "improved critical", PASSIVE_SKILL); //415
+        skillo(SKILL_IMPROVED_CRITICAL, "improved critical", PASSIVE_SKILL); // 415
         skillo(SKILL_MOBILITY, "mobility", PASSIVE_SKILL);
         skillo(SKILL_SPRING_ATTACK, "spring attack", PASSIVE_SKILL);
         skillo(SKILL_TOUGHNESS, "toughness", PASSIVE_SKILL);
         skillo(SKILL_TWO_WEAPON_FIGHT, "two weapon fighting", PASSIVE_SKILL);
-        skillo(SKILL_FINESSE, "finesse", PASSIVE_SKILL); //420
+        skillo(SKILL_FINESSE, "finesse", PASSIVE_SKILL); // 420
         skillo(SKILL_ARMOR_SKIN, "armor skin", PASSIVE_SKILL);
         skillo(SKILL_BLINDING_SPEED, "blinding speed", PASSIVE_SKILL);
         skillo(SKILL_DAMAGE_REDUC_1, "damage reduction", PASSIVE_SKILL);
         skillo(SKILL_DAMAGE_REDUC_2, "greater damage reduction", PASSIVE_SKILL);
-        skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction", PASSIVE_SKILL); //425
+        skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction", PASSIVE_SKILL); // 425
         skillo(SKILL_EPIC_TOUGHNESS, "epic toughness", PASSIVE_SKILL);
         skillo(SKILL_OVERWHELMING_CRIT, "overwhelming critical", PASSIVE_SKILL);
         skillo(SKILL_SELF_CONCEAL_1, "self concealment", PASSIVE_SKILL);
         skillo(SKILL_SELF_CONCEAL_2, "greater concealment", PASSIVE_SKILL);
-        skillo(SKILL_SELF_CONCEAL_3, "epic concealment", PASSIVE_SKILL); //430
+        skillo(SKILL_SELF_CONCEAL_3, "epic concealment", PASSIVE_SKILL); // 430
         skillo(SKILL_TRIP, "trip", ACTIVE_SKILL);
         skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind", ACTIVE_SKILL);
         skillo(SKILL_CLEAVE, "cleave (inc)", PASSIVE_SKILL);
         skillo(SKILL_GREAT_CLEAVE, "great_cleave (inc)", PASSIVE_SKILL);
-        skillo(SKILL_SPELLPENETRATE, "spell penetration", CASTER_SKILL); //435
+        skillo(SKILL_SPELLPENETRATE, "spell penetration", CASTER_SKILL); // 435
         skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate", CASTER_SKILL);
         skillo(SKILL_PROWESS, "prowess", PASSIVE_SKILL);
         skillo(SKILL_EPIC_PROWESS, "epic prowess", PASSIVE_SKILL);
         skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting", PASSIVE_SKILL);
-        skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate", CASTER_SKILL); //440
+        skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate", CASTER_SKILL); // 440
         skillo(SKILL_SPELL_RESIST_1, "spell resistance", CASTER_SKILL);
         skillo(SKILL_SPELL_RESIST_2, "improved spell resist", CASTER_SKILL);
         skillo(SKILL_SPELL_RESIST_3, "greater spell resist", CASTER_SKILL);
         skillo(SKILL_SPELL_RESIST_4, "epic spell resist", CASTER_SKILL);
-        skillo(SKILL_SPELL_RESIST_5, "supreme spell resist", CASTER_SKILL); //445
+        skillo(SKILL_SPELL_RESIST_5, "supreme spell resist", CASTER_SKILL); // 445
         skillo(SKILL_INITIATIVE, "initiative", PASSIVE_SKILL);
         skillo(SKILL_EPIC_CRIT, "epic critical", PASSIVE_SKILL);
         skillo(SKILL_IMPROVED_BASH, "improved bash", ACTIVE_SKILL);
         skillo(SKILL_IMPROVED_TRIP, "improved trip", ACTIVE_SKILL);
-        skillo(SKILL_POWER_ATTACK, "power attack", ACTIVE_SKILL); //450
+        skillo(SKILL_POWER_ATTACK, "power attack", ACTIVE_SKILL); // 450
         skillo(SKILL_EXPERTISE, "combat expertise", ACTIVE_SKILL);
         skillo(SKILL_GREATER_RUIN, "es greater ruin", CASTER_SKILL);
         skillo(SKILL_HELLBALL, "es hellball", CASTER_SKILL);
         skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
-        skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL);                //455
-        skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                                   //456
-        skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL);           //457
-        skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL);               //458
-        skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL);         //459
-        skillo(SKILL_PROF_MASTER, "master weapon prof", PASSIVE_SKILL);             //460
-        skillo(SKILL_PROF_EXOTIC, "exotic weapon prof", PASSIVE_SKILL);             //461
-        skillo(SKILL_PROF_LIGHT_A, "light armor prof", PASSIVE_SKILL);              //462
-        skillo(SKILL_PROF_MEDIUM_A, "medium armor prof", PASSIVE_SKILL);            //463
-        skillo(SKILL_PROF_HEAVY_A, "heavy armor prof", PASSIVE_SKILL);              //464
-        skillo(SKILL_PROF_SHIELDS, "shield prof", PASSIVE_SKILL);                   //465
-        skillo(SKILL_PROF_T_SHIELDS, "tower shield prof", PASSIVE_SKILL);           //466
-        skillo(SKILL_MURMUR, "murmur(inc)", UNCATEGORIZED);                         //467
-        skillo(SKILL_PROPAGANDA, "propaganda(inc)", UNCATEGORIZED);                 //468
-        skillo(SKILL_LOBBY, "lobby(inc)", UNCATEGORIZED);                           //469
-        skillo(SKILL_STUNNING_FIST, "stunning fist", ACTIVE_SKILL);                 //470
-        skillo(SKILL_MINING, "mining", CRAFTING_SKILL);                             //471
-        skillo(SKILL_HUNTING, "hunting", CRAFTING_SKILL);                           //472
-        skillo(SKILL_FORESTING, "foresting", CRAFTING_SKILL);                       //473
-        skillo(SKILL_KNITTING, "knitting", CRAFTING_SKILL);                         //474
-        skillo(SKILL_CHEMISTRY, "chemistry", CRAFTING_SKILL);                       //475
-        skillo(SKILL_ARMOR_SMITHING, "armor smithing", CRAFTING_SKILL);             //476
-        skillo(SKILL_WEAPON_SMITHING, "weapon smithing", CRAFTING_SKILL);           //477
-        skillo(SKILL_JEWELRY_MAKING, "jewelry making", CRAFTING_SKILL);             //478
-        skillo(SKILL_LEATHER_WORKING, "leather working", CRAFTING_SKILL);           //479
-        skillo(SKILL_FAST_CRAFTER, "fast crafter", CRAFTING_SKILL);                 //480
-        skillo(SKILL_BONE_ARMOR, "bone armor(inc)", CRAFTING_SKILL);                //481
-        skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)", CRAFTING_SKILL);        //482
-        skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)", CRAFTING_SKILL); //483
-        skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting(inc)", CRAFTING_SKILL);  //484
-        skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting(inc)", CRAFTING_SKILL);    //485
-        skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes", PASSIVE_SKILL);      //486
-        skillo(SKILL_GREAT_FORTITUDE, "great fortitude", PASSIVE_SKILL);            //487
-        skillo(SKILL_IRON_WILL, "iron will", PASSIVE_SKILL);                        //488
-        skillo(SKILL_EPIC_REFLEXES, "epic reflexes", PASSIVE_SKILL);                //489
-        skillo(SKILL_EPIC_FORTITUDE, "epic fortitude", PASSIVE_SKILL);              //490
-        skillo(SKILL_EPIC_WILL, "epic will", PASSIVE_SKILL);                        //491
-        skillo(SKILL_SHIELD_SPECIALIST, "shield specialist", PASSIVE_SKILL);        //492
-        skillo(SKILL_USE_MAGIC, "use magic", ACTIVE_SKILL);                         //493
-        skillo(SKILL_EVASION, "evasion", PASSIVE_SKILL);                            //494
-        skillo(SKILL_IMP_EVASION, "improved evasion", PASSIVE_SKILL);               //495
-        skillo(SKILL_CRIP_STRIKE, "crippling strike", PASSIVE_SKILL);               //496
-        skillo(SKILL_SLIPPERY_MIND, "slippery mind", PASSIVE_SKILL);                //497
-        skillo(SKILL_DEFENSE_ROLL, "defensive roll", PASSIVE_SKILL);                //498
-        skillo(SKILL_GRACE, "divine grace", PASSIVE_SKILL);                         //499
-        skillo(SKILL_DIVINE_HEALTH, "divine health", PASSIVE_SKILL);                //500
-        skillo(SKILL_LAY_ON_HANDS, "lay on hands", ACTIVE_SKILL);                   //501
-        skillo(SKILL_COURAGE, "courage", PASSIVE_SKILL);                            //502
-        skillo(SKILL_SMITE_EVIL, "smite evil", ACTIVE_SKILL);                       //503
-        skillo(SKILL_REMOVE_DISEASE, "purify", ACTIVE_SKILL);                       //504
-        skillo(SKILL_RECHARGE, "recharge", CASTER_SKILL);                           //505
-        skillo(SKILL_STEALTHY, "stealthy", PASSIVE_SKILL);                          //506
-        skillo(SKILL_NATURE_STEP, "nature step", PASSIVE_SKILL);                    //507
-        skillo(SKILL_FAVORED_ENEMY, "favored enemy", PASSIVE_SKILL);                //508
-        skillo(SKILL_DUAL_WEAPONS, "dual weapons", PASSIVE_SKILL);                  //509
-        skillo(SKILL_ANIMAL_COMPANION, "animal companion", ACTIVE_SKILL);           //510
-        skillo(SKILL_PALADIN_MOUNT, "paladin mount", ACTIVE_SKILL);                 //511
-        skillo(SKILL_CALL_FAMILIAR, "call familiar", ACTIVE_SKILL);                 //512
-        skillo(SKILL_PERFORM, "perform", ACTIVE_SKILL);                             //513
-        skillo(SKILL_SCRIBE, "scribe", ACTIVE_SKILL);                               //514
-        skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL);                     //515
-        skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL);                         //516
-        skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL);                     //517
-        skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL);                               //518
-        skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL);                               //519
-        skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL);                           //520
-        skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL);                      //521
-        skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL);                           //522
-        skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL);                   //523
-        skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL);                         //524
-        skillo(SKILL_SAP, "sap", ACTIVE_SKILL);                                     //525
-        skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL);                     //526
-        skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL);                 //527
-        skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL);               //528
-        skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);         //529
-        skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL);                 //530
-        skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL);                   //531
-        skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL);             //532
-        skillo(SKILL_FEINT, "feint", ACTIVE_SKILL);                                 //533
-        skillo(SKILL_SMITE_GOOD, "smite good", ACTIVE_SKILL);                       //534
-        skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL);         //535
-        skillo(SKILL_DESTRUCTIVE_AURA, "destructive aura", ACTIVE_SKILL);           //536
-        skillo(SKILL_AURA_OF_PROTECTION, "protection aura", ACTIVE_SKILL);          //537
-        skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL);                  //538
-        skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL);           //539
-        skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL);      //540
+        skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL);                // 455
+        skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                                   // 456
+        skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL);           // 457
+        skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL);               // 458
+        skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL);         // 459
+        skillo(SKILL_PROF_MASTER, "master weapon prof", PASSIVE_SKILL);             // 460
+        skillo(SKILL_PROF_EXOTIC, "exotic weapon prof", PASSIVE_SKILL);             // 461
+        skillo(SKILL_PROF_LIGHT_A, "light armor prof", PASSIVE_SKILL);              // 462
+        skillo(SKILL_PROF_MEDIUM_A, "medium armor prof", PASSIVE_SKILL);            // 463
+        skillo(SKILL_PROF_HEAVY_A, "heavy armor prof", PASSIVE_SKILL);              // 464
+        skillo(SKILL_PROF_SHIELDS, "shield prof", PASSIVE_SKILL);                   // 465
+        skillo(SKILL_PROF_T_SHIELDS, "tower shield prof", PASSIVE_SKILL);           // 466
+        skillo(SKILL_MURMUR, "murmur(inc)", UNCATEGORIZED);                         // 467
+        skillo(SKILL_PROPAGANDA, "propaganda(inc)", UNCATEGORIZED);                 // 468
+        skillo(SKILL_LOBBY, "lobby(inc)", UNCATEGORIZED);                           // 469
+        skillo(SKILL_STUNNING_FIST, "stunning fist", ACTIVE_SKILL);                 // 470
+        skillo(SKILL_MINING, "mining", CRAFTING_SKILL);                             // 471
+        skillo(SKILL_HUNTING, "hunting", CRAFTING_SKILL);                           // 472
+        skillo(SKILL_FORESTING, "foresting", CRAFTING_SKILL);                       // 473
+        skillo(SKILL_KNITTING, "knitting", CRAFTING_SKILL);                         // 474
+        skillo(SKILL_CHEMISTRY, "chemistry", CRAFTING_SKILL);                       // 475
+        skillo(SKILL_ARMOR_SMITHING, "armor smithing", CRAFTING_SKILL);             // 476
+        skillo(SKILL_WEAPON_SMITHING, "weapon smithing", CRAFTING_SKILL);           // 477
+        skillo(SKILL_JEWELRY_MAKING, "jewelry making", CRAFTING_SKILL);             // 478
+        skillo(SKILL_LEATHER_WORKING, "leather working", CRAFTING_SKILL);           // 479
+        skillo(SKILL_FAST_CRAFTER, "fast crafter", CRAFTING_SKILL);                 // 480
+        skillo(SKILL_BONE_ARMOR, "bone armor(inc)", CRAFTING_SKILL);                // 481
+        skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)", CRAFTING_SKILL);        // 482
+        skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)", CRAFTING_SKILL); // 483
+        skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting(inc)", CRAFTING_SKILL);  // 484
+        skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting(inc)", CRAFTING_SKILL);    // 485
+        skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes", PASSIVE_SKILL);      // 486
+        skillo(SKILL_GREAT_FORTITUDE, "great fortitude", PASSIVE_SKILL);            // 487
+        skillo(SKILL_IRON_WILL, "iron will", PASSIVE_SKILL);                        // 488
+        skillo(SKILL_EPIC_REFLEXES, "epic reflexes", PASSIVE_SKILL);                // 489
+        skillo(SKILL_EPIC_FORTITUDE, "epic fortitude", PASSIVE_SKILL);              // 490
+        skillo(SKILL_EPIC_WILL, "epic will", PASSIVE_SKILL);                        // 491
+        skillo(SKILL_SHIELD_SPECIALIST, "shield specialist", PASSIVE_SKILL);        // 492
+        skillo(SKILL_USE_MAGIC, "use magic", ACTIVE_SKILL);                         // 493
+        skillo(SKILL_EVASION, "evasion", PASSIVE_SKILL);                            // 494
+        skillo(SKILL_IMP_EVASION, "improved evasion", PASSIVE_SKILL);               // 495
+        skillo(SKILL_CRIP_STRIKE, "crippling strike", PASSIVE_SKILL);               // 496
+        skillo(SKILL_SLIPPERY_MIND, "slippery mind", PASSIVE_SKILL);                // 497
+        skillo(SKILL_DEFENSE_ROLL, "defensive roll", PASSIVE_SKILL);                // 498
+        skillo(SKILL_GRACE, "divine grace", PASSIVE_SKILL);                         // 499
+        skillo(SKILL_DIVINE_HEALTH, "divine health", PASSIVE_SKILL);                // 500
+        skillo(SKILL_LAY_ON_HANDS, "lay on hands", ACTIVE_SKILL);                   // 501
+        skillo(SKILL_COURAGE, "courage", PASSIVE_SKILL);                            // 502
+        skillo(SKILL_SMITE_EVIL, "smite evil", ACTIVE_SKILL);                       // 503
+        skillo(SKILL_REMOVE_DISEASE, "purify", ACTIVE_SKILL);                       // 504
+        skillo(SKILL_RECHARGE, "recharge", CASTER_SKILL);                           // 505
+        skillo(SKILL_STEALTHY, "stealthy", PASSIVE_SKILL);                          // 506
+        skillo(SKILL_NATURE_STEP, "nature step", PASSIVE_SKILL);                    // 507
+        skillo(SKILL_FAVORED_ENEMY, "favored enemy", PASSIVE_SKILL);                // 508
+        skillo(SKILL_DUAL_WEAPONS, "dual weapons", PASSIVE_SKILL);                  // 509
+        skillo(SKILL_ANIMAL_COMPANION, "animal companion", ACTIVE_SKILL);           // 510
+        skillo(SKILL_PALADIN_MOUNT, "paladin mount", ACTIVE_SKILL);                 // 511
+        skillo(SKILL_CALL_FAMILIAR, "call familiar", ACTIVE_SKILL);                 // 512
+        skillo(SKILL_PERFORM, "perform", ACTIVE_SKILL);                             // 513
+        skillo(SKILL_SCRIBE, "scribe", ACTIVE_SKILL);                               // 514
+        skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL);                     // 515
+        skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL);                         // 516
+        skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL);                     // 517
+        skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL);                               // 518
+        skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL);                               // 519
+        skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL);                           // 520
+        skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL);                      // 521
+        skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL);                           // 522
+        skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL);                   // 523
+        skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL);                         // 524
+        skillo(SKILL_SAP, "sap", ACTIVE_SKILL);                                     // 525
+        skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL);                     // 526
+        skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL);                 // 527
+        skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL);               // 528
+        skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);         // 529
+        skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL);                 // 530
+        skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL);                   // 531
+        skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL);             // 532
+        skillo(SKILL_FEINT, "feint", ACTIVE_SKILL);                                 // 533
+        skillo(SKILL_SMITE_GOOD, "smite good", ACTIVE_SKILL);                       // 534
+        skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL);         // 535
+        skillo(SKILL_DESTRUCTIVE_AURA, "destructive aura", ACTIVE_SKILL);           // 536
+        skillo(SKILL_AURA_OF_PROTECTION, "protection aura", ACTIVE_SKILL);          // 537
+        skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL);                  // 538
+        skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL);           // 539
+        skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL);      // 540
         skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL);         // 541
         skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL);         // 542
         skillo(SKILL_BOMB_TOSS, "bomb toss", ACTIVE_SKILL);                         /* 543 */
@@ -4009,18 +4019,18 @@ void mag_assign_spells(void)
         skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
 
         /* songs */
-        skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       //588
-        skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL);                       //589
-        skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL);                 //590
-        skillo(SKILL_SONG_OF_THE_MAGI, "song of the magi", ACTIVE_SKILL);               //591
-        skillo(SKILL_SONG_OF_HEALING, "song of healing", ACTIVE_SKILL);                 //592
-        skillo(SKILL_DANCE_OF_PROTECTION, "dance of protection", ACTIVE_SKILL);         //593
-        skillo(SKILL_SONG_OF_FLIGHT, "song of flight", ACTIVE_SKILL);                   //594
-        skillo(SKILL_SONG_OF_HEROISM, "song of heroism", ACTIVE_SKILL);                 //595
-        skillo(SKILL_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", ACTIVE_SKILL); //596
-        skillo(SKILL_ACT_OF_FORGETFULNESS, "skit of forgetfulness", ACTIVE_SKILL);      //597
-        skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL);           //598
-        skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 //599
+        skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       // 588
+        skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL);                       // 589
+        skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL);                 // 590
+        skillo(SKILL_SONG_OF_THE_MAGI, "song of the magi", ACTIVE_SKILL);               // 591
+        skillo(SKILL_SONG_OF_HEALING, "song of healing", ACTIVE_SKILL);                 // 592
+        skillo(SKILL_DANCE_OF_PROTECTION, "dance of protection", ACTIVE_SKILL);         // 593
+        skillo(SKILL_SONG_OF_FLIGHT, "song of flight", ACTIVE_SKILL);                   // 594
+        skillo(SKILL_SONG_OF_HEROISM, "song of heroism", ACTIVE_SKILL);                 // 595
+        skillo(SKILL_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", ACTIVE_SKILL); // 596
+        skillo(SKILL_ACT_OF_FORGETFULNESS, "skit of forgetfulness", ACTIVE_SKILL);      // 597
+        skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL);           // 598
+        skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 // 599
         /* end songs */
 
         /****note weapon specialist and luck of heroes inserted in free slots ***/
@@ -4035,7 +4045,7 @@ void display_shadowcast_spells(struct char_data *ch)
         if (!ch)
                 return;
 
-        //shadowdancers can't cast anything until level 3
+        // shadowdancers can't cast anything until level 3
         if (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) < 3)
         {
                 send_to_char(ch, "You can't shadowcast anything.\r\n");

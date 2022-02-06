@@ -23,6 +23,9 @@
 #include "actions.h"
 #include "spell_prep.h"
 
+/* cheesy lich hack */
+#define CLASS_LICH 9999
+
 /*-----------------------------------*/
 /* utility functions */
 /*-----------------------------------*/
@@ -31,7 +34,7 @@
    quests */
 int has_race_kit(int race, int c)
 {
-  //return has_kit[race][c];
+  // return has_kit[race][c];
   return TRUE;
 }
 
@@ -101,7 +104,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         case QUEST_COMMAND_ITEM:
           if (NOTHING == real_object(qcom->value))
           {
-            send_to_char(ch, "\tCGIVE\tn <Missing Object>\r\n");
+            send_to_char(ch, "\tCGIVE\tn <Missing Object> %d\r\n", qcom->value);
             break;
           }
           snprintf(buf, sizeof(buf), "\tCGIVE\tn %s (%d)\r\n",
@@ -123,7 +126,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
       case QUEST_COMMAND_ITEM:
         if (NOTHING == real_object(qcom->value))
         {
-          send_to_char(ch, "\tcRECEIVE\tn <Missing Object>\r\n");
+          send_to_char(ch, "\tcRECEIVE\tn <Missing Object> %d\r\n", qcom->value);
           break;
         }
         snprintf(buf, sizeof(buf), "\tcRECEIVE\tn %s (%d)\r\n",
@@ -137,7 +140,7 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
       case QUEST_COMMAND_LOAD_OBJECT_INROOM:
         if (NOTHING == real_object(qcom->value))
         {
-          send_to_char(ch, "\tcLOADOBJECT\tn <Missing Object>\r\n");
+          send_to_char(ch, "\tcLOADOBJECT\tn <Missing Object> %d\r\n", qcom->value);
           break;
         }
         if (NOWHERE == real_room(qcom->location))
@@ -169,7 +172,11 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         send_to_char(ch, buf);
         break;
       case QUEST_COMMAND_KIT:
-        if (qcom->location >= NUM_CLASSES || qcom->location >= NUM_CLASSES)
+        if (qcom->location == CLASS_LICH || qcom->value == CLASS_LICH)
+        {
+          send_to_char(ch, "\tcSET_KIT\tn character will become a LICH (race).\r\n");
+        }
+        else if (qcom->location >= NUM_CLASSES || qcom->location >= NUM_CLASSES)
         {
           send_to_char(ch, "Invalid Class # set for this quest!\r\n");
         }
@@ -319,8 +326,6 @@ bool is_object_in_a_quest(struct obj_data *obj)
 }
 
 /* this is the main driver for the quest-out quest-reward system */
-/* temporary definition for initial compile by zusuk */
-#define CLASS_LICH CLASS_STALWART_DEFENDER
 
 void perform_out_chain(struct char_data *ch, struct char_data *victim,
                        struct quest_entry *quest, char *name)
@@ -426,20 +431,21 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
     case QUEST_COMMAND_KIT:
       if (qcom->value == CLASS_LICH)
       {
-        //hack for lich remort..
+        // hack for lich remort..
 
         GET_REAL_RACE(ch) = RACE_LICH;
-        //GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
+        // GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
 
         respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
         GET_EXP(ch) = 0;
+        GET_ALIGNMENT(ch) = -1000;
 
         send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
                          " and you realize\tn\r\n"
                          "\tLthat you are dieing. Your body is now merely a "
                          "vessel for your power.\tn\r\n");
 
-        send_to_char(ch, "You are now a LICH!");
+        send_to_char(ch, "You are now a \tLLICH!\tn\r\n");
         log("Quest Log : %s have changed into to a LICH!", GET_NAME(ch));
 
         return;
@@ -491,7 +497,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
       else if (GET_LEVEL(ch) < (LVL_IMMORT - 1) &&
                qcom->value == CLASS_LICH)
       {
-        send_to_char(ch, "You are too low level to do this now.\r\n");
+        send_to_char(ch, "You are too low level (min 30) to do this now.\r\n");
         log("quest_log : %s failed to do a kitquest.(too low level)",
             GET_NAME(ch));
         give_back_items(victim, ch, quest);
@@ -549,7 +555,6 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
     }
   }
 }
-#undef CLASS_LICH
 
 /* quest_room is the function that launches quest out if you bring in
    a specific mobile into the (given) room (the quest mobile) */
@@ -665,7 +670,7 @@ void quest_give(struct char_data *ch, struct char_data *victim)
       }
       if (fullfilled)
       {
-        //remove given items from inventory...
+        // remove given items from inventory...
         for (qcom = quest->in; qcom; qcom = qcom->next)
         {
           switch (qcom->type)
@@ -1056,8 +1061,16 @@ ACMD(do_qinfo)
                 }
                 else if (qcmd->type == QUEST_COMMAND_KIT)
                 {
-                  snprintf(buf, sizeof(buf), "and changes your kit to %s", CLSLIST_NAME(qcmd->value));
-                  strlcat(buf, buf2, sizeof(buf));
+                  if (qcmd->value == CLASS_LICH)
+                  {
+                    snprintf(buf, sizeof(buf), "and changes your race to LICH");
+                    strlcat(buf, buf2, sizeof(buf));
+                  }
+                  else
+                  {
+                    snprintf(buf, sizeof(buf), "and changes your kit to %s", CLSLIST_NAME(qcmd->value));
+                    strlcat(buf, buf2, sizeof(buf));
+                  }
                 }
                 else if (qcmd->type == QUEST_COMMAND_CHURCH)
                 {
@@ -1077,7 +1090,7 @@ ACMD(do_qinfo)
             } // end of if (found)
           }   // end quest loop
         }     // End if (mob has quest)
-      }       //do we have a mob?
+      }       // do we have a mob?
     }         // mobs in zone walk
   }           // zone table walk
 }
@@ -1138,8 +1151,16 @@ ACMD(do_kitquests)
         {
           if (qcom->type == QUEST_COMMAND_KIT)
           {
-            snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n", CLSLIST_NAME(qcom->value), mob_proto[i].player.short_descr, mob_index[i].vnum);
-            send_to_char(ch, buf);
+            if (qcom->value == CLASS_LICH)
+            {
+              snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n", "LICH", mob_proto[i].player.short_descr, mob_index[i].vnum);
+              send_to_char(ch, buf);
+            }
+            else
+            {
+              snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n", CLSLIST_NAME(qcom->value), mob_proto[i].player.short_descr, mob_index[i].vnum);
+              send_to_char(ch, buf);
+            }
           }
         }
       }
@@ -1321,6 +1342,8 @@ ACMD(do_qview)
                        "\r\n\r\n");
   }
 }
+
+#undef CLASS_LICH
 
 /*-----------------------------------*/
 /* end hlquest commands */

@@ -1996,12 +1996,22 @@
 #define FEAT_WEAPON_PROFICIENCY_ASSASSIN 800
 #define FEAT_HIDDEN_WEAPONS 801
 #define FEAT_TRUE_DEATH 802
+/*lich*/
+#define FEAT_LICH_RACIAL_ADJUSTMENT 803 //lich
+#define FEAT_LICH_SPELL_RESIST 804      //lich
+#define FEAT_LICH_DAM_RESIST 805        //lich
+#define FEAT_LICH_TOUCH 806             //lich
+#define FEAT_LICH_REJUV 807             //lich
+#define FEAT_LICH_FEAR 808              //lich
+/******/
+#define FEAT_ELECTRIC_IMMUNITY 809
+#define FEAT_COLD_IMMUNITY 810
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 803
+#define FEAT_LAST_FEAT 811
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 804
+#define NUM_FEATS 812
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -2419,9 +2429,10 @@
 #define ITEM_ANTI_ARCANE_SHADOW 89
 #define ITEM_ANTI_SACRED_FIST 90
 #define ITEM_ANTI_ELDRITCH_KNIGHT 91
-#define ITEM_SHOCK 92 // for shocking weapons
+#define ITEM_SHOCK 92     // for shocking weapons
+#define ITEM_ANTI_LICH 93 /* Not usable by lich */
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 93
+#define NUM_ITEM_FLAGS 94
 
 /* homeland-port */
 /*

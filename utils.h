@@ -1865,6 +1865,8 @@ void char_from_furniture(struct char_data *ch);
                               (GET_RACE(ch) == RACE_CRYSTAL_DWARF))
 #define IS_TRELUX(ch) (!IS_NPC(ch) && \
                        (GET_RACE(ch) == RACE_TRELUX))
+#define IS_LICH(ch) (!IS_NPC(ch) && \
+                     (GET_RACE(ch) == RACE_LICH))
 #define IS_HALFLING(ch) (!IS_NPC(ch) && \
                          (GET_RACE(ch) == RACE_HALFLING))
 #define IS_H_ELF(ch) (!IS_NPC(ch) && \
@@ -1902,6 +1904,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_ANIMAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ANIMAL) || \
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL))
 #define IS_UNDEAD(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || \
+                       IS_LICH(ch) ||                                      \
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD))
 #define IS_ELEMENTAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) || \
                           (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL))

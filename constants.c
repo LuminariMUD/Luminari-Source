@@ -73,10 +73,8 @@ const char *armor_suit_types[] = {
     "small shield",
     "heavy shield",
     "tower shield",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(armor_suit_types, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
-
 
 // npc subrace
 const char *npc_subrace_types[] = {
@@ -155,8 +153,7 @@ const char *npc_race_menu =
     "13) \tDOut\twsider\tn\r\n"
     "14) \tGPlant\tn\r\n"
     "15) \tyVermin\tn\r\n"
-    "16) \tRLycanthrope\tn\r\n"
-    ;
+    "16) \tRLycanthrope\tn\r\n";
 
 // shapechange morph messages to_room, original system
 const char *morph_to_room[] = {
@@ -402,8 +399,7 @@ const char *award_types[] = {
     "epic-feats",
     "epic-class-feats",
     "ability-boosts",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(award_types, NUM_AWARD_TYPES + 1);
 
 const char *paladin_mercies[] = {
@@ -425,15 +421,14 @@ const char *paladin_mercies[] = {
     "Ensorcelled",
     "Paralyzed",
     "Stunned",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(paladin_mercies, NUM_PALADIN_MERCIES + 1);
 
 const char *paladin_mercy_descriptions[] = {
     "does nothing",
     "removes effects from taunt or intimidate",
     "removes fatigue from rage or other sources",
-    "removes shaken status", 
+    "removes shaken status",
     "removes dazed status",
     "removes effects that reduce strength or constitution",
     "removes staggered status",
@@ -448,30 +443,29 @@ const char *paladin_mercy_descriptions[] = {
     "removes 1 random negative effect",
     "removes paralysis",
     "removes stunned status",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(paladin_mercy_descriptions, NUM_PALADIN_MERCIES + 1);
 
 const int paladin_mercy_levels[] = {
-    0, // none
-    3, // decevied
-    3, // fatigued
-    3, // shaken
-    6, // dazed
-    6, // enfeebled
-    6, // staggered
-    6, // confused
-    9, // cursed
-    9, // frightened
-    9, // injured
-    9, // nauseated
-    9, // poisoned
+    0,  // none
+    3,  // decevied
+    3,  // fatigued
+    3,  // shaken
+    6,  // dazed
+    6,  // enfeebled
+    6,  // staggered
+    6,  // confused
+    9,  // cursed
+    9,  // frightened
+    9,  // injured
+    9,  // nauseated
+    9,  // poisoned
     12, // blinded
     12, // deafened
     12, // ensorcelled
     12, // paralyzed
     12, // stunned
-    0, // end
+    0,  // end
 };
 CHECK_TABLE_SIZE(paladin_mercy_levels, NUM_PALADIN_MERCIES + 1);
 
@@ -486,8 +480,7 @@ const char *fiendish_boons[] = {
     "wounding",
     "speed",
     "vorpal",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(fiendish_boons, NUM_FIENDISH_BOONS + 1);
 
 const char *fiendish_boon_descriptions[] = {
@@ -501,23 +494,21 @@ const char *fiendish_boon_descriptions[] = {
     "causes bleed damage each hit",
     "gives an extra attack per round (won't stack with itself or haste)",
     "5 percent chance on a critical hit to kill the target outright (won't work on undead, constructs or oozes)",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(fiendish_boon_descriptions, NUM_FIENDISH_BOONS + 1);
 
 const int fiendish_boon_levels[] = {
     0,
-    5, // flaming
-    5, // keen
-    5, // vicious
-    8, // anarchic
-    8, // flaming burst
-    8, // unholy
-    8, // wounding
+    5,  // flaming
+    5,  // keen
+    5,  // vicious
+    8,  // anarchic
+    8,  // flaming burst
+    8,  // unholy
+    8,  // wounding
     11, // speed
     14, // vorpal
-    0 
-};
+    0};
 CHECK_TABLE_SIZE(fiendish_boon_levels, NUM_FIENDISH_BOONS + 1);
 
 const int fiendish_boon_slots[] = {
@@ -531,8 +522,7 @@ const int fiendish_boon_slots[] = {
     2, // wounding
     3, // speed
     5, // vorpal
-    0 
-};
+    0};
 CHECK_TABLE_SIZE(fiendish_boon_slots, NUM_FIENDISH_BOONS + 1);
 
 const char *blackguard_cruelties[] = {
@@ -551,8 +541,7 @@ const char *blackguard_cruelties[] = {
     "Deafened",
     "Paralyzed",
     "Stunned",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(blackguard_cruelties, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const char *blackguard_cruelty_descriptions[] = {
@@ -571,47 +560,46 @@ const char *blackguard_cruelty_descriptions[] = {
     "deafens target on failed saved",
     "paralyzes target on failed saved",
     "stuns target on failed saved",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(blackguard_cruelty_descriptions, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const int blackguard_cruelty_levels[] = {
-    0, // none
-    3, //Fatigued
-    3, //Shaken
-    3, //Sickened
-    6, //Dazed
-    6, //Diseased
-    6, //Staggered
-    9, //Cursed
-    9, //Frightened
-    9, //Nauseated
-    9, //Poisoned
+    0,  // none
+    3,  //Fatigued
+    3,  //Shaken
+    3,  //Sickened
+    6,  //Dazed
+    6,  //Diseased
+    6,  //Staggered
+    9,  //Cursed
+    9,  //Frightened
+    9,  //Nauseated
+    9,  //Poisoned
     12, //Blinded
     12, //Deafened
     12, //Paralyzed
     12, //Stunned
-    0, // end
+    0,  // end
 };
 CHECK_TABLE_SIZE(blackguard_cruelty_levels, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const int blackguard_cruelty_affect_types[] = {
-    AFF_DONTUSE, // none
-    AFF_FATIGUED, //Fatigued
-    AFF_SHAKEN, //Shaken
-    AFF_SICKENED, //Sickened
-    AFF_DAZED, //Dazed
-    AFF_DISEASE, //Diseased
+    AFF_DONTUSE,   // none
+    AFF_FATIGUED,  //Fatigued
+    AFF_SHAKEN,    //Shaken
+    AFF_SICKENED,  //Sickened
+    AFF_DAZED,     //Dazed
+    AFF_DISEASE,   //Diseased
     AFF_STAGGERED, //Staggered
-    AFF_CURSE, //Cursed
-    AFF_FEAR, //Frightened
+    AFF_CURSE,     //Cursed
+    AFF_FEAR,      //Frightened
     AFF_NAUSEATED, //Nauseated
-    AFF_POISON, //Poisoned
-    AFF_BLIND, //Blinded
-    AFF_DEAF, //Deafened
+    AFF_POISON,    //Poisoned
+    AFF_BLIND,     //Blinded
+    AFF_DEAF,      //Deafened
     AFF_PARALYZED, //Paralyzed
-    AFF_STUN, //Stunned
-    AFF_DONTUSE, // end
+    AFF_STUN,      //Stunned
+    AFF_DONTUSE,   // end
 };
 CHECK_TABLE_SIZE(blackguard_cruelty_affect_types, NUM_BLACKGUARD_CRUELTIES + 1);
 
@@ -1412,12 +1400,12 @@ const char *action_bits[] = {
     "Mob-Block-East",
     "Mob-Block-South",
     "Mob-Block-West",
-    "Mob-Block-NE", 
+    "Mob-Block-NE",
     "Mob-Block-SE", // 50
     "Mob-Block-SW",
     "Mob-Block-NW",
     "Mob-Block-Up",
-    "Mob-Block-Down", 
+    "Mob-Block-Down",
     "Mob-Block-Class", // 55
     "Mob-Block-Race",
     "Mob-Block-Level",
@@ -1426,7 +1414,7 @@ const char *action_bits[] = {
     "unused", // 60
     "unused",
     "No-Confuse",
-    "Hunts-Target", 
+    "Hunts-Target",
     "Ability-Grapple",
     "Ability-Petrify", // 65
     "Ability-Tail-Spikes",
@@ -1974,49 +1962,47 @@ const char *armor_type[] = {
 CHECK_TABLE_SIZE(armor_type, NUM_ARMOR_TYPES + 1);
 
 const int armor_suit_ac_bonus[] = {
-  0,
-  0,
-  1,
-  2,
-  3,
-  4,
-  4,
-  4,
-  5,
-  5,
-  6,
-  6,
-  7,
-  8,
-  1,
-  1,
-  2,
-  4,
-  0
-};
+    0,
+    0,
+    1,
+    2,
+    3,
+    4,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    8,
+    1,
+    1,
+    2,
+    4,
+    0};
 CHECK_TABLE_SIZE(armor_suit_ac_bonus, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
 
 const int armor_suit_weight[] = {
-  0,
-  3,
-  10,
-  15,
-  20,
-  25,
-  25,
-  30,
-  40,
-  30,
-  45,
-  35,
-  50,
-  50,
-  5,
-  5,
-  10,
-  45,
-  0
-};
+    0,
+    3,
+    10,
+    15,
+    20,
+    25,
+    25,
+    30,
+    40,
+    30,
+    45,
+    35,
+    50,
+    50,
+    5,
+    5,
+    10,
+    45,
+    0};
 CHECK_TABLE_SIZE(armor_suit_weight, NUM_SPEC_ARMOR_SUIT_TYPES + 1);
 
 // labels for item proficiency category
@@ -2231,49 +2217,50 @@ const char *extra_bits[] = {
     "Ki-Focus",
     "Anti-WeaponMaster",
     "Anti-Drow",
-    "Masterwork",
+    "Masterwork", //50
     "Anti-Duergar",
     "Seeking",
     "Adaptive",
     "Agile",
-    "Corrosive",
+    "Corrosive", //55
     "Disruption",
     "Defending",
     "Vicious",
     "Vorpal",
-    "Anti-Lawful",
+    "Anti-Lawful", //60
     "Anti-Chaotic",
     "Wizard-Required",
     "Cleric-Required",
     "Rogue-Required",
-    "Warrior-Required",
+    "Warrior-Required", //65
     "Monk-Required",
     "Druid-Required",
     "Berserker-Required",
     "Sorcerer-Required",
-    "Paladin-Required",
+    "Paladin-Required", //70
     "Ranger-Required",
     "Bard-Required",
     "Weaponmaster-Required",
     "Arcane-Archer-Required",
-    "Stalwart-Defender-Required",
+    "Stalwart-Defender-Required", //75
     "Shifter-Required",
     "Duelist-Required",
     "Mystic-Theurge-Required",
     "Alchemist-Required",
-    "Arcane-Shadow-Required",
+    "Arcane-Shadow-Required", //80
     "Sacred-Fist-Required",
     "Eldritch-Knight-Required",
     "Anti-Arcane-Archer",
     "Anti-Stalwart-Defender",
-    "Anti-Shifter",
+    "Anti-Shifter", //85
     "Anti-Duelist",
     "Anti-Mystic-Theurge",
     "Anti-Alchemist",
     "Anti-Arcane-Shadow",
-    "Anti-Sacred-Fist",
+    "Anti-Sacred-Fist", //90
     "Anti-Eldritch-Knight",
     "Shocking Weapon",
+    "Anti-Lich",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -3539,7 +3526,7 @@ const char *feat_types[] = {
     "psionic feat",
     "class feat",
     "innate ability", // 10
-    "domain power",     
+    "domain power",
     "performance feat", //12
     "\n"};
 
@@ -3716,7 +3703,6 @@ const int sorcerer_slots[][NUM_CIRCLES + 1] = {
 };
 CHECK_TABLE_SIZE(sorcerer_slots, LVL_IMPL + 1);
 
-
 const int bard_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
@@ -3753,7 +3739,7 @@ const int bard_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //31
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //32
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //33
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0} //34
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  //34
 };
 CHECK_TABLE_SIZE(bard_slots, LVL_IMPL + 1);
 
@@ -4056,32 +4042,32 @@ CHECK_TABLE_SIZE(alchemist_slots, LVL_IMPL + 1);
 /* words to use for the spell preparation process for different classes. */
 const char *spell_prep_dict[][4] = {
     /* 0           1             2            3 */
-    {"memorize", "studying", "memorized", "studies"},       /* CLASS_WIZARD */
-    {"pray", "praying", "prayed", "prayers"},               /* CLASS_CLERIC */
-    {"", "", "", ""},                                       /* rogue 2 */
-    {"", "", "", ""},                                       /* warrior 3 */
-    {"", "", "", ""},                                       /* monk 4 */
-    {"commune", "communing", "communed", "communion"},      // CLASS_DRUID
-    {"", "", "", ""},                                       /* berserker 6 */
-    {"meditate", "meditating", "meditated", "meditations"}, // CLASS_SORCERER
-    {"chant", "chanting", "chanted", "petitions"},          // CLASS_PALADIN
-    {"adjure", "adjuring", "adjured", "adjurations"},       // CLASS_RANGER
-    {"compose", "composing", "composed", "compositions"},   // CLASS_BARD
-    {"", "", "", ""},                                       /* weapon master 11 */
-    {"", "", "", ""},                                       /* arcane archer 12 */
-    {"", "", "", ""},                                       /* stalwart defender 13 */
-    {"", "", "", ""},                                       /* shifter 14 */
-    {"", "", "", ""},                                       /* duelist 15 */
-    {"", "", "", ""},                                       /* mystic theurge 16 */
-    {"concoct", "an extract", "concocted", "concoctions"},  /* alchemist 17 */
-    {"", "", "", ""},                                       /* arcane shadow 18 */
-    {"", "", "", ""},                                       /* sacred fist 19 */
-    {"", "", "", ""},                                       /* eldritch knight 20 */
-    {"rest", "manifesting", "manifested", "manifestations"},/* psionicist 21 */
-    {"", "", "", ""},                                       /* spellsword 22 */
-    {"", "", "", ""},                                       /* shadowdancer 23 */
+    {"memorize", "studying", "memorized", "studies"},        /* CLASS_WIZARD */
+    {"pray", "praying", "prayed", "prayers"},                /* CLASS_CLERIC */
+    {"", "", "", ""},                                        /* rogue 2 */
+    {"", "", "", ""},                                        /* warrior 3 */
+    {"", "", "", ""},                                        /* monk 4 */
+    {"commune", "communing", "communed", "communion"},       // CLASS_DRUID
+    {"", "", "", ""},                                        /* berserker 6 */
+    {"meditate", "meditating", "meditated", "meditations"},  // CLASS_SORCERER
+    {"chant", "chanting", "chanted", "petitions"},           // CLASS_PALADIN
+    {"adjure", "adjuring", "adjured", "adjurations"},        // CLASS_RANGER
+    {"compose", "composing", "composed", "compositions"},    // CLASS_BARD
+    {"", "", "", ""},                                        /* weapon master 11 */
+    {"", "", "", ""},                                        /* arcane archer 12 */
+    {"", "", "", ""},                                        /* stalwart defender 13 */
+    {"", "", "", ""},                                        /* shifter 14 */
+    {"", "", "", ""},                                        /* duelist 15 */
+    {"", "", "", ""},                                        /* mystic theurge 16 */
+    {"concoct", "an extract", "concocted", "concoctions"},   /* alchemist 17 */
+    {"", "", "", ""},                                        /* arcane shadow 18 */
+    {"", "", "", ""},                                        /* sacred fist 19 */
+    {"", "", "", ""},                                        /* eldritch knight 20 */
+    {"rest", "manifesting", "manifested", "manifestations"}, /* psionicist 21 */
+    {"", "", "", ""},                                        /* spellsword 22 */
+    {"", "", "", ""},                                        /* shadowdancer 23 */
     {"condemn", "condemning", "condemned", "condemnations"}, /* blackguard 24 */
-    {"",         "",           "",          ""            }, /* assassin */
+    {"", "", "", ""},                                        /* assassin */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4093,32 +4079,32 @@ CHECK_TABLE_SIZE(spell_prep_dict, NUM_CLASSES);
 /* words to use for the spell preparation process for different classes. */
 const char *spell_consign_dict[][4] = {
     /* 0           1             2            3 */
-    {"forget", "forgot", "forgetting", "forgotten"},         /* CLASS_WIZARD */
-    {"blank", "blanked", "blanking", "blanken"},             /* CLASS_CLERIC */
-    {"", "", "", ""},                                        /* rogue 2 */
-    {"", "", "", ""},                                        /* warrior 3 */
-    {"", "", "", ""},                                        /* monk 4 */
-    {"uncommune", "uncommuned", "uncommuned", "uncommuned"}, // CLASS_DRUID
-    {"", "", "", ""},                                        /* berserker 6 */
-    {"", "", "", ""},                                        // CLASS_SORCERER
-    {"omit", "omitted", "omitting", "omitted"},              // CLASS_PALADIN
-    {"unadjure", "unadjured", "unadjuring", "unadjured"},    // CLASS_RANGER
-    {"", "", "", ""},                                        // CLASS_BARD
-    {"", "", "", ""},                                        /* weapon master 11 */
-    {"", "", "", ""},                                        /* arcane archer 12 */
-    {"", "", "", ""},                                        /* stalwart defender 13 */
-    {"", "", "", ""},                                        /* shifter 14 */
-    {"", "", "", ""},                                        /* duelist 15 */
-    {"", "", "", ""},                                        /* mystic theurge 16 */
-    {"discard", "discarded", "discarding", "discarded"},     /* alchemist 17 */
-    {"", "", "", ""},                                        /* arcane shadow 18 */
-    {"", "", "", ""},                                        /* sacred fist 19 */
-    {"", "", "", ""},                                        /* eldritch knight 20 */
-    {"", "", "", ""},                                        /* psionicist 21 */
-    {"", "", "", ""},                                        /* spellsword 22 */
-    {"", "", "", ""},                                        /* shadow dancer 23 */
+    {"forget", "forgot", "forgetting", "forgotten"},             /* CLASS_WIZARD */
+    {"blank", "blanked", "blanking", "blanken"},                 /* CLASS_CLERIC */
+    {"", "", "", ""},                                            /* rogue 2 */
+    {"", "", "", ""},                                            /* warrior 3 */
+    {"", "", "", ""},                                            /* monk 4 */
+    {"uncommune", "uncommuned", "uncommuned", "uncommuned"},     // CLASS_DRUID
+    {"", "", "", ""},                                            /* berserker 6 */
+    {"", "", "", ""},                                            // CLASS_SORCERER
+    {"omit", "omitted", "omitting", "omitted"},                  // CLASS_PALADIN
+    {"unadjure", "unadjured", "unadjuring", "unadjured"},        // CLASS_RANGER
+    {"", "", "", ""},                                            // CLASS_BARD
+    {"", "", "", ""},                                            /* weapon master 11 */
+    {"", "", "", ""},                                            /* arcane archer 12 */
+    {"", "", "", ""},                                            /* stalwart defender 13 */
+    {"", "", "", ""},                                            /* shifter 14 */
+    {"", "", "", ""},                                            /* duelist 15 */
+    {"", "", "", ""},                                            /* mystic theurge 16 */
+    {"discard", "discarded", "discarding", "discarded"},         /* alchemist 17 */
+    {"", "", "", ""},                                            /* arcane shadow 18 */
+    {"", "", "", ""},                                            /* sacred fist 19 */
+    {"", "", "", ""},                                            /* eldritch knight 20 */
+    {"", "", "", ""},                                            /* psionicist 21 */
+    {"", "", "", ""},                                            /* spellsword 22 */
+    {"", "", "", ""},                                            /* shadow dancer 23 */
     {"uncondemn", "uncondemned", "uncondemning", "uncondemned"}, /* blackguard 24 */
-    {"",          "",            "",           ""            }, /* assassin 25 */
+    {"", "", "", ""},                                            /* assassin 25 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -4146,7 +4132,7 @@ const char *const faction_names[] = {"Adventurers' Guild", "", "", "", "\n"};
 
 const char *const faction_names_lwr[] = {"adventurers' guild", "", "", "", "\n"};
 
-const char * random_female_names[NUM_FEMALE_NAMES+1] = {
+const char *random_female_names[NUM_FEMALE_NAMES + 1] = {
     "Moltalia",
     "Kriris",
     "Helia",
@@ -4257,8 +4243,7 @@ const char * random_female_names[NUM_FEMALE_NAMES+1] = {
     "Saradyl",
     "Jintora",
     "Manqarin",
-    "\n"
-};
+    "\n"};
 
 const char *random_male_names[NUM_MALE_NAMES + 1] = {
     "Rimir",
@@ -4370,10 +4355,9 @@ const char *random_male_names[NUM_MALE_NAMES + 1] = {
     "Watamar",
     "Jacfyndar",
     "Kevxiron",
-    "\n"
-};
+    "\n"};
 
-const char * random_surnames[NUM_SURNAMES+1] = {
+const char *random_surnames[NUM_SURNAMES + 1] = {
     "Luven",
     "Keanala",
     "Miafiel",
@@ -4584,8 +4568,7 @@ const char * random_surnames[NUM_SURNAMES+1] = {
     "Quisalor",
     "Cracaryn",
     "Heixina",
-    "\n"
-};
+    "\n"};
 
 /* --- End of constants arrays. --- */
 

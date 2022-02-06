@@ -102,8 +102,8 @@ int get_speed(struct char_data *ch, sbyte to_display);
 #define ACMDCHECK_PREREQ_HASFEAT(feat, errormsg) \
   ACMDCHECK_PERMFAIL_IF(!HAS_FEAT(ch, feat), errormsg)
 
-/** Check for the specified condition and fail permanently if it's true. 
- * In other words, the character doesn't have the ability to use this command. 
+/** Check for the specified condition and fail permanently if it's true.
+ * In other words, the character doesn't have the ability to use this command.
  * To be used only within the ACMDCHECK() macro.
  */
 #define ACMDCHECK_PERMFAIL_IF(code, errormsg) \
@@ -113,9 +113,9 @@ int get_speed(struct char_data *ch, sbyte to_display);
     return CANT_CMD_PERM;                     \
   }
 
-/** Check for the specified condition and temporarily fail if it's true. 
- * In other words, the character has the ability to use this command, but are 
- * missing something else that would cause it to fail. 
+/** Check for the specified condition and temporarily fail if it's true.
+ * In other words, the character has the ability to use this command, but are
+ * missing something else that would cause it to fail.
  * To be used only within the ACMDCHECK() macro.
  */
 #define ACMDCHECK_TEMPFAIL_IF(code, errormsg) \
@@ -250,6 +250,8 @@ ACMD_DECL(do_fiendishboon);
 ACMD_DECL(do_mercies);
 ACMD_DECL(do_cruelties);
 ACMD_DECL(do_touch_of_corruption);
+ACMD_DECL(do_lichtouch);
+ACMD_DECL(do_lichfear);
 ACMD_DECL(do_maxhp);
 
 /*****************************************************************************
@@ -428,7 +430,7 @@ ACMD_DECL(do_mark);
 
 /* Functions without subcommands */
 ACMD_DECL(do_exchange);
-//ACMD(do_exchange);
+// ACMD(do_exchange);
 ACMD_DECL(do_fire);
 ACMD_DECL(do_aura_of_vengeance);
 ACMD_DECL(do_aura_of_justice);
@@ -678,7 +680,7 @@ ACMD_DECL(do_vanish);
 ACMD_DECL(do_disguise);
 ACMD_DECL(do_ethshift);
 ACMD_DECL(do_handleanimal);
-//ACMD_DECL(do_nohints);
+// ACMD_DECL(do_nohints);
 ACMD_DECL(do_todo);
 
 /*****************************************************************************
@@ -821,7 +823,7 @@ ACMD_DECL(do_findmagic);
 ACMD_DECL(do_cmdlev);
 ACMD_DECL(do_obind);
 ACMD_DECL(do_unbind);
-//ACMD_DECL(do_plist);
+// ACMD_DECL(do_plist);
 ACMD_DECL(do_finddoor);
 ACMD_DECL(do_bombs);
 ACMD_DECL(do_bandage);
