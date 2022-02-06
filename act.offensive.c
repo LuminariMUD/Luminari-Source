@@ -7330,7 +7330,7 @@ bool perform_lichfear(struct char_data *ch)
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
   {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
-    return;
+    return FALSE;
   }
 
   struct char_data *vict = NULL, *next_vict = NULL;
@@ -7370,13 +7370,13 @@ bool perform_lichfear(struct char_data *ch)
       do_flee(vict, 0, 0, 0);
     }
   }
+
+  return TRUE;
 }
 
 ACMD(do_lichfear)
 {
-
   int uses_remaining = 0;
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!IS_LICH(ch))
   {
