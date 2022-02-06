@@ -7202,7 +7202,6 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   /* this skill will heal undead */
   if (IS_UNDEAD(vict) || IS_LICH(vict))
   {
-    char buf[200];
     amount *= 2;
 
     if (ch == vict)
@@ -7322,21 +7321,23 @@ ACMD(do_lichtouch)
 bool perform_lichfear(struct char_data *ch)
 {
 
-  PREREQ_CAN_FIGHT();
-  PREREQ_CHECK(can_dragonfear);
-  PREREQ_NOT_PEACEFUL_ROOM();
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return FALSE;
   }
 
-  struct char_data *vict, *next_vict;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  struct char_data *vict = NULL, *next_vict = NULL;
   struct affected_type af;
 
   act("You raise your countenance to cause fear!", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n raises $s to cause fear!", FALSE, ch, 0, 0, TO_ROOM);
+  act("$n raises $s countenance to cause fear!", FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
@@ -7365,6 +7366,8 @@ bool perform_lichfear(struct char_data *ch)
       af.duration = dice(1, 6);
       SET_BIT_AR(af.bitvector, AFF_FEAR);
       affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+      do_flee(vict, 0, 0, 0);
+      do_flee(vict, 0, 0, 0);
     }
   }
 }
@@ -7374,7 +7377,6 @@ ACMD(do_lichfear)
 
   int uses_remaining = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
-  struct char_data *vict = NULL;
 
   if (!IS_LICH(ch))
   {
@@ -7394,7 +7396,7 @@ ACMD(do_lichfear)
     return;
   }
 
-  if (perform_lichfear(ch, vict))
+  if (perform_lichfear(ch))
   {
     if (!IS_NPC(ch))
       start_daily_use_cooldown(ch, FEAT_LICH_FEAR);
