@@ -2682,7 +2682,7 @@ void process_class_level_feats(struct char_data *ch, int class)
 
         /* no special handling */
       default:
-        if (HAS_FEAT(ch, feat_assign->feat_num))
+        if (HAS_FEAT(ch, feat_assign->feat_num) &&)
         {
           snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
                    feat_list[feat_assign->feat_num].name,
@@ -2914,9 +2914,10 @@ void process_level_feats(struct char_data *ch, int class)
     /* feat i doesnt matches our class or we don't meet the min-level (from if above) */
     /* non-class, racial feat and don't have it yet */
     if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
-        level_feats[i][LF_RACE] == GET_RACE(ch))
+        level_feats[i][LF_RACE] == GET_RACE(ch) &&
+        level_feats[i][LF_MIN_LVL] == GET_LEVEL(ch))
     {
-      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]) && level_feats[i][LF_STACK])
+      if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
       {
         snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
                  feat_list[level_feats[i][LF_FEAT]].name,
