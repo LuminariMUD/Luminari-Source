@@ -923,6 +923,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
       value += 2;
     if (GET_RACE(ch) == RACE_HALFLING)
       value += 2;
+    if (IS_LICH(ch))
+      value += 8;
     if (AFF_FLAGGED(ch, AFF_REFUGE))
       value += 15;
     if (IS_MORPHED(ch) && SUBRACE(ch) == PC_SUBRACE_PANTHER)
@@ -978,6 +980,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
       value--;
     if (AFF_FLAGGED(ch, AFF_DEAF))
       value -= 4;
+    if (IS_LICH(ch))
+      value += 8;
     return value;
   case ABILITY_HEAL:
     value += GET_WIS_BONUS(ch);
@@ -1140,6 +1144,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
       /* Unnamed bonus */
       value += 2;
     }
+    if (IS_LICH(ch))
+      value += 8;
     return value;
   case ABILITY_SURVIVAL:
     value += GET_WIS_BONUS(ch);

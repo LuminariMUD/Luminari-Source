@@ -551,15 +551,15 @@ void assign_feats(void)
   feato(FEAT_PARALYSIS_RESIST, "strong paralysis resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+4 to paralysis saves",
         "A strong hardiness in resisting paralysis, +4 bonus to saves - will also allow saves versus some spells/abilities "
-          "that normally don't allow saves");
+        "that normally don't allow saves");
 
   /* Drow */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
-  //sleep enchantment immunity - shared
-  //ultravision / darkvision - shared
-  //keen senses - shared
-  //resistance to enchantments - shared
-  //light blindness - shared
+  // sleep enchantment immunity - shared
+  // ultravision / darkvision - shared
+  // keen senses - shared
+  // resistance to enchantments - shared
+  // light blindness - shared
   feato(FEAT_SLA_LEVITATE, "drow levitate", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "sla - levitate 3/day",
         "Drow have a spell-like ability to use 'levitate' on themselves three times per day");
@@ -581,6 +581,40 @@ void assign_feats(void)
         "gain bonus weapon proficiency",
         "As part of your drow upbringing, you were trained in the usage of "
         "hand-crossbows, rapiers and short-swords.");
+
+  /* Lich */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  //  other lich innates that are shared, etc vital, hardy, armor skin +5, ultravision, is undead, damage resist +4, unarmed combag
+  feato(FEAT_LICH_RACIAL_ADJUSTMENT, "lich racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 dex +2 con +6 int, +8 perception sense-motive stealth",
+        "Lich racial adjustment to stats are: +2 dexterity, +2 constitution, "
+        "and +6 intelligence.  In addition they get class abilities of acrobatics and +8 racial bonus on Perception, Sense Motive, and Stealth checks");
+  feato(FEAT_LICH_SPELL_RESIST, "lich spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "15 + level spell resist",
+        "Due to their undead magical nature, Lich have a strong natural resistance "
+        "to magic.  A Lich's spell resistance is equal to 10 + their level.");
+  feato(FEAT_LICH_DAM_RESIST, "lich damage resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+4 general damage resist",
+        "Due to their undead nature, Lich have a strong natural damage resistance. "
+        " A Lich's damage resistance is 4.");
+  feato(FEAT_LICH_TOUCH, "lich touch", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "lich unarmed damage and 'lichtouch'",
+        "Liches have unarmed damage of 2d4 + level / 2. They can use 'lichtouch', as a full-round action, "
+        "to paralyze and cause negative damage level/4 + int bonus...  this touch used on undead heals "
+        "double that amount.  This is usable 3x a day + int bonus");
+  feato(FEAT_LICH_REJUV, "lich rejuvenation", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "saved from death 1x/day",
+        "A lich upon being the target of a death blow will automatically be fully restored.  This represents "
+        "the power of their phylactery.  A lich can only tap upon this awesome power 1x per day.");
+  feato(FEAT_LICH_FEAR, "lich fear", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "cause fear 3x day",
+        "The countenance of a Lich is so intimidating that one can cause fear (spell-like affect) up to 3x/day.");
+  feato(FEAT_ELECTRIC_IMMUNITY, "immune to electricity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "immune to electricity",
+        "Completely immune to attacks based on electricity.");
+  feato(FEAT_COLD_IMMUNITY, "immune to cold", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "immune to cold",
+        "Completely immune to attacks based on cold.");
 
   /* Trelux */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -956,7 +990,7 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_GREATER_DISARM, FEAT_IMPROVED_DISARM, 1);
 
   feato(FEAT_IMPROVED_FEINT, "improved feint", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-                "feint checks get a +4 bonus, and penalties to check for low intelligence or non-humanoid targets is halved.",
+        "feint checks get a +4 bonus, and penalties to check for low intelligence or non-humanoid targets is halved.",
         "feint checks get a +4 bonus, and penalties to check for low intelligence or non-humanoid targets is halved.");
   feat_prereq_attribute(FEAT_IMPROVED_FEINT, AB_INT, 13);
   feat_prereq_feat(FEAT_IMPROVED_FEINT, FEAT_COMBAT_EXPERTISE, 1);
@@ -1018,7 +1052,7 @@ void assign_feats(void)
   feato(FEAT_PERFECT_TWO_WEAPON_FIGHTING, "perfect two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Extra attack with offhand weapon",
         "Extra attack with offhand weapon with no penalty");
-  //feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING); // For some reason not returning true even when prereq is set.
+  // feat_prereq_cfeat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING); // For some reason not returning true even when prereq is set.
   feat_prereq_feat(FEAT_PERFECT_TWO_WEAPON_FIGHTING, FEAT_GREATER_TWO_WEAPON_FIGHTING, 1);
   feat_prereq_attribute(FEAT_PERFECT_TWO_WEAPON_FIGHTING, AB_DEX, 21);
   /* archery epic feats */
@@ -2023,8 +2057,7 @@ void assign_feats(void)
         "This gives you the ability to cast another spell of this slot for the respective "
         "class.  There may be other requirements for casting particular spells from this "
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
-        "the slot is used, you can 'prepare' to recover it.");        
-
+        "the slot is used, you can 'prepare' to recover it.");
 
   feato(FEAT_SORCERER_BLOODLINE_DRACONIC, "draconic bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "1 level as sorcerer & select the draconic bloodline",
@@ -2105,7 +2138,7 @@ void assign_feats(void)
         "expend charges, such as wands and staves.  For every three levels of spell "
         "slots used, one less charge will be expended.  See the apotheosis command and HELP "
         "APOTHEOSIS for more information.");
-  
+
   // Sorcerer Fey Bloodline
   feato(FEAT_SORCERER_BLOODLINE_FEY, "fey bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "level one sorcerer",
@@ -2122,8 +2155,8 @@ void assign_feats(void)
         "a move action.  Useable as a swift action (3 + charisma modifier) times per day. "
         "Uses the 'fey' command.");
   feato(FEAT_WOODLAND_STRIDE, "wilderness stride", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-                         "fey bloodline or druid level 2",
-                         "Reduced movement penalty when moving through wilderness areas.");
+        "fey bloodline or druid level 2",
+        "Reduced movement penalty when moving through wilderness areas.");
   feato(FEAT_FLEETING_GLANCE, "fleeting glance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "fey bloodline, sorcerer level 9",
         "Can cast greater invisibility 3 times per day. Uses the 'fey' command.");
@@ -2136,7 +2169,7 @@ void assign_feats(void)
         "fey bloodline, sorcerer level 20",
         "Gain immunity to poison and +3 damage reduction. Creatures of the animal type will not "
         "aggro you. Can cast 'shadow walk' once per day using the 'fey' command.");
-  
+
   // Sorcerer Undead Bloodline
   feato(FEAT_SORCERER_BLOODLINE_UNDEAD, "undead bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "level one sorcerer",
@@ -2567,7 +2600,7 @@ void assign_feats(void)
         "Good allies in the paladin's presence gain a +1 to attack and damage rolls.");
   feato(FEAT_AURA_OF_JUSTICE, "aura of justice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Use a smite evil slot to give all allies in your presence a single smite evil use. See 'auraofjustice' command.",
-        "Use a smite evil slot to give all allies in your presence a single smite evil use. See 'auraofjustice' command.");   
+        "Use a smite evil slot to give all allies in your presence a single smite evil use. See 'auraofjustice' command.");
   feato(FEAT_DIVINE_HEALTH, "divine health", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immune to disease",
         "immune to disease");
@@ -2630,7 +2663,7 @@ void assign_feats(void)
         "will cancel that immunity out, and not impose a penalty to fear saves.");
   feato(FEAT_AURA_OF_VENGEANCE, "aura of vengeance", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Use a smite good slot to give all allies in your presence a single smite good use. See 'auraofvengeance' command.",
-        "Use a smite good slot to give all allies in your presence a single smite good use. See 'auraofvengeance' command.");   
+        "Use a smite good slot to give all allies in your presence a single smite good use. See 'auraofvengeance' command.");
   feato(FEAT_UNHOLY_RESILIENCE, "unholy resilience", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "charisma bonus added to all saving throw checks",
         "charisma bonus added to all saving throw checks");
@@ -2798,7 +2831,7 @@ void assign_feats(void)
   /* unfinished */ feato(FEAT_WILD_EMPATHY, "wild empathy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                          "The adventurer can improve the attitude of an animal.",
                          "The adventurer can improve the attitude of an animal.");
-  /* unfinished */ 
+  /* unfinished */
 
   /* Druid */
   feato(FEAT_VENOM_IMMUNITY, "venom immunity", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -3119,21 +3152,21 @@ void assign_feats(void)
         "This bonus will not stack with other aligned attack feats.  For example, if you "
         "have both aligned attack good and aligned attack lawful, you cannot gain double "
         "the bonus against a lawful good target.");
-  feat_prereq_bab(FEAT_ALIGNED_ATTACK_EVIL, 6);  
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_EVIL, 6);
   feato(FEAT_ALIGNED_ATTACK_CHAOS, "aligned attack (chaotic)", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Attacks against chaotic targets receive a +1 bonus to hit and +2 bonus to damage.",
         "Attacks against chaotic targets receive a +1 bonus to hit and +2 bonus to damage."
         "This bonus will not stack with other aligned attack feats.  For example, if you "
         "have both aligned attack good and aligned attack lawful, you cannot gain double "
         "the bonus against a lawful good target.");
-  feat_prereq_bab(FEAT_ALIGNED_ATTACK_CHAOS, 6);  
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_CHAOS, 6);
   feato(FEAT_ALIGNED_ATTACK_LAW, "aligned attack (lawful)", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Attacks against lawful targets receive a +1 bonus to hit and +2 bonus to damage.",
         "Attacks against lawful targets receive a +1 bonus to hit and +2 bonus to damage."
         "This bonus will not stack with other aligned attack feats.  For example, if you "
         "have both aligned attack good and aligned attack lawful, you cannot gain double "
         "the bonus against a lawful good target.");
-  feat_prereq_bab(FEAT_ALIGNED_ATTACK_LAW, 6);  
+  feat_prereq_bab(FEAT_ALIGNED_ATTACK_LAW, 6);
 
   feato(FEAT_CRITICAL_FOCUS, "critical focus", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
         "When psionic focus is active, your critical hits land more often and for more damage.",
@@ -3219,8 +3252,8 @@ void assign_feats(void)
         "normally create a 10d6 damage energy burst, with this feat your energy burst would "
         "do 10d6+10. Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
 
-  feato(FEAT_EMPOWERED_PSIONICS, "empowered magic", FALSE, TRUE, TRUE, FEAT_TYPE_PSIONIC, 
-        "+1 to all power dcs", 
+  feato(FEAT_EMPOWERED_PSIONICS, "empowered magic", FALSE, TRUE, TRUE, FEAT_TYPE_PSIONIC,
+        "+1 to all power dcs",
         "+1 to all power dcs. . Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
 
   feato(FEAT_EXPANDED_KNOWLEDGE, "expanded knowledge", TRUE, TRUE, TRUE, FEAT_TYPE_PSIONIC,
@@ -3413,40 +3446,40 @@ void assign_feats(void)
 
   /* Shadow Dancer */
   feato(FEAT_SHADOW_ILLUSION, "shadow illusion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Grants the ability to cast the mirror image spell with the shadowcast command.",
-              "Grants the ability to cast the mirror image spell with the shadowcast command.");
+        "Grants the ability to cast the mirror image spell with the shadowcast command.",
+        "Grants the ability to cast the mirror image spell with the shadowcast command.");
   feato(FEAT_SUMMON_SHADOW, "summon shadow", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Allows the shadowdancer to call a shadow to assist them in combat, using the call command.",
-              "Allows the shadowdancer to call a shadow to assist them in combat, using the call command.");
+        "Allows the shadowdancer to call a shadow to assist them in combat, using the call command.",
+        "Allows the shadowdancer to call a shadow to assist them in combat, using the call command.");
   feato(FEAT_SHADOW_CALL, "shadow call", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Grants the ability to cast any wizard spell from the conjuration school or circle 3 or lower.  "
-              "At shadow dancer level 10, the spell circle can be 6 or below. Uses the shadowcast command.",
-              "Grants the ability to cast any wizard spell from the conjuration school or circle 3 or lower.  "
-              "At shadow dancer level 10, the spell circle can be 6 or below. Uses the shadowcast command.");
+        "Grants the ability to cast any wizard spell from the conjuration school or circle 3 or lower.  "
+        "At shadow dancer level 10, the spell circle can be 6 or below. Uses the shadowcast command.",
+        "Grants the ability to cast any wizard spell from the conjuration school or circle 3 or lower.  "
+        "At shadow dancer level 10, the spell circle can be 6 or below. Uses the shadowcast command.");
   feato(FEAT_SHADOW_JUMP, "shadow jump", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Grants the ability to cast the shadow jump spell with the shadowcast command. This spell "
-              "functions as the teleport spell, but only if both source room and target room are either "
-              "outside at night, or inside without any magical light.",
-              "Grants the ability to cast the shadow jump spell with the shadowcast command. This spell "
-              "functions as the teleport spell, but only if both source room and target room are either "
-              "outside at night, or inside without any magical light.");
+        "Grants the ability to cast the shadow jump spell with the shadowcast command. This spell "
+        "functions as the teleport spell, but only if both source room and target room are either "
+        "outside at night, or inside without any magical light.",
+        "Grants the ability to cast the shadow jump spell with the shadowcast command. This spell "
+        "functions as the teleport spell, but only if both source room and target room are either "
+        "outside at night, or inside without any magical light.");
   feato(FEAT_SHADOW_POWER, "shadow power", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Grants the ability to cast any wizard spell from the evocation school or circle 4 or lower.  "
-              "At shadow dancer level 10, the spell circle can be 7 or below. Uses the shadowcast command.",
-              "Grants the ability to cast any wizard spell from the evocation school or circle 4 or lower.  "
-              "At shadow dancer level 10, the spell circle can be 7 or below. Uses the shadowcast command.");
+        "Grants the ability to cast any wizard spell from the evocation school or circle 4 or lower.  "
+        "At shadow dancer level 10, the spell circle can be 7 or below. Uses the shadowcast command.",
+        "Grants the ability to cast any wizard spell from the evocation school or circle 4 or lower.  "
+        "At shadow dancer level 10, the spell circle can be 7 or below. Uses the shadowcast command.");
   feato(FEAT_SHADOW_MASTER, "shadow master", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Whenever inside or outside at night, the shadow dancer has DR 5/- and a +2 luck bonus on "
-              "all saving throws.  In addition any critical hit within these conditions will "
-              "blind the foe for 1d6 rounds.",
-              "Whenever inside or outside at night, the shadow dancer has DR 5/- and a +2 luck bonus on "
-              "all saving throws.  In addition any critical hit within these conditions will "
-              "blind the foe for 1d6 rounds.");
+        "Whenever inside or outside at night, the shadow dancer has DR 5/- and a +2 luck bonus on "
+        "all saving throws.  In addition any critical hit within these conditions will "
+        "blind the foe for 1d6 rounds.",
+        "Whenever inside or outside at night, the shadow dancer has DR 5/- and a +2 luck bonus on "
+        "all saving throws.  In addition any critical hit within these conditions will "
+        "blind the foe for 1d6 rounds.");
   feato(FEAT_WEAPON_PROFICIENCY_SHADOWDANCER, "weapon proficiency - shadowdancer", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-              "Grants the character the ability to use shadowdancer weapons without penalty.  "
-              "Use the weaponprof command for the list of specific weapons.",
-              "Grants the character the ability to use shadowdancer weapons without penalty.  "
-              "Use the weaponprof command for the list of specific weapons.");
+        "Grants the character the ability to use shadowdancer weapons without penalty.  "
+        "Use the weaponprof command for the list of specific weapons.",
+        "Grants the character the ability to use shadowdancer weapons without penalty.  "
+        "Use the weaponprof command for the list of specific weapons.");
 
   /* Shifter */
   /*1*/ feato(FEAT_LIMITLESS_SHAPES, "limitless shapes", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -3666,9 +3699,9 @@ void assign_feats(void)
   feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
   feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-    feato(FEAT_DIEHARD, "diehard", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, 
-    "Gives you a 33% chance to avoid a killing blow.", 
-    "Gives you a 33% chance to avoid a killing blow.");
+  feato(FEAT_DIEHARD, "diehard", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "Gives you a 33% chance to avoid a killing blow.",
+        "Gives you a 33% chance to avoid a killing blow.");
   feato(FEAT_STEADFAST_DETERMINATION, "steadfast determination", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "allows you to use your con bonus instead of your wis bonus for will saves", "allows you to use your con bonus instead of your wis bonus for will saves");
 
   feato(FEAT_IMPROVED_POWER_ATTACK, "improved power attack", FALSE, FALSE, FALSE, FEAT_TYPE_COMBAT, "unfinished", "unfinished");
@@ -3775,15 +3808,15 @@ void assign_feats(void)
   feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for paralytic or instant death touch", "allows for paralytic or instant death touch");
   feato(FEAT_UNDEAD_FAMILIAR, "undead familiar", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows for undead familiars", "allows for undead familiars");
 
-/* Assassin */
-  feato(FEAT_DEATH_ATTACK, "death attack", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
-        "Allows assassin to mark an opponent and paralyze opponents when performing a backstab.", 
+  /* Assassin */
+  feato(FEAT_DEATH_ATTACK, "death attack", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows assassin to mark an opponent and paralyze opponents when performing a backstab.",
         "Allows assassin to mark an opponent and paralyze opponents when performing a backstab. Also opens up effect of other assassin abilities. Uses the 'mark' command.");
-  feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY, 
-        "Improves chance to resist or reduce effect of poisons and poison based damage.", 
+  feato(FEAT_POISON_SAVE_BONUS, "poison save bonus", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "Improves chance to resist or reduce effect of poisons and poison based damage.",
         "Improves chance to resist or reduce effect of poisons and poison based damage.");
-  feato(FEAT_POISON_USE, "poison use", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, 
-        "Trained use in poisons without risk of failure or poisoning self. Also improves effect of weapon poisons.", 
+  feato(FEAT_POISON_USE, "poison use", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Trained use in poisons without risk of failure or poisoning self. Also improves effect of weapon poisons.",
         "Trained use in poisons without risk of failure or poisoning self. Also increases number of hits and level by 50 percent for weapon applied poisons.");
   feato(FEAT_WEAPON_PROFICIENCY_ASSASSIN, "weapon proficiency - assassin", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Assassins can use any crossbow or short bow, daggers, rapiers, sap, darts and short swords.",
@@ -3803,7 +3836,6 @@ void assign_feats(void)
   feato(FEAT_TRUE_DEATH, "true death", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Backstabs have a +2 to attack roll and +10 to damage. Stacks with angel of death.",
         "Backstabs have a +2 to attack roll and +10 to damage. Stacks with angel of death.");
-
 
   /* favored soul */
   feato(FEAT_DEITY_WEAPON_PROFICIENCY, "deity's weapon proficiency", FALSE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "allows you to use the weapon of your deity", "allows you to use the weapon of your deity");
@@ -3940,11 +3972,14 @@ void assign_feats(void)
   dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
   dailyfeat(FEAT_SLA_STRENGTH, eSLA_STRENGTH);
   dailyfeat(FEAT_SLA_ENLARGE, eSLA_ENLARGE);
-  dailyfeat(FEAT_SLA_INVIS , eSLA_INVIS);
+  dailyfeat(FEAT_SLA_INVIS, eSLA_INVIS);
   dailyfeat(FEAT_SLA_LEVITATE, eSLA_LEVITATE);
   dailyfeat(FEAT_SLA_DARKNESS, eSLA_DARKNESS);
   dailyfeat(FEAT_SLA_FAERIE_FIRE, eSLA_FAERIE_FIRE);
   dailyfeat(FEAT_LAYHANDS, eLAYONHANDS);
+  dailyfeat(FEAT_LICH_TOUCH, eLICH_TOUCH);
+  dailyfeat(FEAT_LICH_REJUV, eLICH_REJUV);
+  dailyfeat(FEAT_LICH_FEAR, eLICH_FEAR);
   dailyfeat(FEAT_REMOVE_DISEASE, ePURIFY);
   dailyfeat(FEAT_RAGE, eRAGE);
   dailyfeat(FEAT_SACRED_FLAMES, eSACRED_FLAMES);
@@ -4043,7 +4078,8 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
       if (WARRIOR_LEVELS(ch) < prereq->values[1])
         return FALSE;
     }
-    else {
+    else
+    {
       if (CLASS_LEVEL(ch, prereq->values[0]) < prereq->values[1])
         return FALSE;
     }
@@ -4364,7 +4400,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (GET_LEVEL(ch) < (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_MAGIC) * 5))
         return FALSE;
-      if (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_MAGIC) >=3)
+      if (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_MAGIC) >= 3)
         return FALSE;
       return TRUE;
 
@@ -4373,7 +4409,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_PSIONICS) * 5))
         return FALSE;
-      if (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_PSIONICS) >=3)
+      if (HAS_REAL_FEAT(ch, FEAT_EMPOWERED_PSIONICS) >= 3)
         return FALSE;
       return TRUE;
 
@@ -4382,7 +4418,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (CASTER_LEVEL(ch) < (HAS_REAL_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE) * 5))
         return FALSE;
-      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE) >=3)
+      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_SPELL_DAMAGE) >= 3)
         return FALSE;
       return TRUE;
 
@@ -4391,7 +4427,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) * 5))
         return FALSE;
-      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) >=3)
+      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) >= 3)
         return FALSE;
       return TRUE;
 
@@ -4521,6 +4557,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
     case FEAT_REMOVE_DISEASE:
       if (CLASS_LEVEL(ch, CLASS_PALADIN) > 5)
+        return true;
+      return false;
+
+    case FEAT_LICH_TOUCH:
+      if (IS_LICH(ch))
+        return true;
+      return false;
+
+    case FEAT_LICH_REJUV:
+      if (IS_LICH(ch))
+        return true;
+      return false;
+
+    case FEAT_LICH_FEAR:
+      if (IS_LICH(ch))
         return true;
       return false;
 
@@ -4988,7 +5039,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
   int count = 0;
   int subfeat;
   int line_length = 80; /* Width of the display. */
-  //bool custom_output = FALSE;
+  // bool custom_output = FALSE;
 
   if (*arg && is_abbrev(arg, "descriptions"))
   {
@@ -5039,7 +5090,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
                 snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
               else
                 snprintf(buf, sizeof(buf), "%-40s ", buf3);
-              //custom_output = TRUE;
+              // custom_output = TRUE;
             }
             strlcat(buf2, buf, sizeof(buf2));
             none_shown = FALSE;
@@ -5078,7 +5129,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
                 snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
               else
                 snprintf(buf, sizeof(buf), "%-40s ", buf3);
-              //custom_output = TRUE;
+              // custom_output = TRUE;
             }
             strlcat(buf2, buf, sizeof(buf2));
             none_shown = FALSE;
@@ -5105,7 +5156,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
                 snprintf(buf, sizeof(buf), "%-40s\r\n", buf3);
               else
                 snprintf(buf, sizeof(buf), "%-40s ", buf3);
-              //custom_output = TRUE;
+              // custom_output = TRUE;
             }
             strlcat(buf2, buf, sizeof(buf2));
             none_shown = FALSE;
@@ -6107,7 +6158,7 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
 
       /*  If we are not in description mode, split the output up in columns. */
-      //if (!mode && !custom_output) {
+      // if (!mode && !custom_output) {
       if (!mode)
       {
         count++;
@@ -6331,14 +6382,14 @@ bool display_feat_info(struct char_data *ch, const char *featname)
   if (feat == -1 || feat_list[feat].in_game == FALSE)
   {
     /* Not found - Maybe put in a soundex list here? */
-    //send_to_char(ch, "Could not find that feat.\r\n");
+    // send_to_char(ch, "Could not find that feat.\r\n");
     return FALSE;
   }
 
   /* We found the feat, and the feat number is stored in 'feat'. */
   /* Display the feat info, formatted. */
   send_to_char(ch, "\tC\r\n");
-  //text_line(ch, "Feat Information", line_length, '-', '-');
+  // text_line(ch, "Feat Information", line_length, '-', '-');
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tcFeat    : \tn%s\r\n"
                    "\tcType    : \tn%s\r\n",
@@ -6358,10 +6409,10 @@ bool display_feat_info(struct char_data *ch, const char *featname)
     bool first = TRUE;
     struct feat_prerequisite *prereq;
 
-    /* Get the wielded weapon, so that we can use it for checking prerequesites. 
-     * Don't bother checking the offhand since we can only use one value.        
-     * Don't bother checking for special features like claws, since they can't 
-     *  be selected for feats. 
+    /* Get the wielded weapon, so that we can use it for checking prerequesites.
+     * Don't bother checking the offhand since we can only use one value.
+     * Don't bother checking for special features like claws, since they can't
+     *  be selected for feats.
      * DO bother checking if they don't have a weapon at all.
      */
     struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
@@ -6600,11 +6651,10 @@ bool valid_item_feat(int featnum)
     return false;
 
   if (feat_list[featnum].can_learn && feat_list[featnum].combat_feat == FALSE && feat_list[featnum].epic == FALSE &&
-            feat_list[featnum].in_game && feat_to_skfeat(featnum) == -1 &&
-            (feat_list[featnum].feat_type == FEAT_TYPE_COMBAT || feat_list[featnum].feat_type == FEAT_TYPE_CRAFT ||
-            feat_list[featnum].feat_type == FEAT_TYPE_GENERAL || feat_list[featnum].feat_type == FEAT_TYPE_METAMAGIC ||
-            feat_list[featnum].feat_type == FEAT_TYPE_SPELLCASTING)
-  )
+      feat_list[featnum].in_game && feat_to_skfeat(featnum) == -1 &&
+      (feat_list[featnum].feat_type == FEAT_TYPE_COMBAT || feat_list[featnum].feat_type == FEAT_TYPE_CRAFT ||
+       feat_list[featnum].feat_type == FEAT_TYPE_GENERAL || feat_list[featnum].feat_type == FEAT_TYPE_METAMAGIC ||
+       feat_list[featnum].feat_type == FEAT_TYPE_SPELLCASTING))
     return true;
 
   return false;

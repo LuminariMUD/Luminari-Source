@@ -222,15 +222,15 @@
 #define NUM_ZONE_FLAGS 12
 
 #define NUM_FEMALE_NAMES 110
-#define NUM_MALE_NAMES   110
-#define NUM_SURNAMES     210
+#define NUM_MALE_NAMES 110
+#define NUM_SURNAMES 210
 
 /* Exit info: used in room_data.dir_option.exit_info */
 #define EX_ISDOOR (1 << 0) /**< Exit is a door */
 #define EX_CLOSED (1 << 1) /**< The door is closed */
 #define EX_LOCKED (1 << 2)
 #define EX_PICKPROOF (1 << 3)     /**< Lock can't be picked */
-#define EX_HIDDEN  (1 << 4)   /**< Exit is hidden, easy difficulty to find. */
+#define EX_HIDDEN (1 << 4)        /**< Exit is hidden, easy difficulty to find. */
 #define EX_HIDDEN_MEDIUM (1 << 5) /**< Exit is hidden, medium difficulty to find. */
 #define EX_HIDDEN_HARD (1 << 6)   /**< Exit is hidden, hard difficulty to find. */
 #define EX_LOCKED_MEDIUM (1 << 7) /**< The door is locked, medium difficulty to pick. */
@@ -369,7 +369,7 @@
 #define CLASS_PSIONICIST 21
 #define CLASS_PSION CLASS_PSIONICIST
 #define CLASS_SPELLSWORD 22
-#define CLASS_SHADOW_DANCER     23
+#define CLASS_SHADOW_DANCER 23
 #define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
 #define CLASS_BLACKGUARD 24
 #define CLASS_ASSASSIN 25
@@ -575,11 +575,16 @@
 #define RACE_GRAY_DWARF RACE_DUERGAR
 #define RACE_DARK_DWARF RACE_DUERGAR
 #define RACE_DUERGAR_DWARF RACE_DUERGAR
-//NUM_RACES = last playable race +1, set below [12]
+
+/* last playable race above +1 */
+#define NUM_RACES 13
+
+#define RACE_LICH 13 /*quest only race*/
+
 /* coming soon!*/
-#define RACE_H_OGRE 13 // not yet implemented
+#define RACE_H_OGRE 14 // not yet implemented
 #define RACE_HALF_OGRE RACE_H_OGRE
-#define RACE_RAT 14
+
 #define RACE_HORSE 15
 #define RACE_HALF_DROW 16
 #define RACE_ROCK_GNOME 17
@@ -654,10 +659,10 @@
 #define RACE_RED_DRAGON 85
 #define RACE_MANTICORE 86
 #define RACE_EFREETI 87
+#define RACE_RAT 88
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_RACES 13
-#define NUM_EXTENDED_RACES 88
+#define NUM_EXTENDED_RACES 89
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -840,27 +845,27 @@
 #define MOB_UNUSED_24 61
 #define MOB_NOCONFUSE 62
 #define MOB_HUNTS_TARGET 63
-#define MOB_ABIL_GRAPPLE           64
-#define MOB_ABIL_PETRIFY           65
-#define MOB_ABIL_TAIL_SPIKES       66
-#define MOB_ABIL_LEVEL_DRAIN       67
-#define MOB_ABIL_CHARM             68
-#define MOB_ABIL_BLINK             69
-#define MOB_ABIL_ENGULF            70
-#define MOB_ABIL_CAUSE_FEAR        71
-#define MOB_ABIL_CORRUPTION        72
-#define MOB_ABIL_SWALLOW           73
-#define MOB_ABIL_FLIGHT            74
-#define MOB_ABIL_POISON            75
-#define MOB_ABIL_REGENERATION      76
-#define MOB_ABIL_PARALYZE          77
-#define MOB_ABIL_FIRE_BREATH       78
-#define MOB_ABIL_LIGHTNING_BREATH  79
-#define MOB_ABIL_POISON_BREATH     80
-#define MOB_ABIL_ACID_BREATH       81
-#define MOB_ABIL_FROST_BREATH      82
-#define MOB_ABIL_MAGIC_IMMUNITY    83
-#define MOB_ABIL_INVISIBILITY      84
+#define MOB_ABIL_GRAPPLE 64
+#define MOB_ABIL_PETRIFY 65
+#define MOB_ABIL_TAIL_SPIKES 66
+#define MOB_ABIL_LEVEL_DRAIN 67
+#define MOB_ABIL_CHARM 68
+#define MOB_ABIL_BLINK 69
+#define MOB_ABIL_ENGULF 70
+#define MOB_ABIL_CAUSE_FEAR 71
+#define MOB_ABIL_CORRUPTION 72
+#define MOB_ABIL_SWALLOW 73
+#define MOB_ABIL_FLIGHT 74
+#define MOB_ABIL_POISON 75
+#define MOB_ABIL_REGENERATION 76
+#define MOB_ABIL_PARALYZE 77
+#define MOB_ABIL_FIRE_BREATH 78
+#define MOB_ABIL_LIGHTNING_BREATH 79
+#define MOB_ABIL_POISON_BREATH 80
+#define MOB_ABIL_ACID_BREATH 81
+#define MOB_ABIL_FROST_BREATH 82
+#define MOB_ABIL_MAGIC_IMMUNITY 83
+#define MOB_ABIL_INVISIBILITY 84
 
 /**********************/
 #define NUM_MOB_FLAGS 85
@@ -877,64 +882,64 @@
 #define MOB_EPIC_PALADIN_MOUNT_SMALL 92
 
 /* Preference flags: used by char_data.player_specials.pref */
-#define PRF_BRIEF 0              /**< Room descs won't normally be shown */
-#define PRF_COMPACT 1            /**< No extra CRLF pair before prompts */
-#define PRF_NOSHOUT 2            /**< Can't hear shouts */
-#define PRF_NOTELL 3             /**< Can't receive tells */
-#define PRF_DISPHP 4             /**< Display hit points in prompt */
-#define PRF_DISPPSP 5            /**< Display psp points in prompt */
-#define PRF_DISPMOVE 6           /**< Display move points in prompt */
-#define PRF_AUTOEXIT 7           /**< Display exits in a room */
-#define PRF_NOHASSLE 8           /**< Aggr mobs won't attack */
-#define PRF_QUEST 9              /**< On quest */
-#define PRF_SUMMONABLE 10        /**< Can be summoned */
-#define PRF_NOREPEAT 11          /**< No repetition of comm commands */
-#define PRF_HOLYLIGHT 12         /**< Can see in dark */
-#define PRF_COLOR_1 13           /**< Color (low bit) */
-#define PRF_COLOR_2 14           /**< Color (high bit) */
-#define PRF_NOWIZ 15             /**< Can't hear wizline */
-#define PRF_LOG1 16              /**< On-line System Log (low bit) */
-#define PRF_LOG2 17              /**< On-line System Log (high bit) */
-#define PRF_NOAUCT 18            /**< Can't hear auction channel */
-#define PRF_NOGOSS 19            /**< Can't hear gossip channel */
-#define PRF_NOGRATZ 20           /**< Can't hear grats channel */
-#define PRF_SHOWVNUMS 21         /**< Can see VNUMs */
-#define PRF_DISPAUTO 22          /**< Show prompt HP, MP, MV when < 25% */
-#define PRF_CLS 23               /**< Clear screen in OLC */
-#define PRF_BUILDWALK 24         /**< Build new rooms while walking */
-#define PRF_AFK 25               /**< AFK flag */
-#define PRF_AUTOLOOT 26          /**< Loot everything from a corpse */
-#define PRF_AUTOGOLD 27          /**< Loot gold from a corpse */
-#define PRF_AUTOSPLIT 28         /**< Split gold with group */
-#define PRF_AUTOSAC 29           /**< Sacrifice a corpse */
-#define PRF_AUTOASSIST 30        /**< Auto-assist toggle */
-#define PRF_AUTOMAP 31           /**< Show map at the side of room descs */
-#define PRF_AUTOKEY 32           /**< Automatically unlock locked doors when opening */
-#define PRF_AUTODOOR 33          /**< Use the next available door */
-#define PRF_NOCLANTALK 34        /**< Don't show ALL clantalk channels (Imm-only) */
-#define PRF_AUTOSCAN 35          // automatically scan each step?
-#define PRF_DISPEXP 36           // autoprompt xp display
-#define PRF_DISPEXITS 37         // autoprompt exits display
-#define PRF_DISPROOM 38          // display room name and/or #
-#define PRF_DISPMEMTIME 39       // display memtimes
-#define PRF_DISPACTIONS 40       /**< action system display on prompt */
-#define PRF_AUTORELOAD 41        /**< Attempt to automatically reload weapon (xbow/slings) */
-#define PRF_COMBATROLL 42        /**< extra info during combat */
-#define PRF_GUI_MODE 43          /**< add special tags to code for MSDP GUI */
-#define PRF_NOHINT 44            /**< show in-game hints to newer players */
-#define PRF_AUTOCOLLECT 45       /**< collect ammo after combat automatically */
-#define PRF_RP 46                /**< Interested in Role-Playing! */
-#define PRF_AOE_BOMBS 47         /** Bombs will use splash damage instead of single target */
-#define PRF_FRIGHTENED 48        /* If set, victims of fear affects will flee */
-#define PRF_PVP 49               /* If set, will allow player vs. player combat against others also flagged */
-#define PRF_AUTOCON 50           /* autoconsider, shows level difference of mobs in look command */
-#define PRF_SMASH_DEFENSE 51     // stalwart defender level 10 ability
-#define PRF_DISPGOLD 52          // will show gold in prompt
-#define PRF_NO_CHARMIE_RESCUE 53 // charmie mobs won't rescue you
-#define PRF_SEEK_ENCOUNTERS 54 // will try to find random encounters in wilderness
-#define PRF_AVOID_ENCOUNTERS 55 // will try to avoid random encounters in wilderness
+#define PRF_BRIEF 0                   /**< Room descs won't normally be shown */
+#define PRF_COMPACT 1                 /**< No extra CRLF pair before prompts */
+#define PRF_NOSHOUT 2                 /**< Can't hear shouts */
+#define PRF_NOTELL 3                  /**< Can't receive tells */
+#define PRF_DISPHP 4                  /**< Display hit points in prompt */
+#define PRF_DISPPSP 5                 /**< Display psp points in prompt */
+#define PRF_DISPMOVE 6                /**< Display move points in prompt */
+#define PRF_AUTOEXIT 7                /**< Display exits in a room */
+#define PRF_NOHASSLE 8                /**< Aggr mobs won't attack */
+#define PRF_QUEST 9                   /**< On quest */
+#define PRF_SUMMONABLE 10             /**< Can be summoned */
+#define PRF_NOREPEAT 11               /**< No repetition of comm commands */
+#define PRF_HOLYLIGHT 12              /**< Can see in dark */
+#define PRF_COLOR_1 13                /**< Color (low bit) */
+#define PRF_COLOR_2 14                /**< Color (high bit) */
+#define PRF_NOWIZ 15                  /**< Can't hear wizline */
+#define PRF_LOG1 16                   /**< On-line System Log (low bit) */
+#define PRF_LOG2 17                   /**< On-line System Log (high bit) */
+#define PRF_NOAUCT 18                 /**< Can't hear auction channel */
+#define PRF_NOGOSS 19                 /**< Can't hear gossip channel */
+#define PRF_NOGRATZ 20                /**< Can't hear grats channel */
+#define PRF_SHOWVNUMS 21              /**< Can see VNUMs */
+#define PRF_DISPAUTO 22               /**< Show prompt HP, MP, MV when < 25% */
+#define PRF_CLS 23                    /**< Clear screen in OLC */
+#define PRF_BUILDWALK 24              /**< Build new rooms while walking */
+#define PRF_AFK 25                    /**< AFK flag */
+#define PRF_AUTOLOOT 26               /**< Loot everything from a corpse */
+#define PRF_AUTOGOLD 27               /**< Loot gold from a corpse */
+#define PRF_AUTOSPLIT 28              /**< Split gold with group */
+#define PRF_AUTOSAC 29                /**< Sacrifice a corpse */
+#define PRF_AUTOASSIST 30             /**< Auto-assist toggle */
+#define PRF_AUTOMAP 31                /**< Show map at the side of room descs */
+#define PRF_AUTOKEY 32                /**< Automatically unlock locked doors when opening */
+#define PRF_AUTODOOR 33               /**< Use the next available door */
+#define PRF_NOCLANTALK 34             /**< Don't show ALL clantalk channels (Imm-only) */
+#define PRF_AUTOSCAN 35               // automatically scan each step?
+#define PRF_DISPEXP 36                // autoprompt xp display
+#define PRF_DISPEXITS 37              // autoprompt exits display
+#define PRF_DISPROOM 38               // display room name and/or #
+#define PRF_DISPMEMTIME 39            // display memtimes
+#define PRF_DISPACTIONS 40            /**< action system display on prompt */
+#define PRF_AUTORELOAD 41             /**< Attempt to automatically reload weapon (xbow/slings) */
+#define PRF_COMBATROLL 42             /**< extra info during combat */
+#define PRF_GUI_MODE 43               /**< add special tags to code for MSDP GUI */
+#define PRF_NOHINT 44                 /**< show in-game hints to newer players */
+#define PRF_AUTOCOLLECT 45            /**< collect ammo after combat automatically */
+#define PRF_RP 46                     /**< Interested in Role-Playing! */
+#define PRF_AOE_BOMBS 47              /** Bombs will use splash damage instead of single target */
+#define PRF_FRIGHTENED 48             /* If set, victims of fear affects will flee */
+#define PRF_PVP 49                    /* If set, will allow player vs. player combat against others also flagged */
+#define PRF_AUTOCON 50                /* autoconsider, shows level difference of mobs in look command */
+#define PRF_SMASH_DEFENSE 51          // stalwart defender level 10 ability
+#define PRF_DISPGOLD 52               // will show gold in prompt
+#define PRF_NO_CHARMIE_RESCUE 53      // charmie mobs won't rescue you
+#define PRF_SEEK_ENCOUNTERS 54        // will try to find random encounters in wilderness
+#define PRF_AVOID_ENCOUNTERS 55       // will try to avoid random encounters in wilderness
 #define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
-#define PRF_DISPTIME 57           // shows game time in prompt
+#define PRF_DISPTIME 57               // shows game time in prompt
 
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS 58
@@ -1921,27 +1926,27 @@
 #define FEAT_PSIONICIST_7TH_CIRCLE 680
 #define FEAT_PSIONICIST_8TH_CIRCLE 681
 #define FEAT_PSIONICIST_9TH_CIRCLE 682
-#define FEAT_ALIGNED_ATTACK_GOOD   683
-#define FEAT_ALIGNED_ATTACK_EVIL   684
-#define FEAT_ALIGNED_ATTACK_CHAOS  685
-#define FEAT_ALIGNED_ATTACK_LAW    686
-#define FEAT_COMBAT_MANIFESTATION  687
-#define FEAT_CRITICAL_FOCUS        688
-#define FEAT_ELEMENTAL_FOCUS_FIRE  689
-#define FEAT_ELEMENTAL_FOCUS_ACID  690
+#define FEAT_ALIGNED_ATTACK_GOOD 683
+#define FEAT_ALIGNED_ATTACK_EVIL 684
+#define FEAT_ALIGNED_ATTACK_CHAOS 685
+#define FEAT_ALIGNED_ATTACK_LAW 686
+#define FEAT_COMBAT_MANIFESTATION 687
+#define FEAT_CRITICAL_FOCUS 688
+#define FEAT_ELEMENTAL_FOCUS_FIRE 689
+#define FEAT_ELEMENTAL_FOCUS_ACID 690
 #define FEAT_ELEMENTAL_FOCUS_SOUND 691
 #define FEAT_ELEMENTAL_FOCUS_ELECTRICITY 692
-#define FEAT_ELEMENTAL_FOCUS_COLD  693
-#define FEAT_POWER_PENETRATION     694
+#define FEAT_ELEMENTAL_FOCUS_COLD 693
+#define FEAT_POWER_PENETRATION 694
 #define FEAT_GREATER_POWER_PENETRATION 695
-#define FEAT_QUICK_MIND            696
-#define FEAT_PSIONIC_RECOVERY      697
+#define FEAT_QUICK_MIND 696
+#define FEAT_PSIONIC_RECOVERY 697
 #define FEAT_PROFICIENT_PSIONICIST 698
 #define FEAT_ENHANCED_POWER_DAMAGE 699
-#define FEAT_EXPANDED_KNOWLEDGE    700
-#define FEAT_PSIONIC_ENDOWMENT     701
-#define FEAT_PSIONIC_FOCUS         702
-#define FEAT_EMPOWERED_PSIONICS    703
+#define FEAT_EXPANDED_KNOWLEDGE 700
+#define FEAT_PSIONIC_ENDOWMENT 701
+#define FEAT_PSIONIC_FOCUS 702
+#define FEAT_EMPOWERED_PSIONICS 703
 #define FEAT_EPIC_POWER_PENETRATION 704
 #define FEAT_BREACH_POWER_RESISTANCE 705
 #define FEAT_DOUBLE_MANIFEST 706
@@ -1950,8 +1955,8 @@
 #define FEAT_EXPERT_AUGMENTING 709
 #define FEAT_MASTER_AUGMENTING 710
 #define FEAT_SHADOW_ILLUSION 711
-#define FEAT_SUMMON_SHADOW  712
-#define FEAT_SHADOW_CALL   713
+#define FEAT_SUMMON_SHADOW 712
+#define FEAT_SHADOW_CALL 713
 #define FEAT_SHADOW_JUMP 714
 #define FEAT_SHADOW_POWER 715
 #define FEAT_SHADOW_MASTER 716
@@ -1991,12 +1996,22 @@
 #define FEAT_WEAPON_PROFICIENCY_ASSASSIN 800
 #define FEAT_HIDDEN_WEAPONS 801
 #define FEAT_TRUE_DEATH 802
+/*lich*/
+#define FEAT_LICH_RACIAL_ADJUSTMENT 803 //lich
+#define FEAT_LICH_SPELL_RESIST 804      //lich
+#define FEAT_LICH_DAM_RESIST 805        //lich
+#define FEAT_LICH_TOUCH 806             //lich
+#define FEAT_LICH_REJUV 807             //lich
+#define FEAT_LICH_FEAR 808              //lich
+/******/
+#define FEAT_ELECTRIC_IMMUNITY 809
+#define FEAT_COLD_IMMUNITY 810
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 803
+#define FEAT_LAST_FEAT 811
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 804
+#define NUM_FEATS 812
 /** absolute cap **/
 #define MAX_FEATS 1000
 /*****/
@@ -2008,65 +2023,63 @@
 #define NUM_GR_ALC_DISCOVERIES 5
 
 // Paladin Mercies
-#define PALADIN_MERCY_NONE          0
-#define PALADIN_MERCY_DECEIVED      1
-#define PALADIN_MERCY_FATIGUED      2
-#define PALADIN_MERCY_SHAKEN        3
-#define PALADIN_MERCY_DAZED         4
-#define PALADIN_MERCY_ENFEEBLED     5
-#define PALADIN_MERCY_STAGGERED     6
-#define PALADIN_MERCY_CONFUSED      7
-#define PALADIN_MERCY_CURSED        8
-#define PALADIN_MERCY_FRIGHTENED    9
-#define PALADIN_MERCY_INJURED       10
-#define PALADIN_MERCY_NAUSEATED     11
-#define PALADIN_MERCY_POISONED      12
-#define PALADIN_MERCY_BLINDED       13
-#define PALADIN_MERCY_DEAFENED      14
-#define PALADIN_MERCY_ENSORCELLED   15
-#define PALADIN_MERCY_PARALYZED     16
-#define PALADIN_MERCY_STUNNED       17
+#define PALADIN_MERCY_NONE 0
+#define PALADIN_MERCY_DECEIVED 1
+#define PALADIN_MERCY_FATIGUED 2
+#define PALADIN_MERCY_SHAKEN 3
+#define PALADIN_MERCY_DAZED 4
+#define PALADIN_MERCY_ENFEEBLED 5
+#define PALADIN_MERCY_STAGGERED 6
+#define PALADIN_MERCY_CONFUSED 7
+#define PALADIN_MERCY_CURSED 8
+#define PALADIN_MERCY_FRIGHTENED 9
+#define PALADIN_MERCY_INJURED 10
+#define PALADIN_MERCY_NAUSEATED 11
+#define PALADIN_MERCY_POISONED 12
+#define PALADIN_MERCY_BLINDED 13
+#define PALADIN_MERCY_DEAFENED 14
+#define PALADIN_MERCY_ENSORCELLED 15
+#define PALADIN_MERCY_PARALYZED 16
+#define PALADIN_MERCY_STUNNED 17
 
-#define NUM_PALADIN_MERCIES         18
-
+#define NUM_PALADIN_MERCIES 18
 
 // Blackguard Cruelties
-#define BLACKGUARD_CRUELTY_NONE         0
-#define BLACKGUARD_CRUELTY_FATIGUED     1
-#define BLACKGUARD_CRUELTY_SHAKEN       2
-#define BLACKGUARD_CRUELTY_SICKENED     3
-#define BLACKGUARD_CRUELTY_DAZED        4
-#define BLACKGUARD_CRUELTY_DISEASED     5
-#define BLACKGUARD_CRUELTY_STAGGERED    6
-#define BLACKGUARD_CRUELTY_CURSED       7
-#define BLACKGUARD_CRUELTY_FRIGHTENED   8
-#define BLACKGUARD_CRUELTY_NAUSEATED    9
-#define BLACKGUARD_CRUELTY_POISONED     10
-#define BLACKGUARD_CRUELTY_BLINDED      11
-#define BLACKGUARD_CRUELTY_DEAFENED     12
-#define BLACKGUARD_CRUELTY_PARALYZED    13
-#define BLACKGUARD_CRUELTY_STUNNED      14
+#define BLACKGUARD_CRUELTY_NONE 0
+#define BLACKGUARD_CRUELTY_FATIGUED 1
+#define BLACKGUARD_CRUELTY_SHAKEN 2
+#define BLACKGUARD_CRUELTY_SICKENED 3
+#define BLACKGUARD_CRUELTY_DAZED 4
+#define BLACKGUARD_CRUELTY_DISEASED 5
+#define BLACKGUARD_CRUELTY_STAGGERED 6
+#define BLACKGUARD_CRUELTY_CURSED 7
+#define BLACKGUARD_CRUELTY_FRIGHTENED 8
+#define BLACKGUARD_CRUELTY_NAUSEATED 9
+#define BLACKGUARD_CRUELTY_POISONED 10
+#define BLACKGUARD_CRUELTY_BLINDED 11
+#define BLACKGUARD_CRUELTY_DEAFENED 12
+#define BLACKGUARD_CRUELTY_PARALYZED 13
+#define BLACKGUARD_CRUELTY_STUNNED 14
 
-#define NUM_BLACKGUARD_CRUELTIES        15
+#define NUM_BLACKGUARD_CRUELTIES 15
 
 // Blackguard fiendish boons
-#define FIENDISH_BOON_NONE              0
-#define FIENDISH_BOON_FLAMING           1
-#define FIENDISH_BOON_KEEN              2
-#define FIENDISH_BOON_VICIOUS           3
-#define FIENDISH_BOON_ANARCHIC          4
-#define FIENDISH_BOON_FLAMING_BURST     5
-#define FIENDISH_BOON_UNHOLY            6
-#define FIENDISH_BOON_WOUNDING          7
-#define FIENDISH_BOON_SPEED             8
-#define FIENDISH_BOON_VORPAL            9
+#define FIENDISH_BOON_NONE 0
+#define FIENDISH_BOON_FLAMING 1
+#define FIENDISH_BOON_KEEN 2
+#define FIENDISH_BOON_VICIOUS 3
+#define FIENDISH_BOON_ANARCHIC 4
+#define FIENDISH_BOON_FLAMING_BURST 5
+#define FIENDISH_BOON_UNHOLY 6
+#define FIENDISH_BOON_WOUNDING 7
+#define FIENDISH_BOON_SPEED 8
+#define FIENDISH_BOON_VORPAL 9
 
-#define NUM_FIENDISH_BOONS              10
+#define NUM_FIENDISH_BOONS 10
 
-#define CHANNEL_ENERGY_TYPE_NONE        0
-#define CHANNEL_ENERGY_TYPE_POSITIVE    1
-#define CHANNEL_ENERGY_TYPE_NEGATIVE    2
-
+#define CHANNEL_ENERGY_TYPE_NONE 0
+#define CHANNEL_ENERGY_TYPE_POSITIVE 1
+#define CHANNEL_ENERGY_TYPE_NEGATIVE 2
 
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL 0
@@ -2193,17 +2206,17 @@
 #define NUM_LOOTBOX_TYPES 8
 /******/
 
-#define OUTFIT_TYPE_WEAPON          1
-#define OUTFIT_TYPE_ARMOR_SET       2
+#define OUTFIT_TYPE_WEAPON 1
+#define OUTFIT_TYPE_ARMOR_SET 2
 
-#define NUM_OUTFIT_TYPES            2
+#define NUM_OUTFIT_TYPES 2
 
-#define OUTFIT_VAL_TYPE             0
-#define OUTFIT_VAL_BONUS            1
-#define OUTFIT_VAL_MATERIAL         2
-#define OUTFIT_VAL_APPLY_LOC        3
-#define OUTFIT_VAL_APPLY_MOD        4
-#define OUTFIT_VAL_APPLY_BONUS      5
+#define OUTFIT_VAL_TYPE 0
+#define OUTFIT_VAL_BONUS 1
+#define OUTFIT_VAL_MATERIAL 2
+#define OUTFIT_VAL_APPLY_LOC 3
+#define OUTFIT_VAL_APPLY_MOD 4
+#define OUTFIT_VAL_APPLY_BONUS 5
 
 /* Item profs: used by obj_data.obj_flags.prof_flag
  * constants.c = item_profs */
@@ -2393,7 +2406,7 @@
 #define ITEM_REQ_MONK 66
 #define ITEM_REQ_DRUID 67
 #define ITEM_REQ_BERSERKER 68
-#define ITEM_REQ_SORCERER 69 
+#define ITEM_REQ_SORCERER 69
 #define ITEM_REQ_PALADIN 70
 #define ITEM_REQ_RANGER 71
 #define ITEM_REQ_BARD 72
@@ -2416,9 +2429,10 @@
 #define ITEM_ANTI_ARCANE_SHADOW 89
 #define ITEM_ANTI_SACRED_FIST 90
 #define ITEM_ANTI_ELDRITCH_KNIGHT 91
-#define ITEM_SHOCK 92 // for shocking weapons
+#define ITEM_SHOCK 92     // for shocking weapons
+#define ITEM_ANTI_LICH 93 /* Not usable by lich */
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 93
+#define NUM_ITEM_FLAGS 94
 
 /* homeland-port */
 /*
@@ -3222,16 +3236,16 @@ struct obj_affected_type
     byte location;  /**< Which ability to change (APPLY_XXX) */
     int modifier;   /**< How much it changes by              */
     int bonus_type; /**< What type of bonus is this. */
-    int specific; // for feats and skills
+    int specific;   // for feats and skills
 };
 
 /* For weapon spells. */
 struct weapon_spells
 {
-    int spellnum; // spellnum weapon will cast
-    int level;    // level at which it will cast spellnum
-    int percent;  // chance spellnum will fire per round
-    int inCombat; // will spellnum fire only in combat?
+    int spellnum;  // spellnum weapon will cast
+    int level;     // level at which it will cast spellnum
+    int percent;   // chance spellnum will fire per round
+    int inCombat;  // will spellnum fire only in combat?
     int uses_left; // If it'd a temporary effect, this is the number of uses left
 };
 
@@ -3630,7 +3644,7 @@ struct char_special_data
     struct char_data *grapple_target;   /**< Target of grapple attempt; else NULL */
     struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 
-    bool energy_retort_used;            // used with energy retort ability, which only fires once per round.
+    bool energy_retort_used; // used with energy retort ability, which only fires once per round.
 };
 
 /* old memorization struct */
@@ -3682,7 +3696,7 @@ struct innate_magic_data
 struct player_special_data_saved
 {
     int skills[MAX_SKILLS + 1];         //saved skills
-    int spells[MAX_SPELLS];                   //saved spells, should be MAX_SPELLS + 1 from spells.h
+    int spells[MAX_SPELLS];             //saved spells, should be MAX_SPELLS + 1 from spells.h
     ubyte abilities[MAX_ABILITIES + 1]; //abilities
 
     /* Feats */
@@ -3817,19 +3831,19 @@ struct player_special_data_saved
     int incorporeal_form_uses;
     int incorporeal_form_timer;
 
-    int psionic_energy_type;        // this is the element that will be used when using psionic energy powers
+    int psionic_energy_type; // this is the element that will be used when using psionic energy powers
 
-    int potions[MAX_SPELLS];        // used in new consumables system store/unstore/quaff
-    int scrolls[MAX_SPELLS];        // used in new consumables system store/unstore/recite
-    int wands[MAX_SPELLS];          // used in new consumables system store/unstore/use
-    int staves[MAX_SPELLS];         // used in new consumables system store/unstore/use
+    int potions[MAX_SPELLS]; // used in new consumables system store/unstore/quaff
+    int scrolls[MAX_SPELLS]; // used in new consumables system store/unstore/recite
+    int wands[MAX_SPELLS];   // used in new consumables system store/unstore/use
+    int staves[MAX_SPELLS];  // used in new consumables system store/unstore/use
 
-    int holy_weapon_type;           // type of weapon to use withn holy weapon spell, also known as holy sword spell
-    int paladin_mercies[NUM_PALADIN_MERCIES]; // stores a paladin's mercies known
+    int holy_weapon_type;                               // type of weapon to use withn holy weapon spell, also known as holy sword spell
+    int paladin_mercies[NUM_PALADIN_MERCIES];           // stores a paladin's mercies known
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
-    int fiendish_boons;             // active fiendish boons by blackguard
-    int channel_energy_type;        // neutral clerics must decide either positive or negative
-    int deity;                      // what deity does the person follow?
+    int fiendish_boons;                                 // active fiendish boons by blackguard
+    int channel_energy_type;                            // neutral clerics must decide either positive or negative
+    int deity;                                          // what deity does the person follow?
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3867,22 +3881,22 @@ struct player_special_data
     char *new_mail_subject;
     char *new_mail_content;
     byte has_eldritch_knight_spell_critical;
-    int destination;            // used for carriage and airship systems
-    int travel_timer;           // used for carriage and airship systems
-    int travel_type;            // used for carriage and airship systems
-    int travel_locale;          // used for carriage and airship systems
-    int bane_race;              // used in applyoil command to create a proper bane weapon
-    int bane_subrace;           // used in applyoil command to create a proper bane weapon
-    int augment_psp;            // used when augmenting psionic powers
-    int temp_attack_roll_bonus; // used when needing to add to an attack roll from outside, and before calling the attack_roll function
-    int dam_co_holder_ndice;    // a holder for number of damage dice for psionic_concussive_onslaught
-    int dam_co_holder_sdice;    // a holder for size of damage dice for psionic_concussive_onslaught
-    int dam_co_holder_bonus;    // a holder for bonus to damage for psionic_concussive_onslaught
-    int save_co_holder_dc_bonus;// a holder for bonus to save dc for psionic_concussive_onslaught
-    bool cosmic_awareness;      // cosmic awareness psionic power and command
+    int destination;                      // used for carriage and airship systems
+    int travel_timer;                     // used for carriage and airship systems
+    int travel_type;                      // used for carriage and airship systems
+    int travel_locale;                    // used for carriage and airship systems
+    int bane_race;                        // used in applyoil command to create a proper bane weapon
+    int bane_subrace;                     // used in applyoil command to create a proper bane weapon
+    int augment_psp;                      // used when augmenting psionic powers
+    int temp_attack_roll_bonus;           // used when needing to add to an attack roll from outside, and before calling the attack_roll function
+    int dam_co_holder_ndice;              // a holder for number of damage dice for psionic_concussive_onslaught
+    int dam_co_holder_sdice;              // a holder for size of damage dice for psionic_concussive_onslaught
+    int dam_co_holder_bonus;              // a holder for bonus to damage for psionic_concussive_onslaught
+    int save_co_holder_dc_bonus;          // a holder for bonus to save dc for psionic_concussive_onslaught
+    bool cosmic_awareness;                // cosmic awareness psionic power and command
     int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
 
-    int casting_class;          // The class number that is currently casting a spell
+    int casting_class; // The class number that is currently casting a spell
 
     int concussive_onslaught_duration;
     bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt
@@ -3891,8 +3905,8 @@ struct player_special_data
     char *outfit_desc;
     char *outfit_confirmation;
 
-    short mark_rounds;              // number of rounds a character has marked their opponent for
-    struct char_data *mark_target;  // person the character is marking for assassination
+    short mark_rounds;             // number of rounds a character has marked their opponent for
+    struct char_data *mark_target; // person the character is marking for assassination
     int death_attack_hit_bonus;
     int death_attack_dam_bonus;
     room_vnum walkto_location;
@@ -3926,16 +3940,15 @@ struct mob_special_data
     /* a (generally) boolean macro that marks whether a proc fired, general use is
        for zone-procs */
     int proc_fired;
-    room_rnum temp_room_data; /* for homeland, for storing temporary room data */
-    bool hostile;   // used for encounters, hostile mobs will aggro after a timer
-    bool sentient;  // used for encounters, sentient mobs can be bribeed, intimidated, bluffed, etc.
-    int aggro_timer; // used for encounters, this timer will start for hostile mobs, after which the aggro flag will be applied
-    int extract_timer; // used for encounters.  This timer is set when the player(s) leave the room.  When timer ends, mob will be extracted
-    int peaceful_timer; // used for encounter. While active hostile encounters are suspended, and the player(s) can leave the room
+    room_rnum temp_room_data;   /* for homeland, for storing temporary room data */
+    bool hostile;               // used for encounters, hostile mobs will aggro after a timer
+    bool sentient;              // used for encounters, sentient mobs can be bribeed, intimidated, bluffed, etc.
+    int aggro_timer;            // used for encounters, this timer will start for hostile mobs, after which the aggro flag will be applied
+    int extract_timer;          // used for encounters.  This timer is set when the player(s) leave the room.  When timer ends, mob will be extracted
+    int peaceful_timer;         // used for encounter. While active hostile encounters are suspended, and the player(s) can leave the room
     bool coersion_attempted[5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
-    int hunt_type; // for hunts, used to track which hunt entry it is on the huhnt table
-    int hunt_cooldown; // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
-    
+    int hunt_type;              // for hunts, used to track which hunt entry it is on the huhnt table
+    int hunt_cooldown;          // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
 };
 
 /** An affect structure. */
@@ -4410,11 +4423,11 @@ struct game_data
 // automatic hour happy info saved in game config, cedit
 struct happy_hour_data
 {
-    int qp;         // percent increase in number of qp
-    int exp;        // percent increase in exp
-    int gold;       // percent increase in gold
-    int treasure;   // percent increase in random treasure chance
-    int chance;     // percent chance the happy hour will occur each rl hour
+    int qp;       // percent increase in number of qp
+    int exp;      // percent increase in exp
+    int gold;     // percent increase in gold
+    int treasure; // percent increase in random treasure chance
+    int chance;   // percent chance the happy hour will occur each rl hour
 };
 
 /** The rent and crashsave options. */
@@ -4433,12 +4446,13 @@ struct crash_save_data
  * numbers. */
 struct room_numbers
 {
-    room_vnum mortal_start_room; /**< vnum of room that mortals enter at.  */
-    room_vnum immort_start_room; /**< vnum of room that immorts enter at.  */
-    room_vnum frozen_start_room; /**< vnum of room that frozen ppl enter.  */
-    room_vnum donation_room_1;   /**< vnum of donation room #1.            */
-    room_vnum donation_room_2;   /**< vnum of donation room #2.            */
-    room_vnum donation_room_3;   /**< vnum of donation room #3.            */
+    room_vnum mortal_start_room;  /**< vnum of room that mortals enter at.  */
+    room_vnum mortal_start_room2; /**< vnum of room that mortals enter at.  */
+    room_vnum immort_start_room;  /**< vnum of room that immorts enter at.  */
+    room_vnum frozen_start_room;  /**< vnum of room that frozen ppl enter.  */
+    room_vnum donation_room_1;    /**< vnum of donation room #1.            */
+    room_vnum donation_room_2;    /**< vnum of donation room #2.            */
+    room_vnum donation_room_3;    /**< vnum of donation room #3.            */
 };
 
 /** Operational game variables. */

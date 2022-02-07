@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Account System, Inspired by D20mud's Account System                                                           
-/  Created By: Ornir                                                           
-\                                                             
-/  using act.h as the header file currently                                                           
-\         todo: move header stuff into account.h                                                   
-/                                                                                                                                                                                       
+\
+/  Luminari Account System, Inspired by D20mud's Account System
+/  Created By: Ornir
+\
+/  using act.h as the header file currently
+\         todo: move header stuff into account.h
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
@@ -52,6 +52,7 @@ static const int locked_races_cost[NUM_RACES] = {
     1000,  /*arcana golem (advanced)*/
     1000,  /*drow (advanced)*/
     1000,  /*duergar (advanced)*/
+           // 999999999999, /*lich*/
 };
 
 const bool locked_races[NUM_RACES] = {
@@ -68,11 +69,12 @@ const bool locked_races[NUM_RACES] = {
     Y, /*arcana golem (advanced)*/
     Y, /*drow (advanced)*/
     Y, /*duergar (advanced)*/
+       // Y, /*lich*/
 };
 
 int has_unlocked_race(struct char_data *ch, int race)
 {
-  if (!ch || !ch->desc || !ch->desc->account)
+  if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH)
     return FALSE;
 
   if (!locked_races[race])

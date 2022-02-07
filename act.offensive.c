@@ -334,7 +334,7 @@ void perform_rage(struct char_data *ch)
   af[2].modifier = bonus;
   af[2].bonus_type = BONUS_TYPE_MORALE;
 
-  //this is a penalty
+  // this is a penalty
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = -2;
 
@@ -622,10 +622,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     attack_check = GET_DEX_BONUS(ch);
     // whips give a +5 bonus to the check
     if ((GET_EQ(ch, WEAR_WIELD_1) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_1)) == WEAPON_TYPE_WHIP) ||
-      (GET_EQ(ch, WEAR_WIELD_2H) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
-      (GET_EQ(ch, WEAR_WIELD_OFFHAND) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
+        (GET_EQ(ch, WEAR_WIELD_2H) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
+        (GET_EQ(ch, WEAR_WIELD_OFFHAND) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
     {
-      attack_check += 5;  
+      attack_check += 5;
     }
     if (is_flying(vict))
     {
@@ -1139,7 +1139,8 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
 
 void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
 {
-  if (!ch || !vict) return;
+  if (!ch || !vict)
+    return;
 
   struct affected_type *af = NULL;
   struct affected_type af2;
@@ -1156,7 +1157,7 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
     {
       event_cancel_specific(ch, eTAUNTED);
       send_to_char(ch, "You are no longer feeliong taunted.\r\n");
-    }      
+    }
   }
 
   if (KNOWS_MERCY(ch, PALADIN_MERCY_FATIGUED))
@@ -1258,7 +1259,7 @@ void apply_paladin_mercies(struct char_data *ch, struct char_data *vict)
   }
 
   // this goes last so that all of the above mercies take precedent and
-  // don't have their usefuless reduced by the ensorcelled mercy 
+  // don't have their usefuless reduced by the ensorcelled mercy
   if (KNOWS_MERCY(ch, PALADIN_MERCY_ENSORCELLED))
   {
     for (af = vict->affected; af; af = af->next)
@@ -1575,7 +1576,7 @@ void perform_assist(struct char_data *ch, struct char_data *helpee)
     act("$n assists $N.", FALSE, ch, 0, helpee, TO_NOTVICT);
     set_fighting(ch, opponent);
 
-    //hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    // hit(ch, opponent, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
   }
 }
 
@@ -1685,9 +1686,9 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
   bool make_aware = FALSE;
 
   if (AFF_FLAGGED(ch, AFF_HIDE))
-    prob += 1; //minor bonus for being hidden
+    prob += 1; // minor bonus for being hidden
   if (AFF_FLAGGED(ch, AFF_SNEAK))
-    prob += 1; //minor bonus for being sneaky
+    prob += 1; // minor bonus for being sneaky
 
   if (HAS_FEAT(ch, FEAT_BACKSTAB))
     prob += 4;
@@ -2065,9 +2066,10 @@ ACMDU(do_channelenergy)
 
   if (IS_NEUTRAL(ch) && ch->player_specials->saved.channel_energy_type == CHANNEL_ENERGY_TYPE_NONE)
   {
-    if (!*argument ) {
+    if (!*argument)
+    {
       send_to_char(ch, "As a neutral cleric you need to devote yourself to positive or negative energy.\r\n"
-                      "This can only be changed with a respec. Ie. 'channel positive|negative'.\r\n");
+                       "This can only be changed with a respec. Ie. 'channel positive|negative'.\r\n");
       return;
     }
     if (is_abbrev(argument, "positive"))
@@ -2085,7 +2087,7 @@ ACMDU(do_channelenergy)
     else
     {
       send_to_char(ch, "As a neutral cleric you need to devote yourself to positive or negative energy.\r\n"
-                      "This can only be changed with a respec. Ie. 'channel positive|negative'.\r\n");
+                       "This can only be changed with a respec. Ie. 'channel positive|negative'.\r\n");
       return;
     }
   }
@@ -2355,7 +2357,7 @@ ACMD(do_rage)
   }
 
   /* bonus hp from the rage */
-  //GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
+  // GET_HIT(ch) += bonus * GET_LEVEL(ch) + GET_CON_BONUS(ch) + 1;
   save_char(ch, 0); /* this is redundant but doing it for dummy sakes */
 
   return;
@@ -2835,7 +2837,7 @@ ACMD(do_flee)
       send_to_char(ch, "You don't have the option to choose which way to flee!\r\n");
       return;
     }
-    //actually direction?
+    // actually direction?
     if ((i = search_block(arg, dirs, FALSE)) >= 0)
     {
       if (CAN_GO(ch, i))
@@ -2910,16 +2912,19 @@ int perform_taunt(struct char_data *ch, struct char_data *vict)
   int success = 0;
 
   /* we started with base roll and defense in the variable declaration */
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch))
+  {
     if (affected_by_spell(ch, SPELL_HONEYED_TONGUE))
     {
       attempt = MAX(attempt, d20(ch));
     }
     attempt += compute_ability(ch, ABILITY_DIPLOMACY);
-  } else {
+  }
+  else
+  {
     attempt += GET_LEVEL(ch);
   }
-    attempt += GET_LEVEL(ch);
+  attempt += GET_LEVEL(ch);
   if (!IS_NPC(vict))
     resist += compute_ability(vict, ABILITY_CONCENTRATION);
   else
@@ -3127,6 +3132,7 @@ ACMD(do_intimidate)
       return;
     }
   }
+
   if (vict == ch)
   {
     send_to_char(ch, "Aren't we funny today...\r\n");
@@ -3402,7 +3408,7 @@ ACMD(do_breathe)
       }
       else
       {
-          damage(ch, vict, dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
+        damage(ch, vict, dam, SPELL_FIRE_BREATHE, DAM_FIRE, FALSE);
       }
     }
   }
@@ -4206,11 +4212,11 @@ ACMDCHECK(can_fey_magic)
   return CAN_CMD;
 }
 
-#define FEY_MAGIC_NO_ARG  "Please specify one of the following fey magic options:\r\n" \
-                          "laughing-touch  : sorcerer lvl 1  - causes target to lose their standard action for 1 round.\r\n" \
-                          "fleeting-glance : sorcerer lvl 9  - casts greater invisibility.\r\n" \
-                          "shadow-walk     : sorcerer lvl 20 - casts shadow walk.\r\n" \
-                          "\r\n"
+#define FEY_MAGIC_NO_ARG "Please specify one of the following fey magic options:\r\n"                                       \
+                         "laughing-touch  : sorcerer lvl 1  - causes target to lose their standard action for 1 round.\r\n" \
+                         "fleeting-glance : sorcerer lvl 9  - casts greater invisibility.\r\n"                              \
+                         "shadow-walk     : sorcerer lvl 20 - casts shadow walk.\r\n"                                       \
+                         "\r\n"
 
 ACMD(do_fey_magic)
 {
@@ -4248,7 +4254,9 @@ ACMD(do_fey_magic)
           return;
         }
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "NPCs cannot use laughing touch.\r\n");
       return;
     }
@@ -4258,7 +4266,7 @@ ACMD(do_fey_magic)
       send_to_char(ch, "You need to specify a target for your laughing touch.\r\n");
       return;
     }
-    
+
     struct char_data *victim = get_char_room_vis(ch, arg2, NULL);
 
     if (!victim)
@@ -4276,14 +4284,15 @@ ACMD(do_fey_magic)
     act("You touch $N, who bursts into uncontrolable laughter.", false, ch, 0, victim, TO_CHAR);
     act("$n touches you causing you to burst into uncontrolable laughter.", false, ch, 0, victim, TO_VICT);
     act("$n touches $N, who bursts into uncontrolable laughter.", false, ch, 0, victim, TO_NOTVICT);
-    
+
     call_magic(ch, ch, NULL, SPELL_HIDEOUS_LAUGHTER, 0, compute_arcane_level(ch), CAST_INNATE);
 
     USE_STANDARD_ACTION(victim);
 
     if (LAUGHING_TOUCH_TIMER(ch) <= 0)
-        LAUGHING_TOUCH_TIMER(ch) = 150;
-      LAUGHING_TOUCH_USES(ch)--;
+      LAUGHING_TOUCH_TIMER(ch) = 150;
+    LAUGHING_TOUCH_USES(ch)
+    --;
     return; // end laughing touch
   }
   else if (is_abbrev(arg1, "fleeting-glance"))
@@ -4309,7 +4318,9 @@ ACMD(do_fey_magic)
           return;
         }
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "NPCs cannot use fleeting glance.\r\n");
       return;
     }
@@ -4321,10 +4332,10 @@ ACMD(do_fey_magic)
 
     if (FLEETING_GLANCE_TIMER(ch) <= 0)
       FLEETING_GLANCE_TIMER(ch) = 150;
-    FLEETING_GLANCE_USES(ch)--;
+    FLEETING_GLANCE_USES(ch)
+    --;
 
     return; // end fleeting glance
-
   }
   else if (is_abbrev(arg1, "shadow-walk"))
   {
@@ -4349,7 +4360,9 @@ ACMD(do_fey_magic)
           return;
         }
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "NPCs cannot use fey shadow walk.\r\n");
       return;
     }
@@ -4361,7 +4374,8 @@ ACMD(do_fey_magic)
 
     if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
       FEY_SHADOW_WALK_TIMER(ch) = 150;
-    FEY_SHADOW_WALK_USES(ch)--;
+    FEY_SHADOW_WALK_USES(ch)
+    --;
 
     return; // end shadow walk
   }
@@ -4378,11 +4392,11 @@ ACMDCHECK(can_grave_magic)
   return CAN_CMD;
 }
 
-#define GRAVE_MAGIC_NO_ARG  "Please specify one of the following fey magic options:\r\n" \
-                            "touch            : sorcerer lvl 1  - causes target to become shaken.\r\n" \
-                            "grasp            : sorcerer lvl 9  - deals AoE slashing damage.\r\n" \
-                            "incorporeal-form : sorcerer lvl 15 - become incorporeal, reduced damage from physical attacks.\r\n" \
-                            "\r\n"
+#define GRAVE_MAGIC_NO_ARG "Please specify one of the following fey magic options:\r\n"                                         \
+                           "touch            : sorcerer lvl 1  - causes target to become shaken.\r\n"                           \
+                           "grasp            : sorcerer lvl 9  - deals AoE slashing damage.\r\n"                                \
+                           "incorporeal-form : sorcerer lvl 15 - become incorporeal, reduced damage from physical attacks.\r\n" \
+                           "\r\n"
 
 ACMD(do_grave_magic)
 {
@@ -4420,7 +4434,9 @@ ACMD(do_grave_magic)
           return;
         }
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "NPCs cannot use grave touch.\r\n");
       return;
     }
@@ -4438,7 +4454,9 @@ ACMD(do_grave_magic)
         send_to_char(ch, "You need to specify a target for your grave touch.\r\n");
         return;
       }
-    } else {
+    }
+    else
+    {
       victim = get_char_room_vis(ch, arg2, NULL);
     }
 
@@ -4488,8 +4506,9 @@ ACMD(do_grave_magic)
     }
 
     if (GRAVE_TOUCH_TIMER(ch) <= 0)
-        GRAVE_TOUCH_TIMER(ch) = 150;
-      GRAVE_TOUCH_USES(ch)--;
+      GRAVE_TOUCH_TIMER(ch) = 150;
+    GRAVE_TOUCH_USES(ch)
+    --;
     return; // end GRAVE touch
   }
   else if (is_abbrev(arg1, "grasp"))
@@ -4529,7 +4548,8 @@ ACMD(do_grave_magic)
 
     if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
       GRASP_OF_THE_DEAD_TIMER(ch) = 150;
-    GRASP_OF_THE_DEAD_USES(ch)--;
+    GRASP_OF_THE_DEAD_USES(ch)
+    --;
 
     return; // end grasp of the dead
   }
@@ -4556,7 +4576,9 @@ ACMD(do_grave_magic)
           return;
         }
       }
-    } else {
+    }
+    else
+    {
       send_to_char(ch, "NPCs cannot use incorporeal form.\r\n");
       return;
     }
@@ -4568,7 +4590,8 @@ ACMD(do_grave_magic)
     new_affect(&af);
 
     af.spell = SPELL_INCORPOREAL_FORM;
-    af.duration = 3;;
+    af.duration = 3;
+    ;
     SET_BIT_AR(af.bitvector, AFF_IMMATERIAL);
     af.modifier = 1;
     af.location = APPLY_AC_NEW;
@@ -4580,7 +4603,8 @@ ACMD(do_grave_magic)
 
     if (INCORPOREAL_FORM_TIMER(ch) <= 0)
       INCORPOREAL_FORM_TIMER(ch) = 150;
-    INCORPOREAL_FORM_USES(ch)--;
+    INCORPOREAL_FORM_USES(ch)
+    --;
 
     return; // end incorporeal form
   }
@@ -4632,7 +4656,7 @@ ACMD(do_sorcerer_breath_weapon)
     {
       if (process_iron_golem_immunity(ch, vict, damtype, dam))
         continue;
-        damage(ch, vict, dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, damtype, FALSE);
+      damage(ch, vict, dam, SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, damtype, FALSE);
     }
   }
   if (!IS_NPC(ch))
@@ -5308,7 +5332,7 @@ ACMD(do_whirlwind)
   /* NEW_EVENT() will add a new mud event to the event list of the character.
    * This function below adds a new event of "eWHIRLWIND", to "ch", and passes "NULL" as
    * additional data. The event will be called in "3 * PASSES_PER_SEC" or 3 seconds */
-  //NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
+  // NEW_EVENT(eWHIRLWIND, ch, NULL, 3 * PASSES_PER_SEC);
 }
 
 ACMDCHECK(can_deatharrow)
@@ -5456,7 +5480,6 @@ ACMD(do_smitegood)
   perform_smite(ch, SMITE_TYPE_GOOD);
 }
 
-
 ACMD(do_aura_of_vengeance)
 {
   PREREQ_NOT_NPC();
@@ -5471,8 +5494,10 @@ ACMD(do_aura_of_vengeance)
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (GROUP(ch) != GROUP(tch)) continue;
-    if (ch == tch) continue;
+    if (GROUP(ch) != GROUP(tch))
+      continue;
+    if (ch == tch)
+      continue;
     new_affect(&af);
     af.spell = SKILL_SMITE_GOOD;
     af.duration = 24;
@@ -5500,8 +5525,10 @@ ACMD(do_aura_of_justice)
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
-    if (GROUP(ch) != GROUP(tch)) continue;
-    if (ch == tch) continue;
+    if (GROUP(ch) != GROUP(tch))
+      continue;
+    if (ch == tch)
+      continue;
     new_affect(&af);
     af.spell = SKILL_SMITE_EVIL;
     af.duration = 24;
@@ -5514,7 +5541,6 @@ ACMD(do_aura_of_justice)
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_SMITE_EVIL);
 }
-
 
 ACMDCHECK(can_smiteevil)
 {
@@ -5551,8 +5577,8 @@ void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
   act("$n focuses briefly then points at $N...",
       FALSE, ch, NULL, vict, TO_NOTVICT);
 
-  //int call_magic(struct char_data *caster, struct char_data *cvict,
-  //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  // int call_magic(struct char_data *caster, struct char_data *cvict,
+  // struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, vict, NULL, SPELL_FAERIE_FIRE, 0, GET_LEVEL(ch), CAST_SPELL);
 
   if (!IS_NPC(ch))
@@ -5678,7 +5704,7 @@ void perform_seekerarrow(struct char_data *ch, struct char_data *vict)
 
   start_daily_use_cooldown(ch, FEAT_SEEKER_ARROW);
 
-  /* As a free action once per day per rank of the seeker arrow feat, the arcane 
+  /* As a free action once per day per rank of the seeker arrow feat, the arcane
                    archer can fire an arrow that gets +20 to hit */
   send_to_char(ch, "Taking careful aim you fire:  ");
   hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 20, ATTACK_TYPE_RANGED);
@@ -5722,7 +5748,7 @@ ACMD(do_impromptu)
   perform_impromptu(ch, vict);
 }
 
-/* As a free action once per day per rank of the seeker arrow feat, the arcane 
+/* As a free action once per day per rank of the seeker arrow feat, the arcane
                    archer can fire an arrow that does not miss (+20 to hit). */
 ACMD(do_seekerarrow)
 {
@@ -6350,7 +6376,8 @@ ACMD(do_charge)
   {
     if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
       vict = FIGHTING(ch);
-    else {
+    else
+    {
       send_to_char(ch, "You are not in combat, nor have you specified a target to charge.\r\n");
       return;
     }
@@ -6715,7 +6742,7 @@ int perform_collect(struct char_data *ch, bool silent)
     nobj = obj->next_content;
 
     /*debug*/
-    //act("$p", FALSE, ch, obj, 0, TO_CHAR);
+    // act("$p", FALSE, ch, obj, 0, TO_CHAR);
 
     /* checking corpse for ammo first */
     if (IS_CORPSE(obj))
@@ -6843,13 +6870,13 @@ int perform_feint(struct char_data *ch, struct char_data *vict)
     else
       bluff_skill_check -= 4;
   }
-    
+
   if (GET_INT(vict) <= 2)
   {
     if (HAS_FEAT(ch, FEAT_IMPROVED_FEINT))
       bluff_skill_check -= 4;
     else
-      bluff_skill_check -= 8; 
+      bluff_skill_check -= 8;
   }
 
   /* calculate the defense (DC) */
@@ -6999,7 +7026,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
       (GET_EQ(ch, WEAR_WIELD_2H) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_2H)) == WEAPON_TYPE_WHIP) ||
       (GET_EQ(ch, WEAR_WIELD_OFFHAND) && GET_WEAPON_TYPE(GET_EQ(ch, WEAR_WIELD_OFFHAND)) == WEAPON_TYPE_WHIP))
   {
-    mod += 5;  
+    mod += 5;
   }
 
   int result = combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_DISARM, mod);
@@ -7154,6 +7181,229 @@ ACMD(do_process_attack)
   }
 }
 
+/* engine for the lich touch ability
+   ch -> individual executing skill
+   vict -> target of skill
+   return TRUE if successful in executing
+   return FALSE if attack failed to execute */
+bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
+{
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return FALSE;
+  }
+
+  /* compute amount of points heal vs damage */
+  int amount = 10 + GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
+
+  /* this skill will heal undead */
+  if (IS_UNDEAD(vict) || IS_LICH(vict))
+  {
+    amount *= 2;
+
+    if (ch == vict)
+    {
+      act("You focus necromantic power inward, and the surge of negative energy heals you.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n glows with necromantic negative energy as wounds heal.", FALSE, ch, 0, vict, TO_NOTVICT);
+    }
+    else
+    {
+      act("You reach out and touch $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n reaches out and touches you with necromantic power, and the surge of negative energy heals you.", FALSE, ch, 0, vict, TO_VICT);
+      act("$n reaches out and touches $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_NOTVICT);
+    }
+
+    process_healing(ch, vict, RACIAL_LICH_TOUCH, amount, 0);
+    return TRUE;
+  }
+
+  /* victim should be damaged! */
+
+  if (MOB_FLAGGED(vict, MOB_NOKILL))
+  {
+    send_to_char(ch, "This mob is protected.\r\n");
+    return FALSE;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return FALSE;
+  }
+
+  if (!pvp_ok(ch, vict, true))
+    return FALSE;
+
+  act("You reach out and touch $N with negative energy, and $E wilts before you.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n reaches out and touches you with negative energy, causing you to wilt before $m.", FALSE, ch, 0, vict, TO_VICT);
+  act("$n reaches out and touches $N with negative energy, causing $M to wilt!", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  /* paralysis - fortitude save */
+  if (!savingthrow(vict, SAVING_FORT, 0, 0))
+  {
+    if (!paralysis_immunity(vict))
+    {
+      struct affected_type af;
+      new_affect(&af);
+      af.spell = RACIAL_LICH_TOUCH;
+      SET_BIT_AR(af.bitvector, AFF_PARALYZED);
+      af.duration = 2;
+      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+      act("$n glows with black energy as $s touch paralyzes $N!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You glow with black energy as you paralyze $N with your touch!",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n glows with black energy as $s touch paralyzes you!",
+          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
+    }
+  }
+
+  damage(ch, vict, amount, RACIAL_LICH_TOUCH, DAM_NEGATIVE, FALSE);
+
+  /* fire-shield, etc check */
+  damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
+  return TRUE;
+}
+
+/* the potent touch of a lich */
+ACMD(do_lichtouch)
+{
+  int uses_remaining = 0;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  if (!IS_LICH(ch))
+  {
+    send_to_char(ch, "You do not have that ability!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_LICH_TOUCH)) == 0)
+  {
+    send_to_char(ch, "You must recover the profane energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    if (FIGHTING(ch) && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    {
+      vict = FIGHTING(ch);
+    }
+    else
+    {
+      send_to_char(ch, "Lich touch who?\r\n");
+      return;
+    }
+  }
+
+  if (perform_lichtouch(ch, vict))
+  {
+    if (!IS_NPC(ch))
+      start_daily_use_cooldown(ch, FEAT_LICH_TOUCH);
+
+    USE_STANDARD_ACTION(ch);
+  }
+}
+
+bool perform_lichfear(struct char_data *ch)
+{
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE))
+  {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return FALSE;
+  }
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return FALSE;
+  }
+
+  struct char_data *vict = NULL, *next_vict = NULL;
+  struct affected_type af;
+
+  act("You raise your countenance to cause fear!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n raises $s countenance to cause fear!", FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, RACIAL_LICH_FEAR))
+    {
+
+      /* exits */
+      if (is_immune_fear(ch, vict, TRUE))
+        continue;
+      if (is_immune_mind_affecting(ch, vict, TRUE))
+        continue;
+      if (mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+        continue;
+
+      // success
+      act("$n glows with black energy as $s coutenance causes FEAR to $N!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You glow with black energy as you cause fear to $N with your countenance!",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n glows with black energy as $s countenance causes you uncontrollable fear!",
+          FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
+      new_affect(&af);
+      af.spell = RACIAL_LICH_FEAR;
+      af.duration = dice(1, 6);
+      SET_BIT_AR(af.bitvector, AFF_FEAR);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+      do_flee(vict, 0, 0, 0);
+      do_flee(vict, 0, 0, 0);
+    }
+  }
+
+  return TRUE;
+}
+
+ACMD(do_lichfear)
+{
+  int uses_remaining = 0;
+
+  if (!IS_LICH(ch))
+  {
+    send_to_char(ch, "You do not have that ability!\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_LICH_FEAR)) == 0)
+  {
+    send_to_char(ch, "You must recover the profane energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (perform_lichfear(ch))
+  {
+    if (!IS_NPC(ch))
+      start_daily_use_cooldown(ch, FEAT_LICH_FEAR);
+
+    USE_STANDARD_ACTION(ch);
+  }
+}
 
 /* can 'curse' an opponent with your touch */
 ACMD(do_touch_of_corruption)
@@ -7255,7 +7505,7 @@ ACMD(do_touch_of_corruption)
   USE_STANDARD_ACTION(ch);
 }
 
-void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char * cruelty)
+void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char *cruelty)
 {
   if (!ch || !vict)
     return;
@@ -7264,11 +7514,11 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   {
     return;
   }
-  
+
   int i = 0, duration = 0;
   int which_cruelty = BLACKGUARD_CRUELTY_NONE;
   int save_mod = 0;
-  
+
   for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
   {
     if (is_abbrev(cruelty, blackguard_cruelties[i]))
@@ -7293,78 +7543,80 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   // check for immunities
   switch (which_cruelty)
   {
-    case BLACKGUARD_CRUELTY_SHAKEN:
-    case BLACKGUARD_CRUELTY_FRIGHTENED:
-      if (is_immune_fear(ch, vict, true)) return;
-      if (is_immune_mind_affecting(ch, vict, true)) return;
-      if (affected_by_aura_of_cowardice(vict))
-        save_mod = -4;
-      break;
-    case BLACKGUARD_CRUELTY_SICKENED:
-    case BLACKGUARD_CRUELTY_DISEASED:
-      if (!can_disease(vict))
-      {
-        act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
-        return;
-      }
-      break;
-    case BLACKGUARD_CRUELTY_POISONED:
-      if (!can_poison(vict))
-      {
-        act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
-        return;
-      }
-      break;
-    case BLACKGUARD_CRUELTY_BLINDED:
-      if (!can_blind(vict))
-      {
-        act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
-        return;
-      }
-      break;
-    case BLACKGUARD_CRUELTY_DEAFENED:
-      if (!can_deafen(vict))
-      {
-        act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
-        return;
-      }
-      break;
-    case BLACKGUARD_CRUELTY_PARALYZED:
-      if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
-      {
-        act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
-        return;
-      }
-      break;
-    case BLACKGUARD_CRUELTY_STUNNED:
-      if (!can_stun(vict))
-      {
-        act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
-        return;
-      }
-      break;
+  case BLACKGUARD_CRUELTY_SHAKEN:
+  case BLACKGUARD_CRUELTY_FRIGHTENED:
+    if (is_immune_fear(ch, vict, true))
+      return;
+    if (is_immune_mind_affecting(ch, vict, true))
+      return;
+    if (affected_by_aura_of_cowardice(vict))
+      save_mod = -4;
+    break;
+  case BLACKGUARD_CRUELTY_SICKENED:
+  case BLACKGUARD_CRUELTY_DISEASED:
+    if (!can_disease(vict))
+    {
+      act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
+  case BLACKGUARD_CRUELTY_POISONED:
+    if (!can_poison(vict))
+    {
+      act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
+  case BLACKGUARD_CRUELTY_BLINDED:
+    if (!can_blind(vict))
+    {
+      act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
+  case BLACKGUARD_CRUELTY_DEAFENED:
+    if (!can_deafen(vict))
+    {
+      act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
+  case BLACKGUARD_CRUELTY_PARALYZED:
+    if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
+    {
+      act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
+  case BLACKGUARD_CRUELTY_STUNNED:
+    if (!can_stun(vict))
+    {
+      act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
   }
 
   // figure out duration
   switch (which_cruelty)
   {
-    case BLACKGUARD_CRUELTY_DAZED:
-    case BLACKGUARD_CRUELTY_PARALYZED:
-      duration = 1;
-      break;
-    case BLACKGUARD_CRUELTY_STAGGERED:
-    case BLACKGUARD_CRUELTY_FRIGHTENED:
-      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2;
-      break;
-    case BLACKGUARD_CRUELTY_NAUSEATED:
-      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 3;
-      break;
-    case BLACKGUARD_CRUELTY_STUNNED:
-      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
-      break;
-    default:
-      duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD);
-      break;
+  case BLACKGUARD_CRUELTY_DAZED:
+  case BLACKGUARD_CRUELTY_PARALYZED:
+    duration = 1;
+    break;
+  case BLACKGUARD_CRUELTY_STAGGERED:
+  case BLACKGUARD_CRUELTY_FRIGHTENED:
+    duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2;
+    break;
+  case BLACKGUARD_CRUELTY_NAUSEATED:
+    duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 3;
+    break;
+  case BLACKGUARD_CRUELTY_STUNNED:
+    duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 4;
+    break;
+  default:
+    duration = CLASS_LEVEL(ch, CLASS_BLACKGUARD);
+    break;
   }
 
   if (mag_savingthrow(ch, vict, SAVING_FORT, save_mod, CAST_CRUELTY, CLASS_LEVEL(ch, CLASS_BLACKGUARD), NOSCHOOL))
@@ -7381,13 +7633,14 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   af.duration = duration;
 
   affect_to_char(vict, &af);
-
 }
 
 void throw_hedging_weapon(struct char_data *ch)
 {
-  if (!ch || !FIGHTING(ch)) return;
-  if (!affected_by_spell(ch, SPELL_HEDGING_WEAPONS)) return;
+  if (!ch || !FIGHTING(ch))
+    return;
+  if (!affected_by_spell(ch, SPELL_HEDGING_WEAPONS))
+    return;
 
   struct affected_type *af = ch->affected;
   bool remove = false;
@@ -7395,10 +7648,12 @@ void throw_hedging_weapon(struct char_data *ch)
 
   for (af = ch->affected; af; af = af->next)
   {
-    if (af->spell != SPELL_HEDGING_WEAPONS) continue;
+    if (af->spell != SPELL_HEDGING_WEAPONS)
+      continue;
     if (af->modifier < 1)
     {
-      remove = true; break;
+      remove = true;
+      break;
     }
     else
     {
@@ -7428,25 +7683,25 @@ void throw_hedging_weapon(struct char_data *ch)
 
 ACMD(do_mark)
 {
-    struct char_data *vict = NULL;
-    char arg[100];
+  struct char_data *vict = NULL;
+  char arg[100];
 
-    one_argument(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
-    if (!*arg)
-    {
-        send_to_char(ch, "Who would you like to mark for assassination?\r\n");
-        return;
-    }
+  if (!*arg)
+  {
+    send_to_char(ch, "Who would you like to mark for assassination?\r\n");
+    return;
+  }
 
-    if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
-    {
-        send_to_char(ch, "That person isn't here right now.\r\n");
-        return;
-    }
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "That person isn't here right now.\r\n");
+    return;
+  }
 
-    act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
-    GET_MARK(ch) = vict;
+  act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
+  GET_MARK(ch) = vict;
 }
 
 /* cleanup! */

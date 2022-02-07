@@ -181,7 +181,7 @@ static void load_default_config(void);
 static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int hsort(const void *a, const void *b);
-void assign_deities(void) ;
+void assign_deities(void);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
 struct
@@ -1529,7 +1529,7 @@ void parse_room(FILE *fl, int virtual_nr)
 
   if (virtual_nr < zone_table[zone].bot)
   {
-    log("SYSERR: Room #%d is below zone %d (bot=%d, top=%d).", virtual_nr, zone_table[zone].number, zone_table[zone].bot, zone_table[zone].top);
+    log("SYSERR: (parse_room) Room #%d is below zone %d (bot=%d, top=%d).", virtual_nr, zone_table[zone].number, zone_table[zone].bot, zone_table[zone].top);
     exit(1);
   }
   while (virtual_nr > zone_table[zone].top)
@@ -1735,6 +1735,7 @@ void setup_dir(FILE *fl, int room, int dir)
 /* make sure the start rooms exist & resolve their vnums to rnums */
 static void check_start_rooms(void)
 {
+
   if ((r_mortal_start_room = real_room(CONFIG_MORTAL_START)) == NOWHERE)
   {
     log("SYSERR:  Mortal start room does not exist.  Change in config.c.");
@@ -1835,7 +1836,8 @@ static void renum_zone_table(void)
         if (!mini_mud)
         {
           snprintf(buf, sizeof(buf), "Invalid vnum %d, cmd disabled",
-                   a == NOWHERE ? olda : b == NOWHERE ? oldb : oldc);
+                   a == NOWHERE ? olda : b == NOWHERE ? oldb
+                                                      : oldc);
           log_zone_error(zone, cmd_no, buf);
         }
         ZCMD.command = '*';
@@ -2824,7 +2826,8 @@ const char *parse_object(FILE *obj_f, int nr)
 
       if ((retval = sscanf(line, " %d %d %d %d", t, t + 1, t + 2, t + 3)) != 4)
       {
-        if (retval == 3) {
+        if (retval == 3)
+        {
           obj_proto[i].affected[j].location = t[0];
           obj_proto[i].affected[j].modifier = t[1];
           obj_proto[i].affected[j].bonus_type = t[2];
@@ -4677,7 +4680,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
   for (i = 0, tmp_txt = line; tmp_txt && *tmp_txt && i < fg_size; i++)
   {
     tmp_txt = one_argument(tmp_txt, val_txt, sizeof(val_txt)); /* Grab a number  */
-    fg[i] = atoi(val_txt);                    /* Convert to int */
+    fg[i] = atoi(val_txt);                                     /* Convert to int */
   }
 
   return (i);
@@ -5226,7 +5229,7 @@ void init_char(struct char_data *ch)
 
   for (i = 0; i < AF_ARRAY_MAX; i++)
     AFF_FLAGS(ch)
-    [i] = 0;
+  [i] = 0;
 
   for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
     GET_REAL_SAVE(ch, i) = 0;
@@ -6089,11 +6092,8 @@ struct char_data *new_char()
   ch->player_specials->saved.completed_quests = NULL;
   ch->player_specials->saved.num_completed_quests = 0;
 
- 
- 
   return ch;
 }
-
 
 // status 0 is no happy hour
 // status 1 is happy hour started
@@ -6101,7 +6101,8 @@ struct char_data *new_char()
 void set_db_happy_hour(int status)
 {
 
-  if (CONFIG_DFLT_PORT != 4100) return;
+  if (CONFIG_DFLT_PORT != 4100)
+    return;
 
   char query[LONG_STRING];
 
@@ -6120,7 +6121,6 @@ void set_db_happy_hour(int status)
   {
     log("SYSERR: Unable to INSERT INTO happy_hour_info: %s", mysql_error(conn));
   }
-
 }
 
 /* EOF */

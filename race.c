@@ -1,8 +1,8 @@
 /**************************************************************************
-*  File: race.c                                               LuminariMUD *
-*  Usage: Source file for race-specific code.                             *
-*  Authors:  Nashak and Zusuk                                             *
-**************************************************************************/
+ *  File: race.c                                               LuminariMUD *
+ *  Usage: Source file for race-specific code.                             *
+ *  Authors:  Nashak and Zusuk                                             *
+ **************************************************************************/
 
 /** Help buffer the global variable definitions */
 #define __RACE_C__
@@ -332,7 +332,8 @@ bool display_race_info(struct char_data *ch, const char *racename)
   draw_line(ch, line_length, '-', '-');
 
   send_to_char(ch, "\tcRace Name       : \tn%s\r\n", race_list[race].type_color);
-  send_to_char(ch, "\tcNormal/Adv/Epic?: \tn%s\r\n", (race_list[race].epic_adv == IS_EPIC_R) ? "Epic Race" : (race_list[race].epic_adv == IS_ADVANCE) ? "Advance Race" : "Normal Race");
+  send_to_char(ch, "\tcNormal/Adv/Epic?: \tn%s\r\n", (race_list[race].epic_adv == IS_EPIC_R) ? "Epic Race" : (race_list[race].epic_adv == IS_ADVANCE) ? "Advance Race"
+                                                                                                                                                      : "Normal Race");
   send_to_char(ch, "\tcUnlock Cost     : \tn%d Account XP\r\n", race_list[race].unlock_cost);
   send_to_char(ch, "\tcPlayable Race?  : \tn%s\r\n", race_list[race].is_pc ? "\tnYes\tn" : "\trNo, ask staff\tn");
 
@@ -966,6 +967,7 @@ void assign_races(void)
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
+
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_TRELUX, "trelux", "Trelux", "\tGTre\tYlux\tn", "Trlx", "\tGTr\tYlx\tn",
@@ -1007,6 +1009,59 @@ void assign_races(void)
   feat_race_assignment(RACE_TRELUX, FEAT_WINGS, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EQ, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS, 1, N);
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_LICH, "lich", "Lich", "\tLLich\tn", "Lich", "\tLLich\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(RACE_LICH,
+                   /*descrip*/ "Few creatures are more feared than the lich. The pinnacle of necromantic art, who "
+                               "has chosen to shed his life as a method to cheat death by becoming undead. While many who reach "
+                               "such heights of power stop at nothing to achieve immortality, the idea of becoming a lich is "
+                               "abhorrent to most creatures. The process involves the extraction of ones life-force and its "
+                               "imprisonment in a specially prepared phylactery.  One gives up life, but in trapping "
+                               "life he also traps his death, and as long as his phylactery remains intact he can continue on in "
+                               "his research and work without fear of the passage of time."
+                               "\r\n\r\n"
+                               "The quest to become a lich is a lengthy one. While construction of the magical phylactery to "
+                               "contain ones soul is a critical component, a prospective lich must also learn the "
+                               "secrets of transferring his soul into the receptacle and of preparing his body for the "
+                               "transformation into undeath, neither of which are simple tasks. Further complicating the ritual "
+                               "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
+                               "might simply kill another or drive him insane. "
+                               "\r\n\r\n"
+                               "Please note that a Lich is the only Epic Race than can multi-class."
+                               "Please note that a Lich has all the advantages/disadvantages of being Undead.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
+  set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_LICH, 0, 2, 6, 0, 2, 0);           /* str con int wis dex cha */
+  set_race_alignments(RACE_LICH, N, N, N, N, N, N, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_LICH,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, Y, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_LICH, FEAT_UNARMED_STRIKE, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_IMPROVED_UNARMED_STRIKE, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_SPELL_RESIST, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_DAM_RESIST, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_TOUCH, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_REJUV, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_FEAR, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_ELECTRIC_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_COLD_IMMUNITY, 1, N);
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
@@ -1583,13 +1638,13 @@ void assign_races(void)
   /* magical beast */
   /*
   add_race(RACE_BLINK_DOG, "blink dog", "BlinkDog", "Blink Dog", "BlDg", "BlDg",
-           // race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? 
+           // race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic?
            RACE_TYPE_MAGICAL_BEAST, SIZE_MEDIUM, FALSE, 0, 0, IS_NORMAL);
 
   set_race_attack_types(RACE_BLINK_DOG,
-                      // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce 
+                      // hit sting whip slash bite bludgeon crush pound claw maul thrash pierce
                       N, N, N, N, Y, N, N, N, Y, N, N, N,
-                      // blast punch stab slice thrust hack rake peck smash trample charge gore 
+                      // blast punch stab slice thrust hack rake peck smash trample charge gore
                       N, N, N, N, N, N, N, N, N, N, N, N);
   */
   add_race(RACE_MANTICORE, "manticore", "Mnticore", "Manticore", "Mntc", "Mntc",
@@ -1636,7 +1691,7 @@ void assign_races(void)
                         // blast p slice thrust hack rake peck smash trample charge gore
                         N, N, N, N, N, N, N, N, N, N, N, N);
 
-  /* 
+  /*
   add_race(RACE_AEON_THELETOS, "aeon theletos", "AeonThel", "Theletos Aeon", RACE_TYPE_OUTSIDER, N, Y, Y, 0, 0, 0, 0, 0, 0,
           Y, Y, Y, Y, Y, Y, Y, Y, Y, SIZE_MEDIUM, FALSE, CLASS_WARRIOR, SKILL_LANG_COMMON, 0);
   */
@@ -1796,6 +1851,8 @@ int parse_race_long(const char *arg_in)
     return RACE_ARCANA_GOLEM;
   if (is_abbrev(arg, "trelux"))
     return RACE_TRELUX;
+  if (is_abbrev(arg, "lich"))
+    return RACE_LICH;
   if (is_abbrev(arg, "crystaldwarf"))
     return RACE_CRYSTAL_DWARF;
   if (is_abbrev(arg, "crystal-dwarf"))
@@ -1827,6 +1884,7 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
       (OBJ_FLAGGED(obj, ITEM_ANTI_GNOME) && IS_GNOME(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_CRYSTAL_DWARF) && IS_CRYSTAL_DWARF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_TRELUX) && IS_TRELUX(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_LICH) && IS_LICH(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANA_GOLEM) && IS_ARCANA_GOLEM(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DROW) && IS_DROW(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DUERGAR) && IS_DUERGAR(ch)) ||
