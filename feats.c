@@ -588,7 +588,7 @@ void assign_feats(void)
   feato(FEAT_LICH_RACIAL_ADJUSTMENT, "lich racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 dex +2 con +6 int, +8 perception sense-motive stealth",
         "Lich racial adjustment to stats are: +2 dexterity, +2 constitution, "
-        "and +6 intelligence.  In addition they get +8 racial bonus on Perception, Sense Motive, and Stealth checks");
+        "and +6 intelligence.  In addition they get class abilities of acrobatics and +8 racial bonus on Perception, Sense Motive, and Stealth checks");
   feato(FEAT_LICH_SPELL_RESIST, "lich spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "15 + level spell resist",
         "Due to their undead magical nature, Lich have a strong natural resistance "
