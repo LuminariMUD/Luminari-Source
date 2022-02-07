@@ -1755,6 +1755,7 @@ int enter_player_game(struct descriptor_data *d)
 {
   int load_result;
   room_vnum load_room;
+  int i = 0;
 
   reset_char(d->character);
 
@@ -1822,6 +1823,13 @@ int enter_player_game(struct descriptor_data *d)
 
   // If they're wildshaped, they re-enter as their natural form
   wildshape_return(d->character);
+
+    // make sure we assign any new spells
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    if (CLASS_LEVEL(d->character, i))
+      init_class(d->character, i, CLASS_LEVEL(d->character, i));
+  }
 
   return load_result;
 }
