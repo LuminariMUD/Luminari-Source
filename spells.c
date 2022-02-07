@@ -733,7 +733,7 @@ ASPELL(spell_acid_arrow)
   send_to_char(ch, "You send out an arrow of acid towards your opponent!\r\n");
   act("$n sends out an arrow of acid!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (x = 0; x < (MAGIC_LEVEL(ch) / 3); x++)
+  for (x = 0; x < (CASTER_LEVEL(ch) / 3); x++)
   {
     NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
@@ -852,7 +852,7 @@ ASPELL(spell_cloudkill)
     num_of_clouds = DIVINE_LEVEL(ch) / 5;
   }
 
-  CLOUDKILL(ch) = MAX((MAGIC_LEVEL(ch) / 5), num_of_clouds);
+  CLOUDKILL(ch) = MAX((CASTER_LEVEL(ch) / 5), num_of_clouds);
 }
 
 ASPELL(spell_control_plants)
@@ -1065,7 +1065,7 @@ ASPELL(spell_enchant_item) // enchantment
 
   SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MAGIC);
 
-  bonus = MAX(1, (int)(MAGIC_LEVEL(ch) / 7));
+  bonus = MAX(1, (int)(CASTER_LEVEL(ch) / 7));
 
   // enhancement bonus
   GET_OBJ_VAL(obj, 4) = bonus;
@@ -1194,7 +1194,7 @@ ASPELL(spell_incendiary_cloud)
   send_to_char(ch, "You summon forth an incendiary cloud!\r\n");
   act("$n summons forth an incendiary cloud!", FALSE, ch, 0, 0, TO_ROOM);
 
-  INCENDIARY(ch) = MAX(1, MAGIC_LEVEL(ch) / 4);
+  INCENDIARY(ch) = MAX(1, CASTER_LEVEL(ch) / 4);
 }
 
 ASPELL(spell_locate_creature)
