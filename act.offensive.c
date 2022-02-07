@@ -7197,7 +7197,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   }
 
   /* compute amount of points heal vs damage */
-  int amount = GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
+  int amount = 10 + GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
 
   /* this skill will heal undead */
   if (IS_UNDEAD(vict) || IS_LICH(vict))
