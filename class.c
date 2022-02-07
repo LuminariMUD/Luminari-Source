@@ -2682,23 +2682,23 @@ void process_class_level_feats(struct char_data *ch, int class)
 
         /* no special handling */
       default:
-        if (feat_assign->level_received == GET_LEVEL(ch))
+        // if (feat_assign->level_received == GET_LEVEL(ch))
+        //{
+        if (HAS_FEAT(ch, feat_assign->feat_num))
         {
-          if (HAS_FEAT(ch, feat_assign->feat_num))
-          {
-            snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
-                     feat_list[feat_assign->feat_num].name,
-                     feat_types[feat_list[feat_assign->feat_num].feat_type]);
-            strlcat(featbuf, tmp_buf, sizeof(featbuf));
-          }
-          else
-          {
-            snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
-                     feat_list[feat_assign->feat_num].name,
-                     feat_types[feat_list[feat_assign->feat_num].feat_type]);
-            strlcat(featbuf, tmp_buf, sizeof(featbuf));
-          }
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
+                   feat_list[feat_assign->feat_num].name,
+                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          strlcat(featbuf, tmp_buf, sizeof(featbuf));
         }
+        else
+        {
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
+                   feat_list[feat_assign->feat_num].name,
+                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        }
+        //}
         break;
       }
 
