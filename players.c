@@ -2087,7 +2087,6 @@ void save_char(struct char_data *ch, int mode)
   /* Reapply dr.*/
   if (tmp_dr != NULL)
   {
-    tmp_dr->next = GET_DR(ch);
     GET_DR(ch) = tmp_dr;
   }
 
