@@ -7216,7 +7216,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
       act("$n reaches out and touches $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_NOTVICT);
     }
 
-    process_healing(ch, vict, amount, 0);
+    process_healing(ch, vict, RACIAL_LICH_TOUCH, amount, 0);
     return TRUE;
   }
 
@@ -7237,9 +7237,9 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   if (!pvp_ok(ch, vict, true))
     return FALSE;
 
-  act("You reach out and touch $N with a withering finger, and $E wilts before you.", FALSE, ch, 0, vict, TO_CHAR);
-  act("$n reaches out and touches you with a withering finger, causing you to wilt before $m.", FALSE, ch, 0, vict, TO_VICT);
-  act("$n reaches out and touches $N with a withering finger, causing him to wilt before you.", FALSE, ch, 0, vict, TO_NOTVICT);
+  act("You reach out and touch $N with negative energy, and $E wilts before you.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n reaches out and touches you with negative energy, causing you to wilt before $m.", FALSE, ch, 0, vict, TO_VICT);
+  act("$n reaches out and touches $N with negative energy, causing $M to wilt!", FALSE, ch, 0, vict, TO_NOTVICT);
 
   /* paralysis - fortitude save */
   if (!savingthrow(vict, SAVING_FORT, 0, 0))
