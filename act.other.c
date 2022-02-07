@@ -1151,9 +1151,9 @@ ACMD(do_applypoison)
     }
     else
     {
-      weapon->weapon_poison.poison_hits = (int) (GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+      weapon->weapon_poison.poison_hits = (int)(GET_OBJ_VAL(poison, 3) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       weapon->weapon_poison.poison = GET_OBJ_VAL(poison, 0);
-      weapon->weapon_poison.poison_level = (int) MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
+      weapon->weapon_poison.poison_level = (int)MIN(30, GET_OBJ_VAL(poison, 1) * (HAS_FEAT(ch, FEAT_POISON_USE) ? 1.5 : 1));
       snprintf(buf1, sizeof(buf1), "\tnYou carefully apply the contents of %s \tnonto $p\tn...",
                poison->short_description);
       snprintf(buf2, sizeof(buf2), "$n \tncarefully applies the contents of %s \tnonto $p\tn...",
@@ -1507,45 +1507,45 @@ void perform_call(struct char_data *ch, int call_type, int level)
   /* setting mob strength according to 'level' */
   switch (call_type)
   {
-    case MOB_C_ANIMAL:
+  case MOB_C_ANIMAL:
+    GET_LEVEL(mob) = MIN(20, level);
+    if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
+      level += 5;
+    autoroll_mob(mob, true, true);
+    GET_REAL_MAX_HIT(mob) += 20;
+    GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+    break;
+  case MOB_SHADOW:
+    GET_LEVEL(mob) = MIN(20, level);
+    autoroll_mob(mob, true, true);
+    GET_REAL_MAX_HIT(mob) += 20;
+    GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+    break;
+  case MOB_C_FAMILIAR:
+    GET_REAL_MAX_HIT(mob) += 10;
+    for (i = 0; i < level; i++)
+      GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
+    if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR))
+    {
+      GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+      GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
+      GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+      GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+      GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
+    }
+    GET_LEVEL(mob) = MIN(20, level);
+    break;
+  case MOB_C_MOUNT:
+    if (mob_num == MOB_EPIC_PALADIN_MOUNT || mob_num == MOB_EPIC_PALADIN_MOUNT_SMALL)
+      GET_LEVEL(mob) = MIN(27, level);
+    else
       GET_LEVEL(mob) = MIN(20, level);
-      if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
-        level += 5;
-      autoroll_mob(mob, true, true);
-      GET_REAL_MAX_HIT(mob) += 20;
-      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-      break;
-    case MOB_SHADOW:
-      GET_LEVEL(mob) = MIN(20, level);
-      autoroll_mob(mob, true, true);
-      GET_REAL_MAX_HIT(mob) += 20;
-      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-      break;
-    case MOB_C_FAMILIAR:
-      GET_REAL_MAX_HIT(mob) += 10;
-      for (i = 0; i < level; i++)
-        GET_REAL_MAX_HIT(mob) += dice(2, 4) + 1;
-      if (HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR))
-      {
-        GET_REAL_MAX_HIT(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
-        GET_REAL_AC(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR) * 10;
-        GET_REAL_STR(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-        GET_REAL_DEX(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-        GET_REAL_CON(mob) += HAS_FEAT(ch, FEAT_IMPROVED_FAMILIAR);
-      }
-      GET_LEVEL(mob) = MIN(20, level);
-      break;
-    case MOB_C_MOUNT:
-      if (mob_num == MOB_EPIC_PALADIN_MOUNT || mob_num == MOB_EPIC_PALADIN_MOUNT_SMALL)
-        GET_LEVEL(mob) = MIN(27, level);
-      else
-        GET_LEVEL(mob) = MIN(20, level);
-      autoroll_mob(mob, true, true);
-      GET_REAL_MAX_HIT(mob) += 20;
-      GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-      GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
-      GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
-      break;
+    autoroll_mob(mob, true, true);
+    GET_REAL_MAX_HIT(mob) += 20;
+    GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+    GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
+    GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+    break;
   }
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
 
@@ -2061,6 +2061,52 @@ ACMD(do_tame)
   act("$n tames $N.", FALSE, ch, 0, vict, TO_NOTVICT);
 }
 
+/* the guts of the respec mechanic */
+void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
+{
+  /* in the clear! */
+  int tempXP = GET_EXP(ch);
+
+  GET_CLASS(ch) = class;
+  GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
+
+  if (GET_REAL_RACE(ch) != RACE_LICH) {
+  if (*arg && is_abbrev(arg, "premade"))
+    GET_PREMADE_BUILD_CLASS(ch) = class;
+  }
+
+  /* Make sure that players can't make wildshaped forms permanent.*/
+  SUBRACE(ch) = 0;
+  IS_MORPHED(ch) = 0;
+  GET_DISGUISE_RACE(ch) = -1; // 0 is human
+
+  if (affected_by_spell(ch, SKILL_WILDSHAPE))
+  {
+    affect_from_char(ch, SKILL_WILDSHAPE);
+    send_to_char(ch, "You return to your normal form.\r\n");
+  }
+
+  // removed because we checked for group and followers above already -- gicker apr 8 2021
+  //leave_group(ch);
+  //stop_follower(ch);
+
+  do_start(ch);
+  HAS_SET_STATS_STUDY(ch) = FALSE;
+  GET_EXP(ch) = tempXP;
+
+  if (!silent)
+  {
+    send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
+    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
+      send_to_char(ch, "\tMYou have chosen a premade %s build\tn\r\n", class_list[class].name);
+    send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
+  }
+
+  save_char(ch, 0);
+
+  return;
+}
+
 /* reset character to level 1, but preserve xp */
 ACMD(do_respec)
 {
@@ -2122,37 +2168,9 @@ ACMD(do_respec)
                        "advance in it.\r\n");
       return;
     }
-
-    /* in the clear! */
-    int tempXP = GET_EXP(ch);
-    GET_CLASS(ch) = class;
-    GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
-    if (*arg2 && is_abbrev(arg2, "premade"))
-      GET_PREMADE_BUILD_CLASS(ch) = class;
-
-    /* Make sure that players can't make wildshaped forms permanent.*/
-    SUBRACE(ch) = 0;
-    IS_MORPHED(ch) = 0;
-    GET_DISGUISE_RACE(ch) = -1; // 0 is human
-    if (affected_by_spell(ch, SKILL_WILDSHAPE))
-    {
-      affect_from_char(ch, SKILL_WILDSHAPE);
-      send_to_char(ch, "You return to your normal form.\r\n");
-    }
-
-    // removed because we checked for group and followers above already -- gicker apr 8 2021
-    //leave_group(ch);
-    //stop_follower(ch);
-    
-    do_start(ch);
-    HAS_SET_STATS_STUDY(ch) = FALSE;
-    GET_EXP(ch) = tempXP;
-    send_to_char(ch, "\tMYou have respec'd!\tn\r\n");
-    if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
-      send_to_char(ch, "\tMYou have chosen a premade %s build\tn\r\n", class_list[class].name);
-    send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
-    save_char(ch, 0);
   }
+
+  respec_engine(ch, class, arg2, FALSE);
 }
 
 /* level advancement, with multi-class support */
@@ -2162,9 +2180,11 @@ ACMD(do_gain)
   int is_altered = FALSE, num_levels = 0;
   int class = -1, i = 0, classCount = 0;
 
+  /* easy outs */
   if (IS_NPC(ch) || !ch->desc)
     return;
 
+  /* limitations, have to be in 'normal' form to advance */
   if (GET_DISGUISE_RACE(ch) || IS_MORPHED(ch))
   {
     send_to_char(ch, "You have to remove disguises, wildshape and/or polymorph "
@@ -2172,12 +2192,14 @@ ACMD(do_gain)
     return;
   }
 
+  /* level limits */
   if (GET_LEVEL(ch) >= LVL_IMMORT - 1)
   {
     send_to_char(ch, "You have reached the level limit! You can not go above level %d!\r\n", LVL_IMMORT - 1);
     return;
   }
 
+  /* have enough xp? */
   if (!(GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
         GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1)))
   {
@@ -2247,8 +2269,7 @@ ACMD(do_gain)
         (GET_CLASS_FEATS(ch, class) != 0) ||
         (GET_EPIC_CLASS_FEATS(ch, class) != 0) ||
         (GET_FEAT_POINTS(ch) != 0) ||
-        (GET_EPIC_FEAT_POINTS(ch) != 0)
-        )
+        (GET_EPIC_FEAT_POINTS(ch) != 0))
     { //    ||
       /*         ((CLASS_LEVEL(ch, CLASS_SORCERER) && !IS_SORC_LEARNED(ch)) ||
                (CLASS_LEVEL(ch, CLASS_WIZARD)   && !IS_WIZ_LEARNED(ch))  ||
@@ -2291,9 +2312,11 @@ ACMD(do_gain)
              GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     {
       GET_LEVEL(ch) += 1;
-      CLASS_LEVEL(ch, class)++;
+      CLASS_LEVEL(ch, class)
+      ++;
       GET_CLASS(ch) = class;
       num_levels++;
+      /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, class);
       is_altered = TRUE;
     }
@@ -3916,7 +3939,7 @@ ACMD(do_save)
     return;
 
   send_to_char(ch, "Saving %s.\r\n", GET_NAME(ch));
-  
+
   save_char_pets(ch);
   save_char(ch, 0);
   Crash_crashsave(ch);
@@ -4052,19 +4075,17 @@ ACMD(do_land)
     msg = TRUE;
   }
 
-  if
-    AFF_FLAGGED(ch, AFF_FLYING)
-    {
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-      msg = TRUE;
-    }
+  if AFF_FLAGGED (ch, AFF_FLYING)
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+    msg = TRUE;
+  }
 
-  if
-    AFF_FLAGGED(ch, AFF_LEVITATE)
-    {
-      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LEVITATE);
-      msg = TRUE;
-    }
+  if AFF_FLAGGED (ch, AFF_LEVITATE)
+  {
+    REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_LEVITATE);
+    msg = TRUE;
+  }
 
   if (msg)
   {
@@ -5103,12 +5124,11 @@ ACMD(do_visible)
     return;
   }
 
-  if
-    AFF_FLAGGED(ch, AFF_INVISIBLE)
-    {
-      appear(ch, TRUE); //forced for greater invis
-      send_to_char(ch, "You break the spell of invisibility.\r\n");
-    }
+  if AFF_FLAGGED (ch, AFF_INVISIBLE)
+  {
+    appear(ch, TRUE); //forced for greater invis
+    send_to_char(ch, "You break the spell of invisibility.\r\n");
+  }
   else
     send_to_char(ch, "You are already visible.\r\n");
 }
@@ -5149,10 +5169,7 @@ static void print_group(struct char_data *ch)
                  GET_MOVE(k), GET_MAX_MOVE(k),
                  GET_PSP(k), GET_MAX_PSP(k),
                  MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
-                 CCNRM(ch, C_NRM)
-                 );
-
-
+                 CCNRM(ch, C_NRM));
 }
 
 /* Putting this here - no better place to put it really. */
@@ -5464,8 +5481,7 @@ ACMD(do_report)
                GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
                GET_MOVE(ch), GET_MAX_MOVE(ch),
                GET_PSP(ch), GET_MAX_PSP(ch),
-               MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch))
-               );
+               MAX(0, level_exp(ch, GET_LEVEL(ch) + 1) - GET_EXP(ch)));
 }
 
 ACMD(do_split)
@@ -6510,7 +6526,8 @@ ACMD(do_happyhour)
       game_info("Happyhour has been stopped!");
       set_db_happy_hour(2);
     }
-    else if (!HAPPY_TIME && num) {
+    else if (!HAPPY_TIME && num)
+    {
       game_info("A Happyhour has started!");
       set_db_happy_hour(1);
     }
@@ -6992,10 +7009,10 @@ ACMDU(do_revoke)
     send_to_char(ch, "You revoke the affect '%s' from your person.\r\n", spell_info[spellnum].name);
     affect_from_char(ch, spellnum);
   }
-  else{
+  else
+  {
     send_to_char(ch, "Either that is not a valid affect name or that affect cannot be revoked.\r\n");
   }
-
 }
 
 ACMDU(do_holyweapon)
@@ -7005,7 +7022,8 @@ ACMDU(do_holyweapon)
 
   skip_spaces(&argument);
 
-  if (!*argument) {
+  if (!*argument)
+  {
     send_to_char(ch, "Please specify a weapon type you'd like to use with your %sholy weapon spell.\r\n", subcmd ? "un" : "");
     send_to_char(ch, "Your current %sholy weapon type is '%s'.\r\n", subcmd ? "un" : "", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
     return;
@@ -7024,7 +7042,7 @@ ACMDU(do_holyweapon)
   }
 
   GET_HOLY_WEAPON_TYPE(ch) = i;
-  send_to_char(ch, "You have set your %sholy weapon type to %s.\r\n",  subcmd ? "un" : "", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
+  send_to_char(ch, "You have set your %sholy weapon type to %s.\r\n", subcmd ? "un" : "", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
   save_char(ch, 0);
 }
 
@@ -7042,7 +7060,7 @@ int active_fiendish_boon_levels(struct char_data *ch)
 
   for (i = 0; i < NUM_FIENDISH_BOONS; i++)
   {
-    
+
     if (FIENDISH_BOON_ACTIVE(ch, i))
       num += fiendish_boon_slots[i];
   }

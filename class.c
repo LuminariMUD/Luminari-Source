@@ -37,22 +37,22 @@
 
 /** LOCAL DEFINES **/
 // good/bad
-#define G 1 //good
-#define B 0 //bad
+#define G 1 // good
+#define B 0 // bad
 // yes/no
-#define Y 1 //yes
-#define N 0 //no
+#define Y 1 // yes
+#define N 0 // no
 // high/medium/low
-#define H 2 //high
-#define M 1 //medium
-#define L 0 //low
+#define H 2 // high
+#define M 1 // medium
+#define L 0 // low
 // spell vs skill
-#define SP 0 //spell
-#define SK 1 //skill
+#define SP 0 // spell
+#define SK 1 // skill
 // skill availability by class
-#define NA 0 //not available
-#define CC 1 //cross class
-#define CA 2 //class ability
+#define NA 0 // not available
+#define CC 1 // cross class
+#define CA 2 // class ability
 /* absolute xp cap */
 #define EXP_MAX 2100000000
 /* modes for dealing with class listing / restrictions */
@@ -904,7 +904,6 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   return TRUE;
 }
 
-
 /* display a specific weapon details */
 bool display_weapon_info(struct char_data *ch, const char *weapon)
 {
@@ -1027,7 +1026,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
     snprintf(spellList, sizeof(spellList), "spells %s", CLSLIST_NAME(class));
     for (i = 0; i < strlen(spellList); i++)
       spellList[i] = tolower(spellList[i]);
-    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist"): "extracts");
+    send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n", (class != CLASS_ALCHEMIST) ? ((class != CLASS_PSIONICIST) ? spellList : "powers psionicist") : "extracts");
   }
   else if (class == CLASS_SHADOW_DANCER)
   {
@@ -1376,12 +1375,12 @@ const char *church_types[] = {
     "Chauntea",
     "Cyric",
     "Grumbar",
-    "Istishia", //5
+    "Istishia", // 5
     "Kelemvor",
     "Kossuth",
     "Lathander",
     "Mystra",
-    "Oghma", //10
+    "Oghma", // 10
     "Shar",
     "Silvanus",
     "\n"}; // 14
@@ -1411,7 +1410,7 @@ int parse_class(char arg)
     return CLASS_SHIFTER;
   case 'i':
     return CLASS_DUELIST;
-  case 'j': 
+  case 'j':
     return CLASS_SHADOW_DANCER;
     //    case 'k': return CLASS_ASSASSIN;
   case 'l':
@@ -1538,7 +1537,7 @@ int parse_class_long(const char *arg_in)
   if (is_abbrev(arg, "blackguard"))
     return CLASS_BLACKGUARD;
   if (is_abbrev(arg, "assassin"))
-    return CLASS_ASSASSIN;  
+    return CLASS_ASSASSIN;
 
   return CLASS_UNDEFINED;
 }
@@ -1575,26 +1574,36 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
 {
   int ability_value = CLSLIST_ABIL(class, ability);
 
+  if (IS_LICH(ch))
+  {
+    if (ability == ABILITY_PERCEPTION || ability == ABILITY_STEALTH || ability == ABILITY_ACROBATICS)
+      ability_value = CA;
+  }
+
   if (HAS_FEAT(ch, FEAT_DECEPTION))
   {
     if (ability == ABILITY_DISGUISE || ability == ABILITY_STEALTH)
       ability_value = CA;
   }
+
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
   {
     if (ability == ABILITY_PERCEPTION)
       ability_value = CA;
   }
+
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_ARCANE))
   {
     if (ability == ABILITY_APPRAISE)
       ability_value = CA;
   }
+
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
   {
     if (ability == ABILITY_SURVIVAL)
       ability_value = CA;
   }
+
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
   {
     if (ability == ABILITY_INTIMIDATE)
@@ -1837,6 +1846,27 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_PINCERS},
 
     /* class, race, stacks?, level, feat_ name */
+    /* Lich */
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_VITAL},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_HARDY},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ULTRAVISION},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_UNARMED_STRIKE},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_IMPROVED_UNARMED_STRIKE},
+    {CLASS_UNDEFINED, RACE_LICH, TRUE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, TRUE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, TRUE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, TRUE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, TRUE, 1, FEAT_ARMOR_SKIN},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_SPELL_RESIST},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_DAM_RESIST},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_TOUCH},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_REJUV},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_FEAR},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_ELECTRIC_IMMUNITY},
+    {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_COLD_IMMUNITY},
+
+    /* class, race, stacks?, level, feat_ name */
     /* elf */
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
@@ -1878,7 +1908,7 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_FAERIE_FIRE},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_LEVITATE},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_DARKNESS},
-    //disadvantage
+    // disadvantage
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_LIGHT_BLINDNESS},
 
     /* class, race, stacks?, level, feat_ name */
@@ -1964,7 +1994,7 @@ void newbieEquipment(struct char_data *ch)
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MOLD,
-      -1 //had to end with -1
+      -1 // had to end with -1
   };
   int x;
   struct obj_data *obj = NULL, *quiver = NULL, *pouch = NULL, *bp = NULL;
@@ -2182,8 +2212,8 @@ void newbieEquipment(struct char_data *ch)
     obj_to_char(obj, ch); // scale mail
 
   case CLASS_WIZARD:
-    obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch);      //wizard note
-    obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); //spellbook
+    obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch);      // wizard note
+    obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); // spellbook
     /* switch fallthrough */
   case CLASS_SORCERER:
   case CLASS_PSIONICIST:
@@ -2196,7 +2226,7 @@ void newbieEquipment(struct char_data *ch)
     obj_to_char(obj, ch); // cloth pants
 
     obj = read_object(NOOB_DAGGER, VIRTUAL);
-    //GET_OBJ_SIZE(obj) = GET_SIZE(ch);
+    // GET_OBJ_SIZE(obj) = GET_SIZE(ch);
     obj_to_char(obj, ch); // dagger
 
     obj = read_object(NOOB_CLOTH_ROBES, VIRTUAL);
@@ -2326,7 +2356,7 @@ void init_start_char(struct char_data *ch)
       affect_remove(ch, ch->affected);
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)
-      [i] = 0;
+    [i] = 0;
   }
 
   /* initialize all levels and spec_abil array */
@@ -2450,7 +2480,8 @@ void init_start_char(struct char_data *ch)
   {
   case RACE_HUMAN:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    GET_FEAT_POINTS(ch)++;
+    GET_FEAT_POINTS(ch)
+    ++;
     trains += 3;
     break;
   case RACE_ELF:
@@ -2479,11 +2510,14 @@ void init_start_char(struct char_data *ch)
     break;
   case RACE_CRYSTAL_DWARF:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    GET_MAX_HIT(ch) += 10;
+    GET_MAX_HIT(ch) += 10; /* vital */
     break;
   case RACE_TRELUX:
     GET_REAL_SIZE(ch) = SIZE_SMALL;
-    GET_MAX_HIT(ch) += 10;
+    GET_MAX_HIT(ch) += 10; /* vital */
+    break;
+  case RACE_LICH:
+    GET_MAX_HIT(ch) += 10; /* vital */
     break;
   case RACE_ARCANA_GOLEM:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
@@ -2498,7 +2532,8 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
+  ++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -2507,7 +2542,8 @@ void init_start_char(struct char_data *ch)
   trains += MAX(1, (CLSLIST_TRAINS(GET_CLASS(ch)) + (int)(int_bonus)) * 3);
 
   /* finalize */
-  GET_FEAT_POINTS(ch)++; /* 1st level feat. */
+  GET_FEAT_POINTS(ch)
+  ++; /* 1st level feat. */
   send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", GET_FEAT_POINTS(ch));
   send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
   GET_TRAINS(ch) += trains;
@@ -2519,7 +2555,8 @@ void do_start(struct char_data *ch)
 {
   init_start_char(ch);
 
-  //from level 0 -> level 1
+  // from level 0 -> level 1
+  /* our function for leveling up, takes in class that is being advanced */
   advance_level(ch, GET_CLASS(ch));
   GET_HIT(ch) = GET_MAX_HIT(ch);
   GET_PSP(ch) = GET_MAX_PSP(ch);
@@ -2537,8 +2574,8 @@ void process_class_level_feats(struct char_data *ch, int class)
   char featbuf[MAX_STRING_LENGTH];
   char tmp_buf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
-  int class_level = -1, effective_class_level = -1;
-  //struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
+  int class_level = -1, effective_class_level = -1, counter = 0;
+  // struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
 
   /* deal with some instant disqualification */
   if (class < 0 || class >= NUM_CLASSES)
@@ -2555,6 +2592,16 @@ void process_class_level_feats(struct char_data *ch, int class)
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
        feat_assign = feat_assign->next)
   {
+
+    /* skipping racial feats if necessary */
+    if (level_feats[counter][LF_CLASS] == CLASS_UNDEFINED &&
+        level_feats[counter][LF_RACE] == GET_RACE(ch))
+    //        && level_feats[i][LF_MIN_LVL] == GET_LEVEL(ch))
+    {
+      counter++;
+      continue;
+    }
+    counter++;
 
     if (IS_SPELL_CIRCLE_FEAT(feat_assign->feat_num))
     {
@@ -2635,6 +2682,8 @@ void process_class_level_feats(struct char_data *ch, int class)
 
         /* no special handling */
       default:
+        // if (feat_assign->level_received == GET_LEVEL(ch))
+        //{
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
           snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
@@ -2649,6 +2698,7 @@ void process_class_level_feats(struct char_data *ch, int class)
                    feat_types[feat_list[feat_assign->feat_num].feat_type]);
           strlcat(featbuf, tmp_buf, sizeof(featbuf));
         }
+        //}
         break;
       }
 
@@ -2763,70 +2813,70 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
     }
     else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_FEY))
     {
-        if (!HAS_REAL_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA))
-        {
-          SET_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_BLOODLINE_ARCANA].name);
-        }
-        if (!HAS_REAL_FEAT(ch, FEAT_LAUGHING_TOUCH))
-        {
-          SET_FEAT(ch, FEAT_LAUGHING_TOUCH, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_LAUGHING_TOUCH].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_WOODLAND_STRIDE))
-        {
-          SET_FEAT(ch, FEAT_WOODLAND_STRIDE, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_WOODLAND_STRIDE].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_FLEETING_GLANCE))
-        {
-          SET_FEAT(ch, FEAT_FLEETING_GLANCE, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FLEETING_GLANCE].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_FEY_MAGIC))
-        {
-          SET_FEAT(ch, FEAT_FEY_MAGIC, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_MAGIC].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_SOUL_OF_THE_FEY))
-        {
-          SET_FEAT(ch, FEAT_SOUL_OF_THE_FEY, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_SOUL_OF_THE_FEY].name);
-        }
+      if (!HAS_REAL_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA))
+      {
+        SET_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_BLOODLINE_ARCANA].name);
       }
-      else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
+      if (!HAS_REAL_FEAT(ch, FEAT_LAUGHING_TOUCH))
+      {
+        SET_FEAT(ch, FEAT_LAUGHING_TOUCH, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_LAUGHING_TOUCH].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_WOODLAND_STRIDE))
+      {
+        SET_FEAT(ch, FEAT_WOODLAND_STRIDE, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_WOODLAND_STRIDE].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_FLEETING_GLANCE))
+      {
+        SET_FEAT(ch, FEAT_FLEETING_GLANCE, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FLEETING_GLANCE].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_FEY_MAGIC))
+      {
+        SET_FEAT(ch, FEAT_FEY_MAGIC, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_FEY_MAGIC].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_SOUL_OF_THE_FEY))
+      {
+        SET_FEAT(ch, FEAT_SOUL_OF_THE_FEY, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_SOUL_OF_THE_FEY].name);
+      }
+    }
+    else if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_UNDEAD))
     {
-        if (!HAS_REAL_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
-        {
-          SET_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_UNDEAD_BLOODLINE_ARCANA].name);
-        }
-        if (!HAS_REAL_FEAT(ch, FEAT_GRAVE_TOUCH))
-        {
-          SET_FEAT(ch, FEAT_GRAVE_TOUCH, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRAVE_TOUCH].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_DEATHS_GIFT))
-        {
-          SET_FEAT(ch, FEAT_DEATHS_GIFT, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DEATHS_GIFT].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_GRASP_OF_THE_DEAD))
-        {
-          SET_FEAT(ch, FEAT_GRASP_OF_THE_DEAD, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRASP_OF_THE_DEAD].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_INCORPOREAL_FORM))
-        {
-          SET_FEAT(ch, FEAT_INCORPOREAL_FORM, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_INCORPOREAL_FORM].name);
-        }
-        if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_ONE_OF_US))
-        {
-          SET_FEAT(ch, FEAT_ONE_OF_US, 1);
-          send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ONE_OF_US].name);
-        }
+      if (!HAS_REAL_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA))
+      {
+        SET_FEAT(ch, FEAT_UNDEAD_BLOODLINE_ARCANA, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_UNDEAD_BLOODLINE_ARCANA].name);
       }
+      if (!HAS_REAL_FEAT(ch, FEAT_GRAVE_TOUCH))
+      {
+        SET_FEAT(ch, FEAT_GRAVE_TOUCH, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRAVE_TOUCH].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 3 && !HAS_REAL_FEAT(ch, FEAT_DEATHS_GIFT))
+      {
+        SET_FEAT(ch, FEAT_DEATHS_GIFT, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_DEATHS_GIFT].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 && !HAS_REAL_FEAT(ch, FEAT_GRASP_OF_THE_DEAD))
+      {
+        SET_FEAT(ch, FEAT_GRASP_OF_THE_DEAD, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_GRASP_OF_THE_DEAD].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 && !HAS_REAL_FEAT(ch, FEAT_INCORPOREAL_FORM))
+      {
+        SET_FEAT(ch, FEAT_INCORPOREAL_FORM, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_INCORPOREAL_FORM].name);
+      }
+      if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 20 && !HAS_REAL_FEAT(ch, FEAT_ONE_OF_US))
+      {
+        SET_FEAT(ch, FEAT_ONE_OF_US, 1);
+        send_to_char(ch, "You have gained the %s feat!\r\n", feat_list[FEAT_ONE_OF_US].name);
+      }
+    }
     break;
   case CLASS_MYSTIC_THEURGE:
   {
@@ -2868,7 +2918,7 @@ void process_level_feats(struct char_data *ch, int class)
     /* non-class, racial feat and don't have it yet */
     if (level_feats[i][LF_CLASS] == CLASS_UNDEFINED &&
         level_feats[i][LF_RACE] == GET_RACE(ch) &&
-        !HAS_FEAT(ch, level_feats[i][LF_FEAT]))
+        level_feats[i][LF_MIN_LVL] == GET_LEVEL(ch))
     {
       if (HAS_FEAT(ch, level_feats[i][LF_FEAT]))
       {
@@ -2876,15 +2926,16 @@ void process_level_feats(struct char_data *ch, int class)
                  feat_list[level_feats[i][LF_FEAT]].name,
                  feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
         strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
       }
-      else
+      else if (!HAS_FEAT(ch, level_feats[i][LF_FEAT]))
       {
         snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
                  feat_list[level_feats[i][LF_FEAT]].name,
                  feat_types[feat_list[level_feats[i][LF_FEAT]].feat_type]);
         strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
       }
-      SET_FEAT(ch, level_feats[i][LF_FEAT], HAS_REAL_FEAT(ch, level_feats[i][LF_FEAT]) + 1);
     }
 
     /* counter */
@@ -2894,10 +2945,10 @@ void process_level_feats(struct char_data *ch, int class)
   send_to_char(ch, "%s", featbuf);
 }
 
-/* our function for leveling up */
+/* our function for leveling up, takes in class that is being advanced */
 void advance_level(struct char_data *ch, int class)
 {
-  int add_hp = 0, at_armor = 100, 
+  int add_hp = 0, at_armor = 100,
       add_psp = 0, add_move = 0, k, trains = 0;
   int feats = 0, class_feats = 0, epic_feats = 0, epic_class_feats = 0;
   int i = 0;
@@ -2919,7 +2970,6 @@ void advance_level(struct char_data *ch, int class)
       add_psp += GET_REAL_INT_BONUS(ch);
     if (HAS_REAL_FEAT(ch, FEAT_PROFICIENT_PSIONICIST))
       add_psp++;
-
   }
 
   /* first level in a class?  might have some inits to do! */
@@ -2935,7 +2985,7 @@ void advance_level(struct char_data *ch, int class)
 
   /* calculate hps gain */
   // we're not doing random amounts anymore.  Instead they get full hit dice each level
-  //add_hp += rand_number(CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
+  // add_hp += rand_number(CLSLIST_HPS(class) / 2, CLSLIST_HPS(class));
   add_hp += CLSLIST_HPS(class);
 
   /* calculate moves gain */
@@ -2949,31 +2999,36 @@ void advance_level(struct char_data *ch, int class)
   {
     if (CLASS_LEVEL(ch, CLASS_WIZARD) <= 20)
       class_feats++; // wizards get a bonus class feat every 5 levels
-    //else if (IS_EPIC(ch))
-    //epic_class_feats++;
+    // else if (IS_EPIC(ch))
+    // epic_class_feats++;
   }
+
   if (class == CLASS_PSIONICIST && (!(CLASS_LEVEL(ch, CLASS_PSIONICIST) % 5) || CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1))
   {
     if (CLASS_LEVEL(ch, CLASS_PSIONICIST) <= 20)
       class_feats++; // psionicists get a bonus class feat every 5 levels
   }
+
   if (class == CLASS_WARRIOR)
   {
     if (CLASS_LEVEL(ch, CLASS_WARRIOR) <= 20 && !(CLASS_LEVEL(ch, CLASS_WARRIOR) % 2))
       class_feats++; // warriors get a bonus class feat every 2 levels
-    //else if (IS_EPIC(ch))
-    //epic_class_feats++;
+    // else if (IS_EPIC(ch))
+    // epic_class_feats++;
   }
-  if (class == CLASS_ELDRITCH_KNIGHT  && (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 1 || 
-               CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 5 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 9))
+
+  if (class == CLASS_ELDRITCH_KNIGHT && (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 1 ||
+                                         CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 5 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 9))
   {
     class_feats++; // Eldritch Knights get a bonus feat on levels 1, 5, and 9
   }
+
   if (class == CLASS_SORCERER && ((CLASS_LEVEL(ch, CLASS_SORCERER) - 1) % 6 == 0) &&
       CLASS_LEVEL(ch, CLASS_SORCERER) > 1)
   {
     class_feats++;
   }
+
   if (class == CLASS_SPELLSWORD && CLASS_LEVEL(ch, CLASS_SPELLSWORD) == 2)
   {
     class_feats++;
@@ -3002,7 +3057,7 @@ void advance_level(struct char_data *ch, int class)
   /* 'free' class feats gained that depend on previous class or feat choices */
   process_conditional_class_level_feats(ch, class);
 
-  //Racial Bonuses
+  // Racial Bonuses
   switch (GET_RACE(ch))
   {
   case RACE_HUMAN:
@@ -3014,11 +3069,14 @@ void advance_level(struct char_data *ch, int class)
   case RACE_TRELUX:
     add_hp += 4;
     break;
+  case RACE_LICH:
+    add_hp += 4;
+    break;
   default:
     break;
   }
 
-  //base practice / boost improvement
+  // base practice / boost improvement
   if (!(GET_LEVEL(ch) % 3) && !IS_EPIC(ch))
   {
     feats++;
@@ -3057,7 +3115,8 @@ void advance_level(struct char_data *ch, int class)
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
   GET_REAL_MAX_MOVE(ch) += MAX(1, add_move);
   send_to_char(ch, "\tMTotal Move:\tn %d\r\n", MAX(1, add_move));
-  if (add_psp > 0) {
+  if (add_psp > 0)
+  {
     GET_REAL_MAX_PSP(ch) += MAX(1, add_psp);
     send_to_char(ch, "\tMTotal Power Points:\tn %d\r\n", MAX(1, add_psp));
   }
@@ -3221,12 +3280,12 @@ int level_exp(struct char_data *ch, int level)
     return 123456;
   }
 
-  //can add other exp penalty/bonuses here
+  // can add other exp penalty/bonuses here
   switch (GET_REAL_RACE(ch))
   {
     /* funny bug: used to use disguised/wildshape race */
 
-    //advanced races
+    // advanced races
   case RACE_HALF_TROLL:
     exp *= 2;
     break;
@@ -3240,12 +3299,17 @@ int level_exp(struct char_data *ch, int level)
     exp *= 2;
     break;
 
-    //epic races
+    /* epic races */
   case RACE_CRYSTAL_DWARF:
-    exp *= 15;
+    exp *= 8;
     break;
+
   case RACE_TRELUX:
-    exp *= 15;
+    exp *= 8;
+    break;
+
+  case RACE_LICH:
+    exp *= 10;
     break;
 
   default:
@@ -3402,7 +3466,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_DETECT_INVIS, 3);
   spell_assignment(CLASS_WIZARD, SPELL_DETECT_MAGIC, 3);
   spell_assignment(CLASS_WIZARD, SPELL_DARKNESS, 3);
-  //spell_assignment(CLASS_WIZARD, SPELL_I_DARKNESS,        3);
+  // spell_assignment(CLASS_WIZARD, SPELL_I_DARKNESS,        3);
   spell_assignment(CLASS_WIZARD, SPELL_RESIST_ENERGY, 3);
   spell_assignment(CLASS_WIZARD, SPELL_ENERGY_SPHERE, 3);
   spell_assignment(CLASS_WIZARD, SPELL_ENDURANCE, 3);
@@ -3570,7 +3634,7 @@ void load_class_list(void)
   /* no prereqs!  woo! */
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_WIZARD);
+  // assign_feat_spell_slots(CLASS_WIZARD);
   /**/
   /****************************************************************************/
 
@@ -3740,7 +3804,7 @@ void load_class_list(void)
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_CLERIC, SPELL_CALL_LIGHTNING, 13);
-  //spell_assignment(CLASS_CLERIC, SPELL_CONTROL_WEATHER,    13);
+  // spell_assignment(CLASS_CLERIC, SPELL_CONTROL_WEATHER,    13);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON, 13);
   spell_assignment(CLASS_CLERIC, SPELL_WORD_OF_RECALL, 13);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_7, 13);
@@ -3753,7 +3817,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_SENSE_LIFE, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
-  //spell_assignment(CLASS_CLERIC, SPELL_SANCTUARY,       15);
+  // spell_assignment(CLASS_CLERIC, SPELL_SANCTUARY,       15);
   spell_assignment(CLASS_CLERIC, SPELL_DESTRUCTION, 15);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_CLERIC, SPELL_SPELL_MANTLE, 15);
@@ -3776,9 +3840,9 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_IMPLODE, 17);
   spell_assignment(CLASS_CLERIC, SPELL_REFUGE, 17);
   spell_assignment(CLASS_CLERIC, SPELL_GROUP_SUMMON, 17);
-  //spell_assignment(CLASS_CLERIC, death shield, 17);
-  //spell_assignment(CLASS_CLERIC, command, 17);
-  //spell_assignment(CLASS_CLERIC, air walker, 17);
+  // spell_assignment(CLASS_CLERIC, death shield, 17);
+  // spell_assignment(CLASS_CLERIC, command, 17);
+  // spell_assignment(CLASS_CLERIC, air walker, 17);
   /*epic spells*/
   spell_assignment(CLASS_CLERIC, SPELL_MUMMY_DUST, 21);
   spell_assignment(CLASS_CLERIC, SPELL_DRAGON_KNIGHT, 21);
@@ -3786,7 +3850,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_HELLBALL, 21);
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_CLERIC);
+  // assign_feat_spell_slots(CLASS_CLERIC);
   /****************************************************************************/
 
   /****************************************************************************/
@@ -4267,10 +4331,10 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_DRUID, SPELL_SPIKE_STONES, 7);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_4, 7);
-  //spell_assignment(SPELL_REINCARNATE, 7);
+  // spell_assignment(SPELL_REINCARNATE, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
-  //spell_assignment(CLASS_DRUID, SPELL_BALEFUL_POLYMORPH, 9);
+  // spell_assignment(CLASS_DRUID, SPELL_BALEFUL_POLYMORPH, 9);
   spell_assignment(CLASS_DRUID, SPELL_CALL_LIGHTNING_STORM, 9);
   spell_assignment(CLASS_DRUID, SPELL_CURE_CRITIC, 9);
   spell_assignment(CLASS_DRUID, SPELL_DEATH_WARD, 9);
@@ -4302,7 +4366,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_MODERATE, 13);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_7, 13);
   spell_assignment(CLASS_DRUID, SPELL_SUNBEAM, 13);
-  //spell_assignment(CLASS_DRUID, SPELL_GREATER_SCRYING, 13);
+  // spell_assignment(CLASS_DRUID, SPELL_GREATER_SCRYING, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_DRUID, SPELL_ANIMAL_SHAPES, 15);
@@ -4336,7 +4400,7 @@ void load_class_list(void)
   class_prereq_align(CLASS_DRUID, NEUTRAL_EVIL);
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_DRUID);
+  // assign_feat_spell_slots(CLASS_DRUID);
   /****************************************************************************/
 
   /****************************************************************************/
@@ -4573,7 +4637,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_DETECT_INVIS, 4);
   spell_assignment(CLASS_SORCERER, SPELL_DETECT_MAGIC, 4);
   spell_assignment(CLASS_SORCERER, SPELL_DARKNESS, 4);
-  //spell_assignment(CLASS_SORCERER, SPELL_I_DARKNESS,        4);
+  // spell_assignment(CLASS_SORCERER, SPELL_I_DARKNESS,        4);
   spell_assignment(CLASS_SORCERER, SPELL_RESIST_ENERGY, 4);
   spell_assignment(CLASS_SORCERER, SPELL_ENERGY_SPHERE, 4);
   spell_assignment(CLASS_SORCERER, SPELL_ENDURANCE, 4);
@@ -4742,7 +4806,7 @@ void load_class_list(void)
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_SORCERER);
+  // assign_feat_spell_slots(CLASS_SORCERER);
   /****************************************************************************/
 
   /****************************************************************************/
@@ -4901,28 +4965,28 @@ void load_class_list(void)
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_PALADIN);
+  // assign_feat_spell_slots(CLASS_PALADIN);
   /****************************************************************************/
 
-/****************************************************************************/
+  /****************************************************************************/
   /*     class-number   name      abrv   clr-abrv     menu-name*/
   classo(CLASS_BLACKGUARD, "blackguard", "BkG", "\tDBkG\tn", "z) \tDBlackguard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
-         "champions of evil in Faerun. They lead armies of dread forces such as undead, "
-         "fiends, and other extra-planar beings, often in the name of the more malevolent "
-         "deities. These individuals had the reputation as some of most reviled villains. "
-         "They are just as equally feared as they are despised by the free folk of the "
-         "Realms. They acted as killers, led as commanders, and even served as agents "
-         "for more forces that are even more malignant than they. They accomplished their "
-         "goals by any means necessary, whether through subterfuge, dark magic, anarchic "
-         "destruction, or overwhelming force. Blackguards possess distinct auras of evil "
-         "and despair, carrying blessings bestowed upon them by the forces of darkness. "
-         "They are particularly adept at instilling fear in their foes. They are quite adept "
-         "at readily uncovering good beings, and can also smite them in battle. Blackguards "
-         "can carry out smiting more often as the longer they carried out their dark deeds.");
+                     "champions of evil in Faerun. They lead armies of dread forces such as undead, "
+                     "fiends, and other extra-planar beings, often in the name of the more malevolent "
+                     "deities. These individuals had the reputation as some of most reviled villains. "
+                     "They are just as equally feared as they are despised by the free folk of the "
+                     "Realms. They acted as killers, led as commanders, and even served as agents "
+                     "for more forces that are even more malignant than they. They accomplished their "
+                     "goals by any means necessary, whether through subterfuge, dark magic, anarchic "
+                     "destruction, or overwhelming force. Blackguards possess distinct auras of evil "
+                     "and despair, carrying blessings bestowed upon them by the forces of darkness. "
+                     "They are particularly adept at instilling fear in their foes. They are quite adept "
+                     "at readily uncovering good beings, and can also smite them in battle. Blackguards "
+                     "can carry out smiting more often as the longer they carried out their dark deeds.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BLACKGUARD, B, B, G, B, B);
   assign_class_abils(CLASS_BLACKGUARD, /* class number */
@@ -4934,18 +4998,18 @@ void load_class_list(void)
                      CC, CC, CA, CC, CA, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CC, CC);
-  assign_class_titles(CLASS_BLACKGUARD,                    /* class number */
-                      "",                               /* <= 4  */
-                      "the Novice Blackguard",                  /* <= 9  */
-                      "the Adaept Blackguard",                   /* <= 14 */
-                      "the Veteran Blackguard",              /* <= 19 */
-                      "the Master Blackguard",           /* <= 24 */
-                      "the Champion Blackguard",         /* <= 29 */
-                      "the Chosen Blackguard",      /* <= 30 */
-                      "the Immortal Blackguard",          /* <= LVL_IMMORT */
-                      "the Immortal Blackguard",    /* <= LVL_STAFF */
+  assign_class_titles(CLASS_BLACKGUARD,          /* class number */
+                      "",                        /* <= 4  */
+                      "the Novice Blackguard",   /* <= 9  */
+                      "the Adaept Blackguard",   /* <= 14 */
+                      "the Veteran Blackguard",  /* <= 19 */
+                      "the Master Blackguard",   /* <= 24 */
+                      "the Champion Blackguard", /* <= 29 */
+                      "the Chosen Blackguard",   /* <= 30 */
+                      "the Immortal Blackguard", /* <= LVL_IMMORT */
+                      "the Immortal Blackguard", /* <= LVL_STAFF */
                       "the Immortal Blackguard", /* <= LVL_GRSTAFF */
-                      "the Blackguard"                     /* default */
+                      "the Blackguard"           /* default */
   );
   /* feat assignment */
   /*              class num     feat                            cfeat lvl stack */
@@ -5026,7 +5090,7 @@ void load_class_list(void)
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  //spell_assignment(CLASS_BLACKGUARD, SPELL_COMMAND, 6);
+  // spell_assignment(CLASS_BLACKGUARD, SPELL_COMMAND, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_DETECT_POISON, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_DOOM, 6);
   spell_assignment(CLASS_BLACKGUARD, SPELL_CAUSE_LIGHT_WOUNDS, 6);
@@ -5046,11 +5110,11 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_CHARISMA, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_HOLD_PERSON, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_INVISIBLE, 10);
-  //spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
+  // spell_assignment(CLASS_BLACKGUARD, SPELL_SILENCE, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_4, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_BESTOW_WEAPON_PROFICIENCY, 10);
   spell_assignment(CLASS_BLACKGUARD, SPELL_LITANY_OF_DEFENSE, 10);
-  
+
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_BLACKGUARD, SPELL_ANIMATE_DEAD, 12);
@@ -5061,7 +5125,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_CIRCLE_A_GOOD, 12);
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_6, 12);
   spell_assignment(CLASS_BLACKGUARD, SPELL_VAMPIRIC_TOUCH, 12);
-  
+
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_BLACKGUARD, SPELL_DISPEL_GOOD, 15);
@@ -5080,7 +5144,7 @@ void load_class_list(void)
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_PALADIN);
+  // assign_feat_spell_slots(CLASS_PALADIN);
   /**************************************************************************/
 
   /****************************************************************************/
@@ -5214,7 +5278,7 @@ void load_class_list(void)
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_RANGER);
+  // assign_feat_spell_slots(CLASS_RANGER);
   /****************************************************************************/
 
   /****************************************************************************/
@@ -5370,7 +5434,7 @@ void load_class_list(void)
   /*****/
   /* INIT spell slots, assignement of spell slots based on
      tables in constants.c */
-  //assign_feat_spell_slots(CLASS_BARD);
+  // assign_feat_spell_slots(CLASS_BARD);
   /****************************************************************************/
 
   /****************************************************************************/
@@ -5397,18 +5461,18 @@ void load_class_list(void)
                      CA, CC, CC, CC, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CA, CC);
-  assign_class_titles(CLASS_PSIONICIST,                /* class number */
-                      "",                        /* <= 4  */
-                      "the Novice of the Mind",           /* <= 9  */
-                      "the Adept of the Mind", /* <= 14 */
-                      "the Psionicist",          /* <= 19 */
+  assign_class_titles(CLASS_PSIONICIST,         /* class number */
+                      "",                       /* <= 4  */
+                      "the Novice of the Mind", /* <= 9  */
+                      "the Adept of the Mind",  /* <= 14 */
+                      "the Psionicist",         /* <= 19 */
                       "the Mind Shaper",        /* <= 24 */
-                      "the Master of the Mind",            /* <= 29 */
-                      "the Master of the Mind",             /* <= 30 */
-                      "the Immortal Mind", /* <= LVL_IMMORT */
-                      "the Master of Minds",     /* <= LVL_STAFF */
-                      "the Omniscient",       /* <= LVL_GRSTAFF */
-                      "the Psionicist"                 /* default */
+                      "the Master of the Mind", /* <= 29 */
+                      "the Master of the Mind", /* <= 30 */
+                      "the Immortal Mind",      /* <= LVL_IMMORT */
+                      "the Master of Minds",    /* <= LVL_STAFF */
+                      "the Omniscient",         /* <= LVL_GRSTAFF */
+                      "the Psionicist"          /* default */
   );
 
   /* feat assignment */
@@ -5428,7 +5492,7 @@ void load_class_list(void)
   feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_9TH_CIRCLE, Y, 17, N);
   feat_assignment(CLASS_PSIONICIST, FEAT_PERPETUAL_FORESIGHT, Y, 20, N);
   /*epic*/
-  //feat_assignment(CLASS_PSIONICIST, FEAT_SORCERER_EPIC_SPELL, Y, 21, N);
+  // feat_assignment(CLASS_PSIONICIST, FEAT_SORCERER_EPIC_SPELL, Y, 21, N);
   /* list of class feats */
   feat_assignment(CLASS_PSIONICIST, FEAT_COMBAT_MANIFESTATION, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_PSIONICIST, FEAT_ALIGNED_ATTACK_GOOD, Y, NOASSIGN_FEAT, N);
@@ -5464,7 +5528,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_CRYSTAL_SHARD, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DECELERATION, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DEMORALIZE, 1);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHEEN, 1);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHEEN, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_RAY, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCE_SCREEN, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_FORTIFY, 1);
@@ -5490,16 +5554,16 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_STUN, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_INFLICT_PAIN, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_MENTAL_DISRUPTION, 3);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_PSIONIC_LOCK, 3);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_PSIONIC_LOCK, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHIC_BODYGUARD, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_RECALL_AGONY, 3);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARE_PAIN, 3);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARE_PAIN, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SWARM_OF_CRYSTALS, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_THOUGHT_SHIELD, 3);
 
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_ADJUSTMENT, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCUSSIVE_ONSLAUGHT, 5);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_DISPEL_PSIONICS, 5);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_DISPEL_PSIONICS, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENDORPHIN_SURGE, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_BURST, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_RETORT, 5);
@@ -5508,7 +5572,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_MENTAL_BARRIER, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_MIND_TRAP, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PSIONIC_BLAST, 5);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCED_SHARED_PAIN, 5);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCED_SHARED_PAIN, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARPENED_EDGE, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_UBIQUITUS_VISION, 5);
 
@@ -5524,7 +5588,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WITHER, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WALL_OF_ECTOPLASM, 7);
 
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHAMBLER, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PIERCE_VEIL, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PLANAR_TRAVEL, 9);
@@ -5539,13 +5603,13 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BREATH_OF_THE_BLACK_DRAGON, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BRUTALIZE_WOUNDS, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DISINTEGRATION, 11);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_REMOTE_VIEW_TRAP, 11);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_REMOTE_VIEW_TRAP, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SUSTAINED_FLIGHT, 11);
 
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_COSMIC_AWARENESS, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_CONVERSION, 13);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_WAVE, 13);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_WAVE, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_EVADE_BURST, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_OAK_BODY, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHOSIS, 13);
@@ -5555,10 +5619,10 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_RECALL_DEATH, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHADOW_BODY, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_TRUE_METABOLISM, 15);
-  
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_APOPSI, 17);
+
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_APOPSI, 17);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ASSIMILATE, 17);
-  //spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
+  // spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
@@ -5746,8 +5810,7 @@ void load_class_list(void)
   class_prereq_align(CLASS_ARCANE_SHADOW, CHAOTIC_NEUTRAL);
   /****************************************************************************/
 
-
-/****************************************************************************/
+  /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ELDRITCH_KNIGHT, "eldritchknight", "EKn", "\tWE\tCKn\tn", "n) \tWEldritch\tCKnight\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
@@ -5770,24 +5833,24 @@ void load_class_list(void)
                      CC, CC, CC, CC, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CA, CC);
-  assign_class_titles(CLASS_ELDRITCH_KNIGHT,          /* class number */
-                      "",                           /* <= 4  */
-                      "the Eldritch Knight",         /* <= 9  */
-                      "the Eldritch Knight",          /* <= 14 */
-                      "the Eldritch Knight",          /* <= 19 */
-                      "the Eldritch Knight",        /* <= 24 */
-                      "the Eldritch Knight",         /* <= 29 */
-                      "the Eldritch Knight",        /* <= 30 */
-                      "the Eldritch Knight",  /* <= LVL_IMMORT */
+  assign_class_titles(CLASS_ELDRITCH_KNIGHT, /* class number */
+                      "",                    /* <= 4  */
+                      "the Eldritch Knight", /* <= 9  */
+                      "the Eldritch Knight", /* <= 14 */
+                      "the Eldritch Knight", /* <= 19 */
+                      "the Eldritch Knight", /* <= 24 */
+                      "the Eldritch Knight", /* <= 29 */
+                      "the Eldritch Knight", /* <= 30 */
+                      "the Eldritch Knight", /* <= LVL_IMMORT */
                       "the Eldritch Knight", /* <= LVL_STAFF */
-                      "the Eldritch Knight",    /* <= LVL_GRSTAFF */
-                      "the Eldritch Knight"            /* default */
+                      "the Eldritch Knight", /* <= LVL_GRSTAFF */
+                      "the Eldritch Knight"  /* default */
   );
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DIVERSE_TRAINING, Y, 1, Y);
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_SPELL_CRITICAL, Y, 10, N);
-    /* list of class feats */
+  /* list of class feats */
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
@@ -5893,18 +5956,18 @@ void load_class_list(void)
                      CC, CC, CC, CC, CC, CC,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CA, CC);
-  assign_class_titles(CLASS_SPELLSWORD,          /* class number */
-                      "",                           /* <= 4  */
-                      "the Spell Sword",         /* <= 9  */
-                      "the Spell Sword",          /* <= 14 */
-                      "the Spell Sword",          /* <= 19 */
-                      "the Spell Sword",        /* <= 24 */
-                      "the Spell Sword",         /* <= 29 */
-                      "the Spell Sword",        /* <= 30 */
-                      "the Spell Sword",  /* <= LVL_IMMORT */
+  assign_class_titles(CLASS_SPELLSWORD,  /* class number */
+                      "",                /* <= 4  */
+                      "the Spell Sword", /* <= 9  */
+                      "the Spell Sword", /* <= 14 */
+                      "the Spell Sword", /* <= 19 */
+                      "the Spell Sword", /* <= 24 */
+                      "the Spell Sword", /* <= 29 */
+                      "the Spell Sword", /* <= 30 */
+                      "the Spell Sword", /* <= LVL_IMMORT */
                       "the Spell Sword", /* <= LVL_STAFF */
-                      "the Spell Sword",    /* <= LVL_GRSTAFF */
-                      "the Spell Sword"            /* default */
+                      "the Spell Sword", /* <= LVL_GRSTAFF */
+                      "the Spell Sword"  /* default */
   );
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
@@ -5917,7 +5980,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SPELLSWORD, FEAT_CHANNEL_SPELL, Y, 8, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_IGNORE_SPELL_FAILURE, Y, 9, Y);
   feat_assignment(CLASS_SPELLSWORD, FEAT_MULTIPLE_CHANNEL_SPELL, Y, 10, Y);
-    /* list of class feats */
+  /* list of class feats */
   feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SKIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SPECIALIZATION_LIGHT, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SPELLSWORD, FEAT_ARMOR_SPECIALIZATION_MEDIUM, Y, NOASSIGN_FEAT, N);
@@ -6193,7 +6256,7 @@ void load_class_list(void)
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
-  classo(CLASS_SHADOWDANCER,"shadowdancer", "ShD", "\trSh\tDd\tn", "f) \trSh\tDd\tn",
+  classo(CLASS_SHADOWDANCER, "shadowdancer", "ShD", "\trSh\tDd\tn", "f) \trSh\tDd\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 1, 6, Y, 5000, 0,
          /*prestige spell progression*/ "none",
@@ -6213,18 +6276,18 @@ void load_class_list(void)
                      CA, CC, CA, CA, CC, CC,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CC, CC, CA);
-  assign_class_titles(CLASS_SHADOWDANCER,              /* class number */
-                      "",                       /* <= 4  */
-                      "the Shadow Dancer",      /* <= 9  */
-                      "the Shadow Dancer",      /* <= 14 */
-                      "the Shadow Dancer",      /* <= 19 */
-                      "the Shadow Dancer",      /* <= 24 */
-                      "the Shadow Dancer",      /* <= 29 */
-                      "the Shadow Dancer",      /* <= 30 */
-                      "the Shadow Dancer",      /* <= LVL_IMMORT */
-                      "the Shadow Dancer",      /* <= LVL_STAFF */
-                      "the Shadow Dancer",      /* <= LVL_GRSTAFF */
-                      "the Shadow Dancer"       /* default */
+  assign_class_titles(CLASS_SHADOWDANCER,  /* class number */
+                      "",                  /* <= 4  */
+                      "the Shadow Dancer", /* <= 9  */
+                      "the Shadow Dancer", /* <= 14 */
+                      "the Shadow Dancer", /* <= 19 */
+                      "the Shadow Dancer", /* <= 24 */
+                      "the Shadow Dancer", /* <= 29 */
+                      "the Shadow Dancer", /* <= 30 */
+                      "the Shadow Dancer", /* <= LVL_IMMORT */
+                      "the Shadow Dancer", /* <= LVL_STAFF */
+                      "the Shadow Dancer", /* <= LVL_GRSTAFF */
+                      "the Shadow Dancer"  /* default */
   );
   /* feat assignment */
   /*              class num     feat                                 cfeat lvl stack */
@@ -6580,21 +6643,21 @@ void load_class_list(void)
   /* class prereqs */
   /****************************************************************************/
 
-/****************************************************************************/
+  /****************************************************************************/
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ASSASSIN, "assassin", "Asn", "\tDAsn\tn", "t) \tDAssassin\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          10, Y, Y, M, 8, 0, 2, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "A mercenary undertaking his task with cold, professional detachment, the assassin "
-        "is equally adept at espionage, bounty hunting, and terrorism. At his core, an "
-        "assassin is an artisan, and his medium is death. Trained in a variety of killing "
-        "techniques, assassins are among the most feared classes. Assassins tend to be "
-        "loners by nature, seeing companions as liabilities at best. Sometimes an "
-        "assassin's missions put him in the company of adventurers for long stretches at "
-        "a time, but few people are comfortable trusting a professional assassin to watch "
-        "their backs in a fight, and are more likely to let the emotionless killer scout "
-        "ahead or help prepare ambushes.");
+                     "is equally adept at espionage, bounty hunting, and terrorism. At his core, an "
+                     "assassin is an artisan, and his medium is death. Trained in a variety of killing "
+                     "techniques, assassins are among the most feared classes. Assassins tend to be "
+                     "loners by nature, seeing companions as liabilities at best. Sometimes an "
+                     "assassin's missions put him in the company of adventurers for long stretches at "
+                     "a time, but few people are comfortable trusting a professional assassin to watch "
+                     "their backs in a fight, and are more likely to let the emotionless killer scout "
+                     "ahead or help prepare ambushes.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ASSASSIN, B, G, B, B, B);
   assign_class_abils(CLASS_ASSASSIN, /* class number */
@@ -6606,18 +6669,18 @@ void load_class_list(void)
                      CC, CA, CA, CA, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
                      CC, CA, CA, CC);
-  assign_class_titles(CLASS_ASSASSIN,                 /* class number */
-                      "",                             /* <= 4  */
-                      "the Assassin",                 /* <= 9  */
-                      "the Assassin",                 /* <= 14 */
-                      "the Assassin",                 /* <= 19 */
-                      "the Assassin",                 /* <= 24 */
-                      "the Assassin",                 /* <= 29 */
-                      "the Assassin",                 /* <= 30 */
-                      "the Assassin",                 /* <= LVL_IMMORT */
-                      "the Assassin",                 /* <= LVL_STAFF */
-                      "the Assassin",                 /* <= LVL_GRSTAFF */
-                      "the Assassin"                  /* default */
+  assign_class_titles(CLASS_ASSASSIN, /* class number */
+                      "",             /* <= 4  */
+                      "the Assassin", /* <= 9  */
+                      "the Assassin", /* <= 14 */
+                      "the Assassin", /* <= 19 */
+                      "the Assassin", /* <= 24 */
+                      "the Assassin", /* <= 29 */
+                      "the Assassin", /* <= 30 */
+                      "the Assassin", /* <= LVL_IMMORT */
+                      "the Assassin", /* <= LVL_STAFF */
+                      "the Assassin", /* <= LVL_GRSTAFF */
+                      "the Assassin"  /* default */
   );
   /* feat assignment */
   /*              class num     feat                           cfeat lvl stack */
@@ -6666,27 +6729,132 @@ void load_class_list(void)
  * the character has an associated class and anti-flag.  */
 bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output)
 {
-  if ((IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD))) { if (output) send_to_char(ch, "This object cannot be used by wizards.\r\n"); return true; }
-  if ((IS_CLERIC(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_CLERIC))) { if (output) send_to_char(ch, "This object cannot be used by clerics.\r\n"); return true; }
-  if ((IS_RANGER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_RANGER))) { if (output) send_to_char(ch, "This object cannot be used by rangers.\r\n"); return true; }
-  if ((IS_PALADIN(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_PALADIN))) { if (output) send_to_char(ch, "This object cannot be used by paladins.\r\n"); return true; }
-  if ((IS_ROGUE(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE))) { if (output) send_to_char(ch, "This object cannot be used by rogues.\r\n"); return true; }
-  if ((IS_MONK(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_MONK))) { if (output) send_to_char(ch, "This object cannot be used by monks.\r\n"); return true; }
-  if ((IS_DRUID(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_DRUID))) { if (output) send_to_char(ch, "This object cannot be used by druids.\r\n"); return true; }
-  if ((IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_BERSERKER))) { if (output) send_to_char(ch, "This object cannot be used by berserkers.\r\n"); return true; }
-  if ((IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SORCERER))) { if (output) send_to_char(ch, "This object cannot be used by sorcerers.\r\n"); return true; }
-  if ((IS_BARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_BARD))) { if (output) send_to_char(ch, "This object cannot be used by bards.\r\n"); return true; }
-  if ((IS_WARRIOR(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WARRIOR))) { if (output) send_to_char(ch, "This object cannot be used by warriors.\r\n"); return true; }
-  if ((IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WEAPONMASTER))) { if (output) send_to_char(ch, "This object cannot be used by weapon masters.\r\n"); return true; }
-  if ((IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANE_ARCHER))) { if (output) send_to_char(ch, "This object cannot be used by arcane archers.\r\n"); return true; }
-  if ((IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_STALWART_DEFENDER))) { if (output) send_to_char(ch, "This object cannot be used by stalwart defenders.\r\n"); return true; }
-  if ((IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SHIFTER))) { if (output) send_to_char(ch, "This object cannot be used by shifters.\r\n"); return true; }
-  if ((IS_DUELIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_DUELIST))) { if (output) send_to_char(ch, "This object cannot be used by duelists.\r\n"); return true; }
-  if ((IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_MYSTIC_THEURGE))) { if (output) send_to_char(ch, "This object cannot be used by mystic theurges.\r\n"); return true; }
-  if ((IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ALCHEMIST))) { if (output) send_to_char(ch, "This object cannot be used by alchemists.\r\n"); return true; }
-  if ((IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANE_SHADOW))) { if (output) send_to_char(ch, "This object cannot be used by arcane shadows.\r\n"); return true; }
-  if ((IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SACRED_FIST))) { if (output) send_to_char(ch, "This object cannot be used by sacred fists.\r\n"); return true; }
-  if ((IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ELDRITCH_KNIGHT))) { if (output) send_to_char(ch, "This object cannot be used by eldritch knights.\r\n"); return true; }
+  if ((IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by wizards.\r\n");
+    return true;
+  }
+  if ((IS_CLERIC(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_CLERIC)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by clerics.\r\n");
+    return true;
+  }
+  if ((IS_RANGER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_RANGER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by rangers.\r\n");
+    return true;
+  }
+  if ((IS_PALADIN(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_PALADIN)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by paladins.\r\n");
+    return true;
+  }
+  if ((IS_ROGUE(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ROGUE)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by rogues.\r\n");
+    return true;
+  }
+  if ((IS_MONK(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_MONK)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by monks.\r\n");
+    return true;
+  }
+  if ((IS_DRUID(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_DRUID)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by druids.\r\n");
+    return true;
+  }
+  if ((IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_BERSERKER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by berserkers.\r\n");
+    return true;
+  }
+  if ((IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SORCERER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by sorcerers.\r\n");
+    return true;
+  }
+  if ((IS_BARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_BARD)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by bards.\r\n");
+    return true;
+  }
+  if ((IS_WARRIOR(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WARRIOR)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by warriors.\r\n");
+    return true;
+  }
+  if ((IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WEAPONMASTER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by weapon masters.\r\n");
+    return true;
+  }
+  if ((IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANE_ARCHER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by arcane archers.\r\n");
+    return true;
+  }
+  if ((IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_STALWART_DEFENDER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by stalwart defenders.\r\n");
+    return true;
+  }
+  if ((IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SHIFTER)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by shifters.\r\n");
+    return true;
+  }
+  if ((IS_DUELIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_DUELIST)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by duelists.\r\n");
+    return true;
+  }
+  if ((IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_MYSTIC_THEURGE)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by mystic theurges.\r\n");
+    return true;
+  }
+  if ((IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ALCHEMIST)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by alchemists.\r\n");
+    return true;
+  }
+  if ((IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANE_SHADOW)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by arcane shadows.\r\n");
+    return true;
+  }
+  if ((IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_SACRED_FIST)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by sacred fists.\r\n");
+    return true;
+  }
+  if ((IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_ELDRITCH_KNIGHT)))
+  {
+    if (output)
+      send_to_char(ch, "This object cannot be used by eldritch knights.\r\n");
+    return true;
+  }
 
   return false;
 }
@@ -6696,27 +6864,132 @@ bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool outpu
  * the character has an associated class and required class */
 bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output)
 {
-      if (!(IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WIZARD))) { if (output) send_to_char(ch, "You must have levels as a wizard to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_CLERIC(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_CLERIC))) { if (output) send_to_char(ch, "You must have levels as a cleric to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_RANGER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_RANGER))) { if (output) send_to_char(ch, "You must have levels as a ranger to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_PALADIN(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_PALADIN))) { if (output) send_to_char(ch, "You must have levels as a paladin to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_ROGUE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ROGUE))) { if (output) send_to_char(ch, "You must have levels as a rogue to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_MONK(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MONK))) { if (output) send_to_char(ch, "You must have levels as a monk to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_DRUID(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_DRUID))) { if (output) send_to_char(ch, "You must have levels as a druid to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BERSERKER))) { if (output) send_to_char(ch, "You must have levels as a berserker to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SORCERER))) { if (output) send_to_char(ch, "You must have levels as a sorcerer to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_BARD(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BARD))) { if (output) send_to_char(ch, "You must have levels as a bard to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_WARRIOR(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WARRIOR))) { if (output) send_to_char(ch, "You must have levels as a warrior to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WEAPONMASTER))) { if (output) send_to_char(ch, "You must have levels as a weapon master to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_ARCHER))) { if (output) send_to_char(ch, "You must have levels as an arcane archer to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_STALWART_DEFENDER))) { if (output) send_to_char(ch, "You must have levels as a stalwart defender to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SHIFTER))) { if (output) send_to_char(ch, "You must have levels as a shifter to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_DUELIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_DUELIST))) { if (output) send_to_char(ch, "You must have levels as a duelist to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MYSTIC_THEURGE))) { if (output) send_to_char(ch, "You must have levels as a mystic theurge to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ALCHEMIST))) { if (output) send_to_char(ch, "You must have levels as an alchemist to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_SHADOW))) { if (output) send_to_char(ch, "You must have levels as an arcane shadow to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SACRED_FIST))) { if (output) send_to_char(ch, "You must have levels as a sacred fist to use %s.\r\n", obj->short_description); return false; }
-      if (!(IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ELDRITCH_KNIGHT))) { if (output) send_to_char(ch, "You must have levels as an eldritch knight to use %s.\r\n", obj->short_description); return false; }
+  if (!(IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WIZARD)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a wizard to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_CLERIC(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_CLERIC)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a cleric to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_RANGER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_RANGER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a ranger to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_PALADIN(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_PALADIN)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a paladin to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_ROGUE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ROGUE)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a rogue to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_MONK(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MONK)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a monk to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_DRUID(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_DRUID)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a druid to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_BERSERKER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BERSERKER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a berserker to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_SORCERER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SORCERER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a sorcerer to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_BARD(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_BARD)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a bard to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_WARRIOR(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WARRIOR)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a warrior to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_WEAPONMASTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_WEAPONMASTER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a weapon master to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_ARCANE_ARCHER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_ARCHER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as an arcane archer to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_STALWARTDEFENDER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_STALWART_DEFENDER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a stalwart defender to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_SHIFTER(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SHIFTER)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a shifter to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_DUELIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_DUELIST)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a duelist to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_MYSTICTHEURGE(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_MYSTIC_THEURGE)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a mystic theurge to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_ALCHEMIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ALCHEMIST)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as an alchemist to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_ARCANE_SHADOW(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ARCANE_SHADOW)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as an arcane shadow to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_SACRED_FIST(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_SACRED_FIST)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as a sacred fist to use %s.\r\n", obj->short_description);
+    return false;
+  }
+  if (!(IS_ELDRITCH_KNIGHT(ch)) && (OBJ_FLAGGED(obj, ITEM_REQ_ELDRITCH_KNIGHT)))
+  {
+    if (output)
+      send_to_char(ch, "You must have levels as an eldritch knight to use %s.\r\n", obj->short_description);
+    return false;
+  }
 
   return true;
 }
@@ -6780,40 +7053,44 @@ sbyte has_paladin_mercies_unchosen_study(struct char_data *ch)
 
 bool can_learn_paladin_mercy(struct char_data *ch, int mercy)
 {
-  if (!ch) return false;
+  if (!ch)
+    return false;
 
   switch (mercy)
   {
-    case PALADIN_MERCY_DECEIVED:
-    case PALADIN_MERCY_FATIGUED:
-    case PALADIN_MERCY_SHAKEN:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 3) return true;
-      break;
-    case PALADIN_MERCY_DAZED:
-    case PALADIN_MERCY_ENFEEBLED:
-    case PALADIN_MERCY_STAGGERED:
-    case PALADIN_MERCY_CONFUSED:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 6) return true;
-      break;
-    case PALADIN_MERCY_CURSED:
-    case PALADIN_MERCY_FRIGHTENED:
-    case PALADIN_MERCY_INJURED:
-    case PALADIN_MERCY_NAUSEATED:
-    case PALADIN_MERCY_POISONED:
-    case PALADIN_MERCY_BLINDED:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 9) return true;
-      break;
-    case PALADIN_MERCY_DEAFENED:
-    case PALADIN_MERCY_ENSORCELLED:
-    case PALADIN_MERCY_PARALYZED:
-    case PALADIN_MERCY_STUNNED:
-      if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 12) return true;
-      break;
+  case PALADIN_MERCY_DECEIVED:
+  case PALADIN_MERCY_FATIGUED:
+  case PALADIN_MERCY_SHAKEN:
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 3)
+      return true;
+    break;
+  case PALADIN_MERCY_DAZED:
+  case PALADIN_MERCY_ENFEEBLED:
+  case PALADIN_MERCY_STAGGERED:
+  case PALADIN_MERCY_CONFUSED:
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 6)
+      return true;
+    break;
+  case PALADIN_MERCY_CURSED:
+  case PALADIN_MERCY_FRIGHTENED:
+  case PALADIN_MERCY_INJURED:
+  case PALADIN_MERCY_NAUSEATED:
+  case PALADIN_MERCY_POISONED:
+  case PALADIN_MERCY_BLINDED:
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 9)
+      return true;
+    break;
+  case PALADIN_MERCY_DEAFENED:
+  case PALADIN_MERCY_ENSORCELLED:
+  case PALADIN_MERCY_PARALYZED:
+  case PALADIN_MERCY_STUNNED:
+    if (CLASS_LEVEL(ch, CLASS_PALADIN) >= 12)
+      return true;
+    break;
   }
 
   return false;
 }
-
 
 int num_blackguard_cruelties_known(struct char_data *ch)
 {
@@ -6874,32 +7151,37 @@ sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch)
 
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy)
 {
-  if (!ch) return false;
+  if (!ch)
+    return false;
 
   switch (mercy)
   {
-    case BLACKGUARD_CRUELTY_FATIGUED:
-    case BLACKGUARD_CRUELTY_SHAKEN:
-    case BLACKGUARD_CRUELTY_SICKENED:
-      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 3) return true;
-      break;
-    case BLACKGUARD_CRUELTY_DAZED:
-    case BLACKGUARD_CRUELTY_DISEASED:
-    case BLACKGUARD_CRUELTY_STAGGERED:
-      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 6) return true;
-      break;
-    case BLACKGUARD_CRUELTY_CURSED:
-    case BLACKGUARD_CRUELTY_FRIGHTENED:
-    case BLACKGUARD_CRUELTY_NAUSEATED:
-    case BLACKGUARD_CRUELTY_POISONED:
-      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 9) return true;
-      break;
-    case BLACKGUARD_CRUELTY_BLINDED:
-    case BLACKGUARD_CRUELTY_DEAFENED:
-    case BLACKGUARD_CRUELTY_PARALYZED:
-    case BLACKGUARD_CRUELTY_STUNNED:
-      if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12) return true;
-      break;
+  case BLACKGUARD_CRUELTY_FATIGUED:
+  case BLACKGUARD_CRUELTY_SHAKEN:
+  case BLACKGUARD_CRUELTY_SICKENED:
+    if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 3)
+      return true;
+    break;
+  case BLACKGUARD_CRUELTY_DAZED:
+  case BLACKGUARD_CRUELTY_DISEASED:
+  case BLACKGUARD_CRUELTY_STAGGERED:
+    if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 6)
+      return true;
+    break;
+  case BLACKGUARD_CRUELTY_CURSED:
+  case BLACKGUARD_CRUELTY_FRIGHTENED:
+  case BLACKGUARD_CRUELTY_NAUSEATED:
+  case BLACKGUARD_CRUELTY_POISONED:
+    if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 9)
+      return true;
+    break;
+  case BLACKGUARD_CRUELTY_BLINDED:
+  case BLACKGUARD_CRUELTY_DEAFENED:
+  case BLACKGUARD_CRUELTY_PARALYZED:
+  case BLACKGUARD_CRUELTY_STUNNED:
+    if (CLASS_LEVEL(ch, CLASS_BLACKGUARD) >= 12)
+      return true;
+    break;
   }
 
   return false;
@@ -6907,15 +7189,15 @@ bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy)
 
 /** LOCAL UNDEFINES **/
 // good/bad
-#undef G //good
-#undef B //bad
+#undef G // good
+#undef B // bad
 // yes/no
-#undef Y //yes
-#undef N //no
+#undef Y // yes
+#undef N // no
 // high/medium/low
-#undef H //high
-#undef M //medium
-#undef L //low
+#undef H // high
+#undef M // medium
+#undef L // low
 #undef SP
 #undef SK
 #undef NA

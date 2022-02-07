@@ -44,22 +44,22 @@ struct mud_event_list mud_event_index[] = {
     {"Hellball", event_countdown, EVENT_CHAR},           // eHELLBALL
     {"Epic mage armor", event_countdown, EVENT_CHAR},    // eEPICMAGEARMOR
     {"Epic warding", event_countdown, EVENT_CHAR},       // eEPICWARDING
-    {"Preparing Spells", event_preparation, EVENT_CHAR}, //ePREPARING
+    {"Preparing Spells", event_preparation, EVENT_CHAR}, // ePREPARING
     /*15*/
-    {"Stunned", event_countdown, EVENT_CHAR},                //eSTUNNED
-    {"Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, //eSTUNNINGFIST
-    {"Crafting", event_crafting, EVENT_CHAR},                //eCRAFTING
-    {"Crystal fist", event_daily_use_cooldown, EVENT_CHAR},  //eCRYSTALFIST
-    {"Crystal body", event_daily_use_cooldown, EVENT_CHAR},  //eCRYRSTALBODY
+    {"Stunned", event_countdown, EVENT_CHAR},                // eSTUNNED
+    {"Stunning fist", event_daily_use_cooldown, EVENT_CHAR}, // eSTUNNINGFIST
+    {"Crafting", event_crafting, EVENT_CHAR},                // eCRAFTING
+    {"Crystal fist", event_daily_use_cooldown, EVENT_CHAR},  // eCRYSTALFIST
+    {"Crystal body", event_daily_use_cooldown, EVENT_CHAR},  // eCRYRSTALBODY
     /*20*/
-    {"Rage", event_daily_use_cooldown, EVENT_CHAR},         //eRAGE
-    {"Acid arrow", event_acid_arrow, EVENT_CHAR},           //eACIDARROW
+    {"Rage", event_daily_use_cooldown, EVENT_CHAR},         // eRAGE
+    {"Acid arrow", event_acid_arrow, EVENT_CHAR},           // eACIDARROW
     {"Defensive Roll", event_countdown, EVENT_CHAR},        // eD_ROLL
     {"Purify", event_countdown, EVENT_CHAR},                // ePURIFY
     {"Call Animal Companion", event_countdown, EVENT_CHAR}, // eC_ANIMAL
     {"Call Familiar", event_countdown, EVENT_CHAR},         // eC_FAMILIAR
     {"Call Mount", event_countdown, EVENT_CHAR},            // eC_MOUNT
-    {"Implode", event_implode, EVENT_CHAR},                 //eIMPLODE
+    {"Implode", event_implode, EVENT_CHAR},                 // eIMPLODE
     {"Smite Evil", event_daily_use_cooldown, EVENT_CHAR},   // eSMITE_EVIL
     {"Perform", event_countdown, EVENT_CHAR},               // ePERFORM
     /*30*/
@@ -83,20 +83,20 @@ struct mud_event_list mud_event_index[] = {
     {"Move Action Cooldown", event_action_cooldown, EVENT_CHAR},     /* eMOVEACTION */
     {"Wholeness of Body", event_countdown, EVENT_CHAR},              // eWHOLENESSOFBODY
     {"Empty Body", event_countdown, EVENT_CHAR},                     // eEMPTYBODY
-    {"Quivering Palm", event_daily_use_cooldown, EVENT_CHAR},        //eQUIVERINGPALM
+    {"Quivering Palm", event_daily_use_cooldown, EVENT_CHAR},        // eQUIVERINGPALM
     /*50*/
     {"Swift Action Cooldown", event_action_cooldown, EVENT_CHAR}, // eSWIFTACTION
     {"Trap Triggered", event_trap_triggered, EVENT_CHAR},         // eTRAPTRIGGERED */
-    {"Suprise Accuracy", event_countdown, EVENT_CHAR},            //eSURPRISE_ACCURACY
-    {"Powerful Blow", event_countdown, EVENT_CHAR},               //ePOWERFUL_BLOW
+    {"Suprise Accuracy", event_countdown, EVENT_CHAR},            // eSURPRISE_ACCURACY
+    {"Powerful Blow", event_countdown, EVENT_CHAR},               // ePOWERFUL_BLOW
     {"Renewed Vigor", event_countdown, EVENT_CHAR},               // eRENEWEDVIGOR
-    {"Come and Get Me!", event_countdown, EVENT_CHAR},            //eCOME_AND_GET_ME
-    {"Animate Dead", event_daily_use_cooldown, EVENT_CHAR},       //eANIMATEDEAD
-    {"Vanish", event_countdown, EVENT_CHAR},                      //eVANISH
-    {"Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR},   //eVANISHED
-    {"Intimidated", event_countdown, EVENT_CHAR},                 //eINTIMIDATED
+    {"Come and Get Me!", event_countdown, EVENT_CHAR},            // eCOME_AND_GET_ME
+    {"Animate Dead", event_daily_use_cooldown, EVENT_CHAR},       // eANIMATEDEAD
+    {"Vanish", event_countdown, EVENT_CHAR},                      // eVANISH
+    {"Vanish Cool Down", event_daily_use_cooldown, EVENT_CHAR},   // eVANISHED
+    {"Intimidated", event_countdown, EVENT_CHAR},                 // eINTIMIDATED
     /*60*/
-    {"Intimidated Cool Down", event_countdown, EVENT_CHAR},           //eINTIMIDATE_COOLDOWN
+    {"Intimidated Cool Down", event_countdown, EVENT_CHAR},           // eINTIMIDATE_COOLDOWN
     {"Lightning Arc Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eLIGHTNING_ARC
     {"Acid Dart Cooldown", event_daily_use_cooldown, EVENT_CHAR},     // eACID_DART
     {"Fire Bolt Cooldown", event_daily_use_cooldown, EVENT_CHAR},     // eFIRE_BOLT
@@ -118,62 +118,69 @@ struct mud_event_list mud_event_index[] = {
     {"Aura of Protection", event_daily_use_cooldown, EVENT_CHAR}, // eAURA_OF_PROTECTION
     {"Battle Rage", event_daily_use_cooldown, EVENT_CHAR},        // eBATTLE_RAGE
     /*80*/
-    {"Crystal fist", event_countdown, EVENT_CHAR},                //eCRYSTALFIST_AFF
-    {"Crystal body", event_countdown, EVENT_CHAR},                //eCRYRSTALBODY_AFF
+    {"Crystal fist", event_countdown, EVENT_CHAR},                // eCRYSTALFIST_AFF
+    {"Crystal body", event_countdown, EVENT_CHAR},                // eCRYRSTALBODY_AFF
     {"Bardic Performance", event_bardic_performance, EVENT_CHAR}, /* eBARDIC_PERFORMANCE */
     {"Encounter Region Reset", event_countdown, EVENT_REGION},    // eENCOUNTER_REG_RESET
     {"Seeker Arrow", event_daily_use_cooldown, EVENT_CHAR},       // eSEEKER_ARROW
     {"Imbue Arrow", event_daily_use_cooldown, EVENT_CHAR},        // eIMBUE_ARROW
-    {"Arrow of Death", event_daily_use_cooldown, EVENT_CHAR},     //eDEATHARROW
-    {"Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR},    //eARROW_SWARM
+    {"Arrow of Death", event_daily_use_cooldown, EVENT_CHAR},     // eDEATHARROW
+    {"Swarm of Arrows", event_daily_use_cooldown, EVENT_CHAR},    // eARROW_SWARM
     {"Renewed Defense", event_countdown, EVENT_CHAR},             // eRENEWEDDEFENSE
     {"Last Word", event_countdown, EVENT_CHAR},                   // eLAST_WORD
     /*90*/
     {"Smash Defense", event_countdown, EVENT_CHAR},             // eSMASH_DEFENSE
-    {"Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, //eDEFENSIVE_STANCE
-    {"Crippled by Critical", event_countdown, EVENT_CHAR},      //eCRIPPLING_CRITICAL
-    {"Quest Completed!", event_countdown, EVENT_CHAR},          //eQUEST_COMPLETE
-    {"Levitate", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_LEVITATE
+    {"Defensive Stance", event_daily_use_cooldown, EVENT_CHAR}, // eDEFENSIVE_STANCE
+    {"Crippled by Critical", event_countdown, EVENT_CHAR},      // eCRIPPLING_CRITICAL
+    {"Quest Completed!", event_countdown, EVENT_CHAR},          // eQUEST_COMPLETE
+    {"Levitate", event_daily_use_cooldown, EVENT_CHAR},         // eSLA_LEVITATE
     /*95*/
-    {"Darkness", event_daily_use_cooldown, EVENT_CHAR},                                 //eSLA_DARKNESS
-    {"Faerie Fire", event_daily_use_cooldown, EVENT_CHAR},                              //eSLA_FAERIE_FIRE
+    {"Darkness", event_daily_use_cooldown, EVENT_CHAR},                                 // eSLA_DARKNESS
+    {"Faerie Fire", event_daily_use_cooldown, EVENT_CHAR},                              // eSLA_FAERIE_FIRE
     {"Draconic Heritage Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
     {"Draconic Heritage Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR},  // eDRACCLAWS
-    {"Spell Preparation", event_preparation, EVENT_CHAR},                               //ePREPARATION
+    {"Spell Preparation", event_preparation, EVENT_CHAR},                               // ePREPARATION
     /*100*/
     {"Craft", event_craft, EVENT_CHAR},                                          /* eCRAFT - NewCraft */
     {"Copyover Event!", event_copyover, EVENT_CHAR},                             /* eCOPYOVER - copyover delay */
-    {"Autocollect delay", event_countdown, EVENT_CHAR},                          //eCOLLECT_DELAY
+    {"Autocollect delay", event_countdown, EVENT_CHAR},                          // eCOLLECT_DELAY
     {"Metamagic Adept Usage Cooldown", event_daily_use_cooldown, EVENT_CHAR},    // eARCANEADEPT
     {"Armor SpecAb Cooldown: Blinding", event_daily_use_cooldown, EVENT_OBJECT}, // eARMOR_SPECAB_BLINDING
     /*105*/
     {"Item SpecAb Cooldown: Horn of Summoning", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_HORN_OF_SUMMONING
-    {"Mutagens/Cognatogens", event_daily_use_cooldown, EVENT_CHAR},                      //eMUTAGEN
+    {"Mutagens/Cognatogens", event_daily_use_cooldown, EVENT_CHAR},                      // eMUTAGEN
     {"Curing Touch", event_daily_use_cooldown, EVENT_CHAR},                              // eCURING_TOUCH
     {"Psychokinetic Tincture", event_daily_use_cooldown, EVENT_CHAR},                    // ePSYCHOKINETIC
     {"Impromptu Sneak Attack", event_daily_use_cooldown, EVENT_CHAR},                    // eIMPROMPT
     /*110*/
-    {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, //eINVISIBLE_ROGUE
-    {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR},   //eSACRED_FLAMES
-    {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR},      //eINNER_FIRE
+    {"Invisible Rogue Cool Down", event_daily_use_cooldown, EVENT_CHAR}, // eINVISIBLE_ROGUE
+    {"Sacred Flames Cool Down", event_daily_use_cooldown, EVENT_CHAR},   // eSACRED_FLAMES
+    {"Inner Fire Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eINNER_FIRE
     {"Pixie Dust Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // ePIXIEDUST
-    {"Efreeti Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eEFREETIMAGIC
-    {"Dragon Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // eDRAGONMAGIC
-    {"Strength", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_STRENGTH
-    {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_ENLARGE
-    {"Invis", event_daily_use_cooldown, EVENT_CHAR},         //eSLA_INVIS
-    {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR}, //eCONCUSSIVEONSLAUGHT
-    {"Channel Spell", event_daily_use_cooldown, EVENT_CHAR},         //eCHANNELSPELL
-    {"Power Leech", event_power_leech, EVENT_CHAR}, //ePOWERLEECH
-    {"Psionic Focus", event_daily_use_cooldown, EVENT_CHAR}, //ePSIONICFOCUS
-    {"Double Manifest", event_daily_use_cooldown, EVENT_CHAR}, //eDOUBLEMANIFEST
-    {"Call Shadow", event_countdown, EVENT_CHAR}, // eSUMMONSHADOW
-    {"Shadow Illusion", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWILLUSION
-    {"Shadow Call", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWCALL
-    {"Shadow Jump", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWJUMP
-    {"Shadow Power", event_daily_use_cooldown, EVENT_CHAR}, //eSHADOWPOWER
-    {"Touch of Corruption", event_daily_use_cooldown, EVENT_CHAR}, // eTOUCHOFCORRUPTION
-    {"Channel Energy", event_daily_use_cooldown, EVENT_CHAR}, // eCHANNELENERGY
+    {"Efreeti Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},   // eEFREETIMAGIC
+    /*115*/
+    {"Dragon Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},    // eDRAGONMAGIC
+    {"Strength", event_daily_use_cooldown, EVENT_CHAR},                  // eSLA_STRENGTH
+    {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},                   // eSLA_ENLARGE
+    {"Invis", event_daily_use_cooldown, EVENT_CHAR},                     // eSLA_INVIS
+    {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR},    // eCONCUSSIVEONSLAUGHT
+    /*120*/
+    {"Channel Spell", event_daily_use_cooldown, EVENT_CHAR},             // eCHANNELSPELL
+    {"Power Leech", event_power_leech, EVENT_CHAR},                      // ePOWERLEECH
+    {"Psionic Focus", event_daily_use_cooldown, EVENT_CHAR},             // ePSIONICFOCUS
+    {"Double Manifest", event_daily_use_cooldown, EVENT_CHAR},           // eDOUBLEMANIFEST
+    {"Call Shadow", event_countdown, EVENT_CHAR},                        // eSUMMONSHADOW
+    /*125*/
+    {"Shadow Illusion", event_daily_use_cooldown, EVENT_CHAR},           // eSHADOWILLUSION
+    {"Shadow Call", event_daily_use_cooldown, EVENT_CHAR},               // eSHADOWCALL
+    {"Shadow Jump", event_daily_use_cooldown, EVENT_CHAR},               // eSHADOWJUMP
+    {"Shadow Power", event_daily_use_cooldown, EVENT_CHAR},              // eSHADOWPOWER
+    {"Touch of Corruption", event_daily_use_cooldown, EVENT_CHAR},       // eTOUCHOFCORRUPTION
+    /*130*/
+    {"Channel Energy", event_daily_use_cooldown, EVENT_CHAR},            // eCHANNELENERGY
+    {"Lich Touch", event_daily_use_cooldown, EVENT_CHAR},            // eLICH_TOUCH
+    {"Lich Rejuvenation", event_countdown, EVENT_CHAR},            // eLICH_REJUV
+    {"Lich Fear", event_daily_use_cooldown, EVENT_CHAR},            // eLICH_FEAR
 
 };
 
@@ -199,8 +206,8 @@ EVENTFUNC(event_countdown)
   room_rnum rnum = NOWHERE;
   region_vnum *regvnum = NULL;
   region_rnum regrnum = NOWHERE;
-  //obj_vnum *obj_vnum = NULL;
-  //obj_rnum obj_rnum = NOWHERE;
+  // obj_vnum *obj_vnum = NULL;
+  // obj_rnum obj_rnum = NOWHERE;
 
   char **tokens; /* Storage for tokenized encounter room vnums */
   char **it;     /* Token iterator */
@@ -220,8 +227,8 @@ EVENTFUNC(event_countdown)
     break;
   case EVENT_OBJECT:
     obj = (struct obj_data *)pMudEvent->pStruct;
-    //obj_rnum = real_obj(*obj_vnum);
-    //obj = &obj[real_obj(obj_rnum)];
+    // obj_rnum = real_obj(*obj_vnum);
+    // obj = &obj[real_obj(obj_rnum)];
     break;
   case EVENT_ROOM:
     rvnum = (room_vnum *)pMudEvent->pStruct;
@@ -290,6 +297,15 @@ EVENTFUNC(event_countdown)
     break;
   case eLAYONHANDS:
     send_to_char(ch, "You are now able to lay on hands again.\r\n");
+    break;
+  case eLICH_TOUCH:
+    send_to_char(ch, "You are now able to lich touch again.\r\n");
+    break;
+  case eLICH_REJUV:
+    send_to_char(ch, "Your lich rejuvenation has refreshed.\r\n");
+    break;
+  case eLICH_FEAR:
+    send_to_char(ch, "You are now able to lich fear again.\r\n");
     break;
   case eTOUCHOFCORRUPTION:
     send_to_char(ch, "You are now able to use your touch of corruption again.\r\n");
@@ -494,7 +510,7 @@ EVENTFUNC(event_countdown)
           continue;
         }
 
-        /* Find a location in the region where this room will be placed, 
+        /* Find a location in the region where this room will be placed,
              it can not be the same coords as a static room and noone should be at those coordinates. */
         int ctr = 0;
         do
@@ -515,7 +531,7 @@ EVENTFUNC(event_countdown)
         } while (++ctr < 128);
 
         /* Build the room. */
-        //assign_wilderness_room(eroom_rnum, x, y);
+        // assign_wilderness_room(eroom_rnum, x, y);
         world[eroom_rnum].coords[0] = x;
         world[eroom_rnum].coords[1] = y;
       }
@@ -609,15 +625,15 @@ EVENTFUNC(event_daily_use_cooldown)
     send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");
     break;
   case eSLA_INVIS:
-    featnum = FEAT_SLA_INVIS ;
+    featnum = FEAT_SLA_INVIS;
     send_to_char(ch, "One of your invisbility uses has recovered.\r\n");
     break;
   case eSLA_STRENGTH:
-    featnum = FEAT_SLA_STRENGTH ;
+    featnum = FEAT_SLA_STRENGTH;
     send_to_char(ch, "One of your strength uses has recovered.\r\n");
     break;
   case eSLA_ENLARGE:
-    featnum = FEAT_SLA_ENLARGE ;
+    featnum = FEAT_SLA_ENLARGE;
     send_to_char(ch, "One of your enlarge uses has recovered.\r\n");
     break;
   case eSLA_LEVITATE:
@@ -635,6 +651,18 @@ EVENTFUNC(event_daily_use_cooldown)
   case eLAYONHANDS:
     featnum = FEAT_LAYHANDS;
     send_to_char(ch, "One of your lay on hands uses has recovered.\r\n");
+    break;
+  case eLICH_TOUCH:
+    featnum = FEAT_LICH_TOUCH;
+    send_to_char(ch, "One of your lich touch uses has recovered.\r\n");
+    break;
+  case eLICH_REJUV:
+    featnum = FEAT_LICH_REJUV;
+    send_to_char(ch, "You are able to lich rejuvenate again!\r\n");
+    break;
+  case eLICH_FEAR:
+    featnum = FEAT_LICH_FEAR;
+    send_to_char(ch, "One of your lich fear uses has recovered.\r\n");
     break;
   case eTOUCHOFCORRUPTION:
     featnum = FEAT_TOUCH_OF_CORRUPTION;
@@ -846,8 +874,8 @@ EVENTFUNC(event_daily_use_cooldown)
 
     if ((featnum == FEAT_UNDEFINED) && (nonfeat_daily_uses > 0))
     {
-      /* 
-        This is a 'daily' feature that is not controlled by a feat - for example a weapon or armor special ability. 
+      /*
+        This is a 'daily' feature that is not controlled by a feat - for example a weapon or armor special ability.
         In this case, the daily uses must be set above - variable nonfeat_daily_uses.
       */
       cooldown = (SECS_PER_MUD_DAY / nonfeat_daily_uses) RL_SEC;
@@ -865,7 +893,7 @@ EVENTFUNC(event_daily_use_cooldown)
  * is due to the potential scope of the necessary debugging if events were
  * included with rooms, objects, spells or any other structure type. Adding
  * events to these other systems should be just as easy as adding the current
- * library was, and should be available in a future release. - Vat 
+ * library was, and should be available in a future release. - Vat
  *
  * Update: Events have been added to objects, rooms and characters.
  *         Region support has also been added for wilderness regions.
@@ -1008,9 +1036,9 @@ void free_mud_event(struct mud_event_data *pMudEvent)
     break;
   case EVENT_ROOM:
     /* Due to OLC changes, if rooms were deleted then the room we have in the event might be
-       * invalid.  This entire system needs to be re-evaluated!  We should really use RNUM
-       * and just get the room data ourselves.  Storing the room_data struct is asking for bad
-       * news. */
+     * invalid.  This entire system needs to be re-evaluated!  We should really use RNUM
+     * and just get the room data ourselves.  Storing the room_data struct is asking for bad
+     * news. */
     rvnum = (room_vnum *)pMudEvent->pStruct;
 
     room = &world[real_room(*rvnum)];
@@ -1210,15 +1238,15 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
   if (ch->events == NULL)
   {
-    //act("ch->events == NULL, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    //send_to_char(ch, "ch->events == NULL.\r\n");
+    // act("ch->events == NULL, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+    // send_to_char(ch, "ch->events == NULL.\r\n");
     return;
   }
 
   if (ch->events->iSize == 0)
   {
-    //act("ch->events->iSize == 0, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    //send_to_char(ch, "ch->events->iSize == 0.\r\n");
+    // act("ch->events->iSize == 0, for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+    // send_to_char(ch, "ch->events->iSize == 0.\r\n");
     return;
   }
 
@@ -1264,15 +1292,15 @@ void event_cancel_specific(struct char_data *ch, event_id iId)
 
   if (found)
   {
-    //act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
-    //send_to_char(ch, "Event found: %d.\r\n", iId);
+    // act("event found for $n, attempting to cancel", FALSE, ch, NULL, NULL, TO_ROOM);
+    // send_to_char(ch, "Event found: %d.\r\n", iId);
     if (event_is_queued(pEvent))
       event_cancel(pEvent);
   }
   else
   {
-    //act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
-    //send_to_char(ch, "event_cancel_specific did not find an event.\r\n");
+    // act("event_cancel_specific did not find an event for $n.", FALSE, ch, NULL, NULL, TO_ROOM);
+    // send_to_char(ch, "event_cancel_specific did not find an event.\r\n");
   }
 
   return;
