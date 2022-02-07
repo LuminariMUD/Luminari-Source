@@ -7179,7 +7179,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
    in - ch is causing the heal, victim is receiving the heal, healing is the amount of HP restored, move is the amount of movement points restored
    out - TRUE if successful, FALSE if failed
    */
-bool process_healing(struct char_data *ch, struct char_data *victim, int healing, int move)
+bool process_healing(struct char_data *ch, struct char_data *victim, int spellnum, int healing, int move)
 {
 
   /* black mantle reduces effectiveness of healing by 20% */
@@ -7194,8 +7194,18 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int healing
   if (ch != victim)
     send_to_char(victim, "<%d> ", healing);
 
-  GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
+  /* restore HP now, some spells/effects can heal over your MAX hp */
+  if (spellnum == RACIAL_LICH_TOUCH)
+  {
+    GET_HIT(victim) += healing;
+  }
+  else
+  {
+    GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
+  }
+
   GET_MOVE(victim) = MIN(GET_MAX_MOVE(victim), GET_MOVE(victim) + move);
+
   update_pos(victim);
 
   return TRUE;
@@ -7389,7 +7399,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (to_char != NULL)
     act(to_char, TRUE, ch, 0, victim, TO_CHAR);
 
-  process_healing(ch, victim, healing, move);
+  process_healing(ch, victim, spellnum, healing, move);
 }
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
