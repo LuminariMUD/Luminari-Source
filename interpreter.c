@@ -450,6 +450,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"lightningarc", "lightningarc", POS_FIGHTING, do_lightningarc, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"levitate", "levitate", POS_FIGHTING, do_levitate, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"lms", "lms", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"lichfear", "lichfear", POS_FIGHTING, do_lichfear, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"lichtouch", "lichtouch", POS_FIGHTING, do_lichtouch, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
