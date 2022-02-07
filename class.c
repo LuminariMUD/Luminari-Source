@@ -2574,7 +2574,7 @@ void process_class_level_feats(struct char_data *ch, int class)
   char featbuf[MAX_STRING_LENGTH];
   char tmp_buf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
-  int class_level = -1, effective_class_level = -1;
+  int class_level = -1, effective_class_level = -1, counter = 0;
   // struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
 
   /* deal with some instant disqualification */
@@ -2592,6 +2592,16 @@ void process_class_level_feats(struct char_data *ch, int class)
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
        feat_assign = feat_assign->next)
   {
+
+    /* skipping racial feats if necessary */
+    if (level_feats[counter][LF_CLASS] == CLASS_UNDEFINED &&
+        level_feats[counter][LF_RACE] == GET_RACE(ch))
+    //        && level_feats[i][LF_MIN_LVL] == GET_LEVEL(ch))
+    {
+      counter++;
+      continue;
+    }
+    counter++;
 
     if (IS_SPELL_CIRCLE_FEAT(feat_assign->feat_num))
     {
