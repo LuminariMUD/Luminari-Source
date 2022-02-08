@@ -3682,7 +3682,8 @@ const struct set_struct
     {"blackguard", LVL_IMPL, PC, MISC},     /* 99 */
     {"assassin", LVL_IMPL, PC, MISC},       /* 100 */
 
-    {"\n", 0, BOTH, MISC}};
+    {"\n", 0, BOTH, MISC},
+};
 
 /*  adding this to remind me to add new classes to the perform_set list
  * CLASS_WIZARD
@@ -4426,7 +4427,7 @@ void show_set_help(struct char_data *ch)
 {
   const char *const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
   const char *const set_targets[] = {"PC", "NPC", "BOTH"};
-  const char *const set_types[] = {"MISC", "BINARY", "NUMBER"};
+  const char *const set_types[] = {"MISC", "BINARY", "NUMBER", "ADDER"};
   char buf[MAX_STRING_LENGTH];
   int i, len = 0, add_len = 0;
 
