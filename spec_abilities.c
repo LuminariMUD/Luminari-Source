@@ -318,7 +318,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
 
   if (!weapon)
   {
-    if (GET_EQ(ch, ITEM_WEAR_HANDS))
+    if (GET_EQ(ch, WEAR_HANDS))
       weapon = GET_EQ(ch, WEAR_HANDS);
     else
       return 0;
@@ -865,6 +865,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming)
    * victim
    * obj
    */
+
   switch (actmtd)
   {
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
