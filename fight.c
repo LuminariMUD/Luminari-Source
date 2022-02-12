@@ -2927,14 +2927,15 @@ int compute_concealment(struct char_data *ch)
   int concealment = 0;
   int concealment_cap = 0; /* vanish can push you over */
 
-  if (AFF_FLAGGED(ch, AFF_BLUR))
-    concealment += 20;
+  /* these shouldn't stack, should be sorted from top to bottom by highest concealment % */
+  if (AFF_FLAGGED(ch, AFF_DISPLACE))
+    concealment += 50;
   else if (AFF_FLAGGED(ch, AFF_BLINKING))
     concealment += 20;
   else if (affected_by_spell(ch, PSIONIC_CONCEALING_AMORPHA)) // this is here to prevent overpowered combinations of buffs
     concealment += 20;
-  else if (AFF_FLAGGED(ch, AFF_DISPLACE))
-    concealment += 50;
+  else if (AFF_FLAGGED(ch, AFF_BLUR))
+    concealment += 20;
 
   if (ROOM_AFFECTED(IN_ROOM(ch), RAFF_OBSCURING_MIST))
     concealment += 20;

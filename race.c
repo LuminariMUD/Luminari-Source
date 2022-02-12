@@ -1034,18 +1034,19 @@ void assign_races(void)
                                "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
                                "might simply kill another or drive him insane. "
                                "\r\n\r\n"
-                               "Please note that a Lich is the only Epic Race than can multi-class."
-                               "Please note that a Lich has all the advantages/disadvantages of being Undead.",
+                               "Please note that a Lich is the only Epic Race than can multi-class.  "
+                               "Please note that becoming a lich requires level 30 and will reset your exp to 0.  "
+                               "Please note that a Lich has all the advantages/disadvantages of being Undead.  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
   set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_LICH, 0, 2, 6, 0, 2, 0);           /* str con int wis dex cha */
+  set_race_abilities(RACE_LICH, 2, 2, 6, 2, 2, 2);           /* str con int wis dex cha */
   set_race_alignments(RACE_LICH, N, N, N, N, N, N, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_LICH,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
                         Y, N, N, N, N, N, N, N, N, N, Y, N,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, N, N, N, N, N, N, N, Y, N, N, N);
+                        N, Y, N, N, N, N, Y, N, Y, N, N, N);
   /* feat assignment */
   /*                   race-num    feat                  lvl stack */
   feat_race_assignment(RACE_LICH, FEAT_UNARMED_STRIKE, 1, N);

@@ -4313,9 +4313,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_GREATER_MAGIC_FANG:
-    if ((!IS_NPC(victim) && !IS_WILDSHAPED(victim)) || GET_RACE(victim) != RACE_TYPE_ANIMAL)
+    if (!IS_ANIMAL(victim))
     {
-      send_to_char(ch, "Magic fang can only be cast upon animals or druids in wildshaped form.\r\n");
+      send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
       return;
     }
     af[0].location = APPLY_HITROLL;
@@ -4474,11 +4474,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_HOLD_ANIMAL: // enchantment
-    if (!IS_NPC(victim) || GET_RACE(victim) != RACE_TYPE_ANIMAL)
+
+    if (!IS_ANIMAL(victim))
     {
       send_to_char(ch, "This spell is only effective on animals.\r\n");
       return;
     }
+
     if (paralysis_immunity(victim))
     {
       send_to_char(ch, "Your target is unfazed.\r\n");
@@ -4650,11 +4652,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MAGIC_FANG:
-    if (!IS_NPC(victim) || GET_RACE(victim) != RACE_TYPE_ANIMAL)
+
+    if (!IS_ANIMAL(victim))
     {
       send_to_char(ch, "Magic fang can only be cast upon animals.\r\n");
       return;
     }
+
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 1;
     af[0].duration = level;

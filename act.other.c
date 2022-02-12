@@ -104,7 +104,7 @@ void show_exchange_rates(struct char_data *ch)
   return;
 }
 
-//ACMD_DECL(do_exchange)
+// ACMD_DECL(do_exchange)
 ACMD(do_exchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
@@ -591,7 +591,7 @@ ACMD(do_abundantstep)
       /* so now i is either our direction to move (define) or -1 */
 
       buf[j] = tc; /* replace the terminating character in this mini buff */
-      //send_to_char(ch, "i: %d\r\n", i);
+      // send_to_char(ch, "i: %d\r\n", i);
     }
 
     if (i > -1)
@@ -656,7 +656,7 @@ ACMDU(do_ethshift)
 {
   struct char_data *shiftee = NULL;
   room_rnum shift_dest = NOWHERE;
-  //int counter = 0;
+  // int counter = 0;
 
   skip_spaces(&argument);
 
@@ -703,8 +703,8 @@ ACMDU(do_ethshift)
     do
     {
       shift_dest = rand_number(0, top_of_world);
-      //counter++;
-      //send_to_char(ch, "%d | %d, ", counter, shift_dest);
+      // counter++;
+      // send_to_char(ch, "%d | %d, ", counter, shift_dest);
     } while ((ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ELEMENTAL) ||
               ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE) ||
               ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ASTRAL_PLANE)));
@@ -720,8 +720,8 @@ ACMDU(do_ethshift)
     do
     {
       shift_dest = rand_number(0, top_of_world);
-      //counter++;
-      //send_to_char(ch, "%d | %d, ", counter, shift_dest);
+      // counter++;
+      // send_to_char(ch, "%d | %d, ", counter, shift_dest);
     } while (!ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_ETH_PLANE));
   }
   else
@@ -1226,7 +1226,7 @@ ACMD(do_sorcerer_arcane_apotheosis)
     return;
   }
 
-  /* If we got here, we know that everything is good: 
+  /* If we got here, we know that everything is good:
    * The circle is valid, the character has slots of that circle, and they can actually
    *   use the command.  Now, spend the spell and increase their pool. */
 
@@ -1479,7 +1479,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
   }
 
   /* couple of dummy checks */
-  if ((mob_num <= 0 || mob_num > 99) && mob_num != 60289) //zone 0 for mobiles, except for the shadow
+  if ((mob_num <= 0 || mob_num > 99) && mob_num != 60289) // zone 0 for mobiles, except for the shadow
     return;
   if (level >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
@@ -2070,9 +2070,10 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   GET_CLASS(ch) = class;
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
 
-  if (GET_REAL_RACE(ch) != RACE_LICH) {
-  if (*arg && is_abbrev(arg, "premade"))
-    GET_PREMADE_BUILD_CLASS(ch) = class;
+  if (GET_REAL_RACE(ch) != RACE_LICH)
+  {
+    if (*arg && is_abbrev(arg, "premade"))
+      GET_PREMADE_BUILD_CLASS(ch) = class;
   }
 
   /* Make sure that players can't make wildshaped forms permanent.*/
@@ -2087,8 +2088,8 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   }
 
   // removed because we checked for group and followers above already -- gicker apr 8 2021
-  //leave_group(ch);
-  //stop_follower(ch);
+  // leave_group(ch);
+  // stop_follower(ch);
 
   do_start(ch);
   HAS_SET_STATS_STUDY(ch) = FALSE;
@@ -2237,7 +2238,7 @@ ACMD(do_gain)
       return;
     }
 
-    //multi class cap
+    // multi class cap
     for (i = 0; i < MAX_CLASSES; i++)
     {
       if (CLASS_LEVEL(ch, i) && i != class)
@@ -2690,7 +2691,7 @@ struct wild_shape_mods *set_wild_shape_mods(int race)
   switch (race)
   {
   case RACE_CHEETAH:
-    //abil_mods->dexterity += 8; // This should not be here. Gicker June 5, 2020
+    // abil_mods->dexterity += 8; // This should not be here. Gicker June 5, 2020
     break;
   case RACE_WOLF:
   case RACE_HYENA:
@@ -2934,7 +2935,7 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
       break;
   } /* end race list loop */
 
-  //free(abil_mods);
+  // free(abil_mods);
 
   if (i >= NUM_EXTENDED_RACES || i < 0)
     return -1; /* failed to find anything */
@@ -4230,8 +4231,8 @@ ACMD(do_levitate)
   send_to_char(ch, "You slow rise above the ground and begin to levitate!\r\n");
    */
 
-  //int call_magic(struct char_data *caster, struct char_data *cvict,
-  //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  // int call_magic(struct char_data *caster, struct char_data *cvict,
+  // struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, ch, NULL, SPELL_LEVITATE, 0, GET_LEVEL(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
@@ -4261,8 +4262,8 @@ ACMD(do_darkness)
     return;
   }
 
-  //int call_magic(struct char_data *caster, struct char_data *cvict,
-  //struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
+  // int call_magic(struct char_data *caster, struct char_data *cvict,
+  // struct obj_data *ovict, int spellnum, int metamagic, int level, int casttype);
   call_magic(ch, ch, NULL, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
 
   if (!IS_NPC(ch))
@@ -4315,7 +4316,7 @@ ACMD(do_fly)
     send_to_char(ch, "You take off and begin to fly!\r\n");
   }
   // old version just called the spell, but not as nice methinks
-  //call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
+  // call_magic(ch, ch, NULL, SPELL_FLY, GET_LEVEL(ch), CAST_SPELL);
 }
 
 /* Helper function for 'search' command.
@@ -4344,13 +4345,13 @@ int get_hidden_door_dc(struct char_data *ch, int door)
    of the naturally much higher stats in our MUD world */
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_EASY))
     return 15;
-  //return 10;
+  // return 10;
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_MEDIUM))
     return 30;
-  //return 20;
+  // return 20;
   if (EXIT_FLAGGED(EXIT(ch, door), EX_HIDDEN_HARD))
     return 45;
-  //return 30;
+  // return 30;
 
   /* If we get here, the door is not hidden. */
   return 0;
@@ -5079,8 +5080,8 @@ ACMD(do_train)
 {
   char arg[MAX_INPUT_LENGTH];
 
-  //if (IS_NPC(ch))
-  //return;
+  // if (IS_NPC(ch))
+  // return;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -5098,15 +5099,15 @@ ACMD(do_train)
   {
     send_to_char(ch, "Skills are now trained in the study menu.\r\n");
     return;
-    //send_to_char(ch, "You can only train abilities with a trainer.\r\n");
+    // send_to_char(ch, "You can only train abilities with a trainer.\r\n");
   }
   else
     list_abilities(ch, ABILITY_TYPE_GENERAL);
 
   /* no immediate plans to use knowledge */
-  //send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
+  // send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
   /* as of 10/30/2014, we have decided to make sure crafting is an indepedent system */
-  //send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
+  // send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'craft' to see your crafting abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch))
@@ -5126,7 +5127,7 @@ ACMD(do_visible)
 
   if AFF_FLAGGED (ch, AFF_INVISIBLE)
   {
-    appear(ch, TRUE); //forced for greater invis
+    appear(ch, TRUE); // forced for greater invis
     send_to_char(ch, "You break the spell of invisibility.\r\n");
   }
   else
@@ -5161,7 +5162,7 @@ static void print_group(struct char_data *ch)
   send_to_char(ch, "Your group consists of:\r\n");
 
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
-    //send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]M [%4d/%-4d]V%s\r\n",
+    // send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]M [%4d/%-4d]V%s\r\n",
     send_to_char(ch, "%-*s: %s[%4d/%-4d]H [%4d/%-4d]V [%4d/%-4d]P [%d XP TNL]%s\r\n",
                  count_color_chars(GET_NAME(k)) + 28, GET_NAME(k),
                  GROUP_LEADER(GROUP(ch)) == k ? CBGRN(ch, C_NRM) : CCGRN(ch, C_NRM),
@@ -5188,7 +5189,7 @@ void update_msdp_group(struct char_data *ch)
       while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
       {
         char buf[4000]; // Buffer for building the group table for MSDP
-        //send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
+        // send_to_char(ch, "DEBUG: group member: %s", GET_NAME(k));
         snprintf(buf, sizeof(buf), "%c%c"
                                    "%c%s%c%s"
                                    "%c%s%c%d"
@@ -5211,7 +5212,7 @@ void update_msdp_group(struct char_data *ch)
         strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
-    //send_to_char(ch,"%s", msdp_buffer);
+    // send_to_char(ch,"%s", msdp_buffer);
     strip_colors(msdp_buffer);
     MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);
   }
@@ -5312,7 +5313,7 @@ static void display_group_list(struct char_data *ch)
                      "Currently no groups formed.\r\n");
 }
 
-//vatiken's group system 1.2, installed 08/08/12 by zusuk
+// vatiken's group system 1.2, installed 08/08/12 by zusuk
 
 ACMDU(do_group)
 {
@@ -5464,10 +5465,10 @@ ACMD(do_greport)
     return;
   }
 
-  //send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
+  // send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_group(NULL, group, "%s reports: %d/%dH, %d/%dV\r\n",
                 GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
-                //GET_PSP(ch), GET_MAX_PSP(ch),
+                // GET_PSP(ch), GET_MAX_PSP(ch),
                 GET_MOVE(ch), GET_MAX_MOVE(ch));
 }
 
@@ -5476,7 +5477,7 @@ ACMD(do_report)
 {
 
   /* generalized output due to send_to_room */
-  //send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
+  // send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dM, %d/%dV\r\n",
   send_to_room(IN_ROOM(ch), "%s status: %d/%dH, %d/%dV, %d/%dP, %d XP TNL\r\n",
                GET_NAME(ch), GET_HIT(ch), GET_MAX_HIT(ch),
                GET_MOVE(ch), GET_MAX_MOVE(ch),
@@ -5635,7 +5636,7 @@ ACMD(do_use)
     default:
       log("SYSERR: Unknown subcmd %d passed to do_use.", subcmd);
       /* SYSERR_DESC: This is the same as the unhandled case in do_gen_ps(),
-         * but in the function which handles 'quaff', 'recite', and 'use'. */
+       * but in the function which handles 'quaff', 'recite', and 'use'. */
       return;
     }
   }
@@ -5707,7 +5708,7 @@ ACMD(do_use)
       break;
 
     /* 1. Decipher Writing
-       *    Spellcraft check: DC 20 + spell level */
+     *    Spellcraft check: DC 20 + spell level */
 
     dc = 20 + GET_OBJ_VAL(mag_item, 0);
     if (((check_result = skill_check(ch, ABILITY_SPELLCRAFT, dc)) < 0) &&
@@ -5720,8 +5721,8 @@ ACMD(do_use)
     /* 2. Activate the Spell */
 
     /* 2.a. Check the spell type
-       *      ARCANE - Wizard, Sorcerer, Bard
-       *      DIVINE - Cleric, Druid, Paladin, Ranger */
+     *      ARCANE - Wizard, Sorcerer, Bard
+     *      DIVINE - Cleric, Druid, Paladin, Ranger */
     if ((check_result = skill_check(ch, ABILITY_USE_MAGIC_DEVICE, dc)) < 0)
     {
       if (spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF ||
@@ -6835,6 +6836,38 @@ static const char *const hints[] = {
            "Want to know your Actions from your Maneuvers ? Don 't worry combat in Luminari can be deep "
            "and complex, but that' s part of what makes it so much fun.Make sure you check out HELP ACTIONS, "
            "COMBAT and QUEUE to become a combat pro!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*39*/ "\tR[HINT]:\tn \ty"
+           "To help navigate the massively expansiave surface wilderness, there is a CARRIAGE system "
+           "that can quickly and safely get you between major locations in the wilderness (help carriage).  "
+           "There are also plenty of zone connections in the wilderness that you can not reach via carriages, "
+           "but a strategy is to use the SURVEY (help survey) command to identify the locations and use the "
+           "carriage system to try to get near to your destination then hike the rest."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*40*/ "\tR[HINT]:\tn \ty"
+           "'ENCOUNTERS' is a system whereby parties and individuals exploring or roaming the wilderness "
+           "will randomly encounter level-appropriate mobs to fight.  Encounter mob types are pulled from "
+           "an ever-growing list that currently numbers over 100+. Encounters can be dealt with in a number "
+           "of ways, such as defeating it in combat, escaping, intimidating, bluffing or using diplomacy, "
+           "and even bribing in some cases.  In addition to combat encounters, we will soon be adding other "
+           "types of encounters, such as treasure caches, wandering vendors that sell special items, "
+           "mysterious entities that grant your character bonuses, and more.  (help encounters)"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*41*/ "\tR[HINT]:\tn \ty"
+           "'HUNTS' is a system that allows for individuals or parties to search out special boss "
+           "mobs in the wilderness of Lumia.  These hunt targets, when defeated, award the entire party "
+           "quest points, gold and some nice experience.  In addition to the party-wide rewards, each "
+           "hunt mob also drops hunt trophies of various types: some are enhanced crafting materials, "
+           "others can be exchanged for rings, pendants or bracers that give special affects when worn "
+           "(eg. infravision, detect invis, haste, etc.), as well as weapon oils that can be applied to "
+           "a weapon to give it a permanent special affect (eg. flaming, defending, vorpal, vampiric, "
+           "etc.).  (help hunts)"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*42*/ "\tR[HINT]:\tn \ty"
+           "Insidious rumors have begun that Caltursar the Dead Walker, a necrophant that resides in the "
+           "Skull Gorge has discovered the dark art of becoming a LICH.  Perhaps one could ASK him about "
+           "'undeath' to reveal what sort of necormantic madness he has tapped into.  (note: the quest "
+           "line to become a lich is extremely difficult and designed for elite groups to conquer)"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
