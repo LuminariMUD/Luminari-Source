@@ -242,6 +242,7 @@ int mob_ingame_count(int mobile_vnum)
 }
 
 /* load and place mobile into the wilderness */
+/* todo use wilderness-regions to make this more dynamic */
 void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 {
     room_rnum location = NOWHERE;
@@ -317,7 +318,7 @@ void start_staff_event(int event_num)
     case JACKALOPE_HUNT:
 
         /* set event duration */
-        //STAFF_EVENT_TIME = 20;
+        // STAFF_EVENT_TIME = 20;
 
         /* load the jackalopes! */
         for (counter = 0; counter < NUM_JACKALOPE_EACH; counter++)

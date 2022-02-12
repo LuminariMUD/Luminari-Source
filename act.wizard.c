@@ -7416,7 +7416,9 @@ int get_eq_score(obj_rnum a)
   /* simplify life, and dummy checks */
   if (a == NOTHING)
     return -1;
+
   obj = &obj_proto[a];
+
   if (!obj)
     return -1;
 
