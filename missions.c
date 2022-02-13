@@ -546,27 +546,66 @@ bool are_mission_mobs_loaded(char_data *ch)
 
 void apply_mission_rewards(char_data *ch)
 {
+    /* easy out */
     if (GET_MISSION_COMPLETE(ch))
         return;
 
+    int level = GET_LEVEL(ch);
+
+    switch (GET_MISSION_DIFFICULTY(ch))
+    {
+
+    case MISSION_DIFF_EASY:
+        level -= 3;
+        break;
+
+    case MISSION_DIFF_NORMAL:
+        level -= 1;
+        break;
+
+    case MISSION_DIFF_TOUGH:
+        break;
+
+    case MISSION_DIFF_CHALLENGING:
+        level += 1;
+        break;
+
+    case MISSION_DIFF_ARDUOUS:
+        level += 2;
+        break;
+
+    case MISSION_DIFF_SEVERE:
+        level += 4;
+        break;
+
+    default:
+        break;
+    }
+
+    if (level <= 0)
+        level = 1;
+    if (level >= LVL_IMPL)
+        level = LVL_IMPL;
+
     send_to_char(ch, "\r\nYou've completed your mission!\r\n\r\n");
 
+    GET_FACTION_STANDING(ch, GET_MISSION_FACTION(ch)) += GET_MISSION_STANDING(ch);
     send_to_char(ch, "You've received %ld %s faction standing.\r\n",
                  GET_MISSION_STANDING(ch),
                  faction_names_lwr[GET_MISSION_FACTION(ch)]);
-    GET_FACTION_STANDING(ch, GET_MISSION_FACTION(ch)) += GET_MISSION_STANDING(ch);
 
+    GET_QUESTPOINTS(ch) += GET_MISSION_REP(ch);
     send_to_char(ch, "You've received %ld quest points.\r\n",
                  GET_MISSION_REP(ch));
-    GET_QUESTPOINTS(ch) += GET_MISSION_REP(ch);
 
-    send_to_char(ch,
-                 "You have received %ld gold coins.\r\n", GET_MISSION_CREDITS(ch));
     GET_GOLD(ch) += GET_MISSION_CREDITS(ch);
+    send_to_char(ch, "You have received %ld gold coins.\r\n", GET_MISSION_CREDITS(ch));
 
-    send_to_char(
-        ch,
-        "You have earned %d experience points for completing your mission.\r\n", gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_QUEST));
+    send_to_char(ch, "You have earned %d experience points for completing your mission.\r\n",
+                 gain_exp(ch, GET_MISSION_EXP(ch), GAIN_EXP_MODE_QUEST));
+
+    award_magic_item(1, ch, quick_grade_check(level));
+    send_to_char(ch, "You've received a random loot drop!\r\n");
 
     send_to_char(ch, "\r\n");
 
