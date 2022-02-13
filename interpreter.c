@@ -152,7 +152,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autosac", "autosac", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSAC, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoscan", "autoscan", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSCAN, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosplit", "autospl", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSPLIT, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"abilityset", "abilityset", POS_SLEEPING, do_abilityset, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"abilityset", "abilityset", POS_SLEEPING, do_abilityset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autocraft", "autocraft", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"adjure", "adjure", POS_RESTING, do_gen_preparation, 0, SCMD_ADJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"autofire", "autofire", POS_FIGHTING, do_autofire, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -342,6 +342,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"feymagic", "feymagic", POS_FIGHTING, do_fey_magic, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_fey_magic},
     {"findmagic", "findmagic", POS_DEAD, do_findmagic, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"finddoor", "finddoor", POS_DEAD, do_finddoor, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"featset", "featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -635,7 +636,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdown", "shutdown", POS_DEAD, do_shutdown, LVL_IMPL, SCMD_SHUTDOWN, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sip", "sip", POS_RECLINING, do_drink, 0, SCMD_SIP, FALSE, ACTION_MOVE, {0, 6}, NULL},
-    {"skillset", "skillset", POS_SLEEPING, do_skillset, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"skillset", "skillset", POS_SLEEPING, do_skillset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sleep", "sl", POS_SLEEPING, do_sleep, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"slist", "slist", POS_SLEEPING, do_oasis_list, LVL_BUILDER, SCMD_OASIS_SLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"smashdefense", "smashdefense", POS_RESTING, do_gen_tog, 1, SCMD_SMASH_DEFENSE, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1826,7 +1827,7 @@ int enter_player_game(struct descriptor_data *d)
   // If they're wildshaped, they re-enter as their natural form
   wildshape_return(d->character);
 
-    // make sure we assign any new spells
+  // make sure we assign any new spells
   for (i = 0; i < NUM_CLASSES; i++)
   {
     if (CLASS_LEVEL(d->character, i))
