@@ -42,12 +42,12 @@
 int gain_exp(struct char_data *ch, int gain, int mode);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
-const char * const mission_details[][8] = {
+const char *const mission_details[][MISSION_DETAIL_FIELDS] = {
     // We want to order this from highest level to lowest level
     //         FACTIONS ALLOWED (1 (one) if allowed, 0 (zero) if not)
-    //  Lvl    R    E    H    F   Planet         Room Vnum Zone Name
-    {"7" , "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
-    {"3" , "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
+    // Lvl  R    E    H    F    Greater Location               Room Vnum    Zone Name
+    {"7", "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
+    {"3", "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
     {"17", "0", "0", "0", "1", "Prime Material Plane - Surface", "2721", "Memlin Caverns"},
     {"16", "0", "0", "0", "1", "Prime Material Plane - Surface", "1901", "Spider Swamp"},
     {"14", "0", "0", "0", "1", "Prime Material Plane - Surface", "148107", "Orcish Fort"},
@@ -55,26 +55,48 @@ const char * const mission_details[][8] = {
     {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "406", "Jade Forest"},
     {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "29009", "Lizard Lair"},
     {"10", "0", "0", "0", "1", "Prime Material Plane - Surface", "13130", "Quagmire"},
-    {"7" , "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
-    {"3" , "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
-//    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3014", "Northern Midgen"},
-//    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3104", "Southern Midgen"},
-//    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "103163", "Ashenport"},
-    {"0" , "0", "0", "0", "0", "0", "0", "0"} // This must always be last
+    {"7", "0", "0", "0", "1", "Prime Material Plane - Surface", "6721", "Graven Hollow"},
+    {"3", "0", "0", "0", "1", "Prime Material Plane - Surface", "5915", "Wizard Training Mansion"},
+
+    //    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3014", "Northern Midgen"},
+    //    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "3104", "Southern Midgen"},
+    //    {"1" , "0", "0", "0", "1", "Prime Material Plane - Surface", "103163", "Ashenport"},
+
+    {"0", "0", "0", "0", "0", "0", "0", "0"} // This must always be last
 };
 
-const char * const mission_targets[5] = { "person", "traitor", "darkling", "fugitive", "fugitive" };
+const char *const mission_targets[MISSION_TARGET_FIELDS] = {
+    "person",
+    "traitor",
+    "darkling",
+    "fugitive",
+    "fugitive",
+};
 
-const char * const mission_difficulty[NUM_MISSION_DIFFICULTIES] = { "easy", "normal", "tough", "challenging", "arduous", "severe" };
+const char *const mission_difficulty[NUM_MISSION_DIFFICULTIES] = {
+    "easy",
+    "normal",
+    "tough",
+    "challenging",
+    "arduous",
+    "severe",
+};
 
-const char * const target_difficulty[NUM_MISSION_DIFFICULTIES] = {
-    "of easy strength", "of normal strength", "above normal strength", "well above normal strength",
-    "far above normal strength", "far above normal strength" };
-
-const char * const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
+const char *const target_difficulty[NUM_MISSION_DIFFICULTIES] = {
     "of easy strength",
-    "of normal strength",         "of normal strength",
-    "above normal strength",      "above normal strength",
+    "of normal strength",
+    "above normal strength",
+    "well above normal strength",
+    "far above normal strength",
+    "far above normal strength",
+};
+
+const char *const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
+    "of easy strength",
+    "of normal strength",
+    "of normal strength",
+    "above normal strength",
+    "above normal strength",
     "well above normal strength",
 };
 
@@ -110,7 +132,7 @@ SPECIAL(faction_mission)
             send_to_char(ch, "You do not currently have a mission.\r\n");
             return 1;
         }
-        
+
         if (!GET_MISSION_DECLINE(ch))
         {
             send_to_char(
@@ -135,17 +157,19 @@ SPECIAL(faction_mission)
         return 1;
     }
 
-    if (GET_CURRENT_MISSION(ch) > 0) {
+    if (GET_CURRENT_MISSION(ch) > 0)
+    {
         send_to_char(ch, "You are currently on a mission.  Type 'mission decline' before taking a new one.\r\n");
         return TRUE;
     }
 
-    if (GET_MISSION_COOLDOWN(ch) > 0) {
-      send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
-      return 1;
+    if (GET_MISSION_COOLDOWN(ch) > 0)
+    {
+        send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
+        return 1;
     }
 
-    struct char_data *mob = (struct char_data *) me;
+    struct char_data *mob = (struct char_data *)me;
     int level = GET_LEVEL(ch);
     int faction = GET_FACTION(mob);
     int difficulty = 0;
@@ -197,8 +221,7 @@ SPECIAL(faction_mission)
 
     while (atoi(mission_details[i][0]) != 0)
     {
-        if (atoi(mission_details[i][mission_details_to_faction(faction)])
-            == 0)
+        if (atoi(mission_details[i][mission_details_to_faction(faction)]) == 0)
         {
             i++;
             continue;
@@ -228,7 +251,7 @@ SPECIAL(faction_mission)
     char buf[MAX_STRING_LENGTH];
 
     snprintf(
-        buf, sizeof(buf), 
+        buf, sizeof(buf),
         "\tM$N tells you, 'I've got something for you from the %s.  We're having some trouble with %s %s named %s, located somewhere in "
         "%s, or in the surrounding wilderness.  We need you to terminate them with extreme predjudice. They "
         "will likely not be alone, so be prepared to fight multiple enemies.  When the deed is done, "
@@ -239,10 +262,10 @@ SPECIAL(faction_mission)
         mission_targets[mission_details_to_faction(faction)],
         random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
         mission_details[mDet][MISSION_ZONE_NAME],
-//        mission_details[mDet][MISSION_PLANET], 
+        //        mission_details[mDet][MISSION_PLANET],
         mission_difficulty[difficulty],
         target_difficulty[difficulty], guard_difficulty[difficulty]);
-    act(buf, FALSE, ch, 0, (struct char_data *) me, TO_CHAR);
+    act(buf, FALSE, ch, 0, (struct char_data *)me, TO_CHAR);
 
     send_to_char(
         ch,
@@ -250,7 +273,6 @@ SPECIAL(faction_mission)
         GET_MISSION_CREDITS(ch), GET_MISSION_STANDING(ch),
         faction_names_lwr[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
         GET_MISSION_EXP(ch));
-
 
     create_mission_mobs(ch);
     GET_MISSION_COOLDOWN(ch) = 100; // ten minutes
@@ -284,7 +306,7 @@ ACMD(do_missions)
         mission_targets[mission_details_to_faction(GET_MISSION_FACTION(ch))],
         random_npc_names[GET_MISSION_NPC_NAME_NUM(ch)],
         mission_details[GET_CURRENT_MISSION(ch)][MISSION_ZONE_NAME],
-//        mission_details[GET_CURRENT_MISSION(ch)][MISSION_PLANET],
+        //        mission_details[GET_CURRENT_MISSION(ch)][MISSION_PLANET],
         GET_MISSION_CREDITS(ch), GET_MISSION_STANDING(ch),
         faction_names_lwr[GET_MISSION_FACTION(ch)], GET_MISSION_REP(ch),
         GET_MISSION_EXP(ch));
@@ -295,34 +317,35 @@ long get_mission_reward(char_data *ch, int reward_type)
     int reward = 0;
     int level = GET_LEVEL(ch);
     float mult = MAX(0, GET_MISSION_DIFFICULTY(ch));
+
     if (mult == 0)
-      mult = 0.5;
+        mult = 0.5;
 
     switch (reward_type)
     {
     case MISSION_CREDITS:
         reward = 40 + dice(level * 2, 3);
-        reward *= 5 + (mult*2);
+        reward *= 5 + (mult * 2);
         break;
     case MISSION_STANDING:
-        reward = (int) (50 * mult);
+        reward = (int)(50 * mult);
         break;
     case MISSION_REP:
-        reward = (int) (level * MAX(1, level / 2) * mult / 4);
+        reward = (int)(level * MAX(1, level / 2) * mult / 4);
         break;
     case MISSION_EXP:
-        reward = (int) (level * MAX(1, level / 4) * mult * 300);
+        reward = (int)(level * MAX(1, level / 4) * mult * 300);
         break;
     }
 
     if (reward_type != MISSION_CREDITS)
-      reward = (int) (reward * 0.25); // we'll adjust this based on what the cooldown is
+        reward = (int)(reward * 0.25); // we'll adjust this based on what the cooldown is
 
     int bonus = d20(ch);
     if (affected_by_spell(ch, SPELL_HONEYED_TONGUE))
         bonus = MAX(bonus, d20(ch));
     bonus += compute_ability(ch, ABILITY_DIPLOMACY);
-    reward = (reward * (100+bonus)) / 100;
+    reward = (reward * (100 + bonus)) / 100;
 
     return MAX(1, reward);
 }
@@ -339,9 +362,10 @@ void clear_mission_mobs(char_data *ch)
             continue;
         if (GET_IDNUM(ch) == mob->mission_owner)
         {
-            if (IN_ROOM(mob) != NOWHERE) {
-//              char_from_room(mob);
-              extract_char(mob);
+            if (IN_ROOM(mob) != NOWHERE)
+            {
+                //              char_from_room(mob);
+                extract_char(mob);
             }
         }
     }
@@ -349,37 +373,38 @@ void clear_mission_mobs(char_data *ch)
 
 void increase_mob_difficulty(struct char_data *mob, int difficulty)
 {
-    switch (difficulty) {
-        case MISSION_DIFF_EASY:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 0.5;
-            GET_HITROLL(mob) -= 2;
-            GET_DAMROLL(mob) -= 2;
-            mob->points.armor -= 30;
-            break;
-        case MISSION_DIFF_TOUGH:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2;
-            GET_HITROLL(mob) += 2;
-            GET_DAMROLL(mob) += 2;
-            mob->points.armor += 20;
-            break;
-        case MISSION_DIFF_CHALLENGING:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 3;
-            GET_HITROLL(mob) += 3;
-            GET_DAMROLL(mob) += 3;
-            mob->points.armor += 50;
-            break;
-        case MISSION_DIFF_ARDUOUS:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
-            GET_HITROLL(mob) += 5;
-            GET_DAMROLL(mob) += 5;
-            mob->points.armor += 80;
-            break;
-        case MISSION_DIFF_SEVERE:
-            GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
-            GET_HITROLL(mob) += 6;
-            GET_DAMROLL(mob) += 6;
-            mob->points.armor += 100;
-            break;
+    switch (difficulty)
+    {
+    case MISSION_DIFF_EASY:
+        GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 0.5;
+        GET_HITROLL(mob) -= 2;
+        GET_DAMROLL(mob) -= 2;
+        mob->points.armor -= 30;
+        break;
+    case MISSION_DIFF_TOUGH:
+        GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 2;
+        GET_HITROLL(mob) += 2;
+        GET_DAMROLL(mob) += 2;
+        mob->points.armor += 20;
+        break;
+    case MISSION_DIFF_CHALLENGING:
+        GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 3;
+        GET_HITROLL(mob) += 3;
+        GET_DAMROLL(mob) += 3;
+        mob->points.armor += 50;
+        break;
+    case MISSION_DIFF_ARDUOUS:
+        GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 5;
+        GET_HITROLL(mob) += 5;
+        GET_DAMROLL(mob) += 5;
+        mob->points.armor += 80;
+        break;
+    case MISSION_DIFF_SEVERE:
+        GET_REAL_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob) * 7.5;
+        GET_HITROLL(mob) += 6;
+        GET_DAMROLL(mob) += 6;
+        mob->points.armor += 100;
+        break;
     }
     GET_EXP(mob) = GET_LEVEL(mob) * GET_LEVEL(mob) * (75 + (10 * difficulty));
     GET_GOLD(mob) = GET_LEVEL(mob) * (10 + difficulty);
@@ -407,7 +432,9 @@ void create_mission_mobs(char_data *ch)
             SET_BIT_AR(MOB_FLAGS(mob), MOB_GUARD);
             SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
             add_follower(mob, leader);
-        } else {
+        }
+        else
+        {
             GET_LEVEL(mob) = GET_LEVEL(ch);
             SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
             leader = mob;
@@ -424,8 +451,9 @@ void create_mission_mobs(char_data *ch)
             increase_mob_difficulty(mob, MISSION_DIFF_EASY);
             break;
         case MISSION_DIFF_TOUGH:
-            if (i == 0) {
-              increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+            if (i == 0)
+            {
+                increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
             }
             break;
         case MISSION_DIFF_CHALLENGING:
@@ -446,34 +474,34 @@ void create_mission_mobs(char_data *ch)
                 increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
         }
         GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
-	    GET_HIT(mob) = GET_MAX_HIT(mob);
+        GET_HIT(mob) = GET_MAX_HIT(mob);
         GET_FACTION(mob) = GET_MISSION_FACTION(ch);
         randName = GET_MISSION_NPC_NAME_NUM(ch);
         mob->mission_owner = GET_IDNUM(ch);
         sprintf(buf, "%s %s %s %ld -%s",
-            AN(mission_targets[mission_details_to_faction(
-                GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(
-                GET_MISSION_FACTION(ch))],
+                AN(mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))],
                 (i > 0) ? " guard" : random_npc_names[randName],
-            (i == 0) ? GET_IDNUM(ch) : 0, GET_NAME(ch));
+                (i == 0) ? GET_IDNUM(ch) : 0, GET_NAME(ch));
         mob->player.name = strdup(buf);
         sprintf(buf, "%s %s%s%s",
-            AN(mission_targets[mission_details_to_faction(
-                GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(
-                GET_MISSION_FACTION(ch))],
+                AN(mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))],
                 (i > 0) ? "" : " named ",
-            (i > 0) ? " guard" : random_npc_names[randName]);
+                (i > 0) ? " guard" : random_npc_names[randName]);
         mob->player.short_descr = strdup(buf);
         sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
-            AN(mission_targets[mission_details_to_faction(
-                GET_MISSION_FACTION(ch))]),
-            mission_targets[mission_details_to_faction(
-                GET_MISSION_FACTION(ch))],
+                AN(mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))]),
+                mission_targets[mission_details_to_faction(
+                    GET_MISSION_FACTION(ch))],
                 (i > 0) ? "" : " named ",
-            (i > 0) ? " guard" : random_npc_names[randName],
-            GET_NAME(ch));
+                (i > 0) ? " guard" : random_npc_names[randName],
+                GET_NAME(ch));
         mob->player.long_descr = strdup(buf);
         if (real_room(to_room) != NOWHERE)
         {
@@ -499,13 +527,16 @@ bool are_mission_mobs_loaded(char_data *ch)
 
     for (mob = character_list; mob; mob = mob->next)
     {
-        if (!IS_NPC(mob)) {
-            continue;
-	}
-        if (mob->dead) {
+        if (!IS_NPC(mob))
+        {
             continue;
         }
-        if (GET_IDNUM(ch) == mob->mission_owner) {
+        if (mob->dead)
+        {
+            continue;
+        }
+        if (GET_IDNUM(ch) == mob->mission_owner)
+        {
             return true;
         }
     }
@@ -521,16 +552,16 @@ void apply_mission_rewards(char_data *ch)
     send_to_char(ch, "\r\nYou've completed your mission!\r\n\r\n");
 
     send_to_char(ch, "You've received %ld %s faction standing.\r\n",
-        GET_MISSION_STANDING(ch),
-        faction_names_lwr[GET_MISSION_FACTION(ch)]);
+                 GET_MISSION_STANDING(ch),
+                 faction_names_lwr[GET_MISSION_FACTION(ch)]);
     GET_FACTION_STANDING(ch, GET_MISSION_FACTION(ch)) += GET_MISSION_STANDING(ch);
 
     send_to_char(ch, "You've received %ld quest points.\r\n",
-        GET_MISSION_REP(ch));
+                 GET_MISSION_REP(ch));
     GET_QUESTPOINTS(ch) += GET_MISSION_REP(ch);
 
     send_to_char(ch,
-        "You have received %ld gold coins.\r\n", GET_MISSION_CREDITS(ch));
+                 "You have received %ld gold coins.\r\n", GET_MISSION_CREDITS(ch));
     GET_GOLD(ch) += GET_MISSION_CREDITS(ch);
 
     send_to_char(
@@ -539,8 +570,8 @@ void apply_mission_rewards(char_data *ch)
 
     send_to_char(ch, "\r\n");
 
-// bug fix.  After doing one mission can't complete any others.
-//    GET_MISSION_COMPLETE(ch) = true;
+    // bug fix.  After doing one mission can't complete any others.
+    //    GET_MISSION_COMPLETE(ch) = true;
     clear_mission(ch);
 }
 
@@ -552,7 +583,8 @@ bool is_mission_mob(char_data *ch, char_data *mob)
     if (!IS_NPC(mob))
         return true;
 
-    if (!mob->mission_owner) return true;
+    if (!mob->mission_owner)
+        return true;
 
     if (mob->mission_owner == GET_IDNUM(ch))
         return true;
@@ -561,12 +593,9 @@ bool is_mission_mob(char_data *ch, char_data *mob)
 
     for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
     {
-        if (IS_NPC(tch) && tch->master && !IS_NPC(tch->master)
-            && is_player_grouped(ch, tch->master)
-            && mob->mission_owner == GET_IDNUM(tch->master))
+        if (IS_NPC(tch) && tch->master && !IS_NPC(tch->master) && is_player_grouped(ch, tch->master) && mob->mission_owner == GET_IDNUM(tch->master))
             return true;
-        if (!IS_NPC(tch) && is_player_grouped(ch, tch)
-            && mob->mission_owner == GET_IDNUM(tch))
+        if (!IS_NPC(tch) && is_player_grouped(ch, tch) && mob->mission_owner == GET_IDNUM(tch))
             return true;
     }
 
