@@ -1,4 +1,4 @@
-/* Faction Mission System Designed for d20MUD Star Wars by Gicker aka Stephen Squires */
+/* Faction Mission System Designed by Gicker aka Stephen Squires */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -38,10 +38,13 @@
 #include "oasis.h"
 #include "mudlim.h"
 #include "genmob.h"
+#include "treasure.h" /* for magic awards */
 
+/* inits */
 int gain_exp(struct char_data *ch, int gain, int mode);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 
+/* constants */
 const char *const mission_details[][MISSION_DETAIL_FIELDS] = {
     // We want to order this from highest level to lowest level
     //         FACTIONS ALLOWED (1 (one) if allowed, 0 (zero) if not)
@@ -100,6 +103,7 @@ const char *const guard_difficulty[NUM_MISSION_DIFFICULTIES] = {
     "well above normal strength",
 };
 
+/* begin fuctnions */
 int mission_details_to_faction(int faction)
 {
     switch (faction)
