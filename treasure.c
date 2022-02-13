@@ -701,6 +701,7 @@ int adjust_bonus_type(int apply_location)
   }
 }
 
+/* given a level, determine a random appropriate grade */
 int quick_grade_check(int level)
 {
   int grade = GRADE_MUNDANE;

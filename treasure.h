@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Treasure System, Inspired by D20mud's Treasure System                                                           
-/  Created By: Zusuk, original d20 code written by Gicker                                                           
-\                                                             
+\
+/  Luminari Treasure System, Inspired by D20mud's Treasure System
+/  Created By: Zusuk, original d20 code written by Gicker
+\
 /
-\         todo: CP system by Ornir                                               
-/                                                                                                                                                                                       
+\         todo: CP system by Ornir
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #ifndef TREASURE_H
@@ -167,14 +167,14 @@
 /* weapon mold vnums */
 /* simple */
 /* light */
-#define DAGGER 3212 //0
+#define DAGGER 3212 // 0
 #define MACE 3213
 #define SICKLE 3214
 /* one handed */
 #define CLUB 3215
 #define MORNINGSTAR 3216
 /* two handed */
-#define SPEAR 3217 //5
+#define SPEAR 3217 // 5
 #define QUARTERSTAFF 3218
 /* martial */
 /* light */
@@ -182,25 +182,25 @@
 #define KUKRI 3220
 #define SHORTSWORD 3221
 /* one handed */
-#define BATTLEAXE 3222 //10
+#define BATTLEAXE 3222 // 10
 #define FLAIL 3223
 #define LONGSWORD 3224
 #define RAPIER 3225
 #define SCIMITAR 3226
-#define TRIDENT 3227 //15
+#define TRIDENT 3227 // 15
 #define WARHAMMER 3228
 /* two handed */
 #define FALCHION 3229
 #define GLAIVE 3230
 #define GREATAXE 3231
-#define GREATCLUB 3232 //20
+#define GREATCLUB 3232 // 20
 #define GREATSWORD 3233
 #define HALBERD 3234
 #define LANCE 3235
 #define SCYTHE 3236
 /* exotic */
 /* light */
-#define KAMA 3237 //25
+#define KAMA 3237 // 25
 /* one handed */
 #define BASTARDSWORD 3238
 #define DWARVENWARAXE 3239
@@ -217,12 +217,12 @@
 #define AMMO_PROTO 3297
 
 /* misc mold vnums */
-#define RING_MOLD 3176 //0
+#define RING_MOLD 3176 // 0
 #define NECKLACE_MOLD 3177
 #define BOOTS_MOLD 3178
 #define GLOVES_MOLD 3179
 #define CLOAK_MOLD 3183
-#define BELT_MOLD 3184 //5
+#define BELT_MOLD 3184 // 5
 #define WRIST_MOLD 3185
 #define HELD_MOLD 3186
 /* end misc molds */
@@ -330,11 +330,13 @@ bool proper_feat(struct obj_data *obj, int feat_num);
 void load_treasure(struct char_data *mob);
 int determine_rnd_misc_cat();
 int cp_convert_grade_enchantment(int grade);
+/* given a level, determine a random appropriate grade */
+int quick_grade_check(int level);
 
 // staff tool to load random items
 ACMD_DECL(do_loadmagic);
 ACMD_DECL(do_loadmagicspecific);
-//ACMD_DECL(do_bazaar);
+// ACMD_DECL(do_bazaar);
 
 /* special procedures */
 SPECIAL_DECL(bazaar);
