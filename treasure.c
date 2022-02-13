@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Treasure System, Inspired by D20mud's Treasure System                                                           
-/  Created By: Zusuk, original d20 code written by Gicker                                                           
-\                                                             
-/  using treasure.h as the header file currently                                                           
-\         todo: CP system by Ornir                                               
-/                                                                                                                                                                                       
+\
+/  Luminari Treasure System, Inspired by D20mud's Treasure System
+/  Created By: Zusuk, original d20 code written by Gicker
+\
+/  using treasure.h as the header file currently
+\         todo: CP system by Ornir
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
@@ -106,7 +106,7 @@ int cp_convert_grade_enchantment(int grade)
     else
       enchantment = 7;
     break;
-  default: //GRADE_MUNDANE:
+  default: // GRADE_MUNDANE:
     enchantment = 2;
     break;
   }
@@ -137,8 +137,8 @@ int determine_rnd_misc_cat()
   case 7: /*feet*/
     category = TRS_SLOT_FEET;
     break;
-  case 8:                  /*hands*/
-      category = TRS_SLOT_HANDS;
+  case 8: /*hands*/
+    category = TRS_SLOT_HANDS;
     break;
   case 9: /*about*/
     category = TRS_SLOT_ABOUT;
@@ -319,10 +319,18 @@ int determine_stat_apply(int wear)
     case 5:
       switch (rand_number(1, 4))
       {
-      case 1: stat = APPLY_RES_FIRE; break;
-      case 2: stat = APPLY_RES_PUNCTURE; break;
-      case 3: stat = APPLY_RES_ILLUSION; break;
-      case 4: stat = APPLY_RES_ENERGY; break;
+      case 1:
+        stat = APPLY_RES_FIRE;
+        break;
+      case 2:
+        stat = APPLY_RES_PUNCTURE;
+        break;
+      case 3:
+        stat = APPLY_RES_ILLUSION;
+        break;
+      case 4:
+        stat = APPLY_RES_ENERGY;
+        break;
       }
       break;
     }
@@ -341,16 +349,21 @@ int determine_stat_apply(int wear)
     case 4:
       switch (rand_number(1, 5))
       {
-        case 1:
-        stat = APPLY_RES_COLD; break;
-        case 2:
-        stat = APPLY_RES_AIR; break;
-        case 3:
-        stat = APPLY_RES_FORCE; break;
-        case 4:
-        stat = APPLY_RES_MENTAL; break;
-        case 5:
-        stat = APPLY_RES_WATER; break;
+      case 1:
+        stat = APPLY_RES_COLD;
+        break;
+      case 2:
+        stat = APPLY_RES_AIR;
+        break;
+      case 3:
+        stat = APPLY_RES_FORCE;
+        break;
+      case 4:
+        stat = APPLY_RES_MENTAL;
+        break;
+      case 5:
+        stat = APPLY_RES_WATER;
+        break;
         break;
       }
       break;
@@ -622,7 +635,7 @@ int apply_bonus_feat(int rare_grade)
 
   if (!feat_list[feat_num].can_learn)
   {
-   return apply_bonus_feat(rare_grade); 
+    return apply_bonus_feat(rare_grade);
   }
 
   return feat_num;
@@ -688,6 +701,43 @@ int adjust_bonus_type(int apply_location)
   }
 }
 
+int quick_grade_check(int level)
+{
+  int grade = GRADE_MUNDANE;
+  int max_grade = GRADE_MUNDANE;
+
+  /* determine maximum grade of treasure */
+  if (level >= 25)
+  {
+    max_grade = GRADE_SUPERIOR;
+  }
+  else if (level >= 20)
+  {
+    max_grade = GRADE_MAJOR;
+  }
+  else if (level >= 15)
+  {
+    max_grade = GRADE_MEDIUM;
+  }
+  else if (level >= 10)
+  {
+    max_grade = GRADE_TYPICAL;
+  }
+  else if (level >= 5)
+  {
+    max_grade = GRADE_MINOR;
+  }
+  else
+  {
+    max_grade = GRADE_MUNDANE;
+  }
+
+  /* okay now determine grade */
+  grade = dice(GRADE_MUNDANE, max_grade);
+
+  return grade;
+}
+
 /* function that returns bonus value based on apply-value and level */
 
 /* called by award_random_crystal() */
@@ -726,10 +776,11 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
   int gold = 0;
   int level = 0;
   char buf[MEDIUM_STRING] = {'\0'};
-  int grade = GRADE_MUNDANE, max_grade = GRADE_MUNDANE;
+  int grade = GRADE_MUNDANE;
 
   if (IS_NPC(ch))
     return;
+
   if (!IS_NPC(mob))
     return;
 
@@ -740,40 +791,16 @@ void determine_treasure(struct char_data *ch, struct char_data *mob)
   }
 
   gold = dice(1, GET_LEVEL(mob)) * 10;
+
   level = GET_LEVEL(mob);
 
-  /* determine maximum grade of treasure */
-  if (level >= 25)
-  {
-    max_grade = GRADE_SUPERIOR;
-  }
-  else if (level >= 20)
-  {
-    max_grade = GRADE_MAJOR;
-  }
-  else if (level >= 15)
-  {
-    max_grade = GRADE_MEDIUM;
-  }
-  else if (level >= 10)
-  {
-    max_grade = GRADE_TYPICAL;
-  }
-  else if (level >= 5)
-  {
-    max_grade = GRADE_MINOR;
-  }
-  else
-  {
-    max_grade = GRADE_MUNDANE;
-  }
-
   /* okay now determine grade */
-  grade = dice(1, max_grade);
+  grade = quick_grade_check(level);
 
   if (dice(1, 100) <= MAX(TREASURE_PERCENT, HAPPY_TREASURE))
   {
-    if (dice(1, 3) == 1) award_magic_item(1, ch, grade); // we want magic item treasure drops to be better but less common
+    if (dice(1, 3) == 1)
+      award_magic_item(1, ch, grade); // we want magic item treasure drops to be better but less common
     snprintf(buf, MEDIUM_STRING, "\tYYou have found %d coins hidden on $N's corpse!\tn", gold);
     act(buf, FALSE, ch, 0, mob, TO_CHAR);
     snprintf(buf, MEDIUM_STRING, "$n \tYhas found %d coins hidden on $N's corpse!\tn", gold);
@@ -1121,27 +1148,30 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
      - does not match level
    */
   int loop_counter = 0; // just in case
-  if (type == TYPE_POTION) {
+  if (type == TYPE_POTION)
+  {
     switch (rand_number(1, 3))
     {
-      case 1:
-      case 2:
-        // healing potions
-        spell_num = get_random_healing_potion(spell_level);
-        break;
-      case 3:
-        do
-        {
-          spell_num = rand_number(1, NUM_SPELLS - 1);
-          loop_counter++;
+    case 1:
+    case 2:
+      // healing potions
+      spell_num = get_random_healing_potion(spell_level);
+      break;
+    case 3:
+      do
+      {
+        spell_num = rand_number(1, NUM_SPELLS - 1);
+        loop_counter++;
 
-          if (loop_counter >= 999)
-            return;
-        } while (spell_level < spell_info[spell_num].min_level[class] ||
-                !valid_item_spell(spell_num) || spell_info[spell_num].violent);
-        break;
+        if (loop_counter >= 999)
+          return;
+      } while (spell_level < spell_info[spell_num].min_level[class] ||
+               !valid_item_spell(spell_num) || spell_info[spell_num].violent);
+      break;
     }
-  } else {
+  }
+  else
+  {
     do
     {
       spell_num = rand_number(1, NUM_SPELLS - 1);
@@ -1150,7 +1180,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
       if (loop_counter >= 999)
         return;
     } while (spell_level < spell_info[spell_num].min_level[class] ||
-            !valid_item_spell(spell_num));
+             !valid_item_spell(spell_num));
   }
 
   /* first assign two random colors for usage */
@@ -1411,7 +1441,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
   if (rare_grade > RARE_GRADE_NORMAL)
   {
     feat_num = apply_bonus_feat(rare_grade);
-    //send_to_char(ch, "debug: %d\r\n", feat_num);
+    // send_to_char(ch, "debug: %d\r\n", feat_num);
     while (!proper_feat(obj, feat_num))
     {
       feat_num = apply_bonus_feat(rare_grade);
@@ -1454,7 +1484,7 @@ void cp_modify_object_applies(struct char_data *ch, struct obj_data *obj,
    *  random treasure more useful. -- Gicker, Feb 16, 2021
    *  Arcanite crystals are the exception, as min level determines
    *  max bonus on items created using it.
-   */  
+   */
   if (GET_OBJ_TYPE(obj) != ITEM_CRYSTAL)
     GET_OBJ_LEVEL(obj) = MAX(1, GET_OBJ_LEVEL(obj) - 5);
 
@@ -2146,7 +2176,7 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   snprintf(descl, MEDIUM_STRING, label_rare_grade(rare_grade));
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
-  
+
   strncat(descb, "a suit of", MEDIUM_STRING - strlen(descb));
   armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
   strncat(desch, AN(armor_special_descs[armor_desc_roll]), MEDIUM_STRING - strlen(desch));
@@ -2399,7 +2429,7 @@ void set_ammo_object(struct obj_data *obj, int type)
   }
 }
 
-/* automatically set object up to be a given armor type 
+/* automatically set object up to be a given armor type
    armor object values:
  * 0 : armor bonus
    1 : the base armor-type, i.e. plate vambraces
@@ -2731,7 +2761,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
     snprintf(special, SHORT_STRING, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
     snprintf(special, SHORT_STRING, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
-  else //blunt
+  else // blunt
     snprintf(special, SHORT_STRING, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
@@ -2971,7 +3001,7 @@ void give_magic_weapon(struct char_data *ch, int selection, int enchantment, boo
     snprintf(special, SHORT_STRING, "%s%s", desc, blade_descs[rand_number(0, NUM_A_BLADE_DESCS - 1)]);
   else if (IS_PIERCE(obj))
     snprintf(special, SHORT_STRING, "%s%s", desc, piercing_descs[rand_number(0, NUM_A_PIERCING_DESCS - 1)]);
-  else //blunt
+  else // blunt
     snprintf(special, SHORT_STRING, "%s%s", desc, blunt_descs[rand_number(0, NUM_A_BLUNT_DESCS - 1)]);
 
   roll = dice(1, 100);
@@ -4135,19 +4165,32 @@ int get_random_armor_suit_type(void)
 {
   switch (rand_number(1, 13))
   {
-    case 1: return ARMOR_STYLE_CLOTHING;
-    case 2: return ARMOR_STYLE_PADDED;
-    case 3: return ARMOR_STYLE_LEATHER;
-    case 4: return ARMOR_STYLE_STUDDED_LEATHER;
-    case 5: return ARMOR_STYLE_LIGHT_CHAINMAIL;
-    case 6: return ARMOR_STYLE_HIDE;
-    case 7: return ARMOR_STYLE_SCALE;
-    case 8: return ARMOR_STYLE_CHAINMAIL;
-    case 9: return ARMOR_STYLE_PIECEMEAL;
-    case 10: return ARMOR_STYLE_SPLINT;
-    case 11: return ARMOR_STYLE_BANDED;
-    case 12: return ARMOR_STYLE_HALF_PLATE;
-    case 13: return ARMOR_STYLE_PLATE_MAIL;
+  case 1:
+    return ARMOR_STYLE_CLOTHING;
+  case 2:
+    return ARMOR_STYLE_PADDED;
+  case 3:
+    return ARMOR_STYLE_LEATHER;
+  case 4:
+    return ARMOR_STYLE_STUDDED_LEATHER;
+  case 5:
+    return ARMOR_STYLE_LIGHT_CHAINMAIL;
+  case 6:
+    return ARMOR_STYLE_HIDE;
+  case 7:
+    return ARMOR_STYLE_SCALE;
+  case 8:
+    return ARMOR_STYLE_CHAINMAIL;
+  case 9:
+    return ARMOR_STYLE_PIECEMEAL;
+  case 10:
+    return ARMOR_STYLE_SPLINT;
+  case 11:
+    return ARMOR_STYLE_BANDED;
+  case 12:
+    return ARMOR_STYLE_HALF_PLATE;
+  case 13:
+    return ARMOR_STYLE_PLATE_MAIL;
   }
   return 0;
 }
@@ -4156,133 +4199,185 @@ int get_armor_piece_by_style(int style, int wear_loc)
 {
   switch (style)
   {
-    case ARMOR_STYLE_CLOTHING:
+  case ARMOR_STYLE_CLOTHING:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_CLOTHING_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_CLOTHING;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_CLOTHING_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_CLOTHING_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_CLOTHING_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_CLOTHING;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_CLOTHING_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_CLOTHING_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_PADDED:
+  case ARMOR_STYLE_PADDED:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_PADDED_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_PADDED;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_PADDED_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_PADDED_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_PADDED_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_PADDED;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_PADDED_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_PADDED_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_LEATHER:
+  case ARMOR_STYLE_LEATHER:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_LEATHER_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_LEATHER;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_LEATHER_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_LEATHER_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_LEATHER_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_LEATHER;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_LEATHER_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_LEATHER_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_STUDDED_LEATHER:
+  case ARMOR_STYLE_STUDDED_LEATHER:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_STUDDED_LEATHER;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_STUDDED_LEATHER;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_LIGHT_CHAINMAIL:
+  case ARMOR_STYLE_LIGHT_CHAINMAIL:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_LIGHT_CHAIN;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_LIGHT_CHAIN;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_HIDE:
+  case ARMOR_STYLE_HIDE:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_HIDE_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_HIDE;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_HIDE_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_HIDE_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_HIDE_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_HIDE;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_HIDE_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_HIDE_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_SCALE:
+  case ARMOR_STYLE_SCALE:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_SCALE_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_SCALE;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_SCALE_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_SCALE_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_SCALE_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_SCALE;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_SCALE_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_SCALE_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_CHAINMAIL:
+  case ARMOR_STYLE_CHAINMAIL:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_CHAINMAIL_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_CHAINMAIL;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_CHAINMAIL_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_CHAINMAIL_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_CHAINMAIL_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_CHAINMAIL;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_CHAINMAIL_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_CHAINMAIL_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_PIECEMEAL:
+  case ARMOR_STYLE_PIECEMEAL:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_PIECEMEAL_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_PIECEMEAL;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_PIECEMEAL_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_PIECEMEAL_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_PIECEMEAL_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_PIECEMEAL;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_PIECEMEAL_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_PIECEMEAL_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_SPLINT:
+  case ARMOR_STYLE_SPLINT:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_SPLINT_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_SPLINT;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_SPLINT_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_SPLINT_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_SPLINT_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_SPLINT;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_SPLINT_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_SPLINT_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_BANDED:
+  case ARMOR_STYLE_BANDED:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_BANDED_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_BANDED;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_BANDED_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_BANDED_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_BANDED_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_BANDED;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_BANDED_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_BANDED_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_HALF_PLATE:
+  case ARMOR_STYLE_HALF_PLATE:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_HALF_PLATE_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_HALF_PLATE;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_HALF_PLATE_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_HALF_PLATE_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_HALF_PLATE_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_HALF_PLATE;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_HALF_PLATE_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_HALF_PLATE_LEGS;
       break;
     }
     break;
-    case ARMOR_STYLE_PLATE_MAIL:
+  case ARMOR_STYLE_PLATE_MAIL:
     switch (wear_loc)
     {
-      case ITEM_WEAR_HEAD: return SPEC_ARMOR_TYPE_FULL_PLATE_HEAD;
-      case ITEM_WEAR_BODY: return SPEC_ARMOR_TYPE_FULL_PLATE;
-      case ITEM_WEAR_ARMS: return SPEC_ARMOR_TYPE_FULL_PLATE_ARMS;
-      case ITEM_WEAR_LEGS: return SPEC_ARMOR_TYPE_FULL_PLATE_LEGS;
+    case ITEM_WEAR_HEAD:
+      return SPEC_ARMOR_TYPE_FULL_PLATE_HEAD;
+    case ITEM_WEAR_BODY:
+      return SPEC_ARMOR_TYPE_FULL_PLATE;
+    case ITEM_WEAR_ARMS:
+      return SPEC_ARMOR_TYPE_FULL_PLATE_ARMS;
+    case ITEM_WEAR_LEGS:
+      return SPEC_ARMOR_TYPE_FULL_PLATE_LEGS;
       break;
     }
     break;
@@ -4300,28 +4395,33 @@ int get_random_healing_potion(int spell_level)
   }
   else if (spell_level <= 10)
   {
-   return SPELL_CURE_MODERATE; 
+    return SPELL_CURE_MODERATE;
   }
   else if (spell_level <= 15)
   {
     if (rand_number(1, 3) == 1)
       return SPELL_REGENERATION;
     else
-      return SPELL_CURE_SERIOUS; 
+      return SPELL_CURE_SERIOUS;
   }
   else if (spell_level <= 20)
   {
     if (rand_number(1, 3) == 1)
       return SPELL_REGENERATION;
     else
-      return SPELL_CURE_CRITIC; 
+      return SPELL_CURE_CRITIC;
   }
-  else {
+  else
+  {
     switch (rand_number(1, 6))
     {
-      case 1: case 2: return SPELL_REGENERATION;
-      case 3: return SPELL_HEAL;
-      default: return SPELL_CURE_CRITIC;
+    case 1:
+    case 2:
+      return SPELL_REGENERATION;
+    case 3:
+      return SPELL_HEAL;
+    default:
+      return SPELL_CURE_CRITIC;
     }
   }
   return SPELL_CURE_LIGHT;
@@ -4334,48 +4434,47 @@ bool proper_feat(struct obj_data *obj, int feat_num)
 
   switch (GET_OBJ_TYPE(obj))
   {
-    case ITEM_ARMOR:
-      switch (armor_list[GET_OBJ_VAL(obj, 1)].armorType)
-      {
-        case ARMOR_TYPE_HEAVY:
-          if (feat_num == FEAT_ARMOR_SPECIALIZATION_LIGHT)
-            return false;
-          if (feat_num == FEAT_ARMOR_SPECIALIZATION_MEDIUM)
-            return false;
-          if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
-            return false;
-          if (feat_num == FEAT_ARMOR_PROFICIENCY_MEDIUM)
-            return false;
-          break;
-        case ARMOR_TYPE_MEDIUM:
-          if (feat_num == FEAT_ARMOR_SPECIALIZATION_LIGHT)
-            return false;
-          if (feat_num == FEAT_ARMOR_SPECIALIZATION_HEAVY)
-            return false;
-          if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
-            return false;
-          if (feat_num == FEAT_ARMOR_PROFICIENCY_MEDIUM)
-            return false;
-          break;
-        case ARMOR_TYPE_LIGHT:
-          if (feat_num == FEAT_ARMOR_SPECIALIZATION_MEDIUM)
-            return false;
-          if (feat_num == FEAT_ARMOR_SPECIALIZATION_HEAVY)
-            return false;
-          if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
-            return false;
-          break;
-      }
+  case ITEM_ARMOR:
+    switch (armor_list[GET_OBJ_VAL(obj, 1)].armorType)
+    {
+    case ARMOR_TYPE_HEAVY:
+      if (feat_num == FEAT_ARMOR_SPECIALIZATION_LIGHT)
+        return false;
+      if (feat_num == FEAT_ARMOR_SPECIALIZATION_MEDIUM)
+        return false;
+      if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
+        return false;
+      if (feat_num == FEAT_ARMOR_PROFICIENCY_MEDIUM)
+        return false;
       break;
-    case ITEM_WEAPON:
-      if (feat_num == FEAT_SIMPLE_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_SIMPLE))
-            return false;
-      if (feat_num == FEAT_MARTIAL_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_MARTIAL))
-            return false;
-      if (feat_num == FEAT_EXOTIC_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_EXOTIC))
-            return false;
+    case ARMOR_TYPE_MEDIUM:
+      if (feat_num == FEAT_ARMOR_SPECIALIZATION_LIGHT)
+        return false;
+      if (feat_num == FEAT_ARMOR_SPECIALIZATION_HEAVY)
+        return false;
+      if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
+        return false;
+      if (feat_num == FEAT_ARMOR_PROFICIENCY_MEDIUM)
+        return false;
       break;
-
+    case ARMOR_TYPE_LIGHT:
+      if (feat_num == FEAT_ARMOR_SPECIALIZATION_MEDIUM)
+        return false;
+      if (feat_num == FEAT_ARMOR_SPECIALIZATION_HEAVY)
+        return false;
+      if (feat_num == FEAT_ARMOR_PROFICIENCY_LIGHT)
+        return false;
+      break;
+    }
+    break;
+  case ITEM_WEAPON:
+    if (feat_num == FEAT_SIMPLE_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_SIMPLE))
+      return false;
+    if (feat_num == FEAT_MARTIAL_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_MARTIAL))
+      return false;
+    if (feat_num == FEAT_EXOTIC_WEAPON_PROFICIENCY && !IS_SET(weapon_list[GET_OBJ_VAL(obj, 0)].weaponFlags, WEAPON_FLAG_EXOTIC))
+      return false;
+    break;
   }
   return true;
 }

@@ -6869,6 +6869,11 @@ static const char *const hints[] = {
            "'undeath' to reveal what sort of necormantic madness he has tapped into.  (note: the quest "
            "line to become a lich is extremely difficult and designed for elite groups to conquer)"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*43*/ "\tR[HINT]:\tn \ty"
+           "We have a MISSION system that allows players to take on bounties on targets througout the "
+           "realm based on your level and specified difficulty.  Missions produce general rewards "
+           "including experience, gold, quest points and random treasure.  (help missions)"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
 
