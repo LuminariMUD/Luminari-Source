@@ -616,7 +616,7 @@ ACMDU(do_featset)
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
   char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
-  int feat_num, value, i, qend;
+  int feat_num, value, qend;
 
   argument = one_argument_u(argument, name);
 
