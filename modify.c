@@ -609,6 +609,99 @@ ACMDU(do_abilityset)
   send_to_char(ch, "You change %s's %s to %d.\r\n", GET_NAME(vict), ability_names[skill], value);
 }
 
+/* Modification of character feats */
+ACMDU(do_featset)
+{
+  struct char_data *vict;
+  char name[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
+  int feat_num, value, i, qend;
+
+  argument = one_argument_u(argument, name);
+
+  if (!*name)
+  { /* no arguments. print an informative text */
+    send_to_char(ch, "Syntax: featset <target name> '<feat name>' <# of this feat to add or subtract>\r\n"
+                     "Make sure to use the magical symbols ' around the feat name\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, name, NULL, FIND_CHAR_WORLD)))
+  {
+    send_to_char(ch, "%s", CONFIG_NOPERSON);
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  /* If there is no chars in argument */
+  if (!*argument)
+  {
+    send_to_char(ch, "Feat name expected.\r\n");
+    return;
+  }
+  if (*argument != '\'')
+  {
+    send_to_char(ch, "Feat must be enclosed in: ''\r\n");
+    return;
+  }
+  /* Locate the last quote and lowercase the magic words (if any) */
+
+  for (qend = 1; argument[qend] && argument[qend] != '\''; qend++)
+    argument[qend] = LOWER(argument[qend]);
+
+  if (argument[qend] != '\'')
+  {
+    send_to_char(ch, "Feat must be enclosed in: ''\r\n");
+    return;
+  }
+
+  strcpy(helpbuf, (argument + 1)); /* strcpy: OK (MAX_INPUT_LENGTH <= MAX_STRING_LENGTH) */
+
+  helpbuf[qend - 1] = '\0';
+
+  if ((feat_num = find_feat_num(helpbuf)) <= 0)
+  {
+    send_to_char(ch, "Unrecognized feat.\r\n");
+    return;
+  }
+  argument += qend + 1; /* skip to next parameter */
+
+  argument = one_argument_u(argument, buf);
+
+  if (!*buf)
+  {
+    send_to_char(ch, "# of feats to assign expected.\r\n");
+    return;
+  }
+
+  value = atoi(buf);
+
+  if (value < -10)
+  {
+    send_to_char(ch, "Can decrease feat value by a maximum of -10.\r\n");
+    return;
+  }
+
+  if (value > 10)
+  {
+    send_to_char(ch, "Can increase feat value by a maximum of 10.\r\n");
+    return;
+  }
+
+  if (IS_NPC(vict))
+  {
+    send_to_char(ch, "You can't set NPC feats (right now).\r\n");
+    return;
+  }
+
+  /* set the feat here */
+  SET_FEAT(vict, feat_num, HAS_REAL_FEAT(vict, feat_num) + value);
+
+  mudlog(BRF, LVL_IMMORT, TRUE, "%s changed %s's %s to %d.", GET_NAME(ch), GET_NAME(vict), feat_list[feat_num].name, HAS_FEAT(ch, feat_num));
+  send_to_char(ch, "You change %s's %s to %d.\r\n", GET_NAME(vict), feat_list[feat_num].name, HAS_FEAT(ch, feat_num));
+}
+
 /* By Michael Buselli. Traverse down the string until the begining of the next
  * page has been reached.  Return NULL if this is the last page of the string. */
 static char *next_page(char *str, struct char_data *ch)
@@ -647,7 +740,7 @@ static char *next_page(char *str, struct char_data *ch)
         line++;
 
       /* We need to check here and see if we are over the page width, and if
-         * so, compensate by going to the begining of the next line. */
+       * so, compensate by going to the begining of the next line. */
       else if (col++ > pw)
       {
         col = 1;
