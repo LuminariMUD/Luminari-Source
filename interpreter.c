@@ -211,6 +211,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"clear", "cle", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cls", "cls", POS_DEAD, do_gen_ps, 0, SCMD_CLEAR, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"consider", "con", POS_RECLINING, do_consider, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"condemn", "condemn", POS_RECLINING, do_gen_preparation, 0, SCMD_CONDEMN, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"corruptingtouch", "corruptingtouch", POS_FIGHTING, do_touch_of_corruption, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"commune", "commune", POS_RESTING, do_gen_preparation, 0, SCMD_COMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"commands", "com", POS_DEAD, do_commands, 0, SCMD_COMMANDS, TRUE, ACTION_NONE, {0, 0}, NULL},

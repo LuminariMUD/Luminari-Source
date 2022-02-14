@@ -3641,8 +3641,12 @@ ACMD(do_who)
 
         if (IS_IN_CLAN(tch) && !(GET_CLANRANK(tch) == NO_CLANRANK))
         {
-          c_n = real_clan(GET_CLAN(tch));
-          send_to_char(ch, " %s[%s%s%s]%s", QBRED, QBYEL, clan_list[c_n].abrev ? CLAN_ABREV(c_n) : "Unknown", QBRED, QNRM);
+          if (GET_CLAN(tch))
+          {
+            c_n = real_clan(GET_CLAN(tch));
+            if (c_n != NO_CLAN)
+              send_to_char(ch, " %s[%s%s%s]%s", QBRED, QBYEL, clan_list[c_n].abrev ? CLAN_ABREV(c_n) : "Unknown", QBRED, QNRM);
+          }
         }
         if (GET_INVIS_LEV(tch))
           send_to_char(ch, " (i%d)", GET_INVIS_LEV(tch));
