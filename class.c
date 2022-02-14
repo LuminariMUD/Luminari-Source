@@ -2532,8 +2532,7 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-  ++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
