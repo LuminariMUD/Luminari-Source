@@ -166,7 +166,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"auraofjustice", "auraofjustice", POS_FIGHTING, do_aura_of_justice, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_smiteevil},
     {"auraofprotection", "auraofprotection", POS_FIGHTING, do_auraofprotection, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"auraofvengeance", "auraofvengeance", POS_FIGHTING, do_aura_of_vengeance, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_smitegood},
+    {"armorinfo", "armorinfo", POS_DEAD, do_armorinfo, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"armorlist", "armorlist", POS_DEAD, do_armorlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"armorlist2", "armorlist2", POS_DEAD, do_armorlist_old, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
@@ -763,6 +765,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"wildshape", "wildshape", POS_RESTING, do_wildshape, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"weaponinfo", "weaponinfo", POS_DEAD, do_weaponinfo, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weaponlist", "weaponlist", POS_DEAD, do_weaponlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"weaponlist2", "weaponlist2", POS_DEAD, do_weaponlist_old, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weaponproficiencies", "weaponprof", POS_DEAD, do_weaponproficiencies, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"weapontypes", "weapontypes", POS_DEAD, do_weapontypes, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 

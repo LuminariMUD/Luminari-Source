@@ -70,7 +70,7 @@ int get_lucky_weapon_bonus(struct char_data *ch);
 int get_agile_weapon_dex_bonus(struct char_data *ch);
 
 struct obj_data *is_using_ranged_weapon(struct char_data *ch, bool silent_mode);
-//bool *is_ranged_weapon(struct obj_data *obj);
+// bool *is_ranged_weapon(struct obj_data *obj);
 bool is_using_double_weapon(struct char_data *ch);
 bool is_using_light_weapon(struct char_data *ch, struct obj_data *wielded);
 
@@ -95,26 +95,28 @@ bool is_two_handed_ranged_weapon(struct obj_data *obj);
 /**/
 
 ACMD_DECL(do_weaponlist);
+ACMD_DECL(do_weaponlist_old);
 ACMD_DECL(do_armorlist);
+ACMD_DECL(do_armorlist_old);
 
 /**/
 
-#define ARMOR_STYLE_NONE            0
-#define ARMOR_STYLE_CLOTHING        1
-#define ARMOR_STYLE_PADDED          2
-#define ARMOR_STYLE_LEATHER         3
+#define ARMOR_STYLE_NONE 0
+#define ARMOR_STYLE_CLOTHING 1
+#define ARMOR_STYLE_PADDED 2
+#define ARMOR_STYLE_LEATHER 3
 #define ARMOR_STYLE_STUDDED_LEATHER 4
 #define ARMOR_STYLE_LIGHT_CHAINMAIL 5
-#define ARMOR_STYLE_HIDE            6
-#define ARMOR_STYLE_SCALE           7
-#define ARMOR_STYLE_CHAINMAIL       8
-#define ARMOR_STYLE_PIECEMEAL       9
-#define ARMOR_STYLE_SPLINT          10
-#define ARMOR_STYLE_BANDED          11
-#define ARMOR_STYLE_HALF_PLATE      12
-#define ARMOR_STYLE_PLATE_MAIL      13
+#define ARMOR_STYLE_HIDE 6
+#define ARMOR_STYLE_SCALE 7
+#define ARMOR_STYLE_CHAINMAIL 8
+#define ARMOR_STYLE_PIECEMEAL 9
+#define ARMOR_STYLE_SPLINT 10
+#define ARMOR_STYLE_BANDED 11
+#define ARMOR_STYLE_HALF_PLATE 12
+#define ARMOR_STYLE_PLATE_MAIL 13
 
-#define NUM_ARMOR_STYLES            14
+#define NUM_ARMOR_STYLES 14
 
 #ifdef __cplusplus
 extern "C"
