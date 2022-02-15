@@ -2617,7 +2617,7 @@ bool special_handling_level_feats(struct char_data *ch, int feat_num)
 
   case FEAT_INTELLIGENCE_BOOST:
     ch->real_abils.intel += 2;
-    send_to_char(ch, "\tMYour natural intelligence has increased by +2!\r\n";
+    send_to_char(ch, "\tMYour natural intelligence has increased by +2!\r\n");
     return TRUE;
 
   default:
