@@ -1766,6 +1766,7 @@ void roll_real_abils(struct char_data *ch)
   ch->aff_abils = ch->real_abils;
 }
 
+/* DEPRECATED */
 /* Information required for character leveling in regards to free feats
    1) required class
    2) required race
@@ -1781,11 +1782,13 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Human */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_QUICK_TO_MASTER},
     {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_SKILLED},
 
     /* class, race, stacks?, level, feat_ name */
     /* Dwarf */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_POISON_RESIST},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_STABILITY},
@@ -1795,6 +1798,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Half-Troll */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_TROLL_REGENERATION},
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_FIRE},
@@ -1805,6 +1809,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Halfling */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_SHADOW_HOPPER},
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_LUCKY},
@@ -1813,6 +1818,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Half-Elf */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
@@ -1821,11 +1827,13 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Half-Orc */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_HALF_ORC_RACIAL_ADJUSTMENT},
 
     /* class, race, stacks?, level, feat_ name */
     /* Gnome */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_RESISTANCE_TO_ILLUSIONS},
@@ -1835,6 +1843,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Trelux */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VITAL},
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_HARDY},
@@ -1847,6 +1856,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Lich */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_RACIAL_ADJUSTMENT},
     {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_VITAL},
     {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_HARDY},
@@ -1868,6 +1878,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* elf */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
@@ -1877,6 +1888,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* crystal dwarf */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
     {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
@@ -1889,6 +1901,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Arcana Golem */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELLBATTLE},
     {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELL_VULNERABILITY},
     {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ENCHANTMENT_VULNERABILITY},
@@ -1898,6 +1911,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Drow */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_KEEN_SENSES},
@@ -1913,6 +1927,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Duergar */
+    /* DEPRECATED */
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_POISON_RESIST},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_PHANTASM_RESIST},
@@ -1928,7 +1943,11 @@ static int level_feats[][LEVEL_FEATS] = {
     /*****************************************/
     /* This is always the last array element */
     /*****************************************/
-    {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}};
+    /* DEPRECATED */
+    {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
+    /* DEPRECATED */
+
+};
 
 //   give newbie's some eq to start with
 #define NUM_NOOB_ARROWS 40
@@ -2568,11 +2587,49 @@ void do_start(struct char_data *ch)
     advance_premade_build(ch);
 }
 
+bool special_handling_level_feats(struct char_data *ch, int feat_num)
+{
+
+  switch (featnum)
+  {
+  case FEAT_SNEAK_ATTACK:
+    send_to_char(ch, "\tMYour sneak attack has increased to +%dd6!\tn\r\n", HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
+    return TRUE;
+
+  case FEAT_SHRUG_DAMAGE:
+    send_to_char(ch, "\tMYou can now shrug off %d damage!\tn\r\n", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
+    return TRUE;
+
+  case FEAT_STRENGTH_BOOST:
+    ch->real_abils.str += 2;
+    send_to_char(ch, "\tMYour natural strength has increased by +2!\r\n");
+    return TRUE;
+
+  case FEAT_CHARISMA_BOOST:
+    ch->real_abils.cha += 2;
+    send_to_char(ch, "\tMYour natural charisma has increased by +2!\r\n");
+    return TRUE;
+
+  case FEAT_CONSTITUTION_BOOST:
+    ch->real_abils.con += 2;
+    send_to_char(ch, "\tMYour natural constitution has increased by +2!\r\n");
+    return TRUE;
+
+  case FEAT_INTELLIGENCE_BOOST:
+    ch->real_abils.intel += 2;
+    send_to_char(ch, "\tMYour natural intelligence has increased by +2!\r\n", sizeof(featbuf));
+    return TRUE;
+
+  default:
+    break;
+  }
+
+  return FALSE;
+}
+
 /* at each level we run this function to assign free CLASS feats */
 void process_class_level_feats(struct char_data *ch, int class)
 {
-  char featbuf[MAX_STRING_LENGTH];
-  char tmp_buf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
   int class_level = -1, effective_class_level = -1;
 
@@ -2587,8 +2644,6 @@ void process_class_level_feats(struct char_data *ch, int class)
 
   if (class_list[class].featassign_list == NULL)
     return;
-
-  snprintf(featbuf, sizeof(featbuf), "\tM");
 
   /*  This class has potential feat assignment! Traverse the list and assign. */
   for (feat_assign = class_list[class].featassign_list; feat_assign != NULL;
@@ -2610,56 +2665,22 @@ void process_class_level_feats(struct char_data *ch, int class)
     {
 
       /* any special handling for this feat? */
-      switch (feat_assign->feat_num)
+      if (!special_handling_level_feats(ch, feat_assign->feat_num))
       {
 
-      case FEAT_SNEAK_ATTACK:
-        snprintf(tmp_buf, sizeof(tmp_buf), "\tMYour sneak attack has increased to +%dd6!\tn\r\n", HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
-        strlcat(featbuf, tmp_buf, sizeof(featbuf));
-        break;
-
-      case FEAT_SHRUG_DAMAGE:
-        snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou can now shrug off %d damage!\tn\r\n", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
-        strlcat(featbuf, tmp_buf, sizeof(featbuf));
-        break;
-
-      case FEAT_STRENGTH_BOOST:
-        ch->real_abils.str += 2;
-        strlcat(featbuf, "\tMYour natural strength has increased by +2!\r\n", sizeof(featbuf));
-        break;
-
-      case FEAT_CHARISMA_BOOST:
-        ch->real_abils.cha += 2;
-        strlcat(featbuf, "\tMYour natural charisma has increased by +2!\r\n", sizeof(featbuf));
-        break;
-
-      case FEAT_CONSTITUTION_BOOST:
-        ch->real_abils.con += 2;
-        strlcat(featbuf, "\tMYour natural constitution has increased by +2!\r\n", sizeof(featbuf));
-        break;
-
-      case FEAT_INTELLIGENCE_BOOST:
-        ch->real_abils.intel += 2;
-        strlcat(featbuf, "\tMYour natural intelligence has increased by +2!\r\n", sizeof(featbuf));
-        break;
-
         /* no special handling */
-      default:
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
-          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[class] You have improved your %s %s!\tn\r\n",
-                   feat_list[feat_assign->feat_num].name,
-                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
-          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+          send_to_char(ch, "\tM[class] You have improved your %s %s!\tn\r\n",
+                       feat_list[feat_assign->feat_num].name,
+                       feat_types[feat_list[feat_assign->feat_num].feat_type]);
         }
         else
         {
-          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[class] You have gained the %s %s!\tn\r\n",
-                   feat_list[feat_assign->feat_num].name,
-                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
-          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+          send_to_char(ch, "\tM[class] You have gained the %s %s!\tn\r\n",
+                       feat_list[feat_assign->feat_num].name,
+                       feat_types[feat_list[feat_assign->feat_num].feat_type]);
         }
-        break;
       }
 
       /* now actually adjust the feat */
@@ -2674,14 +2695,10 @@ void process_class_level_feats(struct char_data *ch, int class)
 /* at each level we run this function to assign free RACE feats */
 void process_race_level_feats(struct char_data *ch)
 {
-  char featbuf[MAX_STRING_LENGTH];
-  char tmp_buf[MAX_STRING_LENGTH];
   struct race_feat_assign *feat_assign = NULL;
 
   if (race_list[GET_RACE(ch)].featassign_list == NULL)
     return;
-
-  snprintf(featbuf, sizeof(featbuf), "\tM");
 
   /*  This race has potential feat assignment! Traverse the list and assign. */
   for (feat_assign = race_list[GET_RACE(ch)].featassign_list; feat_assign != NULL;
@@ -2693,26 +2710,22 @@ void process_race_level_feats(struct char_data *ch)
     {
 
       /* any special handling for this feat? */
-      switch (feat_assign->feat_num)
+      if (!special_handling_level_feats(ch, feat_assign->feat_num))
       {
 
         /* no special handling */
-      default:
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
-          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[racial] You have improved your %s %s!\tn\r\n",
-                   feat_list[feat_assign->feat_num].name,
-                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
-          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+          send_to_char(ch, "\tM[race] You have improved your %s %s!\tn\r\n",
+                       feat_list[feat_assign->feat_num].name,
+                       feat_types[feat_list[feat_assign->feat_num].feat_type]);
         }
         else
         {
-          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[racial] You have gained the %s %s!\tn\r\n",
-                   feat_list[feat_assign->feat_num].name,
-                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
-          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+          send_to_char(ch, "\tM[race] You have gained the %s %s!\tn\r\n",
+                       feat_list[feat_assign->feat_num].name,
+                       feat_types[feat_list[feat_assign->feat_num].feat_type]);
         }
-        break;
       }
 
       /* now actually adjust the feat */
@@ -2912,9 +2925,9 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
 }
 #undef GRANT_SPELL_CIRCLE
 
-/* TODO: rewrite this! */
-
+/* deprecated */
 /* at each level we run this function to assign free RACE feats */
+
 void process_level_feats(struct char_data *ch, int class)
 {
   char featbuf[MAX_STRING_LENGTH];
@@ -3064,8 +3077,11 @@ void advance_level(struct char_data *ch, int class)
   }
 
   /* 'free' race feats gained (old system) */
-  process_level_feats(ch, class);
-  /* 'free' class feats gained (new system) */
+  // process_level_feats(ch, class);
+
+  /* 'free' race feats gained */
+  process_race_level_feats(ch);
+  /* 'free' class feats gained */
   process_class_level_feats(ch, class);
   /* 'free' class feats gained that depend on previous class or feat choices */
   process_conditional_class_level_feats(ch, class);

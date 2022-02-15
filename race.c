@@ -1051,7 +1051,11 @@ void assign_races(void)
   /*                   race-num    feat                  lvl stack */
   feat_race_assignment(RACE_LICH, FEAT_UNARMED_STRIKE, 1, N);
   feat_race_assignment(RACE_LICH, FEAT_IMPROVED_UNARMED_STRIKE, 1, N);
-  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
   feat_race_assignment(RACE_LICH, FEAT_ULTRAVISION, 1, N);
   feat_race_assignment(RACE_LICH, FEAT_VITAL, 1, N);
   feat_race_assignment(RACE_LICH, FEAT_HARDY, 1, N);
