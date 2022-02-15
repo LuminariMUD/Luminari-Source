@@ -404,10 +404,10 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
   default:
     log("SYSERR: Bad display mode (%d) in show_obj_to_char().", mode);
     /*  SYSERR_DESC:  show_obj_to_char() has some predefined 'mode's (argument
-       *  #3) to tell it what to display to the character when it is called.  If
-       *  the mode is not one of these, it will output this error, and indicate
-       *  what mode was passed to it.  To correct it, you will need to find the
-       *  call with the incorrect mode and change it to an acceptable mode. */
+     *  #3) to tell it what to display to the character when it is called.  If
+     *  the mode is not one of these, it will output this error, and indicate
+     *  what mode was passed to it.  To correct it, you will need to find the
+     *  call with the incorrect mode and change it to an acceptable mode. */
     return;
   }
 end:
@@ -575,7 +575,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
 
   /* some spell and spell-like affects that we want to show up */
   /* Some sort of automated system is needed here, as part of the affect system
-     to facilitate these kinds of messages so that we don't have to edit so many 
+     to facilitate these kinds of messages so that we don't have to edit so many
      things when we add an affect. - JTM 15/12/17 */
   if (affected_by_spell(i, SPELL_BARKSKIN))
     act("$s skin appears to be made of bark.", FALSE, i, 0, ch, TO_VICT);
@@ -591,7 +591,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
   pers = NULL;
 }
 
-/* 
+/*
  * These next functions/procedures are where we need to implement the customized color system!
  * To start with, just providing sane colors for things like room descriptions would go a long way.
  */
@@ -1090,7 +1090,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   {
     send_to_char(ch, world[room_number].name);
     send_to_char(ch, "\r\n");
-    //do_auto_exits(ch, room_number);
+    // do_auto_exits(ch, room_number);
     list_char_to_char(world[room_number].people, ch);
     return;
   }
@@ -1111,8 +1111,8 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   }
   else
     send_to_char(ch, world[room_number].name);
-  //if (is_water_room(room_number))
-  //send_to_char(" \tw(\tBWater\tw)\tn", ch);
+  // if (is_water_room(room_number))
+  // send_to_char(" \tw(\tBWater\tw)\tn", ch);
 
   send_to_char(ch, "\r\n");
   if (IS_SET_AR(ROOM_FLAGS(room_number), ROOM_FOG))
@@ -1123,8 +1123,8 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
     send_to_char(ch, world[room_number].description);
 
   /* autoexits */
-  //if (!IS_NPC(ch) && !IS_SET(ROOM_FLAGS(room_number), ROOM_FOG))
-  //do_auto_exits(ch, room_number);
+  // if (!IS_NPC(ch) && !IS_SET(ROOM_FLAGS(room_number), ROOM_FOG))
+  // do_auto_exits(ch, room_number);
 
   /* now list characters & objects */
   list_obj_to_char(world[room_number].contents, ch, SHOW_OBJ_LONG, FALSE, 0);
@@ -1921,7 +1921,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
 void perform_resistances(struct char_data *ch, struct char_data *k)
 {
   int i = 0;
-  //char buf[MAX_STRING_LENGTH] = {'\0'};
+  // char buf[MAX_STRING_LENGTH] = {'\0'};
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Type Resistance / Vulnerability\tC", 80, '-', '-');
@@ -2800,7 +2800,6 @@ ACMD(do_innates)
   }
 }
 
-
 /* compartmentalized affects, so wizard command (stat affect)
  *  and this can share */
 ACMD(do_affects)
@@ -3598,7 +3597,7 @@ ACMD(do_who)
       }
       else
       {
-        //num_can_see++;
+        // num_can_see++;
         if (GET_LEVEL(tch) >= LVL_IMMORT)
         {
           staff++;
@@ -3720,12 +3719,12 @@ ACMD(do_who)
   }
   if (short_list && num_can_see % 4)
     send_to_char(ch, "\r\n");
-  //if (!num_can_see)
-  //  send_to_char(ch, "Nobody at all!\r\n");
-  //else if (num_can_see == 1)
-  //  send_to_char(ch, "One lonely character displayed.\r\n");
-  //else
-  //  send_to_char(ch, "%d characters displayed.\r\n", num_can_see);
+  // if (!num_can_see)
+  //   send_to_char(ch, "Nobody at all!\r\n");
+  // else if (num_can_see == 1)
+  //   send_to_char(ch, "One lonely character displayed.\r\n");
+  // else
+  //   send_to_char(ch, "%d characters displayed.\r\n", num_can_see);
   send_to_char(ch, "Total visible players: %d.\r\n", mortals + staff);
   if ((mortals + staff) > boot_high)
     boot_high = mortals + staff;
@@ -3950,11 +3949,11 @@ ACMD(do_gen_ps)
   default:
     log("SYSERR: Unhandled case in do_gen_ps. (%d)", subcmd);
     /* SYSERR_DESC: General page string function for such things as 'credits',
-       * 'news', 'wizlist', 'clear', 'version'.  This occurs when a call is made
-       * to this routine that is not one of the predefined calls.  To correct it,
-       * either a case needs to be added into the function to account for the
-       * subcmd that is being passed to it, or the call to the function needs to
-       * have the correct subcmd put into place. */
+     * 'news', 'wizlist', 'clear', 'version'.  This occurs when a call is made
+     * to this routine that is not one of the predefined calls.  To correct it,
+     * either a case needs to be added into the function to account for the
+     * subcmd that is being passed to it, or the call to the function needs to
+     * have the correct subcmd put into place. */
     return;
   }
 }
@@ -4028,8 +4027,8 @@ ACMD(do_levels)
       break;
     len += nlen;
 
-    //why are we checking sex for titles?  titles use to be sex
-    //dependent...  -zusuk
+    // why are we checking sex for titles?  titles use to be sex
+    // dependent...  -zusuk
     switch (GET_SEX(ch))
     {
     case SEX_MALE:
@@ -4860,7 +4859,7 @@ ACMD(do_whois)
 
     new_mobile_data(victim);
     /* Allocate mobile event list */
-    //victim->events = create_list();
+    // victim->events = create_list();
 
     CREATE(victim->player_specials, struct player_special_data, 1);
 
@@ -4901,7 +4900,7 @@ ACMD(do_whois)
     send_to_char(ch, "Account Name: %s\r\n", get_char_account_name(GET_NAME(victim)));
   }
 
-  //sprinttype(victim->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
+  // sprinttype(victim->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
   snprintf(buf, sizeof(buf), "%s", CLSLIST_NAME(victim->player.chclass));
   send_to_char(ch, "Current Class: %s\r\n", buf);
 
@@ -5600,6 +5599,9 @@ ACMD(do_weaponlist)
   }
 
   column_list(ch, 4, cmd_weapon_names, j, TRUE);
+
+  send_to_char(ch, "\tDType 'weaponinfo <name of weapon>' to see details\tn\r\n");
+  send_to_char(ch, "\tDType 'armorlist' to see a list of armor types\tn\r\n");
 }
 
 ACMD(do_armorlist)
@@ -5615,6 +5617,9 @@ ACMD(do_armorlist)
   }
 
   column_list(ch, 3, cmd_armor_names, j - 1, TRUE);
+
+  send_to_char(ch, "\tDType 'armorinfo <name of armor>' to see details\tn\r\n");
+  send_to_char(ch, "\tDType 'weaponlist' to see a list of weapon types\tn\r\n");
 }
 
 int is_weapon_proficient(int weapon, int type)
