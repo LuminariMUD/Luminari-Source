@@ -153,7 +153,7 @@ void affliction_tick(struct char_data *ch)
       act("The cloud of death following $n dissipates!", TRUE, ch, 0, NULL,
           TO_ROOM);
     }
-  } //end cloudkill
+  } // end cloudkill
 
   /* creeping doom */
   else if (DOOM(ch))
@@ -167,7 +167,7 @@ void affliction_tick(struct char_data *ch)
       act("The creeping swarm of centipedes following $n dissipates!", TRUE, ch, 0, NULL,
           TO_ROOM);
     }
-  } //end creeping doom
+  } // end creeping doom
 
   /* incendiary cloud */
   else if (INCENDIARY(ch))
@@ -182,7 +182,7 @@ void affliction_tick(struct char_data *ch)
           TO_ROOM);
     }
   }
-  //end incendiary cloud
+  // end incendiary cloud
 
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE))
@@ -430,12 +430,12 @@ void regen_update(struct char_data *ch)
         {
           damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
           /* we use to have custom damage message here for this */
-          //act("$N looks really \tgsick\tn and shivers uncomfortably.",
-          //        FALSE, tch, NULL, ch, TO_CHAR);
-          //act("You feel burning \tgpoison\tn in your blood, and suffer.",
-          //        FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
-          //act("$N looks really \tgsick\tn and shivers uncomfortably.",
-          //        FALSE, tch, NULL, ch, TO_NOTVICT);
+          // act("$N looks really \tgsick\tn and shivers uncomfortably.",
+          //         FALSE, tch, NULL, ch, TO_CHAR);
+          // act("You feel burning \tgpoison\tn in your blood, and suffer.",
+          //         FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
+          // act("$N looks really \tgsick\tn and shivers uncomfortably.",
+          //         FALSE, tch, NULL, ch, TO_NOTVICT);
           found = 1;
           break;
         }
@@ -468,7 +468,7 @@ void regen_update(struct char_data *ch)
     return;
   }
 
-  //50% chance you'll continue dying when incapacitated
+  // 50% chance you'll continue dying when incapacitated
   found = 0;
   tch = NULL;
   if (GET_POS(ch) == POS_INCAP && dice(1, 2) == 2)
@@ -497,7 +497,7 @@ void regen_update(struct char_data *ch)
   if (rand_number(0, 1))
     hp++;
 
-  //position, other bonuses
+  // position, other bonuses
   if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
     hp += dice(3, 2) + 1;
   else if (GET_POS(ch) == POS_RESTING)
@@ -775,8 +775,8 @@ void set_title(struct char_data *ch, char *title)
   if (GET_TITLE(ch) != NULL)
     free(GET_TITLE(ch));
 
-  //why are we checking sex?  old title system -zusuk
-  //OK to remove sex check!
+  // why are we checking sex?  old title system -zusuk
+  // OK to remove sex check!
   if (title == NULL)
   {
     GET_TITLE(ch) = strdup(GET_SEX(ch) == SEX_FEMALE ? titles(GET_CLASS(ch), GET_LEVEL(ch)) : titles(GET_CLASS(ch), GET_LEVEL(ch)));
@@ -927,7 +927,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
       {
         gain_cap = gain; // no cap
       }
-      else 
+      else
 */
       if (GET_LEVEL(ch) < 11)
       {
@@ -993,17 +993,20 @@ void gain_exp_regardless(struct char_data *ch, int gain)
     gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
 
   GET_EXP(ch) += gain;
+
   if (GET_EXP(ch) < 0)
     GET_EXP(ch) = 0;
 
   if (!IS_NPC(ch))
   {
+
     while (GET_LEVEL(ch) < LVL_IMPL &&
            GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     {
       GET_LEVEL(ch) += 1;
-      CLASS_LEVEL(ch, GET_CLASS(ch))
-      ++;
+      if (CLASS_LEVEL(ch, GET_CLASS(ch)) < (LVL_STAFF - 1))
+        CLASS_LEVEL(ch, GET_CLASS(ch))
+        ++;
       num_levels++;
       /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, GET_CLASS(ch));
@@ -1021,6 +1024,7 @@ void gain_exp_regardless(struct char_data *ch, int gain)
       set_title(ch, NULL);
     }
   }
+
   if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
     run_autowiz();
 

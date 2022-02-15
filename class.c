@@ -2532,7 +2532,8 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
+  ++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -2573,15 +2574,17 @@ void process_class_level_feats(struct char_data *ch, int class)
   char featbuf[MAX_STRING_LENGTH];
   char tmp_buf[MAX_STRING_LENGTH];
   struct class_feat_assign *feat_assign = NULL;
-  int class_level = -1, effective_class_level = -1, counter = 0;
-  // struct damage_reduction_type *dr = NULL, *temp = NULL, *ptr = NULL;
+  int class_level = -1, effective_class_level = -1;
 
   /* deal with some instant disqualification */
   if (class < 0 || class >= NUM_CLASSES)
     return;
+
   class_level = CLASS_LEVEL(ch, class);
+
   if (class_level <= 0)
     return;
+
   if (class_list[class].featassign_list == NULL)
     return;
 
@@ -2592,19 +2595,9 @@ void process_class_level_feats(struct char_data *ch, int class)
        feat_assign = feat_assign->next)
   {
 
-    /* skipping racial feats if necessary */
-    if (level_feats[counter][LF_CLASS] == CLASS_UNDEFINED &&
-        level_feats[counter][LF_RACE] == GET_RACE(ch))
-    //        && level_feats[i][LF_MIN_LVL] == GET_LEVEL(ch))
-    {
-      counter++;
-      continue;
-    }
-    counter++;
-
+    /* Mystic Theurge levels stack with class levels for purposes of granting spell access. */
     if (IS_SPELL_CIRCLE_FEAT(feat_assign->feat_num))
     {
-      // Mystic Theurge levels stack with class levels for purposes of granting spell access.
       effective_class_level = class_level + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     }
     else
@@ -2626,35 +2619,6 @@ void process_class_level_feats(struct char_data *ch, int class)
         break;
 
       case FEAT_SHRUG_DAMAGE:
-
-        /* the newer DR system, moved it out though for political reasons */
-        /*
-        for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
-        {
-          if (dr->feat == FEAT_SHRUG_DAMAGE)
-          {
-            REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-          }
-        }
-
-        CREATE(ptr, struct damage_reduction_type, 1);
-
-        ptr->spell = 0;
-        ptr->feat = FEAT_SHRUG_DAMAGE;
-        ptr->amount = HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1;
-        ptr->max_damage = -1;
-
-        ptr->bypass_cat[0] = DR_BYPASS_CAT_NONE;
-        ptr->bypass_val[0] = 0;
-        ptr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
-        ptr->bypass_val[1] = 0; // Unused.
-        ptr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
-        ptr->bypass_val[2] = 0; // Unused.
-
-        ptr->next = GET_DR(ch);
-        GET_DR(ch) = ptr;
-        */
-
         snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou can now shrug off %d damage!\tn\r\n", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE) + 1);
         strlcat(featbuf, tmp_buf, sizeof(featbuf));
         break;
@@ -2681,23 +2645,73 @@ void process_class_level_feats(struct char_data *ch, int class)
 
         /* no special handling */
       default:
-        // if (feat_assign->level_received == GET_LEVEL(ch))
-        //{
         if (HAS_FEAT(ch, feat_assign->feat_num))
         {
-          snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have improved your %s %s!\tn\r\n",
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[class] You have improved your %s %s!\tn\r\n",
                    feat_list[feat_assign->feat_num].name,
                    feat_types[feat_list[feat_assign->feat_num].feat_type]);
           strlcat(featbuf, tmp_buf, sizeof(featbuf));
         }
         else
         {
-          snprintf(tmp_buf, sizeof(tmp_buf), "\tMYou have gained the %s %s!\tn\r\n",
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[class] You have gained the %s %s!\tn\r\n",
                    feat_list[feat_assign->feat_num].name,
                    feat_types[feat_list[feat_assign->feat_num].feat_type]);
           strlcat(featbuf, tmp_buf, sizeof(featbuf));
         }
-        //}
+        break;
+      }
+
+      /* now actually adjust the feat */
+      SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
+    }
+  }
+
+  /* send our feat buffer to char */
+  send_to_char(ch, "%s", featbuf);
+}
+
+/* at each level we run this function to assign free RACE feats */
+void process_race_level_feats(struct char_data *ch)
+{
+  char featbuf[MAX_STRING_LENGTH];
+  char tmp_buf[MAX_STRING_LENGTH];
+  struct race_feat_assign *feat_assign = NULL;
+
+  if (race_list[GET_RACE(ch)].featassign_list == NULL)
+    return;
+
+  snprintf(featbuf, sizeof(featbuf), "\tM");
+
+  /*  This race has potential feat assignment! Traverse the list and assign. */
+  for (feat_assign = race_list[GET_RACE(ch)].featassign_list; feat_assign != NULL;
+       feat_assign = feat_assign->next)
+  {
+
+    /* appropriate level to receive this feat? */
+    if (feat_assign->level_received == GET_LEVEL(ch))
+    {
+
+      /* any special handling for this feat? */
+      switch (feat_assign->feat_num)
+      {
+
+        /* no special handling */
+      default:
+        if (HAS_FEAT(ch, feat_assign->feat_num))
+        {
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[racial] You have improved your %s %s!\tn\r\n",
+                   feat_list[feat_assign->feat_num].name,
+                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        }
+        else
+        {
+          snprintf(tmp_buf, sizeof(tmp_buf), "\tM[racial] You have gained the %s %s!\tn\r\n",
+                   feat_list[feat_assign->feat_num].name,
+                   feat_types[feat_list[feat_assign->feat_num].feat_type]);
+          strlcat(featbuf, tmp_buf, sizeof(featbuf));
+        }
         break;
       }
 
