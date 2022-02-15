@@ -2590,7 +2590,7 @@ void do_start(struct char_data *ch)
 bool special_handling_level_feats(struct char_data *ch, int feat_num)
 {
 
-  switch (featnum)
+  switch (feat_num)
   {
   case FEAT_SNEAK_ATTACK:
     send_to_char(ch, "\tMYour sneak attack has increased to +%dd6!\tn\r\n", HAS_FEAT(ch, FEAT_SNEAK_ATTACK) + 1);
@@ -2617,7 +2617,7 @@ bool special_handling_level_feats(struct char_data *ch, int feat_num)
 
   case FEAT_INTELLIGENCE_BOOST:
     ch->real_abils.intel += 2;
-    send_to_char(ch, "\tMYour natural intelligence has increased by +2!\r\n", sizeof(featbuf));
+    send_to_char(ch, "\tMYour natural intelligence has increased by +2!\r\n";
     return TRUE;
 
   default:
@@ -2687,9 +2687,6 @@ void process_class_level_feats(struct char_data *ch, int class)
       SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
     }
   }
-
-  /* send our feat buffer to char */
-  send_to_char(ch, "%s", featbuf);
 }
 
 /* at each level we run this function to assign free RACE feats */
@@ -2732,9 +2729,6 @@ void process_race_level_feats(struct char_data *ch)
       SET_FEAT(ch, feat_assign->feat_num, HAS_REAL_FEAT(ch, feat_assign->feat_num) + 1);
     }
   }
-
-  /* send our feat buffer to char */
-  send_to_char(ch, "%s", featbuf);
 }
 
 #define GRANT_SPELL_CIRCLE(class, first, epic)                                                                             \
