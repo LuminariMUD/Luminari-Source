@@ -16,12 +16,12 @@
  *  1) preparation queue - these are spell in queue for preparation
  *  2) spell collection - these are all the spells that are prepared
  *                        ready for usage, better known as "prepared spells"
- * 
+ *
  *  Terminology:
  *   innate_magic: we are calling the sorcerer/bard type system innate_magic
  *   to differentiate the language of the classes that truly prepare their
  *   spells
- * 
+ *
  *  TODO:
  *    *slots assignment by feats
  */
@@ -48,7 +48,7 @@
 /** START Globals **/
 
 /* toggle for debug mode */
-#define DEBUGMODE
+#define DEBUGMODE TRUE
 
 /** END Globals **/
 
@@ -298,6 +298,11 @@ bool collection_remove_by_class(struct char_data *ch, int class, int spellnum,
   struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
   struct prep_collection_spell_data *next;
 
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "{entered collection_remove_by_class()}    ");
+  }
+
   for (; current; current = next)
   {
     next = current->next;
@@ -358,14 +363,35 @@ void innate_magic_remove(struct char_data *ch, struct innate_magic_data *entry,
   REMOVE_FROM_LIST(entry, INNATE_MAGIC(ch, class), next);
   free(entry);
 }
+
 /* remove a spell from a character's collection (completed) linked list */
 void collection_remove(struct char_data *ch, struct prep_collection_spell_data *entry,
                        int class)
 {
   struct prep_collection_spell_data *temp;
 
+  /*struct prep_collection_spell_data
+  {
+      int spell;     // spellnum of this spell in the collection
+      int metamagic; // Bitvector of metamagic affecting this spell.
+      int prep_time; // Remaining time for preparing this spell.
+      int domain;    // domain info
+
+      struct prep_collection_spell_data *next; // linked-list
+  };*/
+
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "{entered collection_remove(), variables: caster: %s, spellnum: %d, domain: %d, prep-time: %d, meta-magic: %d}    ",
+                 ch->name, entry->spell, entry->domain, entry->prep_time, entry->metamagic);
+  }
+
   if (SPELL_COLLECTION(ch, class) == NULL)
   {
+    if (DEBUGMODE)
+    {
+      send_to_char(ch, "{!!!core_dump() in collection_remove()!!!}    ");
+    }
     core_dump();
     return;
   }
@@ -447,7 +473,7 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
       break;
     case CLASS_SORCERER:
       if (compute_slots_by_circle(ch, ch_class, circle) -
-              //sorcerer_known[caster_level][circle] -
+              // sorcerer_known[caster_level][circle] -
               count_known_spells_by_circle(ch, ch_class, circle) <=
           0)
         return FALSE;
@@ -669,7 +695,7 @@ int num_psionicist_powers_known(struct char_data *ch)
 
     counter++;
 
-  }   /*end slot loop*/
+  } /*end slot loop*/
 
   return counter;
 }
@@ -686,8 +712,7 @@ int num_psionicist_powers_available(struct char_data *ch)
   for (i = 1; i <= level; i++)
     num_powers += 2;
 
-  return num_powers; 
-
+  return num_powers;
 }
 
 /* total # of slots consumed by circle X */
@@ -739,6 +764,11 @@ bool is_spell_in_collection(struct char_data *ch, int class, int spellnum,
 {
   struct prep_collection_spell_data *current = SPELL_COLLECTION(ch, class);
   struct prep_collection_spell_data *next;
+
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "{entered is_spell_in_collection()}    ");
+  }
 
   for (; current; current = next)
   {
@@ -807,13 +837,13 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_MAGE_ARMOR:
     case SPELL_RESIST_ENERGY:
     case SPELL_FLY:
-      //case SPELL_FEAR: // Not implemented yet
+      // case SPELL_FEAR: // Not implemented yet
     case SPELL_WIZARD_EYE: // replace with fear when imp'd
     case SPELL_TELEKINESIS:
-      //case SPELL_FORM_OF_THE_DRAGON_I: // Not implemented yet
-      //case SPELL_FORM_OF_THE_DRAGON_II: // Not implemented yet
-      //case SPELL_FORM_OF_THE_DRAGON_III: // Not implemented yet
-      //case SPELL_WISH: // Not implemented yet
+      // case SPELL_FORM_OF_THE_DRAGON_I: // Not implemented yet
+      // case SPELL_FORM_OF_THE_DRAGON_II: // Not implemented yet
+      // case SPELL_FORM_OF_THE_DRAGON_III: // Not implemented yet
+      // case SPELL_WISH: // Not implemented yet
     case SPELL_TRUE_SEEING:         // replace with form of dragon i when imp'd
     case SPELL_WAVES_OF_EXHAUSTION: // replace with form of dragon ii when imp'd
     case SPELL_MASS_DOMINATION:     // replace with form of dragon iii when imp'd
@@ -827,7 +857,7 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_IDENTIFY:
     case SPELL_INVISIBLE:
     case SPELL_DISPEL_MAGIC:
-      //case SPELL_DIMENSION_DOOR: // Not implemented yet
+      // case SPELL_DIMENSION_DOOR: // Not implemented yet
     case SPELL_MINOR_GLOBE: // replace with dimension door when implemented
     case SPELL_FEEBLEMIND:
     case SPELL_TRUE_SEEING:
@@ -1353,7 +1383,7 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
 
 /* TODO: convert to feat system, construction directly below this
      function */
-/* in: character, respective class to check 
+/* in: character, respective class to check
  * out: returns # of total slots based on class-level and stat bonus
      of given circle */
 int compute_slots_by_circle(struct char_data *ch, int class, int circle)
@@ -1555,8 +1585,8 @@ void assign_feat_spell_slots(int ch_class)
 }
 /**** END CONSTRUCTION ZONE *****/
 
-/* this function is our connection between the casting system and spell preparation
-   system, we are checking -all- our spell prep systems to see if we have the 
+/* this function is our connection / hook between the casting system and spell preparation
+   system, we are checking -all- our spell prep systems to see if we have the
    given spell, if we do:
      gen prep system: extract from collection and move to prep queue
      innate magic system:  put the proper circle in innate magic queue
@@ -1565,6 +1595,11 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 {
   int ch_class = CLASS_UNDEFINED, prep_time = 99,
       circle = TOP_CIRCLE + 1, is_domain = FALSE;
+
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "{entered spell_prep_gen_extract()}    ");
+  }
 
   /* go through all the classes checking our collection */
   for (ch_class = 0; ch_class < NUM_CLASSES; ch_class++)
@@ -1611,8 +1646,8 @@ int spell_prep_gen_extract(struct char_data *ch, int spellnum, int metamagic)
 }
 
 /* this function is our connection between the casting system and spell preparation
-   system, we are checking -all- our spell prep systems to see if we have the 
-   given spell, if we do, returns class, otherwise undefined-class 
+   system, we are checking -all- our spell prep systems to see if we have the
+   given spell, if we do, returns class, otherwise undefined-class
    we are checking our spell-prep system, THEN innate magic system */
 int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
 {
@@ -1694,7 +1729,9 @@ void print_prep_queue(struct char_data *ch, int ch_class)
     send_to_char(ch, " \tW%20s\tn \tc[\tn%d%s circle\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
                  spell_info[current->spell].name,
                  spell_circle,
-                 (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd" : (spell_circle == 3) ? "rd" : "th",
+                 (spell_circle == 1) ? "st" : (spell_circle == 2) ? "nd"
+                                          : (spell_circle == 3)   ? "rd"
+                                                                  : "th",
                  prep_time,
                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
@@ -1751,7 +1788,9 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
     total_time += prep_time;
     send_to_char(ch, " \tc[\tWcircle-slot: \tn%d%s\tc]\tn \tc[\tn%2d seconds\tc]\tn %s%s %s\r\n",
                  current->circle,
-                 (current->circle == 1) ? "st" : (current->circle == 2) ? "nd" : (current->circle == 3) ? "rd" : "th",
+                 (current->circle == 1) ? "st" : (current->circle == 2) ? "nd"
+                                             : (current->circle == 3)   ? "rd"
+                                                                        : "th",
                  prep_time,
                  (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                  (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
@@ -1818,7 +1857,9 @@ void print_collection(struct char_data *ch, int ch_class)
           {
             send_to_char(ch, "\tY%d%s:\tn \tW%20s\tn %12s%12s%s%13s%s\r\n",
                          high_circle,
-                         (high_circle == 1) ? "st" : (high_circle == 2) ? "nd" : (high_circle == 3) ? "rd" : "th",
+                         (high_circle == 1) ? "st" : (high_circle == 2) ? "nd"
+                                                 : (high_circle == 3)   ? "rd"
+                                                                        : "th",
                          spell_info[current->spell].name,
                          (IS_SET(current->metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
                          (IS_SET(current->metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
@@ -1877,7 +1918,9 @@ void display_available_slots(struct char_data *ch, int class)
     {
       printed = TRUE;
       send_to_char(ch, " \tW%d\tn \tc%d%s\tn", slot_array[slot], (slot),
-                   (slot) == 1 ? "st" : (slot) == 2 ? "nd" : (slot) == 3 ? "rd" : "th");
+                   (slot) == 1 ? "st" : (slot) == 2 ? "nd"
+                                    : (slot) == 3   ? "rd"
+                                                    : "th");
       if (--num_circles > 0)
         send_to_char(ch, "\tY,");
     }
@@ -2042,27 +2085,27 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
 
   switch (class)
   {
-    case CLASS_WIZARD:
-    case CLASS_SORCERER:
-    case CLASS_BARD:
-      prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
-      break;
+  case CLASS_WIZARD:
+  case CLASS_SORCERER:
+  case CLASS_BARD:
+    prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
+    break;
 
-    case CLASS_CLERIC:
-    case CLASS_DRUID:
-    case CLASS_PALADIN:
-    case CLASS_RANGER:
-    case CLASS_BLACKGUARD:
-      prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
-      break;
+  case CLASS_CLERIC:
+  case CLASS_DRUID:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+  case CLASS_BLACKGUARD:
+    prep_time = prep_time * CONFIG_DIVINE_PREP_TIME / 100;
+    break;
 
-    case CLASS_PSIONICIST:
-      // Psionicists use PSP which recharges along with hp and mv
-      break;
+  case CLASS_PSIONICIST:
+    // Psionicists use PSP which recharges along with hp and mv
+    break;
 
-    case CLASS_ALCHEMIST:
-      prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
-      break;
+  case CLASS_ALCHEMIST:
+    prep_time = prep_time * CONFIG_ALCHEMY_PREP_TIME / 100;
+    break;
   }
 
   if (prep_time <= 0)
@@ -2461,7 +2504,7 @@ ACMDU(do_consign_to_oblivion)
         c) prioritize
  * How it works: ex. wizard, you type memorize, it should display
  *   your spell-prep/collection interfaces.  If you are in a 'state'
- *   of being able to continue your studies, and are not studying, 
+ *   of being able to continue your studies, and are not studying,
  *   start studying.  You can then type: memorize [metamagic] 'spellname'
  *   to add spells to your prep-queue; this does not require being
  *   in a proper 'state' - can do anytime.
@@ -2532,12 +2575,12 @@ ACMDU(do_gen_preparation)
     break; /* we do have an argument! */
   }
 
-  /* Here I needed to change a bit to grab the metamagic keywords.  
+  /* Here I needed to change a bit to grab the metamagic keywords.
    * Valid keywords are:
    *   quickened - Speed up casting
    *   maximized - All variable aspects of spell (dam dice, etc) are maximum. */
 
-  /* spell_arg is a pointer into the argument string.  First lets find the spell - 
+  /* spell_arg is a pointer into the argument string.  First lets find the spell -
    * it should be at the end of the string. */
   spell_arg = strtok(argument, "'");
   if (spell_arg == NULL)

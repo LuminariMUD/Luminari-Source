@@ -587,7 +587,7 @@ void assign_feats(void)
   //  other lich innates that are shared, etc vital, hardy, armor skin +5, ultravision, is undead, damage resist +4, unarmed combag
   feato(FEAT_LICH_RACIAL_ADJUSTMENT, "lich racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 dex +2 con +6 int, +8 perception sense-motive stealth",
-        "Lich racial adjustment to stats are: +2 dexterity, +2 constitution, "
+        "Lich racial adjustment to stats are: +2 dexterity, +2 constitution, +2 charisma, "
         "and +6 intelligence.  In addition they get class abilities of acrobatics and +8 racial bonus on Perception, Sense Motive, and Stealth checks");
   feato(FEAT_LICH_SPELL_RESIST, "lich spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "15 + level spell resist",
@@ -599,8 +599,8 @@ void assign_feats(void)
         " A Lich's damage resistance is 4.");
   feato(FEAT_LICH_TOUCH, "lich touch", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "lich unarmed damage and 'lichtouch'",
-        "Liches have unarmed damage of 2d4 + level / 2. They can use 'lichtouch', as a full-round action, "
-        "to paralyze and cause negative damage level/4 + int bonus...  this touch used on undead heals "
+        "Liches have unarmed damage of 2d4 + level / 2. They can use 'lichtouch', as a standard action, "
+        "to paralyze and cause negative damage 10 + level <dice> 4 + int bonus...  this touch used on undead heals "
         "double that amount.  This is usable 3x a day + int bonus");
   feato(FEAT_LICH_REJUV, "lich rejuvenation", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "saved from death 1x/day",
