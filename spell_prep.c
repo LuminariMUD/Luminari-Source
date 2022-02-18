@@ -383,7 +383,7 @@ void collection_remove(struct char_data *ch, struct prep_collection_spell_data *
   if (DEBUGMODE)
   {
     send_to_char(ch, "{entered collection_remove(), variables: caster: %s, spellnum: %d, domain: %d, prep-time: %d, meta-magic: %d}    ",
-                 ch->name, entry->spell, entry->domain, entry->prep_time, entry->metamagic);
+                 GET_NAME(ch), entry->spell, entry->domain, entry->prep_time, entry->metamagic);
   }
 
   if (SPELL_COLLECTION(ch, class) == NULL)
