@@ -7247,11 +7247,15 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
     if (!paralysis_immunity(vict))
     {
       struct affected_type af;
+
       new_affect(&af);
+
       af.spell = RACIAL_LICH_TOUCH;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       af.duration = 2;
+
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+
       act("$n glows with black energy as $s touch paralyzes $N!",
           FALSE, ch, NULL, vict, TO_NOTVICT);
       act("You glow with black energy as you paralyze $N with your touch!",
@@ -7291,6 +7295,12 @@ ACMD(do_lichtouch)
   if (uses_remaining < 0)
   {
     send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    send_to_char(ch, "Lichtouch requires a standard action available to use.\r\n");
     return;
   }
 
@@ -7393,6 +7403,12 @@ ACMD(do_lichfear)
   if (uses_remaining < 0)
   {
     send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    send_to_char(ch, "Lichfear requires a standard action available to use.\r\n");
     return;
   }
 
