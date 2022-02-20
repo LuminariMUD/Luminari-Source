@@ -2234,8 +2234,8 @@ void assign_feats(void)
 
   // spellswords
   feato(FEAT_IGNORE_SPELL_FAILURE, "ignore spell failure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Grants 20 percent lower arcane spell failure in armor per rank.",
-        "Grants 20 percent lower arcane spell failure in armor per rank.");
+        "Grants 10 percent lower arcane spell failure in armor per rank.",
+        "Grants 10 percent lower arcane spell failure in armor per rank.");
   feato(FEAT_CHANNEL_SPELL, "channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "You can channel a spell into your weapon.",
         "You can channel a spell into your weapon. You can only channel a harmful spell of a spell level "
