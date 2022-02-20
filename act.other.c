@@ -6874,6 +6874,41 @@ static const char *const hints[] = {
            "realm based on your level and specified difficulty.  Missions produce general rewards "
            "including experience, gold, quest points and random treasure.  (help missions)"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*44*/ "\tR[HINT]:\tn \ty"
+           "Curious what our rules of conduct are for the game?  Type POLICY to view the rules!  Generally "
+           "speaking we are not strict at all about enforcing rules outside of harassing your fellow players "
+           "(AKA the golden rule - do unto others as you would have done to yourself and do not do unto others "
+           "that which you would not want done to you) and "
+           "abusing bugs before reporting them (if you report a bug then abuse it, we are generally not strict "
+           "about that since it puts pressure on the developres to fix critical bugs quickly)."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*45*/ "\tR[HINT]:\tn \ty"
+           "Although our normal POLICY does not allow multi-playing, due to a need for thorough game testing "
+           "and limited player base, we -DO- CURRENTLY -PERMIT- multi-playing up to 4 characters at the same time.  "
+           "You can also create as many storage-characters as you like to dump all your treasure and crafting "
+           "resources.  "
+           "We only ask that you please take the time and effort to report bugs/issues you find to us in return!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*46*/ "\tR[HINT]:\tn \ty"
+           "The henchmen, mercenaries, mounts and PETs that are spread throughout the realms not only can be "
+           "hired with gold, but some of them can be acquired through mini quest lines.  A henchment guild has "
+           "been opened in Ashenport's Jade Jug Inn to help adventurers."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*47*/ "\tR[HINT]:\tn \ty"
+           "Per our POLICY entry, we do not normally allow BOTS.  The exception is automating tasks but being present "
+           "(at keys - the MUDding app should be visible and attended to the player).  An example would be creating an "
+           "automated hunting route for experience, etc where your scripts (in MUDLET for example) would do all the work "
+           "for you.  As long as your MUDLET window is visible and you are at your computer, this is completely acceptable.  "
+           "Further, currently and until a notice of a POLICY change, you are allowed to fully (even unattended) BOT AUTOCRAFTing.  "
+           "This policy is in effect to help test the crafting system and can be changed at any time."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*48*/ "\tR[HINT]:\tn \ty"
+           "SUPPLYORDERs / AUTOCRAFTing is the safest and easiest way to increase your crafting skills!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*49*/ "\tR[HINT]:\tn \ty"
+           "You can use the ARMORLIST command to view all the armor types in the realms and then ARMORINFO <name of armor type> "
+           "to view details of each armor type.  The same goes for weapons via the WEAPONLIST and WEAPONINFO commands."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
 
@@ -6922,6 +6957,7 @@ void display_todo(struct char_data *ch, struct char_data *vict)
 {
   int i;
   struct txt_block *tmp;
+
   for (tmp = GET_TODO(vict), i = 1; tmp; tmp = tmp->next, i++)
     send_to_char(ch, "%d) %s\r\n%s", i, tmp->text, (tmp->next ? "\r\n" : ""));
 }
@@ -6960,6 +6996,7 @@ ACMD(do_todo)
       tmp->next->text = strdup(argument);
     }
     send_to_char(ch, "Great, another thing to do!\r\n");
+
     save_char(ch, 0);
     Crash_crashsave(ch);
   }
@@ -6982,6 +7019,7 @@ ACMD(do_todo)
       send_to_char(ch, "Phew!  One less thing to do!\r\n");
     else
       send_to_char(ch, "No such item exists in your todo list!\r\n");
+
     save_char(ch, 0);
     Crash_crashsave(ch);
   }

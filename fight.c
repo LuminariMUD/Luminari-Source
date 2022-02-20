@@ -3477,6 +3477,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       stop_fighting(victim);
     return (0);
   }
+
   if (!IS_NPC(victim) && ((GET_LEVEL(victim) >= LVL_IMMORT) &&
                           PRF_FLAGGED(victim, PRF_NOHASSLE)))
     dam = 0; // immort protection
