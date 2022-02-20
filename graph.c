@@ -25,6 +25,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "wilderness.h"
+#include "shop.h" /* shopkeepers hunting?! */
 
 /* local functions */
 static int VALID_EDGE(room_rnum x, int y);
