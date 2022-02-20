@@ -22,6 +22,7 @@
 #include "genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "fight.h"
+#include "shop.h" /* shop keepers and mhunt */
 
 /* Local file scope functions. */
 static void mob_log(char_data *mob, const char *format, ...);
