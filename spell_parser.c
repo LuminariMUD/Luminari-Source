@@ -1529,16 +1529,19 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
         /* establish base casting time for spell */
         casting_time = SINFO.time;
 
-        /* doing to adjust memory and establish what class the character
+        /* Going to adjust spell queue and establish what class the character
    will be using for casting this spell */
         if (!isEpicSpell(spellnum) && !IS_NPC(ch))
         {
+
+                /* staff get to cast for free */
                 if (GET_LEVEL(ch) >= LVL_IMMORT)
                 {
                         ch_class = CLASS_WIZARD;
                         clevel = 30;
                         CASTING_CLASS(ch) = ch_class;
                 }
+
                 else
                 {
                         if (psionic_powers[spellnum].psp_cost > 0)
@@ -1546,11 +1549,14 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
                                 clevel = GET_PSIONIC_LEVEL(ch);
                                 CASTING_CLASS(ch) = CLASS_PSIONICIST;
                         }
+                        /*
+                        // zusuk is commenting this out trying to figure out bugs!
                         else if (is_domain_spell_of_ch(ch, spellnum))
                         {
                                 clevel = DIVINE_LEVEL(ch);
                                 CASTING_CLASS(ch) = CLASS_CLERIC;
                         }
+                        */
                         else
                         {
                                 /* SPELL PREPARATION HOOK */
