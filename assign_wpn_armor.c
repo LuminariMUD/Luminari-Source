@@ -1,7 +1,7 @@
 /*****************************************************************************
  * assign_wpn_armor.c                        Part of LuminariMUD
  * author: Zusuk
- * Assigning weapon and armor values for respective types                   
+ * Assigning weapon and armor values for respective types
  *****************************************************************************/
 
 #include "conf.h"
@@ -55,9 +55,9 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
       weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
-  /* updated by zusuk: Druids are proficient with the following weapons: club, 
-   * dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling, 
-   * and spear. They are also proficient with all natural attacks (claw, bite, 
+  /* updated by zusuk: Druids are proficient with the following weapons: club,
+   * dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling,
+   * and spear. They are also proficient with all natural attacks (claw, bite,
    * and so forth) of any form they assume with wild shape.*/
   if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_DRUID) ||
       CLASS_LEVEL(ch, CLASS_DRUID) > 0)
@@ -465,7 +465,7 @@ bool auto_reload_weapon(struct char_data *ch, bool silent_mode)
   return TRUE;
 }
 
-#define MAX_AMMO_INSIDE_WEAPON 5 //unused
+#define MAX_AMMO_INSIDE_WEAPON 5 // unused
 
 bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
 {
@@ -1409,14 +1409,13 @@ int compute_gear_spell_failure(struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     spell_failure += 25;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
-    spell_failure += 35;  
+    spell_failure += 35;
 
   /* 5% improvement in spell success with this feat */
   spell_failure -= HAS_FEAT(ch, FEAT_ARMORED_SPELLCASTING) * 5;
   // Spellsword ignore spell fail
   if (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE))
-    spell_failure -= ((1 + HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE)) * 5);
-    
+    spell_failure -= (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 20);
 
   if (spell_failure < 0)
     spell_failure = 0;
@@ -2364,7 +2363,7 @@ int get_defending_weapon_bonus(struct char_data *ch, bool weapon)
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
     bonus += GET_OBJ_VAL(obj, 1) / 2;
-  
+
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && OBJ_FLAGGED(obj, ITEM_DEFENDING))
     bonus += GET_OBJ_VAL(obj, 1) / 2;
@@ -2383,8 +2382,7 @@ bool has_speed_weapon(struct char_data *ch)
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
     return true;
-    
-  
+
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_SPEED))
     return true;
@@ -2406,8 +2404,7 @@ bool is_using_ghost_touch_weapon(struct char_data *ch)
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
     return true;
-    
-  
+
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_GHOST_TOUCH))
     return true;
@@ -2427,8 +2424,8 @@ bool is_using_keen_weapon(struct char_data *ch)
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
-    return true;    
-  
+    return true;
+
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
@@ -2449,16 +2446,16 @@ bool is_using_keen_weapon(struct char_data *ch)
 
 int get_lucky_weapon_bonus(struct char_data *ch)
 {
-  if (!ch) return 0;
-  
+  if (!ch)
+    return 0;
+
   struct obj_data *obj = NULL;
   int bonus = 0;
 
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
     bonus = GET_OBJ_VAL(obj, 4);
-    
-  
+
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_LUCKY))
     bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));
@@ -2479,7 +2476,7 @@ int get_agile_weapon_dex_bonus(struct char_data *ch)
   obj = GET_EQ(ch, WEAR_WIELD_1);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
     bonus = GET_OBJ_VAL(obj, 4);
-  
+
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_AGILE))
     bonus = MAX(bonus, GET_OBJ_VAL(obj, 4));

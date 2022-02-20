@@ -297,6 +297,12 @@ void hunt_victim(struct char_data *ch)
   if (!ch || FIGHTING(ch))
     return;
 
+  if (MOB_FLAGGED(ch, MOB_NOKILL))
+  {
+    send_to_char(ch, "You are a protected mob, it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
+
   /* if ch has memory, try finding a new hunting victim */
   if (!HUNTING(ch))
   {
@@ -342,6 +348,20 @@ void hunt_victim(struct char_data *ch)
   /* easier reference */
   vict = HUNTING(ch);
 
+  if (!ok_damage_shopkeeper(vict, ch))
+  {
+    send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
+
+  /*
+  if (!is_mission_mob(vict, ch))
+  {
+    send_to_char(ch, "You are a mission mob, it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
+  */
+
   ch_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(ch)));
   vict_in_wild = IS_WILDERNESS_VNUM(GET_ROOM_VNUM(IN_ROOM(vict)));
 
@@ -386,10 +406,10 @@ void hunt_victim(struct char_data *ch)
   {
     if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict))) < 0)
     {
-      //char buf[MAX_INPUT_LENGTH];
+      // char buf[MAX_INPUT_LENGTH];
 
-      //snprintf(buf, sizeof(buf), "!?!");
-      //do_say(ch, buf, 0, 0);
+      // snprintf(buf, sizeof(buf), "!?!");
+      // do_say(ch, buf, 0, 0);
       HUNTING(ch) = NULL;
     }
     else

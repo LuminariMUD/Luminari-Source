@@ -2234,8 +2234,8 @@ void assign_feats(void)
 
   // spellswords
   feato(FEAT_IGNORE_SPELL_FAILURE, "ignore spell failure", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank above one. ",
-        "Grants 10 percent lower arcane spell failure in armor, plus 5 percent per rank above one.");
+        "Grants 20 percent lower arcane spell failure in armor per rank.",
+        "Grants 20 percent lower arcane spell failure in armor per rank.");
   feato(FEAT_CHANNEL_SPELL, "channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "You can channel a spell into your weapon.",
         "You can channel a spell into your weapon. You can only channel a harmful spell of a spell level "
@@ -5949,12 +5949,12 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       {
         if (mode == 1)
         {
-          snprintf(buf3, sizeof(buf3), "%s (%d%%)", feat_list[i].name, 5 + (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 5));
+          snprintf(buf3, sizeof(buf3), "%s (%d%%)", feat_list[i].name, (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 20));
           snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
         }
         else
         {
-          snprintf(buf3, sizeof(buf3), "%s (%d%%)", feat_list[i].name, 5 + (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 5));
+          snprintf(buf3, sizeof(buf3), "%s (%d%%)", feat_list[i].name, (HAS_FEAT(ch, FEAT_IGNORE_SPELL_FAILURE) * 20));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

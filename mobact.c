@@ -43,57 +43,57 @@ void npc_racial_behave(struct char_data *ch);
 
 /* list of spells mobiles will use for spellups */
 int valid_spellup_spell[SPELLUP_SPELLS] = {
-    SPELL_ARMOR, //0
+    SPELL_ARMOR, // 0
     SPELL_BLESS,
     SPELL_DETECT_ALIGN,
     SPELL_DETECT_INVIS,
     SPELL_DETECT_MAGIC,
-    SPELL_DETECT_POISON, //5
+    SPELL_DETECT_POISON, // 5
     SPELL_INVISIBLE,
     SPELL_PROT_FROM_EVIL,
     SPELL_SANCTUARY,
     SPELL_STRENGTH,
-    SPELL_SENSE_LIFE, //10
+    SPELL_SENSE_LIFE, // 10
     SPELL_INFRAVISION,
     SPELL_WATERWALK,
     SPELL_FLY,
     SPELL_BLUR,
-    SPELL_MIRROR_IMAGE, //15
+    SPELL_MIRROR_IMAGE, // 15
     SPELL_STONESKIN,
     SPELL_ENDURANCE,
     SPELL_PROT_FROM_GOOD,
     SPELL_ENDURE_ELEMENTS,
-    SPELL_EXPEDITIOUS_RETREAT, //20
+    SPELL_EXPEDITIOUS_RETREAT, // 20
     SPELL_IRON_GUTS,
     SPELL_MAGE_ARMOR,
     SPELL_SHIELD,
     SPELL_TRUE_STRIKE,
-    SPELL_FALSE_LIFE, //25
+    SPELL_FALSE_LIFE, // 25
     SPELL_GRACE,
     SPELL_RESIST_ENERGY,
     SPELL_WATER_BREATHE,
     SPELL_HEROISM,
-    SPELL_NON_DETECTION, //30
+    SPELL_NON_DETECTION, // 30
     SPELL_HASTE,
     SPELL_CUNNING,
     SPELL_WISDOM,
     SPELL_CHARISMA,
-    SPELL_FIRE_SHIELD, //35
+    SPELL_FIRE_SHIELD, // 35
     SPELL_COLD_SHIELD,
     SPELL_GREATER_INVIS,
     SPELL_MINOR_GLOBE,
     SPELL_GREATER_HEROISM,
-    SPELL_TRUE_SEEING, //40
+    SPELL_TRUE_SEEING, // 40
     SPELL_GLOBE_OF_INVULN,
     SPELL_GREATER_MIRROR_IMAGE,
     SPELL_DISPLACEMENT,
     SPELL_PROTECT_FROM_SPELLS,
-    SPELL_SPELL_MANTLE, //45
+    SPELL_SPELL_MANTLE, // 45
     SPELL_IRONSKIN,
     SPELL_MIND_BLANK,
     SPELL_SHADOW_SHIELD,
     SPELL_GREATER_SPELL_MANTLE,
-    SPELL_REGENERATION, //50
+    SPELL_REGENERATION, // 50
     SPELL_DEATH_SHIELD,
     SPELL_BARKSKIN,
     SPELL_SPELL_RESISTANCE,
@@ -102,83 +102,83 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {
 /* list of spells mobiles will use for offense (aoe) */
 int valid_aoe_spell[OFFENSIVE_AOE_SPELLS] = {
     /* aoe */
-    SPELL_EARTHQUAKE, //0
+    SPELL_EARTHQUAKE, // 0
     SPELL_ICE_STORM,
     SPELL_METEOR_SWARM,
     SPELL_CHAIN_LIGHTNING,
     SPELL_SYMBOL_OF_PAIN,
-    SPELL_MASS_HOLD_PERSON, //5
+    SPELL_MASS_HOLD_PERSON, // 5
     SPELL_PRISMATIC_SPRAY,
     SPELL_THUNDERCLAP,
     SPELL_INCENDIARY_CLOUD,
     SPELL_HORRID_WILTING,
-    SPELL_WAIL_OF_THE_BANSHEE, //10
+    SPELL_WAIL_OF_THE_BANSHEE, // 10
     SPELL_STORM_OF_VENGEANCE,
     SPELL_CALL_LIGHTNING_STORM,
     SPELL_CREEPING_DOOM,
     SPELL_FIRE_STORM,
-    SPELL_SUNBEAM //15
+    SPELL_SUNBEAM // 15
 };
 
 /* list of spells mobiles will use for offense */
 int valid_offensive_spell[OFFENSIVE_SPELLS] = {
     /* single target */
-    SPELL_BLINDNESS, //0
+    SPELL_BLINDNESS, // 0
     SPELL_BURNING_HANDS,
     SPELL_CALL_LIGHTNING,
     SPELL_CHILL_TOUCH,
     SPELL_COLOR_SPRAY,
-    SPELL_CURSE, //5
+    SPELL_CURSE, // 5
     SPELL_ENERGY_DRAIN,
     SPELL_FIREBALL,
     SPELL_HARM,
     SPELL_LIGHTNING_BOLT,
-    SPELL_MAGIC_MISSILE, //10
+    SPELL_MAGIC_MISSILE, // 10
     SPELL_POISON,
     SPELL_SHOCKING_GRASP,
     SPELL_CAUSE_LIGHT_WOUNDS,
     SPELL_CAUSE_MODERATE_WOUNDS,
-    SPELL_CAUSE_SERIOUS_WOUNDS, //15
+    SPELL_CAUSE_SERIOUS_WOUNDS, // 15
     SPELL_CAUSE_CRITICAL_WOUNDS,
     SPELL_FLAME_STRIKE,
     SPELL_DESTRUCTION,
     SPELL_BALL_OF_LIGHTNING,
-    SPELL_MISSILE_STORM, //20
+    SPELL_MISSILE_STORM, // 20
     SPELL_HORIZIKAULS_BOOM,
     SPELL_ICE_DAGGER,
     SPELL_NEGATIVE_ENERGY_RAY,
     SPELL_RAY_OF_ENFEEBLEMENT,
-    SPELL_SCARE, //25
+    SPELL_SCARE, // 25
     SPELL_ACID_ARROW,
     SPELL_DAZE_MONSTER,
     SPELL_HIDEOUS_LAUGHTER,
     SPELL_TOUCH_OF_IDIOCY,
-    SPELL_SCORCHING_RAY, //30
+    SPELL_SCORCHING_RAY, // 30
     SPELL_DEAFNESS,
     SPELL_ENERGY_SPHERE,
     SPELL_VAMPIRIC_TOUCH,
     SPELL_HOLD_PERSON,
-    SPELL_SLOW, //35
+    SPELL_SLOW, // 35
     SPELL_FEEBLEMIND,
     SPELL_NIGHTMARE,
     SPELL_MIND_FOG,
     SPELL_CONE_OF_COLD,
-    SPELL_TELEKINESIS, //40
+    SPELL_TELEKINESIS, // 40
     SPELL_FIREBRAND,
     SPELL_FREEZING_SPHERE,
     SPELL_EYEBITE,
     SPELL_GRASPING_HAND,
-    SPELL_POWER_WORD_BLIND, //45
+    SPELL_POWER_WORD_BLIND, // 45
     SPELL_POWER_WORD_STUN,
     SPELL_CLENCHED_FIST,
     SPELL_IRRESISTIBLE_DANCE,
     SPELL_SCINT_PATTERN,
-    SPELL_SUNBURST, //50
+    SPELL_SUNBURST, // 50
     SPELL_WEIRD,
     SPELL_IMPLODE,
     SPELL_FAERIE_FIRE,
     SPELL_FLAMING_SPHERE,
-    SPELL_BLIGHT, //55
+    SPELL_BLIGHT, // 55
     SPELL_FINGER_OF_DEATH,
     SPELL_WHIRLWIND};
 
@@ -243,16 +243,16 @@ struct char_data *npc_find_target(struct char_data *ch, int *num_targets)
   if (target_list)
     free_list(target_list);
 
-  if (tch) //dummy check
+  if (tch) // dummy check
     return tch;
-  else //backup plan
+  else // backup plan
     return NULL;
 }
 
 /* a very simplified switch opponents engine */
 bool npc_switch_opponents(struct char_data *ch, struct char_data *vict)
 {
-  //mudlog(NRM, LVL_IMMORT, TRUE, "%s trying to switch opponents!", ch->player.short_descr);
+  // mudlog(NRM, LVL_IMMORT, TRUE, "%s trying to switch opponents!", ch->player.short_descr);
   if (!ch || !vict)
     return FALSE;
 
@@ -406,7 +406,7 @@ bool move_on_path(struct char_data *ch)
   case BFS_NO_PATH:
     send_to_char(ch, "I can't sense a trail to %d (%d) from here.\r\n",
                  next, real_room(next));
-    //log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
+    // log("NO PATH: Mob %s, in room %d, trying to get to %d", GET_NAME(ch), world[IN_ROOM(ch)].number, next);
     break;
   default: /* Success! */
     send_to_char(ch, "I sense a trail %s from here!\r\n", dirs[dir]);
@@ -517,6 +517,26 @@ void remember(struct char_data *ch, struct char_data *victim)
   if (!IS_NPC(ch) || IS_NPC(victim) || PRF_FLAGGED(victim, PRF_NOHASSLE))
     return;
 
+  if (MOB_FLAGGED(ch, MOB_NOKILL))
+  {
+    send_to_char(ch, "You are a protected mob, it doesn't make sense for you to remember your victim!\r\n");
+    return;
+  }
+
+  if (victim && !ok_damage_shopkeeper(victim, ch))
+  {
+    send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to remember that target!\r\n");
+    return;
+  }
+
+  /*
+  if (victim && !is_mission_mob(victim, ch))
+  {
+    send_to_char(ch, "You are a mission mob, it doesn't make sense for you to remember that target!\r\n");
+    return;
+  }
+  */
+
   for (tmp = MEMORY(ch); tmp && !present; tmp = tmp->next)
     if (tmp->id == GET_IDNUM(victim))
       present = TRUE;
@@ -578,7 +598,7 @@ void clearMemory(struct char_data *ch)
  acting */
 int can_continue(struct char_data *ch, bool fighting)
 {
-  //dummy checks
+  // dummy checks
   if (fighting && (!FIGHTING(ch) || IN_ROOM(ch) != IN_ROOM(FIGHTING(ch))))
   {
     stop_fighting(ch);
@@ -617,8 +637,6 @@ void npc_ability_behave(struct char_data *ch)
   /* retrieve random valid target and number of targets */
   if (!(vict = npc_find_target(ch, &num_targets)))
     return;
-
-  
 }
 
 /*** END UTILITY FUNCTIONS ***/
@@ -638,7 +656,7 @@ void npc_racial_behave(struct char_data *ch)
   if (!(vict = npc_find_target(ch, &num_targets)))
     return;
 
-  //first figure out which race we are dealing with
+  // first figure out which race we are dealing with
   switch (GET_RACE(ch))
   {
   case RACE_TYPE_ANIMAL:
@@ -1365,18 +1383,22 @@ void mobile_activity(void)
                 (MOB_FLAGGED(ch, MOB_AGGR_GOOD) && IS_GOOD(vict)) */
         )
         {
-          if (IS_ANIMAL(ch) && HAS_FEAT(vict, FEAT_SOUL_OF_THE_FEY)) {
+          if (IS_ANIMAL(ch) && HAS_FEAT(vict, FEAT_SOUL_OF_THE_FEY))
+          {
             continue;
           }
-          if (IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US)) {
+          if (IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US))
+          {
             continue;
           }
-          if (MOB_FLAGGED(ch, MOB_ENCOUNTER) && ((GET_LEVEL(ch) - GET_LEVEL(vict)) < 2)) {
+          if (MOB_FLAGGED(ch, MOB_ENCOUNTER) && ((GET_LEVEL(ch) - GET_LEVEL(vict)) < 2))
+          {
             // We don't want abandoned random encounters killing people they weren't meant for
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             found = TRUE;
           }
-          else if (!MOB_FLAGGED(ch, MOB_ENCOUNTER)) {
+          else if (!MOB_FLAGGED(ch, MOB_ENCOUNTER))
+          {
             // all other aggro mobs
             hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
             found = TRUE;
@@ -1466,7 +1488,7 @@ void mobile_activity(void)
     }
 
     /* random movement */
-    if (!rand_number(0, 2)) //customize frequency
+    if (!rand_number(0, 2)) // customize frequency
       if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
           ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
           !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&

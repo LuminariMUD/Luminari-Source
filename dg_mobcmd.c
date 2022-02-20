@@ -893,10 +893,22 @@ ACMD(do_mhunt)
   }
 
   if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    send_to_char(ch, "You are loyal to someone right now, hunting isn't a good idea...\r\n");
     return;
+  }
 
   if (ch->desc && (GET_LEVEL(ch->desc->original) < LVL_IMPL))
+  {
+    send_to_char(ch, "Someone is inhabiting your body, you can not hunt right now...\r\n");
     return;
+  }
+
+  if (MOB_FLAGGED(ch, MOB_NOKILL))
+  {
+    send_to_char(ch, "You are a protected mob, it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -922,6 +934,23 @@ ACMD(do_mhunt)
     mob_log(ch, "mhunt: victim (%s) does not exist", arg);
     return;
   }
+
+  /* we have a target now */
+
+  if (!ok_damage_shopkeeper(victim, ch))
+  {
+    send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
+
+  /*
+  if (!is_mission_mob(victim, ch))
+  {
+    send_to_char(ch, "You are a mission mob, it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
+  */
+
   HUNTING(ch) = victim;
 }
 
@@ -1190,7 +1219,7 @@ ACMD(do_mdoor)
   struct room_direction_data *newexit;
   int dir, fd, to_room;
 
-  const char * const door_field[] = {
+  const char *const door_field[] = {
       "purge",
       "description",
       "flags",

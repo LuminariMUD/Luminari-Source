@@ -47,8 +47,10 @@
 
 /** START Globals **/
 
-/* toggle for debug mode */
-#define DEBUGMODE TRUE
+/* toggle for debug mode
+   true = annoying messages used for debugging
+   false = normal gameplay */
+#define DEBUGMODE FALSE
 
 /** END Globals **/
 
