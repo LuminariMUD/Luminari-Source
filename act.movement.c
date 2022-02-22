@@ -1173,7 +1173,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   {
     need_movement = 1;
   }
-  else{
+  else
+  {
     need_movement = (movement_loss[SECT(was_in)] + movement_loss[SECT(going_to)]) / 2;
   }
 

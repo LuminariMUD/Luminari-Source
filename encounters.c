@@ -1002,7 +1002,9 @@ int encounter_chance(struct char_data *ch)
     int chance = 30;
 
     if (PRF_FLAGGED(ch, PRF_AVOID_ENCOUNTERS))
+    {
       chance -= combat_skill_roll(ch, ABILITY_SURVIVAL) * 5;
+    }
     else if (PRF_FLAGGED(ch, PRF_SEEK_ENCOUNTERS))
       chance += combat_skill_roll(ch, ABILITY_SURVIVAL) * 5;
 
@@ -1038,6 +1040,7 @@ void check_random_encounter(struct char_data *ch)
   int num_mobs = 0, num_mobs_roll = 0;
   struct char_data *mob = NULL;
   char mob_descs[MEDIUM_STRING];
+  bool stealth_success = false;
 
   roll = dice(1, 1000);
 
@@ -1045,6 +1048,14 @@ void check_random_encounter(struct char_data *ch)
 
   if (roll > encounter_chance(ch))
     return;
+
+  if (PRF_FLAGGED(ch, PRF_AVOID_ENCOUNTERS))
+  {
+    if (AFF_FLAGGED(ch, AFF_SNEAK) && skill_roll(ch, ABILITY_STEALTH) >= (GET_LEVEL(ch) + 5))
+    {
+      stealth_success = true;
+    }
+  }
 
   roll = 0;
 
@@ -1113,38 +1124,48 @@ void check_random_encounter(struct char_data *ch)
           sprintf(mob_descs, "%s\r\n", encounter_table[j].description);
           mob->player.description = strdup(mob_descs);
         }
-        // set mob details
-        GET_REAL_RACE(mob) = encounter_table[j].race_type;
-        GET_SUBRACE(mob, 0) - encounter_table[j].subrace[0];
-        GET_SUBRACE(mob, 1) - encounter_table[j].subrace[1];
-        GET_SUBRACE(mob, 2) - encounter_table[j].subrace[2];
-        mob->mob_specials.hostile = encounter_table[j].hostile;
-        if (mob->mob_specials.hostile)
-          mob->mob_specials.aggro_timer = 5;
-        mob->mob_specials.sentient = encounter_table[j].sentient;
-        mob->mob_specials.extract_timer = -1;
-        mob->mob_specials.peaceful_timer = -1;
-        
-        // set stats
-        GET_CLASS(mob) = encounter_table[j].char_class;
-        GET_LEVEL(mob) = MAX(1, highest_level - 2);
-        autoroll_mob(mob, TRUE, FALSE);
-        GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
-        GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
-        set_alignment(mob, encounter_table[j].alignment);
-        // set flags
-        SET_BIT_AR(MOB_FLAGS(mob), MOB_ENCOUNTER);
-        SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
-        SET_BIT_AR(MOB_FLAGS(mob), MOB_HELPER);
+        // If we've stealthed successfully, we don't need to add further details
+        if (!stealth_success)
+        {
+          // set mob details
+          GET_REAL_RACE(mob) = encounter_table[j].race_type;
+          GET_SUBRACE(mob, 0) - encounter_table[j].subrace[0];
+          GET_SUBRACE(mob, 1) - encounter_table[j].subrace[1];
+          GET_SUBRACE(mob, 2) - encounter_table[j].subrace[2];
+          mob->mob_specials.hostile = encounter_table[j].hostile;
+          if (mob->mob_specials.hostile)
+            mob->mob_specials.aggro_timer = 5;
+          mob->mob_specials.sentient = encounter_table[j].sentient;
+          mob->mob_specials.extract_timer = -1;
+          mob->mob_specials.peaceful_timer = -1;
+          
+          // set stats
+          GET_CLASS(mob) = encounter_table[j].char_class;
+          GET_LEVEL(mob) = MAX(1, highest_level - 2);
+          autoroll_mob(mob, TRUE, FALSE);
+          GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
+          GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
+          set_alignment(mob, encounter_table[j].alignment);
+          // set flags
+          SET_BIT_AR(MOB_FLAGS(mob), MOB_ENCOUNTER);
+          SET_BIT_AR(MOB_FLAGS(mob), MOB_SENTINEL);
+          SET_BIT_AR(MOB_FLAGS(mob), MOB_HELPER);
 
-        X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-        Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
-        char_to_room(mob, IN_ROOM(ch));
-        
+
+          X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+          Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+          char_to_room(mob, IN_ROOM(ch));
+        }
         if (encounter_table[j].hostile)
           send_to_room(IN_ROOM(ch), "\tY%s has ambushed you!\tn\r\n", CAP(mob->player.short_descr));
         else
           send_to_room(IN_ROOM(ch), "\tYYou come across %s.\tn\r\n", CAP(mob->player.short_descr));
+
+        if (stealth_success)
+        {
+          send_to_room(IN_ROOM(ch), "\tYYou managed to sneak past %s, and they continue on their way.\tn\r\n", mob->player.short_descr);
+          return;
+        }
         num_mobs++;
       }
     }

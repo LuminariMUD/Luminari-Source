@@ -373,6 +373,7 @@
 #define CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
 #define CLASS_BLACKGUARD 24
 #define CLASS_ASSASSIN 25
+#define CLASS_INQUISITOR 26
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -381,7 +382,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 26
+#define NUM_CLASSES 26 // we have to increase this to 27 once inquisitor is done
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
