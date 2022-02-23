@@ -3646,6 +3646,8 @@ struct char_special_data
     struct char_data *grapple_attacker; /**< Who is grappling me?; else NULL */
 
     bool energy_retort_used; // used with energy retort ability, which only fires once per round.
+
+    bool autodoor_message; // used for message handling in autodoor
 };
 
 /* old memorization struct */
