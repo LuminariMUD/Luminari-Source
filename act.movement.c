@@ -57,7 +57,8 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
                                            : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
 #define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
                                                                   CONT_LOCKED)) \
-                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED)))
+                                               : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY) && \
+                                                  !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_MEDIUM) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_HARD)))
 #define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
                                                                   CONT_PICKPROOF)) \
                                                 : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
@@ -1976,12 +1977,17 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
   {
     if ((!IS_NPC(ch)) && (PRF_FLAGGED(ch, PRF_AUTODOOR)) && recursive)
     {
+      ch->char_specials.autodoor_message = false;
       snprintf(open_cmd, sizeof(open_cmd), " %s", dirs[dir]);
       //send_to_char(ch, "CMD: %s\r\n", open_cmd);
       do_gen_door(ch, open_cmd, 0, SCMD_OPEN);
-      snprintf(open_cmd, sizeof(open_cmd), "You open the %s to the %s.", EXIT(ch, dir)->keyword, dirs[dir]);
-      act(open_cmd, FALSE, ch, 0, 0, TO_CHAR);
-      return perform_move_full(ch, dir, need_specials_check, false);
+      if (ch->char_specials.autodoor_message)
+      {
+        snprintf(open_cmd, sizeof(open_cmd), "You open the %s to the %s.", EXIT(ch, dir)->keyword, dirs[dir]);
+        act(open_cmd, FALSE, ch, 0, 0, TO_CHAR);
+        ch->char_specials.autodoor_message = false;
+      }
+      // return perform_move_full(ch, dir, need_specials_check, false);
     }
     else
     {
@@ -2132,6 +2138,10 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
 
 int has_key(struct char_data *ch, obj_vnum key)
 {
+
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
+    return (1);
+
   struct obj_data *o;
 
   for (o = ch->carrying; o; o = o->next_content)
@@ -2420,14 +2430,17 @@ ACMD(do_gen_door)
     else if (!(DOOR_IS_LOCKED(ch, obj, door)) &&
              IS_SET(flags_door[subcmd], NEED_LOCKED))
       send_to_char(ch, "Oh.. it wasn't locked, after all..\r\n");
-    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum)))
+    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && 
+             ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum)))
     {
       send_to_char(ch, "It is locked, but you have the key.\r\n");
       do_doorcmd(ch, obj, door, SCMD_UNLOCK);
       send_to_char(ch, "*Click*\r\n");
       do_doorcmd(ch, obj, door, subcmd);
+      ch->char_specials.autodoor_message = true;
     }
-    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum)))
+    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && 
+            ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum)))
     {
       send_to_char(ch, "It is locked, and you do not have the key!\r\n");
     }
@@ -2439,7 +2452,10 @@ ACMD(do_gen_door)
              ((subcmd == SCMD_LOCK) || (subcmd == SCMD_UNLOCK)))
       send_to_char(ch, "You don't seem to have the proper key.\r\n");
     else if (ok_pick(ch, keynum, DOOR_IS_PICKPROOF(ch, obj, door), subcmd, door))
+    {
       do_doorcmd(ch, obj, door, subcmd);
+      ch->char_specials.autodoor_message = true;
+    }    
   }
   return;
 }
