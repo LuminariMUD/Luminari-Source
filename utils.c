@@ -5605,3 +5605,13 @@ void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vic
     }
   }
 }
+
+
+void remove_locked_door_flags(room_rnum room, int door)
+{
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED);
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY);
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_MEDIUM);
+  REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_HARD);
+
+}
