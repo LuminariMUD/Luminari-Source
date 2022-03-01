@@ -67,7 +67,7 @@
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd)
 
 /** Definition of the helper function for checking if a command can be used.
- *  If show_error is set, an error message will be sent to the user. Otherwise, it 
+ *  If show_error is set, an error message will be sent to the user. Otherwise, it
  *  just returns the status code.
  * Returns:
  *   0 if everything is ok
@@ -983,7 +983,7 @@ void char_from_furniture(struct char_data *ch);
 // spell preparation queue and collection (prepared spells))
 /* this refers to items in the list of spells the ch is trying to prepare */
 #define PREPARATION_QUEUE(ch, slot, cc) (ch->player_specials->saved.prep_queue[slot][cc])
-/* this refers to preparation-time in a list that parallels the preparation_queue 
+/* this refers to preparation-time in a list that parallels the preparation_queue
     OLD system, this can be phased out */
 #define PREP_TIME(ch, slot, cc) (ch->player_specials->saved.prep_queue[slot][cc].prep_time)
 /* this refers to items in the list of spells the ch already has prepared (collection) */
@@ -1143,6 +1143,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_QUESTPOINTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.questpoints))
 
 /** Return the current quest that a player has assigned */
+//#define GET_QUEST(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest[index]))
 #define GET_QUEST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest))
 
 /** Number of goals completed for this quest. */
