@@ -3673,14 +3673,14 @@ const struct set_struct
     {"arcaneshadow", LVL_IMPL, PC, NUMBER},     /* 91 */
     {"sacredfist", LVL_IMPL, PC, NUMBER},       /* 92 */
     {"premadebuild", LVL_STAFF, PC, MISC},      /* 93 */
-    {"psionicist", LVL_IMPL, PC, MISC},         /* 94 */
+    {"psionicist", LVL_IMPL, PC, NUMBER},       /* 94 */
     {"deity", LVL_BUILDER, PC, MISC},           /* 95 */
 
-    {"eldritchknight", LVL_IMPL, PC, MISC}, /* 96 */
-    {"spellsword", LVL_IMPL, PC, MISC},     /* 97 */
-    {"shadowdancer", LVL_IMPL, PC, MISC},   /* 98 */
-    {"blackguard", LVL_IMPL, PC, MISC},     /* 99 */
-    {"assassin", LVL_IMPL, PC, MISC},       /* 100 */
+    {"eldritchknight", LVL_IMPL, PC, NUMBER}, /* 96 */
+    {"spellsword", LVL_IMPL, PC, NUMBER},     /* 97 */
+    {"shadowdancer", LVL_IMPL, PC, NUMBER},   /* 98 */
+    {"blackguard", LVL_IMPL, PC, NUMBER},     /* 99 */
+    {"assassin", LVL_IMPL, PC, NUMBER},       /* 100 */
 
     {"\n", 0, BOTH, MISC},
 };
