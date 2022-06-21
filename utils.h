@@ -1157,10 +1157,9 @@ void char_from_furniture(struct char_data *ch);
 #define GET_NUM_QUESTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.num_completed_quests))
 
 /** The type of quest ch is currently participating in. */
-#define GET_QUEST_TYPE(ch, index) (real_quest(GET_QUEST((ch, index))) != NOTHING ? aquest_table[real_quest(GET_QUEST((ch, index)))].type : AQ_UNDEFINED)
+#define GET_QUEST_TYPE(ch, index) (real_quest(GET_QUEST(ch, index)) != NOTHING ? aquest_table[real_quest(GET_QUEST(ch, index))].type : AQ_UNDEFINED)
 
 /* staff ran events data */
-
 #define STAFFRAN_PVAR(ch, variable) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
 
 /**** Clans *****/

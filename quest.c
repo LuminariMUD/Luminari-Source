@@ -1060,6 +1060,8 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   struct char_data *victim = NULL;
   qst_rnum rnum = NOTHING;
   // qst_vnum vnum = NOTHING;
+  int index = 0;
+  bool found = FALSE;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -1073,13 +1075,28 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     send_to_char(ch, "Can not find that target!\r\n");
   else if ((rnum = real_quest(atoi(arg2))) == NOTHING)
     send_to_char(ch, "That quest does not exist.\r\n");
-  else if (is_complete(ch, atoi(arg2)))
+  else if (is_complete(victim, atoi(arg2)))
     send_to_char(ch, "That character already completed that quest.\r\n");
-  else if (GET_QUEST(ch))
-    send_to_char(ch, "That character is in the middle of a quest right now.\r\n");
 
-  GET_QUEST(ch) = atoi(arg2);
-  complete_quest(ch);
+  /* got a spare slot to join a quest? */
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if (GET_QUEST(victim, index) == NOTHING)
+    {
+      found = TRUE;
+      break;
+    }
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "That player doesn't have any spare slots!\r\n");
+    return;
+  }
+
+  GET_QUEST(victim, index) = atoi(arg2);
+  complete_quest(victim, index);
+  send_to_char(ch, "Success! \r\n");
 }
 
 /* allows staff to view detailed info about any quest in game */
