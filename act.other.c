@@ -3913,7 +3913,7 @@ ACMD(do_quit)
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
     { /* loop through all the character's quest slots */
       if (GET_QUEST_TIME(ch, index) != -1)
-        quest_timeout(ch index);
+        quest_timeout(ch, index);
     }
 
     send_to_char(ch, "Goodbye, friend.. Come back soon!\r\n");
