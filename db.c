@@ -5134,7 +5134,7 @@ void clear_object(struct obj_data *obj)
  * never again for that character). */
 void init_char(struct char_data *ch)
 {
-  int i;
+  int i, index = 0;
 
   /* create a player_special structure */
   if (ch->player_specials == NULL)
