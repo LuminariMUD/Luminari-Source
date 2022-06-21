@@ -977,7 +977,8 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         clear_quest(ch, index); /* safety clearing */
         send_to_char(ch, " (Index: %d) This quest slot is available.\r\n", index);
       }
-      send_to_char(ch, "(Index: %d) - %s\r\n", index, QST_NAME(rnum));
+      else
+        send_to_char(ch, "(Index: %d) - %s\r\n", index, QST_NAME(rnum));
     }
     send_to_char(ch, "You can provide the quest index from your queue to check specific progress details.\r\n");
     return;
