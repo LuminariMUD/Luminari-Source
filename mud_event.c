@@ -465,7 +465,7 @@ EVENTFUNC(event_countdown)
   case eQUEST_COMPLETE:
     qvnum = atoi((char *)pMudEvent->sVariables);
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
-      if (qvnum != NOTHING & qvnum == GET_QUEST(ch, index))
+      if (qvnum != NOTHING && qvnum == GET_QUEST(ch, index))
         complete_quest(ch, index);
     break;
   case eSPELLBATTLE:
