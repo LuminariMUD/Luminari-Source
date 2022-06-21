@@ -322,7 +322,7 @@ char *get_name_by_id(long id)
  * if not. */
 int load_char(const char *name, struct char_data *ch)
 {
-  int id, i, j, index = 0;
+  int id, i, j;
   FILE *fl;
   char filename[40];
   char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -1620,11 +1620,11 @@ void save_char(struct char_data *ch, int mode)
   if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS)
     fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
   if (GET_QUEST_COUNTER(ch, 0) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch));
+    fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch, 0));
   if (GET_QUEST_COUNTER(ch, 1) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcn1: %d\n", GET_QUEST_COUNTER(ch));
+    fprintf(fl, "Qcn1: %d\n", GET_QUEST_COUNTER(ch, 1));
   if (GET_QUEST_COUNTER(ch, 2) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcn2: %d\n", GET_QUEST_COUNTER(ch));
+    fprintf(fl, "Qcn2: %d\n", GET_QUEST_COUNTER(ch, 2));
   if (GET_NUM_QUESTS(ch) != PFDEF_COMPQUESTS)
   {
     fprintf(fl, "Qest:\n");
@@ -1633,11 +1633,11 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "%d\n", NOTHING);
   }
   if (GET_QUEST(ch, 0) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcur: %d\n", GET_QUEST(ch));
+    fprintf(fl, "Qcur: %d\n", GET_QUEST(ch, 0));
   if (GET_QUEST(ch, 1) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcu1: %d\n", GET_QUEST(ch));
+    fprintf(fl, "Qcu1: %d\n", GET_QUEST(ch, 1));
   if (GET_QUEST(ch, 2) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcu2: %d\n", GET_QUEST(ch));
+    fprintf(fl, "Qcu2: %d\n", GET_QUEST(ch, 2));
   if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
     fprintf(fl, "DipT: %d\n", GET_DIPTIMER(ch));
   if (GET_CLAN(ch) != PFDEF_CLAN)
