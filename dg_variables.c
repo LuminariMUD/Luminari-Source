@@ -315,7 +315,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   obj_data *obj, *o = NULL;
   struct room_data *room, *r = NULL;
   char *name;
-  int num, count, i, j, doors;
+  int num, count, i, j, doors, index = 0;
 
   const char *const send_cmd[] = {"msend ", "osend ", "wsend "};
   const char *const echo_cmd[] = {"mecho ", "oecho ", "wecho "};
