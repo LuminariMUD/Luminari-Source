@@ -159,28 +159,28 @@ struct mud_event_list mud_event_index[] = {
     {"Pixie Dust Cool Down", event_daily_use_cooldown, EVENT_CHAR},      // ePIXIEDUST
     {"Efreeti Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},   // eEFREETIMAGIC
     /*115*/
-    {"Dragon Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR},    // eDRAGONMAGIC
-    {"Strength", event_daily_use_cooldown, EVENT_CHAR},                  // eSLA_STRENGTH
-    {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},                   // eSLA_ENLARGE
-    {"Invis", event_daily_use_cooldown, EVENT_CHAR},                     // eSLA_INVIS
-    {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR},    // eCONCUSSIVEONSLAUGHT
+    {"Dragon Magic Cool Down", event_daily_use_cooldown, EVENT_CHAR}, // eDRAGONMAGIC
+    {"Strength", event_daily_use_cooldown, EVENT_CHAR},               // eSLA_STRENGTH
+    {"Enlarge", event_daily_use_cooldown, EVENT_CHAR},                // eSLA_ENLARGE
+    {"Invis", event_daily_use_cooldown, EVENT_CHAR},                  // eSLA_INVIS
+    {"Concussive Onslaught", event_concussive_onslaught, EVENT_CHAR}, // eCONCUSSIVEONSLAUGHT
     /*120*/
-    {"Channel Spell", event_daily_use_cooldown, EVENT_CHAR},             // eCHANNELSPELL
-    {"Power Leech", event_power_leech, EVENT_CHAR},                      // ePOWERLEECH
-    {"Psionic Focus", event_daily_use_cooldown, EVENT_CHAR},             // ePSIONICFOCUS
-    {"Double Manifest", event_daily_use_cooldown, EVENT_CHAR},           // eDOUBLEMANIFEST
-    {"Call Shadow", event_countdown, EVENT_CHAR},                        // eSUMMONSHADOW
+    {"Channel Spell", event_daily_use_cooldown, EVENT_CHAR},   // eCHANNELSPELL
+    {"Power Leech", event_power_leech, EVENT_CHAR},            // ePOWERLEECH
+    {"Psionic Focus", event_daily_use_cooldown, EVENT_CHAR},   // ePSIONICFOCUS
+    {"Double Manifest", event_daily_use_cooldown, EVENT_CHAR}, // eDOUBLEMANIFEST
+    {"Call Shadow", event_countdown, EVENT_CHAR},              // eSUMMONSHADOW
     /*125*/
-    {"Shadow Illusion", event_daily_use_cooldown, EVENT_CHAR},           // eSHADOWILLUSION
-    {"Shadow Call", event_daily_use_cooldown, EVENT_CHAR},               // eSHADOWCALL
-    {"Shadow Jump", event_daily_use_cooldown, EVENT_CHAR},               // eSHADOWJUMP
-    {"Shadow Power", event_daily_use_cooldown, EVENT_CHAR},              // eSHADOWPOWER
-    {"Touch of Corruption", event_daily_use_cooldown, EVENT_CHAR},       // eTOUCHOFCORRUPTION
+    {"Shadow Illusion", event_daily_use_cooldown, EVENT_CHAR},     // eSHADOWILLUSION
+    {"Shadow Call", event_daily_use_cooldown, EVENT_CHAR},         // eSHADOWCALL
+    {"Shadow Jump", event_daily_use_cooldown, EVENT_CHAR},         // eSHADOWJUMP
+    {"Shadow Power", event_daily_use_cooldown, EVENT_CHAR},        // eSHADOWPOWER
+    {"Touch of Corruption", event_daily_use_cooldown, EVENT_CHAR}, // eTOUCHOFCORRUPTION
     /*130*/
-    {"Channel Energy", event_daily_use_cooldown, EVENT_CHAR},            // eCHANNELENERGY
-    {"Lich Touch", event_daily_use_cooldown, EVENT_CHAR},            // eLICH_TOUCH
-    {"Lich Rejuvenation", event_countdown, EVENT_CHAR},            // eLICH_REJUV
-    {"Lich Fear", event_daily_use_cooldown, EVENT_CHAR},            // eLICH_FEAR
+    {"Channel Energy", event_daily_use_cooldown, EVENT_CHAR}, // eCHANNELENERGY
+    {"Lich Touch", event_daily_use_cooldown, EVENT_CHAR},     // eLICH_TOUCH
+    {"Lich Rejuvenation", event_countdown, EVENT_CHAR},       // eLICH_REJUV
+    {"Lich Fear", event_daily_use_cooldown, EVENT_CHAR},      // eLICH_FEAR
 
 };
 
@@ -208,6 +208,7 @@ EVENTFUNC(event_countdown)
   region_rnum regrnum = NOWHERE;
   // obj_vnum *obj_vnum = NULL;
   // obj_rnum obj_rnum = NOWHERE;
+  int index = 0, qvnum = NOTHING;
 
   char **tokens; /* Storage for tokenized encounter room vnums */
   char **it;     /* Token iterator */
@@ -462,7 +463,10 @@ EVENTFUNC(event_countdown)
     perform_collect(ch, FALSE);
     break;
   case eQUEST_COMPLETE:
-    complete_quest(ch);
+    qvnum = atoi((char *)pMudEvent->sVariables);
+    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+      if (qvnum != NOTHING & qvnum == GET_QUEST(ch, index))
+        complete_quest(ch, index);
     break;
   case eSPELLBATTLE:
     send_to_char(ch, "You are able to use spellbattle again.\r\n");

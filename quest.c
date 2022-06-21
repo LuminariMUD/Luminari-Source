@@ -1090,7 +1090,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 
   if (!found)
   {
-    send_to_char(ch, "That player doesn't have any spare slots!\r\n");
+    send_to_char(ch, "That player doesn't have any spare quest slots!\r\n");
     return;
   }
 
