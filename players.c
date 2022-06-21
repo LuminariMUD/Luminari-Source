@@ -438,10 +438,10 @@ int load_char(const char *name, struct char_data *ch)
     NEXT_SITTING(ch) = NULL;
     GET_QUESTPOINTS(ch) = PFDEF_QUESTPOINTS;
 
-    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+    for (i = 0; i < MAX_CURRENT_QUESTS; i++)
     { /* loop through all the character's quest slots */
-      GET_QUEST_COUNTER(ch, index) = PFDEF_QUESTCOUNT;
-      GET_QUEST(ch, index) = PFDEF_CURRQUEST;
+      GET_QUEST_COUNTER(ch, i) = PFDEF_QUESTCOUNT;
+      GET_QUEST(ch, i) = PFDEF_CURRQUEST;
     }
 
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
