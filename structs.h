@@ -3758,14 +3758,14 @@ struct player_special_data_saved
     clan_vnum clan; /**< The clan number to which the player belongs     */
     int clanrank;   /**< The player's rank within their clan (1=highest) */
 
-    /* autoquest */
-    int questpoints;            // quest points earned
-    qst_vnum *completed_quests; /**< Quests completed              */
-    int num_completed_quests;   /**< Number completed              */
-    int current_quest;          /**< vnum of current quest         */
-    //int current_quest[3];
-    int quest_time;             /**< time left on current quest    */
-    int quest_counter;          /**< Count of targets left to get  */
+/* autoquest */
+#define MAX_CURRENT_QUESTS 3
+    int questpoints;                       // quest points earned
+    qst_vnum *completed_quests;            /**< Quests completed              */
+    int num_completed_quests;              /**< Number completed              */
+    int current_quest[MAX_CURRENT_QUESTS]; /**< vnums of current quests         */
+    int quest_time;                        /**< time left on current quest    */
+    int quest_counter;                     /**< Count of targets left to get  */
 
     /* auto crafting quest */
     unsigned int autocquest_vnum; // vnum of crafting quest item

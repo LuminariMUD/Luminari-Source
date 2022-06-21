@@ -58,10 +58,10 @@ static const char *quest_cmd[] = {
     "\n"};
 
 static const char *quest_mort_usage =
-    "Usage: quest  list | history <optional nn> | progress | join <nn> | leave";
+    "Usage: quest  list | history <optional nn> | progress <optional nn> | join <nn> | leave <nn>";
 
 static const char *quest_imm_usage =
-    "Usage: quest  list | history <optional nn> | progress | join <nn> | leave | status <vnum> | assign <target> <vnum>";
+    "Usage: quest  list | history <optional nn> | progress <optional nn> | join <nn> | leave <nn> | status <vnum> | assign <target> <vnum>";
 
 /*--------------------------------------------------------------------------*/
 /* Utility Functions                                                        */
@@ -271,22 +271,22 @@ void assign_the_quests(void)
 /*--------------------------------------------------------------------------*/
 
 /* assign a quest to given ch */
-void set_quest(struct char_data *ch, qst_rnum rnum)
+void set_quest(struct char_data *ch, qst_rnum rnum, int index)
 {
-  GET_QUEST(ch) = QST_NUM(rnum);
-  GET_QUEST_TIME(ch) = QST_TIME(rnum);
-  GET_QUEST_COUNTER(ch) = QST_QUANTITY(rnum);
+  GET_QUEST(ch, index) = QST_NUM(rnum);
+  GET_QUEST_TIME(ch, index) = QST_TIME(rnum);
+  GET_QUEST_COUNTER(ch, index) = QST_QUANTITY(rnum);
   SET_BIT_AR(PRF_FLAGS(ch), PRF_QUEST);
   return;
 }
 
-/* clear a ch of his quest */
-void clear_quest(struct char_data *ch)
+/* clear a ch of his [index] quest */
+void clear_quest(struct char_data *ch, int index)
 {
-  GET_QUEST(ch) = NOTHING;
-  GET_QUEST_TIME(ch) = -1;
-  GET_QUEST_COUNTER(ch) = 0;
-  REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_QUEST);
+  GET_QUEST(ch, index) = NOTHING;
+  GET_QUEST_TIME(ch, index) = -1;
+  GET_QUEST_COUNTER(ch, index) = 0;
+  // REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_QUEST);
   return;
 }
 
@@ -329,15 +329,15 @@ void remove_completed_quest(struct char_data *ch, qst_vnum vnum)
 }
 
 /* called when a quest is completed! */
-void complete_quest(struct char_data *ch)
+void complete_quest(struct char_data *ch, int index)
 {
   qst_rnum rnum = -1;
-  qst_vnum vnum = GET_QUEST(ch);
+  qst_vnum vnum = GET_QUEST(ch, index);
   struct obj_data *new_obj = NULL;
   int happy_qp = 0, happy_gold = 0, happy_exp = 0;
 
   /* dummy check */
-  if (GET_QUEST(ch) == NOTHING)
+  if (GET_QUEST(ch, index) == NOTHING)
   {
     log("UH OH: complete_quest() called without a quest VNUM!");
     return;
@@ -346,10 +346,10 @@ void complete_quest(struct char_data *ch)
   rnum = real_quest(vnum);
 
   /* we should NOT be getting this */
-  if (GET_QUEST_COUNTER(ch) > 0 && rnum != NOWHERE && rnum != NOTHING)
+  if (GET_QUEST_COUNTER(ch, index) > 0 && rnum != NOWHERE && rnum != NOTHING)
   {
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
-                 --GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
+                 --GET_QUEST_COUNTER(ch, index), QST_QUANTITY(rnum));
     save_char(ch, 0);
     log("UH OH: complete_quest() quest-counter is greater than zero!");
     return;
@@ -442,11 +442,11 @@ void complete_quest(struct char_data *ch)
   /* handle throwing quest in history and repeatable quests */
   if ((!IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE)) ||
       (IS_SET(QST_FLAGS(rnum), AQ_REPEATABLE) &&
-       !is_complete(ch, GET_QUEST(ch))))
+       !is_complete(ch, GET_QUEST(ch, index))))
     add_completed_quest(ch, vnum);
 
   /* clear the quest data from ch, clean slate */
-  clear_quest(ch);
+  clear_quest(ch, index);
 
   /* does this quest have a next step built in? */
   if ((real_quest(QST_NEXT(rnum)) != NOTHING) &&
@@ -454,7 +454,8 @@ void complete_quest(struct char_data *ch)
       !is_complete(ch, QST_NEXT(rnum)))
   {
     rnum = real_quest(QST_NEXT(rnum));
-    set_quest(ch, rnum);
+    /* we will just use the slot we completed to insert this quest */
+    set_quest(ch, rnum, index);
     send_to_char(ch,
                  "\tW***The next stage of your quest awaits:\tn\r\n\r\n%s\r\n",
                  QST_INFO(rnum));
@@ -465,24 +466,24 @@ void complete_quest(struct char_data *ch)
  * or completion of a quest-step
  * NOTE: We added the actual completion to an event that
  * will call: void complete_quest() above */
-void generic_complete_quest(struct char_data *ch)
+void generic_complete_quest(struct char_data *ch, int index)
 {
 
   /* more work to do on this quest! make sure to decrement counter  */
-  if (GET_QUEST(ch) != NOTHING && --GET_QUEST_COUNTER(ch) > 0)
+  if (GET_QUEST(ch, index) != NOTHING && --GET_QUEST_COUNTER(ch, index) > 0)
   {
     qst_rnum rnum = -1;
-    qst_vnum vnum = GET_QUEST(ch);
+    qst_vnum vnum = GET_QUEST(ch, index);
 
     rnum = real_quest(vnum);
 
     send_to_char(ch, "You still have to achieve \tm%d\tn out of \tM%d\tn goals for the quest.\r\n\r\n",
-                 GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
+                 GET_QUEST_COUNTER(ch, index), QST_QUANTITY(rnum));
     save_char(ch, 0);
 
     /* the quest is truly complete? */
   }
-  else if (GET_QUEST(ch) != NOTHING)
+  else if (GET_QUEST(ch, index) != NOTHING)
   {
     struct mud_event_data *pMudEvent = NULL;
     char buf[128] = {'\0'};
@@ -494,7 +495,7 @@ void generic_complete_quest(struct char_data *ch)
       event_quest_num = atoi((char *)pMudEvent->sVariables);
 
       /* make sure we do not already have an event for this quest! */
-      if (event_quest_num == GET_QUEST(ch))
+      if (event_quest_num == GET_QUEST(ch, index))
       {
         /* get out of here, we are already processing this particular
            quest completion */
@@ -503,7 +504,7 @@ void generic_complete_quest(struct char_data *ch)
     }
 
     /* we should be in the clear to tag this player with a completed quest */
-    snprintf(buf, sizeof(buf), "%d", GET_QUEST(ch)); /* sending vnum to event of quest */
+    snprintf(buf, sizeof(buf), "%d", GET_QUEST(ch, index)); /* sending vnum to event of quest */
     attach_mud_event(new_mud_event(eQUEST_COMPLETE, ch, buf), 1);
   }
 }
@@ -513,86 +514,114 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 {
   struct char_data *i;
   qst_rnum rnum;
-  int found = TRUE;
+  int found = TRUE, index = -1;
 
   if (IS_NPC(ch))
     return;
-  if (GET_QUEST(ch) == NOTHING) /* No current quest, skip this */
-    return;
-  if (GET_QUEST_TYPE(ch) != type)
-    return;
-  if ((rnum = real_quest(GET_QUEST(ch))) == NOTHING)
-    return;
-  switch (type)
+
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-  case AQ_OBJ_FIND:
-    if (QST_TARGET(rnum) == GET_OBJ_VNUM(object))
-      generic_complete_quest(ch);
-    break;
-  case AQ_ROOM_FIND:
-    if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
-      generic_complete_quest(ch);
-    break;
-  case AQ_MOB_FIND:
-    for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
-      if (IS_NPC(i))
-        if (QST_TARGET(rnum) == GET_MOB_VNUM(i))
-          generic_complete_quest(ch);
-    break;
-  case AQ_MOB_KILL:
-    if (!IS_NPC(ch) && IS_NPC(vict) && (ch != vict))
-      if (QST_TARGET(rnum) == GET_MOB_VNUM(vict))
-        generic_complete_quest(ch);
-    break;
-  case AQ_MOB_SAVE:
-    if (ch == vict)
-      found = FALSE;
-    for (i = world[IN_ROOM(ch)].people; i && found; i = i->next_in_room)
-      if (i && IS_NPC(i) && !MOB_FLAGGED(i, MOB_NOTDEADYET))
-        if ((GET_MOB_VNUM(i) != QST_TARGET(rnum)) &&
-            !AFF_FLAGGED(i, AFF_CHARM))
-          found = FALSE;
-    if (found)
-      generic_complete_quest(ch);
-    break;
-  case AQ_OBJ_RETURN:
-    if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
-      if (object && (GET_OBJ_VNUM(object) == QST_TARGET(rnum)))
-        generic_complete_quest(ch);
-    break;
-  case AQ_ROOM_CLEAR:
-    if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+
+    if (GET_QUEST(ch, index) == NOTHING) /* No current quest, skip this */
+      continue;
+    if (GET_QUEST_TYPE(ch, index) != type)
+      continue;
+
+    /* grab the rnum */
+    if ((rnum = real_quest(GET_QUEST(ch, index))) == NOTHING)
+      continue;
+
+    switch (type)
     {
+
+    case AQ_OBJ_FIND:
+      if (QST_TARGET(rnum) == GET_OBJ_VNUM(object))
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_ROOM_FIND:
+      if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_MOB_FIND:
+      for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
+        if (IS_NPC(i))
+          if (QST_TARGET(rnum) == GET_MOB_VNUM(i))
+            generic_complete_quest(ch, index);
+      break;
+
+    case AQ_MOB_KILL:
+      if (!IS_NPC(ch) && IS_NPC(vict) && (ch != vict))
+        if (QST_TARGET(rnum) == GET_MOB_VNUM(vict))
+          generic_complete_quest(ch, index);
+      break;
+
+    case AQ_MOB_SAVE:
+      if (ch == vict)
+        found = FALSE;
       for (i = world[IN_ROOM(ch)].people; i && found; i = i->next_in_room)
         if (i && IS_NPC(i) && !MOB_FLAGGED(i, MOB_NOTDEADYET))
-          found = FALSE;
+          if ((GET_MOB_VNUM(i) != QST_TARGET(rnum)) &&
+              !AFF_FLAGGED(i, AFF_CHARM))
+            found = FALSE;
       if (found)
-        generic_complete_quest(ch);
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_OBJ_RETURN:
+      if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
+        if (object && (GET_OBJ_VNUM(object) == QST_TARGET(rnum)))
+          generic_complete_quest(ch, index);
+      break;
+
+    case AQ_ROOM_CLEAR:
+      if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+      {
+        for (i = world[IN_ROOM(ch)].people; i && found; i = i->next_in_room)
+          if (i && IS_NPC(i) && !MOB_FLAGGED(i, MOB_NOTDEADYET))
+            found = FALSE;
+        if (found)
+          generic_complete_quest(ch, index);
+      }
+      break;
+
+    default:
+      log("SYSERR: Invalid quest type passed to autoquest_trigger_check");
+      break;
     }
-    break;
-  default:
-    log("SYSERR: Invalid quest type passed to autoquest_trigger_check");
-    break;
   }
 }
 
-void quest_timeout(struct char_data *ch)
+/* process (clear) a quest that has timed out */
+void quest_timeout(struct char_data *ch, int index)
 {
-  if ((GET_QUEST(ch) != NOTHING) && (GET_QUEST_TIME(ch) != -1))
+  if ((GET_QUEST(ch, index) != NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
   {
-    clear_quest(ch);
-    send_to_char(ch, "You have run out of time to complete the quest.\r\n");
+    clear_quest(ch, index);
+    send_to_char(ch, "You have run out of time to complete the quest index: %d.\r\n", index);
   }
 }
 
+/* tick processing - decrement timers on all the in-game quests, if it reaches zero (0) then call quest_timeout() */
 void check_timed_quests(void)
 {
   struct char_data *ch;
+  int index = 0;
 
   for (ch = character_list; ch; ch = ch->next)
-    if (!IS_NPC(ch) && (GET_QUEST(ch) != NOTHING) && (GET_QUEST_TIME(ch) != -1))
-      if (--GET_QUEST_TIME(ch) == 0)
-        quest_timeout(ch);
+  {
+    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+    { /* loop through all the character's quest slots */
+      if (!IS_NPC(ch) && (GET_QUEST(ch, index) != NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
+      {
+        if (--GET_QUEST_TIME(ch, index) == 0)
+        {
+          quest_timeout(ch, index);
+        }
+      }
+    } /* 2nd for-loop, index of char quests */
+  }   /* 1st for-loop, character list */
 }
 
 /*--------------------------------------------------------------------------*/
@@ -701,14 +730,15 @@ void quest_hist(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 }
 
 /* rewrote this so quest objects can be equipped -zusuk */
+/* 2nd re-write to allow for taking multiple quests -z */
 void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_INPUT_LENGTH])
 {
   qst_vnum vnum = NOTHING;
   qst_rnum rnum = NOWHERE;
   obj_rnum objrnum = NOTHING;
   char buf[MAX_INPUT_LENGTH];
-  bool has_quest_object = FALSE;
-  int i = 0;
+  bool has_quest_object = FALSE, found = FALSE;
+  int i = 0, index = 0;
 
   if (!*argument)
   {
@@ -718,10 +748,20 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
-  if (GET_QUEST(ch) != NOTHING)
+  /* got a spare slot to join a quest? */
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if (GET_QUEST(ch, index) == NOTHING)
+    {
+      found = TRUE;
+      break;
+    }
+  }
+
+  if (!found)
   {
     snprintf(buf, sizeof(buf),
-             "\r\n%s, but you are already part of a quest!\r\n", GET_NAME(ch));
+             "\r\n%s, but you don't have any spare slots to join a quest!\r\n", GET_NAME(ch));
     send_to_char(ch, "%s", buf);
     return;
   }
@@ -824,7 +864,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   snprintf(buf, sizeof(buf),
            "\tW%s \tWlisten carefully to the instructions.\tn\r\n\r\n", GET_NAME(ch));
   send_to_char(ch, "%s", buf);
-  set_quest(ch, rnum);
+  set_quest(ch, rnum, index);
   send_to_char(ch, "%s", QST_INFO(rnum));
   if (QST_TIME(rnum) != -1)
   {
@@ -872,22 +912,40 @@ void quest_list(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     send_to_char(ch, "There is no further information on that quest.\r\n");
 }
 
-/* will drop the current quest the player is pursuing */
-void quest_quit(struct char_data *ch)
+/* will drop the current quest index the player is pursuing */
+void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   qst_rnum rnum;
+  int index = -1;
 
-  if (GET_QUEST(ch) == NOTHING)
-    send_to_char(ch, "But you currently aren't on a quest!\r\n");
-  else if ((rnum = real_quest(GET_QUEST(ch))) == NOTHING)
+  if (!*argument)
   {
-    clear_quest(ch);
+    send_to_char(ch, "You need to provide the quest index from your queue to leave.\r\n");
+    return;
+  }
+
+  /* convert argument to a integer */
+  index = atoi(argument);
+
+  if (index >= MAX_CURRENT_QUESTS || index < 0)
+  {
+    send_to_char(ch, "Invalid index (%d)!\r\n", index);
+    return;
+  }
+
+  if (GET_QUEST(ch, index) == NOTHING)
+  {
+    send_to_char(ch, "But you currently aren't on a quest in that index!\r\n");
+  }
+  else if ((rnum = real_quest(GET_QUEST(ch, index))) == NOTHING)
+  {
+    clear_quest(ch, index);
     send_to_char(ch, "You are now no longer part of the quest.\r\n");
     save_char(ch, 0);
   }
   else
   {
-    clear_quest(ch);
+    clear_quest(ch, index);
     if (QST_QUIT(rnum) && (str_cmp(QST_QUIT(rnum), "undefined") != 0))
       send_to_char(ch, "%s", QST_QUIT(rnum));
     else
@@ -904,16 +962,44 @@ void quest_quit(struct char_data *ch)
 }
 
 /* will give player current status on their quest they are working on */
-void quest_progress(struct char_data *ch)
+void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
   qst_rnum rnum;
+  int index = -1;
 
-  if (GET_QUEST(ch) == NOTHING)
-    send_to_char(ch, "But you currently aren't on a quest!\r\n");
-  else if ((rnum = real_quest(GET_QUEST(ch))) == NOTHING)
+  if (!*argument)
   {
-    clear_quest(ch);
-    send_to_char(ch, "Your quest seems to no longer exist.\r\n");
+    send_to_char(ch, "You are on the following quests:\r\n");
+    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+    {
+      if ((rnum = real_quest(GET_QUEST(ch, index))) == NOTHING)
+      {
+        clear_quest(ch, index); /* safety clearing */
+        send_to_char(ch, " (Index: %d) This quest slot is available.\r\n", index);
+      }
+      send_to_char(ch, "(Index: %d) - %s\r\n", index, QST_NAME(rnum));
+    }
+    send_to_char(ch, "You can provide the quest index from your queue to check specific progress details.\r\n");
+    return;
+  }
+
+  /* convert argument to a integer */
+  index = atoi(argument);
+
+  if (index >= MAX_CURRENT_QUESTS || index < 0)
+  {
+    send_to_char(ch, "Invalid index (%d)!  This command can be used without an argument.\r\n", index);
+    return;
+  }
+
+  if (GET_QUEST(ch, index) == NOTHING)
+  {
+    send_to_char(ch, "But you currently aren't on a quest in that slot!\r\n");
+  }
+  else if ((rnum = real_quest(GET_QUEST(ch, index))) == NOTHING)
+  {
+    clear_quest(ch, index);
+    send_to_char(ch, "That quest seems to no longer exist.\r\n");
   }
   else
   {
@@ -922,12 +1008,12 @@ void quest_progress(struct char_data *ch)
     if (QST_QUANTITY(rnum) > 1)
       send_to_char(ch,
                    "You still have to achieve %d out of %d goals for the quest.\r\n",
-                   GET_QUEST_COUNTER(ch), QST_QUANTITY(rnum));
-    if (GET_QUEST_TIME(ch) > 0)
+                   GET_QUEST_COUNTER(ch, index), QST_QUANTITY(rnum));
+    if (GET_QUEST_TIME(ch, index) > 0)
       send_to_char(ch,
                    "You have %d turn%s remaining to complete the quest.\r\n",
-                   GET_QUEST_TIME(ch),
-                   GET_QUEST_TIME(ch) == 1 ? "" : "s");
+                   GET_QUEST_TIME(ch, index),
+                   GET_QUEST_TIME(ch, index) == 1 ? "" : "s");
   }
 }
 
@@ -973,7 +1059,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   struct char_data *victim = NULL;
   qst_rnum rnum = NOTHING;
-  //qst_vnum vnum = NOTHING;
+  // qst_vnum vnum = NOTHING;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -1077,7 +1163,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     if (QST_PREREQ(rnum) != NOTHING)
       send_to_char(ch, "Preq  : [\ty%5d\tn] \ty%s\tn\r\n",
                    QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
-                   QST_PREREQ(rnum) == NOTHING ? "" : real_object(QST_PREREQ(rnum)) == NOTHING ? "an unknown object" : obj_proto[real_object(QST_PREREQ(rnum))].short_description);
+                   QST_PREREQ(rnum) == NOTHING ? "" : real_object(QST_PREREQ(rnum)) == NOTHING ? "an unknown object"
+                                                                                               : obj_proto[real_object(QST_PREREQ(rnum))].short_description);
     if (QST_TYPE(rnum) == AQ_OBJ_RETURN)
       send_to_char(ch, "Mob   : [\ty%5d\tn] \ty%s\tn\r\n",
                    QST_RETURNMOB(rnum),
@@ -1123,18 +1210,18 @@ ACMD(do_quest)
     {
     case SCMD_QUEST_LIST:
     case SCMD_QUEST_JOIN:
-      /* list, join should have been handled by 
-         * (SPECIAL(questmaster)) questmaster spec proc */
+      /* list, join should have been handled by
+       * (SPECIAL(questmaster)) questmaster spec proc */
       send_to_char(ch, "Sorry, but you cannot do that here!\r\n");
       break;
     case SCMD_QUEST_HISTORY:
       quest_hist(ch, arg2);
       break;
     case SCMD_QUEST_LEAVE:
-      quest_quit(ch);
+      quest_quit(ch, arg2);
       break;
     case SCMD_QUEST_PROGRESS:
-      quest_progress(ch);
+      quest_progress(ch, arg2);
       break;
     case SCMD_QUEST_STATUS:
       if (GET_LEVEL(ch) < LVL_IMMORT)
