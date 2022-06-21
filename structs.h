@@ -3764,8 +3764,8 @@ struct player_special_data_saved
     qst_vnum *completed_quests;            /**< Quests completed              */
     int num_completed_quests;              /**< Number completed              */
     int current_quest[MAX_CURRENT_QUESTS]; /**< vnums of current quests         */
-    int quest_time;                        /**< time left on current quest    */
-    int quest_counter;                     /**< Count of targets left to get  */
+    int quest_time[MAX_CURRENT_QUESTS];    /**< time left on current quest    */
+    int quest_counter[MAX_CURRENT_QUESTS]; /**< Count of targets left to get  */
 
     /* auto crafting quest */
     unsigned int autocquest_vnum; // vnum of crafting quest item
