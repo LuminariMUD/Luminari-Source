@@ -38,6 +38,10 @@
 #define AQ_REPEATABLE (1 << 0) /* Quest can be repeated                */
 #define NUM_AQ_FLAGS 1
 
+/* to add modes for auto quest system */
+#define QMODE_NONE 0
+#define QMODE_QCOPY 1
+
 /* Main quest struct ************************************************** */
 struct aq_data
 {

@@ -20,7 +20,7 @@
 /*-------------------------------------------------------------------*/
 
 /* duplicate a quest in olc */
-int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings)
+int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings, int mode)
 {
 
   if (free_old_strings)
@@ -30,7 +30,8 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings)
 
   int i;
 
-  to->vnum = from->vnum;
+  if (mode == QMODE_NONE)
+    to->vnum = from->vnum;
   to->flags = from->flags;
   to->type = from->type;
   to->qm = from->qm;
@@ -100,7 +101,7 @@ int add_quest(struct aq_data *nqst)
   /* The quest already exists, just update it.  */
   if ((rnum = real_quest(nqst->vnum)) != NOWHERE)
   {
-    copy_quest(&aquest_table[rnum], nqst, TRUE);
+    copy_quest(&aquest_table[rnum], nqst, TRUE, QMODE_NONE);
   }
   else
   {
@@ -121,11 +122,11 @@ int add_quest(struct aq_data *nqst)
     for (rnum = total_quests - 1; rnum > 0; rnum--)
     {
       if (nqst->vnum > QST_NUM(rnum - 1))
-        break;                                     //found the place
-      aquest_table[rnum] = aquest_table[rnum - 1]; //shift quest up one
+        break;                                     // found the place
+      aquest_table[rnum] = aquest_table[rnum - 1]; // shift quest up one
     }
 
-    copy_quest(&aquest_table[rnum], nqst, FALSE);
+    copy_quest(&aquest_table[rnum], nqst, FALSE, QMODE_NONE);
   }
   qmrnum = real_mobile(QST_MASTER(rnum));
 
@@ -267,33 +268,33 @@ int save_quests(zone_rnum zone_num)
       /* Save the quest details to the file.  */
       sprintascii(quest_flags, QST_FLAGS(rnum));
       snprintf(buf, sizeof(buf),
-              "#%d\n"
-              "%s%c\n"
-              "%s%c\n"
-              "%s%c\n"
-              "%s%c\n"
-              "%s%c\n"
-              "%d %d %s %d %d %d %d\n"
-              "%d %d %d %d %d %d %d\n"
-              "%d %d %d\n"
-              "S\n",
-              QST_NUM(rnum),
-              QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
-              quest_desc, STRING_TERMINATOR,
-              quest_info, STRING_TERMINATOR,
-              quest_done, STRING_TERMINATOR,
-              quest_quit, STRING_TERMINATOR,
-              QST_TYPE(rnum),
-              QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
-              quest_flags,
-              QST_TARGET(rnum) == NOTHING ? -1 : QST_TARGET(rnum),
-              QST_PREV(rnum) == NOTHING ? -1 : QST_PREV(rnum),
-              QST_NEXT(rnum) == NOTHING ? -1 : QST_NEXT(rnum),
-              QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
-              QST_POINTS(rnum), QST_PENALTY(rnum), QST_MINLEVEL(rnum),
-              QST_MAXLEVEL(rnum), QST_TIME(rnum),
-              QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum),
-              QST_QUANTITY(rnum), QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum));
+               "#%d\n"
+               "%s%c\n"
+               "%s%c\n"
+               "%s%c\n"
+               "%s%c\n"
+               "%s%c\n"
+               "%d %d %s %d %d %d %d\n"
+               "%d %d %d %d %d %d %d\n"
+               "%d %d %d\n"
+               "S\n",
+               QST_NUM(rnum),
+               QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
+               quest_desc, STRING_TERMINATOR,
+               quest_info, STRING_TERMINATOR,
+               quest_done, STRING_TERMINATOR,
+               quest_quit, STRING_TERMINATOR,
+               QST_TYPE(rnum),
+               QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
+               quest_flags,
+               QST_TARGET(rnum) == NOTHING ? -1 : QST_TARGET(rnum),
+               QST_PREV(rnum) == NOTHING ? -1 : QST_PREV(rnum),
+               QST_NEXT(rnum) == NOTHING ? -1 : QST_NEXT(rnum),
+               QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
+               QST_POINTS(rnum), QST_PENALTY(rnum), QST_MINLEVEL(rnum),
+               QST_MAXLEVEL(rnum), QST_TIME(rnum),
+               QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum),
+               QST_QUANTITY(rnum), QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum));
 
       fprintf(sf, convert_from_tabs(buf), 0);
 

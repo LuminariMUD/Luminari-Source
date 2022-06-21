@@ -187,7 +187,7 @@ ACMD(do_oasis_qedit)
   OLC_NUM(d) = number;
 
   if ((real_num = real_quest(number)) != NOTHING)
-    qedit_setup_existing(d, real_num);
+    qedit_setup_existing(d, real_num, QMODE_NONE);
   else
     qedit_setup_new(d);
 
@@ -247,18 +247,20 @@ static void qedit_setup_new(struct descriptor_data *d)
 /*-------------------------------------------------------------------*/
 
 /* edit a quest that already exists */
-void qedit_setup_existing(struct descriptor_data *d, int r_num)
+void qedit_setup_existing(struct descriptor_data *d, int r_num, int mode)
 {
   struct aq_data *quest = NULL;
 
   /*. Alloc some quest shaped space . */
   CREATE(quest, struct aq_data, 1);
 
-  copy_quest(quest, aquest_table + r_num, FALSE);
+  copy_quest(quest, aquest_table + r_num, FALSE, QMODE_QCOPY);
 
   OLC_QUEST(d) = quest;
+  OLC_VAL(d) = 0;
 
-  qedit_disp_menu(d);
+  if (mode == QMODE_NONE)
+    qedit_disp_menu(d);
 }
 
 /*-------------------------------------------------------------------*/
@@ -361,7 +363,8 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
                   quest->value[2], quest->value[3],
                   quest->prereq == NOTHING ? -1 : quest->prereq,
-                  quest->prereq == NOTHING ? "" : real_object(quest->prereq) == NOTHING ? "an unknown object" : obj_proto[real_object(quest->prereq)].short_description,
+                  quest->prereq == NOTHING ? "" : real_object(quest->prereq) == NOTHING ? "an unknown object"
+                                                                                        : obj_proto[real_object(quest->prereq)].short_description,
                   quest->value[4],
                   quest->next_quest == NOTHING ? -1 : quest->next_quest,
                   real_quest(quest->next_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->next_quest)),

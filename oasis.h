@@ -118,7 +118,7 @@ struct oasis_olc_data
    /* NewCraft */
    struct craft_data *craft;     /* used for 'craftedit'     */
    struct requirement_data *req; /*           ditto          */
-   struct obj_data *iobj;         /* used for 'iedit'         */
+   struct obj_data *iobj;        /* used for 'iedit'         */
 
    /* Wilderness editing */
    struct region_data *region; /* Used for 'regedit' */
@@ -148,7 +148,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OLC_STORAGE(d) (OLC(d)->storage) /**< char pointer.	*/
 #define OLC_ROOM(d) (OLC(d)->room)       /**< Room structure.	*/
 #define OLC_OBJ(d) (OLC(d)->obj)         /**< Object structure.	*/
-#define OLC_IOBJ(d) 	(OLC(d)->iobj)		/* Individual object structure.	*/
+#define OLC_IOBJ(d) (OLC(d)->iobj)       /* Individual object structure.	*/
 #define OLC_ZONE(d) (OLC(d)->zone)       /**< Zone structure.	*/
 #define OLC_MOB(d) (OLC(d)->mob)         /**< Mob structure.	*/
 #define OLC_SHOP(d) (OLC(d)->shop)       /**< Shop structure.	*/
@@ -244,7 +244,7 @@ extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 #define OEDIT_WEAPON_SPELL_LEVEL 32
 #define OEDIT_WEAPON_SPELL_INCOMBAT 33
 #define OEDIT_SIZE 34
-#define OEDIT_PROF 35 //proficiency
+#define OEDIT_PROF 35 // proficiency
 #define OEDIT_MATERIAL 36
 #define OEDIT_SPELLBOOK 37
 #define OEDIT_PROMPT_SPELLBOOK 38
@@ -731,7 +731,7 @@ ACMD_DECL(do_tedit);
 /* public functions from qedit.c */
 ACMD_DECL(do_oasis_qedit);
 void qedit_save_internally(struct descriptor_data *d);
-void qedit_setup_existing(struct descriptor_data *d, int rnum);
+void qedit_setup_existing(struct descriptor_data *d, int rnum, int mode);
 
 /* NewCraft */
 /* public functions from crafts.c */
