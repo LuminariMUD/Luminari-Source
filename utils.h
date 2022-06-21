@@ -1143,23 +1143,24 @@ void char_from_furniture(struct char_data *ch);
 #define GET_QUESTPOINTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.questpoints))
 
 /** Return the current quest that a player has assigned */
-//#define GET_QUEST(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest[index]))
-#define GET_QUEST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest))
+#define GET_QUEST(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest[index]))
+//#define GET_QUEST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest))
 
 /** Number of goals completed for this quest. */
-#define GET_QUEST_COUNTER(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_counter))
+#define GET_QUEST_COUNTER(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_counter[index]))
 
 /** Time remaining to complete the quest ch is currently on. */
-#define GET_QUEST_TIME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time))
+#define GET_QUEST_TIME(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time[index]))
+//#define GET_QUEST_TIME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time))
 
 /** The number of quests completed by ch. */
 #define GET_NUM_QUESTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.num_completed_quests))
 
 /** The type of quest ch is currently participating in. */
-#define GET_QUEST_TYPE(ch) (real_quest(GET_QUEST((ch))) != NOTHING ? aquest_table[real_quest(GET_QUEST((ch)))].type : AQ_UNDEFINED)
+#define GET_QUEST_TYPE(ch, index) (real_quest(GET_QUEST((ch, index))) != NOTHING ? aquest_table[real_quest(GET_QUEST((ch, index)))].type : AQ_UNDEFINED)
 
-/* Autoquests data */
-/** Return the number of questpoints ch has. */
+/* staff ran events data */
+
 #define STAFFRAN_PVAR(ch, variable) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
 
 /**** Clans *****/

@@ -3106,15 +3106,17 @@ ACMD(do_score)
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
 
-  send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n"
-                   "\tcOn quest         : \tn",
+  send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n",
+               //  "\tcOn quest         : \tn",
                (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
                (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
 
-  if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING)
-    send_to_char(ch, "%-60s\r\n", GET_QUEST(ch) == NOTHING ? "None" : QST_NAME(real_quest(GET_QUEST(ch))));
-  else
-    send_to_char(ch, "None\r\n");
+  /*
+    if (!IS_NPC(ch) && GET_QUEST(ch, index) != NOTHING)
+      send_to_char(ch, "%-60s\r\n", GET_QUEST(ch, index) == NOTHING ? "None" : QST_NAME(real_quest(GET_QUEST(ch, index))));
+    else
+      send_to_char(ch, "None\r\n");
+  */
 
   if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
     send_to_char(ch, "\tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",

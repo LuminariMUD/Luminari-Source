@@ -58,7 +58,7 @@ struct aq_data
   obj_vnum obj_reward; /* vnum of object given as a reward     */
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
-  SPECIAL_DECL(*func);      /* secondary spec_proc for the QM       */
+  SPECIAL_DECL(*func); /* secondary spec_proc for the QM       */
 };
 
 #define QST_NUM(i) (aquest_table[i].vnum)
@@ -96,9 +96,9 @@ void parse_quest(FILE *quest_f, int nr);
 int count_quests(qst_vnum low, qst_vnum high);
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax);
 void set_quest(struct char_data *ch, qst_rnum rnum);
-void clear_quest(struct char_data *ch);
+void clear_quest(struct char_data *ch, int index);
 void complete_quest(struct char_data *ch);
-void generic_complete_quest(struct char_data *ch);
+void generic_complete_quest(struct char_data *ch, int index);
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int type);
 qst_rnum real_quest(qst_vnum vnum);
 int is_complete(struct char_data *ch, qst_vnum vnum);

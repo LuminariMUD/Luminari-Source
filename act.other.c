@@ -3889,6 +3889,8 @@ ACMD(do_disguise)
 
 ACMD(do_quit)
 {
+  int index = 0;
+
   if (IS_NPC(ch) || !ch->desc)
     return;
 
@@ -3908,8 +3910,11 @@ ACMD(do_quit)
     save_char_pets(ch);
     dismiss_all_followers(ch);
 
-    if (GET_QUEST_TIME(ch) != -1)
-      quest_timeout(ch);
+    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+    { /* loop through all the character's quest slots */
+      if (GET_QUEST_TIME(ch, index) != -1)
+        quest_timeout(ch index);
+    }
 
     send_to_char(ch, "Goodbye, friend.. Come back soon!\r\n");
 
