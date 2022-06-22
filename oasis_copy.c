@@ -152,7 +152,7 @@ ACMD(do_oasis_copy)
 
   /* Perform the copy. */
   send_to_char(ch, "Copying %s: source: #%d, dest: #%d.\r\n", oasis_copy_info[i].text, src_vnum, dst_vnum);
-  (*oasis_copy_info[i].setup_existing)(d, src_rnum, copy_mode);
+  (*oasis_copy_info[i].setup_existing)(d, src_rnum, dst_vnum);
   (*oasis_copy_info[i].save_func)(d);
 
   /* Currently CLEANUP_ALL should be used for everything. */
