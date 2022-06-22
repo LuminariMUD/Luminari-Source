@@ -172,7 +172,7 @@ ACMD(do_oasis_medit)
   if ((real_num = real_mobile(number)) == NOBODY)
     medit_setup_new(d);
   else
-    medit_setup_existing(d, real_num);
+    medit_setup_existing(d, real_num, QMODE_NONE);
 
   medit_disp_menu(d);
   STATE(d) = CON_MEDIT;
@@ -220,7 +220,7 @@ void medit_setup_new(struct descriptor_data *d)
   OLC_ITEM_TYPE(d) = MOB_TRIGGER;
 }
 
-void medit_setup_existing(struct descriptor_data *d, int rmob_num)
+void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode)
 {
   struct char_data *mob;
 
@@ -435,8 +435,8 @@ void medit_disp_size(struct descriptor_data *d)
   for (i = -1; i < NUM_SIZES; i++)
   {
     snprintf(buf, sizeof(buf), "%2d) %-20.20s  %s", i,
-            (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i],
-            !(++columns % 2) ? "\r\n" : "");
+             (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i],
+             !(++columns % 2) ? "\r\n" : "");
     write_to_output(d, buf);
   }
   write_to_output(d, "\r\nEnter size number (-1 for default): ");
@@ -543,15 +543,15 @@ void delete_echo_entry(struct char_data *mob, int entry_num)
     ECHO_ENTRIES(mob)
     [i] = strdup(ECHO_ENTRIES(mob)[i + 1]);
   }
-  //free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
-  //ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
+  // free(ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1]);
+  // ECHO_ENTRIES(mob)[ECHO_COUNT(mob) - 1] = NULL;
   ECHO_COUNT(mob)
   --;
 
-  //if (ECHO_COUNT(mob) == 0) {
-  //free(ECHO_ENTRIES(mob));
-  //ECHO_ENTRIES(mob) = NULL;
-  //}
+  // if (ECHO_COUNT(mob) == 0) {
+  // free(ECHO_ENTRIES(mob));
+  // ECHO_ENTRIES(mob) = NULL;
+  // }
 }
 
 /* Display alignment choices */
@@ -681,7 +681,7 @@ static void medit_disp_echo_menu(struct descriptor_data *d)
   write_to_output(d, "Mobile Echos:\r\n");
   if (ECHO_COUNT(mob) > 0 && ECHO_ENTRIES(mob))
   {
-    //write_to_output(d, "debug: echo count: %d\r\n", ECHO_COUNT(mob));
+    // write_to_output(d, "debug: echo count: %d\r\n", ECHO_COUNT(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
       if (ECHO_ENTRIES(mob)[i])
         write_to_output(d, "%d) %s\r\n", (i + 1), ECHO_ENTRIES(mob)[i]);
@@ -868,8 +868,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'n':
     case 'N':
       /* If not saving, we must free the script_proto list. We do so by
-           * assigning it to the edited mob and letting free_mobile in
-           * cleanup_olc handle it. */
+       * assigning it to the edited mob and letting free_mobile in
+       * cleanup_olc handle it. */
       OLC_MOB(d)->proto_script = OLC_SCRIPT(d);
       cleanup_olc(d, CLEANUP_ALL);
       return;
@@ -1021,22 +1021,30 @@ void medit_parse(struct descriptor_data *d, char *arg)
       // We're setting this mob up with random descs/name and the right mob flags
       GET_REAL_RACE(OLC_MOB(d)) = RACE_TYPE_HUMANOID;
       GET_SEX(OLC_MOB(d)) = dice(1, 2);
-      snprintf(t_buf, sizeof(t_buf), "%s %s", GET_SEX(OLC_MOB(d)) == SEX_MALE ? random_male_names[dice(1, NUM_MALE_NAMES)-1] : 
-              random_female_names[dice(1, NUM_FEMALE_NAMES)-1], random_surnames[dice(1, NUM_SURNAMES)-1]);
+      snprintf(t_buf, sizeof(t_buf), "%s %s", GET_SEX(OLC_MOB(d)) == SEX_MALE ? random_male_names[dice(1, NUM_MALE_NAMES) - 1] : random_female_names[dice(1, NUM_FEMALE_NAMES) - 1], random_surnames[dice(1, NUM_SURNAMES) - 1]);
       OLC_MOB(d)->player.name = strdup(t_buf);
       OLC_MOB(d)->player.short_descr = strdup(t_buf);
       snprintf(t_buf, sizeof(t_buf), "%s is here before you.", OLC_MOB(d)->player.short_descr);
       OLC_MOB(d)->player.long_descr = strdup(t_buf);
-      snprintf(t_buf, sizeof(t_buf), "%s is a %s %s.\n", OLC_MOB(d)->player.short_descr, genders[GET_SEX(OLC_MOB(d))], race_list[dice(1, NUM_RACES)-1].name);
+      snprintf(t_buf, sizeof(t_buf), "%s is a %s %s.\n", OLC_MOB(d)->player.short_descr, genders[GET_SEX(OLC_MOB(d))], race_list[dice(1, NUM_RACES) - 1].name);
       OLC_MOB(d)->player.description = strdup(t_buf);
       GET_CLASS(OLC_MOB(d)) = CLASS_WARRIOR;
       GET_LEVEL(OLC_MOB(d)) = 10;
       medit_autoroll_stats(d);
-      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_SENTIENT); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_SENTINEL);
-      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_AWARE); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOCHARM); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSUMMON);
-      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSLEEP); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOBASH); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOBLIND);
-      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOKILL); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NODEAF); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOFIGHT);
-      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOGRAPPLE); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSTEAL); SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NO_AI);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_SENTIENT);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_SENTINEL);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_AWARE);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOCHARM);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSUMMON);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSLEEP);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOBASH);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOBLIND);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOKILL);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NODEAF);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOFIGHT);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOGRAPPLE);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOSTEAL);
+      SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NO_AI);
       SET_BIT_AR(MOB_FLAGS(OLC_MOB(d)), MOB_NOCONFUSE);
       GET_REAL_SIZE(OLC_MOB(d)) = SIZE_MEDIUM;
       (OLC_MOB(d))->points.size = GET_REAL_SIZE(OLC_MOB(d));
@@ -1566,8 +1574,8 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
   case MEDIT_D_DESC:
     /*
-       * We should never get here.
-       */
+     * We should never get here.
+     */
     cleanup_olc(d, CLEANUP_ALL);
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: medit_parse(): Reached D_DESC case!");
     write_to_output(d, "Oops...\r\n");
@@ -1974,7 +1982,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
   case MEDIT_COPY:
     if ((i = real_mobile(atoi(arg))) != NOWHERE)
     {
-      medit_setup_existing(d, i);
+      medit_setup_existing(d, i, QMODE_QCOPY);
     }
     else
       write_to_output(d, "That mob does not exist.\r\n");

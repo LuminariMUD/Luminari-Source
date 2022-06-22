@@ -1,11 +1,11 @@
 /**************************************************************************
-*  File: dg_olc.c                                     Part of LuminariMUD *
-*  Usage: This source file is used in extending Oasis OLC for trigedit.   *
-*                                                                         *
-*  $Author: Chris Jacobsen/Mark A. Heilpern/egreen/Welcor $               *
-*  $Date: 2004/10/11 12:07:00$                                            *
-*  $Revision: 1.0.14 $                                                    *
-**************************************************************************/
+ *  File: dg_olc.c                                     Part of LuminariMUD *
+ *  Usage: This source file is used in extending Oasis OLC for trigedit.   *
+ *                                                                         *
+ *  $Author: Chris Jacobsen/Mark A. Heilpern/egreen/Welcor $               *
+ *  $Date: 2004/10/11 12:07:00$                                            *
+ *  $Revision: 1.0.14 $                                                    *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -91,12 +91,12 @@ ACMD(do_oasis_trigedit)
   }
   OLC_NUM(d) = number;
 
-  /* If this is a new trigger, setup a new one, otherwise, setup the a copy of 
+  /* If this is a new trigger, setup a new one, otherwise, setup the a copy of
    * the existing trigger. */
   if ((real_num = real_trigger(number)) == NOTHING)
     trigedit_setup_new(d);
   else
-    trigedit_setup_existing(d, real_num);
+    trigedit_setup_existing(d, real_num, QMODE_NONE);
 
   trigedit_disp_menu(d);
   STATE(d) = CON_TRIGEDIT;
@@ -108,7 +108,7 @@ ACMD(do_oasis_trigedit)
          GET_NAME(ch), zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }
 
-/* Called when a mob or object is being saved to disk, so its script can be 
+/* Called when a mob or object is being saved to disk, so its script can be
  * saved. */
 void script_save_to_disk(FILE *fp, void *item, int type)
 {
@@ -156,7 +156,7 @@ static void trigedit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0; /* Has changed flag. (It hasn't so far, we just made it.) */
 }
 
-void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num)
+void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode)
 {
   struct trig_data *trig;
   struct cmdlist_element *c;
@@ -176,7 +176,7 @@ void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num)
     strcat(OLC_STORAGE(d), "\r\n");
     c = c->next;
   }
-  /* Now trig->cmdlist is something to pass to the text editor it will be 
+  /* Now trig->cmdlist is something to pass to the text editor it will be
    * converted back to a real cmdlist_element list later. */
 
   OLC_TRIG(d) = trig;
@@ -397,7 +397,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
   case TRIGEDIT_COPY:
     if ((i = real_trigger(atoi(arg))) != NOWHERE)
     {
-      trigedit_setup_existing(d, i);
+      trigedit_setup_existing(d, i, QMODE_QCOPY);
     }
     else
       write_to_output(d, "That trigger does not exist.\r\n");
@@ -607,13 +607,13 @@ void trigedit_save(struct descriptor_data *d)
       if (STATE(dsc) == CON_TRIGEDIT)
         if (GET_TRIG_RNUM(OLC_TRIG(dsc)) >= rnum)
           GET_TRIG_RNUM(OLC_TRIG(dsc))
-          ++;
+    ++;
   }
 
   /* now write the trigger out to disk, along with the rest of the triggers for
-   * this zone. We write this to disk NOW instead of letting the builder have 
-   * control because if we lose this after having assigned a new trigger to an 
-   * item, we will get SYSERR's upton reboot that could make things hard to 
+   * this zone. We write this to disk NOW instead of letting the builder have
+   * control because if we lose this after having assigned a new trigger to an
+   * item, we will get SYSERR's upton reboot that could make things hard to
    * debug. */
   zone = zone_table[OLC_ZNUM(d)].number;
   top = zone_table[OLC_ZNUM(d)].top;
@@ -819,21 +819,21 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
     {
     case 'q':
       /* This was buggy. First we created a copy of a thing, but maintained
-	   * pointers to scripts, then if we altered the scripts, we freed the 
-	   * pointers and added new ones to the OLC_THING. If we then choose NOT
-	   * to save the changes, the pointers in the original pointed to 
-	   * garbage. If we saved changes the pointers were updated correctly.
-	   * Solution: Here we just point the working copies to the new 
-	   * proto_scripts. We only update the original when choosing to save 
-	   * internally, then free the unused memory there. -Welcor
-	   * Thanks to Jeremy Stanley and Torgny Bjers for the bug report.
-	   * After updating to OasisOLC 2.0.3 I discovered some malfunctions
-	   * in this code, so I restructured it a bit. Now things work like 
-	   * this: OLC_SCRIPT(d) is assigned a copy of the edited things' 
-	   * proto_script. OLC_OBJ(d), etc.. are initalized with proto_script =
-	   * NULL; On save, the saved copy is updated with OLC_SCRIPT(d) as new
-	   * proto_script (freeing the old one). On quit/nosave, OLC_SCRIPT is 
-	   * free()'d, and the prototype not touched. */
+       * pointers to scripts, then if we altered the scripts, we freed the
+       * pointers and added new ones to the OLC_THING. If we then choose NOT
+       * to save the changes, the pointers in the original pointed to
+       * garbage. If we saved changes the pointers were updated correctly.
+       * Solution: Here we just point the working copies to the new
+       * proto_scripts. We only update the original when choosing to save
+       * internally, then free the unused memory there. -Welcor
+       * Thanks to Jeremy Stanley and Torgny Bjers for the bug report.
+       * After updating to OasisOLC 2.0.3 I discovered some malfunctions
+       * in this code, so I restructured it a bit. Now things work like
+       * this: OLC_SCRIPT(d) is assigned a copy of the edited things'
+       * proto_script. OLC_OBJ(d), etc.. are initalized with proto_script =
+       * NULL; On save, the saved copy is updated with OLC_SCRIPT(d) as new
+       * proto_script (freeing the old one). On quit/nosave, OLC_SCRIPT is
+       * free()'d, and the prototype not touched. */
       return 0;
     case 'n':
       write_to_output(d, "\r\nPlease enter position, vnum   (ex: 1, 200):");

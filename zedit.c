@@ -242,10 +242,10 @@ void perform_zone_restat(struct descriptor_data *d)
     medit_setup_new(d);
     char_to_room(mob, real_room(1));
      */
-    medit_setup_existing(d, rmob);
+    medit_setup_existing(d, rmob, QMODE_NONE);
     autoroll_mob(mob, FALSE, FALSE);
     save_mobiles(zone_num);
-    //extract_char(mob);
+    // extract_char(mob);
   }
 }
 
@@ -539,12 +539,13 @@ static void zedit_disp_menu(struct descriptor_data *d)
     /* Display the conditional */
     if ((counter - abs(MYCMD.if_flag)) < 0)
       snprintf(buf1, sizeof(buf1), "IF line <Warn: %d> %s,\r\n  ", MYCMD.if_flag,
-              (MYCMD.if_flag < 0) ? "fails" : "executes");
+               (MYCMD.if_flag < 0) ? "fails" : "executes");
     else if (abs(MYCMD.if_flag) > 1)
       snprintf(buf1, sizeof(buf1), "IF line #%d %s,\r\n  ", counter - abs(MYCMD.if_flag),
-              (MYCMD.if_flag < 0) ? "fails" : "executes");
+               (MYCMD.if_flag < 0) ? "fails" : "executes");
     else
-      snprintf(buf1, sizeof(buf1), "%s", (MYCMD.if_flag == 0) ? "" : (MYCMD.if_flag < 0) ? "  [ELSE]: " : "  [THEN]: ");
+      snprintf(buf1, sizeof(buf1), "%s", (MYCMD.if_flag == 0) ? "" : (MYCMD.if_flag < 0) ? "  [ELSE]: "
+                                                                                         : "  [THEN]: ");
 
     /* Translate what the command means. */
     write_to_output(d, "%s%d - %s", nrm, counter, yel);
@@ -1325,7 +1326,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       {
         OLC_CMD(d).arg3 = pos;
         zedit_disp_arg2(d);
-        //zedit_disp_menu(d);
+        // zedit_disp_menu(d);
       }
       else
         write_to_output(d, "That object does not exist, try again : ");
@@ -1421,7 +1422,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     case 'G':
       OLC_CMD(d).arg2 = MIN(MAX_DUPLICATES, atoi(arg));
       zedit_disp_arg3(d);
-      //zedit_disp_menu(d);
+      // zedit_disp_menu(d);
       break;
     case 'P':
     case 'E':
@@ -1508,7 +1509,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       {
         OLC_CMD(d).arg3 = pos;
         zedit_disp_arg4(d);
-        //zedit_disp_menu(d);
+        // zedit_disp_menu(d);
       }
       break;
     case 'P':
@@ -1516,7 +1517,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       {
         OLC_CMD(d).arg3 = pos;
         zedit_disp_arg4(d);
-        //zedit_disp_menu(d);
+        // zedit_disp_menu(d);
       }
       else
         write_to_output(d, "That object does not exist, try again : ");
@@ -1751,8 +1752,8 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     else
     {
       /*
-         * Toggle the bit.
-         */
+       * Toggle the bit.
+       */
       TOGGLE_BIT_AR(OLC_ZONE(d)->zone_flags, number - 1);
       OLC_ZONE(d)->number = 1;
       zedit_disp_flag_menu(d);

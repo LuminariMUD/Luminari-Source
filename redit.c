@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: redit.c                                      Part of LuminariMUD *
-*  Usage: Oasis OLC - Rooms.                                              *
-*                                                                         *
-* By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *
-**************************************************************************/
+ *  File: redit.c                                      Part of LuminariMUD *
+ *  Usage: Oasis OLC - Rooms.                                              *
+ *                                                                         *
+ * By Levork. Copyright 1996 Harvey Gilpin. 1997-2001 George Greer.        *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -156,7 +156,7 @@ ACMD(do_oasis_redit)
   OLC_NUM(d) = number;
 
   if ((real_num = real_room(number)) != NOWHERE)
-    redit_setup_existing(d, real_num);
+    redit_setup_existing(d, real_num, QMODE_NONE);
   else
     redit_setup_new(d);
 
@@ -187,7 +187,7 @@ static void redit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0;
 }
 
-void redit_setup_existing(struct descriptor_data *d, int real_num)
+void redit_setup_existing(struct descriptor_data *d, int real_num, int mode)
 {
   struct room_data *room;
   int counter;
@@ -253,8 +253,8 @@ void redit_setup_existing(struct descriptor_data *d, int real_num)
   struct trail_data_list *trails;
   CREATE(trails, struct trail_data_list, 1);
   room->trail_tracks = trails;
-  //room->trail_scent =
-  //room->trail_blood =
+  // room->trail_scent =
+  // room->trail_blood =
 
   /* Attach copy of room to player's descriptor. */
   OLC_ROOM(d) = room;
@@ -300,8 +300,8 @@ void redit_save_internally(struct descriptor_data *d)
     struct trail_data_list *trails;
     CREATE(trails, struct trail_data_list, 1);
     world[room_num].trail_tracks = trails;
-    //room->trail_scent =
-    //room->trail_blood =
+    // room->trail_scent =
+    // room->trail_blood =
   }
 
   /* Don't adjust numbers on a room update. */
@@ -381,8 +381,8 @@ void free_room(struct room_data *room)
 
   /* Free trails. */
   free_trail_data_list(room->trail_tracks);
-  //free_trail_data_list(room->trail_scent);
-  //free_trail_data_list(room->trail_blood);
+  // free_trail_data_list(room->trail_scent);
+  // free_trail_data_list(room->trail_blood);
 
   /* Free the room. */
   free(room); /* XXX ? */
@@ -1000,7 +1000,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
   case REDIT_COPY:
     if ((number = real_room(atoi(arg))) != NOWHERE)
     {
-      redit_setup_existing(d, number);
+      redit_setup_existing(d, number, QMODE_QCOPY);
     }
     else
       write_to_output(d, "That room does not exist.\r\n");

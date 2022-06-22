@@ -139,6 +139,12 @@ struct oasis_olc_data
 /* Exported globals. */
 extern const char *nrm, *grn, *cyn, *yel, *mgn, *red;
 
+/* to add modes for auto quest (and other OLC) system
+i added this trying to debug issues with qedit-copy -zusuk
+*/
+#define QMODE_NONE 0
+#define QMODE_QCOPY 1
+
 /* Descriptor access macros. */
 #define OLC(d) ((d)->olc)
 #define OLC_MODE(d) (OLC(d)->mode)       /**< Parse input mode.	*/
@@ -653,7 +659,7 @@ int can_edit_zone(struct char_data *ch, zone_rnum rnum);
 ACMD_DECL(do_oasis);
 
 /* public functions from medit.c */
-void medit_setup_existing(struct descriptor_data *d, int rnum);
+void medit_setup_existing(struct descriptor_data *d, int rnum, int mode);
 void medit_setup_new(struct descriptor_data *d);
 void medit_save_internally(struct descriptor_data *d);
 void medit_parse(struct descriptor_data *d, char *arg);
@@ -663,7 +669,7 @@ void medit_autoroll_stats(struct descriptor_data *d);
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
 /* public functions from oedit.c */
-void oedit_setup_existing(struct descriptor_data *d, int rnum);
+void oedit_setup_existing(struct descriptor_data *d, int rnum, int mode);
 void oedit_save_internally(struct descriptor_data *d);
 void oedit_parse(struct descriptor_data *d, char *arg);
 void oedit_string_cleanup(struct descriptor_data *d, int terminator);
@@ -676,7 +682,7 @@ void iedit_setup_existing(struct descriptor_data *d, struct obj_data *obj);
 ACMD_DECL(do_iedit);
 
 /* public functions from redit.c */
-void redit_setup_existing(struct descriptor_data *d, int rnum);
+void redit_setup_existing(struct descriptor_data *d, int rnum, int mode);
 void redit_string_cleanup(struct descriptor_data *d, int terminator);
 void redit_save_internally(struct descriptor_data *d);
 void redit_save_to_disk(zone_vnum zone_num);
@@ -685,7 +691,7 @@ void free_room(struct room_data *room);
 ACMD_DECL(do_oasis_redit);
 
 /* public functions from sedit.c */
-void sedit_setup_existing(struct descriptor_data *d, int rnum);
+void sedit_setup_existing(struct descriptor_data *d, int rnum, int mode);
 void sedit_save_internally(struct descriptor_data *d);
 void sedit_parse(struct descriptor_data *d, char *arg);
 ACMD_DECL(do_oasis_sedit);
