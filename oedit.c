@@ -43,10 +43,10 @@ static void oedit_disp_container_flags_menu(struct descriptor_data *d);
 static void oedit_disp_extradesc_menu(struct descriptor_data *d);
 static void oedit_disp_weapon_spells(struct descriptor_data *d);
 static void oedit_disp_prompt_apply_menu(struct descriptor_data *d);
-//static void oedit_disp_apply_spec_menu(struct descriptor_data *d);
+// static void oedit_disp_apply_spec_menu(struct descriptor_data *d);
 static void oedit_liquid_type(struct descriptor_data *d);
 static void oedit_disp_apply_menu(struct descriptor_data *d);
-//static void oedit_disp_weapon_menu(struct descriptor_data *d);
+// static void oedit_disp_weapon_menu(struct descriptor_data *d);
 static void oedit_disp_spells_menu(struct descriptor_data *d);
 static void oedit_disp_val1_menu(struct descriptor_data *d);
 static void oedit_disp_val2_menu(struct descriptor_data *d);
@@ -54,7 +54,7 @@ static void oedit_disp_val3_menu(struct descriptor_data *d);
 static void oedit_disp_val4_menu(struct descriptor_data *d);
 static void oedit_disp_val5_menu(struct descriptor_data *d);
 static void oedit_disp_val6_menu(struct descriptor_data *d);
-//static void oedit_disp_prof_menu(struct descriptor_data *d);
+// static void oedit_disp_prof_menu(struct descriptor_data *d);
 static void oedit_disp_mats_menu(struct descriptor_data *d);
 static void oedit_disp_type_menu(struct descriptor_data *d);
 static void oedit_disp_extra_menu(struct descriptor_data *d);
@@ -195,7 +195,7 @@ ACMD(do_oasis_oedit)
 
   /* If a new object, setup new, otherwise setup the existing object. */
   if ((real_num = real_object(number)) != NOTHING)
-    oedit_setup_existing(d, real_num);
+    oedit_setup_existing(d, real_num, QMODE_NONE);
   else
     oedit_setup_new(d);
 
@@ -232,7 +232,7 @@ static void oedit_setup_new(struct descriptor_data *d)
   OLC_SPECAB(d) = NULL;
 }
 
-void oedit_setup_existing(struct descriptor_data *d, int real_num)
+void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode)
 {
   struct obj_data *obj;
 
@@ -336,11 +336,11 @@ void oedit_disp_weapon_spells(struct descriptor_data *d)
   for (counter = 0; counter < MAX_WEAPON_SPELLS; counter++)
   {
     snprintf(buf, sizeof(buf), "[%s%d%s] Spell: %s%20s%s Level: %s%3d%s Percent: %s%3d%s Combat: %s%3d%s\r\n",
-            cyn, counter + 1, nrm,
-            cyn, spell_info[OLC_OBJ(d)->wpn_spells[counter].spellnum].name, nrm,
-            cyn, OLC_OBJ(d)->wpn_spells[counter].level, nrm,
-            cyn, OLC_OBJ(d)->wpn_spells[counter].percent, nrm,
-            cyn, OLC_OBJ(d)->wpn_spells[counter].inCombat, nrm);
+             cyn, counter + 1, nrm,
+             cyn, spell_info[OLC_OBJ(d)->wpn_spells[counter].spellnum].name, nrm,
+             cyn, OLC_OBJ(d)->wpn_spells[counter].level, nrm,
+             cyn, OLC_OBJ(d)->wpn_spells[counter].percent, nrm,
+             cyn, OLC_OBJ(d)->wpn_spells[counter].inCombat, nrm);
     send_to_char(d->character, buf);
   }
   send_to_char(d->character, "Enter spell to edit : ");
@@ -969,9 +969,9 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
   {
   case ITEM_GEAR_OUTFIT:
     write_to_output(d, "\r\n"
-                        "1) Weapon\r\n"
-                        "2) Armor Set\r\n"
-                        "Choose the Type of Outfit: ");
+                       "1) Weapon\r\n"
+                       "2) Armor Set\r\n"
+                       "Choose the Type of Outfit: ");
     break;
   case ITEM_SWITCH:
     write_to_output(d, "What command to activate switch? (0=pull, 1=push) : ");
@@ -1106,7 +1106,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
         break;
        */
   case ITEM_ARMOR:
-    //case ITEM_CLANARMOR:
+    // case ITEM_CLANARMOR:
     /* Armor Type - zusuk */
     oedit_disp_armor_type_menu(d);
     write_to_output(d, "\r\nChoose an armor type : ");
@@ -1115,7 +1115,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
     write_to_output(d, "Number of damage dice : ");
     break;
   case ITEM_MISSILE:
-    //write_to_output(d, "Size of damage dice : ");
+    // write_to_output(d, "Size of damage dice : ");
     break;
   case ITEM_FOOD:
     oedit_disp_spells_menu(d);
@@ -1277,10 +1277,10 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
                        "break on first use) (recommended values 0-30): ");
     break;
   case ITEM_WEAPON:
-    //oedit_disp_weapon_menu(d);
+    // oedit_disp_weapon_menu(d);
     break;
   case ITEM_MISSILE:
-    //oedit_disp_weapon_menu(d);
+    // oedit_disp_weapon_menu(d);
     break;
   case ITEM_DRINKCON:
   case ITEM_FOUNTAIN:
@@ -1564,7 +1564,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char buf3[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = OLC_OBJ(d);
-  //int i = 0;
+  // int i = 0;
   size_t len = 0;
 
   get_char_colors(d->character);
@@ -1593,7 +1593,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   grn, nrm, yel, (obj->description && *obj->description) ? obj->description : "undefined",
                   grn, nrm, yel, (obj->action_description && *obj->action_description) ? obj->action_description : "Not Set.\r\n",
                   grn, nrm, cyn, buf1,
-                  //grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
+                  // grn, nrm, cyn, item_profs[GET_OBJ_PROF(obj)],
                   grn, nrm, cyn, buf2);
 
   /* Send first half then build second half of menu. */
@@ -1707,8 +1707,7 @@ static void oedit_disp_menu(struct descriptor_data *d)
                   GET_OBJ_VAL(obj, 8), GET_OBJ_VAL(obj, 9), GET_OBJ_VAL(obj, 10), GET_OBJ_VAL(obj, 11),
                   GET_OBJ_VAL(obj, 12), GET_OBJ_VAL(obj, 13), GET_OBJ_VAL(obj, 14), GET_OBJ_VAL(obj, 15),
                   GET_OBJ_TYPE(obj) == ITEM_ARMOR ? "Armor Type: " : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? "Weapon Type: " : ""),
-                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? armor_list[GET_OBJ_VAL(obj, 1)].name : 
-                  (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name : ""),
+                  GET_OBJ_TYPE(obj) == ITEM_ARMOR ? armor_list[GET_OBJ_VAL(obj, 1)].name : (GET_OBJ_TYPE(obj) == ITEM_WEAPON ? weapon_list[GET_OBJ_VAL(obj, 0)].name : ""),
                   (GET_OBJ_TYPE(obj) == ITEM_ARMOR || GET_OBJ_TYPE(obj) == ITEM_WEAPON) ? "\r\n" : "",
                   grn, nrm, grn, nrm, cyn, obj->ex_description ? "Set." : "Not Set.", grn,
                   grn, nrm, cyn, HAS_SPELLS(obj) ? "Set." : "Not set.",
@@ -1735,7 +1734,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   char *oldtext = NULL;
   struct obj_data *obj;
   obj_rnum robj;
-  //int this_missile = -1;
+  // int this_missile = -1;
 
   switch (OLC_MODE(d))
   {
@@ -1782,66 +1781,65 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'Q':
       if (STATE(d) != CON_IEDIT)
       {
-          if (OLC_VAL(d))
-          { /* Something has been modified. */
+        if (OLC_VAL(d))
+        { /* Something has been modified. */
 
-              write_to_output(d, "Do you wish to save this object? : ");
+          write_to_output(d, "Do you wish to save this object? : ");
 
-              OLC_MODE(d) = OEDIT_CONFIRM_SAVESTRING;
-          }
-          else
+          OLC_MODE(d) = OEDIT_CONFIRM_SAVESTRING;
+        }
+        else
 
-              cleanup_olc(d, CLEANUP_ALL);
+          cleanup_olc(d, CLEANUP_ALL);
       }
       else
       {
-          send_to_char(d->character, "\r\nCommitting iedit changes.\r\n");
+        send_to_char(d->character, "\r\nCommitting iedit changes.\r\n");
 
-          obj = OLC_IOBJ(d);
+        obj = OLC_IOBJ(d);
 
-          *obj = *(OLC_OBJ(d));
+        *obj = *(OLC_OBJ(d));
 
-          GET_ID(obj) = max_obj_id++;
+        GET_ID(obj) = max_obj_id++;
 
-          /* find_obj helper */
+        /* find_obj helper */
 
-          add_to_lookup_table(GET_ID(obj), (void *)obj);
+        add_to_lookup_table(GET_ID(obj), (void *)obj);
 
-          if (GET_OBJ_VNUM(obj) != NOTHING)
+        if (GET_OBJ_VNUM(obj) != NOTHING)
+        {
+          /* remove any old scripts */
+
+          if (SCRIPT(obj))
           {
-              /* remove any old scripts */
+            extract_script(obj, OBJ_TRIGGER);
 
-              if (SCRIPT(obj))
-              {
-                  extract_script(obj, OBJ_TRIGGER);
-
-                  SCRIPT(obj) = NULL;
-              }
-
-              free_proto_script(obj, OBJ_TRIGGER);
-
-              robj = real_object(GET_OBJ_VNUM(obj));
-
-              copy_proto_script(&obj_proto[robj], obj, OBJ_TRIGGER);
-
-              assign_triggers(obj, OBJ_TRIGGER);
+            SCRIPT(obj) = NULL;
           }
 
+          free_proto_script(obj, OBJ_TRIGGER);
 
-          log("OLC: %s iedit a unique #%d", GET_NAME(d->character), GET_OBJ_VNUM(obj));
+          robj = real_object(GET_OBJ_VNUM(obj));
 
-          if (d->character)
-          {
-              REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
+          copy_proto_script(&obj_proto[robj], obj, OBJ_TRIGGER);
 
-              STATE(d) = CON_PLAYING;
+          assign_triggers(obj, OBJ_TRIGGER);
+        }
 
-              act("$n stops using OLC.", true, d->character, 0, 0, TO_ROOM);
-          }
+        log("OLC: %s iedit a unique #%d", GET_NAME(d->character), GET_OBJ_VNUM(obj));
 
-          free(d->olc);
+        if (d->character)
+        {
+          REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_WRITING);
 
-          d->olc = NULL;
+          STATE(d) = CON_PLAYING;
+
+          act("$n stops using OLC.", true, d->character, 0, 0, TO_ROOM);
+        }
+
+        free(d->olc);
+
+        d->olc = NULL;
       }
       return;
     case '1':
@@ -1872,11 +1870,11 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_type_menu(d);
       OLC_MODE(d) = OEDIT_TYPE;
       break;
-      //case 'g':
-      //case 'G':
-      //oedit_disp_prof_menu(d);
-      //OLC_MODE(d) = OEDIT_PROF;
-      //break;
+      // case 'g':
+      // case 'G':
+      // oedit_disp_prof_menu(d);
+      // OLC_MODE(d) = OEDIT_PROF;
+      // break;
     case 'h':
     case 'H':
       oedit_disp_mats_menu(d);
@@ -1969,13 +1967,13 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'S':
       if (STATE(d) != CON_IEDIT)
       {
-          OLC_SCRIPT_EDIT_MODE(d) = SCRIPT_MAIN_MENU;
+        OLC_SCRIPT_EDIT_MODE(d) = SCRIPT_MAIN_MENU;
 
-          dg_script_menu(d);
+        dg_script_menu(d);
       }
       else
       {
-          write_to_output(d, "\r\nScripts cannot be modified on individual objects.\r\nEnter choice : ");
+        write_to_output(d, "\r\nScripts cannot be modified on individual objects.\r\nEnter choice : ");
       }
       return;
     case 't':
@@ -2304,10 +2302,10 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_val3_menu(d);
       break;
     case ITEM_MISSILE:
-      //GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_SDICE);
+      // GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, MAX_WEAPON_SDICE);
       /*  Skip to enhancement menu. */
-      //oedit_disp_val5_menu(d);
-      //return;
+      // oedit_disp_val5_menu(d);
+      // return;
       break;
     case ITEM_CLANARMOR:
       GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, num_of_clans);
@@ -2433,7 +2431,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       break;
     case ITEM_INSTRUMENT:
       /* breakability: 0 = indestructable, 2000 = break on first use
-           * recommended values are 0-30 */
+       * recommended values are 0-30 */
       min_val = 0;
       max_val = 2000;
       break;
@@ -2493,7 +2491,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     GET_OBJ_VAL(OLC_OBJ(d), 4) = LIMIT(number, min_val, max_val);
     break;
 
-    case OEDIT_VALUE_6:
+  case OEDIT_VALUE_6:
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
@@ -2552,7 +2550,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
 
       OLC_OBJ(d)->affected[OLC_VAL(d)].location = number - 1;
-      if ((number - 1) == APPLY_FEAT) {
+      if ((number - 1) == APPLY_FEAT)
+      {
         write_to_output(d, "Select Feat : \r\n");
         for (i = 1; i < FEAT_LAST_FEAT; i++)
         {
@@ -2565,7 +2564,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
           }
         }
         send_to_char(d->character, "\r\n");
-      } else {
+      }
+      else
+      {
         write_to_output(d, "Modifier : ");
       }
       OLC_MODE(d) = OEDIT_APPLYMOD;
@@ -2575,7 +2576,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   case OEDIT_APPLYMOD:
     if (OLC_OBJ(d)->affected[OLC_VAL(d)].location == APPLY_FEAT)
     {
-      if (!valid_item_feat(atoi(arg))) {
+      if (!valid_item_feat(atoi(arg)))
+      {
         send_to_char(d->character, "You can't assign that feat to an item.\r\n");
         return;
       }
@@ -2630,7 +2632,9 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\n");
       write_to_output(d, "Skill: ");
       OLC_MODE(d) = OEDIT_APPLY_SPECIFIC;
-    } else {
+    }
+    else
+    {
       oedit_disp_prompt_apply_menu(d);
     }
     return;
@@ -2717,7 +2721,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   case OEDIT_COPY:
     if ((number = real_object(atoi(arg))) != NOTHING)
     {
-      oedit_setup_existing(d, number);
+      oedit_setup_existing(d, number, QMODE_QCOPY);
     }
     else
       write_to_output(d, "That object does not exist.\r\n");
@@ -3157,89 +3161,89 @@ void oedit_string_cleanup(struct descriptor_data *d, int terminator)
 /* this is all iedit stuff */
 
 void iedit_setup_existing(struct descriptor_data *d,
-    struct obj_data *real_num)
+                          struct obj_data *real_num)
 
 {
-    struct obj_data *obj;
+  struct obj_data *obj;
 
-    OLC_IOBJ(d) = real_num;
+  OLC_IOBJ(d) = real_num;
 
-    obj = create_obj();
+  obj = create_obj();
 
-    copy_object(obj, real_num);
+  copy_object(obj, real_num);
 
-    /* free any assigned scripts */
+  /* free any assigned scripts */
 
-    if (SCRIPT(obj))
+  if (SCRIPT(obj))
 
-        extract_script(obj, OBJ_TRIGGER);
+    extract_script(obj, OBJ_TRIGGER);
 
-    SCRIPT(obj) = NULL;
+  SCRIPT(obj) = NULL;
 
-    /* find_obj helper */
+  /* find_obj helper */
 
-    remove_from_lookup_table(GET_ID(obj));
+  remove_from_lookup_table(GET_ID(obj));
 
-    OLC_OBJ(d) = obj;
+  OLC_OBJ(d) = obj;
 
-    OLC_IOBJ(d) = real_num;
+  OLC_IOBJ(d) = real_num;
 
-    OLC_VAL(d) = 0;
+  OLC_VAL(d) = 0;
 
-    oedit_disp_menu(d);
+  oedit_disp_menu(d);
 }
 
 ACMD(do_iedit)
 {
-    struct obj_data *k;
-    int found = 0;
-    char arg[MAX_INPUT_LENGTH];
+  struct obj_data *k;
+  int found = 0;
+  char arg[MAX_INPUT_LENGTH];
 
-    one_argument(argument, arg, sizeof(arg));
+  one_argument(argument, arg, sizeof(arg));
 
-    if (!*arg || !*argument)
-    {
-        send_to_char(ch, "You must supply an object name.\r\n");
-    }
+  if (!*arg || !*argument)
+  {
+    send_to_char(ch, "You must supply an object name.\r\n");
+  }
 
-    if ((k = get_obj_in_equip_vis(ch, arg, NULL, ch->equipment)))
-    {
-        found = 1;
-    }
-    else if ((k = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
-    {
-        found = 1;
-    }
-    else if ((k = get_obj_in_list_vis(ch, arg, NULL,
-        world[IN_ROOM(ch)].contents)))
-    {
-        found = 1;
-    }
-    else if ((k = get_obj_vis(ch, arg, NULL)))
-    {
-        found = 1;
-    }
+  if ((k = get_obj_in_equip_vis(ch, arg, NULL, ch->equipment)))
+  {
+    found = 1;
+  }
+  else if ((k = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+  {
+    found = 1;
+  }
+  else if ((k = get_obj_in_list_vis(ch, arg, NULL,
+                                    world[IN_ROOM(ch)].contents)))
+  {
+    found = 1;
+  }
+  else if ((k = get_obj_vis(ch, arg, NULL)))
+  {
+    found = 1;
+  }
 
-    if (!found)
-    {
-        send_to_char(ch, "Couldn't find that object. Sorry.\r\n");
-
-        return;
-    }
-
-    /* set up here */
-
-    CREATE(OLC(ch->desc), struct oasis_olc_data, 1);
-
-    SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
-
-    iedit_setup_existing(ch->desc, k);
-
-    OLC_VAL(ch->desc) = 0;
-
-    act("$n starts using OLC.", true, ch, 0, 0, TO_ROOM);
-
-    STATE(ch->desc) = CON_IEDIT;
+  if (!found)
+  {
+    send_to_char(ch, "Couldn't find that object. Sorry.\r\n");
 
     return;
+  }
+
+  /* set up here */
+
+  CREATE(OLC(ch->desc), struct oasis_olc_data, 1);
+
+  SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
+
+  iedit_setup_existing(ch->desc, k);
+
+  OLC_VAL(ch->desc) = 0;
+
+  act("$n starts using OLC.", true, ch, 0, 0, TO_ROOM);
+
+  STATE(ch->desc) = CON_IEDIT;
+
+  return;
 }

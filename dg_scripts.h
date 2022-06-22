@@ -396,7 +396,7 @@ ACMD_DECL(do_mzoneecho);
 void trigedit_save(struct descriptor_data *d);
 void trigedit_string_cleanup(struct descriptor_data *d, int terminator);
 int format_script(struct descriptor_data *d);
-void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num);
+void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode);
 
 /* from dg_objcmd.c */
 room_rnum obj_room(obj_data *obj);
@@ -443,11 +443,11 @@ void wld_command_interpreter(room_data *room, char *argument);
 #define TRIGGER_CHECK(t, type) (IS_SET(GET_TRIG_TYPE(t), type) && \
                                 !GET_TRIG_DEPTH(t))
 
-#define ADD_UID_VAR(buf, trig, go, name, context)                  \
-        do                                                         \
-        {                                                          \
-                snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(go));       \
-                add_var(&GET_TRIG_VARS(trig), name, buf, context); \
+#define ADD_UID_VAR(buf, trig, go, name, context)                          \
+        do                                                                 \
+        {                                                                  \
+                snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(go)); \
+                add_var(&GET_TRIG_VARS(trig), name, buf, context);         \
         } while (0)
 
 #endif /* _DG_SCRIPTS_H_ */
