@@ -38,7 +38,7 @@ static room_vnum redit_find_new_vnum(zone_rnum zone);
  ***********************************************************/
 ACMD(do_oasis_copy)
 {
-  int i, src_vnum, src_rnum, dst_vnum, dst_rnum, copy_mode = QMODE_QCOPY;
+  int i, src_vnum, src_rnum, dst_vnum, dst_rnum; //, copy_mode = QMODE_QCOPY;
   char buf1[MAX_INPUT_LENGTH];
   char buf2[MAX_INPUT_LENGTH];
   struct descriptor_data *d;
