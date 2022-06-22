@@ -15,6 +15,7 @@
 #include "db.h"
 #include "quest.h"
 #include "genolc.h"
+#include "oasis.h"
 #include "genzon.h" /* for create_world_index */
 
 /*-------------------------------------------------------------------*/
