@@ -33,6 +33,8 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings, i
 
   if (mode == QMODE_NONE)
     to->vnum = from->vnum;
+  else
+    to->vnum = mode;
   to->flags = from->flags;
   to->type = from->type;
   to->qm = from->qm;
