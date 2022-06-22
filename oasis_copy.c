@@ -152,6 +152,8 @@ ACMD(do_oasis_copy)
 
   /* Perform the copy. */
   send_to_char(ch, "Copying %s: source: #%d, dest: #%d.\r\n", oasis_copy_info[i].text, src_vnum, dst_vnum);
+
+  /* we are sending the vnum of the destination as our "mode" variable, this is an attempt to fix qcopy -zusuk */
   (*oasis_copy_info[i].setup_existing)(d, src_rnum, dst_vnum);
   (*oasis_copy_info[i].save_func)(d);
 
