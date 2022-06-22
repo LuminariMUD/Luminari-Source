@@ -254,10 +254,10 @@ void qedit_setup_existing(struct descriptor_data *d, int r_num, int mode)
   /*. Alloc some quest shaped space . */
   CREATE(quest, struct aq_data, 1);
 
-  copy_quest(quest, aquest_table + r_num, FALSE, QMODE_QCOPY);
+  copy_quest(quest, aquest_table + r_num, FALSE, mode);
 
   OLC_QUEST(d) = quest;
-  OLC_VAL(d) = 0;
+  // OLC_VAL(d) = 0;
 
   if (mode == QMODE_NONE)
     qedit_disp_menu(d);
