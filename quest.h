@@ -115,8 +115,8 @@ void qedit_parse(struct descriptor_data *d, char *arg);
 void qedit_string_cleanup(struct descriptor_data *d, int terminator);
 
 /* Implemented in genqst.c */
-int copy_quest_strings(struct aq_data *from, struct aq_data *to, int mode);
-int copy_quest(struct aq_data *from, struct aq_data *to, int free_old_strings);
+int copy_quest_strings(struct aq_data *from, struct aq_data *to);
+int copy_quest(struct aq_data *from, struct aq_data *to, int free_old_strings, int mode);
 void free_quest_strings(struct aq_data *quest);
 void free_quest(struct aq_data *quest);
 int add_quest(struct aq_data *nqst);
