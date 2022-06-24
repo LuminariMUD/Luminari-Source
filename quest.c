@@ -775,6 +775,8 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
+  /*debug*/ send_to_char(ch, "Vnum of this quest: %d.\r\n", vnum);
+
   /* assign rnum */
   if ((rnum = real_quest(vnum)) == NOTHING)
   {
@@ -784,16 +786,13 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
+  /*debug*/ send_to_char(ch, "Rnum of this quest: %d.\r\n", rnum);
+
   /* already on this particular quest? */
   found = FALSE; /* reset variable */
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
-  {
     if (GET_QUEST(ch, index) == vnum)
-    {
       found = TRUE;
-      break;
-    }
-  }
   if (found)
   {
     snprintf(buf, sizeof(buf),
