@@ -784,6 +784,26 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     return;
   }
 
+  /* already on this particular quest? */
+  found = FALSE; /* reset variable */
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  {
+    if (GET_QUEST(ch, index) == vnum)
+    {
+      found = TRUE;
+      break;
+    }
+  }
+  if (found)
+  {
+    snprintf(buf, sizeof(buf),
+             "\r\n%s, you already have accepted that quest!\r\n", GET_NAME(ch));
+    send_to_char(ch, "%s", buf);
+    return;
+  }
+
+  /* quest requirements section */
+
   if ((GET_LEVEL(ch) < QST_MINLEVEL(rnum)) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     snprintf(buf, sizeof(buf),
