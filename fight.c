@@ -1550,6 +1550,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
   }
 
+  /* autoquest system check point -Zusuk */
   if (killer)
   {
     autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);

@@ -28,13 +28,14 @@
  *--------------------------------------------------------------------------*/
 
 const char *quest_types[] = {
-    "Object",
+    "Object", /* 0 */
     "Room",
     "Find mob",
     "Kill mob",
     "Save mob",
-    "Return object",
+    "Return object", /* 5 */
     "Clear room",
+    "Autocraft Supplyorder",
     "\n"};
 const char *aq_flags[] = {
     "REPEATABLE",
@@ -533,6 +534,11 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 
     switch (type)
     {
+
+    case AQ_AUTOCRAFT:
+      /* nothing to process */
+      generic_complete_quest(ch, index);
+      break;
 
     case AQ_OBJ_FIND:
       if (QST_TARGET(rnum) == GET_OBJ_VNUM(object))

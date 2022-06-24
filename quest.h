@@ -12,15 +12,16 @@
 #define _QUEST_H_
 
 /* Aquest related defines ********************************************* */
-#define AQ_UNDEFINED -1 /* (R) Quest unavailable                */
-#define AQ_OBJ_FIND 0   /* Player must retreive object          */
-#define AQ_ROOM_FIND 1  /* Player must reach room               */
-#define AQ_MOB_FIND 2   /* Player must find mob                 */
-#define AQ_MOB_KILL 3   /* Player must kill mob                 */
-#define AQ_MOB_SAVE 4   /* Player must save mob                 */
-#define AQ_OBJ_RETURN 5 /* Player gives object to mob in val5   */
-#define AQ_ROOM_CLEAR 6 /* Player must clear room of all mobs   */
-#define NUM_AQ_TYPES 7  /* Used in qedit functions              */
+#define AQ_UNDEFINED -1 /* (R) Quest unavailable                   */
+#define AQ_OBJ_FIND 0   /* Player must retreive object             */
+#define AQ_ROOM_FIND 1  /* Player must reach room                  */
+#define AQ_MOB_FIND 2   /* Player must find mob                    */
+#define AQ_MOB_KILL 3   /* Player must kill mob                    */
+#define AQ_MOB_SAVE 4   /* Player must save mob                    */
+#define AQ_OBJ_RETURN 5 /* Player gives object to mob in val5      */
+#define AQ_ROOM_CLEAR 6 /* Player must clear room of all mobs      */
+#define AQ_AUTOCRAFT 7  /* Player must complete an autocraft quest */
+#define NUM_AQ_TYPES 8  /* Used in qedit functions                 */
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */

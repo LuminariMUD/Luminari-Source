@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Crafting System, Inspired by D20mud's Craft System                                                           
-/  Created By: Zusuk, original d20 code from Gicker                                                           
-\                                                             
-/  using craft.h as the header file currently                                                           
-\                                                          
-/                                                                                                                                                                                       
+\
+/  Luminari Crafting System, Inspired by D20mud's Craft System
+/  Created By: Zusuk, original d20 code from Gicker
+\
+/  using craft.h as the header file currently
+\
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 /*
@@ -34,6 +34,7 @@
 #include "mudlim.h"
 #include "spec_procs.h" /* For compute_ability() */
 #include "item.h"
+#include "quest.h"
 
 /* global variables */
 int mining_nodes = 0;
@@ -55,7 +56,7 @@ int weapon_damage_a[NUM_SIZES][2] = {
     {
         1,
         2,
-    }, //fine
+    }, // fine
     {
         1,
         3,
@@ -87,7 +88,7 @@ int weapon_damage_a[NUM_SIZES][2] = {
     {
         6,
         6,
-    }, //colossal
+    }, // colossal
 };
 int weapon_damage_b[NUM_SIZES][2] = {
     /* num_dice, siz_dice */
@@ -98,7 +99,7 @@ int weapon_damage_b[NUM_SIZES][2] = {
     {
         1,
         1,
-    }, //fine
+    }, // fine
     {
         2,
         1,
@@ -130,7 +131,7 @@ int weapon_damage_b[NUM_SIZES][2] = {
     {
         5,
         8,
-    }, //colossal
+    }, // colossal
 };
 int weapon_damage_c[NUM_SIZES][2] = {
     /* num_dice, siz_dice */
@@ -145,7 +146,7 @@ int weapon_damage_c[NUM_SIZES][2] = {
     {
         3,
         1,
-    }, //diminiutive
+    }, // diminiutive
     {
         2,
         2,
@@ -173,7 +174,7 @@ int weapon_damage_c[NUM_SIZES][2] = {
     {
         4,
         8,
-    }, //colossal
+    }, // colossal
 };
 
 /* the primary use of this function is to modify a weapons damage on resize
@@ -1325,9 +1326,9 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
   // if it's a race changing the size to their own so they can use it normally, we don't want to penalize them with a cost in gold
   if (newsize == GET_SIZE(ch))
   {
-   cost = 0;
+    cost = 0;
   }
-    
+
   if (GET_GOLD(ch) < cost)
   {
     send_to_char(ch, "You need %d coins on hand for supplies to resize this "
@@ -1417,7 +1418,7 @@ int disenchant(struct obj_data *kit, struct char_data *ch)
   }
   for (obj = kit->contains; obj != NULL; obj = obj->next_content)
   {
-    break; //this should be the object
+    break; // this should be the object
   }
 
   if (!obj)
@@ -2207,7 +2208,7 @@ EVENTFUNC(event_crafting)
   int exp = 0;
   int skill = -1, roll = -1;
 
-  //initialize everything and dummy checks
+  // initialize everything and dummy checks
   if (event_obj == NULL)
     return 0;
   pMudEvent = (struct mud_event_data *)event_obj;
@@ -2473,6 +2474,9 @@ EVENTFUNC(event_crafting)
         send_to_char(ch, "You have completed your supply order! Go turn"
                          " it in for more exp, quest points and "
                          "gold!\r\n");
+
+        /* autoquest system check point -Zusuk */
+        autoquest_trigger_check(ch, NULL, NULL, AQ_AUTOCRAFT);
       }
       else
       {
@@ -2492,7 +2496,7 @@ EVENTFUNC(event_crafting)
     if (skill != -1)
       increase_skill(ch, skill);
     reset_craft(ch);
-    return 0; //done with the event
+    return 0; // done with the event
   }
   log("SYSERR: crafting, crafting_event end");
   return 0;
