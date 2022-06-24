@@ -276,7 +276,7 @@ void set_quest(struct char_data *ch, qst_rnum rnum, int index)
   GET_QUEST(ch, index) = QST_NUM(rnum);
   GET_QUEST_TIME(ch, index) = QST_TIME(rnum);
   GET_QUEST_COUNTER(ch, index) = QST_QUANTITY(rnum);
-  SET_BIT_AR(PRF_FLAGS(ch), PRF_QUEST);
+  // SET_BIT_AR(PRF_FLAGS(ch), PRF_QUEST);
   return;
 }
 
@@ -738,7 +738,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   obj_rnum objrnum = NOTHING;
   char buf[MAX_INPUT_LENGTH];
   bool has_quest_object = FALSE, found = FALSE;
-  int i = 0, index = 0;
+  int i = 0, index = 0, sr_index = 0;
 
   if (!*argument)
   {
@@ -790,8 +790,8 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
 
   /* already on this particular quest? */
   found = FALSE; /* reset variable */
-  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
-    if (GET_QUEST(ch, index) == vnum)
+  for (sr_index = 0; sr_index < MAX_CURRENT_QUESTS; sr_index++)
+    if (GET_QUEST(ch, sr_index) == vnum)
       found = TRUE;
   if (found)
   {
