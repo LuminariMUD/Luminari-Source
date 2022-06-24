@@ -754,7 +754,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
     if (GET_QUEST(ch, index) == NOTHING)
     {
       found = TRUE;
-      break;
+      break; /* we need index for later */
     }
   }
 
