@@ -2296,13 +2296,19 @@ EVENTFUNC(event_crafting)
 
     switch (GET_CRAFTING_TYPE(ch))
     {
+
     case SCMD_RESIZE:
       // no skill association
       snprintf(buf, sizeof(buf), "You resize $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n resizes $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* resize system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_RESIZE);
+
       break;
+
     case SCMD_DIVIDE:
       // no skill association
       snprintf(buf, sizeof(buf), "You create $p (x%d).",
@@ -2310,51 +2316,92 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n creates $p (x%d).", GET_CRAFTING_REPEAT(ch));
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
       int i = 0;
       for (i = 1; i < GET_CRAFTING_REPEAT(ch); i++)
       {
         obj2 = read_object(GET_OBJ_VNUM(GET_CRAFTING_OBJ(ch)), VIRTUAL);
         obj_to_char(obj2, ch);
       }
+
+      /* divide system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_DIVIDE);
+
       break;
+
     case SCMD_MINE:
       skill = SKILL_MINING;
+
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* mine system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_MINE);
+
       break;
+
     case SCMD_HUNT:
       skill = SKILL_FORESTING;
+
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* hunt system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_HUNT);
+
       break;
+
     case SCMD_KNIT:
       skill = SKILL_KNITTING;
+
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* knit system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_KNIT);
+
       break;
+
     case SCMD_FOREST:
       skill = SKILL_FORESTING;
+
       snprintf(buf, sizeof(buf), "Your efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n's efforts in the area result in: $p.");
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* foresting system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_FOREST);
+
       break;
+
     case SCMD_DISENCHANT:
       skill = SKILL_CHEMISTRY;
+
       snprintf(buf, sizeof(buf), "You complete the disenchantment process.");
       act(buf, false, ch, 0, 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n finishes the disenchanting process.");
       act(buf, false, ch, 0, 0, TO_ROOM);
+
+      /* disenchant system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_DISENCHANT);
+
       break;
+
     case SCMD_SYNTHESIZE:
-      // synthesizing here
+      // synthesizing here, incomplete
+
+      /* syntheize system check point -Zusuk */
+      // autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_SYNTHESIZE);
+
       break;
+
     case SCMD_CRAFT:
       if (GET_CRAFTING_REPEAT(ch))
       {
@@ -2368,6 +2415,7 @@ EVENTFUNC(event_crafting)
       }
       else
         snprintf(buf2, sizeof(buf2), "\tn");
+
       snprintf(buf, sizeof(buf), "You create $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n creates $p%s.", buf2);
@@ -2379,10 +2427,16 @@ EVENTFUNC(event_crafting)
           GET_GOLD(ch) -= GET_OBJ_COST(GET_CRAFTING_OBJ(ch)) / 4;
         }
          */
+
+      /* autoquest system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT);
+
       break;
+
     case SCMD_AUGMENT:
       // use to be part of crafting
       skill = SKILL_CHEMISTRY;
+
       if (GET_CRAFTING_REPEAT(ch))
       {
         snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
@@ -2395,14 +2449,21 @@ EVENTFUNC(event_crafting)
       }
       else
         snprintf(buf2, sizeof(buf2), "\tn");
+
       snprintf(buf, sizeof(buf), "You augment $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n augments $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* augment system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_AUGMENT);
+
       break;
+
     case SCMD_CONVERT:
       skill = SKILL_CHEMISTRY;
       // use to be part of crafting
+
       if (GET_CRAFTING_REPEAT(ch))
       {
         snprintf(buf2, sizeof(buf2), " (x%d)", GET_CRAFTING_REPEAT(ch) + 1);
@@ -2415,11 +2476,17 @@ EVENTFUNC(event_crafting)
       }
       else
         snprintf(buf2, sizeof(buf2), "\tn");
+
       snprintf(buf, sizeof(buf), "You convert $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n converts $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* convert system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_CONVERT);
+
       break;
+
     case SCMD_RESTRING:
       // no skill association
       snprintf(buf2, sizeof(buf2), "\tn");
@@ -2427,7 +2494,12 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_CHAR);
       snprintf(buf, sizeof(buf), "$n renames $p%s.", buf2);
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
+
+      /* hunt system check point -Zusuk */
+      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_RESTRING);
+
       break;
+
     case SCMD_SUPPLYORDER:
       /* picking a random trade to notch */
       roll = dice(1, 10);

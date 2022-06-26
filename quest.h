@@ -12,16 +12,27 @@
 #define _QUEST_H_
 
 /* Aquest related defines ********************************************* */
-#define AQ_UNDEFINED -1 /* (R) Quest unavailable                   */
-#define AQ_OBJ_FIND 0   /* Player must retreive object             */
-#define AQ_ROOM_FIND 1  /* Player must reach room                  */
-#define AQ_MOB_FIND 2   /* Player must find mob                    */
-#define AQ_MOB_KILL 3   /* Player must kill mob                    */
-#define AQ_MOB_SAVE 4   /* Player must save mob                    */
-#define AQ_OBJ_RETURN 5 /* Player gives object to mob in val5      */
-#define AQ_ROOM_CLEAR 6 /* Player must clear room of all mobs      */
-#define AQ_AUTOCRAFT 7  /* Player must complete an autocraft quest */
-#define NUM_AQ_TYPES 8  /* Used in qedit functions                 */
+#define AQ_UNDEFINED -1        /* (R) Quest unavailable                   */
+#define AQ_OBJ_FIND 0          /* Player must retreive object             */
+#define AQ_ROOM_FIND 1         /* Player must reach room                  */
+#define AQ_MOB_FIND 2          /* Player must find mob                    */
+#define AQ_MOB_KILL 3          /* Player must kill mob                    */
+#define AQ_MOB_SAVE 4          /* Player must save mob                    */
+#define AQ_OBJ_RETURN 5        /* Player gives object to mob in val5      */
+#define AQ_ROOM_CLEAR 6        /* Player must clear room of all mobs      */
+#define AQ_AUTOCRAFT 7         /* Player must complete an autocraft quest */
+#define AQ_CRAFT 8             /* Player must craft an item               */
+#define AQ_CRAFT_RESIZE 9      /* Player must resize an item              */
+#define AQ_CRAFT_DIVIDE 10     /* Player must divide an item              */
+#define AQ_CRAFT_MINE 11       /* Player must mine crafting mats          */
+#define AQ_CRAFT_HUNT 12       /* Player must hunt crafting mats          */
+#define AQ_CRAFT_KNIT 13       /* Player must knit crafting mats          */
+#define AQ_CRAFT_FOREST 14     /* Player must forest crafting mats        */
+#define AQ_CRAFT_DISENCHANT 15 /* Player must disenchant an item          */
+#define AQ_CRAFT_AUGMENT 16    /* Player must augment an item             */
+#define AQ_CRAFT_CONVERT 17    /* Player must convert an item             */
+#define AQ_CRAFT_RESTRING 18   /* Player must restring an item            */
+#define NUM_AQ_TYPES 19        /* Used in qedit functions                 */
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */
