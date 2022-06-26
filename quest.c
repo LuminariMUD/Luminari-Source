@@ -27,7 +27,7 @@
  * Exported global variables
  *--------------------------------------------------------------------------*/
 
-const char *quest_types[NUM_AQ_TYPES] = {
+const char *quest_types[NUM_AQ_TYPES + 1] = {
     "Object", /* 0 */
     "Room",
     "Find mob",
