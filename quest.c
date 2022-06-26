@@ -27,7 +27,7 @@
  * Exported global variables
  *--------------------------------------------------------------------------*/
 
-const char *quest_types[] = {
+const char *quest_types[NUM_AQ_TYPES] = {
     "Object", /* 0 */
     "Room",
     "Find mob",
@@ -35,7 +35,18 @@ const char *quest_types[] = {
     "Save mob",
     "Return object", /* 5 */
     "Clear room",
-    "Autocraft Supplyorder",
+    "Complete a Supplyorder",
+    "Craft Item",
+    "ReSize Item",
+    "Divide Item", /* 10 */
+    "Mine Crafting Mat",
+    "Hunt for Crafting Mat",
+    "Knit Crafting Mat",
+    "Forest for Crafting Mat",
+    "Disenchant Item", /* 15 */
+    "Augment Item",
+    "Convert Item",
+    "ReString Item",
     "\n"};
 const char *aq_flags[] = {
     "REPEATABLE",
@@ -535,7 +546,18 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
     switch (type)
     {
 
+    case AQ_CRAFT_RESIZE:
+    case AQ_CRAFT_DIVIDE:
+    case AQ_CRAFT_MINE:
+    case AQ_CRAFT_HUNT:
+    case AQ_CRAFT_KNIT:
+    case AQ_CRAFT_FOREST:
+    case AQ_CRAFT_DISENCHANT:
+    case AQ_CRAFT_AUGMENT:
+    case AQ_CRAFT_CONVERT:
+    case AQ_CRAFT_RESTRING:
     case AQ_AUTOCRAFT:
+    case AQ_CRAFT:
       /* nothing to process */
       generic_complete_quest(ch, index);
       break;
