@@ -22,6 +22,7 @@
 #include "interpreter.h"
 #include "modify.h"
 #include "quest.h"
+#include "missions.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -295,6 +296,35 @@ static void qedit_disp_menu(struct descriptor_data *d)
   }
   switch (quest->type)
   {
+
+  case AQ_COMPLETE_MISSION:
+
+    switch (quest->target)
+    {
+    case MISSION_DIFF_NORMAL:
+      snprintf(targetname, sizeof(targetname), "Normal Mission Difficulty ");
+      break;
+    case MISSION_DIFF_TOUGH:
+      snprintf(targetname, sizeof(targetname), "Tough Mission Difficulty ");
+      break;
+    case MISSION_DIFF_CHALLENGING:
+      snprintf(targetname, sizeof(targetname), "Challenging Mission Difficulty ");
+      break;
+    case MISSION_DIFF_ARDUOUS:
+      snprintf(targetname, sizeof(targetname), "Arduous Mission Difficulty ");
+      break;
+    case MISSION_DIFF_SEVERE:
+      snprintf(targetname, sizeof(targetname), "Severe Mission Difficulty ");
+      break;
+    default:
+      //#define MISSION_DIFF_EASY 0
+      /* EASY or weird value */
+      snprintf(targetname, sizeof(targetname), "Easy Mission Difficulty ");
+      break;
+    }
+
+    break;
+
   case AQ_OBJ_FIND:
   case AQ_OBJ_RETURN:
     snprintf(targetname, sizeof(targetname), "%s",
@@ -741,9 +771,19 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       }
     OLC_QUEST(d)->value[5] = number;
     break;
+
   case QEDIT_TARGET:
+
+    if (OLC_QUEST(d)->type == AQ_COMPLETE_MISSION)
+    {
+      if (number < 0 or number >= NUM_MISSION_DIFFICULTIES)
+        number = MISSION_DIFF_EASY;
+    }
+
     OLC_QUEST(d)->target = number;
+
     break;
+
   case QEDIT_NEXTQUEST:
     if ((number = atoi(arg)) != -1)
     {

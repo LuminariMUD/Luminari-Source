@@ -1200,7 +1200,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
       default:
         //#define MISSION_DIFF_EASY 0
         /* EASY or weird value */
-        snprintf(targetname, sizeof(targetname), "Normal Mission Difficulty ");
+        snprintf(targetname, sizeof(targetname), "Easy Mission Difficulty ");
         break;
       }
 
