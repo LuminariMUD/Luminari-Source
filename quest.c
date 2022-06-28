@@ -22,6 +22,7 @@
 #include "act.h" /* for do_tell */
 #include "mudlim.h"
 #include "mud_event.h"
+#include "missions.h"
 
 /*--------------------------------------------------------------------------
  * Exported global variables
@@ -47,6 +48,7 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {
     "Augment Item",
     "Convert Item",
     "ReString Item",
+    "Complete a Mission",
     "\n"};
 const char *aq_flags[] = {
     "REPEATABLE",
@@ -522,7 +524,7 @@ void generic_complete_quest(struct char_data *ch, int index)
 }
 
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
-                             struct obj_data *object, int type)
+                             struct obj_data *object, , int variable, int type)
 {
   struct char_data *i;
   qst_rnum rnum;
@@ -560,6 +562,13 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
     case AQ_CRAFT:
       /* nothing to process */
       generic_complete_quest(ch, index);
+      break;
+
+    case AQ_COMPLETE_MISSION:
+
+      /* variable here is the mission difficulty */
+      generic_complete_quest(ch, index);
+
       break;
 
     case AQ_OBJ_FIND:
@@ -1168,22 +1177,53 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     sprintbit(QST_FLAGS(rnum), aq_flags, buf, sizeof(buf));
     switch (QST_TYPE(rnum))
     {
+
+    case AQ_COMPLETE_MISSION:
+      switch (QST_TARGET(rnum))
+      {
+      case MISSION_DIFF_NORMAL:
+        snprintf(targetname, sizeof(targetname), "Normal Mission Difficulty ");
+        break;
+      case MISSION_DIFF_TOUGH:
+        snprintf(targetname, sizeof(targetname), "Tough Mission Difficulty ");
+        break;
+      case MISSION_DIFF_CHALLENGING:
+        snprintf(targetname, sizeof(targetname), "Challenging Mission Difficulty ");
+        break;
+      case MISSION_DIFF_ARDUOUS:
+        snprintf(targetname, sizeof(targetname), "Arduous Mission Difficulty ");
+        break;
+      case MISSION_DIFF_SEVERE:
+        snprintf(targetname, sizeof(targetname), "Severe Mission Difficulty ");
+        break;
+      default:
+        //#define MISSION_DIFF_EASY 0
+        /* EASY or weird value */
+        snprintf(targetname, sizeof(targetname), "Normal Mission Difficulty ");
+        break;
+      }
+
+      break;
+
     case AQ_OBJ_FIND:
     case AQ_OBJ_RETURN:
       snprintf(targetname, sizeof(targetname), "%s",
                real_object(QST_TARGET(rnum)) == NOTHING ? "An unknown object" : obj_proto[real_object(QST_TARGET(rnum))].short_description);
       break;
+
     case AQ_ROOM_FIND:
     case AQ_ROOM_CLEAR:
       snprintf(targetname, sizeof(targetname), "%s",
                real_room(QST_TARGET(rnum)) == NOWHERE ? "An unknown room" : world[real_room(QST_TARGET(rnum))].name);
       break;
+
     case AQ_MOB_FIND:
     case AQ_MOB_KILL:
     case AQ_MOB_SAVE:
       snprintf(targetname, sizeof(targetname), "%s",
                real_mobile(QST_TARGET(rnum)) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(QST_TARGET(rnum))]));
       break;
+
     default:
       snprintf(targetname, sizeof(targetname), "Unknown");
       break;

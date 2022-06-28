@@ -32,7 +32,8 @@
 #define AQ_CRAFT_AUGMENT 16    /* Player must augment an item             */
 #define AQ_CRAFT_CONVERT 17    /* Player must convert an item             */
 #define AQ_CRAFT_RESTRING 18   /* Player must restring an item            */
-#define NUM_AQ_TYPES 19        /* Used in qedit functions                 */
+#define AQ_COMPLETE_MISSION 19 /* Player must complete a mission          */
+#define NUM_AQ_TYPES 20        /* Used in qedit functions                 */
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */
@@ -111,7 +112,7 @@ void set_quest(struct char_data *ch, qst_rnum rnum, int index);
 void clear_quest(struct char_data *ch, int index);
 void complete_quest(struct char_data *ch, int index);
 void generic_complete_quest(struct char_data *ch, int index);
-void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int type);
+void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int variable, int type);
 qst_rnum real_quest(qst_vnum vnum);
 int is_complete(struct char_data *ch, qst_vnum vnum);
 qst_vnum find_quest_by_qmnum(struct char_data *ch, mob_rnum qm, int num);
