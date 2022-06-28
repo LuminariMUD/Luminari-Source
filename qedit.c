@@ -798,6 +798,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     }
     OLC_QUEST(d)->next_quest = (number == -1 ? NOTHING : atoi(arg));
     break;
+    
   case QEDIT_PREVQUEST:
     if ((number = atoi(arg)) != -1)
     {
