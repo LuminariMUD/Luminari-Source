@@ -2305,7 +2305,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* resize system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_RESIZE);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESIZE);
 
       break;
 
@@ -2325,7 +2325,7 @@ EVENTFUNC(event_crafting)
       }
 
       /* divide system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_DIVIDE);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_DIVIDE);
 
       break;
 
@@ -2338,7 +2338,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* mine system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_MINE);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_MINE);
 
       break;
 
@@ -2351,7 +2351,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* hunt system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_HUNT);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_HUNT);
 
       break;
 
@@ -2364,7 +2364,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* knit system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_KNIT);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_KNIT);
 
       break;
 
@@ -2377,7 +2377,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* foresting system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_FOREST);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_FOREST);
 
       break;
 
@@ -2390,7 +2390,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, 0, 0, TO_ROOM);
 
       /* disenchant system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_DISENCHANT);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_DISENCHANT);
 
       break;
 
@@ -2398,7 +2398,7 @@ EVENTFUNC(event_crafting)
       // synthesizing here, incomplete
 
       /* syntheize system check point -Zusuk */
-      // autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_SYNTHESIZE);
+      // autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_SYNTHESIZE);
 
       break;
 
@@ -2429,7 +2429,7 @@ EVENTFUNC(event_crafting)
          */
 
       /* autoquest system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT);
 
       break;
 
@@ -2456,7 +2456,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* augment system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_AUGMENT);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_AUGMENT);
 
       break;
 
@@ -2483,7 +2483,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* convert system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_CONVERT);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_CONVERT);
 
       break;
 
@@ -2496,7 +2496,7 @@ EVENTFUNC(event_crafting)
       act(buf, false, ch, GET_CRAFTING_OBJ(ch), 0, TO_ROOM);
 
       /* hunt system check point -Zusuk */
-      autoquest_trigger_check(ch, NULL, NULL, AQ_CRAFT_RESTRING);
+      autoquest_trigger_check(ch, NULL, NULL, 0, AQ_CRAFT_RESTRING);
 
       break;
 
@@ -2548,7 +2548,7 @@ EVENTFUNC(event_crafting)
                          "gold!\r\n");
 
         /* autoquest system check point -Zusuk */
-        autoquest_trigger_check(ch, NULL, NULL, AQ_AUTOCRAFT);
+        autoquest_trigger_check(ch, NULL, NULL, 0, AQ_AUTOCRAFT);
       }
       else
       {

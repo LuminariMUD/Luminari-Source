@@ -1313,8 +1313,8 @@ void char_to_room(struct char_data *ch, room_rnum room)
     IN_ROOM(ch) = room;
 
     /* autoquest system check point -Zusuk */
-    autoquest_trigger_check(ch, 0, 0, AQ_ROOM_FIND);
-    autoquest_trigger_check(ch, 0, 0, AQ_MOB_FIND);
+    autoquest_trigger_check(ch, 0, 0, 0, AQ_ROOM_FIND);
+    autoquest_trigger_check(ch, 0, 0, 0, AQ_MOB_FIND);
 
     /* checks for light, globes of darkness, etc */
     check_room_lighting(room, ch, TRUE);
@@ -1356,7 +1356,7 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     ++;
 
     /* autoquest system check point -Zusuk */
-    autoquest_trigger_check(ch, NULL, object, AQ_OBJ_FIND);
+    autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
 
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))

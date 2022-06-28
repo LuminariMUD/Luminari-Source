@@ -1999,7 +1999,7 @@ bool perform_give(struct char_data *ch, struct char_data *vict,
   act("$n gives $p to $N.", TRUE, ch, obj, vict, TO_NOTVICT);
 
   /* autoquest system check point -Zusuk */
-  autoquest_trigger_check(ch, vict, obj, AQ_OBJ_RETURN);
+  autoquest_trigger_check(ch, vict, obj, 0, AQ_OBJ_RETURN);
   return TRUE;
 }
 
