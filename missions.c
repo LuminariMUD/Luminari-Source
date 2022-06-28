@@ -629,12 +629,12 @@ void apply_mission_rewards(char_data *ch)
 
     send_to_char(ch, "\r\n");
 
+    /* autoquest system checkpoint -zusuk */
+    autoquest_trigger_check(ch, NULL, NULL, GET_MISSION_DIFFICULTY(ch), AQ_COMPLETE_MISSION);
+
     // bug fix.  After doing one mission can't complete any others.
     //    GET_MISSION_COMPLETE(ch) = true;
     clear_mission(ch);
-
-    /* autoquest system checkpoint -zusuk */
-    autoquest_trigger_check(ch, NULL, NULL, GET_MISSION_DIFFICULTY(ch), AQ_COMPLETE_MISSION);
 }
 
 bool is_mission_mob(char_data *ch, char_data *mob)
