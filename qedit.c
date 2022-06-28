@@ -772,11 +772,14 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     OLC_QUEST(d)->value[5] = number;
     break;
 
+  /* normal value here is actually vnum of mobiles or objects, we have added the ability to send other variables
+     to our target variable, handling for restrictions can be made below -zusuk */
   case QEDIT_TARGET:
 
+    /* this isn't a vnum! */
     if (OLC_QUEST(d)->type == AQ_COMPLETE_MISSION)
     {
-      if (number < 0 or number >= NUM_MISSION_DIFFICULTIES)
+      if (number < 0 || number >= NUM_MISSION_DIFFICULTIES)
         number = MISSION_DIFF_EASY;
     }
 
