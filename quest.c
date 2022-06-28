@@ -524,7 +524,7 @@ void generic_complete_quest(struct char_data *ch, int index)
 }
 
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
-                             struct obj_data *object, , int variable, int type)
+                             struct obj_data *object, int variable, int type)
 {
   struct char_data *i;
   qst_rnum rnum;
