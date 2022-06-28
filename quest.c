@@ -566,8 +566,9 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 
     case AQ_COMPLETE_MISSION:
 
-      /* variable here is the mission difficulty */
-      generic_complete_quest(ch, index);
+      /* variable here is the mission difficulty completed */
+      if (variable >= QST_TARGET(rnum))
+        generic_complete_quest(ch, index);
 
       break;
 
