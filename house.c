@@ -86,7 +86,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum, int locate, s
 
   // What to do with a new loaded item:
    // If there's a list with <locate> less than 1 below this
-   // then its container has disappeared from the file   
+   // then its container has disappeared from the file
    // *gasp* -> put all the list back to the room if
    // there's a list of contents with <locate> 1 below this: check if it's a
    // container - if so: get it from ch, fill it, and give it back to ch (this
@@ -106,7 +106,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum, int locate, s
       cont_row[j] = NULL;
     }
 
-  if (j == -locate && cont_row[j]) { // content list existing 
+  if (j == -locate && cont_row[j]) { // content list existing
     if (GET_OBJ_TYPE(temp) == ITEM_CONTAINER ||
             GET_OBJ_TYPE(temp) == ITEM_AMMO_POUCH) {
       // take item ; fill ; give to char again
@@ -133,7 +133,7 @@ static int handle_house_obj(struct obj_data *temp, room_vnum vnum, int locate, s
   if (locate < 0 && locate >= -MAX_BAG_ROWS) {
     // let obj be part of content list
      //  but put it at the list's end thus having the items
-      // in the same order as before renting 
+      // in the same order as before renting
     //obj_from_room(temp);
     if ((obj1 = cont_row[-locate - 1])) {
       while (obj1->next_content)
@@ -152,7 +152,7 @@ static int House_load(room_vnum vnum)
 {
   FILE *fl;
   int i = 0;
-  //int num_objs = 0;
+  // int num_objs = 0;
   char filename[MAX_STRING_LENGTH];
   obj_save_data *loaded, *current;
   struct obj_data *cont_row[MAX_BAG_ROWS];
@@ -191,7 +191,7 @@ static int House_load(room_vnum vnum)
   return (1);
 }
 
-/* Save all objects for a house (recursive; initial call must be followed by a 
+/* Save all objects for a house (recursive; initial call must be followed by a
  * call to House_restore_weight)  Assumes file is open already. */
 int House_save(struct obj_data *obj, room_vnum vnum, FILE *fp, int location)
 {
@@ -243,7 +243,7 @@ void House_crashsave(room_vnum vnum)
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%d';",
-          vnum);
+           vnum);
   if (mysql_query(conn, del_buf))
   {
     log("SYSERR: Unable to delete house data: %s",
@@ -370,7 +370,7 @@ void House_save_control(void)
   fclose(fl);
 }
 
-/* Call from boot_db - will load control recs, load objs, set atrium bits. 
+/* Call from boot_db - will load control recs, load objs, set atrium bits.
  * Should do sanity checks on vnums & remove invalid records. */
 void House_boot(void)
 {
@@ -632,7 +632,7 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
   send_to_char(ch, "House deleted.\r\n");
   House_save_control();
 
-  /* Now, reset the ROOM_ATRIUM flag on all existing houses' atriums, just in 
+  /* Now, reset the ROOM_ATRIUM flag on all existing houses' atriums, just in
    * case the house we just deleted shared an atrium with another house. -JE */
   for (i = 0; i < num_of_houses; i++)
     if ((real_atrium = real_room(house_control[i].atrium)) != NOWHERE)
@@ -755,18 +755,25 @@ int House_can_enter(struct char_data *ch, room_vnum house)
   {
   case HOUSE_PRIVATE:
   case HOUSE_GOD: /* A god's house can ONLY be entered by the owner and guests - already checked above */
+
     if (GET_IDNUM(ch) == house_control[i].owner)
       return (1);
+
     for (j = 0; j < house_control[i].num_of_guests; j++)
       if (GET_IDNUM(ch) == house_control[i].guests[j])
         return (1);
+
     break;
 
   case HOUSE_CLAN: /* Clan-owned houses - Only clan members may enter */
+
     zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
+
     log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan_list[GET_CLAN(ch)].hall);
+
     if ((GET_CLAN(ch) > 0) && (clan_list[GET_CLAN(ch)].hall == zvnum))
       return (1);
+
     break;
 
   default:
@@ -960,12 +967,12 @@ static struct obj_data *Obj_from_store(struct obj_file_elem object, int *locatio
   GET_OBJ_VAL(obj, 3) = object.value[3];
   for (taeller = 0; taeller < EF_ARRAY_MAX; taeller++)
     GET_OBJ_EXTRA(obj)
-    [taeller] = object.extra_flags[taeller];
+  [taeller] = object.extra_flags[taeller];
   GET_OBJ_WEIGHT(obj) = object.weight;
   GET_OBJ_TIMER(obj) = object.timer;
   for (taeller = 0; taeller < AF_ARRAY_MAX; taeller++)
     GET_OBJ_AFFECT(obj)
-    [taeller] = object.bitvector[taeller];
+  [taeller] = object.bitvector[taeller];
 
   for (j = 0; j < MAX_OBJ_AFFECT; j++)
     obj->affected[j] = object.affected[j];
