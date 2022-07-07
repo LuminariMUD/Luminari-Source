@@ -1316,6 +1316,10 @@ void char_to_room(struct char_data *ch, room_rnum room)
     autoquest_trigger_check(ch, 0, 0, 0, AQ_ROOM_FIND);
     autoquest_trigger_check(ch, 0, 0, 0, AQ_MOB_FIND);
 
+    /* autoquest system check point for houses -Zusuk */
+    if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_HOUSE_CRASH))
+      autoquest_trigger_check(ch, 0, 0, 0, AQ_HOUSE_FIND);
+
     /* checks for light, globes of darkness, etc */
     check_room_lighting(room, ch, TRUE);
 

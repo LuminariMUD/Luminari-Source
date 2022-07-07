@@ -33,7 +33,8 @@
 #define AQ_CRAFT_CONVERT 17    /* Player must convert an item             */
 #define AQ_CRAFT_RESTRING 18   /* Player must restring an item            */
 #define AQ_COMPLETE_MISSION 19 /* Player must complete a mission          */
-#define NUM_AQ_TYPES 20        /* Used in qedit functions                 */
+#define AQ_HOUSE_FIND 20       /* Player must reach house                */
+#define NUM_AQ_TYPES 21        /* Used in qedit functions                 */
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */

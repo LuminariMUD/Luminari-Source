@@ -283,7 +283,11 @@ static void qedit_disp_menu(struct descriptor_data *d)
   quest = OLC_QUEST(d);
 
   clear_screen(d);
+
+  /* print out the quest flag bits */
   sprintbit(quest->flags, aq_flags, quest_flags, sizeof(quest_flags));
+
+  /* create target mob for returning object quest */
   if (quest->type == AQ_OBJ_RETURN)
   {
     if ((return_mob = real_mobile(quest->value[5])) != NOBODY)
@@ -294,8 +298,15 @@ static void qedit_disp_menu(struct descriptor_data *d)
       snprintf(buf2, sizeof(buf2), "to an unknown mob [%d].",
                quest->value[5]);
   }
+
+  /* customization on output based on quest type */
   switch (quest->type)
   {
+
+  /* being specific for quest types that don't need a target */
+  case AQ_HOUSE_FIND:
+    snprintf(targetname, sizeof(targetname), "No target used for this quest type ");
+    break;
 
   case AQ_COMPLETE_MISSION:
 
@@ -330,21 +341,26 @@ static void qedit_disp_menu(struct descriptor_data *d)
     snprintf(targetname, sizeof(targetname), "%s",
              real_object(quest->target) == NOTHING ? "An unknown object" : obj_proto[real_object(quest->target)].short_description);
     break;
+
   case AQ_ROOM_FIND:
   case AQ_ROOM_CLEAR:
     snprintf(targetname, sizeof(targetname), "%s",
              real_room(quest->target) == NOWHERE ? "An unknown room" : world[real_room(quest->target)].name);
     break;
+
   case AQ_MOB_FIND:
   case AQ_MOB_KILL:
   case AQ_MOB_SAVE:
     snprintf(targetname, sizeof(targetname), "%s",
              real_mobile(quest->target) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(quest->target)]));
     break;
+
+  /* catch all */
   default:
     snprintf(targetname, sizeof(targetname), "Unknown");
     break;
   }
+
   write_to_output(d,
                   "-- Quest Number    : \tn[\tc%6d\tn]\r\n"
                   "\tg 1\tn) Quest Name     : \ty%s\r\n"
@@ -400,6 +416,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   real_quest(quest->next_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->next_quest)),
                   quest->prev_quest == NOTHING ? -1 : quest->prev_quest,
                   real_quest(quest->prev_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->prev_quest)));
+
   OLC_MODE(d) = QEDIT_MAIN_MENU;
 }
 
@@ -798,7 +815,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     }
     OLC_QUEST(d)->next_quest = (number == -1 ? NOTHING : atoi(arg));
     break;
-    
+
   case QEDIT_PREVQUEST:
     if ((number = atoi(arg)) != -1)
     {
