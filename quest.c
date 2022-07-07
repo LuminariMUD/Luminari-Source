@@ -595,24 +595,21 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
     case AQ_HOUSE_FIND:
       house_num = find_house(GET_ROOM_VNUM(IN_ROOM(ch)));
 
-      /* debug */ send_to_char(ch, "DEBUG - House number: %d\r\n",
-                               house_num);
+      /* debug */ /*send_to_char(ch, "DEBUG - House number: %d\r\n", house_num);*/
 
       if (house_num == NOWHERE)
       {
-        /* debug */ send_to_char(ch, "DEBUG - House number is NOWHERE!\r\n");
+        /* debug */ /*send_to_char(ch, "DEBUG - House number is NOWHERE!\r\n");*/
         break;
       }
 
       if (house_control[house_num].mode != HOUSE_PRIVATE)
       {
-        /* debug */ send_to_char(ch, "DEBUG - House number is not private! (%d)\r\n",
-                                 house_control[house_num].mode);
+        /* debug */ /*send_to_char(ch, "DEBUG - House number is not private! (%d)\r\n", house_control[house_num].mode);*/
         break;
       }
 
-      /* debug */ send_to_char(ch, "DEBUG - Your IDNUM (%ld), House (%ld)\r\n",
-                               GET_IDNUM(ch), house_control[house_num].owner);
+      /* debug */ /*send_to_char(ch, "DEBUG - Your IDNUM (%ld), House (%ld)\r\n", GET_IDNUM(ch), house_control[house_num].owner);*/
       if (GET_IDNUM(ch) == house_control[house_num].owner)
         generic_complete_quest(ch, index);
 
