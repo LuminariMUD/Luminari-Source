@@ -23,6 +23,7 @@
 #include "mudlim.h"
 #include "mud_event.h"
 #include "missions.h"
+#include "house.h"
 
 /*--------------------------------------------------------------------------
  * Exported global variables
@@ -528,7 +529,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 {
   struct char_data *i;
   qst_rnum rnum;
-  int found = TRUE, index = -1;
+  int found = TRUE, index = -1, house_num = -1;
 
   if (IS_NPC(ch))
     return;
@@ -538,6 +539,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 
     if (GET_QUEST(ch, index) == NOTHING) /* No current quest, skip this */
       continue;
+
     if (GET_QUEST_TYPE(ch, index) != type)
       continue;
 
@@ -574,6 +576,19 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 
     case AQ_OBJ_FIND:
       if (QST_TARGET(rnum) == GET_OBJ_VNUM(object))
+        generic_complete_quest(ch, index);
+      break;
+
+    case AQ_HOUSE_FIND:
+      house_num = find_house(GET_ROOM_VNUM(IN_ROOM(ch)));
+
+      if (house_num == NOWHERE)
+        break;
+
+      if (house_control[house_num].mode != HOUSE_PRIVATE)
+        break;
+
+      if (GET_IDNUM(ch) == house_control[house_num].owner)
         generic_complete_quest(ch, index);
       break;
 
