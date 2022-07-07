@@ -30,7 +30,6 @@
 static void qedit_setup_new(struct descriptor_data *d);
 static void qedit_disp_menu(struct descriptor_data *d);
 static void qedit_save_to_disk(int num);
-
 /*-------------------------------------------------------------------*/
 
 /* from genqst.c - saving a quest to memory */
