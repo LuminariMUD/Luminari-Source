@@ -106,23 +106,82 @@ int has_unlocked_class(struct char_data *ch, int class)
   return FALSE;
 }
 
+#define APPLE 13400 /* good */
+#define FLESH 13401 /* evil */
 ACMD(do_accexp)
 {
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int i = 0, j = 0;
   int cost = 0;
+  int food_item = NOTHING;
+  struct obj_data *obj = NULL;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
-    send_to_char(ch, "Usage: accexp [class | race] [<class-name to unlock> | "
-                     "<race-name to unlock>]\r\n");
+    send_to_char(ch, "Usage: accexp [class | race | align] [<class-name to unlock> | "
+                     "<race-name to unlock> | <flesh (evil) OR apple (good)>]\r\n");
     return;
   }
 
+  if (is_abbrev(arg, "align"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.\r\n");
+      return;
+    }
+
+    /* here we set the cost */
+    cost = 2000;
+
+    if (is_abbrev(arg2, "flesh"))
+    {
+      food_item = FLESH;
+    }
+    else if (is_abbrev(arg2, "apple"))
+    {
+      food_item = APPLE;
+    }
+    else
+    {
+      send_to_char(ch, "Please choose 'apple' for good alignment change or 'meat' for evil alignment change.\r\n");
+      return;
+    }
+
+    if (ch->desc && ch->desc->account)
+    {
+      if (GET_ACCEXP_DESC(ch) >= cost)
+      {
+        GET_ACCEXP_DESC(ch) -= cost;
+        save_account(ch->desc->account);
+        send_to_char(ch, "You have unlocked a food item that will change your alignment by 100 points.  Use the 'eat' command to use the item!\r\n",
+                     race_list[i].type);
+
+        obj = read_object(food_item, VIRTUAL);
+
+        if (obj != NOTHING)
+          obj_to_char(obj, ch);
+
+        return;
+      }
+      else
+      {
+        send_to_char(ch, "You need %d account experience to purchase that item and you only have %d.\r\n",
+                     cost, GET_ACCEXP_DESC(ch));
+        return;
+      }
+    }
+    else
+    {
+      send_to_char(ch, "There is a problem with your account and the item could "
+                       "not be unlocked.  Please submit a request to staff.\r\n");
+      return;
+    }
+  }
   /* try to unlock a race */
-  if (is_abbrev(arg, "race"))
+  else if (is_abbrev(arg, "race"))
   {
     if (!*arg2)
     {
@@ -259,10 +318,12 @@ ACMD(do_accexp)
   }
   else
   {
-    send_to_char(ch, "You must choose to unlock either a race or a class.\r\n");
+    send_to_char(ch, "You must choose to unlock either a race, class or alignment change.\r\n");
     return;
   }
 }
+#undef APPLE
+#undef FLESH
 
 int load_account(char *name, struct account_data *account)
 {
