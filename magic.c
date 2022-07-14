@@ -5914,7 +5914,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
                 int spellnum, int savetype, int casttype)
 {
   const char *to_char = NULL, *to_room = NULL;
-  struct char_data *tch;
+  struct char_data *tch = NULL;
 
   if (ch == NULL)
     return;
@@ -5924,6 +5924,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
 
   switch (spellnum)
   {
+
   case SPELL_TACTICAL_ACUMEN:
     to_char = "You speak words of combat tactics and courage!\tn";
     to_room = "$n speaks words of combat tactics and courage!\tn";
@@ -6027,6 +6028,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_PSIONIC_BLAST:
 
     // because this only benefits from intervals of 2 psp.
@@ -6034,6 +6036,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_INFLICT_PAIN:
 
     // because this only benefits from intervals of 2 psp.
@@ -6047,6 +6050,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_MENTAL_DISRUPTION:
 
     // because this only benefits from intervals of 2 psp.
@@ -6054,6 +6058,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_ERADICATE_INVISIBILITY:
 
     // because this only benefits from intervals of 2 psp.
@@ -6061,6 +6066,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isUnEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_DEADLY_FEAR:
 
     // because this only benefits from intervals of 2 psp.
@@ -6074,6 +6080,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_SHATTER_MIND_BLANK:
     isUnEffect = TRUE;
     skip_groups = true;
