@@ -3011,7 +3011,7 @@ ACMD(do_score)
   ;
   snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
   send_to_char(ch, "\tcDeity: \tn%-20s ", CAP(dname));
-  send_to_char(ch, "\tcAlignment : \tn%s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
+  send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch), GET_ALIGNMENT(ch)));
   send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
   send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs\r\n",
