@@ -156,13 +156,16 @@ ACMD(do_accexp)
       {
         GET_ACCEXP_DESC(ch) -= cost;
         save_account(ch->desc->account);
-        send_to_char(ch, "You have unlocked a food item that will change your alignment by 100 points.  Use the 'eat' command to use the item!\r\n",
-                     race_list[i].type);
+        send_to_char(ch, "You have unlocked a food item that will change your alignment by 100 points.  Use the 'eat' command to use the item!\r\n");
 
         obj = read_object(food_item, VIRTUAL);
 
-        if (obj != NOTHING)
+        if (obj)
           obj_to_char(obj, ch);
+        else
+        {
+          send_to_char(ch, "Notify staff of bug in account.c - no food object!\r\n");
+        }
 
         return;
       }
