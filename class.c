@@ -3880,7 +3880,7 @@ void load_class_list(void)
   /*     class-number  name     abrv   clr-abrv     menu-name*/
   classo(CLASS_ROGUE, "rogue", "Rog", "\twRog\tn", "t) \twRogue\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
-         -1, N, N, M, 8, 0, 2, 8, Y, 0, 0,
+         -1, N, N, H, 8, 0, 2, 8, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "Life is an endless adventure for those who live by their wits. "
                      "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
