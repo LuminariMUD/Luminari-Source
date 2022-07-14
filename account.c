@@ -146,7 +146,7 @@ ACMD(do_accexp)
     }
     else
     {
-      send_to_char(ch, "Please choose 'apple' for good alignment change or 'meat' for evil alignment change.\r\n");
+      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.\r\n");
       return;
     }
 
