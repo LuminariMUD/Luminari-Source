@@ -108,6 +108,7 @@ int has_unlocked_class(struct char_data *ch, int class)
 
 #define APPLE 13400 /* good */
 #define FLESH 13401 /* evil */
+#define ALIGN_COST 2000
 ACMD(do_accexp)
 {
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
@@ -127,14 +128,14 @@ ACMD(do_accexp)
 
   if (is_abbrev(arg, "align"))
   {
+
+    cost = ALIGN_COST;
+
     if (!*arg2)
     {
-      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.\r\n");
+      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
       return;
     }
-
-    /* here we set the cost */
-    cost = 2000;
 
     if (is_abbrev(arg2, "flesh"))
     {
@@ -146,7 +147,7 @@ ACMD(do_accexp)
     }
     else
     {
-      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.\r\n");
+      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
       return;
     }
 
