@@ -6204,7 +6204,7 @@ SPECIAL(dorfaxe)
 /* from homeland */
 SPECIAL(acidstaff)
 {
-  struct char_data *victim;
+  struct char_data *victim = NULL;
 
   if (!cmd && !strcmp(argument, "identify"))
   {
@@ -7926,6 +7926,8 @@ SPECIAL(clanportal)
 /* from homeland */
 SPECIAL(hellfire)
 {
+  int timer = 0;
+
   if (!ch)
     return FALSE;
 
@@ -7947,15 +7949,17 @@ SPECIAL(hellfire)
 
   if (cmd && CMD_IS("say") && !strcmp(argument, "hellfire"))
   {
-    if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
+    if (timer > 0)
     {
-      send_to_char(ch, "Nothing happens.\r\n");
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
       return TRUE;
     }
 
     act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
         "\tLThe flames rise and protects YOU!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+
     act("\tLThe pure flames of $n\tL's $p\tL is invoked.\tn\r\n"
         "\tLThe flames rise and protects $m!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
