@@ -8003,16 +8003,15 @@ SPECIAL(angel_leggings)
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 5\r\n");
 
-  skip_spaces(&argument);
-
   if (!is_wearing(ch, 106021))
     return FALSE;
 
   if (DEBUGMODE)
     send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
 
-  if (!strcmp(argument, "elysium") && cmd_info[cmd].command_pointer ==
-                                          do_say)
+  skip_spaces(&argument);
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "elysium"))
   {
     if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
     {
