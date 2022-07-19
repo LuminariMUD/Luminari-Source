@@ -167,7 +167,7 @@ SPECIAL(faction_mission)
         return TRUE;
     }
 
-    if (GET_MISSION_COOLDOWN(ch) > 0)
+    if (GET_MISSION_COOLDOWN(ch) > 0 && GET_LEVEL(ch) < LVL_GRSTAFF)
     {
         send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
         return 1;
@@ -293,7 +293,8 @@ ACMD(do_missions)
         send_to_char(ch, "You are not currently on a mission.");
         send_to_char(
             ch,
-            "You may start a new mission by specifying a difficulty level.  Select among the following difficulty levels:\r\n");
+            "You may start a new mission by specifying a difficulty level (you must be in the same room as the Adventurers Guild Rep).  "
+            "Select among the following difficulty levels:\r\n");
         for (i = 0; i < NUM_MISSION_DIFFICULTIES; i++)
             send_to_char(
                 ch,
@@ -420,16 +421,20 @@ void create_mission_mobs(char_data *ch)
     struct char_data *leader = NULL;
     int i = 0, randName = 0;
     room_vnum to_room = 0;
+    char buf[MAX_STRING_LENGTH];
+
     if (GET_CURRENT_MISSION(ch) > 0)
         to_room = atoi(mission_details[GET_CURRENT_MISSION(ch)][6]);
-    char buf[MAX_STRING_LENGTH];
 
     for (i = 0; i < 4; i++)
     {
         mob = read_mobile(MISSION_MOB_DFLT_VNUM, VIRTUAL);
+
         if (!mob)
             return;
+
         GET_SEX(mob) = dice(1, 2);
+
         if (i > 0)
         {
             GET_LEVEL(mob) = GET_LEVEL(ch) - 2;
@@ -443,12 +448,16 @@ void create_mission_mobs(char_data *ch)
             SET_BIT_AR(MOB_FLAGS(mob), MOB_CITIZEN);
             leader = mob;
         }
+
         autoroll_mob(mob, TRUE, FALSE);
+
         mob->points.armor -= 40;
+
         GET_REAL_MAX_HIT(mob) = GET_HIT(mob);
         GET_NDD(mob) = GET_SDD(mob) = MAX(2, GET_LEVEL(mob) / 6) + GET_MISSION_DIFFICULTY(ch);
         GET_EXP(mob) = (GET_LEVEL(mob) * GET_LEVEL(mob) * 75);
         GET_GOLD(mob) = (GET_LEVEL(mob) * 10);
+
         switch (GET_MISSION_DIFFICULTY(ch))
         {
         case MISSION_DIFF_EASY:
@@ -477,11 +486,15 @@ void create_mission_mobs(char_data *ch)
             else
                 increase_mob_difficulty(mob, MISSION_DIFF_CHALLENGING);
         }
+
         GET_MAX_HIT(mob) = GET_REAL_MAX_HIT(mob);
         GET_HIT(mob) = GET_MAX_HIT(mob);
         GET_FACTION(mob) = GET_MISSION_FACTION(ch);
+
         randName = GET_MISSION_NPC_NAME_NUM(ch);
+
         mob->mission_owner = GET_IDNUM(ch);
+
         sprintf(buf, "%s %s %s %ld -%s",
                 AN(mission_targets[mission_details_to_faction(
                     GET_MISSION_FACTION(ch))]),
@@ -490,6 +503,7 @@ void create_mission_mobs(char_data *ch)
                 (i > 0) ? " guard" : random_npc_names[randName],
                 (i == 0) ? GET_IDNUM(ch) : 0, GET_NAME(ch));
         mob->player.name = strdup(buf);
+
         sprintf(buf, "%s %s%s%s",
                 AN(mission_targets[mission_details_to_faction(
                     GET_MISSION_FACTION(ch))]),
@@ -498,6 +512,7 @@ void create_mission_mobs(char_data *ch)
                 (i > 0) ? "" : " named ",
                 (i > 0) ? " guard" : random_npc_names[randName]);
         mob->player.short_descr = strdup(buf);
+
         sprintf(buf, "%s %s%s%s (%s) is here.\r\n",
                 AN(mission_targets[mission_details_to_faction(
                     GET_MISSION_FACTION(ch))]),
@@ -507,6 +522,7 @@ void create_mission_mobs(char_data *ch)
                 (i > 0) ? " guard" : random_npc_names[randName],
                 GET_NAME(ch));
         mob->player.long_descr = strdup(buf);
+
         if (real_room(to_room) != NOWHERE)
         {
             char_to_room(mob, real_room(to_room));
@@ -612,6 +628,9 @@ void apply_mission_rewards(char_data *ch)
     send_to_char(ch, "You've received a random loot drop!\r\n");
 
     send_to_char(ch, "\r\n");
+
+    /* autoquest system checkpoint -zusuk */
+    autoquest_trigger_check(ch, NULL, NULL, GET_MISSION_DIFFICULTY(ch), AQ_COMPLETE_MISSION);
 
     // bug fix.  After doing one mission can't complete any others.
     //    GET_MISSION_COMPLETE(ch) = true;

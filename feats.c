@@ -1292,6 +1292,11 @@ void assign_feats(void)
 
   /* Spellcasting feats */
 
+  /* new feat that hasn't been sorted / checked */
+  feato(FEAT_EMPOWERED_MAGIC, "empowered magic", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
+        "+2 to all spell dcs",
+        "+2 to all spell dcs. . Maximum of 3 ranks, rank 1-any level, rank 2, level 5+, rank 3, level 10+");
+
   /* divine spell access feats  */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_CLERIC_1ST_CIRCLE, "1st circle cleric spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -2252,12 +2257,12 @@ void assign_feats(void)
         "+2 bonus on caster level checks to defeat spell resistance",
         "+2 bonus on caster level checks to defeat spell resistance");
   feato(FEAT_GREATER_SPELL_PENETRATION, "greater spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "+2 to caster level checks to defeat spell resistance",
-        "+2 to caster level checks to defeat spell resistance");
+        "+3 to caster level checks to defeat spell resistance",
+        "+3 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_GREATER_SPELL_PENETRATION, FEAT_SPELL_PENETRATION, 1);
   feato(FEAT_EPIC_SPELL_PENETRATION, "epic spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "+2 to caster level checks to defeat spell resistance",
-        "+2 to caster level checks to defeat spell resistance");
+        "+4 to caster level checks to defeat spell resistance",
+        "+4 to caster level checks to defeat spell resistance");
   feat_prereq_feat(FEAT_EPIC_SPELL_PENETRATION, FEAT_GREATER_SPELL_PENETRATION, 1);
 
   feato(FEAT_ARMORED_SPELLCASTING, "armored spellcasting", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -2270,8 +2275,8 @@ void assign_feats(void)
         "further reduce memorization time.");
 
   feato(FEAT_SPELL_FOCUS, "spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
-        "wizard only, +1 to all spell dcs for all spells in school/domain",
-        "+1 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
+        "wizard only, +2 to all spell dcs for all spells in school/domain",
+        "+2 to all spell dcs for all spells in school/domain.  Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
   feato(FEAT_GREATER_SPELL_FOCUS, "greater spell focus", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "wizard only, +2 to all spell dcs for all spells in school/domain",
         "+2 to all spell dcs for all spells in school/domain. Transmutation improves polymorph stats.  Conjuration increases summon creature spell stats. Necromancy increases undead follower stats.");
@@ -3881,7 +3886,6 @@ void assign_feats(void)
   feato(FEAT_STILL_SPELL, "still spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_WIDEN_SPELL, "widen spell", FALSE, FALSE, FALSE, FEAT_TYPE_METAMAGIC, "ask staff", "ask staff");
   feato(FEAT_EMPOWER_SPELL, "empower spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "all variable numerical effects of a spell are increased by one half ", "all variable numerical effects of a spell are increased by one half ");
-  feato(FEAT_EMPOWERED_MAGIC, "empowered magic", TRUE, TRUE, TRUE, FEAT_TYPE_METAMAGIC, "+1 to all spell dcs", "+1 to all spell dcs. . Maximum of 3 ranks, rank 1-any level, rank 2, level 5+, rank 3, level 10+");
   feato(FEAT_EXTEND_SPELL, "extend spell", FALSE, TRUE, FALSE, FEAT_TYPE_METAMAGIC, "durations of spells are 50 percent longer when enabled ", "durations of spells are 50 percent longer when enabled ");
   /*spellcasting*/
   feato(FEAT_ESCHEW_MATERIALS, "eschew materials", FALSE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING, "ask staff", "ask staff");

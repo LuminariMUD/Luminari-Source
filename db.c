@@ -385,10 +385,10 @@ void boot_social_messages(void)
     if (fgetc(fl) != '\n')
       log("SYSERR: Acorn bug workaround failed.");
       /* SYSERR_DESC: The only time that this error should ever arise is if you
-     * are running your MUD on the Acorn platform.  The error arises when the
-     * server cannot properly read a '\n' out of the file at the end of the
-     * first line of the social (that with 'hide' and 'min position').  This
-     * is in boot_social_messages(). */
+       * are running your MUD on the Acorn platform.  The error arises when the
+       * server cannot properly read a '\n' out of the file at the end of the
+       * first line of the social (that with 'hide' and 'min position').  This
+       * is in boot_social_messages(). */
 #endif
 
     soc_mess_list[curr_soc].char_no_arg = fread_action(fl, nr);
@@ -677,10 +677,10 @@ void boot_world(void)
   initialize_wilderness_lists();
 
   log("Writing wilderness map image.");
-  //save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
+  // save_map_to_file("luminari_wilderness.png", WILD_X_SIZE, WILD_Y_SIZE);
 
-  //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
-  //save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
+  // save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
+  // save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
 }
 
 static void free_extra_descriptions(struct extra_descr_data *edesc)
@@ -1436,7 +1436,7 @@ void discrete_load(FILE *fl, int mode, char *filename)
         parse_quest(fl, nr);
         break;
       case DB_BOOT_HLQST:
-        //parse_quest(fl, nr);
+        /* nothing is done here right now */
         break;
       }
     }
@@ -1653,7 +1653,7 @@ void parse_room(FILE *fl, int virtual_nr)
       new_descr->keyword = fread_string(fl, buf2);
       new_descr->description = fread_string(fl, buf2);
       /* Fix for crashes in the editor when formatting. E-descs are assumed to
-         * end with a \r\n. -Welcor */
+       * end with a \r\n. -Welcor */
       {
         char *end = strchr(new_descr->description, '\0');
         if (end > new_descr->description && *(end - 1) != '\n')
@@ -2298,9 +2298,9 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("EchoCount")
   {
-    //RANGE(0, 20);
-    //ECHO_COUNT(mob_proto + i) = num_arg;
-    //ECHO_ENTRIES(mob_proto + i) = new char*[num_arg];
+    // RANGE(0, 20);
+    // ECHO_COUNT(mob_proto + i) = num_arg;
+    // ECHO_ENTRIES(mob_proto + i) = new char*[num_arg];
     CREATE(ECHO_ENTRIES(mob_proto + i), char *, num_arg);
   }
 
@@ -2323,7 +2323,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     const char *temp = value;
 
     /* i'm commenting this out, it just creates spam in the log file -zusuk */
-    //log("Path encountered in ESpec.");
+    // log("Path encountered in ESpec.");
     PATH_SIZE(&mob_proto[i]) = 0;
     PATH_RESET(&mob_proto[i]) = num_arg;
     PATH_DELAY(&mob_proto[i]) = PATH_RESET(&mob_proto[i]);
@@ -2339,7 +2339,7 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
       if (room)
       {
         /* too much spam in log file -zusuk */
-        //log("Path Index = %d  (Current Size %d)", room, PATH_SIZE(&mob_proto[i]));
+        // log("Path Index = %d  (Current Size %d)", room, PATH_SIZE(&mob_proto[i]));
         GET_PATH(&mob_proto[i], PATH_SIZE(&mob_proto[i])++) = room;
       }
       temp++;
@@ -2731,7 +2731,7 @@ const char *parse_object(FILE *obj_f, int nr)
       exit(1);
     }
     /* this is just creating tons of spam -zusuk */
-    //log("INFO: Loaded old file version, converting from 4 to 16 object values.");
+    // log("INFO: Loaded old file version, converting from 4 to 16 object values.");
   }
 
   GET_OBJ_VAL(obj_proto + i, 0) = t[0];
@@ -3271,9 +3271,9 @@ static void load_zones(FILE *fl, char *zonename)
         error = 1;
         break;
       }
-      //if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
-      //        &ZCMD.arg3) != 4)
-      //  error = 1;
+      // if (sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2,
+      //         &ZCMD.arg3) != 4)
+      //   error = 1;
     }
 
     ZCMD.if_flag = tmp;
@@ -3477,7 +3477,7 @@ struct char_data *create_char(void)
 
   new_mobile_data(ch);
   /* Allocate mobile event list */
-  //ch->events = create_list();
+  // ch->events = create_list();
 
   ch->next = character_list;
   character_list = ch;
@@ -3525,7 +3525,7 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   new_mobile_data(mob);
   /* Allocate mobile event list */
-  //mob->events = create_list();
+  // mob->events = create_list();
 
   if (!GET_MAX_HIT(mob))
   {
@@ -3682,7 +3682,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
     }
   }
   /* item cost cap */
-  //GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
+  // GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
 
   if (GET_OBJ_TYPE(obj) == ITEM_INSTRUMENT)
   {
@@ -3888,7 +3888,7 @@ void reset_zone(zone_rnum zone)
 
         char_to_room(mob, ZCMD.arg3);
         load_mtrigger(mob);
-        set_mob_grouping(mob); //attempts to group AFF_GROUP mobs (utils.c)
+        set_mob_grouping(mob); // attempts to group AFF_GROUP mobs (utils.c)
         tmob = mob;
         GET_MOB_LOADROOM(mob) = IN_ROOM(mob);
 
@@ -3936,7 +3936,7 @@ void reset_zone(zone_rnum zone)
           if (ZCMD.if_flag == 0)
           {
             ZONE_ERROR("target obj not found");
-            //ZCMD.command = '*';
+            // ZCMD.command = '*';
           }
           else
           {
@@ -3962,7 +3962,7 @@ void reset_zone(zone_rnum zone)
           char error[MAX_INPUT_LENGTH];
           snprintf(error, sizeof(error), "attempt to give obj #%d to non-existant mob", obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
           push_result(0);
@@ -3997,7 +3997,7 @@ void reset_zone(zone_rnum zone)
         char error[MAX_INPUT_LENGTH];
         snprintf(error, sizeof(error), "attempt to give random treasure to non-existant mob");
         ZONE_ERROR(error);
-        //ZCMD.command = '*';
+        // ZCMD.command = '*';
         break;
       }
       if (rand_number(1, 100) <= ZCMD.arg1)
@@ -4010,11 +4010,11 @@ void reset_zone(zone_rnum zone)
         if (!(obj_to = get_obj_num(ZCMD.arg3)))
         {
           ZONE_ERROR("target obj not found");
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
           break;
         }
         /* Unfinished */
-        //load_treasure_in_obj(obj_to);
+        // load_treasure_in_obj(obj_to);
         push_result(1);
       }
       else
@@ -4031,7 +4031,7 @@ void reset_zone(zone_rnum zone)
                                          "obj #%d",
                    obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
           push_result(0);
@@ -4048,7 +4048,7 @@ void reset_zone(zone_rnum zone)
                                          "obj %d, pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
         {
@@ -4076,7 +4076,7 @@ void reset_zone(zone_rnum zone)
                                          "obj %d, pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
           ZONE_ERROR(error);
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
         {
@@ -4115,7 +4115,7 @@ void reset_zone(zone_rnum zone)
         char error[MAX_INPUT_LENGTH];
         snprintf(error, sizeof(error), "door does not exist in room %d - dir %d", world[ZCMD.arg1].number, ZCMD.arg2);
         ZONE_ERROR(error);
-        //ZCMD.command = '*';
+        // ZCMD.command = '*';
       }
       else
         switch (ZCMD.arg3)
@@ -4267,7 +4267,7 @@ void reset_zone(zone_rnum zone)
         if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world)
         {
           ZONE_ERROR("Invalid room number in trigger assignment");
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         if (!world[ZCMD.arg3].script)
           CREATE(world[ZCMD.arg3].script, struct script_data, 1);
@@ -4283,7 +4283,7 @@ void reset_zone(zone_rnum zone)
         if (!SCRIPT(tmob))
         {
           ZONE_ERROR("Attempt to give variable to scriptless mobile");
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
           add_var(&(SCRIPT(tmob)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
@@ -4295,7 +4295,7 @@ void reset_zone(zone_rnum zone)
         if (!SCRIPT(tobj))
         {
           ZONE_ERROR("Attempt to give variable to scriptless object");
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
           add_var(&(SCRIPT(tobj)->global_vars), ZCMD.sarg1, ZCMD.sarg2,
@@ -4307,14 +4307,14 @@ void reset_zone(zone_rnum zone)
         if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world)
         {
           ZONE_ERROR("Invalid room number in variable assignment");
-          //ZCMD.command = '*';
+          // ZCMD.command = '*';
         }
         else
         {
           if (!(world[ZCMD.arg3].script))
           {
             ZONE_ERROR("Attempt to give variable to scriptless object");
-            //ZCMD.command = '*';
+            // ZCMD.command = '*';
           }
           else
             add_var(&(world[ZCMD.arg3].script->global_vars),
@@ -5134,7 +5134,7 @@ void clear_object(struct obj_data *obj)
  * never again for that character). */
 void init_char(struct char_data *ch)
 {
-  int i;
+  int i, index = 0;
 
   /* create a player_special structure */
   if (ch->player_specials == NULL)
@@ -5164,8 +5164,13 @@ void init_char(struct char_data *ch)
   ch->player.walkout = NULL;
 
   GET_NUM_QUESTS(ch) = 0;
+
   ch->player_specials->saved.completed_quests = NULL;
-  GET_QUEST(ch) = NOTHING;
+
+  for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+  { /* loop through all the character's quest slots */
+    GET_QUEST(ch, index) = NOTHING;
+  }
 
   /* Create the action queues */
   GET_QUEUE(ch) = create_action_queue();
@@ -5354,10 +5359,10 @@ room_rnum real_room(room_vnum vnum)
   {
     mid = (bot + top) / 2;
 
-    //if ((world + mid)->number == vnum)
+    // if ((world + mid)->number == vnum)
     if ((world[mid]).number == vnum)
       return (mid);
-    //if ((world + mid)->number > vnum)
+    // if ((world + mid)->number > vnum)
     if ((world[mid]).number > vnum)
       top = mid - 1;
     else

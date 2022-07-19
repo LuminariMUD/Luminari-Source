@@ -109,9 +109,9 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SPELL_PENETRATION))
     challenge += 2;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_SPELL_PENETRATION))
-    challenge += 2;
+    challenge += 3;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_SPELL_PENETRATION))
-    challenge += 2;
+    challenge += 4;
 
   // success?
   if (resist > challenge)
@@ -278,7 +278,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   {
     /*deubg*/
     // send_to_char(ch, "Bingo!\r\n");
-    challenge++;
+    challenge += 2;
   }
   if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), school))
   {
@@ -5914,16 +5914,15 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
                 int spellnum, int savetype, int casttype)
 {
   const char *to_char = NULL, *to_room = NULL;
-  struct char_data *tch;
+  struct char_data *tch = NULL;
+  bool hit_self = FALSE;
 
   if (ch == NULL)
     return;
 
-  if (!GROUP(ch))
-    return;
-
   switch (spellnum)
   {
+
   case SPELL_TACTICAL_ACUMEN:
     to_char = "You speak words of combat tactics and courage!\tn";
     to_room = "$n speaks words of combat tactics and courage!\tn";
@@ -5974,6 +5973,12 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
     break;
   }
 
+  if (!GROUP(ch))
+  {
+    send_to_char(ch, "You must be part of a group to cast this spell. See HELP GROUPS.\r\n");
+    return;
+  }
+
   if ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) == NULL)
   {
     send_to_char(ch, "You must be part of a group to cast this spell. See HELP GROUPS.\r\n");
@@ -5990,8 +5995,15 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   {
     if (IN_ROOM(tch) != IN_ROOM(ch))
       continue;
+
+    if (tch == ch) /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+      hit_self = TRUE;
+
     perform_mag_groups(level, ch, tch, obj, spellnum, savetype, casttype);
   }
+
+  if (!hit_self)
+    perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
 }
 
 /** Mass spells affect every creature in the room except the caster,
@@ -6027,6 +6039,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_PSIONIC_BLAST:
 
     // because this only benefits from intervals of 2 psp.
@@ -6034,6 +6047,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_INFLICT_PAIN:
 
     // because this only benefits from intervals of 2 psp.
@@ -6047,6 +6061,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_MENTAL_DISRUPTION:
 
     // because this only benefits from intervals of 2 psp.
@@ -6054,6 +6069,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_ERADICATE_INVISIBILITY:
 
     // because this only benefits from intervals of 2 psp.
@@ -6061,6 +6077,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isUnEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_DEADLY_FEAR:
 
     // because this only benefits from intervals of 2 psp.
@@ -6074,6 +6091,7 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     isEffect = TRUE;
     skip_groups = true;
     break;
+
   case PSIONIC_SHATTER_MIND_BLANK:
     isUnEffect = TRUE;
     skip_groups = true;

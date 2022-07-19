@@ -132,7 +132,7 @@ void build_player_index(void)
     player_table[i].level = 1;
     player_table[i].flags = 0;
     player_table[i].last = 0;
-    player_table[i].clan = NO_CLAN;    
+    player_table[i].clan = NO_CLAN;
   }
    */
   /**/
@@ -437,8 +437,13 @@ int load_char(const char *name, struct char_data *ch)
     SITTING(ch) = NULL;
     NEXT_SITTING(ch) = NULL;
     GET_QUESTPOINTS(ch) = PFDEF_QUESTPOINTS;
-    GET_QUEST_COUNTER(ch) = PFDEF_QUESTCOUNT;
-    GET_QUEST(ch) = PFDEF_CURRQUEST;
+
+    for (i = 0; i < MAX_CURRENT_QUESTS; i++)
+    { /* loop through all the character's quest slots */
+      GET_QUEST_COUNTER(ch, i) = PFDEF_QUESTCOUNT;
+      GET_QUEST(ch, i) = PFDEF_CURRQUEST;
+    }
+
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
     GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
@@ -506,13 +511,13 @@ int load_char(const char *name, struct char_data *ch)
     NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) = NEW_ARCANA_SLOT(ch, 3) = 0;
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)
-      [i] = PFDEF_AFFFLAGS;
+    [i] = PFDEF_AFFFLAGS;
     for (i = 0; i < PM_ARRAY_MAX; i++)
       PLR_FLAGS(ch)
-      [i] = PFDEF_PLRFLAGS;
+    [i] = PFDEF_PLRFLAGS;
     for (i = 0; i < PR_ARRAY_MAX; i++)
       PRF_FLAGS(ch)
-      [i] = PFDEF_PREFFLAGS;
+    [i] = PFDEF_PREFFLAGS;
     for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
       GET_BOMB(ch, i) = 0;
     for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
@@ -584,7 +589,7 @@ int load_char(const char *name, struct char_data *ch)
           }
           else
             PLR_FLAGS(ch)
-            [0] = asciiflag_conv(line);
+          [0] = asciiflag_conv(line);
         }
         else if (!strcmp(tag, "Aff "))
         {
@@ -601,7 +606,7 @@ int load_char(const char *name, struct char_data *ch)
           }
           else
             AFF_FLAGS(ch)
-            [0] = asciiflag_conv(line);
+          [0] = asciiflag_conv(line);
         }
         if (!strcmp(tag, "Affs"))
           load_affects(fl, ch);
@@ -837,23 +842,23 @@ int load_char(const char *name, struct char_data *ch)
           load_mercies(fl, ch);
         // Faction mission system
         else if (!strcmp(tag, "MiCu"))
-            GET_CURRENT_MISSION(ch) = atoi(line);
+          GET_CURRENT_MISSION(ch) = atoi(line);
         else if (!strcmp(tag, "MiCr"))
-            GET_MISSION_CREDITS(ch) = atol(line);
+          GET_MISSION_CREDITS(ch) = atol(line);
         else if (!strcmp(tag, "MiCd"))
-            GET_MISSION_COOLDOWN(ch) = atoi(line);
+          GET_MISSION_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "MiSt"))
-            GET_MISSION_STANDING(ch) = atoi(line);
+          GET_MISSION_STANDING(ch) = atoi(line);
         else if (!strcmp(tag, "MiFa"))
-            GET_MISSION_FACTION(ch) = atoi(line);
+          GET_MISSION_FACTION(ch) = atoi(line);
         else if (!strcmp(tag, "MiRe"))
-            GET_MISSION_REP(ch) = atoi(line);
+          GET_MISSION_REP(ch) = atoi(line);
         else if (!strcmp(tag, "MiXp"))
-            GET_MISSION_EXP(ch) = atol(line);
+          GET_MISSION_EXP(ch) = atol(line);
         else if (!strcmp(tag, "MiDf"))
-            GET_MISSION_DIFFICULTY(ch) = atoi(line);
+          GET_MISSION_DIFFICULTY(ch) = atoi(line);
         else if (!strcmp(tag, "MiRN"))
-            GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
+          GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
         break;
 
       case 'N':
@@ -914,7 +919,7 @@ int load_char(const char *name, struct char_data *ch)
           }
           else
             PRF_FLAGS(ch)
-            [0] = asciiflag_conv(f1);
+          [0] = asciiflag_conv(f1);
         }
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
@@ -938,9 +943,17 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Qpnt"))
           GET_QUESTPOINTS(ch) = atoi(line); /* Backward compatibility */
         else if (!strcmp(tag, "Qcur"))
-          GET_QUEST(ch) = atoi(line);
+          GET_QUEST(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Qcu1"))
+          GET_QUEST(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Qcu2"))
+          GET_QUEST(ch, 2) = atoi(line);
         else if (!strcmp(tag, "Qcnt"))
-          GET_QUEST_COUNTER(ch) = atoi(line);
+          GET_QUEST_COUNTER(ch, 0) = atoi(line);
+        else if (!strcmp(tag, "Qcn1"))
+          GET_QUEST_COUNTER(ch, 1) = atoi(line);
+        else if (!strcmp(tag, "Qcn2"))
+          GET_QUEST_COUNTER(ch, 2) = atoi(line);
         else if (!strcmp(tag, "Qest"))
           load_quests(fl, ch);
         break;
@@ -1441,9 +1454,9 @@ void save_char(struct char_data *ch, int mode)
   if (GET_LOADROOM(ch) != PFDEF_LOADROOM)
     fprintf(fl, "Room: %d\n", GET_LOADROOM(ch));
   if (ch->player_specials->saved.fiendish_boons != 0)
-    fprintf(fl, "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);  
+    fprintf(fl, "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
-    fprintf(fl, "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);  
+    fprintf(fl, "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
 
   fprintf(fl, "FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
 
@@ -1550,12 +1563,12 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Cdsc: %s\n", GET_AUTOCQUEST_DESC(ch));
   if (GET_AUTOCQUEST_MATERIAL(ch) != PFDEF_AUTOCQUEST_MATERIAL)
     fprintf(fl, "Cmat: %d\n", GET_AUTOCQUEST_MATERIAL(ch));
-  
+
   if (EFREETI_MAGIC_USES(ch) != PFDEF_EFREETI_MAGIC_USES)
     fprintf(fl, "EfMU: %d\n", EFREETI_MAGIC_USES(ch));
   if (EFREETI_MAGIC_TIMER(ch) != PFDEF_EFREETI_MAGIC_TIMER)
     fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
-  
+
   if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
     fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
   if (DRAGON_MAGIC_TIMER(ch) != PFDEF_DRAGON_MAGIC_TIMER)
@@ -1606,8 +1619,12 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "ScrW: %d\n", GET_SCREEN_WIDTH(ch));
   if (GET_QUESTPOINTS(ch) != PFDEF_QUESTPOINTS)
     fprintf(fl, "Qstp: %d\n", GET_QUESTPOINTS(ch));
-  if (GET_QUEST_COUNTER(ch) != PFDEF_QUESTCOUNT)
-    fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch));
+  if (GET_QUEST_COUNTER(ch, 0) != PFDEF_QUESTCOUNT)
+    fprintf(fl, "Qcnt: %d\n", GET_QUEST_COUNTER(ch, 0));
+  if (GET_QUEST_COUNTER(ch, 1) != PFDEF_QUESTCOUNT)
+    fprintf(fl, "Qcn1: %d\n", GET_QUEST_COUNTER(ch, 1));
+  if (GET_QUEST_COUNTER(ch, 2) != PFDEF_QUESTCOUNT)
+    fprintf(fl, "Qcn2: %d\n", GET_QUEST_COUNTER(ch, 2));
   if (GET_NUM_QUESTS(ch) != PFDEF_COMPQUESTS)
   {
     fprintf(fl, "Qest:\n");
@@ -1615,8 +1632,12 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d\n", ch->player_specials->saved.completed_quests[i]);
     fprintf(fl, "%d\n", NOTHING);
   }
-  if (GET_QUEST(ch) != PFDEF_CURRQUEST)
-    fprintf(fl, "Qcur: %d\n", GET_QUEST(ch));
+  if (GET_QUEST(ch, 0) != PFDEF_CURRQUEST)
+    fprintf(fl, "Qcur: %d\n", GET_QUEST(ch, 0));
+  if (GET_QUEST(ch, 1) != PFDEF_CURRQUEST)
+    fprintf(fl, "Qcu1: %d\n", GET_QUEST(ch, 1));
+  if (GET_QUEST(ch, 2) != PFDEF_CURRQUEST)
+    fprintf(fl, "Qcu2: %d\n", GET_QUEST(ch, 2));
   if (GET_DIPTIMER(ch) != PFDEF_DIPTIMER)
     fprintf(fl, "DipT: %d\n", GET_DIPTIMER(ch));
   if (GET_CLAN(ch) != PFDEF_CLAN)
@@ -1824,7 +1845,7 @@ void save_char(struct char_data *ch, int mode)
   }
   fprintf(fl, "-1 -1\n");
 
-  //class levels
+  // class levels
   fprintf(fl, "CLvl:\n");
   for (i = 0; i < MAX_CLASSES; i++)
   {
@@ -1832,11 +1853,11 @@ void save_char(struct char_data *ch, int mode)
   }
   fprintf(fl, "-1 -1\n");
 
-  //coordinate location
+  // coordinate location
   fprintf(fl, "CLoc:\n");
   fprintf(fl, "%d %d\n", ch->coords[0], ch->coords[1]);
 
-  //warding
+  // warding
   fprintf(fl, "Ward:\n");
   for (i = 0; i < MAX_WARDING; i++)
   {
@@ -1844,7 +1865,7 @@ void save_char(struct char_data *ch, int mode)
   }
   fprintf(fl, "-1 -1\n");
 
-  //spec abilities
+  // spec abilities
   fprintf(fl, "SpAb:\n");
   for (i = 0; i < MAX_CLASSES; i++)
   {
@@ -1852,7 +1873,7 @@ void save_char(struct char_data *ch, int mode)
   }
   fprintf(fl, "-1 -1\n");
 
-  //favored enemies (rangers)
+  // favored enemies (rangers)
   fprintf(fl, "FaEn:\n");
   for (i = 0; i < MAX_ENEMIES; i++)
   {
@@ -1966,7 +1987,7 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eC_MOUNT)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-      if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)))
+    if ((pMudEvent = char_has_mud_event(ch, eSUMMONSHADOW)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTURN_UNDEAD)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
@@ -1990,11 +2011,11 @@ void save_char(struct char_data *ch, int mode)
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWJUMP)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-      if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
+    if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-      if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
+    if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
-    
+
     fprintf(fl, "-1 -1\n");
   }
 
@@ -2885,7 +2906,7 @@ static void write_aliases_ascii(FILE *file, struct char_data *ch)
 
   for (temp = GET_ALIASES(ch); temp; temp = temp->next)
     fprintf(file, " %s\n" /* Alias: prepend a space in order to avoid issues with aliases beginning
-                             * with * (get_line treats lines beginning with * as comments and ignores them */
+                           * with * (get_line treats lines beginning with * as comments and ignores them */
                   "%s\n"  /* Replacement: always prepended with a space in memory anyway */
                   "%d\n", /* Type */
             temp->alias,
@@ -2964,7 +2985,7 @@ void save_char_pets(struct char_data *ch)
   char query[MEDIUM_STRING];
   char query2[MEDIUM_STRING];
   char query3[MEDIUM_STRING];
-  char finalQuery[MEDIUM_STRING*2];
+  char finalQuery[MEDIUM_STRING * 2];
   char *end = NULL, *end2 = NULL;
 
   mysql_ping(conn);
@@ -2981,13 +3002,15 @@ void save_char_pets(struct char_data *ch)
   }
 
   if (!ch || !ch->desc || IS_NPC(ch))
-   return;
+    return;
 
   for (f = ch->followers; f; f = f->next)
   {
     tch = f->follower;
-    if (!IS_NPC(tch)) continue;
-    if (!AFF_FLAGGED(tch, AFF_CHARM)) continue;
+    if (!IS_NPC(tch))
+      continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM))
+      continue;
     snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,");
 
     end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,");
@@ -2997,8 +3020,8 @@ void save_char_pets(struct char_data *ch)
     *end2++ = '\0';
 
     snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d')",
-                    GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
-                    GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch));
+             GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
+             GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
     if (mysql_query(conn, finalQuery))
     {
@@ -3015,9 +3038,11 @@ void load_char_pets(struct char_data *ch)
   char query[200];
   struct char_data *mob = NULL;
 
-  if (!ch) return;
+  if (!ch)
+    return;
 
-  if (IN_ROOM(ch) == NOWHERE) return;
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
 
   mysql_ping(conn);
 
@@ -3036,61 +3061,62 @@ void load_char_pets(struct char_data *ch)
 
   while ((row = mysql_fetch_row(result)))
   {
-      mob = read_mobile(atoi(row[0]), VIRTUAL);
-      if (!mob) continue;
-      if (isSummonMob(atoi(row[0])))
+    mob = read_mobile(atoi(row[0]), VIRTUAL);
+    if (!mob)
+      continue;
+    if (isSummonMob(atoi(row[0])))
+    {
+      if (GET_LEVEL(mob) <= 10)
       {
-       if (GET_LEVEL(mob) <= 10)
-        {
-          GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-          GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-          mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-          mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
-        }
-        else if (GET_LEVEL(mob) <= 20)
-        {
-          GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-          GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-          mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-          mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
-        }
-        else
-        {
-          GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-          GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-          mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-          mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
-        } 
+        GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+        GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+        mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+        mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
       }
-      log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
-      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      else if (GET_LEVEL(mob) <= 20)
       {
-        X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
-        Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+        GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+        GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+        mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+        mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
       }
-      char_to_room(mob, IN_ROOM(ch));
-      IS_CARRYING_W(mob) = 0;
-      IS_CARRYING_N(mob) = 0;
-      SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-      GET_LEVEL(mob) = atoi(row[1]);
-      autoroll_mob(mob, TRUE, TRUE);
-      if (GET_MOB_VNUM(mob) == 10) // MOB_CLONE define from magic.c
+      else
       {
-        mob->player.name = strdup(GET_NAME(ch));
-        mob->player.short_descr = strdup(GET_NAME(ch));
+        GET_HITROLL(mob) = GET_HITROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+        GET_DAMROLL(mob) = GET_DAMROLL(mob) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+        mob->mob_specials.damnodice = mob->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+        mob->mob_specials.damsizedice = mob->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
       }
-      GET_REAL_STR(mob) = atoi(row[4]);
-      GET_REAL_CON(mob) = atoi(row[5]);
-      GET_REAL_DEX(mob) = atoi(row[6]);
-      GET_REAL_AC(mob) = atoi(row[7]);
-      GET_REAL_MAX_HIT(mob) = atoi(row[3]);
-      GET_HIT(mob) = atoi(row[2]);
-      load_mtrigger(mob);
-      add_follower(mob, ch);
-      if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
-        join_group(mob, GROUP(ch));
-      act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
-      act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
+    }
+    log("Pet for %s: %s, loaded.", GET_NAME(ch), GET_NAME(mob));
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+    }
+    char_to_room(mob, IN_ROOM(ch));
+    IS_CARRYING_W(mob) = 0;
+    IS_CARRYING_N(mob) = 0;
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+    GET_LEVEL(mob) = atoi(row[1]);
+    autoroll_mob(mob, TRUE, TRUE);
+    if (GET_MOB_VNUM(mob) == 10) // MOB_CLONE define from magic.c
+    {
+      mob->player.name = strdup(GET_NAME(ch));
+      mob->player.short_descr = strdup(GET_NAME(ch));
+    }
+    GET_REAL_STR(mob) = atoi(row[4]);
+    GET_REAL_CON(mob) = atoi(row[5]);
+    GET_REAL_DEX(mob) = atoi(row[6]);
+    GET_REAL_AC(mob) = atoi(row[7]);
+    GET_REAL_MAX_HIT(mob) = atoi(row[3]);
+    GET_HIT(mob) = atoi(row[2]);
+    load_mtrigger(mob);
+    add_follower(mob, ch);
+    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+      join_group(mob, GROUP(ch));
+    act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
+    act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
   }
 
   mysql_free_result(result);

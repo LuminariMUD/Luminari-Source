@@ -16,6 +16,7 @@
 #define MISSION_CREDITS 3
 #define MISSION_EXP 4
 
+/****************/
 #define MISSION_DIFF_EASY 0
 #define MISSION_DIFF_NORMAL 1
 #define MISSION_DIFF_TOUGH 2
@@ -24,6 +25,8 @@
 #define MISSION_DIFF_SEVERE 5
 
 #define NUM_MISSION_DIFFICULTIES 6
+/***************/
+
 #define MISSION_DETAIL_FIELDS 8
 #define MISSION_TARGET_FIELDS 5
 

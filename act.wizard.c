@@ -788,7 +788,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
   struct obj_data *j, *wielded = GET_EQ(ch, WEAR_WIELD_1);
   struct follow_type *fol;
   clan_rnum c_n;
-  int c_r;
+  int c_r, index = 0;
   int line_length = 80;
 
   // get some initial info beforehand
@@ -1012,14 +1012,18 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
     send_to_char(ch, "\tCQuest Points: [\tn%9d\tC] Quests Completed: [\tn%5d\tC]\tn\r\n",
                  GET_QUESTPOINTS(k), GET_NUM_QUESTS(k));
-    if (GET_QUEST(k) == NOTHING)
-    {
-      send_to_char(ch, "\tCCurrently not on a Quest.\tn\r\n");
-    }
-    else
-    {
-      send_to_char(ch, "\tCCurrent Quest: [\tn%5d\tC] Time Left: [\tn%5d\tC]\tn\r\n",
-                   GET_QUEST(k), GET_QUEST_TIME(k));
+
+    for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+    { /* loop through all the character's quest slots */
+      if (GET_QUEST(k, index) == NOTHING)
+      {
+        send_to_char(ch, "\tCIndex %d, Currently not on a Quest.\tn\r\n", index);
+      }
+      else
+      {
+        send_to_char(ch, "\tCIndex %d - Quest: [\tn%5d\tC] Time Left: [\tn%5d\tC]\tn\r\n",
+                     index, GET_QUEST(k, index), GET_QUEST_TIME(k, index));
+      }
     }
 
     send_to_char(ch, "\tCacVnum:\tn %d \tC#:\tn %d\tC QP:\tn %d\tC xp:\tn %d\tC "
@@ -3673,14 +3677,14 @@ const struct set_struct
     {"arcaneshadow", LVL_IMPL, PC, NUMBER},     /* 91 */
     {"sacredfist", LVL_IMPL, PC, NUMBER},       /* 92 */
     {"premadebuild", LVL_STAFF, PC, MISC},      /* 93 */
-    {"psionicist", LVL_IMPL, PC, MISC},         /* 94 */
+    {"psionicist", LVL_IMPL, PC, NUMBER},       /* 94 */
     {"deity", LVL_BUILDER, PC, MISC},           /* 95 */
 
-    {"eldritchknight", LVL_IMPL, PC, MISC}, /* 96 */
-    {"spellsword", LVL_IMPL, PC, MISC},     /* 97 */
-    {"shadowdancer", LVL_IMPL, PC, MISC},   /* 98 */
-    {"blackguard", LVL_IMPL, PC, MISC},     /* 99 */
-    {"assassin", LVL_IMPL, PC, MISC},       /* 100 */
+    {"eldritchknight", LVL_IMPL, PC, NUMBER}, /* 96 */
+    {"spellsword", LVL_IMPL, PC, NUMBER},     /* 97 */
+    {"shadowdancer", LVL_IMPL, PC, NUMBER},   /* 98 */
+    {"blackguard", LVL_IMPL, PC, NUMBER},     /* 99 */
+    {"assassin", LVL_IMPL, PC, NUMBER},       /* 100 */
 
     {"\n", 0, BOTH, MISC},
 };

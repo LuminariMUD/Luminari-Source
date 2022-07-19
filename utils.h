@@ -67,7 +67,7 @@
   static void impl_##name##_(struct char_data *ch, char *argument, int cmd, int subcmd)
 
 /** Definition of the helper function for checking if a command can be used.
- *  If show_error is set, an error message will be sent to the user. Otherwise, it 
+ *  If show_error is set, an error message will be sent to the user. Otherwise, it
  *  just returns the status code.
  * Returns:
  *   0 if everything is ok
@@ -983,7 +983,7 @@ void char_from_furniture(struct char_data *ch);
 // spell preparation queue and collection (prepared spells))
 /* this refers to items in the list of spells the ch is trying to prepare */
 #define PREPARATION_QUEUE(ch, slot, cc) (ch->player_specials->saved.prep_queue[slot][cc])
-/* this refers to preparation-time in a list that parallels the preparation_queue 
+/* this refers to preparation-time in a list that parallels the preparation_queue
     OLD system, this can be phased out */
 #define PREP_TIME(ch, slot, cc) (ch->player_specials->saved.prep_queue[slot][cc].prep_time)
 /* this refers to items in the list of spells the ch already has prepared (collection) */
@@ -1143,22 +1143,23 @@ void char_from_furniture(struct char_data *ch);
 #define GET_QUESTPOINTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.questpoints))
 
 /** Return the current quest that a player has assigned */
-#define GET_QUEST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest))
+#define GET_QUEST(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest[index]))
+//#define GET_QUEST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.current_quest))
 
 /** Number of goals completed for this quest. */
-#define GET_QUEST_COUNTER(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_counter))
+#define GET_QUEST_COUNTER(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_counter[index]))
 
 /** Time remaining to complete the quest ch is currently on. */
-#define GET_QUEST_TIME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time))
+#define GET_QUEST_TIME(ch, index) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time[index]))
+//#define GET_QUEST_TIME(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quest_time))
 
 /** The number of quests completed by ch. */
 #define GET_NUM_QUESTS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.num_completed_quests))
 
 /** The type of quest ch is currently participating in. */
-#define GET_QUEST_TYPE(ch) (real_quest(GET_QUEST((ch))) != NOTHING ? aquest_table[real_quest(GET_QUEST((ch)))].type : AQ_UNDEFINED)
+#define GET_QUEST_TYPE(ch, index) (real_quest(GET_QUEST(ch, index)) != NOTHING ? aquest_table[real_quest(GET_QUEST(ch, index))].type : AQ_UNDEFINED)
 
-/* Autoquests data */
-/** Return the number of questpoints ch has. */
+/* staff ran events data */
 #define STAFFRAN_PVAR(ch, variable) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
 
 /**** Clans *****/

@@ -175,7 +175,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg
     GET_MAX_PSP(ch) += mod;
     break;
   case APPLY_HIT:
-    //GET_MAX_HIT(ch) += mod;
+    // GET_MAX_HIT(ch) += mod;
     break;
   case APPLY_MOVE:
     GET_MAX_MOVE(ch) += mod;
@@ -287,7 +287,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg
   case APPLY_FEAT:
     break;
   case APPLY_AGE:
-    //ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
+    // ch->player.time.birth -= (mod * SECS_PER_MUD_YEAR);
     break;
   case APPLY_CLASS:
     break;
@@ -400,8 +400,8 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
 void reset_char_points(struct char_data *ch)
 {
   int i = 0;
-  //struct damage_reduction_type *damreduct;
-  //struct dr_bypass_type *dr_bypass;
+  // struct damage_reduction_type *damreduct;
+  // struct dr_bypass_type *dr_bypass;
 
   ch->points.max_psp = ch->real_points.max_psp;
   ch->points.max_hit = ch->real_points.max_hit;
@@ -718,7 +718,7 @@ int affect_total_sub(struct char_data *ch)
         else
         {
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-                           0, //GET_EQ(ch, i)->affected[j].modifier,
+                           0, // GET_EQ(ch, i)->affected[j].modifier,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), FALSE);
         }
       }
@@ -728,7 +728,7 @@ int affect_total_sub(struct char_data *ch)
   /* remove affects based on 'nekked' char */
   for (af = ch->affected; af; af = af->next)
   {
-    //affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
+    // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
     if (BONUS_TYPE_STACKS(af->bonus_type))
       affect_modify_ar(ch, af->location, af->modifier, af->bitvector, FALSE);
     else
@@ -744,7 +744,7 @@ int affect_total_sub(struct char_data *ch)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     }
     aff_apply_modify(ch, i, -modifier, "affect_total_sub");
-    //affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
+    // affect_modify_ar(ch, i, modifier, empty_bits, FALSE);
   }
 
   /* any stats that are not an APPLY_ need to be stored */
@@ -788,7 +788,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
         else
         {
           affect_modify_ar(ch, GET_EQ(ch, i)->affected[j].location,
-                           0, //GET_EQ(ch, i)->affected[j].modifier,
+                           0, // GET_EQ(ch, i)->affected[j].modifier,
                            GET_OBJ_AFFECT(GET_EQ(ch, i)), TRUE);
         }
       }
@@ -798,7 +798,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   /* re-apply affects based on 'regeared' char */
   for (af = ch->affected; af; af = af->next)
   {
-    //affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+    // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
     if (BONUS_TYPE_STACKS(af->bonus_type))
       affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
     else
@@ -812,14 +812,14 @@ void affect_total_plus(struct char_data *ch, int at_armor)
     for (j = 0; j < NUM_BONUS_TYPES; j++)
       modifier += calculate_best_mod(ch, i, j, -1, -1);
     aff_apply_modify(ch, i, modifier, "affect_total_plus");
-    //affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
+    // affect_modify_ar(ch, i, modifier, empty_bits, TRUE);
   }
 
   /* cap character */
   compute_char_cap(ch);
 
   /* any dynamic stats need to be modified? (example, con -> hps) */
-   if (IS_NPC(ch))
+  if (IS_NPC(ch))
     GET_MAX_HIT(ch) += ((GET_CON(ch) - GET_REAL_CON(ch)) / 2 * GET_LEVEL(ch));
   else
     calculate_max_hp(ch, false);
@@ -833,10 +833,10 @@ void cleanup_disguise(struct char_data *ch)
       REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_WILD_SHAPE);
     set_bonus_attributes(ch, 0, 0, 0, 0);
   }
-  //if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
-  //  GET_DISGUISE_RACE(ch) = 0;
-  //  set_bonus_attributes(ch, 0, 0, 0, 0);
-  //}
+  // if (!AFF_FLAGGED(ch, AFF_WILD_SHAPE)) {
+  //   GET_DISGUISE_RACE(ch) = 0;
+  //   set_bonus_attributes(ch, 0, 0, 0, 0);
+  // }
 }
 void update_msdp_affects(struct char_data *ch)
 {
@@ -853,11 +853,11 @@ void update_msdp_affects(struct char_data *ch)
     /* Open up the AFFECTS table */
     char buf2[100];
     snprintf(buf2, sizeof(buf2), "%c"
-                  "%c%s%c"
-                  "%c",
-            (char)MSDP_TABLE_OPEN,
-            (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
-            (char)MSDP_ARRAY_OPEN);
+                                 "%c%s%c"
+                                 "%c",
+             (char)MSDP_TABLE_OPEN,
+             (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
+             (char)MSDP_ARRAY_OPEN);
     strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
     for (i = 0; i < NUM_AFF_FLAGS; i++)
     {
@@ -865,53 +865,53 @@ void update_msdp_affects(struct char_data *ch)
       {
         char buf[200];
         snprintf(buf, sizeof(buf), "%c%c"
-                     "%c%s%c%s"
-                     "%c%s%c%s"
-                     "%c",
-                (char)MSDP_VAL,
-                (char)MSDP_TABLE_OPEN,
-                (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
-                (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
-                (char)MSDP_TABLE_CLOSE);
+                                   "%c%s%c%s"
+                                   "%c%s%c%s"
+                                   "%c",
+                 (char)MSDP_VAL,
+                 (char)MSDP_TABLE_OPEN,
+                 (char)MSDP_VAR, "NAME", (char)MSDP_VAL, affected_bits[i],
+                 (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
+                 (char)MSDP_TABLE_CLOSE);
         strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       }
     }
     snprintf(buf2, sizeof(buf2), "%c"
-                  "%c%s%c"
-                  "%c",
-            (char)MSDP_ARRAY_CLOSE,
-            (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
-            (char)MSDP_ARRAY_OPEN);
+                                 "%c%s%c"
+                                 "%c",
+             (char)MSDP_ARRAY_CLOSE,
+             (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
+             (char)MSDP_ARRAY_OPEN);
     strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
     for (af = ch->affected; af; af = next)
     {
       char buf[400]; // Buffer for building the affect table for MSDP
       next = af->next;
       snprintf(buf, sizeof(buf), "%c%c"
-                   "%c%s%c%s"
-                   "%c%s%c%s"
-                   "%c%s%c%d"
-                   "%c%s%c%s"
-                   "%c%s%c%d"
-                   "%c",
-              (char)MSDP_VAL,
-              (char)MSDP_TABLE_OPEN,
-              (char)MSDP_VAR, "NAME", (char)MSDP_VAL, spell_name(af->spell),
-              (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int)af->location],
-              (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, af->modifier,
-              (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
-              (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
-              (char)MSDP_TABLE_CLOSE);
+                                 "%c%s%c%s"
+                                 "%c%s%c%s"
+                                 "%c%s%c%d"
+                                 "%c%s%c%s"
+                                 "%c%s%c%d"
+                                 "%c",
+               (char)MSDP_VAL,
+               (char)MSDP_TABLE_OPEN,
+               (char)MSDP_VAR, "NAME", (char)MSDP_VAL, spell_name(af->spell),
+               (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL, apply_types[(int)af->location],
+               (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL, af->modifier,
+               (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
+               (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration,
+               (char)MSDP_TABLE_CLOSE);
       strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
       first = FALSE;
     }
     snprintf(buf2, sizeof(buf2), "%c"
-                  "%c",
-            (char)MSDP_ARRAY_CLOSE,
-            (char)MSDP_TABLE_CLOSE);
+                                 "%c",
+             (char)MSDP_ARRAY_CLOSE,
+             (char)MSDP_TABLE_CLOSE);
     strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
 
-    //send_to_char(ch, "%s", msdp_buffer);
+    // send_to_char(ch, "%s", msdp_buffer);
 
     MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
     MSDPFlush(ch->desc, eMSDP_AFFECTS);
@@ -982,7 +982,7 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   int i;
   struct affected_type *temp;
   int empty_bits[AF_ARRAY_MAX];
-  //bool is_ac_new = false;
+  // bool is_ac_new = false;
 
   for (i = 0; i > AF_ARRAY_MAX; i++)
     empty_bits[i] = 0;
@@ -993,8 +993,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
     return;
   }
 
-  //if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
-    //is_ac_new = true;
+  // if (!IS_NPC(ch) && af->location == APPLY_AC_NEW)
+  // is_ac_new = true;
 
   if (IS_SET_AR(af->bitvector, AFF_CONFUSED))
     ch->confuser_idnum = 0;
@@ -1008,8 +1008,8 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   else if (af->modifier > calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell))
   {
     aff_apply_modify(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), "affect_remove");
-    //affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);
-    // affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
+    // affect_modify_ar(ch, af->location, calculate_best_mod(ch, af->location, af->bonus_type, -1, af->spell), empty_bits, TRUE);
+    //  affect_modify_ar(ch, af->location, af->modifier, af->bitvector, TRUE);
   }
 
   /* Check if we have anything that is 'nonstandard' from this affect */
@@ -1034,10 +1034,10 @@ void affect_remove(struct char_data *ch, struct affected_type *af)
   /* added by zusuk to address an issue with calculation not coming out correct
    on first run of affect_total() ?  unknown, need to trace and figure it out
    eventually though */
-  //affect_total(ch);
-  
-  //if (is_ac_new && ch && ch->desc && STATE(ch->desc) == CON_PLAYING && IN_ROOM(ch) != NOWHERE)
-    //save_char(ch, 0);
+  // affect_total(ch);
+
+  // if (is_ac_new && ch && ch->desc && STATE(ch->desc) == CON_PLAYING && IN_ROOM(ch) != NOWHERE)
+  // save_char(ch, 0);
 }
 
 /* Call affect_remove with every affect from the bitvector "type" */
@@ -1125,7 +1125,6 @@ void affect_join(struct char_data *ch, struct affected_type *af,
   /* no matches in our current affection list, so throw the affection on */
   if (!found)
     affect_to_char(ch, af);
-
 }
 
 /* function to update number of lights in a room */
@@ -1294,11 +1293,11 @@ void char_to_room(struct char_data *ch, room_rnum room)
       }
       /* Set occupied flag */
 
-      //log("room: %d real_room(worroom): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
+      // log("room: %d real_room(worroom): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
 
       if (real_room(world[room].number) != NOWHERE && IS_DYNAMIC(room))
       {
-        //log("Setting occupied bit to room: %d", room); /* spams syslogs */
+        // log("Setting occupied bit to room: %d", room); /* spams syslogs */
         SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
         /* Create the event to clear the flag, if it is not already set. */
         if (!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
@@ -1313,8 +1312,10 @@ void char_to_room(struct char_data *ch, room_rnum room)
     world[room].people = ch;
     IN_ROOM(ch) = room;
 
-    autoquest_trigger_check(ch, 0, 0, AQ_ROOM_FIND);
-    autoquest_trigger_check(ch, 0, 0, AQ_MOB_FIND);
+    /* autoquest system check point -Zusuk */
+    autoquest_trigger_check(ch, 0, 0, 0, AQ_ROOM_FIND);
+    autoquest_trigger_check(ch, 0, 0, 0, AQ_MOB_FIND);
+    autoquest_trigger_check(ch, 0, 0, 0, AQ_HOUSE_FIND);
 
     /* checks for light, globes of darkness, etc */
     check_room_lighting(room, ch, TRUE);
@@ -1355,7 +1356,8 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     IS_CARRYING_N(ch)
     ++;
 
-    autoquest_trigger_check(ch, NULL, object, AQ_OBJ_FIND);
+    /* autoquest system check point -Zusuk */
+    autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
 
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))
@@ -1578,7 +1580,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
      * based on the bonus types. */
 
     affect_modify_ar(ch, obj->affected[j].location,
-                     0, //obj->affected[j].modifier,
+                     0, // obj->affected[j].modifier,
                      GET_OBJ_AFFECT(obj), TRUE);
 
     if ((obj->affected[j].modifier) < 0)
@@ -1589,7 +1591,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), TRUE);
       aff_apply_modify(ch, obj->affected[j].location, -calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
-      //affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
+      // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, FALSE);
     }
   }
 
@@ -1634,7 +1636,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
     /* Here is where we need to see if these affects ACTUALLY apply,
      * based on the bonus types. */
     affect_modify_ar(ch, obj->affected[j].location,
-                     0, //obj->affected[j].modifier,
+                     0, // obj->affected[j].modifier,
                      GET_OBJ_AFFECT(obj), FALSE);
 
     if ((obj->affected[j].modifier) < 0)
@@ -1645,7 +1647,7 @@ struct obj_data *unequip_char(struct char_data *ch, int pos)
     {
       affect_modify_ar(ch, obj->affected[j].location, obj->affected[j].modifier, GET_OBJ_AFFECT(obj), FALSE);
       aff_apply_modify(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), "equip_char");
-      //affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
+      // affect_modify_ar(ch, obj->affected[j].location, calculate_best_mod(ch, obj->affected[j].location, obj->affected[j].bonus_type, pos, -1), empty_bits, TRUE);
     }
   }
   affect_total(ch);
@@ -1878,7 +1880,8 @@ void extract_obj(struct obj_data *obj)
   // will happen, crashes and worse.
   for (d = descriptor_list; d; d = d->next)
   {
-    if (!d->character) continue;
+    if (!d->character)
+      continue;
     if (d->character->player_specials->outfit_obj == obj)
       d->character->player_specials->outfit_obj = NULL;
   }
@@ -2548,7 +2551,7 @@ int generic_find(const char *arg_in, bitvector_t bitvector, struct char_data *ch
   int i, found, number;
   char name_val[MAX_INPUT_LENGTH];
   char *name = name_val;
-  
+
   char arg_local[MAX_INPUT_LENGTH];
   strlcpy(arg_local, arg_in, sizeof(arg_local));
   char *arg = arg_local;
@@ -2794,10 +2797,14 @@ void save_chars(void)
   for (d = descriptor_list; d; d = d->next)
   {
     ch = d->character;
-    if (!ch) continue;
-    if (STATE(d) != CON_PLAYING) continue;
-    if (IN_ROOM(ch) == NOWHERE) continue;
-    if (!d->account) continue;
+    if (!ch)
+      continue;
+    if (STATE(d) != CON_PLAYING)
+      continue;
+    if (IN_ROOM(ch) == NOWHERE)
+      continue;
+    if (!d->account)
+      continue;
     save_char(ch, 0);
   }
 }

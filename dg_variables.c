@@ -74,14 +74,14 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
 
 int dg_has_feat(char_data *ch, const char *feat, int return_type)
 {
-    int featnum;
+  int featnum;
 
-    featnum = find_feat_num(feat);
+  featnum = find_feat_num(feat);
 
-    if (featnum <= 0)
-      return 0;
-    else
-      return HAS_FEAT(ch, featnum);
+  if (featnum <= 0)
+    return 0;
+  else
+    return HAS_FEAT(ch, featnum);
 }
 
 /* perhaps not the best place for this, but I didn't want a new file */
@@ -315,28 +315,28 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
   obj_data *obj, *o = NULL;
   struct room_data *room, *r = NULL;
   char *name;
-  int num, count, i, j, doors;
+  int num, count, i, j, doors, index = 0;
 
-  const char * const send_cmd[] = {"msend ", "osend ", "wsend "};
-  const char * const echo_cmd[] = {"mecho ", "oecho ", "wecho "};
-  const char * const gecho_cmd[] = {"mgecho", "ogecho", "wgecho"};
-  const char * const echoaround_cmd[] = {"mechoaround ", "oechoaround ", "wechoaround "};
-  const char * const door[] = {"mdoor ", "odoor ", "wdoor "};
-  const char * const force[] = {"mforce ", "oforce ", "wforce "};
-  const char * const load[] = {"mload ", "oload ", "wload "};
-  const char * const purge[] = {"mpurge ", "opurge ", "wpurge "};
-  const char * const teleport[] = {"mteleport ", "oteleport ", "wteleport "};
+  const char *const send_cmd[] = {"msend ", "osend ", "wsend "};
+  const char *const echo_cmd[] = {"mecho ", "oecho ", "wecho "};
+  const char *const gecho_cmd[] = {"mgecho", "ogecho", "wgecho"};
+  const char *const echoaround_cmd[] = {"mechoaround ", "oechoaround ", "wechoaround "};
+  const char *const door[] = {"mdoor ", "odoor ", "wdoor "};
+  const char *const force[] = {"mforce ", "oforce ", "wforce "};
+  const char *const load[] = {"mload ", "oload ", "wload "};
+  const char *const purge[] = {"mpurge ", "opurge ", "wpurge "};
+  const char *const teleport[] = {"mteleport ", "oteleport ", "wteleport "};
   /* the x kills a 'shadow' warning in gcc. */
-  const char * const xdamage[] = {"mdamage ", "odamage ", "wdamage "};
-  const char * const zoneecho[] = {"mzoneecho ", "ozoneecho ", "wzoneecho "};
-  const char * const asound[] = {"masound ", "oasound ", "wasound "};
-  const char * const at[] = {"mat ", "oat ", "wat "};
+  const char *const xdamage[] = {"mdamage ", "odamage ", "wdamage "};
+  const char *const zoneecho[] = {"mzoneecho ", "ozoneecho ", "wzoneecho "};
+  const char *const asound[] = {"masound ", "oasound ", "wasound "};
+  const char *const at[] = {"mat ", "oat ", "wat "};
   /* there is no such thing as wtransform, thus the wecho below  */
-  const char * const transform[] = {"mtransform ", "otransform ", "wecho "};
-  const char * const recho[] = {"mrecho ", "orecho ", "wrecho "};
+  const char *const transform[] = {"mtransform ", "otransform ", "wecho "};
+  const char *const recho[] = {"mrecho ", "orecho ", "wrecho "};
   /* there is no such thing as mmove, thus the mecho below  */
-  const char * const omove[] = {"mecho ", "omove ", "wmove "};
-  const char * const bind[] = {"mecho ", "obind ", "wecho "};
+  const char *const omove[] = {"mecho ", "omove ", "wmove "};
+  const char *const bind[] = {"mecho ", "obind ", "wecho "};
 
   *str = '\0';
 
@@ -551,15 +551,15 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           *str = '\0';
         return;
       } /* %findobj.<room vnum X>(<object vnum/id/name>)%
- *  - count number of objects in room X with this name/id/vnum
- * %findmob.<room vnum X>(<mob vnum Y>)%
- *  - count number of mobs in room X with vnum Y
- * For example you want to check how many PC's are in room with vnum 1204. PC's
- * have the vnum -1 so: %echo% players in room 1204: %findmob.1204(-1)%
- * Or say you had a bank, and you want a script to check the number of bags of
- * gold (vnum: 1234). In the vault (vnum: 453). Use: %findobj.453(1234)% and it
- * will return the number of bags of gold.
- * Addition inspired by Jamie Nelson */
+         *  - count number of objects in room X with this name/id/vnum
+         * %findmob.<room vnum X>(<mob vnum Y>)%
+         *  - count number of mobs in room X with vnum Y
+         * For example you want to check how many PC's are in room with vnum 1204. PC's
+         * have the vnum -1 so: %echo% players in room 1204: %findmob.1204(-1)%
+         * Or say you had a bank, and you want a script to check the number of bags of
+         * gold (vnum: 1234). In the vault (vnum: 453). Use: %findobj.453(1234)% and it
+         * will return the number of bags of gold.
+         * Addition inspired by Jamie Nelson */
       else if (!str_cmp(var, "findmob"))
       {
         if (!field || !*field || !subfield || !*subfield)
@@ -819,7 +819,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           else
           {
-            //sprinttype(GET_CLASS(c), CLSLIST_NAME, str, slen);
+            // sprinttype(GET_CLASS(c), CLSLIST_NAME, str, slen);
             snprintf(str, slen, "%s", CLSLIST_NAME(GET_CLASS(c)));
           }
         }
@@ -909,7 +909,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         break;
       case 'f':
         if (!str_cmp(field, "feat"))
-            snprintf(str, slen, "%d", dg_has_feat(c, subfield, 0));
+          snprintf(str, slen, "%d", dg_has_feat(c, subfield, 0));
         else if (!str_cmp(field, "fighting"))
         {
           if (FIGHTING(c))
@@ -1070,12 +1070,20 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
             strcpy(str, "0");
         }
+
         else if (!str_cmp(field, "is_on_quest"))
         {
           if (!IS_NPC(c) && subfield && *subfield)
           {
             int q_num = atoi(subfield);
-            if (GET_QUEST(c) == q_num)
+            bool found = FALSE;
+
+            /* loop through all the character's quest slots */
+            for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+              if (GET_QUEST(c, index) == q_num)
+                found = TRUE;
+
+            if (found)
               strcpy(str, "1");
             else
               strcpy(str, "0");
@@ -1083,6 +1091,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
             strcpy(str, "0");
         }
+
         else if (!str_cmp(field, "is_thief"))
         {
           if (subfield && *subfield)
@@ -1219,6 +1228,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         }
         break;
       case 'q':
+
         if (!IS_NPC(c) && (!str_cmp(field, "questpoints") ||
                            !str_cmp(field, "qp") || !str_cmp(field, "qpnts")))
         {
@@ -1229,13 +1239,26 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           snprintf(str, slen, "%d", GET_QUESTPOINTS(c));
         }
+
         else if (!str_cmp(field, "quest"))
         {
-          if (!IS_NPC(c) && (GET_QUEST(c) != NOTHING) && (real_quest(GET_QUEST(c)) != NOTHING))
-            snprintf(str, slen, "%d", GET_QUEST(c));
-          else
+          int index = 0;
+          bool found = FALSE;
+
+          for (index = 0; index < MAX_CURRENT_QUESTS; index++)
+          { /* loop through all the character's quest slots */
+            if (!IS_NPC(c) && (GET_QUEST(c, index) != NOTHING) && (real_quest(GET_QUEST(c, index)) != NOTHING))
+            {
+              snprintf(str, slen, "%d", GET_QUEST(c, index));
+              found = TRUE;
+              break;
+            }
+          }
+
+          if (!found)
             strcpy(str, "0");
         }
+
         else if (!str_cmp(field, "questdone"))
         {
           if (!IS_NPC(c) && subfield && *subfield)
@@ -1249,6 +1272,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
             strcpy(str, "0");
         }
+
         break;
       case 'r':
         if (!str_cmp(field, "race"))
@@ -1269,7 +1293,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             snprintf(str, slen, race_list[GET_RACE(c)].type);
-            //sprinttype(GET_RACE(c), pc_race_types, str, slen);
+            // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
         else if (!str_cmp(field, "resist_fire"))
@@ -1587,7 +1611,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             snprintf(str, slen, race_list[GET_RACE(c)].type);
-            //sprinttype(GET_RACE(c), pc_race_types, str, slen);
+            // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
         else if (!str_cmp(field, "subrace2"))
@@ -1608,7 +1632,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             snprintf(str, slen, race_list[GET_RACE(c)].type);
-            //sprinttype(GET_RACE(c), pc_race_types, str, slen);
+            // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
         else if (!str_cmp(field, "subrace3"))
@@ -1629,7 +1653,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           else
           {
             snprintf(str, slen, race_list[GET_RACE(c)].type);
-            //sprinttype(GET_RACE(c), pc_race_types, str, slen);
+            // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
         break;
@@ -1682,10 +1706,10 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
               snprintf(str, slen, "%d", GET_MOB_VNUM(c));
             else
               /*
-                 * for compatibility with unsigned indexes
-                 * - this is deprecated - use %actor.is_pc% to check
-                 * instead of %actor.vnum% == -1  --Welcor 09/03
-                 */
+               * for compatibility with unsigned indexes
+               * - this is deprecated - use %actor.is_pc% to check
+               * instead of %actor.vnum% == -1  --Welcor 09/03
+               */
               strcpy(str, "-1");
           }
         }
@@ -2382,7 +2406,7 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig,
             find_replacement(go, sc, trig, type, var, field, subfield, repl_str, sizeof(repl_str));
             if (*repl_str)
             {
-              snprintf(tmp2, sizeof(tmp2), "eval tmpvr %s", repl_str); //temp var
+              snprintf(tmp2, sizeof(tmp2), "eval tmpvr %s", repl_str); // temp var
               process_eval(go, sc, trig, type, tmp2);
               strcpy(var, "tmpvr");
               field = p;

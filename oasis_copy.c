@@ -38,7 +38,7 @@ static room_vnum redit_find_new_vnum(zone_rnum zone);
  ***********************************************************/
 ACMD(do_oasis_copy)
 {
-  int i, src_vnum, src_rnum, dst_vnum, dst_rnum;
+  int i, src_vnum, src_rnum, dst_vnum, dst_rnum; //, copy_mode = QMODE_QCOPY;
   char buf1[MAX_INPUT_LENGTH];
   char buf2[MAX_INPUT_LENGTH];
   struct descriptor_data *d;
@@ -46,10 +46,10 @@ ACMD(do_oasis_copy)
   struct
   {
     int con_type;
-    IDXTYPE (*binary_search)
+    IDXTYPE(*binary_search)
     (IDXTYPE vnum);
     void (*save_func)(struct descriptor_data *d);
-    void (*setup_existing)(struct descriptor_data *d, int rnum);
+    void (*setup_existing)(struct descriptor_data *d, int rnum, int mode);
     const char *command;
     const char *text;
   } oasis_copy_info[] = {
@@ -152,7 +152,9 @@ ACMD(do_oasis_copy)
 
   /* Perform the copy. */
   send_to_char(ch, "Copying %s: source: #%d, dest: #%d.\r\n", oasis_copy_info[i].text, src_vnum, dst_vnum);
-  (*oasis_copy_info[i].setup_existing)(d, src_rnum);
+
+  /* we are sending the vnum of the destination as our "mode" variable, this is an attempt to fix qcopy -zusuk */
+  (*oasis_copy_info[i].setup_existing)(d, src_rnum, dst_vnum);
   (*oasis_copy_info[i].save_func)(d);
 
   /* Currently CLEANUP_ALL should be used for everything. */

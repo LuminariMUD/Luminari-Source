@@ -122,32 +122,32 @@ int animal_vnums[] = {
 /* now paladin mounts */
 int mount_vnums[] = {
     0,
-    C_W_WARHORSE, //70, 1
-    C_B_DESTRIER, //71, 2
-    C_STALLION,   //72, 3
-    C_A_DESTRIER, //73, 4
-    C_G_WARHORSE, //74, 5
-    C_P_WARHORSE, //75, 6
-    C_C_DESTRIER, //76, 7
-    C_WARDOG,     //77, 8
-    C_WARPONY,    //78, 9
-    C_GRIFFON,    //79, 10
+    C_W_WARHORSE, // 70, 1
+    C_B_DESTRIER, // 71, 2
+    C_STALLION,   // 72, 3
+    C_A_DESTRIER, // 73, 4
+    C_G_WARHORSE, // 74, 5
+    C_P_WARHORSE, // 75, 6
+    C_C_DESTRIER, // 76, 7
+    C_WARDOG,     // 77, 8
+    C_WARPONY,    // 78, 9
+    C_GRIFFON,    // 79, 10
     -1            /* end with this */
 };
 #define NUM_MOUNTS 10
 /* now familiars */
 int familiar_vnums[] = {
     0,
-    F_HUNTER,        //80, 1
+    F_HUNTER,        // 80, 1
     F_PANTHER,       // 81, 2
-    F_MOUSE,         //82, 3
-    F_EAGLE,         //83, 4
-    F_RAVEN,         //84, 5
-    F_IMP,           //85, 6
+    F_MOUSE,         // 82, 3
+    F_EAGLE,         // 83, 4
+    F_RAVEN,         // 84, 5
+    F_IMP,           // 85, 6
     F_PIXIE,         // 86, 7
-    F_FAERIE_DRAGON, //87, 8
-    F_PSEUDO_DRAGON, //88, 9
-    F_HELLHOUND,     //89, 10
+    F_FAERIE_DRAGON, // 87, 8
+    F_PSEUDO_DRAGON, // 88, 9
+    F_HELLHOUND,     // 89, 10
     -1               /* end with this */
 };
 #define NUM_FAMILIARS 10
@@ -539,7 +539,7 @@ ACMD(do_study)
       TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  //if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0)  // old -- gicker, june 10, 2020
+  // if (GET_LEVEL(ch) == 1 && stat_points_left(ch) > 0)  // old -- gicker, june 10, 2020
   if (GET_LEVEL(ch) == 1 && !HAS_SET_STATS_STUDY(ch) && GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
   {
     set_stats_menu(d);
@@ -760,7 +760,6 @@ static void sorc_known_spells_disp_menu(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SORC_KNOWN_SPELLS_MENU;
 }
 
-
 static void psionicist_known_powers_disp_menu(struct descriptor_data *d)
 {
   //  int sorc_level = CLASS_LEVEL(d->character, CLASS_SORCERER) +
@@ -847,7 +846,6 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   write_to_output(d, "%sEnter spell choice, to add or remove "
                      "(Q to exit to main menu) : ",
                   nrm);
-
 
   OLC_MODE(d) = STUDY_SPELLS;
 }
@@ -952,12 +950,12 @@ void psionicist_study_menu(struct descriptor_data *d, int circle)
   }
   write_to_output(d, "\r\n");
   write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
-                      num_psionicist_powers_available(d->character) - num_psionicist_powers_known(d->character));
+                  num_psionicist_powers_available(d->character) - num_psionicist_powers_known(d->character));
   write_to_output(d, "\tCType the power number followed by 'help' to see help on that power.  Eg. 81 help\r\n\tn");
   write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n", nrm);
   write_to_output(d, "%sEnter power choice, to add or remove "
-                     "(Q to exit to main menu) : ", nrm);
-
+                     "(Q to exit to main menu) : ",
+                  nrm);
 
   OLC_MODE(d) = PSIONICIST_STUDY_POWERS;
 }
@@ -1241,17 +1239,17 @@ static void set_stats_menu(struct descriptor_data *d)
                   mgn, nrm,
                   /* empty line */
                   grn, nrm, LEVELUP(d->character)->str, nrm, "", get_race_stat(GET_RACE(d->character), R_STR_MOD) >= 0 ? "+" : "",
-                            get_race_stat(GET_RACE(d->character), R_STR_MOD), get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str,
+                  get_race_stat(GET_RACE(d->character), R_STR_MOD), get_race_stat(GET_RACE(d->character), R_STR_MOD) + LEVELUP(d->character)->str,
                   grn, nrm, LEVELUP(d->character)->dex, nrm, "", get_race_stat(GET_RACE(d->character), R_DEX_MOD) >= 0 ? "+" : "",
-                            get_race_stat(GET_RACE(d->character), R_DEX_MOD), get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex,
+                  get_race_stat(GET_RACE(d->character), R_DEX_MOD), get_race_stat(GET_RACE(d->character), R_DEX_MOD) + LEVELUP(d->character)->dex,
                   grn, nrm, LEVELUP(d->character)->con, nrm, "", get_race_stat(GET_RACE(d->character), R_CON_MOD) >= 0 ? "+" : "",
-                            get_race_stat(GET_RACE(d->character), R_CON_MOD), get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con,
+                  get_race_stat(GET_RACE(d->character), R_CON_MOD), get_race_stat(GET_RACE(d->character), R_CON_MOD) + LEVELUP(d->character)->con,
                   grn, nrm, LEVELUP(d->character)->inte, nrm, "", get_race_stat(GET_RACE(d->character), R_INTEL_MOD) >= 0 ? "+" : "",
-                            get_race_stat(GET_RACE(d->character), R_INTEL_MOD), get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte,
+                  get_race_stat(GET_RACE(d->character), R_INTEL_MOD), get_race_stat(GET_RACE(d->character), R_INTEL_MOD) + LEVELUP(d->character)->inte,
                   grn, nrm, LEVELUP(d->character)->wis, nrm, "", get_race_stat(GET_RACE(d->character), R_WIS_MOD) >= 0 ? "+" : "",
-                            get_race_stat(GET_RACE(d->character), R_WIS_MOD), get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis,
+                  get_race_stat(GET_RACE(d->character), R_WIS_MOD), get_race_stat(GET_RACE(d->character), R_WIS_MOD) + LEVELUP(d->character)->wis,
                   grn, nrm, LEVELUP(d->character)->cha, nrm, "", get_race_stat(GET_RACE(d->character), R_CHA_MOD) >= 0 ? "+" : "",
-                            get_race_stat(GET_RACE(d->character), R_CHA_MOD), get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha,
+                  get_race_stat(GET_RACE(d->character), R_CHA_MOD), get_race_stat(GET_RACE(d->character), R_CHA_MOD) + LEVELUP(d->character)->cha,
                   grn, stat_points_left(d->character), nrm,
                   /* empty line */
                   grn, nrm
@@ -1493,7 +1491,8 @@ static void select_paladin_mercies(struct descriptor_data *d)
 
   write_to_output(d,
                   "\r\n-- %sSelect Paladin Mercies%s\r\n"
-                  "\r\n", mgn, nrm);
+                  "\r\n",
+                  mgn, nrm);
 
   for (i = 1; i < NUM_PALADIN_MERCIES; i++)
   {
@@ -1520,7 +1519,6 @@ static void select_paladin_mercies(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SELECT_PAL_MERCY;
 }
 
-
 static void select_blackguard_cruelties(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -1534,7 +1532,8 @@ static void select_blackguard_cruelties(struct descriptor_data *d)
 
   write_to_output(d,
                   "\r\n-- %sSelect Blackguard Cruelties%s\r\n"
-                  "\r\n", mgn, nrm);
+                  "\r\n",
+                  mgn, nrm);
 
   for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
   {
@@ -1560,7 +1559,6 @@ static void select_blackguard_cruelties(struct descriptor_data *d)
 
   OLC_MODE(d) = STUDY_SELECT_BG_CRUELTY;
 }
-
 
 static void set_domain_submenu(struct descriptor_data *d)
 {
@@ -1876,7 +1874,7 @@ static void main_skills_disp_menu(struct descriptor_data *d)
 {
   int i, start_ability, end_ability;
   ;
-  //bool can_study = FALSE;
+  // bool can_study = FALSE;
   struct char_data *ch = d->character;
 
   start_ability = START_GENERAL_ABILITIES;
@@ -2040,22 +2038,22 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "Enter Choice : ",
 
                   mgn,
-                  MENU_OPT(CAN_STUDY_SKILLS(ch)), (CAN_STUDY_SKILLS(ch)) ? "" : "*",                                   //0
-                  MENU_OPT(CAN_STUDY_BOOSTS(ch)), CAN_STUDY_BOOSTS(ch) ? "" : "*",                                     //1
-                  MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*",                                       //2
-                  MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*",                         //3
-                  MENU_OPT(CAN_STUDY_KNOWN_PSIONICS(ch)), CAN_STUDY_KNOWN_PSIONICS(ch) ? "" : "*",                     //4
-                  MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*",                                 //5
-                  MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*",                               //6
-                  MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*",                       //7
-                  MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*",                                         //8
-                  MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*",                                         //9
-                  MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                                     //A
-                  MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               //B
-                  MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", //C
-                  MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             //D
-                  MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   //E
-                  MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         //R
+                  MENU_OPT(CAN_STUDY_SKILLS(ch)), (CAN_STUDY_SKILLS(ch)) ? "" : "*",                                   // 0
+                  MENU_OPT(CAN_STUDY_BOOSTS(ch)), CAN_STUDY_BOOSTS(ch) ? "" : "*",                                     // 1
+                  MENU_OPT(CAN_STUDY_FEATS(ch)), CAN_STUDY_FEATS(ch) ? "" : "*",                                       // 2
+                  MENU_OPT(CAN_STUDY_KNOWN_SPELLS(ch)), CAN_STUDY_KNOWN_SPELLS(ch) ? "" : "*",                         // 3
+                  MENU_OPT(CAN_STUDY_KNOWN_PSIONICS(ch)), CAN_STUDY_KNOWN_PSIONICS(ch) ? "" : "*",                     // 4
+                  MENU_OPT(CAN_STUDY_FAMILIAR(ch)), CAN_STUDY_FAMILIAR(ch) ? "" : "*",                                 // 5
+                  MENU_OPT(CAN_STUDY_COMPANION(ch)), CAN_STUDY_COMPANION(ch) ? "" : "*",                               // 6
+                  MENU_OPT(CAN_STUDY_FAVORED_ENEMY(ch)), CAN_STUDY_FAVORED_ENEMY(ch) ? "" : "*",                       // 7
+                  MENU_OPT(CAN_SET_DOMAIN(ch)), CAN_SET_DOMAIN(ch) ? "" : "*",                                         // 8
+                  MENU_OPT(CAN_SET_SCHOOL(ch)), CAN_SET_SCHOOL(ch) ? "" : "*",                                         // 9
+                  MENU_OPT(CAN_SET_P_CASTER(ch)), CAN_SET_P_CASTER(ch) ? "" : "*",                                     // A
+                  MENU_OPT(CAN_SET_S_BLOODLINE(ch)), CAN_SET_S_BLOODLINE(ch) ? "" : "*",                               // B
+                  MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", // C
+                  MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             // D
+                  MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
+                  MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
                   grn, nrm);
 
   OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
@@ -2228,7 +2226,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       /* Save the temporary values in LEVELUP(d->character) to the
-           * character, print a message, free the structures and exit. */
+       * character, print a message, free the structures and exit. */
       write_to_output(d, "Your choices have been finalized!\r\n\r\n");
       // if (GET_LEVEL(ch) == 1) /* in case they modify their intelligence */
       //   reset_training_points(ch);
@@ -2288,12 +2286,14 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (LEVELUP(ch)->class == CLASS_SORCERER ||
             ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
-              LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+              LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
              GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
           sorc_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_BARD ||
                  ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
-                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
           bard_known_spells_disp_menu(d);
       }
@@ -2304,14 +2304,14 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       break;
     case '4':
-    if (LEVELUP(ch) && LEVELUP(ch)->inte != GET_REAL_INT(ch))
+      if (LEVELUP(ch) && LEVELUP(ch)->inte != GET_REAL_INT(ch))
       {
         send_to_char(ch, "\tYSince you have changed your intelligence ability score, you need to save and\r\nquit from study before you can select your powers.\r\n");
         break;
       }
       if (CAN_STUDY_KNOWN_PSIONICS(ch))
       {
-          psionicist_known_powers_disp_menu(d);
+        psionicist_known_powers_disp_menu(d);
       }
       else
       {
@@ -2414,7 +2414,7 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-    
+
     case 'd':
     case 'D':
       if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
@@ -2448,7 +2448,6 @@ void study_parse(struct descriptor_data *d, char *arg)
         generic_main_disp_menu(d);
       }
       break;
-
 
     // reset levelup, level 1 only.
     case 'R':
@@ -2497,7 +2496,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
   case STUDY_MAIN_FEAT_MENU:
     /* This is the menu where the player chooses feats - This menu is actually a
-       * 'master menu' that drives the process. */
+     * 'master menu' that drives the process. */
     switch (*arg)
     {
     case 'q':
@@ -2610,7 +2609,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    //skill not available to this class
+    // skill not available to this class
     if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 0)
     {
       send_to_char(ch, "This skill is not available to your class...\r\n");
@@ -2618,7 +2617,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    //cross-class skill
+    // cross-class skill
     if (GET_LEVELUP_SKILL_POINTS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
       send_to_char(ch, "(Cross-Class) You don't have enough skill points to train that skill...\r\n");
@@ -2632,7 +2631,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    //class skill
+    // class skill
     if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2)
     {
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
@@ -2697,7 +2696,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = STUDY_CONFIRM_ADD_DISCOVERY;
     break;
 
-    case STUDY_SELECT_PAL_MERCY:
+  case STUDY_SELECT_PAL_MERCY:
     number = atoi(arg);
     if (number == -1)
     {
@@ -2719,8 +2718,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     if (!has_paladin_mercies_unchosen_study(ch))
     {
       send_to_char(ch, "You cannot choose new mercies at this time.  "
-                      "If you wish to change your choices in this study session, "
-                      "quit the study menu without saving the changes.\r\n");
+                       "If you wish to change your choices in this study session, "
+                       "quit the study menu without saving the changes.\r\n");
       break;
     }
 
@@ -2734,7 +2733,6 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     OLC_MODE(d) = STUDY_CONFIRM_ADD_MERCY;
     break;
-
 
   case STUDY_SELECT_BG_CRUELTY:
     number = atoi(arg);
@@ -2758,8 +2756,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     if (!has_blackguard_cruelties_unchosen_study(ch))
     {
       send_to_char(ch, "You cannot choose new cruelties at this time.  "
-                      "If you wish to change your choices in this study session, "
-                      "quit the study menu without saving the changes.\r\n");
+                       "If you wish to change your choices in this study session, "
+                       "quit the study menu without saving the changes.\r\n");
       break;
     }
 
@@ -2791,7 +2789,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
 
-    case STUDY_CONFIRM_ADD_MERCY:
+  case STUDY_CONFIRM_ADD_MERCY:
     switch (*arg)
     {
     case 'n':
@@ -2868,7 +2866,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     case 'y':
     case 'Y':
       /* Check to see if this feat has a subfeat - If so, then display the
-           * approptiate menus. */
+       * approptiate menus. */
       if (feat_to_cfeat(LEVELUP(ch)->tempFeat) != -1)
       {
         /* Combat feat - Need to choose weapon type. */
@@ -3127,29 +3125,38 @@ void study_parse(struct descriptor_data *d, char *arg)
                                     DOMAIN_UNDEFINED) ==
               LEVELUP(d->character)->spell_circle)
           {
-            if (*arg2 && is_abbrev(arg2, "help")) {
+            if (*arg2 && is_abbrev(arg2, "help"))
+            {
               snprintf(buf, sizeof(buf), "%s", spell_info[counter].name);
               do_help(d->character, buf, 0, 0);
               return;
             }
-            if (is_a_known_spell(d->character, CLASS_SORCERER, counter)) {
-              if (!LEVELUP(d->character)->spells_learned[counter]) {
+            if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
+            {
+              if (!LEVELUP(d->character)->spells_learned[counter])
+              {
                 send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
-                                         "To change past choices, you need "
-                                         "to respec your character.\r\n\tn");
-                break;        
-              } else {
+                                           "To change past choices, you need "
+                                           "to respec your character.\r\n\tn");
+                break;
+              }
+              else
+              {
                 known_spells_remove_by_class(d->character, CLASS_SORCERER, counter);
-                LEVELUP(d->character)->spells_learned[counter] = 0; 
+                LEVELUP(d->character)->spells_learned[counter] = 0;
               }
             }
-            else {
+            else
+            {
               can_add_spell = known_spells_add(d->character, CLASS_SORCERER, counter, FALSE);
-              if (!can_add_spell) {
+              if (!can_add_spell)
+              {
                 write_to_output(d, "You are all FULL for spells!\r\n");
                 break;
-              } else {
-                LEVELUP(d->character)->spells_learned[counter] = 1; 
+              }
+              else
+              {
+                LEVELUP(d->character)->spells_learned[counter] = 1;
               }
             }
           }
@@ -3209,29 +3216,38 @@ void study_parse(struct descriptor_data *d, char *arg)
                                     DOMAIN_UNDEFINED) ==
               LEVELUP(d->character)->spell_circle)
           {
-            if (*arg2 && is_abbrev(arg2, "help")) {
+            if (*arg2 && is_abbrev(arg2, "help"))
+            {
               do_study_spell_help(d->character, counter);
               return;
             }
-            
-            if (is_a_known_spell(d->character, CLASS_BARD, counter)) {
-              if (!LEVELUP(d->character)->spells_learned[counter]) {
+
+            if (is_a_known_spell(d->character, CLASS_BARD, counter))
+            {
+              if (!LEVELUP(d->character)->spells_learned[counter])
+              {
                 send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
-                                         "To change past choices, you need "
-                                         "to respec your character.\r\n\tn");
-                break;        
-              } else {
+                                           "To change past choices, you need "
+                                           "to respec your character.\r\n\tn");
+                break;
+              }
+              else
+              {
                 known_spells_remove_by_class(d->character, CLASS_BARD, counter);
-                LEVELUP(d->character)->spells_learned[counter] = 0; 
+                LEVELUP(d->character)->spells_learned[counter] = 0;
               }
             }
-            else {
+            else
+            {
               can_add_spell = known_spells_add(d->character, CLASS_BARD, counter, FALSE);
-              if (!can_add_spell) {
+              if (!can_add_spell)
+              {
                 write_to_output(d, "You are all FULL for spells!\r\n");
                 break;
-              } else {
-                LEVELUP(d->character)->spells_learned[counter] = 1; 
+              }
+              else
+              {
+                LEVELUP(d->character)->spells_learned[counter] = 1;
               }
             }
           }
@@ -3245,7 +3261,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     /******* start psionicist **********/
 
-    case STUDY_PSIONICIST_KNOWN_POWERS_MENU:
+  case STUDY_PSIONICIST_KNOWN_POWERS_MENU:
     switch (*arg)
     {
     case 'q':
@@ -3277,7 +3293,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
 
-    case PSIONICIST_STUDY_POWERS:
+  case PSIONICIST_STUDY_POWERS:
     switch (*arg)
     {
     case 'q':
@@ -3295,28 +3311,37 @@ void study_parse(struct descriptor_data *d, char *arg)
         {
           if (compute_powers_circle(CLASS_PSIONICIST, counter, METAMAGIC_NONE) == LEVELUP(d->character)->spell_circle)
           {
-            if (*arg2 && is_abbrev(arg2, "help")) {
+            if (*arg2 && is_abbrev(arg2, "help"))
+            {
               snprintf(buf, sizeof(buf), "power %s", spell_info[counter].name);
               do_help(d->character, buf, 0, 0);
               return;
             }
-            if (is_a_known_spell(d->character, CLASS_PSIONICIST, counter)) {
-              if (!LEVELUP(d->character)->spells_learned[counter]) {
+            if (is_a_known_spell(d->character, CLASS_PSIONICIST, counter))
+            {
+              if (!LEVELUP(d->character)->spells_learned[counter])
+              {
                 send_to_char(d->character, "\tCYou cannot remove powers known, unless it is a power you already chose this level. "
-                                         "To change past choices, you need to respec your character.\r\n\tn");
-                break;        
-              } else {
+                                           "To change past choices, you need to respec your character.\r\n\tn");
+                break;
+              }
+              else
+              {
                 known_spells_remove_by_class(d->character, CLASS_PSIONICIST, counter);
-                LEVELUP(d->character)->spells_learned[counter] = 0; 
+                LEVELUP(d->character)->spells_learned[counter] = 0;
               }
             }
-            else {
-              can_add_spell = known_spells_add(d->character, CLASS_PSIONICIST, counter, FALSE);        
-              if (!can_add_spell) {
+            else
+            {
+              can_add_spell = known_spells_add(d->character, CLASS_PSIONICIST, counter, FALSE);
+              if (!can_add_spell)
+              {
                 write_to_output(d, "You are all FULL for powers!\r\n");
                 break;
-              } else {
-                LEVELUP(d->character)->spells_learned[counter] = 1; 
+              }
+              else
+              {
+                LEVELUP(d->character)->spells_learned[counter] = 1;
               }
             }
           }
@@ -3327,7 +3352,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
 
-    /******* end psionicist **********/ 
+    /******* end psionicist **********/
 
   case SET_1ST_DOMAIN:
     number = atoi(arg);
@@ -3660,7 +3685,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         break;
       }
       // We're applying racial bonuses now instead of in init_start_char in class.c
-      if (!HAS_SET_STATS_STUDY(ch)) {
+      if (!HAS_SET_STATS_STUDY(ch))
+      {
         LEVELUP(d->character)->con += get_race_stat(GET_RACE(ch), R_CON_MOD);
         LEVELUP(d->character)->str += get_race_stat(GET_RACE(ch), R_STR_MOD);
         LEVELUP(d->character)->dex += get_race_stat(GET_RACE(ch), R_DEX_MOD);
@@ -3714,13 +3740,13 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_STAT_STR:
     number = MAX(-10, MIN(atoi(arg), 10));
     /*debug*/
-    //write_to_output(d, "Number: %d\r\n", number);
+    // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
     /*debug*/
-    //write_to_output(d, "Points Left: %d\r\n", points_left);
+    // write_to_output(d, "Points Left: %d\r\n", points_left);
     new_stat = LEVELUP(d->character)->str + number;
     /*debug*/
-    //write_to_output(d, "New Stat: %d\r\n", new_stat);
+    // write_to_output(d, "New Stat: %d\r\n", new_stat);
     if (new_stat < compute_base_str(d->character) ||
         new_stat > compute_base_str(d->character) + MAX_POINTS_IN_A_STAT)
     {
@@ -3730,7 +3756,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     cost_for_number = compute_str_cost(d->character, number) -
                       compute_str_cost(d->character, 0); /*total cost*/
     /*debug*/
-    //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+    // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
     {
       if (new_stat >= compute_base_str(d->character) &&
@@ -3757,13 +3783,13 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_STAT_DEX:
     number = MAX(-10, MIN(atoi(arg), 10));
     /*debug*/
-    //write_to_output(d, "Number: %d\r\n", number);
+    // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
     /*debug*/
-    //write_to_output(d, "Points Left: %d\r\n", points_left);
+    // write_to_output(d, "Points Left: %d\r\n", points_left);
     new_stat = LEVELUP(d->character)->dex + number;
     /*debug*/
-    //write_to_output(d, "New Stat: %d\r\n", new_stat);
+    // write_to_output(d, "New Stat: %d\r\n", new_stat);
     if (new_stat < compute_base_dex(d->character) ||
         new_stat > compute_base_dex(d->character) + MAX_POINTS_IN_A_STAT)
     {
@@ -3773,7 +3799,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     cost_for_number = compute_dex_cost(d->character, number) -
                       compute_dex_cost(d->character, 0);
     /*debug*/
-    //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+    // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
     {
       if (new_stat >= compute_base_dex(d->character) &&
@@ -3800,13 +3826,13 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_STAT_CON:
     number = MAX(-10, MIN(atoi(arg), 10));
     /*debug*/
-    //write_to_output(d, "Number: %d\r\n", number);
+    // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
     /*debug*/
-    //write_to_output(d, "Points Left: %d\r\n", points_left);
+    // write_to_output(d, "Points Left: %d\r\n", points_left);
     new_stat = LEVELUP(d->character)->con + number;
     /*debug*/
-    //write_to_output(d, "New Stat: %d\r\n", new_stat);
+    // write_to_output(d, "New Stat: %d\r\n", new_stat);
     if (new_stat < compute_base_con(d->character) ||
         new_stat > compute_base_con(d->character) + MAX_POINTS_IN_A_STAT)
     {
@@ -3816,7 +3842,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     cost_for_number = compute_con_cost(d->character, number) -
                       compute_con_cost(d->character, 0);
     /*debug*/
-    //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+    // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
     {
       if (new_stat >= compute_base_con(d->character) &&
@@ -3843,13 +3869,13 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_STAT_INTE:
     number = MAX(-10, MIN(atoi(arg), 10));
     /*debug*/
-    //write_to_output(d, "Number: %d\r\n", number);
+    // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
     /*debug*/
-    //write_to_output(d, "Points Left: %d\r\n", points_left);
+    // write_to_output(d, "Points Left: %d\r\n", points_left);
     new_stat = LEVELUP(d->character)->inte + number;
     /*debug*/
-    //write_to_output(d, "New Stat: %d\r\n", new_stat);
+    // write_to_output(d, "New Stat: %d\r\n", new_stat);
     if (new_stat < compute_base_inte(d->character) ||
         new_stat > compute_base_inte(d->character) + MAX_POINTS_IN_A_STAT)
     {
@@ -3859,7 +3885,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     cost_for_number = compute_inte_cost(d->character, number) -
                       compute_inte_cost(d->character, 0);
     /*debug*/
-    //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+    // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
     {
       if (new_stat >= compute_base_inte(d->character) &&
@@ -3886,13 +3912,13 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_STAT_WIS:
     number = MAX(-10, MIN(atoi(arg), 10));
     /*debug*/
-    //write_to_output(d, "Number: %d\r\n", number);
+    // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
     /*debug*/
-    //write_to_output(d, "Points Left: %d\r\n", points_left);
+    // write_to_output(d, "Points Left: %d\r\n", points_left);
     new_stat = LEVELUP(d->character)->wis + number;
     /*debug*/
-    //write_to_output(d, "New Stat: %d\r\n", new_stat);
+    // write_to_output(d, "New Stat: %d\r\n", new_stat);
     if (new_stat < compute_base_wis(d->character) ||
         new_stat > compute_base_wis(d->character) + MAX_POINTS_IN_A_STAT)
     {
@@ -3902,7 +3928,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     cost_for_number = compute_wis_cost(d->character, number) -
                       compute_wis_cost(d->character, 0);
     /*debug*/
-    //write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
+    // write_to_output(d, "Cost for 'Number': %d\r\n", cost_for_number);
     if ((points_left - cost_for_number) >= 0)
     {
       if (new_stat >= compute_base_wis(d->character) &&
@@ -3929,13 +3955,13 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_STAT_CHA:
     number = MAX(-10, MIN(atoi(arg), 10));
     /*debug*/
-    //write_to_output(d, "Number: %d\r\n", number);
+    // write_to_output(d, "Number: %d\r\n", number);
     points_left = stat_points_left(d->character);
     /*debug*/
-    //write_to_output(d, "Points Left: %d\r\n", points_left);
+    // write_to_output(d, "Points Left: %d\r\n", points_left);
     new_stat = LEVELUP(d->character)->cha + number;
     /*debug*/
-    //write_to_output(d, "New Stat: %d\r\n", new_stat);
+    // write_to_output(d, "New Stat: %d\r\n", new_stat);
     if (new_stat < compute_base_cha(d->character) ||
         new_stat > compute_base_cha(d->character) + MAX_POINTS_IN_A_STAT)
     {
