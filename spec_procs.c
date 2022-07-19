@@ -8033,7 +8033,9 @@ SPECIAL(angel_leggings)
       send_to_char(ch, "Debug - Mark 9\r\n");
 
     call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_POTION);
-    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 168;
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+
     return TRUE;
   }
   return FALSE;
