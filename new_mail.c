@@ -165,7 +165,7 @@ ACMD(do_new_mail)
       /* Check the connection, reconnect if necessary. */
       mysql_ping(conn);
 
-      snprintf(arg5, sizeof(arg5), "%s", CAP(arg5));
+      //snprintf(arg5, sizeof(arg5), "%s", CAP(arg5));
 
       char query[MAX_INPUT_LENGTH];
       char *end;
@@ -175,6 +175,8 @@ ACMD(do_new_mail)
       *end++ = '\'';
       *end++ = '\0';
       mysql_query(conn, query);
+      log("%s %s", arg5, arg6);
+      log("%s", query);
       res = mysql_use_result(conn);
       if (res != NULL)
       {
