@@ -3011,7 +3011,7 @@ ACMD(do_score)
   ;
   snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
   send_to_char(ch, "\tcDeity: \tn%-20s ", CAP(dname));
-  send_to_char(ch, "\tcAlignment : \tn%s\r\n", get_align_by_num(GET_ALIGNMENT(ch)));
+  send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
   send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
   send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs\r\n",
@@ -3106,15 +3106,17 @@ ACMD(do_score)
 
   text_line(ch, "\tyQuest Info\tC", line_length, '-', '-');
 
-  send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n"
-                   "\tcOn quest         : \tn",
+  send_to_char(ch, "\tcQuests completed : \tn%d\tc, Quest points     : \tn%d\r\n",
+               //  "\tcOn quest         : \tn",
                (!IS_NPC(ch) ? GET_NUM_QUESTS(ch) : 0),
                (!IS_NPC(ch) ? GET_QUESTPOINTS(ch) : 0));
 
-  if (!IS_NPC(ch) && GET_QUEST(ch) != NOTHING)
-    send_to_char(ch, "%-60s\r\n", GET_QUEST(ch) == NOTHING ? "None" : QST_NAME(real_quest(GET_QUEST(ch))));
-  else
-    send_to_char(ch, "None\r\n");
+  /*
+    if (!IS_NPC(ch) && GET_QUEST(ch, index) != NOTHING)
+      send_to_char(ch, "%-60s\r\n", GET_QUEST(ch, index) == NOTHING ? "None" : QST_NAME(real_quest(GET_QUEST(ch, index))));
+    else
+      send_to_char(ch, "None\r\n");
+  */
 
   if (!IS_NPC(ch) && GET_AUTOCQUEST_VNUM(ch))
     send_to_char(ch, "\tcOn Crafting Job: (\tn%d\tc) \tn%s\tc, using: \tn%s\r\n",

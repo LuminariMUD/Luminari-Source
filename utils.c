@@ -125,14 +125,16 @@ bool can_study_known_spells(struct char_data *ch) {
   /* sorcerer*/
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
           ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
-          LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+          LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+          LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
           GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
     return TRUE;
 
   /* bard */
   if (LEVELUP(ch)->class == CLASS_BARD ||
           ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
-          LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+          LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+          LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
           GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 

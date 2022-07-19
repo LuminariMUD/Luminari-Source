@@ -346,8 +346,8 @@
 #define CLASS_ROGUE 2        /**< PC Class Rogue (former Thief) */
 #define CLASS_WARRIOR 3      /**< PC Class Warrior */
 #define CLASS_MONK 4         /**< PC Class monk */
-#define CLASS_DRUID 5        //druids
-#define CLASS_BERSERKER 6    //berserker
+#define CLASS_DRUID 5        // druids
+#define CLASS_BERSERKER 6    // berserker
 #define CLASS_SORCERER 7
 #define CLASS_PALADIN 8
 #define CLASS_RANGER 9
@@ -388,7 +388,7 @@
 /* note that max_classes was established to reign in some of the
    pfile arrays associated with classes */
 #define MAX_CLASSES 30 // total number of maximum pc classes
-#define NUM_CASTERS 9  //direct reference to pray array
+#define NUM_CASTERS 9  // direct reference to pray array
 /*  x wizard 1
  *  x sorcerer 2
  *  x cleric 3
@@ -522,8 +522,8 @@
 
 // Memorization
 /* sorc can get up to 9 + charisma bonus of stat cap 50 = 5 */
-#define NUM_SLOTS 15   //conersative-value max num slots per circle
-#define NUM_CIRCLES 10 //max num circles
+#define NUM_SLOTS 15   // conersative-value max num slots per circle
+#define NUM_CIRCLES 10 // max num circles
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM NUM_SLOTS *NUM_CIRCLES
 
@@ -691,7 +691,7 @@
 #define SUBRACE_WATER 20
 #define SUBRACE_DARKLING 21
 #define SUBRACE_VAMPIRE 22
-//total
+// total
 #define NUM_SUB_RACES 23
 /* how many subrace-types can a mobile have? */
 /* note, if this is changed, a lot of other places have
@@ -705,7 +705,7 @@
 #define PC_SUBRACE_PANTHER 2
 #define PC_SUBRACE_BEAR 3
 #define PC_SUBRACE_G_CROCODILE 4
-//total
+// total
 #define MAX_PC_SUBRACES 5
 
 /* here we have our race types, like family category of races
@@ -1014,7 +1014,7 @@
 #define AFF_FAERIE_FIRE 63         /* surrounded by purple flame */
 #define AFF_BATTLETIDE 64          /* powerful physical presence */
 #define AFF_SPELL_RESISTANT 65     /* bonus to resisting spells */
-#define AFF_DIM_LOCK 66            //locked to current plane (can't teleport)
+#define AFF_DIM_LOCK 66            // locked to current plane (can't teleport)
 #define AFF_DEATH_WARD 67          /* warded from death effects */
 #define AFF_SPELLBATTLE 68         /* arcana golem spellbattle mode */
 #define AFF_VAMPIRIC_TOUCH 69      // will make next attack vampiric
@@ -1211,7 +1211,7 @@
 /* Feats defined below up to MAX_FEATS */
 #define FEAT_UNDEFINED 0
 #define FEAT_ALERTNESS 1
-#define FEAT_SEEKER_ARROW 2 //arcane archer
+#define FEAT_SEEKER_ARROW 2 // arcane archer
 #define FEAT_ARMOR_PROFICIENCY_HEAVY 3
 #define FEAT_ARMOR_PROFICIENCY_LIGHT 4
 #define FEAT_ARMOR_PROFICIENCY_MEDIUM 5
@@ -1225,7 +1225,7 @@
 #define FEAT_CRAFT_STAFF 13
 #define FEAT_CRAFT_WAND 14
 #define FEAT_CRAFT_WONDEROUS_ITEM 15
-#define FEAT_DEFLECT_ARROWS 16 //monk, etc
+#define FEAT_DEFLECT_ARROWS 16 // monk, etc
 #define FEAT_DODGE 17
 #define FEAT_EMPOWER_SPELL 18
 #define FEAT_ENDURANCE 19
@@ -1243,10 +1243,10 @@
 #define FEAT_IMPROVED_CRITICAL 31
 #define FEAT_RAGE 32
 #define FEAT_FAST_MOVEMENT 33
-#define FEAT_LAYHANDS 34 //paladin
+#define FEAT_LAYHANDS 34 // paladin
 #define FEAT_AURA_OF_GOOD 35
 #define FEAT_AURA_OF_COURAGE 36
-#define FEAT_DIVINE_GRACE 37 //paladin
+#define FEAT_DIVINE_GRACE 37 // paladin
 #define FEAT_SMITE_EVIL 38
 #define FEAT_REMOVE_DISEASE 39
 #define FEAT_DIVINE_HEALTH 40
@@ -1257,8 +1257,8 @@
 #define FEAT_ENHANCED_MOBILITY 45
 #define FEAT_GRACE 46
 #define FEAT_PRECISE_STRIKE 47
-#define FEAT_ACROBATIC_CHARGE 48 //duelist
-#define FEAT_ELABORATE_PARRY 49  //duelist
+#define FEAT_ACROBATIC_CHARGE 48 // duelist
+#define FEAT_ELABORATE_PARRY 49  // duelist
 #define FEAT_DAMAGE_REDUCTION 50
 #define FEAT_GREATER_RAGE 51
 #define FEAT_MIGHTY_RAGE 52
@@ -1276,7 +1276,7 @@
 #define FEAT_IMPROVED_TWO_WEAPON_FIGHTING 64
 #define FEAT_IMPROVED_UNARMED_STRIKE 65
 #define FEAT_IRON_WILL 66
-#define FEAT_ELF_RACIAL_ADJUSTMENT 67 //elf
+#define FEAT_ELF_RACIAL_ADJUSTMENT 67 // elf
 #define FEAT_LIGHTNING_REFLEXES 68
 #define FEAT_MARTIAL_WEAPON_PROFICIENCY 69
 #define FEAT_MAXIMIZE_SPELL 70
@@ -1290,27 +1290,27 @@
 #define FEAT_QUICKEN_SPELL 78
 #define FEAT_RAPID_SHOT 79
 #define FEAT_RIDE_BY_ATTACK 80
-#define FEAT_STABILITY 81 //dwarf?
+#define FEAT_STABILITY 81 // dwarf?
 #define FEAT_SCRIBE_SCROLL 82
-#define FEAT_SONG_OF_FOCUSED_MIND 83 //bard
+#define FEAT_SONG_OF_FOCUSED_MIND 83 // bard
 #define FEAT_SHOT_ON_THE_RUN 84
 #define FEAT_SILENT_SPELL 85
 #define FEAT_SIMPLE_WEAPON_PROFICIENCY 86
 #define FEAT_SKILL_FOCUS 87
 #define FEAT_SPELL_FOCUS 88
-#define FEAT_SONG_OF_FEAR 89        //bard
-#define FEAT_SONG_OF_ROOTING 90     //bard
-#define FEAT_SONG_OF_THE_MAGI 91    //bard
-#define FEAT_SONG_OF_HEALING 92     //bard
-#define FEAT_DANCE_OF_PROTECTION 93 //bard
-#define FEAT_SONG_OF_FLIGHT 94      //bard
-#define FEAT_SONG_OF_HEROISM 95     //bard
+#define FEAT_SONG_OF_FEAR 89        // bard
+#define FEAT_SONG_OF_ROOTING 90     // bard
+#define FEAT_SONG_OF_THE_MAGI 91    // bard
+#define FEAT_SONG_OF_HEALING 92     // bard
+#define FEAT_DANCE_OF_PROTECTION 93 // bard
+#define FEAT_SONG_OF_FLIGHT 94      // bard
+#define FEAT_SONG_OF_HEROISM 95     // bard
 #define FEAT_SPELL_MASTERY 96
 #define FEAT_SPELL_PENETRATION 97
 #define FEAT_SPIRITED_CHARGE 98
 #define FEAT_SPRING_ATTACK 99
 #define FEAT_STILL_SPELL 100
-#define FEAT_STUNNING_FIST 101 //monk
+#define FEAT_STUNNING_FIST 101 // monk
 #define FEAT_SUNDER 102
 #define FEAT_TOUGHNESS 103
 #define FEAT_TRACK 104
@@ -1322,28 +1322,28 @@
 #define FEAT_CANNY_DEFENSE 110
 #define FEAT_DWARF_RACIAL_ADJUSTMENT 111
 #define FEAT_ORATORY_OF_REJUVENATION 112
-#define FEAT_SHADOW_HOPPER 113              //halfling
-#define FEAT_LUCKY 114                      //halfling
-#define FEAT_HALFLING_RACIAL_ADJUSTMENT 115 //halfling
+#define FEAT_SHADOW_HOPPER 113              // halfling
+#define FEAT_LUCKY 114                      // halfling
+#define FEAT_HALFLING_RACIAL_ADJUSTMENT 115 // halfling
 #define FEAT_INDOMITABLE_WILL 116
 #define FEAT_UNCANNY_DODGE 117
 #define FEAT_IMPROVED_UNCANNY_DODGE 118
 #define FEAT_TRAP_SENSE 119
 #define FEAT_UNARMED_STRIKE 120
 #define FEAT_STILL_MIND 121
-#define FEAT_KI_STRIKE 122                  //monk
-#define FEAT_SLOW_FALL 123                  //monk
-#define FEAT_PURITY_OF_BODY 124             //monk
-#define FEAT_WHOLENESS_OF_BODY 125          //monk
-#define FEAT_DIAMOND_BODY 126               //monk
-#define FEAT_GREATER_FLURRY 127             //monk
-#define FEAT_ABUNDANT_STEP 128              //monk
-#define FEAT_DIAMOND_SOUL 129               //monk
-#define FEAT_QUIVERING_PALM 130             //monk
-#define FEAT_TIMELESS_BODY 131              //monk
-#define FEAT_TONGUE_OF_THE_SUN_AND_MOON 132 //monk
-#define FEAT_EMPTY_BODY 133                 //monk
-#define FEAT_PERFECT_SELF 134               //monk
+#define FEAT_KI_STRIKE 122                  // monk
+#define FEAT_SLOW_FALL 123                  // monk
+#define FEAT_PURITY_OF_BODY 124             // monk
+#define FEAT_WHOLENESS_OF_BODY 125          // monk
+#define FEAT_DIAMOND_BODY 126               // monk
+#define FEAT_GREATER_FLURRY 127             // monk
+#define FEAT_ABUNDANT_STEP 128              // monk
+#define FEAT_DIAMOND_SOUL 129               // monk
+#define FEAT_QUIVERING_PALM 130             // monk
+#define FEAT_TIMELESS_BODY 131              // monk
+#define FEAT_TONGUE_OF_THE_SUN_AND_MOON 132 // monk
+#define FEAT_EMPTY_BODY 133                 // monk
+#define FEAT_PERFECT_SELF 134               // monk
 #define FEAT_SUMMON_FAMILIAR 135
 #define FEAT_TRAPFINDING 136
 #define FEAT_WEAPON_FOCUS 137
@@ -1359,7 +1359,7 @@
 #define FEAT_AURA_OF_EVIL 147
 #define FEAT_DARK_BLESSING 148
 #define FEAT_SONG_OF_REVELATION 149
-#define FEAT_HALF_ORC_RACIAL_ADJUSTMENT 150 //half orc
+#define FEAT_HALF_ORC_RACIAL_ADJUSTMENT 150 // half orc
 #define FEAT_RESISTANCE_TO_ILLUSIONS 151
 #define FEAT_ILLUSION_AFFINITY 152
 #define FEAT_ARMORED_SPELLCASTING 153
@@ -1501,7 +1501,7 @@
 #define FEAT_DRACONIC_CRAFTING 289
 #define FEAT_LEARNED_CRAFTER 290
 #define FEAT_POISON_USE 291
-#define FEAT_DEATH_ATTACK 292 //assassin
+#define FEAT_DEATH_ATTACK 292 // assassin
 #define FEAT_POISON_SAVE_BONUS 293
 #define FEAT_GREAT_STRENGTH 294
 #define FEAT_GREAT_DEXTERITY 295
@@ -1542,7 +1542,7 @@
 #define FEAT_IMPROVED_COMBAT_CHALLENGE 330
 #define FEAT_GREATER_COMBAT_CHALLENGE 331
 #define FEAT_EPIC_COMBAT_CHALLENGE 332
-#define FEAT_BLEEDING_ATTACK 333 //assassin ?
+#define FEAT_BLEEDING_ATTACK 333 // assassin ?
 #define FEAT_POWERFUL_SNEAK 334
 #define FEAT_ARMOR_SPECIALIZATION_LIGHT 335
 #define FEAT_ARMOR_SPECIALIZATION_MEDIUM 336
@@ -1708,13 +1708,13 @@
 #define FEAT_WIZARD_9TH_CIRCLE 492
 #define FEAT_WIZARD_EPIC_SPELL 493
 /**/
-#define FEAT_WEAPON_PROFICIENCY_DROW 494 //drow
-#define FEAT_DROW_RACIAL_ADJUSTMENT 495  //drow
-#define FEAT_DROW_SPELL_RESISTANCE 496   //drow
-#define FEAT_SLA_FAERIE_FIRE 497         //drow, spell-like ability
-#define FEAT_SLA_LEVITATE 498            //drow, spell-like ability
-#define FEAT_SLA_DARKNESS 499            //drow, spell-like ability
-#define FEAT_LIGHT_BLINDNESS 500         //underdark/underworld racial disadvantage
+#define FEAT_WEAPON_PROFICIENCY_DROW 494 // drow
+#define FEAT_DROW_RACIAL_ADJUSTMENT 495  // drow
+#define FEAT_DROW_SPELL_RESISTANCE 496   // drow
+#define FEAT_SLA_FAERIE_FIRE 497         // drow, spell-like ability
+#define FEAT_SLA_LEVITATE 498            // drow, spell-like ability
+#define FEAT_SLA_DARKNESS 499            // drow, spell-like ability
+#define FEAT_LIGHT_BLINDNESS 500         // underdark/underworld racial disadvantage
 /* druid circle */
 #define FEAT_DRUID_1ST_CIRCLE 501
 #define FEAT_DRUID_2ND_CIRCLE 502
@@ -1998,12 +1998,12 @@
 #define FEAT_HIDDEN_WEAPONS 801
 #define FEAT_TRUE_DEATH 802
 /*lich*/
-#define FEAT_LICH_RACIAL_ADJUSTMENT 803 //lich
-#define FEAT_LICH_SPELL_RESIST 804      //lich
-#define FEAT_LICH_DAM_RESIST 805        //lich
-#define FEAT_LICH_TOUCH 806             //lich
-#define FEAT_LICH_REJUV 807             //lich
-#define FEAT_LICH_FEAR 808              //lich
+#define FEAT_LICH_RACIAL_ADJUSTMENT 803 // lich
+#define FEAT_LICH_SPELL_RESIST 804      // lich
+#define FEAT_LICH_DAM_RESIST 805        // lich
+#define FEAT_LICH_TOUCH 806             // lich
+#define FEAT_LICH_REJUV 807             // lich
+#define FEAT_LICH_FEAR 808              // lich
 /******/
 #define FEAT_ELECTRIC_IMMUNITY 809
 #define FEAT_COLD_IMMUNITY 810
@@ -2475,26 +2475,26 @@
 #define APPLY_SIZE 26          // char size
 #define APPLY_AC_NEW 27        // apply to armor class (post conversion)
 /* dam_types (resistances/vulnerabilties) */
-#define APPLY_RES_FIRE 28 //1
+#define APPLY_RES_FIRE 28 // 1
 #define APPLY_RES_COLD 29
 #define APPLY_RES_AIR 30
 #define APPLY_RES_EARTH 31
-#define APPLY_RES_ACID 32 //5
+#define APPLY_RES_ACID 32 // 5
 #define APPLY_RES_HOLY 33
 #define APPLY_RES_ELECTRIC 34
 #define APPLY_RES_UNHOLY 35
 #define APPLY_RES_SLICE 36
-#define APPLY_RES_PUNCTURE 37 //10
+#define APPLY_RES_PUNCTURE 37 // 10
 #define APPLY_RES_FORCE 38
 #define APPLY_RES_SOUND 39
 #define APPLY_RES_POISON 40
 #define APPLY_RES_DISEASE 41
-#define APPLY_RES_NEGATIVE 42 //15
+#define APPLY_RES_NEGATIVE 42 // 15
 #define APPLY_RES_ILLUSION 43
 #define APPLY_RES_MENTAL 44
 #define APPLY_RES_LIGHT 45
 #define APPLY_RES_ENERGY 46
-#define APPLY_RES_WATER 47 //20
+#define APPLY_RES_WATER 47 // 20
 /* end dam_types, make sure it matches NUM_DAM_TYPES */
 
 #define APPLY_DR 48
@@ -2900,8 +2900,8 @@
 #define ATTACK_TYPE_UNARMED 3
 #define ATTACK_TYPE_TWOHAND 4 /* doesn't really serve any purpose */
 #define ATTACK_TYPE_BOMB_TOSS 5
-#define ATTACK_TYPE_PRIMARY_SNEAK 6 //impromptu sneak attack
-#define ATTACK_TYPE_OFFHAND_SNEAK 7 //impromptu sneak attack
+#define ATTACK_TYPE_PRIMARY_SNEAK 6 // impromptu sneak attack
+#define ATTACK_TYPE_OFFHAND_SNEAK 7 // impromptu sneak attack
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
@@ -3321,7 +3321,7 @@ struct obj_data
 
     struct obj_special_ability *special_abilities; /**< List used to store special abilities */
 
-    long missile_id; //non saving variable to id missiles
+    long missile_id; // non saving variable to id missiles
 
     struct weapon_spells channel_spells[MAX_WEAPON_CHANNEL_SPELLS];
 
@@ -3428,8 +3428,8 @@ struct room_data
     struct list_data *events; // room events
 
     struct trail_data_list *trail_tracks;
-    //struct trail_data_list *trail_scent;
-    //struct trail_data_list *trail_blood;
+    // struct trail_data_list *trail_scent;
+    // struct trail_data_list *trail_blood;
     //// struct trail_data_list *trail_magic;
 };
 
@@ -3556,8 +3556,8 @@ struct char_special_data_saved
     long idnum;                    /**< PC's idnum; -1 for mobiles. */
     int act[PM_ARRAY_MAX];         /**< act flags for NPC's; player flag for PC's */
     int affected_by[AF_ARRAY_MAX]; /**< Bitvector for spells/skills affected by */
-    int warding[MAX_WARDING];      //saved warding spells like stoneskin
-    ubyte spec_abil[MAX_CLASSES];  //spec abilities (ex. lay on hands)
+    int warding[MAX_WARDING];      // saved warding spells like stoneskin
+    ubyte spec_abil[MAX_CLASSES];  // spec abilities (ex. lay on hands)
 
     struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
@@ -3585,8 +3585,8 @@ struct char_special_data
     struct char_data *fighting; /**< Target of fight; else NULL */
     struct char_data *hunting;  /**< Target of NPC hunt; else NULL */
     int totalDefense;           // how many totaldefense attempts left in the round
-    struct char_data *guarding; //target for 'guard' ability
-    bool firing;                //is char firing missile weapon?
+    struct char_data *guarding; // target for 'guard' ability
+    bool firing;                // is char firing missile weapon?
     int mounted_blocks_left;    // how many mounted combat blocks left in the round
     int deflect_arrows_left;    //
 
@@ -3620,7 +3620,7 @@ struct char_special_data
     struct obj_data *castingTOBJ; // target obj of spell
 
     /** crafting **/
-    ubyte crafting_type;              //like SCMD_x
+    ubyte crafting_type;              // like SCMD_x
     ubyte crafting_ticks;             // ticks left to complete task
     struct obj_data *crafting_object; // refers to obj crafting (deprecated)
     ubyte crafting_repeat;            // multiple objects created in one session
@@ -3630,7 +3630,7 @@ struct char_special_data
     byte mob_feats[MAX_FEATS]; /* Feats (booleans and counters)  */
 
     /* miscellaneous */
-    int is_preparing[NUM_CASTERS];    //memorization
+    int is_preparing[NUM_CASTERS];    // memorization
     int preparing_state[NUM_CLASSES]; /* spell preparation */
     byte position;                    /**< Standing, fighting, sleeping, etc. */
     int timer;                        /**< Timer for update */
@@ -3698,9 +3698,9 @@ struct innate_magic_data
 /** Data only needed by PCs, and needs to be saved to disk. */
 struct player_special_data_saved
 {
-    int skills[MAX_SKILLS + 1];         //saved skills
-    int spells[MAX_SPELLS];             //saved spells, should be MAX_SPELLS + 1 from spells.h
-    ubyte abilities[MAX_ABILITIES + 1]; //abilities
+    int skills[MAX_SKILLS + 1];         // saved skills
+    int spells[MAX_SPELLS];             // saved spells, should be MAX_SPELLS + 1 from spells.h
+    ubyte abilities[MAX_ABILITIES + 1]; // abilities
 
     /* Feats */
     byte feat_points;                         /* How many general feats you can take  */
@@ -3710,12 +3710,12 @@ struct player_special_data_saved
 
     bool skill_focus[MAX_ABILITIES + 1][NUM_SKFEATS]; /* Data for FEAT_SKILL_FOCUS */
 
-    ubyte morphed;                    //polymorphed and form
-    byte class_level[MAX_CLASSES];    //multi class
-    int spells_to_learn;              //prac sessions left
-    int abilities_to_learn;           //training sessiosn left
-    ubyte boosts;                     //stat boosts left
-    ubyte favored_enemy[MAX_ENEMIES]; //list of ranger favored enemies
+    ubyte morphed;                    // polymorphed and form
+    byte class_level[MAX_CLASSES];    // multi class
+    int spells_to_learn;              // prac sessions left
+    int abilities_to_learn;           // training sessiosn left
+    ubyte boosts;                     // stat boosts left
+    ubyte favored_enemy[MAX_ENEMIES]; // list of ranger favored enemies
 
     /* old spell prep system, can be removed */
     struct old_spell_data prep_queue[MAX_MEM][NUM_CASTERS];
@@ -3758,13 +3758,14 @@ struct player_special_data_saved
     clan_vnum clan; /**< The clan number to which the player belongs     */
     int clanrank;   /**< The player's rank within their clan (1=highest) */
 
-    /* autoquest */
-    int questpoints;            //quest points earned
-    qst_vnum *completed_quests; /**< Quests completed              */
-    int num_completed_quests;   /**< Number completed              */
-    int current_quest;          /**< vnum of current quest         */
-    int quest_time;             /**< time left on current quest    */
-    int quest_counter;          /**< Count of targets left to get  */
+/* autoquest */
+#define MAX_CURRENT_QUESTS 3
+    int questpoints;                       // quest points earned
+    qst_vnum *completed_quests;            /**< Quests completed              */
+    int num_completed_quests;              /**< Number completed              */
+    int current_quest[MAX_CURRENT_QUESTS]; /**< vnums of current quests         */
+    int quest_time[MAX_CURRENT_QUESTS];    /**< time left on current quest    */
+    int quest_counter[MAX_CURRENT_QUESTS]; /**< Count of targets left to get  */
 
     /* auto crafting quest */
     unsigned int autocquest_vnum; // vnum of crafting quest item
@@ -3780,7 +3781,7 @@ struct player_special_data_saved
 
     char *account_name; // The account stored with this character.
 
-    int sorcerer_bloodline_subtype; //if the sorcerer bloodline has a subtype (ie. draconic)
+    int sorcerer_bloodline_subtype; // if the sorcerer bloodline has a subtype (ie. draconic)
     int new_arcana_circles[4];
     int mail_days;
 
@@ -3873,7 +3874,7 @@ struct player_special_data
     /* levelup data structure - Saved data for study process. */
     struct level_data *levelup;
 
-    byte dc_bonus;                /* used to apply dc bonuses, usually to spells.  
+    byte dc_bonus;                /* used to apply dc bonuses, usually to spells.
                     Must be reset to zero manually after applying the bonus */
     byte arcane_apotheosis_slots; /* used with the apotheosis command to store spell slots
                                    to be used in place of wand or staff charges.  These stored

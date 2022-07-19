@@ -12,15 +12,29 @@
 #define _QUEST_H_
 
 /* Aquest related defines ********************************************* */
-#define AQ_UNDEFINED -1 /* (R) Quest unavailable                */
-#define AQ_OBJ_FIND 0   /* Player must retreive object          */
-#define AQ_ROOM_FIND 1  /* Player must reach room               */
-#define AQ_MOB_FIND 2   /* Player must find mob                 */
-#define AQ_MOB_KILL 3   /* Player must kill mob                 */
-#define AQ_MOB_SAVE 4   /* Player must save mob                 */
-#define AQ_OBJ_RETURN 5 /* Player gives object to mob in val5   */
-#define AQ_ROOM_CLEAR 6 /* Player must clear room of all mobs   */
-#define NUM_AQ_TYPES 7  /* Used in qedit functions              */
+#define AQ_UNDEFINED -1        /* (R) Quest unavailable                   */
+#define AQ_OBJ_FIND 0          /* Player must retreive object             */
+#define AQ_ROOM_FIND 1         /* Player must reach room                  */
+#define AQ_MOB_FIND 2          /* Player must find mob                    */
+#define AQ_MOB_KILL 3          /* Player must kill mob                    */
+#define AQ_MOB_SAVE 4          /* Player must save mob                    */
+#define AQ_OBJ_RETURN 5        /* Player gives object to mob in val5      */
+#define AQ_ROOM_CLEAR 6        /* Player must clear room of all mobs      */
+#define AQ_AUTOCRAFT 7         /* Player must complete an autocraft quest */
+#define AQ_CRAFT 8             /* Player must craft an item               */
+#define AQ_CRAFT_RESIZE 9      /* Player must resize an item              */
+#define AQ_CRAFT_DIVIDE 10     /* Player must divide an item              */
+#define AQ_CRAFT_MINE 11       /* Player must mine crafting mats          */
+#define AQ_CRAFT_HUNT 12       /* Player must hunt crafting mats          */
+#define AQ_CRAFT_KNIT 13       /* Player must knit crafting mats          */
+#define AQ_CRAFT_FOREST 14     /* Player must forest crafting mats        */
+#define AQ_CRAFT_DISENCHANT 15 /* Player must disenchant an item          */
+#define AQ_CRAFT_AUGMENT 16    /* Player must augment an item             */
+#define AQ_CRAFT_CONVERT 17    /* Player must convert an item             */
+#define AQ_CRAFT_RESTRING 18   /* Player must restring an item            */
+#define AQ_COMPLETE_MISSION 19 /* Player must complete a mission          */
+#define AQ_HOUSE_FIND 20       /* Player must reach house                */
+#define NUM_AQ_TYPES 21        /* Used in qedit functions                 */
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */
@@ -58,7 +72,7 @@ struct aq_data
   obj_vnum obj_reward; /* vnum of object given as a reward     */
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
-  SPECIAL_DECL(*func);      /* secondary spec_proc for the QM       */
+  SPECIAL_DECL(*func); /* secondary spec_proc for the QM       */
 };
 
 #define QST_NUM(i) (aquest_table[i].vnum)
@@ -95,17 +109,17 @@ void assign_the_quests(void);
 void parse_quest(FILE *quest_f, int nr);
 int count_quests(qst_vnum low, qst_vnum high);
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax);
-void set_quest(struct char_data *ch, qst_rnum rnum);
-void clear_quest(struct char_data *ch);
-void complete_quest(struct char_data *ch);
-void generic_complete_quest(struct char_data *ch);
-void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int type);
+void set_quest(struct char_data *ch, qst_rnum rnum, int index);
+void clear_quest(struct char_data *ch, int index);
+void complete_quest(struct char_data *ch, int index);
+void generic_complete_quest(struct char_data *ch, int index);
+void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struct obj_data *object, int variable, int type);
 qst_rnum real_quest(qst_vnum vnum);
 int is_complete(struct char_data *ch, qst_vnum vnum);
 qst_vnum find_quest_by_qmnum(struct char_data *ch, mob_rnum qm, int num);
 void add_completed_quest(struct char_data *ch, qst_vnum vnum);
 void remove_completed_quest(struct char_data *ch, qst_vnum vnum);
-void quest_timeout(struct char_data *ch);
+void quest_timeout(struct char_data *ch, int index);
 void check_timed_quests(void);
 SPECIAL_DECL(questmaster);
 ACMD_DECL(do_quest);
@@ -116,7 +130,7 @@ void qedit_string_cleanup(struct descriptor_data *d, int terminator);
 
 /* Implemented in genqst.c */
 int copy_quest_strings(struct aq_data *from, struct aq_data *to);
-int copy_quest(struct aq_data *from, struct aq_data *to, int free_old_strings);
+int copy_quest(struct aq_data *from, struct aq_data *to, int free_old_strings, int mode);
 void free_quest_strings(struct aq_data *quest);
 void free_quest(struct aq_data *quest);
 int add_quest(struct aq_data *nqst);

@@ -1211,12 +1211,14 @@ int castingCheckOk(struct char_data *ch)
   return 1;
 }
 
+/* moment of completion of spell casting */
 void finishCasting(struct char_data *ch)
 {
+
   if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS)
   {
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC))
-      GET_DC_BONUS(ch) += HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC);
+      GET_DC_BONUS(ch) += 2 * HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC);
   }
   else if (CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
   {
@@ -1229,6 +1231,7 @@ void finishCasting(struct char_data *ch)
         GET_DC_BONUS(ch) += 3;
     }
   }
+
   if (GET_CASTING_CLASS(ch) == CLASS_SHADOWDANCER)
   {
 
@@ -1255,6 +1258,7 @@ void finishCasting(struct char_data *ch)
   send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
   call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
              (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+
   if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
   {
     send_to_char(ch, "\tW[DOUBLE MANIFEST!]\tn");
@@ -1262,6 +1266,7 @@ void finishCasting(struct char_data *ch)
                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
     affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
   }
+
   resetCastingData(ch);
 }
 

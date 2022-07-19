@@ -22,6 +22,7 @@
 #include "interpreter.h"
 #include "modify.h"
 #include "quest.h"
+#include "missions.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -29,7 +30,6 @@
 static void qedit_setup_new(struct descriptor_data *d);
 static void qedit_disp_menu(struct descriptor_data *d);
 static void qedit_save_to_disk(int num);
-
 /*-------------------------------------------------------------------*/
 
 /* from genqst.c - saving a quest to memory */
@@ -187,7 +187,7 @@ ACMD(do_oasis_qedit)
   OLC_NUM(d) = number;
 
   if ((real_num = real_quest(number)) != NOTHING)
-    qedit_setup_existing(d, real_num);
+    qedit_setup_existing(d, real_num, QMODE_NONE);
   else
     qedit_setup_new(d);
 
@@ -247,18 +247,20 @@ static void qedit_setup_new(struct descriptor_data *d)
 /*-------------------------------------------------------------------*/
 
 /* edit a quest that already exists */
-void qedit_setup_existing(struct descriptor_data *d, int r_num)
+void qedit_setup_existing(struct descriptor_data *d, int r_num, int mode)
 {
   struct aq_data *quest = NULL;
 
   /*. Alloc some quest shaped space . */
   CREATE(quest, struct aq_data, 1);
 
-  copy_quest(quest, aquest_table + r_num, FALSE);
+  copy_quest(quest, aquest_table + r_num, FALSE, mode);
 
   OLC_QUEST(d) = quest;
+  // OLC_VAL(d) = 0;
 
-  qedit_disp_menu(d);
+  if (mode == QMODE_NONE)
+    qedit_disp_menu(d);
 }
 
 /*-------------------------------------------------------------------*/
@@ -280,7 +282,11 @@ static void qedit_disp_menu(struct descriptor_data *d)
   quest = OLC_QUEST(d);
 
   clear_screen(d);
+
+  /* print out the quest flag bits */
   sprintbit(quest->flags, aq_flags, quest_flags, sizeof(quest_flags));
+
+  /* create target mob for returning object quest */
   if (quest->type == AQ_OBJ_RETURN)
   {
     if ((return_mob = real_mobile(quest->value[5])) != NOBODY)
@@ -291,28 +297,69 @@ static void qedit_disp_menu(struct descriptor_data *d)
       snprintf(buf2, sizeof(buf2), "to an unknown mob [%d].",
                quest->value[5]);
   }
+
+  /* customization on output based on quest type */
   switch (quest->type)
   {
+
+  /* being specific for quest types that don't need a target */
+  case AQ_HOUSE_FIND:
+    snprintf(targetname, sizeof(targetname), "No target used for this quest type ");
+    break;
+
+  case AQ_COMPLETE_MISSION:
+
+    switch (quest->target)
+    {
+    case MISSION_DIFF_NORMAL:
+      snprintf(targetname, sizeof(targetname), "Normal Mission Difficulty ");
+      break;
+    case MISSION_DIFF_TOUGH:
+      snprintf(targetname, sizeof(targetname), "Tough Mission Difficulty ");
+      break;
+    case MISSION_DIFF_CHALLENGING:
+      snprintf(targetname, sizeof(targetname), "Challenging Mission Difficulty ");
+      break;
+    case MISSION_DIFF_ARDUOUS:
+      snprintf(targetname, sizeof(targetname), "Arduous Mission Difficulty ");
+      break;
+    case MISSION_DIFF_SEVERE:
+      snprintf(targetname, sizeof(targetname), "Severe Mission Difficulty ");
+      break;
+    default:
+      //#define MISSION_DIFF_EASY 0
+      /* EASY or weird value */
+      snprintf(targetname, sizeof(targetname), "Easy Mission Difficulty ");
+      break;
+    }
+
+    break;
+
   case AQ_OBJ_FIND:
   case AQ_OBJ_RETURN:
     snprintf(targetname, sizeof(targetname), "%s",
              real_object(quest->target) == NOTHING ? "An unknown object" : obj_proto[real_object(quest->target)].short_description);
     break;
+
   case AQ_ROOM_FIND:
   case AQ_ROOM_CLEAR:
     snprintf(targetname, sizeof(targetname), "%s",
              real_room(quest->target) == NOWHERE ? "An unknown room" : world[real_room(quest->target)].name);
     break;
+
   case AQ_MOB_FIND:
   case AQ_MOB_KILL:
   case AQ_MOB_SAVE:
     snprintf(targetname, sizeof(targetname), "%s",
              real_mobile(quest->target) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(quest->target)]));
     break;
+
+  /* catch all */
   default:
     snprintf(targetname, sizeof(targetname), "Unknown");
     break;
   }
+
   write_to_output(d,
                   "-- Quest Number    : \tn[\tc%6d\tn]\r\n"
                   "\tg 1\tn) Quest Name     : \ty%s\r\n"
@@ -361,12 +408,14 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
                   quest->value[2], quest->value[3],
                   quest->prereq == NOTHING ? -1 : quest->prereq,
-                  quest->prereq == NOTHING ? "" : real_object(quest->prereq) == NOTHING ? "an unknown object" : obj_proto[real_object(quest->prereq)].short_description,
+                  quest->prereq == NOTHING ? "" : real_object(quest->prereq) == NOTHING ? "an unknown object"
+                                                                                        : obj_proto[real_object(quest->prereq)].short_description,
                   quest->value[4],
                   quest->next_quest == NOTHING ? -1 : quest->next_quest,
                   real_quest(quest->next_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->next_quest)),
                   quest->prev_quest == NOTHING ? -1 : quest->prev_quest,
                   real_quest(quest->prev_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->prev_quest)));
+
   OLC_MODE(d) = QEDIT_MAIN_MENU;
 }
 
@@ -547,7 +596,8 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       break;
     case '9':
       OLC_MODE(d) = QEDIT_TARGET;
-      write_to_output(d, "Enter target vnum : ");
+      write_to_output(d, "Enter target mob/obj vnum or mission "
+                         "difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 severe): ");
       break;
     case 'a':
     case 'A':
@@ -737,9 +787,22 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       }
     OLC_QUEST(d)->value[5] = number;
     break;
+
+  /* normal value here is actually vnum of mobiles or objects, we have added the ability to send other variables
+     to our target variable, handling for restrictions can be made below -zusuk */
   case QEDIT_TARGET:
+
+    /* this isn't a vnum! */
+    if (OLC_QUEST(d)->type == AQ_COMPLETE_MISSION)
+    {
+      if (number < 0 || number >= NUM_MISSION_DIFFICULTIES)
+        number = MISSION_DIFF_EASY;
+    }
+
     OLC_QUEST(d)->target = number;
+
     break;
+
   case QEDIT_NEXTQUEST:
     if ((number = atoi(arg)) != -1)
     {
@@ -751,6 +814,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     }
     OLC_QUEST(d)->next_quest = (number == -1 ? NOTHING : atoi(arg));
     break;
+
   case QEDIT_PREVQUEST:
     if ((number = atoi(arg)) != -1)
     {

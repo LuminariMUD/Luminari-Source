@@ -575,6 +575,8 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent);
 
 /* do_gen_tog */
 ACMD_DECL(do_gen_tog);
+
+/* sub-command defines */
 #define SCMD_NOSUMMON 0
 #define SCMD_NOHASSLE 1
 #define SCMD_BRIEF 2

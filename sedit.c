@@ -164,8 +164,9 @@ ACMD(do_oasis_sedit)
 
   OLC_NUM(d) = number;
 
+  /* if exists, edit it.. otherwise start a new one */
   if ((real_num = real_shop(number)) != NOTHING)
-    sedit_setup_existing(d, real_num);
+    sedit_setup_existing(d, real_num, QMODE_NONE);
   else
     sedit_setup_new(d);
 
@@ -215,7 +216,7 @@ static void sedit_setup_new(struct descriptor_data *d)
   OLC_SHOP(d) = shop;
 }
 
-void sedit_setup_existing(struct descriptor_data *d, int rshop_num)
+void sedit_setup_existing(struct descriptor_data *d, int rshop_num, int mode)
 {
   /* Create a scratch shop structure. */
   CREATE(OLC_SHOP(d), struct shop_data, 1);
@@ -809,7 +810,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
   case SEDIT_COPY:
     if ((i = real_shop(atoi(arg))) != NOWHERE)
     {
-      sedit_setup_existing(d, i);
+      sedit_setup_existing(d, i, QMODE_QCOPY);
     }
     else
       write_to_output(d, "That shop does not exist.\r\n");
@@ -823,7 +824,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     break;
   }
 
-  /* If we get here, we have probably changed something, and now want to return 
+  /* If we get here, we have probably changed something, and now want to return
      to main menu.  Use OLC_VAL as a 'has changed' flag. */
   OLC_VAL(d) = 1;
   sedit_disp_menu(d);

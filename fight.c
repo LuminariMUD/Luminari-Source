@@ -1391,7 +1391,7 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
     return;
 
   /* check for killer first */
-  autoquest_trigger_check(killer, ch, NULL, AQ_MOB_KILL);
+  autoquest_trigger_check(killer, ch, NULL, 0, AQ_MOB_KILL);
 
   /* check for all group members next */
   group = GROUP(killer);
@@ -1408,7 +1408,7 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
       if (IS_PET(k))
         continue;
       if (IN_ROOM(k) == IN_ROOM(killer))
-        autoquest_trigger_check(k, ch, NULL, AQ_MOB_KILL);
+        autoquest_trigger_check(k, ch, NULL, 0, AQ_MOB_KILL);
     }
     /* Be kind, rewind. */
     remove_iterator(&it);
@@ -1550,10 +1550,11 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
   }
 
+  /* autoquest system check point -Zusuk */
   if (killer)
   {
-    autoquest_trigger_check(killer, NULL, NULL, AQ_MOB_SAVE);
-    autoquest_trigger_check(killer, NULL, NULL, AQ_ROOM_CLEAR);
+    autoquest_trigger_check(killer, NULL, NULL, 0, AQ_MOB_SAVE);
+    autoquest_trigger_check(killer, NULL, NULL, 0, AQ_ROOM_CLEAR);
   }
 }
 
