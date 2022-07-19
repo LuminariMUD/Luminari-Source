@@ -41,7 +41,7 @@
 /* toggle for debug mode
    true = annoying messages used for debugging
    false = normal gameplay */
-#define DEBUGMODE TRUE
+#define DEBUGMODE FALSE
 
 /* external functions */
 extern struct house_control_rec house_control[];
@@ -7945,7 +7945,7 @@ SPECIAL(hellfire)
   if (!is_wearing(ch, 132102))
     return FALSE;
 
-  if (!strcmp(argument, "hellfire") && cmd_info[cmd].command_pointer == do_say)
+  if (cmd && CMD_IS("say") && !strcmp(argument, "hellfire"))
   {
     if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
     {
