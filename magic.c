@@ -6008,7 +6008,12 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
 
   /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
   if (!hit_self)
+  {
     perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
+
+    if (ch == GROUP(ch)->leader)
+      hit_leader = TRUE;
+  }
 
   /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
   if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
