@@ -940,7 +940,7 @@ int hunts_special_armor_type(int hunt_record)
     case  HUNT_TYPE_BANDERSNATCH:
       return AFF_MINOR_GLOBE;
     case  HUNT_TYPE_BANSHEE:
-      return AFF_DISPLACE;
+      return AFF_BLUR;
     case  HUNT_TYPE_BARGHEST:
       return AFF_BLINKING;
     default:
