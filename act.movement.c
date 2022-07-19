@@ -2264,25 +2264,48 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   case SCMD_PICK:
     if (obj)
     {
+      if (GET_OBJ_TYPE(obj) != ITEM_CONTAINER)
+      {
+        send_to_char(ch, "That item cannot be picked.\r\n");
+        return;
+      }
       if (check_trap(ch, TRAP_TYPE_UNLOCK_CONTAINER, ch->in_room, obj, 0))
         return;
+      if (DOOR_IS_PICKPROOF(ch, obj, door))
+      {
+        send_to_char(ch, "That item cannot be picked.\r\n");
+        return;
+      }
+      if (GET_SKILL(ch, ABILITY_DISABLE_DEVICE) > 0 && skill_check(ch, ABILITY_DISABLE_DEVICE, 15))
+      {
+        TOGGLE_LOCK(IN_ROOM(ch), obj, door);
+        send_to_char(ch, "The lock quickly yields to your skills.\r\n");
+        len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof(buf));
+      }
+      else
+      {
+        send_to_char(ch, "You fail to pick the lock.\r\n");
+        len = strlcpy(buf, "$n fails picks the lock on ", sizeof(buf));
+        send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
+      }
     }
     else
     {
       //if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
       //  return;
-    }
-    if (!ok_pick(ch, 0, EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF), SCMD_PICK, door))
-    {
-      send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
-      WAIT_STATE(ch, PULSE_VIOLENCE * 1);
+
+      if (!ok_pick(ch, 0, EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF), SCMD_PICK, door))
+      {
+        send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
+        WAIT_STATE(ch, PULSE_VIOLENCE * 1);
         return;
+      }
+      TOGGLE_LOCK(IN_ROOM(ch), obj, door);
+      if (back)
+        TOGGLE_LOCK(other_room, obj, rev_dir[door]);
+      send_to_char(ch, "The lock quickly yields to your skills.\r\n");
+      len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof(buf));
     }
-    TOGGLE_LOCK(IN_ROOM(ch), obj, door);
-    if (back)
-      TOGGLE_LOCK(other_room, obj, rev_dir[door]);
-    send_to_char(ch, "The lock quickly yields to your skills.\r\n");
-    len = strlcpy(buf, "$n skillfully picks the lock on ", sizeof(buf));
     break;
   }
 
