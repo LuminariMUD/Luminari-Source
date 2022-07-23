@@ -38,6 +38,11 @@
 #include "alchemy.h"
 #include "treasure.h" /* for set_armor_object */
 
+/* toggle for debug mode
+   true = annoying messages used for debugging
+   false = normal gameplay */
+#define DEBUGMODE FALSE
+
 /* external functions */
 extern struct house_control_rec house_control[];
 extern int num_of_houses;
@@ -109,15 +114,15 @@ void sort_spells(void)
         sizeof(int), compare_spells);
 }
 
-//returns true if you have all the requisites for the skill
-//false if you don't
+// returns true if you have all the requisites for the skill
+// false if you don't
 
 int meet_skill_reqs(struct char_data *ch, int skillnum)
 {
-  //doesn't apply to staff
+  // doesn't apply to staff
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return TRUE;
-  //spells should return true
+  // spells should return true
   if (skillnum < NUM_SPELLS && skillnum > 0)
     return TRUE;
 
@@ -336,12 +341,12 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
       return TRUE;
     else
       return FALSE;
-  case SKILL_CALL_FAMILIAR: //sorc, wiz only
+  case SKILL_CALL_FAMILIAR: // sorc, wiz only
     if (CLASS_LEVEL(ch, CLASS_SORCERER) || CLASS_LEVEL(ch, CLASS_WIZARD))
       return TRUE;
     else
       return FALSE;
-  case SKILL_RECHARGE: //casters only
+  case SKILL_RECHARGE: // casters only
     if (CASTER_LEVEL(ch) >= 14)
       return TRUE;
     else
@@ -374,7 +379,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
       return FALSE;
 
     /* ranger */
-  case SKILL_NATURE_STEP: //shared with druid
+  case SKILL_NATURE_STEP: // shared with druid
     if (CLASS_LEVEL(ch, CLASS_RANGER) >= 3 ||
         CLASS_LEVEL(ch, CLASS_DRUID) >= 6)
       return TRUE;
@@ -481,9 +486,9 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
     return TRUE;
 
     /**
-       *  not implemented yet or
-       * unattainable
-       *  **/
+     *  not implemented yet or
+     * unattainable
+     *  **/
   case SKILL_MURMUR:
   case SKILL_PROPAGANDA:
   case SKILL_LOBBY:
@@ -492,7 +497,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
   case SKILL_MASTERWORK_CRAFTING:
   case SKILL_DRACONIC_CRAFTING:
   case SKILL_DWARVEN_CRAFTING:
-  case SKILL_SPELLBATTLE: //arcana golem innate
+  case SKILL_SPELLBATTLE: // arcana golem innate
   default:
     return FALSE;
   }
@@ -504,7 +509,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
    class - you can send -1 for a 'default' class
    mode = 0:  known spells
    mode = anything else: full spelllist for given class
-   circle = What spell circle to list, -1 for all. 
+   circle = What spell circle to list, -1 for all.
  */
 void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
@@ -687,7 +692,7 @@ void list_crafting_skills(struct char_data *ch)
   for (i = START_SKILLS + 1; i < NUM_SKILLS; i++)
   {
     // Why is this level check here? Gicker Feb 8, 2021
-    //if (GET_LEVEL(ch) >= skill_info[i].min_level[GET_CLASS(ch)] &&
+    // if (GET_LEVEL(ch) >= skill_info[i].min_level[GET_CLASS(ch)] &&
     if (skill_info[i].schoolOfMagic == CRAFTING_SKILL)
     {
       if (meet_skill_reqs(ch, i))
@@ -858,7 +863,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
   }
 
-  //universal bonuses/penalties
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
     value += get_char_affect_modifier(ch, PSIONIC_INFLICT_PAIN, APPLY_HITROLL); // this should return a negative number, so + a - is -
   if (affected_by_spell(ch, SPELL_HEROISM))
@@ -913,12 +917,10 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   {
     for (j = 0; j < 6; j++)
     {
-      if (GET_EQ(ch, i)
-      && GET_EQ(ch, i)->affected[j].location == APPLY_SKILL
-      && GET_EQ(ch, i)->affected[j].specific == abilityNum)
+      if (GET_EQ(ch, i) && GET_EQ(ch, i)->affected[j].location == APPLY_SKILL && GET_EQ(ch, i)->affected[j].specific == abilityNum)
       {
-          if (GET_EQ(ch, i)->affected[j].modifier > high_eq)
-              high_eq = GET_EQ(ch, i)->affected[j].modifier;
+        if (GET_EQ(ch, i)->affected[j].modifier > high_eq)
+          high_eq = GET_EQ(ch, i)->affected[j].modifier;
       }
     }
   }
@@ -1296,8 +1298,8 @@ void list_abilities(struct char_data *ch, int ability_type)
     end_ability = NUM_ABILITIES;
   }
 
-  //if (IS_NPC(ch))
-  //return;
+  // if (IS_NPC(ch))
+  // return;
 
   send_to_char(ch, "*Name of skill, invested points, total points with all active bonuses\tn\r\n"
                    "\tcSkill              Inve Tota Class/Cross/Unavailable  \tMUnspent trains: \tm%d\tn\r\n",
@@ -1327,7 +1329,7 @@ void list_abilities(struct char_data *ch, int ability_type)
   }
 }
 
-//further expansion -zusuk
+// further expansion -zusuk
 
 void process_skill(struct char_data *ch, int skillnum)
 {
@@ -1336,7 +1338,7 @@ void process_skill(struct char_data *ch, int skillnum)
     // epic spells
 
     /* Epic spells we need a way to learn them that is NOT based in the trainer.
-       * Questing comes to mind. */
+     * Questing comes to mind. */
   case SKILL_MUMMY_DUST:
     send_to_char(ch, "\tMYou gained Epic Spell:  Mummy Dust!\tn\r\n");
     SET_SKILL(ch, SPELL_MUMMY_DUST, 99);
@@ -1385,7 +1387,7 @@ void process_skill(struct char_data *ch, int skillnum)
 /* do we have a valid player-shop item?  currently checking:
      1) shopper can see the item [unless have holy light]
      2) the item is not hidden (desc including a period .) [unless have holy light]
-     3) item type is not ITEM_MONEY 
+     3) item type is not ITEM_MONEY
  */
 
 /* debug, comment out to disable */ //#define PLAYER_SHOP_DEBUG
@@ -1824,7 +1826,7 @@ void yan_maelstrom(struct char_data *ch)
       act("\tw$N is enveloped in $n's \tCs\tcw\twi\tcr\tCl\tci\twn\tCg \tcmaelstrom\tw, $S body pelted by \twgusts\tc of wind.\tn",
           FALSE, ch, 0, vict, TO_NOTVICT);
     }
-    damage(ch, vict, dam, -1, DAM_AIR, FALSE); //type -1 = no dam msg
+    damage(ch, vict, dam, -1, DAM_AIR, FALSE); // type -1 = no dam msg
   }
 }
 
@@ -2165,7 +2167,7 @@ SPECIAL(kt_kenjin)
 
   val = dice(1, 3);
 
-  //turns you into stone
+  // turns you into stone
   if (val == 1)
   {
     act("$n\tc whips out a \tWbone-white\tn wand, and waves it in the air.\tn\r\n"
@@ -2180,7 +2182,7 @@ SPECIAL(kt_kenjin)
     return TRUE;
   }
 
-  //teleports you to the bottom of the shaft.
+  // teleports you to the bottom of the shaft.
   if (val == 2)
   {
     act("$n\tc whips out a \trfiery red\tn wand, and waves it in the air.\tn\r\n"
@@ -2193,7 +2195,7 @@ SPECIAL(kt_kenjin)
     return TRUE;
   }
 
-  //loads a new mob in 132919 :)
+  // loads a new mob in 132919 :)
   if (val == 3)
   {
     act("$n\tc whips out a \tYgolden\tn wand, and waves it in the air.\tn\r\n"
@@ -2275,7 +2277,7 @@ SPECIAL(hive_death)
                "\tris at one place, and your mind in another part.\tn\r\n\r\n");
   char_from_room(ch);
   char_to_room(ch, real_room(129500));
-  //make_corpse(ch, 0);
+  // make_corpse(ch, 0);
   send_to_char(ch, "\tWYou feel the link snap completely, leaving you body behind completely!\tn\r\n\r\n");
   look_at_room(ch, 0);
   char_from_room(ch);
@@ -2305,7 +2307,7 @@ SPECIAL(feybranche)
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
     snprintf(buf, sizeof(buf), "%s\tL shouts, '\tmCome to me!!' Fey-Branche is under attack!\tn\r\n",
-            ch->player.short_descr);
+             ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
       if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135535 || GET_MOB_VNUM(i) == 135536 || GET_MOB_VNUM(i) == 135537 || GET_MOB_VNUM(i) == 135538 || GET_MOB_VNUM(i) == 135539 || GET_MOB_VNUM(i) == 135540) && ch != i)
@@ -2397,7 +2399,7 @@ SPECIAL(agrachdyrr)
       enemy = enemy->master;
 
     snprintf(buf, sizeof(buf), "%s\tL shouts, '\twTo me, \tcAgrach-Dyrr\tw is under attack!'\tn\r\n",
-            ch->player.short_descr);
+             ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
       if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135521 || GET_MOB_VNUM(i) == 135522 || GET_MOB_VNUM(i) == 135510 || GET_MOB_VNUM(i) == 135524 || GET_MOB_VNUM(i) == 135525 || GET_MOB_VNUM(i) == 135512) && ch != i)
@@ -2444,7 +2446,7 @@ SPECIAL(shobalar)
     if (enemy->master && enemy->master->in_room == enemy->in_room)
       enemy = enemy->master;
     snprintf(buf, sizeof(buf), "%s\tL shouts, '\twTo me, \tmShobalar\tw is under attack!'\tn\r\n",
-            ch->player.short_descr);
+             ch->player.short_descr);
     for (i = character_list; i; i = i->next)
     {
       if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 135506 || GET_MOB_VNUM(i) == 135500 || GET_MOB_VNUM(i) == 135504 || GET_MOB_VNUM(i) == 135507) && ch != i)
@@ -2532,7 +2534,7 @@ SPECIAL(ogremoch)
           }
           else
           {
-            //either melt in directly or track
+            // either melt in directly or track
             if (dice(1, 10) < 2)
             {
               act("$n jumps into the pure rock, as $s lord calls for $m.",
@@ -2694,14 +2696,14 @@ SPECIAL(guild)
             spell_info[skill_num].name);
      */
 
-    //for further expansion - zusuk
+    // for further expansion - zusuk
     process_skill(ch, skill_num);
 
     return (TRUE);
   }
   else if (CMD_IS("train"))
   {
-    //training code
+    // training code
 
     if (!*argument)
     {
@@ -2754,14 +2756,14 @@ SPECIAL(guild)
       return (TRUE);
     }
 
-    //ability not available to this class
+    // ability not available to this class
     if (modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 0)
     {
       send_to_char(ch, "This ability is not available to your class...\r\n");
       return (TRUE);
     }
 
-    //cross-class ability
+    // cross-class ability
     if (GET_TRAINS(ch) < 2 && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 1)
     {
       send_to_char(ch, "(Cross-Class) You don't have enough training sessions to train that ability...\r\n");
@@ -2773,7 +2775,7 @@ SPECIAL(guild)
       return (TRUE);
     }
 
-    //class ability
+    // class ability
     if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3) && modify_class_ability(ch, skill_num, GET_CLASS(ch)) == 2)
     {
       send_to_char(ch, "You are already trained in that area.\r\n");
@@ -2888,7 +2890,7 @@ SPECIAL(guild)
     return (TRUE);
   }
 
-  //should not be able to get here
+  // should not be able to get here
   log("Reached the unreachable in SPECIAL(guild) in spec_procs.c");
   return (FALSE);
 }
@@ -3622,7 +3624,7 @@ SPECIAL(illithid_gguard)
   if (!IS_MOVE(cmd))
     return FALSE;
 
-  //if (cmd == SCMD_EAST && GET_RACE(ch) != RACE_ILLITHID) {
+  // if (cmd == SCMD_EAST && GET_RACE(ch) != RACE_ILLITHID) {
   if (cmd == SCMD_EAST)
   {
     act(buf, FALSE, ch, 0, (struct char_data *)me, TO_CHAR);
@@ -3767,7 +3769,7 @@ SPECIAL(guild_guard) {
  */
 
 /* from Homeland */
-//doesnt work properly if multiple instances.. :) -V
+// doesnt work properly if multiple instances.. :) -V
 
 SPECIAL(practice_dummy)
 {
@@ -3793,7 +3795,7 @@ SPECIAL(practice_dummy)
     round_count++;
 
     snprintf(buf, sizeof(buf), "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n",
-            rounddam, max_hit, round_count);
+             rounddam, max_hit, round_count);
     send_to_room(ch->in_room, buf);
     GET_HIT(ch) = GET_MAX_HIT(ch);
     return TRUE;
@@ -4152,12 +4154,12 @@ SPECIAL(harpell)
   {
     if (AFF_FLAGGED(FIGHTING(ch), AFF_CHARM) && FIGHTING(ch)->master)
       snprintf(buf, sizeof(buf), "%s shouts, 'HELP! %s has ordered his pets to kill "
-                   "me!!'\r\n",
-              ch->player.short_descr,
-              GET_NAME(FIGHTING(ch)->master));
+                                 "me!!'\r\n",
+               ch->player.short_descr,
+               GET_NAME(FIGHTING(ch)->master));
     else
       snprintf(buf, sizeof(buf), "%s shouts, 'HELP! %s is trying to kill me!\r\n",
-              ch->player.short_descr, GET_NAME(FIGHTING(ch)));
+               ch->player.short_descr, GET_NAME(FIGHTING(ch)));
     for (i = character_list; i; i = i->next)
     {
       if (!FIGHTING(i) && IS_NPC(i) && (GET_MOB_VNUM(i) == 106831 || GET_MOB_VNUM(i) == 106841 || GET_MOB_VNUM(i) == 106842 || GET_MOB_VNUM(i) == 106844 || GET_MOB_VNUM(i) == 106845 || GET_MOB_VNUM(i) == 106846) && ch != i && !rand_number(0, 2))
@@ -4535,7 +4537,7 @@ SPECIAL(gromph)
     switch (PROC_FIRED(ch))
     {
     case 0:
-      //move to sorcere
+      // move to sorcere
       dir = find_first_step(ch->in_room, real_room(135250));
       if (dir < 0)
         PROC_FIRED(ch) = 1;
@@ -4606,7 +4608,7 @@ SPECIAL(emporium) {
 
     int vnum = atoi(arg2);
 
-    if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || 
+    if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) ||
             vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
       send_to_char(ch, "That is not a valid vnum.  Please select again.\r\n");
       return TRUE;
@@ -4620,7 +4622,7 @@ SPECIAL(emporium) {
       return TRUE;
     }
 
-    if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR && 
+    if (GET_OBJ_TYPE(obj) != ITEM_WEAPON && GET_OBJ_TYPE(obj) != ITEM_ARMOR &&
             GET_OBJ_TYPE(obj) != ITEM_WORN) {
       send_to_char(ch, "That is not a valid vnum.  Please select again.\r\n");
       send_to_char(ch, "\tYPlease note that bonuses of the same type \tRDO NOT\tY stack "
@@ -4688,7 +4690,7 @@ SPECIAL(emporium) {
     obj->affected[0].location = bt;
     obj->affected[0].modifier = atoi(arg4);
 
-    if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL || 
+    if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || bt == APPLY_AC_NATURAL ||
             bt == APPLY_AC_ARMOR))
       obj->affected[0].modifier *= 10;
 
@@ -4698,7 +4700,7 @@ SPECIAL(emporium) {
     }
 
     GET_OBJ_LEVEL(obj) = set_object_level(obj);
-    GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * 
+    GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 *
             MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
 
     int cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
@@ -4727,13 +4729,13 @@ SPECIAL(emporium) {
     snprintf(buf, sizeof(buf), "%s +%d %s", obj->short_description, bonus, get_bonus_type(arg3));
     obj->short_description = strdup(buf);
     obj->name = strdup(buf);
-    snprintf(buf, sizeof(buf), "%s +%d %s lies here.", CAP(obj->short_description), bonus, 
+    snprintf(buf, sizeof(buf), "%s +%d %s lies here.", CAP(obj->short_description), bonus,
             get_bonus_type(arg3));
     obj->description = strdup(buf);
 
     obj_to_char(obj, ch);
 
-    send_to_char(ch, "You purchase %s for %d reputation points.\r\n", 
+    send_to_char(ch, "You purchase %s for %d reputation points.\r\n",
             obj->short_description, cost);
     return TRUE;
   } else if (is_abbrev(arg, "list")) {
@@ -4796,12 +4798,12 @@ SPECIAL(emporium) {
     int i = 0;
     int vnum = 0;
 
-    send_to_char(ch, "%-5s %-6s %-7s %-35s\r\n----- ------ -------------------------\r\n", 
+    send_to_char(ch, "%-5s %-6s %-7s %-35s\r\n----- ------ -------------------------\r\n",
             "VNUM", "COST", "MIN-LVL", "ITEM");
 
     for (i = 30000; i < 30299; i++) {
       vnum = i;
-      if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) || 
+      if (!((vnum >= 30000 && vnum <= 30083) || (vnum >= 30085 && vnum <= 30092) ||
               vnum == 30095 || (vnum >= 30100 && vnum <= 30105))) {
         continue;
       }
@@ -4815,7 +4817,7 @@ SPECIAL(emporium) {
       obj->affected[0].location = bt;
       obj->affected[0].modifier = atoi(arg4);
 
-      if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION || 
+      if ((bt == APPLY_AC_SHIELD || bt == APPLY_AC_DEFLECTION ||
               bt == APPLY_AC_NATURAL || bt == APPLY_AC_ARMOR))
         obj->affected[0].modifier *= 10;
 
@@ -4825,7 +4827,7 @@ SPECIAL(emporium) {
       }
 
       GET_OBJ_LEVEL(obj) = set_object_level(obj);
-      GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 * 
+      GET_OBJ_COST(obj) = MAX(10, 100 + GET_OBJ_LEVEL(obj) * 50 *
               MAX(1, GET_OBJ_LEVEL(obj) - 1) + GET_OBJ_COST(obj));
 
       cost = MAX(10, GET_OBJ_LEVEL(obj) * (GET_OBJ_LEVEL(obj) / 2) * 3);
@@ -5198,16 +5200,16 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
 /* very simple ship code system */
 #define NUM_OF_SHIPS 4
 
-//shiproom, shipobject, room_seq_start, roomseq_end
+// shiproom, shipobject, room_seq_start, roomseq_end
 int ship_info[NUM_OF_SHIPS][4] = {
-    //chionthar ferry
+    // chionthar ferry
     {104072, 104072, 104262, 104266},
     {104073, 104072, 104262, 104266},
 
-    //alanthor ferry
+    // alanthor ferry
     {126429, 126429, 126423, 126428},
 
-    //md carpet
+    // md carpet
     {120013, 120010, 120036, 120040},
 };
 
@@ -5298,7 +5300,7 @@ void update_ship(struct obj_data *ship, int start, int end, int movedelay, int w
 
   if (ship->in_room == dest)
   {
-    //turn around ship
+    // turn around ship
     ship->obj_flags.weight = !ship->obj_flags.weight;
     ship->obj_flags.timer = waitdelay;
     return;
@@ -5332,7 +5334,7 @@ ACMD(do_disembark)
     return;
   }
 
-  //int was_in = ch->in_room;
+  // int was_in = ch->in_room;
   act("$n disembarks.", TRUE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
   char_to_room(ch, ship->in_room);
@@ -5415,7 +5417,7 @@ SPECIAL(spikeshield)
   if (!argument || cmd || !vict)
     return FALSE;
 
-  //blocking
+  // blocking
   if (!strcmp(argument, "shieldblock") && !rand_number(0, 2))
   {
     act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
@@ -5625,7 +5627,7 @@ SPECIAL(courage)
     power = 15;
   if (rand_number(0, power))
   {
-    //TODO, cool damage proc here..
+    // TODO, cool damage proc here..
   }
   return TRUE;
 }
@@ -6247,7 +6249,7 @@ SPECIAL(dorfaxe)
 /* from homeland */
 SPECIAL(acidstaff)
 {
-  struct char_data *victim;
+  struct char_data *victim = NULL;
 
   if (!cmd && !strcmp(argument, "identify"))
   {
@@ -6598,7 +6600,7 @@ SPECIAL(spiderdagger)
 
   if (!cmd && vict && !rand_number(0, 9))
   {
-    //proc darkfire
+    // proc darkfire
     weapons_spells(
         "\tLYour $p\tL starts to \tcglow\tL as it pierces \tn$N!",
         "$n\tL's $p\tL starts to \tcglow\tL as it pierces YOU!",
@@ -6830,7 +6832,7 @@ SPECIAL(whisperwind)
         act("\tc$n is \tCzapped \tcby his \tWmoon\tCblade \tcafter "
             "muttering something to it!",
             1, ch, 0, FIGHTING(ch), TO_ROOM);
-        damage(ch, ch, rand_number(4, 12), -1, DAM_ENERGY, FALSE); //type -1 = no message
+        damage(ch, ch, rand_number(4, 12), -1, DAM_ENERGY, FALSE); // type -1 = no message
       }
       else
       {
@@ -7305,7 +7307,7 @@ SPECIAL(acidsword)
 /* from homeland */
 SPECIAL(snakewhip)
 {
-  //struct affected_type af;
+  // struct affected_type af;
   struct char_data *vict = FIGHTING(ch);
   struct obj_data *weepan = (struct obj_data *)me;
   int dam;
@@ -7410,7 +7412,7 @@ SPECIAL(tormblade)
     skip_spaces(&argument);
     if (!strcmp(argument, "critical"))
     {
-      //okies, we assume its a crit then.
+      // okies, we assume its a crit then.
       act("$n's $p shines as it protects $m.", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
       act("Your $p shines as it protects you.", FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
       new_affect(&af);
@@ -7500,7 +7502,7 @@ SPECIAL(air_sphere)
         "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\r\n"
         "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
         FALSE, ch, 0, vict, TO_ROOM);
-    damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
+    damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); // type -1 = no message
     return TRUE;
   }
 
@@ -7603,7 +7605,7 @@ SPECIAL(bolthammer)
         ch, vict, (struct obj_data *)me, 0);
   }
 
-  damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); //type -1 = no message
+  damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); // type -1 = no message
   return TRUE;
 }
 
@@ -7657,7 +7659,7 @@ SPECIAL(rughnark)
       "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of $s\tn\r\n"
       "\tLopponent as $E screams in agony and pain.\tn",
       ch, vict, (struct obj_data *)me, 0);
-  damage(ch, vict, dam, -1, DAM_SLICE, FALSE); //type -1 = no message
+  damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
   return TRUE;
 }
 
@@ -7702,7 +7704,7 @@ SPECIAL(magma)
       "\tLAs $n\tL's hands \twimpact\tL with $s opponent, the \trflowing m\tRagm\tra\tn\r\n"
       "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
       ch, vict, (struct obj_data *)me, 0);
-  damage(ch, vict, dam, -1, DAM_FIRE, FALSE); //type -1 = no message
+  damage(ch, vict, dam, -1, DAM_FIRE, FALSE); // type -1 = no message
   return TRUE;
 }
 
@@ -7727,7 +7729,8 @@ SPECIAL(halberd)
   switch (rand_number(0, 30))
   {
   case 27:
-    if (!can_stun(vict)) return FALSE;
+    if (!can_stun(vict))
+      return FALSE;
     // A slight chance to stun
     weapons_spells(
         "\tcYour\tn $p \tcreverberates loudly as it sends\tn\r\n"
@@ -7780,7 +7783,7 @@ SPECIAL(halberd)
         "\tc$n\tn $p \tcravenously slashes deep into \tn$N\tc\r\n"
         "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
         ch, vict, (struct obj_data *)me, SPELL_SLOW);
-    damage(ch, vict, 10 + dice(2, 4), -1, DAM_POISON, FALSE); //type -1 = no message
+    damage(ch, vict, 10 + dice(2, 4), -1, DAM_POISON, FALSE); // type -1 = no message
     return TRUE;
     break;
 
@@ -7968,6 +7971,8 @@ SPECIAL(clanportal)
 /* from homeland */
 SPECIAL(hellfire)
 {
+  int timer = 0;
+
   if (!ch)
     return FALSE;
 
@@ -7987,17 +7992,19 @@ SPECIAL(hellfire)
   if (!is_wearing(ch, 132102))
     return FALSE;
 
-  if (!strcmp(argument, "hellfire") && cmd_info[cmd].command_pointer == do_say)
+  if (cmd && CMD_IS("say") && !strcmp(argument, "hellfire"))
   {
-    if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
+    if (timer > 0)
     {
-      send_to_char(ch, "Nothing happens.\r\n");
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
       return TRUE;
     }
 
     act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
         "\tLThe flames rise and protects YOU!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+
     act("\tLThe pure flames of $n\tL's $p\tL is invoked.\tn\r\n"
         "\tLThe flames rise and protects $m!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
@@ -8014,8 +8021,15 @@ SPECIAL(hellfire)
 /* from homeland */
 SPECIAL(angel_leggings)
 {
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 1\r\n");
+
   if (!ch)
     return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 2\r\n");
 
   if (!cmd && !strcmp(argument, "identify"))
   {
@@ -8023,21 +8037,36 @@ SPECIAL(angel_leggings)
     return TRUE;
   }
 
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 3\r\n");
+
   if (!cmd)
     return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 4\r\n");
+
   if (!argument)
     return FALSE;
 
-  skip_spaces(&argument);
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 5\r\n");
 
   if (!is_wearing(ch, 106021))
     return FALSE;
 
-  if (!strcmp(argument, "elysium") && cmd_info[cmd].command_pointer ==
-                                          do_say)
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
+
+  skip_spaces(&argument);
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "elysium"))
   {
     if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
     {
+      if (DEBUGMODE)
+        send_to_char(ch, "Debug - Mark 8\r\n");
+
       send_to_char(ch, "Nothing happens.\r\n");
       return TRUE;
     }
@@ -8049,8 +8078,13 @@ SPECIAL(angel_leggings)
         "\tw$s feet slowly raise of the ground!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
+    if (DEBUGMODE)
+      send_to_char(ch, "Debug - Mark 9\r\n");
+
     call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_POTION);
-    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 168;
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+
     return TRUE;
   }
   return FALSE;

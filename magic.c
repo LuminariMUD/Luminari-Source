@@ -6236,7 +6236,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
 {
   const char *to_char = NULL, *to_room = NULL;
   struct char_data *tch = NULL;
-  bool hit_self = FALSE;
+  bool hit_self = FALSE, hit_leader = FALSE;
 
   if (ch == NULL)
     return;
@@ -6320,11 +6320,25 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
     if (tch == ch) /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
       hit_self = TRUE;
 
+    /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+    if (GROUP(ch)->leader && GROUP(ch)->leader == tch)
+      hit_leader = TRUE;
+
     perform_mag_groups(level, ch, tch, obj, spellnum, savetype, casttype);
   }
 
+  /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
   if (!hit_self)
+  {
     perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
+
+    if (ch == GROUP(ch)->leader)
+      hit_leader = TRUE;
+  }
+
+  /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+  if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
+    perform_mag_groups(level, ch, GROUP(ch)->leader, obj, spellnum, savetype, casttype);
 }
 
 /** Mass spells affect every creature in the room except the caster,
