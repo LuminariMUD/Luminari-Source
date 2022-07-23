@@ -3684,6 +3684,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
   /* item cost cap */
   // GET_OBJ_COST(obj) = MIN(MAX(GET_OBJ_LEVEL(obj), 1) * 100, GET_OBJ_COST(obj));
 
+  /* conversion for instrument system for bards */
   if (GET_OBJ_TYPE(obj) == ITEM_INSTRUMENT)
   {
     SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT);

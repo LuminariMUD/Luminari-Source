@@ -1123,7 +1123,7 @@ SPECIAL(tia_rapier)
 
   if (vict)
   {
-    if (!rand_number(0, 30))
+    if (!rand_number(0, 20))
     {
       act("\tWA \tBwave \tWof \tDdarkness \tBoozes \tWslowly from your sword, \tbengulfing \tWthe \tn\r\n"
           "\tWarea in a \tLvoid \tWof \tLblack.\tW  You begin to perceive the \tBfaint outline \tn\r\n"
@@ -1139,7 +1139,7 @@ SPECIAL(tia_rapier)
       return 1;
     }
 
-    if (!rand_number(0, 90))
+    if (!rand_number(0, 50))
     {
       weapons_spells("\tWSuddenly your \tn$p\tW is enveloped by \tbsheer \tLdarkness, \tWleaving only a pair of \tn\r\n"
                      "\tBblazing eyes \tWgazing directly into the \tBsoul\tW of \tn$N\tW.  A sudden wave of \tBterror \tbovercomes \tn\r\n"
@@ -1167,8 +1167,8 @@ SPECIAL(dracolich)
   struct char_data *vict = NULL; /* was: struct char_data *vict = FIGHTING(ch); */
   int hitpoints = 0;
 
-  //if (GET_CHAR_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
-  //GET_CHAR_WAIT(ch) = 0;
+  // if (GET_CHAR_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
+  // GET_CHAR_WAIT(ch) = 0;
 
   if (GET_POS(ch) == POS_DEAD)
     act("&cLWith a final horrifying wail, the skeletal remains of Tiamat\n\r"
@@ -1302,7 +1302,7 @@ void tiamat_on_death(struct char_data *ch)
   /*Still got HEADS!!, means they did shitload of damage et..*/
   if (tiamat_heads > 1)
   {
-    check_heads(ch); //to get right message..
+    check_heads(ch); // to get right message..
     lich = read_mobile(113750, VIRTUAL);
     char_to_room(lich, ch->in_room);
     GET_MAX_HIT(lich) = 29999;
@@ -1360,15 +1360,15 @@ void tiamat_on_death(struct char_data *ch)
       WAIT_STATE(tch, PULSE_VIOLENCE * 9);
       af.modifier = 0;
       af.duration = rand_number(1, 30);
-      //af.bitvector = AFF_SLEEP;
-      //af.bitvector2 = 0;
-      //af.bitvector3 = 0;
+      // af.bitvector = AFF_SLEEP;
+      // af.bitvector2 = 0;
+      // af.bitvector3 = 0;
       affect_join(tch, &af, FALSE, FALSE, TRUE, FALSE);
       change_position(tch, POS_SLEEPING);
     }
   }
 
-  //move_items( ch, lich );
+  // move_items( ch, lich );
   return;
 }
 
@@ -1418,10 +1418,10 @@ int tiamat_breath(struct char_data *ch)
     breath[breaths++] = SPELL_FIRE_BREATHE;
   if (tiamat_heads >= 2)
     breath[breaths++] = SPELL_LIGHTNING_BREATHE;
-  //if (tiamat_heads >= 3)
-  //breath[breaths++] = SPELL_ACID_BREATHE;
-  //if (tiamat_heads >= 5)
-  //breath[breaths++] = SPELL_GAS_BREATHE;
+  // if (tiamat_heads >= 3)
+  // breath[breaths++] = SPELL_ACID_BREATHE;
+  // if (tiamat_heads >= 5)
+  // breath[breaths++] = SPELL_GAS_BREATHE;
   if (tiamat_heads >= 4)
     breath[breaths++] = SPELL_FROST_BREATHE;
 
@@ -1465,37 +1465,39 @@ SPECIAL(tiamat)
   {
     for (i = character_list; i; i = i->next)
     {
-      if (!ch || !i) continue;
-      if (IN_ROOM(ch) == NOWHERE || IN_ROOM(i) == NOWHERE) continue;
+      if (!ch || !i)
+        continue;
+      if (IN_ROOM(ch) == NOWHERE || IN_ROOM(i) == NOWHERE)
+        continue;
       if (world[ch->in_room].zone == world[i->in_room].zone && !IS_NPC(i))
       {
         /* Moonblade */
-        //if (GET_CLASS(i) == CLASS_BLADESINGER || GET_CLASS(i) == CLASS_RANGER)
-        //ovnum = 132118;
+        // if (GET_CLASS(i) == CLASS_BLADESINGER || GET_CLASS(i) == CLASS_RANGER)
+        // ovnum = 132118;
         /* Malevolence */
         if (GET_CLASS(i) == CLASS_WARRIOR || GET_CLASS(i) == CLASS_BERSERKER) //||
-          //GET_CLASS(i) == CLASS_GIANTSLAYER || GET_CLASS(i) == CLASS_BATTLERAGER)
+          // GET_CLASS(i) == CLASS_GIANTSLAYER || GET_CLASS(i) == CLASS_BATTLERAGER)
           ovnum = 132101;
         /* Speed gauntlets */
         if (MONK_TYPE(i))
           ovnum = 132128;
         /* Rapier */
-        //if (GET_CLASS(i) == CLASS_SWASHBUCKLER)
-        //ovnum = 132125;
+        // if (GET_CLASS(i) == CLASS_SWASHBUCKLER)
+        // ovnum = 132125;
         /* Shadow cloak */
         if (GET_CLASS(i) == CLASS_ROGUE)
-          //if (GET_CLASS(i) == CLASS_ASSASSIN || GET_CLASS(i) == CLASS_ROGUE ||
-          //GET_CLASS(i) == CLASS_THIEF || GET_CLASS(i) == CLASS_SCOUT || GET_CLASS(i) == CLASS_MERCENARY)
+          // if (GET_CLASS(i) == CLASS_ASSASSIN || GET_CLASS(i) == CLASS_ROGUE ||
+          // GET_CLASS(i) == CLASS_THIEF || GET_CLASS(i) == CLASS_SCOUT || GET_CLASS(i) == CLASS_MERCENARY)
           ovnum = 132120;
         /* Slaadi Goggles */
-        //if (GET_CLASS(i) == CLASS_PSI)
-        //ovnum = 132121;
+        // if (GET_CLASS(i) == CLASS_PSI)
+        // ovnum = 132121;
         /* Platemail of Life */
         if (GET_CLASS(i) == CLASS_PALADIN)
           ovnum = 132105;
         /* Drow Scimitar */
-        //if (GET_CLASS(i) == CLASS_SHADOWSTALKER || GET_CLASS(i) == CLASS_WEAPONMASTER)
-        //ovnum = 132126;
+        // if (GET_CLASS(i) == CLASS_SHADOWSTALKER || GET_CLASS(i) == CLASS_WEAPONMASTER)
+        // ovnum = 132126;
       }
       /* Move object to room if not already one there */
       for (olist = world[real_room(132100)].contents; olist; olist = olist->next_content)
@@ -2193,7 +2195,7 @@ SPECIAL(vaprak_claws)
   if (!strcmp(argument, "vaprak") && CMD_IS("say"))
   {
 
-    //if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
+    // if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room)) {
     if (GET_OBJ_SPECTIMER(obj, 0) > 0)
     {
       send_to_char(ch, "\trAs you say '\twvaprak\tr' to your claws \tLof the destroyer\tr, nothing happens.\tn\r\n");
@@ -3256,7 +3258,7 @@ void open_exit(struct slider_row row)
 {
   REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_CLOSED);
   REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_LOCKED);
-  //REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_HIDDEN3);
+  // REMOVE_BIT(EXITN(row.room, row.door)->exit_info, EX_HIDDEN3);
   SET_BIT(EXITN(row.room, row.door)->exit_info, EX_PICKPROOF);
 }
 
@@ -3264,7 +3266,7 @@ void close_exit(struct slider_row row)
 {
   SET_BIT(EXITN(row.room, row.door)->exit_info, EX_CLOSED);
   SET_BIT(EXITN(row.room, row.door)->exit_info, EX_LOCKED);
-  //SET_BIT(EXITN(row.room, row.door)->exit_info, EX_HIDDEN3);
+  // SET_BIT(EXITN(row.room, row.door)->exit_info, EX_HIDDEN3);
   SET_BIT(EXITN(row.room, row.door)->exit_info, EX_PICKPROOF);
 }
 
@@ -3309,9 +3311,9 @@ void toggle_row(struct slider_row *row)
     close_row(row);
 }
 
-//How long average probability between polls..
+// How long average probability between polls..
 #define TOG_DELAY 20
-//Probability for a wall to toggle..  close to 1000 less likely.
+// Probability for a wall to toggle..  close to 1000 less likely.
 #define TOG_FREQ 975
 
 SPECIAL(cube_slider)
@@ -3586,7 +3588,7 @@ int ttf_path[] = {
 SPECIAL(ttf_patrol)
 {
   int dir = -1;
-  //int next = 0;
+  // int next = 0;
 
   if (!ch)
     return 0;
@@ -3599,7 +3601,7 @@ SPECIAL(ttf_patrol)
   if (PATH_INDEX(ch) > 16 || PATH_INDEX(ch) < 0)
     PATH_INDEX(ch) = 0;
 
-  //8 second delay...
+  // 8 second delay...
   if (PATH_DELAY(ch) > 0)
   {
     PATH_DELAY(ch)

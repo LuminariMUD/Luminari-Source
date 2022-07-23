@@ -7040,6 +7040,11 @@ void load_class_list(void)
  * the character has an associated class and anti-flag.  */
 bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output)
 {
+
+  /* this is not compatible with the new homeland zones!  for now we are just skipping this check -zusuk */
+  return false; /* do not remove this without checking with zusuk first please */
+  /* remove the above line to restore this function to its previous state */
+
   if ((IS_WIZARD(ch)) && (OBJ_FLAGGED(obj, ITEM_ANTI_WIZARD)))
   {
     if (output)
