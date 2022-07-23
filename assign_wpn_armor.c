@@ -55,6 +55,9 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
       weapon_list[weapon].weaponFamily == WEAPON_FAMILY_MONK)
     return TRUE;
 
+  if (CLASS_LEVEL(ch, CLASS_INQUISITOR) && GET_1ST_DOMAIN(ch) && domain_list[GET_1ST_DOMAIN(ch)].favored_weapon == weapon)
+    return TRUE;
+
   /* updated by zusuk: Druids are proficient with the following weapons: club,
    * dagger, dart, quarterstaff, scimitar, scythe, sickle, shortspear, sling,
    * and spear. They are also proficient with all natural attacks (claw, bite,
@@ -73,6 +76,30 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_SHORTSPEAR:
     case WEAPON_TYPE_SLING:
     case WEAPON_TYPE_SPEAR:
+      return TRUE;
+    }
+  }
+
+  if (HAS_FEAT(ch, FEAT_INQUISITOR_WEAPON_PROFICIENCY) ||
+      CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0)
+  {
+    switch (weapon)
+    {
+    case WEAPON_TYPE_HAND_CROSSBOW:
+    case WEAPON_TYPE_LONG_BOW:
+    case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_LIGHT_REP_XBOW:
+    case WEAPON_TYPE_HEAVY_REP_XBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_2:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_3:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_4:
+    case WEAPON_TYPE_COMPOSITE_LONGBOW_5:
       return TRUE;
     }
   }
@@ -2425,17 +2452,32 @@ bool is_using_keen_weapon(struct char_data *ch)
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
     return true;
+  if (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) || IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
+      affected_by_spell(ch, SPELL_KEEN_EDGE))
+    return true;
+  if ((!obj || (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) && affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
+    return true;
 
   obj = GET_EQ(ch, WEAR_WIELD_2H);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
     return true;
+  if (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) || IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
+      affected_by_spell(ch, SPELL_KEEN_EDGE))
+    return true;
+  if ((!obj || (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) && affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
+    return true;
 
   obj = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (obj && obj_has_special_ability(obj, WEAPON_SPECAB_KEEN))
     return true;
   if (obj && affected_by_spell(ch, PSIONIC_SHARPENED_EDGE) && IS_WEAPON_SHARP(obj))
+    return true;
+  if (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_PIERCING) || IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_SLASHING)) &&
+      affected_by_spell(ch, SPELL_KEEN_EDGE))
+    return true;
+  if ((!obj || (obj && (IS_SET(weapon_list[GET_WEAPON_TYPE(obj)].damageTypes, DAMAGE_TYPE_BLUDGEONING)))) && affected_by_spell(ch, SPELL_WEAPON_OF_IMPACT))
     return true;
 
   if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_KEEN))

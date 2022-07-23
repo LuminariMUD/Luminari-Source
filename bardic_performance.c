@@ -198,7 +198,7 @@ ACMD(do_perform)
                        performance_info[i][PERFORMANCE_DIFF]);
           return;
         }
-        if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) &&
+        if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
             (performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
              performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
              performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
@@ -690,7 +690,13 @@ EVENTFUNC(event_bardic_performance)
                  performance_info[performance_num][PERFORMANCE_DIFF]);
     return 0;
   }
-  if (ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF) && (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD || performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY || performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION || performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING || performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND || performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
+    if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) && 
+      (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD || 
+      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY || 
+      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION || 
+      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING || 
+      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND || 
+      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
   {
     send_to_char(ch, "The silence effectively stops your performance.\r\n");
     return 0;

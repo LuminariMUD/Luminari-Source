@@ -36,6 +36,7 @@
 #include "alchemy.h"
 #include "premadebuilds.h"
 #include "craft.h"
+#include "fight.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -138,6 +139,11 @@ bool can_study_known_spells(struct char_data *ch) {
           GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 
+  /* inquisitor */
+  if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
+      ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+    return TRUE;
+
   /* nope! */
   return FALSE;
 }
@@ -173,6 +179,7 @@ int compute_bonus_caster_level(struct char_data *ch, int class) {
     case CLASS_DRUID:
     case CLASS_RANGER:
     case CLASS_PALADIN:
+    case CLASS_INQUISITOR:
       bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
       bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
       break;
@@ -209,6 +216,7 @@ int compute_divine_level(struct char_data *ch) {
 
   divine_level += CLASS_LEVEL(ch, CLASS_CLERIC);
   divine_level += CLASS_LEVEL(ch, CLASS_DRUID);
+  divine_level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
   divine_level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 3);
   divine_level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 3);
@@ -493,7 +501,8 @@ int stats_point_left(struct char_data *ch) {
 int spell_level_ch(struct char_data *ch, int spell) {
   int domain = 0, domain_spell = 0, this_spell = -1, i = 0;
 
-  if (CLASS_LEVEL(ch, CLASS_CLERIC)) {
+  if (CLASS_LEVEL(ch, CLASS_CLERIC) || CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  {
     for (domain = 0; domain < NUM_DOMAINS; domain++) {
 
       if (GET_1ST_DOMAIN(ch) == domain || GET_2ND_DOMAIN(ch) == domain) {
@@ -509,7 +518,9 @@ int spell_level_ch(struct char_data *ch, int spell) {
 
       }
     }
-  } else { /* not cleric */
+  }
+  else
+  { /* not cleric */
   }
 
   for (i = 0; i < NUM_CLASSES; i++) {
@@ -2641,9 +2652,25 @@ bool room_is_dark(room_rnum room) {
   if (ROOM_AFFECTED(room, RAFF_LIGHT))
     return (FALSE);
 
+  struct char_data *tch = NULL;
+  for (tch = world[room].people; tch; tch = tch->next_in_room)
+  {
+    // persons blinded by blinding ray emit light like a sunrod
+    if (affected_by_spell(tch, SPELL_BLINDING_RAY))
+      return (FALSE);
+  }
+
   /* magic-dark flag will over-ride lights */
   if (ROOM_FLAGGED(room, ROOM_MAGICDARK))
     return (TRUE);
+
+  for (tch = world[room].people; tch; tch = tch->next_in_room)
+  {
+    // persons impaled by a holy javelin emit light like a torch, which will not penetrate magical darkness
+    if (char_has_mud_event(tch, eHOLYJAVELIN))
+      return (FALSE);
+  }
+
   if (world[room].light)
     return (FALSE);
 
@@ -3575,6 +3602,15 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_LAYHANDS:
       daily_uses += CLASS_LEVEL(ch, CLASS_PALADIN) / 2 + GET_CHA_BONUS(ch);
       break;
+    case FEAT_JUDGEMENT:
+      daily_uses += ((CLASS_LEVEL(ch, CLASS_INQUISITOR) - 1) / 3) + 1;
+      break;
+    case FEAT_TRUE_JUDGEMENT:
+      daily_uses += CLASS_LEVEL(ch, CLASS_INQUISITOR) / 5;
+      break;
+    case FEAT_BANE:
+      daily_uses += 2 + CLASS_LEVEL(ch, CLASS_INQUISITOR) / 5;
+      break;
     case FEAT_TOUCH_OF_CORRUPTION:
       daily_uses += CLASS_LEVEL(ch, CLASS_BLACKGUARD) / 2 + GET_CHA_BONUS(ch);
       break;
@@ -3960,6 +3996,15 @@ int calculate_cp(struct obj_data *obj) {
   }
 
   return 0;
+}
+
+bool is_incorporeal(struct char_data *ch)
+{
+  if (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
+  // || HAS_FEAT(ch, FEAT_GHOSTLY_INCORPOREALITY))
+    return true;
+
+  return false;
 }
 
 bool paralysis_immunity(struct char_data *ch) {
@@ -5045,6 +5090,9 @@ bool can_spell_be_revoked(int spellnum)
   switch (spellnum)
   {
     // spells
+    case SPELL_WIND_WALL:
+    case SPELL_GASEOUS_FORM:
+    case SPELL_AIR_WALK:
     case SPELL_ARMOR: 
     case SPELL_BLESS: 
     case SPELL_DETECT_ALIGN: 
@@ -5164,6 +5212,15 @@ bool can_spell_be_revoked(int spellnum)
     case SPELL_TACTICAL_ACUMEN:
     case SPELL_VEIL_OF_POSITIVE_ENERGY:
     case SPELL_BESTOW_WEAPON_PROFICIENCY:
+    case SPELL_SPIRITUAL_WEAPON:
+    case SPELL_DANCING_WEAPON:
+    case SPELL_WEAPON_OF_AWE:
+    case SPELL_MAGIC_VESTMENT:
+    case SPELL_GREATER_MAGIC_WEAPON:
+    case SPELL_WEAPON_OF_IMPACT:
+    case SPELL_KEEN_EDGE:
+    case SPELL_PROTECTION_FROM_ENERGY:
+    case SPELL_DIVINE_POWER:
 
     // psionic powers
     case PSIONIC_BROKER:
@@ -5616,4 +5673,477 @@ void remove_locked_door_flags(room_rnum room, int door)
   REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_MEDIUM);
   REMOVE_BIT(EXITN(room, door)->exit_info, EX_LOCKED_HARD);
 
+}
+
+int get_judgement_bonus(struct char_data *ch, int type)
+{
+
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    return 0;
+
+  int bonus = 1;
+  int level = CLASS_LEVEL(ch, CLASS_INQUISITOR);
+  if (HAS_REAL_FEAT(ch, FEAT_SLAYER) && type == GET_SLAYER_JUDGEMENT(ch))
+    level += 5;
+
+  switch (type)
+  {
+  case INQ_JUDGEMENT_DESTRUCTION:
+  case INQ_JUDGEMENT_HEALING:
+  case INQ_JUDGEMENT_PIERCING:
+  case INQ_JUDGEMENT_RESISTANCE:
+    bonus += level / 3;
+    break;
+
+  case INQ_JUDGEMENT_JUSTICE:
+  case INQ_JUDGEMENT_PROTECTION:
+  case INQ_JUDGEMENT_PURITY:
+  case INQ_JUDGEMENT_RESILIENCY:
+    bonus += level / 5;
+    break;
+  }
+
+  bonus += HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT);
+
+  if (type == INQ_JUDGEMENT_RESISTANCE)
+    bonus *= 4;
+
+  return bonus;
+}
+
+int judgement_bonus_type(struct char_data *ch)
+{
+  if (IS_EVIL(ch))
+    return BONUS_TYPE_PROFANE;
+  else
+    return BONUS_TYPE_SACRED;
+}
+
+bool is_judgement_possible(struct char_data *ch, struct char_data *t, int type)
+{
+  if (!ch || !t)
+    return false;
+
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    return false;
+
+  if (GET_JUDGEMENT_TARGET(ch) != t)
+    return false;
+
+  if (!IS_JUDGEMENT_ACTIVE(ch, type))
+    return false;
+
+  return true;
+}
+
+// Returns 0 if no other group members have the teamwork feat
+// or if the character doesn't either.
+// Otherwise returns the number of people in the group who have the feat.
+int has_teamwork_feat(struct char_data *ch, int featnum)
+{
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  if (!HAS_REAL_FEAT(ch, featnum))
+    return false;
+
+  struct char_data *k = NULL;
+  int num_with_feat = 0;
+
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      num_with_feat++;
+    }
+  }
+
+  if (num_with_feat > 0)
+    return (num_with_feat + 1); // we include ch here as well
+
+  return 0;
+}
+
+// This function will return the total bonus number, which works either as
+// a return of TRUE or for the bonus number for feats like shield wall.
+// If no party members who have the featnum have a shield, it returns FALSE.
+int teamwork_using_shield(struct char_data *ch, int featnum)
+{
+  struct char_data *k = NULL;
+  struct obj_data *shield = NULL;
+  int bonus = 0;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      if ((shield = GET_EQ(k, WEAR_SHIELD)) && IS_SHIELD(GET_OBJ_VAL(shield, 1)))
+      {
+        if (GET_OBJ_VAL(shield, 1) == SPEC_ARMOR_TYPE_SMALL_SHIELD || GET_OBJ_VAL(shield, 1) == SPEC_ARMOR_TYPE_BUCKLER)
+          bonus++;
+        else
+          bonus += 2;
+      }
+    }
+  }
+
+  return bonus;
+}
+
+int num_fighting(struct char_data *ch)
+{
+  struct char_data *k = NULL, *tch = NULL;
+  int count = 0;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch == FIGHTING(ch) || ch == FIGHTING(tch))
+    {
+      count++;
+    }
+    else
+    {
+      while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+        if (tch == FIGHTING(k) || k == FIGHTING(tch))
+          count++;
+    }
+  }
+  return count;
+}
+
+int teamwork_best_stealth(struct char_data *ch, int featnum)
+{
+  if (!HAS_REAL_FEAT(ch, featnum))
+    return false;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  struct char_data *k = NULL;
+  int stealth = compute_ability_full(ch, ABILITY_STEALTH, FALSE);
+
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      stealth = MAX(stealth, compute_ability_full(ch, ABILITY_STEALTH, TRUE));
+    }
+  }
+
+  return stealth;
+}
+
+int teamwork_best_d20(struct char_data *ch, int featnum)
+{
+  if (!HAS_REAL_FEAT(ch, featnum))
+    return false;
+
+  if (!ch)
+    return 0;
+  if (!GROUP(ch))
+    return 0;
+
+  struct char_data *k = NULL;
+  int d20roll = d20(ch);
+
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
+    {
+      d20roll = MAX(d20roll, d20(ch));
+    }
+  }
+
+  return d20roll;
+}
+
+int count_teamwork_feats_available(struct char_data *ch)
+{
+
+  int i = 0;
+  int known = 0;
+  int available = HAS_REAL_FEAT(ch, FEAT_TEAMWORK);
+
+  if (!ch)
+    return 0;
+
+  for (i = 0; i < NUM_FEATS; i++)
+  {
+    if (feat_list[i].feat_type == FEAT_TYPE_TEAMWORK && HAS_REAL_FEAT(ch, i))
+      known++;
+  }
+
+  return (available - known);
+}
+
+bool can_silence(struct char_data *ch)
+{
+  return true;
+}
+
+int get_default_spell_weapon(struct char_data *ch)
+{
+  if (!ch)
+    return WEAPON_TYPE_UNARMED;
+
+  if (IS_EVIL(ch))
+    return WEAPON_TYPE_FLAIL;
+  else if (IS_GOOD(ch))
+    return WEAPON_TYPE_WARHAMMER;
+  else if (IS_LAWFUL(ch))
+    return WEAPON_TYPE_LONG_SWORD;
+  else if (IS_CHAOTIC(ch))
+    return WEAPON_TYPE_BATTLE_AXE;
+
+  return WEAPON_TYPE_HEAVY_MACE;
+}
+
+bool is_caster_class(int class)
+{
+  switch (class)
+  {
+  case CLASS_WIZARD:
+  case CLASS_CLERIC:
+  case CLASS_PALADIN:
+  case CLASS_RANGER:
+  case CLASS_BARD:
+  case CLASS_DRUID:
+  case CLASS_ALCHEMIST:
+  case CLASS_INQUISITOR:
+  case CLASS_BLACKGUARD:
+  case CLASS_SORCERER:
+    return true;
+  }
+  return false;
+}
+
+int count_spellcasting_classes(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  int num = 0, i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (is_caster_class(i) && CLASS_LEVEL(ch, i) > 0)
+      num++;
+
+  return num;
+}
+
+// will return true if the sector type offers opportunity for cover
+bool can_room_sector_give_cover(int type)
+{
+  switch (type)
+  {
+  case SECT_CITY:          // people, crates, etc.
+  case SECT_FOREST:        // trees and shrubs
+  case SECT_HIGH_MOUNTAIN: // boulders, snow drifts
+  case SECT_JUNGLE:        // trees, brush
+  case SECT_MARSHLAND:     // trees
+  case SECT_MOUNTAIN:      // boulders
+    return true;
+  }
+  return false;
+}
+
+// will return true if the character has cover
+bool has_cover(struct char_data *ch, struct char_data *t)
+{
+
+  if (!ch || !t)
+    return false;
+
+  if (FIGHTING(t) == ch)
+    return false;
+
+  room_rnum room = IN_ROOM(ch);
+  if (room != NOWHERE && can_room_sector_give_cover(world[room].sector_type))
+    return true;
+
+  return false;
+}
+
+// will return true if the conditions allow for the use of the
+// one with shadow feat.
+bool can_one_with_shadows(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  /* if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW))
+    return false; */
+
+  if (compute_concealment(ch) > 0)
+    return true;
+
+  if (has_cover(ch, FIGHTING(ch)))
+    return true;
+
+  if (!ch->group)
+    return false;
+
+  struct char_data *k = NULL;
+  int num = 0;
+  while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    if (IN_ROOM(k) != IN_ROOM(ch))
+      continue;
+    if (k == ch)
+      continue;
+    num++;
+  }
+  if (num > 0)
+    return true;
+
+  return false;
+}
+
+// This will check if there is a creature in the room, aside from the 'ch'
+// which is both larger than ch and not targetting ch in battle.
+/* bool can_naturally_stealthy(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+  if (!HAS_REAL_FEAT(ch, FEAT_NATURALLY_STEALTHY))
+    return false;
+
+  struct char_data *t = NULL;
+  int num = 0;
+
+  for (t = world[IN_ROOM(ch)].people; t; t = t->next_in_room)
+  {
+    if (t == ch)
+      continue;
+    if (FIGHTING(t) == ch)
+      continue;
+    if (GET_SIZE(t) <= GET_SIZE(ch))
+      continue;
+    num++;
+  }
+
+  if (num > 0)
+    return true;
+
+  return false;
+} */
+
+// returns true if the damage type is to be displayed on certain
+// lists, like the resistancesd command.
+bool display_dam_type(int dam_type)
+{
+  switch (dam_type)
+  {
+  case DAM_CHAOS:
+  /* case DAM_SUNLIGHT:
+  case DAM_MOVING_WATER: */
+  case DAM_CELESTIAL_POISON:
+  case DAM_BLEEDING:
+  case DAM_TEMPORAL:
+    return false;
+  }
+  return true;
+}
+
+bool is_swimming(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+  if (IN_ROOM(ch) == NOWHERE)
+    return false;
+
+  switch (world[IN_ROOM(ch)].sector_type)
+  {
+  case SECT_OCEAN:
+  case SECT_UD_WATER:
+  case SECT_UNDERWATER:
+  case SECT_WATER_SWIM:
+  /* case SECT_RIVER: */
+    return true;
+  }
+  return false;
+}
+
+bool is_ghost(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  /* if (HAS_TEMPLATE(ch, TEMPLATE_GHOST))
+    return true; */
+
+  return false;
+}
+
+void clear_group_marks(struct char_data *ch, struct char_data *victim)
+{
+  if (!ch || !victim || IN_ROOM(ch) == NOWHERE || IN_ROOM(victim) == NOWHERE)
+    return;
+
+  struct char_data *tch = NULL;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (!is_player_grouped(tch, ch))
+      continue;
+    if (GET_MARK(tch) == victim)
+    {
+      GET_MARK(tch) = NULL;
+      GET_MARK_ROUNDS(tch) = 0;
+    }
+  }
+}
+
+bool is_spell_restoreable(int spell)
+{
+  switch (spell)
+  {
+  case SPELL_BLINDNESS:
+  case SPELL_POISON:
+  case SPELL_DEAFNESS:
+  case SPELL_SLOW:
+  case SPELL_ENLARGE_PERSON:
+  case SPELL_SHRINK_PERSON:
+  case SPELL_POWER_WORD_BLIND:
+  case SPELL_POWER_WORD_STUN:
+  case SPELL_CONTAGION:
+  case SPELL_BALEFUL_POLYMORPH:
+  case SPELL_CONFUSION:
+  case SPELL_SILENCE:
+  case SPELL_POISON_BREATHE:
+  case SPELL_FEAR:
+  case WEAPON_POISON_BLACK_ADDER_VENOM:
+  /* case SKILL_AFFECT_WILDSHAPE:
+  case SKILL_AFFECT_RAGE:
+  case SPELL_AFFECT_PRAYER_DEBUFF: */
+    return false;
+  }
+  return true;
 }

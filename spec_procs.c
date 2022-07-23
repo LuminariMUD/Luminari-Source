@@ -509,6 +509,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
   int i = 0, slot = 0, sinfo = 0;
+  int bottom = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *overflow = "\r\n**OVERFLOW**\r\n";
@@ -518,7 +519,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   int domain_2 = GET_2ND_DOMAIN(ch);
   bool is_psionic = (class == CLASS_PSIONICIST);
 
-  //default class case
+  // default class case
   if (class == -1)
   {
     class = GET_CLASS(ch);
@@ -530,11 +531,10 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   {
 
     len = snprintf(buf2, sizeof(buf2), "\tCKnown %s List\tn\r\n%s", is_psionic ? "Power" : "Spell",
-                                       (is_psionic && CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1) ? 
-                                       "\tYNOTE:\tnThere is a known bug where new psionicists will show all powers instead of\r\n"
-                                       "only the ones they know. To correct this, please quit, then press '0' to return to\r\n"
-                                       "the account menu, and login again.\r\n" : "");
-
+                   (is_psionic && CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1) ? "\tYNOTE:\tnThere is a known bug where new psionicists will show all powers instead of\r\n"
+                                                                            "only the ones they know. To correct this, please quit, then press '0' to return to\r\n"
+                                                                            "the account menu, and login again.\r\n"
+                                                                          : "");
 
     for (slot = get_class_highest_circle(ch, class); slot > 0; slot--)
     {
@@ -546,9 +546,11 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         break;
       len += nlen;
 
-      for (i = 1; i < MAX_SPELLS; i++)
+      for (bottom = 1; bottom < MAX_SPELLS; bottom++)
       {
-        if (do_not_list_spell(i)) continue;
+        i = sorted_spells[bottom];
+        if (do_not_list_spell(i))
+          continue;
         sinfo = spell_info[i].min_level[class];
 
         /* SPELL PREPARATION HOOK (spellCircle) */
@@ -556,7 +558,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             compute_spells_circle(CLASS_SORCERER, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-20s \tWMastered\tn\r\n", spell_info[i].name);
+                          "%-30s %2ds base spellcasting time\r\n", spell_info[i].name, spell_info[i].time);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
@@ -566,7 +568,17 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
                  compute_spells_circle(CLASS_BARD, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-25s \tWMastered\tn\r\n", spell_info[i].name);
+                          "%-30s %2ds base spellcasting time\r\n", spell_info[i].name, spell_info[i].time);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;
+          /* SPELL PREPARATION HOOK (spellCircle) */
+        }
+        else if (class == CLASS_INQUISITOR && is_a_known_spell(ch, CLASS_INQUISITOR, i) &&
+                 compute_spells_circle(CLASS_INQUISITOR, i, 0, GET_1ST_DOMAIN(ch)) == slot)
+        {
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                          "%-30s %2ds base spellcasting time\r\n", spell_info[i].name, spell_info[i].time);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
@@ -576,7 +588,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
                  compute_spells_circle(CLASS_PSIONICIST, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-30s \tWMastered\tn\r\n", spell_info[i].name);
+                          "%-30s %2ds base manifesting time\r\n", spell_info[i].name, spell_info[i].time);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
@@ -588,30 +600,30 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
                  GET_SKILL(ch, i))
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-20s %-15s \tRReady\tn\r\n", spell_info[i].name,
-                          school_names_specific[spell_info[i].schoolOfMagic]);
+                          "%-30s %-15s \tRReady\tn %2ds base spellcasting time\r\n", spell_info[i].name,
+                          school_names_specific[spell_info[i].schoolOfMagic], spell_info[i].time);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR && class != CLASS_PSIONICIST &&
                  (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_1) && compute_spells_circle(class, i, 0, domain_1) == slot &&
                  GET_SKILL(ch, i))
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-20s \tWMastered\tn\r\n", spell_info[i].name);
+                          "%-30s %2ds base spellcasting time\r\n", spell_info[i].name, spell_info[i].time);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD &&
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR && class != CLASS_PSIONICIST &&
                  (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_2) && compute_spells_circle(class, i, 0, domain_2) == slot &&
                  GET_SKILL(ch, i))
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                          "%-20s \tWMastered\tn\r\n", spell_info[i].name);
+                          "%-30s %2ds base spellcasting time\r\n", spell_info[i].name, spell_info[i].time);
           if (len + nlen >= sizeof(buf2) || nlen < 0)
             break;
           len += nlen;
@@ -817,6 +829,11 @@ void list_skills(struct char_data *ch)
 
 int compute_ability(struct char_data *ch, int abilityNum)
 {
+  return compute_ability_full(ch, abilityNum, false);
+}
+
+int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
+{
   int value = 0;
 
   if (!ch)
@@ -829,6 +846,17 @@ int compute_ability(struct char_data *ch, int abilityNum)
    affected_by_spell on a target that just died */
   if (GET_HIT(ch) <= 0 || GET_POS(ch) <= POS_STUNNED)
     return -1;
+
+  // If it's not set as !recursive, we'll have an infinite loop.
+  // See teamwork_best_stealth for context.
+  if (!recursive)
+  {
+    if (abilityNum == ABILITY_STEALTH)
+    {
+      if (has_teamwork_feat(ch, FEAT_STEALTH_SYNERGY))
+        return teamwork_best_stealth(ch, FEAT_STEALTH_SYNERGY);
+    }
+  }
 
   //universal bonuses/penalties
   if (affected_by_spell(ch, PSIONIC_INFLICT_PAIN))
@@ -850,6 +878,8 @@ int compute_ability(struct char_data *ch, int abilityNum)
   if (IS_FRIGHTENED(ch))
     value -= 2;
   if (AFF_FLAGGED(ch, AFF_SICKENED))
+    value -= 2;
+  if (char_has_mud_event(ch, eHOLYJAVELIN))
     value -= 2;
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
@@ -998,6 +1028,11 @@ int compute_ability(struct char_data *ch, int abilityNum)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_STERN_GAZE))
+    {
+      /* Unnamed bonus */
+      value += MAX(1, CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2);
+    }
     return value;
   case ABILITY_CONCENTRATION: /* not srd */
     if (GET_RACE(ch) == RACE_GNOME)
@@ -1006,6 +1041,12 @@ int compute_ability(struct char_data *ch, int abilityNum)
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM)
     {
       value += GET_LEVEL(ch) / 6;
+    }
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_PIERCING))
+      value += get_judgement_bonus(ch, INQ_JUDGEMENT_PIERCING);
+    if (has_teamwork_feat(ch, FEAT_SHIELDED_CASTER))
+    {
+      value += 4 + teamwork_using_shield(ch, FEAT_SHIELDED_CASTER);
     }
     return value;
   case ABILITY_SPELLCRAFT:
@@ -1143,6 +1184,11 @@ int compute_ability(struct char_data *ch, int abilityNum)
     {
       /* Unnamed bonus */
       value += 2;
+    }
+    if (HAS_FEAT(ch, FEAT_STERN_GAZE))
+    {
+      /* Unnamed bonus */
+      value += MAX(1, CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2);
     }
     if (IS_LICH(ch))
       value += 8;

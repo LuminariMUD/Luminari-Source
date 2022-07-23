@@ -316,6 +316,7 @@ extern "C"
 #define SORC_PREP_TIME_FACTOR 3.0
 #define BARD_PREP_TIME_FACTOR 3.0
 #define ALCHEMIST_PREP_TIME_FACTOR 3.0
+#define INQUISITOR_PREP_TIME_FACTOR 3.0
 
 /* these are the subcommands for the prep system primary
        entry point: do_gen_preparation */
@@ -329,6 +330,7 @@ extern "C"
 #define SCMD_CONCOCT 8
 #define SCMD_POWERS 9
 #define SCMD_CONDEMN 10
+#define SCMD_COMPEL 11
 
 /* these are the subcommands for the prep system command:
      *  do_consign_to_oblivion */
@@ -339,6 +341,7 @@ extern "C"
 #define SCMD_UNADJURE 5
 #define SCMD_DISCARD 6
 #define SCMD_UNCONDEMN 7
+#define SCMD_EXEMPT 8
 
 /* MODE for searching from our lists */
 #define SPREP_SERACH_NORMAL 0

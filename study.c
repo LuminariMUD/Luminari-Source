@@ -58,6 +58,7 @@ extern const char *cross_names[];
 #define FEAT_TYPE_NORMAL_CLASS 2
 #define FEAT_TYPE_EPIC 3
 #define FEAT_TYPE_EPIC_CLASS 4
+#define FEAT_TYPE_NORMAL_TEAMWORK 5
 
 /* list of possible animal companions, use in-game vnums for this
  * These lists should actually be redesigned to be dynamic, settable
@@ -240,6 +241,9 @@ void init_study(struct descriptor_data *d, int class)
   LEVELUP(ch)->class_feat_points = GET_CLASS_FEATS(ch, class);
   LEVELUP(ch)->epic_feat_points = GET_EPIC_FEAT_POINTS(ch);
   LEVELUP(ch)->epic_class_feat_points = GET_EPIC_CLASS_FEATS(ch, class);
+
+  LEVELUP(ch)->teamwork_feat_points = GET_TEAMWORK_FEAT_POINTS(ch);
+
   LEVELUP(ch)->practices = GET_PRACTICES(ch);
   LEVELUP(ch)->trains = GET_TRAINS(ch);
   LEVELUP(ch)->num_boosts = GET_BOOSTS(ch);
@@ -573,6 +577,10 @@ bool add_levelup_feat(struct descriptor_data *d, int feat)
     else
       feat_type = FEAT_TYPE_EPIC;
   }
+  else if (feat_list[feat].teamwork_feat == TRUE)
+  {
+    feat_type = FEAT_TYPE_NORMAL_TEAMWORK;
+  }
   else
   {
     if (is_class_feat(feat, LEVELUP(ch)->class, ch))
@@ -601,6 +609,12 @@ bool add_levelup_feat(struct descriptor_data *d, int feat)
          (LEVELUP(ch)->epic_feat_points < 1)))
     {
       write_to_output(d, "You do not have enough class feat points to gain that feat.\r\n");
+      return FALSE;
+    }
+    if ((feat_type == FEAT_TYPE_NORMAL_TEAMWORK) && (LEVELUP(ch)->feat_points < 1) && (LEVELUP(ch)->teamwork_feat_points < 1) &&
+        (LEVELUP(ch)->epic_feat_points < 1))
+    {
+      write_to_output(d, "You do not have enough teamwork feat points to gain that feat.\r\n");
       return FALSE;
     }
     if ((feat_type == FEAT_TYPE_NORMAL) && (LEVELUP(ch)->feat_points < 1) &&
@@ -639,6 +653,19 @@ bool add_levelup_feat(struct descriptor_data *d, int feat)
         LEVELUP(ch)->epic_feat_points--;
         write_to_output(d, "You have used an epic feat point to acquire a normal "
                            "class feat, if you do not want to do this, exit out of the study menu "
+                           "without saving.\r\n");
+      }
+      break;
+    case FEAT_TYPE_NORMAL_TEAMWORK:
+      if (LEVELUP(ch)->teamwork_feat_points > 0)
+        LEVELUP(ch)->teamwork_feat_points--;
+      else if (LEVELUP(ch)->feat_points > 0)
+        LEVELUP(ch)->feat_points--;
+      else
+      {
+        LEVELUP(ch)->epic_feat_points--;
+        write_to_output(d, "You have used an epic feat point to acquire a normal "
+                           "teamwork feat, if you do not want to do this, exit out of the study menu "
                            "without saving.\r\n");
       }
       break;
@@ -882,6 +909,83 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d)
                   grn, nrm);
 
   OLC_MODE(d) = STUDY_BARD_KNOWN_SPELLS_MENU;
+}
+
+
+static void inquisitor_known_spells_disp_menu(struct descriptor_data *d)
+{
+  int class_level = CLASS_LEVEL(d->character, CLASS_INQUISITOR) +
+                    BONUS_CASTER_LEVEL(d->character, CLASS_INQUISITOR);
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+                  "\r\n-- %sSpells Known Menu\r\n"
+                  "\r\n"
+                  "%s 1%s) 1st Circle     : %s%d\r\n"
+                  "%s 2%s) 2nd Circle     : %s%d\r\n"
+                  "%s 3%s) 3rd Circle     : %s%d\r\n"
+                  "%s 4%s) 4th Circle     : %s%d\r\n"
+                  "%s 5%s) 5th Circle     : %s%d\r\n"
+                  "%s 6%s) 6th Circle     : %s%d\r\n"
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
+
+                  mgn,
+                  grn, nrm, yel, inquisitor_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 1),
+                  grn, nrm, yel, inquisitor_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 2),
+                  grn, nrm, yel, inquisitor_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 3),
+                  grn, nrm, yel, inquisitor_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 4),
+                  grn, nrm, yel, inquisitor_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 5),
+                  grn, nrm, yel, inquisitor_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_INQUISITOR, 6),
+                  grn, nrm);
+
+  OLC_MODE(d) = STUDY_INQUISITOR_KNOWN_SPELLS_MENU;
+}
+
+/* the menu for each circle, inquisitor */
+void inquisitor_study_menu(struct descriptor_data *d, int circle)
+{
+  int class_level = CLASS_LEVEL(d->character, CLASS_INQUISITOR) +
+                    BONUS_CASTER_LEVEL(d->character, CLASS_INQUISITOR);
+  int counter, columns = 0;
+
+  LEVELUP(d->character)->spell_circle = circle;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  /* SPELL PREPARATION HOOK */
+  for (counter = 1; counter < NUM_SPELLS; counter++)
+  {
+    if (compute_spells_circle(CLASS_INQUISITOR,
+                              counter,
+                              METAMAGIC_NONE,
+                              DOMAIN_UNDEFINED) == circle)
+    {
+      if (is_a_known_spell(d->character, CLASS_INQUISITOR, counter))
+        write_to_output(d, "%s%3d%s) %s+%-30.30s %s", grn, counter, nrm, mgn,
+                        spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
+      else
+        write_to_output(d, "%s%3d%s) %s %-30.30s %s", grn, counter, nrm, yel,
+                        spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
+    }
+  }
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
+                  inquisitor_known[class_level][circle] -
+                      count_known_spells_by_circle(d->character, CLASS_INQUISITOR, circle));
+  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
+  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
+                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+                  nrm);
+
+  OLC_MODE(d) = INQUISITOR_STUDY_SPELLS;
 }
 
 /* the menu for each circle, sorcerer */
@@ -1319,6 +1423,7 @@ static void set_preferred_divine(struct descriptor_data *d)
   clear_screen(d);
   write_to_output(d, "\r\n");
   write_to_output(d, "%d) %s\r\n", CLASS_CLERIC, CLSLIST_NAME(CLASS_CLERIC));
+  write_to_output(d, "%d) %s\r\n", CLASS_INQUISITOR, CLSLIST_NAME(CLASS_INQUISITOR));
   write_to_output(d, "%d) %s\r\n", CLASS_DRUID, CLSLIST_NAME(CLASS_DRUID));
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sEnter your preferred divine class : ", nrm);
@@ -1584,8 +1689,8 @@ static void set_domain_menu(struct descriptor_data *d)
   write_to_output(d,
                   "\r\n-- %sSet Domains%s\r\n"
                   "\r\n"
-                  "%s 0%s) 1st Domain:      %s%s\r\n"
-                  "%s 1%s) 2nd Domain:      %s%s\r\n"
+                  "%s 1%s) 1st Domain:      %s%s\r\n"
+                  "%s 2%s) 2nd Domain:      %s%s\r\n"
                   "\r\n"
                   "%s Q%s) Quit\r\n"
                   "\r\n"
@@ -1982,11 +2087,12 @@ static void display_study_feats(struct descriptor_data *d)
                   "To view more info about a feat, just select the number beside it.\r\n  "
                   "Class feats are in \tCcyan\tn and marked with a (C).\r\n"
                   "Epic feats, both class and regular, are in \tMMagenta\tn and are marked with (EC) or (E).\r\n");
-  write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s)\r\n",
+  write_to_output(d, "Feat Points: General (%s%d%s) Class (%s%d%s) Epic (%s%d%s) Epic Class (%s%d%s) Teamwork (%s%d%s)\r\n",
                   (LEVELUP(ch)->feat_points > 0 ? grn : red), LEVELUP(ch)->feat_points, nrm,
                   (LEVELUP(ch)->class_feat_points > 0 ? grn : red), LEVELUP(ch)->class_feat_points, nrm,
                   (LEVELUP(ch)->epic_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_feat_points, nrm,
-                  (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points, nrm);
+                  (LEVELUP(ch)->epic_class_feat_points > 0 ? grn : red), LEVELUP(ch)->epic_class_feat_points, nrm,
+                  (LEVELUP(ch)->teamwork_feat_points > 0 ? grn : red), LEVELUP(ch)->teamwork_feat_points, nrm);
 
   write_to_output(d, "Your choice? (type -1 to exit) : ");
 }
@@ -2296,6 +2402,9 @@ void study_parse(struct descriptor_data *d, char *arg)
                    LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
           bard_known_spells_disp_menu(d);
+        else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
+                 ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+          inquisitor_known_spells_disp_menu(d);
       }
       else
       {
@@ -3259,6 +3368,97 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
     /******* end bard **********/
 
+    /******* start inquisitor **********/
+
+  case STUDY_INQUISITOR_KNOWN_SPELLS_MENU:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
+      break;
+
+      /* here are our spell levels for 'spells known' */
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+      inquisitor_study_menu(d, atoi(arg));
+      break;
+    default:
+      write_to_output(d, "That is an invalid choice!\r\n");
+      inquisitor_known_spells_disp_menu(d);
+      break;
+    }
+    break;
+
+  case INQUISITOR_STUDY_SPELLS:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      inquisitor_known_spells_disp_menu(d);
+      break;
+
+    default:
+      number = atoi(arg);
+
+      /* SPELL PREPARATION HOOK */
+      for (counter = 1; counter < NUM_SPELLS; counter++)
+      {
+        if (counter == number)
+        {
+          if (compute_spells_circle(CLASS_INQUISITOR,
+                                    counter,
+                                    METAMAGIC_NONE,
+                                    DOMAIN_UNDEFINED) ==
+              LEVELUP(d->character)->spell_circle)
+          {
+            if (*arg2 && is_abbrev(arg2, "help"))
+            {
+              do_study_spell_help(d->character, counter);
+              return;
+            }
+
+            if (is_a_known_spell(d->character, CLASS_INQUISITOR, counter))
+            {
+              if (!LEVELUP(d->character)->spells_learned[counter])
+              {
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                                           "To change past choices, you need "
+                                           "to respec your character.\r\n\tn");
+                break;
+              }
+              else
+              {
+                known_spells_remove_by_class(d->character, CLASS_INQUISITOR, counter);
+                LEVELUP(d->character)->spells_learned[counter] = 0;
+              }
+            }
+            else
+            {
+              can_add_spell = known_spells_add(d->character, CLASS_INQUISITOR, counter, FALSE);
+              if (!can_add_spell)
+              {
+                write_to_output(d, "You are all FULL for spells!\r\n");
+                break;
+              }
+              else
+              {
+                LEVELUP(d->character)->spells_learned[counter] = 1;
+              }
+            }
+          }
+        }
+      }
+      inquisitor_study_menu(d, LEVELUP(d->character)->spell_circle);
+      break;
+    }
+    break;
+    /******* end inquisitor **********/
+
     /******* start psionicist **********/
 
   case STUDY_PSIONICIST_KNOWN_POWERS_MENU:
@@ -3424,16 +3624,21 @@ void study_parse(struct descriptor_data *d, char *arg)
       number = atoi(arg);
       switch (number)
       {
-      case 0:
+      case 1:
         set_domain_submenu(d);
         OLC_MODE(d) = SET_1ST_DOMAIN;
         return;
-      case 1:
+      case 2:
+        if (!CLASS_LEVEL(ch, CLASS_CLERIC))
+        {
+          send_to_char(ch, "Only clerics can choose a 2nd domain.");
+          return;
+        }
         set_domain_submenu(d);
         OLC_MODE(d) = SET_2ND_DOMAIN;
         return;
       default:
-        break;
+        return;
       }
       OLC_MODE(d) = STUDY_SET_DOMAINS;
       set_domain_menu(d);
@@ -3508,6 +3713,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   case SET_PREFERRED_DIVINE:
     number = atoi(arg);
     if (number != CLASS_DRUID &&
+        number != CLASS_INQUISITOR &&
         number != CLASS_CLERIC)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");

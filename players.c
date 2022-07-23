@@ -81,6 +81,7 @@ static void load_HMVS(struct char_data *ch, const char *line, int mode);
 static void write_aliases_ascii(FILE *file, struct char_data *ch);
 static void read_aliases_ascii(FILE *file, struct char_data *ch, int count);
 static void load_bombs(FILE *fl, struct char_data *ch);
+static void load_judgements(FILE *fl, struct char_data *ch);
 static void load_potions(FILE *fl, struct char_data *ch);
 static void load_scrolls(FILE *fl, struct char_data *ch);
 static void load_wands(FILE *fl, struct char_data *ch);
@@ -619,6 +620,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'B':
         if (!strcmp(tag, "Badp"))
           GET_BAD_PWS(ch) = atoi(line);
+        else if (!strcmp(tag, "Bane"))
+          GET_BANE_TARGET_TYPE(ch) = atoi(line);
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
@@ -809,6 +812,11 @@ int load_char(const char *name, struct char_data *ch)
           INCORPOREAL_FORM_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "InFU"))
           INCORPOREAL_FORM_USES(ch) = atoi(line);
+        break;
+
+      case 'J':
+        if (!strcmp(tag, "Judg"))
+          load_judgements(fl, ch);
         break;
 
       case 'K':
@@ -1040,6 +1048,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_REAL_SIZE(ch) = atoi(line);
         else if (!strcmp(tag, "Stav"))
           load_staves(fl, ch);
+        else if (!strcmp(tag, "Slyr"))
+          GET_SLAYER_JUDGEMENT(ch) = atoi(line);
         else if (!strcmp(tag, "SySt"))
           HAS_SET_STATS_STUDY(ch) = atoi(line);
         else if (!strcmp(tag, "Str "))
@@ -1646,6 +1656,10 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Clrk: %d\n", GET_CLANRANK(ch));
   if (GET_CLANPOINTS(ch) != PFDEF_CLANPOINTS)
     fprintf(fl, "CPts: %d\n", GET_CLANPOINTS(ch));
+  if (GET_SLAYER_JUDGEMENT(ch) != 0)
+    fprintf(fl, "Slyr: %d\n", GET_SLAYER_JUDGEMENT(ch));
+  if (GET_BANE_TARGET_TYPE(ch) != 0)
+    fprintf(fl, "Bane: %d\n", GET_BANE_TARGET_TYPE(ch));
   if (SCRIPT(ch))
   {
     for (t = TRIGGERS(SCRIPT(ch)); t; t = t->next)
@@ -1732,6 +1746,11 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "Clty:\n");
   for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
     fprintf(fl, "%d\n", KNOWS_CRUELTY(ch, i));
+  fprintf(fl, "-1\n");
+
+  fprintf(fl, "Judg:\n");
+  for (i = 0; i < NUM_INQ_JUDGEMENTS; i++)
+    fprintf(fl, "%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
   fprintf(fl, "-1\n");
 
   /* Save Combat Feats */
@@ -1936,6 +1955,16 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eTOUCHOFCORRUPTION)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eJUDGEMENT)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eTRUEJUDGEMENT)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eBANE)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDANCINGWEAPON)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eSPIRITUALWEAPON)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eCHANNELENERGY)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
@@ -2648,6 +2677,23 @@ static void load_discoveries(FILE *fl, struct char_data *ch)
     if (num != -1)
     {
       KNOWS_DISCOVERY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_judgements(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      IS_JUDGEMENT_ACTIVE(ch, i) = num;
       i++;
     }
   } while (num != -1);

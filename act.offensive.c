@@ -646,6 +646,9 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     /* Successful unarmed touch attacks. */
 
     /* Perform strength check. */
+    // if the teamwork feat tandem trip is in effect, we'll take the highest of two d20 rolls.
+    // Otherwise, just one d20.
+    attack_check += MAX(d20(ch), has_teamwork_feat(ch, FEAT_TANDEM_TRIP) ? d20(ch) : 0);
     attack_check += d20(ch) + size_modifiers[GET_SIZE(ch)]; /* we added stat bonus above */
     defense_check = d20(vict) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
@@ -7718,6 +7721,314 @@ ACMD(do_mark)
 
   act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
   GET_MARK(ch) = vict;
+}
+
+int max_judgements_active(struct char_data *ch)
+{
+  int num = 0;
+  if (HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+    num++;
+  if (HAS_REAL_FEAT(ch, FEAT_SECOND_JUDGEMENT))
+    num++;
+  if (HAS_REAL_FEAT(ch, FEAT_THIRD_JUDGEMENT))
+    num++;
+  if (HAS_REAL_FEAT(ch, FEAT_FOURTH_JUDGEMENT))
+    num++;
+  if (HAS_REAL_FEAT(ch, FEAT_FIFTH_JUDGEMENT))
+    num++;
+
+  return num;
+}
+
+int num_judgements_active(struct char_data *ch)
+{
+  int i = 0, num_active = 0;
+  for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+    if (IS_JUDGEMENT_ACTIVE(ch, i))
+      num_active++;
+
+  return num_active;
+}
+
+ACMDU(do_judgement)
+{
+
+  if (!HAS_REAL_FEAT(ch, FEAT_JUDGEMENT))
+  {
+    send_to_char(ch, "You are not able to perform judgements.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  char arg1[200], arg2[200];
+  int uses_remaining = 0, i = 0, judgement = 0;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "\r\n"
+                     "Please select from the following judgement options:\r\n"
+                     "judgement enact                   - performs a judgement on the currently targetted enemy in combat.\r\n"
+                     "judgement toggle (judgement type) - will toggle on/off the specified judgement type.\r\n"
+                     "judgement list                    - will display judgements, which are enabled and how many uses left.\r\n"
+                     "\r\n");
+    return;
+  }
+
+  half_chop(argument, arg1, arg2);
+
+  // We're going to perform our judgement on our current combat target.
+  if (is_abbrev(arg1, "enact"))
+  {
+    if (!FIGHTING(ch))
+    {
+      send_to_char(ch, "You have to be in combat to enact a judgement.\r\n");
+      return;
+    }
+
+    if ((uses_remaining = daily_uses_remaining(ch, FEAT_JUDGEMENT)) == 0)
+    {
+      send_to_char(ch, "You must recover your energy required to use this ability again.\r\n");
+      return;
+    }
+
+    if (uses_remaining < 0)
+    {
+      send_to_char(ch, "You are not experienced enough.\r\n");
+      return;
+    }
+
+    GET_JUDGEMENT_TARGET(ch) = vict;
+
+    act("You pronounce divine judgment upon $N.", TRUE, ch, 0, vict, TO_CHAR);
+    act("$n pronounces divine judgment upon YOU.", TRUE, ch, 0, vict, TO_VICT);
+    act("$n pronounces divine judgment upon $N.", TRUE, ch, 0, vict, TO_NOTVICT);
+
+    if (!IS_NPC(ch))
+      start_daily_use_cooldown(ch, FEAT_JUDGEMENT);
+
+    USE_SWIFT_ACTION(ch);
+    return;
+  }
+  else if (is_abbrev(arg1, "list"))
+  {
+    send_to_char(ch, "    %-15s %s\r\n", "Judgement Name", "Description");
+    for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+    {
+      send_to_char(ch, "%s[[%s]\tn %-15s : %s\r \n",
+                   IS_JUDGEMENT_ACTIVE(ch, i) ? "\tG" : "\tR",
+                   IS_JUDGEMENT_ACTIVE(ch, i) ? "+" : "-",
+                   inquisitor_judgements[i], inquisitor_judgement_descriptions[i]);
+    }
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Judgements Active: %d of %d max.\r\n", num_judgements_active(ch), max_judgements_active(ch));
+    send_to_char(ch, "Uses left: %d\r\n", MAX(0, daily_uses_remaining(ch, FEAT_JUDGEMENT)));
+    send_to_char(ch, "\r\n");
+    return;
+  }
+  else if (is_abbrev(arg1, "toggle"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify which judgment you'd like to toggle. For a list, type: judgement list.\r\n");
+      return;
+    }
+
+    CAP(arg2);
+
+    for (i = 1; i < NUM_INQ_JUDGEMENTS; i++)
+    {
+      if (is_abbrev(arg2, inquisitor_judgements[i]))
+      {
+        judgement = i;
+        break;
+      }
+    }
+
+    if (judgement == 0)
+    {
+      send_to_char(ch, "That is not a valid judgement.  For a list type: judgement list.\r\n");
+      return;
+    }
+
+    if (IS_JUDGEMENT_ACTIVE(ch, judgement))
+    {
+      send_to_char(ch, "You turn \tRoff\tn the '%s' judgement effect.\r\n", inquisitor_judgements[judgement]);
+      IS_JUDGEMENT_ACTIVE(ch, judgement) = 0;
+      if (GET_SLAYER_JUDGEMENT(ch) == judgement)
+      {
+        send_to_char(ch, "Your slayer effect for '%s' has been removed as well.\r\n", inquisitor_judgements[judgement]);
+        GET_SLAYER_JUDGEMENT(ch) = 0;
+      }
+    }
+    else
+    {
+      if (num_judgements_active(ch) >= max_judgements_active(ch))
+      {
+        send_to_char(ch, "You already have your maximum active judgement effects.\r\n");
+        return;
+      }
+      send_to_char(ch, "You turn \tGon\tn the '%s' judgement effect.\r\n", inquisitor_judgements[judgement]);
+      IS_JUDGEMENT_ACTIVE(ch, judgement) = 1;
+    }
+  }
+  else
+  {
+    send_to_char(ch, "\r\n"
+                     "Please select from the following judgement options:\r\n"
+                     "judgement enact                   - performs a judgement on the currently targetted enemy in combat.\r\n"
+                     "judgement toggle (judgement type) - will toggle on/off the specified judgement type.\r\n"
+                     "judgement list                    - will display judgements, which are enabled and how many uses left.\r\n"
+                     "\r\n");
+    return;
+  }
+}
+
+void perform_bane(struct char_data *ch)
+{
+  struct affected_type af;
+  char buf[200];
+
+  new_affect(&af);
+  af.spell = ABILITY_AFFECT_BANE_WEAPON;
+  af.duration = 5;
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_BANE);
+
+  snprintf(buf, sizeof(buf), "You enhance your weapons with a bane effect against %s creatures.", race_family_types[GET_BANE_TARGET_TYPE(ch)]);
+  act(buf, FALSE, ch, 0, 0, TO_CHAR);
+  act("$n's weapons begin to glow yellow.", TRUE, ch, 0, 0, TO_ROOM);
+}
+
+ACMDCHECK(can_bane)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_BANE, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON),
+                        "You have already enhanced your weapons with the bane effect! See score for more info.\r\n"
+                        "You will need to wait for this bane effect to expire, or remove it using the 'revoke' command, to choose another bane enemy type.\r\n");
+  return CAN_CMD;
+}
+
+ACMDU(do_bane)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_bane);
+  PREREQ_HAS_USES(FEAT_BANE, "You must recover before you can enhance your weapons with the bane effect again.\r\n");
+
+  int i = 0;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please speficy one of the following racial types:\r\n");
+    for (i = 1; i < NUM_RACE_TYPES; i++)
+    {
+      send_to_char(ch, "%s\r\n", race_family_types[i]);
+    }
+    return;
+  }
+
+  CAP(argument);
+
+  for (i = 1; i < NUM_RACE_TYPES; i++)
+  {
+    if (is_abbrev(argument, race_family_types[i]))
+      break;
+  }
+
+  if (i < 1 || i >= NUM_RACE_TYPES)
+  {
+    send_to_char(ch, "That is an invalid selection. Please select again.  Type 'bane' by itself for a list of options.\r\n");
+    return;
+  }
+
+  GET_BANE_TARGET_TYPE(ch) = i;
+
+  perform_bane(ch);
+}
+
+ACMDU(do_slayer)
+{
+  if (!HAS_REAL_FEAT(ch, FEAT_SLAYER))
+  {
+    send_to_char(ch, "You do not have the slayer feat.\r\n");
+    return;
+  }
+
+  int i = 0;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please specify an active judgement.  A list can be seen by typing: judgement list.\r\n");
+    return;
+  }
+
+  CAP(argument);
+
+  for (i = 0; i < NUM_INQ_JUDGEMENTS; i++)
+  {
+    if (is_abbrev(argument, inquisitor_judgements[i]))
+    {
+      if (!IS_JUDGEMENT_ACTIVE(ch, i))
+      {
+        send_to_char(ch, "That judgement is not active.  Please select an active judgement.  A list can be seen by typing: judgement list.\r\n");
+        return;
+      }
+      break;
+    }
+  }
+
+  if (i < 1 || i >= NUM_INQ_JUDGEMENTS)
+  {
+    send_to_char(ch, "That is not a valid judgement type.  A list can be seen by typing: judgement list.\r\n");
+    return;
+  }
+
+  GET_SLAYER_JUDGEMENT(ch) = i;
+  send_to_char(ch, "You assign %s as your slayer enabled judgement.  "
+                   "Your inquisitor level will be treated as 5 higher when determining bonus amount.\r\n",
+               inquisitor_judgements[i]);
+}
+
+
+ACMDCHECK(can_true_judgement)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_TRUE_JUDGEMENT, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, ABILITY_AFFECT_TRUE_JUDGEMENT), "You have already gathered your divine energy!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_true_judgement)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_true_judgement);
+  PREREQ_HAS_USES(FEAT_TRUE_JUDGEMENT, "You must recover before you can gather your divine energy in this way again.\r\n");
+
+  perform_true_judgement(ch);
+}
+
+void perform_true_judgement(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = ABILITY_AFFECT_TRUE_JUDGEMENT;
+  af.duration = 24;
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_TRUE_JUDGEMENT);
+
+  act("You gather your divine energy into your next attack.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n begins gathering $s divine energy.", TRUE, ch, 0, 0, TO_ROOM);
 }
 
 /* cleanup! */

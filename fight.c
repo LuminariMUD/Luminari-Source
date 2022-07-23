@@ -543,6 +543,7 @@ int roll_initiative(struct char_data *ch)
 
   initiative = d20(ch) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
   initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
+  initiative += GET_WIS_BONUS(ch) * HAS_FEAT(ch, FEAT_CUNNING_INITIATIVE);
   // initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
 
   return initiative;
@@ -616,6 +617,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     { /* okay to add shield bonus to shield, remember factor 10 */
       bonuses[BONUS_TYPE_SHIELD] += (apply_ac(ch, WEAR_SHIELD) / 10);
     }
+    if (teamwork_using_shield(ch, FEAT_SHIELD_WALL))
+      bonuses[BONUS_TYPE_SHIELD] += teamwork_using_shield(ch, FEAT_SHIELD_WALL);
   }
 
   /* that should be it, just base armoring should be left, assign away! */
@@ -717,7 +720,103 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type enhancement (equipment) */
-  bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch);
+
+  // This code is replaced by the next portion of code that goes over each armor piece.
+  /* bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch); */
+
+  int ac_bonus = 0;
+  struct obj_data *ac_piece = NULL;
+
+  if ((ac_piece = GET_EQ(ch, WEAR_BODY)) != NULL)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4), get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
+  if ((ac_piece = GET_EQ(ch, WEAR_HEAD)) != NULL)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4), get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
+  if ((ac_piece = GET_EQ(ch, WEAR_ARMS)) != NULL)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4), get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
+  if ((ac_piece = GET_EQ(ch, WEAR_LEGS)) != NULL)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4), get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
+
+  // important! We're dividing the total bonuses from body, head, arms and legs by 4.  Then we add shield at the end.
+  ac_bonus /= 4;
+
+  if ((ac_piece = GET_EQ(ch, WEAR_SHIELD)) != NULL)
+  {
+    switch (GET_OBJ_MATERIAL(ac_piece))
+    {
+    case MATERIAL_ADAMANTINE:
+    case MATERIAL_MITHRIL:
+    case MATERIAL_DRAGONHIDE:
+    case MATERIAL_DRAGONSCALE:
+    case MATERIAL_DRAGONBONE:
+    case MATERIAL_DIAMOND:
+    case MATERIAL_DARKWOOD:
+      ac_bonus++;
+      break;
+    }
+    ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4), get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
+  }
+
+  bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(0, ac_bonus);
+
+  // End of new armor piece code
+  // replaces bonuses[BONUS_TYPE_ENHANCEMENT] += compute_gear_enhancement_bonus(ch); above
+
   bonuses[BONUS_TYPE_ENHANCEMENT] += get_defending_weapon_bonus(ch, false);
   /**/
 
@@ -771,6 +870,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   /**/
 
   /* bonus type circumstance */
+
+  if (has_teamwork_feat(ch, FEAT_BACK_TO_BACK) && is_flanked(attacker, ch))
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] = MAX(bonuses[BONUS_TYPE_CIRCUMSTANCE], 2);
+
   switch (GET_POS(ch))
   { // position penalty
   case POS_RECLINING:
@@ -891,6 +994,22 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     }
   }
   /**/
+
+  if (attacker && has_teamwork_feat(ch, FEAT_DUCK_AND_COVER) && teamwork_using_shield(ch, FEAT_DUCK_AND_COVER) &&
+      is_using_ranged_weapon(attacker, TRUE))
+    bonuses[BONUS_TYPE_INSIGHT] += 2;
+
+
+  if (has_teamwork_feat(ch, FEAT_PHALANX_FIGHTER) && attacker)
+  {
+    if (IS_EVIL(ch) && !IS_EVIL(attacker))
+      bonuses[BONUS_TYPE_PROFANE] = MAX(bonuses[BONUS_TYPE_PROFANE], has_teamwork_feat(ch, FEAT_PHALANX_FIGHTER));
+    else if (!IS_EVIL(ch) && IS_EVIL(attacker))
+      bonuses[BONUS_TYPE_SACRED] = MAX(bonuses[BONUS_TYPE_SACRED], has_teamwork_feat(ch, FEAT_PHALANX_FIGHTER));
+  }
+
+  if (is_judgement_possible(ch, attacker, INQ_JUDGEMENT_PROTECTION))
+    bonuses[judgement_bonus_type(ch)] = MAX(bonuses[judgement_bonus_type(ch)], get_judgement_bonus(ch, INQ_JUDGEMENT_PROTECTION));
 
   // Sacred Bonus
   if (attacker && IS_UNDEAD(attacker) && affected_by_spell(ch, SPELL_VEIL_OF_POSITIVE_ENERGY))
@@ -2268,28 +2387,40 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
   case DAM_FIRE:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_COLD:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_AIR:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_EARTH:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_ACID:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_HOLY:
     break;
   case DAM_ELECTRIC:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_UNHOLY:
     break;
@@ -2300,6 +2431,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
   case DAM_FORCE:
     break;
   case DAM_SOUND:
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_POISON:
   case DAM_CELESTIAL_POISON:
@@ -2317,6 +2450,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
   case DAM_ENERGY:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
       dam_reduction += 3;
+    if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
+      dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   default:
     break;
@@ -2378,6 +2513,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 10;
     if (affected_by_spell(ch, SPELL_COLD_SHIELD))
       damtype_reduction += 50;
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
+      damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
 
     if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
       damtype_reduction += 50;
@@ -2445,6 +2582,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     }
     if (GET_RACE(ch) == RACE_WHITE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_WHITE_DRAGON)
       damtype_reduction += 100;
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
+      damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
     break;
 
   case DAM_AIR:
@@ -2513,6 +2652,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     }
     if (GET_RACE(ch) == RACE_BLACK_DRAGON || GET_DISGUISE_RACE(ch) == RACE_BLACK_DRAGON)
       damtype_reduction += 100;
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
+      damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
     break;
 
   case DAM_HOLY:
@@ -2560,6 +2701,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     }
     if (GET_RACE(ch) == RACE_BLUE_DRAGON || GET_DISGUISE_RACE(ch) == RACE_BLUE_DRAGON)
       damtype_reduction += 100;
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
+      damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
     break;
 
   case DAM_UNHOLY:
@@ -2628,6 +2771,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (GET_NPC_RACE(ch) == RACE_TYPE_OOZE)
         damtype_reduction += 50;
     }
+
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
+      damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
 
     break;
 
@@ -2916,6 +3062,9 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONSCALE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONBONE)))
     damage_reduction += 1;
+
+  if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESILIENCY))
+    damage_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESILIENCY);
 
   // damage reduction cap is 20
   return (MIN(MAX_DAM_REDUC, damage_reduction));
@@ -3924,6 +4073,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Sickened Status: \tR-2\tn\r\n");
   }
 
+  if (is_judgement_possible(ch, vict, INQ_JUDGEMENT_DESTRUCTION))
+  {
+    dambonus += get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION);
+    if (display_mode)
+      send_to_char(ch, "Judgement of Destruction: \tR%d\tn\r\n", get_judgement_bonus(ch, INQ_JUDGEMENT_DESTRUCTION));
+  }
+
   /* strength bonus */
   switch (attack_type)
   {
@@ -4181,9 +4337,25 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   /* weapon enhancement bonus */
   if (wielded)
   {
+    // greater magic weapon
+    if (affected_by_spell(ch, SPELL_GREATER_MAGIC_WEAPON))
+    {
+      if (display_mode)
+        send_to_char(ch, "Weapon enhancement bonus: \tR%d\tn\r\n", MAX(GET_ENHANCEMENT_BONUS(wielded), get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL)));
+      dambonus += MAX(GET_ENHANCEMENT_BONUS(wielded), get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
+    }
+    else
+    {
+      if (display_mode)
+        send_to_char(ch, "Weapon enhancement bonus: \tR%d\tn\r\n", GET_ENHANCEMENT_BONUS(wielded));
+      dambonus += GET_ENHANCEMENT_BONUS(wielded);
+    }
+  }
+  else if (affected_by_spell(ch, SPELL_GREATER_MAGIC_WEAPON))
+  {
     if (display_mode)
-      send_to_char(ch, "Weapon enhancement bonus: \tR%d\tn\r\n", GET_ENHANCEMENT_BONUS(wielded));
-    dambonus += GET_ENHANCEMENT_BONUS(wielded);
+      send_to_char(ch, "Unarmed enhancement bonus: \tR%d\tn\r\n", get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
+    dambonus += get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL);
   }
 
   /* monk glove enhancement bonus */
@@ -4863,6 +5035,11 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
 
+  if (FIGHTING(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) >= 10 && is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_JUSTICE))
+    confirm_roll += get_judgement_bonus(ch, INQ_JUDGEMENT_JUSTICE);
+  if (FIGHTING(ch) && CLASS_LEVEL(FIGHTING(ch), CLASS_INQUISITOR) >= 10 && is_judgement_possible(FIGHTING(ch), ch, INQ_JUDGEMENT_PROTECTION))
+    confirm_roll -= get_judgement_bonus(FIGHTING(ch), INQ_JUDGEMENT_PROTECTION);
+
   if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced))
   {
     FIGHTING(ch)->preserve_organs_procced = TRUE;
@@ -4982,6 +5159,26 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
+
+      if (has_teamwork_feat(ch, FEAT_PRECISE_FLANKING) && is_flanked(ch, victim))
+        dam += dice(1, 6);
+
+      if (affected_by_spell(ch, SPELL_WEAPON_OF_AWE) && !affected_by_spell(victim, SPELL_AFFECT_WEAPON_OF_AWE))
+      {
+        if (!is_immune_mind_affecting(ch, victim, FALSE) &&
+            !is_immune_fear(ch, victim, FALSE))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = SPELL_AFFECT_WEAPON_OF_AWE;
+          af.duration = 1;
+          SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+          affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+          act("Your attack causes $N to become shaken!", FALSE, ch, 0, victim, TO_CHAR);
+          act("$n's attack causes YOU to become shaken!", FALSE, ch, 0, victim, TO_VICT);
+          act("$n's attack causes $N to become shaken!", FALSE, ch, 0, victim, TO_NOTVICT);
+        }
+      }
 
       /* duelist crippling critical: light armor and free hand: 1d4 str dam, 1d4 dex dam,
        * 4 penalty to saves, 4 penalty to AC, 2d4 bleed damage and 2d4 drain moves */
@@ -5217,6 +5414,19 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
           send_to_char(victim, "\tR[GOOD]\tn ");
         dam += dice(2, 6);
+      }
+      /*bane weapon*/
+      if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON))
+      {
+        if ((IS_NPC(victim) && (GET_RACE(victim) == GET_BANE_TARGET_TYPE(ch)) && GET_RACE(victim) != RACE_TYPE_UNDEFINED) ||
+         (!IS_NPC(victim) && (GET_BANE_TARGET_TYPE(ch) == RACE_TYPE_HUMANOID)))
+        {
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+            send_to_char(ch, "\tW[BANE]\tn ");
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
+            send_to_char(victim, "\tR[BANE]\tn ");
+          dam += dice(HAS_FEAT(ch, FEAT_PERFECT_JUDGEMENT) ? 6 : (HAS_FEAT(ch, FEAT_GREATER_BANE) ? 4 : 2), 6);
+        }
       }
       /*bane weapon*/
       if ((obj_has_special_ability(wielded, WEAPON_SPECAB_BANE)))
@@ -5879,6 +6089,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   int bonuses[NUM_BONUS_TYPES];
   int calc_bab = BAB(ch); /* Start with base attack bonus */
   struct obj_data *wielded = NULL;
+  struct char_data *k = NULL;
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
@@ -5974,6 +6185,28 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     break;
   }
 
+  if (is_judgement_possible(ch, victim, INQ_JUDGEMENT_JUSTICE))
+    bonuses[judgement_bonus_type(ch)] = MAX(bonuses[judgement_bonus_type(ch)], get_judgement_bonus(ch, INQ_JUDGEMENT_JUSTICE));
+
+  if (has_teamwork_feat(ch, FEAT_COORDINATED_SHOT) && attack_type == ATTACK_TYPE_RANGED)
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+    while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+      if (is_flanked(k, victim))
+      {
+        bonuses[BONUS_TYPE_CIRCUMSTANCE] += 1;
+        break;
+      }
+  }
+
+  // flanking gives a +2 bonus to hit
+  if (is_flanked(ch, victim))
+  {
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
+    if (has_teamwork_feat(ch, FEAT_OUTFLANK))
+      bonuses[BONUS_TYPE_CIRCUMSTANCE] += 2;
+  }
+
   if (IN_ROOM(ch) != NOWHERE && ROOM_AFFECTED(IN_ROOM(ch), RAFF_SACRED_SPACE) && IS_EVIL(ch))
     bonuses[BONUS_TYPE_SACRED] -= 1;
 
@@ -5992,8 +6225,16 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (wielded)
   {
     bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], GET_ENHANCEMENT_BONUS(wielded));
+    // greater magic weapon
+    if (affected_by_spell(ch, SPELL_GREATER_MAGIC_WEAPON))
+    {
+      bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
+    }
     bonuses[BONUS_TYPE_ENHANCEMENT] -= get_defending_weapon_bonus(ch, true);
   }
+  else if (affected_by_spell(ch, SPELL_GREATER_MAGIC_WEAPON)) // greater magic weapon works on unarmed strikes
+    bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(bonuses[BONUS_TYPE_ENHANCEMENT], get_char_affect_modifier(ch, SPELL_GREATER_MAGIC_WEAPON, APPLY_SPECIAL));
+
   /* ranged includes arrow, what a hack */ /* why is that a hack again? */
   if (can_fire_ammo(ch, TRUE))
   {
@@ -6048,8 +6289,6 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /* light blindness - dayblind, underdark/underworld penalties */
   if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
     bonuses[BONUS_TYPE_RACIAL] -= 1;
-
-  /* Sacred bonus */
 
   /* Size bonus */
   bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers[GET_SIZE(ch)]);
@@ -6208,6 +6447,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
   /* end bonuses */
 
+  if (char_has_mud_event(ch, eHOLYJAVELIN))
+    calc_bab -= 2;
+
   /*  Check armor/weapon proficiency
    *  If not proficient with weapon, -4 penalty applies. */
   if (wielded)
@@ -6250,6 +6492,9 @@ int compute_cmb(struct char_data *ch,     /* Attacker */
   cm_bonus += size_modifiers[GET_SIZE(ch)];
   /* misc here*/
 
+  if (has_teamwork_feat(ch, FEAT_COORDINATED_MANEUVERS))
+    cm_bonus += 2;
+
   switch (combat_maneuver_type)
   {
   case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
@@ -6263,6 +6508,8 @@ int compute_cmb(struct char_data *ch,     /* Attacker */
   case COMBAT_MANEUVER_TYPE_GRAPPLE:
     if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
       cm_bonus += 2;
+    if (has_teamwork_feat(ch, FEAT_COORDINATED_MANEUVERS))
+      cm_bonus += 2; // doubled for grapple
     break;
   case COMBAT_MANEUVER_TYPE_PIN:
     if (HAS_FEAT(ch, FEAT_IMPROVED_GRAPPLE))
@@ -6335,6 +6582,9 @@ int compute_cmd(struct char_data *vict,   /* Defender */
   default:
     break;
   }
+
+  if (has_teamwork_feat(vict, FEAT_COORDINATED_DEFENSE))
+    cm_defense += 2;
 
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense += BAB(vict);
@@ -6524,6 +6774,22 @@ void attacks_of_opportunity(struct char_data *victim, int penalty)
     if (FIGHTING(ch) == victim)
     {
 
+      attack_of_opportunity(ch, victim, penalty);
+    }
+  }
+}
+
+/* Perform an attack of opportunity from every character engaged with ch. */
+void teamwork_attacks_of_opportunity(struct char_data *victim, int penalty, int featnum)
+{
+  struct char_data *ch;
+
+  /* Check each char in the room, if it is engaged with victim, give it an AOO */
+  for (ch = world[victim->in_room].people; ch; ch = ch->next_in_room)
+  {
+    /* Check engaged. */
+    if (FIGHTING(ch) == victim && has_teamwork_feat(ch, featnum))
+    {
       attack_of_opportunity(ch, victim, penalty);
     }
   }
@@ -6941,6 +7207,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (is_critical)
   {
     strlcpy(hit_msg, "critical", sizeof(hit_msg));
+    if (HAS_FEAT(ch, FEAT_EXPLOIT_WEAKNESS))
+    {
+      victim->player.exploit_weaknesses = 2;
+      act("You have exploited $N's weaknesses", TRUE, ch, 0, victim, TO_CHAR);
+      act("$n has exploited YOUR weaknesses", TRUE, ch, 0, victim, TO_VICT);
+      act("$n has exploited $N's weaknesses", TRUE, ch, 0, victim, TO_NOTVICT);
+    }
     if (HAS_REAL_FEAT(ch, FEAT_SPELL_CRITICAL) && !HAS_ELDRITCH_SPELL_CRIT(ch))
     {
       send_to_char(ch, "[\tWSPELL-CRITICAL\tn] ");
@@ -7104,6 +7377,34 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       affect_from_char(ch, SKILL_QUIVERING_PALM);
     }
   }
+  if (affected_by_spell(ch, ABILITY_AFFECT_TRUE_JUDGEMENT))
+  {
+    int true_judgement_dc = 10 + (CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2) + GET_WIS_BONUS(ch);
+    if (victim == GET_JUDGEMENT_TARGET(ch))
+    {
+      send_to_char(ch, "[TRUE-JUDGEMENT] ");
+      send_to_char(victim, "[\tRTRUE-JUDGEMENT\tn] ");
+      act("$n performs a \tYtrue judgement\tn attack on $N!", FALSE, ch, wielded, victim, TO_NOTVICT);
+
+      if (!is_immune_death_magic(ch, victim, false) && !savingthrow(victim, SAVING_FORT, 0, true_judgement_dc))
+      {
+
+        act("$N \tRblows up into little pieces\tn as soon as you make contact!", FALSE, ch, wielded, victim, TO_CHAR);
+        act("You feel your body \tRblow up in to little pieces\tn as $n strikes you!", FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+        act("You watch as $N's body gets \tRblown into little pieces\tn from $n's attack!", FALSE, ch, wielded, victim, TO_NOTVICT);
+        dam_killed_vict(ch, victim);
+        /* ok, now remove quivering palm */
+        affect_from_char(ch, ABILITY_AFFECT_TRUE_JUDGEMENT);
+        return dam;
+      }
+      else
+      {
+        dam += 1 + GET_WIS_BONUS(ch);
+      }
+      /* ok, now remove quivering palm */
+      affect_from_char(ch, ABILITY_AFFECT_TRUE_JUDGEMENT);
+    }
+  }
   if (affected_by_spell(ch, SKILL_DEATH_ARROW))
   {
     int deatharrow_dc = 10 + CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) +
@@ -7216,6 +7517,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* Calculate damage for this hit */
   dam = compute_hit_damage(ch, victim, w_type, diceroll, 0,
                            is_critical, attack_type);
+  if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
+    dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
 
   /* This comes after computing the other damage since sneak attack damage
@@ -7707,6 +8010,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       victim_ac += 4;
     if (HAS_FEAT(victim, FEAT_ENHANCED_MOBILITY) && has_dex_bonus_to_ac(ch, victim))
       victim_ac += 4;
+    if (has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
+      victim_ac -= 4;
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       send_to_char(ch, "\tW[\tRAOO\tW]\tn");
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
@@ -7843,6 +8148,15 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   } /* End of totaldefense */
 
+    if (attack_type != ATTACK_TYPE_RANGED && affected_by_spell(ch, SPELL_GASEOUS_FORM) && AFF_FLAGGED(victim, AFF_WIND_WALL))
+  {
+    act("You are unable to get close enough to $N to complete your attack.", FALSE, ch, 0, victim, TO_CHAR);
+    act("$n is unable to get close enough to You to complete $s attack.", FALSE, ch, 0, victim, TO_VICT);
+    act("$n is unable to get close enough to $N to complete $s attack.", FALSE, ch, 0, victim, TO_NOTVICT);
+    
+    return (HIT_MISS);
+  }
+
   /* Once per round when your mount is hit in combat, you may attempt a Ride
    * check (as an immediate action) to negate the hit. The hit is negated if
    * your Ride check result is greater than the opponent's attack roll.*/
@@ -7900,6 +8214,14 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     return (HIT_MISS);
   }
 
+    if (attack_type == ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_WIND_WALL) && dice(1, 10) <= 3)
+  {
+    act("Your wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_CHAR);
+    act("$n's wall of wind throws aside Your shot.", FALSE, victim, 0, ch, TO_VICT);
+    act("$n's wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_NOTVICT);
+    return (HIT_MISS);
+  }
+
   if (!dam)
   {
     /* So if we have actually hit, then dam > 0. This is how we process a miss. */
@@ -7910,6 +8232,14 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     /* OK, attack should be a success at this stage */
     dam = handle_successful_attack(ch, victim, wielded, dam, w_type, type, diceroll,
                                    is_critical, attack_type, dam_type, missile);
+  }
+
+  if (is_critical)
+  {
+    if (is_flanked(ch, victim))
+      teamwork_attacks_of_opportunity(victim, 0, FEAT_OUTFLANK);
+    if (teamwork_using_shield(ch, FEAT_SEIZE_THE_MOMENT))
+      teamwork_attacks_of_opportunity(victim, 0, FEAT_SEIZE_THE_MOMENT);
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger

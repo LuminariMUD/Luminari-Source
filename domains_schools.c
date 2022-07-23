@@ -260,7 +260,7 @@ void add_domain_feats(struct char_data *ch)
 
 int has_domain_power(struct char_data *ch, int domain_power)
 {
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC))
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC) && !CLASS_LEVEL(ch, CLASS_INQUISITOR))
     return FALSE;
 
   int i = 0;
@@ -324,7 +324,7 @@ void disable_restricted_school_spells(struct char_data *ch)
  because of the domain-spell-levels that are assigned/required below */
 void assign_domain_spells(struct char_data *ch)
 {
-  if (!CLASS_LEVEL(ch, CLASS_CLERIC))
+  if (!CLASS_LEVEL(ch, CLASS_CLERIC) && !CLASS_LEVEL(ch, CLASS_INQUISITOR))
     return;
 
   int i, j, spellnum;
@@ -409,11 +409,11 @@ void assign_domains(void)
   add_domain_powers(DOMAIN_AIR, DOMAIN_POWER_LIGHTNING_ARC, DOMAIN_POWER_ELECTRICITY_RESISTANCE,
                     DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
-  add_domain_spells(DOMAIN_AIR, SPELL_OBSCURING_MIST, SPELL_EXPEDITIOUS_RETREAT,
+  add_domain_spells(DOMAIN_AIR, SPELL_OBSCURING_MIST, SPELL_WIND_WALL,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_FLY, SPELL_STINKING_CLOUD, SPELL_BILLOWING_CLOUD,
+                    SPELL_GASEOUS_FORM, SPELL_AIR_WALK, SPELL_BILLOWING_CLOUD,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
-                    SPELL_ACID_FOG, SPELL_MIRROR_IMAGE, SPELL_CHAIN_LIGHTNING,
+                    SPELL_CHAIN_LIGHTNING, SPELL_MIRROR_IMAGE, SPELL_WHIRLWIND,
                     /* 9th circle */
                     SPELL_ELEMENTAL_SWARM);
 
@@ -592,7 +592,7 @@ void assign_domains(void)
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_PROTECTION, SPELL_MAGE_ARMOR, SPELL_SHIELD,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_RESERVED_DBC, SPELL_HOLD_PERSON, SPELL_RESERVED_DBC,
+                    SPELL_PROTECTION_FROM_ENERGY, SPELL_HOLD_PERSON, SPELL_RESERVED_DBC,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_MINOR_GLOBE, SPELL_RESERVED_DBC, SPELL_ANTI_MAGIC_FIELD,
                     /* 9th circle */
@@ -619,9 +619,9 @@ void assign_domains(void)
   add_domain_powers(DOMAIN_WAR, DOMAIN_POWER_BATTLE_RAGE, DOMAIN_POWER_WEAPON_EXPERT,
                     DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
-  add_domain_spells(DOMAIN_WAR, SPELL_TRUE_STRIKE, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_WAR, SPELL_TRUE_STRIKE, SPELL_SPIRITUAL_WEAPON,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_ENLARGE_PERSON, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+                    SPELL_MAGIC_VESTMENT, SPELL_DIVINE_POWER, SPELL_RESERVED_DBC,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_RESERVED_DBC, SPELL_HASTE, SPELL_CLENCHED_FIST,
                     /* 9th circle */

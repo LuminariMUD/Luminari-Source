@@ -650,6 +650,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_CONFIRM_ADD_MERCY 47
 #define STUDY_SELECT_BG_CRUELTY 53
 #define STUDY_CONFIRM_ADD_CRUELTY 54
+#define STUDY_INQUISITOR_KNOWN_SPELLS_MENU 55
+#define INQUISITOR_STUDY_SPELLS 56
 
 int save_config(IDXTYPE nowhere);
 

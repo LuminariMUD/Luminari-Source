@@ -32,6 +32,7 @@
 #include "oasis.h"
 #include "genzon.h" /* for real_zone_by_thing */
 #include "psionics.h"
+#include "assign_wpn_armor.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -2407,6 +2408,306 @@ ASPELL(spell_augury)
   if (!count)
     send_to_char(ch, "Your spell reveals nothing about this area.\r\n");
 }
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_spiritual_weapon)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int level = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+    return 0;
+
+  /* how about wands and everything else?? */
+  level = DIVINE_LEVEL(ch);
+  if (level < 1)
+    level = 15; /* so lame */
+
+  int roll = dice(1, 20);
+  int threat = 20 - weapon_list[get_default_spell_weapon(ch)].range;
+  bool is_crit = roll >= threat;
+  int mult = weapon_list[get_default_spell_weapon(ch)].critMult;
+  int attack_roll = MAX(roll, d20(ch)) + GET_BAB(ch) + GET_WIS_BONUS(ch);
+  int ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+  if (is_crit)
+  {
+
+    if (mult >= 2)
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+    if (mult >= 3)
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+  }
+
+  if (attack_roll >= ac)
+  {
+    damage(ch, victim, dam, SPELL_SPIRITUAL_WEAPON, DAM_FORCE, FALSE);
+  }
+  else
+  {
+    damage(ch, victim, 0, SPELL_SPIRITUAL_WEAPON, DAM_FORCE, FALSE);
+  }
+
+  update_pos(victim);
+  return 0;
+}
+
+ASPELL(spell_spiritual_weapon)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  char msg[200];
+  int bab = 0;
+  int i = 0;
+
+  if (ch == NULL)
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if ((pMudEvent = char_has_mud_event(ch, eSPIRITUALWEAPON)))
+  {
+    send_to_char(ch, "You already have a spiritual weapon!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You summon forth a spiritual %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
+  snprintf(msg, sizeof(msg), "$n summons forth a spiritual %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
+  act(msg, TRUE, ch, 0, 0, TO_ROOM);
+  level = MAX(1, DIVINE_LEVEL(ch));
+
+  bab = BAB(ch);
+  for (bab; bab > 0; bab -= 5)
+  {
+    for (i = level; i > 0; i--)
+      NEW_EVENT(eSPIRITUALWEAPON, ch, NULL, ((i * 6) * PASSES_PER_SEC));
+  }
+}
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_dancing_weapon)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int level = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+    return 0;
+
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+  if (level < 1)
+    level = 15; /* so lame */
+
+  int roll = dice(1, 20);
+  int threat = 20 - weapon_list[get_default_spell_weapon(ch)].range;
+  bool is_crit = roll >= threat;
+  int mult = weapon_list[get_default_spell_weapon(ch)].critMult;
+  int attack_roll = MAX(roll, d20(ch)) + GET_BAB(ch) + MAX(GET_INT_BONUS(ch), GET_CHA_BONUS(ch));
+  int ac = compute_armor_class(ch, victim, FALSE, MODE_ARMOR_CLASS_NORMAL);
+  int dam = dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+  if (is_crit)
+  {
+    if (mult >= 2)
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+    if (mult >= 3)
+      dam += dice(weapon_list[get_default_spell_weapon(ch)].numDice, weapon_list[get_default_spell_weapon(ch)].diceSize) + MIN(5, CASTER_LEVEL(ch));
+  }
+
+  if (attack_roll >= ac)
+  {
+    damage(ch, victim, dam, SPELL_DANCING_WEAPON, DAM_FORCE, FALSE);
+  }
+  else
+  {
+    damage(ch, victim, 0, SPELL_DANCING_WEAPON, DAM_FORCE, FALSE);
+  }
+
+  update_pos(victim);
+  return 0;
+}
+
+ASPELL(spell_dancing_weapon)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  char msg[200];
+  int bab = 0, i = 0;
+
+  if (ch == NULL)
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if ((pMudEvent = char_has_mud_event(ch, eDANCINGWEAPON)))
+  {
+    send_to_char(ch, "You already have a dancing weapon!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You summon forth a dancing %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
+  snprintf(msg, sizeof(msg), "$n summons forth a dancing %s of force!\r\n", weapon_list[get_default_spell_weapon(ch)].name);
+  act(msg, TRUE, ch, 0, 0, TO_ROOM);
+  level = MAX(1, ARCANE_LEVEL(ch));
+
+  bab = BAB(ch);
+  for (bab; bab > 0; bab -= 5)
+  {
+    for (i = level; i > 0; i--)
+      NEW_EVENT(eDANCINGWEAPON, ch, NULL, ((i * 6) * PASSES_PER_SEC));
+  }
+}
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_holy_javelin)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int level = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+  if (level < 1)
+    level = 15; /* so lame */
+
+  damage(ch, victim, dice(1, 6), SPELL_HOLY_JAVELIN, DAM_HOLY, FALSE);
+
+  update_pos(victim);
+  return 0;
+}
+
+ASPELL(spell_holy_javelin)
+{
+  int x = 0, num_times = 0;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  if (!victim)
+  {
+    send_to_char(ch, "You need to specify a target for your holy javelin.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You hurl a shimmering javelin of pure light!\r\n");
+  act("$n hurls a shimmering javelin of pure light!", FALSE, ch, 0, 0, TO_ROOM);
+
+  if (!IS_EVIL(victim))
+  {
+    act("The javelin hits $N and then dissipates in a spray of harmless yellow sparks.", FALSE, ch, 0, victim, TO_CHAR);
+    act("The javelin hits You and then dissipates in a spray of harmless yellow sparks.", FALSE, ch, 0, victim, TO_VICT);
+    act("The javelin hits $N and then dissipates in a spray of harmless yellow sparks.", FALSE, ch, 0, victim, TO_NOTVICT);
+    return;
+  }
+
+  if (attack_roll(ch, victim, ATTACK_TYPE_RANGED, TRUE, 1) < 0)
+  {
+    act("$N dodges the holy javelin.", FALSE, ch, 0, victim, TO_CHAR);
+    act("You dodge the holy javelin.", FALSE, ch, 0, victim, TO_VICT);
+    act("$N dodges the holy javelin.", FALSE, ch, 0, victim, TO_ROOM);
+    return;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+  {
+    act("$N resists the holy javelin.", FALSE, ch, 0, victim, TO_CHAR);
+    act("You resist the holy javelin.", FALSE, ch, 0, victim, TO_VICT);
+    act("$N resists the holy javelin.", FALSE, ch, 0, victim, TO_ROOM);
+    return;
+  }
+
+  appear(victim, TRUE);
+
+  num_times = MIN(5, 1 + (level / 4));
+
+  for (x = 0; x < num_times; x++)
+  {
+    NEW_EVENT(eHOLYJAVELIN, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+  }
+}
+
 #undef ZOCMD
 
 #undef WIZARD_EYE

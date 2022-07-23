@@ -154,6 +154,10 @@ bool concentration_check(struct char_data *ch, int spellnum)
     int spell_level2 = MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch));
     spell_level = MIN(spell_level, spell_level2);
   }
+  else if (CASTING_CLASS(ch) == CLASS_INQUISITOR)
+  {
+    spell_level = MIN_SPELL_LVL(spellnum, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch));
+  }
   concentration_dc += spell_level;
 
   if (spellnum > 0 && spellnum < NUM_SPELLS && HAS_FEAT(ch, FEAT_COMBAT_CASTING))
@@ -690,6 +694,9 @@ SAVING_WILL here...  */
     case CLASS_PSIONICIST:
       spell_level = level;
       break;
+    case CLASS_INQUISITOR:
+      spell_level = level;
+      break;
     }
 
   default:
@@ -742,6 +749,9 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_DAMAGE))
     if (mag_damage(spell_level, caster, cvict, ovict, spellnum, metamagic, savetype, casttype) == -1)
       return (-1); /* Successful and target died, don't cast again. */
+
+  if (IS_SET(SINFO.routines, MAG_LOOPS))
+    mag_loops(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
 
   if (IS_SET(SINFO.routines, MAG_AFFECTS))
     mag_affects(spell_level, caster, cvict, ovict, spellnum, savetype, casttype, metamagic);
@@ -830,6 +840,15 @@ SAVING_WILL here...  */
       break;
     case SPELL_IDENTIFY:
       MANUAL_SPELL(spell_identify);
+      break;
+    case SPELL_HOLY_JAVELIN:
+      MANUAL_SPELL(spell_holy_javelin);
+      break;
+    case SPELL_SPIRITUAL_WEAPON:
+      MANUAL_SPELL(spell_spiritual_weapon);
+      break;
+    case SPELL_DANCING_WEAPON:
+      MANUAL_SPELL(spell_dancing_weapon);
       break;
     case SPELL_IMPLODE:
       MANUAL_SPELL(spell_implode);
@@ -1416,10 +1435,17 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (tch && IN_ROOM(tch) > top_of_world)
     return 0;
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF))
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && !is_spellnum_psionic(spellnum))
   {
-    send_to_char(ch, "You can not even speak a single word!\r\n");
-    return 0;
+          send_to_char(ch, "You can not even speak a single word!\r\n");
+          return 0;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
+  {
+          send_to_char(ch, "You are unable to make a sound.\r\n");
+          act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
+          return 0;
   }
 
   // epic spell cooldown
@@ -2029,6 +2055,7 @@ return;
             //          BONUS_CASTER_LEVEL(ch, CLASS_WILDER) + CLASS_LEVEL(ch, CLASS_WILDER) < SINFO.min_level[CLASS_WILDER] &&
             BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) &&
             BONUS_CASTER_LEVEL(ch, CLASS_CLERIC) + CLASS_LEVEL(ch, CLASS_CLERIC) < MIN_SPELL_LVL(spellnum, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) &&
+            BONUS_CASTER_LEVEL(ch, CLASS_INQUISITOR) + CLASS_LEVEL(ch, CLASS_INQUISITOR) < MIN_SPELL_LVL(spellnum, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) &&
             BONUS_CASTER_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_DRUID) < SINFO.min_level[CLASS_DRUID] &&
             BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
             BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
@@ -2121,6 +2148,7 @@ return;
     case CLASS_CLERIC:
     case CLASS_DRUID:
     case CLASS_RANGER:
+    case CLASS_INQUISITOR:
       if ((10 + circle) > GET_WIS(ch))
       {
         send_to_char(ch, "You need to have a minimum wisdom of %d to cast a circle %d spell.\r\n",
@@ -2166,6 +2194,11 @@ return;
       return;
     }
     if (CLASS_LEVEL(ch, CLASS_RANGER) && GET_WIS(ch) < 10)
+    {
+      send_to_char(ch, "You are not wise enough to cast spells...\r\n");
+      return;
+    }
+    if (CLASS_LEVEL(ch, CLASS_INQUISITOR) && GET_WIS(ch) < 10)
     {
       send_to_char(ch, "You are not wise enough to cast spells...\r\n");
       return;
@@ -2739,7 +2772,7 @@ void mag_assign_spells(void)
   /* = =  1st circle  = = */
   /* evocation */
   spello(SPELL_MAGIC_MISSILE, "magic missile", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
          NULL, 0, 7, EVOCATION, FALSE);
   spello(SPELL_HORIZIKAULS_BOOM, "horizikauls boom", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE | MAG_AFFECTS,
@@ -3468,9 +3501,11 @@ void mag_assign_spells(void)
   spello(SPELL_HEDGING_WEAPONS, "hedging weapons", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "The last of your hedging weapons dissipates.", 4, 8, ABJURATION, FALSE);
   spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
   spello(SPELL_LESSER_RESTORATION, "lesser restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
+  spello(SPELL_RESTORATION, "restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 5, 15, CONJURATION, FALSE);
   spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
   spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
-
+  spello(SPELL_SILENCE, "silence", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+               "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
   spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
   spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
@@ -3732,9 +3767,93 @@ void mag_assign_spells(void)
   spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "draconic bloodline breath weapon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
+
+  spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your protection from energy expires.", 7, 11, ABJURATION, FALSE);
+  spello(SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, "communal protection from energy", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_GROUPS,
+         NULL, 9, 13, ABJURATION, FALSE);
+
+  spello(SPELL_SEARING_LIGHT, "searing light", 44, 29, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         NULL, 3, 11, EVOCATION, FALSE);
+
+  spello(SPELL_DIVINE_POWER, "divine power", 37, 22, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+         "You feel your divine power ebb away.", 5, 13, EVOCATION, FALSE);
+
+  spello(SPELL_AIR_WALK, "air walk", 37, 22, 1, POS_FIGHTING,
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "You drift slowly to the ground.", 3, 11, TRANSMUTATION, FALSE);
+
+  spello(SPELL_GASEOUS_FORM, "gaseous form", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+        "You return to your normal solid form.", 4, 11, TRANSMUTATION, FALSE);
+
+  spello(SPELL_WIND_WALL, "wind wall", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "The wall of swirling wind dissipates.", 3, 7, EVOCATION, FALSE);
+
+  spello(SPELL_KEEN_EDGE, "keen edge", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your weapons lose their keen edge.", 7, 11, TRANSMUTATION, FALSE);
+  spello(SPELL_WEAPON_OF_IMPACT, "weapon of impact", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your weapons stop glowing blue.", 7, 11, TRANSMUTATION, FALSE);
+
+  spello(SPELL_SPIRITUAL_WEAPON, "spiritual weapon", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "Your spiritual weapon blinks out of existence.", 5, 9, EVOCATION, FALSE);
+  spello(SPELL_DANCING_WEAPON, "dancing weapon", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_MANUAL,
+         "Your dancing weapon blinks out of existence.", 5, 9, EVOCATION, FALSE);
+
+  spello(SPELL_HOLY_JAVELIN, "holy javelin", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         NULL, 3, 11, CONJURATION, FALSE);
+
+  spello(SPELL_INVISIBILITY_PURGE, "invisibility purge", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AREAS, NULL, 7, 11, EVOCATION, FALSE);
+
+  spello(SPELL_UNDETECTABLE_ALIGNMENT, "undetectable alignment", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your alignment is no longer magically hidden.", 2, 11, ABJURATION, FALSE); // wizard 1, cleric 1
+
+  spello(SPELL_WEAPON_OF_AWE, "weapon of awe", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your weapon stops glowing bright yellow.", 3, 9, TRANSMUTATION, FALSE);
+  spello(SPELL_AFFECT_WEAPON_OF_AWE, "shaken by weapon of awe", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         "You no longer feel shaken in awe.", 3, 9, TRANSMUTATION, FALSE);
+
+  spello(SPELL_BLINDING_RAY, "blinding ray", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_LOOPS,
+         "You are no longer blinded.", 2, 9, EVOCATION, FALSE);
+
+  spello(SPELL_GREATER_MAGIC_WEAPON, "greater magic weapon", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your weapons stop glowing with magical energy.", 7, 11, TRANSMUTATION, FALSE);
+  spello(SPELL_MAGIC_VESTMENT, "magic vestment", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your armor stops glowing with magical energy.", 7, 11, TRANSMUTATION, FALSE);
+
+  spello(SPELL_LITANY_OF_DEFENSE, "litany of defense", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "The litany of defense expires.", 4, 8, TRANSMUTATION, FALSE);
+  spello(SPELL_LITANY_OF_RIGHTEOUSNESS, "litany of righteousness", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "The litany of righteousness expires.", 4, 8, EVOCATION, FALSE);
+
+  spello(ABILITY_AFFECT_BANE_WEAPON, "bane weapon", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You weapons are no longer enchanted with the bane effect.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(ABILITY_AFFECT_TRUE_JUDGEMENT, "true judgement", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer preparing a true judgement.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(SPELL_REMOVE_PARALYSIS, "remove paralysis", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
 
   spello(RACIAL_LICH_FEAR, "lich fear", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
@@ -4044,7 +4163,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 // 599
                                                                                   /* end songs */
 
-  /****note weapon specialist and luck of heroes inserted in free slots ***/
+        /****note weapon specialist and luck of heroes inserted in free slots ***/
 }
 
 void display_shadowcast_spells(struct char_data *ch)

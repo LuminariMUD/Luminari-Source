@@ -2238,6 +2238,17 @@ ACMD(do_gain)
       return;
     }
 
+    if (class == CLASS_CLERIC && CLASS_LEVEL(ch, CLASS_INQUISITOR))
+    {
+      send_to_char(ch, "You cannot take levels in cleric if you have levels in inquisitor.\r\n");
+      return;
+    }
+    if (class == CLASS_INQUISITOR && CLASS_LEVEL(ch, CLASS_CLERIC))
+    {
+      send_to_char(ch, "You cannot take levels in inquisitor if you have levels in cleric.\r\n");
+      return;
+    }
+
     // multi class cap
     for (i = 0; i < MAX_CLASSES; i++)
     {
@@ -4028,8 +4039,8 @@ ACMD(do_lore)
 
   /* good enough lore for mobile? */
   knowledge = FALSE;
-  if (tch && (GET_LEVEL(tch) * 2) <=
-                 lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  lore_bonus += HAS_FEAT(ch, FEAT_MONSTER_LORE) ? GET_WIS_BONUS(ch) : 0;
+  if (tch && (GET_LEVEL(tch) * 2) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
   {
     knowledge = TRUE;
   }
@@ -5746,6 +5757,7 @@ ACMD(do_use)
       {
         if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
               CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+              CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 ||
               CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
               CLASS_LEVEL(ch, CLASS_RANGER) > 0))
         {
@@ -5761,6 +5773,7 @@ ACMD(do_use)
       if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
             ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
             ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+            ((MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0) ||
             ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
             ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
             ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||
@@ -5782,6 +5795,8 @@ ACMD(do_use)
       passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_SORCERER, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
     if (spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF)
       passed = (((GET_CHA(ch) > umd_ability_score) ? GET_CHA(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_BARD, spell, 0, DOMAIN_UNDEFINED)) ? TRUE : passed);
+    if (MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
+      passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_INQUISITOR, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
     if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF)
       passed = (((GET_WIS(ch) > umd_ability_score) ? GET_WIS(ch) : umd_ability_score) > (10 + compute_spells_circle(CLASS_CLERIC, spell, 0, GET_1ST_DOMAIN(ch))) ? TRUE : passed);
     if (MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF)
@@ -5891,6 +5906,7 @@ ACMD(do_use)
         {
           if (!(CLASS_LEVEL(ch, CLASS_CLERIC) > 0 ||
                 CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+                CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0 ||
                 CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
                 CLASS_LEVEL(ch, CLASS_RANGER) > 0))
           {
@@ -5904,6 +5920,7 @@ ACMD(do_use)
         if (!(((spell_info[spell].min_level[CLASS_WIZARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0) ||
               ((spell_info[spell].min_level[CLASS_SORCERER] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_SORCERER) > 0) ||
               ((spell_info[spell].min_level[CLASS_BARD] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_BARD) > 0) ||
+              ((MIN_SPELL_LVL(spell, CLASS_INQUISITOR, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0) ||
               ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_1ST_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
               ((MIN_SPELL_LVL(spell, CLASS_CLERIC, GET_2ND_DOMAIN(ch)) < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0) ||
               ((spell_info[spell].min_level[CLASS_DRUID] < LVL_STAFF) && CLASS_LEVEL(ch, CLASS_DRUID) > 0) ||

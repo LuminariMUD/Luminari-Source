@@ -162,6 +162,12 @@ typedef enum
   eLICH_TOUCH,              // lich touch event
   eLICH_REJUV,              // lich rejuv event
   eLICH_FEAR,               // lich fear event
+  eJUDGEMENT,               // inquisitor judgement ability
+  eBANE,                    // inquisitor bane ability
+  eTRUEJUDGEMENT,           // inquisitor true judgement ability
+  eSPIRITUALWEAPON,         // spiritual weapon spell
+  eDANCINGWEAPON,           // dancing weapon spell
+  eHOLYJAVELIN,             // holy javelin spell
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -232,4 +238,7 @@ EVENTFUNC(event_bardic_performance);
 EVENTFUNC(event_preparation);
 EVENTFUNC(event_craft); /* NewCraft */
 EVENTFUNC(event_copyover);
+EVENTFUNC(event_spiritual_weapon);
+EVENTFUNC(event_dancing_weapon);
+EVENTFUNC(event_holy_javelin);
 #endif /* _MUD_EVENT_H_ */

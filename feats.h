@@ -22,6 +22,7 @@ struct feat_info
   sbyte epic;                    /* Is this an epic feat? */
   sbyte combat_feat;             /* Is this a combat feat? */
   int event;                     /* The event_id of the cooldown event, used for daily use active feats. */
+  sbyte teamwork_feat;           /* Is the feat a teamwork feat? */
 
   struct feat_prerequisite *prerequisite_list; /* A list of prerequisite sctructures */
 };
@@ -80,15 +81,16 @@ ACMD_DECL(do_featlisting);
 #define FEAT_TYPE_WILD 6
 #define FEAT_TYPE_DIVINE 7
 #define FEAT_TYPE_PSIONIC 8
+#define FEAT_TYPE_TEAMWORK 9
 
-#define NUM_LEARNABLE_FEAT_TYPES 9
+#define NUM_LEARNABLE_FEAT_TYPES 10
 
-#define FEAT_TYPE_CLASS_ABILITY 9
-#define FEAT_TYPE_INNATE_ABILITY 10
-#define FEAT_TYPE_DOMAIN_ABILITY 11
-#define FEAT_TYPE_PERFORMANCE 12
+#define FEAT_TYPE_CLASS_ABILITY 10
+#define FEAT_TYPE_INNATE_ABILITY 11
+#define FEAT_TYPE_DOMAIN_ABILITY 12
+#define FEAT_TYPE_PERFORMANCE 13
 
-#define NUM_FEAT_TYPES 13
+#define NUM_FEAT_TYPES 14
 /******************/
 
 /*  LIST_FEAT defines, for list_feats function. */

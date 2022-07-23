@@ -176,6 +176,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_backstab},
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"baneweapon", "banew", POS_RECLINING, do_bane, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -218,6 +219,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"commune", "commune", POS_RESTING, do_gen_preparation, 0, SCMD_COMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"commands", "com", POS_DEAD, do_commands, 0, SCMD_COMMANDS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"compact", "comp", POS_DEAD, do_gen_tog, 0, SCMD_COMPACT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"compel", "compel", POS_RECLINING, do_gen_preparation, 0, SCMD_COMPEL, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"concoct", "conc", POS_RESTING, do_gen_preparation, 0, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"cooldowns", "coo", POS_DEAD, do_affects, 0, SCMD_COOLDOWNS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -320,6 +322,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"exchange", "exchange", POS_RECLINING, do_exchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"exempt", "exempt", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_EXEMPT, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -426,6 +429,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"judgement", "judge", POS_RECLINING, do_judgement, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -671,6 +675,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shieldpunch", "shieldp", POS_FIGHTING, do_process_attack, 1, AA_SHIELDPUNCH, FALSE, ACTION_NONE, {0, 0}, can_shieldpunch},
     {"shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldcharge},
     {"shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldslam},
+    {"slayer", "slay", POS_RECLINING, do_slayer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"springleap", "springleap", POS_RECLINING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"surpriseaccuracy", "surpriseaccuracy", POS_FIGHTING, do_surpriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_surpriseaccuracy},
     {"struggle", "struggle", POS_RECLINING, do_struggle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -700,6 +705,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"trip", "trip", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, NULL},
     //  { "_trip", "_trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"trigedit", "trigedit", POS_DEAD, do_oasis_trigedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"truejudgement", "truejudge", POS_FIGHTING, do_true_judgement, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     //{"turnundead", "turnundead", POS_FIGHTING, do_turnundead, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_turnundead},
     {"typo", "typo", POS_DEAD, do_ibt, 0, SCMD_TYPO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tlist", "tlist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_TLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2650,7 +2656,7 @@ void nanny(struct descriptor_data *d, char *arg)
       if (class_list[i].prestige_class)
         continue;
       if (!CLSLIST_LOCK(i) || has_unlocked_class(d->character, i))
-        write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
+        write_to_output(d, "%-10s - %s\r\n", CLSLIST_NAME(i), class_short_descriptions[i]);
     }
     write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                        "what to pick): ");
@@ -2750,6 +2756,9 @@ void nanny(struct descriptor_data *d, char *arg)
     case CLASS_PSIONICIST:
       perform_help(d, "class-psionicist");
       break;
+    case CLASS_INQUISITOR:
+      perform_help(d, "class-inquisitor");
+      break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;
@@ -2775,7 +2784,7 @@ void nanny(struct descriptor_data *d, char *arg)
       for (i = 0; i < NUM_CLASSES; i++)
       {
         if (!CLSLIST_LOCK(i))
-          write_to_output(d, "%s\r\n", CLSLIST_NAME(i));
+          write_to_output(d, "%-10s - %s\r\n", CLSLIST_NAME(i), class_short_descriptions[i]);
       }
       write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                          "what to pick): ");

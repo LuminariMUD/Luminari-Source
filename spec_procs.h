@@ -49,6 +49,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle);
 void list_abilities(struct char_data *ch, int ability_type);
 bool is_wearing(struct char_data *ch, obj_vnum vnum);
 int compute_ability(struct char_data *ch, int abilityNum);
+int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive);
 void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
                     struct char_data *ch, struct char_data *vict,
                     struct obj_data *obj, int spl);

@@ -133,7 +133,8 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
                  age(tch)->day, age(tch)->hours);
   send_to_char(ch, "Race: %s%s.\r\n", !IS_NPC(tch) ? CAP(race_list[GET_RACE(tch)].name) : race_family_types[GET_RACE(tch)],
                has_subrace ? subraces : "");
-  send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
+  if (!AFF_FLAGGED(tch, AFF_HIDE_ALIGNMENT))
+    send_to_char(ch, "Alignment: %s.\r\n", get_align_by_num(GET_ALIGNMENT(tch)));
   if (IS_NPC(tch))
     send_to_char(ch, "Class: %s.\r\n", class_list[GET_CLASS(tch)].name);
   send_to_char(ch, "Level: %d, Hits: %d, PSP: %d\r\n", GET_LEVEL(tch),
@@ -742,14 +743,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       }
     }
 
-    if (IS_EVIL(i))
+    if (IS_EVIL(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
       if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
     }
-    else if (IS_GOOD(i))
+    else if (IS_GOOD(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
       if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
       {
@@ -797,14 +798,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (IS_EVIL(i))
+    if (IS_EVIL(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
       if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
       {
         send_to_char(ch, "\tR(Red Aura)\tn ");
       }
     }
-    else if (IS_GOOD(i))
+    else if (IS_GOOD(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
     {
       if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
       {
@@ -944,14 +945,14 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
       send_to_char(ch, " is here struggling with thin air.");
   }
 
-  if (IS_EVIL(i))
+  if (IS_EVIL(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
   {
     if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_EVIL) || HAS_FEAT(ch, FEAT_AURA_OF_EVIL))
     {
       send_to_char(ch, "\tR(Red Aura)\tn ");
     }
   }
-  else if (IS_GOOD(i))
+  else if (IS_GOOD(i) && !AFF_FLAGGED(i, AFF_HIDE_ALIGNMENT))
   {
     if (AFF_FLAGGED(ch, AFF_DETECT_ALIGN) || HAS_FEAT(ch, FEAT_DETECT_GOOD) || HAS_FEAT(ch, FEAT_AURA_OF_GOOD))
     {
@@ -2131,6 +2132,14 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   {
     send_to_char(ch, "Aura of Cowardice (penalty against fear-affects)\r\n");
   }
+  if ((pMudEvent = char_has_mud_event(k, eDANCINGWEAPON)))
+  {
+    send_to_char(ch, "Dancing Weapon (a weapon of force attacks your foe each round)\r\n");
+  }
+  if ((pMudEvent = char_has_mud_event(k, eSPIRITUALWEAPON)))
+  {
+    send_to_char(ch, "Spiritual Weapon (a weapon of force attacks your foe each round)\r\n");
+  }
 
   /* salvation */
   if (CLASS_LEVEL(k, CLASS_CLERIC) >= 14)
@@ -2162,6 +2171,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
     send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eHOLYJAVELIN)))
+    send_to_char(ch, "\tRHoly Javelin!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
@@ -3147,11 +3158,24 @@ ACMD(do_score)
     draw_line(ch, line_length, '-', '-');
   }
 
+  if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON))
+  {
+    send_to_char(ch, "\tcIniquisitor Bane Effect:\tn +%dd6 against %s.\r\n",
+                 HAS_REAL_FEAT(ch, FEAT_PERFECT_JUDGEMENT) ? 6 : (HAS_REAL_FEAT(ch, FEAT_GREATER_BANE) ? 4 : 2),
+                 race_family_types_plural[GET_BANE_TARGET_TYPE(ch)]);
+  }
+
   if (CLASS_LEVEL(ch, CLASS_CLERIC))
   {
     send_to_char(ch, "\tc1st Domain: \tn%s\tc, 2nd Domain: \tn%s\tc.\r\n",
                  domain_list[GET_1ST_DOMAIN(ch)].name,
                  domain_list[GET_2ND_DOMAIN(ch)].name);
+    draw_line(ch, line_length, '-', '-');
+  }
+  else if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  {
+    send_to_char(ch, "\tc1st Domain: \tn%s\tc.\r\n",
+                 domain_list[GET_1ST_DOMAIN(ch)].name);
     draw_line(ch, line_length, '-', '-');
   }
 
@@ -3212,6 +3236,10 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'memorize' to see your Wizard spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_SORCERER))
     send_to_char(ch, "\tDType 'meditate' to see your Sorcerer spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_PSIONICIST))
+    send_to_char(ch, "\tDType 'powers' to see your Psionicist powers, and 'manifest' to perform them.\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
+    send_to_char(ch, "\tDType 'compel' to see your Inquisitor spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_CLERIC))
     send_to_char(ch, "\tDType 'prayer' to see your Cleric spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_RANGER))

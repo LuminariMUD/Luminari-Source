@@ -134,6 +134,7 @@ ACMD_DECL(do_gen_comm);
 #define SCMD_HOLLER 0
 #define SCMD_SHOUT 1
 #define SCMD_GOSSIP 2
+#define SCMD_CHAT SCMD_GOSSIP
 #define SCMD_AUCTION 3
 #define SCMD_GRATZ 4
 #define SCMD_GEMOTE 5
@@ -253,6 +254,13 @@ ACMD_DECL(do_touch_of_corruption);
 ACMD_DECL(do_lichtouch);
 ACMD_DECL(do_lichfear);
 ACMD_DECL(do_maxhp);
+ACMD_DECL(do_judgement);
+ACMD_DECL(do_bane);
+ACMD_DECL(do_slayer);
+ACMD_DECL(do_true_judgement);
+
+int max_judgements_active(struct char_data *ch);
+int num_judgements_active(struct char_data *ch);
 
 /*****************************************************************************
  * Begin Functions and defines for rank.c
@@ -417,6 +425,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict);
 int perform_collect(struct char_data *ch, bool silent);
 void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char *cruelty);
 void throw_hedging_weapon(struct char_data *ch);
+void perform_true_judgement(struct char_data *ch);
 /* Functions with subcommands */
 /* do_hit */
 ACMD_DECL(do_hit);

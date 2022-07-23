@@ -181,6 +181,12 @@ struct mud_event_list mud_event_index[] = {
     {"Lich Touch", event_daily_use_cooldown, EVENT_CHAR},     // eLICH_TOUCH
     {"Lich Rejuvenation", event_countdown, EVENT_CHAR},       // eLICH_REJUV
     {"Lich Fear", event_daily_use_cooldown, EVENT_CHAR},      // eLICH_FEAR
+    {"Judgement", event_daily_use_cooldown, EVENT_CHAR},      // eJUDGEMENT
+    {"Bane", event_daily_use_cooldown, EVENT_CHAR},           // eBANE
+    {"True Judgement", event_daily_use_cooldown, EVENT_CHAR}, // eTRUEJUDGEMENT
+    {"Spiritual Weapon", event_spiritual_weapon, EVENT_CHAR}, // eSPIRITUALWEAPON
+    {"Dancing Weapon", event_dancing_weapon, EVENT_CHAR},     // eDANCINGWEAPON
+    {"Holy Javelin", event_holy_javelin, EVENT_CHAR},         // eHOLYJAVELIN
 
 };
 
@@ -313,6 +319,15 @@ EVENTFUNC(event_countdown)
     break;
   case eCHANNELENERGY:
     send_to_char(ch, "You are now able to channel energy again.\r\n");
+    break;
+  case eJUDGEMENT:
+    send_to_char(ch, "You are now able to use your judgement ability again.\r\n");
+    break;
+  case eTRUEJUDGEMENT:
+    send_to_char(ch, "You are now able to use your true judgement ability again.\r\n");
+    break;
+  case eBANE:
+    send_to_char(ch, "You are now able to use your bane ability again.\r\n");
     break;
   case eMAGIC_FOOD:
     send_to_char(ch, "You feel able to eat magical food again.\r\n");
@@ -671,6 +686,18 @@ EVENTFUNC(event_daily_use_cooldown)
   case eTOUCHOFCORRUPTION:
     featnum = FEAT_TOUCH_OF_CORRUPTION;
     send_to_char(ch, "One of your touch of corruption uses has recovered.\r\n");
+    break;
+  case eJUDGEMENT:
+    featnum = FEAT_JUDGEMENT;
+    send_to_char(ch, "One of your judgement ability uses has recovered.\r\n");
+    break;
+  case eTRUEJUDGEMENT:
+    featnum = FEAT_TRUE_JUDGEMENT;
+    send_to_char(ch, "One of your true judgement ability uses has recovered.\r\n");
+    break;
+  case eBANE:
+    featnum = FEAT_BANE;
+    send_to_char(ch, "One of your bane ability uses has recovered.\r\n");
     break;
   case eCHANNELENERGY:
     featnum = FEAT_CHANNEL_ENERGY;
