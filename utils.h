@@ -92,6 +92,8 @@
  * are made available with the function definition. */
 #define isspace_ignoretabs(c) ((c) != '\t' && isspace(c))
 
+bool is_incorporeal(struct char_data *ch);
+bool is_spell_restoreable(int spell);
 sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level);
 int get_poison_save_mod(struct char_data *ch, struct char_data *victim);
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
@@ -108,6 +110,9 @@ void gui_combat_wrap_close(struct char_data *ch);
 void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_obj);
 void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
+int BAB(struct char_data *ch);
+bool can_silence(struct char_data *ch);
+int get_default_spell_weapon(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
 bool can_study_known_psionics(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
@@ -784,7 +789,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0)
 #define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID || \
-                                 c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD)
+                                 c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD || c == CLASS_INQUISITOR)
 
 /* Password of PC. */
 #define GET_PASSWD(ch) ((ch)->player.passwd)
@@ -1240,6 +1245,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_LEVELUP_FEAT_POINTS(ch) (LEVELUP(ch)->feat_points)
 #define GET_LEVELUP_EPIC_FEAT_POINTS(ch) (LEVELUP(ch)->epic_feat_points)
 #define GET_LEVELUP_CLASS_FEATS(ch) (LEVELUP(ch)->class_feat_points)
+#define GET_LEVELUP_TEAMWORK_FEATS(ch) (LEVELUP(ch)->teamwork_feat_points)
 #define GET_LEVELUP_EPIC_CLASS_FEATS(ch) (LEVELUP(ch)->epic_class_feat_points)
 #define GET_LEVELUP_SKILL_POINTS(ch) (LEVELUP(ch)->trains)
 #define GET_LEVELUP_BOOSTS(ch) (LEVELUP(ch)->num_boosts)
@@ -1273,6 +1279,7 @@ void char_from_furniture(struct char_data *ch);
 /* MACROS for the study system */
 #define CAN_STUDY_FEATS(ch) ((GET_LEVELUP_FEAT_POINTS(ch) +                  \
                                           GET_LEVELUP_CLASS_FEATS(ch) +      \
+                                          GET_LEVELUP_TEAMWORK_FEATS(ch) +   \
                                           GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
                                           GET_LEVELUP_EPIC_CLASS_FEATS(ch) > \
                                       0                                      \
@@ -1284,7 +1291,7 @@ void char_from_furniture(struct char_data *ch);
 
 #define CAN_SET_STATS(ch) (GET_LEVEL(ch) <= 1)
 
-#define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1)
+#define CAN_SET_DOMAIN(ch) (CLASS_LEVEL(ch, CLASS_CLERIC) == 1 || CLASS_LEVEL(ch, CLASS_INQUISITOR) == 1)
 #define CAN_SET_SCHOOL(ch) (CLASS_LEVEL(ch, CLASS_WIZARD) == 1)
 #define CAN_SET_S_BLOODLINE(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) >= 1 && GET_SORC_BLOODLINE(ch) == 0 && get_levelup_sorcerer_bloodline_type(ch) == 0)
 #define CAN_STUDY_CLASS_FEATS(ch) (CAN_STUDY_FEATS(ch) || (GET_LEVELUP_CLASS_FEATS(ch) +                  \
@@ -1804,6 +1811,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_SORCERER(ch) (CLASS_LEVEL(ch, CLASS_SORCERER))
 #define IS_BARD(ch) (CLASS_LEVEL(ch, CLASS_BARD))
 #define IS_CLERIC(ch) (CLASS_LEVEL(ch, CLASS_CLERIC))
+#define IS_INQUISITOR(ch) (CLASS_LEVEL(ch, CLASS_INQUISITOR))
 #define IS_DRUID(ch) (CLASS_LEVEL(ch, CLASS_DRUID))
 #define IS_ROGUE(ch) (CLASS_LEVEL(ch, CLASS_ROGUE))
 #define IS_WARRIOR(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR))
@@ -1830,7 +1838,7 @@ void char_from_furniture(struct char_data *ch);
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
-                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch))
+                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -1850,6 +1858,7 @@ void char_from_furniture(struct char_data *ch);
                            GET_CLASS(ch) == CLASS_ELDRITCH_KNIGHT || \
                            GET_CLASS(ch) == CLASS_SACRED_FIST ||     \
                            GET_CLASS(ch) == CLASS_SHIFTER ||         \
+                           GET_CLASS(ch) == CLASS_INQUISITOR ||      \
                            GET_CLASS(ch) == CLASS_BARD)
 
 #define GET_CASTING_CLASS(ch) (ch->player_specials->casting_class)
@@ -1959,7 +1968,7 @@ void char_from_furniture(struct char_data *ch);
 #define INCORPOREAL_FORM_USES_PER_DAY(ch) (CLASS_LEVEL(ch, CLASS_SORCERER) / 3)
 
 /* IS_ for other special situations */
-#define IS_INCORPOREAL(ch) (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
+#define IS_INCORPOREAL(ch) (is_incorporeal(ch))
 
 #define IS_IMMUNE_CRITS(ch) (IS_UNDEAD(ch) ||                                                                       \
                              (!IS_NPC(ch) && (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1)) || \
@@ -2266,6 +2275,7 @@ void char_from_furniture(struct char_data *ch);
 /* Action queues */
 #define GET_QUEUE(ch) ((ch)->char_specials.action_queue)
 #define GET_ATTACK_QUEUE(ch) ((ch)->char_specials.attack_queue)
+#define GET_BAB(ch) (BAB(ch))
 
 /* Bonus Types */
 #define BONUS_TYPE_STACKS(bonus_type) ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) || (bonus_type == BONUS_TYPE_UNDEFINED))
@@ -2307,6 +2317,22 @@ void char_from_furniture(struct char_data *ch);
 #define GET_MARK_DAM_BONUS(ch) (ch->player_specials->death_attack_dam_bonus)
 bool is_marked_target(struct char_data *ch, struct char_data *vict);
 void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
+
+// Inquisitor Stuff
+#define GET_JUDGEMENT_TARGET(ch) (ch->player_specials->judgement_target)
+#define IS_JUDGEMENT_ACTIVE(ch, i) (ch->player_specials->saved.judgement_enabled[i])
+#define GET_SLAYER_JUDGEMENT(ch) (ch->player_specials->saved.slayer_judgement)
+#define GET_BANE_TARGET_TYPE(ch) (ch->player_specials->saved.bane_enemy_type)
+bool is_judgement_possible(struct char_data *ch, struct char_data *t, int type);
+int judgement_bonus_type(struct char_data *ch);
+int get_judgement_bonus(struct char_data *ch, int type);
+int has_teamwork_feat(struct char_data *ch, int featnum);
+int num_fighting(struct char_data *ch);
+int teamwork_using_shield(struct char_data *ch, int featnum);
+int teamwork_best_stealth(struct char_data *ch, int featnum);
+int teamwork_best_d20(struct char_data *ch, int featnum);
+int count_teamwork_feats_available(struct char_data *ch);
+#define GET_TEAMWORK_FEAT_POINTS(ch) (count_teamwork_feats_available(ch))
 
 // Walkto functionality
 #define GET_WALKTO_LOC(ch) (ch->player_specials->walkto_location)

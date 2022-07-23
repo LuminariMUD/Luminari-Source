@@ -176,7 +176,17 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_USE_MAGIC_DEVICE, amount);
-
+      break;
+    case CLASS_INQUISITOR:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SURVIVAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      give_premade_skill(ch, verbose, ABILITY_PERCEPTION, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_STEALTH, amount);
+      break;
   }
 
 }
@@ -421,6 +431,30 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
             break;
         }
       break;
+    case CLASS_INQUISITOR:
+      switch (level)
+      {
+      case 1:
+        GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+        GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+        GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+        GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+        GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+        GET_REAL_CHA(ch) = 8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+        break;
+      case 4:
+      case 8:
+      case 12:
+        GET_REAL_WIS(ch)
+        ++;
+        break;
+      case 16:
+      case 20:
+        GET_REAL_STR(ch)
+        ++;
+        break;
+      }
+      break;
   }
 
 }
@@ -580,6 +614,91 @@ void add_premade_bard_spells(struct char_data *ch, int level)
     case 20:
       known_spells_add(ch, chclass, SPELL_NIGHTMARE, FALSE);
       break;
+  }
+}
+
+void add_premade_inquisitor_spells(struct char_data *ch, int level)
+{
+  int chclass = CLASS_INQUISITOR;
+  switch (level)
+  {
+  case 1:
+    known_spells_add(ch, chclass, SPELL_BLESS, FALSE);
+    known_spells_add(ch, chclass, SPELL_SHIELD_OF_FAITH, FALSE);
+    break;
+  case 2:
+    known_spells_add(ch, chclass, SPELL_CURE_LIGHT, FALSE);
+    break;
+  case 3:
+    known_spells_add(ch, chclass, SPELL_DIVINE_FAVOR, FALSE);
+    break;
+  case 4:
+    known_spells_add(ch, chclass, SPELL_AID, FALSE);
+    known_spells_add(ch, chclass, SPELL_SPIRITUAL_WEAPON, FALSE);
+    break;
+  case 5:
+    known_spells_add(ch, chclass, SPELL_CURE_MODERATE, FALSE);
+    break;
+  case 6:
+    known_spells_add(ch, chclass, SPELL_INVISIBLE, FALSE);
+    break;
+  case 7:
+    known_spells_add(ch, chclass, SPELL_SHIELD_OF_FORTIFICATION, FALSE);
+    known_spells_add(ch, chclass, SPELL_MAGIC_VESTMENT, FALSE);
+    known_spells_add(ch, chclass, SPELL_PRAYER, FALSE);
+    break;
+  case 8:
+    known_spells_add(ch, chclass, SPELL_GREATER_MAGIC_WEAPON, FALSE);
+    break;
+  case 9:
+    known_spells_add(ch, chclass, SPELL_REMOVE_CURSE, FALSE);
+    break;
+  case 10:
+    known_spells_add(ch, chclass, SPELL_LITANY_OF_DEFENSE, FALSE);
+    known_spells_add(ch, chclass, SPELL_GREATER_INVIS, FALSE);
+    known_spells_add(ch, chclass, SPELL_STONESKIN, FALSE);
+    break;
+  case 11:
+    known_spells_add(ch, chclass, SPELL_REMOVE_FEAR, FALSE);
+    known_spells_add(ch, chclass, SPELL_FREE_MOVEMENT, FALSE);
+    break;
+  case 12:
+    known_spells_add(ch, chclass, SPELL_DEATH_WARD, FALSE);
+    break;
+  case 13:
+    known_spells_add(ch, chclass, SPELL_LOCATE_OBJECT, FALSE);
+    known_spells_add(ch, chclass, SPELL_SPELL_RESISTANCE, FALSE);
+    known_spells_add(ch, chclass, SPELL_TRUE_SEEING, FALSE);
+    break;
+  case 14:
+    known_spells_add(ch, chclass, SPELL_LESSER_RESTORATION, FALSE);
+    known_spells_add(ch, chclass, SPELL_FLAME_STRIKE, FALSE);
+    break;
+  case 15:
+    known_spells_add(ch, chclass, SPELL_BANISH, FALSE);
+    break;
+  case 16:
+    known_spells_add(ch, chclass, SPELL_CURE_CRITIC, FALSE);
+    known_spells_add(ch, chclass, SPELL_HEAL, FALSE);
+    known_spells_add(ch, chclass, SPELL_HARM, FALSE);
+    break;
+  case 17:
+    known_spells_add(ch, chclass, SPELL_LITANY_OF_RIGHTEOUSNESS, FALSE);
+    known_spells_add(ch, chclass, SPELL_GREATER_DISPELLING, FALSE);
+    break;
+  case 18:
+    known_spells_add(ch, chclass, SPELL_BLADE_BARRIER, FALSE);
+    break;
+  case 19:
+    if (IS_EVIL(ch))
+      known_spells_add(ch, chclass, SPELL_DISPEL_GOOD, FALSE);
+    else
+      known_spells_add(ch, chclass, SPELL_DISPEL_EVIL, FALSE);
+    break;
+  case 20:
+    known_spells_add(ch, chclass, SPELL_REMOVE_POISON, FALSE);
+    known_spells_add(ch, chclass, SPELL_UNDEATH_TO_DEATH, FALSE);
+    break;
   }
 }
 
@@ -1425,6 +1544,56 @@ void levelup_bard(struct char_data *ch, int level, bool verbose)
   add_premade_bard_spells(ch, level);
 }
 
+void levelup_inquisitor(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_INQUISITOR;
+  switch (level)
+  {
+  case 1:
+    set_premade_stats(ch, chclass, 1);
+    give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+    if (GET_REAL_RACE(ch) == RACE_HUMAN)
+    {
+      give_premade_feat(ch, verbose, FEAT_DODGE, 0);
+    }
+    GET_1ST_DOMAIN(ch) = DOMAIN_PROTECTION;
+    break;
+  case 3:
+    give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_HAMMER);
+    break;
+  case 4:
+    set_premade_stats(ch, chclass, 4);
+    break;
+  case 6:
+    give_premade_feat(ch, verbose, FEAT_QUICK_CHANT, 0);
+    break;
+  case 8:
+    set_premade_stats(ch, chclass, 8);
+    break;
+  case 9:
+    give_premade_feat(ch, verbose, FEAT_POWER_ATTACK, 0);
+    break;
+  case 12:
+    set_premade_stats(ch, chclass, 12);
+    give_premade_feat(ch, verbose, FEAT_POWER_CRITICAL, WEAPON_FAMILY_HAMMER);
+    break;
+  case 15:
+    give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_HAMMER);
+    break;
+  case 16:
+    set_premade_stats(ch, chclass, 16);
+    break;
+  case 18:
+    give_premade_feat(ch, verbose, FEAT_ARMOR_SPECIALIZATION_MEDIUM, 0);
+    break;
+  case 20:
+    set_premade_stats(ch, chclass, 20);
+    break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+  add_premade_inquisitor_spells(ch, level);
+}
+
 void levelup_alchemist(struct char_data *ch, int level, bool verbose)
 {
   int chclass = CLASS_ALCHEMIST;
@@ -1532,6 +1701,9 @@ void advance_premade_build(struct char_data *ch)
       break;
     case CLASS_PSIONICIST:
       levelup_psionicist(ch, level, TRUE);
+      break;
+    case CLASS_INQUISITOR:
+      levelup_inquisitor(ch, level, TRUE);
       break;
     default:
       send_to_char(ch, "ERROR.  Please inform staff, error code PREBLD001.\r\n");

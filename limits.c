@@ -34,6 +34,7 @@
 
 // external functions
 void save_char_pets(struct char_data *ch);
+void rem_room_aff(struct raff_node *raff);
 
 /* added this for falling event, general dummy check */
 bool death_check(struct char_data *ch)
@@ -1137,8 +1138,10 @@ void update_player_misc(void)
     affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)
-    --;
+      GET_MISSION_COOLDOWN(ch)--;
+
+    if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
 
     if (!are_mission_mobs_loaded(ch))
     {
@@ -1272,9 +1275,55 @@ void proc_d20_round(void)
 {
 
   struct char_data *i = NULL;
+  struct raff_node *raff, *next_raff;
 
   for (i = character_list; i; i = i->next)
   {
+
+    if (AFF_FLAGGED(i, AFF_WIND_WALL))
+    {
+      if (IN_ROOM(i) != NOWHERE)
+      {
+        for (raff = raff_list; raff; raff = next_raff)
+        {
+          next_raff = raff->next;
+          
+          if (raff->room == IN_ROOM(i))
+          {
+            if (raff->affection == RAFF_OBSCURING_MIST)
+            {
+              rem_room_aff(raff);
+              act("Your wall of wind dissipates the obscuring mist.", FALSE, i, 0, 0, TO_CHAR);
+              act("$n's wall of wind dissipates the obscuring mist.", FALSE, i, 0, 0, TO_ROOM);
+            }
+            else if (raff->affection == RAFF_ACID_FOG)
+            {
+              rem_room_aff(raff);
+              act("Your wall of wind dissipates the acid fog.", FALSE, i, 0, 0, TO_CHAR);
+              act("$n's wall of wind dissipates the acid fog.", FALSE, i, 0, 0, TO_ROOM);
+            }
+            else if (raff->affection == RAFF_BILLOWING)
+            {
+              rem_room_aff(raff);
+              act("Your wall of wind dissipates the billowing cloud.", FALSE, i, 0, 0, TO_CHAR);
+              act("$n's wall of wind dissipates the billowing cloud.", FALSE, i, 0, 0, TO_ROOM);
+            }
+            else if (raff->affection == RAFF_STINK)
+            {
+              rem_room_aff(raff);
+              act("Your wall of wind dissipates the stinking cloud.", FALSE, i, 0, 0, TO_CHAR);
+              act("$n's wall of wind dissipates the stinking cloud.", FALSE, i, 0, 0, TO_ROOM);
+            }
+            else if (raff->affection == RAFF_FOG)
+            {
+              rem_room_aff(raff);
+              act("Your wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_CHAR);
+              act("$n's wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_ROOM);
+            }
+          }
+        }
+      }
+    }
 
     if (!IS_NPC(i)) // players only
     {
@@ -1790,6 +1839,12 @@ void update_damage_and_effects_over_time(void)
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
         GET_HIT(ch) = GET_MAX_HIT(ch);
     }
+
+    // judgement of healing
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses)
+      GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
+    if (GET_HIT(ch) > GET_MAX_HIT(ch))
+      GET_HIT(ch) = GET_MAX_HIT(ch);
 
     // paladin fast healing mercy effect
     if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING))

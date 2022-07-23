@@ -42,6 +42,8 @@ ACMD(do_spec_comm)
     send_to_char(ch, "Whom do you want to %s.. and what??\r\n", action_sing);
   else if (!(vict = get_char_vis(ch, buf, NULL, FIND_CHAR_ROOM)))
     send_to_char(ch, "%s", CONFIG_NOPERSON);
+  else if (AFF_FLAGGED(ch, AFF_SILENCED))
+    send_to_char(ch, "You can't seem to make a sound.\r\n");
   else if (vict == ch)
     send_to_char(ch, "You can't get your mouth close enough to your ear...\r\n");
   else if (AFF_FLAGGED(vict, AFF_DEAF))

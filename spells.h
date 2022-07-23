@@ -73,6 +73,7 @@
 #define MAG_CREATIONS (1 << 9)
 #define MAG_MANUAL (1 << 10)
 #define MAG_ROOM (1 << 11)
+#define MAG_LOOPS (1 << 12)
 
 #define NO_SUBSCHOOL 0
 #define SUBSCHOOL_CALLING 1
@@ -104,6 +105,7 @@
 
 /* PLAYER SPELLS -- Numbered from 1 to MAX_SPELLS */
 #define SPELL_ARMOR 1         // done
+#define SPELL_SHIELD_OF_FAITH SPELL_ARMOR
 #define SPELL_TELEPORT 2      // done (no longer stock)
 #define SPELL_BLESS 3         // done
 #define SPELL_BLINDNESS 4     // done
@@ -482,10 +484,30 @@
 #define SPELL_LITANY_OF_RIGHTEOUSNESS 418
 #define SPELL_RIGHTEOUS_VIGOR 419
 #define SPELL_SACRED_SPACE 420
+#define SPELL_REMOVE_PARALYSIS 421
+#define SPELL_DANCING_WEAPON 422
+#define SPELL_SPIRITUAL_WEAPON 423
+#define SPELL_UNDETECTABLE_ALIGNMENT 424
+#define SPELL_WEAPON_OF_AWE 425
+#define SPELL_BLINDING_RAY 426
+#define SPELL_HOLY_JAVELIN 427
+#define SPELL_INVISIBILITY_PURGE 428
+#define SPELL_KEEN_EDGE 429
+#define SPELL_WEAPON_OF_IMPACT 430
+#define SPELL_GREATER_MAGIC_WEAPON 431
+#define SPELL_MAGIC_VESTMENT 432
+#define SPELL_PROTECTION_FROM_ENERGY 433
+#define SPELL_COMMUNAL_PROTECTION_FROM_ENERGY 434
+#define SPELL_SEARING_LIGHT 435
+#define SPELL_DIVINE_POWER 436
+#define SPELL_WIND_WALL 437
+#define SPELL_AIR_WALK 438
+#define SPELL_GASEOUS_FORM 439
+#define SPELL_RESTORATION 440
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 421
-#define LAST_SPELL_DEFINE 421
+#define NUM_SPELLS 441
+#define LAST_SPELL_DEFINE 441
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -513,6 +535,9 @@
 #define RACIAL_LICH_TOUCH 1214
 #define RACIAL_LICH_FEAR 1215
 #define RACIAL_LICH_REJUV 1216
+#define ABILITY_AFFECT_BANE_WEAPON 1217
+#define ABILITY_AFFECT_TRUE_JUDGEMENT 1218
+#define SPELL_AFFECT_WEAPON_OF_AWE 1219
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -1241,6 +1266,9 @@ ASPELL(spell_wall_of_fire);
 ASPELL(spell_wall_of_thorns);
 ASPELL(spell_wall_of_force);
 ASPELL(spell_wizard_eye);
+ASPELL(spell_spiritual_weapon);
+ASPELL(spell_dancing_weapon);
+ASPELL(spell_holy_javelin);
 // psionics
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);
@@ -1251,6 +1279,8 @@ int find_skill_num(char *name);
 int find_ability_num(char *name);
 
 int mag_damage(int level, struct char_data *ch, struct char_data *victim,
+               struct obj_data *obj, int spellnum, int metamagic, int savetype, int casttype);
+void mag_loops(int level, struct char_data *ch, struct char_data *victim,
                struct obj_data *obj, int spellnum, int metamagic, int savetype, int casttype);
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *obj, int spellnum, int savetype, int casttype, int metamagic);

@@ -382,7 +382,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 26 // we have to increase this to 27 once inquisitor is done
+#define NUM_CLASSES 27
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -1064,8 +1064,11 @@
 #define AFF_SHAKEN 107             // fear/mind effect.  -2 to attack rols, saving throws, skill checks and ability checks
 #define AFF_ESHIELD 108            // electric shield - reflect damage
 #define AFF_SICKENED 109           // applies sickened status. -2 penalty to attack rolls, weapon damage, saving throws, skill checks and ability checks
+#define AFF_SILENCED 110           // silenced, can't speak or cast spells
+#define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
+#define AFF_WIND_WALL 112          // surrounded by a wall of wind
 /*---*/
-#define NUM_AFF_FLAGS 110
+#define NUM_AFF_FLAGS 113
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2008,13 +2011,68 @@
 #define FEAT_ELECTRIC_IMMUNITY 809
 #define FEAT_COLD_IMMUNITY 810
 
+// inquisitor
+#define FEAT_INQUISITOR_WEAPON_PROFICIENCY 811
+/* inquisitor circle */
+#define FEAT_INQUISITOR_1ST_CIRCLE 812
+#define FEAT_INQUISITOR_2ND_CIRCLE 813
+#define FEAT_INQUISITOR_3RD_CIRCLE 814
+#define FEAT_INQUISITOR_4TH_CIRCLE 815
+#define FEAT_INQUISITOR_5TH_CIRCLE 816
+#define FEAT_INQUISITOR_6TH_CIRCLE 817
+#define FEAT_INQUISITOR_EPIC_SPELL 818
+/* INQUISITOR slots [MUST BE KEPT TOGETHER] */
+#define FEAT_INQUISITOR_1ST_CIRCLE_SLOT 819
+#define INQ_SLT_0 (FEAT_INQUISITOR_1ST_CIRCLE_SLOT - 1)
+#define FEAT_INQUISITOR_2ND_CIRCLE_SLOT 820
+#define FEAT_INQUISITOR_3RD_CIRCLE_SLOT 821
+#define FEAT_INQUISITOR_4TH_CIRCLE_SLOT 822
+#define FEAT_INQUISITOR_5TH_CIRCLE_SLOT 823
+#define FEAT_INQUISITOR_6TH_CIRCLE_SLOT 824
+#define FEAT_JUDGEMENT 825
+#define FEAT_MONSTER_LORE 826
+#define FEAT_STERN_GAZE 827
+#define FEAT_CUNNING_INITIATIVE 828
+#define FEAT_DETECT_ALIGNMENT 829
+#define FEAT_SOLO_TACTICS 830
+#define FEAT_TEAMWORK 831
+#define FEAT_BANE 832
+#define FEAT_STALWART 833
+#define FEAT_GREATER_BANE 834
+#define FEAT_EXPLOIT_WEAKNESS 835
+#define FEAT_SLAYER 836
+#define FEAT_TRUE_JUDGEMENT 837
+#define FEAT_SECOND_JUDGEMENT 838
+#define FEAT_THIRD_JUDGEMENT 839
+#define FEAT_FOURTH_JUDGEMENT 840
+#define FEAT_FIFTH_JUDGEMENT 841
+#define FEAT_PERFECT_JUDGEMENT 842
+#define FEAT_BACK_TO_BACK 843
+#define FEAT_COORDINATED_DEFENSE 844
+#define FEAT_COORDINATED_MANEUVERS 845
+#define FEAT_COORDINATED_SHOT 846
+#define FEAT_DUCK_AND_COVER 847
+#define FEAT_HARDER_THEY_FALL 848
+#define FEAT_OUTFLANK 849
+#define FEAT_PAIRED_OPPORTUNISTS 850
+#define FEAT_PRECISE_FLANKING 851
+#define FEAT_PHALANX_FIGHTER 852
+#define FEAT_SEIZE_THE_MOMENT 853
+#define FEAT_SHAKE_IT_OFF 854
+#define FEAT_SHIELD_WALL 855
+#define FEAT_SHIELDED_CASTER 856
+#define FEAT_STEALTH_SYNERGY 857
+#define FEAT_TANDEM_TRIP 858
+#define FEAT_TARGETTED_OPPORTUNITY 859
+/******/
+
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 811
+#define FEAT_LAST_FEAT 860
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 812
+#define NUM_FEATS 861
 /** absolute cap **/
-#define MAX_FEATS 1000
+#define MAX_FEATS 1500
 /*****/
 
 /* alchemist */
@@ -2081,6 +2139,19 @@
 #define CHANNEL_ENERGY_TYPE_NONE 0
 #define CHANNEL_ENERGY_TYPE_POSITIVE 1
 #define CHANNEL_ENERGY_TYPE_NEGATIVE 2
+
+// Inquisitor Judgments
+#define INQ_JUDGEMENT_NONE              0
+#define INQ_JUDGEMENT_DESTRUCTION       1
+#define INQ_JUDGEMENT_HEALING           2
+#define INQ_JUDGEMENT_JUSTICE           3
+#define INQ_JUDGEMENT_PIERCING          4
+#define INQ_JUDGEMENT_PROTECTION        5
+#define INQ_JUDGEMENT_PURITY            6
+#define INQ_JUDGEMENT_RESILIENCY        7
+#define INQ_JUDGEMENT_RESISTANCE        8
+
+#define NUM_INQ_JUDGEMENTS              9
 
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL 0
@@ -3499,6 +3570,7 @@ struct char_player_data
     byte pc_subrace;                 // SubRace
     char *walkin;                    // NPC (for now) walkin message
     char *walkout;                   // NPC (for now) walkout message
+    byte exploit_weaknesses;         // has exploit weaknesses taken effect?
 };
 
 /** Character abilities. Different instances of this structure are used for
@@ -3848,6 +3920,10 @@ struct player_special_data_saved
     int fiendish_boons;                                 // active fiendish boons by blackguard
     int channel_energy_type;                            // neutral clerics must decide either positive or negative
     int deity;                                          // what deity does the person follow?
+
+    byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
+    int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
+    byte slayer_judgement;                      // which judgement is using the slayer bonus
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -3914,6 +3990,8 @@ struct player_special_data
     int death_attack_hit_bonus;
     int death_attack_dam_bonus;
     room_vnum walkto_location;
+
+    struct char_data *judgement_target; // target of an inquisitor's judgement
 };
 
 /** Special data used by NPCs, not PCs */
@@ -4036,6 +4114,7 @@ struct level_data
     int class_feat_points;
     int epic_feat_points;
     int epic_class_feat_points;
+    int teamwork_feat_points;
 
     /* Ability, skill, boost information */
     int practices;

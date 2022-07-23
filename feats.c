@@ -313,6 +313,11 @@ void dailyfeat(int featnum, event_id event)
   feat_list[featnum].event = event;
 }
 
+void teamworkfeat(int featnum)
+{
+  feat_list[featnum].teamwork_feat = TRUE;
+}
+
 /* function to assign basic attributes to feat */
 static void feato(int featnum, const char *name, int in_game, int can_learn, int can_stack, int feat_type, const char *short_description, const char *description)
 {
@@ -2064,6 +2069,88 @@ void assign_feats(void)
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
 
+  /* inquisitor spell access feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_INQUISITOR_1ST_CIRCLE, "1st circle inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 1st circle inquisitor spells",
+        "You now have access to 1st circle inquisitor spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_INQUISITOR_2ND_CIRCLE, "2nd circle inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 2nd circle inquisitor spells",
+        "You now have access to 2nd circle inquisitor spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_INQUISITOR_3RD_CIRCLE, "3rd circle inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 3rd circle inquisitor spells",
+        "You now have access to 3rd circle inquisitor spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_INQUISITOR_4TH_CIRCLE, "4th circle inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 4th circle inquisitor spells",
+        "You now have access to 4th circle inquisitor spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_INQUISITOR_5TH_CIRCLE, "5th circle inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 5th circle inquisitor spells",
+        "You now have access to 5th circle inquisitor spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_INQUISITOR_6TH_CIRCLE, "6th circle inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 6th circle inquisitor spells",
+        "You now have access to 6th circle inquisitor spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_INQUISITOR_EPIC_SPELL, "epic inquisitor spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to epic inquisitor spells",
+        "You now have access to epic inquisitor spells.  The spells you gain access "
+        "are determined by feat selection.  Epic spells are only usable once per "
+        "game-day.");
+  /* inquisitor SLOT feats */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+  feato(FEAT_INQUISITOR_1ST_CIRCLE_SLOT, "1st circle inquisitor slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "inquisitor 1st circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_INQUISITOR_2ND_CIRCLE_SLOT, "2nd circle inquisitor slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "inquisitor 2nd circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_INQUISITOR_3RD_CIRCLE_SLOT, "3rd circle inquisitor slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "inquisitor 3rd circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_INQUISITOR_4TH_CIRCLE_SLOT, "4th circle inquisitor slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "inquisitor 4th circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_INQUISITOR_5TH_CIRCLE_SLOT, "5th circle inquisitor slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "inquisitor 5th circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+  feato(FEAT_INQUISITOR_6TH_CIRCLE_SLOT, "6th circle inquisitor slot", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "inquisitor 6th circle slot",
+        "This gives you the ability to cast another spell of this slot for the respective "
+        "class.  There may be other requirements for casting particular spells from this "
+        "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
+        "the slot is used, you can 'prepare' to recover it.");
+
   feato(FEAT_SORCERER_BLOODLINE_DRACONIC, "draconic bloodline", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "1 level as sorcerer & select the draconic bloodline",
         "The draconic bloodline allows the sorcerer to take upon them traits "
@@ -2251,6 +2338,65 @@ void assign_feats(void)
   feato(FEAT_MULTIPLE_CHANNEL_SPELL, "multiple channel spell", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "You can channel two spells into your weapon.",
         "As per channel spell, except allows you to channel two spells into a single weapon.");
+
+  // Inquisitors
+  feato(FEAT_JUDGEMENT, "judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Can pronounce judgement upon an enemy offering combat bonuses to the user while the enemy lives.",
+        "Can pronounce judgement upon an enemy offering combat bonuses to the user while the enemy lives. See HELP INQUISITOR-JUDGEMENTS");
+  feato(FEAT_MONSTER_LORE, "monster lore", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "Improved ability to obtain knowledge on a foe.",
+        "Allows adding wisdom modifier to lore checks when using the lore command on a foe.");
+  feato(FEAT_STERN_GAZE, "stern gaze", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Improved ability with sense motive and intimidate skill checks.",
+        "Adds 1/2 the character's inquisitor class level to any sense motive or intimidate checks.");
+  feato(FEAT_CUNNING_INITIATIVE, "cunning initiative", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Improved initiative rolls.",
+        "Adds wisdom modifier to initiative checks, in addition to dexterity modifier.");
+  feato(FEAT_DETECT_ALIGNMENT, "detect alignment", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Can see alignments of others in the same room as you.",
+        "As per the spell detect alignment, but always enabled.");
+  feato(FEAT_SOLO_TACTICS, "solo tactics", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "All teamwork feats the character has work whether or not their party members have the feat or not.",
+        "All teamwork feats the character has work whether or not their party members have the feat or not.");
+  feato(FEAT_TEAMWORK, "teamwork", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "Each rank allows for the choosing of one teamwork feat.",
+        "Each rank allows for the choosing of one teamwork feat in the feat section of the study menu.");
+  feato(FEAT_BANE, "hunter's bane", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Makes wielded weapons treated as bane weapons against a specified foe type.",
+        "Makes wielded weapons treated as bane weapons against a specified foe type. Use the baneweapon command to set the enemy type.");
+  feato(FEAT_STALWART, "stalwart", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Eliminates effect on successful will or fortitude saves that offer a reduced affect on a successful save.",
+        "Eliminates effect on successful will or fortitude saves that offer a reduced affect on a successful save. Only if wearing light or medium armor.");
+  feato(FEAT_GREATER_BANE, "greater bane", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Inquisitor bane effect now does 4d6 extra damage instead of 2d6.",
+        "Inquisitor bane effect now does 4d6 extra damage instead of 2d6.");
+  feato(FEAT_EXPLOIT_WEAKNESS, "exploit weakness", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Critical hits bypass damage reduction.",
+        "Critical hits bypass damage reduction. If the creature has regeneration or fast healing, it is inactive the following round.");
+  feato(FEAT_SLAYER, "slayer", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "One judgement effect is treated as if the Inquisitor were 5 levels higher.",
+        "One judgement effect is treated as if the Inquisitor were 5 levels higher. Uses the judgement command.");
+  feato(FEAT_TRUE_JUDGEMENT, "true judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When enacting judgment on a foe, the next hit can potentially kill the target.",
+        "When enacting judgment on a foe, the next hit can potentially kill the target, if a Fortitude save against 10 + 1/2 Inquisitor level + wisdom modifier DC. Uses the truejudgement command.");
+  feato(FEAT_SECOND_JUDGEMENT, "second judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows for two judgement effects to take effect per judgmenent use.",
+        "Allows for two judgement effects to take effect per judgmenent use.  Uses judgement command.");
+  feato(FEAT_THIRD_JUDGEMENT, "third judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows for three judgement effects to take effect per judgmenent use.",
+        "Allows for three judgement effects to take effect per judgmenent use.  Uses judgement command.");
+  feato(FEAT_FOURTH_JUDGEMENT, "fourth judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows for four judgement effects to take effect per judgmenent use.",
+        "Allows for four judgement effects to take effect per judgmenent use.  Uses judgement command.");
+  feato(FEAT_FIFTH_JUDGEMENT, "fifth judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows for five judgement effects to take effect per judgmenent use.",
+        "Allows for five judgement effects to take effect per judgmenent use.  Uses judgement command.");
+  feato(FEAT_PERFECT_JUDGEMENT, "perfect judgement", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Gives all judgements an extra +1 bonus. Inquisitor bane weapon effect damage is increased to 6d6.",
+        "Gives all judgements an extra +1 bonus. Inquisitor bane weapon effect damage is increased to 6d6.");
+  feato(FEAT_INQUISITOR_WEAPON_PROFICIENCY, "inquisitor weapon proficiency", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows proficiency in the hand crossbow, longbow, repeating crossbows and shortbow, as well as the favored weapon of the domain they choose.",
+        "Allows proficiency in the hand crossbow, longbow, repeating crossbows and shortbow, as well as the favored weapon of the domain they choose.");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SPELL_PENETRATION, "spell penetration", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -3903,6 +4049,96 @@ void assign_feats(void)
 
   /* End Class ability Feats */
 
+    // TEAMWORK FEAT
+  feato(FEAT_BACK_TO_BACK, "back to back", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "+2 circumstance bonus to AC when flanked.",
+        "Gain a +2 circumstance bonus to AC when facing 2 enemies or more. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_BACK_TO_BACK);
+  feat_prereq_ability(FEAT_BACK_TO_BACK, ABILITY_PERCEPTION, 3);
+  feato(FEAT_COORDINATED_DEFENSE, "coordinated defense", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "+2 to CMD",
+        "Gain a +2 bonus to combat manuever defense (CMD). "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_COORDINATED_DEFENSE);
+  feato(FEAT_COORDINATED_MANEUVERS, "coordinated maneuvers", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "+2 to CMB",
+        "Gain a +2 bonus to combat manuever bonus (CMB). "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_COORDINATED_MANEUVERS);
+  feato(FEAT_COORDINATED_SHOT, "coordinated shot", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "+1 to ranged attack rolls. +2 if the enemy is flanked by a group member.",
+        "+1 to ranged attack rolls. +2 if the enemy is flanked by a group member. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_COORDINATED_SHOT);
+  feat_prereq_feat(FEAT_COORDINATED_SHOT, FEAT_POINT_BLANK_SHOT, 1);
+  feato(FEAT_DUCK_AND_COVER, "duck and cover", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Roll twice for reflex saves and take the best roll.",
+        "Roll twice for reflex saves and take the best roll. Also gain a +2 cover bonus to AC against ranged attacks if ally with this feat is using a shield. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_DUCK_AND_COVER);
+  feato(FEAT_OUTFLANK, "outflank", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Increases flanking bonus for attack rolls from +2 to +4.",
+        "Increases flanking bonus for attack rolls from +2 to +4. Also allows an attack of opportunity for your party members if you critical hit against a flanked foe. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_OUTFLANK);
+  feat_prereq_bab(FEAT_OUTFLANK, 4);
+  feato(FEAT_PAIRED_OPPORTUNISTS, "paired opportunists", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Attacks of opportunity gain +4 to hit and +2 to damage.",
+        "Attacks of opportunity gain +4 to hit and +2 to damage. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_PAIRED_OPPORTUNISTS);
+  feato(FEAT_PRECISE_FLANKING, "precise flanking", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "If you are flanking your target you attacks deal an extra 1d6 damage.",
+        "If you are flanking your target you attacks deal an extra 1d6 damage. This amount is not multiplied on a critical hit. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_PRECISE_FLANKING);
+  feat_prereq_bab(FEAT_PRECISE_FLANKING, 1);
+  feat_prereq_attribute(FEAT_PRECISE_FLANKING, AB_DEX, 13);
+  feato(FEAT_PHALANX_FIGHTER, "phalanx fighter", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Gain a bonus to AC and saving throws if opponent is of opposite alignment (neutral treated as good).",
+        "Gain a bonus to AC and saving throws if opponent is of opposite alignment (neutral treated as good). The bonus type is sacred for good/neutral and profane for evil. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_PHALANX_FIGHTER);
+  feat_prereq_bab(FEAT_PHALANX_FIGHTER, 3);
+  feato(FEAT_SEIZE_THE_MOMENT, "seize the moment", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Whenever an ally with this feat performs a critical hit, your may get an attack of opportunity on the target.",
+        "Whenever an ally with this feat performs a critical hit, your may get an attack of opportunity on the target. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_SEIZE_THE_MOMENT);
+  feat_prereq_feat(FEAT_SEIZE_THE_MOMENT, FEAT_COMBAT_REFLEXES, 1);
+  feat_prereq_feat(FEAT_SEIZE_THE_MOMENT, FEAT_IMPROVED_CRITICAL, 1);
+  feato(FEAT_SHAKE_IT_OFF, "shake it off", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Gain a +1 bonus to saving throws for each party member who has this feat, to a maximum of +4.",
+        "Gain a +1 bonus to saving throws for each party member who has this feat, to a maximum of +4. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_SHAKE_IT_OFF);
+  feato(FEAT_SHIELD_WALL, "shield wall", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Gain a bonus to shield AC when usin a shield for every party member with this feat who is also using a shield.",
+        "Gain a bonus to shield AC when usin a shield for every party member with this feat who is also using a shield. "
+        "The bonus per party member is +1 if they're using a small shield or buckler, and +2 if they're using a heavy "
+        "shield of tower shield. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_SHIELD_WALL);
+  feat_prereq_feat(FEAT_SHIELD_WALL, FEAT_ARMOR_PROFICIENCY_SHIELD, 1);
+  feato(FEAT_SHIELDED_CASTER, "shielded caster", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Gain a +4 bonus to concentration checks plus an extra bonus for every party member with this feat who is using a shield.",
+        "Gain a +4 bonus to concentration checks plus an extra bonus for every party member with this feat who is using a shield. "
+        "The bonus per party member is +1 if they're using a small shield or buckler, and +2 if they're using a heavy "
+        "shield of tower shield. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_SHIELDED_CASTER);
+  feato(FEAT_STEALTH_SYNERGY, "stealth synergy", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "Each member of the party will use the best stealth skill value from all party members with this feat.",
+        "Each member of the party will use the best stealth skill value from all party members with this feat. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_STEALTH_SYNERGY);
+  feato(FEAT_TANDEM_TRIP, "tandem trip", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
+        "All trip attempts will roll d20 twice and take the best result. ",
+        "All trip attempts will roll d20 twice and take the best result. "
+        "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
+  teamworkfeat(FEAT_TANDEM_TRIP);
+
   /* self explanatory */
   feato(FEAT_LAST_FEAT, "do not take me", FALSE, FALSE, FALSE, FEAT_TYPE_NONE, "placeholder feat", "placeholder feat");
 
@@ -4032,6 +4268,9 @@ void assign_feats(void)
   dailyfeat(FEAT_SHADOW_POWER, eSHADOWPOWER);
   dailyfeat(FEAT_TOUCH_OF_CORRUPTION, eTOUCHOFCORRUPTION);
   dailyfeat(FEAT_CHANNEL_ENERGY, eCHANNELENERGY);
+  dailyfeat(FEAT_JUDGEMENT, eJUDGEMENT);
+  dailyfeat(FEAT_BANE, eBANE);
+  dailyfeat(FEAT_TRUE_JUDGEMENT, eTRUEJUDGEMENT);
   /** END **/
 }
 
@@ -4120,6 +4359,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
     case CASTING_TYPE_DIVINE:
       if (!(IS_CLERIC(ch) ||
             IS_DRUID(ch) ||
+            IS_INQUISITOR(ch) ||
             IS_PALADIN(ch) ||
             IS_RANGER(ch)))
         return FALSE;
@@ -4127,6 +4367,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
       {
         if (compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 &&
+            compute_slots_by_circle(ch, CLASS_INQUISITOR, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_RANGER, prereq->values[2]) == 0)
           return FALSE;
@@ -4140,6 +4381,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
         if (compute_slots_by_circle(ch, CLASS_WIZARD, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_SORCERER, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_BARD, prereq->values[2]) == 0 &&
+            compute_slots_by_circle(ch, CLASS_INQUISITOR, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_CLERIC, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_PALADIN, prereq->values[2]) == 0 &&
             compute_slots_by_circle(ch, CLASS_DRUID, prereq->values[2]) == 0 &&
@@ -5899,6 +6141,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (%dd6)", feat_list[i].name, HAS_FEAT(ch, FEAT_BOMBS));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_JUDGEMENT)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_JUDGEMENT));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%dx/day)", feat_list[i].name, HAS_FEAT(ch, FEAT_JUDGEMENT));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_TEAMWORK)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TEAMWORK));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (x%d)", feat_list[i].name, HAS_FEAT(ch, FEAT_TEAMWORK));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

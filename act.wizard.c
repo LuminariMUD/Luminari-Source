@@ -970,6 +970,12 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
                  domain_list[GET_2ND_DOMAIN(k)].name);
     draw_line(ch, line_length, '-', '-');
   }
+  else if (CLASS_LEVEL(ch, CLASS_INQUISITOR))
+  {
+    send_to_char(ch, "\tc1st Domain: \tn%s\tc.\r\n",
+                 domain_list[GET_1ST_DOMAIN(ch)].name);
+    draw_line(ch, line_length, '-', '-');
+  }
 
   if (CLASS_LEVEL(k, CLASS_WIZARD))
   {

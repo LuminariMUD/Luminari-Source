@@ -37,6 +37,12 @@ ACMDU(do_say)
     return;
   }
 
+  if (AFF_FLAGGED(ch, AFF_SILENCED))
+  {
+    send_to_char(ch, "You can't seem to make a sound.\r\n");
+    return;
+  }
+
   skip_spaces(&argument);
 
   if (!*argument)
@@ -198,6 +204,8 @@ static int is_tell_ok(struct char_data *ch, struct char_data *vict)
     send_to_char(ch, "You can't tell other people while you have notell on.\r\n");
   else if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
     send_to_char(ch, "The walls seem to absorb your words.\r\n");
+  else if (AFF_FLAGGED(ch, AFF_SILENCED))
+    send_to_char(ch, "You can't seem to make a sound..\r\n");
   else if (!IS_NPC(vict) && !vict->desc) /* linkless */
     act("$E's linkless at the moment.", FALSE, ch, 0, vict, TO_CHAR | TO_SLEEP);
   else if (PLR_FLAGGED(vict, PLR_WRITING))
@@ -528,6 +536,12 @@ ACMDU(do_gen_comm)
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
   {
     send_to_char(ch, "The walls seem to absorb your words.\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SILENCED) && subcmd != SCMD_CHAT)
+  {
+    send_to_char(ch, "You are unable to make a sound.\r\n");
     return;
   }
 

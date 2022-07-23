@@ -511,6 +511,7 @@ void compute_char_cap(struct char_data *ch)
         wis_cap += class_level / 4 + 1;
         break;
       case CLASS_CLERIC:
+      case CLASS_INQUISITOR:
         str_cap += class_level / 4 + 1;
         cha_cap += class_level / 4 + 1;
         wis_cap += class_level / 4 + 1;

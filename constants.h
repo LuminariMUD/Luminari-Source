@@ -127,8 +127,10 @@ extern const int cleric_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int paladin_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int ranger_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int bard_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
+extern const int inquisitor_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int bard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
+extern const int inquisitor_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int sorcerer_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int wizard_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int alchemist_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
@@ -154,6 +156,9 @@ extern const char *blackguard_cruelties[];
 extern const char *blackguard_cruelty_descriptions[];
 extern const int blackguard_cruelty_levels[];
 extern const int blackguard_cruelty_affect_types[];
+extern const char *inquisitor_judgements[];
+extern const char *inquisitor_judgement_descriptions[];
+extern const char *class_short_descriptions[];
 
 /* NewCraft */
 extern const char *craft_flags[];

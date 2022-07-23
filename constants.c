@@ -603,6 +603,34 @@ const int blackguard_cruelty_affect_types[] = {
 };
 CHECK_TABLE_SIZE(blackguard_cruelty_affect_types, NUM_BLACKGUARD_CRUELTIES + 1);
 
+const char *inquisitor_judgements[] = {
+    "",
+    "Destruction",
+    "Healing",
+    "Justice",
+    "Piercing",
+    "Protection",
+    "Purity",
+    "Resiliency",
+    "Resistance",
+    "\n"
+};
+CHECK_TABLE_SIZE(inquisitor_judgements, NUM_INQ_JUDGEMENTS + 1);
+
+const char *inquisitor_judgement_descriptions[] = {
+    "",
+    "+1 sacred bonus on damage rolls per 3 Inquisitor levels.",
+    "fast healing 1 per 3 Inquisitor levels.",
+    "+1 sacred bonus on attack rolls per 5 Inquisitor levels. At level 10 this is doubled on checks to confirm critical hits.",
+    "+1 sacred bonus on concentration checks and checks to overcome spell resistance per 3 Inquisitor levels.",
+    "+1 sacred bonus to AC per 5 Inquisitor levels. At level 10 this is doubled against critical hit confirmation rolls.",
+    "+1 sacred bonus to all saving throws per 5 Inquitisor levels. At level 10 this is doubled against poison, disease and curses.",
+    "receieve DR 1/- per 5 Inquisitor levels.",
+    "receive 4 points of energy resistance (acid, cold, electricity, fire, and sonic) for every 3 Inquisitor levels.",
+    "\n"
+};
+CHECK_TABLE_SIZE(inquisitor_judgement_descriptions, NUM_INQ_JUDGEMENTS + 1);
+
 const char *class_names[] = {
     "Wizard", //0
     "Cleric",
@@ -630,6 +658,7 @@ const char *class_names[] = {
     "Shadow Dancer",
     "Blackguard",
     "Assassin",
+    "Inquisitor",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -1538,82 +1567,82 @@ const char *affected_bits[] = {
     "Invisible",
     "Detect-Alignment",
     "Detect-Invisible",
-    "Detect-Magic", //5
+    "Detect-Magic", // 5
     "Sense-Life",
     "Water-Walk",
     "Sanctuary",
     "OnLoad MobGroup",
-    "Cursed", //10
+    "Cursed", // 10
     "Infra-Vision",
     "Poison",
     "Protect-Evil",
     "Protect-Good",
-    "Sleep", //15
+    "Sleep", // 15
     "Not-Trackable",
     "Flying",
     "Underwater-Breathing",
     "Sneaking",
-    "Hiding", //20
+    "Hiding", // 20
     "Vampiric-Curse",
     "Charmed",
     "Blurred",
     "Mode-PowerAttack",
-    "Mode-Expertise", //25
+    "Mode-Expertise", // 25
     "Hasted",
     "Mode-Total-Defense",
     "Protect-Elements",
     "Deaf",
-    "Fear", //30
+    "Fear", // 30
     "Stunned",
     "Paralyzed",
     "Ultra-Vision",
     "Grappled",
-    "Tamed", //35
+    "Tamed", // 35
     "Climb",
     "Nauseated",
     "Non-Detection",
     "Slowed",
-    "Fire-Shielded", //40
+    "Fire-Shielded", // 40
     "Cold-Shielded",
     "Minor-Globed",
     "Acid-Shielded",
     "Size-Changed",
-    "True-Sight", //45
+    "True-Sight", // 45
     "Spot-Mode",
     "Fatigued",
     "Regenerating",
     "Diseased",
-    "T-Transform", //50
+    "T-Transform", // 50
     "Globe-of-Invuln",
     "Listen-Mode",
     "Displaced",
     "Spell-Mantled",
-    "Confused", //55
+    "Confused", // 55
     "Refuged",
     "Spell-Turning",
     "Mind-Blanked",
     "Shadow-Shielded",
-    "Time-Stopped", //60
+    "Time-Stopped", // 60
     "Bravery",
     "Free-Movement",
     "Faerie-Fired",
     "Battletide",
-    "Spell-Resistant", //65
+    "Spell-Resistant", // 65
     "Dimensional-Locked",
     "Death-Ward",
     "Mode-Spellbattle",
     "Vampiric-Touch",
-    "Blackmantled", //70
+    "Blackmantled", // 70
     "Danger-Sense",
     "SafeFall",
     "Tower-of-Iron-Will",
     "Inertial-Barrier",
-    "Not-teleportable", //75
+    "Not-teleportable", // 75
     "DamageBoost",      // AFF_MAX_DAMAGE
     "Incorporeal",
     "Caged",
     "Mage-Flamed",
-    "Dark-Vision", //80
+    "Dark-Vision", // 80
     "Body-Weaponry",
     "Farsee",
     "Menz-Choker",
@@ -1623,7 +1652,7 @@ const char *affected_bits[] = {
     "Dual-wield",
     "Flurry-of-Blows",
     "Counterspell",
-    "Defensive-Casting", //90
+    "Defensive-Casting", // 90
     "Whirlwind-Attack",
     "Charging",
     "WildShape",
@@ -1643,6 +1672,9 @@ const char *affected_bits[] = {
     "Shaken",
     "Electric-Shielded",
     "Sickened",
+    "Silenced",
+    "Hidden-Alignment",
+    "Wind-Wall",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1659,111 +1691,114 @@ const char *affected_bit_descs[] = {
     "You are invisible.",
     "You can sense the the auras of others.",
     "You can see the invisible.",
-    "You can sense the auras of object imbued with magic.", //5
+    "You can sense the auras of object imbued with magic.", // 5
     "You can sense living creatures.",
     "You can walk on water.",
     "SHOULD NOT SEE - CONTACT STAFF",
     "SHOULD NOT SEE - CONTACT STAFF",
-    "You have been cursed.", //10
+    "You have been cursed.", // 10
     "You can see in the infra-red spectrum.",
     "You have been poisoned.",
     "You are warded against evil.",
     "You are warded against good.",
-    "You are afflicted with magical sleep.", //15
+    "You are afflicted with magical sleep.", // 15
     "You cannot be tracked.",
     "You are flying.",
     "You can breathe underwater.",
     "You are attempting to move quietly.",
-    "You are attempting to hide.", //20
+    "You are attempting to hide.", // 20
     "You are afflicted with a vampiric curse.",
     "You are controlled by another.",
     "Your form is blurred.",
     "You sacrifice accuracy to inflict more damage in battle.",
-    "You sacrifice accuracy to improve your defense.", //25
+    "You sacrifice accuracy to improve your defense.", // 25
     "You are moving supernaturally fast.",
     "You are focusing on total defense.",
     "You are protected from the elements.",
     "You can't hear a thing.",
-    "You are terrified.", //30
+    "You are terrified.", // 30
     "You are stunned.",
     "You can't move!",
     "You can see in the ultra-violet spectrum.",
     "You are grappled.",
-    "You are tamed.", //35
+    "You are tamed.", // 35
     "You can climb anything.",
     "You are nauseated.",
     "You are shielded from scrying magic.",
     "You are moving more slowly than usual.",
-    "You are surrounded by a shield of flames.", //40
+    "You are surrounded by a shield of flames.", // 40
     "You are surrounded by a shield of swirling snow.",
     "You are protected by a minor globe of invulnerability.",
     "You are surrounded by a shield of corrosive acid.",
     "You are not your usual size.",
-    "Your vision is supernaturally clear.", //45
+    "Your vision is supernaturally clear.", // 45
     "You are actively observing your surroundings.",
     "You are fatigued.",
     "Your body is healing at an increased rate.",
     "You are suffering from a disease.",
-    "You are under the effect of Tenser's Transformation", //50
+    "You are under the effect of Tenser's Transformation", // 50
     "You are protected by a globe of invulnerability.",
     "You are actively listening to your surroundings.",
     "Your are not where you seem to be.",
     "You are protected by a spell mantle.",
-    "You are confused.", //55
+    "You are confused.", // 55
     "You have taken refuge.",
     "You turn magic that targets you.",
     "Your mind is blank.",
     "The shadows shield you from harm.",
-    "You have stopped time.", //60
+    "You have stopped time.", // 60
     "You feel brave.",
     "You can move freely in any environment.",
     "Your outline is highlighted by purple and pink flames.",
     "You are battle incarnate.",
-    "You are resistant to spells.", //65
+    "You are resistant to spells.", // 65
     "You are locked to this plane of existence.",
     "You are warded from death magic.",
     "You are under the effect of Spellbattle.",
     "You have a vampiric touch.",
-    "Your body does not heal as it should.", //70
+    "Your body does not heal as it should.", // 70
     "You can innately sense danger.",
     "You can fall from any height unharmed.",
     "You are resistant to psionic damage.",
     "SHOULD NOT SEE - CONTACT STAFF",
-    "You can not be targeted by teleportation magic.", //75
+    "You can not be targeted by teleportation magic.", // 75
     "Your next attack will deal additional damage.",   // AFF_MAX_DAMAGE
     "You are incorporeal",
     "You have been caged and can not interact with anyone.",
     "You are glowing.",
-    "You can see in the dark.", //80
+    "You can see in the dark.", // 80
     "Your body is a weapon.",
     "You can see farther than others.",
     "Your items synergize with each other.",
     "You are firing your ranged weapons more quickly.",
-    "You are dazed.", //85
+    "You are dazed.", // 85
     "You have been caught unawares.",
     "You are fighting with two weapons.",
     "You are attacking with a flurry of blows.",
     "You will counter any spell you can.",
-    "You are casting defensively.", //90
+    "You are casting defensively.", // 90
     "You will spread your attacks among all of your enemies.",
     "You are charging into battle.",
     "You are shape-changed into a different race.",
     "You have been feinted in combat (flat-footed).",
-    "You are pinned.", //95
+    "You are pinned.", // 95
     "Duplicate illusionary images of you exist.",
     "You have a powerful ward on you (melee damage absorb).",
     "You are entangled (can't move).",
     "You feel more acrobatic!",
-    "You are blinking between prime and ethereal planes!", //100
+    "You are blinking between prime and ethereal planes!", // 100
     "You are aware of backstab attempts now!",
     "You have been crippled by a nasty critical attack!",
     "You are levitating above the ground!",
     "You are suffering bleed damage each round until healed!",
-    "You are staggered - 50% chance to fail spells or a single melee attack!", //105
+    "You are staggered - 50% chance to fail spells or a single melee attack!", // 105
     "You are dazzled and will suffer -1 to attacks and perception checks!",
     "You are shaken: -2 to attack rolls, saves and skills checks!",
     "You are surrounded by a shield of sparking electricity.",
     "You feel sickened and weak.",
+    "You are unable to make a sound.",
+    "Your alignment is hidden from others.",
+    "You are surrounded by a wall of wind",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
@@ -3515,19 +3550,20 @@ const char *requirement_flags[] = {
 
 /* Feat types  */
 const char *feat_types[] = {
-    "none", //0
+    "none", // 0
     "general ability",
     "combat feat",
     "spellcasting feat",
     "metamagic feat",
-    "craft feat", //5
+    "craft feat", // 5
     "wild feat",
     "divine feat",
     "psionic feat",
-    "class feat",
-    "innate ability", // 10
+    "teamwork feat",
+    "class feat", // 10
+    "innate ability",
     "domain power",
-    "performance feat", //12
+    "performance feat", // 13
     "\n"};
 
 const char *ability_names[] = {
@@ -3743,6 +3779,46 @@ const int bard_slots[][NUM_CIRCLES + 1] = {
 };
 CHECK_TABLE_SIZE(bard_slots, LVL_IMPL + 1);
 
+const int inquisitor_slots[][NUM_CIRCLES + 1] = {
+    // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
+    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
+    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
+    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
+    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
+    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
+    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  // 34
+};
+CHECK_TABLE_SIZE(inquisitor_slots, LVL_IMPL + 1);
+
 /** known spells for sorcs **/
 const int sorcerer_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
@@ -3824,6 +3900,47 @@ const int bard_known[][NUM_CIRCLES + 1] = {
     {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  //34
 };
 CHECK_TABLE_SIZE(bard_known, LVL_IMPL + 1);
+
+/** known spells for inquisitors **/
+const int inquisitor_known[][NUM_CIRCLES + 1] = {
+    // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
+    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
+    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
+    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
+    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
+    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
+    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
+    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
+    {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  // 34
+};
+CHECK_TABLE_SIZE(inquisitor_known, LVL_IMPL + 1);
 
 const int ranger_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
@@ -4068,6 +4185,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        /* shadowdancer 23 */
     {"condemn", "condemning", "condemned", "condemnations"}, /* blackguard 24 */
     {"", "", "", ""},                                        /* assassin */
+    {"compel", "compelling", "compelled", "compellings"},    /* inquisitor */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4105,6 +4223,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                            /* shadow dancer 23 */
     {"uncondemn", "uncondemned", "uncondemning", "uncondemned"}, /* blackguard 24 */
     {"", "", "", ""},                                            /* assassin 25 */
+    {"exempt", "exempted", "exempting", "exempt"},               /* inquisitor 26 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -4569,6 +4688,37 @@ const char *random_surnames[NUM_SURNAMES + 1] = {
     "Cracaryn",
     "Heixina",
     "\n"};
+
+const char *class_short_descriptions[] = {
+    "A skilled user of magic whose knowledge of the arcane is unmatched.",                                         // wizard
+    "A servant of a deity whose divine magic is unparalled.",                                                      // cleric
+    "A skilled agent who strikes from the shadows and is skilled in many areas",                                   // rogue
+    "A master of weapons, armor and maximizing the use of both in battle.",                                        // warrior
+    "A disciplined warrior who has mastered the mind and body and can kill with just their fist.",                 // monk
+    "A keeper of the wild using spells and the ability to shapechange into many different creatures.",             // druid
+    "A wild warrior who relies on brute strength and their ability to enter a battle rage.",                       // berserker
+    "An arcane spell master who gains his ability from mystical sources, offering spellcasting prowess and more.", // sorcerer
+    "A righteous warrior who protects the innocent with spells, weapons, and as a champion against evil.",         // paladin
+    "A woodland warrior who is master of the bow and dual weapons, and specializes against specific foes.",        // ranger
+    "A jack-of-all-trades who combines magic with their party-boosting songs and performances.",                   // bard
+    "A master of specific weapons who, while wielding them, is without equal in their use.",                       // weaponmaster
+    "A master archer who combines spellcasting with the bow.",                                                     // arcane archer
+    "A defensive specialist who stands against the fray while protecting their allies.",                           // stalwart defender
+    "A master shapechanger who can take the form of many powerful entities.",                                      // shifter
+    "A master of the single blade, they are deadly on both the offensive and defensive.",                          // duelist
+    "A powerful spellcaster who combines the use of both divine and arcane mystic arts.",                          // mystic theurge
+    "A brilliant inventor whose magical concoctions, mutagens and bombs, make him a fearsome & deadly foe.",       // alchemist
+    "A shadowy spellcaster who combines stealth and magic to defeat their foes unawares.",                         // arcane shadow
+    "A master of unarmed combat and divine magic whose fists blaze with burning flame.",                           // sacred fist
+    "A warrior spellcaster whose weapon allows them to swiftly barrage their enemy with arcane magics.",           // eldritch knight
+    "A master of the mind who can manipulate reality and destroy his foes with psionic power.",                    // psionicist
+    "An arcane warrior who imbues his weapon with magic to unleash on his enemies with each blow.",                // spellsword
+    "A master of shadow and stealth who can meld easily with the shadows and even bring them to life.",            // shadowdancer
+    "An agent of evil who stamps out the righteous, and all who stand in his way, with blade and divine magic.",   // blackguard
+    "A hired killed whose ability to observe and plan spell doom for his enemies without ever showing his face.",  // assassin
+    "An agent of the divine who tracks down his deity's enemies and judges them with weapons and spells.",         // inquisitor
+    ""};
+CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
 /* --- End of constants arrays. --- */
 
