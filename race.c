@@ -1034,9 +1034,10 @@ void assign_races(void)
                                "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
                                "might simply kill another or drive him insane. "
                                "\r\n\r\n"
-                               "Please note that a Lich is the only Epic Race that can multi-class.  "
-                               "Please note that becoming a lich requires level 30 and will reset your exp to 0.  "
-                               "Please note that a Lich has all the advantages/disadvantages of being Undead.  ",
+                               "Please note that a Lich will be the same size class they were before the transformation.\r\n  "
+                               "Please note that a Lich is the only Epic Race that can multi-class.\r\n  "
+                               "Please note that becoming a lich requires level 30 and will reset your exp to 0.\r\n  "
+                               "Please note that a Lich has all the advantages/disadvantages of being Undead.\r\n  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
   set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
