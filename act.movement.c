@@ -55,8 +55,8 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
 #define DOOR_IS_OPEN(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
                                                               CONT_CLOSED)) \
                                            : (!EXIT_FLAGGED(EXIT(ch, door), EX_CLOSED)))
-#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,          \
-                                                                  CONT_LOCKED)) \
+#define DOOR_IS_UNLOCKED(ch, obj, door) ((obj) ? (!OBJVAL_FLAGGED(obj,                                                                         \
+                                                                  CONT_LOCKED))                                                                \
                                                : (!EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_EASY) && \
                                                   !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_MEDIUM) && !EXIT_FLAGGED(EXIT(ch, door), EX_LOCKED_HARD)))
 #define DOOR_IS_PICKPROOF(ch, obj, door) ((obj) ? (OBJVAL_FLAGGED(obj,             \
@@ -311,7 +311,7 @@ EVENTFUNC(event_falling)
     { /* woo! avoided damage */
       send_to_char(ch, "You gracefully land on your feet from your perilous fall!\r\n");
       act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);
-      return 0; //end event
+      return 0; // end event
     }
     else
     { /* ok we know damage is going to be suffered at this stage */
@@ -338,7 +338,7 @@ EVENTFUNC(event_falling)
       else
       {
         damage(ch, ch, dam, TYPE_UNDEFINED, DAM_FORCE, FALSE);
-        return 0; //end event
+        return 0; // end event
       }
     }
   }
@@ -524,10 +524,10 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     return;
   }
 
-  /* 
-    Here we create the track structure, set the values and assign it to the room. 
-    At the same time, we can prune off any really old trails.  Threshold is set, 
-    in seconds, in trails.h.  Eventually this cna be adjusted based on weather - 
+  /*
+    Here we create the track structure, set the values and assign it to the room.
+    At the same time, we can prune off any really old trails.  Threshold is set,
+    in seconds, in trails.h.  Eventually this cna be adjusted based on weather -
     rain/show/wind can all obscure trails.
   */
 
@@ -555,7 +555,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
     {
       if (prev != NULL)
       {
-        //if (prev->next != NULL) DISPOSE(prev->next);
+        // if (prev->next != NULL) DISPOSE(prev->next);
         prev->next = cur->next;
         if (cur->next != NULL)
         {
@@ -567,7 +567,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
         room->trail_tracks->head = cur->next;
         if (cur->next != NULL)
         {
-          //if (cur->next->prev != NULL) DISPOSE(cur->next->prev);
+          // if (cur->next->prev != NULL) DISPOSE(cur->next->prev);
           cur->next->prev = NULL;
         }
       }
@@ -643,8 +643,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* The following is to support the wilderness code. */
   if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS) && (EXIT(ch, dir)->to_room == real_room(1000000)))
   {
-    new_x = X_LOC(ch); //world[IN_ROOM(ch)].coords[0];
-    new_y = Y_LOC(ch); //world[IN_ROOM(ch)].coords[1];
+    new_x = X_LOC(ch); // world[IN_ROOM(ch)].coords[0];
+    new_y = Y_LOC(ch); // world[IN_ROOM(ch)].coords[1];
 
     /* This is a wilderness movement!  Find out which coordinates we need
      * to check, based on the dir and local coordinates. */
@@ -1056,7 +1056,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   struct char_data *mob;
   sbyte block = FALSE;
 
-  for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room) {
+  for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
+  {
     if (!IS_NPC(mob))
       continue;
 
@@ -1085,8 +1086,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       block = FALSE;
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_CLASS) && GET_CLASS(ch) == GET_CLASS(mob))
       block = FALSE;
-    //if (block && MOB_FLAGGED(mob, MOB_BLOCK_RACE_FAMILY) && race_list[GET_RACE(ch)].family == race_list[GET_RACE(mob)].family)
-    //  block = FALSE;
+    // if (block && MOB_FLAGGED(mob, MOB_BLOCK_RACE_FAMILY) && race_list[GET_RACE(ch)].family == race_list[GET_RACE(mob)].family)
+    //   block = FALSE;
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_LEVEL) && GET_LEVEL(ch) > GET_LEVEL(mob))
       block = FALSE;
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_ALIGN) && IS_GOOD(ch) > IS_GOOD(mob))
@@ -1100,13 +1101,14 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       break;
   }
 
-  if (block && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
+  if (block && !PRF_FLAGGED(ch, PRF_NOHASSLE))
+  {
     act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
     act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
     return 0;
   }
 
-  //acrobatics check
+  // acrobatics check
 
   /* for now acrobatics check disabled */
   /*************************************
@@ -1723,13 +1725,15 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         {
           snprintf(buf2, sizeof(buf2), "%s %s%s.", ch->player.walkin,
                    ((dir == UP || dir == DOWN) ? "" : "the "),
-                   (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                   (dir == UP ? "below" : dir == DOWN ? "above"
+                                                      : dirs[rev_dir[dir]]));
         }
         else
         {
           snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
                    ((dir == UP || dir == DOWN) ? "" : "the "),
-                   (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                   (dir == UP ? "below" : dir == DOWN ? "above"
+                                                      : dirs[rev_dir[dir]]));
         }
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }
@@ -1756,7 +1760,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         /* message:  mount not sneaking, rider is sneaking */
         snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
                  ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                 (dir == UP ? "below" : dir == DOWN ? "above"
+                                                    : dirs[rev_dir[dir]]));
         act(buf2, TRUE, RIDING(ch), 0, tch, TO_VICT);
       }
       else
@@ -1764,7 +1769,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         /* mount failed, rider failed */
         snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, riding %s.",
                  ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]),
+                 (dir == UP ? "below" : dir == DOWN ? "above"
+                                                    : dirs[rev_dir[dir]]),
                  GET_NAME(RIDING(ch)));
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }
@@ -1791,7 +1797,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         /* message:  mount not sneaking, rider is sneaking */
         snprintf(buf2, sizeof(buf2), "$n arrives from %s%s.",
                  ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]));
+                 (dir == UP ? "below" : dir == DOWN ? "above"
+                                                    : dirs[rev_dir[dir]]));
         act(buf2, TRUE, ch, 0, tch, TO_VICT);
       }
       else
@@ -1799,7 +1806,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
         /* mount failed, rider failed */
         snprintf(buf2, sizeof(buf2), "$n arrives from %s%s, ridden by %s.",
                  ((dir == UP || dir == DOWN) ? "" : "the "),
-                 (dir == UP ? "below" : dir == DOWN ? "above" : dirs[rev_dir[dir]]),
+                 (dir == UP ? "below" : dir == DOWN ? "above"
+                                                    : dirs[rev_dir[dir]]),
                  GET_NAME(RIDDEN_BY(ch)));
         act(buf2, TRUE, RIDDEN_BY(ch), 0, tch, TO_VICT);
       }
@@ -1934,7 +1942,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (!sensed_trap)
     check_trap(ch, TRAP_TYPE_ENTER_ROOM, ch->in_room, 0, 0);
 
-  if (!ch->master) {
+  if (!ch->master)
+  {
     // set cooldown timer on old room
     if (was_in != NOWHERE && ZONE_FLAGGED(GET_ROOM_ZONE(was_in), ZONE_WILDERNESS))
     {
@@ -1982,7 +1991,7 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     {
       ch->char_specials.autodoor_message = false;
       snprintf(open_cmd, sizeof(open_cmd), " %s", dirs[dir]);
-      //send_to_char(ch, "CMD: %s\r\n", open_cmd);
+      // send_to_char(ch, "CMD: %s\r\n", open_cmd);
       do_gen_door(ch, open_cmd, 0, SCMD_OPEN);
       if (ch->char_specials.autodoor_message)
       {
@@ -2028,7 +2037,7 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
         perform_move(k->follower, dir, 1);
       }
     }
-    
+
     return (1);
   }
   return (0);
@@ -2291,8 +2300,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     }
     else
     {
-      //if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
-      //  return;
+      // if (check_trap(ch, TRAP_TYPE_UNLOCK_DOOR, ch->in_room, 0, door))
+      //   return;
 
       if (!ok_pick(ch, 0, EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF), SCMD_PICK, door))
       {
@@ -2312,7 +2321,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   /* Notify the room. */
   if (len < sizeof(buf))
     snprintf(buf + len, sizeof(buf) - len, "%s%s.",
-             obj ? "" : "the ", obj ? "$p" : EXIT(ch, door)->keyword ? "$F" : "door");
+             obj ? "" : "the ", obj ? "$p" : EXIT(ch, door)->keyword ? "$F"
+                                                                     : "door");
   if (!obj || IN_ROOM(obj) != NOWHERE)
     act(buf, FALSE, ch, obj, obj ? 0 : EXIT(ch, door)->keyword, TO_ROOM);
 
@@ -2330,7 +2340,7 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
 {
   int skill_lvl;
   int lock_dc = 10;
-  //struct obj_data *tools = NULL;
+  // struct obj_data *tools = NULL;
 
   if (scmd != SCMD_PICK)
     return (1);
@@ -2340,7 +2350,6 @@ int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int 
   {
     affect_from_char(ch, PSIONIC_BREACH);
   }
-  
 
   /* this is a hack of sorts, we have some abuse of charmies being used to pick
      locks, so we add some penalties and restirctions here */
@@ -2456,7 +2465,7 @@ ACMD(do_gen_door)
     else if (!(DOOR_IS_LOCKED(ch, obj, door)) &&
              IS_SET(flags_door[subcmd], NEED_LOCKED))
       send_to_char(ch, "Oh.. it wasn't locked, after all..\r\n");
-    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && 
+    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
              ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (has_key(ch, keynum)))
     {
       send_to_char(ch, "It is locked, but you have the key.\r\n");
@@ -2465,8 +2474,8 @@ ACMD(do_gen_door)
       do_doorcmd(ch, obj, door, subcmd);
       ch->char_specials.autodoor_message = true;
     }
-    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) && 
-            ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum)))
+    else if (!(DOOR_IS_UNLOCKED(ch, obj, door)) && IS_SET(flags_door[subcmd], NEED_UNLOCKED) &&
+             ((!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOKEY))) && (!has_key(ch, keynum)))
     {
       send_to_char(ch, "It is locked, and you do not have the key!\r\n");
     }
@@ -2481,7 +2490,7 @@ ACMD(do_gen_door)
     {
       do_doorcmd(ch, obj, door, subcmd);
       ch->char_specials.autodoor_message = true;
-    }    
+    }
   }
   return;
 }
@@ -2494,9 +2503,9 @@ ACMD(do_enter)
   room_rnum was_in = NOWHERE, real_dest = NOWHERE;
   struct follow_type *k = NULL;
   struct obj_data *portal = NULL;
-  //room_vnum vClanhall = NOWHERE;
-  //int iPlayerClan = 0;
-  //room_rnum rClanhall = 0;
+  // room_vnum vClanhall = NOWHERE;
+  // int iPlayerClan = 0;
+  // room_rnum rClanhall = 0;
 
   if (FIGHTING(ch))
   {
@@ -3207,24 +3216,24 @@ ACMD(do_unlead)
   act("$N stops following $n.", TRUE, ch, 0, follower, TO_NOTVICT);
 }
 
-/* i put this here for reference */
+/* I put this here for reference for below - Zusuk */
 /*
-#define POS_DEAD       0	 //Position = dead 
-#define POS_MORTALLYW  1	 //Position = mortally wounded 
-#define POS_INCAP      2	 //Position = incapacitated 
-#define POS_STUNNED    3	 //Position = stunned	
-#define POS_SLEEPING   4	 //Position = sleeping 
-#define POS_RECLINING  5	 //Position = reclining 
-#define POS_RESTING    6	 //Position = resting	
-#define POS_SITTING    7	 //Position = sitting	
-#define POS_FIGHTING   8	 //Position = fighting 
-#define POS_STANDING   9	 //Position = standing 
+#define POS_DEAD       0	 //Position = dead
+#define POS_MORTALLYW  1	 //Position = mortally wounded
+#define POS_INCAP      2	 //Position = incapacitated
+#define POS_STUNNED    3	 //Position = stunned
+#define POS_SLEEPING   4	 //Position = sleeping
+#define POS_RECLINING  5	 //Position = reclining
+#define POS_RESTING    6	 //Position = resting
+#define POS_SITTING    7	 //Position = sitting
+#define POS_FIGHTING   8	 //Position = fighting
+#define POS_STANDING   9	 //Position = standing
  */
 
-/* in: character, position change 
-   out: as of this writing, nothing yet 
+/* in: character, position change
+   out: as of this writing, nothing yet
    function:  changing a position use to be just GET_POS(ch) = POS_X, but
-              that did not account for dynamic changes that would be connected 
+              that did not account for dynamic changes that would be connected
               to the change in position..  the classic example is the combat
               maneuver TRIP, which would change your position from POS_STANDING to
               POS_SITTING, if the victim is casting, then they should be -immediately-
@@ -3685,20 +3694,21 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   // if mounted, we'll use the mount's speed instead.
   if (RIDING(ch))
-   return get_speed(RIDING(ch), to_display);
+    return get_speed(RIDING(ch), to_display);
 
   int speed = 30;
 
-  if (!IS_NPC(ch)) {
+  if (!IS_NPC(ch))
+  {
     switch (GET_RACE(ch))
     {
-      case RACE_DWARF:
-      case RACE_DUERGAR:
-      case RACE_CRYSTAL_DWARF:
-      case RACE_HALFLING:
-      case RACE_GNOME:
-        speed = 25;
-        break;
+    case RACE_DWARF:
+    case RACE_DUERGAR:
+    case RACE_CRYSTAL_DWARF:
+    case RACE_HALFLING:
+    case RACE_GNOME:
+      speed = 25;
+      break;
     }
   }
 

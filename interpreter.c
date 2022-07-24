@@ -251,9 +251,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
-
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dc", "dc", POS_DEAD, do_dc, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -321,11 +321,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"extracts", "extracts", POS_RECLINING, do_spells, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-    {"exchange", "exchange", POS_RECLINING, do_exchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"exempt", "exempt", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_EXEMPT, FALSE, ACTION_NONE, {0, 0}, NULL},
-
+    
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
-
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"force", "force", POS_SLEEPING, do_force, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
