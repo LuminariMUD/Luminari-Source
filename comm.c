@@ -339,7 +339,7 @@ int main(int argc, char **argv)
       break;
     case 'h':
       /* From: Anil Mahajan. Do NOT use -C, this is the copyover mode and
-         * without the proper copyover.dat file, the game will go nuts! */
+       * without the proper copyover.dat file, the game will go nuts! */
       printf("Usage: %s [-c] [-m] [-q] [-r] [-s] [-d pathname] [port #]\n"
              "  -c             Enable syntax check mode.\n"
              "  -d <directory> Specify library directory (defaults to 'lib').\n"
@@ -502,7 +502,7 @@ void copyover_recover()
 
     new_mobile_data(d->character);
     /* Allocate mobile event list */
-    //d->character->events = create_list();
+    // d->character->events = create_list();
 
     d->character->desc = d;
 
@@ -755,7 +755,7 @@ static int get_max_players(void)
 #endif
   method = "OPEN_MAX";
   max_descs = OPEN_MAX; /* Uh oh.. rlimit didn't work, but we have
-				 * OPEN_MAX */
+                         * OPEN_MAX */
 #elif defined(_SC_OPEN_MAX)
   /* Okay, you don't have getrlimit() and you don't have OPEN_MAX.  Time to
    * try the POSIX sysconf() function.  (See Stevens' _Advanced Programming
@@ -1036,7 +1036,7 @@ void game_loop(socket_t local_mother_desc)
       /* Ornir's attempt to remove blank lines */
       if (!d->has_prompt && !d->pProtocol->WriteOOB)
       {
-        //if (!d->has_prompt) {
+        // if (!d->has_prompt) {
         write_to_descriptor(d->descriptor, make_prompt(d));
         d->has_prompt = TRUE;
       }
@@ -1118,7 +1118,7 @@ void proc_update()
   for (obj = object_list; obj; obj = obj->next)
   {
 
-    //start_fall_object_event(obj);
+    // start_fall_object_event(obj);
     if (!OBJ_FLAGGED(obj, ITEM_AUTOPROC) || (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
       continue;
 
@@ -1156,7 +1156,7 @@ void heartbeat(int heart_pulse)
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))
     regen_psp();
 
-  if (!(heart_pulse % (int) (PASSES_PER_SEC * 0.75)))
+  if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))
     process_walkto_actions();
 
   if (!(heart_pulse % (PASSES_PER_SEC * 60)))
@@ -1192,11 +1192,10 @@ void heartbeat(int heart_pulse)
     /* Next line removed as part of conversion from pulse to event-based combat */
     //    perform_violence();
     PERF_PROF_ENTER(pr_aff_update_, "affect_update");
-    affect_update(); //affect updates transformed into "rounds"
+    affect_update(); // affect updates transformed into "rounds"
     PERF_PROF_EXIT(pr_aff_update_);
-    proc_d20_round();
+    proc_d20_round(); /* for encounter code */
     hunt_reset_timer--;
-
   }
 
   /*  Pulse_Luminari was built to throw in customized Luminari
@@ -1389,7 +1388,7 @@ static char *make_prompt(struct descriptor_data *d)
   struct char_data *ch = NULL;
   int count = 0, prompt_size = 0;
   size_t len = 0;
-  //bool found = TRUE;
+  // bool found = TRUE;
 
   /* Note, prompt is truncated at MAX_PROMPT_LENGTH chars (structs.h) */
 
@@ -1462,9 +1461,15 @@ static char *make_prompt(struct descriptor_data *d)
       if (PRF_FLAGGED(d->character, PRF_DISPHP) && len < sizeof(prompt))
       {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%s%d%s/%s%d%sH%s ",
-                         hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ? CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) : hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
+                         hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ? CBGRN(ch, C_CMP)
+                                                             : hit_percent >= 65   ? CCCYN(ch, C_CMP)
+                                                             : hit_percent >= 25   ? CBYEL(ch, C_CMP)
+                                                                                   : CBRED(ch, C_CMP),
                          GET_HIT(d->character), CCNRM(d->character, C_NRM),
-                         hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ? CBGRN(ch, C_CMP) : hit_percent >= 65 ? CCCYN(ch, C_CMP) : hit_percent >= 25 ? CBYEL(ch, C_CMP) : CBRED(ch, C_CMP),
+                         hit_percent >= 100 ? CCWHT(ch, C_CMP) : hit_percent >= 90 ? CBGRN(ch, C_CMP)
+                                                             : hit_percent >= 65   ? CCCYN(ch, C_CMP)
+                                                             : hit_percent >= 25   ? CBYEL(ch, C_CMP)
+                                                                                   : CBRED(ch, C_CMP),
                          GET_MAX_HIT(d->character), CCYEL(d->character, C_NRM),
                          CCNRM(d->character, C_NRM));
         if (count >= 0)
@@ -1628,11 +1633,11 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-            // display time
+      // display time
       if (PRF_FLAGGED(d->character, PRF_DISPTIME) && len < sizeof(prompt))
       {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%sTime:%s%d%s ",
-                        CCYEL(d->character, C_NRM), CCNRM(ch, C_NRM), (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12), (time_info.hours >= 12) ? "pm" : "am");
+                         CCYEL(d->character, C_NRM), CCNRM(ch, C_NRM), (time_info.hours % 12 == 0) ? 12 : (time_info.hours % 12), (time_info.hours >= 12) ? "pm" : "am");
 
         if (count >= 0)
           len += count;
@@ -2175,7 +2180,7 @@ static void init_descriptor(struct descriptor_data *newd, int desc)
   *newd->output = '\0';
   newd->bufptr = 0;
   newd->has_prompt = 1;                                                            /* prompt is part of greetings */
-  STATE(newd) = CONFIG_PROTOCOL_NEGOTIATION ? CON_GET_PROTOCOL : CON_ACCOUNT_NAME; //CON_GET_NAME;
+  STATE(newd) = CONFIG_PROTOCOL_NEGOTIATION ? CON_GET_PROTOCOL : CON_ACCOUNT_NAME; // CON_GET_NAME;
   CREATE(newd->history, char *, HISTORY_SIZE);
   if (++last_desc == 1000)
     last_desc = 1;
@@ -2294,7 +2299,7 @@ static int process_output(struct descriptor_data *t)
   strcpy(osb, t->output); /* strcpy: OK (t->output:LARGE_BUFSIZE < osb:MAX_SOCK_BUF-2) */
 
   // color code fix attempt -zusuk
-  //parse_at(osb);
+  // parse_at(osb);
 
   /* if we're in the overflow state, notify the user */
   /* Ornir attempt to remove blank lines */
@@ -2947,7 +2952,7 @@ static void check_idle_passwords(void)
   for (d = descriptor_list; d; d = next_d)
   {
     next_d = d->next;
-    if (STATE(d) != CON_PASSWORD && STATE(d) != CON_ACCOUNT_NAME) //CON_GET_NAME)
+    if (STATE(d) != CON_PASSWORD && STATE(d) != CON_ACCOUNT_NAME) // CON_GET_NAME)
       continue;
     if (!d->idle_tics)
     {
@@ -2956,7 +2961,7 @@ static void check_idle_passwords(void)
     }
     else
     {
-      //echo_on(d);
+      // echo_on(d);
       ProtocolNoEcho(d, false);
       write_to_output(d, "\r\nTimed out... goodbye.\r\n");
       STATE(d) = CON_CLOSE;
@@ -3720,10 +3725,10 @@ static void handle_webster_file(void)
   page_string(ch->desc, retval, 1);
 }
 
-#define MODE_NORMAL_HIT 0      //Normal damage calculating in hit()
-#define MODE_DISPLAY_PRIMARY 2 //Display damage info primary
-#define MODE_DISPLAY_OFFHAND 3 //Display damage info offhand
-#define MODE_DISPLAY_RANGED 4  //Display damage info ranged
+#define MODE_NORMAL_HIT 0      // Normal damage calculating in hit()
+#define MODE_DISPLAY_PRIMARY 2 // Display damage info primary
+#define MODE_DISPLAY_OFFHAND 3 // Display damage info offhand
+#define MODE_DISPLAY_RANGED 4  // Display damage info ranged
 
 /* KaVir's plugin*/
 void update_msdp_room(struct char_data *ch)
@@ -3864,7 +3869,7 @@ static void msdp_update(void)
   struct descriptor_data *d;
   int PlayerCount = 0;
   int door, sector;
-  //int damage_bonus = 0;
+  // int damage_bonus = 0;
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -3939,7 +3944,7 @@ static void msdp_update(void)
       strip_colors(buf);
       MSDPSetString(d, eMSDP_RACE, buf);
 
-      //sprinttype(ch->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
+      // sprinttype(ch->player.chclass, CLSLIST_NAME, buf, sizeof (buf));
       snprintf(buf, sizeof(buf), "%s", CLSLIST_NAME(ch->player.chclass));
       strip_colors(buf);
       MSDPSetString(d, eMSDP_CLASS, buf);
@@ -3981,16 +3986,16 @@ static void msdp_update(void)
         }
 
         // Sectors
-        //ector_buf, "%c", MSDP_TABLE_OPEN);
-        //strlcat(sectors, sector_buf, sizeof(sectors));
+        // ector_buf, "%c", MSDP_TABLE_OPEN);
+        // strlcat(sectors, sector_buf, sizeof(sectors));
         for (sector = 0; sector < NUM_ROOM_SECTORS; sector++)
         {
           sector_buf[0] = '\0';
           snprintf(sector_buf, sizeof(sector_buf), "%c%s%c%d", MsdpVar, sector_types[sector], MsdpVal, sector);
           strlcat(sectors, sector_buf, sizeof(sectors));
         }
-        //snprintf(sector_buf, sizeof(sector_buf), "%c", MSDP_TABLE_CLOSE);
-        //strlcat(sectors, sector_buf, sizeof(sectors));
+        // snprintf(sector_buf, sizeof(sector_buf), "%c", MSDP_TABLE_CLOSE);
+        // strlcat(sectors, sector_buf, sizeof(sectors));
 
         MSDPSetTable(d, eMSDP_SECTORS, sectors);
         // End Sectors

@@ -104,8 +104,8 @@ void show_exchange_rates(struct char_data *ch)
   return;
 }
 
-// ACMD_DECL(do_exchange)
-ACMD(do_exchange)
+// ACMD_DECL(do_cexchange)
+ACMD(do_cexchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
@@ -209,9 +209,10 @@ ACMD(do_exchange)
   case SRC_DST_EXP:
     cost = (float)EXP_EXCHANGE_RATE * amount;
     break;
+
   default: /* should never get here */
     show_exchange_rates(ch);
-    send_to_char(ch, "Please report to staff: reached default case in 1est xchange switch in do_exchange.\r\n");
+    send_to_char(ch, "Please report to staff: reached default case in 1st exchange switch in do_cexchange.\r\n");
     return;
   }
 
@@ -330,7 +331,7 @@ ACMD(do_exchange)
     break;
   default: /* should never get here */
     show_exchange_rates(ch);
-    send_to_char(ch, "Please report to staff: reached default case in 2nd exchange switch in do_exchange.\r\n");
+    send_to_char(ch, "Please report to staff: reached default case in 2nd exchange switch in do_cexchange.\r\n");
     return;
   }
 

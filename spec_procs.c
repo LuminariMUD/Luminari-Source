@@ -7249,7 +7249,7 @@ SPECIAL(skullsmasher)
 SPECIAL(acidsword)
 {
   int dam;
-  struct char_data *vict = FIGHTING(ch);
+  struct char_data *vict = NULL;
 
   if (!ch)
     return FALSE;
@@ -7265,7 +7265,10 @@ SPECIAL(acidsword)
 
   dam = dice(4, 3);
 
+  vict = FIGHTING(ch);
+
   GET_HIT(vict) -= dam;
+
   if (GET_HIT(vict) > -9)
   {
     weapons_spells(

@@ -3634,7 +3634,7 @@ int get_daily_uses(struct char_data *ch, int featnum) {
       daily_uses = 1 + MAX(0, (CLASS_LEVEL(ch, CLASS_PSIONICIST) - 14) / 5);
       break;
     case FEAT_LICH_TOUCH:
-      daily_uses = 3 + (GET_LEVEL(ch) / 3);
+      daily_uses = 3 + GET_INT_BONUS(ch);
       break;
     case FEAT_LICH_FEAR:
       daily_uses = 3;

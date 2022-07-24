@@ -438,8 +438,8 @@ ACMDCHECK(can_grave_magic);
 ACMD_DECL(do_mark);
 
 /* Functions without subcommands */
-ACMD_DECL(do_exchange);
-// ACMD(do_exchange);
+ACMD_DECL(do_cexchange);
+// ACMD(do_cexchange);
 ACMD_DECL(do_fire);
 ACMD_DECL(do_aura_of_vengeance);
 ACMD_DECL(do_aura_of_justice);
