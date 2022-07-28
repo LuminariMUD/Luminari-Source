@@ -4114,8 +4114,8 @@ void assign_feats(void)
         "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
   teamworkfeat(FEAT_SHAKE_IT_OFF);
   feato(FEAT_SHIELD_WALL, "shield wall", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
-        "Gain a bonus to shield AC when usin a shield for every party member with this feat who is also using a shield.",
-        "Gain a bonus to shield AC when usin a shield for every party member with this feat who is also using a shield. "
+        "Gain a bonus to shield AC when using a shield for every party member with this feat who is also using a shield.",
+        "Gain a bonus to shield AC when using a shield for every party member with this feat who is also using a shield. "
         "The bonus per party member is +1 if they're using a small shield or buckler, and +2 if they're using a heavy "
         "shield of tower shield. "
         "This is a teamwork feat.  Teamworks feats only work if you and at least one other member of the party has the same feat.");
