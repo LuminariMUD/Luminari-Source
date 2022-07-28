@@ -3442,6 +3442,12 @@ ACMD(do_who)
   clan_rnum c_n;
   size_t len = 0;
 
+  char *account_names[CONFIG_MAX_PLAYING];
+  int num_accounts = 0, x = 0, y = 0;
+
+  for (i = 0; i < CONFIG_MAX_PLAYING; i++)
+    account_names[i] = NULL;
+
   struct
   {
     const char *const disp;
@@ -3568,6 +3574,42 @@ ACMD(do_who)
       for (i = 0; *rank[i].disp != '\n'; i++)
         if (GET_LEVEL(tch) >= rank[i].min_level && GET_LEVEL(tch) <= rank[i].max_level)
           rank[i].count++;
+
+      if (d->account)
+      {
+        for (x = 0; x < CONFIG_MAX_PLAYING; x++)
+        {
+          if (account_names[x] == NULL)
+          {
+            if (x > 0)
+            {
+              for (y = 0; y < x; y++)
+              {
+                if (!strcmp(account_names[y], d->account->name))
+                {
+                 break; 
+                }
+              }
+              if (y == x)
+              {
+                account_names[x] = strdup(d->account->name);
+              }
+            }
+            else
+            {
+              account_names[x] = strdup(d->account->name);
+            }
+          }
+        }
+        x = 0;
+        while (account_names[x] != NULL)
+        {
+          x++;
+        }
+      }
+
+      num_accounts = x;
+
     }
   }
 
@@ -3759,6 +3801,11 @@ ACMD(do_who)
   if ((mortals + staff) > boot_high)
     boot_high = mortals + staff;
   send_to_char(ch, "Maximum visible players this boot: %d.\r\n", boot_high);
+
+  if (IS_IMMORTAL(ch))
+  {
+    send_to_char(ch, "Number of unique accounts connected: %d.\r\n", num_accounts);
+  }
 
   if (IS_HAPPYHOUR > 0)
   {
