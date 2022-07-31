@@ -954,12 +954,6 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   if (IS_SET(metamagic, METAMAGIC_MAXIMIZE))
     metamagic_mod += 3;
 
-  /* wizard metamagic epic feat will reduce circle penalty of all metamagic by 1 */
-  if (metamagic_mod >= 1 && HAS_FEAT(ch, FEAT_WIZ_METAMAGIC))
-  {
-    metamagic_mod--;
-  }
-
   switch (class)
   {
   case CLASS_ALCHEMIST:

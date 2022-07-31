@@ -2067,7 +2067,7 @@
 /* wizard bonus feats */
 #define FEAT_WIZ_MEMORIZATION 860
 #define FEAT_WIZ_CHANT 861
-#define FEAT_WIZ_METAMAGIC 862
+#define FEAT_WIZ_DEBUFF 862
 /* END wizard bonus feats */
 
 /******/
