@@ -1787,9 +1787,9 @@ void assign_feats(void)
   feato(FEAT_WIZ_CHANT, "wizard quick chant", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "chance to complete a spell quicker",
         "Chance to complete a spell quicker.");
-  feato(FEAT_WIZ_METAMAGIC, "wizard metamagic", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "reduce metamagic level penalty by 1",
-        "This feat will reduce all metamagic penalties by a level.");
+  feato(FEAT_WIZ_DEBUFF, "wizard debuff", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "making saves vs caster spells extra difficult",
+        "This feat will drastically increase the difficulty to make saving throws against your spells.");
 
   /* sorcerer spell access feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

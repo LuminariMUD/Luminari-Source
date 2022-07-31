@@ -313,6 +313,12 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (IN_ROOM(vict) != NOWHERE && ROOM_AFFECTED(IN_ROOM(vict), RAFF_SACRED_SPACE) && IS_EVIL(vict))
     challenge += 1;
 
+  if (HAS_FEAT(ch, FEAT_WIZ_DEBUFF) && !rand_number(0, 2))
+  {
+    send_to_char(ch, "\tW*you flare with magical POWAH!*\tn ");
+    challenge += 20;
+  }
+
   challenge += GET_DC_BONUS(ch);
 
   if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
@@ -3840,7 +3846,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
     break;
 
-
     // These two are the same except for messages
   case SPELL_SPIRITUAL_WEAPON:
     to_room = "A spiritual weapon appears beside $n!";
@@ -5696,7 +5701,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_STENCH:
-      if (AFF_FLAGGED(victim, AFF_WIND_WALL))
+    if (AFF_FLAGGED(victim, AFF_WIND_WALL))
     {
       send_to_char(ch, "The wall of wind surrounding you blows away the stench.\r\n");
       act("A wall of wind surrounding $n dissipates the stench", FALSE, ch, 0, 0, TO_ROOM);
@@ -7942,12 +7947,13 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   {
     for (af = victim->affected; af; af = af->next)
     {
-      if (af->location == APPLY_STR || af->location == APPLY_CON || af->location == APPLY_DEX || 
+      if (af->location == APPLY_STR || af->location == APPLY_CON || af->location == APPLY_DEX ||
           af->location == APPLY_INT || af->location == APPLY_WIS || af->location == APPLY_CHA)
       {
-        if ((IS_SET_AR(af->bitvector, AFF_POISON) || IS_SET_AR(af->bitvector, AFF_CURSE) || 
-            IS_SET_AR(af->bitvector, AFF_BLIND) || IS_SET_AR(af->bitvector, AFF_STUN) ||
-            IS_SET_AR(af->bitvector, AFF_DISEASE)) && spellnum == SPELL_LESSER_RESTORATION)
+        if ((IS_SET_AR(af->bitvector, AFF_POISON) || IS_SET_AR(af->bitvector, AFF_CURSE) ||
+             IS_SET_AR(af->bitvector, AFF_BLIND) || IS_SET_AR(af->bitvector, AFF_STUN) ||
+             IS_SET_AR(af->bitvector, AFF_DISEASE)) &&
+            spellnum == SPELL_LESSER_RESTORATION)
           continue;
         if (!is_spell_restoreable(spellnum))
           continue;

@@ -3432,7 +3432,7 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_WIZ_CHANT, Y, 19, N);
   /*epic*/
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_EPIC_SPELL, Y, 21, N);
-  feat_assignment(CLASS_WIZARD, FEAT_WIZ_METAMAGIC, Y, 30, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZ_DEBUFF, Y, 30, N);
   /* list of class feats */
   feat_assignment(CLASS_WIZARD, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
