@@ -2064,13 +2064,19 @@
 #define FEAT_STEALTH_SYNERGY 857
 #define FEAT_TANDEM_TRIP 858
 #define FEAT_TARGETTED_OPPORTUNITY 859
+/* wizard bonus feats */
+#define FEAT_WIZ_MEMORIZATION 860
+#define FEAT_WIZ_CHANT 861
+#define FEAT_WIZ_METAMAGIC 862
+/* END wizard bonus feats */
+
 /******/
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 860
+#define FEAT_LAST_FEAT 863
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 861
+#define NUM_FEATS 864
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -2141,17 +2147,17 @@
 #define CHANNEL_ENERGY_TYPE_NEGATIVE 2
 
 // Inquisitor Judgments
-#define INQ_JUDGEMENT_NONE              0
-#define INQ_JUDGEMENT_DESTRUCTION       1
-#define INQ_JUDGEMENT_HEALING           2
-#define INQ_JUDGEMENT_JUSTICE           3
-#define INQ_JUDGEMENT_PIERCING          4
-#define INQ_JUDGEMENT_PROTECTION        5
-#define INQ_JUDGEMENT_PURITY            6
-#define INQ_JUDGEMENT_RESILIENCY        7
-#define INQ_JUDGEMENT_RESISTANCE        8
+#define INQ_JUDGEMENT_NONE 0
+#define INQ_JUDGEMENT_DESTRUCTION 1
+#define INQ_JUDGEMENT_HEALING 2
+#define INQ_JUDGEMENT_JUSTICE 3
+#define INQ_JUDGEMENT_PIERCING 4
+#define INQ_JUDGEMENT_PROTECTION 5
+#define INQ_JUDGEMENT_PURITY 6
+#define INQ_JUDGEMENT_RESILIENCY 7
+#define INQ_JUDGEMENT_RESISTANCE 8
 
-#define NUM_INQ_JUDGEMENTS              9
+#define NUM_INQ_JUDGEMENTS 9
 
 /* Combat feats that apply to a specific weapon type */
 #define CFEAT_IMPROVED_CRITICAL 0

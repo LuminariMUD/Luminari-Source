@@ -253,7 +253,7 @@ const char *shape_types[MAX_PC_SUBRACES + 1] = {
     "bear",
     "crocodile",
     "\n"};
-//5 (number of types)
+// 5 (number of types)
 
 /* druid shape change messages, to room */
 const char *shape_to_room[] = {
@@ -346,43 +346,43 @@ const char *race_family_short[] = {
 CHECK_TABLE_SIZE(race_family_short, NUM_RACE_TYPES + 1);
 
 const char *race_family_types[] = {
-    "Unknown", //0
+    "Unknown", // 0
     "Humanoid",
     "Undead",
     "Animal",
     "Dragon",
-    "Giant", //5
+    "Giant", // 5
     "Aberration",
     "Construct",
     "Elemental",
     "Fey",
-    "Magical Beast", //10
+    "Magical Beast", // 10
     "Monstrous Humanoid",
     "Ooze",
     "Outsider",
     "Plant",
-    "Vermin", //15
+    "Vermin", // 15
     "Lycanthrope",
     "\n"};
 CHECK_TABLE_SIZE(race_family_types, NUM_RACE_TYPES + 1);
 
 const char *race_family_types_plural[] = {
-    "Unknown", //0
+    "Unknown", // 0
     "Humanoids",
     "Undead",
     "Animals",
     "Dragons",
-    "Giants", //5
+    "Giants", // 5
     "Aberrations",
     "Constructs",
     "Elementals",
     "Fey",
-    "Magical Beasts", //10
+    "Magical Beasts", // 10
     "Monstrous Humanoids",
     "Oozes",
     "Outsiders",
     "Plants",
-    "Vermin", //15
+    "Vermin", // 15
     "Lycanthropes",
     "\n"};
 CHECK_TABLE_SIZE(race_family_types_plural, NUM_RACE_TYPES + 1);
@@ -565,40 +565,40 @@ CHECK_TABLE_SIZE(blackguard_cruelty_descriptions, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const int blackguard_cruelty_levels[] = {
     0,  // none
-    3,  //Fatigued
-    3,  //Shaken
-    3,  //Sickened
-    6,  //Dazed
-    6,  //Diseased
-    6,  //Staggered
-    9,  //Cursed
-    9,  //Frightened
-    9,  //Nauseated
-    9,  //Poisoned
-    12, //Blinded
-    12, //Deafened
-    12, //Paralyzed
-    12, //Stunned
+    3,  // Fatigued
+    3,  // Shaken
+    3,  // Sickened
+    6,  // Dazed
+    6,  // Diseased
+    6,  // Staggered
+    9,  // Cursed
+    9,  // Frightened
+    9,  // Nauseated
+    9,  // Poisoned
+    12, // Blinded
+    12, // Deafened
+    12, // Paralyzed
+    12, // Stunned
     0,  // end
 };
 CHECK_TABLE_SIZE(blackguard_cruelty_levels, NUM_BLACKGUARD_CRUELTIES + 1);
 
 const int blackguard_cruelty_affect_types[] = {
     AFF_DONTUSE,   // none
-    AFF_FATIGUED,  //Fatigued
-    AFF_SHAKEN,    //Shaken
-    AFF_SICKENED,  //Sickened
-    AFF_DAZED,     //Dazed
-    AFF_DISEASE,   //Diseased
-    AFF_STAGGERED, //Staggered
-    AFF_CURSE,     //Cursed
-    AFF_FEAR,      //Frightened
-    AFF_NAUSEATED, //Nauseated
-    AFF_POISON,    //Poisoned
-    AFF_BLIND,     //Blinded
-    AFF_DEAF,      //Deafened
-    AFF_PARALYZED, //Paralyzed
-    AFF_STUN,      //Stunned
+    AFF_FATIGUED,  // Fatigued
+    AFF_SHAKEN,    // Shaken
+    AFF_SICKENED,  // Sickened
+    AFF_DAZED,     // Dazed
+    AFF_DISEASE,   // Diseased
+    AFF_STAGGERED, // Staggered
+    AFF_CURSE,     // Cursed
+    AFF_FEAR,      // Frightened
+    AFF_NAUSEATED, // Nauseated
+    AFF_POISON,    // Poisoned
+    AFF_BLIND,     // Blinded
+    AFF_DEAF,      // Deafened
+    AFF_PARALYZED, // Paralyzed
+    AFF_STUN,      // Stunned
     AFF_DONTUSE,   // end
 };
 CHECK_TABLE_SIZE(blackguard_cruelty_affect_types, NUM_BLACKGUARD_CRUELTIES + 1);
@@ -613,8 +613,7 @@ const char *inquisitor_judgements[] = {
     "Purity",
     "Resiliency",
     "Resistance",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(inquisitor_judgements, NUM_INQ_JUDGEMENTS + 1);
 
 const char *inquisitor_judgement_descriptions[] = {
@@ -627,27 +626,26 @@ const char *inquisitor_judgement_descriptions[] = {
     "+1 sacred bonus to all saving throws per 5 Inquitisor levels. At level 10 this is doubled against poison, disease and curses.",
     "receieve DR 1/- per 5 Inquisitor levels.",
     "receive 4 points of energy resistance (acid, cold, electricity, fire, and sonic) for every 3 Inquisitor levels.",
-    "\n"
-};
+    "\n"};
 CHECK_TABLE_SIZE(inquisitor_judgement_descriptions, NUM_INQ_JUDGEMENTS + 1);
 
 const char *class_names[] = {
-    "Wizard", //0
+    "Wizard", // 0
     "Cleric",
     "Rogue",
     "Warrior",
     "Monk",
-    "Druid", //5
+    "Druid", // 5
     "Berserker",
     "Sorcerer",
     "Paladin",
     "Ranger",
-    "Bard", //10
+    "Bard", // 10
     "Weapon Master",
     "Arcane Archer",
     "Stalwart Defender",
     "Shifter",
-    "Duelist", //15
+    "Duelist", // 15
     "Mystic Theurge",
     "Alchemist",
     "Arcane Shadow",
@@ -667,30 +665,30 @@ const char *class_names[] = {
 CHECK_TABLE_SIZE(class_names, NUM_CLASSES + 1);
 
 const char *attack_hit_types[] = {
-    "Hit", //0
+    "Hit", // 0
     "Sting",
     "Whip",
     "Slash",
     "Bite",
-    "Bludgeon", //5
+    "Bludgeon", // 5
     "Crush",
     "Pound",
     "Claw",
     "Maul",
-    "Thrash", //10
+    "Thrash", // 10
     "Pierce",
     "Blast",
     "Punch",
     "Stab",
-    "Slice", //15
+    "Slice", // 15
     "Thrust",
     "Hack",
     "Rake",
     "Peck",
-    "Smash", //20
+    "Smash", // 20
     "Trample",
     "Charge",
-    "Gore", //23
+    "Gore", // 23
     /**/
     "\n"};
 CHECK_TABLE_SIZE(attack_hit_types, NUM_ATTACK_TYPES + 1);
@@ -1103,12 +1101,12 @@ const char *room_bits[] = {
     "No-Mob",
     "Indoors",
     "Peaceful",
-    "Soundproof", //5
+    "Soundproof", // 5
     "No-Track",
     "No-Magic",
     "Tunnel",
     "Private",
-    "Staff-Room", //10
+    "Staff-Room", // 10
     "House",
     "House-Crash",
     "Atrium",
@@ -1118,12 +1116,12 @@ const char *room_bits[] = {
     "Regenerating",
     "Fly-Needed",
     "No-Recall",
-    "Singlefile", //20
+    "Singlefile", // 20
     "No-Teleport",
     "Magical-Darkness",
     "Magical-Light",
     "No-Summon",
-    "No-Heal", //25
+    "No-Heal", // 25
     "No-Fly",
     "Fogged",
     "Airy",
@@ -1197,32 +1195,32 @@ CHECK_TABLE_SIZE(exit_bits, NUM_EXIT_BITS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *sector_types[] = {
-    "Inside", //0
+    "Inside", // 0
     "City",
     "Field",
     "Forest",
     "Hills",
-    "Low Mountains", //5
+    "Low Mountains", // 5
     "Water (Swim)",
     "Water (No Swim)",
     "In Flight",
     "Underwater",
-    "Zone Entrance", //10
+    "Zone Entrance", // 10
     "Road North-South",
     "Road East-West",
     "Road Intersection",
     "Desert",
-    "Ocean", //15
+    "Ocean", // 15
     "Marshland",
     "High Mountains",
     "Outer Planes",
     "Underdark - Wild",
-    "Underdark - City", //20
+    "Underdark - City", // 20
     "Underdark - Inside",
     "Underdark - Water (Swim)",
     "Underdark - Water (No Swim)",
     "Underdark - In Flight",
-    "Lava", //25
+    "Lava", // 25
     "Dirt Road North-South",
     "Dirt Road East-West",
     "Dirt Road Intersection",
@@ -1240,32 +1238,32 @@ CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *sector_types_readable[] = {
-    "inside", //0
+    "inside", // 0
     "in a city",
     "on a field",
     "among the trees",
     "in hilly terrain",
-    "in low mountains", //5
+    "in low mountains", // 5
     "in shallow water",
     "in deep water",
     "in the air",
     "underwater",
-    "at an entrance", //10
+    "at an entrance", // 10
     "on a road",
     "on a road",
     "on a road",
     "in a desert",
-    "in oceanic waters", //15
+    "in oceanic waters", // 15
     "in marshland",
     "high mountains",
     "in a planar dimension",
     "in an underground wilderness",
-    "in an underground city", //20
+    "in an underground city", // 20
     "underground",
     "in shallow water underground",
     "in deep water underground",
     "in the air underground",
-    "in lava", //25
+    "in lava", // 25
     "on a dirt road",
     "on a dirt road",
     "on a dirt road",
@@ -1287,7 +1285,7 @@ int movement_loss[] = {
     2,                  /* Field      */
     3,                  /* Forest     */
     4,                  /* Hills      */
-    7, /* Mountains  */ //5
+    7, /* Mountains  */ // 5
     4,                  /* Swimming   */
     3,                  /* Unswimable */
     1,                  /* Flying     */
@@ -1335,12 +1333,12 @@ CHECK_TABLE_SIZE(genders, NUM_GENDERS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *position_types[] = {
-    "\tRDead\tn", //0
+    "\tRDead\tn", // 0
     "\tRMortally wounded\tn",
     "\tRIncapacitated\tn",
     "\tRStunned\tn",
     "\tRSleeping\tn",
-    "\tRReclining\tn", //5
+    "\tRReclining\tn", // 5
     "\tRResting\tn",
     "\tRSitting\tn",
     "Fighting",
@@ -1352,22 +1350,22 @@ CHECK_TABLE_SIZE(position_types, NUM_POSITIONS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *player_bits[] = {
-    "KILLER", //0
+    "KILLER", // 0
     "THIEF",
     "FROZEN",
     "DONTSET",
     "WRITING",
-    "MAILING", //5
+    "MAILING", // 5
     "CSH",
     "SITEOK",
     "NOSHOUT",
     "NOTITLE",
-    "DELETED", //10
+    "DELETED", // 10
     "LOADRM",
     "NO_WIZL",
     "NO_DEL",
     "INVST",
-    "CRYO", //15
+    "CRYO", // 15
     "DEAD", /* You should never see this flag on a character in game. */
     "IBT_BUG",
     "IBT_IDEA",
@@ -1385,17 +1383,17 @@ const char *action_bits[] = {
     "Scavenger",
     "Mob",
     "Aware",
-    "Aggro", //5
+    "Aggro", // 5
     "Zone-Sentinel",
     "Wimpy",
     "Aggro-Evil",
     "Aggro-Good",
-    "Aggro-Neutral", //10
+    "Aggro-Neutral", // 10
     "Memory",
     "Helper",
     "Uncharmable",
     "Unsummonable",
-    "Immune-Sleep", //15
+    "Immune-Sleep", // 15
     "Unbashable",
     "Unblindable",
     "Unkillable",
@@ -1405,22 +1403,22 @@ const char *action_bits[] = {
     "Immune-Deaf",
     "Does-Not-Fight",
     "Classless",
-    "Ungrappleable", //25
+    "Ungrappleable", // 25
     "Animal-Companion",
     "Familiar",
     "Paladin-Mount",
     "Summoned-Elemental",
-    "Animated-Dead", //30
+    "Animated-Dead", // 30
     "Guard",
     "Citizen",
     "Hunter",
     "Listen",
-    "Lit-Up", //35
+    "Lit-Up", // 35
     "Planar-Ally",
     "No-Steal",
     "Info-Kill",
     "Custom-Gold",
-    "No-AI", //40
+    "No-AI", // 40
     "Mercenary",
     "Encounter",
     "Shadow",
@@ -1806,44 +1804,44 @@ CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *connected_types[] = {
-    "Playing", //0
+    "Playing", // 0
     "Disconnecting",
     "Get Name",
     "Confirm Name",
     "Get Password",
-    "Get New PW", //5
+    "Get New PW", // 5
     "Confirm New PW",
     "Select Sex",
     "Select Class",
     "Reading MOTD",
-    "Main Menu", //10
+    "Main Menu", // 10
     "Get Descrip",
     "Changing PW 1",
     "Changing PW 2",
     "Changing PW 3",
-    "Self-Delete 1", //15
+    "Self-Delete 1", // 15
     "Self-Delete 2",
     "Disconnecting",
     "Object Edit",
     "Room Edit",
-    "Zone Edit", //20
+    "Zone Edit", // 20
     "Mobile Edit",
     "Shop Edit",
     "Text Edit",
     "Config Edit",
-    "Social Edit", //25
+    "Social Edit", // 25
     "Trigger Edit",
     "Help Edit",
     "Quest Edit",
     "Preference Edit",
-    "IBT Edit", //30
+    "IBT Edit", // 30
     "Protocol Detection",
     "Select Race",
     "Clan Edit",
     "Message Edit",
-    "Spells Known Edit",   //35
-    "Class Help",          //36
-    "Alignment Selection", //37
+    "Spells Known Edit",   // 35
+    "Class Help",          // 36
+    "Alignment Selection", // 37
     "Race Help",           // 38
     "HL Quest Edit",
     "Craft Edit", // 40
@@ -1865,33 +1863,33 @@ CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);
  * @pre Must be in the same order as the defines.
  * Not used in sprinttype() so no \n. */
 const char *wear_where[] = {
-    "\tY{Used As Light}\tn      ", //0
+    "\tY{Used As Light}\tn      ", // 0
     "\tY{Worn On Finger}\tn     ",
     "\tY{Worn On Finger}\tn     ",
     "\tY{Worn Around Neck}\tn   ",
     "\tY{Worn Around Neck}\tn   ",
-    "\tY{Worn On Body}\tn       ", //5
+    "\tY{Worn On Body}\tn       ", // 5
     "\tY{Worn On Head}\tn       ",
     "\tY{Worn On Legs}\tn       ",
     "\tY{Worn On Feet}\tn       ",
     "\tY{Worn On Hands}\tn      ",
-    "\tY{Worn On Arms}\tn       ", //10
+    "\tY{Worn On Arms}\tn       ", // 10
     "\tY{Worn As Shield}\tn     ",
     "\tY{Worn About Body}\tn    ",
     "\tY{Worn About Waist}\tn   ",
     "\tY{Worn Around Wrist}\tn  ",
-    "\tY{Worn Around Wrist}\tn  ", //15
+    "\tY{Worn Around Wrist}\tn  ", // 15
     "\tY{Wielded}\tn            ",
     "\tY{Held}\tn               ",
     "\tY{Wielded Offhand}\tn    ",
     "\tY{Held Offhand}\tn       ",
-    "\tY{Wielded Twohanded}\tn  ", //20
+    "\tY{Wielded Twohanded}\tn  ", // 20
     "\tY{Held Twohanded}\tn     ",
     "\tY{Worn On Face}\tn       ",
     /* todo */
     "\tY{Worn As Ammo Pouch}\tn ",
     "\tY{Worn In Ear}\tn        ",
-    "\tY{Worn In Ear}\tn        ", //25
+    "\tY{Worn In Ear}\tn        ", // 25
     "\tY{Worn On Eyes}\tn       ",
     "\tY{Worn As Badge}\tn      ",
 };
@@ -1901,33 +1899,33 @@ CHECK_TABLE_SIZE(wear_where, NUM_WEARS);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *equipment_types[] = {
-    "Used as light", //0
+    "Used as light", // 0
     "Worn on right finger",
     "Worn on left finger",
     "First worn around Neck",
     "Second worn around Neck",
-    "Worn on body", //5
+    "Worn on body", // 5
     "Worn on head",
     "Worn on legs",
     "Worn on feet",
     "Worn on hands",
-    "Worn on arms", //10
+    "Worn on arms", // 10
     "Worn as shield",
     "Worn about body",
     "Worn around waist",
     "Worn around right wrist",
-    "Worn around left wrist", //15
+    "Worn around left wrist", // 15
     "Wielded",
     "Held",
     "Wielded offhand",
     "Held offhand",
-    "Wielded twohands", //20
+    "Wielded twohands", // 20
     "Held twohands",
     "Worn on face",
     /* todo */
     "Worn as ammo pouch",
     "Worn in right ear",
-    "Worn in left ear", //25
+    "Worn in left ear", // 25
     "Worn on eyes",
     "Worn as badge",
     "\n"};
@@ -2112,55 +2110,55 @@ CHECK_TABLE_SIZE(material_name, NUM_MATERIALS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *item_types[] = {
-    "UNDEFINED", //0
+    "UNDEFINED", // 0
     "Light",
     "Scroll",
     "Wand",
     "Staff",
-    "Weapon", //5
+    "Weapon", // 5
     "Furniture",
     "Ranged-Weapon",
     "Treasure",
     "Armor/Shield",
-    "Potion", //10
+    "Potion", // 10
     "Wearable",
     "OTHER",
     "Trash",
     "Ammo",
-    "Container", //15
+    "Container", // 15
     "Note",
     "Liquid-Cont",
     "Key",
     "Food",
-    "Money", //20
+    "Money", // 20
     "Pen",
     "Boat",
     "Fountain",
     "Clan-Armor",
-    "Crafting Crystal", //25
+    "Crafting Crystal", // 25
     "Essence",
     "Crafting Material",
     "Spellbook",
     "Portal",
-    "Plant", //30
+    "Plant", // 30
     /* todo list */
     "Trap",
     "Teleport",
     "Poison",
     "Summon",
-    "Switch", //35
+    "Switch", // 35
     "Ammo-Pouch",
     "Pick",
     "Instrument",
     "Disguise",
-    "Wall", //40
+    "Wall", // 40
     "Bowl",
     "Ingredient",
     "Blocker",
     "Wagon",
-    "Resources", //45
-    "Pet",       //46
-    "Blueprint", //47 /* NewCraft */
+    "Resources", // 45
+    "Pet",       // 46
+    "Blueprint", // 47 /* NewCraft */
     "Treasure Chest",
     "Hunt Trophy",
     "Weapon Oil",
@@ -2172,22 +2170,22 @@ CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *wear_bits[] = {
-    "(Takeable)", //0
+    "(Takeable)", // 0
     "Finger",
     "Neck",
     "Body",
     "Head",
-    "Legs", //5
+    "Legs", // 5
     "Feet",
     "Hands",
     "Arms",
     "Shield",
-    "About-Body", //10
+    "About-Body", // 10
     "Waist",
     "Wrist",
     "Wield",
     "Hold",
-    "Face", //15
+    "Face", // 15
     /* todo */
     "Ammo-Pouch",
     "Ears",
@@ -2201,98 +2199,98 @@ CHECK_TABLE_SIZE(wear_bits, NUM_ITEM_WEARS + 1);
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
 const char *extra_bits[] = {
-    "Glows", //0
+    "Glows", // 0
     "Hums",
     "Not-Rentable",
     "Not-Donateable",
     "Immune-Invis",
-    "Invisible", //5
+    "Invisible", // 5
     "Magical",
     "Not-Droppable",
     "Blessed",
     "Anti-Good",
-    "Anti-Evil", //10
+    "Anti-Evil", // 10
     "Anti-Neutral",
     "Anti-Wizard",
     "Anti-Cleric",
     "Anti-Rogue",
-    "Anti-Warrior", //15
+    "Anti-Warrior", // 15
     "Not-Sellable",
     "Quest-Item",
     "Anti-Human",
     "Anti-Elf",
-    "Anti-Dwarf", //20
+    "Anti-Dwarf", // 20
     "Anti-Half-Troll",
     "Anti-Monk",
     "Anti-Druid",
     "Mold",
-    "Anti-Crystal-Dwarf", //25
+    "Anti-Crystal-Dwarf", // 25
     "Anti-Halfling",
     "Anti-Half-Elf",
     "Anti-Half-Orc",
     "Anti-Gnome",
-    "Anti-Berserker", //30
+    "Anti-Berserker", // 30
     "Anti-Trelux",
     "Anti-Sorcerer",
     "Decaying",
     "Anti-Paladin",
-    "Anti-Ranger", //35
+    "Anti-Ranger", // 35
     "Anti-Bard",
     "Anti-Arcana-Golem",
     /* todo */
     "Floating",
     "Hidden",
-    "Magical-Light", //40
+    "Magical-Light", // 40
     "No-Locate",
     "No-Burn",
     "Transient",
     "Auto-Proc",
-    "Flaming", //45
+    "Flaming", // 45
     "Frosty",
     "Ki-Focus",
     "Anti-WeaponMaster",
     "Anti-Drow",
-    "Masterwork", //50
+    "Masterwork", // 50
     "Anti-Duergar",
     "Seeking",
     "Adaptive",
     "Agile",
-    "Corrosive", //55
+    "Corrosive", // 55
     "Disruption",
     "Defending",
     "Vicious",
     "Vorpal",
-    "Anti-Lawful", //60
+    "Anti-Lawful", // 60
     "Anti-Chaotic",
     "Wizard-Required",
     "Cleric-Required",
     "Rogue-Required",
-    "Warrior-Required", //65
+    "Warrior-Required", // 65
     "Monk-Required",
     "Druid-Required",
     "Berserker-Required",
     "Sorcerer-Required",
-    "Paladin-Required", //70
+    "Paladin-Required", // 70
     "Ranger-Required",
     "Bard-Required",
     "Weaponmaster-Required",
     "Arcane-Archer-Required",
-    "Stalwart-Defender-Required", //75
+    "Stalwart-Defender-Required", // 75
     "Shifter-Required",
     "Duelist-Required",
     "Mystic-Theurge-Required",
     "Alchemist-Required",
-    "Arcane-Shadow-Required", //80
+    "Arcane-Shadow-Required", // 80
     "Sacred-Fist-Required",
     "Eldritch-Knight-Required",
     "Anti-Arcane-Archer",
     "Anti-Stalwart-Defender",
-    "Anti-Shifter", //85
+    "Anti-Shifter", // 85
     "Anti-Duelist",
     "Anti-Mystic-Theurge",
     "Anti-Alchemist",
     "Anti-Arcane-Shadow",
-    "Anti-Sacred-Fist", //90
+    "Anti-Sacred-Fist", // 90
     "Anti-Eldritch-Knight",
     "Shocking Weapon",
     "Anti-Lich",
@@ -2581,8 +2579,8 @@ const char *spell_schools_lower[] = {
 CHECK_TABLE_SIZE(spell_schools_lower, NUM_SCHOOLS + 1);
 
 int spell_bonus[][NUM_CIRCLES + 1] = {
-    //circle 0 1 2 3 4 5 6 7 8 9 10 number-circles
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //casting stat, 0
+    // circle 0 1 2 3 4 5 6 7 8 9 10 number-circles
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // casting stat, 0
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -2592,68 +2590,68 @@ int spell_bonus[][NUM_CIRCLES + 1] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //10
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 10
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //12
-    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, //13
-    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, //14
-    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, //15
-    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, //16
-    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, //17
-    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, //18
-    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, //19
-    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0}, //20
-    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0}, //21
-    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0}, //22
-    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0}, //23
-    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0}, //24
-    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0}, //25
-    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0}, //26
-    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0}, //27
-    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0}, //28
-    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0}, //29
-    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0}, //30
-    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0}, //31
-    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0}, //32
-    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0}, //33
-    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0}, //34
-    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0}, //35
-    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0}, //36
-    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0}, //37
-    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0}, //38
-    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0}, //39
-    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0}, //40
-    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0}, //41
-    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0}, //42
-    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0}, //43
-    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0}, //44
-    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0}, //45
-    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0}, //46
-    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0}, //47
-    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, //48
-    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, //49
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, //50
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, //51
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, //52
-    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, //53
-    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, //54
-    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, //55
-    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, //56
-    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, //57
-    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, //58
-    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, //59
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, //60
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, //61
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, //62
-    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, //63
-    {0, 6, 5, 5, 5, 5, 5, 5, 5, 5, 0}, //64
-    {0, 6, 5, 5, 5, 5, 5, 5, 5, 5, 0}, //65
-    {0, 6, 6, 5, 5, 5, 5, 5, 5, 5, 0}, //65
-    {0, 6, 6, 5, 5, 5, 5, 5, 5, 5, 0}, //66
-    {0, 6, 6, 6, 5, 5, 5, 5, 5, 5, 0}, //67
-    {0, 6, 6, 6, 5, 5, 5, 5, 5, 5, 0}, //68
-    {0, 6, 6, 6, 6, 5, 5, 5, 5, 5, 0}, //69
-    {0, 6, 6, 6, 6, 5, 5, 5, 5, 5, 0}, //70
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 12
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 13
+    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 14
+    {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0}, // 15
+    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 16
+    {0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0}, // 17
+    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, // 18
+    {0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0}, // 19
+    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0}, // 20
+    {0, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0}, // 21
+    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0}, // 22
+    {0, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0}, // 23
+    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0}, // 24
+    {0, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0}, // 25
+    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0}, // 26
+    {0, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0}, // 27
+    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0}, // 28
+    {0, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0}, // 29
+    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0}, // 30
+    {0, 3, 3, 2, 2, 2, 2, 1, 1, 1, 0}, // 31
+    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0}, // 32
+    {0, 3, 3, 3, 2, 2, 2, 2, 1, 1, 0}, // 33
+    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0}, // 34
+    {0, 3, 3, 3, 3, 2, 2, 2, 2, 1, 0}, // 35
+    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0}, // 36
+    {0, 4, 3, 3, 3, 3, 2, 2, 2, 2, 0}, // 37
+    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0}, // 38
+    {0, 4, 4, 3, 3, 3, 3, 2, 2, 2, 0}, // 39
+    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0}, // 40
+    {0, 4, 4, 4, 3, 3, 3, 3, 2, 2, 0}, // 41
+    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0}, // 42
+    {0, 4, 4, 4, 4, 3, 3, 3, 3, 2, 0}, // 43
+    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0}, // 44
+    {0, 5, 4, 4, 4, 4, 3, 3, 3, 3, 0}, // 45
+    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0}, // 46
+    {0, 5, 5, 4, 4, 4, 4, 3, 3, 3, 0}, // 47
+    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, // 48
+    {0, 5, 5, 5, 4, 4, 4, 4, 3, 3, 0}, // 49
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, // 50
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 3, 0}, // 51
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, // 52
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, // 53
+    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 54
+    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 55
+    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, // 56
+    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, // 57
+    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, // 58
+    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, // 59
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, // 60
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, // 61
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 62
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 63
+    {0, 6, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 64
+    {0, 6, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 65
+    {0, 6, 6, 5, 5, 5, 5, 5, 5, 5, 0}, // 65
+    {0, 6, 6, 5, 5, 5, 5, 5, 5, 5, 0}, // 66
+    {0, 6, 6, 6, 5, 5, 5, 5, 5, 5, 0}, // 67
+    {0, 6, 6, 6, 5, 5, 5, 5, 5, 5, 0}, // 68
+    {0, 6, 6, 6, 6, 5, 5, 5, 5, 5, 0}, // 69
+    {0, 6, 6, 6, 6, 5, 5, 5, 5, 5, 0}, // 70
 };
 
 /** Strength attribute affects.
@@ -2661,77 +2659,77 @@ int spell_bonus[][NUM_CIRCLES + 1] = {
  * mod. */
 cpp_extern const struct str_app_type str_app[] = {
     {-5, -5, 3, 1},       /* str = 0 */
-    {-5, -5, 10, 1},      //1
-    {-4, -4, 20, 2},      //2
-    {-4, -4, 30, 3},      //3
-    {-3, -3, 40, 4},      //4
-    {-3, -3, 55, 5},      //5	/* str = 5 */
-    {-2, -2, 80, 6},      //6
-    {-2, -2, 90, 7},      //7
-    {-1, -1, 100, 8},     //8
-    {-1, -1, 100, 9},     //9
-    {0, 0, 115, 10},      //10	/* str = 10 */
-    {0, 0, 115, 11},      //11
-    {1, 1, 140, 12},      //12
-    {1, 1, 140, 13},      //13
-    {2, 2, 170, 14},      //14
-    {2, 2, 200, 15},      //15	/* str = 15 */
-    {3, 3, 230, 16},      //16
-    {3, 3, 300, 18},      //17
-    {4, 4, 300, 20},      //18	/* str = 18 */
-    {4, 4, 400, 22},      //19
-    {5, 5, 400, 25},      //20	/* str = 20 */
-    {5, 5, 520, 28},      //21
-    {6, 6, 520, 32},      //22
-    {6, 6, 700, 36},      //23
-    {7, 7, 700, 40},      //24
-    {7, 7, 920, 44},      //25	/* str = 25 */
-    {8, 8, 920, 48},      //26
-    {8, 8, 1200, 52},     //27
-    {9, 9, 1200, 56},     //28
-    {9, 9, 1500, 60},     //29
-    {10, 10, 1500, 64},   //30
-    {10, 10, 1850, 68},   //31
-    {11, 11, 1850, 72},   //32
-    {11, 11, 2250, 76},   //33
-    {12, 12, 2250, 80},   //34
-    {12, 12, 2700, 84},   //35
-    {13, 13, 2700, 88},   //36
-    {13, 13, 3200, 92},   //37
-    {14, 14, 3200, 96},   //38
-    {14, 14, 3750, 100},  //39
-    {15, 15, 4300, 104},  //40
-    {15, 15, 4900, 108},  //41
-    {16, 16, 5400, 112},  //42
-    {16, 16, 6050, 116},  //43
-    {17, 17, 6700, 120},  //44
-    {17, 17, 7400, 124},  //45
-    {18, 18, 8100, 128},  //46
-    {18, 18, 8850, 132},  //47
-    {19, 19, 9600, 136},  //48
-    {19, 19, 9700, 140},  //49
-    {20, 20, 9800, 140},  //50
-    {20, 20, 9999, 140},  //51
-    {21, 21, 10500, 145}, //52
-    {21, 21, 10500, 145}, //53
-    {22, 22, 11000, 150}, //54
-    {22, 22, 11000, 150}, //55
-    {23, 23, 11500, 155}, //56
-    {23, 23, 11500, 155}, //57
-    {24, 24, 12000, 160}, //58
-    {24, 24, 12000, 160}, //59
-    {25, 25, 12500, 165}, //60
-    {25, 25, 12500, 165}, //61
-    {26, 26, 13000, 170}, //62
-    {26, 26, 13000, 170}, //63
-    {27, 27, 13500, 175}, //64
-    {27, 27, 13500, 175}, //65
-    {28, 28, 14000, 180}, //66
-    {28, 28, 14000, 180}, //67
-    {29, 29, 14500, 185}, //68
-    {29, 29, 14500, 185}, //69
-    {30, 30, 15000, 190}, //70
-    {30, 30, 15000, 190}, //71
+    {-5, -5, 10, 1},      // 1
+    {-4, -4, 20, 2},      // 2
+    {-4, -4, 30, 3},      // 3
+    {-3, -3, 40, 4},      // 4
+    {-3, -3, 55, 5},      // 5	/* str = 5 */
+    {-2, -2, 80, 6},      // 6
+    {-2, -2, 90, 7},      // 7
+    {-1, -1, 100, 8},     // 8
+    {-1, -1, 100, 9},     // 9
+    {0, 0, 115, 10},      // 10	/* str = 10 */
+    {0, 0, 115, 11},      // 11
+    {1, 1, 140, 12},      // 12
+    {1, 1, 140, 13},      // 13
+    {2, 2, 170, 14},      // 14
+    {2, 2, 200, 15},      // 15	/* str = 15 */
+    {3, 3, 230, 16},      // 16
+    {3, 3, 300, 18},      // 17
+    {4, 4, 300, 20},      // 18	/* str = 18 */
+    {4, 4, 400, 22},      // 19
+    {5, 5, 400, 25},      // 20	/* str = 20 */
+    {5, 5, 520, 28},      // 21
+    {6, 6, 520, 32},      // 22
+    {6, 6, 700, 36},      // 23
+    {7, 7, 700, 40},      // 24
+    {7, 7, 920, 44},      // 25	/* str = 25 */
+    {8, 8, 920, 48},      // 26
+    {8, 8, 1200, 52},     // 27
+    {9, 9, 1200, 56},     // 28
+    {9, 9, 1500, 60},     // 29
+    {10, 10, 1500, 64},   // 30
+    {10, 10, 1850, 68},   // 31
+    {11, 11, 1850, 72},   // 32
+    {11, 11, 2250, 76},   // 33
+    {12, 12, 2250, 80},   // 34
+    {12, 12, 2700, 84},   // 35
+    {13, 13, 2700, 88},   // 36
+    {13, 13, 3200, 92},   // 37
+    {14, 14, 3200, 96},   // 38
+    {14, 14, 3750, 100},  // 39
+    {15, 15, 4300, 104},  // 40
+    {15, 15, 4900, 108},  // 41
+    {16, 16, 5400, 112},  // 42
+    {16, 16, 6050, 116},  // 43
+    {17, 17, 6700, 120},  // 44
+    {17, 17, 7400, 124},  // 45
+    {18, 18, 8100, 128},  // 46
+    {18, 18, 8850, 132},  // 47
+    {19, 19, 9600, 136},  // 48
+    {19, 19, 9700, 140},  // 49
+    {20, 20, 9800, 140},  // 50
+    {20, 20, 9999, 140},  // 51
+    {21, 21, 10500, 145}, // 52
+    {21, 21, 10500, 145}, // 53
+    {22, 22, 11000, 150}, // 54
+    {22, 22, 11000, 150}, // 55
+    {23, 23, 11500, 155}, // 56
+    {23, 23, 11500, 155}, // 57
+    {24, 24, 12000, 160}, // 58
+    {24, 24, 12000, 160}, // 59
+    {25, 25, 12500, 165}, // 60
+    {25, 25, 12500, 165}, // 61
+    {26, 26, 13000, 170}, // 62
+    {26, 26, 13000, 170}, // 63
+    {27, 27, 13500, 175}, // 64
+    {27, 27, 13500, 175}, // 65
+    {28, 28, 14000, 180}, // 66
+    {28, 28, 14000, 180}, // 67
+    {29, 29, 14500, 185}, // 68
+    {29, 29, 14500, 185}, // 69
+    {30, 30, 15000, 190}, // 70
+    {30, 30, 15000, 190}, // 71
 };
 
 /** Dexterity skill modifiers for thieves.
@@ -2767,27 +2765,27 @@ cpp_extern const struct dex_skill_type dex_app_skill[] = {
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, //30
+    {25, 30, 15, 25, 25}, // 30
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, //35
+    {25, 30, 15, 25, 25}, // 35
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, //40
+    {25, 30, 15, 25, 25}, // 40
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, //45
+    {25, 30, 15, 25, 25}, // 45
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
     {25, 30, 15, 25, 25},
-    {25, 30, 15, 25, 25}, //50
+    {25, 30, 15, 25, 25}, // 50
     {25, 30, 15, 25, 25},
 
     {25, 30, 15, 25, 25},
@@ -2822,60 +2820,60 @@ cpp_extern const struct dex_skill_type dex_app_skill[] = {
 cpp_extern const struct dex_app_type dex_app[] = {
     {-5, -5, -5}, /* dex = 0 */
     {-5, -5, -5}, /* dex = 1 */
-    {-4, -4, -4}, //2
-    {-4, -4, -4}, //3
-    {-3, -3, -3}, //4
+    {-4, -4, -4}, // 2
+    {-4, -4, -4}, // 3
+    {-3, -3, -3}, // 4
     {-3, -3, -3}, /* dex = 5 */
-    {-2, -2, -2}, //6
-    {-2, -2, -2}, //7
-    {-1, -1, -1}, //8
-    {-1, -1, -1}, //9
+    {-2, -2, -2}, // 6
+    {-2, -2, -2}, // 7
+    {-1, -1, -1}, // 8
+    {-1, -1, -1}, // 9
     {0, 0, 0},    /* dex = 10 */
-    {0, 0, 0},    //11
-    {1, 1, 1},    //12
-    {1, 1, 1},    //13
-    {2, 2, 2},    //14
+    {0, 0, 0},    // 11
+    {1, 1, 1},    // 12
+    {1, 1, 1},    // 13
+    {2, 2, 2},    // 14
     {2, 2, 2},    /* dex = 15 */
-    {3, 3, 3},    //16
-    {3, 3, 3},    //17
+    {3, 3, 3},    // 16
+    {3, 3, 3},    // 17
     {4, 4, 4},    /* dex = 18 */
-    {4, 4, 4},    //19
+    {4, 4, 4},    // 19
     {5, 5, 5},    /* dex = 20 */
-    {5, 5, 5},    //21
-    {6, 6, 6},    //22
-    {6, 6, 6},    //23
-    {7, 7, 7},    //24
+    {5, 5, 5},    // 21
+    {6, 6, 6},    // 22
+    {6, 6, 6},    // 23
+    {7, 7, 7},    // 24
     {7, 7, 7},    /* dex = 25 */
-    {8, 8, 8},    //26
-    {8, 8, 8},    //27
-    {9, 9, 9},    //28
-    {9, 9, 9},    //29
-    {10, 10, 10}, //30
-    {10, 10, 10}, //31
-    {11, 11, 11}, //32
-    {11, 11, 11}, //33
-    {12, 12, 12}, //34
-    {12, 12, 12}, //35
-    {13, 13, 13}, //36
-    {13, 13, 13}, //37
-    {14, 14, 14}, //38
-    {14, 14, 14}, //39
-    {15, 15, 15}, //40
-    {15, 15, 15}, //41
-    {16, 16, 16}, //42
-    {16, 16, 16}, //43
-    {17, 17, 17}, //44
-    {17, 17, 17}, //45
-    {18, 18, 18}, //46
-    {18, 18, 18}, //47
-    {19, 19, 19}, //48
-    {19, 19, 19}, //49
-    {20, 20, 20}, //50
-    {20, 20, 20}, //51
-    {21, 21, 21}, //52
-    {21, 21, 21}, //53
-    {22, 22, 22}, //54
-    {22, 22, 22}, //55
+    {8, 8, 8},    // 26
+    {8, 8, 8},    // 27
+    {9, 9, 9},    // 28
+    {9, 9, 9},    // 29
+    {10, 10, 10}, // 30
+    {10, 10, 10}, // 31
+    {11, 11, 11}, // 32
+    {11, 11, 11}, // 33
+    {12, 12, 12}, // 34
+    {12, 12, 12}, // 35
+    {13, 13, 13}, // 36
+    {13, 13, 13}, // 37
+    {14, 14, 14}, // 38
+    {14, 14, 14}, // 39
+    {15, 15, 15}, // 40
+    {15, 15, 15}, // 41
+    {16, 16, 16}, // 42
+    {16, 16, 16}, // 43
+    {17, 17, 17}, // 44
+    {17, 17, 17}, // 45
+    {18, 18, 18}, // 46
+    {18, 18, 18}, // 47
+    {19, 19, 19}, // 48
+    {19, 19, 19}, // 49
+    {20, 20, 20}, // 50
+    {20, 20, 20}, // 51
+    {21, 21, 21}, // 52
+    {21, 21, 21}, // 53
+    {22, 22, 22}, // 54
+    {22, 22, 22}, // 55
     /*unfixed*/
     {22, 22, 22},
     {22, 22, 22},
@@ -2907,55 +2905,55 @@ cpp_extern const struct con_app_type con_app[] = {
     {-5}, /* con = 0 */
     {-5}, /* con = 1 */
     {-4}, // 2
-    {-4}, //3
-    {-3}, //4
+    {-4}, // 3
+    {-3}, // 4
     {-3}, /* con = 5 */
-    {-2}, //6
-    {-2}, //7
-    {-1}, //8
-    {-1}, //9
+    {-2}, // 6
+    {-2}, // 7
+    {-1}, // 8
+    {-1}, // 9
     {0},  /* con = 10 */
-    {0},  //11
-    {1},  //12
-    {1},  //13
-    {2},  //14
+    {0},  // 11
+    {1},  // 12
+    {1},  // 13
+    {2},  // 14
     {2},  /* con = 15 */
-    {3},  //16
-    {3},  //17
+    {3},  // 16
+    {3},  // 17
     {4},  /* con = 18 */
-    {4},  //19
+    {4},  // 19
     {5},  /* con = 20 */
-    {5},  //21
-    {6},  //22
-    {6},  //23
-    {7},  //24
+    {5},  // 21
+    {6},  // 22
+    {6},  // 23
+    {7},  // 24
     {7},  /* con = 25 */
     {8},  /* con = 26 */
     {8},  /* con = 27 */
-    {9},  //28
-    {9},  //29
-    {10}, //30
-    {10}, //31
-    {11}, //32
-    {11}, //33
-    {12}, //34
-    {12}, //35
-    {13}, //36
-    {13}, //37
-    {14}, //38
-    {14}, //39
-    {15}, //40
-    {15}, //41
-    {16}, //42
-    {16}, //43
-    {17}, //44
-    {17}, //45
-    {18}, //46
-    {18}, //47
-    {19}, //48
-    {19}, //49
-    {20}, //50
-    {20}, //51
+    {9},  // 28
+    {9},  // 29
+    {10}, // 30
+    {10}, // 31
+    {11}, // 32
+    {11}, // 33
+    {12}, // 34
+    {12}, // 35
+    {13}, // 36
+    {13}, // 37
+    {14}, // 38
+    {14}, // 39
+    {15}, // 40
+    {15}, // 41
+    {16}, // 42
+    {16}, // 43
+    {17}, // 44
+    {17}, // 45
+    {18}, // 46
+    {18}, // 47
+    {19}, // 48
+    {19}, // 49
+    {20}, // 50
+    {20}, // 51
 
     {21},
     {21},
@@ -2983,58 +2981,58 @@ cpp_extern const struct con_app_type con_app[] = {
 
 /** Intelligence attribute affects. */
 cpp_extern const struct int_app_type int_app[] = {
-    {-5}, //0
-    {-5}, //1
+    {-5}, // 0
+    {-5}, // 1
     {-4}, // 2
-    {-4}, //3
-    {-3}, //4
-    {-3}, //5
-    {-2}, //6
-    {-2}, //7
-    {-1}, //8
-    {-1}, //9
-    {0},  //10
-    {0},  //11
-    {1},  //12
-    {1},  //13
-    {2},  //14
-    {2},  //15
-    {3},  //16
-    {3},  //17
-    {4},  //18
-    {4},  //19
-    {5},  //20
-    {5},  //21
-    {6},  //22
-    {6},  //23
-    {7},  //24
-    {7},  //25
-    {8},  //26
-    {8},  //27
-    {9},  //28
-    {9},  //29
-    {10}, //30
-    {10}, //31
-    {11}, //32
-    {11}, //33
-    {12}, //34
-    {12}, //35
-    {13}, //36
-    {13}, //37
-    {14}, //38
-    {14}, //39
-    {15}, //40
-    {15}, //41
-    {16}, //42
-    {16}, //43
-    {17}, //44
-    {17}, //45
-    {18}, //46
-    {18}, //47
-    {19}, //48
-    {19}, //49
-    {20}, //50
-    {20}, //51
+    {-4}, // 3
+    {-3}, // 4
+    {-3}, // 5
+    {-2}, // 6
+    {-2}, // 7
+    {-1}, // 8
+    {-1}, // 9
+    {0},  // 10
+    {0},  // 11
+    {1},  // 12
+    {1},  // 13
+    {2},  // 14
+    {2},  // 15
+    {3},  // 16
+    {3},  // 17
+    {4},  // 18
+    {4},  // 19
+    {5},  // 20
+    {5},  // 21
+    {6},  // 22
+    {6},  // 23
+    {7},  // 24
+    {7},  // 25
+    {8},  // 26
+    {8},  // 27
+    {9},  // 28
+    {9},  // 29
+    {10}, // 30
+    {10}, // 31
+    {11}, // 32
+    {11}, // 33
+    {12}, // 34
+    {12}, // 35
+    {13}, // 36
+    {13}, // 37
+    {14}, // 38
+    {14}, // 39
+    {15}, // 40
+    {15}, // 41
+    {16}, // 42
+    {16}, // 43
+    {17}, // 44
+    {17}, // 45
+    {18}, // 46
+    {18}, // 47
+    {19}, // 48
+    {19}, // 49
+    {20}, // 50
+    {20}, // 51
 
     {21},
     {21},
@@ -3065,55 +3063,55 @@ cpp_extern const struct wis_app_type wis_app[] = {
     {-5}, /*  0 */
     {-5}, /*  1 */
     {-4}, // 2
-    {-4}, //3
-    {-3}, //4
+    {-4}, // 3
+    {-3}, // 4
     {-3}, /* 5 */
-    {-2}, //6
-    {-2}, //7
-    {-1}, //8
-    {-1}, //9
+    {-2}, // 6
+    {-2}, // 7
+    {-1}, // 8
+    {-1}, // 9
     {0},  /*  10 */
-    {0},  //11
-    {1},  //12
-    {1},  //13
-    {2},  //14
+    {0},  // 11
+    {1},  // 12
+    {1},  // 13
+    {2},  // 14
     {2},  /* 15 */
-    {3},  //16
-    {3},  //17
+    {3},  // 16
+    {3},  // 17
     {4},  /* 18 */
-    {4},  //19
+    {4},  // 19
     {5},  /* 20 */
-    {5},  //21
-    {6},  //22
-    {6},  //23
-    {7},  //24
+    {5},  // 21
+    {6},  // 22
+    {6},  // 23
+    {7},  // 24
     {7},  /* 25 */
     {8},  /* 26 */
     {8},  /* 27 */
-    {9},  //28
-    {9},  //29
-    {10}, //30
-    {10}, //31
-    {11}, //32
-    {11}, //33
-    {12}, //34
-    {12}, //35
-    {13}, //36
-    {13}, //37
-    {14}, //38
-    {14}, //39
-    {15}, //40
-    {15}, //41
-    {16}, //42
-    {16}, //43
-    {17}, //44
-    {17}, //45
-    {18}, //46
-    {18}, //47
-    {19}, //48
-    {19}, //49
-    {20}, //50
-    {20}, //51
+    {9},  // 28
+    {9},  // 29
+    {10}, // 30
+    {10}, // 31
+    {11}, // 32
+    {11}, // 33
+    {12}, // 34
+    {12}, // 35
+    {13}, // 36
+    {13}, // 37
+    {14}, // 38
+    {14}, // 39
+    {15}, // 40
+    {15}, // 41
+    {16}, // 42
+    {16}, // 43
+    {17}, // 44
+    {17}, // 45
+    {18}, // 46
+    {18}, // 47
+    {19}, // 48
+    {19}, // 49
+    {20}, // 50
+    {20}, // 51
 
     {21},
     {21},
@@ -3144,55 +3142,55 @@ cpp_extern const struct cha_app_type cha_app[] = {
     {-5}, /* 0 */
     {-5}, /* 1 */
     {-4}, // 2
-    {-4}, //3
-    {-3}, //4
+    {-4}, // 3
+    {-3}, // 4
     {-3}, /* 5 */
-    {-2}, //6
-    {-2}, //7
-    {-1}, //8
-    {-1}, //9
+    {-2}, // 6
+    {-2}, // 7
+    {-1}, // 8
+    {-1}, // 9
     {0},  /* 10 */
-    {0},  //11
-    {1},  //12
-    {1},  //13
-    {2},  //14
+    {0},  // 11
+    {1},  // 12
+    {1},  // 13
+    {2},  // 14
     {2},  /*  15 */
-    {3},  //16
-    {3},  //17
+    {3},  // 16
+    {3},  // 17
     {4},  /* 18 */
-    {4},  //19
+    {4},  // 19
     {5},  /* 20 */
-    {5},  //21
-    {6},  //22
-    {6},  //23
-    {7},  //24
+    {5},  // 21
+    {6},  // 22
+    {6},  // 23
+    {7},  // 24
     {7},  /* 25 */
     {8},  /* 26 */
     {8},  /* 27 */
-    {9},  //28
-    {9},  //29
-    {10}, //30
-    {10}, //31
-    {11}, //32
-    {11}, //33
-    {12}, //34
-    {12}, //35
-    {13}, //36
-    {13}, //37
-    {14}, //38
-    {14}, //39
-    {15}, //40
-    {15}, //41
-    {16}, //42
-    {16}, //43
-    {17}, //44
-    {17}, //45
-    {18}, //46
-    {18}, //47
-    {19}, //48
-    {19}, //49
-    {20}, //50
-    {20}, //51
+    {9},  // 28
+    {9},  // 29
+    {10}, // 30
+    {10}, // 31
+    {11}, // 32
+    {11}, // 33
+    {12}, // 34
+    {12}, // 35
+    {13}, // 36
+    {13}, // 37
+    {14}, // 38
+    {14}, // 39
+    {15}, // 40
+    {15}, // 41
+    {16}, // 42
+    {16}, // 43
+    {17}, // 44
+    {17}, // 45
+    {18}, // 46
+    {18}, // 47
+    {19}, // 48
+    {19}, // 49
+    {20}, // 50
+    {20}, // 51
 
     {21},
     {21},
@@ -3220,117 +3218,117 @@ cpp_extern const struct cha_app_type cha_app[] = {
 
 /* lore values */
 int lore_app[] = {
-    0,  //0
-    50, //1
+    0,  // 0
+    50, // 1
     100,
     150,
     200,
-    300, //5
+    300, // 5
     500,
     1000,
     2500,
     3750,
-    4800, //10
+    4800, // 10
     6500,
     13000,
     17000,
     20000,
-    30000, //15
+    30000, // 15
     40000,
     60000,
     80000,
     100000,
-    150000, //20
+    150000, // 20
     200000,
     250000,
     300000,
     400000,
-    500000, //25
+    500000, // 25
     600000,
     700000,
     800000,
     900000,
-    1000000, //30
+    1000000, // 30
     1200000,
     1400000,
     1600000,
     1800000,
-    2000000, //35
+    2000000, // 35
     2200000,
     2400000,
     2600000,
     2800000,
-    3000000, //40
+    3000000, // 40
     3200000,
     3400000,
     3600000,
     3800000,
-    4000000, //45
-    4200000, //46
-    4400000, //47
-    4600000, //48
-    4800000, //49
-    5000000, //50
-    5200000, //51
-    5400000, //52
-    5600000, //53
-    5800000, //54
-    6000000, //55
-    6200000, //56
-    6400000, //57
-    6600000, //58
-    6800000, //59
-    7000000, //60
-    7200000, //61
-    7400000, //62
-    7600000, //63
-    7800000, //64
-    8000000, //65
-    8200000, //66
-    8400000, //67
-    8600000, //68
-    8800000, //69
-    9000000, //70
-    9200000, //71
-    9400000, //72
-    9600000, //73
-    9800000, //74
-    9900000, //75
-    9999999, //76
-    9999999, //77
-    9999999, //78
-    9999999, //79
-    9999999, //80
-    9999999, //81
-    9999999, //82
-    9999999, //83
-    9999999, //84
-    9999999, //85
-    9999999, //86
-    9999999, //87
-    9999999, //88
-    9999999, //89
-    9999999, //90
-    9999999, //91
+    4000000, // 45
+    4200000, // 46
+    4400000, // 47
+    4600000, // 48
+    4800000, // 49
+    5000000, // 50
+    5200000, // 51
+    5400000, // 52
+    5600000, // 53
+    5800000, // 54
+    6000000, // 55
+    6200000, // 56
+    6400000, // 57
+    6600000, // 58
+    6800000, // 59
+    7000000, // 60
+    7200000, // 61
+    7400000, // 62
+    7600000, // 63
+    7800000, // 64
+    8000000, // 65
+    8200000, // 66
+    8400000, // 67
+    8600000, // 68
+    8800000, // 69
+    9000000, // 70
+    9200000, // 71
+    9400000, // 72
+    9600000, // 73
+    9800000, // 74
+    9900000, // 75
+    9999999, // 76
+    9999999, // 77
+    9999999, // 78
+    9999999, // 79
+    9999999, // 80
+    9999999, // 81
+    9999999, // 82
+    9999999, // 83
+    9999999, // 84
+    9999999, // 85
+    9999999, // 86
+    9999999, // 87
+    9999999, // 88
+    9999999, // 89
+    9999999, // 90
+    9999999, // 91
     9999999,
     9999999,
     9999999,
-    9999999, //95
-    9999999,
-    9999999,
-    9999999,
-    9999999,
-    9999999, //100
+    9999999, // 95
     9999999,
     9999999,
     9999999,
     9999999,
-    9999999, //105
+    9999999, // 100
     9999999,
     9999999,
     9999999,
     9999999,
-    9999999, //110
+    9999999, // 105
+    9999999,
+    9999999,
+    9999999,
+    9999999,
+    9999999, // 110
 
     9999999,
     9999999,
@@ -3668,34 +3666,34 @@ const int wizard_slots[][NUM_CIRCLES + 1] = {
     {0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0}, // 5
     {0, 3, 3, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0}, //7
+    {0, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0}, // 7
     {0, 4, 4, 3, 2, 0, 0, 0, 0, 0, 0},
-    {0, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0}, //9
+    {0, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0}, // 9
     {0, 4, 4, 3, 3, 2, 0, 0, 0, 0, 0},
-    {0, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0}, //11
+    {0, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0}, // 11
     {0, 4, 4, 4, 3, 3, 2, 0, 0, 0, 0},
-    {0, 4, 4, 4, 4, 3, 2, 1, 0, 0, 0}, //13
+    {0, 4, 4, 4, 4, 3, 2, 1, 0, 0, 0}, // 13
     {0, 4, 4, 4, 4, 3, 3, 2, 0, 0, 0},
-    {0, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0}, //15
+    {0, 4, 4, 4, 4, 4, 3, 2, 1, 0, 0}, // 15
     {0, 4, 4, 4, 4, 4, 3, 3, 2, 0, 0},
-    {0, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0}, //17
+    {0, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0}, // 17
     {0, 4, 4, 4, 4, 4, 4, 3, 3, 2, 0},
     {0, 4, 4, 4, 4, 4, 4, 4, 3, 3, 0},
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //20
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //21
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //22
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //23
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //24
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //25
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //26
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //27
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //28
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //29
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //30
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //31
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //32
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, //33
-    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}  //34
+    {0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0}, // 20
+    {0, 5, 4, 4, 4, 4, 4, 4, 4, 4, 0}, // 21
+    {0, 5, 5, 4, 4, 4, 4, 4, 4, 4, 0}, // 22
+    {0, 5, 5, 5, 4, 4, 4, 4, 4, 4, 0}, // 23
+    {0, 5, 5, 5, 5, 4, 4, 4, 4, 4, 0}, // 24
+    {0, 5, 5, 5, 5, 5, 4, 4, 4, 4, 0}, // 25
+    {0, 5, 5, 5, 5, 5, 5, 4, 4, 4, 0}, // 26
+    {0, 5, 5, 5, 5, 5, 5, 5, 4, 4, 0}, // 27
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 4, 0}, // 28
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0}, // 29
+    {0, 5, 5, 5, 5, 5, 5, 5, 5, 6, 0}, // 30
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 31
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 32
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 33
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}  // 34
 };
 CHECK_TABLE_SIZE(wizard_slots, LVL_IMPL + 1);
 
@@ -3708,34 +3706,34 @@ const int sorcerer_slots[][NUM_CIRCLES + 1] = {
     {0, 6, 3, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
     {0, 6, 5, 3, 0, 0, 0, 0, 0, 0, 0},
-    {0, 6, 6, 4, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 6, 6, 4, 0, 0, 0, 0, 0, 0, 0}, // 7
     {0, 6, 6, 5, 3, 0, 0, 0, 0, 0, 0},
-    {0, 6, 6, 6, 4, 0, 0, 0, 0, 0, 0}, //9
+    {0, 6, 6, 6, 4, 0, 0, 0, 0, 0, 0}, // 9
     {0, 6, 6, 6, 5, 3, 0, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 4, 0, 0, 0, 0, 0}, //11
+    {0, 6, 6, 6, 6, 4, 0, 0, 0, 0, 0}, // 11
     {0, 6, 6, 6, 6, 5, 3, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 6, 4, 0, 0, 0, 0}, //13
+    {0, 6, 6, 6, 6, 6, 4, 0, 0, 0, 0}, // 13
     {0, 6, 6, 6, 6, 6, 5, 3, 0, 0, 0},
-    {0, 6, 6, 6, 6, 6, 6, 4, 0, 0, 0}, //15
+    {0, 6, 6, 6, 6, 6, 6, 4, 0, 0, 0}, // 15
     {0, 6, 6, 6, 6, 6, 6, 5, 3, 0, 0},
-    {0, 6, 6, 6, 6, 6, 6, 6, 4, 0, 0}, //17
+    {0, 6, 6, 6, 6, 6, 6, 6, 4, 0, 0}, // 17
     {0, 6, 6, 6, 6, 6, 6, 6, 5, 3, 0},
     {0, 6, 6, 6, 6, 6, 6, 6, 6, 4, 0},
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //20
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //21
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //22
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //23
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //24
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //25
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //26
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //27
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //28
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //29
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //30
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //31
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //32
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, //33
-    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}  //34
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 20
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 21
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 22
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 23
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 24
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 25
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 26
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 27
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 28
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 29
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 30
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 31
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 32
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}, // 33
+    {0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 0}  // 34
 };
 CHECK_TABLE_SIZE(sorcerer_slots, LVL_IMPL + 1);
 
@@ -3748,34 +3746,34 @@ const int bard_slots[][NUM_CIRCLES + 1] = {
     {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
     {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
     {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, //9
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
     {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, //11
+    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
     {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
-    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, //13
+    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
     {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, //15
+    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
     {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, //17
+    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
     {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //20
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //21
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //22
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //23
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //24
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //25
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //26
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //27
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //28
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //29
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //30
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //31
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //32
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //33
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  //34
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  // 34
 };
 CHECK_TABLE_SIZE(bard_slots, LVL_IMPL + 1);
 
@@ -3829,34 +3827,34 @@ const int sorcerer_known[][NUM_CIRCLES + 1] = {
     {0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
     {0, 4, 2, 1, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 5, 3, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
     {0, 5, 3, 2, 1, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0}, //9
+    {0, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0}, // 9
     {0, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0},
-    {0, 5, 5, 4, 3, 2, 0, 0, 0, 0, 0}, //11
+    {0, 5, 5, 4, 3, 2, 0, 0, 0, 0, 0}, // 11
     {0, 5, 5, 4, 3, 2, 1, 0, 0, 0, 0},
-    {0, 5, 5, 4, 4, 3, 2, 0, 0, 0, 0}, //13
+    {0, 5, 5, 4, 4, 3, 2, 0, 0, 0, 0}, // 13
     {0, 5, 5, 4, 4, 3, 2, 1, 0, 0, 0},
-    {0, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0}, //15
+    {0, 5, 5, 4, 4, 4, 3, 2, 0, 0, 0}, // 15
     {0, 5, 5, 4, 4, 4, 3, 2, 1, 0, 0},
-    {0, 5, 5, 4, 4, 4, 3, 3, 2, 0, 0}, //17
+    {0, 5, 5, 4, 4, 4, 3, 3, 2, 0, 0}, // 17
     {0, 5, 5, 4, 4, 4, 3, 3, 2, 1, 0},
     {0, 5, 5, 4, 4, 4, 3, 3, 3, 2, 0},
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //20
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //21
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //22
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //23
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //24
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //25
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //26
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //27
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //28
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //29
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //30
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //31
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //32
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, //33
-    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}  //34
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 20
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 21
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 22
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 23
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 24
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 25
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 26
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 27
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 28
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 29
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 30
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 31
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 32
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}, // 33
+    {0, 5, 5, 4, 4, 4, 3, 3, 3, 3, 0}  // 34
 };
 CHECK_TABLE_SIZE(sorcerer_known, LVL_IMPL + 1);
 
@@ -3870,34 +3868,34 @@ const int bard_known[][NUM_CIRCLES + 1] = {
     {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
     {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
     {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, //9
+    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
     {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, //11
+    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
     {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
-    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, //13
+    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
     {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
-    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, //15
+    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
     {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
-    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, //17
+    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
     {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
     {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //20
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //21
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //22
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //23
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //24
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //25
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //26
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //27
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //28
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //29
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //30
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //31
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //32
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, //33
-    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  //34
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  // 34
 };
 CHECK_TABLE_SIZE(bard_known, LVL_IMPL + 1);
 
@@ -4104,7 +4102,7 @@ CHECK_TABLE_SIZE(druid_slots, LVL_IMPL + 1);
 
 const int alchemist_slots[][NUM_CIRCLES + 1] = {
     // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
-    //0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
     {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -4112,34 +4110,34 @@ const int alchemist_slots[][NUM_CIRCLES + 1] = {
     {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
     {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, //7
+    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
     {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, //9
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
     {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
-    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, //11
+    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
     {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
-    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, //13
+    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
     {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, //15
+    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
     {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
-    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, //17
+    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
     {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
     {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //20
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //21
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //22
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //23
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //24
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //25
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //26
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //27
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //28
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //29
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //30
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //31
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //32
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, //33
-    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  //34
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  // 34
 };
 CHECK_TABLE_SIZE(alchemist_slots, LVL_IMPL + 1);
 

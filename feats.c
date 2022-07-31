@@ -1780,6 +1780,17 @@ void assign_feats(void)
         "slot, some classes need the spell to be 'known' or 'scribed' for example.  Once "
         "the slot is used, you can 'prepare' to recover it.");
 
+  feato(FEAT_WIZ_MEMORIZATION, "wizard memorization", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "decreases spell memorization time",
+        "Chance to decrease total memorization time and each memorization pulse to "
+        "further reduce memorization time.");
+  feato(FEAT_WIZ_CHANT, "wizard quick chant", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "chance to complete a spell quicker",
+        "Chance to complete a spell quicker.");
+  feato(FEAT_WIZ_METAMAGIC, "wizard metamagic", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "reduce metamagic level penalty by 1",
+        "This feat will reduce all metamagic penalties by a level.");
+
   /* sorcerer spell access feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_SORCERER_1ST_CIRCLE, "1st circle sorcerer spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
@@ -4049,7 +4060,7 @@ void assign_feats(void)
 
   /* End Class ability Feats */
 
-    // TEAMWORK FEAT
+  // TEAMWORK FEAT
   feato(FEAT_BACK_TO_BACK, "back to back", TRUE, TRUE, FALSE, FEAT_TYPE_TEAMWORK,
         "+2 circumstance bonus to AC when flanked.",
         "Gain a +2 circumstance bonus to AC when facing 2 enemies or more. "
