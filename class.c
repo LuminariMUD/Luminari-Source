@@ -3424,12 +3424,15 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_3RD_CIRCLE, Y, 5, N);
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_4TH_CIRCLE, Y, 7, N);
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_5TH_CIRCLE, Y, 9, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZ_MEMORIZATION, Y, 10, N);
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_6TH_CIRCLE, Y, 11, N);
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_7TH_CIRCLE, Y, 13, N);
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_8TH_CIRCLE, Y, 15, N);
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_9TH_CIRCLE, Y, 17, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZ_CHANT, Y, 19, N);
   /*epic*/
   feat_assignment(CLASS_WIZARD, FEAT_WIZARD_EPIC_SPELL, Y, 21, N);
+  feat_assignment(CLASS_WIZARD, FEAT_WIZ_METAMAGIC, Y, 30, N);
   /* list of class feats */
   feat_assignment(CLASS_WIZARD, FEAT_COMBAT_CASTING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_SPELL_PENETRATION, Y, NOASSIGN_FEAT, N);
