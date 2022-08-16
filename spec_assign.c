@@ -845,6 +845,9 @@ void assign_objects(void)
   ASSIGNOBJ(135627, menzo_chokers);
   ASSIGNOBJ(106021, angel_leggings);
   ASSIGNOBJ(135535, spiderdagger);
+
+  /* clouds realm */
+  ASSIGNOBJ(144669, dragon_robes);
 }
 
 /* assign special procedures to rooms */
@@ -1010,6 +1013,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Dog", dog, ""},
     {"Dorf Axe", dorfaxe, ""},
     {"Dracolich", dracolich, ""},
+    {"Dragon Robes", dragon_robes, ""},
     {"Dragonbone Hammer", dragonbone_hammer, ""},
     //{"Drow Scimitar", drow_scimitar, ""},
     {"Duergar Guard", duergar_guard, ""},

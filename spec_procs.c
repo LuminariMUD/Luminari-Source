@@ -8099,6 +8099,79 @@ SPECIAL(angel_leggings)
   return FALSE;
 }
 
+/* zusuk's epic robes from cloud realms */
+SPECIAL(dragon_robes)
+{
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 1\r\n");
+
+  if (!ch)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 2\r\n");
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Invoke displace by keyword 'Power'.\r\n");
+    return TRUE;
+  }
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 3\r\n");
+
+  if (!cmd)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 4\r\n");
+
+  if (!argument)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 5\r\n");
+
+  /*[144669]*/
+  if (!is_wearing(ch, 144669))
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
+
+  skip_spaces(&argument);
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "power"))
+  {
+    if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+    {
+      if (DEBUGMODE)
+        send_to_char(ch, "Debug - Mark 8\r\n");
+
+      send_to_char(ch, "Nothing happens.\r\n");
+      return TRUE;
+    }
+
+    act("\tWThe power of $p\tW is invoked.\tn\r\n"
+        "\tcYour form begins to shimmer in and out of reality!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
+        "\tw$s begins to shimmer in and out of reality!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+
+    if (DEBUGMODE)
+      send_to_char(ch, "Debug - Mark 9\r\n");
+
+    call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_POTION);
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
 /* from homeland, converts an object type PET into an actual
  * pet mobile follower, object vnum must match mobile vnum */
 SPECIAL(bought_pet)
