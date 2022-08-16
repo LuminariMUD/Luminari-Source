@@ -1471,30 +1471,38 @@ SPECIAL(tiamat)
         continue;
       if (world[ch->in_room].zone == world[i->in_room].zone && !IS_NPC(i))
       {
+
         /* Moonblade */
         // if (GET_CLASS(i) == CLASS_BLADESINGER || GET_CLASS(i) == CLASS_RANGER)
         // ovnum = 132118;
+
         /* Malevolence */
         if (GET_CLASS(i) == CLASS_WARRIOR || GET_CLASS(i) == CLASS_BERSERKER) //||
           // GET_CLASS(i) == CLASS_GIANTSLAYER || GET_CLASS(i) == CLASS_BATTLERAGER)
           ovnum = 132101;
+
         /* Speed gauntlets */
         if (MONK_TYPE(i))
           ovnum = 132128;
+
         /* Rapier */
         // if (GET_CLASS(i) == CLASS_SWASHBUCKLER)
         // ovnum = 132125;
+
         /* Shadow cloak */
         if (GET_CLASS(i) == CLASS_ROGUE)
           // if (GET_CLASS(i) == CLASS_ASSASSIN || GET_CLASS(i) == CLASS_ROGUE ||
           // GET_CLASS(i) == CLASS_THIEF || GET_CLASS(i) == CLASS_SCOUT || GET_CLASS(i) == CLASS_MERCENARY)
           ovnum = 132120;
+
         /* Slaadi Goggles */
         // if (GET_CLASS(i) == CLASS_PSI)
         // ovnum = 132121;
+
         /* Platemail of Life */
         if (GET_CLASS(i) == CLASS_PALADIN)
           ovnum = 132105;
+
         /* Drow Scimitar */
         // if (GET_CLASS(i) == CLASS_SHADOWSTALKER || GET_CLASS(i) == CLASS_WEAPONMASTER)
         // ovnum = 132126;

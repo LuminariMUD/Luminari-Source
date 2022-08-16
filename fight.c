@@ -999,7 +999,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       is_using_ranged_weapon(attacker, TRUE))
     bonuses[BONUS_TYPE_INSIGHT] += 2;
 
-
   if (has_teamwork_feat(ch, FEAT_PHALANX_FIGHTER) && attacker)
   {
     if (IS_EVIL(ch) && !IS_EVIL(attacker))
@@ -3283,9 +3282,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     dam -= compute_energy_absorb(ch, dam_type);
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
-                   GET_NAME(victim));
+      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
+      send_to_char(ch, "\tRYou fail to cause %s any harm! (energy absorb: %d)\tn\r\n",
+                   GET_NAME(victim), damage_reduction);
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
           TO_NOTVICT);
       return -1;
@@ -3300,13 +3299,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     /* damage type PERCENTAGE reduction */
     float damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
-    damtype_reduction = (((float)(damtype_reduction / 100)) * dam);
-    dam -= damtype_reduction;
+    damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
+    dam -= (int)damtype_reduction;
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
-                   GET_NAME(victim));
+      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int) damtype_reduction);
+      send_to_char(ch, "\tRYou fail to cause %s any harm! (dam-type reduction: %d)\tn\r\n",
+                   GET_NAME(victim), damtype_reduction);
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
           TO_NOTVICT);
       return -1;
@@ -3357,7 +3356,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       if (!dam && (ch != victim))
       {
         send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
-        send_to_char(ch, "\tRYou fail to cause %s any harm! (%d)\tn\r\n",
+        send_to_char(ch, "\tRYou fail to cause %s any harm! (damaged reduction: %d)\tn\r\n",
                      GET_NAME(victim), damage_reduction);
         act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
             TO_NOTVICT);
@@ -3583,12 +3582,12 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
-
 /* probably need to bring in another variable letting us know our source, like:
    -melee attack
    -spell
    -item
    -etc */
+/* if it's a spell, the spellnum will be carried through the w_type variable */
 int damage(struct char_data *ch, struct char_data *victim, int dam,
            int w_type, int dam_type, int offhand)
 {
@@ -3635,11 +3634,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (victim != ch)
   {
     /* Only auto engage if both parties are unengaged. */
-    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && (FIGHTING(victim) == NULL)) // ch -> vict
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && (FIGHTING(victim) == NULL) && !is_wall_spell(w_type)) // ch -> vict
       set_fighting(ch, victim);
 
     // vict -> ch
-    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL))
+    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL) && !is_wall_spell(w_type))
     {
       set_fighting(victim, ch);
     }
@@ -3764,7 +3763,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     return 0;
   }
 
-  dam = MAX(MIN(dam, 999), 0); // damage cap
+  dam = MAX(MIN(dam, 1499), 0); // damage cap
   GET_HIT(victim) -= dam;
 
   // check for life shield spell
@@ -5419,7 +5418,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON))
       {
         if ((IS_NPC(victim) && (GET_RACE(victim) == GET_BANE_TARGET_TYPE(ch)) && GET_RACE(victim) != RACE_TYPE_UNDEFINED) ||
-         (!IS_NPC(victim) && (GET_BANE_TARGET_TYPE(ch) == RACE_TYPE_HUMANOID)))
+            (!IS_NPC(victim) && (GET_BANE_TARGET_TYPE(ch) == RACE_TYPE_HUMANOID)))
         {
           if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
             send_to_char(ch, "\tW[BANE]\tn ");
@@ -8148,12 +8147,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   } /* End of totaldefense */
 
-    if (attack_type != ATTACK_TYPE_RANGED && affected_by_spell(ch, SPELL_GASEOUS_FORM) && AFF_FLAGGED(victim, AFF_WIND_WALL))
+  if (attack_type != ATTACK_TYPE_RANGED && affected_by_spell(ch, SPELL_GASEOUS_FORM) && AFF_FLAGGED(victim, AFF_WIND_WALL))
   {
     act("You are unable to get close enough to $N to complete your attack.", FALSE, ch, 0, victim, TO_CHAR);
     act("$n is unable to get close enough to You to complete $s attack.", FALSE, ch, 0, victim, TO_VICT);
     act("$n is unable to get close enough to $N to complete $s attack.", FALSE, ch, 0, victim, TO_NOTVICT);
-    
+
     return (HIT_MISS);
   }
 
@@ -8214,7 +8213,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     return (HIT_MISS);
   }
 
-    if (attack_type == ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_WIND_WALL) && dice(1, 10) <= 3)
+  if (attack_type == ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_WIND_WALL) && dice(1, 10) <= 3)
   {
     act("Your wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_CHAR);
     act("$n's wall of wind throws aside Your shot.", FALSE, victim, 0, ch, TO_VICT);
