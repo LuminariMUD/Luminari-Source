@@ -1703,7 +1703,11 @@ static void zone_yell(struct char_data *ch, const char *buf)
         else
         {
           /* retrieve random valid target and number of targets */
-          if (vict = npc_find_target(ch, &num_targets))
+          if (!(vict = npc_find_target(ch, &num_targets)))
+          {
+            /* currently nothing to process if we can't find a target */
+          }
+          else
           {
             HUNTING(i) = vict;
             hunt_victim(i);
