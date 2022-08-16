@@ -68,6 +68,7 @@ SPECIAL_DECL(agrachdyrr);
 SPECIAL_DECL(air_sphere);
 SPECIAL_DECL(alandor_ferry);
 SPECIAL_DECL(angel_leggings);
+SPECIAL_DECL(dragon_robes);
 SPECIAL_DECL(bandit_guard);
 SPECIAL_DECL(bank);
 SPECIAL_DECL(banshee);
