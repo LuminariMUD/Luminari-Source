@@ -3303,9 +3303,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     dam -= (int)damtype_reduction;
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int) damtype_reduction);
+      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int)damtype_reduction);
       send_to_char(ch, "\tRYou fail to cause %s any harm! (dam-type reduction: %d)\tn\r\n",
-                   GET_NAME(victim), damtype_reduction);
+                   GET_NAME(victim), (int)damtype_reduction);
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
           TO_NOTVICT);
       return -1;
