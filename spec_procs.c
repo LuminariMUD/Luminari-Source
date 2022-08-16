@@ -37,6 +37,7 @@
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
 #include "treasure.h" /* for set_armor_object */
+#include "mobact.h"   /* npc_find_target() */
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1669,8 +1670,9 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
    to hunt someone down */
 static void zone_yell(struct char_data *ch, const char *buf)
 {
-  struct char_data *i;
-  struct char_data *vict;
+  struct char_data *i = NULL;
+  struct char_data *vict = NULL;
+  int num_targets = 0;
 
   for (i = character_list; i; i = i->next)
   {
@@ -1700,8 +1702,12 @@ static void zone_yell(struct char_data *ch, const char *buf)
         }
         else
         {
-          HUNTING(i) = ch;
-          hunt_victim(i);
+          /* retrieve random valid target and number of targets */
+          if (vict = npc_find_target(ch, &num_targets))
+          {
+            HUNTING(i) = vict;
+            hunt_victim(i);
+          }
         }
       }
     }

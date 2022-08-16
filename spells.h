@@ -60,6 +60,7 @@
 #define CAST_FOOD_DRINK 9
 #define CAST_BOMB 10
 #define CAST_CRUELTY 11
+#define CAST_WALL 12
 
 #define MAG_DAMAGE (1 << 0)
 #define MAG_AFFECTS (1 << 1)
@@ -104,7 +105,7 @@
 #define SPELL_RESERVED_DBC 0 /* SKILL NUMBER ZERO -- RESERVED */
 
 /* PLAYER SPELLS -- Numbered from 1 to MAX_SPELLS */
-#define SPELL_ARMOR 1         // done
+#define SPELL_ARMOR 1 // done
 #define SPELL_SHIELD_OF_FAITH SPELL_ARMOR
 #define SPELL_TELEPORT 2      // done (no longer stock)
 #define SPELL_BLESS 3         // done
@@ -1321,6 +1322,7 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool is_tele);
 bool check_wall(struct char_data *victim, int dir);
 void effect_charm(struct char_data *ch, struct char_data *victim,
                   int spellnum, int casttype, int level);
+bool is_wall_spell(int spellnum);
 
 /* From magic.c */
 int compute_mag_saves(struct char_data *vict,

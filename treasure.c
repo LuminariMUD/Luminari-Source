@@ -675,7 +675,8 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_RES_LIGHT:
   case APPLY_RES_ENERGY:
   case APPLY_RES_WATER:
-    adjusted_bonus = bonus * 8;
+    /* this is WAY off balance for the rest of the game -zusuk */
+    // adjusted_bonus = bonus * 8;
     break;
   /* no modifications */
   default:

@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   mobact.h
  * Author: Zusuk
  *
@@ -13,7 +13,12 @@ extern "C"
 {
 #endif
 
+    /* *******************************************  */
+
     bool is_in_memory(struct char_data *ch, struct char_data *vict);
+    struct char_data *npc_find_target(struct char_data *ch, int *num_targets);
+
+    /* *******************************************  */
 
 #ifdef __cplusplus
 }

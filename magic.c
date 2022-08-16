@@ -238,9 +238,17 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   case CAST_STAFF:
   case CAST_SCROLL:
   case CAST_INNATE:
-  case CAST_WEAPON_POISON:
   case CAST_WEAPON_SPELL:
     challenge += level;
+    break;
+  case CAST_WEAPON_POISON:
+    challenge += level;
+    if (ch)
+    {
+      /* weapon poison is going to be the primary equilizer for rogue; so we have given it a nice boost */
+      challenge += IS_ROGUE_TYPE(ch) / 5; /* bonus */
+      challenge += GET_INT_BONUS(ch);     /* bonus */
+    }
     break;
   case CAST_BOMB:
     if (ch)
@@ -1839,12 +1847,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_HELLBALL:
     // AoE
-    save = SAVING_FORT;
-    mag_resist = TRUE;
+    save = -1;
+    mag_resist = FALSE;
     element = DAM_ENERGY;
-    num_dice = level + 8;
-    size_dice = 12;
-    bonus = level + 50;
+    num_dice = level + 16;
+    size_dice = 16;
+    bonus = level + 100;
     break;
 
   case SPELL_HORRID_WILTING: // horrid wilting, necromancy
@@ -2059,6 +2067,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   } /* end switch(spellnum) */
+  /**************************/
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -2290,7 +2299,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     send_to_char(victim, "[\tRSURPRISE SPELL\tn] ");
   }
 
-  if (!element) // want to make sure all spells have some sort of damage cat
+  if (!element) // want to make sure all spells have some sort of damage category
     log("SYSERR: %d is lacking DAM_", spellnum);
 
   return (damage(ch, victim, dam, spellnum, element, FALSE));
@@ -2769,6 +2778,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_HIT;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
     af[0].duration = 12 * level;
     af[0].modifier = 5 + ((GET_AUGMENT_PSP(ch) / 3) * 5);
 
@@ -4411,9 +4421,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_FALSE_LIFE: // necromancy
-    af[1].location = APPLY_HIT;
-    af[1].modifier = 30;
-    af[1].duration = 300;
+    af[0].location = APPLY_HIT;
+    af[0].modifier = 30;
+    af[0].duration = 300;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     to_room = "$n grows strong with \tDdark\tn life!";
     to_vict = "You grow strong with \tDdark\tn life!";
@@ -5292,26 +5303,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 5;
     af[0].duration = 300;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[1].location = APPLY_DAMROLL;
     af[1].modifier = 5;
     af[1].duration = 300;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[2].location = APPLY_SAVING_WILL;
     af[2].modifier = 3;
     af[2].duration = 300;
+    af[2].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[3].location = APPLY_SAVING_FORT;
     af[3].modifier = 3;
     af[3].duration = 300;
+    af[3].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[4].location = APPLY_SAVING_REFL;
     af[4].modifier = 3;
     af[4].duration = 300;
+    af[4].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[5].location = APPLY_HIT;
     af[5].modifier = dice(4, 12) + level;
     af[5].duration = 300;
+    af[5].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     to_room = "$n is now divinely blessed and aided!";
     to_vict = "You feel divinely blessed and aided.";

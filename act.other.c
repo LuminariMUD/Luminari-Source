@@ -6932,6 +6932,14 @@ static const char *const hints[] = {
            "You can use the ARMORLIST command to view all the armor types in the realms and then ARMORINFO <name of armor type> "
            "to view details of each armor type.  The same goes for weapons via the WEAPONLIST and WEAPONINFO commands."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*50*/ "\tR[HINT]:\tn \ty"
+           "More than a dozen zones form the outter planes of existence!  Visit our website to view the connections between the "
+           "planes...  https://luminarimud.com/planes-of-existence/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*51*/ "\tR[HINT]:\tn \ty"
+           "Approximately 20 zones form the Underworld or Underdark!  Visit our website to view a rough map..."
+           "  https://luminarimud.com/the-underdark/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
 
