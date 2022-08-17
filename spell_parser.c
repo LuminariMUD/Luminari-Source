@@ -2473,10 +2473,10 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].quest = quest;
 }
 
-static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                        int psp_change, int minpos, int targets, int violent,
-                        int routines, const char *wearoff, int time, int memtime, int school,
-                        bool quest)
+void skillo_full(int spl, const char *name, int max_psp, int min_psp,
+                 int psp_change, int minpos, int targets, int violent,
+                 int routines, const char *wearoff, int time, int memtime, int school,
+                 bool quest)
 {
   int i;
 
