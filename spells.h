@@ -889,7 +889,6 @@
  * define it with a 'spellname'. */
 #define SPELL_DG_AFFECT 2298
 
-#define TOP_SKILL_DEFINE 2299
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 2299 */
 
 /*** Due to wanting the values to be more global, I moved
@@ -930,6 +929,48 @@
 #define TYPE_SUFFERING 2399
 /* new attack types can be added here - up to TYPE_SUFFERING */
 #define MAX_TYPES 2400
+
+#define SKILL_LANG_COMMON 2401
+#define SKILL_LANG_BASIC SKILL_LANG_COMMON
+#define SKILL_LANG_THIEVES_CANT 2402
+#define SKILL_LANG_DRUIDIC 2403
+#define SKILL_LANG_ABYSSAL 2404
+#define SKILL_LANG_ELVEN 2405
+#define SKILL_LANG_GNOME 2406
+#define SKILL_LANG_DWARVEN 2407
+#define SKILL_LANG_CELESTIAL 2408
+#define SKILL_LANG_DRACONIC 2409
+#define SKILL_LANG_ORCISH 2410
+#define SKILL_LANG_HALFLING 2411
+#define SKILL_LANG_GOBLIN 2412
+#define SKILL_LANG_ABERRATION 2413
+#define SKILL_LANG_GIANT 2414
+#define SKILL_LANG_KOBOLD 2415
+#define SKILL_LANG_BARBARIAN 2416
+#define SKILL_LANG_ERGOT 2417
+#define SKILL_LANG_ISTARIAN 2418
+#define SKILL_LANG_BALIFORIAN 2419
+#define SKILL_LANG_KHAROLISIAN 2420
+#define SKILL_LANG_MULHORANDI 2421
+#define SKILL_LANG_RASHEMI 2422
+#define SKILL_LANG_NORTHERNER 2423
+#define SKILL_LANG_UNDERWORLD 2424
+#define SKILL_LANG_ANCIENT 2425
+#define SKILL_LANG_BINARY 2426
+#define SKILL_LANG_BOCCE 2427
+#define SKILL_LANG_BOTHESE 2428
+#define SKILL_LANG_CEREAN 2429
+#define SKILL_LANG_DOSH 2430
+#define SKILL_LANG_DURESE 2431
+#define SKILL_LANG_UNDERCOMMON 2432
+/**/
+#define SKILL_LANG_LOW 2401
+#define SKILL_LANG_HIGH 2433
+#define MIN_LANGUAGES SKILL_LANG_LOW
+#define MAX_LANGUAGES SKILL_LANG_HIGH
+
+#define TOP_SKILL_DEFINE 2433
+
 /*----------------------------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------------------------*/
