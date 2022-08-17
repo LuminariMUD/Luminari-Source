@@ -807,9 +807,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
 
         for (i = START_GENERAL_ABILITIES; i <= END_GENERAL_ABILITIES; i++)
         {
-            if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
-                continue;
-            if (!strcmp(spell_info[i].name, "!UNUSED(K)!"))
+            if (!strcmp(spell_info[i].name, "!UNUSED!"))
                 continue;
             if (is_abbrev(searchString, spell_info[i].name))
                 break;
@@ -853,9 +851,7 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
 
         for (i = MIN_LANGUAGES; i <= MAX_LANGUAGES; i++)
         {
-            if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
-                continue;
-            if (!strcmp(spell_info[i].name, "!UNUSED(K)!"))
+            if (!strcmp(spell_info[i].name, "!UNUSED!"))
                 continue;
             if (is_abbrev(searchString, spell_info[i].name))
                 break;
