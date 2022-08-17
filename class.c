@@ -3985,10 +3985,12 @@ void load_class_list(void)
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 9, Y);
   /* talent lvl 9, improved evasion*/
   feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_EVASION, Y, 9, N);
+  /* talent lvl 10, apply poison */
+  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON, Y, 10, N);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 11, Y);
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 12, Y);
-  /* talent lvl 12, apply poison */
-  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON, Y, 12, N);
+  /* talent lvl 12, able learner */
+  feat_assignment(CLASS_ROGUE, FEAT_ABLE_LEARNER, Y, 12, Y);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 13, Y);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 15, Y);
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 15, Y);
@@ -6675,7 +6677,6 @@ void load_class_list(void)
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 1, Y);
   /* level 2 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 2, Y);
-  feat_assignment(CLASS_ALCHEMIST, FEAT_APPLY_POISON, Y, 2, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 2, Y);
   /* level 3 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_SWIFT_ALCHEMY, Y, 3, Y);
@@ -6701,6 +6702,7 @@ void load_class_list(void)
   /* level 11 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 11, Y);
   /* level 12 class feats */
+  feat_assignment(CLASS_ALCHEMIST, FEAT_APPLY_POISON, Y, 12, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 12, Y);
   /* level 13 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 13, Y);

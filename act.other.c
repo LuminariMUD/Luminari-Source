@@ -6940,6 +6940,12 @@ static const char *const hints[] = {
            "Approximately 20 zones form the Underworld or Underdark!  Visit our website to view a rough map..."
            "  https://luminarimud.com/the-underdark/"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*52*/ "\tR[HINT]:\tn \ty"
+           "There are 'dot' 'dash' and 'all' commands to help you manipulate targets.  Examples include:  "
+           "To get all the 'bread' items from all the bags in your inventory you'd type 'take all.bread all.bag' | "
+           "To loot the 2nd corpse on the ground you'd type 'take all 2.corpse' | "
+           "To attack the blue dragon instead of the white dragon you'd type 'kill blue-dragon'"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
 

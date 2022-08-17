@@ -2240,21 +2240,25 @@ ACMD(do_defensive_stance)
   af.duration = duration;
   af.location = APPLY_STR;
   af.modifier = bonus;
+  af.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   aftwo.spell = SKILL_DEFENSIVE_STANCE;
   aftwo.duration = duration;
   aftwo.location = APPLY_CON;
   aftwo.modifier = bonus;
+  aftwo.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   afthree.spell = SKILL_DEFENSIVE_STANCE;
   afthree.duration = duration;
   afthree.location = APPLY_SAVING_WILL;
   afthree.modifier = 2;
+  afthree.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   affour.spell = SKILL_DEFENSIVE_STANCE;
   affour.duration = duration;
   affour.location = APPLY_AC_NEW;
   affour.modifier = 2;
+  affour.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);
@@ -7996,7 +8000,6 @@ ACMDU(do_slayer)
                    "Your inquisitor level will be treated as 5 higher when determining bonus amount.\r\n",
                inquisitor_judgements[i]);
 }
-
 
 ACMDCHECK(can_true_judgement)
 {

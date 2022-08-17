@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Luminari MUD
- * 
+ *
  * File: help.c
  * Author: Ornir (Jamie McLaughlin)
  */
@@ -30,9 +30,9 @@ void space_to_minus(char *str)
 
 /* Name: search_help
  * Author: Ornir (Jamie McLaughlin)
- * 
+ *
  * Original function hevaily modified (rewritten!) to use the help database
- * instead of the in-memory help structure.  
+ * instead of the in-memory help structure.
  * The consumer of the return value is responsible for freeing the memory!
  * YOU HAVE BEEN WARNED.  */
 struct help_entry_list *search_help(const char *argument, int level)
@@ -51,10 +51,10 @@ struct help_entry_list *search_help(const char *argument, int level)
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
   snprintf(buf, sizeof(buf), "SELECT distinct he.tag, he.entry, he.min_level, he.last_updated, group_concat(distinct CONCAT(UCASE(LEFT(hk2.keyword, 1)), LCASE(SUBSTRING(hk2.keyword, 2))) separator ', ')"
-               " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
-               " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
-               " group by hk.help_tag ORDER BY length(hk.keyword) asc",
-          argument, level);
+                             " FROM `help_entries` he, `help_keywords` hk, `help_keywords` hk2"
+                             " WHERE he.tag = hk.help_tag and hk.help_tag = hk2.help_tag and lower(hk.keyword) like '%s%%' and he.min_level <= %d"
+                             " group by hk.help_tag ORDER BY length(hk.keyword) asc",
+           argument, level);
 
   if (mysql_query(conn, buf))
   {
@@ -159,14 +159,14 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
   mysql_real_escape_string(conn, escaped_arg, argument, strlen(argument));
 
   snprintf(buf, sizeof(buf), "SELECT hk.help_tag, "
-               "       hk.keyword "
-               "FROM help_entries he, "
-               "     help_keywords hk "
-               "WHERE he.tag = hk.help_tag "
-               "  and hk.keyword sounds like '%s' "
-               "  and he.min_level <= %d "
-               "ORDER BY length(hk.keyword) asc",
-          argument, level);
+                             "       hk.keyword "
+                             "FROM help_entries he, "
+                             "     help_keywords hk "
+                             "WHERE he.tag = hk.help_tag "
+                             "  and hk.keyword sounds like '%s' "
+                             "  and he.min_level <= %d "
+                             "ORDER BY length(hk.keyword) asc",
+           argument, level);
 
   if (mysql_query(conn, buf))
   {
@@ -258,26 +258,6 @@ ACMDU(do_help)
   }
   raw_argument = strdup(argument);
   space_to_minus(argument);
-  if (display_weapon_info(ch, raw_argument))
-  {
-    free(raw_argument);
-    return;
-  }
-  if (display_armor_info(ch, raw_argument))
-  {
-    free(raw_argument);
-    return;
-  }
-  if (display_class_info(ch, raw_argument))
-  {
-    free(raw_argument);
-    return;
-  }
-  if (display_race_info(ch, raw_argument))
-  {
-    free(raw_argument);
-    return;
-  }
 
   if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL)
   {
@@ -296,6 +276,34 @@ ACMDU(do_help)
             /* Check feats for relevant entries! */
             if (!display_feat_info(ch, raw_argument))
             {
+
+              /* check weapon info */
+              if (display_weapon_info(ch, raw_argument))
+              {
+                free(raw_argument);
+                return;
+              }
+
+              /* check armor info */
+              if (display_armor_info(ch, raw_argument))
+              {
+                free(raw_argument);
+                return;
+              }
+
+              /* check class info */
+              if (display_class_info(ch, raw_argument))
+              {
+                free(raw_argument);
+                return;
+              }
+
+              /* check race info */
+              if (display_race_info(ch, raw_argument))
+              {
+                free(raw_argument);
+                return;
+              }
 
               send_to_char(ch, "There is no help on that word.\r\n");
               mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
@@ -342,25 +350,25 @@ ACMDU(do_help)
    *  ----------------------------------------------------------------------------
    *  */
   snprintf(immo_data_buffer, sizeof(immo_data_buffer), "\tcHelp Tag      : \tn%s\r\n",
-          entries->tag);
+           entries->tag);
   snprintf(help_entry_buffer, sizeof(help_entry_buffer), "\tC%s\tn"
-                             "%s"
-                             "\tcHelp Keywords : \tn%s\r\n"
-                             // "\tcHelp Category : \tn%s\r\n"
-                             // "\tcRelated Help  : \tn%s\r\n"
-                             "\tcLast Updated  : \tn%s\r\n"
-                             "\tC%s"
-                             "\tn%s\r\n"
-                             "\tC%s",
-          line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
-          (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
-          entries->keywords,
-          // "<N/I>",
-          // "<N/I>",
-          entries->last_updated,
-          line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
-          entries->entry,
-          line_string(GET_SCREEN_WIDTH(ch), '-', '-'));
+                                                         "%s"
+                                                         "\tcHelp Keywords : \tn%s\r\n"
+                                                         // "\tcHelp Category : \tn%s\r\n"
+                                                         // "\tcRelated Help  : \tn%s\r\n"
+                                                         "\tcLast Updated  : \tn%s\r\n"
+                                                         "\tC%s"
+                                                         "\tn%s\r\n"
+                                                         "\tC%s",
+           line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+           (IS_IMMORTAL(ch) ? immo_data_buffer : ""),
+           entries->keywords,
+           // "<N/I>",
+           // "<N/I>",
+           entries->last_updated,
+           line_string(GET_SCREEN_WIDTH(ch), '-', '-'),
+           entries->entry,
+           line_string(GET_SCREEN_WIDTH(ch), '-', '-'));
   page_string(ch->desc, help_entry_buffer, 1);
 
   free(raw_argument);
