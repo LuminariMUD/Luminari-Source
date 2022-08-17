@@ -4653,7 +4653,8 @@ void list_consumables(struct char_data *ch, int type)
   case ITEM_POTION:
     for (i = 0; i < MAX_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+
+      if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
         continue;
       if (STORED_POTIONS(ch, i) > 0)
       {
@@ -4670,7 +4671,7 @@ void list_consumables(struct char_data *ch, int type)
   case ITEM_SCROLL:
     for (i = 0; i < MAX_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
         continue;
       if (STORED_SCROLLS(ch, i) > 0)
       {
@@ -4687,7 +4688,7 @@ void list_consumables(struct char_data *ch, int type)
   case ITEM_WAND:
     for (i = 0; i < MAX_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
         continue;
       if (STORED_WANDS(ch, i) > 0)
       {
@@ -4704,7 +4705,7 @@ void list_consumables(struct char_data *ch, int type)
   case ITEM_STAFF:
     for (i = 0; i < MAX_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
         continue;
       if (STORED_STAVES(ch, i) > 0)
       {
@@ -4743,7 +4744,7 @@ ACMD(do_store)
       send_to_char(ch, "You don't seem to be carrying anything by that description.\r\n");
       return;
     }
-    if (GET_OBJ_VAL(obj, i) <= 0 || GET_OBJ_VAL(obj, i) >= NUM_SPELLS || !strcmp(spell_info[GET_OBJ_VAL(obj, i)].name, "!UNUSED!"))
+    if (GET_OBJ_VAL(obj, i) <= 0 || GET_OBJ_VAL(obj, i) >= NUM_SPELLS || !strcmp(spell_info[GET_OBJ_VAL(obj, i)].name, "!UNUSED(P)!"))
     {
       send_to_char(ch, "The spell on that item is not valid for storing.\r\n");
       return;

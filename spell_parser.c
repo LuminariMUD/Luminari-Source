@@ -3743,37 +3743,37 @@ void mag_assign_spells(void)
   // end divine
 
   /* NON-castable spells should appear below here. */
-  spello(SPELL_ACID, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_ACID, "acid", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, EVOCATION, FALSE);
-  spello(SPELL_ASHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ASHIELD_DAM, "acidsheath damage", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_BLADES, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_BLADES, "blades", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, NOSCHOOL, FALSE);
-  spello(SPELL_CSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_CSHIELD_DAM, "coldshield damage", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_DEATHCLOUD, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_DEATHCLOUD, "deathcloud", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_GENERIC_AOE, "aoe attack", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_FIRE_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FIRE_BREATHE, "fire breathe", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_FROST_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FROST_BREATHE, "frost breathe", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_LIGHTNING_BREATHE, "lightning breathe", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_ACID_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ACID_BREATHE, "acid breathe", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_POISON_BREATHE, "poison breathe", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
@@ -3888,14 +3888,14 @@ void mag_assign_spells(void)
   spello(ABILITY_CHANNEL_NEGATIVE_ENERGY, "channel negative energy", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS | MAG_GROUPS, NULL, 9, 23, NOSCHOOL, FALSE);
 
-  spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FSHIELD_DAM, "fireshield damage", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_ESHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ESHIELD_DAM, "EShield damage", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   /* innate darkness spell, room events testing spell as well */
-  spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_STANDING,
+  spello(SPELL_I_DARKNESS, "darkness", 0, 0, 0, POS_STANDING,
          TAR_IGNORE, FALSE, MAG_ROOM,
          "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
 
@@ -3924,7 +3924,7 @@ void mag_assign_spells(void)
          "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
 
   /*
-spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
+spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
     TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
     NULL, 0, 0, NOSCHOOL, FALSE);
 */
@@ -3935,10 +3935,10 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
          TAR_IGNORE, FALSE, 0,
          "The effects of your powerful blow have expired.", 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_INCENDIARY, "incendiary flames", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_STENCH, "!UNUSED!", 65, 50, 1, POS_DEAD,
+  spello(SPELL_STENCH, "stench", 65, 50, 1, POS_DEAD,
          TAR_IGNORE, FALSE, MAG_MASSES,
          "Your nausea from the noxious gas passes.", 4, 7,
          CONJURATION, FALSE);

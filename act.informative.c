@@ -2090,7 +2090,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       }
 
       /* name */
-      if (!strcmp(spell_info[aff->spell].name, "!UNUSED!"))
+      if (!strcmp(spell_info[aff->spell].name, "!UNUSED(P)!"))
       { /* spell */
         snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
                  CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
@@ -2368,14 +2368,14 @@ ACMD(do_masterlist)
 
     if (is_spells)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
         continue;
       nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                       "%3d) %s\r\n", i, spell_info[i].name);
     }
     else
     {
-      if (!strcmp(skill_info[i].name, "!UNUSED!"))
+      if (!strcmp(skill_info[i].name, "!UNUSED(K)!"))
         continue;
       nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                       "%3d) %s\r\n", i, skill_info[i].name);
