@@ -307,7 +307,7 @@ struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ab
 int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check for special abilities. */
                              struct char_data *ch,     /* The wielder of the weapon. */
                              struct char_data *victim, /* The target of the ability (either fighting or
-							 * specified explicitly. */
+                                                        * specified explicitly. */
                              int actmtd,               /* Activation method */
                              const char *cmdword)      /* Command word (optional, NULL if none. */
 {
@@ -376,7 +376,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
   }
 
-    //  Paladin divine bond
+  //  Paladin divine bond
   if (victim && HAS_FEAT(ch, FEAT_DIVINE_BOND))
   {
     if (actmtd == ACTMTD_ON_HIT)
@@ -391,7 +391,6 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       damage(ch, victim, dice(2, 10), TYPE_SPECAB_FLAMING_BURST, DAM_FIRE, FALSE);
     }
   }
-
 
   if (victim)
   {
@@ -420,9 +419,9 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       }
       // wounding
       if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_WOUNDING) && !((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
-          (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) || (GET_NPC_RACE(victim) == RACE_TYPE_OOZE)))
+                                                                (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) || (GET_NPC_RACE(victim) == RACE_TYPE_OOZE)))
       {
-                  
+
         new_affect(&af);
 
         af.spell = TYPE_SPECAB_BLEEDING;
@@ -436,7 +435,9 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
         {
           act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
           act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
-        } else {
+        }
+        else
+        {
           act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
           act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
         }
@@ -451,7 +452,7 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       {
         damage(ch, victim, dice((weapon ? weapon_list[GET_OBJ_VAL(weapon, 0)].critMult - 1 : 1), 10), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
       }
-      //flaming
+      // flaming
       else if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_FLAMING))
       {
         damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
@@ -474,9 +475,9 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       }
       // wounding
       if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_WOUNDING) && !((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
-          (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) || (GET_NPC_RACE(victim) == RACE_TYPE_OOZE)))
+                                                                (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) || (GET_NPC_RACE(victim) == RACE_TYPE_OOZE)))
       {
-                  
+
         new_affect(&af);
 
         af.spell = TYPE_SPECAB_BLEEDING;
@@ -490,7 +491,9 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
         {
           act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
           act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
-        } else {
+        }
+        else
+        {
           act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
           act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
         }
@@ -500,21 +503,24 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
       // vorpal
       if (FIENDISH_BOON_ACTIVE(ch, FIENDISH_BOON_VORPAL))
       {
-        if (dice(1, 20) == 1) { // 5% chance on a critical hit
-        if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
-           (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT) &&
-           (GET_NPC_RACE(victim) != RACE_TYPE_OOZE)) { // they need to have or a head or not be able to function without a head
-          if (!MOB_FLAGGED(victim, MOB_NOCHARM)) { // a fail safe for boss type mobs and shopkeepers, etc.
-            damage(ch, victim, GET_HIT(victim) + 100, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE); // should kill them outright
+        if (dice(1, 20) == 1)
+        { // 5% chance on a critical hit
+          if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
+              (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT) &&
+              (GET_NPC_RACE(victim) != RACE_TYPE_OOZE))
+          { // they need to have or a head or not be able to function without a head
+            if (!MOB_FLAGGED(victim, MOB_NOCHARM))
+            {                                                                                       // a fail safe for boss type mobs and shopkeepers, etc.
+              damage(ch, victim, GET_HIT(victim) + 100, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE); // should kill them outright
+            }
           }
         }
-      }
       }
     }
   }
 
-  if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_EVIL(victim) && 
-	      (!IS_NPC(victim) || (!MOB_FLAGGED(victim, MOB_NOCHARM) && GET_MAX_HIT(victim) < 1000)))
+  if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_EVIL(victim) &&
+      (!IS_NPC(victim) || (!MOB_FLAGGED(victim, MOB_NOCHARM) && GET_MAX_HIT(victim) < 1000)))
   {
     if (victim->player_specials->has_banishment_been_attempted)
       ;
@@ -531,8 +537,8 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
     }
   }
 
-  if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_GOOD(victim) && 
-	  (!IS_NPC(victim) || (!MOB_FLAGGED(victim, MOB_NOCHARM) && GET_MAX_HIT(victim) < 1000)))
+  if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION) && victim && IS_OUTSIDER(victim) && IS_GOOD(victim) &&
+      (!IS_NPC(victim) || (!MOB_FLAGGED(victim, MOB_NOCHARM) && GET_MAX_HIT(victim) < 1000)))
   {
     if (victim->player_specials->has_banishment_been_attempted)
       ;
@@ -610,7 +616,7 @@ int process_armor_abilities(struct char_data *ch,     /* The player wearing the 
 int process_item_abilities(struct obj_data *obj,     /* The obj to check for special abilities. */
                            struct char_data *ch,     /* The wielder of the weapon. */
                            struct char_data *victim, /* The target of the ability (either fighting or
-							 * specified explicitly. */
+                                                      * specified explicitly. */
                            int actmtd,               /* Activation method */
                            char *cmdword)            /* Command word (optional, NULL if none. */
 {
@@ -742,8 +748,8 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
   case ACTMTD_WEAR: /* Called whenever the item is worn. */
     if (!ch->mute_equip_messages)
       send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n",
-                 (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0 ? "Your companion is too tired to answer your summons."
-                                                                                            : "Your companion is ready to answer your summons!"));
+                   (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0 ? "Your companion is too tired to answer your summons."
+                                                                                              : "Your companion is ready to answer your summons!"));
     break;
   default:
     /* Do nothing. */
@@ -768,9 +774,9 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding)
   {
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
     /* Activate the blinding ability.
-       *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
-       *  - Send a message to the room, then attempt to blind engaged creatures.
-       */
+     *  - Check the cooldown - This ability can be used 2x a day, so set a cooldown on the shield using events.
+     *  - Send a message to the room, then attempt to blind engaged creatures.
+     */
     if (daily_item_specab_uses_remaining(armor, ARMOR_SPECAB_BLINDING) == 0)
     {
       /* No uses remaining... */
@@ -871,9 +877,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the flaming ability.
-       *  - Set the FLAMING bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the FLAMING bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_FLAMING))
     {
       /* Flaming is on, turn it off. */
@@ -922,9 +928,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_flaming_burst)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the flaming ability.
-       *  - Set the FLAMING bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the FLAMING bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_FLAMING))
     {
       /* Flaming is on, turn it off. */
@@ -979,9 +985,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive_burst)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the CORROSIVE ability.
-       *  - Set the CORROSIVE bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the CORROSIVE bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE))
     {
       /* CORROSIVE is on, turn it off. */
@@ -999,7 +1005,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive_burst)
       SET_OBJ_FLAG(weapon, ITEM_CORROSIVE);
     }
     break;
-  case ACTMTD_ON_HIT:                      /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_HIT:                        /* Called whenever a weapon hits an enemy. */
     if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE)) /* Burn 'em. */
       if (victim)
       {
@@ -1033,8 +1039,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vicious)
    */
   switch (actmtd)
   {
-  case ACTMTD_COMMAND_WORD: 
-  case ACTMTD_USE:          
+  case ACTMTD_COMMAND_WORD:
+  case ACTMTD_USE:
     if (OBJ_FLAGGED(weapon, ITEM_VICIOUS))
     {
       send_to_char(ch, "The tiny whirls of black smoke surrounding your weapon dissipate.\r\n");
@@ -1048,22 +1054,22 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vicious)
       SET_OBJ_FLAG(weapon, ITEM_VICIOUS);
     }
     break;
-  case ACTMTD_ON_HIT:                     
-    if (OBJ_FLAGGED(weapon, ITEM_VICIOUS)) 
+  case ACTMTD_ON_HIT:
+    if (OBJ_FLAGGED(weapon, ITEM_VICIOUS))
       if (victim)
       {
         damage(ch, victim, dice(2, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
         damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
       }
     break;
-  case ACTMTD_ON_CRIT: 
+  case ACTMTD_ON_CRIT:
     if (victim)
     {
       damage(ch, victim, dice(3, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
       damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
     }
     break;
-  case ACTMTD_WEAR: 
+  case ACTMTD_WEAR:
   default:
     break;
   }
@@ -1080,8 +1086,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vorpal)
    */
   switch (actmtd)
   {
-  case ACTMTD_COMMAND_WORD: 
-  case ACTMTD_USE:          
+  case ACTMTD_COMMAND_WORD:
+  case ACTMTD_USE:
     if (OBJ_FLAGGED(weapon, ITEM_VORPAL))
     {
       send_to_char(ch, "The tiny whirls of black smoke surrounding your weapon dissipate.\r\n");
@@ -1095,14 +1101,17 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vorpal)
       SET_OBJ_FLAG(weapon, ITEM_VORPAL);
     }
     break;
-  case ACTMTD_ON_CRIT: 
+  case ACTMTD_ON_CRIT:
     if (victim)
     {
-      if (dice(1, 20) == 1) { // 5% chance on a critical hit
+      if (dice(1, 20) == 1)
+      { // 5% chance on a critical hit
         if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
-           (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT) &&
-           (GET_NPC_RACE(victim) != RACE_TYPE_OOZE)) { // they need to have or a head or not be able to function without a head
-          if (!MOB_FLAGGED(victim, MOB_NOCHARM)) { // a fail safe for boss type mobs and shopkeepers, etc.
+            (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT) &&
+            (GET_NPC_RACE(victim) != RACE_TYPE_OOZE))
+        { // they need to have or a head or not be able to function without a head
+          if (!MOB_FLAGGED(victim, MOB_NOCHARM))
+          {                                                                                       // a fail safe for boss type mobs and shopkeepers, etc.
             damage(ch, victim, GET_HIT(victim) + 100, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE); // should kill them outright
           }
         }
@@ -1110,7 +1119,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vorpal)
     }
     break;
   case ACTMTD_ON_HIT:
-  case ACTMTD_WEAR: 
+  case ACTMTD_WEAR:
   default:
     break;
   }
@@ -1119,7 +1128,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vorpal)
 WEAPON_SPECIAL_ABILITY(weapon_specab_vampiric)
 {
   int dam = 0;
-  //char buf[200]; // uncomment if we decide we want to show a message for hp healed.  Commented out because considered too spammy
+  int heal = 0;
+  // char buf[200]; // uncomment if we decide we want to show a message for hp healed.  Commented out because considered too spammy
   /*
    * level
    * weapon
@@ -1130,41 +1140,45 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vampiric)
   switch (actmtd)
   {
   case ACTMTD_ON_HIT:
-  case ACTMTD_ON_CRIT: 
+  case ACTMTD_ON_CRIT:
     if (victim)
     {
-      if (actmtd == ACTMTD_ON_HIT)
-        dam = dice(1, 4);
-      else
-        dam = dice(2, 4);
       if ((GET_NPC_RACE(victim) != RACE_TYPE_UNDEAD) &&
-          (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT)) { // has to be alive
-          damage(ch, victim, dam, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
-        if ((dam / 2) > 0)
+          (GET_NPC_RACE(victim) != RACE_TYPE_CONSTRUCT))
+      { // has to be alive
+
+        if (actmtd == ACTMTD_ON_HIT)
+          dam = dice(1, 8);
+        else
+          dam = dice(2, 8) + 2;
+
+        /* hit them with the vampiric damage first and store the result in the heal variable */
+        heal = damage(ch, victim, dam, TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+
+        if (heal > 0)
         {
-          GET_HIT(ch) += dam / 2;
-          GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch));
-          //snprintf(buf, sizeof(buf), "Your $o has healed you %d hit points!", dam/2);
-          //act(buf, false, ch, weapon, 0, TO_CHAR);
+          heal += (int) (compute_damage_bonus(ch, victim, weapon, ATTACK_TYPE_PRIMARY, 0, MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY) / 10);
+          GET_HIT(ch) += heal;
+          // snprintf(buf, sizeof(buf), "Your $o has healed you %d hit points!", heal);
+          // act(buf, false, ch, weapon, 0, TO_CHAR);
         }
       }
     }
     break;
-  case ACTMTD_COMMAND_WORD: 
+  case ACTMTD_COMMAND_WORD:
   case ACTMTD_USE:
-  case ACTMTD_WEAR: 
+  case ACTMTD_WEAR:
   default:
     break;
   }
 }
-
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_invigorating)
 {
 
   int stamina = GET_OBJ_VAL(weapon, 4);
 
-  //char buf[200]; // uncomment if we decide we want to show a message for hp healed.  Commented out because considered too spammy
+  // char buf[200]; // uncomment if we decide we want to show a message for hp healed.  Commented out because considered too spammy
   /*
    * level
    * weapon
@@ -1175,7 +1189,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_invigorating)
   switch (actmtd)
   {
   case ACTMTD_ON_HIT:
-  case ACTMTD_ON_CRIT: 
+  case ACTMTD_ON_CRIT:
     if (victim)
     {
       if (actmtd == ACTMTD_ON_CRIT)
@@ -1184,9 +1198,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_invigorating)
       GET_MOVE(ch) = MIN(GET_MAX_MOVE(ch), GET_MOVE(ch));
     }
     break;
-  case ACTMTD_COMMAND_WORD: 
+  case ACTMTD_COMMAND_WORD:
   case ACTMTD_USE:
-  case ACTMTD_WEAR: 
+  case ACTMTD_WEAR:
   default:
     break;
   }
@@ -1206,9 +1220,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the CORROSIVE ability.
-       *  - Set the CORROSIVE bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the CORROSIVE bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE))
     {
       /* CORROSIVE is on, turn it off. */
@@ -1226,7 +1240,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_corrosive)
       SET_OBJ_FLAG(weapon, ITEM_CORROSIVE);
     }
     break;
-  case ACTMTD_ON_HIT:                      /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_HIT:                        /* Called whenever a weapon hits an enemy. */
     if (OBJ_FLAGGED(weapon, ITEM_CORROSIVE)) /* Burn 'em. */
       if (victim)
       {
@@ -1288,9 +1302,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_disruption)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the DISRUPTION ability.
-       *  - Set the DISRUPTION bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the DISRUPTION bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
     {
       /* Flaming is on, turn it off. */
@@ -1308,8 +1322,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_disruption)
       SET_OBJ_FLAG(weapon, ITEM_DISRUPTION);
     }
     break;
-  case ACTMTD_ON_HIT:                    /* Called whenever a weapon hits an enemy. */
-    if (GET_RACE(victim) == RACE_TYPE_UNDEAD) {
+  case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
+    if (GET_RACE(victim) == RACE_TYPE_UNDEAD)
+    {
       if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
         if (victim)
         {
@@ -1318,24 +1333,25 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_disruption)
     }
     break;
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
-    if (GET_RACE(victim) == RACE_TYPE_UNDEAD) {
-        if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
-          if (victim)
+    if (GET_RACE(victim) == RACE_TYPE_UNDEAD)
+    {
+      if (OBJ_FLAGGED(weapon, ITEM_DISRUPTION))
+        if (victim)
+        {
+          if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
           {
-            if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
-            {
-              send_to_char(ch, "Your weapon flashes with brilliant light!\r\n");
-              act("$o carried by $n flashes with brilliant light", FALSE, ch, weapon, NULL, TO_ROOM);
-              damage(ch, victim, dice(GET_LEVEL(ch) / 2 + 3, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
-            }
-            else
-            {
-              damage(ch, victim, dice(3, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
-            }
+            send_to_char(ch, "Your weapon flashes with brilliant light!\r\n");
+            act("$o carried by $n flashes with brilliant light", FALSE, ch, weapon, NULL, TO_ROOM);
+            damage(ch, victim, dice(GET_LEVEL(ch) / 2 + 3, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
           }
-      }
-      break;
-  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+          else
+          {
+            damage(ch, victim, dice(3, 6), TYPE_SPECAB_HOLY, DAM_HOLY, FALSE);
+          }
+        }
+    }
+    break;
+  case ACTMTD_WEAR: /* Called whenever the item is worn. */
   default:
     /* Do nothing. */
     break;
@@ -1358,9 +1374,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the frost ability.
-       *  - Set the FROST bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the FROST bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_FROST))
     {
       /* Flaming is on, turn it off. */
@@ -1393,7 +1409,6 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost)
   }
 }
 
-
 /* A weapon with the shock special ability generates cold, becoming enveloped with electric energy and dealing
  * electric damage on a regular hit. */
 WEAPON_SPECIAL_ABILITY(weapon_specab_shock)
@@ -1410,9 +1425,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_shock)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the shock ability.
-       *  - Set the shock bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the shock bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_SHOCK))
     {
       /* Shocking is on, turn it off. */
@@ -1445,7 +1460,6 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_shock)
   }
 }
 
-
 /* A weapon with shocking burst functions as a shocking weapon, except on critical hits it
  * performs an electric burst for 1d10 extra damage. */
 WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst)
@@ -1462,9 +1476,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the shocking ability.
-       *  - Set the shocking bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the shocking bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_SHOCK))
     {
       /* shocking is on, turn it off. */
@@ -1482,7 +1496,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst)
       SET_OBJ_FLAG(weapon, ITEM_SHOCK);
     }
     break;
-  case ACTMTD_ON_HIT:                      /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_ON_HIT:                    /* Called whenever a weapon hits an enemy. */
     if (OBJ_FLAGGED(weapon, ITEM_SHOCK)) /* shcok 'em. */
       if (victim)
       {
@@ -1527,9 +1541,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_seeking)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the seeking ability.
-       *  - Set the SEEKING bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the SEEKING bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_SEEKING))
     {
       /* Seeking is on, turn it off. */
@@ -1570,9 +1584,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_adaptive)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the ADAPTIVE ability.
-       *  - Set the ADAPTIVE bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the ADAPTIVE bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_ADAPTIVE))
     {
       /* ADAPTIVE is on, turn it off. */
@@ -1613,9 +1627,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_agile)
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
     /* Activate the AGILE ability.
-       *  - Set the AGILE bit on the weapon (this affects the display,
-       *    and is used to toggle the effect.)
-       */
+     *  - Set the AGILE bit on the weapon (this affects the display,
+     *    and is used to toggle the effect.)
+     */
     if (OBJ_FLAGGED(weapon, ITEM_AGILE))
     {
       /* AGILE is on, turn it off. */
@@ -1681,7 +1695,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_defending)
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
 {
-  
+
   struct affected_type af, af2;
   /*
    * level
@@ -1695,44 +1709,44 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
     if (!can_blind(victim))
-      {
-        return;
-      }
+    {
+      return;
+    }
 
-      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
-      {
-        act("You look away just in time to avoid getting blinded!", FALSE, victim, weapon, ch, TO_CHAR);
-        act("$n looks away just in time to avoid getting blinded!", TRUE, victim, weapon, ch, TO_ROOM);
-        return;
-      }
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    {
+      act("You look away just in time to avoid getting blinded!", FALSE, victim, weapon, ch, TO_CHAR);
+      act("$n looks away just in time to avoid getting blinded!", TRUE, victim, weapon, ch, TO_ROOM);
+      return;
+    }
 
-      new_affect(&af);
-      new_affect(&af2);
+    new_affect(&af);
+    new_affect(&af2);
 
-      af.spell = SPELL_BLINDNESS;
-      af.location = APPLY_HITROLL;
-      af.modifier = -4;
-      af.duration = 1;
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af.bitvector, AFF_BLIND);
+    af.spell = SPELL_BLINDNESS;
+    af.location = APPLY_HITROLL;
+    af.modifier = -4;
+    af.duration = 1;
+    af.bonus_type = BONUS_TYPE_UNDEFINED;
+    SET_BIT_AR(af.bitvector, AFF_BLIND);
 
-      af2.spell = SPELL_BLINDNESS;
-      af2.location = APPLY_AC_NEW;
-      af2.modifier = -4;
-      af2.duration = 1;
-      af2.bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af2.bitvector, AFF_BLIND);
+    af2.spell = SPELL_BLINDNESS;
+    af2.location = APPLY_AC_NEW;
+    af2.modifier = -4;
+    af2.duration = 1;
+    af2.bonus_type = BONUS_TYPE_UNDEFINED;
+    SET_BIT_AR(af2.bitvector, AFF_BLIND);
 
-      act("You have been blinded!", FALSE, victim, 0, ch, TO_CHAR);
-      act("$n seems to be blinded!", TRUE, victim, 0, ch, TO_ROOM);
+    act("You have been blinded!", FALSE, victim, 0, ch, TO_CHAR);
+    act("$n seems to be blinded!", TRUE, victim, 0, ch, TO_ROOM);
 
-      affect_to_char(victim, &af);
-      affect_to_char(victim, &af2);
+    affect_to_char(victim, &af);
+    affect_to_char(victim, &af2);
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
-  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
-  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  case ACTMTD_ON_HIT:       /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:         /* Called whenever the item is worn. */
   default:
     /* Do nothing. */
     break;
@@ -1741,7 +1755,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_blinding)
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 {
-  
+
   struct affected_type af;
   /*
    * level
@@ -1755,31 +1769,31 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
 
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
-      {
-        act("You resist the wave of exhaustion from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
-        act("$n resists the wave of exhaustion from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
-        return;
-      }
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    {
+      act("You resist the wave of exhaustion from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
+      act("$n resists the wave of exhaustion from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
+      return;
+    }
 
-      new_affect(&af);
+    new_affect(&af);
 
-      af.duration = 2;
-      af.location = SPELL_WAVES_OF_EXHAUSTION;
-      SET_BIT_AR(af.bitvector, AFF_FATIGUED);
-      GET_MOVE(victim) -= 20;
-      if (GET_MOVE(victim) < 0)
-        GET_MOVE(victim) = 0;
+    af.duration = 2;
+    af.location = SPELL_WAVES_OF_EXHAUSTION;
+    SET_BIT_AR(af.bitvector, AFF_FATIGUED);
+    GET_MOVE(victim) -= 20;
+    if (GET_MOVE(victim) < 0)
+      GET_MOVE(victim) = 0;
 
-      act("You have been inflicted with heavy fatigue!", FALSE, victim, 0, ch, TO_CHAR);
-      act("$n seems to be inflicted with heavy fatigue!", TRUE, victim, 0, ch, TO_ROOM);
+    act("You have been inflicted with heavy fatigue!", FALSE, victim, 0, ch, TO_CHAR);
+    act("$n seems to be inflicted with heavy fatigue!", TRUE, victim, 0, ch, TO_ROOM);
 
-      affect_to_char(victim, &af);
+    affect_to_char(victim, &af);
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
-  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
-  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  case ACTMTD_ON_HIT:       /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:         /* Called whenever the item is worn. */
   default:
     /* Do nothing. */
     break;
@@ -1788,7 +1802,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 {
-  
+
   struct affected_type af;
   /*
    * level
@@ -1802,40 +1816,39 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
 
-      if (!victim)
-        break;
+    if (!victim)
+      break;
 
-      damage(ch, victim, dice(2, 10), TYPE_SPECAB_THUNDERING, DAM_SOUND, FALSE);
+    damage(ch, victim, dice(2, 10), TYPE_SPECAB_THUNDERING, DAM_SOUND, FALSE);
 
-      if (!can_deafen(victim))
-      {
-        send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
-        return;
-      }
+    if (!can_deafen(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
+      return;
+    }
 
-      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
-      {
-        act("You resist the thunderlcap from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
-        act("$n resists the thunderclap from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
-        return;
-      }
+    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    {
+      act("You resist the thunderlcap from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
+      act("$n resists the thunderclap from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);
+      return;
+    }
 
-      new_affect(&af);
-      af.duration = 2;
-      af.spell = SPELL_DEAFNESS;
-      SET_BIT_AR(af.bitvector, AFF_DEAF);
+    new_affect(&af);
+    af.duration = 2;
+    af.spell = SPELL_DEAFNESS;
+    SET_BIT_AR(af.bitvector, AFF_DEAF);
 
-      act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
-      act("$n seems to have been deafened!", TRUE, victim, 0, ch, TO_ROOM);
+    act("You have been deafened!", FALSE, victim, 0, ch, TO_CHAR);
+    act("$n seems to have been deafened!", TRUE, victim, 0, ch, TO_ROOM);
 
-      affect_to_char(victim, &af);
+    affect_to_char(victim, &af);
 
-      
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
-  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
-  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  case ACTMTD_ON_HIT:       /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:         /* Called whenever the item is worn. */
   default:
     /* Do nothing. */
     break;
@@ -1844,7 +1857,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_thundering)
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
 {
-  
+
   struct affected_type af;
   /*
    * level
@@ -1858,42 +1871,42 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
     if (MOB_FLAGGED(victim, MOB_NOCONFUSE))
-      {
-        return;
-      }
+    {
+      return;
+    }
 
-      if (!can_confuse(victim))
-      {
-        send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
-        return;
-      }
+    if (!can_confuse(victim))
+    {
+      send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
+      return;
+    }
 
-      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), ENCHANTMENT))
-      {
-        act("You shake off a cloud of confusion settling over your mind.", FALSE, victim, weapon, ch, TO_CHAR);
-        act("$n looks confused for a moment, but shakes it off.", TRUE, victim, weapon, ch, TO_ROOM);
-        return;
-      }
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), ENCHANTMENT))
+    {
+      act("You shake off a cloud of confusion settling over your mind.", FALSE, victim, weapon, ch, TO_CHAR);
+      act("$n looks confused for a moment, but shakes it off.", TRUE, victim, weapon, ch, TO_ROOM);
+      return;
+    }
 
-      new_affect(&af);
+    new_affect(&af);
 
-      af.spell = SPELL_CONFUSION;
-      af.location = APPLY_NONE;
-      af.modifier = 0;
-      af.duration = 1;
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af.bitvector, AFF_CONFUSED);
+    af.spell = SPELL_CONFUSION;
+    af.location = APPLY_NONE;
+    af.modifier = 0;
+    af.duration = 1;
+    af.bonus_type = BONUS_TYPE_UNDEFINED;
+    SET_BIT_AR(af.bitvector, AFF_CONFUSED);
 
-      act("You feel extremely confused.", FALSE, victim, 0, ch, TO_CHAR);
-      act("$n seems extremely confused.", TRUE, victim, 0, ch, TO_ROOM);
+    act("You feel extremely confused.", FALSE, victim, 0, ch, TO_CHAR);
+    act("$n seems extremely confused.", TRUE, victim, 0, ch, TO_ROOM);
 
-      affect_to_char(victim, &af);
+    affect_to_char(victim, &af);
 
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
-  case ACTMTD_ON_HIT:  /* Called whenever a weapon hits an enemy. */
-  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  case ACTMTD_ON_HIT:       /* Called whenever a weapon hits an enemy. */
+  case ACTMTD_WEAR:         /* Called whenever the item is worn. */
   default:
     /* Do nothing. */
     break;
@@ -1902,7 +1915,7 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_bewildering)
 
 WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
 {
-  
+
   struct affected_type af;
 
   /*
@@ -1915,77 +1928,79 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_wounding)
   switch (actmtd)
   {
 
-  case ACTMTD_ON_HIT: 
+  case ACTMTD_ON_HIT:
   case ACTMTD_ON_CRIT:
-    
-      if ((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
-         (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) ||
-         (GET_NPC_RACE(victim) == RACE_TYPE_OOZE))
-         return;
 
-      new_affect(&af);
+    if ((GET_NPC_RACE(victim) == RACE_TYPE_CONSTRUCT) ||
+        (GET_NPC_RACE(victim) == RACE_TYPE_UNDEAD) ||
+        (GET_NPC_RACE(victim) == RACE_TYPE_OOZE))
+      return;
 
-      af.spell = TYPE_SPECAB_BLEEDING;
-      af.location = APPLY_SPECIAL;
-      af.modifier = dice(1, 4);
-      af.duration = 3;
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      SET_BIT_AR(af.bitvector, AFF_BLEED);
+    new_affect(&af);
 
-      if (AFF_FLAGGED(victim, AFF_BLEED))
-      {
-        act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
-      } else {
-        act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
-        act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
-      }
+    af.spell = TYPE_SPECAB_BLEEDING;
+    af.location = APPLY_SPECIAL;
+    af.modifier = dice(1, 4);
+    af.duration = 3;
+    af.bonus_type = BONUS_TYPE_UNDEFINED;
+    SET_BIT_AR(af.bitvector, AFF_BLEED);
 
-      affect_to_char(victim, &af);
+    if (AFF_FLAGGED(victim, AFF_BLEED))
+    {
+      act("Your bleeding worsens.", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n's bleeding worsens.", TRUE, victim, 0, ch, TO_ROOM);
+    }
+    else
+    {
+      act("You start to bleed.", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n starts to bleed.", TRUE, victim, 0, ch, TO_ROOM);
+    }
+
+    affect_to_char(victim, &af);
     break;
   case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
   case ACTMTD_USE:          /* User USEs the item. */
-  case ACTMTD_WEAR:    /* Called whenever the item is worn. */
+  case ACTMTD_WEAR:         /* Called whenever the item is worn. */
   default:
     /* Do nothing. */
     break;
   }
 }
 
-char * get_weapon_specab_default_command_word(int specab)
+char *get_weapon_specab_default_command_word(int specab)
 {
   switch (specab)
   {
-    case WEAPON_SPECAB_BLINDING:
-      return strdup("obscure");
-    case WEAPON_SPECAB_FLAMING:
-    case WEAPON_SPECAB_FLAMING_BURST:
-      return strdup("blaze");
-    case WEAPON_SPECAB_CORROSIVE:
-    case WEAPON_SPECAB_CORROSIVE_BURST:
-      return strdup("corrode");
-    case WEAPON_SPECAB_FROST:
-    case WEAPON_SPECAB_ICY_BURST:
-      return strdup("glacier");
-    case WEAPON_SPECAB_SHOCK:
-    case WEAPON_SPECAB_SHOCKING_BURST:
-      return strdup("spark");
-    case WEAPON_SPECAB_VICIOUS:
-      return strdup("ferocity");
-    case WEAPON_SPECAB_VORPAL:
-      return strdup("decapitate");
-    case WEAPON_SPECAB_DISRUPTION:
-      return strdup("exorcise");
-    case WEAPON_SPECAB_SEEKING:
-      return strdup("snipe");
-    case WEAPON_SPECAB_ADAPTIVE:
-      return strdup("propel");
-    case WEAPON_SPECAB_AGILE:
-      return strdup("fleet");
-    case WEAPON_SPECAB_DEFENDING:
-      return strdup("aegis");
-    case WEAPON_SPECAB_VAMPIRIC:
-      return strdup("drain");
+  case WEAPON_SPECAB_BLINDING:
+    return strdup("obscure");
+  case WEAPON_SPECAB_FLAMING:
+  case WEAPON_SPECAB_FLAMING_BURST:
+    return strdup("blaze");
+  case WEAPON_SPECAB_CORROSIVE:
+  case WEAPON_SPECAB_CORROSIVE_BURST:
+    return strdup("corrode");
+  case WEAPON_SPECAB_FROST:
+  case WEAPON_SPECAB_ICY_BURST:
+    return strdup("glacier");
+  case WEAPON_SPECAB_SHOCK:
+  case WEAPON_SPECAB_SHOCKING_BURST:
+    return strdup("spark");
+  case WEAPON_SPECAB_VICIOUS:
+    return strdup("ferocity");
+  case WEAPON_SPECAB_VORPAL:
+    return strdup("decapitate");
+  case WEAPON_SPECAB_DISRUPTION:
+    return strdup("exorcise");
+  case WEAPON_SPECAB_SEEKING:
+    return strdup("snipe");
+  case WEAPON_SPECAB_ADAPTIVE:
+    return strdup("propel");
+  case WEAPON_SPECAB_AGILE:
+    return strdup("fleet");
+  case WEAPON_SPECAB_DEFENDING:
+    return strdup("aegis");
+  case WEAPON_SPECAB_VAMPIRIC:
+    return strdup("drain");
   }
   return NULL;
 }
