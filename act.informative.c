@@ -2042,7 +2042,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYSpell-like Affects\tC", 80, '-', '-');
+  text_line(ch, "\tYSpell/Skill-like Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   buf[0] = '\0'; // Reset the string buffer for later use.
@@ -2366,12 +2366,24 @@ ACMD(do_masterlist)
     else
       i = sorted_skills[bottom];
 
-    if (!strcmp(spell_info[i].name, "!UNUSED!"))
-      continue;
-    nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                    "%3d) %s\r\n", i, spell_info[i].name);
+    if (is_spells)
+    {
+      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+        continue;
+      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                      "%3d) %s\r\n", i, spell_info[i].name);
+    }
+    else
+    {
+      if (!strcmp(skill_info[i].name, "!UNUSED!"))
+        continue;
+      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                      "%3d) %s\r\n", i, skill_info[i].name);
+    }
+
     if (len + nlen >= sizeof(buf2) || nlen < 0)
       break;
+
     len += nlen;
     counter++;
   }
