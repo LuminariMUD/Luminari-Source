@@ -2099,7 +2099,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       else
       { /* skill? */
         snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-                 CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
+                 CCCYN(ch, C_NRM), skill_info[aff->spell].name, CCNRM(ch, C_NRM));
         strlcat(buf, buf2, sizeof(buf));
       }
 
