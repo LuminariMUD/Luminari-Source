@@ -1,6 +1,6 @@
 /*
  * Template system by Gicker aka Stephen Squires for LuminariMUD 2020
-**/
+ **/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -42,7 +42,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
     struct descriptor_data *d = ch->desc;
     long int level_id = -1;
 
-    //Check the connection, reconnect if necessary.
+    // Check the connection, reconnect if necessary.
     mysql_ping(conn);
 
     snprintf(query, sizeof(query),
@@ -807,7 +807,9 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
 
         for (i = START_GENERAL_ABILITIES; i <= END_GENERAL_ABILITIES; i++)
         {
-            if (!strcmp(spell_info[i].name, "!UNUSED!"))
+            if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
+                continue;
+            if (!strcmp(spell_info[i].name, "!UNUSED(K)!"))
                 continue;
             if (is_abbrev(searchString, spell_info[i].name))
                 break;
@@ -851,7 +853,9 @@ void levelinfo_search(struct char_data *ch, int type, char *searchString)
 
         for (i = MIN_LANGUAGES; i <= MAX_LANGUAGES; i++)
         {
-            if (!strcmp(spell_info[i].name, "!UNUSED!"))
+            if (!strcmp(spell_info[i].name, "!UNUSED(P)!"))
+                continue;
+            if (!strcmp(spell_info[i].name, "!UNUSED(K)!"))
                 continue;
             if (is_abbrev(searchString, spell_info[i].name))
                 break;
