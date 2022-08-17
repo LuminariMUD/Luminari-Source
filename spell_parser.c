@@ -354,12 +354,12 @@ bool isEpicSpell(int spellnum)
 
 /* This function should be used anytime you are not 100% sure that you have
  * a valid spell/skill number.  A typical for() loop would not need to use
- * this because you can guarantee > 0 and <= TOP_SKILL_DEFINE. */
+ * this because you can guarantee > 0 and < TOP_SKILL_DEFINE. */
 const char *skill_name(int num)
 {
   if (skill_info[num].schoolOfMagic > 0)
     return (skill_info[num].name);
-  if (num > 0 && num <= TOP_SKILL_DEFINE)
+  if (num > 0 && num < TOP_SKILL_DEFINE)
     return (spell_info[num].name);
   else if (num == -1)
     return ("Not-Used");
@@ -376,7 +376,7 @@ int find_skill_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
 
-  for (skindex = 1; skindex <= TOP_SKILL_DEFINE; skindex++)
+  for (skindex = 1; skindex < TOP_SKILL_DEFINE; skindex++)
   {
     if (is_abbrev(name, spell_info[skindex].name))
       return (skindex);
@@ -2590,10 +2590,10 @@ void mag_assign_spells(void)
   int i;
 
   /* Do not change the loop below. */
-  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
+  for (i = 0; i < TOP_SKILL_DEFINE; i++)
     unused_spell(i);
   /*
-  for (i = START_SKILLS; i <= TOP_SKILL_DEFINE; i++)
+  for (i = START_SKILLS; i < TOP_SKILL_DEFINE; i++)
     unused_skill(i);
   */
   /* Do not change the loop above. */
