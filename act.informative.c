@@ -2352,11 +2352,11 @@ ACMD(do_masterlist)
 
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
-    if (is_spells && i >= TOP_SPELL_DEFINE))
+    if (is_spells && i > TOP_SPELL_DEFINE)
       continue;
     if (!is_spells && i < START_SKILLS)
       continue;
-    if (!is_spells && i >= TOP_SKILL_DEFINE)
+    if (!is_spells && i > TOP_SKILL_DEFINE)
       continue;
 
     nlen = snprintf(buf2 + len, sizeof(buf2) - len,
