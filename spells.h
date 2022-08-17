@@ -656,264 +656,228 @@
 // spells are in a table separate from skills, abilities and everything else
 // Gicker Feb 5, 2021
 #define MAX_SPELLS 2000
-#define START_SKILLS 500
+#define TOP_SPELL_DEFINE 2000
+
+#define START_SKILLS 2000
+
+/* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
+#define SKILL_BACKSTAB 2001          // implemented
+#define SKILL_BASH 2002              // implemented
+#define SKILL_MUMMY_DUST 2003        // implemented
+#define SKILL_KICK 2004              // implemented
+#define SKILL_WEAPON_SPECIALIST 2005 // implemented
+#define SKILL_WHIRLWIND 2006         // implemented
+#define SKILL_RESCUE 2007            // implemented
+#define SKILL_DRAGON_KNIGHT 2008     // implemented
+#define SKILL_LUCK_OF_HEROES 2009    // implemented
+#define SKILL_TRACK 2010             // implemented
+#define SKILL_QUICK_CHANT 2011       // implemented
+#define SKILL_AMBIDEXTERITY 2012     // implemented
+#define SKILL_DIRTY_FIGHTING 2013    // implemented
+#define SKILL_DODGE 2014             // implemented
+#define SKILL_IMPROVED_CRITICAL 2015 // implemented
+#define SKILL_MOBILITY 2016          // implemented
+#define SKILL_SPRING_ATTACK 2017     // implemented
+#define SKILL_TOUGHNESS 2018         // implemented
+#define SKILL_TWO_WEAPON_FIGHT 2019  // implemented
+#define SKILL_FINESSE 2020           // implemented
+#define SKILL_ARMOR_SKIN 2021        // implemented
+#define SKILL_BLINDING_SPEED 2022    // implemented
+#define SKILL_DAMAGE_REDUC_1 2023    // implemented
+#define SKILL_DAMAGE_REDUC_2 2024    // implemented
+#define SKILL_DAMAGE_REDUC_3 2025    // implemented
+#define SKILL_EPIC_TOUGHNESS 2026    // implemented
+#define SKILL_OVERWHELMING_CRIT 2027 // implemented
+#define SKILL_SELF_CONCEAL_1 2028    // implemented
+#define SKILL_SELF_CONCEAL_2 2029    // implemented
+#define SKILL_SELF_CONCEAL_3 2030    // implemented
+#define SKILL_TRIP 2031              // implemented
+#define SKILL_IMPROVED_WHIRL 2032    // implemented
+#define SKILL_CLEAVE 2033
+#define SKILL_GREAT_CLEAVE 2034
+#define SKILL_SPELLPENETRATE 2035   // implemented
+#define SKILL_SPELLPENETRATE_2 2036 // implemented
+#define SKILL_PROWESS 2037          // implemented
+#define SKILL_EPIC_PROWESS 2038     // implemented
+#define SKILL_EPIC_2_WEAPON 2039    // implemented
+#define SKILL_SPELLPENETRATE_3 2040 // implemented
+#define SKILL_SPELL_RESIST_1 2041   // implemented
+#define SKILL_SPELL_RESIST_2 2042   // implemented
+#define SKILL_SPELL_RESIST_3 2043   // implemented
+#define SKILL_SPELL_RESIST_4 2044   // implemented
+#define SKILL_SPELL_RESIST_5 2045   // implemented
+#define SKILL_INITIATIVE 2046       // implemented
+#define SKILL_EPIC_CRIT 2047        // implemented
+#define SKILL_IMPROVED_BASH 2048    // implemented
+#define SKILL_IMPROVED_TRIP 2049    // implemented
+#define SKILL_POWER_ATTACK 2050     // implemented
+#define SKILL_EXPERTISE 2051        // implemented
+#define SKILL_GREATER_RUIN 2052     // implemented
+#define SKILL_HELLBALL 2053         // implemented
+#define SKILL_EPIC_MAGE_ARMOR 2054  // implemented
+#define SKILL_EPIC_WARDING 2055     // implemented
+#define SKILL_RAGE 2056             // implemented
+#define SKILL_PROF_MINIMAL 2057     // implemented
+#define SKILL_PROF_BASIC 2058       // implemented
+#define SKILL_PROF_ADVANCED 2059    // implemented
+#define SKILL_PROF_MASTER 2060      // implemented
+#define SKILL_PROF_EXOTIC 2061      // implemented
+#define SKILL_PROF_LIGHT_A 2062     // implemented
+#define SKILL_PROF_MEDIUM_A 2063    // implemented
+#define SKILL_PROF_HEAVY_A 2064     // implemented
+#define SKILL_PROF_SHIELDS 2065     // implemented
+#define SKILL_PROF_T_SHIELDS 2066   // implemented
+#define SKILL_MURMUR 2067
+#define SKILL_PROPAGANDA 2068
+#define SKILL_LOBBY 2069
+#define SKILL_STUNNING_FIST 2070 // implemented
+/* initial crafting skills */
+#define TOP_CRAFT_SKILL 2071
+/**/
+#define SKILL_MINING 2071          // implemented
+#define SKILL_HUNTING 2072         // implemented
+#define SKILL_FORESTING 2073       // implemented
+#define SKILL_KNITTING 2074        // implemented
+#define SKILL_CHEMISTRY 2075       // implemented
+#define SKILL_ARMOR_SMITHING 2076  // implemented
+#define SKILL_WEAPON_SMITHING 2077 // implemented
+#define SKILL_JEWELRY_MAKING 2078  // implemented
+#define SKILL_LEATHER_WORKING 2079 // implemented
+#define SKILL_FAST_CRAFTER 2080    // implemented
+#define SKILL_BONE_ARMOR 2081
+#define SKILL_ELVEN_CRAFTING 2082
+#define SKILL_MASTERWORK_CRAFTING 2083
+#define SKILL_DRACONIC_CRAFTING 2084
+#define SKILL_DWARVEN_CRAFTING 2085
+/* */
+#define BOTTOM_CRAFT_SKILL 2086
+/* finish batch crafting skills */
+#define SKILL_LIGHTNING_REFLEXES 2086 // implemented
+#define SKILL_GREAT_FORTITUDE 2087    // implemented
+#define SKILL_IRON_WILL 2088          // implemented
+#define SKILL_EPIC_REFLEXES 2089      // implemented
+#define SKILL_EPIC_FORTITUDE 2090     // implemented
+#define SKILL_EPIC_WILL 2091          // implemented
+#define SKILL_SHIELD_SPECIALIST 2092  // implemented
+#define SKILL_USE_MAGIC 2093          // implemented
+#define SKILL_EVASION 2094            // implemented
+#define SKILL_IMP_EVASION 2095        // implemented
+#define SKILL_CRIP_STRIKE 2096        // implemented
+#define SKILL_SLIPPERY_MIND 2097      // implemented
+#define SKILL_DEFENSE_ROLL 2098       // implemented
+#define SKILL_GRACE 2099              // implemented
 
 /* PLAYER SKILLS */
-#define SKILL_DIVINE_HEALTH 500    // implemented
-#define SKILL_LAY_ON_HANDS 501     // implemented
-#define SKILL_COURAGE 502          // implemented
-#define SKILL_SMITE_EVIL 503       // implemented
-#define SKILL_REMOVE_DISEASE 504   // implemented
-#define SKILL_RECHARGE 505         // implemented
-#define SKILL_STEALTHY 506         // implemented
-#define SKILL_NATURE_STEP 507      // implemented
-#define SKILL_FAVORED_ENEMY 508    // implemented
-#define SKILL_DUAL_WEAPONS 509     // implemented
-#define SKILL_ANIMAL_COMPANION 510 // implemented
-#define SKILL_PALADIN_MOUNT 511    // implemented
-#define SKILL_CALL_FAMILIAR 512    // implemented
-#define SKILL_PERFORM 513          // implemented
-#define SKILL_SCRIBE 514           // implemented
-#define SKILL_TURN_UNDEAD 515      // implemented
-#define SKILL_WILDSHAPE 516        // implemented
-#define SKILL_SPELLBATTLE 517      // implemented
-#define SKILL_HITALL 518
-#define SKILL_CHARGE 519
-#define SKILL_BODYSLAM 520
-#define SKILL_SPRINGLEAP 521
-#define SKILL_HEADBUTT 522
-#define SKILL_SHIELD_PUNCH 523
-#define SKILL_DIRT_KICK 524
-#define SKILL_SAP 525
-#define SKILL_SHIELD_SLAM 526
-#define SKILL_SHIELD_CHARGE 527
-#define SKILL_QUIVERING_PALM 528 // implemented
-#define SKILL_SURPRISE_ACCURACY 529
-#define SKILL_POWERFUL_BLOW 530
-#define SKILL_RAGE_FATIGUE 531 // implemented
-#define SKILL_COME_AND_GET_ME 532
-#define SKILL_FEINT 533
-#define SKILL_SMITE_GOOD 534
-#define SKILL_SMITE_DESTRUCTION 535
-#define SKILL_DESTRUCTIVE_AURA 536
-#define SKILL_AURA_OF_PROTECTION 537
-#define SKILL_DEATH_ARROW 538
-#define SKILL_DEFENSIVE_STANCE 539
-#define SKILL_CRIPPLING_CRITICAL 540
-#define SKILL_DRHRT_CLAWS 541
-#define SKILL_DRHRT_WINGS 542
-#define SKILL_BOMB_TOSS 543
-#define SKILL_MUTAGEN 544
-#define SKILL_COGNATOGEN 545
-#define SKILL_INSPIRING_COGNATOGEN 546
-#define SKILL_PSYCHOKINETIC 547
-#define SKILL_INNER_FIRE 548
-#define SKILL_SACRED_FLAMES 549
-#define SKILL_EPIC_WILDSHAPE 550 // implemented
+#define SKILL_DIVINE_HEALTH 2100    // implemented
+#define SKILL_LAY_ON_HANDS 2101     // implemented
+#define SKILL_COURAGE 2102          // implemented
+#define SKILL_SMITE_EVIL 2103       // implemented
+#define SKILL_REMOVE_DISEASE 2104   // implemented
+#define SKILL_RECHARGE 2105         // implemented
+#define SKILL_STEALTHY 2106         // implemented
+#define SKILL_NATURE_STEP 2107      // implemented
+#define SKILL_FAVORED_ENEMY 2108    // implemented
+#define SKILL_DUAL_WEAPONS 2109     // implemented
+#define SKILL_ANIMAL_COMPANION 2110 // implemented
+#define SKILL_PALADIN_MOUNT 2111    // implemented
+#define SKILL_CALL_FAMILIAR 2112    // implemented
+#define SKILL_PERFORM 2113          // implemented
+#define SKILL_SCRIBE 2114           // implemented
+#define SKILL_TURN_UNDEAD 2115      // implemented
+#define SKILL_WILDSHAPE 2116        // implemented
+#define SKILL_SPELLBATTLE 2117      // implemented
+#define SKILL_HITALL 2118
+#define SKILL_CHARGE 2119
+#define SKILL_BODYSLAM 2120
+#define SKILL_SPRINGLEAP 2121
+#define SKILL_HEADBUTT 2122
+#define SKILL_SHIELD_PUNCH 2123
+#define SKILL_DIRT_KICK 2124
+#define SKILL_SAP 2125
+#define SKILL_SHIELD_SLAM 2126
+#define SKILL_SHIELD_CHARGE 2127
+#define SKILL_QUIVERING_PALM 2128 // implemented
+#define SKILL_SURPRISE_ACCURACY 2129
+#define SKILL_POWERFUL_BLOW 2130
+#define SKILL_RAGE_FATIGUE 2131 // implemented
+#define SKILL_COME_AND_GET_ME 2132
+#define SKILL_FEINT 2133
+#define SKILL_SMITE_GOOD 2134
+#define SKILL_SMITE_DESTRUCTION 2135
+#define SKILL_DESTRUCTIVE_AURA 2136
+#define SKILL_AURA_OF_PROTECTION 2137
+#define SKILL_DEATH_ARROW 2138
+#define SKILL_DEFENSIVE_STANCE 2139
+#define SKILL_CRIPPLING_CRITICAL 2140
+#define SKILL_DRHRT_CLAWS 2141
+#define SKILL_DRHRT_WINGS 2142
+#define SKILL_BOMB_TOSS 2143
+#define SKILL_MUTAGEN 2144
+#define SKILL_COGNATOGEN 2145
+#define SKILL_INSPIRING_COGNATOGEN 2146
+#define SKILL_PSYCHOKINETIC 2147
+#define SKILL_INNER_FIRE 2148
+#define SKILL_SACRED_FLAMES 2149
+#define SKILL_EPIC_WILDSHAPE 2150 // implemented
 
-/* reserving this space for different performances 580 - 599*/
-#define TOP_OF_PERFORMANCES 580
+/* reserving this space for different performances 2180 - 2199*/
+#define TOP_OF_PERFORMANCES 2180
 /***/
-#define SKILL_SONG_OF_FOCUSED_MIND 588
-#define SKILL_SONG_OF_FEAR 589
-#define SKILL_SONG_OF_ROOTING 590
-#define SKILL_SONG_OF_THE_MAGI 591
-#define SKILL_SONG_OF_HEALING 592
-#define SKILL_DANCE_OF_PROTECTION 593
-#define SKILL_SONG_OF_FLIGHT 594
-#define SKILL_SONG_OF_HEROISM 595
-#define SKILL_ORATORY_OF_REJUVENATION 596
-#define SKILL_ACT_OF_FORGETFULNESS 597
-#define SKILL_SONG_OF_REVELATION 598
-#define SKILL_SONG_OF_DRAGONS 599
+#define SKILL_SONG_OF_FOCUSED_MIND 2188
+#define SKILL_SONG_OF_FEAR 2189
+#define SKILL_SONG_OF_ROOTING 2190
+#define SKILL_SONG_OF_THE_MAGI 2191
+#define SKILL_SONG_OF_HEALING 2192
+#define SKILL_DANCE_OF_PROTECTION 2193
+#define SKILL_SONG_OF_FLIGHT 2194
+#define SKILL_SONG_OF_HEROISM 2195
+#define SKILL_ORATORY_OF_REJUVENATION 2196
+#define SKILL_ACT_OF_FORGETFULNESS 2197
+#define SKILL_SONG_OF_REVELATION 2198
+#define SKILL_SONG_OF_DRAGONS 2199
 /**/
-#define END_OF_PERFORMANCES 600
+#define END_OF_PERFORMANCES 2200
 /**** end songs ****/
 
-#define SKILL_BACKSTAB 601          // implemented
-#define SKILL_BASH 602              // implemented
-#define SKILL_MUMMY_DUST 603        // implemented
-#define SKILL_KICK 604              // implemented
-#define SKILL_WEAPON_SPECIALIST 605 // implemented
-#define SKILL_WHIRLWIND 606         // implemented
-#define SKILL_RESCUE 607            // implemented
-#define SKILL_DRAGON_KNIGHT 608     // implemented
-#define SKILL_LUCK_OF_HEROES 609    // implemented
-#define SKILL_TRACK 610             // implemented
-#define SKILL_QUICK_CHANT 611       // implemented
-#define SKILL_AMBIDEXTERITY 612     // implemented
-#define SKILL_DIRTY_FIGHTING 613    // implemented
-#define SKILL_DODGE 614             // implemented
-#define SKILL_IMPROVED_CRITICAL 615 // implemented
-#define SKILL_MOBILITY 616          // implemented
-#define SKILL_SPRING_ATTACK 617     // implemented
-#define SKILL_TOUGHNESS 618         // implemented
-#define SKILL_TWO_WEAPON_FIGHT 619  // implemented
-#define SKILL_FINESSE 620           // implemented
-#define SKILL_ARMOR_SKIN 621        // implemented
-#define SKILL_BLINDING_SPEED 622    // implemented
-#define SKILL_DAMAGE_REDUC_1 623    // implemented
-#define SKILL_DAMAGE_REDUC_2 624    // implemented
-#define SKILL_DAMAGE_REDUC_3 625    // implemented
-#define SKILL_EPIC_TOUGHNESS 626    // implemented
-#define SKILL_OVERWHELMING_CRIT 627 // implemented
-#define SKILL_SELF_CONCEAL_1 628    // implemented
-#define SKILL_SELF_CONCEAL_2 629    // implemented
-#define SKILL_SELF_CONCEAL_3 630    // implemented
-#define SKILL_TRIP 631              // implemented
-#define SKILL_IMPROVED_WHIRL 632    // implemented
-#define SKILL_CLEAVE 633
-#define SKILL_GREAT_CLEAVE 634
-#define SKILL_SPELLPENETRATE 635   // implemented
-#define SKILL_SPELLPENETRATE_2 636 // implemented
-#define SKILL_PROWESS 637          // implemented
-#define SKILL_EPIC_PROWESS 638     // implemented
-#define SKILL_EPIC_2_WEAPON 639    // implemented
-#define SKILL_SPELLPENETRATE_3 640 // implemented
-#define SKILL_SPELL_RESIST_1 641   // implemented
-#define SKILL_SPELL_RESIST_2 642   // implemented
-#define SKILL_SPELL_RESIST_3 643   // implemented
-#define SKILL_SPELL_RESIST_4 644   // implemented
-#define SKILL_SPELL_RESIST_5 645   // implemented
-#define SKILL_INITIATIVE 646       // implemented
-#define SKILL_EPIC_CRIT 647        // implemented
-#define SKILL_IMPROVED_BASH 648    // implemented
-#define SKILL_IMPROVED_TRIP 649    // implemented
-#define SKILL_POWER_ATTACK 650     // implemented
-#define SKILL_EXPERTISE 651        // implemented
-#define SKILL_GREATER_RUIN 652     // implemented
-#define SKILL_HELLBALL 653         // implemented
-#define SKILL_EPIC_MAGE_ARMOR 654  // implemented
-#define SKILL_EPIC_WARDING 655     // implemented
-#define SKILL_RAGE 656             // implemented
-#define SKILL_PROF_MINIMAL 657     // implemented
-#define SKILL_PROF_BASIC 658       // implemented
-#define SKILL_PROF_ADVANCED 659    // implemented
-#define SKILL_PROF_MASTER 660      // implemented
-#define SKILL_PROF_EXOTIC 661      // implemented
-#define SKILL_PROF_LIGHT_A 662     // implemented
-#define SKILL_PROF_MEDIUM_A 663    // implemented
-#define SKILL_PROF_HEAVY_A 664     // implemented
-#define SKILL_PROF_SHIELDS 665     // implemented
-#define SKILL_PROF_T_SHIELDS 666   // implemented
-#define SKILL_MURMUR 667
-#define SKILL_PROPAGANDA 668
-#define SKILL_LOBBY 669
-#define SKILL_STUNNING_FIST 670 // implemented
-/* initial crafting skills */
-#define TOP_CRAFT_SKILL 671
-/**/
-#define SKILL_MINING 671          // implemented
-#define SKILL_HUNTING 672         // implemented
-#define SKILL_FORESTING 673       // implemented
-#define SKILL_KNITTING 674        // implemented
-#define SKILL_CHEMISTRY 675       // implemented
-#define SKILL_ARMOR_SMITHING 676  // implemented
-#define SKILL_WEAPON_SMITHING 677 // implemented
-#define SKILL_JEWELRY_MAKING 678  // implemented
-#define SKILL_LEATHER_WORKING 679 // implemented
-#define SKILL_FAST_CRAFTER 680    // implemented
-#define SKILL_BONE_ARMOR 681
-#define SKILL_ELVEN_CRAFTING 682
-#define SKILL_MASTERWORK_CRAFTING 683
-#define SKILL_DRACONIC_CRAFTING 684
-#define SKILL_DWARVEN_CRAFTING 685
-/* */
-#define BOTTOM_CRAFT_SKILL 686
-/* finish batch crafting skills */
-#define SKILL_LIGHTNING_REFLEXES 686 // implemented
-#define SKILL_GREAT_FORTITUDE 687    // implemented
-#define SKILL_IRON_WILL 688          // implemented
-#define SKILL_EPIC_REFLEXES 689      // implemented
-#define SKILL_EPIC_FORTITUDE 690     // implemented
-#define SKILL_EPIC_WILL 691          // implemented
-#define SKILL_SHIELD_SPECIALIST 692  // implemented
-#define SKILL_USE_MAGIC 693          // implemented
-#define SKILL_EVASION 694            // implemented
-#define SKILL_IMP_EVASION 695        // implemented
-#define SKILL_CRIP_STRIKE 696        // implemented
-#define SKILL_SLIPPERY_MIND 697      // implemented
-#define SKILL_DEFENSE_ROLL 698       // implemented
-#define SKILL_GRACE 699              // implemented
-
-/* New skills may be added here up to MAX_SKILLS (700) */
-#define NUM_SKILLS 700
+/* New skills may be added above here, up to MAX_SKILLS (3000) */
+#define NUM_SKILLS 2200
 
 /* Special Abilities for weapons */
 
-#define TYPE_SPECAB_FLAMING 600
-#define TYPE_SPECAB_FLAMING_BURST 601
-#define TYPE_SPECAB_FROST 602
-#define TYPE_SPECAB_ICY_BURST 603
-#define TYPE_SPECAB_CORROSIVE 604
-#define TYPE_SPECAB_HOLY 605
-#define TYPE_SPECAB_CORROSIVE_BURST 606
-#define TYPE_SPECAB_THUNDERING 607
-#define TYPE_SPECAB_BLEEDING 608
-#define TYPE_SPECAB_SHOCK 609
-#define TYPE_SPECAB_SHOCKING_BURST 610
-#define TYPE_SPECAB_ANARCHIC 611
-#define TYPE_SPECAB_UNHOLY 612
-
-#define SKILL_LANG_COMMON 601
-#define SKILL_LANG_BASIC SKILL_LANG_COMMON
-#define SKILL_LANG_THIEVES_CANT 602
-#define SKILL_LANG_DRUIDIC 603
-#define SKILL_LANG_ABYSSAL 604
-#define SKILL_LANG_ELVEN 605
-#define SKILL_LANG_GNOME 606
-#define SKILL_LANG_DWARVEN 607
-#define SKILL_LANG_CELESTIAL 608
-#define SKILL_LANG_DRACONIC 609
-#define SKILL_LANG_ORCISH 610
-#define SKILL_LANG_HALFLING 611
-#define SKILL_LANG_GOBLIN 612
-#define SKILL_LANG_ABERRATION 613
-#define SKILL_LANG_GIANT 614
-#define SKILL_LANG_KOBOLD 615
-#define SKILL_LANG_BARBARIAN 616
-#define SKILL_LANG_ERGOT 617
-#define SKILL_LANG_ISTARIAN 618
-#define SKILL_LANG_BALIFORIAN 619
-#define SKILL_LANG_KHAROLISIAN 620
-#define SKILL_LANG_MULHORANDI 621
-#define SKILL_LANG_RASHEMI 622
-#define SKILL_LANG_NORTHERNER 623
-#define SKILL_LANG_UNDERWORLD 624
-#define SKILL_LANG_ANCIENT 625
-#define SKILL_LANG_BINARY 626
-#define SKILL_LANG_BOCCE 627
-#define SKILL_LANG_BOTHESE 628
-#define SKILL_LANG_CEREAN 629
-#define SKILL_LANG_DOSH 630
-#define SKILL_LANG_DURESE 631
-#define SKILL_LANG_UNDERCOMMON 632
-/**/
-#define SKILL_LANG_LOW 601
-#define SKILL_LANG_HIGH 633
-#define MIN_LANGUAGES SKILL_LANG_LOW
-#define MAX_LANGUAGES SKILL_LANG_HIGH
+#define TYPE_SPECAB_FLAMING 2200
+#define TYPE_SPECAB_FLAMING_BURST 2201
+#define TYPE_SPECAB_FROST 2202
+#define TYPE_SPECAB_ICY_BURST 2203
+#define TYPE_SPECAB_CORROSIVE 2204
+#define TYPE_SPECAB_HOLY 2205
+#define TYPE_SPECAB_CORROSIVE_BURST 2206
+#define TYPE_SPECAB_THUNDERING 2207
+#define TYPE_SPECAB_BLEEDING 2208
+#define TYPE_SPECAB_SHOCK 2209
+#define TYPE_SPECAB_SHOCKING_BURST 2210
+#define TYPE_SPECAB_ANARCHIC 2211
+#define TYPE_SPECAB_UNHOLY 2212
 
 /* alchemist bombs with effects */
-#define BOMB_AFFECT_ACID 634
-#define BOMB_AFFECT_BLINDING 635
-#define BOMB_AFFECT_BONESHARD 636
-#define BOMB_AFFECT_CONCUSSIVE 637
-#define BOMB_AFFECT_CONFUSION 638
-#define BOMB_AFFECT_FIRE_BRAND 639
-#define BOMB_AFFECT_FORCE 640
-#define BOMB_AFFECT_FROST 641
-#define BOMB_AFFECT_HOLY 642
-#define BOMB_AFFECT_IMMOLATION 643
-#define BOMB_AFFECT_PROFANE 644
-#define BOMB_AFFECT_SHOCK 645
-#define BOMB_AFFECT_STICKY 646
-#define BOMB_AFFECT_SUNLIGHT 647
-#define BOMB_AFFECT_TANGLEFOOT 648
+#define BOMB_AFFECT_ACID 2234
+#define BOMB_AFFECT_BLINDING 2235
+#define BOMB_AFFECT_BONESHARD 2236
+#define BOMB_AFFECT_CONCUSSIVE 2237
+#define BOMB_AFFECT_CONFUSION 2238
+#define BOMB_AFFECT_FIRE_BRAND 2239
+#define BOMB_AFFECT_FORCE 2240
+#define BOMB_AFFECT_FROST 2241
+#define BOMB_AFFECT_HOLY 2242
+#define BOMB_AFFECT_IMMOLATION 2243
+#define BOMB_AFFECT_PROFANE 2244
+#define BOMB_AFFECT_SHOCK 2245
+#define BOMB_AFFECT_STICKY 2246
+#define BOMB_AFFECT_SUNLIGHT 2247
+#define BOMB_AFFECT_TANGLEFOOT 2248
 
 /* Attack types */
 
-#define TYPE_ATTACK_OF_OPPORTUNITY 650
+#define TYPE_ATTACK_OF_OPPORTUNITY 2250
 
 /* NON-PLAYER AND OBJECT SPELLS AND SKILLS: The practice levels for the spells
  * and skills below are _not_ recorded in the players file; therefore, the
@@ -923,23 +887,22 @@
 
 /* To make an affect induced by dg_affect look correct on 'stat' we need to
  * define it with a 'spellname'. */
-#define SPELL_DG_AFFECT 698
+#define SPELL_DG_AFFECT 2298
 
-#define TOP_SPELL_DEFINE 2000
-#define TOP_SKILL_DEFINE 699
-/* NEW NPC/OBJECT SPELLS can be inserted here up to 699 */
+#define TOP_SKILL_DEFINE 2299
+/* NEW NPC/OBJECT SPELLS can be inserted here up to 2299 */
 
 /*** Due to wanting the values to be more global, I moved
      all the WEAPON ATTACK TYPES to structs.h
- Reserving values: 700 - 750 for this purpose
+ Reserving values: 2300 - 2350 for this purpose
  */
 
 /* RANGED WEAPON ATTACK TYPES */
-#define TYPE_MISSILE 751
+#define TYPE_MISSILE 2351
 /** total number of ranged attack types */
 #define NUM_RANGED_TYPES 1
 
-/* not hard coded, but up to 775 */
+/* not hard coded, but up to 2375 */
 
 /* weapon type macros, returns true or false */
 #define IS_BLADE(obj) (GET_OBJ_VAL(obj, 3) == (TYPE_WHIP - TYPE_HIT) ||  \
@@ -960,13 +923,17 @@
 
 /* other attack types */
 
-#define TYPE_ESHIELD 795
-#define TYPE_CSHIELD 796
-#define TYPE_FSHIELD 797
-#define TYPE_ASHIELD 798
-#define TYPE_SUFFERING 799
+#define TYPE_ESHIELD 2395
+#define TYPE_CSHIELD 2396
+#define TYPE_FSHIELD 2397
+#define TYPE_ASHIELD 2398
+#define TYPE_SUFFERING 2399
 /* new attack types can be added here - up to TYPE_SUFFERING */
-#define MAX_TYPES 800
+#define MAX_TYPES 2400
+/*----------------------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------------------------*/
 
 /*---------------------------ABILITIES-------------------------------------*/
 
