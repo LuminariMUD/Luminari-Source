@@ -38,7 +38,8 @@
 struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
 struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
-const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
+const char *unused_spellname = "!UNUSED(P)!";    /* So we can get &unused_spellname */
+const char *unused_skillname = "!UNUSED(K)!";    /* So we can get &unused_skillname */
 const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearoff */
 
 /* Local (File Scope) Function Prototypes */
@@ -47,9 +48,9 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
 void spello(int spl, const char *name, int max_psp, int min_psp,
             int psp_change, int minpos, int targets, int violent, int routines,
             const char *wearoff, int time, int memtime, int school, bool quest);
-static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                        int psp_change, int minpos, int targets, int violent, int routines,
-                        const char *wearoff, int time, int memtime, int school, bool quest);
+void skillo_full(int spl, const char *name, int max_psp, int min_psp,
+                 int psp_change, int minpos, int targets, int violent, int routines,
+                 const char *wearoff, int time, int memtime, int school, bool quest);
 // static int mag_pspcost(struct char_data *ch, int spellnum);
 
 /* Local (File Scope) Variables */
@@ -2546,7 +2547,7 @@ void unused_skill(int spl)
   skill_info[spl].targets = 0;
   skill_info[spl].violent = 0;
   skill_info[spl].routines = 0;
-  skill_info[spl].name = unused_spellname;
+  skill_info[spl].name = unused_skillname;
   skill_info[spl].wear_off_msg = unused_wearoff;
   skill_info[spl].time = 0;
   skill_info[spl].memtime = 0;
@@ -2592,7 +2593,7 @@ void mag_assign_spells(void)
   /* Do not change the loop below. */
   for (i = 0; i <= TOP_SPELL_DEFINE; i++)
     unused_spell(i);
-  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
+  for (i = START_SKILLS; i <= TOP_SKILL_DEFINE; i++)
     unused_skill(i);
   /* Do not change the loop above. */
 
