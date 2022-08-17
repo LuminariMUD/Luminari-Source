@@ -7579,7 +7579,7 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
     send_to_char(victim, "<%d> ", healing);
 
   /* restore HP now, some spells/effects can heal over your MAX hp */
-  if (spellnum == RACIAL_LICH_TOUCH)
+  if (spellnum == RACIAL_LICH_TOUCH || spellnum == -1)
   {
     GET_HIT(victim) += healing;
   }
