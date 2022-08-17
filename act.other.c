@@ -6946,6 +6946,9 @@ static const char *const hints[] = {
            "To loot the 2nd corpse on the ground you'd type 'take all 2.corpse' | "
            "To attack the blue dragon instead of the white dragon you'd type 'kill blue-dragon'"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*53*/ "\tR[HINT]:\tn \ty"
+           "Want to see a full list of all implement spells and skills in the game?  Type respectively 'masterlist spells' or 'masterlist skills'"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
 

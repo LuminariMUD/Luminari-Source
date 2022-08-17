@@ -2185,7 +2185,7 @@
 /* Spell feats that apply to a specific school of spells */
 #define SFEAT_SPELL_FOCUS 0
 #define SFEAT_GREATER_SPELL_FOCUS 1
-#define SFEAT_EPIC_SPELL_FOCUS 1
+#define SFEAT_EPIC_SPELL_FOCUS 2
 #define NUM_SFEATS 3
 
 // Skill feats that apply to a specific skill
