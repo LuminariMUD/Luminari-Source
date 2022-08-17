@@ -2338,7 +2338,7 @@ ACMD(do_masterlist)
   }
   else if (is_abbrev(argument, "spells"))
   {
-    bottom = 0;
+    bottom = 1;
     top = TOP_SPELL_DEFINE;
     is_spells = TRUE;
   }
@@ -2361,6 +2361,8 @@ ACMD(do_masterlist)
     i = spell_sort_info[bottom];
 
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      continue;
+    if (is_spells && (i >= START_SKILLS && i < TOP_SKILL_DEFINE))
       continue;
     nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                     "%3d) %s\r\n", i, spell_info[i].name);
