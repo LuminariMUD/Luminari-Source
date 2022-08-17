@@ -111,8 +111,10 @@ void sort_spells(void)
   for (a = 1; a < TOP_SKILL_DEFINE; a++)
     sorted_skills[a] = a + MAX_SPELLS;
 
+  /*
   qsort(&sorted_skills[1], TOP_SKILL_DEFINE,
         sizeof(int), compare_spells);
+        */
 }
 
 // returns true if you have all the requisites for the skill
