@@ -38,8 +38,8 @@
 struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
 struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
-const char *unused_spellname = "!UNUSED(P)!";    /* So we can get &unused_spellname */
-const char *unused_skillname = "!UNUSED(K)!";    /* So we can get &unused_skillname */
+const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
+const char *unused_skillname = "!UNUSED!";       /* So we can get &unused_skillname */
 const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearoff */
 
 /* Local (File Scope) Function Prototypes */
