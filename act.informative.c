@@ -2090,18 +2090,9 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       }
 
       /* name */
-      if (!strcmp(spell_info[aff->spell].name, "!UNUSED!"))
-      { /* spell */
-        snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-                 CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
-        strlcat(buf, buf2, sizeof(buf));
-      }
-      else
-      { /* skill? */
-        snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-                 CCCYN(ch, C_NRM), skill_info[aff->spell].name, CCNRM(ch, C_NRM));
-        strlcat(buf, buf2, sizeof(buf));
-      }
+      snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
+               CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
+      strlcat(buf, buf2, sizeof(buf));
 
       buf2[0] = '\0';
 
@@ -2342,13 +2333,13 @@ ACMD(do_masterlist)
   if (is_abbrev(argument, "skills"))
   {
     bottom = START_SKILLS;
-    top = MAX_SKILLS;
+    top = TOP_SKILL_DEFINE;
     is_spells = FALSE;
   }
   else if (is_abbrev(argument, "spells"))
   {
     bottom = 0;
-    top = MAX_SPELLS;
+    top = TOP_SPELL_DEFINE;
     is_spells = TRUE;
   }
   else
@@ -2366,20 +2357,10 @@ ACMD(do_masterlist)
     else
       i = sorted_skills[bottom];
 
-    if (is_spells)
-    {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
-        continue;
-      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                      "%3d) %s\r\n", i, spell_info[i].name);
-    }
-    else
-    {
-      if (!strcmp(skill_info[i].name, "!UNUSED!"))
-        continue;
-      nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                      "%3d) %s\r\n", i, skill_info[i].name);
-    }
+    if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      continue;
+    nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                    "%3d) %s\r\n", i, spell_info[i].name);
 
     if (len + nlen >= sizeof(buf2) || nlen < 0)
       break;

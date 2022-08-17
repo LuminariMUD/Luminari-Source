@@ -2592,8 +2592,10 @@ void mag_assign_spells(void)
   /* Do not change the loop below. */
   for (i = 0; i <= TOP_SPELL_DEFINE; i++)
     unused_spell(i);
+  /*
   for (i = START_SKILLS; i <= TOP_SKILL_DEFINE; i++)
     unused_skill(i);
+  */
   /* Do not change the loop above. */
 
   /** let's start by assigning the psionic powers from psionics.c */
