@@ -54,9 +54,9 @@ static void npc_steal(struct char_data *ch, struct char_data *victim);
 static void zone_yell(struct char_data *ch, const char *buf);
 
 /* Special procedures for mobiles. */
-int spell_sort_info[TOP_SPELL_DEFINE];
-int sorted_spells[TOP_SPELL_DEFINE];
-int sorted_skills[TOP_SPELL_DEFINE];
+int spell_sort_info[TOP_SKILL_DEFINE];
+int sorted_spells[TOP_SKILL_DEFINE];
+int sorted_skills[TOP_SKILL_DEFINE];
 
 #define LEARNED_LEVEL 0 /* % known which is considered "learned" */
 #define MAX_PER_PRAC 1  /* max percent gain in skill per practice */
@@ -84,7 +84,7 @@ void sort_spells(void)
   int a;
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a < TOP_SPELL_DEFINE; a++)
+  for (a = 1; a < TOP_SKILL_DEFINE; a++)
   {
     spell_sort_info[a] = a;
     sorted_spells[a] = -1;
@@ -93,25 +93,25 @@ void sort_spells(void)
 
   /* full list */
 
-  qsort(&spell_sort_info[1], TOP_SPELL_DEFINE, sizeof(int),
+  qsort(&spell_sort_info[1], TOP_SKILL_DEFINE, sizeof(int),
         compare_spells);
 
   /* spell list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a < TOP_SPELL_DEFINE; a++)
+  for (a = 1; a < TOP_SKILL_DEFINE; a++)
     sorted_spells[a] = a;
 
-  qsort(&sorted_spells[1], TOP_SPELL_DEFINE, sizeof(int),
+  qsort(&sorted_spells[1], TOP_SKILL_DEFINE, sizeof(int),
         compare_spells);
 
   /* skill list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a < TOP_SPELL_DEFINE; a++)
+  for (a = 1; a < TOP_SKILL_DEFINE; a++)
     sorted_skills[a] = a + MAX_SPELLS;
 
-  qsort(&sorted_skills[1], TOP_SPELL_DEFINE,
+  qsort(&sorted_skills[1], TOP_SKILL_DEFINE,
         sizeof(int), compare_spells);
 }
 
