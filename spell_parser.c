@@ -2555,8 +2555,7 @@ void unused_skill(int spl)
   skill_info[spl].quest = FALSE;
 }
 
-#define skillo(skill, name, category) skillo_full(skill, name, 0, 0, 0, 0, 0, 0, \
-                                                  0, NULL, 0, 0, category, FALSE);
+#define skillo(skill, name, category) spello(skill, name, 0, 0, 0, 0, 0, FALSE, 0, NULL, 0, 0, category, FALSE)
 
 /* Arguments for spello calls:
  * spellnum, maxpsp, minpsp, pspchng, minpos, targets, violent?, routines.
@@ -2593,7 +2592,7 @@ void mag_assign_spells(void)
   /* Do not change the loop below. */
   for (i = 0; i <= TOP_SPELL_DEFINE; i++)
     unused_spell(i);
-  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
+  for (i = START_SKILLS; i <= TOP_SKILL_DEFINE; i++)
     unused_skill(i);
   /* Do not change the loop above. */
 
@@ -4063,13 +4062,8 @@ spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
   skillo(SKILL_GREATER_RUIN, "es greater ruin", CASTER_SKILL);
   skillo(SKILL_HELLBALL, "es hellball", CASTER_SKILL);
   skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
-  skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL); // 455
-  skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                    // 456
-  /* debug */
-  spello(SKILL_RAGE, "rage", 0, 0, 0, POS_SITTING,
-         TAR_IGNORE, TRUE, 0,
-         NULL, 0, 0, NOSCHOOL, FALSE);
-  /* end debug */
+  skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL);                // 455
+  skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                                   // 456
   skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL);           // 457
   skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL);               // 458
   skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL);         // 459
