@@ -2314,7 +2314,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 ACMD(do_masterlist)
 {
   size_t len = 0, nlen = 0;
-  int bottom = 0, top = 0, counter = 0, i = 0;
+  int bottom = 1, top = TOP_SPELL_DEFINE, counter = 0, i = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *overflow = "\r\n**OVERFLOW**\r\n";
   bool is_spells = FALSE;
@@ -2332,14 +2332,10 @@ ACMD(do_masterlist)
 
   if (is_abbrev(argument, "skills"))
   {
-    bottom = START_SKILLS;
-    top = TOP_SKILL_DEFINE;
     is_spells = FALSE;
   }
   else if (is_abbrev(argument, "spells"))
   {
-    bottom = 1;
-    top = TOP_SPELL_DEFINE;
     is_spells = TRUE;
   }
   else
@@ -2352,18 +2348,15 @@ ACMD(do_masterlist)
 
   for (; bottom < top; bottom++)
   {
-    /*
-    if (is_spells)
-      i = sorted_spells[bottom];
-    else
-      i = sorted_skills[bottom];
-    */
     i = spell_sort_info[bottom];
 
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
-    if (is_spells && (i >= START_SKILLS && i < TOP_SKILL_DEFINE))
+    if (is_spells && (i >= NUM_SPELLS && i < TOP_SKILL_DEFINE))
       continue;
+    if (!is_spells && (i >= TOP_SKILL_DEFINE && i < START_SKILLS))
+      continue;
+
     nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                     "%3d) %s\r\n", i, spell_info[i].name);
 
