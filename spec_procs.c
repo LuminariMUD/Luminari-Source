@@ -83,15 +83,15 @@ void sort_spells(void)
 {
   int a;
 
-  /* full list */
-
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= TOP_SPELL_DEFINE; a++)
+  for (a = 1; a < TOP_SPELL_DEFINE; a++)
   {
     spell_sort_info[a] = a;
     sorted_spells[a] = -1;
     sorted_skills[a] = -1;
   }
+
+  /* full list */
 
   qsort(&spell_sort_info[1], TOP_SPELL_DEFINE, sizeof(int),
         compare_spells);
@@ -99,7 +99,7 @@ void sort_spells(void)
   /* spell list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= MAX_SPELLS; a++)
+  for (a = 1; a < TOP_SPELL_DEFINE; a++)
     sorted_spells[a] = a;
 
   qsort(&sorted_spells[1], TOP_SPELL_DEFINE, sizeof(int),
@@ -108,7 +108,7 @@ void sort_spells(void)
   /* skill list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 0; a <= (MAX_SKILLS - MAX_SPELLS); a++)
+  for (a = 1; a < TOP_SPELL_DEFINE; a++)
     sorted_skills[a] = a + MAX_SPELLS;
 
   qsort(&sorted_skills[1], TOP_SPELL_DEFINE,
