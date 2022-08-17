@@ -996,11 +996,45 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   }
-  else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-            char_has_mud_event(ch, eSTUNNED)) &&
+  else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) &&
            GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+  {
     send_to_char(ch, "You try, but you are unable to move!\r\n");
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
+      send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
+      act("$n's free movement breaks the paralysis!",
+          TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
+  else if ((AFF_FLAGGED(ch, AFF_STUN)) &&
+           GET_LEVEL(ch) < LVL_IMPL &&
+           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+  {
+    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
+      send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
+      act("$n's free movement breaks the paralysis!",
+          TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
+  else if ((char_has_mud_event(ch, eSTUNNED)) &&
+           GET_LEVEL(ch) < LVL_IMPL &&
+           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+  {
+    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    {
+      change_event_duration(ch, eSTUNNED, 0);
+      send_to_char(ch, "Your free movement breaks the stun!\r\n");
+      act("$n's free movement breaks the stun!",
+          TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
   else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
