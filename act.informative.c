@@ -2352,10 +2352,13 @@ ACMD(do_masterlist)
 
   for (; bottom < top; bottom++)
   {
+    /*
     if (is_spells)
       i = sorted_spells[bottom];
     else
       i = sorted_skills[bottom];
+    */
+    i = spell_sort_info[bottom];
 
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
