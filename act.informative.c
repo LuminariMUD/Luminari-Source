@@ -2088,9 +2088,20 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       { // rounds
         snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
       }
-      snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
-               CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
-      strlcat(buf, buf2, sizeof(buf));
+
+      /* name */
+      if (!strcmp(spell_info[aff->spell].name, "!UNUSED!"))
+      { /* spell */
+        snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
+                 CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
+        strlcat(buf, buf2, sizeof(buf));
+      }
+      else
+      { /* skill? */
+        snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
+                 CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
+        strlcat(buf, buf2, sizeof(buf));
+      }
 
       buf2[0] = '\0';
 
@@ -3587,7 +3598,7 @@ ACMD(do_who)
               {
                 if (!strcmp(account_names[y], d->account->name))
                 {
-                 break; 
+                  break;
                 }
               }
               if (y == x)
@@ -3609,7 +3620,6 @@ ACMD(do_who)
       }
 
       num_accounts = x;
-
     }
   }
 

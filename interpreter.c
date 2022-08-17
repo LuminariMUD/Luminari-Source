@@ -322,7 +322,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"exempt", "exempt", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_EXEMPT, FALSE, ACTION_NONE, {0, 0}, NULL},
-    
+
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -437,11 +437,12 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-    {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
+    {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"landmarks", "landmarks", POS_DEAD, do_landmarks, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
+    {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"levels", "lev", POS_DEAD, do_levels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"list", "lis", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -450,7 +451,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"lock", "loc", POS_SITTING, do_gen_door, 0, SCMD_LOCK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"load", "load", POS_DEAD, do_load, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-    {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"loadmagicspecific", "loadmagicspecific", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"lightningarc", "lightningarc", POS_FIGHTING, do_lightningarc, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
