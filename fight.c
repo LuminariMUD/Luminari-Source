@@ -4091,7 +4091,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "%s from Claws: \tR%d\tn\r\n", strength, str_bonus);
     }
-    else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
+    else if (!IS_WILDSHAPED(ch) && !IS_MORPHED(ch) && GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
     {
       dambonus += str_bonus * 3 / 2; /* 2handed weapon */
       if (display_mode)

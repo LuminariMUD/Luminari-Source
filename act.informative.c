@@ -2354,7 +2354,9 @@ ACMD(do_masterlist)
       continue;
     if (is_spells && (i >= NUM_SPELLS && i < TOP_SKILL_DEFINE))
       continue;
-    if (!is_spells && (i >= TOP_SKILL_DEFINE && i < START_SKILLS))
+    if (!is_spells && i < START_SKILLS)
+      continue;
+    if (!is_spells && i >= TOP_SKILL_DEFINE)
       continue;
 
     nlen = snprintf(buf2 + len, sizeof(buf2) - len,
