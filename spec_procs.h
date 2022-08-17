@@ -16,9 +16,9 @@
 
 #include "spells.h"
 
-int spell_sort_info[MAX_SPELLS + 1];
-int sorted_spells[MAX_SPELLS + 1];
-int sorted_skills[MAX_SKILLS + 1];
+int spell_sort_info[TOP_SPELL_DEFINE];
+int sorted_spells[TOP_SPELL_DEFINE];
+int sorted_skills[TOP_SPELL_DEFINE];
 
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
