@@ -500,7 +500,7 @@ ACMD(do_staffevents)
     {
         if (IS_STAFF_EVENT)
         {
-            staff_event_info(ch, event_num);
+            staff_event_info(ch, STAFF_EVENT_NUM);
         }
         else
         {

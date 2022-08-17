@@ -1157,8 +1157,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vampiric)
 
         if (heal > 0)
         {
-          heal += (int) (compute_damage_bonus(ch, victim, weapon, ATTACK_TYPE_PRIMARY, 0, MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY) / 10);
-          GET_HIT(ch) += heal;
+          heal += (int)(compute_damage_bonus(ch, victim, weapon, ATTACK_TYPE_PRIMARY, 0, MODE_NORMAL_HIT, ATTACK_TYPE_PRIMARY) / 10);
+          process_healing(ch, ch, -1, heal, 0);
           // snprintf(buf, sizeof(buf), "Your $o has healed you %d hit points!", heal);
           // act(buf, false, ch, weapon, 0, TO_CHAR);
         }
