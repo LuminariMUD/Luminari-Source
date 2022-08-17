@@ -5617,7 +5617,7 @@ static int check_object_spell_number(struct obj_data *obj, int val)
    * which is actually a skill. */
   if (GET_OBJ_VAL(obj, val) < 0)
     error = TRUE;
-  if (GET_OBJ_VAL(obj, val) > TOP_SPELL_DEFINE)
+  if (GET_OBJ_VAL(obj, val) > TOP_SKILL_DEFINE)
     error = TRUE;
   if (GET_OBJ_VAL(obj, val) > MAX_SPELLS && GET_OBJ_VAL(obj, val) <= MAX_SKILLS)
     error = TRUE;

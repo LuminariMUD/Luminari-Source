@@ -35,8 +35,8 @@
 #define SINFO spell_info[spellnum]
 
 /* Global Variables definitions, used elsewhere */
-struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
-struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
+struct spell_info_type spell_info[TOP_SKILL_DEFINE];
+struct spell_info_type skill_info[TOP_SKILL_DEFINE];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
 const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
 const char *unused_skillname = "!UNUSED!";       /* So we can get &unused_skillname */
@@ -354,12 +354,12 @@ bool isEpicSpell(int spellnum)
 
 /* This function should be used anytime you are not 100% sure that you have
  * a valid spell/skill number.  A typical for() loop would not need to use
- * this because you can guarantee > 0 and <= TOP_SPELL_DEFINE. */
+ * this because you can guarantee > 0 and <= TOP_SKILL_DEFINE. */
 const char *skill_name(int num)
 {
   if (skill_info[num].schoolOfMagic > 0)
     return (skill_info[num].name);
-  if (num > 0 && num <= TOP_SPELL_DEFINE)
+  if (num > 0 && num <= TOP_SKILL_DEFINE)
     return (spell_info[num].name);
   else if (num == -1)
     return ("Not-Used");
@@ -376,7 +376,7 @@ int find_skill_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
 
-  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
+  for (skindex = 1; skindex <= TOP_SKILL_DEFINE; skindex++)
   {
     if (is_abbrev(name, spell_info[skindex].name))
       return (skindex);
@@ -2413,9 +2413,9 @@ void spell_level(int spell, int chclass, int level)
 {
   int bad = 0;
 
-  if (spell < 0 || spell > TOP_SPELL_DEFINE)
+  if (spell < 0 || spell > TOP_SKILL_DEFINE)
   {
-    log("SYSERR: attempting assign to illegal spellnum %d/%d", spell, TOP_SPELL_DEFINE);
+    log("SYSERR: attempting assign to illegal spellnum %d/%d", spell, TOP_SKILL_DEFINE);
     return;
   }
 
@@ -2590,7 +2590,7 @@ void mag_assign_spells(void)
   int i;
 
   /* Do not change the loop below. */
-  for (i = 0; i <= TOP_SPELL_DEFINE; i++)
+  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
     unused_spell(i);
   /*
   for (i = START_SKILLS; i <= TOP_SKILL_DEFINE; i++)
