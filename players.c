@@ -2810,7 +2810,15 @@ static void load_skills(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
+    {
+
+      /* this is a hack since we moved the skill numbering */
+      if (num < START_SKILLS)
+        num += 100;
+      /* end hack */
+
       GET_SKILL(ch, num) = num2;
+    }
   } while (num != 0);
 }
 

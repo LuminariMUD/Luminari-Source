@@ -3185,7 +3185,7 @@
 #define MAX_TITLE_LENGTH 80              /**< Max PC title length */
 #define HOST_LENGTH 40                   /**< Max hostname resolution length */
 #define PLR_DESC_LENGTH 4096             /**< Max length for PC description */
-#define MAX_SKILLS 699                   /**< Max number of skills */
+#define MAX_SKILLS 700                   /**< Max number of skills */
 #define MAX_SPELLS 2000                  /**< Max number of spells */
 #define MAX_ABILITIES 200                /**< Max number of abilities */
 #define MAX_AFFECT 32                    /**< Max number of player affections */
