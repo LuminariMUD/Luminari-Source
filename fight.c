@@ -5913,6 +5913,10 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
 void idle_weapon_spells(struct char_data *ch)
 {
 
+  /* dummy check */
+  if (!ch)
+    return;
+
   /* if this is a no-magic room, we aren't going to continue */
   if (ch->in_room && ch->in_room != NOWHERE && ch->in_room < top_of_world &&
       (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) ||
@@ -5920,9 +5924,8 @@ void idle_weapon_spells(struct char_data *ch)
     return;
 
   int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-  const char *buf = "$p leaps to action!";
+  struct obj_data *gear = NULL;
+  const char *buf = "$p begins to vibrate and release sparks of energy!";
 
   /* give some random messages */
   switch (dice(1, 4))
@@ -5936,65 +5939,41 @@ void idle_weapon_spells(struct char_data *ch)
   case 3:
     buf = "$p glows and lets off a deep sound!";
     break;
-  default: /* default "leap" */
+  default: /* default "vibrate and sparks" */
     break;
   }
 
-  /* dummy check -Zusuk */
-  if (wielded)
+  /* scan through gear */
+  for (i = 0; i < NUM_WEARS; i++)
   {
-    weapon_spellnum = GET_WEAPON_SPELL(wielded, j);
-    if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-      return;
-  }
-
-  if (GET_EQ(ch, WEAR_WIELD_2H))
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
-  if (wielded && HAS_SPELLS(wielded))
-  {
-    for (j = 0; j < MAX_WEAPON_SPELLS; j++)
+    if (GET_EQ(ch, i))
     {
-      if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
-          weapon_spellnum)
+      gear = GET_EQ(ch, i);
+      weapon_spellnum = GET_WEAPON_SPELL(gear, j);
+
+      /* invalid spellnum check */
+      if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
+        return;
+
+      /* we have an item, and does this item have spells on it? */
+      if (gear && HAS_SPELLS(gear))
       {
-        random = rand_number(1, 100);
-        if (!affected_by_spell(ch, weapon_spellnum) &&
-            GET_WEAPON_SPELL_PCT(wielded, j) >= random)
+        for (j = 0; j < MAX_WEAPON_SPELLS; j++)
         {
-          act(buf, TRUE, ch, wielded, 0, TO_CHAR);
-          act(buf, TRUE, ch, wielded, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, weapon_spellnum, 0,
-                     GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
-        }
-      }
-    }
-  }
-
-  /* dummy check -Zusuk */
-  if (offWield)
-  {
-    weapon_spellnum = GET_WEAPON_SPELL(offWield, j);
-    if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-      return;
-  }
-
-  if (offWield && HAS_SPELLS(offWield))
-  {
-    for (j = 0; j < MAX_WEAPON_SPELLS; j++)
-    {
-      if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
-          weapon_spellnum)
-      {
-        random = rand_number(1, 100);
-        if (!affected_by_spell(ch, weapon_spellnum) &&
-            GET_WEAPON_SPELL_PCT(offWield, j) >= random)
-        {
-
-          act(buf, TRUE, ch, offWield, 0, TO_CHAR);
-          act(buf, TRUE, ch, offWield, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, weapon_spellnum, 0,
-                     GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
+          if (!GET_WEAPON_SPELL_AGG(gear, j) &&
+              weapon_spellnum)
+          {
+            random = rand_number(1, 100);
+            if (!affected_by_spell(ch, weapon_spellnum) &&
+                GET_WEAPON_SPELL_PCT(gear, j) >= random)
+            {
+              act(buf, TRUE, ch, gear, 0, TO_CHAR);
+              act(buf, TRUE, ch, gear, 0, TO_ROOM);
+              call_magic(ch, ch, NULL, weapon_spellnum, 0,
+                         GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
+              return; /* we exit here because we don't want two or more items proccing off the same tick */
+            }
+          }
         }
       }
     }
