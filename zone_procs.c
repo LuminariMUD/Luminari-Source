@@ -1096,9 +1096,9 @@ SPECIAL(tia_rapier)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc: dancing parry\r\n");
-    send_to_char(ch, "Proc: dragon strike\r\n");
-    send_to_char(ch, "Proc: dragon gaze\r\n");
+    send_to_char(ch, "Proc: dancing parry - on parry will do a light vamp attack\r\n");
+    send_to_char(ch, "Proc: dragon strike - 120 to 200 energy damage\r\n");
+    send_to_char(ch, "Proc: dragon gaze - paralyze opponent\r\n");
     return TRUE;
   }
 
@@ -2352,9 +2352,11 @@ SPECIAL(twilight)
 
   af[0].location = APPLY_HITROLL;
   af[0].modifier = GET_STR_BONUS(ch);
+  af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
   af[1].location = APPLY_DAMROLL;
   af[1].modifier = GET_STR_BONUS(ch);
+  af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
   for (i = 0; i < TWI_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);

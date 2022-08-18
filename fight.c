@@ -2150,7 +2150,6 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
 
 /*  message for doing damage with a spell or skill. Also used for weapon
  *  damage on miss and death blows. */
-
 /* took out attacking-staff-messages -zusuk*/
 /* this is so trelux's natural attack reflects an actual object */
 #define TRELUX_CLAWS 800
@@ -2171,12 +2170,14 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
   /* special handling for Trelux */
   if (GET_RACE(ch) == RACE_TRELUX)
   {
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
     attacktype = TYPE_CLAW;
   }
+
   if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
     attacktype = TYPE_CLAW;
 
@@ -2192,10 +2193,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   {
     opponent_weapon = GET_EQ(vict, WEAR_WIELD_2H);
   }
+
   if (!opponent_weapon)
   { /* maybe no weapon in main hand, but offhand has one */
     opponent_weapon = GET_EQ(vict, WEAR_WIELD_OFFHAND);
   }
+
   if (GET_EQ(vict, WEAR_WIELD_1) && GET_EQ(vict, WEAR_WIELD_OFFHAND))
   {
     if (rand_number(0, 1))
