@@ -5949,19 +5949,14 @@ void idle_weapon_spells(struct char_data *ch)
     if (GET_EQ(ch, i))
     {
       gear = GET_EQ(ch, i);
-      weapon_spellnum = GET_WEAPON_SPELL(gear, j);
-
-      /* invalid spellnum check */
-      if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-        return;
 
       /* we have an item, and does this item have spells on it? */
       if (gear && HAS_SPELLS(gear))
       {
+
         for (j = 0; j < MAX_WEAPON_SPELLS; j++)
         {
-          if (!GET_WEAPON_SPELL_AGG(gear, j) &&
-              weapon_spellnum)
+          if (GET_WEAPON_SPELL(gear, j) && !GET_WEAPON_SPELL_AGG(gear, j))
           {
             random = rand_number(1, 100);
             if (!affected_by_spell(ch, weapon_spellnum) &&
