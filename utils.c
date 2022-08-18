@@ -4855,14 +4855,14 @@ int d20(struct char_data *ch)
       send_to_char(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
   }
 
-  if (!IS_NPC(ch) && ch->player_specials->cosmic_awareness)
+  if (ch && !IS_NPC(ch) && ch->player_specials & ch->player_specials->cosmic_awareness)
   {
     roll += GET_PSIONIC_LEVEL(ch);
     ch->player_specials->cosmic_awareness = false;
     send_to_char(ch, "\tY[Cosmic Awareness Bonus! +%d]\tn\r\n", GET_PSIONIC_LEVEL(ch));
   }
 
-  if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
+  if (ch && affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
     if (dice(1, 10) == 1) {
       roll += GET_INT_BONUS(ch);
       send_to_char(ch, "\tY[Perpetual Foresight Bonus! +%d]\tn\r\n", GET_INT_BONUS(ch));

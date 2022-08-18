@@ -1081,10 +1081,10 @@ void affect_from_char(struct char_data *ch, int spell)
  * not affected. */
 bool affected_by_spell(struct char_data *ch, int type)
 {
-  struct affected_type *hjp;
+  struct affected_type *hjp = NULL;
 
   for (hjp = ch->affected; hjp; hjp = hjp->next)
-    if (hjp->spell == type)
+    if (hjp && hjp->spell == type)
       return (TRUE);
 
   return (FALSE);
