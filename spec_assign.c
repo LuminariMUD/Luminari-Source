@@ -794,7 +794,6 @@ void assign_objects(void)
 
   ASSIGNOBJ(114838, rughnark);
   ASSIGNOBJ(139900, magma);
-  ASSIGNOBJ(136100, air_sphere);
   ASSIGNOBJ(110601, bolthammer);
   ASSIGNOBJ(111507, prismorb);
   ASSIGNOBJ(129602, flamingwhip);
@@ -838,7 +837,6 @@ void assign_objects(void)
   // ASSIGNOBJ(133103, mithril_rapier);
   // ASSIGNOBJ(141800, treantshield);
 
-  ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(138447, disruption_mace);
   ASSIGNOBJ(138415, haste_bracers);
   ASSIGNOBJ(135626, menzo_chokers);

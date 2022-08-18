@@ -7268,16 +7268,16 @@ SPECIAL(acidsword)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc:  Acid corrosion.\r\n");
+    send_to_char(ch, "Proc: Acid corrosion.\r\n");
     return TRUE;
   }
+
+  vict = FIGHTING(ch);
 
   if (cmd || !vict || rand_number(0, 16))
     return FALSE;
 
   dam = dice(4, 3);
-
-  vict = FIGHTING(ch);
 
   GET_HIT(vict) -= dam;
 
