@@ -1769,11 +1769,13 @@ ASPELL(spell_summon)
 
   if (mag_resistance(ch, victim, 0))
     return;
+
   if (MOB_FLAGGED(victim, MOB_NOSUMMON))
   {
     send_to_char(ch, "Your victim seems unsummonable.");
     return;
   }
+
   if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
   {
     send_to_char(ch, "%s", SUMMON_FAIL);
@@ -1808,6 +1810,12 @@ ASPELL(spell_teleport)
   if (AFF_FLAGGED(victim, AFF_NOTELEPORT))
   {
     send_to_char(ch, "Your spell fails to target that victim!\r\n");
+    return;
+  }
+
+  if (MOB_FLAGGED(victim, MOB_NOSUMMON))
+  {
+    send_to_char(ch, "The teleportation magic while beginning to form, flashes brightly, then dies suddenly!\r\n");
     return;
   }
 

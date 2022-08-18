@@ -4855,7 +4855,7 @@ int d20(struct char_data *ch)
       send_to_char(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
   }
 
-  if (ch && !IS_NPC(ch) && ch->player_specials & ch->player_specials->cosmic_awareness)
+  if (ch && !IS_NPC(ch) && ch->player_specials && ch->player_specials->cosmic_awareness)
   {
     roll += GET_PSIONIC_LEVEL(ch);
     ch->player_specials->cosmic_awareness = false;

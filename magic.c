@@ -8264,15 +8264,34 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     object_vnum = 9401;
     break;
   case SPELL_PORTAL:
+
     if (vict == NULL)
     {
       send_to_char(ch, "Portal failed!  You have no target!\r\n");
       return;
     }
 
+    if (IN_ROOM(ch) == NOWHERE)
+    {
+      send_to_char(ch, "Portal failed!  You are NOWHERE!  (report to imm bug magic8274)\r\n");
+      return;
+    }
+
+    if (IN_ROOM(vict) == NOWHERE)
+    {
+      send_to_char(ch, "Portal failed!  The target seems to no longer be valid...\r\n");
+      return;
+    }
+
     if (AFF_FLAGGED(vict, AFF_NOTELEPORT))
     {
       send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
+      return;
+    }
+
+    if (MOB_FLAGGED(vict, MOB_NOSUMMON))
+    {
+      send_to_char(ch, "The portal while beginning to form, flashes brightly, then shuts suddenly!\r\n");
       return;
     }
 
