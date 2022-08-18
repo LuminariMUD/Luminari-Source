@@ -258,24 +258,6 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     if (!found)
       send_to_char(ch, "No weapon special abilities assigned.\r\n");
 
-    /* weapon spells */
-    send_to_char(ch, "Weapon Spells:\r\n");
-    if (!item->has_spells)
-      send_to_char(ch, "No weapon spells on this weapon!\r\n");
-    else
-    {
-      for (i = 0; i < MAX_WEAPON_SPELLS; i++)
-      { /* increment this weapons spells */
-        if (GET_WEAPON_SPELL(item, i))
-        {
-          send_to_char(ch, "%s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                       spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
-                       GET_WEAPON_SPELL_PCT(item, i),
-                       GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No");
-        }
-      }
-    }
-
     /* values defined by weapon type */
     int weapon_val = GET_OBJ_VAL(item, 0);
     int crit_multi = 0;
@@ -744,6 +726,25 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     send_to_char(ch, "\r\n");
   }
+
+  /* gear spells */
+  if (!item->has_spells)
+    ; // send_to_char(ch, "No weapon spells on this weapon!\r\n");
+  else
+  {
+    send_to_char(ch, "Gear Spells:\r\n");
+    for (i = 0; i < MAX_WEAPON_SPELLS; i++)
+    { /* increment this weapons spells */
+      if (GET_WEAPON_SPELL(item, i))
+      {
+        send_to_char(ch, "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                     spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
+                     GET_WEAPON_SPELL_PCT(item, i),
+                     GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No");
+      }
+    }
+  }
+
   // code to support proc information..
   if (GET_OBJ_RNUM(item) != NOTHING)
   {
