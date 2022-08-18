@@ -5923,7 +5923,7 @@ void idle_weapon_spells(struct char_data *ch)
        ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)))
     return;
 
-  int random = 0, i = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
+  int random = 0, i = 0, j = 0;
   struct obj_data *gear = NULL;
   const char *buf = "$p begins to vibrate and release sparks of energy!";
 
@@ -5959,14 +5959,14 @@ void idle_weapon_spells(struct char_data *ch)
           if (GET_WEAPON_SPELL(gear, j) && !GET_WEAPON_SPELL_AGG(gear, j))
           {
             random = rand_number(1, 100);
-            if (!affected_by_spell(ch, weapon_spellnum) &&
+            if (!affected_by_spell(ch, GET_WEAPON_SPELL(gear, j)) &&
                 GET_WEAPON_SPELL_PCT(gear, j) >= random)
             {
               act(buf, TRUE, ch, gear, 0, TO_CHAR);
               act(buf, TRUE, ch, gear, 0, TO_ROOM);
-              call_magic(ch, ch, NULL, weapon_spellnum, 0,
-                         GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
-              return; /* we exit here because we don't want two or more items proccing off the same tick */
+              call_magic(ch, ch, NULL, GET_WEAPON_SPELL(gear, j), 0, GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
+              return;
+              /* we exit here because we don't want two or more items proccing off the same tick */
             }
           }
         }
