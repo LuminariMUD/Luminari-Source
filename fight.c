@@ -5923,7 +5923,7 @@ void idle_weapon_spells(struct char_data *ch)
        ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)))
     return;
 
-  int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
+  int random = 0, i = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
   struct obj_data *gear = NULL;
   const char *buf = "$p begins to vibrate and release sparks of energy!";
 
