@@ -1556,7 +1556,7 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
     }
     else
     {
-      send_to_char(ch, "You don't qualify to use this item, but your staff level allows you to wear it anyhow.\r\n");
+      // send_to_char(ch, "You don't qualify to use this item, but your staff level allows you to wear it anyhow.\r\n");
     }
   }
 
