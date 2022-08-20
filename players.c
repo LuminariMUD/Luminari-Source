@@ -2815,9 +2815,10 @@ static void load_skills(FILE *fl, struct char_data *ch)
       /* this is a hack since we moved the skill numbering */
       if (num < START_SKILLS)
         num += 1600;
+      GET_SKILL(ch, num) = num2;
       /* end hack */
 
-      GET_SKILL(ch, num) = num2;
+      //GET_SPELL(ch, num) = num2;
     }
   } while (num != 0);
 }
