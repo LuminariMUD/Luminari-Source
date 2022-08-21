@@ -1335,7 +1335,7 @@ ACMD(do_put)
         {
           while (obj && howmany)
           {
-            if (OBJ_FLAGGED(obj, ITEM_NODROP))
+            if (OBJ_FLAGGED(obj, ITEM_NODROP) && GET_LEVEL(ch) < LVL_IMPL)
               act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
             else
             {
@@ -1355,7 +1355,7 @@ ACMD(do_put)
         for (obj = ch->carrying; obj; obj = next_obj)
         {
           next_obj = obj->next_content;
-          if (OBJ_FLAGGED(obj, ITEM_NODROP))
+          if (OBJ_FLAGGED(obj, ITEM_NODROP) && GET_LEVEL(ch) < LVL_IMPL)
             act("You can't let go of $p, it must be CURSED!", FALSE, ch, obj, 0, TO_CHAR);
           else
           {

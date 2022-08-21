@@ -6341,7 +6341,7 @@ SPECIAL(purity)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc:  Holy Light.\r\n");
+    send_to_char(ch, "Proc:  Holy Light - in combat randomly inflict 2d24 holy damage.\r\n");
     return TRUE;
   }
 
