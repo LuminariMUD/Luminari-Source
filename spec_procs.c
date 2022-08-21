@@ -555,7 +555,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       len += nlen;
 
       bottom = 1;
-      top = MAX_SKILLS;
+      top = TOP_SKILL_DEFINE;
 
       for (; bottom < top; bottom++)
       {
