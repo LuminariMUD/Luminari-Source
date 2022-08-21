@@ -554,16 +554,8 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         break;
       len += nlen;
 
-      /* non psi casters */
       bottom = 1;
-      top = NUM_SPELLS;
-
-      /* psi spell list */
-      if (is_psionic)
-      {
-        bottom = PSIONIC_POWER_START;
-        top = PSIONIC_POWER_END;
-      }
+      top = MAX_SKILLS;
 
       for (; bottom < top; bottom++)
       {
