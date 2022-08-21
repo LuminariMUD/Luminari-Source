@@ -567,7 +567,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 
       for (; bottom < top; bottom++)
       {
-        i = sorted_spells[bottom];
+        i = spell_sort_info[bottom];
         if (do_not_list_spell(i))
           continue;
         sinfo = spell_info[i].min_level[class];
