@@ -7711,6 +7711,12 @@ ACMD(do_mark)
 
   one_argument(argument, arg, sizeof(arg));
 
+  if (CLASS_LEVEL(ch, CLASS_ASSASSIN) < 1)
+  {
+    send_to_char(ch, "Only assassins know how to do that!\r\n");
+    return;
+  }
+
   if (!*arg)
   {
     send_to_char(ch, "Who would you like to mark for assassination?\r\n");

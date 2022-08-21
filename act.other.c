@@ -1517,7 +1517,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     break;
   case MOB_SHADOW:
-    GET_LEVEL(mob) = MIN(20, level);
+    GET_LEVEL(mob) = level;
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -1656,7 +1656,7 @@ ACMD(do_call)
   }
   else if (is_abbrev(argument, "shadow"))
   {
-    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SHADOWDANCER) * 2.5);
+    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SHADOWDANCER) * 3);
 
     if (!HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
     {

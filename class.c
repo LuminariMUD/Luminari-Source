@@ -6418,7 +6418,6 @@ void load_class_list(void)
   /* class prereqs */
   class_prereq_feat(CLASS_SHADOWDANCER, FEAT_COMBAT_REFLEXES, 1);
   class_prereq_feat(CLASS_SHADOWDANCER, FEAT_DODGE, 1);
-  class_prereq_feat(CLASS_SHADOWDANCER, FEAT_MOBILITY, 1);
   class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_STEALTH, 5);
   class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_PERFORM, 2);
   /****************************************************************************/
@@ -6973,7 +6972,7 @@ void load_class_list(void)
                      "assassin's missions put him in the company of adventurers for long stretches at "
                      "a time, but few people are comfortable trusting a professional assassin to watch "
                      "their backs in a fight, and are more likely to let the emotionless killer scout "
-                     "ahead or help prepare ambushes.");
+                     "ahead or help prepare ambushes.  (Also see 'help mark')");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ASSASSIN, B, G, B, B, B);
   assign_class_abils(CLASS_ASSASSIN, /* class number */
@@ -7020,6 +7019,7 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_QUIET_DEATH, Y, 6, N);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 7, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_APPLY_POISON, Y, 7, N);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 8, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_HIDE_IN_PLAIN_SIGHT, Y, 8, N);
@@ -7030,9 +7030,10 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 10, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_ANGEL_OF_DEATH, Y, 10, N);
 
+  /* pre reqs to take assassin class */
   class_prereq_ability(CLASS_ASSASSIN, ABILITY_PERFORM, 2);
   class_prereq_ability(CLASS_ASSASSIN, ABILITY_STEALTH, 5);
-
+  class_prereq_feat(CLASS_ASSASSIN, FEAT_TWO_WEAPON_FIGHTING, 1);
   /****************************************************************************/
   /****************************************************************************/
 
