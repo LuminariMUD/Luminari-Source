@@ -1684,9 +1684,9 @@ void perform_smite(struct char_data *ch, int smite_type)
 /* the primary engine for backstab */
 bool perform_backstab(struct char_data *ch, struct char_data *vict)
 {
-  int blow_landed = 0, prob = 0, successful = 0, has_piercing = 0;
+  int blow_landed = 0, prob = 0, successful = 0, has_piercing = 0, assassin_mod = 2;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  bool make_aware = FALSE;
+  bool make_aware = FALSE, marked_target = FALSE;
 
   if (AFF_FLAGGED(ch, AFF_HIDE))
     prob += 1; // minor bonus for being hidden
@@ -1724,8 +1724,9 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
       make_aware = TRUE;
       // hidden weapons feat grants an extra attack
-      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(ch, ABILITY_PERCEPTION)))
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
       {
+        marked_target = TRUE;
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }
@@ -1752,6 +1753,11 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     {
       apply_assassin_backstab_bonuses(ch, vict);
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+      // hidden weapons feat grants an extra attack
+      if (marked_target && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
+      {
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
       make_aware = TRUE;
     }
     successful++;
@@ -1802,8 +1808,18 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
 
     if (is_marked_target(ch, vict))
     {
+      assassin_mod += GET_LEVEL(ch) - GET_LEVEL(vict);
+      if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
+        assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_QUIET_DEATH))
+        assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_SWIFT_DEATH))
+        assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+        assassin_mod += 2;
+
       if (!AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
-          !mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_ASSASSIN), NOSCHOOL))
+          !mag_savingthrow(ch, vict, SAVING_FORT, assassin_mod, CAST_INNATE, IS_ROGUE_TYPE(ch), NOSCHOOL))
       {
         struct affected_type death_attack;
 
@@ -1812,6 +1828,12 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
         death_attack.duration = 2;
         SET_BIT_AR(death_attack.bitvector, AFF_PARALYZED);
         affect_join(vict, &death_attack, TRUE, FALSE, FALSE, FALSE);
+        act("$n paralyzes $N as $e performs a death attack against $M!",
+            FALSE, ch, NULL, vict, TO_NOTVICT);
+        act("You paralyze $N as you perform a death attack!",
+            FALSE, ch, NULL, vict, TO_CHAR);
+        act("$n paralyzes you as $e performs a death attack!",
+            FALSE, ch, NULL, vict, TO_VICT);
       }
     }
 

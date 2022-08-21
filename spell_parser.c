@@ -171,6 +171,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
     concentration_dc += 6;
   if (char_has_mud_event(ch, eINTIMIDATED))
     concentration_dc += 6;
+
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
   {
     if (GRAPPLE_ATTACKER(ch))
@@ -192,7 +193,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
     }
   }
 
-  if (FIGHTING(ch) && !skill_check(ch, ABILITY_CONCENTRATION, concentration_dc) && CASTING_CLASS(ch) != CLASS_ALCHEMIST)
+  if (FIGHTING(ch) && !skill_check(ch, ABILITY_CONCENTRATION, concentration_dc) && CASTING_CLASS(ch) != CLASS_ALCHEMIST && CASTING_CLASS(ch) != CLASS_SHADOWDANCER)
   {
     send_to_char(ch, "You lost your concentration!\r\n");
     act("$n's concentration is lost, and spell is aborted!", TRUE, ch, 0, 0, TO_ROOM);
@@ -449,8 +450,10 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 
   if (!cast_wtrigger(caster, cvict, ovict, spellnum))
     return 0;
+
   if (!cast_otrigger(caster, ovict, spellnum))
     return 0;
+
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
@@ -2590,7 +2593,7 @@ void mag_assign_spells(void)
   int i;
 
   /* Do not change the loop below. */
-  for (i = 0; i < TOP_SKILL_DEFINE; i++)
+  for (i = 0; i < MAX_SKILLS; i++)
     unused_spell(i);
   /*
   for (i = START_SKILLS; i < TOP_SKILL_DEFINE; i++)
