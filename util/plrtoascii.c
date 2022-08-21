@@ -1,8 +1,8 @@
 /* ************************************************************************
-*  file:  plrtoascii.c                                Part of LuminariMUD *
-*  Copyright (C) 1990, 1991 - see 'license.doc' for complete information. *
-*  All Rights Reserved                                                    *
-************************************************************************* */
+ *  file:  plrtoascii.c                                Part of LuminariMUD *
+ *  Copyright (C) 1990, 1991 - see 'license.doc' for complete information. *
+ *  All Rights Reserved                                                    *
+ ************************************************************************* */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -19,7 +19,7 @@
 #define MAX_TITLE_LENGTH 80 /* Used in char_file_u *DO*NOT*CHANGE* */
 #define HOST_LENGTH 40      /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_TONGUE 3        /* Used in char_file_u *DO*NOT*CHANGE* */
-#define MAX_SKILLS 600      /* Used in char_file_u *DO*NOT*CHANGE* */
+#define MAX_SKILLS 3000     /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_ABILITIES 200   /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_AFFECT 32       /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_TYPES 800       /* Used in char_file_u *DO*NOT*CHANGE* */
@@ -62,7 +62,7 @@ struct char_point_data_plrtoascii
   sbyte damroll; /* Any bonus or penalty to the damage roll */
 };
 
-/* 
+/*
  * char_special_data_saved: specials which both a PC and an NPC have in
  * common, but which must be saved to the playerfile for PC's.
  *
@@ -109,7 +109,7 @@ struct player_special_data_saved_plrtoascii
   int warding[MAX_WARDING]; // saved warding (ex stoneskin)
   int spare5;
   int spare6;
-  int skills[MAX_SKILLS + 1];
+  int skills[MAX_SKILLS];
   int spare3;
   int praying[MAX_MEM][NUM_CASTERS];   // memorization list array
   int prayed[MAX_MEM][NUM_CASTERS];    // memorized list array
@@ -271,7 +271,7 @@ void convert(char *filename)
     if (player.level < LVL_IMMORT)
     {
       fprintf(outfile, "Skil:\n");
-      for (i = 1; i <= MAX_SKILLS; i++)
+      for (i = 1; i < MAX_SKILLS; i++)
       {
         if (psds->skills[i])
           fprintf(outfile, "%d %d\n", i, (int)psds->skills[i]);

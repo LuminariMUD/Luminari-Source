@@ -462,7 +462,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
 /* added this function to add special wear off handling -zusuk */
 bool spec_wear_off(struct char_data *ch, int skillnum)
 {
-  if (skillnum >= MAX_SKILLS)
+  if (skillnum >= TOP_SKILL_DEFINE)
     return FALSE;
   if (skillnum <= 0)
     return FALSE;

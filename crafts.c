@@ -1095,7 +1095,7 @@ void craftedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC_CRAFT(d)->craft_skill = LIMIT(atoi(arg), 1, MAX_SKILLS);
+    OLC_CRAFT(d)->craft_skill = LIMIT(atoi(arg), 1, TOP_SKILL_DEFINE);
 
     write_to_output(d, "At what level?: ");
     OLC_MODE(d) = CRAFTEDIT_SKILL_LEVEL;

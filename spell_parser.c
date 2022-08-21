@@ -2593,7 +2593,7 @@ void mag_assign_spells(void)
   int i;
 
   /* Do not change the loop below. */
-  for (i = 0; i < MAX_SKILLS; i++)
+  for (i = 0; i < TOP_SKILL_DEFINE; i++)
     unused_spell(i);
   /*
   for (i = START_SKILLS; i < TOP_SKILL_DEFINE; i++)

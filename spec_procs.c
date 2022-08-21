@@ -722,7 +722,7 @@ void list_skills(struct char_data *ch)
 
   /* Active Skills */
   send_to_char(ch, "\tCActive Skills\tn\r\n\r\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+  for (i = MAX_SPELLS + 1; i < TOP_SKILL_DEFINE; i++)
   {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
         spell_info[i].schoolOfMagic == ACTIVE_SKILL)
@@ -786,7 +786,7 @@ void list_skills(struct char_data *ch)
 
   /* Caster Skills */
   send_to_char(ch, "\tCCaster Skills\tn\r\n\r\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+  for (i = MAX_SPELLS + 1; i < TOP_SKILL_DEFINE; i++)
   {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
         spell_info[i].schoolOfMagic == CASTER_SKILL)
