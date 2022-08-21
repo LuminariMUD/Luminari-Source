@@ -2459,7 +2459,7 @@ void init_start_char(struct char_data *ch)
 
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
-  for (i = START_SKILLS; i <= NUM_SKILLS; i++)
+  for (i = START_SKILLS; i < NUM_SKILLS; i++)
     if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
       SET_SKILL(ch, i, 0);
   for (i = 1; i <= NUM_ABILITIES; i++)
@@ -3229,7 +3229,7 @@ void init_spell_levels(void)
   struct class_spell_assign *spell_assign = NULL;
 
   // simple loop to init min-level 1 for all the SKILL_x to all classes
-  for (i = (MAX_SPELLS + 1); i < NUM_SKILLS; i++)
+  for (i = (MAX_SPELLS + 1); i < TOP_SKILL_DEFINE; i++)
   {
     for (j = 0; j < NUM_CLASSES; j++)
     {

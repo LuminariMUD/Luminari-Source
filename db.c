@@ -5621,7 +5621,7 @@ static int check_object_spell_number(struct obj_data *obj, int val)
     error = TRUE;
   if (GET_OBJ_VAL(obj, val) > TOP_SKILL_DEFINE)
     error = TRUE;
-  if (GET_OBJ_VAL(obj, val) > MAX_SPELLS && GET_OBJ_VAL(obj, val) <= MAX_SKILLS)
+  if (GET_OBJ_VAL(obj, val) > MAX_SPELLS && GET_OBJ_VAL(obj, val) < TOP_SKILL_DEFINE)
     error = TRUE;
   if (error)
     log("SYSERR: Object #%d (%s) has out of range spell #%d.",

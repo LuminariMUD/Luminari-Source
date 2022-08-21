@@ -1940,7 +1940,7 @@ ACMD(do_advance)
     SET_BIT_AR(PRF_FLAGS(victim), PRF_HOLYLIGHT);
     SET_BIT_AR(PRF_FLAGS(victim), PRF_SHOWVNUMS);
     SET_BIT_AR(PRF_FLAGS(victim), PRF_AUTOEXIT);
-    for (i = 1; i <= MAX_SKILLS; i++)
+    for (i = 1; i < MAX_SKILLS; i++)
       SET_SKILL(victim, i, 100);
     for (i = 1; i <= MAX_ABILITIES; i++)
       SET_ABILITY(victim, i, 40);
@@ -2006,7 +2006,7 @@ ACMD(do_restore)
     if (!IS_NPC(vict) && GET_LEVEL(ch) >= LVL_GRSTAFF)
     {
       if (GET_LEVEL(vict) >= LVL_IMMORT)
-        for (i = 1; i <= MAX_SKILLS; i++)
+        for (i = 1; i < MAX_SKILLS; i++)
           SET_SKILL(vict, i, 100);
 
       if (GET_LEVEL(vict) >= LVL_IMMORT)
@@ -8743,7 +8743,7 @@ ACMD(do_showwearoff)
 
   int i = 0;
 
-  for (i = 0; i < NUM_SKILLS + 1; i++)
+  for (i = 0; i < TOP_SKILL_DEFINE + 1; i++)
   {
     if (is_abbrev(arg1, spell_info[i].name))
     {

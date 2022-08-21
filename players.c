@@ -354,7 +354,7 @@ int load_char(const char *name, struct char_data *ch)
       GET_FAVORED_ENEMY(ch, i) = 0;
     for (i = 0; i < MAX_WARDING; i++)
       GET_WARDING(ch, i) = 0;
-    for (i = 1; i <= MAX_SKILLS; i++)
+    for (i = 1; i < MAX_SKILLS; i++)
       GET_SKILL(ch, i) = 0;
     for (i = 1; i <= MAX_ABILITIES; i++)
       GET_ABILITY(ch, i) = 0;
@@ -1151,7 +1151,7 @@ int load_char(const char *name, struct char_data *ch)
   /* initialization for imms */
   if (GET_LEVEL(ch) >= LVL_IMMORT)
   {
-    for (i = 1; i <= MAX_SKILLS; i++)
+    for (i = 1; i < MAX_SKILLS; i++)
       GET_SKILL(ch, i) = 100;
     for (i = 1; i <= MAX_ABILITIES; i++)
       GET_ABILITY(ch, i) = 40;
@@ -1680,7 +1680,7 @@ void save_char(struct char_data *ch, int mode)
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
     fprintf(fl, "Skil:\n");
-    for (i = 1; i <= MAX_SKILLS; i++)
+    for (i = 1; i < MAX_SKILLS; i++)
     {
       if (GET_SKILL(ch, i))
         fprintf(fl, "%d %d\n", i, GET_SKILL(ch, i));
@@ -2802,7 +2802,7 @@ static void load_abilities(FILE *fl, struct char_data *ch)
 
 static void load_skills(FILE *fl, struct char_data *ch)
 {
-  int num = 0, num2 = 0;
+  int num = 0, num2 = 0, counter = 0;
   char line[MAX_INPUT_LENGTH + 1];
 
   do
@@ -2815,12 +2815,18 @@ static void load_skills(FILE *fl, struct char_data *ch)
       /* this is a hack since we moved the skill numbering */
       if (num < START_SKILLS)
         num += 1600;
-      GET_SKILL(ch, num) = num2;
+
+      if (counter >= (MAX_SKILLS + 1))
+        ;
+      else
+      {
+        GET_SKILL(ch, num) = num2;
+      }
       /* end hack */
 
-      //GET_SPELL(ch, num) = num2;
+      counter++;
     }
-  } while (num != 0);
+  } while (num != 0 && counter < MAX_SKILLS);
 }
 
 void load_feats(FILE *fl, struct char_data *ch)
