@@ -3869,7 +3869,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   {
     send_to_char(victim, "In damage() function, Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
                  GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
-    int weapon_type = w_type - TOP_WEAPON_TYPES;
+    int weapon_type = w_type - TOP_ATTACK_TYPES;
     if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES)
     {
       send_to_char(ch, "Weapon-type: %d!!", weapon_type);
