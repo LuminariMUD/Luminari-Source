@@ -508,7 +508,7 @@
 
 /** Total Number of defined spells  */
 #define NUM_SPELLS 441
-#define LAST_SPELL_DEFINE 441
+#define LAST_SPELL_DEFINE NUM_SPELLS + 1
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -544,6 +544,10 @@
  * most psionic stuff is either in psionics.c or spell_parser.c
  */
 
+/***************************************/
+/***************************************/
+#define PSIONIC_POWER_START 1499
+/***************************************/
 #define PSIONIC_BROKER 1500
 #define PSIONIC_CALL_TO_MIND 1501
 #define PSIONIC_CATFALL 1502
@@ -641,9 +645,10 @@
 #define PSIONIC_BARRED_MIND_PERSONAL 1594
 #define PSIONIC_PSYCHOPORT_GREATER 1595
 #define PSIONIC_TRUE_METABOLISM 1596
-
-#define PSIONIC_POWER_START 1500
-#define PSIONIC_POWER_END 1596
+/***************************************/
+#define PSIONIC_POWER_END 1597
+/***************************************/
+/***************************************/
 
 /* Other files to be aware of for new spells:
  * 1)  if you want this spell to be avaiable as a npc spellup, mobact.c
@@ -660,7 +665,7 @@
 
 #define START_SKILLS 2000
 
-/* PLAYER SKILLS - Numbered from MAX_SPELLS+1 to MAX_SKILLS */
+/* PLAYER SKILLS - Numbered from START_SKILLS+1 to MAX_SKILLS */
 #define SKILL_BACKSTAB 2001          // implemented
 #define SKILL_BASH 2002              // implemented
 #define SKILL_MUMMY_DUST 2003        // implemented

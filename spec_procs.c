@@ -517,7 +517,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
   int i = 0, slot = 0, sinfo = 0;
-  int bottom = 0;
+  int bottom = 0, top = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *overflow = "\r\n**OVERFLOW**\r\n";
@@ -554,7 +554,18 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         break;
       len += nlen;
 
-      for (bottom = 1; bottom < MAX_SPELLS; bottom++)
+      /* non psi casters */
+      bottom = 1;
+      top = NUM_SPELLS;
+
+      /* psi spell list */
+      if (is_psionic)
+      {
+        bottom = PSIONIC_POWER_START;
+        top = PSIONIC_POWER_END;
+      }
+
+      for (; bottom < top; bottom++)
       {
         i = sorted_spells[bottom];
         if (do_not_list_spell(i))
