@@ -692,7 +692,7 @@ void list_crafting_skills(struct char_data *ch)
 
   /* Crafting Skills */
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
-  for (i = 1; i < NUM_SKILLS; i++)
+  for (i = START_SKILLS; i < NUM_SKILLS; i++)
   {
     // Why is this level check here? Gicker Feb 8, 2021
     // if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&

@@ -226,7 +226,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"copyroom", "copyroom", POS_DEAD, do_copyroom, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -243,6 +242,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"collect", "collect", POS_STANDING, do_collect, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     /* we are just using the old do_practice function for crafting for now */
     {"craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    /* newer crafting system */
+    {"crafting", "crafting", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_comeandgetme},
     {"curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
     {"cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
