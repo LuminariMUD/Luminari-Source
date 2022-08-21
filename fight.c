@@ -9576,3 +9576,5 @@ void perform_violence(struct char_data *ch, int phase)
 #undef MODE_IMP_2_WPN   /* improved two weapon fighting - extra attack at -5 */
 #undef MODE_GREAT_2_WPN /* greater two weapon fighting - extra attack at -10 */
 #undef MODE_EPIC_2_WPN  /* perfect two weapon fighting - extra attack */
+
+#undef DEBUGMODE
