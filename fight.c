@@ -2196,7 +2196,8 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
   if (DEBUGMODE)
   {
-    send_to_char(ch, "Debug - We are in skill_message(), dam %d, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(vict), attacktype, dualing);
+    send_to_char(ch, "Debug - We are in skill_message(), dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+    send_to_char(vict, "Debug - We are in skill_message(), dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
   }
 
   /* attacker weapon */
@@ -2320,6 +2321,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
       } /* dam == 0, we did not do any damage! */
       else if (ch != vict)
       {
+        if (DEBUGMODE)
+        {
+          send_to_char(ch, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+          send_to_char(vict, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+        }
+
         /* do we have armor that can stop a blow? */
         struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
         int armor_val = -1;
@@ -3858,19 +3865,22 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       send_to_char(victim, "\tR%s\tn ", buf);
   }
 
-  /* more deubgging */
-  /*
-  send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
-      GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
-  int weapon_type = w_type - TOP_WEAPON_TYPES;
-  if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES) {
-    send_to_char(ch, "Weapon-type: %d!!", weapon_type);
-  } else {
-    send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
+  if (DEBUGMODE)
+  {
+    send_to_char(victim, "In damage() function, Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
+                 GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
+    int weapon_type = w_type - TOP_WEAPON_TYPES;
+    if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES)
+    {
+      send_to_char(ch, "Weapon-type: %d!!", weapon_type);
+    }
+    else
+    {
+      send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
+    }
+    send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n",
+                 damtypes[dam_type], offhand);
   }
-  send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n",
-      damtypes[dam_type], offhand);
-   */
 
   /** DAMAGE MESSAGES
       Two systems:
