@@ -1517,6 +1517,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     break;
   case MOB_SHADOW:
+    GET_LEVEL(mob) = MIN(22, level);
     GET_LEVEL(mob) = level;
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
