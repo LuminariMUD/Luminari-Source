@@ -47,7 +47,7 @@
 /* toggle for debug mode
    true = annoying messages used for debugging
    false = normal gameplay */
-#define DEBUGMODE TRUE
+#define DEBUGMODE FALSE
 
 /* return results from hit() */
 #define HIT_MISS 0
