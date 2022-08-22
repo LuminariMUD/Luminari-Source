@@ -2984,37 +2984,37 @@
    armed and unarmed attacks are, example: You BITE Bob.
    This use to be located in spells.h but was moved here
    since it is more globally accessed */
-#define TYPE_HIT 700   /* barehand */
-#define TYPE_STING 701 /* pierce */
-#define TYPE_WHIP 702
-#define TYPE_SLASH 703 /* slash */
-#define TYPE_BITE 704
-#define TYPE_BLUDGEON 705 /* bludgeon */
-#define TYPE_CRUSH 706    /* bludgeon */
-#define TYPE_POUND 707    /* bludgeon */
-#define TYPE_CLAW 708
-#define TYPE_MAUL 709
-#define TYPE_THRASH 710
-#define TYPE_PIERCE 711 /* pierce */
-#define TYPE_BLAST 712
-#define TYPE_PUNCH 713   /* barehand */
-#define TYPE_STAB 714    /* pierce */
-#define TYPE_SLICE 715   /* slash */
-#define TYPE_THRUST 716  /* pierce */
-#define TYPE_HACK 717    /* slash */
-#define TYPE_RAKE 718    /* slash? */
-#define TYPE_PECK 719    /* pierce? */
-#define TYPE_SMASH 720   /* bludgeon? */
-#define TYPE_TRAMPLE 721 /* bludgeon? */
-#define TYPE_CHARGE 722  /* pierce? */
-#define TYPE_GORE 723    /* pierce? */
+#define TYPE_HIT 2300   /* barehand */
+#define TYPE_STING 2301 /* pierce */
+#define TYPE_WHIP 2302
+#define TYPE_SLASH 2303 /* slash */
+#define TYPE_BITE 2304
+#define TYPE_BLUDGEON 2305 /* bludgeon */
+#define TYPE_CRUSH 2306    /* bludgeon */
+#define TYPE_POUND 2307    /* bludgeon */
+#define TYPE_CLAW 2308
+#define TYPE_MAUL 2309
+#define TYPE_THRASH 2310
+#define TYPE_PIERCE 2311 /* pierce */
+#define TYPE_BLAST 2312
+#define TYPE_PUNCH 2313   /* barehand */
+#define TYPE_STAB 2314    /* pierce */
+#define TYPE_SLICE 2315   /* slash */
+#define TYPE_THRUST 2316  /* pierce */
+#define TYPE_HACK 2317    /* slash */
+#define TYPE_RAKE 2318    /* slash? */
+#define TYPE_PECK 2319    /* pierce? */
+#define TYPE_SMASH 2320   /* bludgeon? */
+#define TYPE_TRAMPLE 2321 /* bludgeon? */
+#define TYPE_CHARGE 2322  /* pierce? */
+#define TYPE_GORE 2323    /* pierce? */
 /* don't forget to add to race_list() and all the other places if changed */
 /** The total number of attack types */
 #define NUM_ATTACK_TYPES 24
 #define BOT_WEAPON_TYPES (TYPE_HIT + NUM_ATTACK_TYPES)
 #define TOP_ATTACK_TYPES TYPE_HIT
 #define TYPE_UNDEFINED_WTYPE 0
-/* not hard coded, but up to 750 */
+/* not hard coded, but up to 2350?  check spells.h!! */
 
 /* combat maneuver types*/
 #define COMBAT_MANEUVER_TYPE_UNDEFINED 0

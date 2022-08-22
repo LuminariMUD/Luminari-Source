@@ -896,10 +896,12 @@
 
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 2299 */
 
+/**********  IMPORTANT ********************************/
 /*** Due to wanting the values to be more global, I moved
      all the WEAPON ATTACK TYPES to structs.h
  Reserving values: 2300 - 2350 for this purpose
  */
+/******************************************************/
 
 /* RANGED WEAPON ATTACK TYPES */
 #define TYPE_MISSILE 2351
