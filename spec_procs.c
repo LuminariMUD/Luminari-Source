@@ -8961,3 +8961,7 @@ SPECIAL(buyweapons)
 /*************************/
 /* end object procedures */
 /*************************/
+
+#undef DEBUGMODE
+
+/* EoF */
