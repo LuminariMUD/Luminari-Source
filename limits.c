@@ -521,6 +521,15 @@ void regen_update(struct char_data *ch)
       hp += 3;
   }
 
+  
+  // shadow master feat
+  if (IS_SHADOW_CONDITIONS(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER))
+  {
+    hp += 3;
+    if (FIGHTING(ch))
+      hp += 3;
+  }
+
   /* these are last bonuses because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
     hp *= 2;

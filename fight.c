@@ -6132,6 +6132,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
                should this have a type?  for now it doesn't... */
   switch (attack_type)
   {
+  case ATTACK_TYPE_PSIONICS: /* psionic attacks */
+    calc_bab += GET_INT_BONUS(ch);
+    calb_bab += IS_PSI_TYPE(ch) / 5;
+    /* FALLTHROUGH, no break please */
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
@@ -7259,7 +7263,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER) && victim &&
         !AFF_FLAGGED(victim, AFF_BLIND) && IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
     {
-      if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
+      /* without a bonus to the challenge here, this was completely ineffective -zusuk */
+      if (!mag_savingthrow(ch, victim, SAVING_FORT, 10, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
       {
         send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
         new_affect(&af);

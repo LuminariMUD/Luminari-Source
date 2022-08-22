@@ -5634,7 +5634,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_OFFENSIVE_PRESCIENCE, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SLUMBER, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_VIGOR, 1);
-
+  /* 2nd circle */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BESTOW_POWER, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BIOFEEDBACK, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_EQUILIBRIUM, 3);
@@ -5654,7 +5654,7 @@ void load_class_list(void)
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARE_PAIN, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SWARM_OF_CRYSTALS, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_THOUGHT_SHIELD, 3);
-
+  /* 3rd circle */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_ADJUSTMENT, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCUSSIVE_ONSLAUGHT, 5);
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_DISPEL_PSIONICS, 5);
@@ -5669,7 +5669,7 @@ void load_class_list(void)
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCED_SHARED_PAIN, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARPENED_EDGE, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_UBIQUITUS_VISION, 5);
-
+  /* 4th circle */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DEADLY_FEAR, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DEATH_URGE, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_EMPATHIC_FEEDBACK, 7);
@@ -5681,7 +5681,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SLIP_THE_BONDS, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WITHER, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WALL_OF_ECTOPLASM, 7);
-
+  /* 5th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHAMBLER, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PIERCE_VEIL, 9);
@@ -5693,13 +5693,13 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHRAPNEL_BURST, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_TOWER_OF_IRON_WILL, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_UPHEAVAL, 9);
-
+  /* 6th circle Psi */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BREATH_OF_THE_BLACK_DRAGON, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BRUTALIZE_WOUNDS, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DISINTEGRATION, 11);
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_REMOTE_VIEW_TRAP, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SUSTAINED_FLIGHT, 11);
-
+  /* 7th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_COSMIC_AWARENESS, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_CONVERSION, 13);
@@ -5708,15 +5708,19 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_OAK_BODY, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHOSIS, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ULTRABLAST, 13);
-
+  /* 8th circle Psi */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_OF_IRON, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_RECALL_DEATH, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHADOW_BODY, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_TRUE_METABOLISM, 15);
-
+  /* 9th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_APOPSI, 17);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ASSIMILATE, 17);
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
+  /**** end psi power assignment *****/
+
+  /* end PSI class */
+  /****************************************************************************/
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/

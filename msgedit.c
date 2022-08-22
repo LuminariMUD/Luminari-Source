@@ -583,7 +583,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
     msgedit_main_menu(d);
     return;
   case MSGEDIT_TYPE:
-    OLC_MSG_LIST(d)->a_type = LIMIT(atoi(arg), 0, 500);
+    OLC_MSG_LIST(d)->a_type = LIMIT(atoi(arg), 0, TOP_SKILL_DEFINE);
     break;
   case MSGEDIT_DEATH_CHAR:
     if (!genolc_checkstring(d, arg))

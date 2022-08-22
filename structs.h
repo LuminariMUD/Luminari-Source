@@ -2979,6 +2979,7 @@
 #define ATTACK_TYPE_BOMB_TOSS 5
 #define ATTACK_TYPE_PRIMARY_SNEAK 6 // impromptu sneak attack
 #define ATTACK_TYPE_OFFHAND_SNEAK 7 // impromptu sneak attack
+#define ATTACK_TYPE_PSIONICS 8
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.

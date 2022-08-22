@@ -1809,14 +1809,16 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     if (is_marked_target(ch, vict))
     {
       assassin_mod += GET_LEVEL(ch) - GET_LEVEL(vict);
-      if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
+      if (HAS_FEAT(ch, FEAT_DEATH_ATTACK))
         assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
+        assassin_mod += 3;
       if (HAS_FEAT(ch, FEAT_QUIET_DEATH))
         assassin_mod += 2;
       if (HAS_FEAT(ch, FEAT_SWIFT_DEATH))
         assassin_mod += 2;
       if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
-        assassin_mod += 2;
+        assassin_mod += 4;
 
       if (!AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
           !mag_savingthrow(ch, vict, SAVING_FORT, assassin_mod, CAST_INNATE, IS_ROGUE_TYPE(ch), NOSCHOOL))

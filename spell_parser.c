@@ -32,6 +32,11 @@
 #include "psionics.h"
 #include "act.h"
 
+/* toggle for debug mode
+   true = annoying messages used for debugging
+   false = normal gameplay */
+#define DEBUGMODE TRUE
+
 #define SINFO spell_info[spellnum]
 
 /* Global Variables definitions, used elsewhere */
@@ -143,6 +148,11 @@ bool concentration_check(struct char_data *ch, int spellnum)
   /* concentration check */
   int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
   int concentration_dc = 0;
+
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "In concentration_check(): casting class: %d\r\n", CASTING_CLASS(ch))
+  }
 
   if (IS_NPC(ch))
   {
@@ -4269,7 +4279,11 @@ void display_shadowcast_spells(struct char_data *ch)
     }
   }
 }
+/**************************/
+
+#undef SINFO
+#undef DEBUGMODE
+
+/**************************/
 
 /* must be at end of file */
-#undef SINFO
-/**************************/

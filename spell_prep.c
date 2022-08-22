@@ -2792,4 +2792,6 @@ ACMDU(do_gen_preparation)
 
 /* END acmd */
 
+#undef DEBUGMODE
+
 /* EOF */
