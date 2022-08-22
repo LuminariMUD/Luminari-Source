@@ -6134,7 +6134,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   {
   case ATTACK_TYPE_PSIONICS: /* psionic attacks */
     calc_bab += GET_INT_BONUS(ch);
-    calb_bab += IS_PSI_TYPE(ch) / 5;
+    calc_bab += IS_PSI_TYPE(ch) / 5;
     /* FALLTHROUGH, no break please */
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_PRIMARY:
