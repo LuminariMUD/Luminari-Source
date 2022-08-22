@@ -5620,11 +5620,11 @@ bool is_marked_target(struct char_data *ch, struct char_data *vict)
 {
   if (!ch || !vict) return false;
 
-  if (!HAS_FEAT(ch, FEAT_DEATH_ATTACK))
-    return false;
-
   if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
     return true;
+
+  if (!HAS_FEAT(ch, FEAT_DEATH_ATTACK))
+    return false;
 
   if (GET_MARK(ch) == vict && GET_MARK_ROUNDS(ch) >= 3)
     return true;

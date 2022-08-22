@@ -7002,6 +7002,7 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_WEAPON_PROFICIENCY_ASSASSIN, Y, 1, N);
   feat_assignment(CLASS_ASSASSIN, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
   feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 1, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_DEATH_ATTACK, Y, 1, Y);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 2, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_UNCANNY_DODGE, Y, 2, N);
