@@ -35,7 +35,7 @@
 /* toggle for debug mode
    true = annoying messages used for debugging
    false = normal gameplay */
-#define DEBUGMODE TRUE
+#define DEBUGMODE FALSE
 
 #define SINFO spell_info[spellnum]
 
@@ -151,7 +151,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
 
   if (DEBUGMODE)
   {
-    send_to_char(ch, "In concentration_check(): casting class: %d\r\n", CASTING_CLASS(ch))
+    send_to_char(ch, "In concentration_check(): casting class: %d\r\n", CASTING_CLASS(ch));
   }
 
   if (IS_NPC(ch))
