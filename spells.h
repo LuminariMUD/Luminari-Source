@@ -1105,6 +1105,9 @@
 #define DAM_CHAOS 24
 /* ------------------------------*/
 #define NUM_DAM_TYPES 25
+/* if you add more dam types, don't forget to assign it to a gear-slot
+   so players will have some sort of method of gaining the defense against
+   the new damage type */
 /* =============================*/
 
 /*********************************/
