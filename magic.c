@@ -6417,7 +6417,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_PSIONIC_BLAST:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     isEffect = TRUE;
@@ -6425,7 +6424,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_INFLICT_PAIN:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 4)
@@ -6439,7 +6437,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_MENTAL_DISRUPTION:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     isEffect = TRUE;
@@ -6447,7 +6444,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_ERADICATE_INVISIBILITY:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_unaffects, we do it here.
     isUnEffect = TRUE;
@@ -6455,7 +6451,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_DEADLY_FEAR:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 8)

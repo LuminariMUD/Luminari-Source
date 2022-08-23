@@ -4020,19 +4020,27 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   if (GET_POS(victim) == POS_DEAD) // victim died
   {
+    /* psionic assimilate affect */
     if (w_type == PSIONIC_ASSIMILATE)
     {
+
+      /* if we have this affection, remove it first so it doesn't restack */
       if (affected_by_spell(ch, PSIONIC_ASSIMILATE))
         GET_HIT(ch) -= get_char_affect_modifier(ch, PSIONIC_ASSIMILATE, APPLY_HIT);
       GET_HIT(ch) = MAX(1, GET_HIT(ch));
       affect_from_char(ch, PSIONIC_ASSIMILATE);
+
+      /* ok now build the affection */
       new_affect(&af);
       af.spell = PSIONIC_ASSIMILATE;
       af.location = APPLY_HIT;
-      af.modifier = 5 * GET_LEVEL(victim);
+      af.modifier = 4 * GET_LEVEL(victim);
       af.duration = 600;
-      GET_HIT(ch) += af.modifier;
-      affect_to_char(ch, &af);
+      af.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
+      GET_HIT(ch) += af.modifier + GET_LEVEL(victim);
+      affect_to_char(ch, &af); /* apply affection! */
+
+      /* message for flavor */
       act("You fully assimilate the form of $N gaining some of $S power.", false, ch, 0, victim, TO_CHAR);
       act("$n fully assimilates your form, gaining some of your power.", false, ch, 0, victim, TO_VICT);
       act("$n fully assimilates the form of $N gaining some of $S power.", false, ch, 0, victim, TO_NOTVICT);
