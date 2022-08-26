@@ -428,6 +428,8 @@ int regen_hps(struct char_data *ch)
   /* blackmantle stops natural regeneration */
   if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
     hp = 0;
+
+  return hp;
 }
 
 /* this function handles poison, entry point for hps rege, and movement regen */
@@ -642,7 +644,7 @@ void regen_psp(void)
     {
     case POS_SLEEPING:
     case POS_RECLINING:
-    case POS_CRAWLING:
+    /*case POS_CRAWLING:*/
     case POS_RESTING:
     case POS_SITTING:
       if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
