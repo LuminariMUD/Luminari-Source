@@ -1875,21 +1875,24 @@ void update_damage_and_effects_over_time(void)
     {
       GET_HIT(ch) += 5;
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch) = GET_MAX_HIT(ch);
+        GET_HIT(ch)
+      --;
     }
 
     // judgement of healing
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses)
       GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
-      GET_HIT(ch) = GET_MAX_HIT(ch);
+      GET_HIT(ch)
+    --;
 
     // paladin fast healing mercy effect
     if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING))
     {
       GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch) = GET_MAX_HIT(ch);
+        GET_HIT(ch)
+        --;
     }
 
     if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))

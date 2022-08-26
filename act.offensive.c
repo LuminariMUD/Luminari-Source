@@ -347,7 +347,8 @@ void perform_rage(struct char_data *ch)
 
   GET_HIT(ch) += bonus * 2;
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
-    GET_HIT(ch) = GET_MAX_HIT(ch);
+    GET_HIT(ch)
+    --;
 
   /* Add another affect for heavy shrug. */
   //  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {

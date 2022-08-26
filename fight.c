@@ -1605,14 +1605,19 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
 
+  /* handle pets */
   if (ch->followers || ch->master) // handle followers
     die_follower(ch);
   save_char_pets(ch);
 
+  /* group handling */
   if (GROUP(ch))
   {
     send_to_group(ch, GROUP(ch), "%s has died.\r\n", GET_NAME(ch));
-    leave_group(ch);
+
+    /* we used to kick players out of groups here, but we changed that.. now only NPCs */
+    if (IS_NPC(ch))
+      leave_group(ch);
   }
 
   /* ordinary commands work in scripts -welcor */
@@ -1625,6 +1630,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   else
     death_cry(ch);
   GET_POS(ch) = POS_DEAD;
+  /* end making ordinary commands work in scripts */
 
   /* make sure group gets credit for kill if ch involved in quest */
   kill_quest_completion_check(killer, ch);
@@ -1647,7 +1653,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
-
   GET_MARK(killer) = NULL;
   GET_MARK_ROUNDS(killer) = 0;
 
@@ -1660,29 +1665,48 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   }
   else if (IN_ARENA(ch) || IN_ARENA(killer))
   {
+    /* no corpse - arena */
+
+    /* move the character out of the room */
     char_from_room(ch);
+
+    /* death message */
     death_message(ch);
+
+    /* get you back to life */
     GET_HIT(ch) = GET_MAX_HIT(ch);
     update_pos(ch);
 
-    /* move char to starting room */
+    /* move char to starting room of arena */
     char_to_room(ch, real_room(CONFIG_ARENA_DEATH));
     act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
     entry_memory_mtrigger(ch);
     greet_mtrigger(ch, -1);
     greet_memory_mtrigger(ch);
+
+    /* make sure not casting! */
     resetCastingData(ch);
 
+    /* save! */
     save_char(ch, 0);
     Crash_delete_crashfile(ch);
   }
   else
-  { /* PC's do not extract currently or make a corpse */
+  { /* real DEATH! */
+    /* create the corpse */
+    make_corpse(ch);
+
+    /* move the character out of the room */
     char_from_room(ch);
+
+    /* death message */
     death_message(ch);
+
+    /* get you back to life */
     GET_HIT(ch) = 1;
     update_pos(ch);
+
     /* move char to starting room */
     char_to_room(ch, r_mortal_start_room);
     act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
@@ -1690,10 +1714,14 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     entry_memory_mtrigger(ch);
     greet_mtrigger(ch, -1);
     greet_memory_mtrigger(ch);
+
+    /* make sure not casting! */
     resetCastingData(ch);
 
+    /* save! */
     save_char(ch, 0);
     Crash_delete_crashfile(ch);
+
     /* "punishment" for death */
     start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
   }
