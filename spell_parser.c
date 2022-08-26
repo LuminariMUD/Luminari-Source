@@ -1359,8 +1359,8 @@ EVENTFUNC(event_casting)
       if (spellnum > 0 && spellnum < NUM_SPELLS)
       {
         /* magical ambush feat */
-        if (!IS_NPC(ch) && FIGHTING(ch) && HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH) && !(has_dex_bonus_to_ac(ch, FIGHTING(ch))) /* No dex bonus to ac */
-            || is_flanked(ch, FIGHTING(ch)))
+        if (!IS_NPC(ch) && FIGHTING(ch) && HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH) && (!(has_dex_bonus_to_ac(ch, FIGHTING(ch))) /* No dex bonus to ac */
+                                                                                 || is_flanked(ch, FIGHTING(ch))))
         {
           if (rand_number(0, 2))
           {
