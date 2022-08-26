@@ -7567,9 +7567,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   int which_cruelty = BLACKGUARD_CRUELTY_NONE;
   int save_mod = 0;
   const char *to_vict = NULL, *to_room = NULL;
-  s
 
-      for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
+  for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
   {
     if (is_abbrev(cruelty, blackguard_cruelties[i]))
     {
