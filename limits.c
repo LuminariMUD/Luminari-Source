@@ -521,7 +521,6 @@ void regen_update(struct char_data *ch)
       hp += 3;
   }
 
-  
   // shadow master feat
   if (IS_SHADOW_CONDITIONS(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER))
   {
@@ -615,6 +614,7 @@ void regen_psp(void)
 
   for (d = descriptor_list; d; d = d->next)
   {
+
     if (STATE(d) != CON_PLAYING)
       continue;
     if (!d->character)
@@ -623,9 +623,16 @@ void regen_psp(void)
       continue;
     if (FIGHTING(d->character))
       continue;
+
+    GET_PSP(d->character)
+    ++;
+
     if (GET_POS(d->character) > POS_SITTING)
       continue;
-    GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 10);
+
+    /* should be resting here */
+
+    GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 7);
     if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
       GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
@@ -1016,7 +1023,7 @@ void gain_exp_regardless(struct char_data *ch, int gain)
       GET_LEVEL(ch) += 1;
       if (CLASS_LEVEL(ch, GET_CLASS(ch)) < (LVL_STAFF - 1))
         CLASS_LEVEL(ch, GET_CLASS(ch))
-        ++;
+      ++;
       num_levels++;
       /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, GET_CLASS(ch));
@@ -1147,7 +1154,8 @@ void update_player_misc(void)
     affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)--;
+      GET_MISSION_COOLDOWN(ch)
+    --;
 
     if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
       SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
@@ -1296,7 +1304,7 @@ void proc_d20_round(void)
         for (raff = raff_list; raff; raff = next_raff)
         {
           next_raff = raff->next;
-          
+
           if (raff->room == IN_ROOM(i))
           {
             if (raff->affection == RAFF_OBSCURING_MIST)
