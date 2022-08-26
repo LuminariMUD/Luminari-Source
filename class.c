@@ -5848,7 +5848,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ARCANE_SHADOW, "arcaneshadow", "ArS", "\tGAr\tDS\tn", "n) \tGArcane\tDShadow\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         10, Y, Y, M, 6, 0, 2, 4, Y, 5000, 0,
+         10, Y, Y, M, 8, 0, 2, 5, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
          /*descrip*/ "Few can match the guile and craftiness of arcane shadows. These "
                      "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
@@ -5861,7 +5861,7 @@ void load_class_list(void)
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
                      CA, CA, CA, CA, CC, CA, CA,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CC, CC, CC, CA, CA, CA, CA, CC,
+                     CC, CA, CC, CA, CA, CA, CA, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CC, CA, CA, CA, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
@@ -5888,10 +5888,13 @@ void load_class_list(void)
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 5, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 6, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_INVISIBLE_ROGUE, Y, 7, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 7, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 8, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_MAGICAL_AMBUSH, Y, 9, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 9, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 10, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SURPRISE_SPELLS, Y, 10, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 10, Y);
   /* no spell assignment */
   /* class prereqs */
   class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_DISABLE_DEVICE, 4);

@@ -3683,6 +3683,12 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_IMBUE_ARROW:
       daily_uses += HAS_FEAT(ch, featnum) * 2;
       break;
+    case FEAT_INVISIBLE_ROGUE:
+      daily_uses += 1 + HAS_FEAT(ch, featnum) + GET_INT_BONS(ch); 
+      break;
+    case FEAT_IMPROMPTU_SNEAK_ATTACK:
+      daily_uses += 1 + HAS_FEAT(ch, featnum); 
+    break;
     case FEAT_SMITE_EVIL:/*fallthrough*/
     case FEAT_SMITE_GOOD:/*fallthrough*/
     case FEAT_RAGE:/*fallthrough*/
@@ -3695,8 +3701,6 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_WILD_SHAPE:/*fallthrough*/
     case FEAT_ANIMATE_DEAD:/*fallthrough*/
     case FEAT_VANISH:/*fallthrough*/
-    case FEAT_INVISIBLE_ROGUE:/*fallthrough*/
-    case FEAT_IMPROMPTU_SNEAK_ATTACK:
       daily_uses += HAS_FEAT(ch, featnum);
       break;
     case FEAT_DRACONIC_HERITAGE_BREATHWEAPON:

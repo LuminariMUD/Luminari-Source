@@ -139,7 +139,8 @@ void assign_mobiles(void)
   ASSIGNMOB(145333, guild);
 
   /* player owned shop mobiles */
-  ASSIGNMOB(899, player_owned_shops);
+  ASSIGNMOB(899, player_owned_shops); /* example shop */
+  ASSIGNMOB(822, player_owned_shops); /* zusuk created shop for melaw */
   ASSIGNMOB(825, player_owned_shops); /* thazull created shop for Ellyanor */
   ASSIGNMOB(830, player_owned_shops); /* Ickthak the Kobold - for Thimblethorp */
 
