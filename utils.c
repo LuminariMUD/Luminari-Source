@@ -3684,7 +3684,7 @@ int get_daily_uses(struct char_data *ch, int featnum) {
       daily_uses += HAS_FEAT(ch, featnum) * 2;
       break;
     case FEAT_INVISIBLE_ROGUE:
-      daily_uses += 1 + HAS_FEAT(ch, featnum) + GET_INT_BONS(ch); 
+      daily_uses += 1 + HAS_FEAT(ch, featnum) + GET_INT_; 
       break;
     case FEAT_IMPROMPTU_SNEAK_ATTACK:
       daily_uses += 1 + HAS_FEAT(ch, featnum); 
