@@ -7613,8 +7613,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
       save_mod = -4;
     break;
   case BLACKGUARD_CRUELTY_SICKENED:
-    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_vict = "You are -sickened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -sickened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_disease(vict))
     {
       act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7622,8 +7622,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_DISEASED:
-    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_vict = "You are -diseased- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -diseased- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_disease(vict))
     {
       act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7631,8 +7631,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_POISONED:
-    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_vict = "You are -poisoned- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -poisoned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_poison(vict))
     {
       act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7640,8 +7640,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_BLINDED:
-    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_vict = "You are -blinded- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -blinded- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_blind(vict))
     {
       act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7649,8 +7649,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_DEAFENED:
-    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_vict = "You are -deafened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -deafened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_deafen(vict))
     {
       act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7659,7 +7659,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     break;
   case BLACKGUARD_CRUELTY_PARALYZED:
     to_vict = "You are -paralyzed- from the cruelty inflicted upon you by the corrupting touch!";
-    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    to_room = "$N is -paralyzed- from the cruelty inflicted upon $M by the corrupting touch!";
     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
     {
       act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7713,6 +7713,11 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   af.duration = duration;
 
   affect_to_char(vict, &af);
+
+  if (to_vict != NULL)
+    act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
+  if (to_room != NULL)
+    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
 }
 
 void throw_hedging_weapon(struct char_data *ch)

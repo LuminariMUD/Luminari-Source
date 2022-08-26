@@ -569,8 +569,23 @@ void regen_update(struct char_data *ch)
   /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
   {
-    GET_HIT(ch)
-    --;
+    if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 15)
+    {
+      GET_HIT(ch)
+      --;
+    }
+    else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 45)
+    {
+      GET_HIT(ch) -= 3;
+    }
+    else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 100)
+    {
+      GET_HIT(ch) -= 10;
+    }
+    else
+    {
+      GET_HIT(ch) -= 20;
+    }
   }
   else
   {
@@ -1871,7 +1886,7 @@ void update_damage_and_effects_over_time(void)
     } // sticky bomb effects
 
     // fast healing grand discovery affect
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING)
+    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING && GET_HIT(ch) < GET_MAX_HIT(ch))
     {
       GET_HIT(ch) += 5;
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
@@ -1880,19 +1895,19 @@ void update_damage_and_effects_over_time(void)
     }
 
     // judgement of healing
-    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses)
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
       GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
       GET_HIT(ch)
     --;
 
     // paladin fast healing mercy effect
-    if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING))
+    if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
     {
       GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
         GET_HIT(ch)
-        --;
+      --;
     }
 
     if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))
