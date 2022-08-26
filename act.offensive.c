@@ -7715,9 +7715,9 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   affect_to_char(vict, &af);
 
   if (to_vict != NULL)
-    act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
+    act(to_vict, FALSE, vict, 0, ch, TO_CHAR);
   if (to_room != NULL)
-    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
+    act(to_room, TRUE, vict, 0, ch, TO_ROOM);
 }
 
 void throw_hedging_weapon(struct char_data *ch)
