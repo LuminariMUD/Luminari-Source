@@ -1695,7 +1695,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   else
   { /* real DEATH! */
     /* create the corpse */
-    make_corpse(ch);
+    // make_corpse(ch);
 
     /* move the character out of the room */
     char_from_room(ch);

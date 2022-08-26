@@ -348,7 +348,7 @@ void perform_rage(struct char_data *ch)
   GET_HIT(ch) += bonus * 2;
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
     GET_HIT(ch)
-    --;
+  --;
 
   /* Add another affect for heavy shrug. */
   //  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
@@ -7566,8 +7566,10 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   int i = 0, duration = 0;
   int which_cruelty = BLACKGUARD_CRUELTY_NONE;
   int save_mod = 0;
+  const char *to_vict = NULL, *to_room = NULL;
+  s
 
-  for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
+      for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
   {
     if (is_abbrev(cruelty, blackguard_cruelties[i]))
     {
@@ -7592,7 +7594,18 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   switch (which_cruelty)
   {
   case BLACKGUARD_CRUELTY_SHAKEN:
+    to_vict = "You are -shaken- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -shaken- from the cruelty inflicted upon $M by the corrupting touch!";
+    if (is_immune_fear(ch, vict, true))
+      return;
+    if (is_immune_mind_affecting(ch, vict, true))
+      return;
+    if (affected_by_aura_of_cowardice(vict))
+      save_mod = -4;
+    break;
   case BLACKGUARD_CRUELTY_FRIGHTENED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (is_immune_fear(ch, vict, true))
       return;
     if (is_immune_mind_affecting(ch, vict, true))
@@ -7601,7 +7614,17 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
       save_mod = -4;
     break;
   case BLACKGUARD_CRUELTY_SICKENED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
+    if (!can_disease(vict))
+    {
+      act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
   case BLACKGUARD_CRUELTY_DISEASED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_disease(vict))
     {
       act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7609,6 +7632,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_POISONED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_poison(vict))
     {
       act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7616,6 +7641,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_BLINDED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_blind(vict))
     {
       act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7623,6 +7650,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_DEAFENED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_deafen(vict))
     {
       act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7630,6 +7659,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_PARALYZED:
+    to_vict = "You are -paralyzed- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
     {
       act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7637,6 +7668,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_STUNNED:
+    to_vict = "You are -stunned- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_stun(vict))
     {
       act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
