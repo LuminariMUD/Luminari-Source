@@ -3521,14 +3521,14 @@ void assign_feats(void)
   /*sneak attack*/
   /*lvl 7*/
   feato(FEAT_INVISIBLE_ROGUE, "invisible rogue", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "1x spell like ability on self: greater invisibility",
-        "Once per day, with this feat, one can become invisible exactly like the spell 'greater invisibility.'");
+        "1x + int-bonus spell like ability on self: greater invisibility",
+        "Once per day (plus your intelligence bonus times), with this feat, one can become invisible exactly like the spell 'greater invisibility.'");
   /*lvl 8*/
   /*sneak attack*/
   /*lvl 9*/
   feato(FEAT_MAGICAL_AMBUSH, "magical ambush", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "casting doesn't break stealth",
-        "As a mystical power, casting no longer breaks stealth.");
+        "casting doesn't break stealth, if flanking faster casting time",
+        "As a mystical power, casting no longer breaks stealth.  While flanking your target, casting time is improved...");
   /*lvl 10*/
   /*sneak attack*/
   feato(FEAT_SURPRISE_SPELLS, "surprise spells", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

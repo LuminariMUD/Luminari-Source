@@ -1358,6 +1358,20 @@ EVENTFUNC(event_casting)
 
       if (spellnum > 0 && spellnum < NUM_SPELLS)
       {
+        /* magical ambush feat */
+        if (!IS_NPC(ch) && IS_FIGHTING(ch) && HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH) && !(has_dex_bonus_to_ac(ch, IS_FIGHTING(ch))) /* No dex bonus to ac */
+            || is_flanked(ch, IS_FIGHTING(ch)))
+        {
+          if (rand_number(0, 2))
+          {
+            CASTING_TIME(ch)
+            --;
+          }
+          else if (!rand_number(0, 2))
+          {
+            CASTING_TIME(ch) -= 2;
+          }
+        }
         /* quick chant feat */
         if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
         {
