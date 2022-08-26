@@ -376,124 +376,10 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
     return (p6); /* >= 80 */
 }
 
-void regen_update(struct char_data *ch)
+/* we do the math for our hps regen per tick here -zusuk */
+int regen_hps(struct char_data *ch)
 {
-  struct char_data *tch = NULL;
-  int hp = 0, found = 0;
-
-  // poisoned, and dying people should suffer their damage from anyone they are
-  // fighting in order that xp goes to the killer (who doesn't strike the last blow)
-  // -zusuk
-  if (AFF_FLAGGED(ch, AFF_POISON))
-  {
-
-    /*  */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY))
-    {
-      send_to_char(ch, "Your venom immunity purges the poison!\r\n");
-      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
-      if (affected_by_spell(ch, SPELL_POISON))
-        affect_from_char(ch, SPELL_POISON);
-      if (IS_AFFECTED(ch, AFF_POISON))
-        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
-      return;
-    }
-
-    /* purity of body feat */
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY))
-    {
-      send_to_char(ch, "Your purity of body purges the poison!\r\n");
-      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
-      if (affected_by_spell(ch, SPELL_POISON))
-        affect_from_char(ch, SPELL_POISON);
-      if (IS_AFFECTED(ch, AFF_POISON))
-        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
-      return;
-    }
-
-    /* poison immunity feat */
-    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_POISON_IMMUNITY) || HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY)))
-    {
-      send_to_char(ch, "Your poison immunity purges the poison!\r\n");
-      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
-      if (affected_by_spell(ch, SPELL_POISON))
-        affect_from_char(ch, SPELL_POISON);
-      if (IS_AFFECTED(ch, AFF_POISON))
-        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
-      return;
-    }
-
-    if (FIGHTING(ch) || dice(1, 2) == 2)
-    {
-      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-      {
-        if (!IS_NPC(tch) && FIGHTING(tch) == ch)
-        {
-          damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
-          /* we use to have custom damage message here for this */
-          // act("$N looks really \tgsick\tn and shivers uncomfortably.",
-          //         FALSE, tch, NULL, ch, TO_CHAR);
-          // act("You feel burning \tgpoison\tn in your blood, and suffer.",
-          //         FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
-          // act("$N looks really \tgsick\tn and shivers uncomfortably.",
-          //         FALSE, tch, NULL, ch, TO_NOTVICT);
-          found = 1;
-          break;
-        }
-      }
-
-      if (!found)
-        damage(ch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
-      update_pos(ch);
-      return;
-    }
-
-  } /* done dealing with poison */
-
-  found = 0;
-  tch = NULL;
-  if (GET_POS(ch) == POS_MORTALLYW)
-  {
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-    {
-      if (!IS_NPC(tch) && FIGHTING(tch) == ch)
-      {
-        damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
-        found = 1;
-        break;
-      }
-    }
-    if (!found)
-      damage(ch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
-    update_pos(ch);
-    return;
-  }
-
-  // 50% chance you'll continue dying when incapacitated
-  found = 0;
-  tch = NULL;
-  if (GET_POS(ch) == POS_INCAP && dice(1, 2) == 2)
-  {
-    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
-    {
-      if (!IS_NPC(tch) && FIGHTING(tch) == ch)
-      {
-        damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
-        found = 1;
-        break;
-      }
-    }
-    if (!found)
-      damage(ch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
-    update_pos(ch);
-    return;
-  }
-
-  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6 && !AFF_FLAGGED(ch, AFF_CHARM))
-  {
-    update_pos(ch);
-    return;
-  }
+  int hp = 0;
 
   if (rand_number(0, 1))
     hp++;
@@ -539,6 +425,133 @@ void regen_update(struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_TRUE_METABOLISM))
     hp += 10;
 
+  /* blackmantle stops natural regeneration */
+  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
+    hp = 0;
+}
+
+/* this function handles poison, entry point for hps rege, and movement regen */
+void regen_update(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+  int hp = 0, found = 0;
+
+  /* poisoned, and dying people should suffer their damage from anyone they are
+     fighting in order that xp goes to the killer (who doesn't strike the last blow)
+     -zusuk */
+  if (AFF_FLAGGED(ch, AFF_POISON))
+  {
+
+    /* venom immunity  */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY))
+    {
+      send_to_char(ch, "Your venom immunity purges the poison!\r\n");
+      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
+      if (affected_by_spell(ch, SPELL_POISON))
+        affect_from_char(ch, SPELL_POISON);
+      if (IS_AFFECTED(ch, AFF_POISON))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
+      return;
+    }
+
+    /* purity of body feat */
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_PURITY_OF_BODY))
+    {
+      send_to_char(ch, "Your purity of body purges the poison!\r\n");
+      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
+      if (affected_by_spell(ch, SPELL_POISON))
+        affect_from_char(ch, SPELL_POISON);
+      if (IS_AFFECTED(ch, AFF_POISON))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
+      return;
+    }
+
+    /* poison immunity feat */
+    if (!IS_NPC(ch) && (HAS_FEAT(ch, FEAT_POISON_IMMUNITY) || HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY)))
+    {
+      send_to_char(ch, "Your poison immunity purges the poison!\r\n");
+      act("$n appears better as their body purges away some poison.", TRUE, ch, 0, 0, TO_ROOM);
+      if (affected_by_spell(ch, SPELL_POISON))
+        affect_from_char(ch, SPELL_POISON);
+      if (IS_AFFECTED(ch, AFF_POISON))
+        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_POISON);
+      return;
+    }
+
+    if (FIGHTING(ch) || dice(1, 2) == 2)
+    {
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+      {
+        if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+        {
+          damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
+          /* we use to have custom damage message here for this */
+          /* act("$N looks really \tgsick\tn and shivers uncomfortably.",
+                     FALSE, tch, NULL, ch, TO_CHAR);
+             act("You feel burning \tgpoison\tn in your blood, and suffer.",
+                     FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
+             act("$N looks really \tgsick\tn and shivers uncomfortably.",
+                    FALSE, tch, NULL, ch, TO_NOTVICT); */
+          found = 1;
+          break;
+        }
+      }
+
+      if (!found)
+        damage(ch, ch, 1, SPELL_POISON, DAM_POISON, FALSE);
+      update_pos(ch);
+      return;
+    }
+
+  } /* done dealing with poison */
+
+  /* mortally wounded, you will die if not aided! */
+  found = 0;
+  tch = NULL;
+  if (GET_POS(ch) == POS_MORTALLYW)
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+      {
+        damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+        found = 1;
+        break;
+      }
+    }
+    if (!found)
+      damage(ch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+    update_pos(ch);
+    return;
+  }
+
+  // 50% chance you'll continue dying when incapacitated
+  found = 0;
+  tch = NULL;
+  if (GET_POS(ch) == POS_INCAP && dice(1, 2) == 2)
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+      {
+        damage(tch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+        found = 1;
+        break;
+      }
+    }
+    if (!found)
+      damage(ch, ch, 1, TYPE_SUFFERING, DAM_RESERVED_DBC, FALSE);
+    update_pos(ch);
+    return;
+  }
+
+  /* we turn off regen for low level npcs */
+  if (IS_NPC(ch) && GET_LEVEL(ch) <= 6 && !AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    update_pos(ch);
+    return;
+  }
+
   /****/
 
   // we don't have hunger and thirst here.
@@ -548,24 +561,21 @@ void regen_update(struct char_data *ch)
     hp = 0;
   */
 
-  /* blackmantle stops natural regeneration */
-  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
-    hp = 0;
+  /* we moved the math of hp regen into a separate function to make it easier to find/ manipulate */
+  hp = regen_hps(ch);
 
   /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
   {
-    if (!rand_number(0, 1))
-    {
-      GET_HIT(ch)
-      --;
-    }
+    GET_HIT(ch)
+    --;
   }
   else
   {
     GET_HIT(ch) = MIN(GET_HIT(ch) + hp, GET_MAX_HIT(ch));
   }
 
+  /* handle move regen here */
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
     GET_MOVE(ch)
@@ -586,16 +596,12 @@ void regen_update(struct char_data *ch)
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
 
-  /*
+  /* this is an extra over-stack drain for PSP, another one exists in the regen_psp() function */
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
-    GET_PSP(ch)--;
+    GET_PSP(ch)
+    --;
   }
-  else
-  {
-    GET_PSP(ch) = MIN(GET_PSP(ch) + (hp * 2), GET_MAX_PSP(ch));
-  }
-*/
 
   update_pos(ch);
   return;
@@ -624,19 +630,32 @@ void regen_psp(void)
     if (FIGHTING(d->character))
       continue;
 
-    GET_PSP(d->character)
+    if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
+      GET_PSP(d->character)
     ++;
 
-    if (GET_POS(d->character) > POS_SITTING)
-      continue;
+    if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
+      if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
+        GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
 
-    /* should be resting here */
+    switch (GET_POS(d->character))
+    {
+    case POS_SLEEPING:
+    case POS_RECLINING:
+    case POS_CRAWLING:
+    case POS_RESTING:
+    case POS_SITTING:
+      if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
+        GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 7);
+      break;
+    default:
+      break;
+    }
 
-    GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 7);
-    if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
-      GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
+    /* we also have a de-regen if over max in another function */
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character) = GET_MAX_PSP(d->character);
+      GET_PSP(d->character)
+    --;
   }
 }
 
