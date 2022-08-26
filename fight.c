@@ -4154,10 +4154,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
     else if (hands_available(ch) > 0)
     {
-      dambonus += str_bonus * 3 / 2; /* one handed weapon held in two hands because of empty off hand */
+      dambonus += str_bonus + 2; /* one handed weapon held in two hands because of empty off hand */
       if (display_mode)
-        send_to_char(ch, "%s from 1Hand Weapon, free offhand: \tR%d\tn\r\n", strength, str_bonus * 3 / 2);
+        send_to_char(ch, "%s from 1Hand Weapon, free offhand: \tR%d\tn\r\n", strength, str_bonus + 2);
     }
+    /*
+    else if (GET_EQ(ch, WEAR_WIELD_2H))
+    {
+      if (display_mode)
+        send_to_char(ch, "Two-hand strength bonus: \tR%d\tn\r\n", str_bonus * 3 / 2);
+      dambonus += str_bonus * 3 / 2; // 2handed weapon
+    }
+    */
     else
     {
       dambonus += str_bonus;
@@ -5158,9 +5166,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   else
     wielded = get_wielded(ch, attack_type);
 
-  /*if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
+  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
       attack_type != ATTACK_TYPE_RANGED)
-    attack_type = ATTACK_TYPE_TWOHAND;*/
+    attack_type = ATTACK_TYPE_TWOHAND;
 
   /* calculate how much damage to do with a given hit() */
   if (mode == MODE_NORMAL_HIT)
@@ -6095,9 +6103,7 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
     break;
   case ATTACK_TYPE_TWOHAND:
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
     break;
-
   default:
     break;
   }
