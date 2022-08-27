@@ -201,7 +201,7 @@ SPECIAL_DECL(thief);
 SPECIAL_DECL(thrym);
 SPECIAL_DECL(tia_moonblade);
 SPECIAL_DECL(tia_rapier);
-SPECIAL_DECL(tiamat);
+SPECIAL_DECL(the_prisoner);
 SPECIAL_DECL(tormblade);
 SPECIAL_DECL(totemanimal);
 SPECIAL_DECL(trade_bandit);

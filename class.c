@@ -7040,7 +7040,7 @@ void load_class_list(void)
 
   /* pre reqs to take assassin class */
   class_prereq_ability(CLASS_ASSASSIN, ABILITY_PERFORM, 2);
-  class_prereq_ability(CLASS_ASSASSIN, ABILITY_STEALTH, 5);
+  class_prereq_ability(CLASS_ASSASSIN, ABILITY_SENSE_MOTIVE, 5);
   class_prereq_feat(CLASS_ASSASSIN, FEAT_TWO_WEAPON_FIGHTING, 1);
   /****************************************************************************/
   /****************************************************************************/

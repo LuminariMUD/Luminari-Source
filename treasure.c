@@ -211,6 +211,7 @@ bool valid_item_spell(int spellnum)
   case SPELL_ACID:
   case SPELL_INCENDIARY:
   case SPELL_FROST_BREATHE:
+  case SPELL_GAS_BREATHE:
   case SPELL_LIGHTNING_BREATHE:
   case SPELL_POISON_BREATHE:
   case SPELL_ACID_BREATHE:

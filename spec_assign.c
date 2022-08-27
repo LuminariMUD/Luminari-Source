@@ -627,7 +627,7 @@ void assign_mobiles(void)
   ASSIGNMOB(145189, ttf_patrol);
 
   ASSIGNMOB(113751, dracolich);
-  ASSIGNMOB(113750, tiamat);
+  ASSIGNMOB(113750, the_prisoner);
 
   /* Tower of Kenjin */
   ASSIGNMOB(132910, kt_kenjin);
@@ -708,7 +708,7 @@ void assign_objects(void)
   ASSIGNOBJ(224, monk_glove); /*electric damage*/
   ASSIGNOBJ(9215, monk_glove_cold);
 
-  /* tiamat */
+  /* the prisoner */
   ASSIGNOBJ(132125, tia_rapier);
 
   ASSIGNOBJ(136100, air_sphere); // weapon (lightning)
@@ -1118,7 +1118,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Thrym", thrym, ""},
     //{"Moonblade", tia_moonblade, ""},
     {"Crystal Rapier", tia_rapier, ""},
-    {"Tiamat", tiamat, ""},
+    {"The Prisoner", the_prisoner, ""},
     {"TormBlade", tormblade, ""},
     {"Totem Animal", totemanimal, ""},
     //{"Trade Bandit", trade_bandit, ""},

@@ -1753,6 +1753,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 12;
     break;
 
+  case SPELL_GAS_BREATHE:
+    // AoE
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_POISON;
+    num_dice = GET_LEVEL(ch);
+    size_dice = 12;
+    break;
+
   case SPELL_FROST_BREATHE:
     // AoE
     save = SAVING_REFL;
@@ -6790,6 +6799,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_FIRE_BREATHE:
     to_char = "You exhale breathing out fire!";
     to_room = "$n exhales breathing fire!";
+    break;
+  case SPELL_GAS_BREATHE:
+    to_char = "You exhale breathing out gas!";
+    to_room = "$n exhales breathing gas!";
     break;
   case SPELL_FROST_BREATHE:
     to_char = "You exhale breathing out frost!";

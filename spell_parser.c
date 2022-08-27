@@ -520,6 +520,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       (casttype != CAST_SCROLL) &&
       (casttype != CAST_STAFF) &&
       (casttype != CAST_WAND) && !IS_NPC(caster))
+  {
     switch (CASTING_CLASS(caster))
     {
     case CLASS_BARD:
@@ -543,7 +544,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       }
       break;
     }
-
+  }
   // attach event for epic spells, increase skill
   switch (spellnum)
   {
@@ -1451,12 +1452,6 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
-  {
-    // imms can cast any spell
-    return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
-  }
-
   int position = GET_POS(ch);
   int ch_class = CLASS_WIZARD, clevel = 0;
   int casting_time = 0;
@@ -1473,6 +1468,12 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return 0;
   if (tch && IN_ROOM(tch) > top_of_world)
     return 0;
+
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    // imms can cast any spell
+    return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
+  }
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && !is_spellnum_psionic(spellnum))
   {
@@ -3968,6 +3969,9 @@ void mag_assign_spells(void)
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_FROST_BREATHE, "frost breathe", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_GAS_BREATHE, "gas breathe", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_LIGHTNING_BREATHE, "lightning breathe", 0, 0, 0, POS_FIGHTING,
