@@ -505,9 +505,10 @@
 #define SPELL_AIR_WALK 438
 #define SPELL_GASEOUS_FORM 439
 #define SPELL_RESTORATION 440
+#define SPELL_GAS_BREATHE 441 // done, [not spell]
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 441
+#define NUM_SPELLS 442
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 /*******************************/
 

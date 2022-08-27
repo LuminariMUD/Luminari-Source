@@ -1084,7 +1084,7 @@ SPECIAL(cf_alathar)
 /*********************/
 
 /*****************/
-/* Tiamat        */
+/* The Prisoner  */
 /*****************/
 
 /* objects */
@@ -1171,9 +1171,9 @@ SPECIAL(dracolich)
   // GET_CHAR_WAIT(ch) = 0;
 
   if (GET_POS(ch) == POS_DEAD)
-    act("&cLWith a final horrifying wail, the skeletal remains of Tiamat\n\r"
+    act("@LWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
         "fall to the ground with a resounding thud.&c0"
-        "\n\r\n\r\n\r&cwThe mighty &cLTiamat &cwfinally ceases to move.&c0",
+        "\n\r\n\r\n\r&cwThe mighty &cLPrisoner &cwfinally ceases to move.&c0",
         FALSE, ch, 0, vict, TO_ROOM);
 
   if (cmd || rand_number(0, 3)) /* note that the !vict is moved below */
@@ -1187,7 +1187,7 @@ SPECIAL(dracolich)
     if (!(vict = FIGHTING(ch)))
       return 0;
 
-  act("&cLTiamat cackles with glee at the fray, enjoying every second of the battle\r\n"
+  act("&cLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
       "&cLShe sets her gaze upon you with the most wicked grin you have ever known.",
       FALSE, ch, 0, vict, TO_VICT);
   act("&cWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
@@ -1214,56 +1214,56 @@ SPECIAL(dracolich)
   return 1;
 }
 
-int tiamat_heads = -1;
+int prisoner_heads = -1;
 bool eq_loaded = FALSE;
 
 int check_heads(struct char_data *ch)
 {
 
   /* green head dies */
-  if (GET_HIT(ch) <= 0 && tiamat_heads == 5)
+  if (GET_HIT(ch) <= 0 && prisoner_heads == 5)
   {
-    act("&cLYour blood &cWfreezes&cL as the &cggreen &cLhead of tiamat screams\n\r"
+    act("&cLYour blood &cWfreezes&cL as the &cggreen &cLhead of the Prisoner screams\n\r"
         "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 25000;
-    tiamat_heads = 4;
+    prisoner_heads = 4;
     act("\n\r&cLThe remaining four heads turn and gaze at you with a glare of hatred.&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
   /* white head dies */
-  if (GET_HIT(ch) <= 0 && tiamat_heads == 4)
+  if (GET_HIT(ch) <= 0 && prisoner_heads == 4)
   {
-    act("&cLYour blood &cWfreezes&cL as the &cWwhite &cLhead of tiamat screams\n\r"
+    act("&cLYour blood &cWfreezes&cL as the &cWwhite &cLhead of the Prisoner screams\n\r"
         "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 25000;
-    tiamat_heads = 3;
+    prisoner_heads = 3;
     act("\n\r&cLThe remaining three heads turn and gaze at you with a glare of hatred.&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
   /* black head dies */
-  if (GET_HIT(ch) <= 0 && tiamat_heads == 3)
+  if (GET_HIT(ch) <= 0 && prisoner_heads == 3)
   {
-    act("&cLYour blood &cWfreezes&cL as the black head of tiamat screams\n\r"
+    act("&cLYour blood &cWfreezes&cL as the black head of the Prisoner screams\n\r"
         "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 25000;
-    tiamat_heads = 2;
+    prisoner_heads = 2;
     act("\n\r&cLThe remaining two heads turn and gaze at you with a glare of hatred.&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
   /* blue head dies */
-  if (GET_HIT(ch) <= 0 && tiamat_heads == 2)
+  if (GET_HIT(ch) <= 0 && prisoner_heads == 2)
   {
-    act("&cLYour blood &cWfreezes&cL as the &cBblue &cLhead of tiamat screams\n\r"
+    act("&cLYour blood &cWfreezes&cL as the &cBblue &cLhead of the Prisoner screams\n\r"
         "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 29000;
-    tiamat_heads = 1;
+    prisoner_heads = 1;
     act("\n\r&cLThe remaining &crred &cLhead turns and gazes at you with a glare of hatred.&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
@@ -1271,7 +1271,7 @@ int check_heads(struct char_data *ch)
   return 0;
 }
 
-/* gotta have this here, incase we gotta reload tiamat at death cause of heads still remaining*/
+/* gotta have this here, incase we gotta reload the Prisoner at death cause of heads still remaining*/
 void move_items(struct char_data *ch, struct char_data *lich)
 {
   struct obj_data *item;
@@ -1293,14 +1293,14 @@ void move_items(struct char_data *ch, struct char_data *lich)
   }
 }
 
-void tiamat_on_death(struct char_data *ch)
+void prisoner_on_death(struct char_data *ch)
 {
   struct char_data *lich;
   struct char_data *tch;
   struct affected_type af;
 
   /*Still got HEADS!!, means they did shitload of damage et..*/
-  if (tiamat_heads > 1)
+  if (prisoner_heads > 1)
   {
     check_heads(ch); // to get right message..
     lich = read_mobile(113750, VIRTUAL);
@@ -1321,7 +1321,7 @@ void tiamat_on_death(struct char_data *ch)
    */
   act(
       "&cLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
-      "&cLexcruciating pain, the mighty Tiamat calls on her remaining divine power.\n\r"
+      "&cLexcruciating pain, the mighty Prisoner calls on her remaining divine power.\n\r"
       "&cWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!\n\r\n\r\n\r\n\r"
       "&cLA blinding light &cf&cWFLASHES&c0&cL from within her massive body followed by an\n\r"
       "&cLexplosion so forceful and loud that your ears begin to &crbleed even before\n\r"
@@ -1372,10 +1372,10 @@ void tiamat_on_death(struct char_data *ch)
   return;
 }
 
-int rejuv_tiamat(struct char_data *ch)
+int rejuv_prisoner(struct char_data *ch)
 {
   int rejuv;
-  if (!rand_number(0, 4) && GET_HIT(ch) < 29999 && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
+  if (!rand_number(0, 8) && GET_HIT(ch) < 29999 && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
   {
     rejuv = GET_HIT(ch) + 1500;
     if (rejuv >= 30000)
@@ -1383,7 +1383,7 @@ int rejuv_tiamat(struct char_data *ch)
     GET_HIT(ch) = rejuv;
     PROC_FIRED(ch) = TRUE;
     act(
-        "&crThe blood-red wounds on Tiamat body begin to close as she is partially revived!&c0",
+        "&crThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
@@ -1393,11 +1393,11 @@ int rejuv_tiamat(struct char_data *ch)
   if (!rand_number(0, 11) && FIGHTING(ch))
   {
     act(
-        "&cLTiamat ROARS in anger, and throws her talons to the sky furiously!\r\n"
-        "&cWWhite tendrils of power crackle through the air, flowing into Tiamat!",
+        "&cLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
+        "&cWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
         FALSE, ch, 0, 0, TO_ROOM);
     act(
-        "&crThe blood-red wounds on Tiamat body begin to close as she is partially revived!&c0",
+        "&crThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!&c0",
         FALSE, ch, 0, 0, TO_ROOM);
     rejuv = GET_HIT(ch) + 2500;
     if (rejuv >= 30000)
@@ -1408,21 +1408,21 @@ int rejuv_tiamat(struct char_data *ch)
   return 0;
 }
 
-int tiamat_breath(struct char_data *ch)
+int prisoner_breath(struct char_data *ch)
 {
   int breaths = 0;
   int breath[5];
   int selected = 0;
 
-  if (tiamat_heads >= 1)
+  if (prisoner_heads >= 1)
     breath[breaths++] = SPELL_FIRE_BREATHE;
-  if (tiamat_heads >= 2)
+  if (prisoner_heads >= 2)
     breath[breaths++] = SPELL_LIGHTNING_BREATHE;
-  // if (tiamat_heads >= 3)
-  // breath[breaths++] = SPELL_ACID_BREATHE;
-  // if (tiamat_heads >= 5)
-  // breath[breaths++] = SPELL_GAS_BREATHE;
-  if (tiamat_heads >= 4)
+  if (prisoner_heads >= 3)
+    breath[breaths++] = SPELL_ACID_BREATHE;
+  if (prisoner_heads >= 5)
+    breath[breaths++] = SPELL_GAS_BREATHE;
+  if (prisoner_heads >= 4)
     breath[breaths++] = SPELL_FROST_BREATHE;
 
   if (breaths < 1)
@@ -1435,7 +1435,7 @@ int tiamat_breath(struct char_data *ch)
   return 1;
 }
 
-SPECIAL(tiamat)
+SPECIAL(the_prisoner)
 {
   struct char_data *i;
   //  struct char_data *vict = FIGHTING(ch);
@@ -1446,8 +1446,8 @@ SPECIAL(tiamat)
   if (cmd)
     return 0;
 
-  if (tiamat_heads < 0)
-    tiamat_heads = 5;
+  if (prisoner_heads < 0)
+    prisoner_heads = 5;
 
   if (GET_MAX_HIT(ch) < 29999)
   {
@@ -1457,7 +1457,7 @@ SPECIAL(tiamat)
 
   if (GET_POS(ch) == POS_DEAD)
   {
-    tiamat_on_death(ch);
+    prisoner_on_death(ch);
     return 1;
   }
 
@@ -1521,21 +1521,21 @@ SPECIAL(tiamat)
     eq_loaded = TRUE;
   }
 
-  if (FIGHTING(ch))
-    tiamat_breath(ch);
+  if (FIGHTING(ch) && !rand_number(0, 5))
+    prisoner_breath(ch);
 
   if (check_heads(ch))
     return 1;
 
-  if (rejuv_tiamat(ch))
+  if (rejuv_prisoner(ch))
     return 1;
 
   return 0;
 }
 
-/*****************/
-/* End Tiamat    */
-/*****************/
+/**********************/
+/* End 'the Prisoner' */
+/**********************/
 
 /*****************/
 /* Jot           */
