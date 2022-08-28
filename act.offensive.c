@@ -1708,10 +1708,12 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
 
   if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
     has_piercing = 1;
+
   if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch))
   {
     has_piercing = 1;
   }
+
   /* try for primary 1handed weapon */
   if (has_piercing)
   {
@@ -1733,16 +1735,19 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     }
     successful++;
   }
+
   update_pos(vict);
   has_piercing = 0;
 
   wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
     has_piercing = 1;
+
   if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch))
   {
     has_piercing = 1;
   }
+
   /* try for offhand */
   if (vict && GET_POS(vict) > POS_DEAD && has_piercing)
   {
@@ -1786,7 +1791,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
       make_aware = TRUE;
       // hidden weapons feat grants an extra attack
-      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(ch, ABILITY_PERCEPTION)))
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
       {
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
