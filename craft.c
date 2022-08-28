@@ -1879,7 +1879,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
           CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
           GET_OBJ_TYPE(mold) == ITEM_MISSILE)
       {
-        GET_OBJ_VAL(mold, 4) = MIN(TREASURE_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
+        GET_OBJ_VAL(mold, 4) = MIN(CRAFT_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
       }
     }
 
