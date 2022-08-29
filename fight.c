@@ -3670,9 +3670,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   /* this is just a dummy check */
   if (!ch)
-    return;
+    return 0;
   if (!victim)
-    return;
+    return 0;
 
   if (offhand == 2)
     is_ranged = TRUE;
