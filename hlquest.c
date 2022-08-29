@@ -502,7 +502,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
             GET_NAME(ch));
         give_back_items(victim, ch, quest);
       }
-      else if (GROUP(ch) || ch->master || ch->followers && (qcom->value == LICH_QUEST || qcom->location == LICH_QUEST))
+      else if ((GROUP(ch) || ch->master || ch->followers) && (qcom->value == LICH_QUEST || qcom->location == LICH_QUEST))
       {
         send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to respec.\r\n"
                          "You can dismiss npc followers with the 'dismiss' command.\r\n");
