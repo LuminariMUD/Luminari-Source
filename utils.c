@@ -5675,6 +5675,23 @@ void remove_locked_door_flags(room_rnum room, int door)
 
 }
 
+bool is_door_locked(room_rnum room, int door)
+{
+
+  if (room == NOWHERE) return false;
+
+  if (door < NORTH || door > NUM_OF_DIRS)
+    return false;
+
+  if (IS_SET(EXITN(room, door)->exit_info, EX_LOCKED) ||
+      IS_SET(EXITN(room, door)->exit_info, EX_LOCKED_EASY) ||
+      IS_SET(EXITN(room, door)->exit_info, EX_LOCKED_MEDIUM) ||
+      IS_SET(EXITN(room, door)->exit_info, EX_LOCKED_HARD))
+    return true;
+
+  return false;
+}
+
 int get_judgement_bonus(struct char_data *ch, int type)
 {
 

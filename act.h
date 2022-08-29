@@ -262,6 +262,8 @@ ACMD_DECL(do_true_judgement);
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);
 
+bool is_door_locked(room_rnum room, int door);
+
 /*****************************************************************************
  * Begin Functions and defines for rank.c
  ****************************************************************************/
@@ -281,7 +283,7 @@ ACMD_DECL(do_rank);
 
 /* HACK: Had to change this with the new lock strengths from homeland... */
 
-#define TOGGLE_LOCK(room, obj, door) ((obj) ? (TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (IS_SET(EXITN(room, door)->exit_info, EX_LOCKED) ? UNLOCK_DOOR(room, obj, door) : LOCK_DOOR(room, obj, door)))
+#define TOGGLE_LOCK(room, obj, door) ((obj) ? (TOGGLE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (is_door_locked(room, door) ? UNLOCK_DOOR(room, obj, door) : LOCK_DOOR(room, obj, door)))
 
 /*(TOGGLE_BIT(EXITN(room, door)->exit_info, EX_LOCKED)))*/
 
