@@ -967,6 +967,7 @@ ACMD(do_imbuearrow)
   case SPELL_CALL_LIGHTNING_STORM:
   case SPELL_CONTAGION:
   case SPELL_FROST_BREATHE:
+  case SPELL_GAS_BREATHE:
   case SPELL_SPIKE_GROWTH:
   case SPELL_BLIGHT:
   case SPELL_REINCARNATE:
@@ -1517,7 +1518,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     break;
   case MOB_SHADOW:
-    GET_LEVEL(mob) = MIN(20, level);
+    GET_LEVEL(mob) = MIN(25, level);
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -1656,7 +1657,12 @@ ACMD(do_call)
   }
   else if (is_abbrev(argument, "shadow"))
   {
-    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SHADOWDANCER) * 2.5);
+    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SHADOWDANCER) + 8);
+
+    if (HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER))
+    {
+      level += dice(1, 4) + 1;
+    }
 
     if (!HAS_REAL_FEAT(ch, FEAT_SUMMON_SHADOW))
     {
@@ -5078,7 +5084,7 @@ ACMD(do_practice)
   one_argument(argument, arg, sizeof(arg));
 
   if (*arg)
-    send_to_char(ch, "Type '\tYcraft\tn' without an argument to view your crafting skills.\r\n");
+    ; // send_to_char(ch, "Type '\tYcraft\tn' without an argument to view your crafting skills.\r\n");
   else
     list_crafting_skills(ch);
 
@@ -5125,8 +5131,8 @@ ACMD(do_train)
   // send_to_char(ch, "\tDType 'train knowledge' to see your knowledge abilities\tn\r\n");
   /* as of 10/30/2014, we have decided to make sure crafting is an indepedent system */
   // send_to_char(ch, "\tDType 'train craft' to see your crafting abilities\tn\r\n");
-  send_to_char(ch, "\tDType 'craft' to see your crafting abilities\tn\r\n");
-  send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
+  send_to_char(ch, "\tDType 'practice' to see your crafting abilities\tn\r\n");
+  // send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
   if (IS_CASTER(ch))
   {
     send_to_char(ch, "\tDType 'spells' to see your spells\tn\r\n");
@@ -6931,6 +6937,23 @@ static const char *const hints[] = {
     /*49*/ "\tR[HINT]:\tn \ty"
            "You can use the ARMORLIST command to view all the armor types in the realms and then ARMORINFO <name of armor type> "
            "to view details of each armor type.  The same goes for weapons via the WEAPONLIST and WEAPONINFO commands."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*50*/ "\tR[HINT]:\tn \ty"
+           "More than a dozen zones form the outter planes of existence!  Visit our website to view the connections between the "
+           "planes...  https://luminarimud.com/planes-of-existence/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*51*/ "\tR[HINT]:\tn \ty"
+           "Approximately 20 zones form the Underworld or Underdark!  Visit our website to view a rough map..."
+           "  https://luminarimud.com/the-underdark/"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*52*/ "\tR[HINT]:\tn \ty"
+           "There are 'dot' 'dash' and 'all' commands to help you manipulate targets.  Examples include:  "
+           "To get all the 'bread' items from all the bags in your inventory you'd type 'take all.bread all.bag' | "
+           "To loot the 2nd corpse on the ground you'd type 'take all 2.corpse' | "
+           "To attack the blue dragon instead of the white dragon you'd type 'kill blue-dragon'"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*53*/ "\tR[HINT]:\tn \ty"
+           "Want to see a full list of all implement spells and skills in the game?  Type respectively 'masterlist spells' or 'masterlist skills'"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };

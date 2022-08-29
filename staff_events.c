@@ -48,7 +48,10 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "\r\n\tR[OOC: Head to the Hardbuckler Region and hunt Jackalope in the wilderness.  "
      "There are 3 levels of Jackalope, a set for level 10 and under, 20 and under, and then "
      "epic levels.  There is no reward for killing Jackalope under your level bracket.  The "
-     "Jackalope will frequently return to random locations in that area.  Rare antlers found are to be "
+     "Jackalope will frequently return to random locations in that area.  "
+     "The carcasses will be counted by staff, please reach out and get your "
+     "final count within 24 hours of event completion.  Grand prize(s) will be handed out shortly after final count."
+     "Rare antlers found are to be "
      "turned into Fullstaff in Hardbuckler for a special bonus prize.]\tn\r\n",
 
      /* event summary/conclusion - EVENT_SUMMARY */
@@ -57,7 +60,7 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "in case they are needed again.\tn\r\n \tW- Fullstaff, Agent of Sanctus -\tn\r\n"
      "\tR[OOC: You can visit Fullstaff in the Hardbuckler Inn to turn in the rare antlers for "
      "a special prize!  The carcasses will be counted by staff, please contact and get your "
-     "final count within 24 hours.]\tn\r\n",
+     "final count within 24 hours of event completion.  Grand prize(s) will be handed out shortly after final count.]\tn\r\n",
 
      /*end jackalope hunt*/},
 
@@ -67,8 +70,10 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
 void check_event_drops(struct char_data *killer, struct char_data *victim)
 {
     /* get some dummy checks out of the way */
+    /*
     if (IS_NPC(killer))
         return;
+    */
     if (!IS_NPC(victim))
         return;
     if (!IS_STAFF_EVENT)
@@ -500,7 +505,7 @@ ACMD(do_staffevents)
     {
         if (IS_STAFF_EVENT)
         {
-            staff_event_info(ch, event_num);
+            staff_event_info(ch, STAFF_EVENT_NUM);
         }
         else
         {

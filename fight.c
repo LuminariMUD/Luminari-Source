@@ -44,6 +44,11 @@
 #include "hunts.h"
 #include "domains_schools.h"
 
+/* toggle for debug mode
+   true = annoying messages used for debugging
+   false = normal gameplay */
+#define DEBUGMODE FALSE
+
 /* return results from hit() */
 #define HIT_MISS 0
 #define HIT_RESULT_ACTION -1
@@ -405,23 +410,30 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch)
   /* ch is sleeping */
   if (!AWAKE(ch))
   {
-    /* debug */
-    /*if (FIGHTING(ch)) {
+
+    if (DEBUGMODE)
+    {
+      if (FIGHTING(ch))
+      {
         send_to_char(ch, "has_dex_bonus_to_ac() - %s not awake  ", GET_NAME(ch));
         if (attacker)
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s not awake  ", GET_NAME(ch));
-      }*/
+      }
+    }
     return FALSE;
   }
 
   if (AFF_FLAGGED(ch, AFF_PINNED))
   {
-    /* debug */
-    /*if (FIGHTING(ch)) {
+    if (DEBUGMODE)
+    {
+      if (FIGHTING(ch))
+      {
         send_to_char(ch, "has_dex_bonus_to_ac() - %s pinned  ", GET_NAME(ch));
         if (attacker)
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s pinned  ", GET_NAME(ch));
-     }*/
+      }
+    }
     return FALSE;
   }
 
@@ -430,11 +442,14 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch)
   {
     if (!CAN_SEE(ch, attacker) && !HAS_FEAT(ch, FEAT_BLIND_FIGHT))
     {
-      /* debug */
-      /*if (FIGHTING(ch)) {
+      if (DEBUGMODE)
+      {
+        if (FIGHTING(ch))
+        {
           send_to_char(ch, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s unable to see attacker  ", GET_NAME(ch));
-        }*/
+        }
+      }
       return FALSE;
     }
   }
@@ -442,57 +457,72 @@ bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch)
   /* ch is flat-footed WITHOUT uncanny dodge feat */
   if ((AFF_FLAGGED(ch, AFF_FLAT_FOOTED) && !HAS_FEAT(ch, FEAT_UNCANNY_DODGE)))
   {
-    /* debug */
-    /*if (FIGHTING(ch)) {
+    if (DEBUGMODE)
+    {
+      if (FIGHTING(ch))
+      {
         send_to_char(ch, "has_dex_bonus_to_ac() - %s flat-footed  ", GET_NAME(ch));
         if (attacker)
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s flat-footed  ", GET_NAME(ch));
-      }*/
+      }
+    }
     return FALSE;
   }
 
   /* ch is stunned */
   if (AFF_FLAGGED(ch, AFF_STUN) || char_has_mud_event(ch, eSTUNNED))
   {
-    /* debug */
-    /*if (FIGHTING(ch)) {
+    if (DEBUGMODE)
+    {
+      if (FIGHTING(ch))
+      {
         send_to_char(ch, "has_dex_bonus_to_ac() - %s stunned  ", GET_NAME(ch));
         if (attacker)
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s stunned  ", GET_NAME(ch));
-      }*/
+      }
+    }
     return FALSE;
   }
 
   /* ch is paralyzed */
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
   {
-    /* debug */
-    /*if (FIGHTING(ch)) {
+    if (DEBUGMODE)
+    {
+      if (FIGHTING(ch))
+      {
         send_to_char(ch, "has_dex_bonus_to_ac() - %s paralyzed  ", GET_NAME(ch));
         if (attacker)
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s paralyzed  ", GET_NAME(ch));
-      }*/
+      }
+    }
     return FALSE;
   }
 
   /* ch is feinted */
   if (AFF_FLAGGED(ch, AFF_FEINTED) || affected_by_spell(ch, SKILL_FEINT))
   {
-    /* debug */
-    /*if (FIGHTING(ch)) {
+    if (DEBUGMODE)
+    {
+      if (FIGHTING(ch))
+      {
         send_to_char(ch, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));
         if (attacker)
           send_to_char(attacker, "has_dex_bonus_to_ac() - %s feinted  ", GET_NAME(ch));
-      }*/
+      }
+    }
     return FALSE;
   }
 
-  /* debug */
-  /*if (FIGHTING(ch)) {
+  if (DEBUGMODE)
+  {
+    if (FIGHTING(ch))
+    {
       send_to_char(ch, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));
       if (attacker)
         send_to_char(attacker, "has_dex_bonus_to_ac() - %s -retained- dex bonus  ", GET_NAME(ch));
-    }*/
+    }
+  }
   return TRUE; /* ok, made it through, we DO have our dex bonus still */
 }
 
@@ -998,7 +1028,6 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   if (attacker && has_teamwork_feat(ch, FEAT_DUCK_AND_COVER) && teamwork_using_shield(ch, FEAT_DUCK_AND_COVER) &&
       is_using_ranged_weapon(attacker, TRUE))
     bonuses[BONUS_TYPE_INSIGHT] += 2;
-
 
   if (has_teamwork_feat(ch, FEAT_PHALANX_FIGHTER) && attacker)
   {
@@ -1576,14 +1605,19 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
       forget(temp, ch); /* forget() is safe to use without a check. */
   }
 
+  /* handle pets */
   if (ch->followers || ch->master) // handle followers
     die_follower(ch);
   save_char_pets(ch);
 
+  /* group handling */
   if (GROUP(ch))
   {
     send_to_group(ch, GROUP(ch), "%s has died.\r\n", GET_NAME(ch));
-    leave_group(ch);
+
+    /* we used to kick players out of groups here, but we changed that.. now only NPCs */
+    if (IS_NPC(ch))
+      leave_group(ch);
   }
 
   /* ordinary commands work in scripts -welcor */
@@ -1596,6 +1630,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   else
     death_cry(ch);
   GET_POS(ch) = POS_DEAD;
+  /* end making ordinary commands work in scripts */
 
   /* make sure group gets credit for kill if ch involved in quest */
   kill_quest_completion_check(killer, ch);
@@ -1618,7 +1653,6 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
-
   GET_MARK(killer) = NULL;
   GET_MARK_ROUNDS(killer) = 0;
 
@@ -1631,29 +1665,48 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   }
   else if (IN_ARENA(ch) || IN_ARENA(killer))
   {
+    /* no corpse - arena */
+
+    /* move the character out of the room */
     char_from_room(ch);
+
+    /* death message */
     death_message(ch);
+
+    /* get you back to life */
     GET_HIT(ch) = GET_MAX_HIT(ch);
     update_pos(ch);
 
-    /* move char to starting room */
+    /* move char to starting room of arena */
     char_to_room(ch, real_room(CONFIG_ARENA_DEATH));
     act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
     entry_memory_mtrigger(ch);
     greet_mtrigger(ch, -1);
     greet_memory_mtrigger(ch);
+
+    /* make sure not casting! */
     resetCastingData(ch);
 
+    /* save! */
     save_char(ch, 0);
     Crash_delete_crashfile(ch);
   }
   else
-  { /* PC's do not extract currently or make a corpse */
+  { /* real DEATH! */
+    /* create the corpse */
+    // make_corpse(ch);
+
+    /* move the character out of the room */
     char_from_room(ch);
+
+    /* death message */
     death_message(ch);
+
+    /* get you back to life */
     GET_HIT(ch) = 1;
     update_pos(ch);
+
     /* move char to starting room */
     char_to_room(ch, r_mortal_start_room);
     act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
@@ -1661,10 +1714,14 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     entry_memory_mtrigger(ch);
     greet_mtrigger(ch, -1);
     greet_memory_mtrigger(ch);
+
+    /* make sure not casting! */
     resetCastingData(ch);
 
+    /* save! */
     save_char(ch, 0);
     Crash_delete_crashfile(ch);
+
     /* "punishment" for death */
     start_action_cooldown(ch, atSTANDARD, 12 RL_SEC);
   }
@@ -2145,13 +2202,11 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   }
   else
   {
-    /* debugs */
   }
 }
 
 /*  message for doing damage with a spell or skill. Also used for weapon
  *  damage on miss and death blows. */
-
 /* took out attacking-staff-messages -zusuk*/
 /* this is so trelux's natural attack reflects an actual object */
 #define TRELUX_CLAWS 800
@@ -2167,17 +2222,25 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   bool is_ranged = FALSE;
 
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "Debug - We are in skill_message(), dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+    send_to_char(vict, "Debug - We are in skill_message(), dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+  }
+
   /* attacker weapon */
   if (GET_EQ(ch, WEAR_WIELD_2H))
     weap = GET_EQ(ch, WEAR_WIELD_2H);
   else if (dualing == 1)
     weap = GET_EQ(ch, WEAR_WIELD_OFFHAND);
+
   /* special handling for Trelux */
   if (GET_RACE(ch) == RACE_TRELUX)
   {
     weap = read_object(TRELUX_CLAWS, VIRTUAL);
     attacktype = TYPE_CLAW;
   }
+
   if (affected_by_spell(ch, SKILL_DRHRT_CLAWS))
     attacktype = TYPE_CLAW;
 
@@ -2193,10 +2256,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   {
     opponent_weapon = GET_EQ(vict, WEAR_WIELD_2H);
   }
+
   if (!opponent_weapon)
   { /* maybe no weapon in main hand, but offhand has one */
     opponent_weapon = GET_EQ(vict, WEAR_WIELD_OFFHAND);
   }
+
   if (GET_EQ(vict, WEAR_WIELD_1) && GET_EQ(vict, WEAR_WIELD_OFFHAND))
   {
     if (rand_number(0, 1))
@@ -2284,6 +2349,12 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
       } /* dam == 0, we did not do any damage! */
       else if (ch != vict)
       {
+        if (DEBUGMODE)
+        {
+          send_to_char(ch, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+          send_to_char(vict, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+        }
+
         /* do we have armor that can stop a blow? */
         struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
         int armor_val = -1;
@@ -3283,9 +3354,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     dam -= compute_energy_absorb(ch, dam_type);
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
-                   GET_NAME(victim));
+      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
+      send_to_char(ch, "\tRYou fail to cause %s any harm! (energy absorb: %d)\tn\r\n",
+                   GET_NAME(victim), damage_reduction);
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
           TO_NOTVICT);
       return -1;
@@ -3300,13 +3371,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     /* damage type PERCENTAGE reduction */
     float damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
-    damtype_reduction = (((float)(damtype_reduction / 100)) * dam);
-    dam -= damtype_reduction;
+    damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
+    dam -= (int)damtype_reduction;
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm!\tn\r\n",
-                   GET_NAME(victim));
+      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int)damtype_reduction);
+      send_to_char(ch, "\tRYou fail to cause %s any harm! (dam-type reduction: %d)\tn\r\n",
+                   GET_NAME(victim), (int)damtype_reduction);
       act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
           TO_NOTVICT);
       return -1;
@@ -3357,7 +3428,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       if (!dam && (ch != victim))
       {
         send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
-        send_to_char(ch, "\tRYou fail to cause %s any harm! (%d)\tn\r\n",
+        send_to_char(ch, "\tRYou fail to cause %s any harm! (damaged reduction: %d)\tn\r\n",
                      GET_NAME(victim), damage_reduction);
         act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
             TO_NOTVICT);
@@ -3583,12 +3654,12 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
-
 /* probably need to bring in another variable letting us know our source, like:
    -melee attack
    -spell
    -item
    -etc */
+/* if it's a spell, the spellnum will be carried through the w_type variable */
 int damage(struct char_data *ch, struct char_data *victim, int dam,
            int w_type, int dam_type, int offhand)
 {
@@ -3635,11 +3706,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   if (victim != ch)
   {
     /* Only auto engage if both parties are unengaged. */
-    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && (FIGHTING(victim) == NULL)) // ch -> vict
+    if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL) && (FIGHTING(victim) == NULL) && !is_wall_spell(w_type)) // ch -> vict
       set_fighting(ch, victim);
 
     // vict -> ch
-    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL))
+    if (GET_POS(victim) > POS_STUNNED && (FIGHTING(victim) == NULL) && !is_wall_spell(w_type))
     {
       set_fighting(victim, ch);
     }
@@ -3764,7 +3835,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     return 0;
   }
 
-  dam = MAX(MIN(dam, 999), 0); // damage cap
+  dam = MAX(MIN(dam, 1499), 0); // damage cap
   GET_HIT(victim) -= dam;
 
   // check for life shield spell
@@ -3822,19 +3893,22 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       send_to_char(victim, "\tR%s\tn ", buf);
   }
 
-  /* more deubgging */
-  /*
-  send_to_char(victim, "Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
-      GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
-  int weapon_type = w_type - TOP_WEAPON_TYPES;
-  if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES) {
-    send_to_char(ch, "Weapon-type: %d!!", weapon_type);
-  } else {
-    send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
+  if (DEBUGMODE)
+  {
+    send_to_char(victim, "In damage() function, Position: %d, HP: %d, DAM: %d, Attacker %s, You: %s\r\n",
+                 GET_POS(victim), GET_HIT(victim), dam, GET_NAME(ch), GET_NAME(victim));
+    int weapon_type = w_type - TOP_ATTACK_TYPES;
+    if (weapon_type < 0 || weapon_type >= NUM_ATTACK_TYPES)
+    {
+      send_to_char(ch, "Weapon-type: %d!!", weapon_type);
+    }
+    else
+    {
+      send_to_char(ch, "Weapon-type: %s", attack_hit_types[weapon_type]);
+    }
+    send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n",
+                 damtypes[dam_type], offhand);
   }
-  send_to_char(ch, ", Dam-type: %s, Offhand: %d (2==ranged)\r\n",
-      damtypes[dam_type], offhand);
-   */
 
   /** DAMAGE MESSAGES
       Two systems:
@@ -3974,19 +4048,27 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   if (GET_POS(victim) == POS_DEAD) // victim died
   {
+    /* psionic assimilate affect */
     if (w_type == PSIONIC_ASSIMILATE)
     {
+
+      /* if we have this affection, remove it first so it doesn't restack */
       if (affected_by_spell(ch, PSIONIC_ASSIMILATE))
         GET_HIT(ch) -= get_char_affect_modifier(ch, PSIONIC_ASSIMILATE, APPLY_HIT);
       GET_HIT(ch) = MAX(1, GET_HIT(ch));
       affect_from_char(ch, PSIONIC_ASSIMILATE);
+
+      /* ok now build the affection */
       new_affect(&af);
       af.spell = PSIONIC_ASSIMILATE;
       af.location = APPLY_HIT;
-      af.modifier = 5 * GET_LEVEL(victim);
+      af.modifier = 4 * GET_LEVEL(victim);
       af.duration = 600;
-      GET_HIT(ch) += af.modifier;
-      affect_to_char(ch, &af);
+      af.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
+      GET_HIT(ch) += af.modifier + GET_LEVEL(victim);
+      affect_to_char(ch, &af); /* apply affection! */
+
+      /* message for flavor */
       act("You fully assimilate the form of $N gaining some of $S power.", false, ch, 0, victim, TO_CHAR);
       act("$n fully assimilates your form, gaining some of your power.", false, ch, 0, victim, TO_VICT);
       act("$n fully assimilates the form of $N gaining some of $S power.", false, ch, 0, victim, TO_NOTVICT);
@@ -4092,7 +4174,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "%s from Claws: \tR%d\tn\r\n", strength, str_bonus);
     }
-    else if (GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
+    else if (!IS_WILDSHAPED(ch) && !IS_MORPHED(ch) && GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
     {
       dambonus += str_bonus * 3 / 2; /* 2handed weapon */
       if (display_mode)
@@ -4100,10 +4182,18 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
     else if (hands_available(ch) > 0)
     {
-      dambonus += str_bonus * 3 / 2; /* one handed weapon held in two hands because of empty off hand */
+      dambonus += str_bonus + 2; /* one handed weapon held in two hands because of empty off hand */
       if (display_mode)
-        send_to_char(ch, "%s from 1Hand Weapon, free offhand: \tR%d\tn\r\n", strength, str_bonus * 3 / 2);
+        send_to_char(ch, "%s from 1Hand Weapon, free offhand: \tR%d\tn\r\n", strength, str_bonus + 2);
     }
+    /*
+    else if (GET_EQ(ch, WEAR_WIELD_2H))
+    {
+      if (display_mode)
+        send_to_char(ch, "Two-hand strength bonus: \tR%d\tn\r\n", str_bonus * 3 / 2);
+      dambonus += str_bonus * 3 / 2; // 2handed weapon
+    }
+    */
     else
     {
       dambonus += str_bonus;
@@ -5104,9 +5194,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   else
     wielded = get_wielded(ch, attack_type);
 
-  /*if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
+  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
       attack_type != ATTACK_TYPE_RANGED)
-    attack_type = ATTACK_TYPE_TWOHAND;*/
+    attack_type = ATTACK_TYPE_TWOHAND;
 
   /* calculate how much damage to do with a given hit() */
   if (mode == MODE_NORMAL_HIT)
@@ -5327,8 +5417,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (HAS_FEAT(ch, FEAT_SPIRITED_CHARGE))
       { /* mounted, charging with spirited charge feat */
         if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE))
-        {                           /* with lance too */
-          /*debug*/                 /*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
+        { /* with lance too */
+          if (DEBUGMODE)
+          {
+            send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");
+          }
           dam += damage_holder * 2; /* x3 */
         }
         else
@@ -5337,8 +5430,11 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         }
       }
       else if (wielded && HAS_WEAPON_FLAG(wielded, WEAPON_FLAG_CHARGE))
-      {                       /* mounted charging, no feat, but with lance */
-        /*debug*/             /*send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");*/
+      { /* mounted charging, no feat, but with lance */
+        if (DEBUGMODE)
+        {
+          send_to_char(ch, "DEBUG: Weapon Charge Flag Working on Lance!\r\n");
+        }
         dam += damage_holder; /* x2 */
       }
 
@@ -5419,7 +5515,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
       if (affected_by_spell(ch, ABILITY_AFFECT_BANE_WEAPON))
       {
         if ((IS_NPC(victim) && (GET_RACE(victim) == GET_BANE_TARGET_TYPE(ch)) && GET_RACE(victim) != RACE_TYPE_UNDEFINED) ||
-         (!IS_NPC(victim) && (GET_BANE_TARGET_TYPE(ch) == RACE_TYPE_HUMANOID)))
+            (!IS_NPC(victim) && (GET_BANE_TARGET_TYPE(ch) == RACE_TYPE_HUMANOID)))
         {
           if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
             send_to_char(ch, "\tW[BANE]\tn ");
@@ -5911,16 +6007,19 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
 void idle_weapon_spells(struct char_data *ch)
 {
 
+  /* dummy check */
+  if (!ch)
+    return;
+
   /* if this is a no-magic room, we aren't going to continue */
   if (ch->in_room && ch->in_room != NOWHERE && ch->in_room < top_of_world &&
       (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOMAGIC) ||
        ROOM_AFFECTED(ch->in_room, RAFF_ANTI_MAGIC)))
     return;
 
-  int random = 0, j = 0, weapon_spellnum = SPELL_RESERVED_DBC;
-  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  struct obj_data *offWield = GET_EQ(ch, WEAR_WIELD_OFFHAND);
-  const char *buf = "$p leaps to action!";
+  int random = 0, i = 0, j = 0;
+  struct obj_data *gear = NULL;
+  const char *buf = "$p begins to vibrate and release sparks of energy!";
 
   /* give some random messages */
   switch (dice(1, 4))
@@ -5934,65 +6033,36 @@ void idle_weapon_spells(struct char_data *ch)
   case 3:
     buf = "$p glows and lets off a deep sound!";
     break;
-  default: /* default "leap" */
+  default: /* default "vibrate and sparks" */
     break;
   }
 
-  /* dummy check -Zusuk */
-  if (wielded)
+  /* scan through gear */
+  for (i = 0; i < NUM_WEARS; i++)
   {
-    weapon_spellnum = GET_WEAPON_SPELL(wielded, j);
-    if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-      return;
-  }
-
-  if (GET_EQ(ch, WEAR_WIELD_2H))
-    wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
-  if (wielded && HAS_SPELLS(wielded))
-  {
-    for (j = 0; j < MAX_WEAPON_SPELLS; j++)
+    if (GET_EQ(ch, i))
     {
-      if (!GET_WEAPON_SPELL_AGG(wielded, j) &&
-          weapon_spellnum)
+      gear = GET_EQ(ch, i);
+
+      /* we have an item, and does this item have spells on it? */
+      if (gear && HAS_SPELLS(gear))
       {
-        random = rand_number(1, 100);
-        if (!affected_by_spell(ch, weapon_spellnum) &&
-            GET_WEAPON_SPELL_PCT(wielded, j) >= random)
+
+        for (j = 0; j < MAX_WEAPON_SPELLS; j++)
         {
-          act(buf, TRUE, ch, wielded, 0, TO_CHAR);
-          act(buf, TRUE, ch, wielded, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, weapon_spellnum, 0,
-                     GET_WEAPON_SPELL_LVL(wielded, j), CAST_WEAPON_SPELL);
-        }
-      }
-    }
-  }
-
-  /* dummy check -Zusuk */
-  if (offWield)
-  {
-    weapon_spellnum = GET_WEAPON_SPELL(offWield, j);
-    if (weapon_spellnum <= SPELL_RESERVED_DBC || weapon_spellnum >= LAST_SPELL_DEFINE)
-      return;
-  }
-
-  if (offWield && HAS_SPELLS(offWield))
-  {
-    for (j = 0; j < MAX_WEAPON_SPELLS; j++)
-    {
-      if (!GET_WEAPON_SPELL_AGG(offWield, j) &&
-          weapon_spellnum)
-      {
-        random = rand_number(1, 100);
-        if (!affected_by_spell(ch, weapon_spellnum) &&
-            GET_WEAPON_SPELL_PCT(offWield, j) >= random)
-        {
-
-          act(buf, TRUE, ch, offWield, 0, TO_CHAR);
-          act(buf, TRUE, ch, offWield, 0, TO_ROOM);
-          call_magic(ch, ch, NULL, weapon_spellnum, 0,
-                     GET_WEAPON_SPELL_LVL(offWield, j), CAST_WEAPON_SPELL);
+          if (GET_WEAPON_SPELL(gear, j) && !GET_WEAPON_SPELL_AGG(gear, j))
+          {
+            random = rand_number(1, 100);
+            if (!affected_by_spell(ch, GET_WEAPON_SPELL(gear, j)) &&
+                GET_WEAPON_SPELL_PCT(gear, j) >= random)
+            {
+              act(buf, TRUE, ch, gear, 0, TO_CHAR);
+              act(buf, TRUE, ch, gear, 0, TO_ROOM);
+              call_magic(ch, ch, NULL, GET_WEAPON_SPELL(gear, j), 0, GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
+              return;
+              /* we exit here because we don't want two or more items proccing off the same tick */
+            }
+          }
         }
       }
     }
@@ -6061,9 +6131,7 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
     break;
   case ATTACK_TYPE_TWOHAND:
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
-
     break;
-
   default:
     break;
   }
@@ -6106,6 +6174,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
                should this have a type?  for now it doesn't... */
   switch (attack_type)
   {
+  case ATTACK_TYPE_PSIONICS: /* psionic attacks */
+    calc_bab += GET_INT_BONUS(ch);
+    calc_bab += IS_PSI_TYPE(ch) / 5;
+    /* FALLTHROUGH, no break please */
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
@@ -6456,7 +6528,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   {
     if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(wielded)))
     {
-      /*debug*/ // send_to_char(ch, "NOT PROFICIENT\r\n");
+      if (DEBUGMODE)
+      {
+        send_to_char(ch, "NOT PROFICIENT\r\n");
+      }
       calc_bab -= 4;
     }
   }
@@ -6465,7 +6540,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
    * penalty applies to attack roll. */
   if (!is_proficient_with_armor(ch))
   {
-    /*debug*/ // send_to_char(ch, "NOT PROFICIENT\r\n");
+    if (DEBUGMODE)
+    {
+      send_to_char(ch, "NOT PROFICIENT\r\n");
+    }
     calc_bab -= 2;
   }
 
@@ -6729,7 +6807,10 @@ int attack_roll(struct char_data *ch,     /* Attacker */
   /* 1d20 + base attack bonus + Strength modifier + size modifier */
   //  }
 
-  //  send_to_char(ch, "DEBUG: attack bonus: %d, diceroll: %d, victim_ac: %d, result: %d\r\n", attack_bonus, diceroll, victim_ac, result);
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "DEBUG: attack bonus: %d, diceroll: %d, victim_ac: %d, result: %d\r\n", attack_bonus, diceroll, victim_ac, result);
+  }
 
   return result;
 }
@@ -6822,13 +6903,15 @@ int wildshape_weapon_type(struct char_data *ch)
       }
     }
 
-    /*DEBUG*/
-    // send_to_char(ch, "Count: %d | ", count);
-    // for (i = 0; i < count; i++) {
-    //   send_to_char(ch, "%d ", w_type_array[i]);
-    // }
-    // send_to_char(ch, "\r\n");
-    /*END DEBUG*/
+    if (DEBUGMODE)
+    {
+      send_to_char(ch, "Count: %d | ", count);
+      for (i = 0; i < count; i++)
+      {
+        send_to_char(ch, "%d ", w_type_array[i]);
+      }
+      send_to_char(ch, "\r\n");
+    }
 
     /* list built, pick random */
     if (count <= 0) /* dummy check */
@@ -7222,7 +7305,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!IS_NPC(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER) && victim &&
         !AFF_FLAGGED(victim, AFF_BLIND) && IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
     {
-      if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
+      /* without a bonus to the challenge here, this was completely ineffective -zusuk */
+      if (!mag_savingthrow(ch, victim, SAVING_FORT, 10, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
       {
         send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
         new_affect(&af);
@@ -8065,11 +8149,13 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     send_to_char(victim, "%s", buf);
   }
 
-  /*  leaving this around for debugging
-  send_to_char(ch, "\tc{T:%d+", calc_bab);
-  send_to_char(ch, "D:%d>=", diceroll);
-  send_to_char(ch, "AC:%d}\tn", victim_ac);
-   */
+  if (DEBUGMODE)
+  {
+
+    send_to_char(ch, "\tc{T:%d+", calc_bab);
+    send_to_char(ch, "D:%d>=", diceroll);
+    send_to_char(ch, "AC:%d}\tn", victim_ac);
+  }
 
   /* Total Defense calculation -
    * This only applies if the victim is in totaldefense mode and is based on
@@ -8148,12 +8234,12 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   } /* End of totaldefense */
 
-    if (attack_type != ATTACK_TYPE_RANGED && affected_by_spell(ch, SPELL_GASEOUS_FORM) && AFF_FLAGGED(victim, AFF_WIND_WALL))
+  if (attack_type != ATTACK_TYPE_RANGED && affected_by_spell(ch, SPELL_GASEOUS_FORM) && AFF_FLAGGED(victim, AFF_WIND_WALL))
   {
     act("You are unable to get close enough to $N to complete your attack.", FALSE, ch, 0, victim, TO_CHAR);
     act("$n is unable to get close enough to You to complete $s attack.", FALSE, ch, 0, victim, TO_VICT);
     act("$n is unable to get close enough to $N to complete $s attack.", FALSE, ch, 0, victim, TO_NOTVICT);
-    
+
     return (HIT_MISS);
   }
 
@@ -8214,7 +8300,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     return (HIT_MISS);
   }
 
-    if (attack_type == ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_WIND_WALL) && dice(1, 10) <= 3)
+  if (attack_type == ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_WIND_WALL) && dice(1, 10) <= 3)
   {
     act("Your wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_CHAR);
     act("$n's wall of wind throws aside Your shot.", FALSE, victim, 0, ch, TO_VICT);
@@ -9081,7 +9167,10 @@ EVENTFUNC(event_combat_round)
 
   if ((!IS_NPC(ch) && (ch->desc != NULL && !IS_PLAYING(ch->desc))) || (FIGHTING(ch) == NULL))
   {
-    /*send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");*/
+    if (DEBUGMODE)
+    {
+      send_to_char(ch, "DEBUG: RETURNING 0 FROM COMBAT EVENT.\r\n");
+    }
     stop_fighting(ch);
     return 0;
   }
@@ -9544,3 +9633,5 @@ void perform_violence(struct char_data *ch, int phase)
 #undef MODE_IMP_2_WPN   /* improved two weapon fighting - extra attack at -5 */
 #undef MODE_GREAT_2_WPN /* greater two weapon fighting - extra attack at -10 */
 #undef MODE_EPIC_2_WPN  /* perfect two weapon fighting - extra attack */
+
+#undef DEBUGMODE

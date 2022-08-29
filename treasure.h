@@ -41,6 +41,7 @@
 /* Ornir CP System Defines, CP = creation points*/
 /* we manually add +X to cp_max_bonus in the code */
 #define TREASURE_MAX_BONUS 6
+#define CRAFT_MAX_BONUS (TREASURE_MAX_BONUS + 1)
 #define MIN_LEVEL_FOR_BONUS 5
 #define CP_COST(bonus) ((bonus - 1) * 150 + 100)
 #define CP_BASE_VALUE(level) ((level - 1 + MIN_LEVEL_FOR_BONUS) * 80.6)

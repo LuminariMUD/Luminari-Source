@@ -880,7 +880,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   case HLQEDIT_OUT_TEACH_SPELL:
     number = atoi(arg);
-    if (number > 0 && number < MAX_SKILLS)
+    if (number > 0 && number < TOP_SKILL_DEFINE)
     {
       OLC_QCOM(d)->value = atoi(arg);
       hlqedit_disp_outcommand_menu(d);

@@ -226,7 +226,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"copyroom", "copyroom", POS_DEAD, do_copyroom, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"credits", "cred", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ct", "ct", POS_DEAD, do_clantalk, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"craft", "craft", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"craftedit", "crafte", POS_DEAD, do_oasis_craftedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"create", "create", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkcraft", "checkcraft", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -243,6 +242,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"collect", "collect", POS_STANDING, do_collect, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     /* we are just using the old do_practice function for crafting for now */
     {"craft", "craft", POS_RECLINING, do_practice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    /* newer crafting system */
+    {"crafting", "crafting", POS_STANDING, do_craft, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"comeandgetme", "comeandgetme", POS_FIGHTING, do_comeandgetme, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_comeandgetme},
     {"curingtouch", "curingtouch", POS_STANDING, do_curingtouch, 0, 0, FALSE, ACTION_SWIFT, {6, 0}, NULL},
     {"cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -252,6 +253,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"cruelties", "cruelties", POS_RECLINING, do_cruelties, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -322,7 +324,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"extractlist", "extractlist", POS_RECLINING, do_spelllist, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"eyeofknowledge", "eyeofknowledge", POS_STANDING, do_eyeofknowledge, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"exempt", "exempt", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_EXEMPT, FALSE, ACTION_NONE, {0, 0}, NULL},
-    
+
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
     {"feats", "fea", POS_SLEEPING, do_feats, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"featlisting", "featlisting", POS_SLEEPING, do_featlisting, LVL_IMMORT, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -438,19 +440,19 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"look", "l", POS_RECLINING, do_look, 0, SCMD_LOOK, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
+    {"list", "lis", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"landmarks", "landmarks", POS_DEAD, do_landmarks, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"last", "last", POS_DEAD, do_last, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"layonhands", "layonhands", POS_FIGHTING, do_layonhands, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_layonhands},
+    {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"levels", "lev", POS_DEAD, do_levels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"list", "lis", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"listen", "listen", POS_STANDING, do_listen, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"links", "lin", POS_STANDING, do_links, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"lock", "loc", POS_SITTING, do_gen_door, 0, SCMD_LOCK, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"load", "load", POS_DEAD, do_load, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"lore", "lore", POS_RESTING, do_lore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-    {"land", "land", POS_FIGHTING, do_land, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"loadmagic", "loadmagic", POS_DEAD, do_loadmagic, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"loadmagicspecific", "loadmagicspecific", POS_DEAD, do_loadmagicspecific, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"lightningarc", "lightningarc", POS_FIGHTING, do_lightningarc, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -996,11 +998,45 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   }
-  else if ((AFF_FLAGGED(ch, AFF_STUN) || AFF_FLAGGED(ch, AFF_PARALYZED) ||
-            char_has_mud_event(ch, eSTUNNED)) &&
+  else if ((AFF_FLAGGED(ch, AFF_PARALYZED)) &&
            GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+  {
     send_to_char(ch, "You try, but you are unable to move!\r\n");
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_PARALYZED);
+      send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
+      act("$n's free movement breaks the paralysis!",
+          TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
+  else if ((AFF_FLAGGED(ch, AFF_STUN)) &&
+           GET_LEVEL(ch) < LVL_IMPL &&
+           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+  {
+    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_STUN);
+      send_to_char(ch, "Your free movement breaks the paralysis!\r\n");
+      act("$n's free movement breaks the paralysis!",
+          TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
+  else if ((char_has_mud_event(ch, eSTUNNED)) &&
+           GET_LEVEL(ch) < LVL_IMPL &&
+           !is_abbrev(complete_cmd_info[cmd].command, "affects"))
+  {
+    send_to_char(ch, "You try, but you are unable to move!\r\n");
+    if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    {
+      change_event_duration(ch, eSTUNNED, 0);
+      send_to_char(ch, "Your free movement breaks the stun!\r\n");
+      act("$n's free movement breaks the stun!",
+          TRUE, ch, 0, 0, TO_ROOM);
+    }
+  }
   else if (AFF_FLAGGED(ch, AFF_DAZED) && GET_LEVEL(ch) < LVL_IMPL &&
            !is_abbrev(complete_cmd_info[cmd].command, "affects"))
     send_to_char(ch, "You are too dazed to do anything!\r\n");
@@ -1445,6 +1481,8 @@ const char *three_arguments(
 int is_abbrev(const char *arg1, const char *arg2)
 {
   if (!*arg1)
+    return (0);
+  if (!*arg2)
     return (0);
 
   for (; *arg1 && *arg2; arg1++, arg2++)

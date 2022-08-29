@@ -1798,7 +1798,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
   if (GET_SKILL(ch, skill) / 3 < obj_level)
   {
     send_to_char(ch, "Your skill in %s (%d) is too low to create that item, you need %d.\r\n",
-                 skill_info[skill].name, GET_SKILL(ch, skill), obj_level * 3);
+                 spell_info[skill].name, GET_SKILL(ch, skill), obj_level * 3);
     return 1;
   }
 
@@ -1879,7 +1879,7 @@ int create(char *argument, struct obj_data *kit, struct char_data *ch, int mode)
           CAN_WEAR(mold, ITEM_WEAR_LEGS) || CAN_WEAR(mold, ITEM_WEAR_ARMS) ||
           GET_OBJ_TYPE(mold) == ITEM_MISSILE)
       {
-        GET_OBJ_VAL(mold, 4) = MIN(TREASURE_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
+        GET_OBJ_VAL(mold, 4) = MIN(CRAFT_MAX_BONUS, ((GET_OBJ_LEVEL(mold) + 5) / 5));
       }
     }
 
@@ -2912,7 +2912,7 @@ ACMD(do_harvest)
   if (GET_SKILL(ch, skillnum) < minskill)
   {
     send_to_char(ch, "You need a minimum %s skill of %d, while yours is only %d.\r\n",
-                 skill_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
+                 spell_info[skillnum].name, minskill, GET_SKILL(ch, skillnum));
     return;
   }
 

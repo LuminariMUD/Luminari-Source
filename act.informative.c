@@ -68,9 +68,9 @@ static void perform_mortal_where(struct char_data *ch, char *arg);
 static void print_object_location(int num, struct obj_data *obj, struct char_data *ch, int recur);
 
 /* globals */
-int spell_sort_info[MAX_SPELLS + 1];
-int sorted_spells[MAX_SPELLS + 1];
-int sorted_skills[MAX_SKILLS + 1];
+int spell_sort_info[TOP_SKILL_DEFINE];
+int sorted_spells[TOP_SKILL_DEFINE];
+int sorted_skills[TOP_SKILL_DEFINE];
 int boot_high = 0;
 
 /* file level defines */
@@ -2042,7 +2042,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYSpell-like Affects\tC", 80, '-', '-');
+  text_line(ch, "\tYSpell/Skill-like Affects\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
 
   buf[0] = '\0'; // Reset the string buffer for later use.
@@ -2088,6 +2088,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       { // rounds
         snprintf(buf, sizeof(buf), "[%2d round%s  ] ", (aff->duration + 1), ((aff->duration + 1) > 1 ? "s" : " "));
       }
+
+      /* name */
       snprintf(buf2, sizeof(buf2), "%s%-25s%s ",
                CCCYN(ch, C_NRM), spell_info[aff->spell].name, CCNRM(ch, C_NRM));
       strlcat(buf, buf2, sizeof(buf));
@@ -2312,7 +2314,7 @@ void list_scanned_chars(struct char_data *list, struct char_data *ch, int distan
 ACMD(do_masterlist)
 {
   size_t len = 0, nlen = 0;
-  int bottom = 0, top = 0, counter = 0, i = 0;
+  int bottom = 1, top = TOP_SKILL_DEFINE, counter = 0, i = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *overflow = "\r\n**OVERFLOW**\r\n";
   bool is_spells = FALSE;
@@ -2330,14 +2332,10 @@ ACMD(do_masterlist)
 
   if (is_abbrev(argument, "skills"))
   {
-    bottom = 0;
-    top = MAX_SKILLS - MAX_SPELLS + 1;
     is_spells = FALSE;
   }
   else if (is_abbrev(argument, "spells"))
   {
-    bottom = 0;
-    top = MAX_SPELLS;
     is_spells = TRUE;
   }
   else
@@ -2350,17 +2348,23 @@ ACMD(do_masterlist)
 
   for (; bottom < top; bottom++)
   {
-    if (is_spells)
-      i = sorted_spells[bottom];
-    else
-      i = sorted_skills[bottom];
+    i = spell_sort_info[bottom];
 
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;
+    if (is_spells && i > TOP_SPELL_DEFINE)
+      continue;
+    if (!is_spells && i < START_SKILLS)
+      continue;
+    if (!is_spells && i > TOP_SKILL_DEFINE)
+      continue;
+
     nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                     "%3d) %s\r\n", i, spell_info[i].name);
+
     if (len + nlen >= sizeof(buf2) || nlen < 0)
       break;
+
     len += nlen;
     counter++;
   }
@@ -3587,7 +3591,7 @@ ACMD(do_who)
               {
                 if (!strcmp(account_names[y], d->account->name))
                 {
-                 break; 
+                  break;
                 }
               }
               if (y == x)
@@ -3609,7 +3613,6 @@ ACMD(do_who)
       }
 
       num_accounts = x;
-
     }
   }
 

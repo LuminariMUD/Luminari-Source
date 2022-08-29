@@ -2459,8 +2459,8 @@ void init_start_char(struct char_data *ch)
 
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
-  for (i = START_SKILLS; i <= NUM_SKILLS; i++)
-    if (skill_info[i].schoolOfMagic != CRAFTING_SKILL)
+  for (i = START_SKILLS; i < NUM_SKILLS; i++)
+    if (spell_info[i].schoolOfMagic != CRAFTING_SKILL)
       SET_SKILL(ch, i, 0);
   for (i = 1; i <= NUM_ABILITIES; i++)
     SET_ABILITY(ch, i, 0);
@@ -3229,7 +3229,7 @@ void init_spell_levels(void)
   struct class_spell_assign *spell_assign = NULL;
 
   // simple loop to init min-level 1 for all the SKILL_x to all classes
-  for (i = (MAX_SPELLS + 1); i < NUM_SKILLS; i++)
+  for (i = (MAX_SPELLS + 1); i < TOP_SKILL_DEFINE; i++)
   {
     for (j = 0; j < NUM_CLASSES; j++)
     {
@@ -3985,10 +3985,12 @@ void load_class_list(void)
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 9, Y);
   /* talent lvl 9, improved evasion*/
   feat_assignment(CLASS_ROGUE, FEAT_IMPROVED_EVASION, Y, 9, N);
+  /* talent lvl 10, apply poison */
+  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON, Y, 10, N);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 11, Y);
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 12, Y);
-  /* talent lvl 12, apply poison */
-  feat_assignment(CLASS_ROGUE, FEAT_APPLY_POISON, Y, 12, N);
+  /* talent lvl 12, able learner */
+  feat_assignment(CLASS_ROGUE, FEAT_ABLE_LEARNER, Y, 12, Y);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 13, Y);
   feat_assignment(CLASS_ROGUE, FEAT_SNEAK_ATTACK, Y, 15, Y);
   feat_assignment(CLASS_ROGUE, FEAT_TRAP_SENSE, Y, 15, Y);
@@ -5632,7 +5634,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_OFFENSIVE_PRESCIENCE, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SLUMBER, 1);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_VIGOR, 1);
-
+  /* 2nd circle */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BESTOW_POWER, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BIOFEEDBACK, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_EQUILIBRIUM, 3);
@@ -5652,7 +5654,7 @@ void load_class_list(void)
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARE_PAIN, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SWARM_OF_CRYSTALS, 3);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_THOUGHT_SHIELD, 3);
-
+  /* 3rd circle */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_ADJUSTMENT, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_CONCUSSIVE_ONSLAUGHT, 5);
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_DISPEL_PSIONICS, 5);
@@ -5667,7 +5669,7 @@ void load_class_list(void)
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_FORCED_SHARED_PAIN, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHARPENED_EDGE, 5);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_UBIQUITUS_VISION, 5);
-
+  /* 4th circle */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DEADLY_FEAR, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DEATH_URGE, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_EMPATHIC_FEEDBACK, 7);
@@ -5679,7 +5681,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SLIP_THE_BONDS, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WITHER, 7);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_WALL_OF_ECTOPLASM, 7);
-
+  /* 5th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_ADAPT_BODY, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ECTOPLASMIC_SHAMBLER, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PIERCE_VEIL, 9);
@@ -5691,13 +5693,13 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHRAPNEL_BURST, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_TOWER_OF_IRON_WILL, 9);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_UPHEAVAL, 9);
-
+  /* 6th circle Psi */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BREATH_OF_THE_BLACK_DRAGON, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BRUTALIZE_WOUNDS, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_DISINTEGRATION, 11);
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_REMOTE_VIEW_TRAP, 11);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SUSTAINED_FLIGHT, 11);
-
+  /* 7th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_BARRED_MIND, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_COSMIC_AWARENESS, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ENERGY_CONVERSION, 13);
@@ -5706,15 +5708,19 @@ void load_class_list(void)
   spell_assignment(CLASS_PSIONICIST, PSIONIC_OAK_BODY, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_PSYCHOSIS, 13);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ULTRABLAST, 13);
-
+  /* 8th circle Psi */
   spell_assignment(CLASS_PSIONICIST, PSIONIC_BODY_OF_IRON, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_RECALL_DEATH, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_SHADOW_BODY, 15);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_TRUE_METABOLISM, 15);
-
+  /* 9th circle Psi */
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_APOPSI, 17);
   spell_assignment(CLASS_PSIONICIST, PSIONIC_ASSIMILATE, 17);
   // spell_assignment(CLASS_PSIONICIST, PSIONIC_TIMELESS_BODY, 17);
+  /**** end psi power assignment *****/
+
+  /* end PSI class */
+  /****************************************************************************/
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
@@ -5842,7 +5848,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_ARCANE_SHADOW, "arcaneshadow", "ArS", "\tGAr\tDS\tn", "n) \tGArcane\tDShadow\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         10, Y, Y, M, 6, 0, 2, 4, Y, 5000, 0,
+         10, Y, Y, M, 8, 0, 2, 5, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
          /*descrip*/ "Few can match the guile and craftiness of arcane shadows. These "
                      "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
@@ -5855,7 +5861,7 @@ void load_class_list(void)
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
                      CA, CA, CA, CA, CC, CA, CA,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CC, CC, CC, CA, CA, CA, CA, CC,
+                     CC, CA, CC, CA, CA, CA, CA, CC,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CC, CA, CA, CA, CC, CA,
                      /*survival,swim,use_magic_device,perform*/
@@ -5882,10 +5888,13 @@ void load_class_list(void)
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 5, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 6, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_INVISIBLE_ROGUE, Y, 7, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 7, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 8, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_MAGICAL_AMBUSH, Y, 9, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 9, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, Y, 10, Y);
   feat_assignment(CLASS_ARCANE_SHADOW, FEAT_SURPRISE_SPELLS, Y, 10, N);
+  feat_assignment(CLASS_ARCANE_SHADOW, FEAT_IMPROMPTU_SNEAK_ATTACK, Y, 10, Y);
   /* no spell assignment */
   /* class prereqs */
   class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_DISABLE_DEVICE, 4);
@@ -6416,7 +6425,6 @@ void load_class_list(void)
   /* class prereqs */
   class_prereq_feat(CLASS_SHADOWDANCER, FEAT_COMBAT_REFLEXES, 1);
   class_prereq_feat(CLASS_SHADOWDANCER, FEAT_DODGE, 1);
-  class_prereq_feat(CLASS_SHADOWDANCER, FEAT_MOBILITY, 1);
   class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_STEALTH, 5);
   class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_PERFORM, 2);
   /****************************************************************************/
@@ -6675,7 +6683,6 @@ void load_class_list(void)
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 1, Y);
   /* level 2 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_POISON_RESIST, Y, 2, Y);
-  feat_assignment(CLASS_ALCHEMIST, FEAT_APPLY_POISON, Y, 2, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 2, Y);
   /* level 3 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_SWIFT_ALCHEMY, Y, 3, Y);
@@ -6701,6 +6708,7 @@ void load_class_list(void)
   /* level 11 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 11, Y);
   /* level 12 class feats */
+  feat_assignment(CLASS_ALCHEMIST, FEAT_APPLY_POISON, Y, 12, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 12, Y);
   /* level 13 class feats */
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 13, Y);
@@ -6971,7 +6979,7 @@ void load_class_list(void)
                      "assassin's missions put him in the company of adventurers for long stretches at "
                      "a time, but few people are comfortable trusting a professional assassin to watch "
                      "their backs in a fight, and are more likely to let the emotionless killer scout "
-                     "ahead or help prepare ambushes.");
+                     "ahead or help prepare ambushes.  (Also see 'help mark')");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_ASSASSIN, B, G, B, B, B);
   assign_class_abils(CLASS_ASSASSIN, /* class number */
@@ -7001,6 +7009,7 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_WEAPON_PROFICIENCY_ASSASSIN, Y, 1, N);
   feat_assignment(CLASS_ASSASSIN, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
   feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 1, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_DEATH_ATTACK, Y, 1, Y);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 2, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_UNCANNY_DODGE, Y, 2, N);
@@ -7018,6 +7027,7 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_QUIET_DEATH, Y, 6, N);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_SNEAK_ATTACK, Y, 7, Y);
+  feat_assignment(CLASS_ASSASSIN, FEAT_APPLY_POISON, Y, 7, N);
 
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 8, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_HIDE_IN_PLAIN_SIGHT, Y, 8, N);
@@ -7028,9 +7038,10 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_POISON_SAVE_BONUS, Y, 10, Y);
   feat_assignment(CLASS_ASSASSIN, FEAT_ANGEL_OF_DEATH, Y, 10, N);
 
+  /* pre reqs to take assassin class */
   class_prereq_ability(CLASS_ASSASSIN, ABILITY_PERFORM, 2);
-  class_prereq_ability(CLASS_ASSASSIN, ABILITY_STEALTH, 5);
-
+  class_prereq_ability(CLASS_ASSASSIN, ABILITY_SENSE_MOTIVE, 5);
+  class_prereq_feat(CLASS_ASSASSIN, FEAT_TWO_WEAPON_FIGHTING, 1);
   /****************************************************************************/
   /****************************************************************************/
 
