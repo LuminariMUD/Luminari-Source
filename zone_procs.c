@@ -1092,7 +1092,7 @@ SPECIAL(cf_alathar)
 /* unfinished */
 SPECIAL(tia_rapier)
 {
-  struct char_data *vict = FIGHTING(ch);
+  struct char_data *vict = NULL;
 
   if (!cmd && !strcmp(argument, "identify"))
   {
@@ -1103,6 +1103,11 @@ SPECIAL(tia_rapier)
   }
 
   if (!ch || cmd || GET_POS(ch) == POS_DEAD)
+    return 0;
+
+  vict = FIGHTING(ch);
+
+  if (!vict)
     return 0;
 
   if (!strcmp(argument, "parry"))

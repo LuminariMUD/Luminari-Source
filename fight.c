@@ -3668,6 +3668,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   bool is_ranged = FALSE;
   struct affected_type af;
 
+  /* this is just a dummy check */
+  if (!ch)
+    return;
+  if (!victim)
+    return;
+
   if (offhand == 2)
     is_ranged = TRUE;
 
