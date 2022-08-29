@@ -89,8 +89,8 @@ int is_name(const char *str, const char *namelist)
 #define KEYWORDJOIN "-"
 int isname_tok(const char *str, const char *namelist)
 {
-  char *newlist;
-  char *curtok;
+  char *newlist = NULL;
+  char *curtok = NULL;
   char *saveptr = NULL;
 
   if (!str || !*str || !namelist || !*namelist)
@@ -100,7 +100,9 @@ int isname_tok(const char *str, const char *namelist)
     return 1;
 
   newlist = strdup(namelist); /* make a copy since strtok 'modifies' strings */
+
   for (curtok = strtok_r(newlist, WHITESPACE, &saveptr); curtok; curtok = strtok_r(NULL, WHITESPACE, &saveptr))
+  {
     if (curtok && is_abbrev(str, curtok))
     {
       /* Don't allow abbreviated numbers. - Sryth */
@@ -109,7 +111,10 @@ int isname_tok(const char *str, const char *namelist)
       free(newlist);
       return 1;
     }
+  }
+
   free(newlist);
+
   return 0;
 }
 
