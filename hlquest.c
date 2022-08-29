@@ -510,59 +510,58 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
             GET_NAME(ch));
         give_back_items(victim, ch, quest);
       }
-    }
-    else
-    {
-      if (qcom->value != LICH_QUEST)
-        ch->player.chclass = qcom->value;
-      destroy_spell_prep_queue(ch);
-      destroy_innate_magic_queue(ch);
-      destroy_spell_collection(ch);
-      destroy_known_spells(ch);
-
-      for (i = 0; i < MAX_SKILLS; i++)
+      else
       {
-        if (GET_SKILL(ch, i) &&
-            spell_info[i].min_level[(int)GET_CLASS(ch)] >
-                GET_LEVEL(ch))
+        if (qcom->value != LICH_QUEST)
+          ch->player.chclass = qcom->value;
+        destroy_spell_prep_queue(ch);
+        destroy_innate_magic_queue(ch);
+        destroy_spell_collection(ch);
+        destroy_known_spells(ch);
+
+        for (i = 0; i < MAX_SKILLS; i++)
         {
-          GET_SKILL(ch, i) = 0;
+          if (GET_SKILL(ch, i) &&
+              spell_info[i].min_level[(int)GET_CLASS(ch)] >
+                  GET_LEVEL(ch))
+          {
+            GET_SKILL(ch, i) = 0;
+          }
         }
+
+        snprintf(buf, sizeof(buf), "You are now a %s.\r\n", CLSLIST_NAME(GET_CLASS(ch)));
+        send_to_char(ch, buf);
+        log("quest_log : %s have changed to %s", GET_NAME(ch),
+            CLSLIST_NAME(GET_CLASS(ch)));
       }
+      break;
 
-      snprintf(buf, sizeof(buf), "You are now a %s.\r\n", CLSLIST_NAME(GET_CLASS(ch)));
-      send_to_char(ch, buf);
-      log("quest_log : %s have changed to %s", GET_NAME(ch),
-          CLSLIST_NAME(GET_CLASS(ch)));
+      /* unfinished for luminari port */
+    case QUEST_COMMAND_TEACH_SPELL:
+      if (GET_LEVEL(ch) <
+          spell_info[qcom->value].min_level[(int)GET_CLASS(ch)])
+        send_to_char(ch, "The teaching is way beyond your comprehension!\r\n");
+      else if (GET_SKILL(ch, qcom->value) > 0)
+        send_to_char(ch, "You realize that you already know this way too "
+                         "well.\r\n");
+      else
+      {
+        snprintf(buf, sizeof(buf), "$N teaches you '\tL%s\tn'",
+                 spell_info[qcom->value].name);
+        act(buf, FALSE, ch, 0, victim, TO_CHAR);
+        GET_SKILL(ch, qcom->value) = 9;
+        snprintf(buf, sizeof(buf), "quest_log: %s has quested %s", GET_NAME(ch),
+                 spell_info[qcom->value].name);
+        log(buf);
+      }
+      break;
+
+      /* took out casting time for this */
+    case QUEST_COMMAND_CAST_SPELL:
+      call_magic(victim, ch, 0, qcom->value, 0, GET_LEVEL(victim), CAST_SPELL);
+      break;
     }
-    break;
-
-    /* unfinished for luminari port */
-  case QUEST_COMMAND_TEACH_SPELL:
-    if (GET_LEVEL(ch) <
-        spell_info[qcom->value].min_level[(int)GET_CLASS(ch)])
-      send_to_char(ch, "The teaching is way beyond your comprehension!\r\n");
-    else if (GET_SKILL(ch, qcom->value) > 0)
-      send_to_char(ch, "You realize that you already know this way too "
-                       "well.\r\n");
-    else
-    {
-      snprintf(buf, sizeof(buf), "$N teaches you '\tL%s\tn'",
-               spell_info[qcom->value].name);
-      act(buf, FALSE, ch, 0, victim, TO_CHAR);
-      GET_SKILL(ch, qcom->value) = 9;
-      snprintf(buf, sizeof(buf), "quest_log: %s has quested %s", GET_NAME(ch),
-               spell_info[qcom->value].name);
-      log(buf);
-    }
-    break;
-
-    /* took out casting time for this */
-  case QUEST_COMMAND_CAST_SPELL:
-    call_magic(victim, ch, 0, qcom->value, 0, GET_LEVEL(victim), CAST_SPELL);
-    break;
   }
-}
 }
 
 /* quest_room is the function that launches quest out if you bring in
