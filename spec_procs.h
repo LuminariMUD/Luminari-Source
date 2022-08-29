@@ -16,9 +16,9 @@
 
 #include "spells.h"
 
-int spell_sort_info[MAX_SPELLS + 1];
-int sorted_spells[MAX_SPELLS + 1];
-int sorted_skills[MAX_SKILLS + 1];
+int spell_sort_info[TOP_SKILL_DEFINE];
+int sorted_spells[TOP_SKILL_DEFINE];
+int sorted_skills[TOP_SKILL_DEFINE];
 
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
@@ -68,6 +68,7 @@ SPECIAL_DECL(agrachdyrr);
 SPECIAL_DECL(air_sphere);
 SPECIAL_DECL(alandor_ferry);
 SPECIAL_DECL(angel_leggings);
+SPECIAL_DECL(dragon_robes);
 SPECIAL_DECL(bandit_guard);
 SPECIAL_DECL(bank);
 SPECIAL_DECL(banshee);
@@ -200,7 +201,7 @@ SPECIAL_DECL(thief);
 SPECIAL_DECL(thrym);
 SPECIAL_DECL(tia_moonblade);
 SPECIAL_DECL(tia_rapier);
-SPECIAL_DECL(tiamat);
+SPECIAL_DECL(the_prisoner);
 SPECIAL_DECL(tormblade);
 SPECIAL_DECL(totemanimal);
 SPECIAL_DECL(trade_bandit);

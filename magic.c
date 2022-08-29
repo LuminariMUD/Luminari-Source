@@ -238,9 +238,17 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   case CAST_STAFF:
   case CAST_SCROLL:
   case CAST_INNATE:
-  case CAST_WEAPON_POISON:
   case CAST_WEAPON_SPELL:
     challenge += level;
+    break;
+  case CAST_WEAPON_POISON:
+    challenge += level;
+    if (ch)
+    {
+      /* weapon poison is going to be the primary equilizer for rogue; so we have given it a nice boost */
+      challenge += IS_ROGUE_TYPE(ch) / 5; /* bonus */
+      challenge += GET_INT_BONUS(ch);     /* bonus */
+    }
     break;
   case CAST_BOMB:
     if (ch)
@@ -454,7 +462,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
 /* added this function to add special wear off handling -zusuk */
 bool spec_wear_off(struct char_data *ch, int skillnum)
 {
-  if (skillnum >= MAX_SKILLS)
+  if (skillnum >= TOP_SKILL_DEFINE)
     return FALSE;
   if (skillnum <= 0)
     return FALSE;
@@ -868,8 +876,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       || ------------ PSIONIC POWERS ----------- ||
       \*******************************************/
 
-  case PSIONIC_CRYSTAL_SHARD:
-    if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+  case PSIONIC_CRYSTAL_SHARD: /* 1st circle */
+    if (!attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
     {
       act("A crystal shard fired by $n at $N goes wide.", FALSE, ch, 0, victim, TO_NOTVICT);
       act("A crystal shard fired by $n at YOU goes wide.", FALSE, ch, 0, victim, TO_VICT);
@@ -886,7 +894,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
-  case PSIONIC_MIND_THRUST:
+  case PSIONIC_MIND_THRUST: /* 1st circle */
 
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return 0;
@@ -900,10 +908,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save_negates = TRUE;
     break;
 
-  case PSIONIC_ENERGY_RAY:
+  case PSIONIC_ENERGY_RAY: /* 1st circle */
     if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND)
       GET_TEMP_ATTACK_ROLL_BONUS(ch) = 4;
-    if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+    if (!attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
     {
       snprintf(desc, sizeof(desc), "$n fires a ray of %s at $N, but it goes wide.", damtypes[GET_PSIONIC_ENERGY_TYPE(ch)]);
       act(desc, FALSE, ch, 0, victim, TO_NOTVICT);
@@ -923,8 +931,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
-  case PSIONIC_CONCUSSION_BLAST:
-    save = -1; // no save
+  case PSIONIC_CONCUSSION_BLAST: /* 2nd circle */ /* AoE */
+    save = -1;                                    // no save
     mag_resist = TRUE;
     element = DAM_FORCE;
     num_dice = 1 + (GET_AUGMENT_PSP(ch) / 2);
@@ -932,8 +940,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
-  case PSIONIC_ENERGY_PUSH:
-
+  case PSIONIC_ENERGY_PUSH: /* 2nd circle */
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = GET_PSIONIC_ENERGY_TYPE(ch);
@@ -962,8 +969,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
     break;
 
-  case PSIONIC_ENERGY_STUN:
-
+  case PSIONIC_ENERGY_STUN: /* 2nd circle */
     if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD)
       save = SAVING_FORT;
     else
@@ -979,8 +985,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
     break;
 
-  case PSIONIC_RECALL_AGONY:
-
+  case PSIONIC_RECALL_AGONY: /* 2nd circle */
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     save = SAVING_WILL;
     mag_resist = TRUE;
@@ -991,8 +996,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
-  case PSIONIC_SWARM_OF_CRYSTALS:
-    save = -1; // no save
+  case PSIONIC_SWARM_OF_CRYSTALS: /* 2nd circle */ /* AoE */
+    save = -1;                                     // no save
     mag_resist = FALSE;
     element = DAM_SLICE;
     num_dice = 1 + GET_AUGMENT_PSP(ch);
@@ -1000,7 +1005,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
-  case PSIONIC_ENERGY_BURST:
+  case PSIONIC_ENERGY_BURST: /* 3rd circle */ /* AoE */
     if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_COLD)
       save = SAVING_FORT;
     else
@@ -1008,14 +1013,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = GET_PSIONIC_ENERGY_TYPE(ch);
     mag_resist = TRUE;
     num_dice = 5 + GET_AUGMENT_PSP(ch);
-    size_dice = 6;
+    size_dice = 8;
     bonus = (GET_PSIONIC_ENERGY_TYPE(ch) != DAM_ELECTRIC && GET_PSIONIC_ENERGY_TYPE(ch) != DAM_SOUND) ? num_dice : 0;
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
     mag_resist_bonus = (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? -2 : 0;
     break;
 
-  case PSIONIC_DEADLY_FEAR:
+  case PSIONIC_DEADLY_FEAR: /* 4th circle */
     if (is_immune_death_magic(ch, victim, TRUE))
       return (0);
     if (is_immune_mind_affecting(ch, victim, 0))
@@ -1033,7 +1038,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 1;
     break;
 
-  case PSIONIC_PSYCHIC_CRUSH:
+  case PSIONIC_PSYCHIC_CRUSH: /* 5th circle Psi */
     if (is_immune_death_magic(ch, victim, TRUE))
       return (0);
     if (is_immune_mind_affecting(ch, victim, 0))
@@ -1046,54 +1051,40 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_MENTAL;
     num_dice = 1;
     size_dice = 1;
-
     break;
 
-  case PSIONIC_RECALL_DEATH:
-    if (is_immune_death_magic(ch, victim, TRUE))
-      return (0);
-    if (is_immune_mind_affecting(ch, victim, 0))
-      return (0);
-    save = SAVING_WILL;
-    mag_resist = FALSE;
-    element = DAM_MENTAL;
-    num_dice = 1;
-    size_dice = 1;
-    break;
-
-  case PSIONIC_SHRAPNEL_BURST:
+  case PSIONIC_SHRAPNEL_BURST: /* 5th circle Psi */ /* AoE */
     bonus = 0;
     save = SAVING_REFL;
     mag_resist = FALSE;
     element = DAM_PUNCTURE;
     num_dice = 9 + GET_AUGMENT_PSP(ch) / 2;
-    size_dice = 6;
-
+    size_dice = 10;
     break;
 
-  case PSIONIC_UPHEAVAL:
+  case PSIONIC_UPHEAVAL: /* 5th circle Psi */ /* AoE */
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     bonus = 0;
     save = SAVING_REFL;
     mag_resist = FALSE;
     element = DAM_EARTH;
-    num_dice = 9;
-    size_dice = 6;
+    num_dice = 10;
+    size_dice = 10;
     break;
 
-  case PSIONIC_BREATH_OF_THE_BLACK_DRAGON:
+  case PSIONIC_BREATH_OF_THE_BLACK_DRAGON: /* 6th circle Psi */ /* AoE */
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     bonus = 0;
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_ACID;
     num_dice = 11 + GET_AUGMENT_PSP(ch) / 2;
-    size_dice = 6;
+    size_dice = 10;
 
     break;
 
-  case PSIONIC_DISINTEGRATION:
-    if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+  case PSIONIC_DISINTEGRATION: /* 6th circle Psi */
+    if (!attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
     {
       act("$n fires a ray of disintigration at $N, but it goes wide.", FALSE, ch, 0, victim, TO_NOTVICT);
       act("You fire a ray of disintigration at $N, but it goes wide.", FALSE, ch, 0, victim, TO_CHAR);
@@ -1106,36 +1097,59 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = TRUE;
     element = DAM_CHAOS;
     num_dice = 22 + (GET_AUGMENT_PSP(ch) * 2);
-    size_dice = 6;
+    size_dice = 8;
     bonus = 0;
 
     break;
 
-  case PSIONIC_ULTRABLAST:
+  case PSIONIC_ULTRABLAST: /* 7th circle Psi */
     if (is_immune_mind_affecting(ch, victim, 0))
       return (0);
-    bonus = 0;
+    bonus = 14;
     save = SAVING_WILL;
     mag_resist = TRUE;
     element = DAM_MENTAL;
-    num_dice = 13 + GET_AUGMENT_PSP(ch);
-    size_dice = 6;
+    num_dice = 14 + GET_AUGMENT_PSP(ch);
+    size_dice = 10;
     break;
 
-  case PSIONIC_ASSIMILATE:
-    if (!attack_roll(ch, victim, ATTACK_TYPE_PRIMARY, TRUE, 0))
+  case PSIONIC_PSYCHOSIS: /* 7th circle Psi */ /* AoE */
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return (0);
+    bonus = GET_AUGMENT_PSP(ch) / 2;
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_MENTAL;
+    num_dice = 1;
+    size_dice = 1;
+    break;
+
+  case PSIONIC_RECALL_DEATH: /* 8th circle Psi */
+    if (is_immune_death_magic(ch, victim, TRUE))
+      return (0);
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return (0);
+    save = SAVING_WILL;
+    mag_resist = FALSE;
+    element = DAM_MENTAL;
+    num_dice = 1;
+    size_dice = 1;
+    break;
+
+  case PSIONIC_ASSIMILATE: /* 9th circle Psi */
+    if (!attack_roll(ch, victim, ATTACK_TYPE_PSIONICS, TRUE, 0))
     {
-      act("You attempt to assimilate $N, but $E dodges your obsidian touch.", FALSE, ch, 0, victim, TO_CHAR);
-      act("$n attempts to assimilate YOU, but you dodge $s obsidian touch.", FALSE, ch, 0, victim, TO_VICT);
-      act("$n attempts to assimilate $N, but $E dodges $s obsidian touch.", FALSE, ch, 0, victim, TO_NOTVICT);
+      act("You attempt to assimilate $N, but $E dodges your attack.", FALSE, ch, 0, victim, TO_CHAR);
+      act("$n attempts to assimilate YOU, but you dodge $s attack.", FALSE, ch, 0, victim, TO_VICT);
+      act("$n attempts to assimilate $N, but $E dodges $s attack.", FALSE, ch, 0, victim, TO_NOTVICT);
       return 0;
     }
     bonus = 0;
     save = SAVING_FORT;
     mag_resist = TRUE;
     element = DAM_CHAOS;
-    num_dice = 20;
-    size_dice = 6;
+    num_dice = 18;
+    size_dice = 12;
     break;
 
     /*******************************************\
@@ -1739,6 +1753,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 12;
     break;
 
+  case SPELL_GAS_BREATHE:
+    // AoE
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_POISON;
+    num_dice = GET_LEVEL(ch);
+    size_dice = 12;
+    break;
+
   case SPELL_FROST_BREATHE:
     // AoE
     save = SAVING_REFL;
@@ -1839,12 +1862,12 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   case SPELL_HELLBALL:
     // AoE
-    save = SAVING_FORT;
-    mag_resist = TRUE;
+    save = -1;
+    mag_resist = FALSE;
     element = DAM_ENERGY;
-    num_dice = level + 8;
-    size_dice = 12;
-    bonus = level + 50;
+    num_dice = level + 16;
+    size_dice = 16;
+    bonus = level + 100;
     break;
 
   case SPELL_HORRID_WILTING: // horrid wilting, necromancy
@@ -2059,6 +2082,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   } /* end switch(spellnum) */
+  /**************************/
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -2290,7 +2314,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     send_to_char(victim, "[\tRSURPRISE SPELL\tn] ");
   }
 
-  if (!element) // want to make sure all spells have some sort of damage cat
+  if (!element) // want to make sure all spells have some sort of damage category
     log("SYSERR: %d is lacking DAM_", spellnum);
 
   return (damage(ch, victim, dam, spellnum, element, FALSE));
@@ -2769,6 +2793,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_HIT;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
     af[0].duration = 12 * level;
     af[0].modifier = 5 + ((GET_AUGMENT_PSP(ch) / 3) * 5);
 
@@ -3210,6 +3235,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are now resistant to psionic manifestations.";
     break;
 
+  case PSIONIC_ASSIMILATE:
+    if (is_immune_mind_affecting(ch, victim, 0))
+      return;
+    if (power_resistance(ch, victim, 0))
+      return;
+    af[0].duration = level;
+    af[0].modifier = 1;
+    af[0].location = APPLY_SPECIAL;
+    accum_duration = FALSE;
+    to_vict = "Your body has become vulnerable to assimilation!";
+    to_room = "$n's body has become vulnerable to assimilation!";
+    break;
+
   case PSIONIC_BRUTALIZE_WOUNDS:
     if (is_immune_mind_affecting(ch, victim, 0))
       return;
@@ -3450,7 +3488,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_SPECIAL;
     break;
 
-  case PSIONIC_PSYCHOSIS:
+  case PSIONIC_PSYCHOSIS: /* AoE */
     if (!can_confuse(victim))
     {
       send_to_char(ch, "Your opponent seems to be immune to confusion effects.\r\n");
@@ -4411,9 +4449,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_FALSE_LIFE: // necromancy
-    af[1].location = APPLY_HIT;
-    af[1].modifier = 30;
-    af[1].duration = 300;
+    af[0].location = APPLY_HIT;
+    af[0].modifier = 30;
+    af[0].duration = 300;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     to_room = "$n grows strong with \tDdark\tn life!";
     to_vict = "You grow strong with \tDdark\tn life!";
@@ -5292,26 +5331,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 5;
     af[0].duration = 300;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[1].location = APPLY_DAMROLL;
     af[1].modifier = 5;
     af[1].duration = 300;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[2].location = APPLY_SAVING_WILL;
     af[2].modifier = 3;
     af[2].duration = 300;
+    af[2].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[3].location = APPLY_SAVING_FORT;
     af[3].modifier = 3;
     af[3].duration = 300;
+    af[3].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[4].location = APPLY_SAVING_REFL;
     af[4].modifier = 3;
     af[4].duration = 300;
+    af[4].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     af[5].location = APPLY_HIT;
     af[5].modifier = dice(4, 12) + level;
     af[5].duration = 300;
+    af[5].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
 
     to_room = "$n is now divinely blessed and aided!";
     to_vict = "You feel divinely blessed and aided.";
@@ -6381,7 +6426,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_PSIONIC_BLAST:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     isEffect = TRUE;
@@ -6389,7 +6433,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_INFLICT_PAIN:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 4)
@@ -6403,7 +6446,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_MENTAL_DISRUPTION:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     isEffect = TRUE;
@@ -6411,7 +6453,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_ERADICATE_INVISIBILITY:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_unaffects, we do it here.
     isUnEffect = TRUE;
@@ -6419,7 +6460,6 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
     break;
 
   case PSIONIC_DEADLY_FEAR:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 8)
@@ -6694,7 +6734,6 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
   /** Psionics **/
   case PSIONIC_CONCUSSION_BLAST:
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_damage, we do it here.
     if (GET_AUGMENT_PSP(ch) < 4)
@@ -6707,36 +6746,28 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "A massive blast of concussive force explodes from around $n!";
     break;
   case PSIONIC_SWARM_OF_CRYSTALS:
-
     // we aren't deducting psp in mag_damage, we do it here.
     to_char = "You spread your arms, shooting out thousands of tiny crystal shards!";
     to_room = "$n spreads $s arms, shooting out thousands of tiny crystal shards!";
     break;
   case PSIONIC_ENERGY_BURST:
-
+    to_char = "You spread your arms, a burst of energy shooting outward!";
+    to_room = "$n spreads $s arms, shooting out a burst of energy!";
     break;
   case PSIONIC_UPHEAVAL:
-
+    to_char = "You manifest a psychic upheaval that assails the minds of all nearby!";
+    to_room = "A psychic upheaval from $n assails your mind with anguish!";
     break;
   case PSIONIC_SHRAPNEL_BURST:
-
+    to_char = "You spread your arms, shooting out thousands of shrapnel!";
+    to_room = "$n spreads $s arms, shooting out thousands of shrapnel!";
     break;
   case PSIONIC_BREATH_OF_THE_BLACK_DRAGON:
-
+    to_char = "You manifest a blast of acid that assails all nearby!";
+    to_room = "A blast of acid shoots from the mouth of $n assailing all nearby!";
     break;
-
-  case ABILITY_CHANNEL_POSITIVE_ENERGY:
-    to_char = "You channel a massive wave of holy energy!";
-    to_room = "A massive wave of holy energy envelops $n!";
-    break;
-  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
-    to_char = "You channel a massive wave of unholy energy!";
-    to_room = "A massive wave of unholy energy envelops $n!";
-    break;
-
   case PSIONIC_PSYCHOSIS:
     isEffect = TRUE;
-
     // because this only benefits from intervals of 2 psp.
     // we aren't deducting psp in mag_affects, we do it here.
     if (GET_AUGMENT_PSP(ch) < 6)
@@ -6748,17 +6779,30 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You manifest a massive wave of confusion!";
     to_room = "A massive wave of confusion envelops $n!";
     break;
-
   case PSIONIC_ULTRABLAST:
-
     to_char = "You manifest a psychic shriek that assails the minds of all nearby!";
     to_room = "A psychic shriek from $n assails your mind with severe anguish!";
+    break;
+
+    /** abilities (channel, etc) **/
+
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+    to_char = "You channel a massive wave of holy energy!";
+    to_room = "A massive wave of holy energy envelops $n!";
+    break;
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+    to_char = "You channel a massive wave of unholy energy!";
+    to_room = "A massive wave of unholy energy envelops $n!";
     break;
 
     /** NPC **/
   case SPELL_FIRE_BREATHE:
     to_char = "You exhale breathing out fire!";
     to_room = "$n exhales breathing fire!";
+    break;
+  case SPELL_GAS_BREATHE:
+    to_char = "You exhale breathing out gas!";
+    to_room = "$n exhales breathing gas!";
     break;
   case SPELL_FROST_BREATHE:
     to_char = "You exhale breathing out frost!";
@@ -7562,9 +7606,11 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
     send_to_char(victim, "<%d> ", healing);
 
   /* restore HP now, some spells/effects can heal over your MAX hp */
-  if (spellnum == RACIAL_LICH_TOUCH)
+  if (spellnum == RACIAL_LICH_TOUCH || spellnum == -1)
   {
-    GET_HIT(victim) += healing;
+
+    if (GET_HIT(victim) < (GET_MAX_HIT(victim) * 2))
+      GET_HIT(victim) += healing;
   }
   else
   {
@@ -8247,15 +8293,34 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     object_vnum = 9401;
     break;
   case SPELL_PORTAL:
+
     if (vict == NULL)
     {
       send_to_char(ch, "Portal failed!  You have no target!\r\n");
       return;
     }
 
+    if (IN_ROOM(ch) == NOWHERE)
+    {
+      send_to_char(ch, "Portal failed!  You are NOWHERE!  (report to imm bug magic8274)\r\n");
+      return;
+    }
+
+    if (IN_ROOM(vict) == NOWHERE)
+    {
+      send_to_char(ch, "Portal failed!  The target seems to no longer be valid...\r\n");
+      return;
+    }
+
     if (AFF_FLAGGED(vict, AFF_NOTELEPORT))
     {
       send_to_char(ch, "The portal begins to open, then shuts suddenly!\r\n");
+      return;
+    }
+
+    if (MOB_FLAGGED(vict, MOB_NOSUMMON))
+    {
+      send_to_char(ch, "The portal while beginning to form, flashes brightly, then shuts suddenly!\r\n");
       return;
     }
 

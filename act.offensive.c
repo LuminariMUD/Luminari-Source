@@ -347,7 +347,8 @@ void perform_rage(struct char_data *ch)
 
   GET_HIT(ch) += bonus * 2;
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
-    GET_HIT(ch) = GET_MAX_HIT(ch);
+    GET_HIT(ch)
+  --;
 
   /* Add another affect for heavy shrug. */
   //  if (HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG)) {
@@ -1684,9 +1685,9 @@ void perform_smite(struct char_data *ch, int smite_type)
 /* the primary engine for backstab */
 bool perform_backstab(struct char_data *ch, struct char_data *vict)
 {
-  int blow_landed = 0, prob = 0, successful = 0, has_piercing = 0;
+  int blow_landed = 0, prob = 0, successful = 0, has_piercing = 0, assassin_mod = 2;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
-  bool make_aware = FALSE;
+  bool make_aware = FALSE, marked_target = FALSE;
 
   if (AFF_FLAGGED(ch, AFF_HIDE))
     prob += 1; // minor bonus for being hidden
@@ -1707,10 +1708,12 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
 
   if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
     has_piercing = 1;
+
   if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch))
   {
     has_piercing = 1;
   }
+
   /* try for primary 1handed weapon */
   if (has_piercing)
   {
@@ -1724,23 +1727,27 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
       make_aware = TRUE;
       // hidden weapons feat grants an extra attack
-      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(ch, ABILITY_PERCEPTION)))
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
       {
+        marked_target = TRUE;
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }
     successful++;
   }
+
   update_pos(vict);
   has_piercing = 0;
 
   wielded = GET_EQ(ch, WEAR_WIELD_OFFHAND);
   if (wielded && IS_SET(weapon_list[GET_WEAPON_TYPE(wielded)].damageTypes, DAMAGE_TYPE_PIERCING))
     has_piercing = 1;
+
   if (GET_RACE(ch) == RACE_TRELUX && !IS_NPC(ch))
   {
     has_piercing = 1;
   }
+
   /* try for offhand */
   if (vict && GET_POS(vict) > POS_DEAD && has_piercing)
   {
@@ -1752,6 +1759,11 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     {
       apply_assassin_backstab_bonuses(ch, vict);
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
+      // hidden weapons feat grants an extra attack
+      if (marked_target && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
+      {
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
       make_aware = TRUE;
     }
     successful++;
@@ -1779,7 +1791,7 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, TRUE);
       make_aware = TRUE;
       // hidden weapons feat grants an extra attack
-      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(ch, ABILITY_PERCEPTION)))
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
       {
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
@@ -1802,8 +1814,20 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
 
     if (is_marked_target(ch, vict))
     {
+      assassin_mod += GET_LEVEL(ch) - GET_LEVEL(vict);
+      if (HAS_FEAT(ch, FEAT_DEATH_ATTACK))
+        assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_TRUE_DEATH))
+        assassin_mod += 3;
+      if (HAS_FEAT(ch, FEAT_QUIET_DEATH))
+        assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_SWIFT_DEATH))
+        assassin_mod += 2;
+      if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
+        assassin_mod += 4;
+
       if (!AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
-          !mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_ROGUE) + CLASS_LEVEL(ch, CLASS_ASSASSIN), NOSCHOOL))
+          !mag_savingthrow(ch, vict, SAVING_FORT, assassin_mod, CAST_INNATE, IS_ROGUE_TYPE(ch), NOSCHOOL))
       {
         struct affected_type death_attack;
 
@@ -1812,6 +1836,12 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
         death_attack.duration = 2;
         SET_BIT_AR(death_attack.bitvector, AFF_PARALYZED);
         affect_join(vict, &death_attack, TRUE, FALSE, FALSE, FALSE);
+        act("$n paralyzes $N as $e performs a death attack against $M!",
+            FALSE, ch, NULL, vict, TO_NOTVICT);
+        act("You paralyze $N as you perform a death attack!",
+            FALSE, ch, NULL, vict, TO_CHAR);
+        act("$n paralyzes you as $e performs a death attack!",
+            FALSE, ch, NULL, vict, TO_VICT);
       }
     }
 
@@ -2240,21 +2270,25 @@ ACMD(do_defensive_stance)
   af.duration = duration;
   af.location = APPLY_STR;
   af.modifier = bonus;
+  af.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   aftwo.spell = SKILL_DEFENSIVE_STANCE;
   aftwo.duration = duration;
   aftwo.location = APPLY_CON;
   aftwo.modifier = bonus;
+  aftwo.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   afthree.spell = SKILL_DEFENSIVE_STANCE;
   afthree.duration = duration;
   afthree.location = APPLY_SAVING_WILL;
   afthree.modifier = 2;
+  afthree.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   affour.spell = SKILL_DEFENSIVE_STANCE;
   affour.duration = duration;
   affour.location = APPLY_AC_NEW;
   affour.modifier = 2;
+  affour.bonus_type = BONUS_TYPE_CIRCUMSTANCE; /* stacks */
 
   affect_to_char(ch, &af);
   affect_to_char(ch, &aftwo);
@@ -7537,6 +7571,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   int i = 0, duration = 0;
   int which_cruelty = BLACKGUARD_CRUELTY_NONE;
   int save_mod = 0;
+  const char *to_vict = NULL, *to_room = NULL;
 
   for (i = 1; i < NUM_BLACKGUARD_CRUELTIES; i++)
   {
@@ -7563,7 +7598,18 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   switch (which_cruelty)
   {
   case BLACKGUARD_CRUELTY_SHAKEN:
+    to_vict = "You are -shaken- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -shaken- from the cruelty inflicted upon $M by the corrupting touch!";
+    if (is_immune_fear(ch, vict, true))
+      return;
+    if (is_immune_mind_affecting(ch, vict, true))
+      return;
+    if (affected_by_aura_of_cowardice(vict))
+      save_mod = -4;
+    break;
   case BLACKGUARD_CRUELTY_FRIGHTENED:
+    to_vict = "You are -frightened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -frightened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (is_immune_fear(ch, vict, true))
       return;
     if (is_immune_mind_affecting(ch, vict, true))
@@ -7572,7 +7618,17 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
       save_mod = -4;
     break;
   case BLACKGUARD_CRUELTY_SICKENED:
+    to_vict = "You are -sickened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -sickened- from the cruelty inflicted upon $M by the corrupting touch!";
+    if (!can_disease(vict))
+    {
+      act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    break;
   case BLACKGUARD_CRUELTY_DISEASED:
+    to_vict = "You are -diseased- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -diseased- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_disease(vict))
     {
       act("$E is immune to disease!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7580,6 +7636,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_POISONED:
+    to_vict = "You are -poisoned- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -poisoned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_poison(vict))
     {
       act("$E is immune to poison!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7587,6 +7645,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_BLINDED:
+    to_vict = "You are -blinded- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -blinded- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_blind(vict))
     {
       act("$E cannot be blinded!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7594,6 +7654,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_DEAFENED:
+    to_vict = "You are -deafened- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -deafened- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_deafen(vict))
     {
       act("$E cannot be deafened!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7601,6 +7663,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_PARALYZED:
+    to_vict = "You are -paralyzed- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -paralyzed- from the cruelty inflicted upon $M by the corrupting touch!";
     if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
     {
       act("$E cannot be paralyzed!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7608,6 +7672,8 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
     }
     break;
   case BLACKGUARD_CRUELTY_STUNNED:
+    to_vict = "You are -stunned- from the cruelty inflicted upon you by the corrupting touch!";
+    to_room = "$N is -stunned- from the cruelty inflicted upon $M by the corrupting touch!";
     if (!can_stun(vict))
     {
       act("$E cannot be stunned!", FALSE, ch, 0, vict, TO_CHAR);
@@ -7652,6 +7718,11 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
   af.duration = duration;
 
   affect_to_char(vict, &af);
+
+  if (to_vict != NULL)
+    act(to_vict, FALSE, vict, 0, ch, TO_CHAR);
+  if (to_room != NULL)
+    act(to_room, TRUE, vict, 0, ch, TO_ROOM);
 }
 
 void throw_hedging_weapon(struct char_data *ch)
@@ -7706,6 +7777,12 @@ ACMD(do_mark)
   char arg[100];
 
   one_argument(argument, arg, sizeof(arg));
+
+  if (CLASS_LEVEL(ch, CLASS_ASSASSIN) < 1)
+  {
+    send_to_char(ch, "Only assassins know how to do that!\r\n");
+    return;
+  }
 
   if (!*arg)
   {
@@ -7996,7 +8073,6 @@ ACMDU(do_slayer)
                    "Your inquisitor level will be treated as 5 higher when determining bonus amount.\r\n",
                inquisitor_judgements[i]);
 }
-
 
 ACMDCHECK(can_true_judgement)
 {

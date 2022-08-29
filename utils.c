@@ -1626,7 +1626,7 @@ void increase_skill(struct char_data *ch, int skillnum) {
 
   if (notched)
     send_to_char(ch, "\tMYou feel your skill in \tC%s\tM improve! Your skill at "
-          "\tC%s\tM is now %d!\tn", skill_info[skillnum].name, skill_info[skillnum].name,
+          "\tC%s\tM is now %d!\tn", spell_info[skillnum].name, spell_info[skillnum].name,
           GET_SKILL(ch, skillnum));
   return;
 }
@@ -3683,6 +3683,12 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_IMBUE_ARROW:
       daily_uses += HAS_FEAT(ch, featnum) * 2;
       break;
+    case FEAT_INVISIBLE_ROGUE:
+      daily_uses += 1 + HAS_FEAT(ch, featnum) + GET_INT_BONUS(ch); 
+      break;
+    case FEAT_IMPROMPTU_SNEAK_ATTACK:
+      daily_uses += 1 + HAS_FEAT(ch, featnum); 
+    break;
     case FEAT_SMITE_EVIL:/*fallthrough*/
     case FEAT_SMITE_GOOD:/*fallthrough*/
     case FEAT_RAGE:/*fallthrough*/
@@ -3695,8 +3701,6 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_WILD_SHAPE:/*fallthrough*/
     case FEAT_ANIMATE_DEAD:/*fallthrough*/
     case FEAT_VANISH:/*fallthrough*/
-    case FEAT_INVISIBLE_ROGUE:/*fallthrough*/
-    case FEAT_IMPROMPTU_SNEAK_ATTACK:
       daily_uses += HAS_FEAT(ch, featnum);
       break;
     case FEAT_DRACONIC_HERITAGE_BREATHWEAPON:
@@ -4855,14 +4859,14 @@ int d20(struct char_data *ch)
       send_to_char(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
   }
 
-  if (!IS_NPC(ch) && ch->player_specials->cosmic_awareness)
+  if (ch && !IS_NPC(ch) && ch->player_specials && ch->player_specials->cosmic_awareness)
   {
     roll += GET_PSIONIC_LEVEL(ch);
     ch->player_specials->cosmic_awareness = false;
     send_to_char(ch, "\tY[Cosmic Awareness Bonus! +%d]\tn\r\n", GET_PSIONIC_LEVEL(ch));
   }
 
-  if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
+  if (ch && affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_PERPETUAL_FORESIGHT))
     if (dice(1, 10) == 1) {
       roll += GET_INT_BONUS(ch);
       send_to_char(ch, "\tY[Perpetual Foresight Bonus! +%d]\tn\r\n", GET_INT_BONUS(ch));
@@ -4876,8 +4880,8 @@ const char * get_wearoff(int abilnum)
   if (spell_info[abilnum].schoolOfMagic != NOSCHOOL)
     return (const char *) spell_info[abilnum].wear_off_msg;
 
-  if (skill_info[abilnum].schoolOfMagic == ACTIVE_SKILL)
-    return (const char *) skill_info[abilnum].wear_off_msg;
+  if (spell_info[abilnum].schoolOfMagic == ACTIVE_SKILL)
+    return (const char *) spell_info[abilnum].wear_off_msg;
 
   return (const char *)spell_info[abilnum].wear_off_msg;
 }
@@ -5620,11 +5624,11 @@ bool is_marked_target(struct char_data *ch, struct char_data *vict)
 {
   if (!ch || !vict) return false;
 
-  if (!HAS_FEAT(ch, FEAT_DEATH_ATTACK))
-    return false;
-
   if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
     return true;
+
+  if (!HAS_FEAT(ch, FEAT_DEATH_ATTACK))
+    return false;
 
   if (GET_MARK(ch) == vict && GET_MARK_ROUNDS(ch) >= 3)
     return true;

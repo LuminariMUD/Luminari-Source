@@ -376,18 +376,75 @@ int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6)
     return (p6); /* >= 80 */
 }
 
+/* we do the math for our hps regen per tick here -zusuk */
+int regen_hps(struct char_data *ch)
+{
+  int hp = 0;
+
+  if (rand_number(0, 1))
+    hp++;
+
+  // position, other bonuses
+  if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
+    hp += dice(3, 2) + 1;
+  else if (GET_POS(ch) == POS_RESTING)
+    hp += dice(1, 2);
+  else if (GET_POS(ch) == POS_RECLINING)
+    hp += dice(1, 4);
+  else if (GET_POS(ch) == POS_SLEEPING)
+    hp += dice(3, 2);
+
+  if (HAS_FEAT(ch, FEAT_FAST_HEALING))
+  {
+    hp += HAS_FEAT(ch, FEAT_FAST_HEALING) * 3;
+  }
+
+  // half-troll racial innate regeneration
+  if (GET_RACE(ch) == RACE_HALF_TROLL)
+  {
+    hp += 3;
+    if (FIGHTING(ch))
+      hp += 3;
+  }
+
+  // shadow master feat
+  if (IS_SHADOW_CONDITIONS(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER))
+  {
+    hp += 3;
+    if (FIGHTING(ch))
+      hp += 3;
+  }
+
+  /* these are last bonuses because of multiplier */
+  if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
+    hp *= 2;
+
+  if (AFF_FLAGGED(ch, AFF_REGEN))
+    hp *= 2;
+
+  if (affected_by_spell(ch, PSIONIC_TRUE_METABOLISM))
+    hp += 10;
+
+  /* blackmantle stops natural regeneration */
+  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
+    hp = 0;
+
+  return hp;
+}
+
+/* this function handles poison, entry point for hps rege, and movement regen */
 void regen_update(struct char_data *ch)
 {
   struct char_data *tch = NULL;
   int hp = 0, found = 0;
 
-  // poisoned, and dying people should suffer their damage from anyone they are
-  // fighting in order that xp goes to the killer (who doesn't strike the last blow)
-  // -zusuk
+  /* poisoned, and dying people should suffer their damage from anyone they are
+     fighting in order that xp goes to the killer (who doesn't strike the last blow)
+     -zusuk */
   if (AFF_FLAGGED(ch, AFF_POISON))
   {
 
-    /*  */
+    /* venom immunity  */
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_VENOM_IMMUNITY))
     {
       send_to_char(ch, "Your venom immunity purges the poison!\r\n");
@@ -431,12 +488,12 @@ void regen_update(struct char_data *ch)
         {
           damage(tch, ch, dice(1, 4), SPELL_POISON, KNOWS_DISCOVERY(tch, ALC_DISC_CELESTIAL_POISONS) ? DAM_CELESTIAL_POISON : DAM_POISON, FALSE);
           /* we use to have custom damage message here for this */
-          // act("$N looks really \tgsick\tn and shivers uncomfortably.",
-          //         FALSE, tch, NULL, ch, TO_CHAR);
-          // act("You feel burning \tgpoison\tn in your blood, and suffer.",
-          //         FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
-          // act("$N looks really \tgsick\tn and shivers uncomfortably.",
-          //         FALSE, tch, NULL, ch, TO_NOTVICT);
+          /* act("$N looks really \tgsick\tn and shivers uncomfortably.",
+                     FALSE, tch, NULL, ch, TO_CHAR);
+             act("You feel burning \tgpoison\tn in your blood, and suffer.",
+                     FALSE, tch, NULL, ch, TO_VICT | TO_SLEEP);
+             act("$N looks really \tgsick\tn and shivers uncomfortably.",
+                    FALSE, tch, NULL, ch, TO_NOTVICT); */
           found = 1;
           break;
         }
@@ -450,6 +507,7 @@ void regen_update(struct char_data *ch)
 
   } /* done dealing with poison */
 
+  /* mortally wounded, you will die if not aided! */
   found = 0;
   tch = NULL;
   if (GET_POS(ch) == POS_MORTALLYW)
@@ -489,47 +547,12 @@ void regen_update(struct char_data *ch)
     return;
   }
 
+  /* we turn off regen for low level npcs */
   if (IS_NPC(ch) && GET_LEVEL(ch) <= 6 && !AFF_FLAGGED(ch, AFF_CHARM))
   {
     update_pos(ch);
     return;
   }
-
-  if (rand_number(0, 1))
-    hp++;
-
-  // position, other bonuses
-  if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
-    hp += dice(3, 2) + 1;
-  else if (GET_POS(ch) == POS_RESTING)
-    hp += dice(1, 2);
-  else if (GET_POS(ch) == POS_RECLINING)
-    hp += dice(1, 4);
-  else if (GET_POS(ch) == POS_SLEEPING)
-    hp += dice(3, 2);
-
-  if (HAS_FEAT(ch, FEAT_FAST_HEALING))
-  {
-    hp += HAS_FEAT(ch, FEAT_FAST_HEALING) * 3;
-  }
-
-  // half-troll racial innate regeneration
-  if (GET_RACE(ch) == RACE_HALF_TROLL)
-  {
-    hp += 3;
-    if (FIGHTING(ch))
-      hp += 3;
-  }
-
-  /* these are last bonuses because of multiplier */
-  if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
-    hp *= 2;
-
-  if (AFF_FLAGGED(ch, AFF_REGEN))
-    hp *= 2;
-
-  if (affected_by_spell(ch, PSIONIC_TRUE_METABOLISM))
-    hp += 10;
 
   /****/
 
@@ -540,17 +563,28 @@ void regen_update(struct char_data *ch)
     hp = 0;
   */
 
-  /* blackmantle stops natural regeneration */
-  if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))
-    hp = 0;
+  /* we moved the math of hp regen into a separate function to make it easier to find/ manipulate */
+  hp = regen_hps(ch);
 
   /* some mechanics put you over maximum hp (purposely), this slowly drains that bonus over time */
   if (GET_HIT(ch) > GET_MAX_HIT(ch))
   {
-    if (!rand_number(0, 1))
+    if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 15)
     {
       GET_HIT(ch)
       --;
+    }
+    else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 45)
+    {
+      GET_HIT(ch) -= 3;
+    }
+    else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 100)
+    {
+      GET_HIT(ch) -= 10;
+    }
+    else
+    {
+      GET_HIT(ch) -= 20;
     }
   }
   else
@@ -558,6 +592,7 @@ void regen_update(struct char_data *ch)
     GET_HIT(ch) = MIN(GET_HIT(ch) + hp, GET_MAX_HIT(ch));
   }
 
+  /* handle move regen here */
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
     GET_MOVE(ch)
@@ -578,16 +613,12 @@ void regen_update(struct char_data *ch)
     GET_MOVE(ch) = MIN(GET_MOVE(ch) + (move_regen * 3), GET_MAX_MOVE(ch));
   }
 
-  /*
+  /* this is an extra over-stack drain for PSP, another one exists in the regen_psp() function */
   if (GET_PSP(ch) > GET_MAX_PSP(ch))
   {
-    GET_PSP(ch)--;
+    GET_PSP(ch)
+    --;
   }
-  else
-  {
-    GET_PSP(ch) = MIN(GET_PSP(ch) + (hp * 2), GET_MAX_PSP(ch));
-  }
-*/
 
   update_pos(ch);
   return;
@@ -606,6 +637,7 @@ void regen_psp(void)
 
   for (d = descriptor_list; d; d = d->next)
   {
+
     if (STATE(d) != CON_PLAYING)
       continue;
     if (!d->character)
@@ -614,13 +646,33 @@ void regen_psp(void)
       continue;
     if (FIGHTING(d->character))
       continue;
-    if (GET_POS(d->character) > POS_SITTING)
-      continue;
-    GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 10);
-    if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
-      GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
+
+    if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
+      GET_PSP(d->character)
+    ++;
+
+    if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
+      if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
+        GET_PSP(d->character) += HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY);
+
+    switch (GET_POS(d->character))
+    {
+    case POS_SLEEPING:
+    case POS_RECLINING:
+    /*case POS_CRAWLING:*/
+    case POS_RESTING:
+    case POS_SITTING:
+      if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
+        GET_PSP(d->character) += 2 + (GET_PSIONIC_LEVEL(d->character) / 7);
+      break;
+    default:
+      break;
+    }
+
+    /* we also have a de-regen if over max in another function */
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character) = GET_MAX_PSP(d->character);
+      GET_PSP(d->character)
+    --;
   }
 }
 
@@ -1007,7 +1059,7 @@ void gain_exp_regardless(struct char_data *ch, int gain)
       GET_LEVEL(ch) += 1;
       if (CLASS_LEVEL(ch, GET_CLASS(ch)) < (LVL_STAFF - 1))
         CLASS_LEVEL(ch, GET_CLASS(ch))
-        ++;
+      ++;
       num_levels++;
       /* our function for leveling up, takes in class that is being advanced */
       advance_level(ch, GET_CLASS(ch));
@@ -1138,7 +1190,8 @@ void update_player_misc(void)
     affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)--;
+      GET_MISSION_COOLDOWN(ch)
+    --;
 
     if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
       SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
@@ -1287,7 +1340,7 @@ void proc_d20_round(void)
         for (raff = raff_list; raff; raff = next_raff)
         {
           next_raff = raff->next;
-          
+
           if (raff->room == IN_ROOM(i))
           {
             if (raff->affection == RAFF_OBSCURING_MIST)
@@ -1833,25 +1886,28 @@ void update_damage_and_effects_over_time(void)
     } // sticky bomb effects
 
     // fast healing grand discovery affect
-    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING)
+    if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_FAST_HEALING && GET_HIT(ch) < GET_MAX_HIT(ch))
     {
       GET_HIT(ch) += 5;
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch) = GET_MAX_HIT(ch);
+        GET_HIT(ch)
+      --;
     }
 
     // judgement of healing
-    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses)
+    if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_HEALING) && !ch->player.exploit_weaknesses && GET_HIT(ch) < GET_MAX_HIT(ch))
       GET_HIT(ch) += get_judgement_bonus(ch, INQ_JUDGEMENT_HEALING);
     if (GET_HIT(ch) > GET_MAX_HIT(ch))
-      GET_HIT(ch) = GET_MAX_HIT(ch);
+      GET_HIT(ch)
+    --;
 
     // paladin fast healing mercy effect
-    if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING))
+    if (affected_by_spell(ch, PALADIN_MERCY_INJURED_FAST_HEALING) && GET_HIT(ch) < GET_MAX_HIT(ch))
     {
       GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch) = GET_MAX_HIT(ch);
+        GET_HIT(ch)
+      --;
     }
 
     if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))

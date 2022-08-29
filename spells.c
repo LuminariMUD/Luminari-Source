@@ -46,9 +46,30 @@ void save_char_pets(struct char_data *ch);
 #define SPELL_WALL_OF_THORNS            283
 #define SPELL_WALL_OF_FOG               92
 #define SPELL_PRISMATIC_SPHERE          211
+#define PSIONIC_WALL_OF_ECTOPLASM 1562
+
 | stops movement? | spellnum | long name | short name | keywords | duration |
    duration = 0 is default: 1 + level / 10
  */
+
+bool is_wall_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+  case SPELL_WALL_OF_FORCE:
+  case SPELL_WALL_OF_FIRE:
+  case SPELL_WALL_OF_THORNS:
+  case SPELL_WALL_OF_FOG:
+  case SPELL_PRISMATIC_SPHERE:
+  case PSIONIC_WALL_OF_ECTOPLASM:
+    break;
+  default:
+    /* this isn't a wall spell! */
+    return FALSE;
+  }
+  return TRUE;
+}
+
 struct wall_information wallinfo[NUM_WALL_TYPES] = {
     /* WALL_TYPE_FORCE 0 */
     {TRUE,
@@ -104,7 +125,7 @@ bool check_wall(struct char_data *victim, int dir)
   int level = 0;
   bool found_player = FALSE; /* you can pass through your own walls */
   int wall_spellnum = 0;
-  int casttype = CAST_SPELL;
+  int casttype = CAST_WALL;
 
   for (wall = world[victim->in_room].contents; wall; wall = wall->next_content)
   {
@@ -280,7 +301,7 @@ int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock)
   if (ROOM_FLAGGED(dest, ROOM_NOTELEPORT))
     return FALSE;
 
-  //passed all tests!
+  // passed all tests!
   return TRUE;
 }
 
@@ -341,7 +362,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   int bonus = 0;
 
   /* resistance bonuses, etc */
-  if (!IS_NPC(victim) && (GET_RACE(victim) == RACE_ELF || //elven enchantment resistance
+  if (!IS_NPC(victim) && (GET_RACE(victim) == RACE_ELF || // elven enchantment resistance
                           GET_RACE(victim) == RACE_H_ELF))
     /* added check for IS_NPC because RACE_TYPE_HUMAN == RACE_ELF and
      * RACE_TYPE_ABERRATION == RACE_H_ELF */
@@ -471,11 +492,11 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG)))
     {
 
-      //if (SECT(ch->in_room) != SECT_CLOUDS && SECT(ch->in_room) != SECT_SHADOWPLANE) {
+      // if (SECT(ch->in_room) != SECT_CLOUDS && SECT(ch->in_room) != SECT_SHADOWPLANE) {
       REMOVE_BIT_AR(ROOM_FLAGS(IN_ROOM(ch)), (ROOM_FOG));
       send_to_room(IN_ROOM(ch), "\tWThe fog dissipates into thin air!\tn\r\n");
       //} else {
-      //send_to_room("Your magic is useless against these clouds!\r\n", ch->in_room);
+      // send_to_room("Your magic is useless against these clouds!\r\n", ch->in_room);
       //}
     }
     return;
@@ -537,7 +558,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
       for (i = 0; i < num_dispels; i++)
       {
         if (attempt >= challenge)
-        { //successful
+        { // successful
           if (vict->affected)
           {
             msg = TRUE;
@@ -563,14 +584,14 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     if (spellnum == SPELL_DISPEL_MAGIC)
     {
       if (attempt >= challenge)
-      { //successful
+      { // successful
         send_to_char(ch, "You successfuly dispel some magic!\r\n");
         act("$n dispels some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
         if (vict->affected)
           affect_remove(vict, vict->affected);
       }
       else
-      { //failed
+      { // failed
         send_to_char(ch, "You fail your dispel magic attempt!\r\n");
         act("$n fails to dispel some of $N's magic!", FALSE, ch, 0, vict, TO_ROOM);
       }
@@ -634,7 +655,7 @@ EVENTFUNC(event_acid_arrow)
 
   ch = (struct char_data *)pMudEvent->pStruct;
 
-  if (ch && FIGHTING(ch)) //assign victim, if none escape
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
     victim = FIGHTING(ch);
   else
     return 0;
@@ -687,7 +708,7 @@ EVENTFUNC(event_implode)
    * referenced pointers */
   pMudEvent = (struct mud_event_data *)event_obj;
   ch = (struct char_data *)pMudEvent->pStruct;
-  if (ch && FIGHTING(ch)) //assign victim, if none escape
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
     victim = FIGHTING(ch);
   else
     return 0;
@@ -737,7 +758,6 @@ ASPELL(spell_acid_arrow)
 
   send_to_char(ch, "You send out an arrow of acid towards your opponent!\r\n");
   act("$n sends out an arrow of acid!", FALSE, ch, 0, 0, TO_ROOM);
-
 
   num_arrows += CASTER_LEVEL(ch) / 3;
 
@@ -1749,11 +1769,13 @@ ASPELL(spell_summon)
 
   if (mag_resistance(ch, victim, 0))
     return;
+
   if (MOB_FLAGGED(victim, MOB_NOSUMMON))
   {
     send_to_char(ch, "Your victim seems unsummonable.");
     return;
   }
+
   if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
   {
     send_to_char(ch, "%s", SUMMON_FAIL);
@@ -1788,6 +1810,12 @@ ASPELL(spell_teleport)
   if (AFF_FLAGGED(victim, AFF_NOTELEPORT))
   {
     send_to_char(ch, "Your spell fails to target that victim!\r\n");
+    return;
+  }
+
+  if (MOB_FLAGGED(victim, MOB_NOSUMMON))
+  {
+    send_to_char(ch, "The teleportation magic while beginning to form, flashes brightly, then dies suddenly!\r\n");
     return;
   }
 
@@ -2169,20 +2197,20 @@ ASPELL(spell_wizard_eye)
 {
   struct char_data *eye = read_mobile(WIZARD_EYE, VIRTUAL);
 
-  //dummy check
+  // dummy check
   if (!eye)
   {
     send_to_char(ch, "You don't quite remember how to create that.\r\n");
     return;
   }
 
-  //first load the eye
+  // first load the eye
   char_to_room(eye, IN_ROOM(ch));
   IS_CARRYING_W(eye) = 0;
   IS_CARRYING_N(eye) = 0;
   load_mtrigger(eye);
 
-  //now take control
+  // now take control
   send_to_char(ch, "You summon a wizard eye! (\tDType 'return' to return"
                    " to your body\tn)\r\n");
   ch->desc->character = eye;
@@ -2286,7 +2314,7 @@ EVENTFUNC(event_power_leech)
   if (ch == NULL)
     return 0;
 
-  if (ch && FIGHTING(ch)) //assign victim, if none escape
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
     victim = FIGHTING(ch);
   else
     return 0;
@@ -2313,7 +2341,7 @@ EVENTFUNC(event_power_leech)
 
 #define ZOCMD zone_table[zrnum].cmd[subcmd]
 
-//static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum) {
+// static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum) {
 ASPELL(spell_augury)
 {
 

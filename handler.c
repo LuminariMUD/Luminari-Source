@@ -1081,10 +1081,10 @@ void affect_from_char(struct char_data *ch, int spell)
  * not affected. */
 bool affected_by_spell(struct char_data *ch, int type)
 {
-  struct affected_type *hjp;
+  struct affected_type *hjp = NULL;
 
   for (hjp = ch->affected; hjp; hjp = hjp->next)
-    if (hjp->spell == type)
+    if (hjp && hjp->spell == type)
       return (TRUE);
 
   return (FALSE);
@@ -1546,11 +1546,18 @@ void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
   /* if (invalid_align(ch, obj) || invalid_class(ch, obj) || invalid_prof(ch, obj)) { */
   if (invalid_align(ch, obj) || invalid_class(ch, obj))
   {
-    act("You try to use $p, but fumble it and let go.", FALSE, ch, obj, 0, TO_CHAR);
-    act("$n tries to use $p, but can't seem to and lets go.", FALSE, ch, obj, 0, TO_ROOM);
-    /* Changed to drop in inventory instead of the ground. */
-    obj_to_char(obj, ch);
-    return;
+    if (GET_LEVEL(ch) < LVL_IMPL)
+    {
+      act("You try to use $p, but fumble it and let go.", FALSE, ch, obj, 0, TO_CHAR);
+      act("$n tries to use $p, but can't seem to and lets go.", FALSE, ch, obj, 0, TO_ROOM);
+      /* Changed to drop in inventory instead of the ground. */
+      obj_to_char(obj, ch);
+      return;
+    }
+    else
+    {
+      // send_to_char(ch, "You don't qualify to use this item, but your staff level allows you to wear it anyhow.\r\n");
+    }
   }
 
   GET_EQ(ch, pos) = obj;

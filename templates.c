@@ -1,6 +1,6 @@
 /*
  * Template system by Gicker aka Stephen Squires for LuminariMUD 2020
-**/
+ **/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -42,7 +42,7 @@ void gain_template_level(struct char_data *ch, int t_type, int level)
     struct descriptor_data *d = ch->desc;
     long int level_id = -1;
 
-    //Check the connection, reconnect if necessary.
+    // Check the connection, reconnect if necessary.
     mysql_ping(conn);
 
     snprintf(query, sizeof(query),

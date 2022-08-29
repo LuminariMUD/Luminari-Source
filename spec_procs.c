@@ -37,6 +37,7 @@
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
 #include "treasure.h" /* for set_armor_object */
+#include "mobact.h"   /* npc_find_target() */
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -53,9 +54,9 @@ static void npc_steal(struct char_data *ch, struct char_data *victim);
 static void zone_yell(struct char_data *ch, const char *buf);
 
 /* Special procedures for mobiles. */
-int spell_sort_info[MAX_SPELLS + 1];
-int sorted_spells[MAX_SPELLS + 1];
-int sorted_skills[MAX_SKILLS + 1];
+int spell_sort_info[TOP_SKILL_DEFINE];
+int sorted_spells[TOP_SKILL_DEFINE];
+int sorted_skills[TOP_SKILL_DEFINE];
 
 #define LEARNED_LEVEL 0 /* % known which is considered "learned" */
 #define MAX_PER_PRAC 1  /* max percent gain in skill per practice */
@@ -82,36 +83,38 @@ void sort_spells(void)
 {
   int a;
 
-  /* full list */
-
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= MAX_SKILLS; a++)
+  for (a = 1; a < TOP_SKILL_DEFINE; a++)
   {
     spell_sort_info[a] = a;
     sorted_spells[a] = -1;
     sorted_skills[a] = -1;
   }
 
-  qsort(&spell_sort_info[1], MAX_SKILLS, sizeof(int),
+  /* full list */
+
+  qsort(&spell_sort_info[1], TOP_SKILL_DEFINE, sizeof(int),
         compare_spells);
 
   /* spell list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 1; a <= MAX_SPELLS; a++)
+  for (a = 1; a < TOP_SKILL_DEFINE; a++)
     sorted_spells[a] = a;
 
-  qsort(&sorted_spells[1], MAX_SKILLS, sizeof(int),
+  qsort(&sorted_spells[1], TOP_SKILL_DEFINE, sizeof(int),
         compare_spells);
 
-  /* spell list */
+  /* skill list */
 
   /* initialize array, avoiding reserved. */
-  for (a = 0; a <= (MAX_SKILLS - MAX_SPELLS); a++)
+  for (a = 1; a < TOP_SKILL_DEFINE; a++)
     sorted_skills[a] = a + MAX_SPELLS;
 
-  qsort(&sorted_skills[1], MAX_SKILLS,
+  /*
+  qsort(&sorted_skills[1], TOP_SKILL_DEFINE,
         sizeof(int), compare_spells);
+        */
 }
 
 // returns true if you have all the requisites for the skill
@@ -514,7 +517,7 @@ int meet_skill_reqs(struct char_data *ch, int skillnum)
 void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
   int i = 0, slot = 0, sinfo = 0;
-  int bottom = 0;
+  int bottom = 0, top = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *overflow = "\r\n**OVERFLOW**\r\n";
@@ -551,9 +554,12 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         break;
       len += nlen;
 
-      for (bottom = 1; bottom < MAX_SPELLS; bottom++)
+      bottom = 1;
+      top = TOP_SKILL_DEFINE;
+
+      for (; bottom < top; bottom++)
       {
-        i = sorted_spells[bottom];
+        i = spell_sort_info[bottom];
         if (do_not_list_spell(i))
           continue;
         sinfo = spell_info[i].min_level[class];
@@ -689,15 +695,15 @@ void list_crafting_skills(struct char_data *ch)
 
   /* Crafting Skills */
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
-  for (i = START_SKILLS + 1; i < NUM_SKILLS; i++)
+  for (i = START_SKILLS; i < NUM_SKILLS; i++)
   {
     // Why is this level check here? Gicker Feb 8, 2021
-    // if (GET_LEVEL(ch) >= skill_info[i].min_level[GET_CLASS(ch)] &&
-    if (skill_info[i].schoolOfMagic == CRAFTING_SKILL)
+    // if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+    if (spell_info[i].schoolOfMagic == CRAFTING_SKILL)
     {
       if (meet_skill_reqs(ch, i))
       {
-        send_to_char(ch, "%-24s %d          ", skill_info[i].name, GET_SKILL(ch, i));
+        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");
@@ -716,7 +722,7 @@ void list_skills(struct char_data *ch)
 
   /* Active Skills */
   send_to_char(ch, "\tCActive Skills\tn\r\n\r\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+  for (i = MAX_SPELLS + 1; i < TOP_SKILL_DEFINE; i++)
   {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
         spell_info[i].schoolOfMagic == ACTIVE_SKILL)
@@ -780,7 +786,7 @@ void list_skills(struct char_data *ch)
 
   /* Caster Skills */
   send_to_char(ch, "\tCCaster Skills\tn\r\n\r\n");
-  for (i = MAX_SPELLS + 1; i < NUM_SKILLS; i++)
+  for (i = MAX_SPELLS + 1; i < TOP_SKILL_DEFINE; i++)
   {
     if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
         spell_info[i].schoolOfMagic == CASTER_SKILL)
@@ -814,12 +820,12 @@ void list_skills(struct char_data *ch)
   send_to_char(ch, "\tCCrafting Skills\tn\r\n\r\n");
   for (i = START_SKILLS + 1; i < NUM_SKILLS; i++)
   {
-    if (GET_LEVEL(ch) >= skill_info[i].min_level[GET_CLASS(ch)] &&
-        skill_info[i].schoolOfMagic == CRAFTING_SKILL)
+    if (GET_LEVEL(ch) >= spell_info[i].min_level[GET_CLASS(ch)] &&
+        spell_info[i].schoolOfMagic == CRAFTING_SKILL)
     {
       if (meet_skill_reqs(ch, i))
       {
-        send_to_char(ch, "%-24s %d          ", skill_info[i].name, GET_SKILL(ch, i));
+        send_to_char(ch, "%-24s %d          ", spell_info[i].name, GET_SKILL(ch, i));
         printed++;
         if (!(printed % 2))
           send_to_char(ch, "\r\n");
@@ -1669,8 +1675,9 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
    to hunt someone down */
 static void zone_yell(struct char_data *ch, const char *buf)
 {
-  struct char_data *i;
-  struct char_data *vict;
+  struct char_data *i = NULL;
+  struct char_data *vict = NULL;
+  int num_targets = 0;
 
   for (i = character_list; i; i = i->next)
   {
@@ -1700,8 +1707,16 @@ static void zone_yell(struct char_data *ch, const char *buf)
         }
         else
         {
-          HUNTING(i) = ch;
-          hunt_victim(i);
+          /* retrieve random valid target and number of targets */
+          if (!(vict = npc_find_target(ch, &num_targets)))
+          {
+            /* currently nothing to process if we can't find a target */
+          }
+          else
+          {
+            HUNTING(i) = vict;
+            hunt_victim(i);
+          }
         }
       }
     }
@@ -6329,7 +6344,7 @@ SPECIAL(purity)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc:  Holy Light.\r\n");
+    send_to_char(ch, "Proc:  Holy Light - in combat randomly inflict 2d24 holy damage.\r\n");
     return TRUE;
   }
 
@@ -7256,16 +7271,16 @@ SPECIAL(acidsword)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc:  Acid corrosion.\r\n");
+    send_to_char(ch, "Proc: Acid corrosion.\r\n");
     return TRUE;
   }
+
+  vict = FIGHTING(ch);
 
   if (cmd || !vict || rand_number(0, 16))
     return FALSE;
 
   dam = dice(4, 3);
-
-  vict = FIGHTING(ch);
 
   GET_HIT(vict) -= dam;
 
@@ -8093,6 +8108,79 @@ SPECIAL(angel_leggings)
   return FALSE;
 }
 
+/* zusuk's epic robes from cloud realms */
+SPECIAL(dragon_robes)
+{
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 1\r\n");
+
+  if (!ch)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 2\r\n");
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Invoke displace by keyword 'Power'.\r\n");
+    return TRUE;
+  }
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 3\r\n");
+
+  if (!cmd)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 4\r\n");
+
+  if (!argument)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 5\r\n");
+
+  /*[144669]*/
+  if (!is_wearing(ch, 144669))
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
+
+  skip_spaces(&argument);
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "power"))
+  {
+    if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+    {
+      if (DEBUGMODE)
+        send_to_char(ch, "Debug - Mark 8\r\n");
+
+      send_to_char(ch, "Nothing happens.\r\n");
+      return TRUE;
+    }
+
+    act("\tWThe power of $p\tW is invoked.\tn\r\n"
+        "\tcYour form begins to shimmer in and out of reality!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
+        "\tw$s begins to shimmer in and out of reality!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+
+    if (DEBUGMODE)
+      send_to_char(ch, "Debug - Mark 9\r\n");
+
+    call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_POTION);
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
 /* from homeland, converts an object type PET into an actual
  * pet mobile follower, object vnum must match mobile vnum */
 SPECIAL(bought_pet)
@@ -8873,3 +8961,7 @@ SPECIAL(buyweapons)
 /*************************/
 /* end object procedures */
 /*************************/
+
+#undef DEBUGMODE
+
+/* EoF */

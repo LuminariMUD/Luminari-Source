@@ -211,6 +211,7 @@ bool valid_item_spell(int spellnum)
   case SPELL_ACID:
   case SPELL_INCENDIARY:
   case SPELL_FROST_BREATHE:
+  case SPELL_GAS_BREATHE:
   case SPELL_LIGHTNING_BREATHE:
   case SPELL_POISON_BREATHE:
   case SPELL_ACID_BREATHE:
@@ -675,7 +676,8 @@ int adjust_bonus_value(int apply_location, int bonus)
   case APPLY_RES_LIGHT:
   case APPLY_RES_ENERGY:
   case APPLY_RES_WATER:
-    adjusted_bonus = bonus * 8;
+    /* this is WAY off balance for the rest of the game -zusuk */
+    // adjusted_bonus = bonus * 8;
     break;
   /* no modifications */
   default:

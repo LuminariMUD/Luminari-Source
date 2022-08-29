@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: msgedit.c                                  Part of LuminariMUD   *
-*  Usage: Handling of loading/saving messages and the olc editor.         *
-*                                                                         *
-*  By Vatiken. Copyright 2012 by Joseph Arnusch                           *
-**************************************************************************/
+ *  File: msgedit.c                                  Part of LuminariMUD   *
+ *  Usage: Handling of loading/saving messages and the olc editor.         *
+ *                                                                         *
+ *  By Vatiken. Copyright 2012 by Joseph Arnusch                           *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -164,10 +164,10 @@ static void show_messages(struct char_data *ch)
       count += fight_messages[i].number_of_attacks;
       len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s%s",
                       i, fight_messages[i].a_type, fight_messages[i].number_of_attacks,
-                      fight_messages[i].a_type < TOP_SPELL_DEFINE ? spell_info[fight_messages[i].a_type].name : "Unknown",
+                      fight_messages[i].a_type < TOP_SKILL_DEFINE ? spell_info[fight_messages[i].a_type].name : "Unknown",
                       half < MAX_MESSAGES && fight_messages[half].msg ? "   " : "\r\n");
       if (half < MAX_MESSAGES && fight_messages[half].msg)
-        len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s\r\n", half, fight_messages[half].a_type, fight_messages[half].number_of_attacks, fight_messages[half].a_type < TOP_SPELL_DEFINE ? spell_info[fight_messages[half].a_type].name : "Unknown");
+        len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s\r\n", half, fight_messages[half].a_type, fight_messages[half].number_of_attacks, fight_messages[half].a_type < TOP_SKILL_DEFINE ? spell_info[fight_messages[half].a_type].name : "Unknown");
     }
 
   len += snprintf(buf + len, sizeof(buf) - len, "Total Messages: %d\r\n", count);
@@ -194,7 +194,7 @@ void save_messages_to_disk(void)
   {
     if (fight_messages[i].msg == NULL)
       continue;
-    if (fight_messages[i].a_type > 0 && fight_messages[i].a_type < TOP_SPELL_DEFINE)
+    if (fight_messages[i].a_type > 0 && fight_messages[i].a_type < TOP_SKILL_DEFINE)
       fprintf(fp, "* %s %d\n", PRINT_MSG(spell_info[fight_messages[i].a_type].name), fight_messages[i].a_type);
     else
       fprintf(fp, "* %d\n", fight_messages[i].a_type);
@@ -373,7 +373,7 @@ static void msgedit_main_menu(struct descriptor_data *d)
   get_char_colors(d->character);
 
   write_to_output(d, "%sMsg Edit: %s[%s%dx%d%s] [%s$n: Attacker | $N: Victim%s]%s\r\n", cyn, grn, yel, OLC_NUM(d), OLC_MSG_LIST(d)->number_of_attacks, grn, yel, grn, nrm);
-  write_to_output(d, "%s1%s) %sAction Type: %s%d %s[%s%s%s]%s\r\n", grn, yel, cyn, yel, OLC_MSG_LIST(d)->a_type, grn, yel, OLC_MSG_LIST(d)->a_type < TOP_SPELL_DEFINE ? spell_info[OLC_MSG_LIST(d)->a_type].name : "Unknown", grn, nrm);
+  write_to_output(d, "%s1%s) %sAction Type: %s%d %s[%s%s%s]%s\r\n", grn, yel, cyn, yel, OLC_MSG_LIST(d)->a_type, grn, yel, OLC_MSG_LIST(d)->a_type < TOP_SKILL_DEFINE ? spell_info[OLC_MSG_LIST(d)->a_type].name : "Unknown", grn, nrm);
 
   write_to_output(d, "   %sDeath Messages:\r\n"
                      "%sA%s) CHAR : %s %s\r\n"
@@ -583,7 +583,7 @@ void msgedit_parse(struct descriptor_data *d, char *arg)
     msgedit_main_menu(d);
     return;
   case MSGEDIT_TYPE:
-    OLC_MSG_LIST(d)->a_type = LIMIT(atoi(arg), 0, 500);
+    OLC_MSG_LIST(d)->a_type = LIMIT(atoi(arg), 0, TOP_SKILL_DEFINE);
     break;
   case MSGEDIT_DEATH_CHAR:
     if (!genolc_checkstring(d, arg))

@@ -139,7 +139,8 @@ void assign_mobiles(void)
   ASSIGNMOB(145333, guild);
 
   /* player owned shop mobiles */
-  ASSIGNMOB(899, player_owned_shops);
+  ASSIGNMOB(899, player_owned_shops); /* example shop */
+  ASSIGNMOB(822, player_owned_shops); /* zusuk created shop for melaw */
   ASSIGNMOB(825, player_owned_shops); /* thazull created shop for Ellyanor */
   ASSIGNMOB(830, player_owned_shops); /* Ickthak the Kobold - for Thimblethorp */
 
@@ -197,7 +198,7 @@ void assign_mobiles(void)
    */
   ASSIGNMOB(155699, cube_slider);
 
-  //ASSIGNMOB(126907, receptionist);
+  // ASSIGNMOB(126907, receptionist);
 
   /* Immortal Zone */
   ASSIGNMOB(101200, receptionist);
@@ -205,7 +206,7 @@ void assign_mobiles(void)
   ASSIGNMOB(101202, janitor);
 
   /* Nice dogs. */
-  //ASSIGNMOB(100028, dog);
+  // ASSIGNMOB(100028, dog);
   ASSIGNMOB(100103, dog);
   ASSIGNMOB(102102, dog);
   ASSIGNMOB(103030, dog);
@@ -365,8 +366,8 @@ void assign_mobiles(void)
   /*Illithid Enclave*/
   ASSIGNMOB(126928, illithid_gguard);
   ASSIGNMOB(126904, guild);
-  //ASSIGNMOB(126906, bank);
-  //ASSIGNMOB(129607, receptionist);
+  // ASSIGNMOB(126906, bank);
+  // ASSIGNMOB(129607, receptionist);
 
   /*Secomber*/
   ASSIGNMOB(125064, secomber_guard);
@@ -385,7 +386,7 @@ void assign_mobiles(void)
   ASSIGNMOB(102505, receptionist);
   ASSIGNMOB(102536, bank);
   ASSIGNMOB(102547, postmaster);
-  //ASSIGNMOB(102643, guild);
+  // ASSIGNMOB(102643, guild);
   ASSIGNMOB(102546, guild);
   ASSIGNMOB(102522, guild);
   ASSIGNMOB(102521, guild);
@@ -582,7 +583,7 @@ void assign_mobiles(void)
   ASSIGNMOB(100506, vampire);
   ASSIGNMOB(100507, bonedancer);
   ASSIGNMOB(100501, skeleton_zombie);
-  //ASSIGNMOB(100011, skeleton_zombie);
+  // ASSIGNMOB(100011, skeleton_zombie);
 
   ASSIGNMOB(101400, totemanimal);
   ASSIGNMOB(101401, totemanimal);
@@ -626,7 +627,7 @@ void assign_mobiles(void)
   ASSIGNMOB(145189, ttf_patrol);
 
   ASSIGNMOB(113751, dracolich);
-  ASSIGNMOB(113750, tiamat);
+  ASSIGNMOB(113750, the_prisoner);
 
   /* Tower of Kenjin */
   ASSIGNMOB(132910, kt_kenjin);
@@ -641,7 +642,7 @@ void assign_mobiles(void)
 
   ASSIGNMOB(106230, banshee);
   ASSIGNMOB(136300, olhydra);
-  //ASSIGNMOB(136100, yan);
+  // ASSIGNMOB(136100, yan);
   ASSIGNMOB(136105, chan);
 
   ASSIGNMOB(100581, fzoul);
@@ -700,17 +701,17 @@ void assign_objects(void)
 
   ASSIGNOBJ(3118, crafting_kit);
 
-  ASSIGNOBJ(128106, ches); //weapon
+  ASSIGNOBJ(128106, ches); // weapon
 
-  ASSIGNOBJ(128150, spikeshield); //shield
+  ASSIGNOBJ(128150, spikeshield); // shield
 
   ASSIGNOBJ(224, monk_glove); /*electric damage*/
   ASSIGNOBJ(9215, monk_glove_cold);
 
-  /* tiamat */
+  /* the prisoner */
   ASSIGNOBJ(132125, tia_rapier);
 
-  ASSIGNOBJ(136100, air_sphere); //weapon (lightning)
+  ASSIGNOBJ(136100, air_sphere); // weapon (lightning)
 
   /* JOTUNHEIM EQ */
   ASSIGNOBJ(196012, mistweave);
@@ -776,12 +777,12 @@ void assign_objects(void)
    */
 
   /* not yet defined? */
-  //ASSIGNOBJ(100600, forest_idol);
-  //ASSIGNOBJ(100601, forest_idol);
-  //ASSIGNOBJ(100602, forest_idol);
-  //ASSIGNOBJ(100603, forest_idol);
-  //ASSIGNOBJ(100604, forest_idol);
-  //ASSIGNOBJ(100605, forest_idol);
+  // ASSIGNOBJ(100600, forest_idol);
+  // ASSIGNOBJ(100601, forest_idol);
+  // ASSIGNOBJ(100602, forest_idol);
+  // ASSIGNOBJ(100603, forest_idol);
+  // ASSIGNOBJ(100604, forest_idol);
+  // ASSIGNOBJ(100605, forest_idol);
 
   /* Weapon Procs */
   ASSIGNOBJ(141914, witherdirk);
@@ -794,7 +795,6 @@ void assign_objects(void)
 
   ASSIGNOBJ(114838, rughnark);
   ASSIGNOBJ(139900, magma);
-  ASSIGNOBJ(136100, air_sphere);
   ASSIGNOBJ(110601, bolthammer);
   ASSIGNOBJ(111507, prismorb);
   ASSIGNOBJ(129602, flamingwhip);
@@ -831,20 +831,22 @@ void assign_objects(void)
   ASSIGNOBJ(100599, tormblade);
 
   /* not yet defined? */
-  //ASSIGNOBJ(132115, warbow);
-  //ASSIGNOBJ(132101, malevolence);
-  //ASSIGNOBJ(132118, tia_moonblade);
-  //ASSIGNOBJ(132126, drow_scimitar);
-  //ASSIGNOBJ(133103, mithril_rapier);
-  //ASSIGNOBJ(141800, treantshield);
+  // ASSIGNOBJ(132115, warbow);
+  // ASSIGNOBJ(132101, malevolence);
+  // ASSIGNOBJ(132118, tia_moonblade);
+  // ASSIGNOBJ(132126, drow_scimitar);
+  // ASSIGNOBJ(133103, mithril_rapier);
+  // ASSIGNOBJ(141800, treantshield);
 
-  ASSIGNOBJ(132125, tia_rapier);
   ASSIGNOBJ(138447, disruption_mace);
   ASSIGNOBJ(138415, haste_bracers);
   ASSIGNOBJ(135626, menzo_chokers);
   ASSIGNOBJ(135627, menzo_chokers);
   ASSIGNOBJ(106021, angel_leggings);
   ASSIGNOBJ(135535, spiderdagger);
+
+  /* clouds realm */
+  ASSIGNOBJ(144669, dragon_robes);
 }
 
 /* assign special procedures to rooms */
@@ -870,7 +872,8 @@ void assign_rooms(void)
   ASSIGNROOM(27155, pet_shops);
   ASSIGNROOM(27616, pet_shops);
   ASSIGNROOM(31523, pet_shops);
-  ASSIGNROOM(103031, pet_shops);
+  /* this doesn't seem to be at all valid */
+  // ASSIGNROOM(103031, pet_shops);
   ASSIGNROOM(145287, pet_shops); /* mosswood petshop */
 
   /* abyssal vortex */
@@ -936,7 +939,7 @@ void assign_rooms(void)
   ASSIGNROOM(132905, kt_twister);
 
   /* kt shadowmaker */
-  //ASSIGNROOM( 32921, kt_shadowmaker);
+  // ASSIGNROOM( 32921, kt_shadowmaker);
 
   /* quicksand */
   ASSIGNROOM(126771, quicksand);
@@ -1009,6 +1012,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Dog", dog, ""},
     {"Dorf Axe", dorfaxe, ""},
     {"Dracolich", dracolich, ""},
+    {"Dragon Robes", dragon_robes, ""},
     {"Dragonbone Hammer", dragonbone_hammer, ""},
     //{"Drow Scimitar", drow_scimitar, ""},
     {"Duergar Guard", duergar_guard, ""},
@@ -1114,7 +1118,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Thrym", thrym, ""},
     //{"Moonblade", tia_moonblade, ""},
     {"Crystal Rapier", tia_rapier, ""},
-    {"Tiamat", tiamat, ""},
+    {"The Prisoner", the_prisoner, ""},
     {"TormBlade", tormblade, ""},
     {"Totem Animal", totemanimal, ""},
     //{"Trade Bandit", trade_bandit, ""},
