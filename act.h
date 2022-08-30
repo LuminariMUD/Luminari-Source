@@ -345,6 +345,7 @@ ACMD_DECL(do_drink);
 ACMD_DECL(do_get);
 ACMD_DECL(do_give);
 ACMD_DECL(do_grab);
+ACMD_DECL(do_priceset);
 ACMD_DECL(do_put);
 ACMD_DECL(do_remove);
 ACMD_DECL(do_sac);
