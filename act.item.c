@@ -3405,12 +3405,12 @@ ACMD(do_priceset)
 
   if (!*arg1)
     send_to_char(ch, "Set price on which item?\r\n");
-  else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+  else if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
   else
   {
     GET_OBJ_COST(obj) = amount;
-    send_to_char(ch, "You set the price for '%s' at %d gold coins.  This item will no longer be sellable in a regular shop.\r\n", GET_OBJ_NAME(obj), amount);
+    send_to_char(ch, "You set the price for '%s' at %d gold coins.  This item will no longer be sellable in a regular shop.\r\n", GET_OBJ_SHORT(obj), amount);
     if (!OBJ_FLAGGED(obj, ITEM_NOSELL))
       SET_OBJ_FLAG(obj, ITEM_NOSELL);
   }
