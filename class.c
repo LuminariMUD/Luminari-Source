@@ -3818,6 +3818,7 @@ void load_class_list(void)
   /* 4th circle */
   spell_assignment(CLASS_CLERIC, SPELL_CURE_CRITIC, 7);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_CURSE, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_DISPEL_INVIS, 7);
   spell_assignment(CLASS_CLERIC, SPELL_INFRAVISION, 7);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSE_CRITICAL_WOUNDS, 7);
   spell_assignment(CLASS_CLERIC, SPELL_SUMMON_CREATURE_4, 7);
@@ -4401,6 +4402,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_4, 7);
   spell_assignment(CLASS_DRUID, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 7);
   spell_assignment(CLASS_DRUID, SPELL_AIR_WALK, 7);
+  spell_assignment(CLASS_DRUID, SPELL_DISPEL_INVIS, 7);
   // spell_assignment(SPELL_REINCARNATE, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */

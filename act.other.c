@@ -5726,8 +5726,8 @@ ACMD(do_use)
 
     spell = GET_OBJ_VAL(mag_item, 1);
 
-    /* remove curse and identify you can use regardless */
-    if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY)
+    /* remove curse, dispel invis and identify you can use regardless */
+    if (spell == SPELL_REMOVE_CURSE || spell == SPELL_IDENTIFY || SPELL_DISPEL_INVIS)
       break;
 
     /* 1. Decipher Writing

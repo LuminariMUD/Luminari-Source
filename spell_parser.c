@@ -2837,6 +2837,10 @@ void mag_assign_spells(void)
   spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING, // abjur
          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
          MAG_UNAFFECTS | MAG_ALTER_OBJS,
+         NULL, 4, 13, ABJURATION, FALSE);                           // wizard 4, cleric 4
+  spello(SPELL_DISPEL_INVIS, "dispel invis", 0, 0, 0, POS_FIGHTING, // abjur
+         TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
+         MAG_UNAFFECTS | MAG_ALTER_OBJS,
          NULL, 4, 13, ABJURATION, FALSE); // wizard 4, cleric 4
   spello(SPELL_ENDURANCE, "endurance", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
