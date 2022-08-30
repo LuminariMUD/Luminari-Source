@@ -3406,7 +3406,7 @@ ACMD(do_priceset)
   if (!*arg1)
     send_to_char(ch, "Set price on which item?\r\n");
   else if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
-    send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
+    send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
   else
   {
     GET_OBJ_COST(obj) = amount;
