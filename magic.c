@@ -7893,6 +7893,22 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     }
     break;
 
+  case SPELL_DISPEL_INVIS:
+    spell = SPELL_INVISIBLE;
+    affect = AFF_INVISIBLE;
+    to_char = "You remove the invisibility from $N.";
+    to_vict = "$n removes the invisibility upon you.";
+    to_notvict = "$N slowly fades into appearance.";
+    for (eq = ch->carrying; eq; eq = eq->next_content)
+    {
+      if (eq && OBJ_FLAGGED(eq, ITEM_INVISIBLE))
+      {
+        REMOVE_BIT_AR(GET_OBJ_EXTRA(eq), ITEM_INVISIBLE);
+        to_char = "$p slowly fades into existence.";
+      }
+    }
+    break;
+
   case SPELL_REMOVE_DISEASE:
     spell = SPELL_EYEBITE;
     affect = AFF_DISEASE;
@@ -8120,6 +8136,13 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
         GET_OBJ_VAL(obj, 2)
       ++;
       to_char = "$p briefly glows blue.";
+    }
+    break;
+  case SPELL_DISPEL_INVIS:
+    if (OBJ_FLAGGED(obj, ITEM_INVISIBLE))
+    {
+      REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_INVISIBLE);
+      to_char = "$p slowly fades into existence.";
     }
     break;
   case SPELL_REMOVE_POISON:
