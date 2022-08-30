@@ -3410,9 +3410,13 @@ ACMD(do_priceset)
   else
   {
     GET_OBJ_COST(obj) = amount;
-    send_to_char(ch, "You set the price for '%s' at %d gold coins.  This item will no longer be sellable in a regular shop.\r\n", GET_OBJ_SHORT(obj), amount);
+
     if (!OBJ_FLAGGED(obj, ITEM_NOSELL))
       SET_OBJ_FLAG(obj, ITEM_NOSELL);
+
+    save_char(ch, 0);
+
+    send_to_char(ch, "You set the price for '%s' at %d gold coins.  This item will no longer be sellable in a regular shop.\r\n", GET_OBJ_SHORT(obj), amount);
   }
 }
 
