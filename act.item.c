@@ -3389,13 +3389,13 @@ ACMD(do_priceset)
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-  if (!is_number(*arg2))
+  if (!is_number(arg2))
   {
     send_to_char(ch, "The 2nd value needs to be the amount in gold.\r\n");
     return;
   }
 
-  amount = atoi(buf);
+  amount = atoi(arg2);
 
   if (amount <= 0 || amount >= MAX_OBJ_COST)
   {
