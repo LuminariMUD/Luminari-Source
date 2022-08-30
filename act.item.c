@@ -3347,8 +3347,8 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent)
 /* entry point for the 'wield' command */
 ACMD(do_wield)
 {
-  char arg[MAX_INPUT_LENGTH];
-  struct obj_data *obj;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *obj = NULL;
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
   {
@@ -3376,6 +3376,43 @@ ACMD(do_wield)
   else
   {
     perform_wield(ch, obj, TRUE);
+  }
+}
+
+/* command to set objcost on item and make it unsellable in generic shops (this is for player shops) */
+ACMD(do_priceset)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *obj = NULL;
+  int amount = 0;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!is_number(*arg2))
+  {
+    send_to_char(ch, "The 2nd value needs to be the amount in gold.\r\n");
+    return;
+  }
+
+  amount = atoi(buf);
+
+  if (amount <= 0 || amount >= MAX_OBJ_COST)
+  {
+    send_to_char(ch, "The price must remain between 1 and %d.\r\n", MAX_OBJ_COST);
+    return;
+  }
+
+  if (!*arg1)
+    send_to_char(ch, "Set price on which item?\r\n");
+  else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+    send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
+  else
+  {
+    GET_OBJ_COST(obj) = amount;
+    send_to_char(ch, "You set the price for '%s' at %d gold coins.  This item will no longer be sellable in a regular shop.\r\n", GET_OBJ_NAME(obj), amount);
+    if (!OBJ_FLAGGED(obj, ITEM_NOSELL))
+      SET_OBJ_FLAG(obj, ITEM_NOSELL);
   }
 }
 
