@@ -1176,9 +1176,9 @@ SPECIAL(dracolich)
   // GET_CHAR_WAIT(ch) = 0;
 
   if (GET_POS(ch) == POS_DEAD)
-    act("@LWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
-        "fall to the ground with a resounding thud.&c0"
-        "\n\r\n\r\n\r&cwThe mighty &cLPrisoner &cwfinally ceases to move.&c0",
+    act("\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
+        "fall to the ground with a resounding thud.\tn"
+        "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn",
         FALSE, ch, 0, vict, TO_ROOM);
 
   if (cmd || rand_number(0, 3)) /* note that the !vict is moved below */
@@ -1192,22 +1192,22 @@ SPECIAL(dracolich)
     if (!(vict = FIGHTING(ch)))
       return 0;
 
-  act("&cLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
-      "&cLShe sets her gaze upon you with the most wicked grin you have ever known.",
+  act("\tLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
+      "\tLShe sets her gaze upon you with the most wicked grin you have ever known.",
       FALSE, ch, 0, vict, TO_VICT);
-  act("&cWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
-      "&cWAs you fall, you see a stream of your own life force flowing away from you..",
+  act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
+      "\tWAs you fall, you see a stream of your own life force flowing away from you..",
       FALSE, ch, 0, vict, TO_VICT);
-  act("&cLAs the life fades from your body, the last thing you see is Timat's wicked grin staring into your soul..&c0",
+  act("\tLAs the life fades from your body, the last thing you see is Timat's wicked grin staring into your soul..\tn",
       FALSE, ch, 0, vict, TO_VICT);
-  act("$n &cLturns and gazes at &c0$N&cL, who freezes in place.&c0\r\n"
-      "$n &cLreaches out with a skeletal hand and touches &c0$N&cL!&c0",
+  act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
+      "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
       TRUE, ch, 0, vict, TO_NOTVICT);
-  act("&cL$N&cr SCREAMS&cL in agony, doubling over in pain so intense it makes you cringe!!&c0\r\n"
-      "$n&cL literally sucks the life force from $N,&c0\r\n"
-      "&cLwho crumples into a ball of lifeless flesh on the ground...&c0",
+  act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+      "$n\tL literally sucks the life force from $N,\tn\r\n"
+      "\tLwho crumples into a ball of lifeless flesh on the ground...\tn",
       TRUE, ch, 0, vict, TO_NOTVICT);
-  act("&cWWith a grin, you whisper, 'die' at $N, who keels over and falls dead!&c0", TRUE, ch, 0, vict,
+  act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls dead!\tn", TRUE, ch, 0, vict,
       TO_CHAR);
 
   hitpoints = GET_HIT(vict);
@@ -1228,48 +1228,48 @@ int check_heads(struct char_data *ch)
   /* green head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 5)
   {
-    act("&cLYour blood &cWfreezes&cL as the &cggreen &cLhead of the Prisoner screams\n\r"
-        "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
+    act("\tLYour blood \tWfreezes\tL as the \tggreen \tLhead of the Prisoner screams\n\r"
+        "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 25000;
     prisoner_heads = 4;
-    act("\n\r&cLThe remaining four heads turn and gaze at you with a glare of hatred.&c0",
+    act("\n\r\tLThe remaining four heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
   /* white head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 4)
   {
-    act("&cLYour blood &cWfreezes&cL as the &cWwhite &cLhead of the Prisoner screams\n\r"
-        "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
+    act("\tLYour blood \tWfreezes\tL as the \tWwhite \tLhead of the Prisoner screams\n\r"
+        "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 25000;
     prisoner_heads = 3;
-    act("\n\r&cLThe remaining three heads turn and gaze at you with a glare of hatred.&c0",
+    act("\n\r\tLThe remaining three heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
   /* black head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 3)
   {
-    act("&cLYour blood &cWfreezes&cL as the black head of the Prisoner screams\n\r"
-        "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
+    act("\tLYour blood \tWfreezes\tL as the black head of the Prisoner screams\n\r"
+        "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 25000;
     prisoner_heads = 2;
-    act("\n\r&cLThe remaining two heads turn and gaze at you with a glare of hatred.&c0",
+    act("\n\r\tLThe remaining two heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
   /* blue head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 2)
   {
-    act("&cLYour blood &cWfreezes&cL as the &cBblue &cLhead of the Prisoner screams\n\r"
-        "&cLa horrifying wail of pain and drops to the floor, out of the battle!&c0",
+    act("\tLYour blood \tWfreezes\tL as the \tBblue \tLhead of the Prisoner screams\n\r"
+        "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     GET_HIT(ch) = 29000;
     prisoner_heads = 1;
-    act("\n\r&cLThe remaining &crred &cLhead turns and gazes at you with a glare of hatred.&c0",
+    act("\n\r\tLThe remaining \trred \tLhead turns and gazes at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
@@ -1325,12 +1325,12 @@ void prisoner_on_death(struct char_data *ch)
   change_position(lich, POS_STANDING);
    */
   act(
-      "&cLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
-      "&cLexcruciating pain, the mighty Prisoner calls on her remaining divine power.\n\r"
-      "&cWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!\n\r\n\r\n\r\n\r"
-      "&cLA blinding light &cf&cWFLASHES&c0&cL from within her massive body followed by an\n\r"
-      "&cLexplosion so forceful and loud that your ears begin to &crbleed even before\n\r"
-      "&cryour body is hurled with tremendous force against the rumbling cavern walls",
+      "\tLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
+      "\tLexcruciating pain, the mighty Prisoner calls on her remaining divine power.\n\r"
+      "\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!\n\r\n\r\n\r\n\r"
+      "\tLA blinding light \tf\tWFLASHES\tn\tL from within her massive body followed by an\n\r"
+      "\tLexplosion so forceful and loud that your ears begin to \trbleed even before\n\r"
+      "\tryour body is hurled with tremendous force against the rumbling cavern walls",
       FALSE, ch, 0, 0, TO_ROOM);
 
   /* for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
@@ -1348,12 +1348,12 @@ void prisoner_on_death(struct char_data *ch)
    */
 
   act(
-      "&crThrough a haze of dizziness you look up..\n\r"
-      "&cr.\n\r&cr.\n\r&crThe last thing you see is the demipower fading into nothingness to be\n\r"
-      "&crreplaced by a large holy symbol that falls to the rocky floor with a crash&cr.\n\r&cr.",
+      "\trThrough a haze of dizziness you look up..\n\r"
+      "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
+      "\trreplaced by a large holy symbol that falls to the rocky floor with a crash\tr.\n\r\tr.",
       FALSE, ch, 0, 0, TO_ROOM);
   act(
-      "&cLSuddenly everything fades to black...&c0",
+      "\tLSuddenly everything fades to black...\tn",
       FALSE, ch, 0, 0, TO_ROOM);
 
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
@@ -1388,7 +1388,7 @@ int rejuv_prisoner(struct char_data *ch)
     GET_HIT(ch) = rejuv;
     PROC_FIRED(ch) = TRUE;
     act(
-        "&crThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!&c0",
+        "\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
@@ -1398,11 +1398,11 @@ int rejuv_prisoner(struct char_data *ch)
   if (!rand_number(0, 11) && FIGHTING(ch))
   {
     act(
-        "&cLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
-        "&cWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
+        "\tLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
+        "\tWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
         FALSE, ch, 0, 0, TO_ROOM);
     act(
-        "&crThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!&c0",
+        "\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     rejuv = GET_HIT(ch) + 2500;
     if (rejuv >= 30000)
@@ -3464,7 +3464,7 @@ SPECIAL(cube_slider)
     toggle_row(row_4_e_u_d);
 
   if (open_msg)
-    send_to_cube("\tD&cLThe whole area rumbles loudly as a dividing wall slams shut.\tn\r\n");
+    send_to_cube("\tD\tLThe whole area rumbles loudly as a dividing wall slams shut.\tn\r\n");
   if (close_msg)
     send_to_cube("\tDEverything begins to shake and rumble as a dividing wall opens.\tn\r\n");
 
@@ -3495,7 +3495,7 @@ SPECIAL(ttf_monstrosity)
   if (dice(1, 10) > 2)
     return 0;
 
-  act("&cLThe tentacled monstrosity rises up in the air and sends its full mass crashing into the floor!&c0",
+  act("\tLThe tentacled monstrosity rises up in the air and sends its full mass crashing into the floor!\tn",
       FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict)
@@ -3511,8 +3511,8 @@ SPECIAL(ttf_monstrosity)
     {
       change_position(vict, POS_SITTING);
       WAIT_STATE(vict, 1 * PULSE_VIOLENCE);
-      act("&crThe shockwave sends you crashing to the ground!&c0", FALSE, vict, 0, 0, TO_CHAR);
-      act("&crThe shockwave sends &c0$n&cr crashing to the ground!&c0", FALSE, vict, 0, 0, TO_ROOM);
+      act("\trThe shockwave sends you crashing to the ground!\tn", FALSE, vict, 0, 0, TO_CHAR);
+      act("\trThe shockwave sends \tn$n\tr crashing to the ground!\tn", FALSE, vict, 0, 0, TO_ROOM);
     }
   }
   return TRUE;
@@ -3533,8 +3533,8 @@ SPECIAL(ttf_abomination)
   if (dice(1, 16) > 2)
     return 0;
 
-  act("&cLA gargantuan four-armed battle abomination lunges forward and swings one of his\r\n"
-      "&cLenormous arms straight into your group!&c0",
+  act("\tLA gargantuan four-armed battle abomination lunges forward and swings one of his\r\n"
+      "\tLenormous arms straight into your group!\tn",
       FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[ch->in_room].people; vict; vict = next_vict)
@@ -3550,9 +3550,9 @@ SPECIAL(ttf_abomination)
     {
       change_position(vict, POS_SITTING);
       WAIT_STATE(vict, 1 * PULSE_VIOLENCE);
-      act("&crYou are unable to dodge the blow, and its force sends you crashing to the ground!&c0",
+      act("\trYou are unable to dodge the blow, and its force sends you crashing to the ground!\tn",
           FALSE, vict, 0, 0, TO_CHAR);
-      act("$n &cris unable to dodge the blow, and its force sends $m crashing to the ground!&c0",
+      act("$n \tris unable to dodge the blow, and its force sends $m crashing to the ground!\tn",
           FALSE, vict, 0, 0, TO_ROOM);
     }
   }
@@ -3580,11 +3580,11 @@ SPECIAL(ttf_rotbringer)
   if (hp < 40)
   {
     send_to_room(ch->in_room,
-                 "&cRThe Rot Bringer realizes the tide of the battle is turning against him, and he&c0\r\n"
-                 "&cRtakes a step towards the bloody basin. His face contorted in rage, he whispers&c0\r\n"
-                 "&cRsomething while clawing at the air over the floating bodies. Instantly, the red&c0\r\n"
-                 "&cRliquid starts swirling as the cadavers join together, forming a massive mound of&c0\r\n"
-                 "&cRmeat! A massive ball of flesh rises out of the basin, and follows its new master!&c0\r\n");
+                 "\tRThe Rot Bringer realizes the tide of the battle is turning against him, and he\tn\r\n"
+                 "\tRtakes a step towards the bloody basin. His face contorted in rage, he whispers\tn\r\n"
+                 "\tRsomething while clawing at the air over the floating bodies. Instantly, the red\tn\r\n"
+                 "\tRliquid starts swirling as the cadavers join together, forming a massive mound of\tn\r\n"
+                 "\tRmeat! A massive ball of flesh rises out of the basin, and follows its new master!\tn\r\n");
 
     mob = read_mobile(145193, VIRTUAL);
     char_to_room(mob, ch->in_room);
