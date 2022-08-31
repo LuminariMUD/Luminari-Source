@@ -1178,10 +1178,13 @@ SPECIAL(dracolich)
   if (!ch)
     return 0;
 
+  /* this is done below */
+  /*
   vict = FIGHTING(ch);
 
   if (!vict)
     return 0;
+  */
 
   // if (GET_CHAR_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
   // GET_CHAR_WAIT(ch) = 0;
