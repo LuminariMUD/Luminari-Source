@@ -1167,10 +1167,18 @@ SPECIAL(tia_rapier)
 
 /* mobiles */
 
+int prisoner_heads = -1;
+bool eq_loaded = FALSE;
+
 SPECIAL(dracolich)
 {
-  struct char_data *vict = NULL; /* was: struct char_data *vict = FIGHTING(ch); */
+  struct char_data *vict = NULL;
   int hitpoints = 0;
+
+  if (!ch)
+    return;
+
+  vict = FIGHTING(ch);
 
   // if (GET_CHAR_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
   // GET_CHAR_WAIT(ch) = 0;
@@ -1198,7 +1206,7 @@ SPECIAL(dracolich)
   act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
       "\tWAs you fall, you see a stream of your own life force flowing away from you..",
       FALSE, ch, 0, vict, TO_VICT);
-  act("\tLAs the life fades from your body, the last thing you see is Timat's wicked grin staring into your soul..\tn",
+  act("\tLAs the life fades from your body, the last thing you see is the Prisoner's wicked grin staring into your soul..\tn",
       FALSE, ch, 0, vict, TO_VICT);
   act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
       "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
@@ -1219,9 +1227,6 @@ SPECIAL(dracolich)
   return 1;
 }
 
-int prisoner_heads = -1;
-bool eq_loaded = FALSE;
-
 int check_heads(struct char_data *ch)
 {
 
@@ -1237,6 +1242,7 @@ int check_heads(struct char_data *ch)
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
+
   /* white head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 4)
   {
@@ -1249,6 +1255,7 @@ int check_heads(struct char_data *ch)
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
+
   /* black head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 3)
   {
@@ -1261,6 +1268,7 @@ int check_heads(struct char_data *ch)
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
+
   /* blue head dies */
   if (GET_HIT(ch) <= 0 && prisoner_heads == 2)
   {
@@ -1273,6 +1281,8 @@ int check_heads(struct char_data *ch)
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
+
+  /* exit */
   return 0;
 }
 
