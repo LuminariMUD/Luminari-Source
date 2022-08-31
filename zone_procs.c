@@ -1176,9 +1176,12 @@ SPECIAL(dracolich)
   int hitpoints = 0;
 
   if (!ch)
-    return;
+    return 0;
 
   vict = FIGHTING(ch);
+
+  if (!vict)
+    return 0;
 
   // if (GET_CHAR_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
   // GET_CHAR_WAIT(ch) = 0;
