@@ -1442,24 +1442,24 @@ int prisoner_breath(struct char_data *ch)
 /****** prisoner gear defines! *******/
 /*************************************/
 /* unique */
-/* 00 */ #define MALEVOLENCE 132101
-    /* 01 */ #define CELESTIAL_SWRD 132300
-    /* 02 */ #define HELL_SWRD 132302
-    /* 03 */ #define MAGI_STAFF 132109
-    /* 04 */ #define MOONBLADE 132118
-    /* 05 */ #define DROW_SCIMITAR 132126
-    /* 06 */ #define CRYSTAL_RAPIER 132125
-    /* 07 */ #define STAR_CRICLET 132104
-    /* 08 */ #define HOLY_PLATE 132105
-    /* 09 */ #define DRAGONBONE_PLATE 132116
-    /* 10 */ #define SPEED_GAUNT 132128
-    /* 11 */ #define SHADOW_CLOAK 132120
-    /* 12 */ #define ELVEN_CLOAK 132106
-    /* 13 */ #define RUNED_QUIVER 132119
-    /* 14 */ #define SLAADI_GOGS 132121
-    /* 15 */ #define MANDRAKE_EAR 132117
-    /* 16 */ #define MITH_ARROW 132127
-    /* 17 */ #define ARM_VALOR 132103
+#define MALEVOLENCE 132101      /* 00 */
+#define CELESTIAL_SWRD 132300   /* 01 */
+#define HELL_SWRD 132302        /* 02 */
+#define MAGI_STAFF 132109       /* 03 */
+#define MOONBLADE 132118        /* 04 */
+#define DROW_SCIMITAR 132126    /* 05 */
+#define CRYSTAL_RAPIER 132125   /* 06 */
+#define STAR_CRICLET 132104     /* 07 */
+#define HOLY_PLATE 132105       /* 08 */
+#define DRAGONBONE_PLATE 132116 /* 09 */
+#define SPEED_GAUNT 132128      /* 10 */
+#define SHADOW_CLOAK 132120     /* 11 */
+#define ELVEN_CLOAK 132106      /* 12 */
+#define RUNED_QUIVER 132119     /* 13 */
+#define SLAADI_GOGS 132121      /* 14 */
+#define MANDRAKE_EAR 132117     /* 15 */
+#define MITH_ARROW 132127       /* 16 */
+#define ARM_VALOR 132103        /* 17 */
 #define TOP_UNIQUES 17
 /* base items */
 #define BLACK_FIGURINE 132114
@@ -1473,21 +1473,19 @@ int prisoner_breath(struct char_data *ch)
 #define VALID_VNUM_LOW 132100
 #define VALID_VNUM_HiGH 132399
 #define NUM_TREASURE 17
-    /*************************************/
-    /*************************************/
+/*************************************/
+/*************************************/
 
-    /* this function is meant to load the gear into the treasury
-       we are checking 1) the items haven't loaded and 2) that the prisoner is engaged in combat to trigger this section */
-    void
-    prisoner_gear_loading(struct char_data *ch)
+/* this function is meant to load the gear into the treasury
+   we are checking 1) the items haven't loaded and 2) that the prisoner is engaged in combat to trigger this section */
+void prisoner_gear_loading(struct char_data *ch)
 {
-  struct char_data *i = NULL;
   struct obj_data *olist = NULL;
   bool loaded = FALSE;
   int ovnum = NOTHING;
   int num_items = 0;
 
-  int objNums[TOP_UNIQUES] = {
+  int objNums[TOP_UNIQUES + 1] = {
       MALEVOLENCE,      /* for warrior, berserker, giantslayer, battlerager */
       CELESTIAL_SWRD,   /* good only warrior types? */
       HELL_SWRD,        /* evil only warrior types? */
