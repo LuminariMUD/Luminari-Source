@@ -1306,6 +1306,8 @@ void move_items(struct char_data *ch, struct char_data *lich)
   }
 }
 
+#define THE_PRISONER 113750
+#define DRACOLICH_PRISONER 113751
 void prisoner_on_death(struct char_data *ch)
 {
   struct char_data *lich;
@@ -1316,7 +1318,7 @@ void prisoner_on_death(struct char_data *ch)
   if (prisoner_heads > 1)
   {
     check_heads(ch); // to get right message..
-    lich = read_mobile(113750, VIRTUAL);
+    lich = read_mobile(THE_PRISONER, VIRTUAL);
     char_to_room(lich, ch->in_room);
     change_position(lich, POS_STANDING);
     move_items(ch, lich);
@@ -1325,7 +1327,7 @@ void prisoner_on_death(struct char_data *ch)
   }
 
   /* red head dies */
-  lich = read_mobile(13751, VIRTUAL);
+  lich = read_mobile(DRACOLICH_PRISONER, VIRTUAL);
   char_to_room(lich, ch->in_room);
   change_position(lich, POS_STANDING);
   /* the item transfer is later */
