@@ -1475,6 +1475,7 @@ int prisoner_breath(struct char_data *ch)
 #define VALID_VNUM_LOW 132100
 #define VALID_VNUM_HiGH 132399
 #define NUM_TREASURE 16
+#define LOOP_LIMIT 1000
 /*************************************/
 /*************************************/
 
@@ -1484,8 +1485,7 @@ void prisoner_gear_loading(struct char_data *ch)
 {
   struct obj_data *olist = NULL;
   bool loaded = FALSE;
-  int ovnum = NOTHING;
-  int num_items = 0;
+  int ovnum = NOTHING, loop_counter = 0, num_items = 0;
 
   int objNums[TOP_UNIQUES + 1] = {
       MALEVOLENCE,      /* for warrior, berserker, giantslayer, battlerager */
@@ -1552,7 +1552,9 @@ void prisoner_gear_loading(struct char_data *ch)
     ovnum = NOTHING;
     loaded = FALSE;
 
-  } while (num_items < NUM_TREASURE);
+    loop_counter++;
+
+  } while (num_items < NUM_TREASURE || loop_counter < LOOP_LIMIT);
 
   /* base items */
   obj_to_room(read_object(BLACK_FIGURINE, VIRTUAL), real_room(PRISONER_VAULT));
