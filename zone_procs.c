@@ -1178,16 +1178,8 @@ SPECIAL(dracolich)
   if (!ch)
     return 0;
 
-  /* this is done below */
-  /*
-  vict = FIGHTING(ch);
-
-  if (!vict)
-    return 0;
-  */
-
-  // if (GET_CHAR_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
-  // GET_CHAR_WAIT(ch) = 0;
+  if (GET_MOB_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
+    GET_MOB_WAIT(ch) = 0;
 
   if (GET_POS(ch) == POS_DEAD)
     act("\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
@@ -1225,7 +1217,7 @@ SPECIAL(dracolich)
       TO_CHAR);
 
   hitpoints = GET_HIT(vict);
-  if (GET_HIT(ch) + hitpoints < 32000)
+  if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
     GET_HIT(ch) += hitpoints;
 
   GET_HIT(vict) = 0;
@@ -1237,12 +1229,12 @@ int check_heads(struct char_data *ch)
 {
 
   /* green head dies */
-  if (GET_HIT(ch) <= 0 && prisoner_heads == 5)
+  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 5)
   {
     act("\tLYour blood \tWfreezes\tL as the \tggreen \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = 25000;
+    GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 4;
     act("\n\r\tLThe remaining four heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1250,12 +1242,12 @@ int check_heads(struct char_data *ch)
   }
 
   /* white head dies */
-  if (GET_HIT(ch) <= 0 && prisoner_heads == 4)
+  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 4)
   {
     act("\tLYour blood \tWfreezes\tL as the \tWwhite \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = 25000;
+    GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 3;
     act("\n\r\tLThe remaining three heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1263,12 +1255,12 @@ int check_heads(struct char_data *ch)
   }
 
   /* black head dies */
-  if (GET_HIT(ch) <= 0 && prisoner_heads == 3)
+  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 3)
   {
     act("\tLYour blood \tWfreezes\tL as the black head of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = 25000;
+    GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 2;
     act("\n\r\tLThe remaining two heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1276,12 +1268,12 @@ int check_heads(struct char_data *ch)
   }
 
   /* blue head dies */
-  if (GET_HIT(ch) <= 0 && prisoner_heads == 2)
+  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 2)
   {
     act("\tLYour blood \tWfreezes\tL as the \tBblue \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = 29000;
+    GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 1;
     act("\n\r\tLThe remaining \trred \tLhead turns and gazes at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1326,22 +1318,18 @@ void prisoner_on_death(struct char_data *ch)
     check_heads(ch); // to get right message..
     lich = read_mobile(113750, VIRTUAL);
     char_to_room(lich, ch->in_room);
-    GET_MAX_HIT(lich) = 29999;
-    GET_HIT(lich) = 29999;
     change_position(lich, POS_STANDING);
     move_items(ch, lich);
     return;
   }
 
   /* red head dies */
-  /* lich = read_mobile(13751, VIRTUAL);
+  lich = read_mobile(13751, VIRTUAL);
   char_to_room(lich, ch->in_room);
-  GET_MAX_HIT(lich) = 29999;
-  GET_HIT(lich) = 29999;
   change_position(lich, POS_STANDING);
-   */
-  act(
-      "\tLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
+  /* the item transfer is later */
+
+  act("\tLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
       "\tLexcruciating pain, the mighty Prisoner calls on her remaining divine power.\n\r"
       "\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!\n\r\n\r\n\r\n\r"
       "\tLA blinding light \tf\tWFLASHES\tn\tL from within her massive body followed by an\n\r"
@@ -1349,62 +1337,53 @@ void prisoner_on_death(struct char_data *ch)
       "\tryour body is hurled with tremendous force against the rumbling cavern walls",
       FALSE, ch, 0, 0, TO_ROOM);
 
-  /* for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
-   {
+  for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
+  {
+    if (tch != ch && tch != lich)
+      if (GET_POS(tch) > POS_SITTING)
+        change_position(tch, POS_SITTING);
+    if (tch != ch)
+      WAIT_STATE(tch, PULSE_VIOLENCE * 9);
+  }
+  WAIT_STATE(lich, PULSE_VIOLENCE * 9);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 9);
 
-      if(tch != ch && tch != lich)
-        if(GET_POS(tch) > POS_SITTING)
-          change_position(tch, POS_SITTING);
-      if(tch != ch)
-         WAIT_STATE(tch, PULSE_VIOLENCE * 9);
-
-   }
-   WAIT_STATE(lich, PULSE_VIOLENCE * 9);
-   WAIT_STATE(ch, PULSE_VIOLENCE * 9);
-   */
-
-  act(
-      "\trThrough a haze of dizziness you look up..\n\r"
+  act("\trThrough a haze of dizziness you look up..\n\r"
       "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
       "\trreplaced by a large holy symbol that falls to the rocky floor with a crash\tr.\n\r\tr.",
       FALSE, ch, 0, 0, TO_ROOM);
-  act(
-      "\tLSuddenly everything fades to black...\tn",
+  act("\tLSuddenly everything fades to black...\tn",
       FALSE, ch, 0, 0, TO_ROOM);
 
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
   {
-
     if (tch != ch)
     {
-      damage(tch, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
+      damage(ch, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
       WAIT_STATE(tch, PULSE_VIOLENCE * 9);
       af.modifier = 0;
       af.duration = rand_number(1, 30);
-      // af.bitvector = AFF_SLEEP;
-      // af.bitvector2 = 0;
-      // af.bitvector3 = 0;
+      af.bitvector = AFF_SLEEP;
       affect_join(tch, &af, FALSE, FALSE, TRUE, FALSE);
       change_position(tch, POS_SLEEPING);
     }
   }
 
-  // move_items( ch, lich );
+  move_items(ch, lich);
   return;
 }
 
 int rejuv_prisoner(struct char_data *ch)
 {
   int rejuv;
-  if (!rand_number(0, 8) && GET_HIT(ch) < 29999 && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
+  if (!rand_number(0, 8) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
   {
     rejuv = GET_HIT(ch) + 1500;
-    if (rejuv >= 30000)
-      rejuv = 29999;
+    if (rejuv >= GET_MAX_HIT(ch))
+      rejuv = GET_MAX_HIT(ch);
     GET_HIT(ch) = rejuv;
     PROC_FIRED(ch) = TRUE;
-    act(
-        "\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
+    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     return 1;
   }
@@ -1413,16 +1392,14 @@ int rejuv_prisoner(struct char_data *ch)
 
   if (!rand_number(0, 11) && FIGHTING(ch))
   {
-    act(
-        "\tLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
+    act("\tLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
         "\tWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
         FALSE, ch, 0, 0, TO_ROOM);
-    act(
-        "\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
+    act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     rejuv = GET_HIT(ch) + 2500;
-    if (rejuv >= 30000)
-      rejuv = 29999;
+    if (rejuv >= GET_MAX_HIT(ch))
+      rejuv = GET_MAX_HIT(ch);
     GET_HIT(ch) = rejuv;
     return TRUE;
   }
@@ -1431,6 +1408,9 @@ int rejuv_prisoner(struct char_data *ch)
 
 int prisoner_breath(struct char_data *ch)
 {
+  if (!FIGHTING(ch))
+    return 0;
+
   int breaths = 0;
   int breath[5];
   int selected = 0;
@@ -1451,98 +1431,204 @@ int prisoner_breath(struct char_data *ch)
 
   selected = dice(1, breaths) - 1;
   selected = breath[selected];
+
   // do a breath..  level 40 breath since she breaths every round.
   call_magic(ch, FIGHTING(ch), 0, selected, 0, 30, CAST_SPELL);
+
   return 1;
 }
 
-SPECIAL(the_prisoner)
+/*************************************/
+/****** prisoner gear defines! *******/
+/*************************************/
+/* unique */
+/* 00 */ #define MALEVOLENCE 132101
+    /* 01 */ #define CELESTIAL_SWRD 132300
+    /* 02 */ #define HELL_SWRD 132302
+    /* 03 */ #define MAGI_STAFF 132109
+    /* 04 */ #define MOONBLADE 132118
+    /* 05 */ #define DROW_SCIMITAR 132126
+    /* 06 */ #define CRYSTAL_RAPIER 132125
+    /* 07 */ #define STAR_CRICLET 132104
+    /* 08 */ #define HOLY_PLATE 132105
+    /* 09 */ #define DRAGONBONE_PLATE 132116
+    /* 10 */ #define SPEED_GAUNT 132128
+    /* 11 */ #define SHADOW_CLOAK 132120
+    /* 12 */ #define ELVEN_CLOAK 132106
+    /* 13 */ #define RUNED_QUIVER 132119
+    /* 14 */ #define SLAADI_GOGS 132121
+    /* 15 */ #define MANDRAKE_EAR 132117
+    /* 16 */ #define MITH_ARROW 132127
+    /* 17 */ #define ARM_VALOR 132103
+#define TOP_UNIQUES 17
+/* base items */
+#define BLACK_FIGURINE 132114
+#define LAVANDER_VIA 132110
+#define COINS_GOLD 132112
+#define COINS_PLAT 132111
+#define COINS_SILV 132113
+/*************************************/
+/* variables */
+#define PRISONER_VAULT 132100
+#define VALID_VNUM_LOW 132100
+#define VALID_VNUM_HiGH 132399
+#define NUM_TREASURE 17
+    /*************************************/
+    /*************************************/
+
+    /* this function is meant to load the gear into the treasury
+       we are checking 1) the items haven't loaded and 2) that the prisoner is engaged in combat to trigger this section */
+    void
+    prisoner_gear_loading(struct char_data *ch)
 {
-  struct char_data *i;
-  //  struct char_data *vict = FIGHTING(ch);
+  struct char_data *i = NULL;
   struct obj_data *olist = NULL;
   bool loaded = FALSE;
-  int ovnum = -1;
+  int ovnum = NOTHING;
+  int num_items = 0;
+
+  int objNums[TOP_UNIQUES] = {
+      MALEVOLENCE,      /* for warrior, berserker, giantslayer, battlerager */
+      CELESTIAL_SWRD,   /* good only warrior types? */
+      HELL_SWRD,        /* evil only warrior types? */
+      MAGI_STAFF,       /* wizard types */
+      MOONBLADE,        /* bladesing, ranger */
+      DROW_SCIMITAR,    /* shadowstalker, weaponmaster */
+      CRYSTAL_RAPIER,   /* swashbuckler */
+      STAR_CRICLET,     /* caster circlet */
+      HOLY_PLATE,       /* good only arnmor ? */
+      DRAGONBONE_PLATE, /* heavy armor ? */
+      SPEED_GAUNT,      /* monk gauntlets */
+      SHADOW_CLOAK,     /* evil rogue cloak? */
+      ELVEN_CLOAK,      /* good elven rogue cloak? */
+      RUNED_QUIVER,     /* quiver */
+      SLAADI_GOGS,      /* psi eyewear */
+      MANDRAKE_EAR,     /* earring */
+      MITH_ARROW,       /* arrows */
+      ARM_VALOR,        /* armplates of valor */
+  };
+
+  if (!ch)
+    return;
+
+  /* this loop will only run once, it gets turned off by a global below */
+
+  do
+  {
+    /* pick an item, any item! */
+    ovnum = rand_number(0, TOP_UNIQUES);
+
+    /* make sure this item isn't a duplicate */
+    /* loop through vault items */
+    for (olist = world[real_room(PRISONER_VAULT)].contents; olist; olist = olist->next_content)
+    {
+      if (GET_OBJ_VNUM(olist) == ovnum)
+      {
+        loaded = TRUE; /* this item was already loaded */
+      }
+    }
+
+    /* this particular object is a valid number and hasn't been loaded, lets load it! */
+    if (ovnum >= VALID_VNUM_LOW && ovnum <= VALID_VNUM_HiGH && loaded == FALSE)
+    {
+      /* check if there is a special handling for this particular item, such as loading numerous of the item instead of 1 */
+      switch (ovnum)
+      {
+      case MITH_ARROW:
+        obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+        obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+        obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+        obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+        obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+        break;
+
+      default:
+        obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+        break;
+      }
+
+      num_items++;
+    }
+
+    ovnum = NOTHING;
+    loaded = FALSE;
+
+  } while (num_items < NUM_TREASURE);
+
+  /* base items */
+  obj_to_room(read_object(BLACK_FIGURINE, VIRTUAL), real_room(PRISONER_VAULT));
+  obj_to_room(read_object(LAVANDER_VIA, VIRTUAL), real_room(PRISONER_VAULT));
+  obj_to_room(read_object(COINS_GOLD, VIRTUAL), real_room(PRISONER_VAULT));
+  obj_to_room(read_object(COINS_PLAT, VIRTUAL), real_room(PRISONER_VAULT));
+  obj_to_room(read_object(COINS_SILV, VIRTUAL), real_room(PRISONER_VAULT));
+
+  /* the work is done! */
+  return;
+}
+/*************************************/
+/****** prisoner gear UNdefines! *******/
+/*************************************/
+/* unique */
+#undef MALEVOLENCE
+#undef CELESTIAL_SWRD
+#undef HELL_SWRD
+#undef MAGI_STAFF
+#undef MOONBLADE
+#undef DROW_SCIMITAR
+#undef CRYSTAL_RAPIER
+#undef STAR_CRICLET
+#undef HOLY_PLATE
+#undef DRAGONBONE_PLATE
+#undef SPEED_GAUNT
+#undef SHADOW_CLOAK
+#undef ELVEN_CLOAK
+#undef RUNED_QUIVER
+#undef SLAADI_GOGS
+#undef MANDRAKE_EAR
+#undef MITH_ARROW
+#undef ARM_VALOR
+/* base items */
+#undef BLACK_FIGURINE
+#undef LAVANDER_VIA
+#undef COINS_GOLD
+#undef COINS_PLAT
+#undef COINS_SILV
+/*************************************/
+/* variables */
+#undef TOP_UNIQUES
+#undef VALID_VNUM_LOW
+#undef VALID_VNUM_HiGH
+#undef PRISONER_VAULT
+#undef NUM_TREASURE
+/*************************************/
+/*************************************/
+
+SPECIAL(the_prisoner)
+{
 
   if (cmd)
     return 0;
 
+  /* make sure he has all 5 heads */
   if (prisoner_heads < 0)
     prisoner_heads = 5;
 
-  if (GET_MAX_HIT(ch) < 29999)
-  {
-    GET_MAX_HIT(ch) = 29999;
-    GET_HIT(ch) = GET_MAX_HIT(ch);
-  }
-
-  if (GET_POS(ch) == POS_DEAD)
+  /* need to really move this and redo it, but this is how we are handling his death */
+  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP))
   {
     prisoner_on_death(ch);
     return 1;
   }
 
+  /* we have hit the gear creation section */
+  /* we are checking 1) the items haven't loaded and 2) that the prisoner is engaged in combat to trigger this section */
   if (eq_loaded == FALSE && FIGHTING(ch))
   {
-    for (i = character_list; i; i = i->next)
-    {
-      if (!ch || !i)
-        continue;
-      if (IN_ROOM(ch) == NOWHERE || IN_ROOM(i) == NOWHERE)
-        continue;
-      if (world[ch->in_room].zone == world[i->in_room].zone && !IS_NPC(i))
-      {
-
-        /* Moonblade */
-        // if (GET_CLASS(i) == CLASS_BLADESINGER || GET_CLASS(i) == CLASS_RANGER)
-        // ovnum = 132118;
-
-        /* Malevolence */
-        if (GET_CLASS(i) == CLASS_WARRIOR || GET_CLASS(i) == CLASS_BERSERKER) //||
-          // GET_CLASS(i) == CLASS_GIANTSLAYER || GET_CLASS(i) == CLASS_BATTLERAGER)
-          ovnum = 132101;
-
-        /* Speed gauntlets */
-        if (MONK_TYPE(i))
-          ovnum = 132128;
-
-        /* Rapier */
-        // if (GET_CLASS(i) == CLASS_SWASHBUCKLER)
-        // ovnum = 132125;
-
-        /* Shadow cloak */
-        if (GET_CLASS(i) == CLASS_ROGUE)
-          // if (GET_CLASS(i) == CLASS_ASSASSIN || GET_CLASS(i) == CLASS_ROGUE ||
-          // GET_CLASS(i) == CLASS_THIEF || GET_CLASS(i) == CLASS_SCOUT || GET_CLASS(i) == CLASS_MERCENARY)
-          ovnum = 132120;
-
-        /* Slaadi Goggles */
-        // if (GET_CLASS(i) == CLASS_PSI)
-        // ovnum = 132121;
-
-        /* Platemail of Life */
-        if (GET_CLASS(i) == CLASS_PALADIN)
-          ovnum = 132105;
-
-        /* Drow Scimitar */
-        // if (GET_CLASS(i) == CLASS_SHADOWSTALKER || GET_CLASS(i) == CLASS_WEAPONMASTER)
-        // ovnum = 132126;
-      }
-      /* Move object to room if not already one there */
-      for (olist = world[real_room(132100)].contents; olist; olist = olist->next_content)
-        if (GET_OBJ_VNUM(olist) == ovnum)
-          loaded = TRUE;
-
-      if (ovnum >= 132100 && loaded == FALSE)
-        obj_to_room(read_object(ovnum, VIRTUAL), real_room(132100));
-
-      ovnum = -1;
-      loaded = FALSE;
-    }
+    prisoner_gear_loading(ch);
     eq_loaded = TRUE;
   }
 
-  if (FIGHTING(ch) && !rand_number(0, 5))
+  if (FIGHTING(ch) && !rand_number(0, 3))
     prisoner_breath(ch);
 
   if (check_heads(ch))

@@ -151,6 +151,11 @@ void initialize_special_abilities(void)
 
   daily_item_specab(ITEM_SPECAB_HORN_OF_SUMMONING, eITEM_SPECAB_HORN_OF_SUMMONING, 2);
 
+  add_item_special_ability(ITEM_SPECAB_ITEM_SUMMON, "Summoning Item", 10, ACTMTD_USE | ACTMTD_WEAR,
+                           TAR_IGNORE, FALSE, 0, CONJURATION, 1, item_specab_item_summon);
+
+  daily_item_specab(ITEM_SPECAB_ITEM_SUMMON, eITEM_SPECAB_ITEM_SUMMON, 2);
+
   add_armor_special_ability(ARMOR_SPECAB_BLINDING, "Blinding (Armor)", 7, ACTMTD_COMMAND_WORD | ACTMTD_WEAR,
                             TAR_IGNORE, TRUE, 0, EVOCATION, 1, armor_specab_blinding);
 
@@ -750,6 +755,114 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n",
                    (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_HORN_OF_SUMMONING) == 0 ? "Your companion is too tired to answer your summons."
                                                                                               : "Your companion is ready to answer your summons!"));
+    break;
+  default:
+    /* Do nothing. */
+    break;
+  }
+}
+
+ITEM_SPECIAL_ABILITY(item_specab_item_summon)
+{
+  /* specab
+   * level
+   * obj
+   * ch
+   * victim
+   */
+  struct char_data *mob = NULL;
+  mob_vnum mob_num = 0;
+  int temp_level = 0;
+
+  switch (actmtd)
+  {
+  case ACTMTD_USE: /* User USEs the item. */
+
+    if (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_ITEM_SUMMON) == 0)
+    {
+      /* No uses remaining... */
+      send_to_char(ch, "The item must regain its energies before invoking this ability.\r\n");
+      break;
+    }
+
+    if (!IN_ROOM(ch))
+      break;
+
+    /* start off with some possible fail conditions */
+    if (AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      send_to_char(ch, "You are too giddy to have any followers!\r\n");
+      break;
+    }
+
+    if (HAS_PET(ch))
+    {
+      send_to_char(ch, "You can't control more followers!\r\n");
+      break;
+    }
+    mob_num = specab->value[0]; /* Val 0 is mob VNUM */
+
+    /* Display the message for the ability. */
+    act("You raise $o high to invokes its power....", FALSE, ch, obj, ch, TO_CHAR);
+    act("$N raises $S $o high in $S hands, invoking its power...", TRUE, ch, obj, ch, TO_ROOM);
+
+    /* Echo to the zone. */
+    send_to_zone("Thundering sound of conjuring power reverberates throughout the area.\r\n", world[IN_ROOM(ch)].zone);
+
+    if (!(mob = read_mobile(mob_num, VIRTUAL)))
+    {
+      send_to_char(ch, "You don't quite remember how to make that creature (report to STAFF).\r\n");
+      return;
+    }
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+    }
+
+    char_to_room(mob, IN_ROOM(ch));
+    IS_CARRYING_W(mob) = 0;
+    IS_CARRYING_N(mob) = 0;
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+
+    temp_level = MIN(GET_LEVEL(ch), GET_LEVEL(mob));
+    GET_LEVEL(mob) = MIN(20, temp_level);
+    autoroll_mob(mob, TRUE, TRUE);
+    GET_LEVEL(mob) = temp_level;
+
+    /* summon augmentation feat */
+    if (HAS_FEAT(ch, FEAT_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*augmented* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_ROOM);
+    act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_CHAR);
+
+    load_mtrigger(mob);
+    add_follower(mob, ch);
+
+    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+      join_group(mob, GROUP(ch));
+
+    start_item_specab_daily_use_cooldown(obj, ITEM_SPECAB_ITEM_SUMMON);
+
+    break;
+  case ACTMTD_COMMAND_WORD: /* User UTTERs the command word. */
+    break;
+  case ACTMTD_ON_HIT: /* Called whenever a weapon hits an enemy. */
+    break;
+  case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
+    break;
+  case ACTMTD_WEAR: /* Called whenever the item is worn. */
+    if (!ch->mute_equip_messages)
+      send_to_char(ch, "The horn speaks in your mind, \"%s\"\r\n",
+                   (daily_item_specab_uses_remaining(obj, ITEM_SPECAB_ITEM_SUMMON) == 0 ? "Your companion is too tired to answer your summons."
+                                                                                        : "Your companion is ready to answer your summons!"));
     break;
   default:
     /* Do nothing. */

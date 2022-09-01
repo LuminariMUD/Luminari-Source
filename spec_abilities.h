@@ -36,8 +36,8 @@
 
 extern const char *activation_methods[];
 
-/* Special abilities for weapons, armor and shields. - 19/08/2013 Ornir                      
- * These abilities have been taken from the d20srd, 
+/* Special abilities for weapons, armor and shields. - 19/08/2013 Ornir
+ * These abilities have been taken from the d20srd,
  * augmented by other sourcebooks. */
 
 #define SPECAB_NONE 0 /* No ability, placeholder. */
@@ -104,19 +104,20 @@ extern const char *activation_methods[];
 
 #define WEAPON_SPECAB_BLINDING 54        // Attempts to blind opponent on a critical hit
 #define WEAPON_SPECAB_ADAPTIVE 55        // ranged weapons can use full strength bonus
-#define WEAPON_SPECAB_AGILE    56        // Weapons that qualify for weapon finesse deal dex damage instead of strength damage if higher
+#define WEAPON_SPECAB_AGILE 56           // Weapons that qualify for weapon finesse deal dex damage instead of strength damage if higher
 #define WEAPON_SPECAB_BEWILDERING 57     // will add confuse effect to opponents on crit
 #define WEAPON_SPECAB_CORROSIVE 58       // adds acid damage
-#define WEAPON_SPECAB_CORROSIVE_BURST 59  // adds acid damage plus more on crit
+#define WEAPON_SPECAB_CORROSIVE_BURST 59 // adds acid damage plus more on crit
 #define WEAPON_SPECAB_EXHAUSTING 60      // sets fatigue and drains moves on crit
 #define WEAPON_SPECAB_VAMPIRIC 61        // heals damage on hit
 #define WEAPON_SPECAB_LUCKY 62           // 5% chance to add 1/2 weapon enhancement bonus to almost any d20 roll
 #define WEAPON_SPECAB_INVIGORATING 63    // restores tamina points with each hit
 
+#define ITEM_SPECAB_ITEM_SUMMON 64 /* summon item - Summon mobile vnum in val1 */
 
-#define NUM_SPECABS 64 /* Number of Special Abilities */
+#define NUM_SPECABS 65 /* Number of Special Abilities */
 
-char * get_weapon_specab_default_command_word(int specab);
+char *get_weapon_specab_default_command_word(int specab);
 bool obj_has_special_ability(struct obj_data *obj, int ability);
 struct obj_special_ability *get_obj_special_ability(struct obj_data *obj, int ability);
 int process_armor_abilities(struct char_data *ch, struct char_data *victim,
@@ -184,7 +185,7 @@ void initialize_special_abilities(void);
 /* Process weapon abilities for the specified activation method. */
 int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check for special abilities. */
                              struct char_data *ch,     /* The wielder of the weapon. */
-                             struct char_data *victim, /* The target of the ability (either fighting or 
+                             struct char_data *victim, /* The target of the ability (either fighting or
                                                         * specified explicitly. */
                              int actmtd,               /* Activation method */
                              const char *cmdword);     /* Command word (optional, NULL if none. */
@@ -192,15 +193,15 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
 /* Process weapon abilities for the specified activation method. */
 int process_item_abilities(struct obj_data *obj,     /* The weapon to check for special abilities. */
                            struct char_data *ch,     /* The wielder of the weapon. */
-                           struct char_data *victim, /* The target of the ability (either fighting or 
-                                                        * specified explicitly. */
+                           struct char_data *victim, /* The target of the ability (either fighting or
+                                                      * specified explicitly. */
                            int actmtd,               /* Activation method */
                            char *cmdword);           /* Command word (optional, NULL if none. */
 
 /* Function that deactivates the specified weapon special ability. */
-//int deactivate_weapon_ability(struct obj_data *weapon, /* The weapon to check. */
-//                               struct char_data *ch,    /* The wielder of the weapon. */
-//                               int    ability);         /* The ability to check. */
+// int deactivate_weapon_ability(struct obj_data *weapon, /* The weapon to check. */
+//                                struct char_data *ch,    /* The wielder of the weapon. */
+//                                int    ability);         /* The ability to check. */
 
 /* Prototypes for weapon special abilities */
 WEAPON_SPECIAL_ABILITY(weapon_specab_bane);
@@ -210,9 +211,9 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_frost);
 WEAPON_SPECIAL_ABILITY(weapon_specab_icy_burst);
 WEAPON_SPECIAL_ABILITY(weapon_specab_shock);
 WEAPON_SPECIAL_ABILITY(weapon_specab_shocking_burst);
-//WEAPON_SPECIAL_ABILITY(weapon_specab_thundering);
-//WEAPON_SPECIAL_ABILITY(weapon_specab_holy);
-//WEAPON_SPECIAL_ABILITY(weapon_specab_unholy);
+// WEAPON_SPECIAL_ABILITY(weapon_specab_thundering);
+// WEAPON_SPECIAL_ABILITY(weapon_specab_holy);
+// WEAPON_SPECIAL_ABILITY(weapon_specab_unholy);
 WEAPON_SPECIAL_ABILITY(weapon_specab_seeking);
 WEAPON_SPECIAL_ABILITY(weapon_specab_blinding);
 WEAPON_SPECIAL_ABILITY(weapon_specab_adaptive);
@@ -236,5 +237,6 @@ ARMOR_SPECIAL_ABILITY(armor_specab_blinding);
 
 /* Prototypes for item special abilities */
 ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning);
+ITEM_SPECIAL_ABILITY(item_specab_item_summon);
 
 #endif

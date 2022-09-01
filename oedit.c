@@ -1349,6 +1349,9 @@ static void oedit_disp_specab_val1_menu(struct descriptor_data *d)
   case ITEM_SPECAB_HORN_OF_SUMMONING:
     write_to_output(d, "Enter the vnum of the mob to summon : ");
     break;
+  case ITEM_SPECAB_ITEM_SUMMON:
+    write_to_output(d, "Enter the vnum of the mob to summon : ");
+    break;
   default:
     OLC_MODE(d) = OEDIT_ASSIGN_WEAPON_SPECAB_MENU;
     oedit_disp_assign_weapon_specab_menu(d);
@@ -3085,6 +3088,18 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       oedit_disp_specab_val2_menu(d);
       return;
     case ITEM_SPECAB_HORN_OF_SUMMONING: /* Val 1: VNUM of mob summoned. */
+      number = atoi(arg);
+      if ((number < 0) || (number >= 12157521))
+      {
+        /* Value out of range. */
+        write_to_output(d, "Invalid vnum, try again : ");
+        return;
+      }
+      OLC_SPECAB(d)->value[0] = number;
+      OLC_MODE(d) = OEDIT_WEAPON_SPECAB_MENU;
+      oedit_disp_assign_weapon_specab_menu(d);
+      return;
+    case ITEM_SPECAB_ITEM_SUMMON: /* Val 1: VNUM of mob summoned. */
       number = atoi(arg);
       if ((number < 0) || (number >= 12157521))
       {
