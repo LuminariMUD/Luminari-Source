@@ -1361,9 +1361,11 @@ void prisoner_on_death(struct char_data *ch)
     {
       damage(ch, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
       WAIT_STATE(tch, PULSE_VIOLENCE * 9);
-      af.modifier = 0;
+
+      new_affect(&af);
+      af.spell = SPELL_SLEEP;
       af.duration = rand_number(1, 30);
-      af.bitvector = AFF_SLEEP;
+      SET_BIT_AR(af.bitvector, AFF_SLEEP);
       affect_join(tch, &af, FALSE, FALSE, TRUE, FALSE);
       change_position(tch, POS_SLEEPING);
     }
@@ -1509,12 +1511,11 @@ void prisoner_gear_loading(struct char_data *ch)
   if (!ch)
     return;
 
-  /* this loop will only run once, it gets turned off by a global below */
-
+  /* this loop will only run once, it gets turned off by a variable below */
   do
   {
     /* pick an item, any item! */
-    ovnum = rand_number(0, TOP_UNIQUES);
+    ovnum = objNums[rand_number(0, TOP_UNIQUES)];
 
     /* make sure this item isn't a duplicate */
     /* loop through vault items */
