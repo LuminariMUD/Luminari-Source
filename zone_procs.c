@@ -1474,7 +1474,7 @@ int prisoner_breath(struct char_data *ch)
 #define PRISONER_VAULT 132100
 #define VALID_VNUM_LOW 132100
 #define VALID_VNUM_HiGH 132399
-#define NUM_TREASURE 17
+#define NUM_TREASURE 16
 /*************************************/
 /*************************************/
 
