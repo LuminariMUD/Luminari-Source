@@ -3240,6 +3240,9 @@ ACMD(do_unlead)
               interrupted.  */
 int change_position(struct char_data *ch, int new_position)
 {
+  if (!ch)
+    return 0;
+
   int old_position = GET_POS(ch);
 
   /* we will put some general checks for having your position changed */
