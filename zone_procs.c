@@ -1165,65 +1165,14 @@ SPECIAL(tia_rapier)
   return 0;
 }
 
+/*****************************************************************/
 /* mobiles */
+/*****************************************************************/
 
+/* globals */
 int prisoner_heads = -1;
 bool eq_loaded = FALSE;
-
-SPECIAL(dracolich)
-{
-  struct char_data *vict = NULL;
-  int hitpoints = 0;
-
-  if (!ch)
-    return 0;
-
-  if (GET_MOB_WAIT(ch) > 0 && GET_HIT(ch) < 29999)
-    GET_MOB_WAIT(ch) = 0;
-
-  if (GET_POS(ch) == POS_DEAD)
-    act("\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
-        "fall to the ground with a resounding thud.\tn"
-        "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn",
-        FALSE, ch, 0, vict, TO_ROOM);
-
-  if (cmd || rand_number(0, 3)) /* note that the !vict is moved below */
-    return 0;
-
-  for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
-    if (vict != FIGHTING(ch) && FIGHTING(vict) == ch && !rand_number(0, 2))
-      break;
-
-  if (!vict)
-    if (!(vict = FIGHTING(ch)))
-      return 0;
-
-  act("\tLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
-      "\tLShe sets her gaze upon you with the most wicked grin you have ever known.",
-      FALSE, ch, 0, vict, TO_VICT);
-  act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
-      "\tWAs you fall, you see a stream of your own life force flowing away from you..",
-      FALSE, ch, 0, vict, TO_VICT);
-  act("\tLAs the life fades from your body, the last thing you see is the Prisoner's wicked grin staring into your soul..\tn",
-      FALSE, ch, 0, vict, TO_VICT);
-  act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
-      "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
-      TRUE, ch, 0, vict, TO_NOTVICT);
-  act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
-      "$n\tL literally sucks the life force from $N,\tn\r\n"
-      "\tLwho crumples into a ball of lifeless flesh on the ground...\tn",
-      TRUE, ch, 0, vict, TO_NOTVICT);
-  act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls dead!\tn", TRUE, ch, 0, vict,
-      TO_CHAR);
-
-  hitpoints = GET_HIT(vict);
-  if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
-    GET_HIT(ch) += hitpoints;
-
-  GET_HIT(vict) = 0;
-
-  return 1;
-}
+/* end globals */
 
 int check_heads(struct char_data *ch)
 {
@@ -1310,8 +1259,8 @@ void move_items(struct char_data *ch, struct char_data *lich)
 #define DRACOLICH_PRISONER 113751
 void prisoner_on_death(struct char_data *ch)
 {
-  struct char_data *lich;
-  struct char_data *tch;
+  struct char_data *lich = NULL;
+  struct char_data *tch = NULL;
   struct affected_type af;
 
   /*Still got HEADS!!, means they did shitload of damage et..*/
@@ -1346,10 +1295,10 @@ void prisoner_on_death(struct char_data *ch)
       if (GET_POS(tch) > POS_SITTING)
         change_position(tch, POS_SITTING);
     if (tch != ch)
-      WAIT_STATE(tch, PULSE_VIOLENCE * 9);
+      WAIT_STATE(tch, PULSE_VIOLENCE * 3);
   }
-  WAIT_STATE(lich, PULSE_VIOLENCE * 9);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 9);
+  WAIT_STATE(lich, PULSE_VIOLENCE * 3);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
 
   act("\trThrough a haze of dizziness you look up..\n\r"
       "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
@@ -1360,14 +1309,14 @@ void prisoner_on_death(struct char_data *ch)
 
   for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
   {
-    if (tch != ch)
+    if (tch != lich)
     {
-      damage(ch, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
-      WAIT_STATE(tch, PULSE_VIOLENCE * 9);
+      damage(lich, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
+      WAIT_STATE(tch, PULSE_VIOLENCE * 3);
 
       new_affect(&af);
       af.spell = SPELL_SLEEP;
-      af.duration = rand_number(1, 30);
+      af.duration = 5;
       SET_BIT_AR(af.bitvector, AFF_SLEEP);
       affect_join(tch, &af, FALSE, FALSE, TRUE, FALSE);
       change_position(tch, POS_SLEEPING);
@@ -1375,14 +1324,15 @@ void prisoner_on_death(struct char_data *ch)
   }
 
   move_items(ch, lich);
-  dam_killed_vict(ch, ch);
+  dam_killed_vict(lich, ch);
 
   return;
 }
 
 int rejuv_prisoner(struct char_data *ch)
 {
-  int rejuv;
+  int rejuv = 0;
+
   if (!rand_number(0, 8) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
   {
     rejuv = GET_HIT(ch) + 1500;
@@ -1627,6 +1577,31 @@ SPECIAL(the_prisoner)
     return 1;
   }
 
+  if (FIGHTING(ch) && !rand_number(0, 3))
+    prisoner_breath(ch);
+
+  if (check_heads(ch))
+    return 1;
+
+  if (!rand_number(0, 3))
+  {
+    if (rejuv_prisoner(ch))
+    {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+SPECIAL(dracolich)
+{
+  struct char_data *vict = NULL;
+  int hitpoints = 0;
+
+  if (!ch)
+    return 0;
+
   /* we have hit the gear creation section */
   /* we are checking 1) the items haven't loaded and 2) that the prisoner is engaged in combat to trigger this section */
   if (eq_loaded == FALSE && FIGHTING(ch))
@@ -1635,16 +1610,48 @@ SPECIAL(the_prisoner)
     eq_loaded = TRUE;
   }
 
-  if (FIGHTING(ch) && !rand_number(0, 3))
-    prisoner_breath(ch);
+  if (GET_POS(ch) == POS_DEAD)
+    act("\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
+        "fall to the ground with a resounding thud.\tn"
+        "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn",
+        FALSE, ch, 0, vict, TO_ROOM);
 
-  if (check_heads(ch))
-    return 1;
+  if (cmd || rand_number(0, 3)) /* note that the !vict is moved below */
+    return 0;
 
-  if (rejuv_prisoner(ch))
-    return 1;
+  for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
+    if (vict != FIGHTING(ch) && FIGHTING(vict) == ch && !rand_number(0, 2))
+      break;
 
-  return 0;
+  if (!vict)
+    if (!(vict = FIGHTING(ch)))
+      return 0;
+
+  act("\tLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
+      "\tLShe sets her gaze upon you with the most wicked grin you have ever known.",
+      FALSE, ch, 0, vict, TO_VICT);
+  act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
+      "\tWAs you fall, you see a stream of your own life force flowing away from you..",
+      FALSE, ch, 0, vict, TO_VICT);
+  act("\tLAs the life fades from your body, the last thing you see is the Prisoner's wicked grin staring into your soul..\tn",
+      FALSE, ch, 0, vict, TO_VICT);
+  act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
+      "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
+      TRUE, ch, 0, vict, TO_NOTVICT);
+  act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+      "$n\tL literally sucks the life force from $N,\tn\r\n"
+      "\tLwho crumples into a ball of lifeless flesh on the ground...\tn",
+      TRUE, ch, 0, vict, TO_NOTVICT);
+  act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls dead!\tn", TRUE, ch, 0, vict,
+      TO_CHAR);
+
+  hitpoints = GET_HIT(vict);
+  if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
+    GET_HIT(ch) += hitpoints;
+
+  GET_HIT(vict) = 0;
+
+  return 1;
 }
 
 /**********************/
