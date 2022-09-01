@@ -1229,7 +1229,7 @@ int check_heads(struct char_data *ch)
 {
 
   /* green head dies */
-  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 5)
+  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 5)
   {
     act("\tLYour blood \tWfreezes\tL as the \tggreen \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
@@ -1242,7 +1242,7 @@ int check_heads(struct char_data *ch)
   }
 
   /* white head dies */
-  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 4)
+  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 4)
   {
     act("\tLYour blood \tWfreezes\tL as the \tWwhite \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
@@ -1255,7 +1255,7 @@ int check_heads(struct char_data *ch)
   }
 
   /* black head dies */
-  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 3)
+  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 3)
   {
     act("\tLYour blood \tWfreezes\tL as the black head of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
@@ -1268,7 +1268,7 @@ int check_heads(struct char_data *ch)
   }
 
   /* blue head dies */
-  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 2)
+  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 2)
   {
     act("\tLYour blood \tWfreezes\tL as the \tBblue \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
@@ -1320,6 +1320,7 @@ void prisoner_on_death(struct char_data *ch)
     char_to_room(lich, ch->in_room);
     change_position(lich, POS_STANDING);
     move_items(ch, lich);
+    dam_killed_vict(ch, ch);
     return;
   }
 
@@ -1372,6 +1373,8 @@ void prisoner_on_death(struct char_data *ch)
   }
 
   move_items(ch, lich);
+  dam_killed_vict(ch, ch);
+
   return;
 }
 
@@ -1474,7 +1477,7 @@ int prisoner_breath(struct char_data *ch)
 #define PRISONER_VAULT 132100
 #define VALID_VNUM_LOW 132100
 #define VALID_VNUM_HiGH 132399
-#define NUM_TREASURE 16
+#define NUM_TREASURE 7
 #define LOOP_LIMIT 1000
 /*************************************/
 /*************************************/
@@ -1616,7 +1619,7 @@ SPECIAL(the_prisoner)
     prisoner_heads = 5;
 
   /* need to really move this and redo it, but this is how we are handling his death */
-  if ((GET_HIT(ch) <= 500 || GET_POS(ch) <= POS_INCAP))
+  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP))
   {
     prisoner_on_death(ch);
     return 1;
