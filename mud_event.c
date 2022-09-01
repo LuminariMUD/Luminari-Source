@@ -182,11 +182,14 @@ struct mud_event_list mud_event_index[] = {
     {"Lich Rejuvenation", event_countdown, EVENT_CHAR},       // eLICH_REJUV
     {"Lich Fear", event_daily_use_cooldown, EVENT_CHAR},      // eLICH_FEAR
     {"Judgement", event_daily_use_cooldown, EVENT_CHAR},      // eJUDGEMENT
+    /*135*/
     {"Bane", event_daily_use_cooldown, EVENT_CHAR},           // eBANE
     {"True Judgement", event_daily_use_cooldown, EVENT_CHAR}, // eTRUEJUDGEMENT
     {"Spiritual Weapon", event_spiritual_weapon, EVENT_CHAR}, // eSPIRITUALWEAPON
     {"Dancing Weapon", event_dancing_weapon, EVENT_CHAR},     // eDANCINGWEAPON
     {"Holy Javelin", event_holy_javelin, EVENT_CHAR},         // eHOLYJAVELIN
+    /*140*/
+    {"Item SpecAb Cooldown: Summon Item", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_ITEM_SUMMON
 
 };
 
@@ -890,6 +893,9 @@ EVENTFUNC(event_daily_use_cooldown)
   case eITEM_SPECAB_HORN_OF_SUMMONING:
     featnum = FEAT_UNDEFINED;
     nonfeat_daily_uses = 2; /* 2 uses a day. */
+  case eITEM_SPECAB_ITEM_SUMMON:
+    featnum = FEAT_UNDEFINED;
+    nonfeat_daily_uses = 1; /* 1 use a day. */
   default:
     break;
   }

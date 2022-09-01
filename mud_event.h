@@ -135,39 +135,40 @@ typedef enum
   eARMOR_SPECAB_BLINDING,                 /* cooldown event for blinding armor special ability */
   /*105*/ eITEM_SPECAB_HORN_OF_SUMMONING, /* cooldown event for the horn of summoning special ability */
   eMUTAGEN,
-  eCURING_TOUCH,            // alchemical discovery curing touch
-  ePSYCHOKINETIC,           // alchemical discovery psychokinetic tincture
-  eIMPROMPT,                /*slice & dice!  impromptu sneak attacks*/
-  /*110*/ eINVISIBLE_ROGUE, /* invisible rogue, SLA */
-  eSACRED_FLAMES,           /*flaming sacred unarmed attacks!*/
-  eINNER_FIRE,              /*inner fire, lots of juicy bonuses!*/
-  ePIXIEDUST,               // pixie dust used with shifter form: pixie
-  eEFREETIMAGIC,            // efreeti magic used with shifter form: efreeti
-  /*115*/ eDRAGONMAGIC,     // dragon magic used with shifter form: dragon
-  eSLA_STRENGTH,            /* innate strength*/
-  eSLA_ENLARGE,             /* innate enlarge */
-  eSLA_INVIS,               /* innate invisibility */
-  eCONCUSSIVEONSLAUGHT,     // concussive onsalught psionic power
-  /*120*/ eCHANNELSPELL,    // countdown for channel spell ability
-  ePOWERLEECH,              // power leech ability
-  ePSIONICFOCUS,            // psionic focus ability
-  eDOUBLEMANIFEST,          // double manifest ability
-  eSUMMONSHADOW,            // shadowdancer summon shadow
-  /*125*/ eSHADOWILLUSION,  // shadowdancer shadow illusion
-  eSHADOWCALL,              // shadowdancer  shadow call
-  eSHADOWJUMP,              // shadowdancer  shadow jump
-  eSHADOWPOWER,             // shadowdancer  shadow power
-  eTOUCHOFCORRUPTION,       // touch of corruption - blackguard
-  /*130*/ eCHANNELENERGY,   // channel positive/negative energy
-  eLICH_TOUCH,              // lich touch event
-  eLICH_REJUV,              // lich rejuv event
-  eLICH_FEAR,               // lich fear event
-  eJUDGEMENT,               // inquisitor judgement ability
-  eBANE,                    // inquisitor bane ability
-  eTRUEJUDGEMENT,           // inquisitor true judgement ability
-  eSPIRITUALWEAPON,         // spiritual weapon spell
-  eDANCINGWEAPON,           // dancing weapon spell
-  eHOLYJAVELIN,             // holy javelin spell
+  eCURING_TOUCH,                    // alchemical discovery curing touch
+  ePSYCHOKINETIC,                   // alchemical discovery psychokinetic tincture
+  eIMPROMPT,                        /*slice & dice!  impromptu sneak attacks*/
+  /*110*/ eINVISIBLE_ROGUE,         /* invisible rogue, SLA */
+  eSACRED_FLAMES,                   /*flaming sacred unarmed attacks!*/
+  eINNER_FIRE,                      /*inner fire, lots of juicy bonuses!*/
+  ePIXIEDUST,                       // pixie dust used with shifter form: pixie
+  eEFREETIMAGIC,                    // efreeti magic used with shifter form: efreeti
+  /*115*/ eDRAGONMAGIC,             // dragon magic used with shifter form: dragon
+  eSLA_STRENGTH,                    /* innate strength*/
+  eSLA_ENLARGE,                     /* innate enlarge */
+  eSLA_INVIS,                       /* innate invisibility */
+  eCONCUSSIVEONSLAUGHT,             // concussive onsalught psionic power
+  /*120*/ eCHANNELSPELL,            // countdown for channel spell ability
+  ePOWERLEECH,                      // power leech ability
+  ePSIONICFOCUS,                    // psionic focus ability
+  eDOUBLEMANIFEST,                  // double manifest ability
+  eSUMMONSHADOW,                    // shadowdancer summon shadow
+  /*125*/ eSHADOWILLUSION,          // shadowdancer shadow illusion
+  eSHADOWCALL,                      // shadowdancer  shadow call
+  eSHADOWJUMP,                      // shadowdancer  shadow jump
+  eSHADOWPOWER,                     // shadowdancer  shadow power
+  eTOUCHOFCORRUPTION,               // touch of corruption - blackguard
+  /*130*/ eCHANNELENERGY,           // channel positive/negative energy
+  eLICH_TOUCH,                      // lich touch event
+  eLICH_REJUV,                      // lich rejuv event
+  eLICH_FEAR,                       // lich fear event
+  eJUDGEMENT,                       // inquisitor judgement ability
+  /*135*/ eBANE,                    // inquisitor bane ability
+  eTRUEJUDGEMENT,                   // inquisitor true judgement ability
+  eSPIRITUALWEAPON,                 // spiritual weapon spell
+  eDANCINGWEAPON,                   // dancing weapon spell
+  eHOLYJAVELIN,                     // holy javelin spell
+  /*140*/ eITEM_SPECAB_ITEM_SUMMON, // summon item
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
