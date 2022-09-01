@@ -1554,7 +1554,7 @@ void prisoner_gear_loading(struct char_data *ch)
 
     loop_counter++;
 
-  } while (num_items < NUM_TREASURE || loop_counter < LOOP_LIMIT);
+  } while (num_items < NUM_TREASURE && loop_counter < LOOP_LIMIT);
 
   /* base items */
   obj_to_room(read_object(BLACK_FIGURINE, VIRTUAL), real_room(PRISONER_VAULT));
@@ -1601,6 +1601,7 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef VALID_VNUM_HiGH
 #undef PRISONER_VAULT
 #undef NUM_TREASURE
+#undef LOOP_LIMIT
 /*************************************/
 /*************************************/
 
