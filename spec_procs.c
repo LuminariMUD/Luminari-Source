@@ -36,8 +36,9 @@
 #include "spell_prep.h"
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
-#include "treasure.h" /* for set_armor_object */
-#include "mobact.h"   /* npc_find_target() */
+#include "treasure.h"   /* for set_armor_object */
+#include "mobact.h"     /* npc_find_target() */
+#include "spell_prep.h" /* for star circlet proc */
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -6407,6 +6408,48 @@ SPECIAL(etherealness)
       "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
       "\twWaves of \tWghostly \twenergy starts to flow from $n's $p.",
       ch, vict, (struct obj_data *)me, SPELL_SLOW);
+
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(star_circlet)
+{
+  struct obj_data *circlet = (struct obj_data *)me;
+
+  if (!circlet)
+    return FALSE;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc in combat: Divine Arcane Recall\r\n");
+    return TRUE;
+  }
+
+  if (GET_EQ(ch, WEAR_HEAD) != circlet)
+    return FALSE;
+
+  if (!FIGHTING(ch))
+    return FALSE;
+
+  if (cmd)
+    return FALSE;
+
+  if (rand_number(0, 15))
+    return FALSE;
+
+  if (star_circlet_proc(ch))
+  {
+    act("\twIn an instant \tYflare of power\tw, the \tBdisplaced stars\tw encircling $p draw in "
+        "\tYarcane and divine energy\tw from the planes directly into your head!\tn",
+        FALSE, ch, circlet, NULL, TO_CHAR);
+    act("\twIn an instant \tYflare of power\tw, the \tBdisplaced stars\tw encircling \tn$n's\tn $p"
+        "\tw draw in \tYarcane and divine energy\tw from the planes directly into $s head!\tn",
+        FALSE, ch, circlet, NULL, TO_NOTVICT);
+  }
 
   return TRUE;
 }

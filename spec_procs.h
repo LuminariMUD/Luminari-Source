@@ -143,6 +143,7 @@ SPECIAL_DECL(kt_twister);
 SPECIAL_DECL(lichdrain);
 
 /* m-o */
+SPECIAL_DECL(magi_staff);
 SPECIAL_DECL(magma);
 SPECIAL_DECL(malevolence);
 SPECIAL_DECL(mayor);
@@ -196,6 +197,7 @@ SPECIAL_DECL(solid_elemental);
 SPECIAL_DECL(sparksword);
 SPECIAL_DECL(spiderdagger);
 SPECIAL_DECL(spikeshield);
+SPECIAL_DECL(star_circlet);
 SPECIAL_DECL(storage_chest);
 SPECIAL_DECL(thief);
 SPECIAL_DECL(thrym);

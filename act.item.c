@@ -754,6 +754,8 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_WEAPON_OIL: /* 50 */
+    send_to_char(ch, "\tCSpecial Feature: Adds '\tn%s\tC' to a weapon with 'applyoil' command\tn\r\n",
+                 special_ability_info[GET_OBJ_VAL(item, 0)].name);
     break;
 
   case ITEM_GEAR_OUTFIT:
@@ -4379,7 +4381,7 @@ ACMD(do_applyoil)
   }
   if (!(oil = get_obj_in_list_vis(ch, arg2, NULL, ch->carrying)))
   {
-    send_to_char(ch, "There is no weapon of that description, in your inventory.\r\n");
+    send_to_char(ch, "There is no oil of that description, in your inventory.\r\n");
     return;
   }
 
