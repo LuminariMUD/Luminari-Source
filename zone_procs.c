@@ -1185,7 +1185,7 @@ int check_heads(struct char_data *ch)
     act("\tLYour blood \tWfreezes\tL as the \tggreen \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = GET_MAX_HIT(ch);
+    // GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 4;
     act("\n\r\tLThe remaining four heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1198,7 +1198,7 @@ int check_heads(struct char_data *ch)
     act("\tLYour blood \tWfreezes\tL as the \tWwhite \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = GET_MAX_HIT(ch);
+    // GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 3;
     act("\n\r\tLThe remaining three heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1211,7 +1211,7 @@ int check_heads(struct char_data *ch)
     act("\tLYour blood \tWfreezes\tL as the black head of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = GET_MAX_HIT(ch);
+    // GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 2;
     act("\n\r\tLThe remaining two heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1224,7 +1224,7 @@ int check_heads(struct char_data *ch)
     act("\tLYour blood \tWfreezes\tL as the \tBblue \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    GET_HIT(ch) = GET_MAX_HIT(ch);
+    // GET_HIT(ch) = GET_MAX_HIT(ch);
     prisoner_heads = 1;
     act("\n\r\tLThe remaining \trred \tLhead turns and gazes at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -1269,10 +1269,13 @@ void prisoner_on_death(struct char_data *ch)
   if (prisoner_heads > 1)
   {
     check_heads(ch); // to get right message..
+
     lich = read_mobile(THE_PRISONER, VIRTUAL);
     char_to_room(lich, ch->in_room);
     change_position(lich, POS_STANDING);
+
     move_items(ch, lich);
+
     dam_killed_vict(ch, ch);
     return;
   }
@@ -1281,6 +1284,7 @@ void prisoner_on_death(struct char_data *ch)
   lich = read_mobile(DRACOLICH_PRISONER, VIRTUAL);
   char_to_room(lich, ch->in_room);
   change_position(lich, POS_STANDING);
+
   /* the item transfer is later */
 
   act("\tLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
@@ -1299,8 +1303,8 @@ void prisoner_on_death(struct char_data *ch)
     if (tch != ch)
       WAIT_STATE(tch, PULSE_VIOLENCE * 3);
   }
-  WAIT_STATE(lich, PULSE_VIOLENCE * 3);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+  WAIT_STATE(lich, PULSE_VIOLENCE * 2);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
 
   act("\trThrough a haze of dizziness you look up..\n\r"
       "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
@@ -1326,6 +1330,7 @@ void prisoner_on_death(struct char_data *ch)
   }
 
   move_items(ch, lich);
+
   dam_killed_vict(lich, ch);
 
   return;
@@ -1335,33 +1340,45 @@ int rejuv_prisoner(struct char_data *ch)
 {
   int rejuv = 0;
 
-  if (!rand_number(0, 8) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
+  if (!rand_number(0, 7) && GET_HIT(ch) < GET_MAX_HIT(ch) && PROC_FIRED(ch) == FALSE && !FIGHTING(ch))
   {
     rejuv = GET_HIT(ch) + 1500;
+
     if (rejuv >= GET_MAX_HIT(ch))
       rejuv = GET_MAX_HIT(ch);
+
     GET_HIT(ch) = rejuv;
+
     PROC_FIRED(ch) = TRUE;
+
     act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
+
     return 1;
   }
   else if (!rand_number(0, 4))
-    PROC_FIRED(ch) = FALSE;
-
-  if (!rand_number(0, 11) && FIGHTING(ch))
   {
+    PROC_FIRED(ch) = FALSE;
+  }
+
+  if (!rand_number(0, 10) && FIGHTING(ch) && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    rejuv = GET_HIT(ch) + 2500;
+
+    if (rejuv >= GET_MAX_HIT(ch))
+      rejuv = GET_MAX_HIT(ch);
+
+    GET_HIT(ch) = rejuv;
+
     act("\tLThe Prisoner ROARS in anger, and throws her talons to the sky furiously!\r\n"
         "\tWWhite tendrils of power crackle through the air, flowing into the Prisoner!",
         FALSE, ch, 0, 0, TO_ROOM);
     act("\trThe blood-red wounds on the Prisoner's body begin to close as she is partially revived!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    rejuv = GET_HIT(ch) + 2500;
-    if (rejuv >= GET_MAX_HIT(ch))
-      rejuv = GET_MAX_HIT(ch);
-    GET_HIT(ch) = rejuv;
-    return TRUE;
+
+    return 1;
   }
+
   return 0;
 }
 
@@ -1392,7 +1409,7 @@ int prisoner_breath(struct char_data *ch)
   selected = breath[selected];
 
   // do a breath..  level 40 breath since she breaths every round.
-  call_magic(ch, FIGHTING(ch), 0, selected, 0, 30, CAST_SPELL);
+  call_magic(ch, FIGHTING(ch), 0, selected, 0, 34, CAST_SPELL);
 
   return 1;
 }
@@ -1636,7 +1653,7 @@ SPECIAL(the_prisoner)
   if (check_heads(ch))
     return 1;
 
-  if (!rand_number(0, 3))
+  if (!rand_number(0, 2))
   {
     if (rejuv_prisoner(ch))
     {
@@ -1669,7 +1686,11 @@ SPECIAL(dracolich)
         "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn",
         FALSE, ch, 0, vict, TO_ROOM);
 
-  if (cmd || rand_number(0, 6)) /* note that the !vict is moved below */
+  /* note that the !vict is moved below */
+  if (cmd)
+    return 0;
+
+  if (rand_number(0, 10))
     return 0;
 
   /* find random target, and num targets */
@@ -1694,11 +1715,22 @@ SPECIAL(dracolich)
   act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
       TO_CHAR);
 
-  hitpoints = GET_HIT(vict);
+  if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
+  {
+    hitpoints = damage(ch, vict, rand_number(120, 650), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+  }
+  else
+  {
+    hitpoints = GET_HIT(vict);
+
+    GET_HIT(vict) = 0;
+  }
+
+  if (hitpoints < 120)
+    hitpoints = 120;
+
   if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
     GET_HIT(ch) += hitpoints;
-
-  GET_HIT(vict) = -1;
 
   return 1;
 }

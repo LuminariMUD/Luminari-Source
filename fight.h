@@ -1,15 +1,15 @@
 /**
-* @file fight.h                                 LuminariMUD
-* Fighting and violence functions and variables.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*
-*/
+ * @file fight.h                                 LuminariMUD
+ * Fighting and violence functions and variables.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ *
+ */
 #ifndef _FIGHT_H_
 #define _FIGHT_H_
 
@@ -20,10 +20,10 @@
 #define MODE_ARMOR_CLASS_DISPLAY 3
 #define MODE_ARMOR_CLASS_TOUCH 4
 
-#define MODE_NORMAL_HIT 0      //Normal damage calculating in hit()
-#define MODE_DISPLAY_PRIMARY 2 //Display damage info primary
-#define MODE_DISPLAY_OFFHAND 3 //Display damage info offhand
-#define MODE_DISPLAY_RANGED 4  //Display damage info ranged
+#define MODE_NORMAL_HIT 0      // Normal damage calculating in hit()
+#define MODE_DISPLAY_PRIMARY 2 // Display damage info primary
+#define MODE_DISPLAY_OFFHAND 3 // Display damage info offhand
+#define MODE_DISPLAY_RANGED 4  // Display damage info ranged
 
 #define SKILL_MESSAGE_MISS_FAIL 0
 #define SKILL_MESSAGE_MISS_GENERIC 1
@@ -41,6 +41,7 @@ struct attack_hit_type
 };
 
 /* Functions available in fight.c */
+int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam, bool display);
 bool is_flanked(struct char_data *attacker, struct char_data *ch);
 bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch);
 int damage_shield_check(struct char_data *ch, struct char_data *victim,
