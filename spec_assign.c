@@ -1064,7 +1064,7 @@ static const struct spec_func_data spec_func_list[] = {
 
     /* m-o */
     {"Magma", magma, ""},
-    {"Malevolence", malevolence, ""},
+    //{"Malevolence", malevolence, ""},
     {"Mayor", mayor, ""},
     //{"MD Carpet", md_carpet, ""},
     {"Menzo Choker", menzo_chokers, ""},
@@ -1115,7 +1115,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"SparkSword", sparksword, ""},
     {"SpiderDagger", spiderdagger, ""},
     {"SpikeShield", spikeshield, ""},
-    {"Staff of the Magi", magi_staff, ""},
+    //{"Staff of the Magi", magi_staff, ""},
     //{"Storage Chest", storage_chest, ""},
     {"Thief", thief, ""},
     {"Thrym", thrym, ""},
