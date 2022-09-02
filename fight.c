@@ -1496,22 +1496,11 @@ void death_message(struct char_data *ch)
 {
   GUI_CMBT_OPEN(ch);
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\tD'||''|.   '||''''|      |     |''||''| '||'  '||' \r\n");
-  send_to_char(ch, " ||   ||   ||  .       |||       ||     ||    ||  \r\n");
-  send_to_char(ch, " ||    ||  ||''|      |  ||      ||     ||''''||  \r\n");
-  send_to_char(ch, " ||    ||  ||        .''''|.     ||     ||    ||  \r\n");
-  send_to_char(ch, ".||...|'  .||.....| .|.  .||.   .||.   .||.  .||. \r\n\tn");
+  send_to_char(ch, "\tD'||''|.   '||''''|      |     |''||''| '||'  '||' \tn\r\n");
+  send_to_char(ch, "\tD ||   ||   ||  .       |||       ||     ||    ||  \tn\r\n");
+  send_to_char(ch, "\tD ||    ||  ||''|      |  ||      ||     ||''''||  \tn\r\n");
+  send_to_char(ch, "\tD ||    ||  ||        .''''|.     ||     ||    ||  \tn\r\n");
+  send_to_char(ch, "\tD.||...|'  .||.....| .|.  .||.   .||.   .||.  .||. \tn\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
@@ -1519,7 +1508,6 @@ void death_message(struct char_data *ch)
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "You awaken... you realize someone has resurrected you...\r\n");
-  send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   GUI_CMBT_CLOSE(ch);
 }
@@ -1632,7 +1620,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   GET_POS(ch) = POS_DEAD;
   /* end making ordinary commands work in scripts */
 
-  /* make sure group gets credit for kill if ch involved in quest */
+  /* make sure group gets credit for kill if ch involved in autoquest auto-quest */
   kill_quest_completion_check(killer, ch);
 
   /* Clear the action queue */
@@ -2494,6 +2482,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_UNHOLY:
+    if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
+      dam_reduction += 10;
     break;
   case DAM_SLICE:
     break;
@@ -2511,6 +2501,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
   case DAM_DISEASE:
     break;
   case DAM_NEGATIVE:
+    if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
+      dam_reduction += 20;
     break;
   case DAM_ILLUSION:
     break;
@@ -5759,6 +5751,13 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
   return passed;
 }
 
+/* this fuction will apply damage reduction to incoming melee damage, it also has a display mode
+  ch -> person damaging with possible bypass
+  victim -> person being damaged with possible DR
+  wielded -> which weapon is producing this damage
+  dam -> how much damage is coming in
+
+  return value for non display is the modified damage reduction */
 int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam)
 {
   struct damage_reduction_type *dr, *cur;
@@ -7630,7 +7629,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     return (HIT_MISS);
 
   /* Apply Damage Reduction */
-  if ((dam = apply_damage_reduction(ch, victim, wielded, dam)) == -1)
+  if ((dam = apply_damage_reduction(ch, victim, wielded, dam, FALSE)) == -1)
     return (HIT_MISS); /* This should be changed to something more reasonable */
 
   /* ok we are about to do damage() so here we are adding a special counter-attack
