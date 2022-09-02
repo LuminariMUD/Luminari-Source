@@ -710,6 +710,11 @@ void assign_objects(void)
 
   /* the prisoner */
   ASSIGNOBJ(132125, tia_rapier);
+  ASSIGNOBJ(132109, magi_staff);
+  ASSIGNOBJ(132104, star_circlet);
+  ASSIGNOBJ(132101, malevolence);
+
+  /******/
 
   ASSIGNOBJ(136100, air_sphere); // weapon (lightning)
 
@@ -832,9 +837,6 @@ void assign_objects(void)
 
   /* not yet defined? */
   // ASSIGNOBJ(132115, warbow);
-  // ASSIGNOBJ(132101, malevolence);
-  // ASSIGNOBJ(132118, tia_moonblade);
-  // ASSIGNOBJ(132126, drow_scimitar);
   // ASSIGNOBJ(133103, mithril_rapier);
   // ASSIGNOBJ(141800, treantshield);
 
@@ -995,10 +997,10 @@ static const struct spec_func_data spec_func_list[] = {
     {"BoltHammer", bolthammer, ""},
     {"Bone Dancer", bonedancer, ""},
     {"Alathar", cf_alathar, ""},
-    {"Trainingmaster", cf_trainingmaster, ""},
     {"Chan", chan, ""},
     {"Ches", ches, ""},
     {"Chionthar Ferry", chionthar_ferry, ""},
+    {"Circlet of the Stars", star_circlet, ""},
     {"Cityguard", cityguard, ""},
     {"Clang Bracer", clang_bracer, ""},
     {"Courage", courage, ""},
@@ -1062,7 +1064,7 @@ static const struct spec_func_data spec_func_list[] = {
 
     /* m-o */
     {"Magma", magma, ""},
-    //{"Malevolence", malevolence, ""},
+    {"Malevolence", malevolence, ""},
     {"Mayor", mayor, ""},
     //{"MD Carpet", md_carpet, ""},
     {"Menzo Choker", menzo_chokers, ""},
@@ -1113,6 +1115,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"SparkSword", sparksword, ""},
     {"SpiderDagger", spiderdagger, ""},
     {"SpikeShield", spikeshield, ""},
+    {"Staff of the Magi", magi_staff, ""},
     //{"Storage Chest", storage_chest, ""},
     {"Thief", thief, ""},
     {"Thrym", thrym, ""},
@@ -1124,6 +1127,7 @@ static const struct spec_func_data spec_func_list[] = {
     //{"Trade Bandit", trade_bandit, ""},
     //{"Trade Master", trade_master, ""},
     //{"Trade Object", trade_object, ""},
+    {"Trainingmaster", cf_trainingmaster, ""},
     //{"Treant Shield", treantshield, ""},
     {"TTF Abomination", ttf_abomination, ""},
     {"TTF Monstrosity", ttf_monstrosity, ""},
@@ -1155,7 +1159,8 @@ static const struct spec_func_data spec_func_list[] = {
     {"Ymir Cloak", ymir_cloak, ""},
 
     /* this has to be last */
-    {"\n", NULL, ""}};
+    {
+        "\n", NULL, ""}};
 /** !!MAKE SURE TO ADD TO: spec_procs.h!!!  **/
 
 /* return the spec's name */

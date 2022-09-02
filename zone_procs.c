@@ -22,9 +22,10 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "domains_schools.h"
+#include "spec_abilities.h"
+#include "treasure.h"
 
 /* local, file scope restricted functions */
-
 static mob_vnum castle_virtual(mob_vnum offset);
 static room_rnum castle_real_room(room_vnum roomoffset);
 static struct char_data *find_npc_by_name(struct char_data *chAtChar, const char *pszName, int iLen);
@@ -1424,13 +1425,16 @@ int prisoner_breath(struct char_data *ch)
 #define COINS_GOLD 132112
 #define COINS_PLAT 132111
 #define COINS_SILV 132113
+
 /*************************************/
 /* variables */
 #define PRISONER_VAULT 132100
 #define VALID_VNUM_LOW 132100
 #define VALID_VNUM_HiGH 132399
+#define TOP_UNIQUES_OIL 21
 #define NUM_TREASURE 7
 #define LOOP_LIMIT 1000
+#define WEAPON_OIL 132150
 /*************************************/
 /*************************************/
 
@@ -1439,6 +1443,7 @@ int prisoner_breath(struct char_data *ch)
 void prisoner_gear_loading(struct char_data *ch)
 {
   struct obj_data *olist = NULL;
+  struct obj_data *tobj = NULL;
   bool loaded = FALSE;
   int ovnum = NOTHING, loop_counter = 0, num_items = 0;
 
@@ -1461,6 +1466,31 @@ void prisoner_gear_loading(struct char_data *ch)
       MANDRAKE_EAR,     /* earring */
       MITH_ARROW,       /* arrows */
       ARM_VALOR,        /* armplates of valor */
+  };
+
+  int wpnOils[TOP_UNIQUES_OIL + 1] = {
+      WEAPON_SPECAB_SEEKING,
+      WEAPON_SPECAB_ADAPTIVE,
+      WEAPON_SPECAB_DISRUPTION,
+      WEAPON_SPECAB_DEFENDING,
+      WEAPON_SPECAB_EXHAUSTING,
+      WEAPON_SPECAB_CORROSIVE,
+      WEAPON_SPECAB_SPEED,
+      WEAPON_SPECAB_GHOST_TOUCH,
+      WEAPON_SPECAB_BLINDING,
+      WEAPON_SPECAB_SHOCK,
+      WEAPON_SPECAB_FLAMING,
+      WEAPON_SPECAB_THUNDERING,
+      WEAPON_SPECAB_AGILE,
+      WEAPON_SPECAB_WOUNDING,
+      WEAPON_SPECAB_LUCKY,
+      WEAPON_SPECAB_BEWILDERING,
+      WEAPON_SPECAB_KEEN,
+      WEAPON_SPECAB_VICIOUS,
+      WEAPON_SPECAB_INVIGORATING,
+      WEAPON_SPECAB_VORPAL,
+      WEAPON_SPECAB_VAMPIRIC,
+      WEAPON_SPECAB_BANE,
   };
 
   if (!ch)
@@ -1518,6 +1548,25 @@ void prisoner_gear_loading(struct char_data *ch)
   obj_to_room(read_object(COINS_PLAT, VIRTUAL), real_room(PRISONER_VAULT));
   obj_to_room(read_object(COINS_SILV, VIRTUAL), real_room(PRISONER_VAULT));
 
+  /* random treasure, it'll be put on the lich */
+  award_magic_item(NUM_TREASURE, ch, GRADE_SUPERIOR);
+
+  /* pick a oil, any oil! */
+  /*
+  if (!(tobj = read_object(WEAPON_OIL, VIRTUAL)))
+  {
+    send_to_char(ch, "I seem to have goofed.\r\n");
+    log("SYSERR: prisoner-treasure no object found for oil...");
+    return;
+  }
+  ovnum = objNums[rand_number(0, TOP_UNIQUES_OIL)];
+  obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+  ovnum = objNums[rand_number(0, TOP_UNIQUES_OIL)];
+  obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
+
+  GET_OBJ_VAL(obj2, 0) = hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0));
+  */
+
   /* the work is done! */
   return;
 }
@@ -1557,6 +1606,7 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef PRISONER_VAULT
 #undef NUM_TREASURE
 #undef LOOP_LIMIT
+#undef WEAPON_OIL
 /*************************************/
 /*************************************/
 
@@ -1597,7 +1647,7 @@ SPECIAL(the_prisoner)
 SPECIAL(dracolich)
 {
   struct char_data *vict = NULL;
-  int hitpoints = 0;
+  int hitpoints = 0, use_aoe = 0;
 
   if (!ch)
     return 0;
@@ -1616,16 +1666,12 @@ SPECIAL(dracolich)
         "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn",
         FALSE, ch, 0, vict, TO_ROOM);
 
-  if (cmd || rand_number(0, 3)) /* note that the !vict is moved below */
+  if (cmd || rand_number(0, 6)) /* note that the !vict is moved below */
     return 0;
 
-  for (vict = world[ch->in_room].people; vict; vict = vict->next_in_room)
-    if (vict != FIGHTING(ch) && FIGHTING(vict) == ch && !rand_number(0, 2))
-      break;
-
-  if (!vict)
-    if (!(vict = FIGHTING(ch)))
-      return 0;
+  /* find random target, and num targets */
+  if (!(vict = npc_find_target(ch, &use_aoe)))
+    return 0;
 
   act("\tLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
       "\tLShe sets her gaze upon you with the most wicked grin you have ever known.",
@@ -1633,23 +1679,23 @@ SPECIAL(dracolich)
   act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
       "\tWAs you fall, you see a stream of your own life force flowing away from you..",
       FALSE, ch, 0, vict, TO_VICT);
-  act("\tLAs the life fades from your body, the last thing you see is the Prisoner's wicked grin staring into your soul..\tn",
+  act("\tLAs the life fades from your body, before collapsing you see is the Prisoner's wicked grin staring into your soul..\tn",
       FALSE, ch, 0, vict, TO_VICT);
   act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
       "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
       TRUE, ch, 0, vict, TO_NOTVICT);
   act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
       "$n\tL literally sucks the life force from $N,\tn\r\n"
-      "\tLwho crumples into a ball of lifeless flesh on the ground...\tn",
+      "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
       TRUE, ch, 0, vict, TO_NOTVICT);
-  act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls dead!\tn", TRUE, ch, 0, vict,
+  act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
       TO_CHAR);
 
   hitpoints = GET_HIT(vict);
   if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
     GET_HIT(ch) += hitpoints;
 
-  GET_HIT(vict) = 0;
+  GET_HIT(vict) = -1;
 
   return 1;
 }

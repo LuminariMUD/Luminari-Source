@@ -2248,6 +2248,76 @@ int free_arcana_slots(struct char_data *ch)
   return MAX(0, num_slots);
 }
 
+#define LOOP_MAX 1000
+#define PROC_NUM 4
+/* this is a custom function we wrote that will, on firing, randomly restore spells from the queue -zusuk */
+int star_circlet_proc(struct char_data *ch)
+{
+  int class = 0, proc_count = 0, loop_count = 0;
+
+  if (!ch)
+    return 0;
+
+  /* arbitrary do loop, while controls how much it will run */
+  do
+  {
+
+    /* class loop */
+    for (class = 0; class < NUM_CLASSES; class ++)
+    {
+      if (!INNATE_MAGIC(ch, class))
+        continue;
+      if (!SPELL_PREP_QUEUE(ch, class))
+        continue;
+
+      switch (class)
+      {
+      case CLASS_BARD:
+      case CLASS_SORCERER:
+      case CLASS_INQUISITOR:
+        if (INNATE_MAGIC(ch, class))
+        {
+          send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
+                       spell_prep_dict[class][1],
+                       (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                       (IS_SET(INNATE_MAGIC(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                       INNATE_MAGIC(ch, class)->circle);
+          innate_magic_remove_by_class(ch, class, INNATE_MAGIC(ch, class)->circle,
+                                       INNATE_MAGIC(ch, class)->metamagic);
+          proc_count++;
+        }
+        break;
+      default:
+        if (SPELL_PREP_QUEUE(ch, class))
+        {
+          send_to_char(ch, "You finish %s for %s%s%s.\r\n",
+                       spell_prep_dict[class][1],
+                       (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_QUICKEN) ? "quickened " : ""),
+                       (IS_SET(SPELL_PREP_QUEUE(ch, class)->metamagic, METAMAGIC_MAXIMIZE) ? "maximized " : ""),
+                       spell_info[SPELL_PREP_QUEUE(ch, class)->spell].name);
+          collection_add(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                         SPELL_PREP_QUEUE(ch, class)->metamagic,
+                         SPELL_PREP_QUEUE(ch, class)->prep_time,
+                         SPELL_PREP_QUEUE(ch, class)->domain);
+          prep_queue_remove_by_class(ch, class, SPELL_PREP_QUEUE(ch, class)->spell,
+                                     SPELL_PREP_QUEUE(ch, class)->metamagic);
+          proc_count++;
+        }
+        break;
+      }
+    }
+    
+    loop_count++;
+  } while (loop_count < LOOP_MAX && proc_count < PROC_NUM);
+
+  if (proc_count >= 1)
+    return 1;
+  else
+    return 0;
+}
+#undef LOOP_MAX
+#undef PROC_NUM
+
 /* END helper functions */
 
 /* START event-related */
