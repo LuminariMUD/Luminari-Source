@@ -2306,7 +2306,7 @@ int star_circlet_proc(struct char_data *ch)
         break;
       }
     }
-    
+
     loop_count++;
   } while (loop_count < LOOP_MAX && proc_count < PROC_NUM);
 
