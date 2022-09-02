@@ -24,6 +24,7 @@
 #include "domains_schools.h"
 #include "spec_abilities.h"
 #include "treasure.h"
+#include "mobact.h" /* for npc_find_target() */
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
@@ -1443,7 +1444,7 @@ int prisoner_breath(struct char_data *ch)
 void prisoner_gear_loading(struct char_data *ch)
 {
   struct obj_data *olist = NULL;
-  struct obj_data *tobj = NULL;
+  // struct obj_data *tobj = NULL;
   bool loaded = FALSE;
   int ovnum = NOTHING, loop_counter = 0, num_items = 0;
 
@@ -1468,6 +1469,7 @@ void prisoner_gear_loading(struct char_data *ch)
       ARM_VALOR,        /* armplates of valor */
   };
 
+  /*
   int wpnOils[TOP_UNIQUES_OIL + 1] = {
       WEAPON_SPECAB_SEEKING,
       WEAPON_SPECAB_ADAPTIVE,
@@ -1492,6 +1494,7 @@ void prisoner_gear_loading(struct char_data *ch)
       WEAPON_SPECAB_VAMPIRIC,
       WEAPON_SPECAB_BANE,
   };
+  */
 
   if (!ch)
     return;
