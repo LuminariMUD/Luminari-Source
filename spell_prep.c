@@ -2265,10 +2265,6 @@ int star_circlet_proc(struct char_data *ch)
     /* class loop */
     for (class = 0; class < NUM_CLASSES; class ++)
     {
-      if (!INNATE_MAGIC(ch, class))
-        continue;
-      if (!SPELL_PREP_QUEUE(ch, class))
-        continue;
 
       switch (class)
       {
