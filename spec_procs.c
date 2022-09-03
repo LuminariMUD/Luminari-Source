@@ -7376,23 +7376,23 @@ SPECIAL(malevolence)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc: Attack Blur\r\n");
+    send_to_char(ch, "Proc: Attack Blur (3-5 bonus attacks on proc)\r\n");
     return TRUE;
   }
 
   vict = FIGHTING(ch);
 
-  if (cmd || !vict || rand_number(0, 32))
+  if (cmd || !vict || rand_number(0, 15))
     return FALSE;
 
-  act("$p@n glows with a bright @Yyellow@n sheen before pulsing with @Rblood red malevolent light@n as your attacks begin to speed up!",
+  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
       TRUE, ch, malevolence, vict, TO_CHAR);
-  act("$p@n glows with a bright @Yyellow@n sheen before pulsing with @Rblood red malevolent light@n as $n's@n attacks begin to speed up!",
+  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
       TRUE, ch, malevolence, vict, TO_VICT);
-  act("$p@n glows with a bright @Yyellow@n sheen before pulsing with @Rblood red malevolent light@n as $n's@n attacks begin to speed up!",
+  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
       TRUE, ch, malevolence, vict, TO_NOTVICT);
 
-  num_hits = rand_number(2, 4);
+  num_hits = rand_number(3, 5);
 
   for (i = 0; i <= num_hits; i++)
   {
