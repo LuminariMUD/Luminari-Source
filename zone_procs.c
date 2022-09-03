@@ -1304,11 +1304,11 @@ void prisoner_on_death(struct char_data *ch)
       "\tLA blinding light \tf\tWFLASHES\tn\tL from within her massive body followed by an\n\r"
       "\tLexplosion so forceful and loud that your ears begin to \trbleed even before\n\r"
       "\tryour body is hurled with tremendous force against the rumbling cavern walls",
-      FALSE, ch, 0, 0, TO_ROOM);
+      FALSE, prisoner, 0, 0, TO_ROOM);
 
-  for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
+  for (tch = world[prisoner->in_room].people; tch; tch = tch->next_in_room)
   {
-    if (tch != prisoner)
+    if (tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
     {
       if (GET_POS(tch) > POS_SITTING)
         change_position(tch, POS_SITTING);
@@ -1321,13 +1321,13 @@ void prisoner_on_death(struct char_data *ch)
   act("\trThrough a haze of dizziness you look up..\n\r"
       "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
       "\trreplaced by a large holy symbol that falls to the rocky floor with a crash\tr.\n\r\tr.",
-      FALSE, ch, 0, 0, TO_ROOM);
+      FALSE, prisoner, 0, 0, TO_ROOM);
   act("\tLSuddenly everything fades to black...\tn",
-      FALSE, ch, 0, 0, TO_ROOM);
+      FALSE, prisoner, 0, 0, TO_ROOM);
 
-  for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
+  for (tch = world[prisoner->in_room].people; tch; tch = tch->next_in_room)
   {
-    if (tch != prisoner)
+    if (tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
     {
       damage(prisoner, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
       WAIT_STATE(tch, PULSE_VIOLENCE * 3);
