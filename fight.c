@@ -53,6 +53,8 @@
 #define HIT_MISS 0
 #define HIT_RESULT_ACTION -1
 #define HIT_NEED_RELOAD -2
+/* vnum of special mobile:  the prisoner */
+#define THE_PRISONER 113750
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -1476,19 +1478,57 @@ static void change_alignment(struct char_data *ch, struct char_data *victim)
  room of a nearby death */
 void death_cry(struct char_data *ch)
 {
-  int door;
+  int door = -1;
+  struct descriptor_data *pt = NULL;
 
-  GUI_CMBT_NOTVICT_OPEN(ch, NULL);
-  act("Your blood freezes as you hear $n's death cry.",
-      FALSE, ch, 0, 0, TO_ROOM);
-  GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
-
-  for (door = 0; door < DIR_COUNT; door++)
-    if (CAN_GO(ch, door))
+  if (IS_NPC(ch))
+  {
+    switch (GET_MOB_VNUM(ch))
     {
-      send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
-                   "Your blood freezes as you hear someone's death cry.\r\n");
+
+    /* special custom death cry messages can be placed here for NPCs! */
+    case THE_PRISONER:
+      for (pt = descriptor_list; pt; pt = pt->next)
+        if (pt->character)
+          send_to_char(pt->character, "\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
+                                      "fall to the ground with a resounding thud.\tn"
+                                      "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn");
+
+      break;
+
+    default: /* this is the default NPC message */
+      GUI_CMBT_NOTVICT_OPEN(ch, NULL);
+      act("Your blood freezes as you hear $n's death cry.",
+          FALSE, ch, 0, 0, TO_ROOM);
+      GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
+      for (door = 0; door < DIR_COUNT; door++)
+      {
+        if (CAN_GO(ch, door))
+        {
+          send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
+                       "Your blood freezes as you hear someone's death cry.\r\n");
+        }
+      }
+      break;
     }
+  }
+  else /* this is the default PC message */
+  {
+    GUI_CMBT_NOTVICT_OPEN(ch, NULL);
+    act("Your blood freezes as you hear $n's death cry.",
+        FALSE, ch, 0, 0, TO_ROOM);
+    GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
+    for (door = 0; door < DIR_COUNT; door++)
+    {
+      if (CAN_GO(ch, door))
+      {
+        send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
+                     "Your blood freezes as you hear someone's death cry.\r\n");
+      }
+    }
+  }
 }
 
 /* this message is a replacement in our new (temporary?) death system */
@@ -1647,9 +1687,20 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
   {
-    make_corpse(ch);
-    /* extraction!  *SLURRRRRRRRRRRRRP* */
-    extract_char(ch);
+    /* added a switch here for special handling of special mobiles -zusuk */
+    switch (GET_MOB_VNUM(ch))
+    {
+    case THE_PRISONER:
+      prisoner_on_death(ch);
+      /* extraction!  *SLURRRRRRRRRRRRRP* */
+      extract_char(ch);
+      break;
+    default:
+      make_corpse(ch);
+      /* extraction!  *SLURRRRRRRRRRRRRP* */
+      extract_char(ch);
+      break;
+    }
   }
   else if (IN_ARENA(ch) || IN_ARENA(killer))
   {
@@ -9638,5 +9689,7 @@ void perform_violence(struct char_data *ch, int phase)
 #undef MODE_IMP_2_WPN   /* improved two weapon fighting - extra attack at -5 */
 #undef MODE_GREAT_2_WPN /* greater two weapon fighting - extra attack at -10 */
 #undef MODE_EPIC_2_WPN  /* perfect two weapon fighting - extra attack */
+
+#undef THE_PRISONER /* vnum for special mobile 'the prisoner' */
 
 #undef DEBUGMODE
