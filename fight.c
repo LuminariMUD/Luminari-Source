@@ -55,6 +55,7 @@
 #define HIT_NEED_RELOAD -2
 /* vnum of special mobile:  the prisoner */
 #define THE_PRISONER 113750
+#define DRACOLICH_PRISONER 113751
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -1487,7 +1488,7 @@ void death_cry(struct char_data *ch)
     {
 
     /* special custom death cry messages can be placed here for NPCs! */
-    case THE_PRISONER:
+    case DRACOLICH_PRISONER:
       for (pt = descriptor_list; pt; pt = pt->next)
         if (pt->character)
           send_to_char(pt->character, "\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
@@ -9690,6 +9691,7 @@ void perform_violence(struct char_data *ch, int phase)
 #undef MODE_GREAT_2_WPN /* greater two weapon fighting - extra attack at -10 */
 #undef MODE_EPIC_2_WPN  /* perfect two weapon fighting - extra attack */
 
-#undef THE_PRISONER /* vnum for special mobile 'the prisoner' */
+#undef THE_PRISONER       /* vnum for special mobile 'the prisoner' */
+#undef DRACOLICH_PRISONER /* vnum for special mobile 'the dracolich of the prisoner' */
 
 #undef DEBUGMODE
