@@ -1496,7 +1496,7 @@ void death_cry(struct char_data *ch)
         if (pt->character)
           send_to_char(pt->character, "\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
                                       "fall to the ground with a resounding thud.\tn"
-                                      "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn");
+                                      "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn\r\n");
 
       break;
 
@@ -8468,15 +8468,31 @@ int is_skilled_dualer(struct char_data *ch, int mode)
   return 0;
 }
 
-/* common dummy check in perform_attacks() */
-int valid_fight_cond(struct char_data *ch)
+/* common dummy check in perform_attacks()
+   expanded this for dummy checking outside of perform_attacks via 'strict' mode -zusuk */
+int valid_fight_cond(struct char_data *ch, bool strict)
 {
+  if (!ch)
+    return FALSE;
 
-  if (FIGHTING(ch))
+  if (FIGHTING(ch) && !strict)
   {
     update_pos(FIGHTING(ch));
     if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
         IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
+
+      return TRUE;
+  }
+  else if (strict && FIGHTING(ch))
+  {
+    update_pos(FIGHTING(ch));
+    update_pos(ch);
+    if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+        IN_ROOM(ch) != NOWHERE &&
+        GET_POS(ch) > POS_SLEEPING &&
+        IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch) &&
+        GET_HIT(FIGHTING(ch)) >= 1 &&
+        GET_HIT(ch) >= 1)
 
       return TRUE;
   }
@@ -8825,11 +8841,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       penalty -= 4;
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || phase == PHASE_1)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
               penalty, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || phase == PHASE_2)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
               penalty * 2, ATTACK_TYPE_OFFHAND); /* whack with offhand */
@@ -8857,7 +8873,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || phase == PHASE_1)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
     }
@@ -8879,7 +8895,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
       attacks_at_max_bab--;
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || ((phase == PHASE_2) && numAttacks == 2) || ((phase == PHASE_3) && numAttacks == 3))
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
     }
@@ -8944,7 +8960,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         update_pos(FIGHTING(ch));
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
         {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
         }
@@ -8977,7 +8993,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
           if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
               ((phase == PHASE_2) && ((numAttacks == 2) ||
                                       (numAttacks == 5) ||
@@ -9006,7 +9022,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
           if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
               ((phase == PHASE_2) && ((numAttacks == 2) ||
                                       (numAttacks == 5) ||
@@ -9036,7 +9052,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
           if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
               ((phase == PHASE_2) && ((numAttacks == 2) ||
                                       (numAttacks == 5) ||
