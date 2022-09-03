@@ -712,7 +712,7 @@ void assign_objects(void)
   ASSIGNOBJ(132125, tia_rapier);
   // ASSIGNOBJ(132109, magi_staff);
   ASSIGNOBJ(132104, star_circlet);
-  // ASSIGNOBJ(132101, malevolence);
+  ASSIGNOBJ(132101, malevolence);
 
   /******/
 
@@ -1064,7 +1064,7 @@ static const struct spec_func_data spec_func_list[] = {
 
     /* m-o */
     {"Magma", magma, ""},
-    //{"Malevolence", malevolence, ""},
+    {"Malevolence", malevolence, ""},
     {"Mayor", mayor, ""},
     //{"MD Carpet", md_carpet, ""},
     {"Menzo Choker", menzo_chokers, ""},

@@ -7365,6 +7365,44 @@ SPECIAL(acidsword)
   return TRUE;
 }
 
+SPECIAL(malevolence)
+{
+  struct char_data *vict = NULL;
+  int num_hits = 0, i = 0;
+  struct obj_data *malevolence = (struct obj_data *)me;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Attack Blur\r\n");
+    return TRUE;
+  }
+
+  vict = FIGHTING(ch);
+
+  if (cmd || !vict || rand_number(0, 32))
+    return FALSE;
+
+  act("$p@n glows with a bright @Yyellow@n sheen before pulsing with @Rblood red malevolent light@n as your attacks begin to speed up!",
+      TRUE, ch, malevolence, vict, TO_CHAR);
+  act("$p@n glows with a bright @Yyellow@n sheen before pulsing with @Rblood red malevolent light@n as $n's@n attacks begin to speed up!",
+      TRUE, ch, malevolence, vict, TO_VICT);
+  act("$p@n glows with a bright @Yyellow@n sheen before pulsing with @Rblood red malevolent light@n as $n's@n attacks begin to speed up!",
+      TRUE, ch, malevolence, vict, TO_NOTVICT);
+
+  num_hits = rand_number(2, 4);
+
+  for (i = 0; i <= num_hits; i++)
+  {
+    if (valid_fight_cond(ch, TRUE))
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+
+  return TRUE;
+}
+
 /* from homeland */
 SPECIAL(snakewhip)
 {
