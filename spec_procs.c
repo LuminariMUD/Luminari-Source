@@ -43,7 +43,7 @@
 /* toggle for debug mode
    true = annoying messages used for debugging
    false = normal gameplay */
-#define DEBUGMODE TRUE
+#define DEBUGMODE FALSE
 
 /* external functions */
 extern struct house_control_rec house_control[];
@@ -6450,7 +6450,7 @@ SPECIAL(star_circlet)
   if (DEBUGMODE)
     send_to_char(ch, "DEBUG MARK 4\r\n");
 
-  if (rand_number(0, 15))
+  if (rand_number(0, 5))
     return FALSE;
 
   if (DEBUGMODE)
