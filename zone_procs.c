@@ -1261,7 +1261,6 @@ void prisoner_on_death(struct char_data *ch)
   struct char_data *prisoner = NULL;
   struct char_data *tch = NULL;
   struct affected_type af;
-  bool found = TRUE;
 
   /*Still got HEADS!!, means they did lots of damage etc..*/
   if (prisoner_heads > 1)
