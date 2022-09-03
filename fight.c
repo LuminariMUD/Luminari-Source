@@ -5758,7 +5758,7 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
   dam -> how much damage is coming in
 
   return value for non display is the modified damage reduction */
-int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam)
+int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam, bool display)
 {
   struct damage_reduction_type *dr, *cur;
   // struct damage_reduction_type *temp;
