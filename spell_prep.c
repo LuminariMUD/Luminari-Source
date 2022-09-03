@@ -2249,11 +2249,11 @@ int free_arcana_slots(struct char_data *ch)
 }
 
 #define LOOP_MAX 1000
-#define PROC_NUM 4
+#define PROC_NUM 5
 /* this is a custom function we wrote that will, on firing, randomly restore spells from the queue -zusuk */
 int star_circlet_proc(struct char_data *ch)
 {
-  int class = 0, proc_count = 0, loop_count = 0;
+  int class = 0, proc_count = 0, loop_count = 0, proc_max = rand_number(1, PROC_NUM);
 
   if (!ch)
     return 0;
@@ -2304,7 +2304,7 @@ int star_circlet_proc(struct char_data *ch)
     }
 
     loop_count++;
-  } while (loop_count < LOOP_MAX && proc_count < PROC_NUM);
+  } while (loop_count < LOOP_MAX && proc_count < proc_max);
 
   if (proc_count >= 1)
     return 1;
