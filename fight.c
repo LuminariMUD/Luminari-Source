@@ -1488,6 +1488,9 @@ void death_cry(struct char_data *ch)
     {
 
     /* special custom death cry messages can be placed here for NPCs! */
+    case THE_PRISONER:
+      /* no message here, special one in zone_procs.c code */
+      break;
     case DRACOLICH_PRISONER:
       for (pt = descriptor_list; pt; pt = pt->next)
         if (pt->character)
