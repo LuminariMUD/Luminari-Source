@@ -6429,7 +6429,7 @@ SPECIAL(star_circlet)
     return TRUE;
   }
 
-  if (GET_EQ(ch, WEAR_HEAD) != circlet)
+  if (!is_wearing(ch, 132104))
     return FALSE;
 
   if (!FIGHTING(ch))
@@ -7318,6 +7318,9 @@ SPECIAL(acidsword)
     return TRUE;
   }
 
+  if (!is_wearing(ch, 135199))
+    return FALSE;
+
   vict = FIGHTING(ch);
 
   if (cmd || !vict || rand_number(0, 16))
@@ -7379,6 +7382,9 @@ SPECIAL(malevolence)
     send_to_char(ch, "Proc: Attack Blur (3-5 bonus attacks on proc)\r\n");
     return TRUE;
   }
+
+  if (!is_wearing(ch, 132101))
+    return FALSE;
 
   vict = FIGHTING(ch);
 
