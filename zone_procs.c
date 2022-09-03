@@ -24,7 +24,8 @@
 #include "domains_schools.h"
 #include "spec_abilities.h"
 #include "treasure.h"
-#include "mobact.h" /* for npc_find_target() */
+#include "mobact.h"     /* for npc_find_target() */
+#include "dg_scripts.h" /* for load_mtrigger() */
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
