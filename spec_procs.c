@@ -43,7 +43,7 @@
 /* toggle for debug mode
    true = annoying messages used for debugging
    false = normal gameplay */
-#define DEBUGMODE FALSE
+#define DEBUGMODE TRUE
 
 /* external functions */
 extern struct house_control_rec house_control[];
@@ -6429,17 +6429,32 @@ SPECIAL(star_circlet)
     return TRUE;
   }
 
+  if (DEBUGMODE)
+    send_to_char(ch, "DEBUG MARK 1\r\n");
+
   if (!is_wearing(ch, 132104))
     return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "DEBUG MARK 2\r\n");
 
   if (!FIGHTING(ch))
     return FALSE;
 
+  if (DEBUGMODE)
+    send_to_char(ch, "DEBUG MARK 3\r\n");
+
   if (cmd)
     return FALSE;
 
+  if (DEBUGMODE)
+    send_to_char(ch, "DEBUG MARK 4\r\n");
+
   if (rand_number(0, 15))
     return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "DEBUG MARK 5\r\n");
 
   if (star_circlet_proc(ch))
   {
@@ -6449,6 +6464,11 @@ SPECIAL(star_circlet)
     act("\twIn an instant \tYflare of power\tw, the \tBdisplaced stars\tw encircling \tn$n's\tn $p"
         "\tw draw in \tYarcane and divine energy\tw from the planes directly into $s head!\tn",
         FALSE, ch, circlet, NULL, TO_NOTVICT);
+  }
+  else
+  {
+    if (DEBUGMODE)
+      send_to_char(ch, "DEBUG MARK 6\r\n");
   }
 
   return TRUE;
