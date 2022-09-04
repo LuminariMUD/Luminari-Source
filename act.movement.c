@@ -41,7 +41,6 @@
 /* do_gen_door utility functions */
 static int find_door(struct char_data *ch, const char *type, char *dir,
                      const char *cmdname);
-static int has_key(struct char_data *ch, obj_vnum key);
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door,
                        int scmd);
 static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
@@ -2150,7 +2149,7 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
 
 #define PRISONER_KEY_1 132130
 #define PRISONER_KEY_2 132129
-bool is_evaporating_key(struct char_data *ch, obj_vnum key)
+int is_evaporating_key(struct char_data *ch, obj_vnum key)
 {
   if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
     return (TRUE);
@@ -2201,7 +2200,7 @@ int has_key(struct char_data *ch, obj_vnum key)
   case PRISONER_KEY_1:
   /*fallthrough*/
   case PRISONER_KEY_2:
-    return (is_evaproating_key(ch, key));
+    return (is_evaporating_key(ch, key));
   default:
     break;
   }
