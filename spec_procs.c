@@ -7508,6 +7508,9 @@ SPECIAL(rune_scimitar)
     call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_SPELL);
     return TRUE;
   }
+
+  /* didn't do anything! */
+  return FALSE;
 }
 
 /* from homeland */
