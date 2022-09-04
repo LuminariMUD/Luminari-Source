@@ -7447,7 +7447,7 @@ SPECIAL(rune_scimitar)
     return TRUE;
   }
 
-  if (!is_wearing(ch, 132101))
+  if (!is_wearing(ch, 132126))
     return FALSE;
 
   vict = FIGHTING(ch);
