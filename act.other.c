@@ -5868,6 +5868,7 @@ ACMD(do_use)
     {
 
     case ITEM_INSTRUMENT: /* OMG WHAT A HACK */
+    case ITEM_SUMMON:     /* OMG WHAT A HACK - fallthrough -zusuk */
       if (HAS_SPECIAL_ABILITIES(mag_item))
       {
         process_item_abilities(mag_item, ch, NULL, ACTMTD_USE, NULL);
