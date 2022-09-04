@@ -7219,12 +7219,9 @@ SPECIAL(neverwinter_valve_control)
   return FALSE;
 }
 
-/* from homeland */
+/* crashing!! */
 SPECIAL(bloodaxe)
 {
-  int dam;
-  struct char_data *vict = FIGHTING(ch);
-
   if (!ch)
     return FALSE;
 
@@ -7234,10 +7231,15 @@ SPECIAL(bloodaxe)
     return TRUE;
   }
 
+  if (!is_wearing(ch, 117014))
+    return FALSE;
+
+  struct char_data *vict = FIGHTING(ch);
+
   if (cmd || !vict || rand_number(0, 16))
     return FALSE;
 
-  dam = rand_number(8, 8);
+  int dam = rand_number(8, 8);
 
   GET_HIT(vict) -= dam;
 
