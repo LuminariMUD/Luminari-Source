@@ -5140,17 +5140,7 @@ ACMDCHECK(can_charge)
   return CAN_CMD;
 }
 
-ACMDCHECK(can_circle)
-{
-  return CAN_CMD;
-}
-
 ACMDCHECK(can_bodyslam)
-{
-  return CAN_CMD;
-}
-
-ACMDCHECK(can_springleap)
 {
   return CAN_CMD;
 }
