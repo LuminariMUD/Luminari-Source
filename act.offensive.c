@@ -5120,6 +5120,11 @@ ACMDCHECK(can_trip)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_bash)
+{
+  return CAN_CMD;
+}
+
 ACMDCHECK(can_kick)
 {
   return CAN_CMD;
