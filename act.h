@@ -562,6 +562,7 @@ ACMD_DECL(do_impromptu);
 ACMDCHECK(can_impromptu);
 ACMD_DECL(do_favoredenemies);
 ACMD_DECL(do_summon);
+ACMD_DECL(do_dice);
 ACMD_DECL(do_applyoil);
 ACMD_DECL(do_setbaneweapon);
 ACMD_DECL(do_cosmic_awareness);
