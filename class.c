@@ -6427,7 +6427,7 @@ void load_class_list(void)
   /* class prereqs */
   class_prereq_feat(CLASS_SHADOWDANCER, FEAT_COMBAT_REFLEXES, 1);
   class_prereq_feat(CLASS_SHADOWDANCER, FEAT_DODGE, 1);
-  class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_STEALTH, 5);
+  class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_ACROBATICS, 5);
   class_prereq_ability(CLASS_SHADOWDANCER, ABILITY_PERFORM, 2);
   /****************************************************************************/
 
@@ -7041,8 +7041,8 @@ void load_class_list(void)
   feat_assignment(CLASS_ASSASSIN, FEAT_ANGEL_OF_DEATH, Y, 10, N);
 
   /* pre reqs to take assassin class */
-  class_prereq_ability(CLASS_ASSASSIN, ABILITY_PERFORM, 2);
-  class_prereq_ability(CLASS_ASSASSIN, ABILITY_SENSE_MOTIVE, 5);
+  class_prereq_ability(CLASS_ASSASSIN, ABILITY_STEALTH, 5);
+  class_prereq_ability(CLASS_ASSASSIN, ABILITY_SENSE_MOTIVE, 2);
   class_prereq_feat(CLASS_ASSASSIN, FEAT_TWO_WEAPON_FIGHTING, 1);
   /****************************************************************************/
   /****************************************************************************/
