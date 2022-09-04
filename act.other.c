@@ -7083,7 +7083,7 @@ ACMD(do_dice)
     return;
   }
 
-  half_chop(argument, Gbuf1, Gbuf2);
+  two_arguments(argument, Gbuf1, sizeof(Gbuf1), Gbuf2, sizeof(Gbuf2));
 
   if (is_number(Gbuf1))
   {
