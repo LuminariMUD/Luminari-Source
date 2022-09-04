@@ -2148,13 +2148,68 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
   }
 }
 
+#define PRISONER_KEY_1 132130
+#define PRISONER_KEY_2 132129
+bool is_evaporating_key(struct obj_data key)
+{
+  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
+    return (TRUE);
+
+  struct obj_data *o = NULL;
+
+  for (o = ch->carrying; o; o = o->next_content)
+  {
+    if (GET_OBJ_VNUM(o) == key)
+    {
+      act("$n breaks $p unlocking the path!", FALSE, ch, o, 0, TO_ROOM);
+      act("You break $p unlocking the path!", FALSE, ch, o, 0, TO_CHAR);
+      extract_obj(o);
+      return TRUE;
+    }
+  }
+
+  if (GET_EQ(ch, WEAR_HOLD_1))
+  {
+    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_1)) == key)
+    {
+      act("$n breaks $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_ROOM);
+      act("You break $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_CHAR);
+      extract_obj(unequip_char(ch, WEAR_HOLD_1));
+      return TRUE;
+    }
+  }
+
+  if (GET_EQ(ch, WEAR_HOLD_2))
+  {
+    if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_2)) == key)
+    {
+      act("$n breaks $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_ROOM);
+      act("You break $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_CHAR);
+      extract_obj(unequip_char(ch, WEAR_HOLD_2));
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
 int has_key(struct char_data *ch, obj_vnum key)
 {
+
+  switch (key)
+  {
+  case PRISONER_KEY_1:
+  /*fallthrough*/
+  case PRISONER_KEY_2:
+    return (is_evaproating_key(key));
+  default:
+    break;
+  }
 
   if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
     return (1);
 
-  struct obj_data *o;
+  struct obj_data *o = NULL;
 
   for (o = ch->carrying; o; o = o->next_content)
     if (GET_OBJ_VNUM(o) == key)
