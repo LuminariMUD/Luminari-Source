@@ -1574,7 +1574,7 @@ void prisoner_gear_loading(struct char_data *ch)
 
   /* create oil */
   struct obj_data *oil = read_object(WEAPON_OIL, VIRTUAL);
-  GET_OBJ_VAL(oil, 0) = objNums[rand_number(0, TOP_UNIQUES_OIL)];
+  GET_OBJ_VAL(oil, 0) = wpnOils[rand_number(0, TOP_UNIQUES_OIL)];
   obj_to_room(oil, real_room(PRISONER_VAULT));
 
   /* potion */
