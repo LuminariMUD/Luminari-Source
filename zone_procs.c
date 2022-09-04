@@ -2120,10 +2120,13 @@ SPECIAL(jot_invasion_loader)
 
 SPECIAL(thrym)
 {
+  if (!ch)
+    return 0;
+
   struct char_data *vict = FIGHTING(ch);
   struct affected_type af;
 
-  if (!ch || cmd || !vict || rand_number(0, 8))
+  if (cmd || !vict || rand_number(0, 8))
     return 0;
 
   if (paralysis_immunity(vict))
