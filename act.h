@@ -369,7 +369,8 @@ int has_boat(struct char_data *ch, room_rnum going_to);
 int has_flight(struct char_data *ch);
 int change_position(struct char_data *ch, int position);
 int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive);
-bool is_evaporating_key(struct char_data *ch, obj_vnum key);
+int is_evaporating_key(struct char_data *ch, obj_vnum key);
+int has_key(struct char_data *ch, obj_vnum key);
 
 /* Functions with subcommands */
 /* do_gen_door */
