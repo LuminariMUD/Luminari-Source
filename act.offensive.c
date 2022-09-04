@@ -555,7 +555,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
 bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 {
   int penalty = 0, attack_check = 0, defense_check = 0;
-  bool success = FALSE, counter_success = FALSE;
+  bool success = FALSE, counter_success = FALSE, skilled_monk = FALSE;
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch)
@@ -607,10 +607,19 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 
   switch (skill)
   {
-  case SKILL_BODYSLAM:
   case SKILL_SHIELD_CHARGE:
   case SKILL_BASH:
     attack_check = GET_STR_BONUS(ch);
+    if (is_flying(vict))
+    {
+      send_to_char(ch, "Impossible, your target is flying!\r\n");
+      return FALSE;
+    }
+    if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
+      attack_of_opportunity(vict, ch, 0);
+    break;
+  case SKILL_BODYSLAM:
+    attack_check = GET_WIS_BONUS(ch);
     if (is_flying(vict))
     {
       send_to_char(ch, "Impossible, your target is flying!\r\n");
@@ -667,6 +676,12 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       attack_check += 4;
     }
 
+    if (MONK_TYPE(ch) >= 10)
+    {
+      attack_check += 8;
+      skilled_monk = TRUE;
+    }
+
     if (GET_RACE(vict) == RACE_DWARF ||
         GET_RACE(vict) == RACE_CRYSTAL_DWARF ||
         GET_RACE(vict) == RACE_DUERGAR) /* dwarven stability */
@@ -691,19 +706,26 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 
     if (success == TRUE)
     {
-      /* Messages for shield charge */
-      if (skill == SKILL_SHIELD_CHARGE)
+      switch (skill)
       {
+      case SKILL_SHIELD_CHARGE:
+        /* Messages for shield charge */
         act("\tyYou knock $N to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
         act("\ty$n knocks you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
         act("\ty$n knocks $N to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
-      }
-      else
-      {
-        /* Messages for successful trip */
+        break;
+      case SKILL_BODYSLAM:
+        /* Messages for body slam */
+        act("\tyYou grab and SLAM $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+        act("\ty$n grabs and SLAMS you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+        act("\ty$n grabs and SLAMS $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+        break;
+      default:
+        /* (Default) Messages for successful trip */
         act("\tyYou grab and overpower $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
         act("\ty$n grabs and overpowers you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
         act("\ty$n grabs and overpowers $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+        break;
       }
     }
     else
@@ -819,8 +841,16 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     change_position(vict, POS_SITTING);
     if ((skill == SKILL_TRIP) ||
         (skill == SKILL_BASH) ||
+        (skill == SKILL_BODYSLAM) ||
         (skill == SKILL_SHIELD_CHARGE))
     {
+
+      /* bodyslam with a skilled monk */
+      if (skill == SKILL_BODYSLAM && skilled_monk)
+      {
+        damage(ch, vict, dice(GET_MONK_TYPE(ch), 8) + GET_WIS_BONUS(ch), SKILL_BODYSLAM, DAM_FORCE, FALSE);
+      }
+
       /* Successful trip, cheat for feats */
       if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
       {
@@ -6079,9 +6109,6 @@ ACMD(do_bodyslam)
   PREREQ_NOT_NPC();
 
   one_argument(argument, buf, sizeof(buf));
-
-  send_to_char(ch, "Unimplemented.\r\n");
-  return;
 
   if (FIGHTING(ch))
   {
