@@ -2814,7 +2814,8 @@ ACMD(do_order)
 
       for (k = ch->followers; k; k = k->next)
       {
-        if (!k->follower) continue;
+        if (!k->follower)
+          continue;
         if (IN_ROOM(ch) == NOWHERE || IN_ROOM(k->follower) == NOWHERE)
           continue;
         if (IN_ROOM(ch) == IN_ROOM(k->follower))
@@ -5112,6 +5113,56 @@ ACMD(do_emptybody)
 
   /* Actions */
   USE_MOVE_ACTION(ch);
+}
+
+ACMDCHECK(can_trip)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_kick)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_feint)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_guard)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_charge)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_circle)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_bodyslam)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_springleap)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_disarm)
+{
+  return CAN_CMD;
+}
+
+ACMDCHECK(can_rescue)
+{
+  return CAN_CMD;
 }
 
 ACMDCHECK(can_treatinjury)
