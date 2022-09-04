@@ -4397,8 +4397,8 @@ ACMD(do_applyoil)
     return;
   }
 
-  /*************************************************************************/
-  /* you cannot use these oils on weapons that already have specials on it */
+  /********************************************************************************/
+  /* you cannot use these oils on weapons that already have specials on it -zusuk */
   if (OBJ_FLAGGED(weapon, ITEM_AUTOPROC))
   {
     send_to_char(ch, "That weapon is too powerful for the weapon oil.\r\n");
@@ -4414,7 +4414,7 @@ ACMD(do_applyoil)
     send_to_char(ch, "This weapon is too powerful for the weapon oil.\r\n");
     return;
   }
-  /*************************************************************************/
+  /********************************************************************************/
 
   specab_type = GET_OBJ_VAL(oil, 0);
 
