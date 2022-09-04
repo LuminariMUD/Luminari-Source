@@ -589,7 +589,7 @@ void save_account(struct account_data *account)
 void show_account_menu(struct descriptor_data *d)
 {
   int i = 0;
-  struct char_data *tch = NULL;
+  struct char_data *tch = NULL, *xtch = NULL;
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
@@ -609,74 +609,82 @@ void show_account_menu(struct descriptor_data *d)
   {
     for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
     {
-      if (d->account->character_names[i] != NULL)
-      {
-        write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
-        snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
+      /* trying: Initialize a place for the player data to temporarially reside. -zusuk */
+      CREATE(xtch, struct char_data, 1);
+      clear_char(xtch);
+      CREATE(xtch->player_specials, struct player_special_data, 1);
+      new_mobile_data(xtch);
 
-        if (mysql_query(conn, query))
+      if (d->account->character_names[i] != NULL && load_char(d->account->character_names[i], xtch) > -1))
         {
-          log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
-        }
+          free_char(xtch);
 
-        if (!(res = mysql_store_result(conn)))
-        {
-          log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
-        }
+          write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
+          snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
 
-        if (res != NULL)
-        {
-          if ((row = mysql_fetch_row(res)) != NULL)
+          if (mysql_query(conn, query))
           {
-            /* Initialize a place for the player data to temporarially reside. */
-            CREATE(tch, struct char_data, 1);
-            clear_char(tch);
-            CREATE(tch->player_specials, struct player_special_data, 1);
-            new_mobile_data(tch);
-
-            if ((load_char(d->account->character_names[i], tch)) > -1)
-            {
-              /* Player found! */
-              if (PLR_FLAGGED(tch, PLR_DELETED))
-              {
-                write_to_output(d, " \tR---===||DELETED||===---\tn\r\n");
-                return;
-              }
-
-              write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev_color);
-
-              if (GET_LEVEL(tch) >= LVL_IMMORT)
-              {
-                /* Staff */
-                write_to_output(d, " %-36s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
-              }
-              else
-              {
-                /* Mortal */
-
-                int inc, classCount = 0;
-                buf[0] = '\0';
-                len = 0;
-                for (inc = 0; inc < MAX_CLASSES; inc++)
-                {
-                  if (CLASS_LEVEL(tch, inc))
-                  {
-                    if (classCount)
-                      len += snprintf(buf + len, sizeof(buf) - len, "/");
-                    len += snprintf(buf + len, sizeof(buf) - len, "%s",
-                                    CLSLIST_CLRABBRV(inc));
-                    classCount++;
-                  }
-                }
-                write_to_output(d, " %-36s", buf);
-              }
-            }
-            free_char(tch);
+            log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
           }
+
+          if (!(res = mysql_store_result(conn)))
+          {
+            log("SYSERR: Unable to SELECT from player_data: %s", mysql_error(conn));
+          }
+
+          if (res != NULL)
+          {
+            if ((row = mysql_fetch_row(res)) != NULL)
+            {
+              /* Initialize a place for the player data to temporarially reside. */
+              CREATE(tch, struct char_data, 1);
+              clear_char(tch);
+              CREATE(tch->player_specials, struct player_special_data, 1);
+              new_mobile_data(tch);
+
+              if ((load_char(d->account->character_names[i], tch)) > -1)
+              {
+                /* Player found! */
+                if (PLR_FLAGGED(tch, PLR_DELETED))
+                {
+                  write_to_output(d, " \tR---===||DELETED||===---\tn\r\n");
+                  return;
+                }
+
+                write_to_output(d, " %3d \tC|\tn %4s \tC|\tn", GET_LEVEL(tch), race_list[GET_REAL_RACE(tch)].abbrev_color);
+
+                if (GET_LEVEL(tch) >= LVL_IMMORT)
+                {
+                  /* Staff */
+                  write_to_output(d, " %-36s", admin_level_names[(GET_LEVEL(tch) - LVL_IMMORT)]);
+                }
+                else
+                {
+                  /* Mortal */
+
+                  int inc, classCount = 0;
+                  buf[0] = '\0';
+                  len = 0;
+                  for (inc = 0; inc < MAX_CLASSES; inc++)
+                  {
+                    if (CLASS_LEVEL(tch, inc))
+                    {
+                      if (classCount)
+                        len += snprintf(buf + len, sizeof(buf) - len, "/");
+                      len += snprintf(buf + len, sizeof(buf) - len, "%s",
+                                      CLSLIST_CLRABBRV(inc));
+                      classCount++;
+                    }
+                  }
+                  write_to_output(d, " %-36s", buf);
+                }
+              }
+              free_char(tch);
+            }
+          }
+          mysql_free_result(res);
+          write_to_output(d, "\r\n");
         }
-        mysql_free_result(res);
-        write_to_output(d, "\r\n");
-      }
     }
   }
   write_to_output(d, "You can view more info about your account by typing "
