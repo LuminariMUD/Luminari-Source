@@ -7071,6 +7071,69 @@ ACMD(do_todo)
   }
 }
 
+ACMD(do_dice)
+{
+  char Gbuf1[MAX_STRING_LENGTH];
+  char Gbuf2[MAX_STRING_LENGTH];
+  int rolls, size, result;
+
+  if (!*arg)
+  {
+    send_to_char(ch, "You need to specify the dice size!\r\n  ex: 'dice 1 8'  - one roll with an eight sided die.\n");
+    return;
+  }
+
+  half_chop(arg, Gbuf1, Gbuf2);
+
+  if (is_number(Gbuf1))
+  {
+    rolls = atoi(Gbuf1);
+    if (rolls < 1 || rolls > 10000)
+    {
+      send_to_char(ch, "Sorry bub, the first parameter is out of range.\r\n");
+      return;
+    }
+  }
+  else
+  {
+    send_to_char(ch, "The first parameter needs to be a number. Try again.\r\n");
+    return;
+  }
+
+  if (!*Gbuf2)
+  {
+    send_to_char(ch, "You need to specify the dice size as the second parameter.\n");
+    return;
+  }
+
+  one_argument(Gbuf2, Gbuf1);
+
+  if (is_number(Gbuf1))
+  {
+    size = atoi(Gbuf1);
+    if (size < 1 || size > 10000)
+    {
+      send_to_char(ch, "Sorry bub, the second number is out of range.\n");
+      return;
+    }
+  }
+  else
+  {
+    send_to_char(ch, "The second parameter needs to be a number. Try again.\n");
+    return;
+  }
+
+  result = dice(rolls, size);
+
+  sprintf(Gbuf1, "You roll a %d sided dice %d times, the total result is: \tB%d\tn\r\n", size, rolls, result);
+  send_to_char(ch, Gbuf1);
+
+  sprintf(Gbuf1, "A %d sided dice is rolled by %s %d times, the total result is: \tB%d\tn\r\n", size, GET_NAME(ch), rolls, result);
+  send_to_room(ch->in_room, Gbuf1);
+
+  return;
+}
+
 ACMD(do_summon)
 {
   struct char_data *tch = NULL;

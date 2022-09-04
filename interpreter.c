@@ -296,6 +296,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"dragonmagic", "dragonmagic", POS_FIGHTING, do_dragonmagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dragonmagic},
     {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"dice", "dice", POS_RECLINING, do_dice, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
