@@ -489,6 +489,7 @@ ACMDCHECK(can_defensive_stance);
 ACMD_DECL(do_turnundead);
 ACMDCHECK(can_turnundead);
 ACMD_DECL(do_bash);
+ACMDCHECK(can_bash);
 ACMD_DECL(do_call);
 ACMD_DECL(do_fly);
 ACMD_DECL(do_levitate);
