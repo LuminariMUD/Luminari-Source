@@ -848,7 +848,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       /* bodyslam with a skilled monk */
       if (skill == SKILL_BODYSLAM && skilled_monk)
       {
-        damage(ch, vict, dice(GET_MONK_TYPE(ch), 8) + GET_WIS_BONUS(ch), SKILL_BODYSLAM, DAM_FORCE, FALSE);
+        damage(ch, vict, dice(MONK_TYPE(ch), 8) + GET_WIS_BONUS(ch), SKILL_BODYSLAM, DAM_FORCE, FALSE);
       }
 
       /* Successful trip, cheat for feats */
