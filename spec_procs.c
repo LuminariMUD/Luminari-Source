@@ -7455,8 +7455,8 @@ SPECIAL(rune_scimitar)
   if (cmd || !vict)
     return FALSE;
 
-  /* blur proc */
-  if (!rand_number(0, 10))
+  /* blur attack proc */
+  if (!rand_number(0, 15))
   {
     act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
         TRUE, ch, scimitar, vict, TO_CHAR);
