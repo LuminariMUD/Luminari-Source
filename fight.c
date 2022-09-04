@@ -3396,9 +3396,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* energy absorption system */
-    absorb_energy_conversion(ch, dam_type, dam);
-    int damage_reduction = compute_energy_absorb(ch, dam_type);
-    dam -= compute_energy_absorb(ch, dam_type);
+    absorb_energy_conversion(victim, dam_type, dam);
+    int damage_reduction = compute_energy_absorb(victim, dam_type);
+    dam -= compute_energy_absorb(victim, dam_type);
     if (dam <= 0 && (ch != victim))
     {
       send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
