@@ -1444,9 +1444,11 @@ int prisoner_breath(struct char_data *ch)
 #define MANDRAKE_EAR 132117     /* 15 */
 #define MITH_ARROW 132127       /* 16 */
 #define ARM_VALOR 132103        /* 17 */
-#define TOP_UNIQUES 17
+#define BLACK_FIGURINE 132114   /* 18 */
+#define TOP_UNIQUES 18
 /* base items */
-#define BLACK_FIGURINE 132114
+#define WEAPON_OIL 132131
+#define WEAPON_POISON 132132
 #define LAVANDER_VIA 132110
 #define COINS_GOLD 132112
 #define COINS_PLAT 132111
@@ -1460,7 +1462,6 @@ int prisoner_breath(struct char_data *ch)
 #define TOP_UNIQUES_OIL 21
 #define NUM_TREASURE 7
 #define LOOP_LIMIT 1000
-#define WEAPON_OIL 132150
 /*************************************/
 /*************************************/
 
@@ -1492,34 +1493,33 @@ void prisoner_gear_loading(struct char_data *ch)
       MANDRAKE_EAR,     /* earring */
       MITH_ARROW,       /* arrows */
       ARM_VALOR,        /* armplates of valor */
+      BLACK_FIGURINE,   /* summons gargoyle */
   };
 
-  /*
   int wpnOils[TOP_UNIQUES_OIL + 1] = {
-      WEAPON_SPECAB_SEEKING,
+      WEAPON_SPECAB_SEEKING, /* 0 */
       WEAPON_SPECAB_ADAPTIVE,
       WEAPON_SPECAB_DISRUPTION,
       WEAPON_SPECAB_DEFENDING,
       WEAPON_SPECAB_EXHAUSTING,
-      WEAPON_SPECAB_CORROSIVE,
+      WEAPON_SPECAB_CORROSIVE, /* 5 */
       WEAPON_SPECAB_SPEED,
       WEAPON_SPECAB_GHOST_TOUCH,
       WEAPON_SPECAB_BLINDING,
       WEAPON_SPECAB_SHOCK,
-      WEAPON_SPECAB_FLAMING,
+      WEAPON_SPECAB_FLAMING, /* 10 */
       WEAPON_SPECAB_THUNDERING,
       WEAPON_SPECAB_AGILE,
       WEAPON_SPECAB_WOUNDING,
       WEAPON_SPECAB_LUCKY,
-      WEAPON_SPECAB_BEWILDERING,
+      WEAPON_SPECAB_BEWILDERING, /* 15 */
       WEAPON_SPECAB_KEEN,
       WEAPON_SPECAB_VICIOUS,
       WEAPON_SPECAB_INVIGORATING,
       WEAPON_SPECAB_VORPAL,
-      WEAPON_SPECAB_VAMPIRIC,
-      WEAPON_SPECAB_BANE,
+      WEAPON_SPECAB_VAMPIRIC, /* 20 */
+      WEAPON_SPECAB_BANE,     /* 21 */
   };
-  */
 
   if (!ch)
     return;
@@ -1569,32 +1569,28 @@ void prisoner_gear_loading(struct char_data *ch)
 
   } while (num_items < NUM_TREASURE && loop_counter < LOOP_LIMIT);
 
-  /* base items */
-  obj_to_room(read_object(BLACK_FIGURINE, VIRTUAL), real_room(PRISONER_VAULT));
+  /************************************************************************/
+  /****** base items for treasury *************/
+
+  /* create oil */
+  struct obj_data *oil = read_object(WEAPON_OIL, VIRTUAL);
+  GET_OBJ_VAL(oil, 0) = objNums[rand_number(0, TOP_UNIQUES_OIL)];
+  obj_to_room(oil, real_room(PRISONER_VAULT));
+
+  /* potion */
   obj_to_room(read_object(LAVANDER_VIA, VIRTUAL), real_room(PRISONER_VAULT));
+
+  /* weapon poison */
+  obj_to_room(read_object(WEAPON_POISON, VIRTUAL), real_room(PRISONER_VAULT));
+
+  /* coinage */
   obj_to_room(read_object(COINS_GOLD, VIRTUAL), real_room(PRISONER_VAULT));
   obj_to_room(read_object(COINS_PLAT, VIRTUAL), real_room(PRISONER_VAULT));
   obj_to_room(read_object(COINS_SILV, VIRTUAL), real_room(PRISONER_VAULT));
 
   /* random treasure, it'll be put on the lich */
   award_magic_item(NUM_TREASURE, ch, GRADE_SUPERIOR);
-
-  /* pick a oil, any oil! */
-  /* under construction -zusuk */
-  /*
-  if (!(tobj = read_object(WEAPON_OIL, VIRTUAL)))
-  {
-    send_to_char(ch, "I seem to have goofed.\r\n");
-    log("SYSERR: prisoner-treasure no object found for oil...");
-    return;
-  }
-  ovnum = objNums[rand_number(0, TOP_UNIQUES_OIL)];
-  obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
-  ovnum = objNums[rand_number(0, TOP_UNIQUES_OIL)];
-  obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
-
-  GET_OBJ_VAL(obj2, 0) = hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0));
-  */
+  /************************************************************************/
 
   /* the work is done! */
   return;
@@ -1621,12 +1617,13 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef MANDRAKE_EAR
 #undef MITH_ARROW
 #undef ARM_VALOR
-/* base items */
 #undef BLACK_FIGURINE
+/* base items */
 #undef LAVANDER_VIA
 #undef COINS_GOLD
 #undef COINS_PLAT
 #undef COINS_SILV
+#undef WEAPON_OIL
 /*************************************/
 /* variables */
 #undef TOP_UNIQUES
@@ -1635,7 +1632,6 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef PRISONER_VAULT
 #undef NUM_TREASURE
 #undef LOOP_LIMIT
-#undef WEAPON_OIL
 /*************************************/
 /*************************************/
 
