@@ -7077,13 +7077,13 @@ ACMD(do_dice)
   char Gbuf2[MAX_STRING_LENGTH];
   int rolls, size, result;
 
-  if (!*arg)
+  if (!*argument)
   {
     send_to_char(ch, "You need to specify the dice size!\r\n  ex: 'dice 1 8'  - one roll with an eight sided die.\n");
     return;
   }
 
-  half_chop(arg, Gbuf1, Gbuf2);
+  half_chop(argument, Gbuf1, Gbuf2);
 
   if (is_number(Gbuf1))
   {
@@ -7106,7 +7106,7 @@ ACMD(do_dice)
     return;
   }
 
-  one_argument(Gbuf2, Gbuf1);
+  one_argument(Gbuf2, Gbuf1, sizeof(Gbuf1));
 
   if (is_number(Gbuf1))
   {
