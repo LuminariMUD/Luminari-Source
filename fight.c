@@ -2476,6 +2476,11 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
           act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+
+          /* fire any dodge specs we might have, right now its only on weapons */
+          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+          if (name)
+            (name)(vict, opponent_weapon, 0, "dodge");
         }
       }
       return (return_value);

@@ -1229,6 +1229,7 @@ void heartbeat(int heart_pulse)
   {
     check_auction();
   }
+
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
   {
     save_chars();
