@@ -2519,7 +2519,6 @@
 #define ITEM_NOLOCATE      (1 << 24)  // item can not be located via spells
 #define ITEM_NOBURN        (1 << 25)  // item can not be disintegrated by spells
 #define ITEM_TRANSIENT     (1 << 26)  // item will crumble and fade when dropped
-#define ITEM_AUTOPROC	  (1 << 27)  // item can be called by proc_update()
  */
 
 /* Modifier constants used with obj affects ('A' fields) */

@@ -4397,6 +4397,25 @@ ACMD(do_applyoil)
     return;
   }
 
+  /*************************************************************************/
+  /* you cannot use these oils on weapons that already have specials on it */
+  if (OBJ_FLAGGED(weapon, ITEM_AUTOPROC))
+  {
+    send_to_char(ch, "That weapon is too powerful for the weapon oil.\r\n");
+    return;
+  }
+  if (obj_index[GET_OBJ_RNUM(weapon)].func)
+  {
+    send_to_char(ch, "That particular weapon is too powerful for the weapon oil.\r\n");
+    return;
+  }
+  if (HAS_SPELLS(weapon))
+  {
+    send_to_char(ch, "This weapon is too powerful for the weapon oil.\r\n");
+    return;
+  }
+  /*************************************************************************/
+
   specab_type = GET_OBJ_VAL(oil, 0);
 
   if (GET_OBJ_VAL(oil, 0) == 0)

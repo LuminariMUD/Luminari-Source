@@ -7388,6 +7388,7 @@ SPECIAL(acidsword)
   return TRUE;
 }
 
+/* malevolence - this has a spec abillity vamp AND a blur attack -zusuk */
 SPECIAL(malevolence)
 {
   struct char_data *vict = NULL;
@@ -7427,6 +7428,86 @@ SPECIAL(malevolence)
   }
 
   return TRUE;
+}
+
+SPECIAL(rune_scimitar)
+{
+  struct char_data *vict = NULL;
+  int num_hits = 0, i = 0;
+  struct obj_data *scimitar = (struct obj_data *)me;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Attack Blur (4-7 bonus attacks on proc)\r\n");
+    send_to_char(ch, "Proc: Deft Parry - on parry will do a light vamp attack\r\n");
+    send_to_char(ch, "Proc: Deft Dodge - on dodge will do a light vamp attack\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132101))
+    return FALSE;
+
+  vict = FIGHTING(ch);
+
+  if (cmd || !vict)
+    return FALSE;
+
+  /* blur proc */
+  if (!rand_number(0, 10))
+  {
+    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
+        TRUE, ch, scimitar, vict, TO_CHAR);
+    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+        TRUE, ch, scimitar, vict, TO_VICT);
+    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+        TRUE, ch, scimitar, vict, TO_NOTVICT);
+
+    num_hits = rand_number(4, 7);
+
+    for (i = 0; i <= num_hits; i++)
+    {
+      if (valid_fight_cond(ch, TRUE))
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    }
+    return TRUE;
+  }
+
+  /* parry proc */
+  else if (!strcmp(argument, "parry") && rand_number(0, 2))
+  {
+    act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N \tLand transfers it back to you.\tn",
+        FALSE, ch, scimitar, vict, TO_CHAR);
+    act("\tLAs \tn$n\tL parries your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom you and transfers it back to $m.\tn",
+        FALSE, ch, scimitar, vict, TO_VICT);
+    act("\tLAs \tn$n\tL parries \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N\tL.\tn",
+        FALSE, ch, scimitar, vict, TO_NOTVICT);
+    damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_SPELL);
+    return TRUE;
+  }
+
+  /* dodge proc */
+  else if (!strcmp(argument, "dodge") && !rand_number(0, 3))
+  {
+    act("\tLAs you dodge the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N \tLand transfers it back to you.\tn",
+        FALSE, ch, scimitar, vict, TO_CHAR);
+    act("\tLAs \tn$n\tL dodges your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom you and transfers it back to $m.\tn",
+        FALSE, ch, scimitar, vict, TO_VICT);
+    act("\tLAs \tn$n\tL dodges \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N\tL.\tn",
+        FALSE, ch, scimitar, vict, TO_NOTVICT);
+    damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_SPELL);
+    return TRUE;
+  }
 }
 
 /* from homeland */
