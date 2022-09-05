@@ -41,6 +41,7 @@ struct attack_hit_type
 };
 
 /* Functions available in fight.c */
+int valid_fight_cond(struct char_data *ch, bool strict);
 int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam, bool display);
 bool is_flanked(struct char_data *attacker, struct char_data *ch);
 bool has_dex_bonus_to_ac(struct char_data *attacker, struct char_data *ch);

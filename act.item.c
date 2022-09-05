@@ -914,6 +914,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   found = FALSE;
   send_to_char(ch, "Affections:");
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
+  {
     if (j->affected[i].modifier)
     {
       sprinttype(j->affected[i].location, apply_types, buf, sizeof(buf));
@@ -935,6 +936,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
       else
         send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
     }
+  }
   if (!found)
     send_to_char(ch, " None");
   send_to_char(ch, "\r\n");
@@ -4396,6 +4398,25 @@ ACMD(do_applyoil)
     send_to_char(ch, "%s is not a vial of weapon oil.\r\n", oil->short_description);
     return;
   }
+
+  /********************************************************************************/
+  /* you cannot use these oils on weapons that already have specials on it -zusuk */
+  if (OBJ_FLAGGED(weapon, ITEM_AUTOPROC))
+  {
+    send_to_char(ch, "That weapon is too powerful for the weapon oil.\r\n");
+    return;
+  }
+  if (obj_index[GET_OBJ_RNUM(weapon)].func)
+  {
+    send_to_char(ch, "That particular weapon is too powerful for the weapon oil.\r\n");
+    return;
+  }
+  if (HAS_SPELLS(weapon))
+  {
+    send_to_char(ch, "This weapon is too powerful for the weapon oil.\r\n");
+    return;
+  }
+  /********************************************************************************/
 
   specab_type = GET_OBJ_VAL(oil, 0);
 

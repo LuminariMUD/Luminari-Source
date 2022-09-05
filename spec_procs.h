@@ -25,6 +25,7 @@ int sorted_skills[TOP_SKILL_DEFINE];
  ****************************************************************************/
 void assign_kings_castle(void);
 int do_npc_rescue(struct char_data *ch, struct char_data *friend);
+void prisoner_on_death(struct char_data *ch);
 
 /*****************************************************************************
  * Begin Functions and defines for spec_assign.c
@@ -186,6 +187,7 @@ SPECIAL_DECL(shades);
 SPECIAL_DECL(shadowdragon);
 SPECIAL_DECL(shar_heart);
 SPECIAL_DECL(shar_statue);
+SPECIAL_DECL(rune_scimitar);
 SPECIAL_DECL(shobalar);
 SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(secomber_guard);

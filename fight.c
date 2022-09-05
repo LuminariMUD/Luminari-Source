@@ -53,6 +53,9 @@
 #define HIT_MISS 0
 #define HIT_RESULT_ACTION -1
 #define HIT_NEED_RELOAD -2
+/* vnum of special mobile:  the prisoner */
+#define THE_PRISONER 113750
+#define DRACOLICH_PRISONER 113751
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -1476,19 +1479,60 @@ static void change_alignment(struct char_data *ch, struct char_data *victim)
  room of a nearby death */
 void death_cry(struct char_data *ch)
 {
-  int door;
+  int door = -1;
+  struct descriptor_data *pt = NULL;
 
-  GUI_CMBT_NOTVICT_OPEN(ch, NULL);
-  act("Your blood freezes as you hear $n's death cry.",
-      FALSE, ch, 0, 0, TO_ROOM);
-  GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
-
-  for (door = 0; door < DIR_COUNT; door++)
-    if (CAN_GO(ch, door))
+  if (IS_NPC(ch))
+  {
+    switch (GET_MOB_VNUM(ch))
     {
-      send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
-                   "Your blood freezes as you hear someone's death cry.\r\n");
+
+    /* special custom death cry messages can be placed here for NPCs! */
+    case THE_PRISONER:
+      /* no message here, special one in zone_procs.c code */
+      break;
+    case DRACOLICH_PRISONER:
+      for (pt = descriptor_list; pt; pt = pt->next)
+        if (pt->character)
+          send_to_char(pt->character, "\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
+                                      "fall to the ground with a resounding thud.\tn"
+                                      "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn\r\n");
+
+      break;
+
+    default: /* this is the default NPC message */
+      GUI_CMBT_NOTVICT_OPEN(ch, NULL);
+      act("Your blood freezes as you hear $n's death cry.",
+          FALSE, ch, 0, 0, TO_ROOM);
+      GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
+      for (door = 0; door < DIR_COUNT; door++)
+      {
+        if (CAN_GO(ch, door))
+        {
+          send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
+                       "Your blood freezes as you hear someone's death cry.\r\n");
+        }
+      }
+      break;
     }
+  }
+  else /* this is the default PC message */
+  {
+    GUI_CMBT_NOTVICT_OPEN(ch, NULL);
+    act("Your blood freezes as you hear $n's death cry.",
+        FALSE, ch, 0, 0, TO_ROOM);
+    GUI_CMBT_NOTVICT_CLOSE(ch, NULL);
+
+    for (door = 0; door < DIR_COUNT; door++)
+    {
+      if (CAN_GO(ch, door))
+      {
+        send_to_room(world[IN_ROOM(ch)].dir_option[door]->to_room,
+                     "Your blood freezes as you hear someone's death cry.\r\n");
+      }
+    }
+  }
 }
 
 /* this message is a replacement in our new (temporary?) death system */
@@ -1502,9 +1546,14 @@ void death_message(struct char_data *ch)
   send_to_char(ch, "\tD ||    ||  ||        .''''|.     ||     ||    ||  \tn\r\n");
   send_to_char(ch, "\tD.||...|'  .||.....| .|.  .||.   .||.   .||.  .||. \tn\r\n");
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "\tYTIPS - \tRbe creative and tenacious!\tn\r\n");
+  send_to_char(ch, "1) Try stocking up on disposables such as scrolls, potions and wands\r\n");
+  send_to_char(ch, "2) Try bringing some friends with you, if you can't find someone on chat - check our discord\r\n");
+  send_to_char(ch, "3) Try a 'respec' and selecting different feats\r\n");
+  send_to_char(ch, "4) Upgrade your gear, check out the bazaar, player shops and quest shop in sanctus for some nice upgrades\r\n");
+  send_to_char(ch, "5) Try gaining some levels\r\n");
+  send_to_char(ch, "6) Try hiring a mercenary\r\n");
+  send_to_char(ch, "7) Try different tactics for the battle, such as hit-and-run\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "You awaken... you realize someone has resurrected you...\r\n");
@@ -1647,9 +1696,20 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
   {
-    make_corpse(ch);
-    /* extraction!  *SLURRRRRRRRRRRRRP* */
-    extract_char(ch);
+    /* added a switch here for special handling of special mobiles -zusuk */
+    switch (GET_MOB_VNUM(ch))
+    {
+    case THE_PRISONER:
+      prisoner_on_death(ch);
+      /* extraction!  *SLURRRRRRRRRRRRRP* */
+      extract_char(ch);
+      break;
+    default:
+      make_corpse(ch);
+      /* extraction!  *SLURRRRRRRRRRRRRP* */
+      extract_char(ch);
+      break;
+    }
   }
   else if (IN_ARENA(ch) || IN_ARENA(killer))
   {
@@ -2421,6 +2481,16 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
           act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+
+          /* fire any dodge specs we might have, right now its only on weapons */
+          if (opponent_weapon)
+          {
+            name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+            if (name)
+            {
+              (name)(vict, opponent_weapon, 0, "dodge");
+            }
+          }
         }
       }
       return (return_value);
@@ -3341,9 +3411,9 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* energy absorption system */
-    absorb_energy_conversion(ch, dam_type, dam);
-    int damage_reduction = compute_energy_absorb(ch, dam_type);
-    dam -= compute_energy_absorb(ch, dam_type);
+    absorb_energy_conversion(victim, dam_type, dam);
+    int damage_reduction = compute_energy_absorb(victim, dam_type);
+    dam -= compute_energy_absorb(victim, dam_type);
     if (dam <= 0 && (ch != victim))
     {
       send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
@@ -8413,15 +8483,31 @@ int is_skilled_dualer(struct char_data *ch, int mode)
   return 0;
 }
 
-/* common dummy check in perform_attacks() */
-int valid_fight_cond(struct char_data *ch)
+/* common dummy check in perform_attacks()
+   expanded this for dummy checking outside of perform_attacks via 'strict' mode -zusuk */
+int valid_fight_cond(struct char_data *ch, bool strict)
 {
+  if (!ch)
+    return FALSE;
 
-  if (FIGHTING(ch))
+  if (FIGHTING(ch) && !strict)
   {
     update_pos(FIGHTING(ch));
     if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
         IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
+
+      return TRUE;
+  }
+  else if (strict && FIGHTING(ch))
+  {
+    update_pos(FIGHTING(ch));
+    update_pos(ch);
+    if (GET_POS(FIGHTING(ch)) != POS_DEAD &&
+        IN_ROOM(ch) != NOWHERE &&
+        GET_POS(ch) > POS_SLEEPING &&
+        IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch) &&
+        GET_HIT(FIGHTING(ch)) >= 1 &&
+        GET_HIT(ch) >= 1)
 
       return TRUE;
   }
@@ -8770,11 +8856,11 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       penalty -= 4;
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || phase == PHASE_1)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
               penalty, ATTACK_TYPE_PRIMARY); /* whack with mainhand */
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || phase == PHASE_2)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC,
               penalty * 2, ATTACK_TYPE_OFFHAND); /* whack with offhand */
@@ -8802,7 +8888,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || phase == PHASE_1)
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
     }
@@ -8824,7 +8910,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     if (mode == NORMAL_ATTACK_ROUTINE)
     { // normal attack routine
       attacks_at_max_bab--;
-      if (valid_fight_cond(ch))
+      if (valid_fight_cond(ch, FALSE))
         if (phase == PHASE_0 || ((phase == PHASE_2) && numAttacks == 2) || ((phase == PHASE_3) && numAttacks == 3))
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
     }
@@ -8889,7 +8975,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (FIGHTING(ch) && mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
         update_pos(FIGHTING(ch));
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
         {
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, penalty, ATTACK_TYPE_PRIMARY);
         }
@@ -8922,7 +9008,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
           if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
               ((phase == PHASE_2) && ((numAttacks == 2) ||
                                       (numAttacks == 5) ||
@@ -8951,7 +9037,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
           if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
               ((phase == PHASE_2) && ((numAttacks == 2) ||
                                       (numAttacks == 5) ||
@@ -8981,7 +9067,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       numAttacks++;
       if (mode == NORMAL_ATTACK_ROUTINE)
       { // normal attack routine
-        if (valid_fight_cond(ch))
+        if (valid_fight_cond(ch, FALSE))
           if (phase == PHASE_0 || ((phase == PHASE_1) && ((numAttacks == 1) || (numAttacks == 4) || (numAttacks == 7) || (numAttacks == 10) || (numAttacks == 13))) ||
               ((phase == PHASE_2) && ((numAttacks == 2) ||
                                       (numAttacks == 5) ||
@@ -9638,5 +9724,8 @@ void perform_violence(struct char_data *ch, int phase)
 #undef MODE_IMP_2_WPN   /* improved two weapon fighting - extra attack at -5 */
 #undef MODE_GREAT_2_WPN /* greater two weapon fighting - extra attack at -10 */
 #undef MODE_EPIC_2_WPN  /* perfect two weapon fighting - extra attack */
+
+#undef THE_PRISONER       /* vnum for special mobile 'the prisoner' */
+#undef DRACOLICH_PRISONER /* vnum for special mobile 'the dracolich of the prisoner' */
 
 #undef DEBUGMODE

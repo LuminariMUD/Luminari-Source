@@ -24,7 +24,8 @@
 #include "domains_schools.h"
 #include "spec_abilities.h"
 #include "treasure.h"
-#include "mobact.h" /* for npc_find_target() */
+#include "mobact.h"     /* for npc_find_target() */
+#include "dg_scripts.h" /* for load_mtrigger() */
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
@@ -1180,54 +1181,50 @@ int check_heads(struct char_data *ch)
 {
 
   /* green head dies */
-  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 5)
+  if (prisoner_heads == 5)
   {
     act("\tLYour blood \tWfreezes\tL as the \tggreen \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    // GET_HIT(ch) = GET_MAX_HIT(ch);
-    prisoner_heads = 4;
     act("\n\r\tLThe remaining four heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
+    prisoner_heads = 4;
     return 1;
   }
 
   /* white head dies */
-  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 4)
+  if (prisoner_heads == 4)
   {
     act("\tLYour blood \tWfreezes\tL as the \tWwhite \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    // GET_HIT(ch) = GET_MAX_HIT(ch);
-    prisoner_heads = 3;
     act("\n\r\tLThe remaining three heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
+    prisoner_heads = 3;
     return 1;
   }
 
   /* black head dies */
-  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 3)
+  if (prisoner_heads == 3)
   {
     act("\tLYour blood \tWfreezes\tL as the black head of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    // GET_HIT(ch) = GET_MAX_HIT(ch);
-    prisoner_heads = 2;
     act("\n\r\tLThe remaining two heads turn and gaze at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
+    prisoner_heads = 2;
     return 1;
   }
 
   /* blue head dies */
-  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP) && prisoner_heads == 2)
+  if (prisoner_heads == 2)
   {
     act("\tLYour blood \tWfreezes\tL as the \tBblue \tLhead of the Prisoner screams\n\r"
         "\tLa horrifying wail of pain and drops to the floor, out of the battle!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
-    // GET_HIT(ch) = GET_MAX_HIT(ch);
-    prisoner_heads = 1;
     act("\n\r\tLThe remaining \trred \tLhead turns and gazes at you with a glare of hatred.\tn",
         FALSE, ch, 0, 0, TO_ROOM);
+    prisoner_heads = 1;
     return 1;
   }
 
@@ -1261,63 +1258,78 @@ void move_items(struct char_data *ch, struct char_data *lich)
 #define DRACOLICH_PRISONER 113751
 void prisoner_on_death(struct char_data *ch)
 {
-  struct char_data *lich = NULL;
+  struct char_data *prisoner = NULL;
   struct char_data *tch = NULL;
   struct affected_type af;
 
-  /*Still got HEADS!!, means they did shitload of damage et..*/
+  /*Still got HEADS!!, means they did lots of damage etc..*/
   if (prisoner_heads > 1)
   {
     check_heads(ch); // to get right message..
 
-    lich = read_mobile(THE_PRISONER, VIRTUAL);
-    char_to_room(lich, ch->in_room);
-    change_position(lich, POS_STANDING);
+    prisoner = read_mobile(THE_PRISONER, VIRTUAL);
+    char_to_room(prisoner, ch->in_room);
+    change_position(prisoner, POS_STANDING);
 
-    move_items(ch, lich);
+    move_items(ch, prisoner);
 
-    dam_killed_vict(ch, ch);
+    IS_CARRYING_W(prisoner) = 0;
+    IS_CARRYING_N(prisoner) = 0;
+    load_mtrigger(prisoner);
+    /* the fight.c death code should remove the old prisoner */
+
     return;
   }
+  else
+  {
+    /* red head dies, the last head - we are really loading the dracolich here */
+    prisoner = read_mobile(DRACOLICH_PRISONER, VIRTUAL);
+    char_to_room(prisoner, ch->in_room);
+    change_position(prisoner, POS_STANDING);
 
-  /* red head dies */
-  lich = read_mobile(DRACOLICH_PRISONER, VIRTUAL);
-  char_to_room(lich, ch->in_room);
-  change_position(lich, POS_STANDING);
+    move_items(ch, prisoner);
 
-  /* the item transfer is later */
+    IS_CARRYING_W(prisoner) = 0;
+    IS_CARRYING_N(prisoner) = 0;
+    load_mtrigger(prisoner);
+    /* the fight.c death code should remove the old prisoner */
+  }
 
+  /* we are transitioning to dracolich!!, ch is no longer relevant hopefully */
+
+  /* the player experience for the transition follows! */
   act("\tLWith a horrifying sound like a fearsome roar mixed with the screams of\n\r"
       "\tLexcruciating pain, the mighty Prisoner calls on her remaining divine power.\n\r"
       "\tWBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM!\n\r\n\r\n\r\n\r"
       "\tLA blinding light \tf\tWFLASHES\tn\tL from within her massive body followed by an\n\r"
       "\tLexplosion so forceful and loud that your ears begin to \trbleed even before\n\r"
       "\tryour body is hurled with tremendous force against the rumbling cavern walls",
-      FALSE, ch, 0, 0, TO_ROOM);
+      FALSE, prisoner, 0, 0, TO_ROOM);
 
-  for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
+  for (tch = world[prisoner->in_room].people; tch; tch = tch->next_in_room)
   {
-    if (tch != ch && tch != lich)
+    if (tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
+    {
       if (GET_POS(tch) > POS_SITTING)
         change_position(tch, POS_SITTING);
-    if (tch != ch)
       WAIT_STATE(tch, PULSE_VIOLENCE * 3);
+    }
   }
-  WAIT_STATE(lich, PULSE_VIOLENCE * 2);
-  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+
+  WAIT_STATE(prisoner, PULSE_VIOLENCE * 2);
 
   act("\trThrough a haze of dizziness you look up..\n\r"
       "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
       "\trreplaced by a large holy symbol that falls to the rocky floor with a crash\tr.\n\r\tr.",
-      FALSE, ch, 0, 0, TO_ROOM);
+      FALSE, prisoner, 0, 0, TO_ROOM);
   act("\tLSuddenly everything fades to black...\tn",
-      FALSE, ch, 0, 0, TO_ROOM);
+      FALSE, prisoner, 0, 0, TO_ROOM);
 
-  for (tch = world[ch->in_room].people; tch; tch = tch->next_in_room)
+  for (tch = world[prisoner->in_room].people; tch; tch = tch->next_in_room)
   {
-    if (tch != lich)
+    if (tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
     {
-      damage(lich, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
+      damage(prisoner, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
       WAIT_STATE(tch, PULSE_VIOLENCE * 3);
 
       new_affect(&af);
@@ -1328,10 +1340,6 @@ void prisoner_on_death(struct char_data *ch)
       change_position(tch, POS_SLEEPING);
     }
   }
-
-  move_items(ch, lich);
-
-  dam_killed_vict(lich, ch);
 
   return;
 }
@@ -1397,10 +1405,10 @@ int prisoner_breath(struct char_data *ch)
     breath[breaths++] = SPELL_LIGHTNING_BREATHE;
   if (prisoner_heads >= 3)
     breath[breaths++] = SPELL_ACID_BREATHE;
-  if (prisoner_heads >= 5)
-    breath[breaths++] = SPELL_GAS_BREATHE;
   if (prisoner_heads >= 4)
     breath[breaths++] = SPELL_FROST_BREATHE;
+  if (prisoner_heads >= 5)
+    breath[breaths++] = SPELL_GAS_BREATHE;
 
   if (breaths < 1)
     return 0;
@@ -1436,9 +1444,11 @@ int prisoner_breath(struct char_data *ch)
 #define MANDRAKE_EAR 132117     /* 15 */
 #define MITH_ARROW 132127       /* 16 */
 #define ARM_VALOR 132103        /* 17 */
-#define TOP_UNIQUES 17
+#define BLACK_FIGURINE 132114   /* 18 */
+#define TOP_UNIQUES 18
 /* base items */
-#define BLACK_FIGURINE 132114
+#define WEAPON_OIL 132131
+#define WEAPON_POISON 132132
 #define LAVANDER_VIA 132110
 #define COINS_GOLD 132112
 #define COINS_PLAT 132111
@@ -1452,7 +1462,6 @@ int prisoner_breath(struct char_data *ch)
 #define TOP_UNIQUES_OIL 21
 #define NUM_TREASURE 7
 #define LOOP_LIMIT 1000
-#define WEAPON_OIL 132150
 /*************************************/
 /*************************************/
 
@@ -1484,34 +1493,33 @@ void prisoner_gear_loading(struct char_data *ch)
       MANDRAKE_EAR,     /* earring */
       MITH_ARROW,       /* arrows */
       ARM_VALOR,        /* armplates of valor */
+      BLACK_FIGURINE,   /* summons gargoyle */
   };
 
-  /*
   int wpnOils[TOP_UNIQUES_OIL + 1] = {
-      WEAPON_SPECAB_SEEKING,
+      WEAPON_SPECAB_SEEKING, /* 0 */
       WEAPON_SPECAB_ADAPTIVE,
       WEAPON_SPECAB_DISRUPTION,
       WEAPON_SPECAB_DEFENDING,
       WEAPON_SPECAB_EXHAUSTING,
-      WEAPON_SPECAB_CORROSIVE,
+      WEAPON_SPECAB_CORROSIVE, /* 5 */
       WEAPON_SPECAB_SPEED,
       WEAPON_SPECAB_GHOST_TOUCH,
       WEAPON_SPECAB_BLINDING,
       WEAPON_SPECAB_SHOCK,
-      WEAPON_SPECAB_FLAMING,
+      WEAPON_SPECAB_FLAMING, /* 10 */
       WEAPON_SPECAB_THUNDERING,
       WEAPON_SPECAB_AGILE,
       WEAPON_SPECAB_WOUNDING,
       WEAPON_SPECAB_LUCKY,
-      WEAPON_SPECAB_BEWILDERING,
+      WEAPON_SPECAB_BEWILDERING, /* 15 */
       WEAPON_SPECAB_KEEN,
       WEAPON_SPECAB_VICIOUS,
       WEAPON_SPECAB_INVIGORATING,
       WEAPON_SPECAB_VORPAL,
-      WEAPON_SPECAB_VAMPIRIC,
-      WEAPON_SPECAB_BANE,
+      WEAPON_SPECAB_VAMPIRIC, /* 20 */
+      WEAPON_SPECAB_BANE,     /* 21 */
   };
-  */
 
   if (!ch)
     return;
@@ -1561,31 +1569,28 @@ void prisoner_gear_loading(struct char_data *ch)
 
   } while (num_items < NUM_TREASURE && loop_counter < LOOP_LIMIT);
 
-  /* base items */
-  obj_to_room(read_object(BLACK_FIGURINE, VIRTUAL), real_room(PRISONER_VAULT));
+  /************************************************************************/
+  /****** base items for treasury *************/
+
+  /* create oil */
+  struct obj_data *oil = read_object(WEAPON_OIL, VIRTUAL);
+  GET_OBJ_VAL(oil, 0) = wpnOils[rand_number(0, TOP_UNIQUES_OIL)];
+  obj_to_room(oil, real_room(PRISONER_VAULT));
+
+  /* potion */
   obj_to_room(read_object(LAVANDER_VIA, VIRTUAL), real_room(PRISONER_VAULT));
+
+  /* weapon poison */
+  obj_to_room(read_object(WEAPON_POISON, VIRTUAL), real_room(PRISONER_VAULT));
+
+  /* coinage */
   obj_to_room(read_object(COINS_GOLD, VIRTUAL), real_room(PRISONER_VAULT));
   obj_to_room(read_object(COINS_PLAT, VIRTUAL), real_room(PRISONER_VAULT));
   obj_to_room(read_object(COINS_SILV, VIRTUAL), real_room(PRISONER_VAULT));
 
   /* random treasure, it'll be put on the lich */
   award_magic_item(NUM_TREASURE, ch, GRADE_SUPERIOR);
-
-  /* pick a oil, any oil! */
-  /*
-  if (!(tobj = read_object(WEAPON_OIL, VIRTUAL)))
-  {
-    send_to_char(ch, "I seem to have goofed.\r\n");
-    log("SYSERR: prisoner-treasure no object found for oil...");
-    return;
-  }
-  ovnum = objNums[rand_number(0, TOP_UNIQUES_OIL)];
-  obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
-  ovnum = objNums[rand_number(0, TOP_UNIQUES_OIL)];
-  obj_to_room(read_object(ovnum, VIRTUAL), real_room(PRISONER_VAULT));
-
-  GET_OBJ_VAL(obj2, 0) = hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0));
-  */
+  /************************************************************************/
 
   /* the work is done! */
   return;
@@ -1612,12 +1617,13 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef MANDRAKE_EAR
 #undef MITH_ARROW
 #undef ARM_VALOR
-/* base items */
 #undef BLACK_FIGURINE
+/* base items */
 #undef LAVANDER_VIA
 #undef COINS_GOLD
 #undef COINS_PLAT
 #undef COINS_SILV
+#undef WEAPON_OIL
 /*************************************/
 /* variables */
 #undef TOP_UNIQUES
@@ -1626,33 +1632,26 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef PRISONER_VAULT
 #undef NUM_TREASURE
 #undef LOOP_LIMIT
-#undef WEAPON_OIL
 /*************************************/
 /*************************************/
 
+/* the prisoner primary form includes 5 heads, once those are defeated, then you get to fight
+   the dracolich form */
 SPECIAL(the_prisoner)
 {
 
   if (cmd)
     return 0;
 
-  /* make sure he has all 5 heads */
+  /* make sure he has all 5 heads at the start of the battle */
   if (prisoner_heads < 0)
     prisoner_heads = 5;
 
-  /* need to really move this and redo it, but this is how we are handling his death */
-  if ((GET_HIT(ch) <= 2500 || GET_POS(ch) <= POS_INCAP))
-  {
-    prisoner_on_death(ch);
-    return 1;
-  }
-
+  /* this is the prisoner's regular form offensive arsenal */
   if (FIGHTING(ch) && !rand_number(0, 3))
     prisoner_breath(ch);
 
-  if (check_heads(ch))
-    return 1;
-
+  /* this is the prisoner's regular form defensive arsenal */
   if (!rand_number(0, 2))
   {
     if (rejuv_prisoner(ch))
@@ -1664,6 +1663,7 @@ SPECIAL(the_prisoner)
   return 0;
 }
 
+/* this is the final form of the prisoner! */
 SPECIAL(dracolich)
 {
   struct char_data *vict = NULL;
@@ -1679,12 +1679,6 @@ SPECIAL(dracolich)
     prisoner_gear_loading(ch);
     eq_loaded = TRUE;
   }
-
-  if (GET_POS(ch) == POS_DEAD)
-    act("\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
-        "fall to the ground with a resounding thud.\tn"
-        "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn",
-        FALSE, ch, 0, vict, TO_ROOM);
 
   /* note that the !vict is moved below */
   if (cmd)
@@ -1715,6 +1709,7 @@ SPECIAL(dracolich)
   act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
       TO_CHAR);
 
+  /* added a way to reduce the effectiveness of this attack -zusuk */
   if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
   {
     hitpoints = damage(ch, vict, rand_number(120, 650), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
@@ -2125,10 +2120,13 @@ SPECIAL(jot_invasion_loader)
 
 SPECIAL(thrym)
 {
+  if (!ch)
+    return 0;
+
   struct char_data *vict = FIGHTING(ch);
   struct affected_type af;
 
-  if (!ch || cmd || !vict || rand_number(0, 8))
+  if (cmd || !vict || rand_number(0, 8))
     return 0;
 
   if (paralysis_immunity(vict))
