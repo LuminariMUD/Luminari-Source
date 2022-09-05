@@ -4016,6 +4016,7 @@ bool paralysis_immunity(struct char_data *ch) {
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS)) return TRUE;
   if (HAS_FEAT(ch, FEAT_PARALYSIS_IMMUNITY)) return TRUE;
   if (HAS_FEAT(ch, FEAT_ONE_OF_US)) return TRUE;
+  if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT)) return TRUE;
   return FALSE;
 }
 
