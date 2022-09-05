@@ -5854,8 +5854,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     if (!can_deafen(victim))
     {
-      send_to_char(ch, "Your opponent doesn't seem deafable.\r\n");
+      send_to_char(ch, "Your opponent seems immune to being deafened.\r\n");
       return;
+    
     }
     if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION) && !mag_resistance(ch, victim, 0))
     {
