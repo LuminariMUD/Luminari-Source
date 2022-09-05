@@ -7403,6 +7403,7 @@ ACMD(do_oconvert)
   send_to_char(ch, "Total of %d objects converted.\r\n", total);
 }
 
+#define DEBUG_EQ_SCORE TRUE
 /* a function to "score" the value of equipment -zusuk
    what to take into consideration?
   type [object values]
@@ -7422,6 +7423,7 @@ int get_eq_score(obj_rnum a)
   int score = 0;
   struct obj_data *obj = NULL;
   struct obj_special_ability *specab = NULL;
+  struct descriptor_data *pt = NULL;
 
   /* simplify life, and dummy checks */
   if (a == NOTHING)
@@ -7553,6 +7555,13 @@ int get_eq_score(obj_rnum a)
 
         /* we are trying to handle every case */
       default:
+        if (DEBUG_EQ_SCORE)
+        {
+          for (pt = descriptor_list; pt; pt = pt->next)
+            if (pt->character)
+              if (GET_LEVEL(pt->character) >= LVL_IMPL)
+                send_to_char(pt->character, "AFF_: %d |  ", i);
+        }
         score += 99999;
         break;
       }
@@ -7678,6 +7687,13 @@ int get_eq_score(obj_rnum a)
 
         /* we are attempting to handle every case */
       default:
+        if (DEBUG_EQ_SCORE)
+        {
+          for (pt = descriptor_list; pt; pt = pt->next)
+            if (pt->character)
+              if (GET_LEVEL(pt->character) >= LVL_IMPL)
+                send_to_char(pt->character, "ITEM_: %d |  ", i);
+        }
         score += 99999;
         break;
       }
@@ -7811,6 +7827,14 @@ int get_eq_score(obj_rnum a)
       case APPLY_GOLD:
       case APPLY_EXP:
       default:
+        if (DEBUG_EQ_SCORE)
+        {
+          for (pt = descriptor_list; pt; pt = pt->next)
+            if (pt->character)
+              if (GET_LEVEL(pt->character) >= LVL_IMPL)
+                send_to_char(pt->character, "APPLY_: %d |  ", obj_proto[a].affected[b].location);
+        }
+
         score += 99999;
         break;
       }
@@ -7865,9 +7889,18 @@ int get_eq_score(obj_rnum a)
 
   /* END misc */
 
+  if (DEBUG_EQ_SCORE)
+  {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        if (GET_LEVEL(pt->character) >= LVL_IMPL)
+          send_to_char(pt->character, "  |\r\n");
+  }
+
   /* DONE! */
   return score;
 }
+#undef DEBUG_EQ_SCORE
 
 /* a command meant to view the top end equipment of the game -zusuk */
 
