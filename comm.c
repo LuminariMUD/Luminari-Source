@@ -1687,8 +1687,9 @@ static char *make_prompt(struct descriptor_data *d)
         len += count;
     }
 
+    /*
     // causing crash, no time to investigate -- gicker apr-05-2021
-    if (FALSE && has_mail(GET_IDNUM(d->character)) && len < sizeof(prompt))
+    if (has_mail(GET_IDNUM(d->character)) && len < sizeof(prompt))
     {
       count = snprintf(prompt + len, sizeof(prompt) - len, "(mail) ");
       if (count >= 0)
@@ -1696,20 +1697,13 @@ static char *make_prompt(struct descriptor_data *d)
     }
 
     // causing crash, no time to investigate -- gicker apr-05-2021
-    if (FALSE && has_mail(GET_IDNUM(d->character)) && len < sizeof(prompt))
-    {
-      count = snprintf(prompt + len, sizeof(prompt) - len, "(postmaster) ");
-      if (count >= 0)
-        len += count;
-    }
-
-    // causing crash, no time to investigate -- gicker apr-05-2021
-    if (FALSE && new_mail_alert(d->character, TRUE) && len < sizeof(prompt))
+    if (new_mail_alert(d->character, TRUE) && len < sizeof(prompt))
     {
       count = snprintf(prompt + len, sizeof(prompt) - len, "(mail) ");
       if (count >= 0)
         len += count;
     }
+    */
 
     /********* Auto Diagnose Code *************/
     struct char_data *char_fighting = NULL;
