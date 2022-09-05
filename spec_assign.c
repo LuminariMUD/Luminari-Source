@@ -712,9 +712,13 @@ void assign_objects(void)
   ASSIGNOBJ(132125, tia_rapier);
   // ASSIGNOBJ(132109, magi_staff);
   ASSIGNOBJ(132104, star_circlet);
-  // ASSIGNOBJ(132101, malevolence);
+  ASSIGNOBJ(132101, malevolence);
+  ASSIGNOBJ(132126, rune_scimitar);
 
-  /******/
+  /* not yet defined? */
+  // ASSIGNOBJ(132115, warbow);
+  // ASSIGNOBJ(133103, mithril_rapier);
+  // ASSIGNOBJ(141800, treantshield);
 
   ASSIGNOBJ(136100, air_sphere); // weapon (lightning)
 
@@ -834,11 +838,6 @@ void assign_objects(void)
   ASSIGNOBJ(128106, ches);
   ASSIGNOBJ(100596, tormblade);
   ASSIGNOBJ(100599, tormblade);
-
-  /* not yet defined? */
-  // ASSIGNOBJ(132115, warbow);
-  // ASSIGNOBJ(133103, mithril_rapier);
-  // ASSIGNOBJ(141800, treantshield);
 
   ASSIGNOBJ(138447, disruption_mace);
   ASSIGNOBJ(138415, haste_bracers);
@@ -1064,7 +1063,7 @@ static const struct spec_func_data spec_func_list[] = {
 
     /* m-o */
     {"Magma", magma, ""},
-    //{"Malevolence", malevolence, ""},
+    {"Malevolence", malevolence, ""},
     {"Mayor", mayor, ""},
     //{"MD Carpet", md_carpet, ""},
     {"Menzo Choker", menzo_chokers, ""},
@@ -1104,6 +1103,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"ShadowDragon", shadowdragon, ""},
     {"Shar Heart", shar_heart, ""},
     {"Shar Statue", shar_statue, ""},
+    {"Runed Scimitar", rune_scimitar, ""},
     {"Shobalar", shobalar, ""},
     {"Shopkeeper", shop_keeper, ""},
     {"Secomber Guard", secomber_guard, ""},

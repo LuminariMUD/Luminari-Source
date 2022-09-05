@@ -7403,9 +7403,9 @@ ACMD(do_oconvert)
   send_to_char(ch, "Total of %d objects converted.\r\n", total);
 }
 
-/* a function to "score" the value of equipment -zusuk */
-
-/* what to take into consideration?
+#define DEBUG_EQ_SCORE TRUE
+/* a function to "score" the value of equipment -zusuk
+   what to take into consideration?
   type [object values]
   weapon spells
   procs [have to be manually determined]
@@ -7415,6 +7415,7 @@ ACMD(do_oconvert)
   size
   wear-slot
   misc
+  --a very much ungoing project that is critical for balance
  */
 int get_eq_score(obj_rnum a)
 {
@@ -7422,6 +7423,7 @@ int get_eq_score(obj_rnum a)
   int score = 0;
   struct obj_data *obj = NULL;
   struct obj_special_ability *specab = NULL;
+  struct descriptor_data *pt = NULL;
 
   /* simplify life, and dummy checks */
   if (a == NOTHING)
@@ -7442,21 +7444,22 @@ int get_eq_score(obj_rnum a)
       switch (i)
       {
       case AFF_AWARE:
-        score += 400;
+        score += 600;
         break;
       case AFF_REGEN:
       case AFF_NOTRACK:
       case AFF_INVISIBLE:
       case AFF_HASTE:
+      case AFF_DISPLACE:
       case AFF_FREE_MOVEMENT:
-      case AFF_BLINKING:
-        score += 350;
+        score += 550;
         break;
       case AFF_VAMPIRIC_TOUCH:
+      case AFF_BLINKING:
       case AFF_SNEAK:
       case AFF_HIDE:
-      case AFF_DISPLACE:
-        score += 300;
+      case AFF_DEATH_WARD:
+        score += 450;
         break;
       case AFF_BLUR:
       case AFF_SPELL_MANTLE:
@@ -7472,7 +7475,7 @@ int get_eq_score(obj_rnum a)
       case AFF_NOTELEPORT:
       case AFF_DARKVISION:
       case AFF_SAFEFALL:
-        score += 250;
+        score += 350;
         break;
       case AFF_SENSE_LIFE:
       case AFF_DETECT_INVIS:
@@ -7488,7 +7491,7 @@ int get_eq_score(obj_rnum a)
       case AFF_DANGERSENSE:
       case AFF_RAPID_SHOT:
       case AFF_FARSEE:
-        score += 200;
+        score += 300;
         break;
       case AFF_TFORM:
       case AFF_GLOBE_OF_INVULN:
@@ -7514,7 +7517,7 @@ int get_eq_score(obj_rnum a)
       case AFF_TOWER_OF_IRON_WILL:
       case AFF_MAX_DAMAGE:
       case AFF_MAGE_FLAME:
-        score += 150;
+        score += 250;
         break;
 
         /* no value */
@@ -7525,7 +7528,6 @@ int get_eq_score(obj_rnum a)
         /* negative affections */
       case AFF_CONFUSED:
       case AFF_FAERIE_FIRE:
-      case AFF_DEATH_WARD:
       case AFF_DIM_LOCK:
       case AFF_BLACKMANTLE:
       case AFF_BLIND:
@@ -7548,12 +7550,19 @@ int get_eq_score(obj_rnum a)
       case AFF_DAZED:
       case AFF_FLAT_FOOTED:
       case AFF_CRIPPLING_CRITICAL:
-        score -= 150;
+        score -= 550;
         break;
 
         /* we are trying to handle every case */
       default:
-        score += 9999;
+        if (DEBUG_EQ_SCORE)
+        {
+          for (pt = descriptor_list; pt; pt = pt->next)
+            if (pt->character)
+              if (GET_LEVEL(pt->character) >= LVL_IMPL)
+                send_to_char(pt->character, "AFF_: %d |  ", i);
+        }
+        score += 99999;
         break;
       }
     }
@@ -7568,12 +7577,12 @@ int get_eq_score(obj_rnum a)
       {
         /* item can't have any real value in this state! */
       case ITEM_MOLD:
-        score -= 9999;
+        score -= 999999;
         break;
 
-        /* autoprocs have to be manually added later based on the item proc */
+        /* autoprocs have to be manually added later based on the item proc, a basic check is below though */
       case ITEM_AUTOPROC:
-        score += 300;
+        /*score += 300;*/
         break;
       case ITEM_KI_FOCUS:
       case ITEM_FLAMING:
@@ -7673,34 +7682,26 @@ int get_eq_score(obj_rnum a)
         break;
       case ITEM_NORENT:
       case ITEM_DECAY:
-        score -= 150;
+        score -= 450;
         break;
 
         /* we are attempting to handle every case */
       default:
-        score += 9999;
+        if (DEBUG_EQ_SCORE)
+        {
+          for (pt = descriptor_list; pt; pt = pt->next)
+            if (pt->character)
+              if (GET_LEVEL(pt->character) >= LVL_IMPL)
+                send_to_char(pt->character, "ITEM_: %d |  ", i);
+        }
+        score += 99999;
         break;
       }
     }
   }
 
-  /* ac-apply value */
-  if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
-    score += GET_OBJ_VAL(obj, 0) * 10;
-
-  /* weapons */
-  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-  {
-    score += (GET_WEAPON_TYPE(obj) != 0 ? 0 : GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2));
-    score += (GET_ENHANCEMENT_BONUS(obj) <= 5 ? GET_ENHANCEMENT_BONUS(obj) * 100 : 9999);
-
-    for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
-    {
-      score += special_ability_info[specab->ability].cost * 100;
-    }
-  }
-
-  /* now add up score for object affects (modifiers) */
+  /* now add up score for object affects (modifiers)
+     added stacking bonus, that's critical!  -zusuk */
   for (b = 0; b < MAX_OBJ_AFFECT; b++)
   {
     if (obj_proto[a].affected[b].modifier)
@@ -7710,43 +7711,85 @@ int get_eq_score(obj_rnum a)
       case APPLY_AGE:
       case APPLY_CHAR_WEIGHT:
       case APPLY_CHAR_HEIGHT:
-      case APPLY_MOVE:
-      case APPLY_PSP:
         /* these are not worth so much*/
         score += obj_proto[a].affected[b].modifier;
         break;
 
+      case APPLY_MOVE:
+        /* these are not worth so much*/
+        score += obj_proto[a].affected[b].modifier / 10;
+        break;
+
+      case APPLY_FEAT:
+        score += 400;
+        break;
+
+      case APPLY_SKILL:
+        score += 300;
+        break;
+
+      case APPLY_PSP:
       case APPLY_HIT:
-        score += obj_proto[a].affected[b].modifier * 8;
-        break;
-      case APPLY_HITROLL:
-        score += obj_proto[a].affected[b].modifier * 50;
-        break;
-      case APPLY_DAMROLL:
-        score += obj_proto[a].affected[b].modifier * 50;
-        break;
-      case APPLY_AC:
-        score += obj_proto[a].affected[b].modifier * 10;
-        break;
-      case APPLY_AC_NEW:
-        score += obj_proto[a].affected[b].modifier * 100;
-        break;
-      case APPLY_STR:
-      case APPLY_DEX:
-      case APPLY_CON:
-        score += obj_proto[a].affected[b].modifier * 150;
-        break;
-      case APPLY_INT:
-      case APPLY_WIS:
-      case APPLY_CHA:
-        score += obj_proto[a].affected[b].modifier * 100;
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 8;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 8;
+          break;
+        }
+
         break;
       case APPLY_SAVING_FORT:
       case APPLY_SAVING_WILL:
       case APPLY_SAVING_REFL:
       case APPLY_SAVING_POISON:
       case APPLY_SAVING_DEATH:
-        score += obj_proto[a].affected[b].modifier * 50;
+      case APPLY_HITROLL:
+      case APPLY_DAMROLL:
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 40;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 40;
+          break;
+        }
+        break;
+      case APPLY_AC:
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 10;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 10;
+          break;
+        }
+        break;
+      case APPLY_INT:
+      case APPLY_WIS:
+      case APPLY_CHA:
+      case APPLY_AC_NEW:
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 80;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 80;
+          break;
+        }
+        break;
+      case APPLY_STR:
+      case APPLY_DEX:
+      case APPLY_CON:
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 90;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 90;
+          break;
+        }
         break;
       case APPLY_SPELL_RES:
       case APPLY_RES_FIRE:
@@ -7768,7 +7811,14 @@ int get_eq_score(obj_rnum a)
       case APPLY_RES_MENTAL:
       case APPLY_RES_LIGHT:
       case APPLY_RES_ENERGY:
-        score += obj_proto[a].affected[b].modifier * 20;
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 20;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 20;
+          break;
+        }
         break;
 
         /* these are not supposed to be used, so add them insane numbers */
@@ -7777,7 +7827,15 @@ int get_eq_score(obj_rnum a)
       case APPLY_GOLD:
       case APPLY_EXP:
       default:
-        score += 9999;
+        if (DEBUG_EQ_SCORE)
+        {
+          for (pt = descriptor_list; pt; pt = pt->next)
+            if (pt->character)
+              if (GET_LEVEL(pt->character) >= LVL_IMPL)
+                send_to_char(pt->character, "APPLY_: %d |  ", obj_proto[a].affected[b].location);
+        }
+
+        score += 99999;
         break;
       }
     }
@@ -7787,6 +7845,42 @@ int get_eq_score(obj_rnum a)
 
   /* misc */
 
+  /* ac-apply value */
+  if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+    score += GET_OBJ_VAL(obj, 0) * 10;
+
+  /* enhancement bonus */
+  score += (GET_ENHANCEMENT_BONUS(obj) <= 10 ? GET_ENHANCEMENT_BONUS(obj) * 75 : 99999);
+
+  /* spec abilities */
+  for (specab = obj->special_abilities; specab != NULL; specab = specab->next)
+  {
+    score += special_ability_info[specab->ability].cost * 100;
+  }
+
+  /* weapons */
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+  {
+    score += (GET_WEAPON_TYPE(obj) != 0 ? 0 : GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2));
+  }
+
+  /* spec procs in our spec_procs/zone_procs.c files */
+  if (obj_index[GET_OBJ_RNUM(obj)].func)
+  {
+    score += 500;
+  }
+
+  if (HAS_SPELLS(obj))
+  {
+    for (i = 0; i < MAX_WEAPON_SPELLS; i++)
+    { /* increment this weapons spells */
+      if (GET_WEAPON_SPELL(obj, i))
+      {
+        score += 250;
+      }
+    }
+  }
+
   /* unimplemented, but maybe shield weight offers bonus to shieldslam? */
   /*
   if (CAN_WEAR(obj, ITEM_WEAR_SHIELD))
@@ -7795,9 +7889,18 @@ int get_eq_score(obj_rnum a)
 
   /* END misc */
 
+  if (DEBUG_EQ_SCORE)
+  {
+    for (pt = descriptor_list; pt; pt = pt->next)
+      if (pt->character)
+        if (GET_LEVEL(pt->character) >= LVL_IMPL)
+          send_to_char(pt->character, "  |\r\n");
+  }
+
   /* DONE! */
   return score;
 }
+#undef DEBUG_EQ_SCORE
 
 /* a command meant to view the top end equipment of the game -zusuk */
 

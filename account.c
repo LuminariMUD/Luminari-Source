@@ -589,7 +589,7 @@ void save_account(struct account_data *account)
 void show_account_menu(struct descriptor_data *d)
 {
   int i = 0;
-  struct char_data *tch = NULL;
+  struct char_data *tch = NULL, *xtch = NULL;
   char buf[MAX_STRING_LENGTH];
   size_t len = 0;
 
@@ -609,8 +609,16 @@ void show_account_menu(struct descriptor_data *d)
   {
     for (i = 0; i < MAX_CHARS_PER_ACCOUNT; i++)
     {
-      if (d->account->character_names[i] != NULL)
+      /* trying: Initialize a place for the player data to temporarially reside. -zusuk */
+      CREATE(xtch, struct char_data, 1);
+      clear_char(xtch);
+      CREATE(xtch->player_specials, struct player_special_data, 1);
+      new_mobile_data(xtch);
+
+      if (d->account->character_names[i] != NULL && load_char(d->account->character_names[i], xtch) > -1)
       {
+        free_char(xtch);
+
         write_to_output(d, " \tW%-3d\tn \tC|\tn \tW%-20s\tn\tC|\tn", i + 1, d->account->character_names[i]);
         snprintf(query, sizeof(query), "SELECT name FROM player_data WHERE lower(name)=lower('%s')", d->account->character_names[i]);
 
