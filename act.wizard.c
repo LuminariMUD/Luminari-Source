@@ -7718,7 +7718,7 @@ int get_eq_score(obj_rnum a)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 8;
-          if (BONUS_TYPE_STACKS(obj_prot[a].affected[b].bonus_type))
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
             score += obj_proto[a].affected[b].modifier * 8;
           break;
         }
@@ -7735,7 +7735,7 @@ int get_eq_score(obj_rnum a)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 40;
-          if (BONUS_TYPE_STACKS(obj_prot[a].affected[b].bonus_type))
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
             score += obj_proto[a].affected[b].modifier * 40;
           break;
         }
@@ -7745,7 +7745,7 @@ int get_eq_score(obj_rnum a)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 10;
-          if (BONUS_TYPE_STACKS(obj_prot[a].affected[b].bonus_type))
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
             score += obj_proto[a].affected[b].modifier * 10;
           break;
         }
@@ -7758,7 +7758,7 @@ int get_eq_score(obj_rnum a)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 80;
-          if (BONUS_TYPE_STACKS(obj_prot[a].affected[b].bonus_type))
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
             score += obj_proto[a].affected[b].modifier * 80;
           break;
         }
@@ -7770,7 +7770,7 @@ int get_eq_score(obj_rnum a)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 90;
-          if (BONUS_TYPE_STACKS(obj_prot[a].affected[b].bonus_type))
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
             score += obj_proto[a].affected[b].modifier * 90;
           break;
         }
@@ -7799,7 +7799,7 @@ int get_eq_score(obj_rnum a)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 20;
-          if (BONUS_TYPE_STACKS(obj_prot[a].affected[b].bonus_type))
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
             score += obj_proto[a].affected[b].modifier * 20;
           break;
         }
