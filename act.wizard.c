@@ -7424,6 +7424,7 @@ int get_eq_score(obj_rnum a)
   struct obj_data *obj = NULL;
   struct obj_special_ability *specab = NULL;
   struct descriptor_data *pt = NULL;
+  bool found = FALSE;
 
   /* simplify life, and dummy checks */
   if (a == NOTHING)
@@ -7560,7 +7561,10 @@ int get_eq_score(obj_rnum a)
           for (pt = descriptor_list; pt; pt = pt->next)
             if (pt->character)
               if (GET_LEVEL(pt->character) >= LVL_IMPL)
+              {
                 send_to_char(pt->character, "AFF_: %d |  ", i);
+                found = TRUE;
+              }
         }
         score += 99999;
         break;
@@ -7692,7 +7696,10 @@ int get_eq_score(obj_rnum a)
           for (pt = descriptor_list; pt; pt = pt->next)
             if (pt->character)
               if (GET_LEVEL(pt->character) >= LVL_IMPL)
+              {
                 send_to_char(pt->character, "ITEM_: %d |  ", i);
+                found = TRUE;
+              }
         }
         score += 99999;
         break;
@@ -7832,7 +7839,10 @@ int get_eq_score(obj_rnum a)
           for (pt = descriptor_list; pt; pt = pt->next)
             if (pt->character)
               if (GET_LEVEL(pt->character) >= LVL_IMPL)
+              {
                 send_to_char(pt->character, "APPLY_: %d |  ", obj_proto[a].affected[b].location);
+                found = TRUE;
+              }
         }
 
         score += 99999;
@@ -7889,7 +7899,7 @@ int get_eq_score(obj_rnum a)
 
   /* END misc */
 
-  if (DEBUG_EQ_SCORE)
+  if (DEBUG_EQ_SCORE && found)
   {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
