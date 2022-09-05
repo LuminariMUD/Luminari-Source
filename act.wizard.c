@@ -7714,7 +7714,7 @@ int get_eq_score(obj_rnum a)
 
       case APPLY_PSP:
       case APPLY_HIT:
-        switch (obj_prot[a].affected[b].bonus_type)
+        switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 8;
@@ -7731,7 +7731,7 @@ int get_eq_score(obj_rnum a)
       case APPLY_SAVING_DEATH:
       case APPLY_HITROLL:
       case APPLY_DAMROLL:
-        switch (obj_prot[a].affected[b].bonus_type)
+        switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 40;
@@ -7741,7 +7741,7 @@ int get_eq_score(obj_rnum a)
         }
         break;
       case APPLY_AC:
-        switch (obj_prot[a].affected[b].bonus_type)
+        switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 10;
@@ -7754,7 +7754,7 @@ int get_eq_score(obj_rnum a)
       case APPLY_WIS:
       case APPLY_CHA:
       case APPLY_AC_NEW:
-        switch (obj_prot[a].affected[b].bonus_type)
+        switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 80;
@@ -7766,7 +7766,7 @@ int get_eq_score(obj_rnum a)
       case APPLY_STR:
       case APPLY_DEX:
       case APPLY_CON:
-        switch (obj_prot[a].affected[b].bonus_type)
+        switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 90;
@@ -7795,7 +7795,7 @@ int get_eq_score(obj_rnum a)
       case APPLY_RES_MENTAL:
       case APPLY_RES_LIGHT:
       case APPLY_RES_ENERGY:
-        switch (obj_prot[a].affected[b].bonus_type)
+        switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
           score += obj_proto[a].affected[b].modifier * 20;
@@ -7850,7 +7850,7 @@ int get_eq_score(obj_rnum a)
   {
     for (i = 0; i < MAX_WEAPON_SPELLS; i++)
     { /* increment this weapons spells */
-      if (GET_WEAPON_SPELL(wpn, i))
+      if (GET_WEAPON_SPELL(obj, i))
       {
         score += 250;
       }
