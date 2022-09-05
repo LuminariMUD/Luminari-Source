@@ -1546,9 +1546,14 @@ void death_message(struct char_data *ch)
   send_to_char(ch, "\tD ||    ||  ||        .''''|.     ||     ||    ||  \tn\r\n");
   send_to_char(ch, "\tD.||...|'  .||.....| .|.  .||.   .||.   .||.  .||. \tn\r\n");
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "\tYTIPS - \tRbe creative and tenacious!\tn\r\n");
+  send_to_char(ch, "1) Try stocking up on disposables such as scrolls, potions and wands\r\n");
+  send_to_char(ch, "2) Try bringing some friends with you, if you can't find someone on chat - check our discord\r\n");
+  send_to_char(ch, "3) Try a 'respec' and selecting different feats\r\n");
+  send_to_char(ch, "4) Upgrade your gear, check out the bazaar, player shops and quest shop in sanctus for some nice upgrades\r\n");
+  send_to_char(ch, "5) Try gaining some levels\r\n");
+  send_to_char(ch, "6) Try hiring a mercenary\r\n");
+  send_to_char(ch, "7) Try different tactics for the battle, such as hit-and-run\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "\r\n");
   send_to_char(ch, "You awaken... you realize someone has resurrected you...\r\n");
