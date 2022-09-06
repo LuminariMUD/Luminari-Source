@@ -7443,7 +7443,6 @@ int get_eq_score(obj_rnum a)
 
       case AFF_REGEN:
       case AFF_NOTRACK:
-      case AFF_INVISIBLE:
       case AFF_HASTE:
       case AFF_DISPLACE:
       case AFF_FREE_MOVEMENT:
@@ -7452,6 +7451,7 @@ int get_eq_score(obj_rnum a)
 
       case AFF_VAMPIRIC_TOUCH:
       case AFF_BLINKING:
+      case AFF_TRUE_SIGHT:
       case AFF_SNEAK:
       case AFF_HIDE:
       case AFF_DEATH_WARD:
@@ -7460,50 +7460,46 @@ int get_eq_score(obj_rnum a)
 
       case AFF_BLUR:
       case AFF_SPELL_MANTLE:
-      case AFF_TRUE_SIGHT:
-      case AFF_FLYING:
-      case AFF_POWER_ATTACK:
+      case AFF_INVISIBLE:
       case AFF_FLURRY_OF_BLOWS:
+      case AFF_GLOBE_OF_INVULN:
       case AFF_EXPERTISE:
-      case AFF_TOTAL_DEFENSE:
-      case AFF_CHARGING:
-      case AFF_ELEMENT_PROT:
       case AFF_INERTIAL_BARRIER:
+      case AFF_ULTRAVISION:
       case AFF_NOTELEPORT:
-      case AFF_DARKVISION:
-      case AFF_SAFEFALL:
+      case AFF_BODYWEAPONRY:
+      case AFF_SPELL_TURNING:
+      case AFF_MIND_BLANK:
+      case AFF_SHADOW_SHIELD:
+      case AFF_TIME_STOPPED:
+      case AFF_ASHIELD:
         score += 350;
         break;
 
       case AFF_SENSE_LIFE:
       case AFF_DETECT_INVIS:
-      case AFF_ULTRAVISION:
       case AFF_CLIMB:
+      case AFF_FLYING:
       case AFF_NON_DETECTION:
       case AFF_FSHIELD:
       case AFF_CSHIELD:
       case AFF_MINOR_GLOBE:
-      case AFF_ASHIELD:
+      case AFF_DARKVISION:
       case AFF_SIZECHANGED:
+      case AFF_SPELL_RESISTANT:
       case AFF_SPOT:
       case AFF_DANGERSENSE:
       case AFF_RAPID_SHOT:
-      case AFF_FARSEE:
       case AFF_BODYWEAPONRY:
         score += 300;
         break;
 
       case AFF_TFORM:
-      case AFF_GLOBE_OF_INVULN:
       case AFF_LISTEN:
+      case AFF_SAFEFALL:
       case AFF_REFUGE:
-      case AFF_SPELL_TURNING:
-      case AFF_MIND_BLANK:
-      case AFF_SHADOW_SHIELD:
-      case AFF_TIME_STOPPED:
       case AFF_BRAVERY:
       case AFF_BATTLETIDE:
-      case AFF_SPELL_RESISTANT:
       case AFF_DETECT_ALIGN:
       case AFF_DETECT_MAGIC:
       case AFF_WATERWALK:
@@ -7516,6 +7512,10 @@ int get_eq_score(obj_rnum a)
       case AFF_SPELLBATTLE:
       case AFF_TOWER_OF_IRON_WILL:
       case AFF_MAX_DAMAGE:
+      case AFF_TOTAL_DEFENSE:
+      case AFF_POWER_ATTACK:
+      case AFF_CHARGING:
+      case AFF_ELEMENT_PROT:
       case AFF_MAGE_FLAME:
       case AFF_ACROBATIC:
         score += 250;
