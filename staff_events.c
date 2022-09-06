@@ -520,6 +520,7 @@ void start_staff_event(int event_num)
 void end_staff_event(int event_num)
 {
   struct descriptor_data *pt = NULL;
+  struct obj_data *obj = NULL;
 
   /* dummy checks */
   if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
@@ -558,7 +559,6 @@ void end_staff_event(int event_num)
 
   case THE_PRISONER_EVENT:
     /* check to make sure the portal is gone */
-    struct obj_data *obj = NULL;
 
     for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj->next_content)
     {
