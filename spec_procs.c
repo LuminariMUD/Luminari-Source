@@ -8273,13 +8273,11 @@ SPECIAL(stability_boots)
         "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
         "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
         "\twbefore the eddies are drawn inward around your body.\tn\r\n",
-        "\tLThe flames rise and protects YOU!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
     act("\tw$n utters a word towards $p...   Small eddies of wind begin to form around the edges of the area, \tn\r\n"
         "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
         "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
         "\twbefore the eddies are drawn inward around your body.\tn\r\n",
-        "\tLThe flames rise and protects YOU!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
     call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 30, CAST_POTION);
