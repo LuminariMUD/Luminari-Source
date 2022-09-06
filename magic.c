@@ -1750,7 +1750,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_FIRE;
     num_dice = GET_LEVEL(ch);
-    size_dice = 12;
+    size_dice = 16;
     break;
 
   case SPELL_GAS_BREATHE:
@@ -1759,7 +1759,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_POISON;
     num_dice = GET_LEVEL(ch);
-    size_dice = 12;
+    size_dice = 16;
     break;
 
   case SPELL_FROST_BREATHE:
@@ -1768,7 +1768,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_COLD;
     num_dice = GET_LEVEL(ch);
-    size_dice = 12;
+    size_dice = 16;
     break;
 
   case SPELL_LIGHTNING_BREATHE:
@@ -1777,7 +1777,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_ELECTRIC;
     num_dice = GET_LEVEL(ch);
-    size_dice = 12;
+    size_dice = 16;
     break;
   case SPELL_ACID_BREATHE:
     // AoE
@@ -1785,7 +1785,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_ACID;
     num_dice = GET_LEVEL(ch);
-    size_dice = 12;
+    size_dice = 16;
     break;
   case SPELL_POISON_BREATHE:
     // AoE
@@ -1799,7 +1799,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     mag_resist = FALSE;
     element = DAM_POISON;
     num_dice = GET_LEVEL(ch);
-    size_dice = 12;
+    size_dice = 16;
     break;
 
     /****************************************\

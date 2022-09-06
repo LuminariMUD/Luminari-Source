@@ -875,7 +875,7 @@
 #define MOB_GHOUL 35          // " " level 11+
 #define MOB_GIANT_SKELETON 36 // " " level 21+
 #define MOB_MUMMY 37          // " " level 30
-#define BARD_AFFECTS 7
+#define BARD_AFFECTS 8
 #define MOB_PALADIN_MOUNT 70
 #define MOB_PALADIN_MOUNT_SMALL 91
 #define MOB_EPIC_PALADIN_MOUNT 79

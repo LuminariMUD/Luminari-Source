@@ -263,7 +263,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
     af[i].spell = spellnum;
     af[i].duration = 2;
-    af[i].bonus_type = BONUS_TYPE_MORALE;
+    af[i].bonus_type = BONUS_TYPE_INHERENT;
     af[i].modifier = 1;
     af[i].location = APPLY_NONE;
   }
