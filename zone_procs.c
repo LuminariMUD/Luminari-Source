@@ -1442,7 +1442,7 @@ int prisoner_attacks(struct char_data *ch)
     /* looks like we did the dragonbite to at least one victim */
     return 1;
   }
-  else if (!rand_number(0, 2)
+  else if (!rand_number(0, 2))
   {
     int i = 0;
 
@@ -1617,7 +1617,7 @@ void prisoner_gear_loading(struct char_data *ch)
 
   /* create oil */
   struct obj_data *oil = read_object(WEAPON_OIL, VIRTUAL);
-  if (obj)
+  if (oil)
   {
     GET_OBJ_VAL(oil, 0) = wpnOils[rand_number(0, TOP_UNIQUES_OIL)];
     obj_to_room(oil, real_room(PRISONER_VAULT));
