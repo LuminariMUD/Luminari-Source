@@ -309,6 +309,12 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord)
 /* used to check/run things frequenly related to the event; called by limits.c point_update() */
 void staff_event_tick()
 {
+  int x_coord = 0;
+  int y_coord = 0;
+  int mob_count = 0;
+  struct char_data *victim = NULL;
+  struct descriptor_data *pt = NULL;
+
   /*********/
   /* staff event related updates */
 
@@ -359,6 +365,7 @@ void staff_event_tick()
       break;
 
     case THE_PRISONER_EVENT:
+
       /* check to make sure the portal is up */
       struct obj_data *obj = NULL;
 
@@ -380,6 +387,7 @@ void staff_event_tick()
       }
       /* end portal check */
 
+      /* exit now? */
       if (rand_number(0, 15))
         break;
 
@@ -387,25 +395,39 @@ void staff_event_tick()
       switch (rand_number(0, 6))
       {
       case 0:
-        send_to_mud(NULL, "A perpetual haze of green looms on the horizon as The Prisoner's power flares throughout the realms!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "A perpetual haze of green looms on the horizon as \tY\t=The Prisoner's power\tn flares throughout the realms!\r\n");
         break;
       case 1:
-        send_to_mud(NULL, "Booms and echoes of The Prisoner's power resound throughout the realms!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "Booms and echoes of \tY\t=The Prisoner's power\tn resound throughout the realms!\r\n");
         break;
       case 2:
-        send_to_mud(NULL, "Emanations from the outter planes pulsate through the realms!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "Emanations from the outter planes, via \tY\t=The Prisoner's power\tn, pulsate through the realms!\r\n");
         break;
       case 3:
-        send_to_mud(NULL, "The power of The Prisoner is causing the very ground to shake!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "The \tY\t=power of The Prisoner\tn is causing the very ground to shake!\r\n");
         break;
       case 4:
-        send_to_mud(NULL, "Vicoius blasts of mental energy from The Prisoner penetrate your psyche!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "Vicious blasts of mental energy from \tY\t=The Prisoner\tn penetrate your psyche!\r\n");
         break;
       case 5:
-        send_to_mud(NULL, "Random ebbs and flows of chaotic magic from The Prisoner manifest nearby!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "Random ebbs and flows of chaotic magic from \tY\t=The Prisoner\tn manifest nearby!\r\n");
         break;
       case 6:
-        send_to_mud(NULL, "The very gravity of the realms seem to shift as The Prisoner's power grows!\r\n");
+        for (pt = descriptor_list; pt; pt = pt->next)
+          if (IS_PLAYING(pt) && pt->character)
+            send_to_char(pt->character, "The very gravity of the realms seem to shift as \tY\t=The Prisoner's power\tn grows!\r\n");
         break;
       default:
         break;
