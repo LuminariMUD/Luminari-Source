@@ -77,6 +77,7 @@ void wild_mobile_loader(int mobile_vnum, int x_coord, int y_coord);
 int mob_ingame_count(int mobile_vnum);
 void mob_ingame_purge(int mobile_vnum);
 void check_event_drops(struct char_data *killer, struct char_data *victim);
+void staff_event_tick();
 
 ACMD_DECL(do_staffevents);
 
