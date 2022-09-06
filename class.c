@@ -3048,6 +3048,14 @@ void advance_level(struct char_data *ch, int class)
     // epic_class_feats++;
   }
 
+  if (class == CLASS_BARD)
+  {
+    if (CLASS_LEVEL(ch, CLASS_BARD) <= 20 && !(CLASS_LEVEL(ch, CLASS_BARD) % 3))
+      feats++; // bards get a bonus feat every 3 levels
+    else if (IS_EPIC(ch))
+      epic_feats++;
+  }
+
   if (class == CLASS_ELDRITCH_KNIGHT && (CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 1 ||
                                          CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 5 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) == 9))
   {
@@ -3074,11 +3082,11 @@ void advance_level(struct char_data *ch, int class)
   /* further movement modifications */
   if (HAS_FEAT(ch, FEAT_ENDURANCE))
   {
-    add_move += rand_number(1, 2);
+    add_move += rand_number(10, 20);
   }
   if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
   {
-    add_move += rand_number(1, 2);
+    add_move += rand_number(10, 20);
   }
 
   /* 'free' race feats gained (old system) */
@@ -5389,7 +5397,8 @@ void load_class_list(void)
                      "paths, be they gamblers or jacks-of-all-trades, scholars or performers, leaders "
                      "or scoundrels, or even all of the above. For bards, every day brings its own "
                      "opportunities, adventures, and challenges, and only by bucking the odds, knowing "
-                     "the most, and being the best might they claim the treasures of each.");
+                     "the most, and being the best might they claim the treasures of each.  "
+                     "Bards get a bonus feat every 3 levels.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_BARD, B, G, G, B, B);
   assign_class_abils(CLASS_BARD, /* class number */
