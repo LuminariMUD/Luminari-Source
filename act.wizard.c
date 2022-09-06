@@ -7440,6 +7440,7 @@ int get_eq_score(obj_rnum a)
       case AFF_AWARE:
         score += 600;
         break;
+
       case AFF_REGEN:
       case AFF_NOTRACK:
       case AFF_INVISIBLE:
@@ -7448,6 +7449,7 @@ int get_eq_score(obj_rnum a)
       case AFF_FREE_MOVEMENT:
         score += 550;
         break;
+
       case AFF_VAMPIRIC_TOUCH:
       case AFF_BLINKING:
       case AFF_SNEAK:
@@ -7455,6 +7457,7 @@ int get_eq_score(obj_rnum a)
       case AFF_DEATH_WARD:
         score += 450;
         break;
+
       case AFF_BLUR:
       case AFF_SPELL_MANTLE:
       case AFF_TRUE_SIGHT:
@@ -7471,6 +7474,7 @@ int get_eq_score(obj_rnum a)
       case AFF_SAFEFALL:
         score += 350;
         break;
+
       case AFF_SENSE_LIFE:
       case AFF_DETECT_INVIS:
       case AFF_ULTRAVISION:
@@ -7488,6 +7492,7 @@ int get_eq_score(obj_rnum a)
       case AFF_BODYWEAPONRY:
         score += 300;
         break;
+
       case AFF_TFORM:
       case AFF_GLOBE_OF_INVULN:
       case AFF_LISTEN:
@@ -7512,6 +7517,7 @@ int get_eq_score(obj_rnum a)
       case AFF_TOWER_OF_IRON_WILL:
       case AFF_MAX_DAMAGE:
       case AFF_MAGE_FLAME:
+      case AFF_ACROBATIC:
         score += 250;
         break;
 
