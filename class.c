@@ -5377,7 +5377,7 @@ void load_class_list(void)
   /*     class-number  name   abrv   clr-abrv     menu-name*/
   classo(CLASS_BARD, "bard", "Bar", "\tCBar\tn", "a) \tCBard\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
-         -1, N, N, M, 6, 0, 2, 6, Y, 0, 0,
+         -1, N, N, M, 8, 0, 2, 6, Y, 0, 0,
          /*prestige spell progression*/ "none",
          /*descrip*/ "Untold wonders and secrets exist for those skillful enough to "
                      "discover them. Through cleverness, talent, and magic, these cunning few unravel "
