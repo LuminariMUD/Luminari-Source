@@ -81,12 +81,12 @@ const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS] = {
      "\tGthat the Luminari imprisoned in Avernus is the entity that is creating the damage to The Prisoner's cell.\tn\r\n  "
      "\tGGet to the Mosswood Elder adventurer and step through the portal, we MUST mount an offensive or all is lost!\tn\r\n "
      "\tWOOC: While this event is running, the treasure drop is maximized for The Prisoner, there is no XP loss for death and there is a \tn"
-     "\tWdirect portal to the Garden of Avernus at the Mosswood Elder.\tn\r\n"
+     "\tWdirect portal to the Garden of Avernus at the Mosswood Elder.\tn\r\n",
 
      /* event summary/conclusion - EVENT_SUMMARY */
      "\tGThank you adventuer, I.... nay the entire existence owes you a debt of gratitude. I hope we have "
      "quelled this menace for good. However, keep your blades sharp, and your bowstrings tight, "
-     "in case they are needed again.\tn\r\n \tW- Alerion -\tn\r\n"
+     "in case they are needed again.\tn\r\n \tW- Alerion -\tn\r\n",
 
      /*end the prisoner */},
 };
@@ -312,8 +312,9 @@ void staff_event_tick()
   int x_coord = 0;
   int y_coord = 0;
   int mob_count = 0;
-  struct char_data *victim = NULL;
   struct descriptor_data *pt = NULL;
+  struct obj_data *obj = NULL;
+  bool found = FALSE;
 
   /*********/
   /* staff event related updates */
@@ -367,8 +368,6 @@ void staff_event_tick()
     case THE_PRISONER_EVENT:
 
       /* check to make sure the portal is up */
-      struct obj_data *obj = NULL;
-
       for (obj = world[real_room(TP_PORTAL_L_ROOM)].contents; obj; obj = obj->next_content)
       {
         if (GET_OBJ_VNUM(obj) == THE_PRISONER_PORTAL)
