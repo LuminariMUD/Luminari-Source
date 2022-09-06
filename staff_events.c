@@ -391,7 +391,7 @@ void staff_event_tick()
         break;
 
       /* we are doing some fun broadcasts for environment */
-      switch (rand_number(0, 6))
+      switch (rand_number(0, 3))
       {
       case 0:
         for (pt = descriptor_list; pt; pt = pt->next)
