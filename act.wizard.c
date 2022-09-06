@@ -7485,7 +7485,6 @@ int get_eq_score(obj_rnum a)
       case AFF_DANGERSENSE:
       case AFF_RAPID_SHOT:
       case AFF_FARSEE:
-      case AFF_COUNTERSPELL:
       case AFF_BODYWEAPONRY:
         score += 300;
         break;
