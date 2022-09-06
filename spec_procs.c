@@ -8236,7 +8236,63 @@ SPECIAL(clanportal)
   return TRUE;
 }
 
-/* from homeland */
+/* re-written...  will now give fireshield/haste -zusuk */
+SPECIAL(stability_boots)
+{
+  int timer = 0;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Flurry of buffs by saying 'whirlwind'.\r\n");
+    return TRUE;
+  }
+
+  if (!cmd)
+    return FALSE;
+  if (!argument)
+    return FALSE;
+
+  skip_spaces(&argument);
+
+  if (!is_wearing(ch, 132133))
+    return FALSE;
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "whirlwind"))
+  {
+    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
+    if (timer > 0)
+    {
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
+      return TRUE;
+    }
+
+    act("\twSmall eddies of wind begin to form around the edges of the area, \tn\r\n"
+        "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
+        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
+        "\twbefore the eddies are drawn inward around your body.\tn\r\n",
+        "\tLThe flames rise and protects YOU!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    act("\tw$n utters a word towards $p...   Small eddies of wind begin to form around the edges of the area, \tn\r\n"
+        "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
+        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
+        "\twbefore the eddies are drawn inward around your body.\tn\r\n",
+        "\tLThe flames rise and protects YOU!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_SHADOW_SHIELD, 0, 30, CAST_POTION);
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/* re-written...  will now give fireshield/haste -zusuk */
 SPECIAL(hellfire)
 {
   int timer = 0;

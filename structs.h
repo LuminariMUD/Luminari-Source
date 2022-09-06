@@ -842,7 +842,7 @@
 #define MOB_BLOCK_LEVEL 57
 #define MOB_BLOCK_ALIGN 58
 #define MOB_BLOCK_ETHOS 59
-#define MOB_UNUSED_23 60
+#define MOB_INFO_KILL_PLR 60 /* player, when killed by mob, sends a message in game to everyone */
 #define MOB_UNUSED_24 61
 #define MOB_NOCONFUSE 62
 #define MOB_HUNTS_TARGET 63
@@ -867,7 +867,6 @@
 #define MOB_ABIL_FROST_BREATH 82
 #define MOB_ABIL_MAGIC_IMMUNITY 83
 #define MOB_ABIL_INVISIBILITY 84
-
 /**********************/
 #define NUM_MOB_FLAGS 85
 
@@ -3025,6 +3024,7 @@
 #define COMBAT_MANEUVER_TYPE_REVERSAL 5 /* try to reverse grapple */
 #define COMBAT_MANEUVER_TYPE_INIT_GRAPPLE 6
 #define COMBAT_MANEUVER_TYPE_PIN 7
+#define COMBAT_MANEUVER_TYPE_BITE 8
 
 /* Critical hit types */
 #define CRIT_X2 0

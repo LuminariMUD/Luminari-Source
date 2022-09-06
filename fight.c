@@ -43,6 +43,7 @@
 #include "missions.h"
 #include "hunts.h"
 #include "domains_schools.h"
+#include "staff_events.h" /* for staff events!  prisoner no xp penalty! */
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -1801,6 +1802,10 @@ void die(struct char_data *ch, struct char_data *killer)
   {
     // no xp loss for newbs - Bakarus
   }
+  else if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
+  {
+    /* no exp loss during the prisoner event */
+  }
   else
   {
     // if not a newbie then bang that xp! - Bakarus
@@ -1842,6 +1847,36 @@ void die(struct char_data *ch, struct char_data *killer)
     if (GUARDING(temp) == ch)
     {
       GUARDING(temp) = NULL;
+    }
+  }
+
+  /* Info-Kill mobs against player, print info about the death of this player by the mob to the world
+   * TODO: add info channel for these guys */
+  if (IS_NPC(killer) && MOB_FLAGGED(killer, MOB_INFO_KILL_PLR))
+  {
+    for (pt = descriptor_list; pt; pt = pt->next)
+    {
+      if (IS_PLAYING(pt) && pt->character)
+      {
+        if (GROUP(ch) && GROUP(ch)->members->iSize)
+        {
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s of %s's group has been defeated by %s!\r\n",
+                       MOB_FLAGGED(killer, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
+                       GET_NAME(ch), GET_NAME(ch->group->leader), GET_NAME(killer));
+        }
+        else if (IS_NPC(ch) && ch->master)
+        {
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s's follower has been defeated by %s!\r\n",
+                       MOB_FLAGGED(killer, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
+                       GET_NAME(ch->master), GET_NAME(killer));
+        }
+        else
+        {
+          send_to_char(pt->character, "\tR[\tW%s\tR]\tn %s has been defeated by %s!\r\n",
+                       MOB_FLAGGED(killer, MOB_HUNTS_TARGET) ? "Hunt" : "Info",
+                       GET_NAME(ch), GET_NAME(killer));
+        }
+      }
     }
   }
 

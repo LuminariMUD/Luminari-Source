@@ -31,8 +31,9 @@
 #define STAFF_EVENT_FIELDS 5
 
 /* event index */
-#define UNDEFINED_EVENT -1 /* just a marker */
-#define JACKALOPE_HUNT 0   /* event id (event_num) */
+#define UNDEFINED_EVENT -1   /* just a marker */
+#define JACKALOPE_HUNT 0     /* event id (event_num) for the jackalope hunt! */
+#define THE_PRISONER_EVENT 1 /* kill the prisoner!! */
 
 /* defines for each individual event */
 
@@ -57,6 +58,11 @@
 #define GREAT_HUNT_RIBBON 11369    /* prize awarded to all participants */
                                    /* end jackalope hunt defines */
 
+/* the prisoner event */
+
+#define THE_PRISONER_PORTAL 132399
+#define TP_PORTAL_L_ROOM 145202
+
 /******* end defines */
 /***/
 
@@ -76,7 +82,7 @@ ACMD_DECL(do_staffevents);
 
 /****** notes *******/
 //#define STAFFRAN_PVAR(ch, variable)
-//CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
+// CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.staff_ran_events[variable]))
 /**** end notes *****/
 
 /* EOF */

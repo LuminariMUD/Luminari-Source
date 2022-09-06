@@ -3186,6 +3186,32 @@ size_t send_to_char(struct char_data *ch, const char *messg, ...)
   return 0;
 }
 
+/* given broadcaster, send a message to every player that can see the broadcaster */
+void send_to_mud(struct char_data *broadcaster, char *message)
+{
+  if (!message)
+    return;
+
+  struct descriptor_data *i;
+
+  for (i = descriptor_list; i; i = i->next)
+  {
+    if (!i)
+      continue;
+
+    if (!i->character)
+      continue;
+
+    if (STATE(i) != CON_PLAYING)
+      continue;
+
+    if (broadcaster && !CAN_SEE(i->character, broadcaster))
+      continue;
+
+    send_to_char(i->character, message);
+  }
+}
+
 void send_to_all(const char *messg, ...)
 {
   struct descriptor_data *i;
