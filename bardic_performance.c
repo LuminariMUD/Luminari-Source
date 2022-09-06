@@ -39,7 +39,7 @@ Sing (ballad, chant, melody)
    2 - level
    3 - breakability   ***/
 
-/* order of current song difficulty (level) 
+/* order of current song difficulty (level)
 song of healing          1
 song of protection       2
 song of focused mind     3
@@ -363,17 +363,45 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   case SKILL_SONG_OF_DRAGONS:
     if (!IS_NPC(tch))
     {
+
       if (GET_HIT(tch) < GET_MAX_HIT(tch))
       {
         send_to_char(tch, "You are soothed by the power of music!\r\n");
-        alter_hit(tch, -rand_number(effectiveness / 4, effectiveness / 2), FALSE);
+        alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
       }
       af[0].location = APPLY_AC_NEW;
-      af[0].modifier = MAX(1, (effectiveness + 2) / 19);
+      af[0].modifier = MAX(1, (effectiveness + 2) / 9);
+      af[0].bonus_type = BONUS_TYPE_INHERENT;
 
       af[1].location = APPLY_SAVING_REFL;
       af[1].modifier = effectiveness / 5;
+      af[1].bonus_type = BONUS_TYPE_INHERENT;
+
+      af[2].location = APPLY_SAVING_DEATH;
+      af[2].modifier = effectiveness / 5;
+      af[2].bonus_type = BONUS_TYPE_INHERENT;
+
+      af[3].location = APPLY_SAVING_FORT;
+      af[3].modifier = effectiveness / 5;
+      af[3].bonus_type = BONUS_TYPE_INHERENT;
+
+      af[4].location = APPLY_SAVING_POISON;
+      af[4].modifier = effectiveness / 5;
+      af[4].bonus_type = BONUS_TYPE_INHERENT;
+
+      af[5].location = APPLY_SAVING_WILL;
+      af[5].modifier = effectiveness / 5;
+      af[5].bonus_type = BONUS_TYPE_INHERENT;
+
+      af[6].location = APPLY_CON;
+      af[6].modifier = 2 + effectiveness / 3;
+      af[6].bonus_type = BONUS_TYPE_INHERENT;
+
+      af[7].location = APPLY_HIT;
+      af[7].modifier = 40 + effectiveness * 4;
+      af[7].bonus_type = BONUS_TYPE_INHERENT;
     }
+
     break;
 
   case SKILL_ACT_OF_FORGETFULNESS:
@@ -469,6 +497,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   {
     /* lingering song bonus */
     if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
+      af[i].duration += 2;
+    if (spellnum == SKILL_SONG_OF_DRAGONS)
       af[i].duration += 2;
     affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
     if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
@@ -690,13 +720,13 @@ EVENTFUNC(event_bardic_performance)
                  performance_info[performance_num][PERFORMANCE_DIFF]);
     return 0;
   }
-    if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) && 
-      (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD || 
-      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY || 
-      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION || 
-      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING || 
-      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND || 
-      performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
+  if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
+      (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
   {
     send_to_char(ch, "The silence effectively stops your performance.\r\n");
     return 0;
@@ -738,7 +768,7 @@ EVENTFUNC(event_bardic_performance)
     instrument = NULL; /* nope, nothing! */
   /* END find an instrument */
 
-  /* Any instrument is better than nothing, if its the designated instrument, 
+  /* Any instrument is better than nothing, if its the designated instrument,
    * and good at it, then even better.. */
   if (!instrument)
   {
