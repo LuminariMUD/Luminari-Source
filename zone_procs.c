@@ -1442,7 +1442,7 @@ int prisoner_attacks(struct char_data *ch)
     /* looks like we did the dragonbite to at least one victim */
     return 1;
   }
-  else
+  else if (!rand_number(0, 2)
   {
     int i = 0;
 
@@ -1481,7 +1481,8 @@ int prisoner_attacks(struct char_data *ch)
 #define MITH_ARROW 132127       /* 16 */
 #define ARM_VALOR 132103        /* 17 */
 #define BLACK_FIGURINE 132114   /* 18 */
-#define TOP_UNIQUES 18
+#define STABILITY_BOOTS 132133  /* 19 */
+#define TOP_UNIQUES 19
 /* base items */
 #define WEAPON_OIL 132131
 #define WEAPON_POISON 132132
@@ -1530,6 +1531,7 @@ void prisoner_gear_loading(struct char_data *ch)
       MITH_ARROW,       /* arrows */
       ARM_VALOR,        /* armplates of valor */
       BLACK_FIGURINE,   /* summons gargoyle */
+      STABILITY_BOOTS,  /* stability boots! */
   };
 
   int wpnOils[TOP_UNIQUES_OIL + 1] = {
@@ -1615,8 +1617,11 @@ void prisoner_gear_loading(struct char_data *ch)
 
   /* create oil */
   struct obj_data *oil = read_object(WEAPON_OIL, VIRTUAL);
-  GET_OBJ_VAL(oil, 0) = wpnOils[rand_number(0, TOP_UNIQUES_OIL)];
-  obj_to_room(oil, real_room(PRISONER_VAULT));
+  if (obj)
+  {
+    GET_OBJ_VAL(oil, 0) = wpnOils[rand_number(0, TOP_UNIQUES_OIL)];
+    obj_to_room(oil, real_room(PRISONER_VAULT));
+  }
 
   /* potion */
   obj_to_room(read_object(LAVANDER_VIA, VIRTUAL), real_room(PRISONER_VAULT));
@@ -1725,50 +1730,57 @@ SPECIAL(dracolich)
   if (cmd)
     return 0;
 
-  if (rand_number(0, 10))
-    return 0;
-
-  /* find random target, and num targets */
-  if (!(vict = npc_find_target(ch, &use_aoe)))
-    return 0;
-
-  act("\tLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
-      "\tLShe sets her gaze upon you with the most wicked grin you have ever known.",
-      FALSE, ch, 0, vict, TO_VICT);
-  act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
-      "\tWAs you fall, you see a stream of your own life force flowing away from you..",
-      FALSE, ch, 0, vict, TO_VICT);
-  act("\tLAs the life fades from your body, before collapsing you see is the Prisoner's wicked grin staring into your soul..\tn",
-      FALSE, ch, 0, vict, TO_VICT);
-  act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
-      "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
-      TRUE, ch, 0, vict, TO_NOTVICT);
-  act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
-      "$n\tL literally sucks the life force from $N,\tn\r\n"
-      "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
-      TRUE, ch, 0, vict, TO_NOTVICT);
-  act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
-      TO_CHAR);
-
-  /* added a way to reduce the effectiveness of this attack -zusuk */
-  if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
+  if (!rand_number(0, 6))
   {
-    hitpoints = damage(ch, vict, rand_number(120, 650), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+
+    /* find random target, and num targets */
+    if (!(vict = npc_find_target(ch, &use_aoe)))
+      return 0;
+
+    act("\tLThe Prisoner cackles with glee at the fray, enjoying every second of the battle\r\n"
+        "\tLShe sets her gaze upon you with the most wicked grin you have ever known.",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
+        "\tWAs you fall, you see a stream of your own life force flowing away from you..",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("\tLAs the life fades from your body, before collapsing you see is the Prisoner's wicked grin staring into your soul..\tn",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
+        "$n \tLreaches out with a skeletal hand and touches \tn$N\tL!\tn",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+        "$n\tL literally sucks the life force from $N,\tn\r\n"
+        "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+    act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
+        TO_CHAR);
+
+    /* added a way to reduce the effectiveness of this attack -zusuk */
+    if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
+    {
+      hitpoints = damage(ch, vict, rand_number(120, 650), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+    }
+    else
+    {
+      hitpoints = GET_HIT(vict);
+
+      GET_HIT(vict) = 0;
+    }
+
+    if (hitpoints < 120)
+      hitpoints = 120;
+
+    if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
+      GET_HIT(ch) += hitpoints;
+
+    return 1;
   }
-  else
+  else if (!rand_number(0, 2))
   {
-    hitpoints = GET_HIT(vict);
-
-    GET_HIT(vict) = 0;
+    prisoner_attacks(ch);
   }
 
-  if (hitpoints < 120)
-    hitpoints = 120;
-
-  if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
-    GET_HIT(ch) += hitpoints;
-
-  return 1;
+  return 0;
 }
 
 /**********************/
