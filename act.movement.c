@@ -2149,6 +2149,7 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
 
 #define PRISONER_KEY_1 132130
 #define PRISONER_KEY_2 132129
+#define PRISONER_KEY_3 132150
 int is_evaporating_key(struct char_data *ch, obj_vnum key)
 {
   if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
@@ -2200,6 +2201,8 @@ int has_key(struct char_data *ch, obj_vnum key)
   case PRISONER_KEY_1:
   /*fallthrough*/
   case PRISONER_KEY_2:
+  /*fallthrough*/
+  case PRISONER_KEY_3:
     return (is_evaporating_key(ch, key));
   default:
     break;
@@ -3816,5 +3819,10 @@ int get_speed(struct char_data *ch, sbyte to_display)
 
   return speed;
 }
+
+/* undefines */
+#undef PRISONER_KEY_1
+#undef PRISONER_KEY_2
+#undef PRISONER_KEY_3
 
 /*EOF*/
