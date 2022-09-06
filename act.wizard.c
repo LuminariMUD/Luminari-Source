@@ -7406,16 +7406,9 @@ ACMD(do_oconvert)
 #define DEBUG_EQ_SCORE TRUE
 /* a function to "score" the value of equipment -zusuk
    what to take into consideration?
-  type [object values]
-  weapon spells
-  procs [have to be manually determined]
-  weight
-  cost?
-  material
-  size
-  wear-slot
-  misc
-  --a very much ungoing project that is critical for balance
+  type [object values], weapon spells, procs [have to be manually determined], spec abilities, affections, restrictions, weight,
+  cost?, material, size, wear-slot, misc, ETC...
+  --a very much ungoing project that is critical for balance, now have added a debug mode -zusuk 09/06/22
  */
 int get_eq_score(obj_rnum a)
 {
@@ -7434,10 +7427,10 @@ int get_eq_score(obj_rnum a)
 
   if (!obj)
     return -1;
+  /* end dummy checks and we should have a valid object */
 
   /* first go through and score all the permanent affects, very powerful
-   * either bonus OR penalty to the item score
-   */
+   * either bonus OR penalty to the item score */
   for (i = 0; i < NUM_AFF_FLAGS; i++)
   {
     if (OBJAFF_FLAGGED(obj, i))
@@ -7492,6 +7485,8 @@ int get_eq_score(obj_rnum a)
       case AFF_DANGERSENSE:
       case AFF_RAPID_SHOT:
       case AFF_FARSEE:
+      case AFF_COUNTERSPELL:
+      case AFF_BODYWEAPONRY:
         score += 300;
         break;
       case AFF_TFORM:
@@ -7524,6 +7519,9 @@ int get_eq_score(obj_rnum a)
         /* no value */
       case AFF_DONTUSE:
       case AFF_GROUP:
+      case AFF_DUAL_WIELD:       /* currently this affection does nothing */
+      case AFF_COUNTERSPELL:     /* currently this affection does nothing */
+      case AFF_WHIRLWIND_ATTACK: /* currently this affection does nothing */
         break;
 
         /* negative affections */
@@ -7562,7 +7560,7 @@ int get_eq_score(obj_rnum a)
             if (pt->character)
               if (GET_LEVEL(pt->character) >= LVL_IMPL)
               {
-                send_to_char(pt->character, "AFF_: %d |  ", i);
+                send_to_char(pt->character, "AFF_: %d | ", i);
                 found = TRUE;
               }
         }
@@ -7571,6 +7569,7 @@ int get_eq_score(obj_rnum a)
       }
     }
   }
+  /* END affections */
 
   /* the "item" flags, rate them next */
   for (i = 0; i < NUM_ITEM_FLAGS; i++)
@@ -7591,6 +7590,10 @@ int get_eq_score(obj_rnum a)
       case ITEM_KI_FOCUS:
       case ITEM_FLAMING:
       case ITEM_FROST:
+      case ITEM_SHOCK:
+      case ITEM_AGILE:
+      case ITEM_CORROSIVE:
+      case ITEM_DEFENDING:
         score += 100;
         break;
       case ITEM_MAGLIGHT:
@@ -7598,6 +7601,7 @@ int get_eq_score(obj_rnum a)
       case ITEM_BLESS:
       case ITEM_FLOAT:
       case ITEM_NOBURN:
+      case ITEM_MASTERWORK:
         score += 50;
         break;
       case ITEM_GLOW:
@@ -7606,6 +7610,8 @@ int get_eq_score(obj_rnum a)
       case ITEM_NOINVIS:
         score += 10;
         break;
+
+        /* doesn't affect score */
 
         /* reduce value of items below */
       case ITEM_INVISIBLE:
@@ -7697,7 +7703,7 @@ int get_eq_score(obj_rnum a)
             if (pt->character)
               if (GET_LEVEL(pt->character) >= LVL_IMPL)
               {
-                send_to_char(pt->character, "ITEM_: %d |  ", i);
+                send_to_char(pt->character, "ITEM_: %d | ", i);
                 found = TRUE;
               }
         }
@@ -7706,6 +7712,7 @@ int get_eq_score(obj_rnum a)
       }
     }
   }
+  /* END item types */
 
   /* now add up score for object affects (modifiers)
      added stacking bonus, that's critical!  -zusuk */
@@ -7798,6 +7805,18 @@ int get_eq_score(obj_rnum a)
           break;
         }
         break;
+
+      case APPLY_DR:
+        switch (obj_proto[a].affected[b].bonus_type)
+        {
+        default:
+          score += obj_proto[a].affected[b].modifier * 150;
+          if (BONUS_TYPE_STACKS(obj_proto[a].affected[b].bonus_type))
+            score += obj_proto[a].affected[b].modifier * 150;
+          break;
+        }
+        break;
+
       case APPLY_SPELL_RES:
       case APPLY_RES_FIRE:
       case APPLY_RES_COLD:
@@ -7818,6 +7837,7 @@ int get_eq_score(obj_rnum a)
       case APPLY_RES_MENTAL:
       case APPLY_RES_LIGHT:
       case APPLY_RES_ENERGY:
+      case APPLY_RES_WATER:
         switch (obj_proto[a].affected[b].bonus_type)
         {
         default:
@@ -7829,6 +7849,7 @@ int get_eq_score(obj_rnum a)
         break;
 
         /* these are not supposed to be used, so add them insane numbers */
+      case APPLY_SIZE:
       case APPLY_CLASS:
       case APPLY_LEVEL:
       case APPLY_GOLD:
@@ -7840,7 +7861,7 @@ int get_eq_score(obj_rnum a)
             if (pt->character)
               if (GET_LEVEL(pt->character) >= LVL_IMPL)
               {
-                send_to_char(pt->character, "APPLY_: %d |  ", obj_proto[a].affected[b].location);
+                send_to_char(pt->character, "APPLY_: %d | ", obj_proto[a].affected[b].location);
                 found = TRUE;
               }
         }
@@ -7850,9 +7871,9 @@ int get_eq_score(obj_rnum a)
       }
     }
   }
-
   /* END object affections*/
 
+  /************/
   /* misc */
 
   /* ac-apply value */
@@ -7898,13 +7919,15 @@ int get_eq_score(obj_rnum a)
    */
 
   /* END misc */
+  /************/
 
+  /* for our debug, this will give the end of line for us */
   if (DEBUG_EQ_SCORE && found)
   {
     for (pt = descriptor_list; pt; pt = pt->next)
       if (pt->character)
         if (GET_LEVEL(pt->character) >= LVL_IMPL)
-          send_to_char(pt->character, "  |\r\n");
+          send_to_char(pt->character, "~~\r\n");
   }
 
   /* DONE! */
