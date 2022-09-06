@@ -20,8 +20,6 @@
 
 #define STAFF_EVENT_DELAY_CNST 6 /* DO NOT CHANGE: don't decrease this below 6 */
 
-#define NUM_STAFF_EVENTS 1
-
 /* event fields */
 #define EVENT_TITLE 0
 #define EVENT_BEGIN 1
@@ -34,6 +32,7 @@
 #define UNDEFINED_EVENT -1   /* just a marker */
 #define JACKALOPE_HUNT 0     /* event id (event_num) for the jackalope hunt! */
 #define THE_PRISONER_EVENT 1 /* kill the prisoner!! */
+#define NUM_STAFF_EVENTS 2
 
 /* defines for each individual event */
 
