@@ -1398,6 +1398,9 @@ int rejuv_prisoner(struct char_data *ch)
 
 int prisoner_attacks(struct char_data *ch)
 {
+  if (!ch)
+    return 0;
+
   if (!FIGHTING(ch))
     return 0;
 
@@ -1449,7 +1452,10 @@ int prisoner_attacks(struct char_data *ch)
       if (valid_fight_cond(ch, TRUE))
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     }
+    return 1;
   }
+
+  return 0;
 }
 
 /*************************************/
