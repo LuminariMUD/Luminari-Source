@@ -1,15 +1,15 @@
 /**
-* @file comm.h                                          LuminariMUD
-* Header file, prototypes of public communication functions.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*
-*/
+ * @file comm.h                                          LuminariMUD
+ * Header file, prototypes of public communication functions.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ *
+ */
 #ifndef _COMM_H_
 #define _COMM_H_
 
@@ -29,6 +29,7 @@ void send_to_group(struct char_data *ch, struct group_data *group, const char *m
 void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
     __attribute__((format(printf, 3, 4)));
 void update_msdp_room(struct char_data *ch);
+void send_to_mud(struct char_data *broadcaster, char *message);
 
 /* Act type settings and flags */
 #define TO_ROOM 1      /**< act() type: to everyone in room, except ch. */

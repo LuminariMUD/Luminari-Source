@@ -15,7 +15,7 @@
 #include "handler.h"
 #include "db.h"
 #include "spells.h"
-#include "act.h"
+#include "act.h"        /* for act related stuff, like act.offensive fuctions */
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "fight.h"
 #include "graph.h"
@@ -24,8 +24,9 @@
 #include "domains_schools.h"
 #include "spec_abilities.h"
 #include "treasure.h"
-#include "mobact.h"     /* for npc_find_target() */
-#include "dg_scripts.h" /* for load_mtrigger() */
+#include "mobact.h"       /* for npc_find_target() */
+#include "dg_scripts.h"   /* for load_mtrigger() */
+#include "staff_events.h" /* for staff events!  prisoner treasury! */
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
@@ -1318,9 +1319,14 @@ void prisoner_on_death(struct char_data *ch)
 
   WAIT_STATE(prisoner, PULSE_VIOLENCE * 2);
 
-  act("\trThrough a haze of dizziness you look up..\n\r"
-      "\tr.\n\r\tr.\n\r\trThe last thing you see is the demipower fading into nothingness to be\n\r"
-      "\trreplaced by a large holy symbol that falls to the rocky floor with a crash\tr.\n\r\tr.",
+  act("\trThrough a haze of dizziness you look up..\tn\r\n"
+      "\tr.\tn\r\n\tr.\tn\r\n\trA most horrifying transformation takes place before you.\tn\r\n  "
+      "\trThe flesh catches fire on her dead body, burning quickly away to blackened bone.\n\r\n  "
+      "\tLThe bones \tYglow\tL with magic, it's eyes flare \tRRed\tL as the entire skeleton \n\r\n"
+      "\tLrises from the ashes of death. With a sinister gaze, the new-born \n\r\n"
+      "\tLDracoLich of the Prisoner utters arcane words of power, and turns to face you... \n\r\n"
+      "\tWYou freeze in terror at the sight of the thing, momentarily frozen until the \n\r\n"
+      "\tWrealization of this extreme danger sinks in. You fight back the dizziness.\n\r\n",
       FALSE, prisoner, 0, 0, TO_ROOM);
   act("\tLSuddenly everything fades to black...\tn",
       FALSE, prisoner, 0, 0, TO_ROOM);
@@ -1390,36 +1396,58 @@ int rejuv_prisoner(struct char_data *ch)
   return 0;
 }
 
-int prisoner_breath(struct char_data *ch)
+int prisoner_attacks(struct char_data *ch)
 {
   if (!FIGHTING(ch))
     return 0;
 
-  int breaths = 0;
-  int breath[5];
-  int selected = 0;
+  if (!rand_number(0, 2))
+  {
+    int breaths = 0;
+    int breath[5];
+    int selected = 0;
 
-  if (prisoner_heads >= 1)
-    breath[breaths++] = SPELL_FIRE_BREATHE;
-  if (prisoner_heads >= 2)
-    breath[breaths++] = SPELL_LIGHTNING_BREATHE;
-  if (prisoner_heads >= 3)
-    breath[breaths++] = SPELL_ACID_BREATHE;
-  if (prisoner_heads >= 4)
-    breath[breaths++] = SPELL_FROST_BREATHE;
-  if (prisoner_heads >= 5)
-    breath[breaths++] = SPELL_GAS_BREATHE;
+    if (prisoner_heads >= 1)
+      breath[breaths++] = SPELL_FIRE_BREATHE;
+    if (prisoner_heads >= 2)
+      breath[breaths++] = SPELL_LIGHTNING_BREATHE;
+    if (prisoner_heads >= 3)
+      breath[breaths++] = SPELL_ACID_BREATHE;
+    if (prisoner_heads >= 4)
+      breath[breaths++] = SPELL_FROST_BREATHE;
+    if (prisoner_heads >= 5)
+      breath[breaths++] = SPELL_GAS_BREATHE;
 
-  if (breaths < 1)
-    return 0;
+    if (breaths < 1)
+      return 0;
 
-  selected = dice(1, breaths) - 1;
-  selected = breath[selected];
+    selected = dice(1, breaths) - 1;
+    selected = breath[selected];
 
-  // do a breath..  level 40 breath since she breaths every round.
-  call_magic(ch, FIGHTING(ch), 0, selected, 0, 34, CAST_SPELL);
+    // do a breath..  level 40 breath since she breaths every round.
+    call_magic(ch, FIGHTING(ch), 0, selected, 0, 34, CAST_SPELL);
 
-  return 1;
+    return 1;
+  }
+  else if (!rand_number(0, 2) && perform_tailsweep(ch))
+  {
+    /* looks like we did the tailsweeep successffully to at least one victim */
+    return 1;
+  }
+  else if (!rand_number(0, 2) && perform_dragonbite(ch, FIGHTING(ch)))
+  {
+    /* looks like we did the dragonbite to at least one victim */
+    return 1;
+  }
+  else
+  {
+    /* spam some attacks */
+    for (i = 0; i <= rand_number(4, 8); i++)
+    {
+      if (valid_fight_cond(ch, TRUE))
+        hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    }
+  }
 }
 
 /*************************************/
@@ -1472,7 +1500,7 @@ void prisoner_gear_loading(struct char_data *ch)
   struct obj_data *olist = NULL;
   // struct obj_data *tobj = NULL;
   bool loaded = FALSE;
-  int ovnum = NOTHING, loop_counter = 0, num_items = 0;
+  int ovnum = NOTHING, loop_counter = 0, num_items = 0, num_treasure = 0;
 
   int objNums[TOP_UNIQUES + 1] = {
       MALEVOLENCE,      /* for warrior, berserker, giantslayer, battlerager */
@@ -1524,6 +1552,11 @@ void prisoner_gear_loading(struct char_data *ch)
   if (!ch)
     return;
 
+  if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
+    num_treasure = rand_number(NUM_TREASURE, TOP_UNIQUES - 1);
+  else
+    num_treasure = NUM_TREASURE;
+
   /* this loop will only run once, it gets turned off by a variable below */
   do
   {
@@ -1567,7 +1600,7 @@ void prisoner_gear_loading(struct char_data *ch)
 
     loop_counter++;
 
-  } while (num_items < NUM_TREASURE && loop_counter < LOOP_LIMIT);
+  } while (num_items < num_treasure && loop_counter < LOOP_LIMIT);
 
   /************************************************************************/
   /****** base items for treasury *************/
@@ -1648,11 +1681,11 @@ SPECIAL(the_prisoner)
     prisoner_heads = 5;
 
   /* this is the prisoner's regular form offensive arsenal */
-  if (FIGHTING(ch) && !rand_number(0, 3))
-    prisoner_breath(ch);
+  if (FIGHTING(ch))
+    prisoner_attacks(ch);
 
   /* this is the prisoner's regular form defensive arsenal */
-  if (!rand_number(0, 2))
+  if (!rand_number(0, 1))
   {
     if (rejuv_prisoner(ch))
     {

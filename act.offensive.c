@@ -34,6 +34,7 @@
 #include "domains_schools.h"
 #include "encounters.h"
 #include "constants.h"
+#include "spec_procs.h" /* for is_wearing() */
 
 /* defines */
 #define RAGE_AFFECTS 5
@@ -603,6 +604,19 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   {
     send_to_char(ch, "You realize you will probably not succeed:  ");
     penalty = -100;
+  }
+
+  if (is_wearing(vict, 132133))
+  {
+    send_to_char(ch, "You failed to knock over %s due to stability boots!  Incoming counter attack!!! ...\r\n", GET_NAME(vict));
+    send_to_char(vict, "You stand your ground against %s, and with a snarl attempt a counterattack!\r\n",
+                 GET_NAME(ch));
+    act("$N via stability boots a knockdown attack from $n is resisted...  $N follows up with a counterattack!", FALSE, ch, 0, vict,
+        TO_NOTVICT);
+
+    perform_knockdown(vict, ch, SKILL_TRIP);
+
+    return FALSE;
   }
 
   switch (skill)
@@ -4784,31 +4798,11 @@ ACMD(do_sorcerer_claw_attack)
   USE_STANDARD_ACTION(ch);
 }
 
-ACMDCHECK(can_tailsweep)
+/* main engine for tail sweep */
+int perform_tailsweep(struct char_data *ch)
 {
-  ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
-  return CAN_CMD;
-}
-
-ACMD(do_tailsweep)
-{
-  struct char_data *vict, *next_vict;
-  int percent = 0, prob = 0;
-
-  PREREQ_CAN_FIGHT();
-
-  PREREQ_CHECK(can_tailsweep);
-  PREREQ_NOT_PEACEFUL_ROOM();
-  PREREQ_NOT_SINGLEFILE_ROOM();
-
-  /* we have to put a restriction here for npc's, otherwise you can order
-     a dragon to spam this ability -zusuk */
-  if (char_has_mud_event(ch, eDRACBREATH))
-  {
-    send_to_char(ch, "You are too exhausted to do that!\r\n");
-    act("$n tries to use a tailsweep attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
-    return;
-  }
+  struct char_data *vict = NULL, *next_vict = NULL;
+  int percent = 0, prob = 0, vict_count = 0;
 
   send_to_char(ch, "You lash out with your mighty tail!\r\n");
   act("$n lashes out with $s mighty tail!", FALSE, ch, 0, 0, TO_ROOM);
@@ -4821,6 +4815,18 @@ ACMD(do_tailsweep)
       continue;
     if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
       continue;
+
+    /* stability boots */
+    if (is_wearing(vict, 132133) && rand_number(0, 1))
+    {
+      send_to_char(ch, "You failed to knock over %s due to stability boots!\r\n", GET_NAME(vict));
+      send_to_char(vict, "Via your stability boots, you hop over a tailsweep from %s.\r\n",
+                   GET_NAME(ch));
+      act("$N via stability boots dodges a tailsweep from $n.", FALSE, ch, 0, vict,
+          TO_NOTVICT);
+
+      continue;
+    }
 
     // pass -2 as spellnum to handle tailsweep
     if (aoeOK(ch, vict, -2))
@@ -4848,6 +4854,8 @@ ACMD(do_tailsweep)
 
         /* fire-shield, etc check */
         damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
+        vict_count++;
       }
 
       if (GET_POS(ch) > POS_STUNNED && (FIGHTING(ch) == NULL)) // ch -> vict
@@ -4860,6 +4868,35 @@ ACMD(do_tailsweep)
       }
     }
   }
+
+  return vict_count;
+}
+
+ACMDCHECK(can_tailsweep)
+{
+  ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_tailsweep)
+{
+
+  PREREQ_CAN_FIGHT();
+
+  PREREQ_CHECK(can_tailsweep);
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_NOT_SINGLEFILE_ROOM();
+
+  /* we have to put a restriction here for npc's, otherwise you can order
+     a dragon to spam this ability -zusuk */
+  if (char_has_mud_event(ch, eDRACBREATH))
+  {
+    send_to_char(ch, "You are too exhausted to do that!\r\n");
+    act("$n tries to use a tailsweep attack, but is too exhausted!", FALSE, ch, 0, 0, TO_ROOM);
+    return;
+  }
+
+  perform_tailsweep(ch);
 
   /* 12 seconds = 2 rounds */
   attach_mud_event(new_mud_event(eDRACBREATH, ch, NULL), 12 * PASSES_PER_SEC);
@@ -5697,6 +5734,65 @@ void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_SLA_FAERIE_FIRE);
+}
+
+/* dragonbite engine, just used for prisoner right now -zusuk */
+int perform_dragonbite(struct char_data *ch, struct char_data *vict)
+{
+  bool got_em = FALSE;
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  /* maneuver bonus/penalty */
+  if (!IS_NPC(ch) && compute_ability(ch, ABILITY_DISCIPLINE))
+    discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
+  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
+    discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
+
+  /* saving throw dc */
+  dc = GET_LEVEL(ch) + GET_STR(ch) + 4;
+
+  /* damage! */
+  diceOne = GET_LEVEL(ch) + 4;
+  diceTwo = GET_LEVEL(ch) + 4;
+
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_KICK, 50) > 0)
+  {
+    /* damagee! */
+    damage(ch, vict, dice(diceOne, diceTwo) + GET_STR(ch) + 4, SKILL_DRAGON_BITE, DAM_FORCE, FALSE);
+
+    act("Your flesh is redned by a bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$e is rended by your bite at $m!", FALSE, vict, 0, ch, TO_VICT);
+    act("$n's flesh is rended by a bite from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
+
+    if (!savingthrow(vict, SAVING_REFL, GET_STR_BONUS(vict), dc) && rand_number(0, 2))
+    {
+      USE_FULL_ROUND_ACTION(vict);
+      act("You are thrown off-balance by a bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
+      act("$e is thrown off-blance by your bite at $m!", FALSE, vict, 0, ch, TO_VICT);
+      act("$n is thrown off-balance by a bite from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
+    }
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+
+    got_em = TRUE;
+  }
+  else
+  {
+    damage(ch, vict, 0, SKILL_DRAGON_BITE, DAM_FORCE, FALSE);
+    act("You dodge a vicious bite from $N!", FALSE, vict, 0, ch, TO_CHAR);
+    act("$e dodges to the side as you bite at $m!", FALSE, vict, 0, ch, TO_VICT);
+    act("$n dodges a vicious bite from $N!", FALSE, vict, 0, ch, TO_NOTVICT);
+  }
+
+  return got_em;
 }
 
 /* kick engine */

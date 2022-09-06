@@ -1438,7 +1438,7 @@ const char *action_bits[] = {
     "Mob-Block-Level",
     "Mob-Block-Alignment",
     "Mob-Block-Ethos",
-    "unused", // 60
+    "Info-Kill-of-Player", /* 60 */
     "unused",
     "No-Confuse",
     "Hunts-Target",
@@ -1448,17 +1448,17 @@ const char *action_bits[] = {
     "Ability-Level-Drain",
     "Ability-Charm",
     "Ability-Blink",
-    "Ability-Engulf",
+    "Ability-Engulf", /* 70 */
     "Ability-Cause-Fear",
     "Ability-Corruption",
     "Ability-Swallow",
     "Ability-Flight",
-    "Ability-Poison",
+    "Ability-Poison", /* 75 */
     "Ability-Regenerate",
     "Ability-Paralyze",
     "Ability-Fire-Breath",
     "Ability-Lightning-Breath",
-    "Ability-Poison-Breath",
+    "Ability-Poison-Breath", /* 80 */
     "Ability-Acid-Breath",
     "Ability-Frost-Breath",
     "Ability-Magic-Immunity",

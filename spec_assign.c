@@ -714,6 +714,7 @@ void assign_objects(void)
   ASSIGNOBJ(132104, star_circlet);
   ASSIGNOBJ(132101, malevolence);
   ASSIGNOBJ(132126, rune_scimitar);
+  ASSIGNOBJ(132133, stability_boots);
 
   /* not yet defined? */
   // ASSIGNOBJ(132115, warbow);
@@ -995,6 +996,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Pet Object", bought_pet, ""},
     {"BoltHammer", bolthammer, ""},
     {"Bone Dancer", bonedancer, ""},
+    {"Boots of Stability", stability_boots, ""},
     {"Alathar", cf_alathar, ""},
     {"Chan", chan, ""},
     {"Ches", ches, ""},

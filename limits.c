@@ -1451,7 +1451,7 @@ void proc_d20_round(void)
 /* Update PCs, NPCs, and objects */
 void point_update(void)
 {
-  struct char_data *i = NULL, *next_char = NULL;
+  struct char_data *i = NULL, *next_char = NULL, *victim = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
   int counter = 0, mob_count = 0;
   int x_coord = 0;
@@ -1473,66 +1473,8 @@ void point_update(void)
     set_db_happy_hour(2);
   }
 
-  /*********/
-  /* staff event related updates */
-
-  if (!IS_STAFF_EVENT && STAFF_EVENT_DELAY > 0)
-  {
-    STAFF_EVENT_DELAY--;
-  }
-
-  if (STAFF_EVENT_TIME > 1)
-  {
-    STAFF_EVENT_TIME--;
-
-    /* if we want things to happen at given ticks for the event, we do it here! */
-    switch (STAFF_EVENT_NUM)
-    {
-
-    case JACKALOPE_HUNT:
-
-      /* place some more jackalope if needed! */
-      if (mob_ingame_count(EASY_JACKALOPE) < NUM_JACKALOPE_EACH)
-      {
-        for (mob_count = 0; mob_count < (NUM_JACKALOPE_EACH - mob_ingame_count(EASY_JACKALOPE)); mob_count++)
-        {
-          x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
-          y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
-          wild_mobile_loader(EASY_JACKALOPE, x_coord, y_coord);
-        }
-      }
-      if (mob_ingame_count(MED_JACKALOPE) < NUM_JACKALOPE_EACH)
-      {
-        for (mob_count = 0; mob_count < (NUM_JACKALOPE_EACH - mob_ingame_count(MED_JACKALOPE)); mob_count++)
-        {
-          x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
-          y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
-          wild_mobile_loader(MED_JACKALOPE, x_coord, y_coord);
-        }
-      }
-      if (mob_ingame_count(HARD_JACKALOPE) < NUM_JACKALOPE_EACH)
-      {
-        for (mob_count = 0; mob_count < (NUM_JACKALOPE_EACH - mob_ingame_count(HARD_JACKALOPE)); mob_count++)
-        {
-          x_coord = rand_number(JACKALOPE_WEST_X, JACKALOPE_EAST_X);
-          y_coord = rand_number(JACKALOPE_SOUTH_Y, JACKALOPE_NORTH_Y);
-          wild_mobile_loader(HARD_JACKALOPE, x_coord, y_coord);
-        }
-      }
-
-      break;
-
-    default:
-      break;
-    }
-  }
-
-  /* Last tick - set everything back to zero */
-  else if (STAFF_EVENT_TIME == 1)
-  {
-    end_staff_event(STAFF_EVENT_NUM);
-  }
-  /* end staff event section */
+  /* this is the staff event code for regular maintenance */
+  staff_event_tick();
 
   /* end general */
 

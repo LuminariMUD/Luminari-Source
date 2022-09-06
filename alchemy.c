@@ -186,7 +186,7 @@ const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
     "none",                                             // acid
     "alchemist level 8",                                // blinding
     "none",                                             // boneshard
-    "alchemist level 8",                                //celestial poisons
+    "alchemist level 8",                                // celestial poisons
     "none",                                             // chameleon
     "none",                                             // cognatogen
     "alchemist level 6",                                // concussive bomb
@@ -196,7 +196,7 @@ const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
     "none",                                             // enhance potion
     "none",                                             // extend potion
     "alchemist level 8",                                // fast bombs
-    "none",                                             //fire branks
+    "none",                                             // fire branks
     "alchemist level 8",                                // force bomb
     "none",                                             // frost bomb
     "alchemist level 16, greater cognatogen",           // grand cognatogen
@@ -214,7 +214,7 @@ const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
     "none",                                             // inspiring cognatogen
     "alchemist level 10",                               // malignant poison
     "alchemist level 12",                               // poison bomb
-    "none",                                             //precise bomb
+    "none",                                             // precise bomb
     "none",                                             // preserve organs
     "alchemist level 8",                                // profane bomb
     "alchemist level 4",                                // psychokinetic tincture
@@ -224,7 +224,7 @@ const char *discovery_requisites[NUM_ALC_DISCOVERIES] = {
     "none",                                             // stink bomb
     "alchemist level 10, blinding bomb",                // sunlight bomb
     "none",                                             // tanglefoot bomb
-    "none",                                             // vestigial arm
+    "alchemist level 9",                                // vestigial arm
     "alchemist level 6"                                 // wings
 };
 
@@ -1693,10 +1693,10 @@ void perform_bomb_spell_effect(struct char_data *ch, struct char_data *victim, i
     spellnum = SPELL_STINKING_CLOUD;
     break;
   case BOMB_DISPELLING:
-    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST)< 14)
+    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) < 14)
       spellnum = SPELL_DISPEL_MAGIC;
     else
-     spellnum = SPELL_GREATER_DISPELLING;
+      spellnum = SPELL_GREATER_DISPELLING;
     break;
   }
 
@@ -1801,6 +1801,10 @@ int can_learn_discovery(struct char_data *ch, int discovery)
     break;
   case ALC_DISC_STICKY_BOMBS:
     if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10)
+      return TRUE;
+    break;
+  case ALC_DISC_VESTIGIAL_ARM:
+    if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 9)
       return TRUE;
     break;
   case ALC_DISC_SUNLIGHT_BOMBS:
@@ -2205,12 +2209,12 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
 
   if (GET_GRAND_DISCOVERY(ch) == GR_ALC_DISC_TRUE_MUTAGEN)
   {
-    af.modifier  = af5.modifier = af3.modifier = af4.modifier = 8;
+    af.modifier = af5.modifier = af3.modifier = af4.modifier = 8;
     af6.modifier = af7.modifier = af2.modifier;
     af2.location = APPLY_INT;
     af6.location = APPLY_WIS;
     af7.location = APPLY_CHA;
-    af.location  = APPLY_STR;
+    af.location = APPLY_STR;
     af3.location = APPLY_DEX;
     af4.location = APPLY_CON;
   }
@@ -2724,6 +2728,9 @@ ACMD(do_swallow)
     return;
   }
 
+  if (CLASS_LEVEL(ch, CLASS_ALCHEMIST) >= 10)
+    alchemical_bonus = TRUE;
+
   if (is_abbrev(arg1, "mutagen"))
   {
     if (!*arg2)
@@ -3204,14 +3211,14 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
   if (discovery == -1)
   {
     /* Not found - Maybe put in a soundex list here? */
-    //send_to_char(ch, "Could not find that discovery.\r\n");
+    // send_to_char(ch, "Could not find that discovery.\r\n");
     return FALSE;
   }
 
   /* We found the discovery, and the discovery number is stored in 'discovery'. */
   /* Display the discovery info, formatted. */
   send_to_char(ch, "\tC\r\n");
-  //text_line(ch, "discovery Information", line_length, '-', '-');
+  // text_line(ch, "discovery Information", line_length, '-', '-');
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tcDiscovery     : \tn%s\r\n",
                alchemical_discovery_names[discovery]);
@@ -3290,14 +3297,14 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
   if (discovery == -1)
   {
     /* Not found - Maybe put in a soundex list here? */
-    //send_to_char(ch, "Could not find that discovery.\r\n");
+    // send_to_char(ch, "Could not find that discovery.\r\n");
     return FALSE;
   }
 
   /* We found the discovery, and the discovery number is stored in 'discovery'. */
   /* Display the discovery info, formatted. */
   send_to_char(ch, "\tC\r\n");
-  //text_line(ch, "discovery Information", line_length, '-', '-');
+  // text_line(ch, "discovery Information", line_length, '-', '-');
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tcGrand Discovery    : \tn%s\r\n",
                grand_alchemical_discovery_names[discovery]);
