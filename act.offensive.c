@@ -5739,15 +5739,14 @@ void perform_faerie_fire(struct char_data *ch, struct char_data *vict)
 /* dragonbite engine, just used for prisoner right now -zusuk */
 int perform_dragonbite(struct char_data *ch, struct char_data *vict)
 {
+  int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
   bool got_em = FALSE;
 
   if (vict == ch)
   {
     send_to_char(ch, "Aren't we funny today...\r\n");
-    return;
+    return got_em;
   }
-
-  PREREQ_NOT_PEACEFUL_ROOM();
 
   /* maneuver bonus/penalty */
   if (!IS_NPC(ch) && compute_ability(ch, ABILITY_DISCIPLINE))
