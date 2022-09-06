@@ -1441,6 +1441,8 @@ int prisoner_attacks(struct char_data *ch)
   }
   else
   {
+    int i = 0;
+
     /* spam some attacks */
     for (i = 0; i <= rand_number(4, 8); i++)
     {

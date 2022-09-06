@@ -599,6 +599,7 @@ void show_hints(void);
 void display_todo(struct char_data *ch, struct char_data *vict);
 void respec_engine(struct char_data *ch, int class, char *arg, bool silent);
 int perform_tailsweep(struct char_data *ch);
+int perform_dragonbite(struct char_data *ch, struct char_data *vict);
 
 /* do_gen_tog */
 ACMD_DECL(do_gen_tog);
