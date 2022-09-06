@@ -7467,7 +7467,6 @@ int get_eq_score(obj_rnum a)
       case AFF_INERTIAL_BARRIER:
       case AFF_ULTRAVISION:
       case AFF_NOTELEPORT:
-      case AFF_BODYWEAPONRY:
       case AFF_SPELL_TURNING:
       case AFF_MIND_BLANK:
       case AFF_SHADOW_SHIELD:
@@ -7490,7 +7489,6 @@ int get_eq_score(obj_rnum a)
       case AFF_SPOT:
       case AFF_DANGERSENSE:
       case AFF_RAPID_SHOT:
-      case AFF_BODYWEAPONRY:
         score += 300;
         break;
 
@@ -7527,6 +7525,7 @@ int get_eq_score(obj_rnum a)
       case AFF_DUAL_WIELD:       /* currently this affection does nothing */
       case AFF_COUNTERSPELL:     /* currently this affection does nothing */
       case AFF_WHIRLWIND_ATTACK: /* currently this affection does nothing */
+      case AFF_BODYWEAPONRY:     /* currently this affection does nothing */
         break;
 
         /* negative affections */
