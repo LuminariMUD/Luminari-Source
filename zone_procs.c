@@ -1287,6 +1287,8 @@ void prisoner_on_death(struct char_data *ch)
 
     return;
   }
+
+  /******* dracolich transition! *********************/
   else
   {
     /* red head dies, the last head - we are really loading the dracolich here */
@@ -1341,7 +1343,6 @@ void prisoner_on_death(struct char_data *ch)
   {
     if (tch && tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
     {
-      damage(prisoner, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
       WAIT_STATE(tch, PULSE_VIOLENCE * 3);
 
       new_affect(&af);
@@ -1349,7 +1350,10 @@ void prisoner_on_death(struct char_data *ch)
       af.duration = 5;
       SET_BIT_AR(af.bitvector, AFF_SLEEP);
       affect_join(tch, &af, FALSE, FALSE, TRUE, FALSE);
-      change_position(tch, POS_SLEEPING);
+      if (GET_POS(tch) >= POS_SLEEPING)
+        change_position(tch, POS_STUNNED);
+
+      damage(prisoner, tch, rand_number(200, 350), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
     }
   }
 
