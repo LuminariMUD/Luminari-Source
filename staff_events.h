@@ -28,11 +28,15 @@
 #define EVENT_SUMMARY 4
 #define STAFF_EVENT_FIELDS 5
 
+/*****************************************************************************/
 /* event index */
 #define UNDEFINED_EVENT -1   /* just a marker */
 #define JACKALOPE_HUNT 0     /* event id (event_num) for the jackalope hunt! */
 #define THE_PRISONER_EVENT 1 /* kill the prisoner!! */
+/*****************************************************************************/
 #define NUM_STAFF_EVENTS 2
+/*****************************************************************************/
+/*****************************************************************************/
 
 /* defines for each individual event */
 

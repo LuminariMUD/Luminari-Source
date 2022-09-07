@@ -1721,6 +1721,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
       /* we are ending the event here! */
       if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
         end_staff_event(STAFF_EVENT_NUM);
+      /* this is our indication to the staff event code that the prisoner has already been killed and shouldn't be started */
+      prisoner_heads = -2;
       /*****/
 
       make_corpse(ch);

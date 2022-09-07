@@ -1177,8 +1177,8 @@ SPECIAL(tia_rapier)
 
 /* the prisoner battle */
 /* prisoner_heads:
-     -1 represents that the prisoner hasn't been killed yet\
-      */
+     -1 represents that the prisoner hasn't been killed yet
+     -2 represents that the prisoner has been fully killed */
 int prisoner_heads = -1;
 bool eq_loaded = FALSE;
 
