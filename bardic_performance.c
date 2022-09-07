@@ -215,6 +215,7 @@ ACMD(do_perform)
                            "this position.\r\n");
           return;
         }
+
         /* this isn't necessary */
         /*
         if (performance_info[i][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
@@ -222,6 +223,7 @@ ACMD(do_perform)
           send_to_char(ch, "This performance requires a group.\r\n");
           return;
         }
+
         */
         /* the check for hunger/thirst WOULD to be here */
         /***/
@@ -283,7 +285,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     if (GET_HIT(tch) < GET_MAX_HIT(tch))
     {
       send_to_char(tch, "You are soothed by the power of music!\r\n");
-      alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
+      process_healing(ch, tch, SKILL_SONG_OF_HEALING, rand_number(effectiveness / 2, effectiveness * 2), 0);
+
+      // alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
     }
     break;
 
@@ -365,7 +369,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     if (GET_HIT(tch) < GET_MAX_HIT(tch))
     {
       send_to_char(tch, "You are soothed by the power of music!\r\n");
-      alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
+      process_healing(ch, tch, SKILL_SONG_OF_DRAGONS, rand_number(effectiveness / 2, effectiveness * 2), 0);
+
+      // alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
     }
 
     af[0].location = APPLY_AC_NEW;
@@ -491,6 +497,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   /*** now we apply the affection(s) */
   if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
     save_char(tch, 0);
+
   for (i = 0; i < BARD_AFFECTS; i++)
   {
     /* lingering song bonus */
@@ -571,7 +578,7 @@ int process_performance(struct char_data *ch, int spellnum,
   case SKILL_SONG_OF_DRAGONS:
     act("You sing a song that defies the mightiest of dragons.", FALSE, ch, 0, 0,
         TO_CHAR);
-    act("$n sings a song, inspiring you to truly heroic deeds!", FALSE, ch, 0, 0,
+    act("$n sings a song that defies the mightiest of dragons, inspiring you to truly heroic deeds!", FALSE, ch, 0, 0,
         TO_ROOM);
     break;
   case SKILL_SONG_OF_FOCUSED_MIND:
@@ -735,6 +742,7 @@ EVENTFUNC(event_bardic_performance)
                      "this position.\r\n");
     return 0;
   }
+
   /* not necessary */
   /*
   if (performance_info[performance_num][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
@@ -743,12 +751,14 @@ EVENTFUNC(event_bardic_performance)
     return 0;
   }
   */
+
   /* the check for hunger/thirst WOULD to be here */
   /***/
   /* end disqualifiers */
 
   /* base effectiveness of performance */
   effectiveness = rand_number(1, 9);
+
   /* base difficulty */
   difficulty = 30 - GET_CHA_BONUS(ch);
 
@@ -820,6 +830,7 @@ EVENTFUNC(event_bardic_performance)
 
   /* this is the currently formula for effectiveness of the performance */
   effectiveness = effectiveness * compute_ability(ch, ABILITY_PERFORM) / 7;
+
   /* effectiveness is from 1 - MAX_PRFM_EFFECT */
   if (effectiveness < 1)
     effectiveness = 1;
