@@ -20,6 +20,7 @@
 #include "wilderness.h"
 #include "dg_scripts.h"
 #include "staff_events.h"
+#include "spec_procs.h" /* external variable for prisoner heads */
 /* end includes */
 
 /****************/
@@ -447,8 +448,12 @@ void staff_event_tick()
   /* end staff event section */
 }
 
-/* start a staff event! */
-void start_staff_event(int event_num)
+/* start a staff event!
+   in:  event number
+   out:  success, return NUM_STAFF_EVENTS
+         failure, return event number
+         */
+int start_staff_event(int event_num)
 {
   struct descriptor_data *pt = NULL;
   int counter = 0;
@@ -460,6 +465,24 @@ void start_staff_event(int event_num)
   if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
   {
     return;
+  }
+
+  /* we have potential reasons not to start events here */
+  switch (event_num)
+  {
+  case JACKALOPE_HUNT:
+    break;
+  case THE_PRISONER_EVENT:
+
+    /* this is our indication that the prisoner has been killed this boot already */
+    if (prisoner_heads == -2)
+    {
+      return THE_PRISONER_EVENT; /* failure! */
+    }
+
+    break;
+  default:
+    break;
   }
 
   /* announcement to game */
@@ -513,7 +536,7 @@ void start_staff_event(int event_num)
     break;
   }
 
-  return;
+  return NUM_STAFF_EVENTS; /* success! */
 }
 
 /* end a staff event! */
@@ -682,6 +705,7 @@ ACMD(do_staffevents)
 {
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int event_num = UNDEFINED_EVENT;
+  int success = NUM_STAFF_EVENTS; /* this is default success value */
 
   if (GET_LEVEL(ch) < LVL_STAFF)
   {
@@ -736,7 +760,7 @@ ACMD(do_staffevents)
   {
     if (!IS_STAFF_EVENT && !STAFF_EVENT_DELAY)
     {
-      start_staff_event(event_num);
+      success = start_staff_event(event_num);
     }
     else if (STAFF_EVENT_DELAY)
     {
@@ -746,6 +770,16 @@ ACMD(do_staffevents)
     else
     {
       send_to_char(ch, "There is already an event running!\r\n");
+    }
+
+    /* we can process failure messaging here, NUM_STAFF_EVENTS is actual success and means we don't need a fail message */
+    switch (success)
+    {
+    case THE_PRISONER_EVENT:
+      send_to_char(ch, "The Prisoner has already been defeated this boot!\r\n");
+      break;
+    default:
+      break;
     }
   }
   else if (is_abbrev(arg, "end"))
