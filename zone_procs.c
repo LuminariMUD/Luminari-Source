@@ -1174,8 +1174,14 @@ SPECIAL(tia_rapier)
 /*****************************************************************/
 
 /* globals */
+
+/* the prisoner battle */
+/* prisoner_heads:
+     -1 represents that the prisoner hasn't been killed yet\
+      */
 int prisoner_heads = -1;
 bool eq_loaded = FALSE;
+
 /* end globals */
 
 int check_heads(struct char_data *ch)
@@ -1333,7 +1339,7 @@ void prisoner_on_death(struct char_data *ch)
 
   for (tch = world[prisoner->in_room].people; tch; tch = tch->next_in_room)
   {
-    if (tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
+    if (tch && tch != prisoner && tch != ch && GET_LEVEL(tch) < LVL_IMMORT)
     {
       damage(prisoner, tch, rand_number(150, 300), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
       WAIT_STATE(tch, PULSE_VIOLENCE * 3);
@@ -1689,8 +1695,8 @@ SPECIAL(the_prisoner)
   if (cmd)
     return 0;
 
-  /* make sure he has all 5 heads at the start of the battle */
-  if (prisoner_heads < 0)
+  /* make sure he has all 5 heads at the start of the battle (-1 indicates not killed) */
+  if (prisoner_heads == -1)
     prisoner_heads = 5;
 
   /* this is the prisoner's regular form offensive arsenal */

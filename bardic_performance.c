@@ -361,46 +361,44 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     break;
 
   case SKILL_SONG_OF_DRAGONS:
-    if (!IS_NPC(tch))
+
+    if (GET_HIT(tch) < GET_MAX_HIT(tch))
     {
-
-      if (GET_HIT(tch) < GET_MAX_HIT(tch))
-      {
-        send_to_char(tch, "You are soothed by the power of music!\r\n");
-        alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
-      }
-      af[0].location = APPLY_AC_NEW;
-      af[0].modifier = MAX(1, (effectiveness + 2) / 9);
-      af[0].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[1].location = APPLY_SAVING_REFL;
-      af[1].modifier = effectiveness / 5;
-      af[1].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[2].location = APPLY_SAVING_DEATH;
-      af[2].modifier = effectiveness / 5;
-      af[2].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[3].location = APPLY_SAVING_FORT;
-      af[3].modifier = effectiveness / 5;
-      af[3].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[4].location = APPLY_SAVING_POISON;
-      af[4].modifier = effectiveness / 5;
-      af[4].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[5].location = APPLY_SAVING_WILL;
-      af[5].modifier = effectiveness / 5;
-      af[5].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[6].location = APPLY_CON;
-      af[6].modifier = 2 + effectiveness / 3;
-      af[6].bonus_type = BONUS_TYPE_INHERENT;
-
-      af[7].location = APPLY_HIT;
-      af[7].modifier = 40 + effectiveness * 4;
-      af[7].bonus_type = BONUS_TYPE_INHERENT;
+      send_to_char(tch, "You are soothed by the power of music!\r\n");
+      alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
     }
+
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = MAX(1, (effectiveness + 2) / 9);
+    af[0].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[1].location = APPLY_SAVING_REFL;
+    af[1].modifier = effectiveness / 5;
+    af[1].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[2].location = APPLY_SAVING_DEATH;
+    af[2].modifier = effectiveness / 5;
+    af[2].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[3].location = APPLY_SAVING_FORT;
+    af[3].modifier = effectiveness / 5;
+    af[3].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[4].location = APPLY_SAVING_POISON;
+    af[4].modifier = effectiveness / 5;
+    af[4].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[5].location = APPLY_SAVING_WILL;
+    af[5].modifier = effectiveness / 5;
+    af[5].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[6].location = APPLY_CON;
+    af[6].modifier = 2 + effectiveness / 3;
+    af[6].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[7].location = APPLY_HIT;
+    af[7].modifier = 40 + effectiveness * 4;
+    af[7].bonus_type = BONUS_TYPE_INHERENT;
 
     break;
 

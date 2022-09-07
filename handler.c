@@ -319,8 +319,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg
   } /* switch */
 }
 
-void affect_modify_ar(struct char_data *ch, byte loc, sbyte mod, int bitv[],
-                      bool add)
+void affect_modify_ar(struct char_data *ch, byte loc, sbyte mod, int bitv[], bool add)
 {
   int i, j;
 
@@ -359,9 +358,13 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
   /* Check affect structures */
   for (af = ch->affected; af; af = af->next)
   {
+    if (!af)
+      continue;
+
     /* Skip affects that are not on this location and have a different type. */
     if ((af->bonus_type != bonus_type) || (af->location != location))
       continue;
+
     if (af->spell == except_spell)
       continue;
 

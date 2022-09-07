@@ -20,6 +20,8 @@ int spell_sort_info[TOP_SKILL_DEFINE];
 int sorted_spells[TOP_SKILL_DEFINE];
 int sorted_skills[TOP_SKILL_DEFINE];
 
+extern int prisoner_heads;
+
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
  ****************************************************************************/
