@@ -464,7 +464,7 @@ int start_staff_event(int event_num)
   /* dummy checks */
   if (event_num >= NUM_STAFF_EVENTS || event_num < 0)
   {
-    return;
+    return -1;
   }
 
   /* we have potential reasons not to start events here */
