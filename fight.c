@@ -1493,15 +1493,22 @@ void death_cry(struct char_data *ch)
       /* no message here, special one in zone_procs.c code */
       break;
     case DRACOLICH_PRISONER:
+
       for (pt = descriptor_list; pt; pt = pt->next)
+      {
         if (pt->character)
+        {
           send_to_char(pt->character, "\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
                                       "fall to the ground with a resounding thud.\tn"
                                       "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn\r\n");
+        }
+      }
 
       break;
 
-    default: /* this is the default NPC message */
+    default:
+
+      /* this is the default NPC message */
       GUI_CMBT_NOTVICT_OPEN(ch, NULL);
       act("Your blood freezes as you hear $n's death cry.",
           FALSE, ch, 0, 0, TO_ROOM);
@@ -1697,14 +1704,31 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
   {
+
     /* added a switch here for special handling of special mobiles -zusuk */
     switch (GET_MOB_VNUM(ch))
     {
+
     case THE_PRISONER:
+      /* this is the head/dracolich transitions */
       prisoner_on_death(ch);
       /* extraction!  *SLURRRRRRRRRRRRRP* */
       extract_char(ch);
       break;
+
+    case DRACOLICH_PRISONER:
+
+      /* we are ending the event here! */
+      if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
+        end_staff_event(STAFF_EVENT_NUM);
+      /*****/
+
+      make_corpse(ch);
+      /* extraction!  *SLURRRRRRRRRRRRRP* */
+      extract_char(ch);
+
+      break;
+
     default:
       make_corpse(ch);
       /* extraction!  *SLURRRRRRRRRRRRRP* */
