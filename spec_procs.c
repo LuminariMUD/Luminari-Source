@@ -6834,15 +6834,17 @@ SPECIAL(nutty_bracer)
   return FALSE;
 }
 
-/* from homeland */
+/* pet from moonblade below */
+#define SPIRIT_EAGLE 101225
+/* moonblade 109802 */
 SPECIAL(whisperwind)
 {
-  int s, i = 0;
-  struct char_data *victim;
-  struct char_data *pet;
-
   if (!ch)
     return FALSE;
+
+  int s = 0, i = 0;
+  struct char_data *victim = NULL;
+  struct char_data *pet = NULL;
 
   if (!cmd && !strcmp(argument, "identify"))
   {
@@ -6851,6 +6853,9 @@ SPECIAL(whisperwind)
                      "dispel evil.\r\n");
     return TRUE;
   }
+
+  if (!is_wearing(ch, 109802))
+    return FALSE;
 
   struct char_data *vict = FIGHTING(ch);
 
@@ -6871,9 +6876,10 @@ SPECIAL(whisperwind)
   }
 
   skip_spaces(&argument);
-  if (!is_wearing(ch, 109802))
-    return FALSE;
+
   victim = ch->char_specials.fighting;
+
+  /* whisper blur for 'blur attacks' */
   if (!strcmp(argument, "blur") && CMD_IS("whisper"))
   {
     if (FIGHTING(ch) && (FIGHTING(ch)->in_room == ch->in_room))
@@ -6883,6 +6889,7 @@ SPECIAL(whisperwind)
         send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
         return TRUE;
       }
+
       act("\tcAs you whisper '\tCblur\tc' to your "
           "\tWmoon\tCblade\tc, it calls upon the northern \tWgale\r\n"
           "\tcand envelops you in a sw\tCir\tWl\tCin\tcg cyclone making "
@@ -6898,14 +6905,18 @@ SPECIAL(whisperwind)
           "$s \tWmoon\tCblade\tc, making $m move like the wind!\r\n"
           "$n \tCBLURS \tcas $e strikes YOU in rapid succession!\tn",
           1, ch, 0, FIGHTING(ch), TO_VICT);
+
       s = rand_number(8, 12);
       for (i = 0; i <= s; i++)
       {
-        hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         if (GET_POS(victim) == POS_DEAD)
           break;
       }
+
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 1;
+
       return TRUE; /* end for */
     }              /* end if-fighting */
     else
@@ -6914,7 +6925,7 @@ SPECIAL(whisperwind)
 
   else if (!strcmp(argument, "wind") && CMD_IS("whisper"))
   {
-    if (mob_index[real_mobile(101225)].number < 1)
+    if (mob_index[real_mobile(SPIRIT_EAGLE)].number < 1)
     {
       act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
           "a \tWghostly mist \tcswirls\r\n"
@@ -6928,14 +6939,22 @@ SPECIAL(whisperwind)
           "spirit of the \r\nblade has come to $s calling in the "
           "form of a majestic \tBeagle\tc.",
           1, ch, 0, FIGHTING(ch), TO_ROOM);
-      pet = read_mobile(real_mobile(101225), REAL);
-      char_to_room(pet, ch->in_room);
-      add_follower(pet, ch);
-      SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-      GET_LEVEL(pet) = GET_LEVEL(ch);
-      GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
-      GET_HIT(pet) = GET_MAX_HIT(pet);
-      return TRUE;
+
+      pet = read_mobile(real_mobile(SPIRIT_EAGLE), REAL);
+      if (pet)
+      {
+        char_to_room(pet, ch->in_room);
+        add_follower(pet, ch);
+        SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+
+        GET_LEVEL(pet) = GET_LEVEL(ch);
+        GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
+        GET_HIT(pet) = GET_MAX_HIT(pet);
+
+        return TRUE;
+      }
+      else
+        return FALSE;
     }
     else
     {
@@ -6977,10 +6996,13 @@ SPECIAL(whisperwind)
             "angrily at you as it tries to smite you mightily!\tn",
             1, ch, 0, FIGHTING(ch), TO_VICT);
 
+        /* harm spell */
         call_magic(ch, FIGHTING(ch), 0, SPELL_HARM, 0, 30, CAST_SPELL);
+        /* up to 3 dispel evils */
         for (i = 0; i < 3; i++)
         {
-          call_magic(ch, FIGHTING(ch), 0, SPELL_DISPEL_EVIL, 0, 30, CAST_SPELL);
+          if (valid_fight_cond(ch, TRUE))
+            call_magic(ch, FIGHTING(ch), 0, SPELL_DISPEL_EVIL, 0, 30, CAST_SPELL);
           if (GET_POS(victim) == POS_DEAD)
             break;
         }
@@ -6992,6 +7014,7 @@ SPECIAL(whisperwind)
     return FALSE;
   return FALSE;
 }
+#undef SPIRIT_EAGLE
 
 /* from homeland */
 SPECIAL(chionthar_ferry)

@@ -381,18 +381,19 @@ int regen_hps(struct char_data *ch)
 {
   int hp = 0;
 
+  /* base regen rate */
   if (rand_number(0, 1))
     hp++;
 
-  // position, other bonuses
-  if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
-    hp += dice(3, 2) + 1;
+  /* position bonus */
   else if (GET_POS(ch) == POS_RESTING)
     hp += dice(1, 2);
   else if (GET_POS(ch) == POS_RECLINING)
     hp += dice(1, 4);
   else if (GET_POS(ch) == POS_SLEEPING)
     hp += dice(3, 2);
+  if (GET_POS(ch) == POS_SITTING && SITTING(ch) && GET_OBJ_TYPE(SITTING(ch)) == ITEM_FURNITURE)
+    hp += dice(3, 2) + 1;
 
   if (HAS_FEAT(ch, FEAT_FAST_HEALING))
   {
@@ -407,6 +408,13 @@ int regen_hps(struct char_data *ch)
       hp += 3;
   }
 
+  if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) && HAS_FEAT(ch, FEAT_RENEWED_DEFENSE))
+  {
+    hp += 3;
+    if (FIGHTING(ch))
+      hp += 3;
+  }
+
   // shadow master feat
   if (IS_SHADOW_CONDITIONS(ch) && HAS_REAL_FEAT(ch, FEAT_SHADOW_MASTER))
   {
@@ -415,15 +423,26 @@ int regen_hps(struct char_data *ch)
       hp += 3;
   }
 
-  /* these are last bonuses because of multiplier */
+  /* these are last bonuses (outside of exceptions) because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
+  {
+    if (hp < 2)
+      hp = 2;
     hp *= 2;
+  }
 
   if (AFF_FLAGGED(ch, AFF_REGEN))
+  {
+    if (hp < 2)
+      hp = 2;
     hp *= 2;
+  }
 
+  /* exception bonuses */
   if (affected_by_spell(ch, PSIONIC_TRUE_METABOLISM))
     hp += 10;
+
+  /* penalties */
 
   /* blackmantle stops natural regeneration */
   if (AFF_FLAGGED(ch, AFF_BLACKMANTLE) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOHEAL))

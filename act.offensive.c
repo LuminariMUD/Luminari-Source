@@ -564,31 +564,37 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return FALSE;
   }
+
   if (MOB_FLAGGED(vict, MOB_NOKILL))
   {
     send_to_char(ch, "This mob is protected.\r\n");
     return FALSE;
   }
+
   if (!is_mission_mob(ch, vict))
   {
     send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return FALSE;
   }
+
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2)
   {
     send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too small!\r\n");
     return FALSE;
   }
+
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2)
   {
     send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too big!\r\n");
     return FALSE;
   }
+
   if (GET_POS(vict) == POS_SITTING)
   {
     send_to_char(ch, "You can't knock down something that is already down!\r\n");
     return FALSE;
   }
+
   if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
     act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!",
@@ -600,6 +606,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     change_position(ch, POS_SITTING);
     return FALSE;
   }
+
   if (MOB_FLAGGED(vict, MOB_NOBASH))
   {
     send_to_char(ch, "You realize you will probably not succeed:  ");
@@ -614,7 +621,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     act("$N via stability boots a knockdown attack from $n is resisted...  $N follows up with a counterattack!", FALSE, ch, 0, vict,
         TO_NOTVICT);
 
-    perform_knockdown(vict, ch, SKILL_TRIP);
+    perform_knockdown(vict, ch, SKILL_BASH);
 
     return FALSE;
   }

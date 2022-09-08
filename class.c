@@ -6309,7 +6309,7 @@ void load_class_list(void)
   feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 10, Y);
   feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SHRUG_DAMAGE, Y, 10, Y);
   feat_assignment(CLASS_STALWART_DEFENDER, FEAT_SMASH_DEFENSE, Y, 10, N);
-  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 9, Y);
+  feat_assignment(CLASS_STALWART_DEFENDER, FEAT_DEFENSIVE_STANCE, Y, 10, Y);
   /* no class feats */
   /* no spell assignment */
   /* class prereqs */
