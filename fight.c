@@ -3386,6 +3386,17 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       return -1;
     }
 
+    /* stalwart defender */
+    if (HAS_FEAT(victim, FEAT_LAST_WORD) && !rand_number(0, 9))
+    {
+      send_to_char(victim, "\tWYour defensive stance holds firm against the onlsaught!\tn\r\n");
+      send_to_char(ch, "\tRYou fail to cause %s any harm as the defensive stance holds firms!\tn\r\n",
+                   GET_NAME(victim));
+      act("$n fails to harm $N as the defensive stance holds firm!", FALSE, ch, 0, victim,
+          TO_NOTVICT);
+      return -1;
+    }
+
     /* mirror image gives (1 / (# of image + 1)) chance of hitting */
     /* Don't allow mirror image to absorb spells - Danavan 2018-04-09 */
     if (!is_spell && (affected_by_spell(victim, SPELL_MIRROR_IMAGE) || affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) && dam > 0)
