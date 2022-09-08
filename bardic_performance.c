@@ -250,13 +250,18 @@ ACMD(do_perform)
   return;
 }
 
-/* function for processing individual effects */
-
+/* function for processing individual effects for the performance */
 int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum, int effectiveness, int aoe)
 {
-  int return_val = 1, i = 0;
+  int return_val = 1, i = 0; /* return_val is 1, very limited reasons to fail here! */
   bool nomessage = FALSE, engage = TRUE;
   struct affected_type af[BARD_AFFECTS];
+
+  if (!ch)
+    return 0;
+
+  if (!tch)
+    return 0;
 
   /* init affect array */
   for (i = 0; i < BARD_AFFECTS; i++)
@@ -264,11 +269,15 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     new_affect(&(af[i]));
 
     af[i].spell = spellnum;
-    af[i].duration = 2;
+    af[i].duration = 3;
     af[i].bonus_type = BONUS_TYPE_INHERENT;
     af[i].modifier = 1;
     af[i].location = APPLY_NONE;
   }
+
+  /* dummy check: still issues with AC */
+  if (!IS_NPC(tch) && tch->desc)
+    save_char(tch, 0);
 
   if (affected_by_spell(tch, spellnum))
   {
@@ -278,25 +287,28 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     update_pos(tch);
   }
 
+  /* dummy check: still issues with AC */
+  if (!IS_NPC(tch) && tch->desc)
+    save_char(tch, 0);
+
   switch (spellnum)
   {
 
   case SKILL_SONG_OF_HEALING:
-    if (GET_HIT(tch) < GET_MAX_HIT(tch))
-    {
-      send_to_char(tch, "You are soothed by the power of music!\r\n");
-      process_healing(ch, tch, SKILL_SONG_OF_HEALING, rand_number(effectiveness / 2, effectiveness * 2), 0);
-
-      // alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
-    }
+    send_to_char(tch, "You are soothed by the power of music!\r\n");
+    process_healing(ch, tch, SKILL_SONG_OF_HEALING, rand_number(effectiveness, effectiveness * 2 + 10), 0);
     break;
 
   case SKILL_DANCE_OF_PROTECTION:
     af[0].location = APPLY_AC_NEW;
-    af[0].modifier = (effectiveness + 1) / 10;
+    af[0].modifier = (effectiveness + 1) / 7;
 
     af[1].location = APPLY_SAVING_WILL;
     af[1].modifier = effectiveness / 6;
+
+    af[2].location = APPLY_DR;
+    af[2].modifier = effectiveness / 13;
+
     break;
 
   case SKILL_SONG_OF_HEROISM:
@@ -304,8 +316,18 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[0].modifier = 1 + effectiveness / 10;
 
     af[1].location = APPLY_DAMROLL;
-    af[1].modifier = effectiveness / 13;
-    if (GET_LEVEL(ch) >= 19 && !AFF_FLAGGED(tch, AFF_HASTE))
+    af[1].modifier = effectiveness / 10;
+
+    af[2].location = APPLY_STR;
+    af[2].modifier = effectiveness / 10;
+
+    af[3].location = APPLY_DEX;
+    af[3].modifier = effectiveness / 10;
+
+    af[4].location = APPLY_CON;
+    af[4].modifier = effectiveness / 10;
+
+    if (GET_LEVEL(ch) >= 10 && !AFF_FLAGGED(tch, AFF_HASTE))
     {
       SET_BIT_AR(af[1].bitvector, AFF_HASTE);
       act("You feel the world slow down around you.", FALSE, tch, 0, 0,
@@ -321,7 +343,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       send_to_char(tch, "You are soothed by the power of music!\r\n");
       alter_hit(tch, -rand_number(effectiveness / 3, effectiveness / 2), FALSE);
     }
-    alter_move(tch, -rand_number(effectiveness / 3, effectiveness / 2));
+
+    alter_move(tch, -rand_number(effectiveness * 4, effectiveness * 6));
+
     if (rand_number(0, 100) < effectiveness && affected_by_spell(tch, SPELL_POISON))
     {
       affect_from_char(tch, SPELL_POISON);
@@ -370,8 +394,6 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     {
       send_to_char(tch, "You are soothed by the power of music!\r\n");
       process_healing(ch, tch, SKILL_SONG_OF_DRAGONS, rand_number(effectiveness / 2, effectiveness * 2), 0);
-
-      // alter_hit(tch, -rand_number(effectiveness / 2, effectiveness * 2), FALSE);
     }
 
     af[0].location = APPLY_AC_NEW;
@@ -412,6 +434,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     if (IS_NPC(tch) && rand_number(0, 100) < effectiveness)
     {
       clearMemory(tch);
+
+      if (FIGHTING(tch))
+        stop_fighting(tch);
+
       engage = FALSE;
     }
     break;
@@ -430,12 +456,14 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   /* increases memming / casting effectiveness */
   case SKILL_SONG_OF_FOCUSED_MIND:
     af[0].location = APPLY_INT;
-    af[0].modifier = 1 + effectiveness / 10;
+    af[0].modifier = 1 + effectiveness / 7;
     af[1].location = APPLY_WIS;
-    af[1].modifier = 1 + effectiveness / 10;
+    af[1].modifier = 1 + effectiveness / 7;
     af[2].location = APPLY_CHA;
-    af[2].modifier = 1 + effectiveness / 10;
+    af[2].modifier = 1 + effectiveness / 7;
+
     /* using affected_by_spell() for memorization bonus */
+
     break;
 
   /* enemy fight less effective / flee */
@@ -450,6 +478,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       break;
     if (AFF_FLAGGED(tch, AFF_MIND_BLANK))
       break;
+
     if (rand_number(0, 100) < effectiveness)
     {
       act("$n shivers with fear.", FALSE, tch, 0, 0, TO_ROOM);
@@ -467,6 +496,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
       af[0].location = APPLY_DAMROLL;
       af[0].modifier = -effectiveness / 5;
+
+      SET_BIT_AR(af[1].bitvector, AFF_SLOW);
       af[1].location = APPLY_AC_NEW;
       af[1].modifier = -effectiveness / 9;
     }
@@ -479,8 +510,18 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       act("$n seems more vulnerable to magic.", FALSE, tch, 0, 0, TO_ROOM);
       af[0].location = APPLY_SAVING_WILL;
       af[0].modifier = -(1 + effectiveness / 4);
+
       af[1].location = APPLY_SPELL_RES;
       af[1].modifier = -(2 + effectiveness / 10);
+
+      af[2].location = APPLY_INT;
+      af[2].modifier = 1 + effectiveness / 7;
+
+      af[3].location = APPLY_WIS;
+      af[3].modifier = 1 + effectiveness / 7;
+
+      af[4].location = APPLY_CHA;
+      af[4].modifier = 1 + effectiveness / 7;
     }
     break;
 
@@ -495,18 +536,22 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   } /* end switch */
 
   /*** now we apply the affection(s) */
-  if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
+
+  /* dummy check: still issues with AC */
+  if (!IS_NPC(tch) && tch->desc)
     save_char(tch, 0);
 
   for (i = 0; i < BARD_AFFECTS; i++)
   {
     /* lingering song bonus */
     if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
-      af[i].duration += 2;
-    if (spellnum == SKILL_SONG_OF_DRAGONS)
-      af[i].duration += 2;
+      af[i].duration += 3;
+
+    /* attach the affections! */
     affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
-    if (!IS_NPC(tch) && tch->desc) /* still issues with AC */
+
+    /* dummy check: still issues with AC */
+    if (!IS_NPC(tch) && tch->desc)
       save_char(tch, 0);
   }
   /****/
@@ -536,6 +581,7 @@ int process_performance(struct char_data *ch, int spellnum,
 {
   struct char_data *tch = NULL, *tch_next = NULL;
   int return_val = 1;
+  bool hit_self = FALSE, hit_leader = FALSE;
 
   /* performance message */
   switch (spellnum)
@@ -625,6 +671,35 @@ int process_performance(struct char_data *ch, int spellnum,
         /* found a grouppie! */
         performance_effects(ch, tch, spellnum, effectiveness, aoe);
       }
+
+      while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
+             NULL)
+      {
+        if (IN_ROOM(tch) != IN_ROOM(ch))
+          continue;
+
+        if (tch == ch) /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+          hit_self = TRUE;
+
+        /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+        if (GROUP(ch)->leader && GROUP(ch)->leader == tch)
+          hit_leader = TRUE;
+
+        performance_effects(ch, tch, spellnum, effectiveness, aoe);
+      }
+
+      /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+      if (!hit_self)
+      {
+        performance_effects(ch, ch, spellnum, effectiveness, aoe);
+
+        if (ch == GROUP(ch)->leader)
+          hit_leader = TRUE;
+      }
+
+      /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
+      if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
+        performance_effects(ch, GROUP(ch)->leader, spellnum, effectiveness, aoe);
     }
     break;
 

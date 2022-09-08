@@ -5856,7 +5856,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {
       send_to_char(ch, "Your opponent seems immune to being deafened.\r\n");
       return;
-    
     }
     if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, ABJURATION) && !mag_resistance(ch, victim, 0))
     {
@@ -7593,6 +7592,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
    */
 bool process_healing(struct char_data *ch, struct char_data *victim, int spellnum, int healing, int move)
 {
+  int start = GET_HIT(victim);
 
   /* black mantle reduces effectiveness of healing by 20% */
   if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
@@ -7602,27 +7602,42 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   if (HAS_FEAT(ch, FEAT_EMPOWERED_HEALING))
     healing = (float)healing * 1.50;
 
+  /* message to ch / victim */
   send_to_char(ch, "<%d> ", healing);
   if (ch != victim)
     send_to_char(victim, "<%d> ", healing);
 
-  /* restore HP now, some spells/effects can heal over your MAX hp */
-  if (spellnum == RACIAL_LICH_TOUCH || spellnum == -1)
+  /* any special handling due to specific spellnum? */
+  switch (spellnum)
   {
 
+  /* restore HP now, some spells/effects can heal over your MAX hp */
+  case -1:
+  /* fallthrough! */
+  case RACIAL_LICH_TOUCH:
+  /* fallthrough! */
+  case SKILL_SONG_OF_HEALING:
     if (GET_HIT(victim) < (GET_MAX_HIT(victim) * 2))
       GET_HIT(victim) += healing;
-  }
-  else
-  {
+    break;
+
+  default:
+    /* generic healing */
     GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
+    break;
   }
 
+  /* this is for movement */
   GET_MOVE(victim) = MIN(GET_MAX_MOVE(victim), GET_MOVE(victim) + move);
 
+  /* standard practice! */
   update_pos(victim);
 
-  return TRUE;
+  /* we improved our starting hp */
+  if (GET_HIT(victim) > start)
+    return TRUE;
+
+  return FALSE;
 }
 
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
