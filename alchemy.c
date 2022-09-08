@@ -2231,6 +2231,8 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
     af5.modifier = 2;
   }
 
+  /* we switched it so you get full alchemical bonus after level 10 */
+  /*
   if (alchemical_bonus)
   {
     af.modifier /= 2;
@@ -2238,6 +2240,7 @@ void perform_mutagen(struct char_data *ch, char *arg2, bool alchemical_bonus)
     af4.modifier /= 2;
     af5.modifier /= 2;
   }
+  */
 
   if (af.modifier != 0)
   {

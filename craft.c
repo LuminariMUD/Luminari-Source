@@ -47,7 +47,7 @@ int foresting_nodes = 0;
 /***********************************/
 
 /* charts for weapon resize, if weapon dice don't fall on any of these, invalid */
-int weapon_damage_a[NUM_SIZES][2] = {
+int weapon_damage_a[NUM_SIZES - 1][2] = {
     /* num_dice, siz_dice */
     {
         0,
@@ -60,37 +60,37 @@ int weapon_damage_a[NUM_SIZES][2] = {
     {
         1,
         3,
-    },
+    }, /* diminutive */
     {
         1,
         4,
-    },
+    }, /* tiny */
     {
         1,
         6,
-    },
+    }, /* small */
     {
         1,
         8,
-    },
+    }, /* medium */
     {
-        2,
-        6,
-    },
+        1,
+        12,
+    }, /* large */
     {
-        3,
-        6,
-    },
+        4,
+        4,
+    }, /* huge */
     {
         4,
         6,
-    },
+    }, /* gargantuan */
     {
         6,
         6,
     }, // colossal
 };
-int weapon_damage_b[NUM_SIZES][2] = {
+int weapon_damage_b[NUM_SIZES - 1][2] = {
     /* num_dice, siz_dice */
     {
         0,
@@ -103,37 +103,37 @@ int weapon_damage_b[NUM_SIZES][2] = {
     {
         2,
         1,
-    },
+    }, /* diminutive */
     {
         2,
         3,
-    },
+    }, /* tiny */
     {
         1,
         7,
-    },
+    }, /* small */
     {
         2,
         4,
-    },
+    }, /* medium */
     {
-        1,
-        12,
-    },
+        2,
+        6,
+    }, /* large */
     {
-        4,
-        4,
-    },
+        3,
+        6,
+    }, /* huge */
     {
         6,
         4,
-    },
+    }, /* gargantuan */
     {
         5,
         8,
     }, // colossal
 };
-int weapon_damage_c[NUM_SIZES][2] = {
+int weapon_damage_c[NUM_SIZES - 1][2] = {
     /* num_dice, siz_dice */
     {
         0,
@@ -150,27 +150,27 @@ int weapon_damage_c[NUM_SIZES][2] = {
     {
         2,
         2,
-    },
+    }, /* tiny */
     {
         3,
         2,
-    },
+    }, /* small */
     {
         1,
         9,
-    },
+    }, /* medium */
     {
         1,
         10,
-    },
+    }, /* large */
     {
         2,
         8,
-    },
+    }, /* huge */
     {
         3,
         8,
-    },
+    }, /* gargantuan */
     {
         4,
         8,
