@@ -121,6 +121,7 @@ SPECIAL_DECL(fzoul);
 
 /* g-i */
 SPECIAL_DECL(gatehouse_guard);
+SPECIAL_DECL(speed_gaunts);
 SPECIAL_DECL(gen_board);
 SPECIAL_DECL(giantslayer);
 SPECIAL_DECL(greatsword);

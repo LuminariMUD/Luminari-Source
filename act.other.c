@@ -4047,6 +4047,7 @@ ACMD(do_lore)
   /* good enough lore for mobile? */
   knowledge = FALSE;
   lore_bonus += HAS_FEAT(ch, FEAT_MONSTER_LORE) ? GET_WIS_BONUS(ch) : 0;
+
   if (tch && (GET_LEVEL(tch) * 2) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
   {
     knowledge = TRUE;
