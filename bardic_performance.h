@@ -15,10 +15,17 @@ extern "C"
 /* includes */
 #include "utils.h" /* for the ACMD macro */
 
+    /* functions */
+    extern struct room_data *world;
+    extern void clearMemory(struct char_data *ch);
+    extern const char *spells[];
+    ACMD_DECL(do_perform);
+
 /* defines */
 #define VERSE_INTERVAL (11 RL_SEC)
 #define MAX_PERFORMANCES 12
 #define MAX_PRFM_EFFECT 60 /* maximum effectiveness of performance */
+#define MAX_INSTRUMENT_EFFECT 20
 
 /* lookup components for song_info */
 #define PERFORMANCE_SKILLNUM 0
@@ -57,13 +64,8 @@ extern "C"
 #define PERFORM_AOE_GROUP 1
 #define PERFORM_AOE_ROOM 2
 #define PERFORM_AOE_FOES 3
-        /**/ #define NUM_PERFORM_AOE 4
-
-        /* functions */
-        extern struct room_data *world;
-    extern void clearMemory(struct char_data *ch);
-    extern const char *spells[];
-    ACMD_DECL(do_perform);
+/**/
+#define NUM_PERFORM_AOE 4
 
 /*********************************************************/
 #ifdef __cplusplus
