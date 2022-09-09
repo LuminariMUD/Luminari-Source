@@ -47,7 +47,7 @@ int foresting_nodes = 0;
 /***********************************/
 
 /* charts for weapon resize, if weapon dice don't fall on any of these, invalid */
-int weapon_damage_a[NUM_SIZES - 1][2] = {
+int weapon_damage_a[NUM_SIZES][2] = {
     /* num_dice, siz_dice */
     {
         0,
@@ -90,7 +90,7 @@ int weapon_damage_a[NUM_SIZES - 1][2] = {
         6,
     }, // colossal
 };
-int weapon_damage_b[NUM_SIZES - 1][2] = {
+int weapon_damage_b[NUM_SIZES][2] = {
     /* num_dice, siz_dice */
     {
         0,
@@ -133,7 +133,7 @@ int weapon_damage_b[NUM_SIZES - 1][2] = {
         8,
     }, // colossal
 };
-int weapon_damage_c[NUM_SIZES - 1][2] = {
+int weapon_damage_c[NUM_SIZES][2] = {
     /* num_dice, siz_dice */
     {
         0,
