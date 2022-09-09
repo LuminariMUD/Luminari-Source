@@ -419,12 +419,6 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
   case SKILL_SONG_OF_DRAGONS:
 
-    if (GET_HIT(tch) < GET_MAX_HIT(tch))
-    {
-      send_to_char(tch, "You are soothed by the power of music!\r\n");
-      process_healing(ch, tch, SKILL_SONG_OF_DRAGONS, rand_number(effectiveness / 2, effectiveness * 2), 0);
-    }
-
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = MAX(1, (effectiveness + 2) / 9);
     af[0].bonus_type = BONUS_TYPE_INHERENT;
