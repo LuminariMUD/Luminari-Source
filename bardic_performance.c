@@ -275,10 +275,6 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[i].location = APPLY_NONE;
   }
 
-  /* dummy check: still issues with AC */
-  if (!IS_NPC(tch) && tch->desc)
-    save_char(tch, 0);
-
   if (affected_by_spell(tch, spellnum))
   {
     nomessage = TRUE;
@@ -536,11 +532,6 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   } /* end switch */
 
   /*** now we apply the affection(s) */
-
-  /* dummy check: still issues with AC */
-  if (!IS_NPC(tch) && tch->desc)
-    save_char(tch, 0);
-
   for (i = 0; i < BARD_AFFECTS; i++)
   {
     /* lingering song bonus */
@@ -549,12 +540,12 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
     /* attach the affections! */
     affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
-
-    /* dummy check: still issues with AC */
-    if (!IS_NPC(tch) && tch->desc)
-      save_char(tch, 0);
   }
   /****/
+
+  /* dummy check: still issues with AC */
+  if (!IS_NPC(tch) && tch->desc)
+    save_char(tch, 0);
 
   /* aggressive song should engage foes */
   if (aoe == PERFORM_AOE_FOES && engage)
