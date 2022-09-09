@@ -7899,7 +7899,7 @@ SPECIAL(bolthammer)
   return TRUE;
 }
 
-/* from homeland */
+/* from jot i think */
 SPECIAL(rughnark)
 {
   if (!ch)
@@ -7911,16 +7911,19 @@ SPECIAL(rughnark)
     return TRUE;
   }
 
-  int dam = 0;
-  struct char_data *vict = FIGHTING(ch);
+  if (!is_wearing(ch, 114838))
+    return FALSE;
 
   if (cmd)
     return FALSE;
 
-  if (!vict)
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
     return FALSE;
 
-  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
+  int dam = 0;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!vict)
     return FALSE;
 
   if (dice(1, 40) < 38)
@@ -7949,6 +7952,90 @@ SPECIAL(rughnark)
       ch, vict, (struct obj_data *)me, 0);
   damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
   return TRUE;
+}
+
+/* from the prisoner trove 132128 */
+SPECIAL(speed_gaunts)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Extra attacks & chance to do a powerful vamp attack (powerful monks only)\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132128))
+    return FALSE;
+
+  if (cmd)
+    return FALSE;
+
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
+    return FALSE;
+
+  int dam = 0, num_hits = 0;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!vict)
+    return FALSE;
+
+  struct obj_data *gaunts = (struct obj_data *)me;
+
+  /* odds to succeed on vamp proc */
+  if (!rand_number(0, 37))
+  {
+
+    dam = rand_number(175, 300);
+
+    weapons_spells(
+        "\tWSuddenly, $p\tW glows brightly as your body starts to \tCflicker\tW in and out of reality!  "
+        "You \tCphase away\tW, dodging \tn$N's\tW attack and quickly \tCphase back\tW \twslamming your "
+        "gauntlets powerfully\tW into $N where upon impact they flare with \tRvampiric power\tW drawing "
+        "the lifeforce out of $M !\tn",
+
+        "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
+        "$n \tCphases away\tW, dodging your attack and quickly \tCphases back\tW slamming $s gauntlets "
+        "powerfully into you where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
+        "out of you!\tn",
+
+        "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
+        "$n \tCphases away\tW, dodging $N's\tW attack and quickly \tCphases back\tW slamming $s gauntlets "
+        "powerfully into $N\tW where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
+        "out of you!\tn",
+        ch,
+        vict,
+        gaunts,
+        0);
+    damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
+    process_healing(ch, vict, -1, dam, 0);
+
+    return TRUE;
+  }
+
+  /* we failed vamp, lets try for the attack-blur proc */
+  else if (!rand_number(0, 26))
+  {
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as your strikes begin to speed up!",
+        TRUE, ch, gaunts, vict, TO_CHAR);
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
+        TRUE, ch, gaunts, vict, TO_VICT);
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
+        TRUE, ch, gaunts, vict, TO_NOTVICT);
+
+    num_hits = rand_number(4, 7);
+
+    for (i = 0; i <= num_hits; i++)
+    {
+      if (valid_fight_cond(ch, TRUE))
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    }
+
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /* from homeland */
