@@ -7608,21 +7608,29 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
     send_to_char(victim, "<%d> ", healing);
 
   /* any special handling due to specific spellnum? */
-  switch (spellnum)
+  if (spellnum == -1)
   {
-
-  /* restore HP now, some spells/effects can heal over your MAX hp */
-  case -1: /* -1 can be used here for when we don't have a spellnum but still want vamp */
-  /* fallthrough! */
-  case RACIAL_LICH_TOUCH:
+    /* restore HP now, some spells/effects can heal over your MAX hp */
     if (GET_HIT(victim) < (GET_MAX_HIT(victim) * 2))
       GET_HIT(victim) += healing;
-    break;
+  }
+  else
+  {
+    /* any other special handling due to specific spellnum? */
+    switch (spellnum)
+    {
 
-  default:
-    /* generic healing */
-    GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
-    break;
+    /* restore HP now, some spells/effects can heal over your MAX hp */
+    case RACIAL_LICH_TOUCH:
+      if (GET_HIT(victim) < (GET_MAX_HIT(victim) * 2))
+        GET_HIT(victim) += healing;
+      break;
+
+    default:
+      /* generic healing */
+      GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
+      break;
+    }
   }
 
   /* this is for movement */
