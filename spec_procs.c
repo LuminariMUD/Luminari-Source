@@ -7907,34 +7907,32 @@ SPECIAL(rughnark)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Proc: magical damage 25+10d4 for monk.\r\n");
+    send_to_char(ch, "Proc: magical damage 25+10d4 for high level monks.  Will work better for non-good monks\r\n");
     return TRUE;
   }
 
   int dam = 0;
-  struct char_data *vict = 0;
+  struct char_data *vict = FIGHTING(ch);
 
   if (cmd)
     return FALSE;
 
-  if (!FIGHTING(ch))
-    return FALSE;
-
-  if (dice(1, 40) < 39)
-    return FALSE;
-
-  if (IS_GOOD(ch) && dice(1, 10) > 5)
+  if (!vict)
     return FALSE;
 
   if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
     return FALSE;
 
-  vict = FIGHTING(ch);
+  if (dice(1, 40) < 38)
+    return FALSE;
+
+  if (IS_GOOD(ch) && dice(1, 10) > 5)
+    return FALSE;
+
   dam = 25 + dice(10, 4);
+
   if (dam > GET_HIT(vict))
     dam = GET_HIT(vict);
-  if (dam < 50)
-    return FALSE;
 
   weapons_spells(
       "\tLAs you make contact with your opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
