@@ -6758,6 +6758,9 @@ void load_class_list(void)
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMBS, Y, 30, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_ALCHEMICAL_DISCOVERY, Y, 30, Y);
   feat_assignment(CLASS_ALCHEMIST, FEAT_BOMB_MASTERY, Y, 30, Y);
+  /* this we may be taking away from them */
+  spell_assignment(CLASS_ALCHEMIST, SPELL_GREATER_RUIN, 21);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_MUMMY_DUST, 21);
 
   /****************************************************************************/
   /*     class-number               name      abrv   clr-abrv     menu-name*/
