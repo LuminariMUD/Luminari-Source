@@ -713,6 +713,7 @@ void assign_objects(void)
   // ASSIGNOBJ(132109, magi_staff);
   ASSIGNOBJ(132104, star_circlet);
   ASSIGNOBJ(132101, malevolence);
+  ASSIGNOBJ(132128, speed_gaunts);
   ASSIGNOBJ(132126, rune_scimitar);
   ASSIGNOBJ(132133, stability_boots);
 
@@ -1037,6 +1038,7 @@ static const struct spec_func_data spec_func_list[] = {
 
     /* g-i */
     {"Gatehouse Guard", gatehouse_guard, ""},
+    {"Gauntlets of Speed", speed_gaunts, ""},
     {"Bulletin Board", gen_board, ""},
     {"Giantslayer", giantslayer, ""},
     {"Greatsword", greatsword, ""},
