@@ -7612,11 +7612,9 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   {
 
   /* restore HP now, some spells/effects can heal over your MAX hp */
-  case -1:
+  case -1: /* -1 can be used here for when we don't have a spellnum but still want vamp */
   /* fallthrough! */
   case RACIAL_LICH_TOUCH:
-  /* fallthrough! */
-  case SKILL_SONG_OF_HEALING:
     if (GET_HIT(victim) < (GET_MAX_HIT(victim) * 2))
       GET_HIT(victim) += healing;
     break;
@@ -8056,17 +8054,24 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     return;
   }
 
+  /* this is to try and clean up bits related to the spell */
   for (af = victim->affected; af; af = af->next)
   {
-    if (IS_SET_AR(af->bitvector, affect))
+    if (af && affect && IS_SET_AR(af->bitvector, affect))
     {
-      affect_from_char(victim, af->spell);
-      found = TRUE;
+      if (victim && af->spell)
+      {
+        affect_from_char(victim, af->spell);
+        found = TRUE;
+      }
     }
-    if (affect2 && IS_SET_AR(af->bitvector, affect2))
+    if (af && affect2 && IS_SET_AR(af->bitvector, affect2))
     {
-      affect_from_char(victim, af->spell);
-      found = TRUE;
+      if (victim && af->spell)
+      {
+        affect_from_char(victim, af->spell);
+        found = TRUE;
+      }
     }
   }
 

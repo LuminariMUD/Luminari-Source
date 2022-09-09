@@ -1171,14 +1171,14 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_vicious)
     if (OBJ_FLAGGED(weapon, ITEM_VICIOUS))
       if (victim)
       {
-        damage(ch, victim, dice(2, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
-        damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+        damage(ch, victim, dice(3, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+        damage(ch, ch, dice(1, 4), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
       }
     break;
   case ACTMTD_ON_CRIT:
     if (victim)
     {
-      damage(ch, victim, dice(3, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
+      damage(ch, victim, dice(6, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
       damage(ch, ch, dice(1, 6), TYPE_SPECAB_BLEEDING, DAM_NEGATIVE, FALSE);
     }
     break;

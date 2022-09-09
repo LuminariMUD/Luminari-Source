@@ -99,13 +99,15 @@ int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
 };
 
 /* local functions for modifying chars points (hitpoints or moves)
- * note: negative (-) is healing */
+ * note: negative (-) is healing -- 09/2022, replaced with process_healing() -zusuk */
 static void alter_hit(struct char_data *ch, int points, bool unused)
 {
   GET_HIT(ch) -= points;
   GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
   update_pos(ch);
 }
+
+/* local functions for modifying chars points (hitpoints or moves) */
 static void alter_move(struct char_data *ch, int points)
 {
   GET_MOVE(ch) -= points;
@@ -113,6 +115,7 @@ static void alter_move(struct char_data *ch, int points)
   update_pos(ch);
 }
 
+/* will list to the performer which performances are available to them */
 void list_available_performances(struct char_data *ch)
 {
   int i = 0;
@@ -129,6 +132,81 @@ void list_available_performances(struct char_data *ch)
     }
   }
   send_to_char(ch, "\r\n");
+}
+
+/* this function checks whether the conditions for starting/continuing a performance are in place
+     in: performer(ch), performance_num,
+         need to check whether they are already performing?
+         silent (should we be silent and not send ch messages?)
+     out:  0 - FALSE, 1 - TRUE   i.e. whether we can continue/start performing -zusuk */
+int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent)
+{
+  struct char_data *vict = NULL, *next_vict = NULL;
+
+  if (!ch)
+    return 0;
+
+  /* check for disqualifiers */
+  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC))
+  {
+    if (!silent)
+      send_to_char(ch, "You don't know how to perform.\r\n");
+    return 0;
+  }
+
+  if (char_has_mud_event(ch, ePERFORM)) /* OLD perform, this is a dummy check -zusuk */
+  {
+    if (!silent)
+      send_to_char(ch, "You are already performing!\r\n");
+    return 0;
+  }
+
+  if (need_check && char_has_mud_event(ch, eBARDIC_PERFORMANCE))
+  {
+    if (!silent)
+      send_to_char(ch, "You are already in the middle of a performance!\r\n");
+    return 0;
+  }
+
+  if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
+      (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
+       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
+  {
+    if (!silent)
+      send_to_char(ch, "The silence effectively stops your performance.\r\n");
+    return 0;
+  }
+
+  if (GET_POS(ch) < POS_FIGHTING)
+  {
+    if (!silent)
+      send_to_char(ch, "You can't concentrate on your performance when you are in "
+                       "this position.\r\n");
+    return 0;
+  }
+
+  /***** new limit - only one bard in the room performing, sorry! ******/
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE))
+    {
+      if (!silent)
+        send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n", GET_NAME(vict));
+      return 0;
+    }
+  }
+
+  /* the check for hunger/thirst/etc WOULD to be here */
+  /***/
+
+  /* we made it! */
+  return 1;
 }
 
 /* primary command entry point for the bardic performance */
@@ -176,57 +254,12 @@ ACMD(do_perform)
       else
       {
         /* check for disqualifiers */
-        if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC))
+        if (!can_perform(ch, i, TRUE, FALSE))
         {
-          send_to_char(ch, "You don't know how to perform.\r\n");
-          return;
+          /* we DO check if they have a bardic_performanc event here represented by the first TRUE */
+          /* the messages were sent via the last FALSE in can_perform()! */
+          return 0;
         }
-        if (char_has_mud_event(ch, ePERFORM))
-        {
-          send_to_char(ch, "You are already performing!\r\n");
-          return;
-        }
-        if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
-        {
-          send_to_char(ch, "You are already in the middle of a performance!\r\n");
-          return;
-        }
-        if (compute_ability(ch, ABILITY_PERFORM) < performance_info[i][PERFORMANCE_DIFF])
-        {
-          send_to_char(ch, "You are not trained enough for this performance! "
-                           "(need: %d 'perform' ability)\r\n",
-                       performance_info[i][PERFORMANCE_DIFF]);
-          return;
-        }
-        if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
-            (performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
-             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
-             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
-             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
-             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
-             performance_info[i][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
-        {
-          send_to_char(ch, "The silence effectively stops your performance.\r\n");
-          return;
-        }
-        if (GET_POS(ch) < POS_FIGHTING)
-        {
-          send_to_char(ch, "You can't concentrate on your performance when you are in "
-                           "this position.\r\n");
-          return;
-        }
-
-        /* this isn't necessary */
-        /*
-        if (performance_info[i][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
-               !GROUP(ch)) {
-          send_to_char(ch, "This performance requires a group.\r\n");
-          return;
-        }
-
-        */
-        /* the check for hunger/thirst WOULD to be here */
-        /***/
 
         /* SUCCESS! */
         act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
@@ -566,8 +599,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   return return_val;
 }
 
-/* main function for performance effects / message / etc */
-int process_performance(struct char_data *ch, int spellnum,
+/* main function for performance effects / message / targets / etc */
+int process_performance(struct char_data *ch, int performance_num,
                         int effectiveness, int aoe)
 {
   struct char_data *tch = NULL, *tch_next = NULL;
@@ -575,7 +608,7 @@ int process_performance(struct char_data *ch, int spellnum,
   bool hit_self = FALSE, hit_leader = FALSE;
 
   /* performance message */
-  switch (spellnum)
+  switch (performance_num)
   {
   case SKILL_SONG_OF_HEALING:
     act("You sing a song to heal all wounds.", FALSE, ch, 0, 0, TO_CHAR);
@@ -637,8 +670,8 @@ int process_performance(struct char_data *ch, int spellnum,
   default:
     return_val = 0;
     log("SYSERR: messages in process_performance reached default case! "
-        "(spellnum: %d)",
-        spellnum);
+        "(performance_num: %d)",
+        performance_num);
     break;
   }
 
@@ -650,18 +683,10 @@ int process_performance(struct char_data *ch, int spellnum,
   case PERFORM_AOE_GROUP:
     if (!GROUP(ch))
     { /* self only */
-      performance_effects(ch, ch, spellnum, effectiveness, aoe);
+      performance_effects(ch, ch, performance_num, effectiveness, aoe);
     }
     else
     {
-      while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
-             NULL)
-      {
-        if (IN_ROOM(tch) != IN_ROOM(ch))
-          continue;
-        /* found a grouppie! */
-        performance_effects(ch, tch, spellnum, effectiveness, aoe);
-      }
 
       while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
              NULL)
@@ -676,13 +701,13 @@ int process_performance(struct char_data *ch, int spellnum,
         if (GROUP(ch)->leader && GROUP(ch)->leader == tch)
           hit_leader = TRUE;
 
-        performance_effects(ch, tch, spellnum, effectiveness, aoe);
+        performance_effects(ch, tch, performance_num, effectiveness, aoe);
       }
 
       /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
       if (!hit_self)
       {
-        performance_effects(ch, ch, spellnum, effectiveness, aoe);
+        performance_effects(ch, ch, performance_num, effectiveness, aoe);
 
         if (ch == GROUP(ch)->leader)
           hit_leader = TRUE;
@@ -690,7 +715,7 @@ int process_performance(struct char_data *ch, int spellnum,
 
       /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
       if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
-        performance_effects(ch, GROUP(ch)->leader, spellnum, effectiveness, aoe);
+        performance_effects(ch, GROUP(ch)->leader, performance_num, effectiveness, aoe);
     }
     break;
 
@@ -702,9 +727,9 @@ int process_performance(struct char_data *ch, int spellnum,
       tch_next = tch->next_in_room;
 
       /* check if offensive aoe is OK */
-      if (aoeOK(ch, tch, spellnum))
+      if (aoeOK(ch, tch, performance_num))
       {
-        performance_effects(ch, tch, spellnum, effectiveness, aoe);
+        performance_effects(ch, tch, performance_num, effectiveness, aoe);
       }
     } /* end for loop */
     break;
@@ -716,14 +741,14 @@ int process_performance(struct char_data *ch, int spellnum,
     {
       tch_next = tch->next_in_room;
 
-      performance_effects(ch, tch, spellnum, effectiveness, aoe);
+      performance_effects(ch, tch, performance_num, effectiveness, aoe);
     } /* end for loop */
     break;
 
   default:
     log("SYSERR: aoe-switch in process_performance reached default case! "
-        "(spellnum: %d)",
-        spellnum);
+        "(performance_num: %d)",
+        performance_num);
     return_val = 0;
     break;
   }
@@ -774,49 +799,12 @@ EVENTFUNC(event_bardic_performance)
   /* finished handling event data */
 
   /* disqualifiers */
-  if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC))
+  if (!can_perform(ch, performance_num, FALSE, FALSE))
   {
-    send_to_char(ch, "You don't know how to perform.\r\n");
+    /* we don't check if they have a bardic_performanc event here represented by the first FALSE */
+    /* the messages were sent via the last FALSE in can_perform()! */
     return 0;
   }
-  if (char_has_mud_event(ch, ePERFORM))
-  {
-    send_to_char(ch, "You are already performing!\r\n");
-    return 0;
-  }
-  if (compute_ability(ch, ABILITY_PERFORM) <= performance_info[performance_num][PERFORMANCE_DIFF])
-  {
-    send_to_char(ch, "You are not trained enough for this performance! "
-                     "(need: %d performance ability)\r\n",
-                 performance_info[performance_num][PERFORMANCE_DIFF]);
-    return 0;
-  }
-  if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
-      (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
-       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_ORATORY ||
-       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_PERCUSSION ||
-       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_STRING ||
-       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_WIND ||
-       performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_SING))
-  {
-    send_to_char(ch, "The silence effectively stops your performance.\r\n");
-    return 0;
-  }
-  if (GET_POS(ch) < POS_FIGHTING)
-  {
-    send_to_char(ch, "You can't concentrate on your performance when you are in "
-                     "this position.\r\n");
-    return 0;
-  }
-
-  /* not necessary */
-  /*
-  if (performance_info[performance_num][PERFORMANCE_AOE] == PERFORM_AOE_GROUP &&
-          !GROUP(ch)) {
-    send_to_char(ch, "This performance requires a group.\r\n");
-    return 0;
-  }
-  */
 
   /* the check for hunger/thirst WOULD to be here */
   /***/
@@ -875,8 +863,9 @@ EVENTFUNC(event_bardic_performance)
     }
   }
 
-  if (effectiveness > 20)
-    effectiveness = 20;
+  /* cap how effective our base roll + instruments can help us */
+  if (effectiveness > MAX_INSTRUMENT_EFFECT)
+    effectiveness = MAX_INSTRUMENT_EFFECT;
 
   /* if fighting, 1/2 effect of it.*/
   if (FIGHTING(ch))
@@ -885,6 +874,7 @@ EVENTFUNC(event_bardic_performance)
     effectiveness /= 2;
   }
 
+  /* performance ability! */
   spellnum = performance_info[performance_num][PERFORMANCE_SKILLNUM];
 
   /* performance check! */

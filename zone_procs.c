@@ -1353,7 +1353,7 @@ void prisoner_on_death(struct char_data *ch)
       if (GET_POS(tch) >= POS_SLEEPING)
         change_position(tch, POS_STUNNED);
 
-      damage(prisoner, tch, rand_number(200, 350), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
+      damage(prisoner, tch, rand_number(600, 900), TYPE_UNDEFINED, DAM_MENTAL, FALSE);
     }
   }
 

@@ -911,7 +911,6 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_BARD_KNOWN_SPELLS_MENU;
 }
 
-
 static void inquisitor_known_spells_disp_menu(struct descriptor_data *d)
 {
   int class_level = CLASS_LEVEL(d->character, CLASS_INQUISITOR) +
@@ -1493,6 +1492,24 @@ static void display_new_arcana_menu(struct descriptor_data *d)
 
 static void set_preferred_caster(struct descriptor_data *d)
 {
+  /* dummy checks :( */
+  if (!d)
+    return;
+  if (!d->character)
+    return;
+  if (GET_PREFERRED_ARCANE(d->character) >= NUM_CLASSES || GET_PREFERRED_ARCANE(d->character) <= CLASS_UNDEFINED)
+  {
+    GET_PREFERRED_ARCANE(d->character) = CLASS_WIZARD;
+    write_to_output(d, "There was an error, reset to wizard and exiting for you to try again!\r\n\r\n");
+    return;
+  }
+  if (GET_PREFERRED_DIVINE(d->character) >= NUM_CLASSES || GET_PREFERRED_DIVINE(d->character) <= CLASS_UNDEFINED)
+  {
+    GET_PREFERRED_DIVINE(d->character) = CLASS_CLERIC;
+    write_to_output(d, "There was an error, reset to cleric and exiting for you to try again!\r\n\r\n");
+    return;
+  }
+
   get_char_colors(d->character);
   clear_screen(d);
 
