@@ -7975,7 +7975,7 @@ SPECIAL(speed_gaunts)
   if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
     return FALSE;
 
-  int dam = 0, num_hits = 0;
+  int dam = 0, num_hits = 0, i = 0;
   struct char_data *vict = FIGHTING(ch);
 
   if (!vict)
