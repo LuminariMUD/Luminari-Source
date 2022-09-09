@@ -258,7 +258,7 @@ ACMD(do_perform)
         {
           /* we DO check if they have a bardic_performanc event here represented by the first TRUE */
           /* the messages were sent via the last FALSE in can_perform()! */
-          return 0;
+          return;
         }
 
         /* SUCCESS! */
