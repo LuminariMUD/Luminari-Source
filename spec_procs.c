@@ -7062,6 +7062,215 @@ SPECIAL(whisperwind)
 }
 #undef SPIRIT_EAGLE
 
+/* pet from moonblade below */
+#define LARGE_SPIRIT_EAGLE 132131
+/* moonblade 132118 */
+SPECIAL(ancient_moonblade)
+{
+  if (!ch)
+    return FALSE;
+
+  int s = 0, i = 0;
+  struct char_data *pet = NULL;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Procs cyclone, whisper 'blur' for attack blur, whisper"
+                     " 'wind' to summon weapon spirit, whisper 'smite' for harm and "
+                     "dispel evil.\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132118))
+    return FALSE;
+
+  struct obj_data *whisperwind = (struct obj_data *)me;
+
+  skip_spaces(&argument);
+
+  if (!strcmp(argument, "wind") && CMD_IS("whisper"))
+  {
+
+    if (GET_OBJ_SPECTIMER(whisperwind, 1) > 0)
+    {
+      send_to_char(ch, "\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      return TRUE;
+    }
+
+    if (SPECIFIC_PET_COUNT(ch, LARGE_SPIRIT_EAGLE) <= 0)
+    {
+      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
+          "a \tWghostly mist \tcswirls\r\n"
+          "in the area around you.  When it finally dissipates, the "
+          "spirit of the\r\nblade has come to your calling in the "
+          "form of a majestic \tBeagle\tc.",
+          1, ch, whisperwind, NULL, TO_CHAR);
+      act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
+          "a \tWghostly mist \tcswirls\r\n"
+          "in the area around $m.  When it finally dissipates, the "
+          "spirit of the \r\nblade has come to $s calling in the "
+          "form of a majestic \tBeagle\tc.",
+          1, ch, whisperwind, NULL, TO_ROOM);
+
+      pet = read_mobile(real_mobile(LARGE_SPIRIT_EAGLE), REAL);
+      if (pet)
+      {
+        char_to_room(pet, ch->in_room);
+        add_follower(pet, ch);
+        SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+
+        GET_LEVEL(pet) = GET_LEVEL(ch);
+        GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
+        GET_HIT(pet) = GET_MAX_HIT(pet);
+
+        GET_OBJ_SPECTIMER(whisperwind, 1) = 72;
+
+        return TRUE;
+      }
+      else
+        return FALSE;
+    }
+    else
+    {
+      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
+          "nothing seems to happen.\r\n"
+          "The spirit of the blade is still somewhere in the realms!",
+          1, ch, whisperwind, NULL, TO_CHAR);
+      return TRUE;
+    }
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  /* random cyclone proc */
+  if (!cmd && !rand_number(0, 19) && vict)
+  {
+    weapons_spells("\tcYour \tWmoon\tCblade \tcbegins to gyrate violently in your hands, almost "
+                   "causing you to fumble.  As soon as you regain control, the area is "
+                   "suddenly overwhelmed with vicious northern \tWgales\tc!\tn",
+                   "\tc$n's \tWmoon\tCblade \tcbegins to gyrate violently in $s hands, causing "
+                   "$m to almost fumble.  As soon as $e regains control, the area is "
+                   "suddenly overwhelmed with vicious northern \tWgales\tc!\tn",
+                   "\tc$n's \tWmoon\tCblade \tcbegins to gyrate violently in $s hands, causing "
+                   "$m to almost fumble.  As soon as $e regains control, the area is "
+                   "suddenly overwhelmed with vicious northern \tWgales\tc!\tn",
+                   ch, vict, whisperwind, SPELL_WHIRLWIND);
+    return TRUE;
+  }
+
+  /* whisper blur for 'blur attacks' */
+  if (!strcmp(argument, "blur") && CMD_IS("whisper"))
+  {
+    if (vict && (vict->in_room == ch->in_room))
+    {
+
+      if (GET_OBJ_SPECTIMER(whisperwind, 0) > 0)
+      {
+        send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+        return TRUE;
+      }
+
+      act("\tcAs you whisper '\tCblur\tc' to your "
+          "\tWmoon\tCblade\tc, it calls upon the northern \tWgale\r\n"
+          "\tcand envelops you in a sw\tCir\tWl\tCin\tcg cyclone making "
+          "you move like the wind!\tn",
+          FALSE, ch, whisperwind, vict, TO_CHAR);
+      act("\tcA northern \tWgale \tcblows in and envelops $n in a "
+          "sw\tCir\tWl\tCin\tcg cyclone \r\nas $e invokes the power of "
+          "$s \tWmoon\tCblade\tc, making $m move like the wind!\r\n"
+          "$n \tCBLURS \tcas $e strikes $N \tcin rapid succession!\tn",
+          1, ch, whisperwind, vict, TO_NOTVICT);
+      act("\tcA northern \tWgale \tcblows in and envelops $n in a"
+          "sw\tCir\tWl\tCin\tcg cyclone \r\nas $e invokes the power of "
+          "$s \tWmoon\tCblade\tc, making $m move like the wind!\r\n"
+          "$n \tCBLURS \tcas $e strikes YOU in rapid succession!\tn",
+          1, ch, whisperwind, vict, TO_VICT);
+
+      s = rand_number(9, 13);
+      for (i = 0; i <= s; i++)
+      {
+        if (valid_fight_cond(ch, FALSE))
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        if (GET_POS(vict) == POS_DEAD)
+          break;
+      }
+
+      GET_OBJ_SPECTIMER(whisperwind, 0) = 24;
+
+      return TRUE; /* end for */
+    }              /* end if-fighting */
+    else
+      return FALSE;
+  } /* end if-strcmp */
+
+  else if (!strcmp(argument, "smite") && CMD_IS("whisper"))
+  {
+
+    if (GET_OBJ_SPECTIMER(whisperwind, 2) > 0)
+    {
+      send_to_char(ch, "\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      return TRUE;
+    }
+
+    if (vict && (vict->in_room == ch->in_room))
+    {
+      if (!IS_EVIL(vict))
+      {
+        act("\tcYour \tWmoon\tCblade \tctells you '\tWI will not harm "
+            "non-evil beings with my power!\tc'\r\n"
+            "You feel a seering burst of pain as you are \tCzapped \tcby "
+            "your blade!\tn",
+            1, ch, whisperwind, vict, TO_CHAR);
+        act("\tc$n is \tCzapped \tcby his \tWmoon\tCblade \tcafter "
+            "muttering something to it!",
+            1, ch, whisperwind, vict, TO_ROOM);
+        damage(ch, ch, rand_number(4, 12), -1, DAM_ENERGY, FALSE); // type -1 = no message
+
+        return TRUE;
+      }
+      else
+      {
+        act("\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, "
+            "it suddenly bursts into \trfl\tRam\tres\tc!\r\nYour blade flares "
+            "angrily at $N \tcas it tries to smite $M \tcmightily!\tn",
+            1, ch, whisperwind, vict, TO_CHAR);
+        act("\tc$n mutters something to $s \tWmoon\tCblade \tcand it suddenly "
+            "bursts into \tcfl\tRam\tres\tc!\r\n$n's blade seems to flare "
+            "angrily at $N \tcas it tries to smite $M \tcmightily!\tn",
+            1, ch, whisperwind, vict, TO_NOTVICT);
+        act("\tc$n mutters something to $s \tWmoon\tCblade \tcand it suddenly "
+            "bursts into \tcfl\tRam\tres\tc!\r\n$n's blade seems to flare "
+            "angrily at you as it tries to smite you mightily!\tn",
+            1, ch, whisperwind, vict, TO_VICT);
+
+        /* harm spell */
+        call_magic(ch, vict, 0, SPELL_HARM, 0, 30, CAST_SPELL);
+        /* up to 3 dispel evils */
+        for (i = 0; i < 3; i++)
+        {
+          if (valid_fight_cond(ch, TRUE))
+            call_magic(ch, vict, 0, SPELL_DISPEL_EVIL, 0, 30, CAST_SPELL);
+          if (GET_POS(vict) == POS_DEAD)
+            break;
+        }
+
+        GET_OBJ_SPECTIMER(whisperwind, 2) = 6;
+
+        return TRUE;
+      }
+      return FALSE;
+    }
+  }
+  else
+  {
+    return FALSE;
+  }
+
+  /* failed! */
+  return FALSE;
+}
+#undef LARGE_SPIRIT_EAGLE
+
 /* from homeland */
 SPECIAL(chionthar_ferry)
 {
