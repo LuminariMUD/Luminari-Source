@@ -5197,6 +5197,21 @@ SPECIAL(pet_shops)
 /****  object procs general functions ****/
 /*****************************************/
 
+/* this function will check the basic parameters for whether an item is ready to proc in combat */
+bool obj_proc_ready(struct char_data *ch, struct obj_data *obj)
+{
+
+  /* do we have this item equipped? */
+  if (!is_wearing(ch, GET_OBJ_VNUM(obj)))
+    return FALSE;
+
+  if (!valid_fight_cond(ch, FALSE))
+    return FALSE;
+
+  /* made it, item must be ready! */
+  return TRUE;
+}
+
 /* NOT to be confused with the weapon-spells code used in OLC, etc */
 
 /*  This was ported to accomodate the HL objects that were imported */
@@ -6859,6 +6874,58 @@ SPECIAL(whisperwind)
   struct char_data *vict = FIGHTING(ch);
   struct obj_data *whisperwind = (struct obj_data *)me;
 
+  if (!strcmp(argument, "wind") && CMD_IS("whisper"))
+  {
+
+    if (GET_OBJ_SPECTIMER(whisperwind, 1) > 0)
+    {
+      send_to_char(ch, "\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      return TRUE;
+    }
+
+    if (SPECIFIC_PET_COUNT(ch, SPIRIT_EAGLE) <= 0)
+    {
+      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
+          "a \tWghostly mist \tcswirls\r\n"
+          "in the area around you.  When it finally dissipates, the "
+          "spirit of the\r\nblade has come to your calling in the "
+          "form of a majestic \tBeagle\tc.",
+          1, ch, whisperwind, NULL, TO_CHAR);
+      act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
+          "a \tWghostly mist \tcswirls\r\n"
+          "in the area around $m.  When it finally dissipates, the "
+          "spirit of the \r\nblade has come to $s calling in the "
+          "form of a majestic \tBeagle\tc.",
+          1, ch, whisperwind, NULL, TO_ROOM);
+
+      pet = read_mobile(real_mobile(SPIRIT_EAGLE), REAL);
+      if (pet)
+      {
+        char_to_room(pet, ch->in_room);
+        add_follower(pet, ch);
+        SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+
+        GET_LEVEL(pet) = GET_LEVEL(ch);
+        GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
+        GET_HIT(pet) = GET_MAX_HIT(pet);
+
+        GET_OBJ_SPECTIMER(whisperwind, 1) = 72;
+
+        return TRUE;
+      }
+      else
+        return FALSE;
+    }
+    else
+    {
+      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
+          "nothing seems to happen.\r\n"
+          "The spirit of the blade is still somewhere in the realms!",
+          1, ch, whisperwind, vict, TO_CHAR);
+      return TRUE;
+    }
+  }
+
   /* random cyclone proc */
   if (!cmd && !rand_number(0, 10) && vict)
   {
@@ -6908,7 +6975,7 @@ SPECIAL(whisperwind)
       s = rand_number(8, 12);
       for (i = 0; i <= s; i++)
       {
-        if (valid_fight_cond(ch, TRUE))
+        if (valid_fight_cond(ch, FALSE))
           hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
         if (GET_POS(vict) == POS_DEAD)
           break;
@@ -6922,63 +6989,12 @@ SPECIAL(whisperwind)
       return FALSE;
   } /* end if-strcmp */
 
-  else if (!strcmp(argument, "wind") && CMD_IS("whisper"))
-  {
-
-    if (GET_OBJ_SPECTIMER(whisperwind, 1) > 0)
-    {
-      send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
-      return TRUE;
-    }
-
-    if (SPECIFIC_PET_COUNT(ch, SPIRIT_EAGLE) <= 0)
-    {
-      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
-          "a \tWghostly mist \tcswirls\r\n"
-          "in the area around you.  When it finally dissipates, the "
-          "spirit of the\r\nblade has come to your calling in the "
-          "form of a majestic \tBeagle\tc.",
-          1, ch, whisperwind, vict, TO_CHAR);
-      act("\tcAs $n whispers something to $s \tWmoon\tCblade\tc, "
-          "a \tWghostly mist \tcswirls\r\n"
-          "in the area around $m.  When it finally dissipates, the "
-          "spirit of the \r\nblade has come to $s calling in the "
-          "form of a majestic \tBeagle\tc.",
-          1, ch, whisperwind, vict, TO_ROOM);
-
-      pet = read_mobile(real_mobile(SPIRIT_EAGLE), REAL);
-      if (pet)
-      {
-        char_to_room(pet, ch->in_room);
-        add_follower(pet, ch);
-        SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-
-        GET_LEVEL(pet) = GET_LEVEL(ch);
-        GET_MAX_HIT(pet) = GET_MAX_HIT(ch);
-        GET_HIT(pet) = GET_MAX_HIT(pet);
-
-        GET_OBJ_SPECTIMER(whisperwind, 1) = 72;
-
-        return TRUE;
-      }
-      else
-        return FALSE;
-    }
-    else
-    {
-      act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
-          "nothing seems to happen.\r\n"
-          "The spirit of the blade is still somewhere in the realms!",
-          1, ch, whisperwind, vict, TO_CHAR);
-      return TRUE;
-    }
-  }
   else if (!strcmp(argument, "smite") && CMD_IS("whisper"))
   {
 
     if (GET_OBJ_SPECTIMER(whisperwind, 2) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
+      send_to_char(ch, "\tcAs you whisper '\tCsmite\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
     }
 
