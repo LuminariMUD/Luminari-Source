@@ -6858,7 +6858,7 @@ SPECIAL(whisperwind)
     return FALSE;
 
   struct char_data *vict = FIGHTING(ch);
-  struct obj_data *whisperwind = struct obj_data *)me;
+  struct obj_data *whisperwind = (struct obj_data *)me;
 
   /* random cyclone proc */
   if (!cmd && !rand_number(0, 10) && vict)
@@ -6883,7 +6883,8 @@ SPECIAL(whisperwind)
   {
     if (vict && (vict->in_room == ch->in_room))
     {
-      if (GET_OBJ_SPECTIMER((whisperwind, 0) > 0)
+
+      if (GET_OBJ_SPECTIMER(whisperwind, 0) > 0)
       {
         send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
         return TRUE;
@@ -6925,12 +6926,11 @@ SPECIAL(whisperwind)
   else if (!strcmp(argument, "wind") && CMD_IS("whisper"))
   {
 
-      if (GET_OBJ_SPECTIMER((whisperwind, 1) > 0)
-      {
+    if (GET_OBJ_SPECTIMER(whisperwind, 1) > 0)
+    {
       send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
-      }
-
+    }
 
     if (SPECIFIC_PET_COUNT(ch, SPIRIT_EAGLE) <= 0)
     {
@@ -6977,12 +6977,11 @@ SPECIAL(whisperwind)
   else if (!strcmp(argument, "smite") && CMD_IS("whisper"))
   {
 
-      if (GET_OBJ_SPECTIMER((whisperwind, 2) > 0)
-      {
+    if (GET_OBJ_SPECTIMER(whisperwind, 2) > 0)
+    {
       send_to_char(ch, "\tcAs you whisper '\tCblur\tc' to your \tWmoon\tCblade\tc, nothing happens.\tn\r\n");
       return TRUE;
-      }
-
+    }
 
     if (vict && (vict->in_room == ch->in_room))
     {
