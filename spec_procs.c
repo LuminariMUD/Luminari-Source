@@ -6875,8 +6875,9 @@ SPECIAL(whisperwind)
   if (!is_wearing(ch, 109802))
     return FALSE;
 
-  struct char_data *vict = FIGHTING(ch);
   struct obj_data *whisperwind = (struct obj_data *)me;
+
+  skip_spaces(&argument);
 
   if (!strcmp(argument, "wind") && CMD_IS("whisper"))
   {
@@ -6930,6 +6931,8 @@ SPECIAL(whisperwind)
     }
   }
 
+  struct char_data *vict = FIGHTING(ch);
+
   /* random cyclone proc */
   if (!cmd && !rand_number(0, 10) && vict)
   {
@@ -6945,8 +6948,6 @@ SPECIAL(whisperwind)
                    ch, vict, whisperwind, SPELL_WHIRLWIND);
     return TRUE;
   }
-
-  skip_spaces(&argument);
 
   /* whisper blur for 'blur attacks' */
   if (!strcmp(argument, "blur") && CMD_IS("whisper"))
