@@ -6926,7 +6926,7 @@ SPECIAL(whisperwind)
       act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
           "nothing seems to happen.\r\n"
           "The spirit of the blade is still somewhere in the realms!",
-          1, ch, whisperwind, vict, TO_CHAR);
+          1, ch, whisperwind, NULL, TO_CHAR);
       return TRUE;
     }
   }
