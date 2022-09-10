@@ -716,6 +716,7 @@ void assign_objects(void)
   ASSIGNOBJ(132128, speed_gaunts);
   ASSIGNOBJ(132126, rune_scimitar);
   ASSIGNOBJ(132133, stability_boots);
+  ASSIGNOBJ(132118, ancient_moonblade);
 
   /* not yet defined? */
   // ASSIGNOBJ(132115, warbow);
@@ -1077,6 +1078,7 @@ static const struct spec_func_data spec_func_list[] = {
     //{"Mithril Rapier", mithril_rapier, ""},
     {"Monk Shock Gloves", monk_glove, ""},
     {"Monk Frost Gloves", monk_glove_cold, ""},
+    {"Ancient Moonblade", ancient_moonblade, ""},
     {"Naga", naga, ""},
     {"Naga Golem", naga_golem, ""},
     {"NW Button Control", neverwinter_button_control, ""},
@@ -1123,7 +1125,6 @@ static const struct spec_func_data spec_func_list[] = {
     //{"Storage Chest", storage_chest, ""},
     {"Thief", thief, ""},
     {"Thrym", thrym, ""},
-    //{"Moonblade", tia_moonblade, ""},
     {"Crystal Rapier", tia_rapier, ""},
     {"The Prisoner", the_prisoner, ""},
     {"TormBlade", tormblade, ""},
