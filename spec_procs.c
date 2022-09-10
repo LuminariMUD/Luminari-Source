@@ -6843,7 +6843,6 @@ SPECIAL(whisperwind)
     return FALSE;
 
   int s = 0, i = 0;
-  struct char_data *victim = NULL;
   struct char_data *pet = NULL;
 
   if (!cmd && !strcmp(argument, "identify"))
