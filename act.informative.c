@@ -189,6 +189,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
   int type = GET_OBJ_TYPE(obj);
   int weapon_type = GET_WEAPON_TYPE(obj);
   int armor_val = GET_OBJ_VAL(obj, 1);
+  int i = 0;
 
   /* dummy checks due to old stock items */
   if (size < 0 || size >= NUM_SIZES)
@@ -209,6 +210,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
   /* displaying weapon / armor info */
   switch (type)
   {
+
   case ITEM_WEAPON:
     send_to_char(ch, "Weapon: %s ", weapon_type ? weapon_list[weapon_type].name : "???");
 
@@ -219,6 +221,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
     }
 
     break;
+
   case ITEM_ARMOR:
     send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
     break;
