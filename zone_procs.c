@@ -1513,7 +1513,7 @@ int prisoner_attacks(struct char_data *ch)
 /*************************************/
 
 /* this function is meant to load the gear into the treasury
-   we are checking 1) the items haven't loaded and 2) that the prisoner is engaged in combat to trigger this section */
+   we are checking 1) the items haven't loaded and 2) that the prisoner's final form is engaged in combat to trigger this section */
 void prisoner_gear_loading(struct char_data *ch)
 {
   struct obj_data *olist = NULL;
@@ -1526,7 +1526,7 @@ void prisoner_gear_loading(struct char_data *ch)
       CELESTIAL_SWRD,   /* good only warrior types? */
       HELL_SWRD,        /* evil only warrior types? */
       MAGI_STAFF,       /* wizard types */
-      MOONBLADE,        /* bladesing, ranger */
+      MOONBLADE,        /* bladesinger, ranger */
       DROW_SCIMITAR,    /* shadowstalker, weaponmaster */
       CRYSTAL_RAPIER,   /* swashbuckler */
       STAR_CRICLET,     /* caster circlet */
@@ -1544,6 +1544,7 @@ void prisoner_gear_loading(struct char_data *ch)
       STABILITY_BOOTS,  /* stability boots! */
   };
 
+  /* we are giving a random weapon oil, lets have a list of options! */
   int wpnOils[TOP_UNIQUES_OIL + 1] = {
       WEAPON_SPECAB_SEEKING, /* 0 */
       WEAPON_SPECAB_ADAPTIVE,

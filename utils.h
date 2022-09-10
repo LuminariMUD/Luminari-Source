@@ -1404,6 +1404,7 @@ void char_from_furniture(struct char_data *ch);
 #define HAS_PET_UNDEAD(ch) (has_undead_follower(ch))
 #define HAS_PET_ELEMENTAL(ch) (has_elemental_follower(ch))
 #define HAS_PET(ch) (has_pet_follower(ch))
+#define SPECIFIC_PET_COUNT(ch, mobvnum) (specific_follower_count(ch, mobvnum))
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i) (GET_SUBRACE(ch, 0) == i || \

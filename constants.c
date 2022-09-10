@@ -1054,7 +1054,7 @@ const char *damtype_display[] = {
     "Damage Light",
     "Damage Energy",
     "Damage Water",
-    "Damage Celestial Poison",
+    "DmgCelestialPsn",
     "Damage Bleeding",
     "Damage Temporal",
     "Damage Chaos",
