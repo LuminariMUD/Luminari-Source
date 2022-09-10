@@ -1472,7 +1472,7 @@ void point_update(void)
 {
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
-  int counter = 0;
+  int counter = 0, cntr = 0;
 
   /** general **/
 
@@ -1540,7 +1540,14 @@ void point_update(void)
       }
       if (GET_OBJ_SPECTIMER(j, counter) <= 0)
       {
-        /*wear out messages*/
+        /*obj timer is back to 0*/
+
+        if (j->carried_by) /* carried in your inventory */
+          act("$p briefly flares as the imbued magic returns.", FALSE, j->carried_by, j, 0, TO_CHAR);
+        else if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
+          act("$p briefly flares as the imbued magic returns.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
+        else if (j->worn_by)
+          act("$p briefly flares as the imbued magic returns.", FALSE, j->worn_by, j, 0, TO_CHAR);
       }
     }
 
