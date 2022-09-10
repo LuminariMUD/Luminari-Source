@@ -5198,14 +5198,19 @@ SPECIAL(pet_shops)
 /*****************************************/
 
 /* this function will check the basic parameters for whether an item is ready to proc in combat */
-bool obj_proc_ready(struct char_data *ch, struct obj_data *obj)
+bool obj_proc_ready(struct char_data *ch, struct obj_data *obj, int cmd)
 {
 
   /* do we have this item equipped? */
   if (!is_wearing(ch, GET_OBJ_VNUM(obj)))
     return FALSE;
 
+  /* valid conditions for combat? */
   if (!valid_fight_cond(ch, FALSE))
+    return FALSE;
+
+  /* was a command sent? */
+  if (cmd)
     return FALSE;
 
   /* made it, item must be ready! */
@@ -5213,7 +5218,6 @@ bool obj_proc_ready(struct char_data *ch, struct obj_data *obj)
 }
 
 /* NOT to be confused with the weapon-spells code used in OLC, etc */
-
 /*  This was ported to accomodate the HL objects that were imported */
 void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
                     struct char_data *ch, struct char_data *vict,
