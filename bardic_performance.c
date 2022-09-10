@@ -808,7 +808,17 @@ EVENTFUNC(event_bardic_performance)
   effectiveness = rand_number(1, 9);
 
   /* base difficulty */
-  difficulty = 30 - GET_CHA_BONUS(ch);
+  difficulty = 30;
+
+  /* charisma bonus helps difficulty */
+  difficulty -= GET_CHA_BONUS(ch);
+
+  /* performance check for difficulty ! */
+  if (compute_ability(ch, ABILITY_PERFORM) + d20(ch) >=
+      performance_info[performance_num][PERFORMANCE_DIFF] + 10)
+  {
+    difficulty -= 4;
+  }
 
   /* find an instrument */
   instrument = GET_EQ(ch, WEAR_HOLD_1);
@@ -833,11 +843,11 @@ EVENTFUNC(event_bardic_performance)
   }
   else
   {
-    /* the effectiveness of our instrument is all handled here */
+    /* the effectiveness / difficulty bonus of our instrument is all handled here */
     difficulty -= GET_OBJ_VAL(instrument, 1);
 
     /* instrument of quality <= 0 is unbreakable */
-    if (rand_number(1, 10001) <= GET_OBJ_VAL(instrument, 3))
+    if (!rand_number(0, 9) && rand_number(2, 11111) <= GET_OBJ_VAL(instrument, 3))
     {
       act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_CHAR);
       act("$n's $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_ROOM);
@@ -871,7 +881,7 @@ EVENTFUNC(event_bardic_performance)
   /* performance ability! */
   spellnum = performance_info[performance_num][PERFORMANCE_SKILLNUM];
 
-  /* performance check! */
+  /* performance check for effectiveness! */
   if (compute_ability(ch, ABILITY_PERFORM) + d20(ch) >=
       performance_info[performance_num][PERFORMANCE_DIFF] + 10)
   {
@@ -896,7 +906,7 @@ EVENTFUNC(event_bardic_performance)
   }
 
   /* check for stutter. if stutter, stop performance  */
-  if (rand_number(1, 101) < difficulty)
+  if (!rand_number(0, 1) && rand_number(1, 101) < difficulty)
   {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);

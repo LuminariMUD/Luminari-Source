@@ -2076,7 +2076,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save = SAVING_REFL;
     mag_resist = TRUE;
     element = DAM_AIR;
-    num_dice = 3 * dice(1, 3);
+    num_dice = level + dice(1, 3);
     size_dice = 6;
     bonus = level;
     break;
@@ -2119,6 +2119,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     act("$N ignores the spell affect, as it only affects the living.", TRUE, ch, 0, victim, TO_ROOM);
     return 1;
   }
+  
   if (spellnum == SPELL_UNDEATH_TO_DEATH && !IS_UNDEAD(victim))
   {
     act("You ignore the spell affect, as it only affects undead.", TRUE, ch, 0, victim, TO_VICT);
