@@ -233,6 +233,7 @@ bool is_fav_enemy_of(struct char_data *ch, int race);
 int compute_arcana_golem_level(struct char_data *ch);
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
 bool has_pet_follower(struct char_data *ch);
+bool specific_follower_count(struct char_data *ch, mob_vnum mvnum);
 bool has_elemental_follower(struct char_data *ch);
 bool has_undead_follower(struct char_data *ch);
 int color_count(char *bufptr);
