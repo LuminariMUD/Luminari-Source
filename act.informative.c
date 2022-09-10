@@ -206,6 +206,7 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
   send_to_char(ch, "[Size: %s, Material: %s] ", size ? sizes[size] : "???",
                material ? material_name[material] : "???");
 
+  /* displaying weapon / armor info */
   switch (type)
   {
   case ITEM_WEAPON:
@@ -221,6 +222,15 @@ void show_obj_info(struct obj_data *obj, struct char_data *ch)
   case ITEM_ARMOR:
     send_to_char(ch, "Armor: %s ", armor_val ? armor_list[armor_val].name : "???");
     break;
+  }
+
+  /* spec proc system for items */
+  for (i = 0; i < SPEC_TIMER_MAX; i++)
+  {
+    if (GET_OBJ_SPECTIMER(obj, i))
+    {
+      send_to_char(ch, "ImbuedPower Cooldown %d: %d hours | ", i, GET_OBJ_SPECTIMER(obj, i));
+    }
   }
 }
 

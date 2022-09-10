@@ -765,7 +765,22 @@ int color_count(char *bufptr) {
   return count;
 }
 
-/* check if ch has a misc follower or not */
+/* check if ch has a specific (by vnum) follower or not */
+int specific_follower_count(struct char_data *ch, mob_vnum mvnum) {
+  struct follow_type *k = NULL, *next = NULL;
+  int count = 0;
+
+  for (k = ch->followers; k; k = next) {
+    next = k->next;
+    if (IS_NPC(k->follower) && GET_MOB_VNUM(k->follower) == mvnum) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+/* check if ch has a "misc" follower or not */
 bool has_pet_follower(struct char_data *ch) {
   struct follow_type *k = NULL, *next = NULL;
 
