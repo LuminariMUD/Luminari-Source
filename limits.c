@@ -1537,17 +1537,18 @@ void point_update(void)
       {
         GET_OBJ_SPECTIMER(j, counter)
         --;
-      }
-      if (GET_OBJ_SPECTIMER(j, counter) <= 0)
-      {
-        /*obj timer is back to 0*/
 
-        if (j->carried_by) /* carried in your inventory */
-          act("$p briefly flares as the imbued magic returns.", FALSE, j->carried_by, j, 0, TO_CHAR);
-        else if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
-          act("$p briefly flares as the imbued magic returns.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
-        else if (j->worn_by)
-          act("$p briefly flares as the imbued magic returns.", FALSE, j->worn_by, j, 0, TO_CHAR);
+        if (GET_OBJ_SPECTIMER(j, counter) <= 0)
+        {
+          /*obj timer is back to 0*/
+
+          if (j->carried_by) /* carried in your inventory */
+            act("$p briefly flares as the imbued magic returns.", FALSE, j->carried_by, j, 0, TO_CHAR);
+          else if (j->in_obj && j->in_obj->carried_by) /* object carrying the missile */
+            act("$p briefly flares as the imbued magic returns.", FALSE, j->in_obj->carried_by, j, 0, TO_CHAR);
+          else if (j->worn_by)
+            act("$p briefly flares as the imbued magic returns.", FALSE, j->worn_by, j, 0, TO_CHAR);
+        }
       }
     }
 
