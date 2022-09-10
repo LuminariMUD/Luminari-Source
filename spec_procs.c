@@ -6934,7 +6934,7 @@ SPECIAL(whisperwind)
   struct char_data *vict = FIGHTING(ch);
 
   /* random cyclone proc */
-  if (!cmd && !rand_number(0, 10) && vict)
+  if (!cmd && !rand_number(0, 39) && vict)
   {
     weapons_spells("\tcYour \tWmoon\tCblade \tcbegins to gyrate violently in your hands, almost "
                    "causing you to fumble.  As soon as you regain control, the area is "
