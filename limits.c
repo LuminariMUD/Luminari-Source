@@ -1472,7 +1472,7 @@ void point_update(void)
 {
   struct char_data *i = NULL, *next_char = NULL;
   struct obj_data *j = NULL, *next_thing, *jj = NULL, *next_thing2 = NULL;
-  int counter = 0, cntr = 0;
+  int counter = 0;
 
   /** general **/
 
