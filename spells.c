@@ -2008,7 +2008,7 @@ ASPELL(spell_resurrect)
 {
   struct char_data *ressed = NULL, *vict = NULL, *next_v = NULL;
   struct descriptor_data *d = NULL, *next_d = NULL;
-  int exp = 0;
+  int exp = 0, gain = 0;
 
   if (ch == NULL || obj == NULL)
     return;
@@ -2131,15 +2131,19 @@ ASPELL(spell_resurrect)
   GET_MOVE(ch) = 0; // exhausted
   if (GET_LEVEL(ch) < LVL_IMMORT)
     WAIT_STATE(ch, 12 RL_SEC);
+  USE_FULL_ROUND_ACTION(ch);
+  USE_SWIFT_ACTION(ch);
 
   GET_MOVE(ressed) = 0; // exhausted
   WAIT_STATE(ressed, PULSE_VIOLENCE * 1);
+  USE_FULL_ROUND_ACTION(ressed);
+  USE_SWIFT_ACTION(ressed);
   /* end cost */
 
   /* get XP back! */
   if (exp <= 0)
     exp = 1;
-  gain_exp_regardless(ressed, exp, TRUE);
+  gain = gain_exp_regardless(ressed, exp, TRUE);
 
   act("\twYou complete your chant, and stand humbled before the might of\n"
       "your \tn\tWdeity.\tn\tw Your vision swims as you see your deity's \tYdivine\n"
@@ -2172,6 +2176,7 @@ ASPELL(spell_resurrect)
 
   save_char(ressed, 0);
   look_at_room(ressed, 0);
+  send_to_char(ressed, "You have regained %d exp back from the resurrection!\r\n", gain);
 }
 
 ASPELL(spell_transport_via_plants)
