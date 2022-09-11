@@ -1376,7 +1376,7 @@ static void make_pc_corpse(struct char_data *ch)
   SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
 
   GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
-  GET_OBJ_VAL(corpse, 3) = 2; /* corpse identifier */
+  GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
 
   GET_OBJ_VAL(corpse, 4) = GET_IDNUM(ch); /* save the ID on the object value */
 
@@ -1880,7 +1880,7 @@ void die(struct char_data *ch, struct char_data *killer)
 
   if (GET_LEVEL(ch) <= 6)
   {
-    // no xp loss for newbs - Bakarus
+    /* no xp loss for newbs - Bakarus */
   }
   else if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
   {

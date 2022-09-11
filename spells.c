@@ -2009,26 +2009,29 @@ ASPELL(spell_resurrect)
   struct char_data *ressed = NULL, *vict = NULL;
   struct obj_data *tobj = NULL;
   struct obj_data *next_obj = NULL;
-  struct descrip_data *d = NULL;
+  struct descrip_data *d = NULL, *next_d = NULL;
   int exp = 0;
 
   if (ch == NULL || obj == NULL)
     return;
 
   /* If it is not a pcorpse, then out*/
-  if (!IS_CORPSE(obj) || GET_OBJ_VAL(obj, 3) != 2 || !GET_OBJ_VAL(obj, 4))
+  if (!IS_CORPSE(obj) || GET_OBJ_VAL(obj, 3) != 1 || !GET_OBJ_VAL(obj, 4))
   {
     act("$p is not a player corpse.", FALSE, ch, obj, 0, TO_CHAR);
     return;
   }
 
   /* looking for the player associated with the corpse */
-  for (d = descriptor_list; d && !ressed; d = d->next)
+  for (d = descriptor_list; d; d = next_d)
   {
+    next_d = j->next;
+
     if (d->character && (STATE(d) == CON_PLAYING) &&
         GET_OBJ_VAL(obj, 4) == GET_IDNUM(d->character))
       ressed = d->character;
   }
+
   if (ressed == NULL)
   {
     send_to_char("That char is not online at the moment!\r\n", ch);

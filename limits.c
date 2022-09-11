@@ -1040,6 +1040,15 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   {
 
     gain = MAX(-CONFIG_MAX_EXP_LOSS, gain); /* Cap max exp lost per death */
+
+    /* end game characters get hit much harder */
+    if (GET_LEVEL(ch) >= 30)
+    {
+      gain -= 250000;
+      gain *= 2;
+    }
+
+    /* bam - hit 'em! */
     GET_EXP(ch) += gain;
     if (GET_EXP(ch) < 0)
       GET_EXP(ch) = 0;
