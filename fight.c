@@ -1343,9 +1343,8 @@ void stop_fighting(struct char_data *ch)
 static void make_pc_corpse(struct char_data *ch)
 {
   char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
-  struct obj_data *corpse = NULL, *o = NULL;
-  struct obj_data *money = NULL;
-  int i = 0, x = 0, y = 0;
+  struct obj_data *corpse = NULL;
+  int x = 0, y = 0;
 
   /* create the corpse object, blank prototype */
   corpse = create_obj();
@@ -1823,7 +1822,8 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   else
   { /* real DEATH! */
     /* create the corpse */
-    // make_corpse(ch);
+    if (!IN_ARENA(ch) && !IN_ARENA(killer))
+      make_pc_corpse(ch);
 
     /* move the character out of the room */
     char_from_room(ch);
