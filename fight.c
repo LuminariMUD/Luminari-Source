@@ -1354,8 +1354,8 @@ static void make_pc_corpse(struct char_data *ch)
 
   IN_ROOM(corpse) = NOWHERE;
 
-  snprintf(buf2, sizeof(buf2), "%scorpse %spcorpse pcorpse_%s",
-           CCNRM(ch, C_NRM), GET_NAME(ch), GET_NAME(ch), CCNRM(ch, C_NRM));
+  snprintf(buf2, sizeof(buf2), "corpse pcorpse %s pcorpse_%s",
+           GET_NAME(ch), GET_NAME(ch));
   corpse->name = strdup(buf2);
 
   snprintf(buf2, sizeof(buf2), "%sThe corpse of %s%s is lying here.",
