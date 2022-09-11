@@ -39,6 +39,7 @@
 #include "treasure.h"   /* for set_armor_object */
 #include "mobact.h"     /* npc_find_target() */
 #include "spell_prep.h" /* for star circlet proc */
+#include "handler.h"    /* for is_name() */
 
 /* toggle for debug mode
    true = annoying messages used for debugging
