@@ -8,10 +8,11 @@
  *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
  **************************************************************************/
 
-#include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "string.h"
+#include "conf.h"
 #include "comm.h"
 #include "spells.h"
 #include "handler.h"
@@ -26,13 +27,13 @@
 #include "screen.h" /* for QNRM, etc */
 #include "craft.h"
 #include "mudlim.h"
-#include "string.h"
 #include "item.h"
 #include "domains_schools.h"
 #include "oasis.h"
 #include "genzon.h" /* for real_zone_by_thing */
 #include "psionics.h"
 #include "assign_wpn_armor.h"
+#include "actions.h" /* for use_ACTION() */
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
