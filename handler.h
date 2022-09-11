@@ -1,14 +1,14 @@
 /**
-* @file handler.h                                      LuminariMUD
-* Prototypes of handling and utility functions.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*/
+ * @file handler.h                                      LuminariMUD
+ * Prototypes of handling and utility functions.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ */
 #ifndef _HANDLER_H_
 #define _HANDLER_H_
 
@@ -45,6 +45,7 @@ int isname(const char *str, const char *namelist);
 int is_name(const char *str, const char *namelist);
 const char *fname(const char *namelist);
 int get_number(char **name);
+int isname_obj(char *search, char *list); /* this is from spells.c */
 
 /* objects */
 void obj_to_char(struct obj_data *object, struct char_data *ch);
