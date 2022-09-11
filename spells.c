@@ -2062,7 +2062,7 @@ ASPELL(spell_resurrect)
   act("\tWYour body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ch, obj, ressed, TO_VICT);
 
   /* here is the stored xp and 10% penalty on that */
-  exp = GET_LOST_XP(ressed);
+  exp = -GET_LOST_XP(ressed);
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
     exp /= 10;
