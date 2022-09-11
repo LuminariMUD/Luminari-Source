@@ -2023,7 +2023,7 @@ ASPELL(spell_resurrect)
   /* looking for the player associated with the corpse */
   for (d = descriptor_list; d; d = next_d)
   {
-    next_d = j->next;
+    next_d = d->next;
 
     if (d->character && (STATE(d) == CON_PLAYING) &&
         GET_OBJ_VAL(obj, 4) == GET_IDNUM(d->character))
