@@ -1339,7 +1339,60 @@ void stop_fighting(struct char_data *ch)
   ch->player_specials->has_banishment_been_attempted = false;
 }
 
-/* function for creating corpses, ch just died */
+/* PC:  function for creating corpses, ch just died */
+static void make_pc_corpse(struct char_data *ch)
+{
+  char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
+  struct obj_data *corpse = NULL, *o = NULL;
+  struct obj_data *money = NULL;
+  int i = 0, x = 0, y = 0;
+
+  /* create the corpse object, blank prototype */
+  corpse = create_obj();
+
+  /* start setting up all the variables for a corpse */
+  corpse->item_number = NOTHING;
+  IN_ROOM(corpse) = NOWHERE;
+  corpse->name = strdup("corpse");
+
+  snprintf(buf2, sizeof(buf2), "%sThe corpse of %s%s is lying here.",
+           CCNRM(ch, C_NRM), GET_NAME(ch), CCNRM(ch, C_NRM));
+  corpse->description = strdup(buf2);
+
+  snprintf(buf2, sizeof(buf2), "%sthe corpse of %s%s", CCNRM(ch, C_NRM),
+           GET_NAME(ch), CCNRM(ch, C_NRM));
+  corpse->short_description = strdup(buf2);
+
+  GET_OBJ_TYPE(corpse) = ITEM_CONTAINER;
+
+  for (x = y = 0; x < EF_ARRAY_MAX || y < TW_ARRAY_MAX; x++, y++)
+  {
+    if (x < EF_ARRAY_MAX)
+      GET_OBJ_EXTRA_AR(corpse, x) = 0;
+    if (y < TW_ARRAY_MAX)
+      corpse->obj_flags.wear_flags[y] = 0;
+  }
+
+  SET_BIT_AR(GET_OBJ_WEAR(corpse), ITEM_WEAR_TAKE);
+  SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
+
+  GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
+  GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
+
+  GET_OBJ_VAL(corpse, 4) = GET_IDNUM(ch); /* save the ID on the object value */
+
+  /* todo for players: save id onto corpse, and save race, etc */
+  GET_OBJ_WEIGHT(corpse) = GET_WEIGHT(ch);
+  GET_OBJ_RENT(corpse) = 100000;
+
+  GET_OBJ_TIMER(corpse) = CONFIG_MAX_PC_CORPSE_TIME;
+  /* ok done setting up the corpse */
+
+  /* place filled corpse in room */
+  obj_to_room(corpse, IN_ROOM(ch));
+}
+
+/* NPC:  function for creating corpses, ch just died */
 static void make_corpse(struct char_data *ch)
 {
   char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
@@ -5037,7 +5090,7 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
 }
 
 #define CRIT_MULTI_MIN 2
-#define CRIT_MULTI_MAX 6
+#define CRIT_MULTI_MAX 7
 
 int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded)
 {
@@ -5070,6 +5123,12 @@ int determine_critical_multiplier(struct char_data *ch, struct obj_data *wielded
     if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
         ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_WEAPON_FOCUS), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
       crit_multi += HAS_FEAT(ch, FEAT_INCREASED_MULTIPLIER);
+  }
+
+  /* high level mobs are getting a crit bonus here */
+  if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
+  {
+    crit_multi += (GET_LEVEL(ch) - 30);
   }
 
   /* establish some caps */
@@ -5283,16 +5342,25 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 
   if (diceroll >= threat_range)
   { /* critical potential? */
+
     if (HAS_FEAT(ch, FEAT_POWER_CRITICAL))
     { /* Check the weapon type, make sure it matches. */
       if (((wielded != NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily)) ||
           ((wielded == NULL) && HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_POWER_CRITICAL), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily)))
         confirm_roll += 4;
     }
+
     if (HAS_FEAT(ch, FEAT_WEAPON_TRAINING))
     {
       confirm_roll += HAS_FEAT(ch, FEAT_WEAPON_TRAINING) * 2;
     }
+
+    /* high level mobs get a bonus! */
+    if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
+    {
+      confirm_roll += (GET_LEVEL(ch) - 30) * 2;
+    }
+
     if (confirm_roll >= victim_ac) /* confirm critical */
       return 1;                    /* yep, critical! */
   }
@@ -5386,6 +5454,12 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
         dam += 2;
+
+      /* high level mobs are getting a crit bonus here */
+      if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
+      {
+        dam += (GET_LEVEL(ch) - 30) * 5;
+      }
 
       /* critical bonus */
       dam *= determine_critical_multiplier(ch, wielded);
@@ -5548,7 +5622,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
           perform_knockdown(ch, victim, SKILL_BASH);
         }
       }
-    }
+    } /* END critical hit */
 
     /* mounted charging character using charging weapons, whether this goes up
      * top or bottom of dam calculation can have a dramatic effect on this number */
@@ -8588,11 +8662,12 @@ int valid_fight_cond(struct char_data *ch, bool strict)
 }
 
 /* returns # of attacks and has mode functionality */
-#define ATTACK_CAP 3              /* MAX # of main-hand BONUS attacks */
-#define MONK_CAP (ATTACK_CAP + 2) /* monks main-hand bonus attack cap */
-#define TWO_WPN_PNLTY -5          /* improved two weapon fighting */
-#define GREAT_TWO_PNLY -10        /* greater two weapon fighting */
-#define EPIC_TWO_PNLTY 0          /* perfect two weapon fighting */
+#define ATTACK_CAP 3                       /* MAX # of main-hand BONUS attacks */
+#define MONK_CAP (ATTACK_CAP + 2)          /* monks main-hand bonus attack cap */
+#define NPC_ATTACK_CAP (MONK_CAPK_CAP + 2) /* high level NPC bonus attack cap */
+#define TWO_WPN_PNLTY -5                   /* improved two weapon fighting */
+#define GREAT_TWO_PNLY -10                 /* greater two weapon fighting */
+#define EPIC_TWO_PNLTY 0                   /* perfect two weapon fighting */
 /* mode functionality */
 #define NORMAL_ATTACK_ROUTINE 0     /*mode = 0  normal attack routine*/
 #define RETURN_NUM_ATTACKS 1        /*mode = 1  return # of attacks, nothing else*/
@@ -8670,6 +8745,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
         attacks_at_max_bab++;
       }
     }
+  }
+
+  /* high level NPCs get bonus attacks at max-bab! */
+  if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
+  {
+    bonus_mainhand_attacks += GET_LEVEL(ch) - 30;
+    attacks_at_max_bab += GET_LEVEL(ch) - 30;
   }
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */
@@ -9176,6 +9258,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 #undef PHASE_1
 #undef PHASE_2
 #undef PHASE_3
+#undef NPC_ATTACK_CAP
 
 /* display condition of FIGHTING() target to ch */
 /* this is deprecated with the prompt changes */
