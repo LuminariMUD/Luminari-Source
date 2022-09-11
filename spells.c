@@ -2006,10 +2006,8 @@ ASPELL(psionic_psychoportation)
    Object value 4 on corpse is the ID number of the player  */
 ASPELL(spell_resurrect)
 {
-  struct char_data *ressed = NULL, *vict = NULL;
-  struct obj_data *tobj = NULL;
-  struct obj_data *next_obj = NULL;
-  struct descrip_data *d = NULL, *next_d = NULL;
+  struct char_data *ressed = NULL, *vict = NULL, *next_v = NULL;
+  struct descriptor_data *d = NULL, *next_d = NULL;
   int exp = 0;
 
   if (ch == NULL || obj == NULL)
@@ -2034,7 +2032,7 @@ ASPELL(spell_resurrect)
 
   if (ressed == NULL)
   {
-    send_to_char("That char is not online at the moment!\r\n", ch);
+    send_to_char(ch, "That char is not online at the moment!\r\n");
     return;
   }
 
@@ -2059,7 +2057,7 @@ ASPELL(spell_resurrect)
   /* At this point the character is resurrected (nothing stopping us) */
   act("You howl in pain as your body is ripped to shreds.", FALSE, ressed, obj, 0, TO_CHAR);
   act("$n howls in pain as his body is ripped to shreds!", FALSE, ressed, obj, 0, TO_ROOM);
-  act("\tW$N\tn\tW's body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ressed, obj, t_ch, TO_NOTVICT);
+  act("\tW$N\tn\tW's body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ressed, obj, ressed, TO_NOTVICT);
   act("\tWYour body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ch, obj, ressed, TO_VICT);
 
   /* here is the stored xp and 10% penalty on that */
@@ -2165,14 +2163,14 @@ ASPELL(spell_resurrect)
       "\tw$n standing disoriented and exhausted.\tn",
       TRUE, ch, obj, ressed, TO_NOTVICT);
 
-  send_to_char("You feel extremely tired after beeing resurrected!\r\n", ressed);
+  send_to_char(ressed, "You feel extremely tired after beeing resurrected!\r\n");
   act("$n has been resurrected by $N!", FALSE, ressed, obj, ch, TO_NOTVICT);
   act("You have resurrected $n!", FALSE, ressed, obj, ch, TO_VICT);
 
   /* remove corpse */
   extract_obj(obj);
 
-  save_char(ressed, NULL);
+  save_char(ressed, 0);
   look_at_room(ressed, 0);
 }
 
