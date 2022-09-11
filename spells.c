@@ -2062,12 +2062,9 @@ ASPELL(spell_resurrect)
   act("\tWYour body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ch, obj, ressed, TO_VICT);
 
   /* here is the stored xp and 10% penalty on that */
-  exp = -GET_LOST_XP(ressed);
-  if (GET_LEVEL(ch) < LVL_IMMORT)
-  {
-    exp /= 10;
-    exp *= 9;
-  }
+  exp = -GET_OBJ_VAL(corpse, 5);
+  exp /= 10;
+  exp *= 9;
 
   /* Drop all stuffs on ground */
   /* we don't do this currently, corpses are empty and player should already have all his gear */
