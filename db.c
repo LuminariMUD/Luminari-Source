@@ -4904,13 +4904,13 @@ void free_char(struct char_data *ch)
   }
 
   /* spell prep system */
-  if (ch && ch->player)
+  if (ch && ch->player->name)
     destroy_spell_prep_queue(ch);
-  if (ch && ch->player)
+  if (ch && ch->player->name)
     destroy_innate_magic_queue(ch);
-  if (ch && ch->player)
+  if (ch && ch->player->name)
     destroy_spell_collection(ch);
-  if (ch && ch->player)
+  if (ch && ch->player->name)
     destroy_known_spells(ch);
 
   /* new version of free_followers take the followers pointer as arg */
