@@ -480,12 +480,13 @@
 #define DOMAIN_SLIME 0
 #define DOMAIN_MEDIATION 0
 
-// warding spells that need to be saved
+// warding spells that need to be saved, i started using it for other stuff too since its already allocated in saving/loading functions - zusuk
 #define MIRROR 0
 #define STONESKIN 1
+#define STORED_XP 2 /* zusuk is SO lame, he is storing lost xp here to put into corpse for ressurect :P  -zusuk */
 /*---------*/
-#define NUM_WARDING 2
-#define MAX_WARDING 10 // "warding" type spells such as stoneskin that save
+#define NUM_WARDING 3
+#define MAX_WARDING 10 // "warding" type spells, such as stoneskin that save (also now + etc (misc) such as saving xp lost for death)
 
 /* at the beginning, spec_abil was an array reserved for daily resets
    considering we've converted most of our system to a cooldown system

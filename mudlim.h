@@ -37,7 +37,7 @@ extern "C"
     void set_title(struct char_data *ch, char *title);
     void run_autowiz(void);
     int gain_exp(struct char_data *ch, int gain, int mode);
-    void gain_exp_regardless(struct char_data *ch, int gain);
+    void gain_exp_regardless(struct char_data *ch, int gain, bool is_ress);
     void gain_condition(struct char_data *ch, int condition, int value);
     void check_idling(struct char_data *ch);
     void point_update(void);

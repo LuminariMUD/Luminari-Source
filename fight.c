@@ -1376,7 +1376,7 @@ static void make_pc_corpse(struct char_data *ch)
   SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
 
   GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
-  GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
+  GET_OBJ_VAL(corpse, 3) = 2; /* corpse identifier */
 
   GET_OBJ_VAL(corpse, 4) = GET_IDNUM(ch); /* save the ID on the object value */
 
@@ -1875,6 +1875,7 @@ void die(struct char_data *ch, struct char_data *killer)
   struct descriptor_data *pt;
   int xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
   int penalty = xp_to_lvl / XP_LOSS_FACTOR;
+
   penalty = penalty * CONFIG_DEATH_EXP_LOSS / 100;
 
   if (GET_LEVEL(ch) <= 6)
@@ -1889,7 +1890,10 @@ void die(struct char_data *ch, struct char_data *killer)
   {
     // if not a newbie then bang that xp! - Bakarus
     if (!IN_ARENA(ch) && !IN_ARENA(killer))
-      gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
+    {
+      /* we are storing lost xp for ressurect */
+      GET_LOST_XP(ch) = gain_exp(ch, -penalty, GAIN_EXP_MODE_DEATH);
+    }
   }
 
   if (!IS_NPC(ch))

@@ -916,6 +916,9 @@ SAVING_WILL here...  */
     case SPELL_TRANSPORT_VIA_PLANTS:
       MANUAL_SPELL(spell_transport_via_plants);
       break;
+    case SPELL_RESURRECT:
+      MANUAL_SPELL(spell_resurrect);
+      break;
     case SPELL_WALL_OF_FORCE:
       MANUAL_SPELL(spell_wall_of_force);
       break;
@@ -3929,6 +3932,8 @@ void mag_assign_spells(void)
   spello(SPELL_ANIMAL_SHAPES, "animal shapes", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          "The primal spell wears off!", 5, 22, NOSCHOOL, FALSE);
+  spello(SPELL_RESURRECT, "resurrect", 0, 0, 0, POS_STANDING,
+         TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 15, 17, CONJURATION, FALSE);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,

@@ -1876,7 +1876,7 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "CLoc:\n");
   fprintf(fl, "%d %d\n", ch->coords[0], ch->coords[1]);
 
-  // warding
+  // warding, etc..
   fprintf(fl, "Ward:\n");
   for (i = 0; i < MAX_WARDING; i++)
   {

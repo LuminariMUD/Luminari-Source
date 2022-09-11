@@ -1039,6 +1039,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_WARDING(ch, slot) ((ch)->char_specials.saved.warding[slot])
 #define GET_IMAGES(ch) ((ch)->char_specials.saved.warding[MIRROR])
 #define GET_STONESKIN(ch) ((ch)->char_specials.saved.warding[STONESKIN])
+#define GET_LOST_XP(ch) ((ch)->char_specials.saved.warding[STORED_XP])
 #define GET_WARD_POINTS(ch) (GET_STONESKIN((ch)))
 #define TOTAL_DEFENSE(ch) ((ch)->char_specials.totalDefense)
 #define MOUNTED_BLOCKS_LEFT(ch) ((ch)->char_specials.mounted_blocks_left)
