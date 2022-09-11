@@ -2115,7 +2115,7 @@ ASPELL(spell_resurrect)
 
   /* relocate ress-target! */
   char_from_room(ressed);
-  char_to_room(ressed, ch->in_room);
+  char_to_room(ressed, obj->in_room);
 
   /* more unused code */
   /*
