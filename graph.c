@@ -207,7 +207,7 @@ ACMD(do_track)
   if (HAS_FEAT(ch, FEAT_SWIFT_TRACKER))
     moves = 0;
 
-  if (GET_MOVES(ch) < moves)
+  if (GET_MOVE(ch) < moves)
   {
     send_to_char(ch, "You are too exhausted!");
     return;
