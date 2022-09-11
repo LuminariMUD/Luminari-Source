@@ -1351,7 +1351,9 @@ static void make_pc_corpse(struct char_data *ch)
 
   /* start setting up all the variables for a corpse */
   corpse->item_number = NOTHING;
+
   IN_ROOM(corpse) = NOWHERE;
+
   corpse->name = strdup("corpse");
 
   snprintf(buf2, sizeof(buf2), "%sThe corpse of %s%s is lying here.",
@@ -1373,21 +1375,26 @@ static void make_pc_corpse(struct char_data *ch)
   }
 
   SET_BIT_AR(GET_OBJ_WEAR(corpse), ITEM_WEAR_TAKE);
+
   SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
 
   GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
+
   GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
 
   GET_OBJ_VAL(corpse, 4) = GET_IDNUM(ch); /* save the ID on the object value */
 
-  /* todo for players: save id onto corpse, and save race, etc */
+  GET_OBJ_VAL(corpse, 5) = GET_LOST_XP(ch); /* save the xp loss into the object */
+
+  /* todo for players? : save race, etc */
   GET_OBJ_WEIGHT(corpse) = GET_WEIGHT(ch);
+
   GET_OBJ_RENT(corpse) = 100000;
 
   GET_OBJ_TIMER(corpse) = CONFIG_MAX_PC_CORPSE_TIME;
   /* ok done setting up the corpse */
 
-  /* place filled corpse in room */
+  /* place corpse in room */
   obj_to_room(corpse, IN_ROOM(ch));
 }
 
