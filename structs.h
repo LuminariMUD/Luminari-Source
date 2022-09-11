@@ -3200,7 +3200,7 @@
 // other MAX_ defines
 #define MAX_WEAPON_SPELLS 3
 #define MAX_WEAPON_CHANNEL_SPELLS 2
-#define MAX_BAB 56 /* zusuk experimentation */
+#define MAX_BAB 55 /* zusuk experimentation */
 
 #define MAX_DAM_BONUS 120
 #define MAX_AC 60      /* this is now CONFIG_PLAYER_AC_CAP */

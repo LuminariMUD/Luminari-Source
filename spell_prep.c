@@ -1447,6 +1447,10 @@ bool is_min_level_for_spell(struct char_data *ch, int class, int spellnum)
      of given circle */
 int compute_slots_by_circle(struct char_data *ch, int class, int circle)
 {
+
+  if (!ch)
+    return FALSE;
+
   int spell_slots = 0, i = 0;
   int class_level = CLASS_LEVEL(ch, class);
 

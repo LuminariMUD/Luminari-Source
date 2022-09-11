@@ -439,14 +439,14 @@ void reset_char_points(struct char_data *ch)
   //  }
 }
 
-#define BASE_STAT_CAP 20
+#define BASE_STAT_CAP 22
 #define HP_CAP 300
 #define PSP_CAP 400
 #define MOVE_CAP 4000
-#define HITDAM_CAP 15
+#define HITDAM_CAP 20
 #define AC_CAP -160
 #define SAVE_CAP 15
-#define RESIST_CAP 100
+#define RESIST_CAP 99
 void compute_char_cap(struct char_data *ch)
 {
   int hp_cap, psp_cap, move_cap, hit_cap, dam_cap, ac_cap,
