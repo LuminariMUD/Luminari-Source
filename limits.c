@@ -1066,7 +1066,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   return gain;
 }
 
-void gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
+int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
 {
   int is_altered = FALSE;
   int num_levels = 0;
@@ -1124,6 +1124,8 @@ void gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
     send_to_char(ch,
                  "\tDYou have gained enough xp to advance, type 'gain' to level.\tn\r\n");
+
+  return gain;
 }
 
 void gain_condition(struct char_data *ch, int condition, int value)
