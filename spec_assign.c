@@ -715,6 +715,7 @@ void assign_objects(void)
   ASSIGNOBJ(132101, malevolence);
   ASSIGNOBJ(132128, speed_gaunts);
   ASSIGNOBJ(132126, rune_scimitar);
+  ASSIGNOBJ(132300, celestial_sword);
   ASSIGNOBJ(132133, stability_boots);
   ASSIGNOBJ(132118, ancient_moonblade);
 
@@ -1121,6 +1122,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"SparkSword", sparksword, ""},
     {"SpiderDagger", spiderdagger, ""},
     {"SpikeShield", spikeshield, ""},
+    {"Celestial Sword", celestial_sword, ""},
     //{"Staff of the Magi", magi_staff, ""},
     //{"Storage Chest", storage_chest, ""},
     {"Thief", thief, ""},

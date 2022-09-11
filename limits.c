@@ -1044,8 +1044,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     /* end game characters get hit much harder */
     if (GET_LEVEL(ch) >= 30)
     {
-      gain -= 250000;
-      gain *= 2;
+      gain -= 300000;
     }
 
     /* bam - hit 'em! */
@@ -1066,6 +1065,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   return gain;
 }
 
+/* */
 int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
 {
   int is_altered = FALSE;

@@ -5308,7 +5308,7 @@ void load_class_list(void)
   /*CM*/
   feat_assignment(CLASS_RANGER, FEAT_RAPID_SHOT, Y, 7, N);
   feat_assignment(CLASS_RANGER, FEAT_WOODLAND_STRIDE, Y, 8, N);
-  feat_assignment(CLASS_RANGER, FEAT_SWIFT_TRACKER, Y, 9, N);
+  feat_assignment(CLASS_RANGER, FEAT_TRACK, Y, 9, N);
   feat_assignment(CLASS_RANGER, FEAT_EVASION, Y, 10, N);
   feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 10, Y);
   /*CM*/
@@ -5316,7 +5316,7 @@ void load_class_list(void)
   /*CM*/
   feat_assignment(CLASS_RANGER, FEAT_MANYSHOT, Y, 12, N);
   feat_assignment(CLASS_RANGER, FEAT_CAMOUFLAGE, Y, 13, N);
-  feat_assignment(CLASS_RANGER, FEAT_TRACK, Y, 14, N);
+  feat_assignment(CLASS_RANGER, FEAT_SWIFT_TRACKER, Y, 14, N);
   feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 15, Y);
   feat_assignment(CLASS_RANGER, FEAT_HIDE_IN_PLAIN_SIGHT, Y, 17, N);
   feat_assignment(CLASS_RANGER, FEAT_FAVORED_ENEMY_AVAILABLE, Y, 20, Y);

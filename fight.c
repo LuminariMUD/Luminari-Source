@@ -1339,7 +1339,7 @@ void stop_fighting(struct char_data *ch)
   ch->player_specials->has_banishment_been_attempted = false;
 }
 
-/* PC:  function for creating corpses, ch just died */
+/* PC:  function for creating corpses, ch just died -zusuk */
 static void make_pc_corpse(struct char_data *ch)
 {
   char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
@@ -1354,7 +1354,9 @@ static void make_pc_corpse(struct char_data *ch)
 
   IN_ROOM(corpse) = NOWHERE;
 
-  corpse->name = strdup("corpse");
+  snprintf(buf2, sizeof(buf2), "%scorpse %spcorpse pcorpse_%s",
+           CCNRM(ch, C_NRM), GET_NAME(ch), GET_NAME(ch), CCNRM(ch, C_NRM));
+  corpse->name = strdup(buf2);
 
   snprintf(buf2, sizeof(buf2), "%sThe corpse of %s%s is lying here.",
            CCNRM(ch, C_NRM), GET_NAME(ch), CCNRM(ch, C_NRM));
