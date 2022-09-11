@@ -1240,8 +1240,8 @@ void assign_feats(void)
         "+1 hp per level, +(level) hp upon taking");
   /* rangers get this for free */
   feato(FEAT_TRACK, "track", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-        "use survival skill to track others",
-        "use survival skill to track others");
+        "use survival skill to track others (track <target>)",
+        "use survival skill to track others (track <target>)");
   feat_prereq_ability(FEAT_TRACK, ABILITY_SURVIVAL, 19);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -2945,9 +2945,9 @@ void assign_feats(void)
   feato(FEAT_HIDE_IN_PLAIN_SIGHT, "hide in plain sight", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "can hide in battle",
         "This feat grants the ability to perform the stealth maneuver: hide, even while in combat.  This check is made with a -8 penalty");
-  /* unfinished */ feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-                         "No penalty while autotracking.",
-                         "No penalty while autotracking.");
+  feato(FEAT_SWIFT_TRACKER, "swift tracker", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "No movement penalty to use tracking",
+        "No movement penalty to use tracking");
   /* combat mastery should be either an archer set of feats or dual wielding set of feats, for now we give them both */
   /* we have to make separate feats for dual weapon fighting (two weapon fighting) */
   feato(FEAT_DUAL_WEAPON_FIGHTING, "dual weapon fighting", TRUE, FALSE, FALSE, FEAT_TYPE_COMBAT,

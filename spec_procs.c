@@ -7271,6 +7271,111 @@ SPECIAL(ancient_moonblade)
 }
 #undef LARGE_SPIRIT_EAGLE
 
+SPECIAL(celestial_sword)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse.\r\n"
+                     "Whisper 'messiah' to attempt to resurrect all the player corpses in the room.\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132300))
+    return FALSE;
+
+  struct obj_data *celestial = (struct obj_data *)me, *obj = NULL;
+  bool found = FALSE;
+
+  skip_spaces(&argument);
+
+  if (!strcmp(argument, "revive") && CMD_IS("whisper"))
+  {
+
+    /* still on cooldown */
+    if (GET_OBJ_SPECTIMER(celestial, 0) > 0)
+    {
+      send_to_char(ch, "\tcAs you whisper '\tWrevive\tc' to $p, nothing happens.\tn\r\n");
+      return TRUE;
+    }
+
+    /* lets try to find your corpse.. */
+    for (obj = object_list; obj; obj = obj->next)
+    {
+      if (!isname_obj(GET_NAME(ch), obj->name))
+        continue;
+
+      /* found a name match at least! */
+
+      /* is the item a corpse? */
+      if (!IS_CORPSE(obj) || !GET_OBJ_VAL(obj, 4))
+        continue;
+
+      /* is this our corpse? */
+      if (GET_OBJ_VAL(obj, 4) != GET_IDNUM(ch))
+        continue;
+
+      /* corpse should be on the floor somewhere */
+      if (obj->in_room == NOWHERE)
+        continue;
+
+      /* think we're good, lets fire! */
+      if (call_magic(ch, ch, obj, SPELL_RESURRECT, 0, 30, CAST_WEAPON_SPELL))
+      {
+        GET_OBJ_SPECTIMER(celestial, 0) = 48;
+        return TRUE;
+      }
+    } /* end for loop */
+
+    send_to_char(ch, "Your corpse can't be found...\r\n");
+    return FALSE;
+  } /* end self revive proc */
+
+  if (!strcmp(argument, "messiah") && CMD_IS("whisper"))
+  {
+
+    /* still on cooldown */
+    if (GET_OBJ_SPECTIMER(celestial, 0) > 0)
+    {
+      send_to_char(ch, "\tcAs you whisper '\tWmessiah\tc' to $p, nothing happens.\tn\r\n");
+      return TRUE;
+    }
+
+    /* lets try to find your corpse.. */
+    for (obj = object_list; obj; obj = obj->next)
+    {
+
+      /* is the item a corpse? */
+      if (!IS_CORPSE(obj) || !GET_OBJ_VAL(obj, 4))
+        continue;
+
+      /* corpse should be on the floor somewhere */
+      if (obj->in_room != IN_ROOM(ch))
+        continue;
+
+      /* think we're good, lets fire! */
+      if (call_magic(ch, ch, obj, SPELL_RESURRECT, 0, 30, CAST_WEAPON_SPELL))
+      {
+        found = TRUE;
+      }
+    } /* end for loop */
+
+    if (found)
+    {
+      GET_OBJ_SPECTIMER(celestial, 0) = 96;
+      return TRUE;
+    }
+
+    send_to_char(ch, "Your corpse can't be found...\r\n");
+    return FALSE;
+  } /* end room revive proc */
+
+  /* failed! */
+  return FALSE;
+}
+
 /* from homeland */
 SPECIAL(chionthar_ferry)
 {

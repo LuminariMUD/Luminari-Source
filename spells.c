@@ -2015,7 +2015,7 @@ ASPELL(spell_resurrect)
     return;
 
   /* If it is not a pcorpse, then out*/
-  if (!IS_CORPSE(obj) || GET_OBJ_VAL(obj, 3) != 1 || !GET_OBJ_VAL(obj, 4))
+  if (!IS_CORPSE(obj) || !GET_OBJ_VAL(obj, 4))
   {
     act("$p is not a player corpse.", FALSE, ch, obj, 0, TO_CHAR);
     return;
@@ -2063,8 +2063,11 @@ ASPELL(spell_resurrect)
 
   /* here is the stored xp and 10% penalty on that */
   exp = -GET_OBJ_VAL(obj, 5); /* this will be negative, so we are swapping it since we want to -gain- this xp back */
-  exp /= 10;
-  exp *= 9;
+  if (GET_LEVEL(ch) < LVL_IMMORT && GET_LEVEL(ressed) < LVL_IMMORT)
+  {
+    exp /= 10;
+    exp *= 9;
+  }
 
   /* Drop all stuffs on ground */
   /* we don't do this currently, corpses are empty and player should already have all his gear */
@@ -2126,16 +2129,21 @@ ASPELL(spell_resurrect)
   */
 
   /* extra "cost" for ress */
-  GET_MOVE(ch) = 0; // exhausted
   if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    GET_MOVE(ch) = 0; // exhausted
     WAIT_STATE(ch, 12 RL_SEC);
-  USE_FULL_ROUND_ACTION(ch);
-  USE_SWIFT_ACTION(ch);
+    USE_FULL_ROUND_ACTION(ch);
+    USE_SWIFT_ACTION(ch);
+  }
 
-  GET_MOVE(ressed) = 0; // exhausted
-  WAIT_STATE(ressed, PULSE_VIOLENCE * 1);
-  USE_FULL_ROUND_ACTION(ressed);
-  USE_SWIFT_ACTION(ressed);
+  if (GET_LEVEL(ressed) < LVL_IMMORT)
+  {
+    GET_MOVE(ressed) = 0; // exhausted
+    WAIT_STATE(ressed, PULSE_VIOLENCE * 1);
+    USE_FULL_ROUND_ACTION(ressed);
+    USE_SWIFT_ACTION(ressed);
+  }
   /* end cost */
 
   /* get XP back! */

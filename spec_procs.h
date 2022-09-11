@@ -206,6 +206,7 @@ SPECIAL_DECL(spiderdagger);
 SPECIAL_DECL(spikeshield);
 SPECIAL_DECL(star_circlet);
 SPECIAL_DECL(storage_chest);
+SPECIAL_DECL(celestial_sword);
 SPECIAL_DECL(thief);
 SPECIAL_DECL(thrym);
 SPECIAL_DECL(tia_rapier);

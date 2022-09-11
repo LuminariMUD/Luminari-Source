@@ -167,7 +167,7 @@ ACMD(do_track)
   char arg[MAX_INPUT_LENGTH];
   struct char_data *vict;
   int dir, track_dc = 0;
-  int ch_in_wild = FALSE, vict_in_wild = FALSE;
+  int ch_in_wild = FALSE, vict_in_wild = FALSE, moves = 0;
 
   /* The character must have the track skill. */
   if (!HAS_FEAT(ch, FEAT_NATURAL_TRACKER) && !HAS_FEAT(ch, FEAT_TRACK))
@@ -176,26 +176,40 @@ ACMD(do_track)
     return;
   }
   one_argument(argument, arg, sizeof(arg));
+
   if (!*arg)
   {
     send_to_char(ch, "Whom are you trying to track?\r\n");
     return;
   }
+
   /* The person can't see the victim. */
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
   {
     send_to_char(ch, "No one is around by that name.\r\n");
     return;
   }
+
   /* We can't track the victim. */
   if (AFF_FLAGGED(vict, AFF_NOTRACK) && GET_LEVEL(ch) < LVL_IMPL)
   {
-    send_to_char(ch, "You sense no trail.\r\n");
+    send_to_char(ch, "You sense they left no trail...\r\n");
     return;
   }
+
   if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
+    return;
+  }
+
+  moves = dice(5, 5);
+  if (HAS_FEAT(ch, FEAT_SWIFT_TRACKER))
+    moves = 0;
+
+  if (GET_MOVES(ch) < moves)
+  {
+    send_to_char(ch, "You are too exhausted!");
     return;
   }
 
@@ -207,11 +221,13 @@ ACMD(do_track)
   else
     track_dc = 10 + compute_ability(vict, ABILITY_SURVIVAL);
 
+  /* skill check continue */
   if (GET_LEVEL(ch) >= LVL_IMPL)
     ;
   else if (!skill_check(ch, ABILITY_SURVIVAL, track_dc))
   {
-    USE_MOVE_ACTION(ch);
+    if (!HAS_FEAT(ch, FEAT_SWIFT_TRACKER))
+      USE_MOVE_ACTION(ch);
     int tries = 10;
     /* Find a random direction. :) */
     do
