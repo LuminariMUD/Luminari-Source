@@ -3902,6 +3902,8 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_DIMENSIONAL_LOCK, 15);
   spell_assignment(CLASS_CLERIC, SPELL_SALVATION, 15);
   spell_assignment(CLASS_CLERIC, SPELL_SPRING_OF_LIFE, 15);
+  spell_assignment(CLASS_CLERIC, SPELL_RESURRECT, 15);
+
   /*              class num      spell                   level acquired */
   /* 9th circle */
   spell_assignment(CLASS_CLERIC, SPELL_SUNBURST, 17);
@@ -4468,6 +4470,8 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_POLYMORPH, 17);
   spell_assignment(CLASS_DRUID, SPELL_STORM_OF_VENGEANCE, 17);
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_9, 17);
+  spell_assignment(CLASS_DRUID, SPELL_RESURRECT, 17);
+
   /*epic*/
   spell_assignment(CLASS_DRUID, SPELL_DRAGON_KNIGHT, 21);
   spell_assignment(CLASS_DRUID, SPELL_GREATER_RUIN, 21);

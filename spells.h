@@ -1287,6 +1287,7 @@ ASPELL(spell_summon);
 ASPELL(spell_teleport);
 ASPELL(spell_shadow_jump);
 ASPELL(spell_transport_via_plants);
+ASPELL(spell_resurrect);
 ASPELL(spell_wall_of_fire);
 ASPELL(spell_wall_of_thorns);
 ASPELL(spell_wall_of_force);

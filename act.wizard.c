@@ -1950,7 +1950,7 @@ ACMD(do_advance)
     GET_COND(victim, DRUNK) = -1;
   }
 
-  gain_exp_regardless(victim, level_exp(victim, newlevel) - GET_EXP(victim));
+  gain_exp_regardless(victim, level_exp(victim, newlevel) - GET_EXP(victim), FALSE);
   save_char(victim, 0);
 }
 

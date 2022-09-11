@@ -917,19 +917,19 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   if (IS_NPC(ch))
   {
     GET_EXP(ch) += gain / 2;
-    return 0;
+    return (int)(gain / 2);
   }
 
   xp_to_lvl_cap = level_exp(ch, GET_LEVEL(ch) + 2);
 
-  if (GET_EXP(ch) > xp_to_lvl_cap && gain > 0 && GET_LEVEL(ch) < 30)
-  {
-    send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
-    return 0;
-  }
-
   if (gain > 0)
   {
+
+    if (GET_EXP(ch) > xp_to_lvl_cap && gain > 0 && GET_LEVEL(ch) < 30)
+    {
+      send_to_char(ch, "Your experience has been capped.  You must gain a level before you can begin earning experience again.\r\n");
+      return 0;
+    }
 
     /* newbie bonus */
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
@@ -1000,7 +1000,8 @@ int gain_exp(struct char_data *ch, int gain, int mode)
         gain_cap = gain; // no cap
       }
       else
-*/
+      */
+
       if (GET_LEVEL(ch) < 11)
       {
         gain_cap = xp_to_lvl / (MIN_NUM_MOBS_TO_KILL_5);
@@ -1056,49 +1057,59 @@ int gain_exp(struct char_data *ch, int gain, int mode)
   return gain;
 }
 
-void gain_exp_regardless(struct char_data *ch, int gain)
+void gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
 {
   int is_altered = FALSE;
   int num_levels = 0;
 
-  if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
-    gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
+  if (!is_ress)
+  {
+    if ((IS_HAPPYHOUR) && (IS_HAPPYEXP))
+      gain += (int)((float)gain * ((float)HAPPY_EXP / (float)(100)));
+  }
 
   GET_EXP(ch) += gain;
 
   if (GET_EXP(ch) < 0)
     GET_EXP(ch) = 0;
 
-  if (!IS_NPC(ch))
+  if (!is_ress)
   {
 
-    while (GET_LEVEL(ch) < LVL_IMPL &&
-           GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+    if (!IS_NPC(ch))
     {
-      GET_LEVEL(ch) += 1;
-      if (CLASS_LEVEL(ch, GET_CLASS(ch)) < (LVL_STAFF - 1))
-        CLASS_LEVEL(ch, GET_CLASS(ch))
-      ++;
-      num_levels++;
-      /* our function for leveling up, takes in class that is being advanced */
-      advance_level(ch, GET_CLASS(ch));
-      is_altered = TRUE;
-    }
 
-    if (is_altered)
-    {
-      mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s advanced %d level%s to level %d.",
-             GET_NAME(ch), num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
-      if (num_levels == 1)
-        send_to_char(ch, "You rise a level!\r\n");
-      else
-        send_to_char(ch, "You rise %d levels!\r\n", num_levels);
-      set_title(ch, NULL);
+      while (GET_LEVEL(ch) < LVL_IMPL &&
+             GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))
+      {
+        GET_LEVEL(ch) += 1;
+        if (CLASS_LEVEL(ch, GET_CLASS(ch)) < (LVL_STAFF - 1))
+          CLASS_LEVEL(ch, GET_CLASS(ch))
+        ++;
+        num_levels++;
+        /* our function for leveling up, takes in class that is being advanced */
+        advance_level(ch, GET_CLASS(ch));
+        is_altered = TRUE;
+      }
+
+      if (is_altered)
+      {
+        mudlog(BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE, "%s advanced %d level%s to level %d.",
+               GET_NAME(ch), num_levels, num_levels == 1 ? "" : "s", GET_LEVEL(ch));
+        if (num_levels == 1)
+          send_to_char(ch, "You rise a level!\r\n");
+        else
+          send_to_char(ch, "You rise %d levels!\r\n", num_levels);
+        set_title(ch, NULL);
+      }
     }
   }
 
-  if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
-    run_autowiz();
+  if (!is_ress)
+  {
+    if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
+      run_autowiz();
+  }
 
   if (GET_LEVEL(ch) < LVL_IMMORT - CONFIG_NO_MORT_TO_IMMORT &&
       GET_EXP(ch) >= level_exp(ch, GET_LEVEL(ch) + 1))

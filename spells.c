@@ -2002,6 +2002,177 @@ ASPELL(psionic_psychoportation)
   greet_memory_mtrigger(ch);
 }
 
+/* Object value 3 on corpse is just a marker that its a corpse (2 for PC corpse)
+   Object value 4 on corpse is the ID number of the player  */
+ASPELL(spell_resurrect)
+{
+  struct char_data *ressed = NULL, *vict = NULL;
+  struct obj_data *tobj = NULL;
+  struct obj_data *next_obj = NULL;
+  struct descrip_data *d = NULL;
+  int exp = 0;
+
+  if (ch == NULL || obj == NULL)
+    return;
+
+  /* If it is not a pcorpse, then out*/
+  if (!IS_CORPSE(obj) || GET_OBJ_VAL(obj, 3) != 2 || !GET_OBJ_VAL(obj, 4))
+  {
+    act("$p is not a player corpse.", FALSE, ch, obj, 0, TO_CHAR);
+    return;
+  }
+
+  /* looking for the player associated with the corpse */
+  for (d = descriptor_list; d && !ressed; d = d->next)
+  {
+    if (d->character && (STATE(d) == CON_PLAYING) &&
+        GET_OBJ_VAL(obj, 4) == GET_IDNUM(d->character))
+      ressed = d->character;
+  }
+  if (ressed == NULL)
+  {
+    send_to_char("That char is not online at the moment!\r\n", ch);
+    return;
+  }
+
+  /* we don't currently have a fail chance */
+  /*
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    if (number(0, 101) > GET_CON(ressed) &&
+        number(0, 101) > GET_MOVE(ch) &&
+        number(0, 101) > GET_LUCK(ressed))
+    {
+      send_to_char("You feel as if you are at two places at once!\r\n", ressed);
+      send_to_char("Suddenly you return to normal and feel rather disappointed.\r\n", ressed);
+      send_to_char("Oops...that did NOT go as planned.!\r\n", ch);
+      // okies.. we failed ress, time to mark the corpse as unressable
+      GET_OBJ_VAL(obj, 2) = 1;
+      return;
+    }
+  }
+  */
+
+  /* At this point the character is resurrected (nothing stopping us) */
+  act("You howl in pain as your body is ripped to shreds.", FALSE, ressed, obj, 0, TO_CHAR);
+  act("$n howls in pain as his body is ripped to shreds!", FALSE, ressed, obj, 0, TO_ROOM);
+  act("\tW$N\tn\tW's body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ressed, obj, t_ch, TO_NOTVICT);
+  act("\tWYour body seems to \tn\tcsh\tn\tCimm\tn\twer \tWsuddenly, then crumbles into \tn\tydust.\tn\n", TRUE, ch, obj, ressed, TO_VICT);
+
+  /* here is the stored xp and 10% penalty on that */
+  exp = GET_LOST_XP(ressed);
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    exp /= 10;
+    exp *= 9;
+  }
+
+  /* Drop all stuffs on ground */
+  /* we don't do this currently, corpses are empty and player should already have all his gear */
+  /*
+  dump_eq_to_room(ressed);
+  */
+
+  /* more unused code */
+  /*
+     for (tobj = ressed->carrying; tobj; tobj = next_obj) {
+        next_obj = tobj->next_content;
+        obj_to_room(tobj, ressed->in_room);
+     }
+
+     for (i = 0; i < NUM_WEARS; i++)
+        if (GET_EQ(ressed, i))
+           obj_to_room(unequip_char(ressed, i), ressed->in_room );
+  */
+
+  /* stop combat */
+  /* stop vanishers combat */
+  if (char_has_mud_event(ressed, eCOMBAT_ROUND))
+  {
+    event_cancel_specific(ressed, eCOMBAT_ROUND);
+  }
+  stop_fighting(ressed);
+
+  /* stop all those who are fighting vanisher */
+  for (vict = world[IN_ROOM(ressed)].people; vict; vict = next_v)
+  {
+    next_v = vict->next_in_room;
+
+    if (FIGHTING(vict) == ressed)
+    {
+      if (char_has_mud_event(vict, eCOMBAT_ROUND))
+      {
+        event_cancel_specific(vict, eCOMBAT_ROUND);
+      }
+      stop_fighting(vict);
+    }
+
+    if (IS_NPC(vict))
+      clearMemory(vict);
+  }
+
+  /* relocate ress-target! */
+  char_from_room(ressed);
+  char_to_room(ressed, ch->in_room);
+
+  /* more unused code */
+  /*
+  for (tobj = obj->contains; tobj; tobj = next_obj)
+  {
+    next_obj = tobj->next_content;
+    obj_from_obj(tobj);
+    obj_to_char(tobj, ressed);
+    get_check_money(ressed, tobj);
+  }
+  */
+
+  /* extra "cost" for ress */
+  GET_MOVE(ch) = 0; // exhausted
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+    WAIT_STATE(ch, 12 RL_SEC);
+
+  GET_MOVE(ressed) = 0; // exhausted
+  WAIT_STATE(ressed, PULSE_VIOLENCE * 1);
+  /* end cost */
+
+  /* get XP back! */
+  if (exp <= 0)
+    exp = 1;
+  gain_exp_regardless(ressed, exp, TRUE);
+
+  act("\twYou complete your chant, and stand humbled before the might of\n"
+      "your \tn\tWdeity.\tn\tw Your vision swims as you see your deity's \tYdivine\n"
+      "\tYhand \tn\twreaching down to touch $N and $S \tn\tLremains. \tn\tw$N\tn\tw's\n"
+      "\tn\tcsoul \tn\twis guided out of its current vessel and gently deposited\n"
+      "\twinto $S \tn\tLremains. \tn\twThe empty \tn\tLcarcass \tn\twcrumbles into dust\n"
+      "\tn\twas your \tn\tWdeity \tn\twwithdraws their touch, leaving you exhausted.\tn\n",
+      TRUE, ch, obj, ressed, TO_CHAR);
+
+  act("\twYou feel a \tn\tWPresence \tn\twtouch you, its divine hand cupping itself\n"
+      "\twaround your \tn\tcsoul \tn\twand drawing it forth from your current body. For\n"
+      "\twone brief instant, you witness the enormity of the \tn\tLuni\tn\tCve\tn\tcrse\tn\tw before\n"
+      "\twyour \tn\tcsoul \tn\twis gently deposited into your previous body, at the feet of $n.\tn",
+      TRUE, ch, obj, ressed, TO_VICT);
+
+  act("\tw$n\tn\tw completes $s chant, and stares \tn\tYrapturously \tn\twinto space.\n"
+      "\tw$s body seems to \tn\tcsh\tn\tCimm\tn\twer \tn\twas a great Power enters the room, and\n"
+      "\twa divine \tn\tYradiance \tn\twengulfs the body at $n's feet. After a\n"
+      "\twbrief moment, the body \tn\tLtwitches \tn\twand convulses, before the eyes snap\n"
+      "\twopen and $N takes a deep breath. The \tn\tYradiance \tn\twdissipates, leaving\n"
+      "\tw$n standing disoriented and exhausted.\tn",
+      TRUE, ch, obj, ressed, TO_NOTVICT);
+
+  send_to_char("You feel extremely tired after beeing resurrected!\r\n", ressed);
+  act("$n has been resurrected by $N!", FALSE, ressed, obj, ch, TO_NOTVICT);
+  act("You have resurrected $n!", FALSE, ressed, obj, ch, TO_VICT);
+
+  /* remove corpse */
+  extract_obj(obj);
+
+  save_char(ressed, NULL);
+  look_at_room(ressed, 0);
+}
+
 ASPELL(spell_transport_via_plants)
 {
   obj_vnum obj_num = NOTHING;
