@@ -7298,7 +7298,7 @@ SPECIAL(celestial_sword)
     /* still on cooldown */
     if (GET_OBJ_SPECTIMER(celestial, 0) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tWrevive\tc' to $p, nothing happens.\tn\r\n");
+      send_to_char(ch, "\tcAs you whisper '\tWrevive\tc' to %s, nothing happens.\tn\r\n", GET_OBJ_SHORT(celestial));
       return TRUE;
     }
 
@@ -7344,7 +7344,7 @@ SPECIAL(celestial_sword)
     /* still on cooldown */
     if (GET_OBJ_SPECTIMER(celestial, 0) > 0)
     {
-      send_to_char(ch, "\tcAs you whisper '\tWmessiah\tc' to $p, nothing happens.\tn\r\n");
+      send_to_char(ch, "\tcAs you whisper '\tWmessiah\tc' to %s, nothing happens.\tn\r\n", GET_OBJ_SHORT(celestial));
       return TRUE;
     }
 
