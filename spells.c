@@ -2014,8 +2014,16 @@ ASPELL(spell_resurrect)
   if (ch == NULL || obj == NULL)
     return;
 
+  if (obj->in_room == NOWHERE)
+    return;
+
   /* If it is not a pcorpse, then out*/
-  if (!IS_CORPSE(obj) || !GET_OBJ_VAL(obj, 4))
+  if (!IS_CORPSE(obj))
+  {
+    act("$p is not a player corpse.", FALSE, ch, obj, 0, TO_CHAR);
+    return;
+  }
+  if (!GET_OBJ_VAL(obj, 4))
   {
     act("$p is not a player corpse.", FALSE, ch, obj, 0, TO_CHAR);
     return;
@@ -2026,7 +2034,7 @@ ASPELL(spell_resurrect)
   {
     next_d = d->next;
 
-    if (d->character && (STATE(d) == CON_PLAYING) &&
+    if (d && d->character && (STATE(d) == CON_PLAYING) &&
         GET_OBJ_VAL(obj, 4) == GET_IDNUM(d->character))
       ressed = d->character;
   }
@@ -2100,16 +2108,18 @@ ASPELL(spell_resurrect)
   {
     next_v = vict->next_in_room;
 
-    if (FIGHTING(vict) == ressed)
+    if (vict && FIGHTING(vict) == ressed)
     {
       if (char_has_mud_event(vict, eCOMBAT_ROUND))
       {
         event_cancel_specific(vict, eCOMBAT_ROUND);
       }
-      stop_fighting(vict);
+
+      if (vict)
+        stop_fighting(vict);
     }
 
-    if (IS_NPC(vict))
+    if (vict && IS_NPC(vict))
       clearMemory(vict);
   }
 

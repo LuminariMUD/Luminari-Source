@@ -7279,7 +7279,7 @@ SPECIAL(celestial_sword)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse.\r\n"
+    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse (don't have to be in the same room).\r\n"
                      "Whisper 'messiah' to attempt to resurrect all the player corpses in the room.\r\n");
     return TRUE;
   }
@@ -7305,6 +7305,14 @@ SPECIAL(celestial_sword)
     /* lets try to find your corpse.. */
     for (obj = object_list; obj; obj = obj->next)
     {
+      /* dummychecks */
+      if (!obj || !ch)
+        continue;
+      if (obj->in_room == NOWHERE)
+        continue;
+      if (ch->in_room == NOWHERE)
+        continue;
+
       if (!isname_obj(GET_NAME(ch), obj->name))
         continue;
 
@@ -7316,10 +7324,6 @@ SPECIAL(celestial_sword)
 
       /* is this our corpse? */
       if (GET_OBJ_VAL(obj, 4) != GET_IDNUM(ch))
-        continue;
-
-      /* corpse should be on the floor somewhere */
-      if (obj->in_room == NOWHERE)
         continue;
 
       /* think we're good, lets fire! */
@@ -7347,16 +7351,26 @@ SPECIAL(celestial_sword)
     /* lets try to find your corpse.. */
     for (obj = object_list; obj; obj = obj->next)
     {
+      /* dummychecks */
+      if (!obj || !ch)
+        continue;
+      if (obj->in_room == NOWHERE)
+        continue;
+      if (ch->in_room == NOWHERE)
+        continue;
 
       /* is the item a corpse? */
-      if (!IS_CORPSE(obj) || !GET_OBJ_VAL(obj, 4))
+      if (!IS_CORPSE(obj))
+        continue;
+
+      if (!GET_OBJ_VAL(obj, 4))
         continue;
 
       /* corpse should be on the floor somewhere */
       if (obj->in_room != IN_ROOM(ch))
         continue;
 
-      /* think we're good, lets fire! */
+      /* think we're good, lets try! */
       if (call_magic(ch, ch, obj, SPELL_RESURRECT, 0, 30, CAST_WEAPON_SPELL))
       {
         found = TRUE;
@@ -7369,7 +7383,7 @@ SPECIAL(celestial_sword)
       return TRUE;
     }
 
-    send_to_char(ch, "Your corpse can't be found...\r\n");
+    send_to_char(ch, "No corpses were found...\r\n");
     return FALSE;
   } /* end room revive proc */
 
