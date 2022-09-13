@@ -1988,7 +1988,7 @@ bool chan_yell(struct char_data *ch)
 SPECIAL(shadowdragon)
 {
   if (!ch)
-    return;
+    return FALSE;
 
   struct char_data *vict = NULL;
   struct char_data *next_vict = NULL;
