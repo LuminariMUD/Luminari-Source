@@ -465,9 +465,10 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         {
           if (IS_PLAYING(pt) && pt->character && pt->character != ch)
           {
-            send_to_char(ch, "\tL%s's \tWlifeforce\tL is ripped apart, who realizes\tn\r\n"
-                             "\tLthat death has arrived. %s's \tLbody is now merely a "
-                             "vessel for power.  %s \tLhas become a \tYLICH\tn\r\n",GET_NAME(ch), GET_NAME(ch), GET_NAME(ch));
+            send_to_char(pt->character, "\tL%s's \tWlifeforce\tL is ripped apart, who realizes\tn\r\n"
+                                        "\tLthat death has arrived. %s's \tLbody is now merely a "
+                                        "vessel for power.  %s \tLhas become a \tYLICH\tn\r\n",
+                         GET_NAME(ch), GET_NAME(ch), GET_NAME(ch));
           }
         }
 

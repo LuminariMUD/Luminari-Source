@@ -2038,6 +2038,8 @@ SPECIAL(imix)
 
   struct char_data *vict = NULL;
 
+  vict = FIGHTING(ch);
+
   if (!vict)
   {
     PROC_FIRED(ch) = FALSE;
