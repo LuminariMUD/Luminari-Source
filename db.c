@@ -1075,7 +1075,7 @@ void boot_db(void)
   if (!boot_time)
     boot_time = time(0);
 
-  /* moved house code below zreset ()because it would affect what items load at boot */
+  /* moved house code below zreset (here) because it would affect what items load at boot */
   if (!mini_mud)
   {
     log("Booting houses.");
