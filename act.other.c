@@ -522,11 +522,12 @@ ACMD(do_abundantstep)
     return;
   }
 
-  if (GET_MOVE(ch) < 30)
+  if (GET_MOVE(ch) < 300)
   {
     send_to_char(ch, "You are too tired to use this martial art skill!\r\n");
     return;
   }
+
   /* 3.23.18 Ornir, bugfix. */
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOTELEPORT))
   {
@@ -612,15 +613,15 @@ ACMD(do_abundantstep)
 
         nextroom = W_EXIT(room_tracker, i)->to_room;
 
+        if (nextroom == NOWHERE)
+          break;
+
         /* 3.23.18 Ornir, bugfix. */
         if (ROOM_FLAGGED(nextroom, ROOM_NOTELEPORT) || ROOM_FLAGGED(nextroom, ROOM_HOUSE))
         {
-          send_to_char(ch, "You can not access your destination through the ethereal plane!\r\n");
+          send_to_char(ch, "You can not access your destination through the ethereal plane!  At least part of the path is obstructed...\r\n");
           return;
         }
-
-        if (nextroom == NOWHERE)
-          break;
 
         room_tracker = nextroom;
       }
@@ -640,7 +641,7 @@ ACMD(do_abundantstep)
     act("$n is suddenly present.", TRUE, ch, 0, 0, TO_ROOM);
 
     look_at_room(ch, 0);
-    GET_MOVE(ch) -= 30;
+    GET_MOVE(ch) -= 300;
     USE_MOVE_ACTION(ch);
   }
   else
