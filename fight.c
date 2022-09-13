@@ -9863,7 +9863,7 @@ void perform_violence(struct char_data *ch, int phase)
   /**/
 
   if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&
-      !MOB_FLAGGED(ch, MOB_NOTDEADYET))
+      !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
   {
     char actbuf[MAX_INPUT_LENGTH] = "";
     (GET_MOB_SPEC(ch))(ch, ch, 0, actbuf);

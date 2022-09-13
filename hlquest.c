@@ -431,7 +431,17 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
     case QUEST_COMMAND_KIT:
       if (qcom->value == LICH_QUEST || qcom->location == LICH_QUEST)
       {
-        // hack for lich remort..
+        /* hack for lich remort.. -zusuk */
+
+        /* these parameters break the game */
+        if (GROUP(ch) || ch->master || ch->followers)
+        {
+          send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to become a LICH.\r\n"
+                           "You can dismiss npc followers with the 'dismiss' command.\r\n");
+          give_back_items(victim, ch, quest);
+
+          return;
+        }
 
         GET_REAL_RACE(ch) = RACE_LICH;
         // GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s

@@ -1677,12 +1677,22 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
    to hunt someone down */
 static void zone_yell(struct char_data *ch, const char *buf)
 {
+  if (!ch)
+    return;
+
   struct char_data *i = NULL;
   struct char_data *vict = NULL;
   int num_targets = 0;
 
   for (i = character_list; i; i = i->next)
   {
+
+    if (!i)
+      continue;
+
+    if (i->in_room == NOWHERE)
+      continue;
+
     if (world[ch->in_room].zone == world[i->in_room].zone)
     {
 
@@ -1700,12 +1710,14 @@ static void zone_yell(struct char_data *ch, const char *buf)
         if (i->in_room == ch->in_room && !FIGHTING(i))
         {
           for (vict = world[i->in_room].people; vict; vict = vict->next_in_room)
+          {
             if (FIGHTING(vict) == ch)
             {
               act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
               hit(i, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
               break;
             }
+          }
         }
         else
         {
@@ -1975,8 +1987,11 @@ bool chan_yell(struct char_data *ch)
 /* from homeland */
 SPECIAL(shadowdragon)
 {
-  struct char_data *vict;
-  struct char_data *next_vict;
+  if (!ch)
+    return;
+
+  struct char_data *vict = NULL;
+  struct char_data *next_vict = NULL;
 
   if (cmd)
     return FALSE;
@@ -2000,7 +2015,7 @@ SPECIAL(shadowdragon)
         FALSE, ch, 0, vict, TO_VICT);
     act("$N \tLseems to loose the will for fighting against this awesome foe.\tn",
         FALSE, ch, 0, vict, TO_NOTVICT);
-    GET_MOVE(vict) -= (10 + dice(5, 4));
+    GET_MOVE(vict) -= (100 + dice(50, 4));
   }
 
   call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
@@ -2011,20 +2026,32 @@ SPECIAL(shadowdragon)
 /* from homeland */
 SPECIAL(imix)
 {
-  if (cmd || GET_POS(ch) == POS_DEAD)
+
+  if (!ch)
     return FALSE;
 
-  if (!FIGHTING(ch))
-    PROC_FIRED(ch) = FALSE;
+  if (cmd)
+    return FALSE;
 
-  if (FIGHTING(ch))
+  if (GET_POS(ch) == POS_DEAD || GET_HIT(ch) <= 1)
+    return FALSE;
+
+  struct char_data *vict = NULL;
+
+  if (!vict)
+  {
+    PROC_FIRED(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (vict)
   {
     zone_yell(ch, "\r\n\tMImix \tnshouts, '\tRYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
   }
 
-  if (!rand_number(0, 3) && FIGHTING(ch))
+  if (!rand_number(0, 3) && vict)
   {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, vict, 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
     return TRUE;
   }
 
