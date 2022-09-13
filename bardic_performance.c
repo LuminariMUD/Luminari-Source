@@ -141,10 +141,13 @@ void list_available_performances(struct char_data *ch)
      out:  0 - FALSE, 1 - TRUE   i.e. whether we can continue/start performing -zusuk */
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent)
 {
-  struct char_data *vict = NULL, *next_vict = NULL;
-
   if (!ch)
     return 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return 0;
+
+  struct char_data *vict = NULL, *next_vict = NULL;
 
   /* check for disqualifiers */
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC))
@@ -181,6 +184,13 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
     return 0;
   }
 
+  if (GET_HIT(ch) < 0)
+  {
+    if (!silent)
+      send_to_char(ch, "You can't concentrate on your performance while so seriously injured!\r\n");
+    return 0;
+  }
+
   if (GET_POS(ch) < POS_FIGHTING)
   {
     if (!silent)
@@ -194,11 +204,14 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
   {
     next_vict = vict->next_in_room;
 
-    if (vict && vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
+    if (vict)
     {
-      if (!silent)
-        send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n", GET_NAME(vict));
-      return 0;
+      if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
+      {
+        if (!silent)
+          send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n", GET_NAME(vict));
+        return 0;
+      }
     }
   }
 
