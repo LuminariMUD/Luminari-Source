@@ -194,7 +194,7 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
   {
     next_vict = vict->next_in_room;
 
-    if (vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
+    if (vict && vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
     {
       if (!silent)
         send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n", GET_NAME(vict));
