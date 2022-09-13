@@ -330,6 +330,7 @@ bool is_object_in_a_quest(struct obj_data *obj)
 void perform_out_chain(struct char_data *ch, struct char_data *victim,
                        struct quest_entry *quest, char *name)
 {
+  struct descriptor_data *pt = NULL;
   struct char_data *mob = NULL;
   struct quest_command *qcom = NULL;
   struct char_data *homie = NULL, *nexth = NULL;
@@ -433,6 +434,14 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
       {
         /* hack for lich remort.. -zusuk */
 
+        /* level requirement for lich */
+        if (GET_LEVEL(ch) < 30)
+        {
+          send_to_char(ch, "You must be level 30 to become a Lich.\r\n");
+          give_back_items(victim, ch, quest);
+          return;
+        }
+
         /* these parameters break the game */
         if (GROUP(ch) || ch->master || ch->followers)
         {
@@ -444,11 +453,23 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
         }
 
         GET_REAL_RACE(ch) = RACE_LICH;
-        // GET_HOMETOWN(ch) = 3; /*Zhentil Keep*/s
+        /* Zhentil Keep - hometwon system not implemented yet */
+        // GET_HOMETOWN(ch) = 3;
 
         respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
         GET_EXP(ch) = 0;
         GET_ALIGNMENT(ch) = -1000;
+
+        /* Messages */
+        for (pt = descriptor_list; pt; pt = pt->next)
+        {
+          if (IS_PLAYING(pt) && pt->character && pt->character != ch)
+          {
+            send_to_char(ch, "\tL%s's \tWlifeforce\tL is ripped apart, who realizes\tn\r\n"
+                             "\tLthat death has arrived. %'s \tLbody is now merely a "
+                             "vessel for power.  %s \tLhas become a \tYLICH\tn\r\n");
+          }
+        }
 
         send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
                          " and you realize\tn\r\n"
