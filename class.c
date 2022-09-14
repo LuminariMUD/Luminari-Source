@@ -3216,10 +3216,15 @@ void advance_level(struct char_data *ch, int class)
 /* if you get multiplier for backstab, calculated here */
 int backstab_mult(struct char_data *ch)
 {
-  if (HAS_FEAT(ch, FEAT_BACKSTAB))
-    return 2;
+  int multiplier = 0;
 
-  return 1;
+  if (IS_ROGUE_TYPE(ch))
+    multiplier += 2;
+
+  if (HAS_FEAT(ch, FEAT_BACKSTAB))
+    multiplier += 2;
+
+  return multiplier;
 }
 
 // used by handler.c, completely depreacted function right now
