@@ -7391,12 +7391,6 @@ SPECIAL(celestial_sword)
       /* dummychecks */
       if (!obj || !ch)
         continue;
-
-      if (!isname_obj("pcorpse", obj->name))
-        continue;
-
-      /* found a name match at least! */
-
       if (obj->in_room == NOWHERE)
         continue;
       if (ch->in_room == NOWHERE)
@@ -7406,6 +7400,7 @@ SPECIAL(celestial_sword)
       if (!IS_CORPSE(obj))
         continue;
 
+      /* is the item a corpse? #2 */
       if (!GET_OBJ_VAL(obj, 4))
         continue;
 
