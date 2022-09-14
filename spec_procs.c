@@ -7301,6 +7301,9 @@ SPECIAL(ancient_moonblade)
 }
 #undef LARGE_SPIRIT_EAGLE
 
+/* celestial sword
+   vnum 132300
+   revives self & group revives room */
 SPECIAL(celestial_sword)
 {
   if (!ch)
@@ -7377,12 +7380,23 @@ SPECIAL(celestial_sword)
       return TRUE;
     }
 
+    /* dummy check */
+    if (IN_ROOM(ch) == NOWHERE)
+      return FALSE;
+
     /* lets try to find your corpse.. */
-    for (obj = object_list; obj; obj = obj->next)
+    for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
     {
+
       /* dummychecks */
       if (!obj || !ch)
         continue;
+
+      if (!isname_obj("pcorpse", obj->name))
+        continue;
+
+      /* found a name match at least! */
+
       if (obj->in_room == NOWHERE)
         continue;
       if (ch->in_room == NOWHERE)
