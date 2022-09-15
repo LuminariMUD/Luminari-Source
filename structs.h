@@ -528,6 +528,9 @@
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM NUM_SLOTS *NUM_CIRCLES
 
+/****************************************/
+/* bard performance defines */
+#define MAX_PERFORMANCE_VARS 10
 /* Instruments - bardic_performance */
 #define INSTRUMENT_LYRE 0
 #define INSTRUMENT_FLUTE 1
@@ -537,7 +540,7 @@
 #define INSTRUMENT_MANDOLIN 5
 /**/
 #define MAX_INSTRUMENTS 6
-/***************/
+/****************************************/
 
 /* Draconic Heritages from Sorcerer Bloodline: Draconic */
 #define DRACONIC_HERITAGE_NONE 0
@@ -3145,6 +3148,9 @@
 // controls some new luminari calls from comm.c
 #define PULSE_LUMINARI (5 RL_SEC)
 
+/* this is for bard songs via the pulse system versus the event system -zusuk */
+#define PULSE_VERSE_INTERVAL (11 RL_SEC)
+
 /* controls rate hints are called */
 #define PULSE_HINTS (300 RL_SEC)
 
@@ -3698,6 +3704,8 @@ struct char_special_data
     int castingClass;             // spell casting class
     struct char_data *castingTCH; // target char of spell
     struct obj_data *castingTOBJ; // target obj of spell
+
+    int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
 
     /** crafting **/
     ubyte crafting_type;              // like SCMD_x

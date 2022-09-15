@@ -21,6 +21,9 @@
 #include "actions.h"
 #include "feats.h"
 
+/* this will determine whether the system is ran through events or the tick system */
+/* #define EVENT_RAN */
+
 /* performance types
 Act (comedy, drama, pantomime)
 Comedy (buffoonery, limericks, joke-telling)
@@ -115,6 +118,57 @@ static void alter_move(struct char_data *ch, int points)
   update_pos(ch);
 }
 
+/* checks if incoming performance number is actually a valid performance */
+bool is_valid_performance(int performance_num)
+{
+  bool return_val = FALSE;
+
+  switch (performance_num)
+  {
+  case SKILL_SONG_OF_FOCUSED_MIND:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_FEAR:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_ROOTING:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_THE_MAGI:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_HEALING:
+    return_val = TRUE;
+    break;
+  case SKILL_DANCE_OF_PROTECTION:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_FLIGHT:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_HEROISM:
+    return_val = TRUE;
+    break;
+  case SKILL_ORATORY_OF_REJUVENATION:
+    return_val = TRUE;
+    break;
+  case SKILL_ACT_OF_FORGETFULNESS:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_REVELATION:
+    return_val = TRUE;
+    break;
+  case SKILL_SONG_OF_DRAGONS:
+    return_val = TRUE;
+    break;
+
+  default:
+    return_val = FALSE;
+  }
+
+  return return_val;
+}
+
 /* will list to the performer which performances are available to them */
 void list_available_performances(struct char_data *ch)
 {
@@ -141,15 +195,23 @@ void list_available_performances(struct char_data *ch)
      out:  0 - FALSE, 1 - TRUE   i.e. whether we can continue/start performing -zusuk */
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent)
 {
+  struct char_data *vict = NULL, *next_vict = NULL;
+
   if (!ch)
     return 0;
 
   if (IN_ROOM(ch) == NOWHERE)
     return 0;
 
-  struct char_data *vict = NULL, *next_vict = NULL;
-
   /* check for disqualifiers */
+
+  if (!is_valid_performance(performance_num))
+  {
+    if (!silent)
+      send_to_char(ch, "(%d) is an invalid performance number.  Please report this to staff.\r\n", performance_num);
+    return 0;
+  }
+
   if (!IS_NPC(ch) && !HAS_FEAT(ch, FEAT_BARDIC_MUSIC))
   {
     if (!silent)
@@ -164,12 +226,21 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
     return 0;
   }
 
+#ifdef EVENT_RAN
   if (need_check && char_has_mud_event(ch, eBARDIC_PERFORMANCE))
   {
     if (!silent)
       send_to_char(ch, "You are already in the middle of a performance!\r\n");
     return 0;
   }
+#else
+  if (need_check && IS_PERFORMING(ch))
+  {
+    if (!silent)
+      send_to_char(ch, "You are already in the middle of a performance!\r\n");
+    return 0;
+  }
+#endif
 
   if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) || AFF_FLAGGED(ch, AFF_SILENCED)) &&
       (performance_info[performance_num][PERFORMANCE_TYPE] == PERFORMANCE_TYPE_KEYBOARD ||
@@ -206,7 +277,11 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 
     if (vict)
     {
+#ifdef EVENT_RAN
       if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
+#else
+      if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || IS_PERFORMING(ch)))
+#endif
       {
         if (!silent)
           send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n", GET_NAME(vict));
@@ -225,11 +300,13 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 /* primary command entry point for the bardic performance */
 ACMD(do_perform)
 {
-  int i;
+  int performance_num = -1;
   int len = 0;
 
   if (!argument || (len = strlen(argument)) == 0)
   {
+
+#ifdef EVENT_RAN
     if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
     {
       event_cancel_specific(ch, eBARDIC_PERFORMANCE);
@@ -237,6 +314,15 @@ ACMD(do_perform)
       act("$n stops performing.", FALSE, ch, 0, 0, TO_ROOM);
       return;
     }
+#else
+    if (IS_PERFORMING(ch))
+    {
+      IS_PERFORMING(ch) = FALSE;
+      act("You stopped your performance.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n stops performing.", FALSE, ch, 0, 0, TO_ROOM);
+      return;
+    }
+#endif
     else
     {
       send_to_char(ch, "Play what performance?\r\n");
@@ -245,21 +331,30 @@ ACMD(do_perform)
     }
   }
 
+#ifdef EVENT_RAN
   if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
   {
     act("You stopped your current performance.", FALSE, ch, 0, 0, TO_CHAR);
     act("$n stops performing...", FALSE, ch, 0, 0, TO_ROOM);
     event_cancel_specific(ch, eBARDIC_PERFORMANCE);
   }
+#else
+  if (IS_PERFORMING(ch))
+  {
+    IS_PERFORMING(ch) = FALSE;
+    act("You stop your current performance.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n stops performing...", FALSE, ch, 0, 0, TO_ROOM);
+  }
+#endif
 
   skip_spaces_c(&argument);
   len = strlen(argument);
 
-  for (i = 0; i < MAX_PERFORMANCES; i++)
+  for (performance_num = 0; performance_num < MAX_PERFORMANCES; performance_num++)
   {
-    if (!strncmp(argument, skill_name(performance_info[i][PERFORMANCE_SKILLNUM]), len))
+    if (!strncmp(argument, skill_name(performance_info[performance_num][PERFORMANCE_SKILLNUM]), len))
     {
-      if (!HAS_FEAT(ch, performance_info[i][PERFORMANCE_FEATNUM]))
+      if (!HAS_FEAT(ch, performance_info[performance_num][PERFORMANCE_FEATNUM]))
       {
         send_to_char(ch, "But you do not know that performance!\r\n");
         return;
@@ -267,7 +362,7 @@ ACMD(do_perform)
       else
       {
         /* check for disqualifiers */
-        if (!can_perform(ch, i, TRUE, FALSE))
+        if (!can_perform(ch, performance_num, TRUE, FALSE))
         {
           /* we DO check if they have a bardic_performanc event here represented by the first TRUE */
           /* the messages were sent via the last FALSE in can_perform()! */
@@ -277,9 +372,16 @@ ACMD(do_perform)
         /* SUCCESS! */
         act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
         act("$n starts performing.", FALSE, ch, 0, 0, TO_ROOM);
+
+#ifdef EVENT_RAN
         char buf[128];
         snprintf(buf, sizeof(buf), "%d", i); /* Build the effect string */
+
         NEW_EVENT(eBARDIC_PERFORMANCE, ch, strdup(buf), 4 * PASSES_PER_SEC);
+#else
+        IS_PERFORMING(ch) = TRUE;
+        GET_PERFORMING(ch) = performance_num;
+#endif
 
         if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
           USE_MOVE_ACTION(ch);
@@ -607,8 +709,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 }
 
 /* main function for performance effects / message / targets / etc */
-int process_performance(struct char_data *ch, int performance_num,
-                        int effectiveness, int aoe)
+int process_performance(struct char_data *ch, int performance_num, int effectiveness, int aoe)
 {
   struct char_data *tch = NULL, *tch_next = NULL;
   int return_val = 1;
@@ -763,47 +864,13 @@ int process_performance(struct char_data *ch, int performance_num,
   return return_val; /* 0 = fail, 1 = success */
 }
 
-EVENTFUNC(event_bardic_performance)
+/* this is the primary engine for the bard songs */
+int bardic_performance_engine(struct char_data *ch, int performance_num)
 {
-  struct mud_event_data *pMudEvent = NULL;
-  struct char_data *ch = NULL;
   struct obj_data *instrument = NULL;
-  int effectiveness;
-  int spellnum;
-  int performance_num;
-  int difficulty;
-
-  /* start handling the event data */
-  pMudEvent = (struct mud_event_data *)event_obj;
-  if (!pMudEvent)
-  {
-    log("SYSERR: event_bardic_performance missing pMudEvent!");
-    return 0;
-  }
-  if (!pMudEvent->iId)
-  {
-    log("SYSERR: event_bardic_performance missing pMudEvent->iId!");
-    return 0;
-  }
-  ch = (struct char_data *)pMudEvent->pStruct;
-  if (!ch)
-  {
-    log("SYSERR: event_bardic_performance missing pMudEvent->pStruct!");
-    return 0;
-  }
-  /* extract the variable(s) */
-  if (pMudEvent->sVariables == NULL)
-  {
-    /* This is odd - This field should always be populated! */
-    log("SYSERR: sVariables field is NULL for event_bardic_performance: %d",
-        pMudEvent->iId);
-    return 0;
-  }
-  else
-  {
-    performance_num = atoi((char *)pMudEvent->sVariables);
-  }
-  /* finished handling event data */
+  int effectiveness = 0;
+  int spellnum = -1;
+  int difficulty = 0;
 
   /* disqualifiers */
   if (!can_perform(ch, performance_num, FALSE, FALSE))
@@ -927,7 +994,83 @@ EVENTFUNC(event_bardic_performance)
   }
 
   /* success, we're coming back in VERSE_INTERVAL */
-  return VERSE_INTERVAL;
+  return 1;
 }
+
+#ifdef EVENT_RAN
+EVENTFUNC(event_bardic_performance)
+{
+  struct mud_event_data *pMudEvent = NULL;
+  struct char_data *ch = NULL;
+  int performance_num = -1;
+
+  /* start handling the event data */
+  pMudEvent = (struct mud_event_data *)event_obj;
+
+  if (!pMudEvent)
+  {
+    log("SYSERR: event_bardic_performance missing pMudEvent!");
+    return 0;
+  }
+
+  if (!pMudEvent->iId)
+  {
+    log("SYSERR: event_bardic_performance missing pMudEvent->iId!");
+    return 0;
+  }
+
+  /* extracted the character */
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  if (!ch)
+  {
+    log("SYSERR: event_bardic_performance missing pMudEvent->pStruct!");
+    return 0;
+  }
+
+  /* extract the variable(s) */
+  if (pMudEvent->sVariables == NULL)
+  {
+    /* This is odd - This field should always be populated! */
+    log("SYSERR: sVariables field is NULL for event_bardic_performance: %d",
+        pMudEvent->iId);
+    return 0;
+  }
+  else
+  {
+    performance_num = atoi((char *)pMudEvent->sVariables);
+  }
+  /* finished handling event data */
+
+  /* this is the main engine */
+  if (bardic_performance_engine(ch, performance_num))
+    return VERSE_INTERVAL;
+
+  /* we didn't survive the journey through the code! */
+  return 0;
+}
+#else
+/* this is a very basic function to go through connected players to see if anyone is performing */
+void pulse_bardic_performance()
+{
+  struct desciptor_data *pt = NULL;
+
+  /* we are going to cycle through the online players to find performers */
+  for (pt = descriptor_list; pt; pt = pt->next)
+  {
+    if (IS_PLAYING(pt) && pt->character &&
+        IS_PERFORMING(pt->character) && GET_PERFORMING(pt->character))
+    {
+      /* this is the main engine */
+      (bardic_performance_engine(pt->character, GET_PERFORMING(pt->character)));
+    }
+  }
+
+  return;
+}
+#endif
+
+/* this will determine whether the system is ran through events or the tick system */
+#undef EVENT_RAN
 
 /* EOF */

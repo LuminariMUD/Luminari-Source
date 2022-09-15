@@ -1211,12 +1211,19 @@ void heartbeat(int heart_pulse)
     PERF_PROF_EXIT(pr_lum_);
   }
 
+  /* last time I checked this was every 11 seconds */
+  if (!(pulse % PULSE_VERSE_INTERVAL))
+  {
+    pulse_bardic_performance();
+  }
+
   /* every 300 sec show a random hint if they have it toggled */
   if (!(pulse % PULSE_HINTS))
   {
     show_hints();
   }
 
+  /* every 6 seconds, update damage and effects over time AND update player misc()*/
   if (!(heart_pulse % (6 * PASSES_PER_SEC)))
   {
     PERF_PROF_ENTER(pr_upd_, "update_damage_and_effects_over_time");
@@ -1225,17 +1232,19 @@ void heartbeat(int heart_pulse)
     update_player_misc();
   }
 
+  /* auction check every 30 seconds */
   if (!(heart_pulse % (30 * PASSES_PER_SEC)))
   {
     check_auction();
   }
 
-  if (!(heart_pulse % (30 * PASSES_PER_SEC)))
+  /* save characters once per minute */
+  if (!(heart_pulse % (60 * PASSES_PER_SEC)))
   {
     save_chars();
   }
 
-  // every 2 hours
+  /* every 2 hours run create hunts */
   if (!(heart_pulse % ((60 * PASSES_PER_SEC) * 60 * 2)))
   {
     create_hunts();
@@ -1271,9 +1280,11 @@ void heartbeat(int heart_pulse)
     update_player_last_on();
   }
 
+  /* 3 minute pulse for record usage */
   if (!(heart_pulse % PULSE_USAGE))
     record_usage();
 
+  /* every 30 minutes */
   if (!(heart_pulse % PULSE_TIMESAVE))
     save_mud_time(&time_info);
 

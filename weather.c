@@ -1,13 +1,13 @@
 /**
- * @file weather.c                          LuminariMUD                
+ * @file weather.c                          LuminariMUD
  * Functions that handle the in game progress of time and weather changes.
- * 
+ *
  * Part of the core tbaMUD source code distribution, which is a derivative
  * of, and continuation of, CircleMUD.
- *                                                                        
- * All rights reserved.  See license for complete information.                                                                
- * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
- * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
  */
 
 #include "conf.h"
@@ -65,7 +65,7 @@ void reset_dailies()
   }
 }
 
-/** Increment the game time by one hour (no matter what) and display any time 
+/** Increment the game time by one hour (no matter what) and display any time
  * dependent messages via send_to_outdoors() (if parameter is non-zero).
  * @param mode Really, this parameter has the effect of a boolean. If non-zero,
  * display day/night messages to all eligible players.
@@ -276,7 +276,7 @@ bool sect_no_weather(struct char_data *ch)
   case SECT_UD_NOSWIM:
   case SECT_UD_NOGROUND:
   case SECT_LAVA:
-    //case SECT_UNDERGROUND:
+    // case SECT_UNDERGROUND:
     return TRUE;
   }
 
@@ -389,14 +389,17 @@ struct weather_msg
 void send_weather(int weather_change)
 {
   bool found = FALSE;
-  struct descriptor_data *i;
-  int j;
+  struct descriptor_data *i = NULL;
+  int j = 0;
 
   if ((weather_change < 1) || (weather_change > 6))
     return;
 
   for (i = descriptor_list; i; i = i->next)
   {
+
+    if (!i)
+      continue;
 
     if (STATE(i) != CON_PLAYING || i->character == NULL)
       continue;
