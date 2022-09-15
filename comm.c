@@ -97,6 +97,7 @@
 #include "perfmon.h"
 #include "transport.h"
 #include "hunts.h"
+#include "bardic_performance.h" /* for the bard performance pulse */
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
