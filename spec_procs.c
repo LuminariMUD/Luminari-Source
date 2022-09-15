@@ -7412,7 +7412,7 @@ SPECIAL(celestial_sword)
       if (call_magic(ch, ch, obj, SPELL_RESURRECT, 0, 30, CAST_WEAPON_SPELL))
       {
         found = TRUE;
-        continue;
+        break;
       }
     } /* end for loop */
 
