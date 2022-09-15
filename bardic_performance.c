@@ -997,9 +997,10 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   return 1;
 }
 
-#ifdef EVENT_RAN
+/* this is the event called every verse-interval that carries the char_data and performance_num */
 EVENTFUNC(event_bardic_performance)
 {
+#ifdef EVENT_RAN
   struct mud_event_data *pMudEvent = NULL;
   struct char_data *ch = NULL;
   int performance_num = -1;
@@ -1046,10 +1047,11 @@ EVENTFUNC(event_bardic_performance)
   if (bardic_performance_engine(ch, performance_num))
     return VERSE_INTERVAL;
 
+#else
   /* we didn't survive the journey through the code! */
   return 0;
 }
-#else
+
 /* this is a very basic function to go through connected players to see if anyone is performing */
 void pulse_bardic_performance()
 {
@@ -1073,4 +1075,4 @@ void pulse_bardic_performance()
 /* this will determine whether the system is ran through events or the tick system */
 #undef EVENT_RAN
 
-/* EOF */
+  /* EOF */
