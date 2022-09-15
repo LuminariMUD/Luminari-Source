@@ -877,6 +877,8 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   {
     /* we don't check if they have a bardic_performanc event here represented by the first FALSE */
     /* the messages were sent via the last FALSE in can_perform()! */
+    GET_PERFORMANCE(ch) = 0;
+    IS_PERFORMANCE(ch) = FALSE;
     return 0;
   }
 
@@ -990,6 +992,8 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
+    GET_PERFORMANCE(ch) = 0;
+    IS_PERFORMANCE(ch) = FALSE;
     return 0;
   }
 
