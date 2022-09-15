@@ -123,7 +123,7 @@ bool is_valid_performance(int performance_num)
 {
   bool return_val = FALSE;
 
-  switch (performance_num)
+  switch (performance_info[performance_num][PERFORMANCE_SKILLNUM])
   {
   case SKILL_SONG_OF_FOCUSED_MIND:
     return_val = TRUE;
