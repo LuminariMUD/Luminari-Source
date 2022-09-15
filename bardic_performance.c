@@ -280,7 +280,7 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 #ifdef EVENT_RAN
       if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
 #else
-      if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || IS_PERFORMING(ch)))
+      if (IN_ROOM(vict) != NOWHERE && vict != ch && (char_has_mud_event(vict, ePERFORM) || IS_PERFORMING(vict)))
 #endif
       {
         if (!silent)
