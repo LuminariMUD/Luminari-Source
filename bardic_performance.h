@@ -15,10 +15,11 @@ extern "C"
 /* includes */
 #include "utils.h" /* for the ACMD macro */
 
-    /* functions */
+    /* functions, etc */
     extern struct room_data *world;
     extern void clearMemory(struct char_data *ch);
     extern const char *spells[];
+    void pulse_bardic_performance(void);
     ACMD_DECL(do_perform);
 
 /* defines */
