@@ -1053,7 +1053,7 @@ EVENTFUNC(event_bardic_performance)
 /* this is a very basic function to go through connected players to see if anyone is performing */
 void pulse_bardic_performance()
 {
-  struct desciptor_data *pt = NULL;
+  struct descriptor_data *pt = NULL;
 
   /* we are going to cycle through the online players to find performers */
   for (pt = descriptor_list; pt; pt = pt->next)
