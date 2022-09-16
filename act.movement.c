@@ -2887,7 +2887,7 @@ bool can_stand(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_PARALYZED))
     return FALSE;
 
-  if (!is_action_available(ch, atMOVE, TRUE))
+  if (!is_action_available(ch, atMOVE, FALSE))
     return FALSE;
 
   switch (GET_POS(ch))
