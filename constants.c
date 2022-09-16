@@ -1528,6 +1528,7 @@ const char *preference_bits[] = {
     "Avoid-Encoutners",
     "Use-Stored-Consumables",
     "Display-Game-Time",
+    "Auto-SpringLeap-Stand",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
