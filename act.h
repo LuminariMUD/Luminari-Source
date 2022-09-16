@@ -371,6 +371,7 @@ int change_position(struct char_data *ch, int position);
 int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive);
 int is_evaporating_key(struct char_data *ch, obj_vnum key);
 int has_key(struct char_data *ch, obj_vnum key);
+bool can_stand(struct char_data *ch);
 
 /* Functions with subcommands */
 /* do_gen_door */
@@ -656,6 +657,7 @@ void perform_children_of_the_night(struct char_data *ch);
 #define SCMD_SMASH_DEFENSE 43
 #define SCMD_NOCHARMIERESCUES 44
 #define SCMD_USE_STORED_CONSUMABLES 45
+#define SCMD_AUTO_STAND 46
 
 /* do_quit */
 ACMD_DECL(do_quit);

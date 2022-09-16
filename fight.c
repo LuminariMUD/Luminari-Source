@@ -4907,6 +4907,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   return (MIN(MAX_DAM_BONUS, dambonus));
 }
 
+/* when unarmed, this is how we handle weapon dice */
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
 {
   if (!ch)
@@ -4923,50 +4924,65 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
   {
     if (monkLevel && monk_gear_ok(ch))
     { // monk?
-      if (monkLevel < 4)
+      if (monkLevel < 3)
       {
         *diceOne = 1;
         *diceTwo = 6;
       }
-      else if (monkLevel < 8)
+      else if (monkLevel < 6)
       {
         *diceOne = 1;
         *diceTwo = 8;
       }
-      else if (monkLevel < 12)
+      else if (monkLevel < 9)
       {
         *diceOne = 1;
         *diceTwo = 10;
       }
-      else if (monkLevel < 16)
+      else if (monkLevel < 12)
       {
         *diceOne = 2;
         *diceTwo = 6;
       }
-      else if (monkLevel < 20)
+      else if (monkLevel < 15)
       {
         *diceOne = 4;
         *diceTwo = 4;
       }
-      else if (monkLevel < 25)
+      else if (monkLevel < 18)
       {
         *diceOne = 4;
         *diceTwo = 5;
       }
-      else if (monkLevel < 29)
+      else if (monkLevel < 21)
       {
         *diceOne = 4;
+        *diceTwo = 6;
+      }
+      else if (monkLevel < 24)
+      {
+        *diceOne = 5;
+        *diceTwo = 6;
+      }
+      else if (monkLevel < 27)
+      {
+        *diceOne = 6;
         *diceTwo = 6;
       }
       else
       {
         *diceOne = 7;
-        *diceTwo = 5;
+        *diceTwo = 7;
       }
       if (GET_RACE(ch) == RACE_TRELUX)
       {
+        /* at level 20 they get an extra die/roll */
+        *diceOne = *diceOne + 1 + (GET_LEVEL(ch) / 20);
+        *diceTwo = *diceTwo + 1 + (GET_LEVEL(ch) / 20);
+      }
+      if (IS_LICH(ch))
+      {
         *diceOne = *diceOne + 1;
-        *diceTwo = *diceTwo + 1;
       }
     }
 
@@ -4979,13 +4995,13 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
       {
         if (affected_by_spell(ch, PSIONIC_OAK_BODY) || affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
         {
-          *diceOne = 3;
-          *diceTwo = 6;
+          *diceOne = 3 + (GET_LEVEL(ch) / 20);
+          *diceTwo = 6 + (GET_LEVEL(ch) / 20);
         }
         else
         {
-          *diceOne = 2;
-          *diceTwo = 6;
+          *diceOne = 2 + (GET_LEVEL(ch) / 20);
+          *diceTwo = 6 + (GET_LEVEL(ch) / 20);
         }
       }
 
@@ -5128,7 +5144,12 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
       threat_range -= HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST);
   }
 
-  if (HAS_FEAT(ch, FEAT_KEEN_STRIKE) && (wielded == NULL))
+  if (HAS_FEAT(ch, FEAT_KEEN_STRIKE) && is_bare_handed(ch))
+  {
+    threat_range -= 2;
+  }
+
+  if (HAS_FEAT(ch, FEAT_TONGUE_OF_THE_SUN_AND_MOON) && is_bare_handed(ch))
   {
     threat_range--;
   }
@@ -7705,13 +7726,16 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
   if (affected_by_spell(ch, SKILL_QUIVERING_PALM))
   {
-    int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK))
     {
+      int keen_strike_bonus = HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4;
+      int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch) + keen_strike_bonus;
+
       send_to_char(ch, "[QUIVERING-PALM] ");
       send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
       act("$n performs a \tYquivering palm\tn attack on $N!",
           FALSE, ch, wielded, victim, TO_NOTVICT);
+
       /* apply quivering palm affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
           !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc))
@@ -7729,8 +7753,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         return dam;
       }
       else
-      { /* quivering palm will still do damage */
-        dam += 1 + GET_WIS_BONUS(ch);
+      { /* failed, but quivering palm will still do damage */
+        dam += (GET_WIS_BONUS(ch) + keen_strike_bonus) * (MONK_TYPE(ch) / 2) + 20;
       }
       /* ok, now remove quivering palm */
       affect_from_char(ch, SKILL_QUIVERING_PALM);
@@ -7874,8 +7898,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   /* Calculate damage for this hit */
-  dam = compute_hit_damage(ch, victim, w_type, diceroll, 0,
-                           is_critical, attack_type);
+  dam += compute_hit_damage(ch, victim, w_type, diceroll, 0,
+                            is_critical, attack_type);
   if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
     dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
@@ -8163,6 +8187,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       victim_ac = 0,      /* Target's AC, from compute_ac(). */
       calc_bab = penalty, /* ch's base attack bonus for the attack. */
       diceroll = 0,       /* ch's attack roll. */
+      can_hit = 0,        /* ch successfully hit? */
       dam = 0;            /* Damage for the attack, with mods. */
 
   bool is_critical = FALSE;
@@ -8322,6 +8347,21 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     if (wielded && GET_OBJ_VAL(wielded, 5) > 0)
       GET_OBJ_VAL(wielded, 5)
     --;
+
+    /* we are checking here for spec procs associated with arrows */
+#define WARBOW_VNUM 132115
+    if (is_wearing(ch, WARBOW_VNUM) && !rand_number(0, 10))
+    {
+      act("$p\tw \tWsparks with power\tw as it is fired toward $N!\tn",
+          FALSE, ch, wielded, victim, TO_CHAR);
+      act("$p\tw used by $n \tWsparks with power\tw as it is fired toward you!\tn",
+          FALSE, ch, wielded, victim, TO_VICT);
+      act("$p\tw used by $n \tWsparks with power\tw as it is fired toward $N!\tn",
+          FALSE, ch, wielded, victim, TO_ROOM);
+
+      dam += dice(14, 5);
+    }
+#undef WARBOW_VNUM
   }
 
   /* Get the important numbers : ch's Attack bonus and victim's AC
@@ -8383,13 +8423,13 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     diceroll = d20(ch);
   if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(victim))
   {
-    dam = TRUE;
+    can_hit = TRUE;
     is_critical = TRUE;
     /* old critical message was here -zusuk */
   }
   else if (diceroll == 20)
   { /*auto hit, not critical though*/
-    dam = TRUE;
+    can_hit = TRUE;
   }
   else if (!AWAKE(victim))
   {
@@ -8397,7 +8437,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       send_to_char(ch, "\tW[down!]\tn");
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "\tR[down!]\tn");
-    dam = TRUE;
+    can_hit = TRUE;
   }
   else if (diceroll == 1)
   {
@@ -8405,11 +8445,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       send_to_char(ch, "[stum!]");
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "[stum!]");
-    dam = FALSE;
+    can_hit = FALSE;
   }
   else
   {
-    dam = (calc_bab + diceroll >= victim_ac);
+    can_hit = (calc_bab + diceroll >= victim_ac);
   }
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
   {
@@ -8583,7 +8623,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     return (HIT_MISS);
   }
 
-  if (!dam)
+  if (can_hit <= 0)
   {
     /* So if we have actually hit, then dam > 0. This is how we process a miss. */
     handle_missed_attack(ch, victim, type, w_type, dam_type, attack_type, missile);
@@ -9643,10 +9683,24 @@ void perform_violence(struct char_data *ch, int phase)
                    to ensure that the stalwart defender only gets ONE free knockdown
                    attempt (note: just made this time out) */
     /*
-                if (char_has_mud_event(ch, eSMASH_DEFENSE)) {
-                  event_cancel_specific(ch, eSMASH_DEFENSE);
-                }
-                 */
+    if (char_has_mud_event(ch, eSMASH_DEFENSE)) {
+      event_cancel_specific(ch, eSMASH_DEFENSE);
+    }
+    */
+
+    /* autostand mechanic */
+    if (ch && FIGHTING(ch) && !IS_NPC(ch) && can_stand(ch) && PRF_FLAGGED(ch, PRF_AUTO_STAND))
+    {
+      /* check if we can springleap out of this */
+      if (HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) >= 5)
+      {
+        do_springleap(ch, 0, 0, 0);
+      }
+
+      /* attempt to stand! checking if we can stand again in case springleap worked */
+      if (can_stand(ch))
+        do_stand(ch, 0, 0, 0);
+    }
   }
 
   // if they're affected by hedging weapon, we'll throw one at our current fighting target
@@ -9904,7 +9958,7 @@ void perform_violence(struct char_data *ch, int phase)
   /**/
 
   if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) &&
-      !MOB_FLAGGED(ch, MOB_NOTDEADYET))
+      !MOB_FLAGGED(ch, MOB_NOTDEADYET) && GET_HIT(ch) > 0)
   {
     char actbuf[MAX_INPUT_LENGTH] = "";
     (GET_MOB_SPEC(ch))(ch, ch, 0, actbuf);

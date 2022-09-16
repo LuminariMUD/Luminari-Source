@@ -499,6 +499,15 @@ int load_char(const char *name, struct char_data *ch)
     FEY_SHADOW_WALK_TIMER(ch) = 0;
     DRAGON_MAGIC_USES(ch) = 0;
     DRAGON_MAGIC_TIMER(ch) = 0;
+    IS_CASTING(ch) = 0;
+    CASTING_TIME(ch) = 0;
+    CASTING_TCH(ch) = NULL;
+    CASTING_TOBJ(ch) = NULL;
+    CASTING_SPELLNUM(ch) = 0;
+    CASTING_METAMAGIC(ch) = 0;
+    CASTING_CLASS(ch) = 0;
+    for (i = 0; i < MAX_PERFORMANCE_VARS; i++)
+      GET_PERFORMANCE_VAR(ch, i) = 0;
     PIXIE_DUST_USES(ch) = 0;
     PIXIE_DUST_TIMER(ch) = 0;
     GRAVE_TOUCH_USES(ch) = PFDEF_GRAVE_TOUCH_USES;

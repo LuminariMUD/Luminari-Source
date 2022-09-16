@@ -1676,12 +1676,22 @@ static void npc_steal(struct char_data *ch, struct char_data *victim)
    to hunt someone down */
 static void zone_yell(struct char_data *ch, const char *buf)
 {
+  if (!ch)
+    return;
+
   struct char_data *i = NULL;
   struct char_data *vict = NULL;
   int num_targets = 0;
 
   for (i = character_list; i; i = i->next)
   {
+
+    if (!i)
+      continue;
+
+    if (i->in_room == NOWHERE)
+      continue;
+
     if (world[ch->in_room].zone == world[i->in_room].zone)
     {
 
@@ -1699,12 +1709,14 @@ static void zone_yell(struct char_data *ch, const char *buf)
         if (i->in_room == ch->in_room && !FIGHTING(i))
         {
           for (vict = world[i->in_room].people; vict; vict = vict->next_in_room)
+          {
             if (FIGHTING(vict) == ch)
             {
               act("$n jumps to the aid of $N!", FALSE, i, 0, ch, TO_ROOM);
               hit(i, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
               break;
             }
+          }
         }
         else
         {
@@ -1974,8 +1986,11 @@ bool chan_yell(struct char_data *ch)
 /* from homeland */
 SPECIAL(shadowdragon)
 {
-  struct char_data *vict;
-  struct char_data *next_vict;
+  if (!ch)
+    return FALSE;
+
+  struct char_data *vict = NULL;
+  struct char_data *next_vict = NULL;
 
   if (cmd)
     return FALSE;
@@ -1999,7 +2014,7 @@ SPECIAL(shadowdragon)
         FALSE, ch, 0, vict, TO_VICT);
     act("$N \tLseems to loose the will for fighting against this awesome foe.\tn",
         FALSE, ch, 0, vict, TO_NOTVICT);
-    GET_MOVE(vict) -= (10 + dice(5, 4));
+    GET_MOVE(vict) -= (100 + dice(50, 4));
   }
 
   call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
@@ -2010,20 +2025,34 @@ SPECIAL(shadowdragon)
 /* from homeland */
 SPECIAL(imix)
 {
-  if (cmd || GET_POS(ch) == POS_DEAD)
+
+  if (!ch)
     return FALSE;
 
-  if (!FIGHTING(ch))
-    PROC_FIRED(ch) = FALSE;
+  if (cmd)
+    return FALSE;
 
-  if (FIGHTING(ch))
+  if (GET_POS(ch) == POS_DEAD || GET_HIT(ch) <= 1)
+    return FALSE;
+
+  struct char_data *vict = NULL;
+
+  vict = FIGHTING(ch);
+
+  if (!vict)
+  {
+    PROC_FIRED(ch) = FALSE;
+    return FALSE;
+  }
+
+  if (vict)
   {
     zone_yell(ch, "\r\n\tMImix \tnshouts, '\tRYou DARE attack me?!? Minions... to me now!!!\tn'\r\n");
   }
 
-  if (!rand_number(0, 3) && FIGHTING(ch))
+  if (!rand_number(0, 3) && vict)
   {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, vict, 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
     return TRUE;
   }
 
@@ -6787,6 +6816,21 @@ SPECIAL(spiderdagger)
   return FALSE;
 }
 
+/* damage added to arrows, the code is with the arrow (look for WARBOW_VNUM) */
+SPECIAL(warbow)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Chance of extra damage added to fired arrows.\r\n");
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 /* from homeland */
 SPECIAL(sparksword)
 {
@@ -7271,6 +7315,9 @@ SPECIAL(ancient_moonblade)
 }
 #undef LARGE_SPIRIT_EAGLE
 
+/* celestial sword
+   vnum 132300
+   revives self & group revives room */
 SPECIAL(celestial_sword)
 {
   if (!ch)
@@ -7347,9 +7394,14 @@ SPECIAL(celestial_sword)
       return TRUE;
     }
 
+    /* dummy check */
+    if (IN_ROOM(ch) == NOWHERE)
+      return FALSE;
+
     /* lets try to find your corpse.. */
-    for (obj = object_list; obj; obj = obj->next)
+    for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
     {
+
       /* dummychecks */
       if (!obj || !ch)
         continue;
@@ -7362,6 +7414,7 @@ SPECIAL(celestial_sword)
       if (!IS_CORPSE(obj))
         continue;
 
+      /* is the item a corpse? #2 */
       if (!GET_OBJ_VAL(obj, 4))
         continue;
 
@@ -7373,12 +7426,13 @@ SPECIAL(celestial_sword)
       if (call_magic(ch, ch, obj, SPELL_RESURRECT, 0, 30, CAST_WEAPON_SPELL))
       {
         found = TRUE;
+        break;
       }
     } /* end for loop */
 
     if (found)
     {
-      GET_OBJ_SPECTIMER(celestial, 0) = 96;
+      GET_OBJ_SPECTIMER(celestial, 0) = 12;
       return TRUE;
     }
 

@@ -719,8 +719,9 @@ void assign_objects(void)
   ASSIGNOBJ(132133, stability_boots);
   ASSIGNOBJ(132118, ancient_moonblade);
 
+  ASSIGNOBJ(132115, warbow);
+
   /* not yet defined? */
-  // ASSIGNOBJ(132115, warbow);
   // ASSIGNOBJ(133103, mithril_rapier);
   // ASSIGNOBJ(141800, treantshield);
 
@@ -1151,7 +1152,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"ViperDagger", viperdagger, ""},
     {"Magical Wall", wall, ""},
     {"Wallach", wallach, ""},
-    //{"Warbow", warbow, ""},
+    {"Warbow", warbow, ""},
     {"WhisperWind", whisperwind, ""},
     {"Will O' Wisp", willowisp, ""},
     {"Wither Dirk", witherdirk, ""},

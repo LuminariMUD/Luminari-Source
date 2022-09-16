@@ -72,7 +72,7 @@ static void prefedit_save_to_char(struct descriptor_data *d)
   {
     for (i = 0; i < PR_ARRAY_MAX; i++)
       PRF_FLAGS(vict)
-      [i] = OLC_PREFS(d)->pref_flags[i];
+    [i] = OLC_PREFS(d)->pref_flags[i];
 
     GET_WIMP_LEV(vict) = OLC_PREFS(d)->wimp_level;
     GET_PAGE_LENGTH(vict) = OLC_PREFS(d)->page_length;
@@ -115,16 +115,16 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
   vict = PREFEDIT_GET_CHAR;
 
   snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
-          PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
-          PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
-          PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
-          PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
-          PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
-          PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
-          PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
-          PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
-          PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
-          PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
+           PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
+           PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
+           PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
+           PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+           PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
+           PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+           PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
+           PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
+           PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
+           PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
 
   snprintf(color_string, sizeof(color_string), "%s", multi_types[(PREFEDIT_FLAGGED(PRF_COLOR_1) ? 1 : 0) + (PREFEDIT_FLAGGED(PRF_COLOR_2) ? 2 : 0)]);
 
@@ -151,9 +151,9 @@ static void prefedit_disp_main_menu(struct descriptor_data *d)
                /* Line 3 - wimpy                 */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
                PREFEDIT_GET_WIMP_LEV, CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
-               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), 
-               PREFEDIT_FLAGGED(PRF_AVOID_ENCOUNTERS) ? "Avoid" : (PREFEDIT_FLAGGED(PRF_SEEK_ENCOUNTERS) ? "Seek" : "Default"), 
-               CCCYN(d->character, C_NRM));              
+               CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AVOID_ENCOUNTERS) ? "Avoid" : (PREFEDIT_FLAGGED(PRF_SEEK_ENCOUNTERS) ? "Seek" : "Default"),
+               CCCYN(d->character, C_NRM));
 
   send_to_char(d->character, "%sT%s) Toggle Preferences...\r\n", CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
   send_to_char(d->character, "%sM%s) More Preferences...\r\n", CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM));
@@ -216,11 +216,20 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBWHT(d->character, C_NRM));
 
   /* The top section of the actual menu */
-  send_to_char(d->character, "%s1%s) Use Stored Consumables %s[%s%3s%s]    \r\n",
+  send_to_char(d->character,
+               "%s1%s) Use Stored Consumables  %s[%s%3s%s]\r\n"
                /* Line 1 (1) - use stored consumables */
-               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), 
+               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n",
+               /* Line 2 (2) - Auto Stand */
+               /*******1********/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES)), CCCYN(d->character, C_NRM),
+               /*******2*********/
+               CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTO_STAND) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STAND)), CCCYN(d->character, C_NRM)
                /*end*/);
 
   /* Finishing Off */
@@ -375,16 +384,16 @@ static void prefedit_disp_prompt_menu(struct descriptor_data *d)
     snprintf(prompt_string, sizeof(prompt_string), "<Auto>");
   else
     snprintf(prompt_string, sizeof(prompt_string), "%s%s%s%s%s%s%s%s%s%s",
-            PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
-            PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
-            PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
-            PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
-            PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
-            PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
-            PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
-            PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
-            PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
-            PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
+             PREFEDIT_FLAGGED(PRF_DISPHP) ? "H" : "",
+             PREFEDIT_FLAGGED(PRF_DISPPSP) ? "M" : "",
+             PREFEDIT_FLAGGED(PRF_DISPMOVE) ? "V" : "",
+             PREFEDIT_FLAGGED(PRF_DISPEXP) ? " XP" : "",
+             PREFEDIT_FLAGGED(PRF_DISPGOLD) ? " $$" : "",
+             PREFEDIT_FLAGGED(PRF_DISPEXITS) ? " EX" : "",
+             PREFEDIT_FLAGGED(PRF_DISPTIME) ? " Time" : "",
+             PREFEDIT_FLAGGED(PRF_DISPROOM) ? " RM" : "",
+             PREFEDIT_FLAGGED(PRF_DISPMEMTIME) ? " MT" : "",
+             PREFEDIT_FLAGGED(PRF_DISPACTIONS) ? " AC" : "");
 
   send_to_char(d->character, "%sPrompt Settings\r\n"
                              "%s1%s) Toggle HP\r\n"
@@ -647,17 +656,20 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     OLC_PREFS(d)->screen_width = MAX(40, MIN(number, 120));
     break;
-  
+
   case PREFEDIT_ENCOUNTERS:
-    if (is_abbrev(arg, "avoid")) {
+    if (is_abbrev(arg, "avoid"))
+    {
       SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AVOID_ENCOUNTERS);
       REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SEEK_ENCOUNTERS);
     }
-    else if (is_abbrev(arg, "seek")) {
+    else if (is_abbrev(arg, "seek"))
+    {
       REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AVOID_ENCOUNTERS);
       SET_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SEEK_ENCOUNTERS);
     }
-    else {
+    else
+    {
       REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AVOID_ENCOUNTERS);
       REMOVE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_SEEK_ENCOUNTERS);
     }
@@ -884,7 +896,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_USE_STORED_CONSUMABLES);
       break;
 
-     default:
+    case '2':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_STAND);
+      break;
+
+    default:
       send_to_char(d->character, "Invalid Choice, try again (Q to Quit to main menu): ");
       return;
     }
