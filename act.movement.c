@@ -1956,6 +1956,18 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
+  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    if (IN_SUNLIGHT(ch))
+    {
+      damage(ch, ch, dice(1, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
+    }
+    if (IN_MOVING_WATER(ch))
+    {
+      damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_MOVING_WATER, FALSE);
+    }
+  }
+
   return (1);
 }
 

@@ -69,7 +69,9 @@ struct wild_map_info_type wild_map_info[] = {
     {SECT_TUNDRA, "\tW\t[u65294/.]\tn", {NULL}},
     {SECT_TAIGA, "\tg\t[u127794/A]\tn", {NULL}},
     {SECT_BEACH, "\ty\t[u65306]\t[u65306/:]\tn", {NULL}},
-    {SECT_ZONE_START, "\tR\t[u65336/S]\tn", {NULL}},
+    {SECT_INSIDE_ROOM, "\ty\t[u65306]\t[u65306/*]\tn", {NULL}},
+    {SECT_SEAPORT, "\tR\t[u65336/S]\tn", {NULL}},
+    {SECT_RIVER, "\tB\t[u65374/~]\tn", {NULL}},
 
     {-1, "", {NULL}}, /* RESERVED, NUM_ROOM_SECTORS */
 };
@@ -1118,6 +1120,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
   color_by_sector[SECT_D_ROAD_EW] = gdImageColorAllocate(im, 107, 83, 48);
   color_by_sector[SECT_D_ROAD_INT] = gdImageColorAllocate(im, 107, 83, 48);
   color_by_sector[SECT_WATER_SWIM] = gdImageColorAllocate(im, 0, 0, 255);
+  color_by_sector[SECT_RIVER] = gdImageColorAllocate(im, 0, 0, 255);
   color_by_sector[SECT_OCEAN] = gdImageColorAllocate(im, 0, 0, 128);
   color_by_sector[SECT_WATER_NOSWIM] = gdImageColorAllocate(im, 0, 0, 128);
   color_by_sector[SECT_DESERT] = gdImageColorAllocate(im, 255, 236, 159);
@@ -1126,10 +1129,12 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
   color_by_sector[SECT_FOREST] = gdImageColorAllocate(im, 0, 100, 0);
   color_by_sector[SECT_JUNGLE] = gdImageColorAllocate(im, 85, 107, 47);
   color_by_sector[SECT_BEACH] = gdImageColorAllocate(im, 215, 208, 19);
+  color_by_sector[SECT_INSIDE_ROOM] = gdImageColorAllocate(im, 215, 208, 19);
   color_by_sector[SECT_TAIGA] = gdImageColorAllocate(im, 107, 142, 35);
   color_by_sector[SECT_MOUNTAIN] = gdImageColorAllocate(im, 176, 176, 176);
   color_by_sector[SECT_TUNDRA] = gdImageColorAllocate(im, 240, 248, 255);
   color_by_sector[SECT_ZONE_START] = gdImageColorAllocate(im, 128, 0, 0);
+  color_by_sector[SECT_SEAPORT] = gdImageColorAllocate(im, 128, 0, 0);
   color_by_sector[SECT_MARSHLAND] = gdImageColorAllocate(im, 33, 146, 75);
 
   for (i = 0; i < 255; i++)

@@ -816,13 +816,50 @@ bool has_elemental_follower(struct char_data *ch) {
 }
 
 /* check if ch has an undead follower or not */
-bool has_undead_follower(struct char_data *ch) {
+bool has_undead_follower(struct char_data *ch)
+{
   struct follow_type *k = NULL, *next = NULL;
 
-  for (k = ch->followers; k; k = next) {
+  for (k = ch->followers; k; k = next)
+  {
     next = k->next;
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-            (MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD))) {
+        (MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD)))
+    {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/* check if ch has a vampire children of the night follower */
+bool has_children_of_the_night(struct char_data *ch)
+{
+  struct follow_type *k = NULL, *next = NULL;
+
+  for (k = ch->followers; k; k = next)
+  {
+    next = k->next;
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) >= 9419 && GET_MOB_VNUM(k->follower) <= 9421)
+    {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/* check if ch has a vampire spawn follower */
+bool has_vampire_spawn_follower(struct char_data *ch)
+{
+  struct follow_type *k = NULL, *next = NULL;
+
+  for (k = ch->followers; k; k = next)
+  {
+    next = k->next;
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) == 9422)
+    {
       return TRUE;
     }
   }
@@ -3611,6 +3648,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
   int daily_uses = 0;
 
   switch (featnum) {
+    case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
+      daily_uses = 1;
+      break;
     case FEAT_STUNNING_FIST:
       daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK)) / 4;
       break;
@@ -4090,6 +4130,16 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
     if (display) {
       send_to_char(ch, "%s appears to be fearless!\r\n", GET_NAME(victim));
       send_to_char(victim, "Your fearless defense protects you!\r\n");
+    }
+    return TRUE;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_BRAVERY))
+  {
+    if (display)
+    {
+      send_to_char(victim, "Your bravery overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with bravery!\tn\tn", TRUE, ch, 0, 0, TO_CHAR);
     }
     return TRUE;
   }
@@ -6183,4 +6233,81 @@ bool is_spell_restoreable(int spell)
     return false;
   }
   return true;
+}
+
+bool is_spell_or_spell_like(int type)
+{
+  if (type > SPELL_RESERVED_DBC && type < NUM_SPELLS)
+    return true;
+  if (type > PSIONIC_POWER_START && type < PSIONIC_POWER_END)
+    return true;
+
+  switch (type)
+  {
+  case SPELL_AFFECT_MIND_TRAP_NAUSEA:
+  case PSIONIC_ABILITY_PSIONIC_FOCUS:
+  case PSIONIC_ABILITY_DOUBLE_MANIFESTATION:
+  case SPELL_DRAGONBORN_ANCESTRY_BREATH:
+  case PALADIN_MERCY_INJURED_FAST_HEALING:
+  case BLACKGUARD_TOUCH_OF_CORRUPTION:
+  case BLACKGUARD_CRUELTY_AFFECTS:
+  case ABILITY_CHANNEL_POSITIVE_ENERGY:
+  case ABILITY_CHANNEL_NEGATIVE_ENERGY:
+  case SPELL_AFFECT_STUNNING_BARRIER:
+  case AFFECT_ENTANGLING_FLAMES:
+  case SPELL_EFFECT_DAZZLED:
+  case SPELL_AFFECT_DEATH_ATTACK:
+  case RACIAL_LICH_TOUCH:
+  case RACIAL_LICH_FEAR:
+  case RACIAL_LICH_REJUV:
+  case ABILITY_AFFECT_TRUE_JUDGEMENT:
+  case SPELL_AFFECT_WEAPON_OF_AWE:
+  case RACIAL_ABILITY_VAMPIRE_DR:
+  case RACIAL_ABILITY_SKELETON_DR:
+  case RACIAL_ABILITY_ZOMBIE_DR:
+  case RACIAL_ABILITY_PRIMORDIAL_DR:
+  case ABILITY_SCORE_DAMAGE:
+  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+  case AFFECT_LEVEL_DRAIN:
+  case ABILITY_CREATE_VAMPIRE_SPAWN:
+  case ABILITY_BLOOD_DRAIN:
+    return true;
+  }
+
+  return false;
+}
+
+bool can_dam_be_resisted(int type)
+{
+  switch (type)
+  {
+    case DAM_SUNLIGHT:
+    case DAM_MOVING_WATER:
+    case DAM_BLOOD_DRAIN:
+      return false;
+  }
+
+  return true;
+}
+
+void set_vampire_spawn_feats(struct char_data *mob)
+{
+  if (!mob || !IS_NPC(mob)) return;
+
+  SET_FEAT(mob, FEAT_ALERTNESS, 1);
+  SET_FEAT(mob, FEAT_COMBAT_REFLEXES, 1);
+  SET_FEAT(mob, FEAT_DODGE, 1);
+  SET_FEAT(mob, FEAT_IMPROVED_INITIATIVE, 1);
+  SET_FEAT(mob, FEAT_LIGHTNING_REFLEXES, 1);
+  SET_FEAT(mob, FEAT_TOUGHNESS, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_NATURAL_ARMOR, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_DAMAGE_REDUCTION, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_ENERGY_RESISTANCE, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_FAST_HEALING, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_WEAKNESSES, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_BLOOD_DRAIN, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_ENERGY_DRAIN, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_CHANGE_SHAPE, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_GASEOUS_FORM, 1);
+  SET_FEAT(mob, FEAT_VAMPIRE_SPIDER_CLIMB, 1);
 }

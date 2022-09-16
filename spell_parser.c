@@ -32,19 +32,13 @@
 #include "psionics.h"
 #include "act.h"
 
-/* toggle for debug mode
-   true = annoying messages used for debugging
-   false = normal gameplay */
-#define DEBUGMODE FALSE
-
 #define SINFO spell_info[spellnum]
 
 /* Global Variables definitions, used elsewhere */
-struct spell_info_type spell_info[TOP_SKILL_DEFINE];
-struct spell_info_type skill_info[TOP_SKILL_DEFINE];
+struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
+struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
 const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
-const char *unused_skillname = "!UNUSED!";       /* So we can get &unused_skillname */
 const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearoff */
 
 /* Local (File Scope) Function Prototypes */
@@ -53,9 +47,9 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
 void spello(int spl, const char *name, int max_psp, int min_psp,
             int psp_change, int minpos, int targets, int violent, int routines,
             const char *wearoff, int time, int memtime, int school, bool quest);
-void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                 int psp_change, int minpos, int targets, int violent, int routines,
-                 const char *wearoff, int time, int memtime, int school, bool quest);
+static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
+                        int psp_change, int minpos, int targets, int violent, int routines,
+                        const char *wearoff, int time, int memtime, int school, bool quest);
 // static int mag_pspcost(struct char_data *ch, int spellnum);
 
 /* Local (File Scope) Variables */
@@ -149,11 +143,6 @@ bool concentration_check(struct char_data *ch, int spellnum)
   int spell_level = spell_info[spellnum].min_level[CASTING_CLASS(ch)];
   int concentration_dc = 0;
 
-  if (DEBUGMODE)
-  {
-    send_to_char(ch, "In concentration_check(): casting class: %d\r\n", CASTING_CLASS(ch));
-  }
-
   if (IS_NPC(ch))
   {
     spell_level = MIN(GET_LEVEL(ch), 17);
@@ -181,7 +170,6 @@ bool concentration_check(struct char_data *ch, int spellnum)
     concentration_dc += 6;
   if (char_has_mud_event(ch, eINTIMIDATED))
     concentration_dc += 6;
-
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
   {
     if (GRAPPLE_ATTACKER(ch))
@@ -203,7 +191,7 @@ bool concentration_check(struct char_data *ch, int spellnum)
     }
   }
 
-  if (FIGHTING(ch) && !skill_check(ch, ABILITY_CONCENTRATION, concentration_dc) && CASTING_CLASS(ch) != CLASS_ALCHEMIST && CASTING_CLASS(ch) != CLASS_SHADOWDANCER)
+  if (FIGHTING(ch) && !skill_check(ch, ABILITY_CONCENTRATION, concentration_dc) && CASTING_CLASS(ch) != CLASS_ALCHEMIST)
   {
     send_to_char(ch, "You lost your concentration!\r\n");
     act("$n's concentration is lost, and spell is aborted!", TRUE, ch, 0, 0, TO_ROOM);
@@ -365,12 +353,12 @@ bool isEpicSpell(int spellnum)
 
 /* This function should be used anytime you are not 100% sure that you have
  * a valid spell/skill number.  A typical for() loop would not need to use
- * this because you can guarantee > 0 and < TOP_SKILL_DEFINE. */
+ * this because you can guarantee > 0 and <= TOP_SPELL_DEFINE. */
 const char *skill_name(int num)
 {
   if (skill_info[num].schoolOfMagic > 0)
     return (skill_info[num].name);
-  if (num > 0 && num < TOP_SKILL_DEFINE)
+  if (num > 0 && num <= TOP_SPELL_DEFINE)
     return (spell_info[num].name);
   else if (num == -1)
     return ("Not-Used");
@@ -387,7 +375,7 @@ int find_skill_num(char *name)
   char *temp, *temp2;
   char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
 
-  for (skindex = 1; skindex < TOP_SKILL_DEFINE; skindex++)
+  for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
     if (is_abbrev(name, spell_info[skindex].name))
       return (skindex);
@@ -460,10 +448,8 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 
   if (!cast_wtrigger(caster, cvict, ovict, spellnum))
     return 0;
-
   if (!cast_otrigger(caster, ovict, spellnum))
     return 0;
-
   if (!cast_mtrigger(caster, cvict, spellnum))
     return 0;
 
@@ -520,7 +506,6 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       (casttype != CAST_SCROLL) &&
       (casttype != CAST_STAFF) &&
       (casttype != CAST_WAND) && !IS_NPC(caster))
-  {
     switch (CASTING_CLASS(caster))
     {
     case CLASS_BARD:
@@ -544,7 +529,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       }
       break;
     }
-  }
+
   // attach event for epic spells, increase skill
   switch (spellnum)
   {
@@ -915,9 +900,6 @@ SAVING_WILL here...  */
       break;
     case SPELL_TRANSPORT_VIA_PLANTS:
       MANUAL_SPELL(spell_transport_via_plants);
-      break;
-    case SPELL_RESURRECT:
-      MANUAL_SPELL(spell_resurrect);
       break;
     case SPELL_WALL_OF_FORCE:
       MANUAL_SPELL(spell_wall_of_force);
@@ -1362,21 +1344,6 @@ EVENTFUNC(event_casting)
 
       if (spellnum > 0 && spellnum < NUM_SPELLS)
       {
-        /* magical ambush feat */
-        if (!IS_NPC(ch) && FIGHTING(ch) && HAS_FEAT(ch, FEAT_MAGICAL_AMBUSH) && (!(has_dex_bonus_to_ac(ch, FIGHTING(ch))) /* No dex bonus to ac */
-                                                                                 || is_flanked(ch, FIGHTING(ch))))
-        {
-          if (rand_number(0, 2))
-          {
-            CASTING_TIME(ch)
-            --;
-          }
-          else if (!rand_number(0, 2))
-          {
-            CASTING_TIME(ch) -= 2;
-          }
-        }
-        /* quick chant feat */
         if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_QUICK_CHANT))
         {
           if (rand_number(0, 1))
@@ -1385,17 +1352,7 @@ EVENTFUNC(event_casting)
             --;
           }
         }
-        /* wizard quick chant feat */
-        if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_WIZ_CHANT))
-        {
-          if (rand_number(0, 2))
-          {
-            CASTING_TIME(ch)
-            --;
-          }
-        }
       }
-
       else if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
       {
         // add augment casting time adjustment
@@ -1455,6 +1412,12 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    // imms can cast any spell
+    return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
+  }
+
   int position = GET_POS(ch);
   int ch_class = CLASS_WIZARD, clevel = 0;
   int casting_time = 0;
@@ -1472,23 +1435,17 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   if (tch && IN_ROOM(tch) > top_of_world)
     return 0;
 
-  if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
-  {
-    // imms can cast any spell
-    return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
-  }
-
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && !is_spellnum_psionic(spellnum))
   {
-    send_to_char(ch, "You can not even speak a single word!\r\n");
-    return 0;
+          send_to_char(ch, "You can not even speak a single word!\r\n");
+          return 0;
   }
 
   if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
   {
-    send_to_char(ch, "You are unable to make a sound.\r\n");
-    act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
-    return 0;
+          send_to_char(ch, "You are unable to make a sound.\r\n");
+          act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
+          return 0;
   }
 
   // epic spell cooldown
@@ -2444,9 +2401,9 @@ void spell_level(int spell, int chclass, int level)
 {
   int bad = 0;
 
-  if (spell < 0 || spell > TOP_SKILL_DEFINE)
+  if (spell < 0 || spell > TOP_SPELL_DEFINE)
   {
-    log("SYSERR: attempting assign to illegal spellnum %d/%d", spell, TOP_SKILL_DEFINE);
+    log("SYSERR: attempting assign to illegal spellnum %d/%d", spell, TOP_SPELL_DEFINE);
     return;
   }
 
@@ -2504,10 +2461,10 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].quest = quest;
 }
 
-void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                 int psp_change, int minpos, int targets, int violent,
-                 int routines, const char *wearoff, int time, int memtime, int school,
-                 bool quest)
+static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
+                        int psp_change, int minpos, int targets, int violent,
+                        int routines, const char *wearoff, int time, int memtime, int school,
+                        bool quest)
 {
   int i;
 
@@ -2578,7 +2535,7 @@ void unused_skill(int spl)
   skill_info[spl].targets = 0;
   skill_info[spl].violent = 0;
   skill_info[spl].routines = 0;
-  skill_info[spl].name = unused_skillname;
+  skill_info[spl].name = unused_spellname;
   skill_info[spl].wear_off_msg = unused_wearoff;
   skill_info[spl].time = 0;
   skill_info[spl].memtime = 0;
@@ -2586,7 +2543,8 @@ void unused_skill(int spl)
   skill_info[spl].quest = FALSE;
 }
 
-#define skillo(skill, name, category) spello(skill, name, 0, 0, 0, 0, 0, FALSE, 0, NULL, 0, 0, category, FALSE)
+#define skillo(skill, name, category) skillo_full(skill, name, 0, 0, 0, 0, 0, 0, \
+                                                  0, NULL, 0, 0, category, FALSE);
 
 /* Arguments for spello calls:
  * spellnum, maxpsp, minpsp, pspchng, minpos, targets, violent?, routines.
@@ -2621,190 +2579,13 @@ void mag_assign_spells(void)
   int i;
 
   /* Do not change the loop below. */
-  for (i = 0; i < TOP_SKILL_DEFINE; i++)
+  for (i = 0; i <= TOP_SPELL_DEFINE; i++)
     unused_spell(i);
-  /*
-  for (i = START_SKILLS; i < TOP_SKILL_DEFINE; i++)
+  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
     unused_skill(i);
-  */
   /* Do not change the loop above. */
 
-  /** putting skills first **/
-  /* Declaration of skills - this assigns categories and also will set it up
-   * so that immortals can use these skills by default.  The min level to use
-   * the skill for other classes is set up in class.c
-   * to-date all skills are assigned to all classes, and a separate function
-   * in spec_procs.c checks if the player has the pre-reqs for the skill
-   * to be obtained fully. */
-  skillo(SKILL_BACKSTAB, "backstab", ACTIVE_SKILL); // 401
-  skillo(SKILL_BASH, "bash", ACTIVE_SKILL);
-  skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
-  skillo(SKILL_KICK, "kick", ACTIVE_SKILL);
-  skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); // 405
-  skillo(SKILL_WHIRLWIND, "weapon whirlwind", ACTIVE_SKILL);
-  skillo(SKILL_RESCUE, "rescue", ACTIVE_SKILL);
-  skillo(SKILL_DRAGON_KNIGHT, "es dragon knight", CASTER_SKILL);
-  skillo(SKILL_LUCK_OF_HEROES, "luck of heroes", PASSIVE_SKILL);
-  skillo(SKILL_TRACK, "track", ACTIVE_SKILL); // 410
-  skillo(SKILL_QUICK_CHANT, "quick chant", CASTER_SKILL);
-  skillo(SKILL_AMBIDEXTERITY, "ambidexterity", PASSIVE_SKILL);
-  skillo(SKILL_DIRTY_FIGHTING, "dirty fighting", PASSIVE_SKILL);
-  skillo(SKILL_DODGE, "dodge", PASSIVE_SKILL);
-  skillo(SKILL_IMPROVED_CRITICAL, "improved critical", PASSIVE_SKILL); // 415
-  skillo(SKILL_MOBILITY, "mobility", PASSIVE_SKILL);
-  skillo(SKILL_SPRING_ATTACK, "spring attack", PASSIVE_SKILL);
-  skillo(SKILL_TOUGHNESS, "toughness", PASSIVE_SKILL);
-  skillo(SKILL_TWO_WEAPON_FIGHT, "two weapon fighting", PASSIVE_SKILL);
-  skillo(SKILL_FINESSE, "finesse", PASSIVE_SKILL); // 420
-  skillo(SKILL_ARMOR_SKIN, "armor skin", PASSIVE_SKILL);
-  skillo(SKILL_BLINDING_SPEED, "blinding speed", PASSIVE_SKILL);
-  skillo(SKILL_DAMAGE_REDUC_1, "damage reduction", PASSIVE_SKILL);
-  skillo(SKILL_DAMAGE_REDUC_2, "greater damage reduction", PASSIVE_SKILL);
-  skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction", PASSIVE_SKILL); // 425
-  skillo(SKILL_EPIC_TOUGHNESS, "epic toughness", PASSIVE_SKILL);
-  skillo(SKILL_OVERWHELMING_CRIT, "overwhelming critical", PASSIVE_SKILL);
-  skillo(SKILL_SELF_CONCEAL_1, "self concealment", PASSIVE_SKILL);
-  skillo(SKILL_SELF_CONCEAL_2, "greater concealment", PASSIVE_SKILL);
-  skillo(SKILL_SELF_CONCEAL_3, "epic concealment", PASSIVE_SKILL); // 430
-  skillo(SKILL_TRIP, "trip", ACTIVE_SKILL);
-  skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind", ACTIVE_SKILL);
-  skillo(SKILL_CLEAVE, "cleave (inc)", PASSIVE_SKILL);
-  skillo(SKILL_GREAT_CLEAVE, "great_cleave (inc)", PASSIVE_SKILL);
-  skillo(SKILL_SPELLPENETRATE, "spell penetration", CASTER_SKILL); // 435
-  skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate", CASTER_SKILL);
-  skillo(SKILL_PROWESS, "prowess", PASSIVE_SKILL);
-  skillo(SKILL_EPIC_PROWESS, "epic prowess", PASSIVE_SKILL);
-  skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting", PASSIVE_SKILL);
-  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate", CASTER_SKILL); // 440
-  skillo(SKILL_SPELL_RESIST_1, "spell resistance", CASTER_SKILL);
-  skillo(SKILL_SPELL_RESIST_2, "improved spell resist", CASTER_SKILL);
-  skillo(SKILL_SPELL_RESIST_3, "greater spell resist", CASTER_SKILL);
-  skillo(SKILL_SPELL_RESIST_4, "epic spell resist", CASTER_SKILL);
-  skillo(SKILL_SPELL_RESIST_5, "supreme spell resist", CASTER_SKILL); // 445
-  skillo(SKILL_INITIATIVE, "initiative", PASSIVE_SKILL);
-  skillo(SKILL_EPIC_CRIT, "epic critical", PASSIVE_SKILL);
-  skillo(SKILL_IMPROVED_BASH, "improved bash", ACTIVE_SKILL);
-  skillo(SKILL_IMPROVED_TRIP, "improved trip", ACTIVE_SKILL);
-  skillo(SKILL_POWER_ATTACK, "power attack", ACTIVE_SKILL); // 450
-  skillo(SKILL_EXPERTISE, "combat expertise", ACTIVE_SKILL);
-  skillo(SKILL_GREATER_RUIN, "es greater ruin", CASTER_SKILL);
-  skillo(SKILL_HELLBALL, "es hellball", CASTER_SKILL);
-  skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
-  skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL);                // 455
-  skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                                   // 456
-  skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL);           // 457
-  skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL);               // 458
-  skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL);         // 459
-  skillo(SKILL_PROF_MASTER, "master weapon prof", PASSIVE_SKILL);             // 460
-  skillo(SKILL_PROF_EXOTIC, "exotic weapon prof", PASSIVE_SKILL);             // 461
-  skillo(SKILL_PROF_LIGHT_A, "light armor prof", PASSIVE_SKILL);              // 462
-  skillo(SKILL_PROF_MEDIUM_A, "medium armor prof", PASSIVE_SKILL);            // 463
-  skillo(SKILL_PROF_HEAVY_A, "heavy armor prof", PASSIVE_SKILL);              // 464
-  skillo(SKILL_PROF_SHIELDS, "shield prof", PASSIVE_SKILL);                   // 465
-  skillo(SKILL_PROF_T_SHIELDS, "tower shield prof", PASSIVE_SKILL);           // 466
-  skillo(SKILL_MURMUR, "murmur(inc)", UNCATEGORIZED);                         // 467
-  skillo(SKILL_PROPAGANDA, "propaganda(inc)", UNCATEGORIZED);                 // 468
-  skillo(SKILL_LOBBY, "lobby(inc)", UNCATEGORIZED);                           // 469
-  skillo(SKILL_STUNNING_FIST, "stunning fist", ACTIVE_SKILL);                 // 470
-  skillo(SKILL_MINING, "mining", CRAFTING_SKILL);                             // 471
-  skillo(SKILL_HUNTING, "hunting", CRAFTING_SKILL);                           // 472
-  skillo(SKILL_FORESTING, "foresting", CRAFTING_SKILL);                       // 473
-  skillo(SKILL_KNITTING, "knitting", CRAFTING_SKILL);                         // 474
-  skillo(SKILL_CHEMISTRY, "chemistry", CRAFTING_SKILL);                       // 475
-  skillo(SKILL_ARMOR_SMITHING, "armor smithing", CRAFTING_SKILL);             // 476
-  skillo(SKILL_WEAPON_SMITHING, "weapon smithing", CRAFTING_SKILL);           // 477
-  skillo(SKILL_JEWELRY_MAKING, "jewelry making", CRAFTING_SKILL);             // 478
-  skillo(SKILL_LEATHER_WORKING, "leather working", CRAFTING_SKILL);           // 479
-  skillo(SKILL_FAST_CRAFTER, "fast crafter", CRAFTING_SKILL);                 // 480
-  skillo(SKILL_BONE_ARMOR, "bone armor(inc)", CRAFTING_SKILL);                // 481
-  skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)", CRAFTING_SKILL);        // 482
-  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)", CRAFTING_SKILL); // 483
-  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting(inc)", CRAFTING_SKILL);  // 484
-  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting(inc)", CRAFTING_SKILL);    // 485
-  skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes", PASSIVE_SKILL);      // 486
-  skillo(SKILL_GREAT_FORTITUDE, "great fortitude", PASSIVE_SKILL);            // 487
-  skillo(SKILL_IRON_WILL, "iron will", PASSIVE_SKILL);                        // 488
-  skillo(SKILL_EPIC_REFLEXES, "epic reflexes", PASSIVE_SKILL);                // 489
-  skillo(SKILL_EPIC_FORTITUDE, "epic fortitude", PASSIVE_SKILL);              // 490
-  skillo(SKILL_EPIC_WILL, "epic will", PASSIVE_SKILL);                        // 491
-  skillo(SKILL_SHIELD_SPECIALIST, "shield specialist", PASSIVE_SKILL);        // 492
-  skillo(SKILL_USE_MAGIC, "use magic", ACTIVE_SKILL);                         // 493
-  skillo(SKILL_EVASION, "evasion", PASSIVE_SKILL);                            // 494
-  skillo(SKILL_IMP_EVASION, "improved evasion", PASSIVE_SKILL);               // 495
-  skillo(SKILL_CRIP_STRIKE, "crippling strike", PASSIVE_SKILL);               // 496
-  skillo(SKILL_SLIPPERY_MIND, "slippery mind", PASSIVE_SKILL);                // 497
-  skillo(SKILL_DEFENSE_ROLL, "defensive roll", PASSIVE_SKILL);                // 498
-  skillo(SKILL_GRACE, "divine grace", PASSIVE_SKILL);                         // 499
-  skillo(SKILL_DIVINE_HEALTH, "divine health", PASSIVE_SKILL);                // 500
-  skillo(SKILL_LAY_ON_HANDS, "lay on hands", ACTIVE_SKILL);                   // 501
-  skillo(SKILL_COURAGE, "courage", PASSIVE_SKILL);                            // 502
-  skillo(SKILL_SMITE_EVIL, "smite evil", ACTIVE_SKILL);                       // 503
-  skillo(SKILL_REMOVE_DISEASE, "purify", ACTIVE_SKILL);                       // 504
-  skillo(SKILL_RECHARGE, "recharge", CASTER_SKILL);                           // 505
-  skillo(SKILL_STEALTHY, "stealthy", PASSIVE_SKILL);                          // 506
-  skillo(SKILL_NATURE_STEP, "nature step", PASSIVE_SKILL);                    // 507
-  skillo(SKILL_FAVORED_ENEMY, "favored enemy", PASSIVE_SKILL);                // 508
-  skillo(SKILL_DUAL_WEAPONS, "dual weapons", PASSIVE_SKILL);                  // 509
-  skillo(SKILL_ANIMAL_COMPANION, "animal companion", ACTIVE_SKILL);           // 510
-  skillo(SKILL_PALADIN_MOUNT, "paladin mount", ACTIVE_SKILL);                 // 511
-  skillo(SKILL_CALL_FAMILIAR, "call familiar", ACTIVE_SKILL);                 // 512
-  skillo(SKILL_PERFORM, "perform", ACTIVE_SKILL);                             // 513
-  skillo(SKILL_SCRIBE, "scribe", ACTIVE_SKILL);                               // 514
-  skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL);                     // 515
-  skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL);                         // 516
-  skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL);                     // 517
-  skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL);                               // 518
-  skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL);                               // 519
-  skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL);                           // 520
-  skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL);                      // 521
-  skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL);                           // 522
-  skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL);                   // 523
-  skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL);                         // 524
-  skillo(SKILL_SAP, "sap", ACTIVE_SKILL);                                     // 525
-  skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL);                     // 526
-  skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL);                 // 527
-  skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL);               // 528
-  skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);         // 529
-  skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL);                 // 530
-  skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL);                   // 531
-  skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL);             // 532
-  skillo(SKILL_FEINT, "feint", ACTIVE_SKILL);                                 // 533
-  skillo(SKILL_SMITE_GOOD, "smite good", ACTIVE_SKILL);                       // 534
-  skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL);         // 535
-  skillo(SKILL_DESTRUCTIVE_AURA, "destructive aura", ACTIVE_SKILL);           // 536
-  skillo(SKILL_AURA_OF_PROTECTION, "protection aura", ACTIVE_SKILL);          // 537
-  skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL);                  // 538
-  skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL);           // 539
-  skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL);      // 540
-  skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL);         // 541
-  skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL);         // 542
-  skillo(SKILL_BOMB_TOSS, "bomb toss", ACTIVE_SKILL);                         /* 543 */
-  skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL);                             /* 544 */
-  skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL);                       /* 545 */
-  skillo(SKILL_INSPIRING_COGNATOGEN, "inspiring cognatogen", ACTIVE_SKILL);   /* 546 */
-  skillo(SKILL_PSYCHOKINETIC, "psychokinetic", ACTIVE_SKILL);                 /* 547 */
-  skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);                       /* 548 */
-  skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);                 /* 549 */
-  skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
-
-  /* songs */
-  skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       // 588
-  skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL);                       // 589
-  skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL);                 // 590
-  skillo(SKILL_SONG_OF_THE_MAGI, "song of the magi", ACTIVE_SKILL);               // 591
-  skillo(SKILL_SONG_OF_HEALING, "song of healing", ACTIVE_SKILL);                 // 592
-  skillo(SKILL_DANCE_OF_PROTECTION, "dance of protection", ACTIVE_SKILL);         // 593
-  skillo(SKILL_SONG_OF_FLIGHT, "song of flight", ACTIVE_SKILL);                   // 594
-  skillo(SKILL_SONG_OF_HEROISM, "song of heroism", ACTIVE_SKILL);                 // 595
-  skillo(SKILL_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", ACTIVE_SKILL); // 596
-  skillo(SKILL_ACT_OF_FORGETFULNESS, "skit of forgetfulness", ACTIVE_SKILL);      // 597
-  skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL);           // 598
-  skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 // 599
-                                                                                  /* end songs */
-
-  /****note weapon specialist and luck of heroes inserted in free slots ***/
-
-  /** next assigning the psionic powers from psionics.c */
+  /** let's start by assigning the psionic powers from psionics.c */
   assign_psionic_powers();
 
   // sorted the spells by shared / magical / divine, and by circle
@@ -2838,10 +2619,6 @@ void mag_assign_spells(void)
          NULL, 9, 23,
          NECROMANCY, FALSE);                                        // wizard 9, cleric 9
   spello(SPELL_REMOVE_CURSE, "remove curse", 0, 0, 0, POS_FIGHTING, // abjur
-         TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
-         MAG_UNAFFECTS | MAG_ALTER_OBJS,
-         NULL, 4, 13, ABJURATION, FALSE);                           // wizard 4, cleric 4
-  spello(SPELL_DISPEL_INVIS, "dispel invis", 0, 0, 0, POS_FIGHTING, // abjur
          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
          MAG_UNAFFECTS | MAG_ALTER_OBJS,
          NULL, 4, 13, ABJURATION, FALSE); // wizard 4, cleric 4
@@ -3724,11 +3501,10 @@ void mag_assign_spells(void)
   spello(SPELL_HEDGING_WEAPONS, "hedging weapons", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "The last of your hedging weapons dissipates.", 4, 8, ABJURATION, FALSE);
   spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
   spello(SPELL_LESSER_RESTORATION, "lesser restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
-  spello(SPELL_RESTORATION, "restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 5, 15, CONJURATION, FALSE);
-  spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
+  spello(SPELL_RESTORATION, "restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 5, 15, CONJURATION, FALSE);  
   spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
   spello(SPELL_SILENCE, "silence", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-         "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
+               "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
   spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
   spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
@@ -3738,6 +3514,7 @@ void mag_assign_spells(void)
          NULL, 3, 8, NOSCHOOL, FALSE);
   spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
          "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
+         
   // endurance - shared
   // negative energy ray - shared
   // endure elements - shared
@@ -3932,8 +3709,6 @@ void mag_assign_spells(void)
   spello(SPELL_ANIMAL_SHAPES, "animal shapes", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          "The primal spell wears off!", 5, 22, NOSCHOOL, FALSE);
-  spello(SPELL_RESURRECT, "resurrect", 0, 0, 0, POS_STANDING,
-         TAR_OBJ_ROOM, FALSE, MAG_MANUAL, NULL, 15, 17, CONJURATION, FALSE);
 
   // 9th circle
   spello(SPELL_EARTHQUAKE, "earthquake", 85, 70, 1, POS_FIGHTING,
@@ -3956,40 +3731,37 @@ void mag_assign_spells(void)
   // end divine
 
   /* NON-castable spells should appear below here. */
-  spello(SPELL_ACID, "acid", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_ACID, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, EVOCATION, FALSE);
-  spello(SPELL_ASHIELD_DAM, "acidsheath damage", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ASHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_BLADES, "blades", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_BLADES, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, NOSCHOOL, FALSE);
-  spello(SPELL_CSHIELD_DAM, "coldshield damage", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_CSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_DEATHCLOUD, "deathcloud", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_DEATHCLOUD, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_GENERIC_AOE, "aoe attack", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_FIRE_BREATHE, "fire breathe", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FIRE_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_FROST_BREATHE, "frost breathe", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FROST_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_GAS_BREATHE, "gas breathe", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_LIGHTNING_BREATHE, "lightning breathe", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ACID_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_ACID_BREATHE, "acid breathe", 0, 0, 0, POS_FIGHTING,
-         TAR_IGNORE, TRUE, MAG_AREAS,
-         NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_POISON_BREATHE, "poison breathe", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
@@ -4015,16 +3787,16 @@ void mag_assign_spells(void)
          "You feel your divine power ebb away.", 5, 13, EVOCATION, FALSE);
 
   spello(SPELL_AIR_WALK, "air walk", 37, 22, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "You drift slowly to the ground.", 3, 11, TRANSMUTATION, FALSE);
+          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+          "You drift slowly to the ground.", 3, 11, TRANSMUTATION, FALSE);
 
   spello(SPELL_GASEOUS_FORM, "gaseous form", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "You return to your normal solid form.", 4, 11, TRANSMUTATION, FALSE);
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+        "You return to your normal solid form.", 4, 11, TRANSMUTATION, FALSE);
 
   spello(SPELL_WIND_WALL, "wind wall", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "The wall of swirling wind dissipates.", 3, 7, EVOCATION, FALSE);
+               TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "The wall of swirling wind dissipates.", 3, 7, EVOCATION, FALSE);
 
   spello(SPELL_KEEN_EDGE, "keen edge", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -4104,14 +3876,14 @@ void mag_assign_spells(void)
   spello(ABILITY_CHANNEL_NEGATIVE_ENERGY, "channel negative energy", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS | MAG_GROUPS, NULL, 9, 23, NOSCHOOL, FALSE);
 
-  spello(SPELL_FSHIELD_DAM, "fireshield damage", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_ESHIELD_DAM, "EShield damage", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ESHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   /* innate darkness spell, room events testing spell as well */
-  spello(SPELL_I_DARKNESS, "darkness", 0, 0, 0, POS_STANDING,
+  spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_STANDING,
          TAR_IGNORE, FALSE, MAG_ROOM,
          "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
 
@@ -4128,6 +3900,24 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You are no longer dazzled.", 1, 1, EVOCATION, FALSE);
 
+  spello(AFFECT_LEVEL_DRAIN, "level drain", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The effects of your level drain expire.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(ABILITY_SCORE_DAMAGE, "ability score damage", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         "The effects of your ability score damage expires.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(ABILITY_BLOOD_DRAIN, "vampiric blood drain", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
+
+  spello(RACIAL_ABILITY_VAMPIRE_DR, "vampire damage reduction", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, "vampiric children of the night", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
+  spello(ABILITY_CREATE_VAMPIRE_SPAWN, "create vampiric spawn", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
+
   spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "Your psionic focus expires.", 1, 1, NOSCHOOL, FALSE);
@@ -4140,7 +3930,7 @@ void mag_assign_spells(void)
          "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
 
   /*
-spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
+spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
     TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
     NULL, 0, 0, NOSCHOOL, FALSE);
 */
@@ -4151,10 +3941,10 @@ spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
   spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
          TAR_IGNORE, FALSE, 0,
          "The effects of your powerful blow have expired.", 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_INCENDIARY, "incendiary flames", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_STENCH, "stench", 65, 50, 1, POS_DEAD,
+  spello(SPELL_STENCH, "!UNUSED!", 65, 50, 1, POS_DEAD,
          TAR_IGNORE, FALSE, MAG_MASSES,
          "Your nausea from the noxious gas passes.", 4, 7,
          CONJURATION, FALSE);
@@ -4218,6 +4008,180 @@ spello(SPELL_IDENTIFY, "identify", 0, 0, 0, 0,
   spello(SPELL_DG_AFFECT, "Afflicted", 0, 0, 0, POS_SITTING,
          TAR_IGNORE, TRUE, 0,
          NULL, 0, 0, NOSCHOOL, FALSE);
+
+  /* Declaration of skills - this assigns categories and also will set it up
+   * so that immortals can use these skills by default.  The min level to use
+   * the skill for other classes is set up in class.c
+   * to-date all skills are assigned to all classes, and a separate function
+   * in spec_procs.c checks if the player has the pre-reqs for the skill
+   * to be obtained fully. */
+  skillo(SKILL_BACKSTAB, "backstab", ACTIVE_SKILL); // 401
+  skillo(SKILL_BASH, "bash", ACTIVE_SKILL);
+  skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
+  skillo(SKILL_KICK, "kick", ACTIVE_SKILL);
+  skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); // 405
+  skillo(SKILL_WHIRLWIND, "weapon whirlwind", ACTIVE_SKILL);
+  skillo(SKILL_RESCUE, "rescue", ACTIVE_SKILL);
+  skillo(SKILL_DRAGON_KNIGHT, "es dragon knight", CASTER_SKILL);
+  skillo(SKILL_LUCK_OF_HEROES, "luck of heroes", PASSIVE_SKILL);
+  skillo(SKILL_TRACK, "track", ACTIVE_SKILL); // 410
+  skillo(SKILL_QUICK_CHANT, "quick chant", CASTER_SKILL);
+  skillo(SKILL_AMBIDEXTERITY, "ambidexterity", PASSIVE_SKILL);
+  skillo(SKILL_DIRTY_FIGHTING, "dirty fighting", PASSIVE_SKILL);
+  skillo(SKILL_DODGE, "dodge", PASSIVE_SKILL);
+  skillo(SKILL_IMPROVED_CRITICAL, "improved critical", PASSIVE_SKILL); // 415
+  skillo(SKILL_MOBILITY, "mobility", PASSIVE_SKILL);
+  skillo(SKILL_SPRING_ATTACK, "spring attack", PASSIVE_SKILL);
+  skillo(SKILL_TOUGHNESS, "toughness", PASSIVE_SKILL);
+  skillo(SKILL_TWO_WEAPON_FIGHT, "two weapon fighting", PASSIVE_SKILL);
+  skillo(SKILL_FINESSE, "finesse", PASSIVE_SKILL); // 420
+  skillo(SKILL_ARMOR_SKIN, "armor skin", PASSIVE_SKILL);
+  skillo(SKILL_BLINDING_SPEED, "blinding speed", PASSIVE_SKILL);
+  skillo(SKILL_DAMAGE_REDUC_1, "damage reduction", PASSIVE_SKILL);
+  skillo(SKILL_DAMAGE_REDUC_2, "greater damage reduction", PASSIVE_SKILL);
+  skillo(SKILL_DAMAGE_REDUC_3, "epic damage reduction", PASSIVE_SKILL); // 425
+  skillo(SKILL_EPIC_TOUGHNESS, "epic toughness", PASSIVE_SKILL);
+  skillo(SKILL_OVERWHELMING_CRIT, "overwhelming critical", PASSIVE_SKILL);
+  skillo(SKILL_SELF_CONCEAL_1, "self concealment", PASSIVE_SKILL);
+  skillo(SKILL_SELF_CONCEAL_2, "greater concealment", PASSIVE_SKILL);
+  skillo(SKILL_SELF_CONCEAL_3, "epic concealment", PASSIVE_SKILL); // 430
+  skillo(SKILL_TRIP, "trip", ACTIVE_SKILL);
+  skillo(SKILL_IMPROVED_WHIRL, "improved whirlwind", ACTIVE_SKILL);
+  skillo(SKILL_CLEAVE, "cleave (inc)", PASSIVE_SKILL);
+  skillo(SKILL_GREAT_CLEAVE, "great_cleave (inc)", PASSIVE_SKILL);
+  skillo(SKILL_SPELLPENETRATE, "spell penetration", CASTER_SKILL); // 435
+  skillo(SKILL_SPELLPENETRATE_2, "greater spell penetrate", CASTER_SKILL);
+  skillo(SKILL_PROWESS, "prowess", PASSIVE_SKILL);
+  skillo(SKILL_EPIC_PROWESS, "epic prowess", PASSIVE_SKILL);
+  skillo(SKILL_EPIC_2_WEAPON, "epic two weapon fighting", PASSIVE_SKILL);
+  skillo(SKILL_SPELLPENETRATE_3, "epic spell penetrate", CASTER_SKILL); // 440
+  skillo(SKILL_SPELL_RESIST_1, "spell resistance", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_2, "improved spell resist", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_3, "greater spell resist", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_4, "epic spell resist", CASTER_SKILL);
+  skillo(SKILL_SPELL_RESIST_5, "supreme spell resist", CASTER_SKILL); // 445
+  skillo(SKILL_INITIATIVE, "initiative", PASSIVE_SKILL);
+  skillo(SKILL_EPIC_CRIT, "epic critical", PASSIVE_SKILL);
+  skillo(SKILL_IMPROVED_BASH, "improved bash", ACTIVE_SKILL);
+  skillo(SKILL_IMPROVED_TRIP, "improved trip", ACTIVE_SKILL);
+  skillo(SKILL_POWER_ATTACK, "power attack", ACTIVE_SKILL); // 450
+  skillo(SKILL_EXPERTISE, "combat expertise", ACTIVE_SKILL);
+  skillo(SKILL_GREATER_RUIN, "es greater ruin", CASTER_SKILL);
+  skillo(SKILL_HELLBALL, "es hellball", CASTER_SKILL);
+  skillo(SKILL_EPIC_MAGE_ARMOR, "es epic mage armor", CASTER_SKILL);
+  skillo(SKILL_EPIC_WARDING, "es epic warding", CASTER_SKILL);                // 455
+  skillo(SKILL_RAGE, "rage", ACTIVE_SKILL);                                   // 456
+  skillo(SKILL_PROF_MINIMAL, "minimal weapon prof", PASSIVE_SKILL);           // 457
+  skillo(SKILL_PROF_BASIC, "basic weapon prof", PASSIVE_SKILL);               // 458
+  skillo(SKILL_PROF_ADVANCED, "advanced weapon prof", PASSIVE_SKILL);         // 459
+  skillo(SKILL_PROF_MASTER, "master weapon prof", PASSIVE_SKILL);             // 460
+  skillo(SKILL_PROF_EXOTIC, "exotic weapon prof", PASSIVE_SKILL);             // 461
+  skillo(SKILL_PROF_LIGHT_A, "light armor prof", PASSIVE_SKILL);              // 462
+  skillo(SKILL_PROF_MEDIUM_A, "medium armor prof", PASSIVE_SKILL);            // 463
+  skillo(SKILL_PROF_HEAVY_A, "heavy armor prof", PASSIVE_SKILL);              // 464
+  skillo(SKILL_PROF_SHIELDS, "shield prof", PASSIVE_SKILL);                   // 465
+  skillo(SKILL_PROF_T_SHIELDS, "tower shield prof", PASSIVE_SKILL);           // 466
+  skillo(SKILL_MURMUR, "murmur(inc)", UNCATEGORIZED);                         // 467
+  skillo(SKILL_PROPAGANDA, "propaganda(inc)", UNCATEGORIZED);                 // 468
+  skillo(SKILL_LOBBY, "lobby(inc)", UNCATEGORIZED);                           // 469
+  skillo(SKILL_STUNNING_FIST, "stunning fist", ACTIVE_SKILL);                 // 470
+  skillo(SKILL_MINING, "mining", CRAFTING_SKILL);                             // 471
+  skillo(SKILL_HUNTING, "hunting", CRAFTING_SKILL);                           // 472
+  skillo(SKILL_FORESTING, "foresting", CRAFTING_SKILL);                       // 473
+  skillo(SKILL_KNITTING, "knitting", CRAFTING_SKILL);                         // 474
+  skillo(SKILL_CHEMISTRY, "chemistry", CRAFTING_SKILL);                       // 475
+  skillo(SKILL_ARMOR_SMITHING, "armor smithing", CRAFTING_SKILL);             // 476
+  skillo(SKILL_WEAPON_SMITHING, "weapon smithing", CRAFTING_SKILL);           // 477
+  skillo(SKILL_JEWELRY_MAKING, "jewelry making", CRAFTING_SKILL);             // 478
+  skillo(SKILL_LEATHER_WORKING, "leather working", CRAFTING_SKILL);           // 479
+  skillo(SKILL_FAST_CRAFTER, "fast crafter", CRAFTING_SKILL);                 // 480
+  skillo(SKILL_BONE_ARMOR, "bone armor(inc)", CRAFTING_SKILL);                // 481
+  skillo(SKILL_ELVEN_CRAFTING, "elven crafting(inc)", CRAFTING_SKILL);        // 482
+  skillo(SKILL_MASTERWORK_CRAFTING, "masterwork craft(inc)", CRAFTING_SKILL); // 483
+  skillo(SKILL_DRACONIC_CRAFTING, "draconic crafting(inc)", CRAFTING_SKILL);  // 484
+  skillo(SKILL_DWARVEN_CRAFTING, "dwarven crafting(inc)", CRAFTING_SKILL);    // 485
+  skillo(SKILL_LIGHTNING_REFLEXES, "lightning reflexes", PASSIVE_SKILL);      // 486
+  skillo(SKILL_GREAT_FORTITUDE, "great fortitude", PASSIVE_SKILL);            // 487
+  skillo(SKILL_IRON_WILL, "iron will", PASSIVE_SKILL);                        // 488
+  skillo(SKILL_EPIC_REFLEXES, "epic reflexes", PASSIVE_SKILL);                // 489
+  skillo(SKILL_EPIC_FORTITUDE, "epic fortitude", PASSIVE_SKILL);              // 490
+  skillo(SKILL_EPIC_WILL, "epic will", PASSIVE_SKILL);                        // 491
+  skillo(SKILL_SHIELD_SPECIALIST, "shield specialist", PASSIVE_SKILL);        // 492
+  skillo(SKILL_USE_MAGIC, "use magic", ACTIVE_SKILL);                         // 493
+  skillo(SKILL_EVASION, "evasion", PASSIVE_SKILL);                            // 494
+  skillo(SKILL_IMP_EVASION, "improved evasion", PASSIVE_SKILL);               // 495
+  skillo(SKILL_CRIP_STRIKE, "crippling strike", PASSIVE_SKILL);               // 496
+  skillo(SKILL_SLIPPERY_MIND, "slippery mind", PASSIVE_SKILL);                // 497
+  skillo(SKILL_DEFENSE_ROLL, "defensive roll", PASSIVE_SKILL);                // 498
+  skillo(SKILL_GRACE, "divine grace", PASSIVE_SKILL);                         // 499
+  skillo(SKILL_DIVINE_HEALTH, "divine health", PASSIVE_SKILL);                // 500
+  skillo(SKILL_LAY_ON_HANDS, "lay on hands", ACTIVE_SKILL);                   // 501
+  skillo(SKILL_COURAGE, "courage", PASSIVE_SKILL);                            // 502
+  skillo(SKILL_SMITE_EVIL, "smite evil", ACTIVE_SKILL);                       // 503
+  skillo(SKILL_REMOVE_DISEASE, "purify", ACTIVE_SKILL);                       // 504
+  skillo(SKILL_RECHARGE, "recharge", CASTER_SKILL);                           // 505
+  skillo(SKILL_STEALTHY, "stealthy", PASSIVE_SKILL);                          // 506
+  skillo(SKILL_NATURE_STEP, "nature step", PASSIVE_SKILL);                    // 507
+  skillo(SKILL_FAVORED_ENEMY, "favored enemy", PASSIVE_SKILL);                // 508
+  skillo(SKILL_DUAL_WEAPONS, "dual weapons", PASSIVE_SKILL);                  // 509
+  skillo(SKILL_ANIMAL_COMPANION, "animal companion", ACTIVE_SKILL);           // 510
+  skillo(SKILL_PALADIN_MOUNT, "paladin mount", ACTIVE_SKILL);                 // 511
+  skillo(SKILL_CALL_FAMILIAR, "call familiar", ACTIVE_SKILL);                 // 512
+  skillo(SKILL_PERFORM, "perform", ACTIVE_SKILL);                             // 513
+  skillo(SKILL_SCRIBE, "scribe", ACTIVE_SKILL);                               // 514
+  skillo(SKILL_TURN_UNDEAD, "turn undead", ACTIVE_SKILL);                     // 515
+  skillo(SKILL_WILDSHAPE, "wildshape", ACTIVE_SKILL);                         // 516
+  skillo(SKILL_SPELLBATTLE, "spellbattle", ACTIVE_SKILL);                     // 517
+  skillo(SKILL_HITALL, "hitall", ACTIVE_SKILL);                               // 518
+  skillo(SKILL_CHARGE, "charge", ACTIVE_SKILL);                               // 519
+  skillo(SKILL_BODYSLAM, "bodyslam", ACTIVE_SKILL);                           // 520
+  skillo(SKILL_SPRINGLEAP, "spring leap", ACTIVE_SKILL);                      // 521
+  skillo(SKILL_HEADBUTT, "headbutt", ACTIVE_SKILL);                           // 522
+  skillo(SKILL_SHIELD_PUNCH, "shield punch", ACTIVE_SKILL);                   // 523
+  skillo(SKILL_DIRT_KICK, "dirt kick", ACTIVE_SKILL);                         // 524
+  skillo(SKILL_SAP, "sap", ACTIVE_SKILL);                                     // 525
+  skillo(SKILL_SHIELD_SLAM, "shield slam", ACTIVE_SKILL);                     // 526
+  skillo(SKILL_SHIELD_CHARGE, "shield charge", ACTIVE_SKILL);                 // 527
+  skillo(SKILL_QUIVERING_PALM, "quivering palm", ACTIVE_SKILL);               // 528
+  skillo(SKILL_SURPRISE_ACCURACY, "surprise accuracy", ACTIVE_SKILL);         // 529
+  skillo(SKILL_POWERFUL_BLOW, "powerful blow", ACTIVE_SKILL);                 // 530
+  skillo(SKILL_RAGE_FATIGUE, "rage fatigue", ACTIVE_SKILL);                   // 531
+  skillo(SKILL_COME_AND_GET_ME, "come and get me", ACTIVE_SKILL);             // 532
+  skillo(SKILL_FEINT, "feint", ACTIVE_SKILL);                                 // 533
+  skillo(SKILL_SMITE_GOOD, "smite good", ACTIVE_SKILL);                       // 534
+  skillo(SKILL_SMITE_DESTRUCTION, "destructive smite", ACTIVE_SKILL);         // 535
+  skillo(SKILL_DESTRUCTIVE_AURA, "destructive aura", ACTIVE_SKILL);           // 536
+  skillo(SKILL_AURA_OF_PROTECTION, "protection aura", ACTIVE_SKILL);          // 537
+  skillo(SKILL_DEATH_ARROW, "arrow of death", ACTIVE_SKILL);                  // 538
+  skillo(SKILL_DEFENSIVE_STANCE, "defensive stance", ACTIVE_SKILL);           // 539
+  skillo(SKILL_CRIPPLING_CRITICAL, "crippling critical", PASSIVE_SKILL);      // 540
+  skillo(SKILL_DRHRT_CLAWS, "draconic heritage claws", ACTIVE_SKILL);         // 541
+  skillo(SKILL_DRHRT_WINGS, "draconic heritage wings", ACTIVE_SKILL);         // 542
+  skillo(SKILL_BOMB_TOSS, "bomb toss", ACTIVE_SKILL);                         /* 543 */
+  skillo(SKILL_MUTAGEN, "mutagen", ACTIVE_SKILL);                             /* 544 */
+  skillo(SKILL_COGNATOGEN, "cognatogen", ACTIVE_SKILL);                       /* 545 */
+  skillo(SKILL_INSPIRING_COGNATOGEN, "inspiring cognatogen", ACTIVE_SKILL);   /* 546 */
+  skillo(SKILL_PSYCHOKINETIC, "psychokinetic", ACTIVE_SKILL);                 /* 547 */
+  skillo(SKILL_INNER_FIRE, "inner fire", ACTIVE_SKILL);                       /* 548 */
+  skillo(SKILL_SACRED_FLAMES, "sacred flames", ACTIVE_SKILL);                 /* 549 */
+  skillo(SKILL_EPIC_WILDSHAPE, "epic wildshape", PASSIVE_SKILL);
+
+  /* songs */
+  skillo(SKILL_SONG_OF_FOCUSED_MIND, "song of focused mind", ACTIVE_SKILL);       // 588
+  skillo(SKILL_SONG_OF_FEAR, "song of fear", ACTIVE_SKILL);                       // 589
+  skillo(SKILL_SONG_OF_ROOTING, "song of rooting", ACTIVE_SKILL);                 // 590
+  skillo(SKILL_SONG_OF_THE_MAGI, "song of the magi", ACTIVE_SKILL);               // 591
+  skillo(SKILL_SONG_OF_HEALING, "song of healing", ACTIVE_SKILL);                 // 592
+  skillo(SKILL_DANCE_OF_PROTECTION, "dance of protection", ACTIVE_SKILL);         // 593
+  skillo(SKILL_SONG_OF_FLIGHT, "song of flight", ACTIVE_SKILL);                   // 594
+  skillo(SKILL_SONG_OF_HEROISM, "song of heroism", ACTIVE_SKILL);                 // 595
+  skillo(SKILL_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", ACTIVE_SKILL); // 596
+  skillo(SKILL_ACT_OF_FORGETFULNESS, "skit of forgetfulness", ACTIVE_SKILL);      // 597
+  skillo(SKILL_SONG_OF_REVELATION, "song of revelation", ACTIVE_SKILL);           // 598
+  skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 // 599
+                                                                                  /* end songs */
+
+        /****note weapon specialist and luck of heroes inserted in free slots ***/
 }
 
 void display_shadowcast_spells(struct char_data *ch)
@@ -4306,11 +4270,7 @@ void display_shadowcast_spells(struct char_data *ch)
     }
   }
 }
-/**************************/
-
-#undef SINFO
-#undef DEBUGMODE
-
-/**************************/
 
 /* must be at end of file */
+#undef SINFO
+/**************************/

@@ -280,9 +280,10 @@
 #define SECT_BEACH 33  // beach, borders low areas and water.
 #define SECT_SEAPORT 34
 #define SECT_INSIDE_ROOM 35
+#define SECT_RIVER 36
 /* End wilderness sectors. These can (and should!) be used in zones too! */
 /** The total number of room Sector Types */
-#define NUM_ROOM_SECTORS 36
+#define NUM_ROOM_SECTORS 37
 
 /* char and mob-related defines */
 
@@ -582,6 +583,7 @@
 #define NUM_RACES 13
 
 #define RACE_LICH 13 /*quest only race*/
+#define RACE_VAMPIRE 89 /*quest only race*/
 
 /* coming soon!*/
 #define RACE_H_OGRE 14 // not yet implemented
@@ -662,9 +664,11 @@
 #define RACE_MANTICORE 86
 #define RACE_EFREETI 87
 #define RACE_RAT 88
+// Vampire defined above as 89
+
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_EXTENDED_RACES 89
+#define NUM_EXTENDED_RACES 90
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -941,9 +945,10 @@
 #define PRF_AVOID_ENCOUNTERS 55       // will try to avoid random encounters in wilderness
 #define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
 #define PRF_DISPTIME 57               // shows game time in prompt
+#define PRF_BLOOD_DRAIN 58        // Vampires will drain blood when grappling if this is turned on.
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 58
+#define NUM_PRF_FLAGS 59
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -2069,14 +2074,32 @@
 #define FEAT_WIZ_CHANT 861
 #define FEAT_WIZ_DEBUFF 862
 /* END wizard bonus feats */
+/* Vampire Racial Feats */
+#define FEAT_VAMPIRE_NATURAL_ARMOR 863
+#define FEAT_VAMPIRE_DAMAGE_REDUCTION 864
+#define FEAT_VAMPIRE_ENERGY_RESISTANCE 865
+#define FEAT_VAMPIRE_FAST_HEALING 866
+#define FEAT_VAMPIRE_WEAKNESSES 867
+#define FEAT_VAMPIRE_BLOOD_DRAIN 868
+#define FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT 869
+#define FEAT_VAMPIRE_CREATE_SPAWN 870
+#define FEAT_VAMPIRE_DOMINATE 871
+#define FEAT_VAMPIRE_ENERGY_DRAIN 872 
+#define FEAT_VAMPIRE_CHANGE_SHAPE 873
+#define FEAT_VAMPIRE_GASEOUS_FORM 874
+#define FEAT_VAMPIRE_SPIDER_CLIMB 875
+#define FEAT_VAMPIRE_SKILL_BONUSES 876
+#define FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS 877
+#define FEAT_VAMPIRE_BONUS_FEATS 878
+/* END vampire racial feats */
 
 /******/
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 863
+#define FEAT_LAST_FEAT 879
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 864
+#define NUM_FEATS 880
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3405,6 +3428,9 @@ struct obj_data
     struct weapon_spells channel_spells[MAX_WEAPON_CHANNEL_SPELLS];
 
     mob_vnum mob_recepient; // if this is set, then the object can only be given to a mob with this vnum (or any player)
+
+    bool drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
+    char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
 };
 
 /** Instance info for an object that gets saved to disk.
@@ -3598,7 +3624,7 @@ struct char_ability_data
 #define NUM_ABILITY_MODS 6
 
 /* make sure this matches spells.h define */
-#define NUM_DAM_TYPES 25
+#define NUM_DAM_TYPES 28
 
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data
@@ -3728,6 +3754,8 @@ struct char_special_data
     bool energy_retort_used; // used with energy retort ability, which only fires once per round.
 
     bool autodoor_message; // used for message handling in autodoor
+
+    bool drainKilled;        // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
 };
 
 /* old memorization struct */

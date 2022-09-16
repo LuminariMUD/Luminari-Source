@@ -691,6 +691,11 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 ? 4 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 2 : 1));
   }
+  // vampires
+  if (HAS_FEAT(ch, FEAT_VAMPIRE_NATURAL_ARMOR))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 6;
+  }
   /**/
 
   /* bonus type armor */
@@ -1476,6 +1481,14 @@ static void make_corpse(struct char_data *ch)
     GET_OBJ_TIMER(corpse) = CONFIG_MAX_NPC_CORPSE_TIME;
   else
     GET_OBJ_TIMER(corpse) = CONFIG_MAX_PC_CORPSE_TIME;
+  // was the corpse killed while being blood drained?
+  // If so we want to set drainKilled, so the corpse can
+  // be raised as vampire spawn.
+  if (ch->char_specials.drainKilled)
+    corpse->drainKilled = true;
+  // The character's short desc for things like vampire spawn
+  corpse->char_sdesc = strdup(ch->player.short_descr);
+  
   /* ok done setting up the corpse */
 
   /* transfer character's inventory to the corpse */
@@ -2651,6 +2664,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE))
+      dam_reduction += 10;
     break;
   case DAM_AIR:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -2677,6 +2692,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE))
+      dam_reduction += 10;
     break;
   case DAM_UNHOLY:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
@@ -3414,9 +3431,11 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
   bool is_spell = FALSE;
   struct obj_data *weapon = NULL;
   weapon = is_using_ranged_weapon(ch, true);
+  int damage_reduction = 0;
+  float damtype_reduction = 0;
 
   /* lets figure out if this attacktype is magical or not */
-  if (attacktype > SPELL_RESERVED_DBC && attacktype < NUM_SPELLS)
+  if (is_spell_or_spell_like(attacktype))
     is_spell = TRUE;
 
   /* checking for actual damage, acceptable attacktypes and other dummy checks */
@@ -3442,7 +3461,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* trelux racial dodge */
-    if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4))
+    if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4) && !is_spell)
     {
       send_to_char(victim, "\tWYou leap away avoiding the attack!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm as he leaps away!\tn\r\n",
@@ -3453,7 +3472,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* stalwart defender */
-    if (HAS_FEAT(victim, FEAT_LAST_WORD) && !rand_number(0, 9))
+    if (HAS_FEAT(victim, FEAT_LAST_WORD) && !rand_number(0, 9) && !is_spell)
     {
       send_to_char(victim, "\tWYour defensive stance holds firm against the onlsaught!\tn\r\n");
       send_to_char(ch, "\tRYou fail to cause %s any harm as the defensive stance holds firms!\tn\r\n",
@@ -3548,10 +3567,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
     }
 
-    /* energy absorption system */
-    absorb_energy_conversion(victim, dam_type, dam);
-    int damage_reduction = compute_energy_absorb(victim, dam_type);
-    dam -= compute_energy_absorb(victim, dam_type);
+    // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
+    if (can_dam_be_resisted(dam_type))
+    {
+      /* energy absorption system */
+      absorb_energy_conversion(victim, dam_type, dam);
+      damage_reduction = compute_energy_absorb(victim, dam_type);
+      dam -= compute_energy_absorb(victim, dam_type);
+    }
     if (dam <= 0 && (ch != victim))
     {
       send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
@@ -3570,9 +3593,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* damage type PERCENTAGE reduction */
-    float damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
-    damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
-    dam -= (int)damtype_reduction;
+    // some damage types cannot be reduced or resisted, such as a vampire's blood drain ability
+    if (can_dam_be_resisted(dam_type))
+    {
+      damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
+      damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
+      dam -= (int) damtype_reduction;
+    }
+
     if (dam <= 0 && (ch != victim))
     {
       send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int)damtype_reduction);
@@ -3644,7 +3672,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     }
 
     /* inertial barrier - damage absorption using psp */
-    if (AFF_FLAGGED(victim, AFF_INERTIAL_BARRIER) && dam && !rand_number(0, 1))
+    if (AFF_FLAGGED(victim, AFF_INERTIAL_BARRIER) && dam && !rand_number(0, 1) && can_dam_be_resisted(dam_type))
     {
       send_to_char(ch, "\twYour attack is absorbed by some manner of invisible barrier.\tn\r\n");
       GET_PSP(victim) -= (1 + (dam / 5));
@@ -3681,6 +3709,17 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     if (FIGHTING(victim) && FIGHTING(victim) == ch)
       stop_fighting(victim);
     return (0);
+  }
+
+  // checking to see if they've been having their blood drained by a vampire
+  // so we know if the corpse can be used to create vampire spawn
+  if (IS_NPC(victim) && IS_HUMANOID(victim) && IN_ROOM(victim) != NOWHERE && IN_ROOM(ch) != NOWHERE)
+  {
+    for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room)
+    {
+      if (FIGHTING(tch) == victim && IS_VAMPIRE(tch) && tch != victim && affected_by_spell(victim, ABILITY_BLOOD_DRAIN))
+        victim->char_specials.drainKilled = TRUE;
+    }
   }
 
   GET_POS(victim) = POS_DEAD;
@@ -4001,7 +4040,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
    */
   if (!IS_NPC(victim) && ((GET_HIT(victim) - dam) <= 0) &&
       HAS_FEAT(victim, FEAT_DEFENSIVE_ROLL) &&
-      !char_has_mud_event(victim, eD_ROLL) && ch != victim)
+      !char_has_mud_event(victim, eD_ROLL) && ch != victim &&
+      can_dam_be_resisted(dam_type))
   {
     act("\tWYou time a defensive roll perfectly and avoid the attack from"
         " \tn$N\tW!\tn",
@@ -4279,6 +4319,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       act("$n fully assimilates your form, gaining some of your power.", false, ch, 0, victim, TO_VICT);
       act("$n fully assimilates the form of $N gaining some of $S power.", false, ch, 0, victim, TO_NOTVICT);
     }
+    
     return (dam_killed_vict(ch, victim));
   }
 

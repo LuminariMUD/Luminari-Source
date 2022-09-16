@@ -169,6 +169,7 @@ typedef enum
   eDANCINGWEAPON,                   // dancing weapon spell
   eHOLYJAVELIN,                     // holy javelin spell
   /*140*/ eITEM_SPECAB_ITEM_SUMMON, // summon item
+  eCHILDRENOFTHENIGHT,              // children of the night vampire ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

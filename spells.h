@@ -541,6 +541,15 @@
 #define ABILITY_AFFECT_BANE_WEAPON 1217
 #define ABILITY_AFFECT_TRUE_JUDGEMENT 1218
 #define SPELL_AFFECT_WEAPON_OF_AWE 1219
+#define RACIAL_ABILITY_VAMPIRE_DR               1220
+#define RACIAL_ABILITY_SKELETON_DR              1221
+#define RACIAL_ABILITY_ZOMBIE_DR                1222
+#define RACIAL_ABILITY_PRIMORDIAL_DR            1223
+#define ABILITY_SCORE_DAMAGE                    1224
+#define VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT   1225
+#define AFFECT_LEVEL_DRAIN                      1226
+#define ABILITY_CREATE_VAMPIRE_SPAWN            1227
+#define ABILITY_BLOOD_DRAIN                     1228
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -932,6 +941,8 @@
 
 /* other attack types */
 
+#define TYPE_MOVING_WATER 793
+#define TYPE_SUN_DAMAGE 794
 #define TYPE_ESHIELD 2395
 #define TYPE_CSHIELD 2396
 #define TYPE_FSHIELD 2397
@@ -1106,8 +1117,11 @@
 #define DAM_BLEEDING 22
 #define DAM_TEMPORAL 23
 #define DAM_CHAOS 24
+#define DAM_SUNLIGHT 25 // don't want this resistable as it's a vampire weakness
+#define DAM_MOVING_WATER 26 // don't want this resistable as it's a vampire weakness
+#define DAM_BLOOD_DRAIN 27 // don't want this resistable as it's vampire blood drain only
 /* ------------------------------*/
-#define NUM_DAM_TYPES 25
+#define NUM_DAM_TYPES 28
 /* if you add more dam types, don't forget to assign it to a gear-slot
    so players will have some sort of method of gaining the defense against
    the new damage type */

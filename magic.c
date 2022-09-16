@@ -38,6 +38,7 @@
 // external
 extern struct raff_node *raff_list;
 void save_char_pets(struct char_data *ch);
+void set_vampire_spawn_feats(struct char_data *mob);
 
 /* local file scope function prototypes */
 static int mag_materials(struct char_data *ch, IDXTYPE item0, IDXTYPE item1,
@@ -6922,15 +6923,24 @@ static const char *mag_summon_msgs[] = {
     "$N pops into existence next to $n.",                                                       // 15 shelgarn's dragger
     "$N skimpers into the area, then quickly moves next to $n.",                                // 16 dire badger
     "$N charges into the area, looks left, then right... "
-    "then quickly moves next to $n.",                                // 17 dire boar
-    "$N moves into the area, sniffing cautiously.",                  // 18 dire wolf
-    "$N neighs and walks up to $n.",                                 // 19 phantom steed
-    "$N skitters into the area and moves next to $n.",               // 20 dire spider
-    "$N lumbers into the area and moves next to $n.",                // 21 dire bear
-    "$N manifests with an ancient howl, then moves towards $n.",     // 22 hound
-    "$N stalks into the area, roars loudly, then moves towards $n.", // 23 d tiger
-    "$N pops into existence next to $n.",                            // 24 black blade of disaster
-    "$N skulks into the area, seemingly from nowhere!",              // 25 shambler
+    "then quickly moves next to $n.",                                          // 17 dire boar
+    "$N moves into the area, sniffing cautiously.",                            // 18 dire wolf
+    "$N neighs and walks up to $n.",                                           // 19 phantom steed
+    "$N skitters into the area and moves next to $n.",                         // 20 dire spider
+    "$N lumbers into the area and moves next to $n.",                          // 21 dire bear
+    "$N manifests with an ancient howl, then moves towards $n.",               // 22 hound
+    "$N stalks into the area, roars loudly, then moves towards $n.",           // 23 d tiger
+    "$N pops into existence next to $n.",                                      // 24 black blade of disaster
+    "$N skulks into the area, seemingly from nowhere!",                        // 25 shambler
+    "\tCYou make a magical gesture, you feel a strong breeze.\tn",             // air elemental
+    "\tYYou make a magical gesture, you feel a sudden shift in the earth.\tn", // earth elemental
+    "\tRYou make a magical gesture, you feel a searing heat.\tn",              // fire elemental
+    "\tBYou make a magical gesture, you feel the dust swirl.\tn",              // water elemental
+    "$N skulks into the area, seemingly from nowhere!",                        // shambling mound
+    "$N strides into the area with threatening growls!",                       // children of the night wolves
+    "$N creep into the area with horribly noisy squeeks",                      // children of the night rats
+    "$N flies into the area screeching loudly.",                               // children of the night bats
+    "$n raises $n!",                                                           // create vampire spawn
 };
 static const char *mag_summon_to_msgs[] = {
     "\r\n",                                                                    // 0
@@ -6950,16 +6960,26 @@ static const char *mag_summon_to_msgs[] = {
     "With a roar $N soars to the ground next to you.",                         // 14 young red dragon
     "$N pops into existence next to you.",                                     // 15 shelgarn's dragger
     "$N skimpers into the area, then quickly moves next to you.",              // 16 dire badger
-    "$N charges into the area, looks left, then right... "
-    "then quickly moves next to you.",                                // 17 dire boar
-    "$N moves into the area, sniffing cautiously.",                   // 18 dire wolf
-    "$N neighs and walks up to you.",                                 // 19 phantom steed
-    "$N skitters into the area and moves next to you.",               // 20 dire spider
-    "$N lumbers into the area and moves next to you.",                // 21 dire bear
-    "$N manifests with an ancient howl, then moves towards you.",     // 22 hound
-    "$N stalks into the area, roars loudly, then moves towards you.", // 23 d tiger
-    "$N pops into existence next to you.",                            // 24 black blade of disaster
-    "$N skulks into the area, seemingly from nowhere!",               // 25 shambler
+    "$N charges into the area, looks left, then right... "                     // 17
+    "then quickly moves next to you.",                                         // 18 dire boar
+    "$N moves into the area, sniffing cautiously.",                            // 19 dire wolf
+    "$N neighs and walks up to you.",                                          // 20 phantom steed
+    "$N skitters into the area and moves next to you.",                        // 21 dire spider
+    "$N lumbers into the area and moves next to you.",                         // 22 dire bear
+    "$N manifests with an ancient howl, then moves towards you.",              // 23 hound
+    "$N stalks into the area, roars loudly, then moves towards you.",          // 24 d tiger
+    "$N pops into existence next to you.",                                     // 25 black blade of disaster
+    "$N skulks into the area, seemingly from nowhere!",                        // 26 shambler
+    "\tCYou make a magical gesture, you feel a strong breeze.\tn",             // 27 air elemental
+    "\tYYou make a magical gesture, you feel a sudden shift in the earth.\tn", // 28 earth elemental
+    "\tRYou make a magical gesture, you feel a searing heat.\tn",              // 29 fire elemental
+    "\tBYou make a magical gesture, you feel the dust swirl.\tn",              // 30 water elemental
+    "$N skulks into the area, seemingly from nowhere!",                        // 31 shambling mound
+    "$N strides into the area with threatening growls!",                       // 32 children of the night wolves
+    "$N creep into the area with horribly noisy squeeks",                      // 33 children of the night rats
+    "$N flies into the area screeching loudly.",                               // 34 children of the night bats
+    "$n raises $n!",                                                           // 35 create vampire spawn
+
 };
 
 /* Keep the \r\n because these use send_to_char. */
@@ -6971,7 +6991,9 @@ static const char *mag_summon_fail_msgs[] = {
     "Gosh durnit!\r\n",
     "The elements resist!\r\n",
     "You failed.\r\n",
-    "There is no corpse!\r\n"};
+    "There is no corpse!\r\n",
+    "Your summons go unanswered.\r\n",
+    };
 
 /* Defines for Mag_Summons */
 // objects
@@ -7006,6 +7028,10 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_BLADE_OF_DISASTER 59    // black blade of disaster
 #define MOB_DIRE_RAT 9400           // summon natures ally i
 #define MOB_ECTOPLASMIC_SHAMBLER 93 // ectoplasmic shambler psionic ability
+#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 9419 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421 // Potential mob for children of the night vampire ability.
+#define MOB_CREATE_VAMPIRE_SPAWN 9422 // Mob to use for create vampire spawn
 
 bool isSummonMob(int vnum)
 {
@@ -7037,11 +7063,15 @@ bool isSummonMob(int vnum)
   case MOB_BLADE_OF_DISASTER:
   case MOB_DIRE_RAT:
   case MOB_ECTOPLASMIC_SHAMBLER:
-  case 9412:
-  case 9413:
-  case 9414:
-  case 9415:
-  case 9499:
+  case 9412: // air elemental
+  case 9413: // earth elemental
+  case 9414: // fire elemental
+  case 9415: // water elemental
+  case 9499: // shambling mound
+  case MOB_CHILDREN_OF_THE_NIGHT_WOLVES:
+  case MOB_CHILDREN_OF_THE_NIGHT_RATS:
+  case MOB_CHILDREN_OF_THE_NIGHT_BATS:
+  case MOB_CREATE_VAMPIRE_SPAWN:
     return true;
   }
   return false;
@@ -7050,11 +7080,13 @@ bool isSummonMob(int vnum)
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
                  int spellnum, int savetype, int casttype)
 {
+
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
   int pfail = 0, msg = 0, fmsg = 0, num = 1, handle_corpse = FALSE, i;
   int mob_level = 0, temp_level = 0;
   mob_vnum mob_num = 0;
+  char desc[200];
 
   if (ch == NULL)
     return;
@@ -7069,7 +7101,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     /*
      * We have designated the clone spell as the example for how to use the
      * mag_materials function.
-     * In stock LuminariMUD it checks to see if the character has item with
+     * In stock FaerunMUD it checks to see if the character has item with
      * vnum 161 which is a set of sacrificial entrails. If we have the entrails
      * the spell will succeed,  and if not, the spell will fail 102% of the time
      * (prevents random success... see below).
@@ -7079,6 +7111,24 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       pfail = 102; /* No materials, spell fails. */
     else
       pfail = 0; /* We have the entrails, spell is successfully cast. */
+    break;
+
+  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT: // necromancy
+    fmsg = 8;
+    mob_num = dice(1, 3) - 1 + MOB_CHILDREN_OF_THE_NIGHT_WOLVES;
+    switch (mob_num)
+    {
+    case MOB_CHILDREN_OF_THE_NIGHT_WOLVES:
+      msg = 32;
+      break;
+    case MOB_CHILDREN_OF_THE_NIGHT_RATS:
+      msg = 33;
+      break;
+    case MOB_CHILDREN_OF_THE_NIGHT_BATS:
+      msg = 34;
+      break;
+    }
+    pfail = 10;
     break;
 
   case SPELL_ANIMATE_DEAD: // necromancy
@@ -7104,6 +7154,24 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     else
       mob_num = MOB_ZOMBIE;
     pfail = 10; /* 10% failure, should vary in the future. */
+    break;
+
+    case ABILITY_CREATE_VAMPIRE_SPAWN: // necromancy
+    if (obj == NULL || !IS_CORPSE(obj))
+    {
+      act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
+      return;
+    }
+    if (IS_HOLY(IN_ROOM(ch)))
+    {
+      send_to_char(ch, "This place is too holy for such blasphemy!");
+      return;
+    }
+    handle_corpse = TRUE;
+    msg = 35;
+    fmsg = 6;
+    mob_num = MOB_CREATE_VAMPIRE_SPAWN;
+    pfail = 0;
     break;
 
   case SPELL_GREATER_ANIMATION: // necromancy
@@ -7386,6 +7454,20 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       return;
     }
     break;
+  case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+    if (HAS_PET_CHILDREN_OF_THE_NIGHT(ch))
+    {
+      send_to_char(ch, "You can't control more vampiric minions!\r\n");
+      return;
+    }
+    break;
+  case ABILITY_CREATE_VAMPIRE_SPAWN:
+    if (HAS_PET_VAMPIRE_SPAWN(ch))
+    {
+      send_to_char(ch, "You can't control more vampiric spawn!\r\n");
+      return;
+    }
+    break;
   default:
     if (HAS_PET(ch))
     {
@@ -7430,6 +7512,24 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_LEVEL(mob) = MIN(LVL_IMMORT - 1, temp_level);
       autoroll_mob(mob, TRUE, TRUE);
       GET_LEVEL(mob) = temp_level;
+      break;
+    case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+      GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
+      autoroll_mob(mob, TRUE, TRUE);
+      break;
+    case ABILITY_CREATE_VAMPIRE_SPAWN:
+      GET_LEVEL(mob) = MIN(25, GET_LEVEL(ch));
+      autoroll_mob(mob, TRUE, TRUE);
+      set_vampire_spawn_feats(mob);
+      if (obj->char_sdesc)
+      {
+        snprintf(desc, sizeof(desc), "vampire vamiric spawn %s", obj->char_sdesc);
+        mob->player.name = strdup(desc);
+        snprintf(desc, sizeof(desc), "the vampiric spawn of %s", obj->char_sdesc);
+        mob->player.short_descr = strdup(desc);
+        snprintf(desc, sizeof(desc), "The vampiric spawn of %s is here.", obj->char_sdesc);
+        mob->player.long_descr = strdup(desc);
+      }
       break;
     case SPELL_CLONE:
       /* Don't mess up the prototype; use new string copies. */
@@ -7487,6 +7587,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_ANIMATE_DEAD:
     case SPELL_GREATER_ANIMATION:
     case SPELL_MUMMY_DUST:
+    case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
+    case ABILITY_CREATE_VAMPIRE_SPAWN:
       if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), NECROMANCY))
         spell_focus_bonus++;
       if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), NECROMANCY))

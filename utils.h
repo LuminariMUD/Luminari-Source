@@ -152,6 +152,8 @@ int comp_str_cost(struct char_data *ch, int number);
 int comp_base_str(struct char_data *ch);
 int comp_dex_cost(struct char_data *ch, int number);
 int comp_base_dex(struct char_data *ch);
+bool is_spell_or_spell_like(int type);
+bool can_dam_be_resisted(int type);
 void dismiss_all_followers(struct char_data *ch);
 void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display);
 bool can_learn_paladin_mercy(struct char_data *ch, int mercy);
@@ -236,6 +238,8 @@ bool has_pet_follower(struct char_data *ch);
 int specific_follower_count(struct char_data *ch, mob_vnum mvnum);
 bool has_elemental_follower(struct char_data *ch);
 bool has_undead_follower(struct char_data *ch);
+bool has_children_of_the_night(struct char_data *ch);
+bool has_vampire_spawn_follower(struct char_data *ch);
 int color_count(char *bufptr);
 bool using_monk_gloves(struct char_data *ch);
 int num_obj_in_obj(struct obj_data *obj);
@@ -1404,6 +1408,8 @@ void char_from_furniture(struct char_data *ch);
  * 4)  can have mount/familiar/companion
  */
 #define HAS_PET_UNDEAD(ch) (has_undead_follower(ch))
+#define HAS_PET_CHILDREN_OF_THE_NIGHT(ch) (has_children_of_the_night(ch))
+#define HAS_PET_VAMPIRE_SPAWN(ch) (has_vampire_spawn_follower(ch))
 #define HAS_PET_ELEMENTAL(ch) (has_elemental_follower(ch))
 #define HAS_PET(ch) (has_pet_follower(ch))
 #define SPECIFIC_PET_COUNT(ch, mobvnum) (specific_follower_count(ch, mobvnum))
@@ -1934,7 +1940,18 @@ void char_from_furniture(struct char_data *ch);
 #define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
                          IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||                 \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER))
+#define IS_HUMANOID(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||    \
+                         (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
+                         (!IS_NPC(ch) && !IS_MORPHED(ch)))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
+#define IS_VAMPIRE(ch)  ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) || \
+                        (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
+                        GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
+
+#define IN_SUNLIGHT(ch) (OUTSIDE(ch) && weather_info.sunlight == SUN_LIGHT)
+#define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
+
+#define IS_SENTIENT(ch) (IS_HUMANOID(ch) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_SENTIENT)))
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)
