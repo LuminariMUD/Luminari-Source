@@ -35,7 +35,7 @@
 #define SINFO spell_info[spellnum]
 
 /* Global Variables definitions, used elsewhere */
-struct spell_info_type spell_info[TOP_SPELL_DEFINE + 1];
+struct spell_info_type spell_info[TOP_SKILL_DEFINE + 1];
 struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
 const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
@@ -47,9 +47,9 @@ static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
 void spello(int spl, const char *name, int max_psp, int min_psp,
             int psp_change, int minpos, int targets, int violent, int routines,
             const char *wearoff, int time, int memtime, int school, bool quest);
-static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                        int psp_change, int minpos, int targets, int violent, int routines,
-                        const char *wearoff, int time, int memtime, int school, bool quest);
+// static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
+//                         int psp_change, int minpos, int targets, int violent, int routines,
+//                         const char *wearoff, int time, int memtime, int school, bool quest);
 // static int mag_pspcost(struct char_data *ch, int spellnum);
 
 /* Local (File Scope) Variables */
@@ -2461,40 +2461,40 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].quest = quest;
 }
 
-static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
-                        int psp_change, int minpos, int targets, int violent,
-                        int routines, const char *wearoff, int time, int memtime, int school,
-                        bool quest)
-{
-  int i;
+// static void skillo_full(int spl, const char *name, int max_psp, int min_psp,
+//                         int psp_change, int minpos, int targets, int violent,
+//                         int routines, const char *wearoff, int time, int memtime, int school,
+//                         bool quest)
+// {
+//   int i;
 
-  for (i = 0; i < NUM_CLASSES; i++)
-    skill_info[spl].min_level[i] = LVL_IMMORT;
-  for (i = 0; i < NUM_DOMAINS; i++)
-    skill_info[spl].domain[i] = LVL_IMMORT;
-  skill_info[spl].psp_max = max_psp;
-  skill_info[spl].psp_min = min_psp;
-  skill_info[spl].psp_change = psp_change;
-  skill_info[spl].min_position = minpos;
-  skill_info[spl].targets = targets;
-  skill_info[spl].violent = violent;
-  skill_info[spl].routines = routines;
-  skill_info[spl].name = name;
-  if (wearoff == 0)
-  {
-    char buf[MEDIUM_STRING];
-    snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
-    skill_info[spl].wear_off_msg = strdup(buf);
-  }
-  else
-  {
-    skill_info[spl].wear_off_msg = wearoff;
-  }
-  skill_info[spl].time = time;
-  skill_info[spl].memtime = memtime;
-  skill_info[spl].schoolOfMagic = school;
-  skill_info[spl].quest = quest;
-}
+//   for (i = 0; i < NUM_CLASSES; i++)
+//     skill_info[spl].min_level[i] = LVL_IMMORT;
+//   for (i = 0; i < NUM_DOMAINS; i++)
+//     skill_info[spl].domain[i] = LVL_IMMORT;
+//   skill_info[spl].psp_max = max_psp;
+//   skill_info[spl].psp_min = min_psp;
+//   skill_info[spl].psp_change = psp_change;
+//   skill_info[spl].min_position = minpos;
+//   skill_info[spl].targets = targets;
+//   skill_info[spl].violent = violent;
+//   skill_info[spl].routines = routines;
+//   skill_info[spl].name = name;
+//   if (wearoff == 0)
+//   {
+//     char buf[MEDIUM_STRING];
+//     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
+//     skill_info[spl].wear_off_msg = strdup(buf);
+//   }
+//   else
+//   {
+//     skill_info[spl].wear_off_msg = wearoff;
+//   }
+//   skill_info[spl].time = time;
+//   skill_info[spl].memtime = memtime;
+//   skill_info[spl].schoolOfMagic = school;
+//   skill_info[spl].quest = quest;
+// }
 
 /* initializing the spells as unknown for missing info */
 void unused_spell(int spl)
@@ -2543,8 +2543,7 @@ void unused_skill(int spl)
   skill_info[spl].quest = FALSE;
 }
 
-#define skillo(skill, name, category) skillo_full(skill, name, 0, 0, 0, 0, 0, 0, \
-                                                  0, NULL, 0, 0, category, FALSE);
+#define skillo(skill, name, category) spello(skill, name, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, category, FALSE);
 
 /* Arguments for spello calls:
  * spellnum, maxpsp, minpsp, pspchng, minpos, targets, violent?, routines.
