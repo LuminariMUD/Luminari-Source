@@ -190,6 +190,7 @@ struct mud_event_list mud_event_index[] = {
     {"Holy Javelin", event_holy_javelin, EVENT_CHAR},         // eHOLYJAVELIN
     /*140*/
     {"Item SpecAb Cooldown: Summon Item", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_ITEM_SUMMON
+    {"Children of the Night", event_daily_use_cooldown, EVENT_CHAR}, // eCHILDRENOFTHENIGHT
 
 };
 
@@ -328,6 +329,9 @@ EVENTFUNC(event_countdown)
     break;
   case eTRUEJUDGEMENT:
     send_to_char(ch, "You are now able to use your true judgement ability again.\r\n");
+    break;
+  case eCHILDRENOFTHENIGHT:
+    send_to_char(ch, "You are now able to call your children of the night again.\r\n");
     break;
   case eBANE:
     send_to_char(ch, "You are now able to use your bane ability again.\r\n");
@@ -697,6 +701,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eTRUEJUDGEMENT:
     featnum = FEAT_TRUE_JUDGEMENT;
     send_to_char(ch, "One of your true judgement ability uses has recovered.\r\n");
+    break;
+  case eCHILDRENOFTHENIGHT:
+    featnum = FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT;
+    send_to_char(ch, "One of your children of the night uses has recovered.\r\n");
     break;
   case eBANE:
     featnum = FEAT_BANE;

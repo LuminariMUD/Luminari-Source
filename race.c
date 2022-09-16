@@ -1035,7 +1035,7 @@ void assign_races(void)
                                "might simply kill another or drive him insane. "
                                "\r\n\r\n"
                                "Please note that a Lich will be the same size class they were before the transformation.\r\n  "
-                               "Please note that a Lich is the only Epic Race that can multi-class.\r\n  "
+                               "Please note that a Lich is the one of the only Epic Races that can multi-class.\r\n  "
                                "Please note that becoming a lich requires level 30 and will reset your exp to 0.\r\n  "
                                "Please note that a Lich has all the advantages/disadvantages of being Undead.\r\n  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
@@ -1068,6 +1068,70 @@ void assign_races(void)
   feat_race_assignment(RACE_LICH, FEAT_LICH_FEAR, 1, N);
   feat_race_assignment(RACE_LICH, FEAT_ELECTRIC_IMMUNITY, 1, N);
   feat_race_assignment(RACE_LICH, FEAT_COLD_IMMUNITY, 1, N);
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_VAMPIRE, "vampire", "Vampire", "\tLVampire\tn", "Vamp", "\tLVamp\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+  set_race_details(RACE_VAMPIRE,
+                   /*descrip*/ "Few creatures are more feared than the lich. The pinnacle of necromantic art, who "
+                               "has chosen to shed his life as a method to cheat death by becoming undead. While many who reach "
+                               "such heights of power stop at nothing to achieve immortality, the idea of becoming a lich is "
+                               "abhorrent to most creatures. The process involves the extraction of ones life-force and its "
+                               "imprisonment in a specially prepared phylactery.  One gives up life, but in trapping "
+                               "life he also traps his death, and as long as his phylactery remains intact he can continue on in "
+                               "his research and work without fear of the passage of time."
+                               "\r\n\r\n"
+                               "The quest to become a lich is a lengthy one. While construction of the magical phylactery to "
+                               "contain ones soul is a critical component, a prospective lich must also learn the "
+                               "secrets of transferring his soul into the receptacle and of preparing his body for the "
+                               "transformation into undeath, neither of which are simple tasks. Further complicating the ritual "
+                               "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
+                               "might simply kill another or drive him insane. "
+                               "\r\n\r\n"
+                               "Please note that a Vampire will be the same size class they were before the transformation.\r\n  "
+                               "Please note that a Vampire is the one of the only Epic Races that can multi-class.\r\n  "
+                               "Please note that becoming a Vampire requires level 30 and will reset your exp to 0.\r\n  "
+                               "Please note that a Vampire has all the advantages/disadvantages of being Undead.\r\n  ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Vampire.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Vampire.");
+  set_race_genders(RACE_VAMPIRE, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_VAMPIRE, 6, 0, 2, 2, 4, 4);           /* str con int wis dex cha */
+  set_race_alignments(RACE_VAMPIRE, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_VAMPIRE,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, Y, N, N, N, Y, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, Y, N, Y, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_VAMPIRE, FEAT_ALERTNESS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_COMBAT_REFLEXES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_DODGE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_IMPROVED_INITIATIVE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_LIGHTNING_REFLEXES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_NATURAL_ARMOR, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_DAMAGE_REDUCTION, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ENERGY_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_FAST_HEALING, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_WEAKNESSES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_BLOOD_DRAIN, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_CREATE_SPAWN, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_DOMINATE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ENERGY_DRAIN, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_CHANGE_SHAPE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_GASEOUS_FORM, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_SPIDER_CLIMB, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_SKILL_BONUSES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_BONUS_FEATS, 1, N);
+
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/

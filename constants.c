@@ -1029,6 +1029,9 @@ const char *damtypes[] = {
     "bleeding",
     "temporal",
     "chaos",
+    "sunlight",
+    "moving water",
+    "blood drain",
     "\n"};
 CHECK_TABLE_SIZE(damtypes, NUM_DAM_TYPES + 1);
 
@@ -1058,6 +1061,9 @@ const char *damtype_display[] = {
     "Damage Bleeding",
     "Damage Temporal",
     "Damage Chaos",
+    "Damage Sunlight",
+    "Damage Moving Water",
+    "Damage Blood Drain",
     "\n"};
 CHECK_TABLE_SIZE(damtype_display, NUM_DAM_TYPES + 1);
 
@@ -1231,6 +1237,7 @@ const char *sector_types[] = {
     "Beach",
     "Sea Port",
     "Inside Room",
+    "River",
     "\n"};
 CHECK_TABLE_SIZE(sector_types, NUM_ROOM_SECTORS + 1);
 
@@ -1274,6 +1281,7 @@ const char *sector_types_readable[] = {
     "on a beach",
     "at a sea port",
     "inside a room",
+    "in a river",
     "\n"};
 CHECK_TABLE_SIZE(sector_types_readable, NUM_ROOM_SECTORS + 1);
 
@@ -1316,6 +1324,7 @@ int movement_loss[] = {
     2,                  // beach, borders low areas and water. 33
     1,                  // sea ports
     1,                  // inside rooms
+    4,                  // rivers
 };
 CHECK_TABLE_SIZE(movement_loss, NUM_ROOM_SECTORS);
 
@@ -1528,6 +1537,7 @@ const char *preference_bits[] = {
     "Avoid-Encoutners",
     "Use-Stored-Consumables",
     "Display-Game-Time",
+    "Vampiric-Blood-Drain",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 

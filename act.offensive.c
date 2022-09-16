@@ -8283,6 +8283,80 @@ void perform_true_judgement(struct char_data *ch)
   act("$n begins gathering $s divine energy.", TRUE, ch, 0, 0, TO_ROOM);
 }
 
+ACMDCHECK(can_children_of_the_night)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT), "You have already called your children of the night!\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_children_of_the_night)
+{
+  PREREQ_CHECK(can_children_of_the_night);
+  PREREQ_HAS_USES(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "You must recover before you can call your children of the night.\r\n");
+
+  perform_children_of_the_night(ch);
+}
+
+void perform_children_of_the_night(struct char_data *ch)
+{
+
+
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT);
+
+  act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0, TO_CHAR);
+
+  call_magic(ch, ch, 0, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, 0, GET_LEVEL(ch), CAST_INNATE);
+
+}
+
+ACMDCHECK(can_create_vampire_spawn)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CREATE_SPAWN, "You have no idea how.\r\n");
+  if (HAS_PET_VAMPIRE_SPAWN(ch)) { send_to_char(ch, "You have already created vampiric spawn.\r\n"); return 0; }
+  
+  return CAN_CMD;
+}
+
+ACMDU(do_create_vampire_spawn)
+{
+  PREREQ_CHECK(can_create_vampire_spawn);
+
+  struct obj_data *obj = NULL;
+  
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You must specify a corpse to convert into your vampiric spawn.\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, argument, 0, world[IN_ROOM(ch)].contents)))
+  {
+    send_to_char(ch, "You don't see any corpses by that description.\r\n");
+    return;
+  }
+
+  if (!IS_CORPSE(obj))
+  {
+    send_to_char(ch, "That's not a corpse.\r\n");
+    return;
+  }
+
+  if (!obj->drainKilled)
+  {
+    send_to_char(ch, "You can only create vampiric spawn from the corpse of a victim you killed by blood drain.\r\n");
+    return;
+  }
+
+  act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, obj, 0, TO_CHAR);
+
+  call_magic(ch, ch, obj, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

@@ -73,7 +73,7 @@ static int compare_spells(const void *x, const void *y)
   if (a <= 1 || b <= 1)
     return FALSE;
 
-  if (a > MAX_SKILLS || b > MAX_SKILLS)
+  if (a > TOP_SKILL_DEFINE || b > TOP_SKILL_DEFINE)
     return FALSE;
 
   return strcmp(spell_info[a].name, spell_info[b].name);
@@ -95,8 +95,7 @@ void sort_spells(void)
 
   /* full list */
 
-  qsort(&spell_sort_info[1], TOP_SKILL_DEFINE, sizeof(int),
-        compare_spells);
+  qsort(&spell_sort_info[1], TOP_SKILL_DEFINE - 1, sizeof(int), compare_spells);
 
   /* spell list */
 

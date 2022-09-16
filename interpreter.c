@@ -207,6 +207,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"channelspell", "channels", POS_RECLINING, do_channelspell, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"check", "ch", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"checkload", "checkl", POS_DEAD, do_checkloadstatus, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"childrenofthenight", "children", POS_DEAD, do_children_of_the_night, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_children_of_the_night},
     {"close", "clo", POS_SITTING, do_gen_door, 0, SCMD_CLOSE, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"clan", "cla", POS_DEAD, do_clan, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"clanset", "clans", POS_DEAD, do_clanset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

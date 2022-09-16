@@ -579,6 +579,10 @@ ACMD_DECL(do_setbaneweapon);
 ACMD_DECL(do_cosmic_awareness);
 ACMD_DECL(do_discharge);
 ACMD_DECL(do_revoke);
+ACMD_DECL(do_children_of_the_night);
+ACMDCHECK(can_children_of_the_night);
+ACMDCHECK(can_create_vampire_spawn);
+ACMD_DECL(do_create_vampire_spawn);
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
  ****************************************************************************/
@@ -600,9 +604,10 @@ void display_todo(struct char_data *ch, struct char_data *vict);
 void respec_engine(struct char_data *ch, int class, char *arg, bool silent);
 int perform_tailsweep(struct char_data *ch);
 int perform_dragonbite(struct char_data *ch, struct char_data *vict);
+void perform_children_of_the_night(struct char_data *ch);
 
-/* do_gen_tog */
-ACMD_DECL(do_gen_tog);
+    /* do_gen_tog */
+    ACMD_DECL(do_gen_tog);
 
 /* sub-command defines */
 #define SCMD_NOSUMMON 0
