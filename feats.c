@@ -3056,7 +3056,7 @@ void assign_feats(void)
         "Get AC bonus every 4 levels of monk",
         "Get +1 to AC Bonus at monk-levels 1, 4, 8, 12, 16, 20, 24, 28");
   /* improved unarmed strike monks get for free */
-  /*unfinished*/ feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*unfinished*/ feato(FEAT_KI_STRIKE, "ki strike", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
                        "unarmed attack considered a magical weapon (unfinished)",
                        "unarmed attack considered a magical weapon [note: until fixed this feat "
                        "just gives a +1 to hitroll/damroll]");
@@ -3108,12 +3108,13 @@ void assign_feats(void)
   feato(FEAT_WEAPON_PROFICIENCY_MONK, "weapon proficiency - monks", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "proficiency in monk weapons",
         "You are proficient in the usage of quarterstaff, kama, siangham, and shuriken.");
-  /* not imped */ feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon [not impd]", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY, "[not implemented] can speak any language", "[not implemented] can speak any language");
+  feato(FEAT_TONGUE_OF_THE_SUN_AND_MOON, "tongue of the sun and moon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "(temp) +1 threat range", "(temp) +1 threat range");
   /*epic*/ /* free blinding speed */
   /*epic*/ feato(FEAT_KEEN_STRIKE, "keen strike", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "critical more unarmed, better stunning fist",
-                 "Your threat range with unarmed attacks increase by 1, in addition you get "
-                 "a +4 bonus to your stunning fist DC.");
+                 "Your threat range with unarmed attacks increase by 2, in addition you get "
+                 "a +4 bonus to your stunning fist DC/damage.");
   /*epic*/ feato(FEAT_OUTSIDER, "outsider", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "you become an outsider",
                  "You gain the ability to shift at will to the ethereal plane and back "
