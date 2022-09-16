@@ -217,9 +217,9 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
 
   /* The top section of the actual menu */
   send_to_char(d->character,
-               "%s1%s) Use Stored Consumables %s[%s%3s%s]    \r\n",
+               "%s1%s) Use Stored Consumables  %s[%s%3s%s]\r\n"
                /* Line 1 (1) - use stored consumables */
-               "%s1%s) Auto Stand             %s[%s%3s%s]    \r\n",
+               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n",
                /* Line 2 (2) - Auto Stand */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),

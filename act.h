@@ -371,6 +371,7 @@ int change_position(struct char_data *ch, int position);
 int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bool recursive);
 int is_evaporating_key(struct char_data *ch, obj_vnum key);
 int has_key(struct char_data *ch, obj_vnum key);
+bool can_stand(struct char_data *ch);
 
 /* Functions with subcommands */
 /* do_gen_door */

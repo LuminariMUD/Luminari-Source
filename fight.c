@@ -9626,10 +9626,24 @@ void perform_violence(struct char_data *ch, int phase)
                    to ensure that the stalwart defender only gets ONE free knockdown
                    attempt (note: just made this time out) */
     /*
-                if (char_has_mud_event(ch, eSMASH_DEFENSE)) {
-                  event_cancel_specific(ch, eSMASH_DEFENSE);
-                }
-                 */
+    if (char_has_mud_event(ch, eSMASH_DEFENSE)) {
+      event_cancel_specific(ch, eSMASH_DEFENSE);
+    }
+    */
+
+    /* autostand mechanic */
+    if (ch && FIGHTING(ch) && !IS_NPC(ch) && can_stand(ch) && PRF_FLAGGED(ch, PRF_AUTO_STAND))
+    {
+      /* check if we can springleap out of this */
+      if (HAS_FEAT(ch, FEAT_SPRING_ATTACK) && CLASS_LEVEL(ch, CLASS_MONK) >= 5)
+      {
+        do_springleap(ch, 0, 0, 0);
+      }
+
+      /* attempt to stand! checking if we can stand again in case springleap worked */
+      if (can_stand(ch))
+        do_stand(ch, 0, 0, 0);
+    }
   }
 
   // if they're affected by hedging weapon, we'll throw one at our current fighting target
