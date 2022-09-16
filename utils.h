@@ -990,6 +990,11 @@ void char_from_furniture(struct char_data *ch);
 #define CASTING_METAMAGIC(ch) ((ch)->char_specials.castingMetamagic)
 #define CASTING_CLASS(ch) ((ch)->char_specials.castingClass)
 
+/* this is an array of variables associated with bardic performance */
+#define GET_PERFORMANCE_VAR(ch, var) (ch->char_specials.performance_vars[var])
+#define IS_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, 0)
+#define GET_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, 1)
+
 // spell preparation queue and collection (prepared spells))
 /* this refers to items in the list of spells the ch is trying to prepare */
 #define PREPARATION_QUEUE(ch, slot, cc) (ch->player_specials->saved.prep_queue[slot][cc])

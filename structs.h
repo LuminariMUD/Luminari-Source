@@ -529,6 +529,9 @@
 /* how much space to reserve in the mem arrays */
 #define MAX_MEM NUM_SLOTS *NUM_CIRCLES
 
+/****************************************/
+/* bard performance defines */
+#define MAX_PERFORMANCE_VARS 10
 /* Instruments - bardic_performance */
 #define INSTRUMENT_LYRE 0
 #define INSTRUMENT_FLUTE 1
@@ -538,7 +541,7 @@
 #define INSTRUMENT_MANDOLIN 5
 /**/
 #define MAX_INSTRUMENTS 6
-/***************/
+/****************************************/
 
 /* Draconic Heritages from Sorcerer Bloodline: Draconic */
 #define DRACONIC_HERITAGE_NONE 0
@@ -945,10 +948,11 @@
 #define PRF_AVOID_ENCOUNTERS 55       // will try to avoid random encounters in wilderness
 #define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
 #define PRF_DISPTIME 57               // shows game time in prompt
-#define PRF_BLOOD_DRAIN 58        // Vampires will drain blood when grappling if this is turned on.
+#define PRF_AUTO_STAND 58             // attempt to auto stand
+#define PRF_BLOOD_DRAIN 59        // Vampires will drain blood when grappling if this is turned on.
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 59
+#define NUM_PRF_FLAGS 60
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -3168,6 +3172,9 @@
 // controls some new luminari calls from comm.c
 #define PULSE_LUMINARI (5 RL_SEC)
 
+/* this is for bard songs via the pulse system versus the event system -zusuk */
+#define PULSE_VERSE_INTERVAL (11 RL_SEC)
+
 /* controls rate hints are called */
 #define PULSE_HINTS (300 RL_SEC)
 
@@ -3724,6 +3731,8 @@ struct char_special_data
     int castingClass;             // spell casting class
     struct char_data *castingTCH; // target char of spell
     struct obj_data *castingTOBJ; // target obj of spell
+
+    int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
 
     /** crafting **/
     ubyte crafting_type;              // like SCMD_x

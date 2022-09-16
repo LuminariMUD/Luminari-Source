@@ -2880,6 +2880,45 @@ ACMD(do_leave)
   }
 }
 
+/* put together a simple check to see if someone can stand, at time of writing its for AUTO_STAND */
+bool can_stand(struct char_data *ch)
+{
+
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_ENTANGLED))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_SLEEP))
+    return FALSE;
+
+  if (AFF_FLAGGED(ch, AFF_PARALYZED))
+    return FALSE;
+
+  if (!is_action_available(ch, atMOVE, FALSE))
+    return FALSE;
+
+  switch (GET_POS(ch))
+  {
+  case POS_STANDING:
+  case POS_SLEEPING:
+  case POS_FIGHTING:
+    return FALSE;
+  case POS_SITTING:
+  case POS_RESTING:
+  case POS_RECLINING:
+  default:
+    return TRUE;
+  }
+
+  /* how did we get here? */
+  return FALSE;
+}
+
 /* Stand - Standing costs a move action. */
 ACMD(do_stand)
 {

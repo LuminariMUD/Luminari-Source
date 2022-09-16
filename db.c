@@ -1030,8 +1030,7 @@ void boot_db(void)
   /* Moved here so the object limit code works. -gg 6/24/98 */
   if (!mini_mud)
   {
-    log("Booting houses.");
-    House_boot();
+    /* moved house code down below zreset because it would affect what items load at boot */
 
     /* NewCraft */
     log("Booting crafts.");
@@ -1075,6 +1074,13 @@ void boot_db(void)
 
   if (!boot_time)
     boot_time = time(0);
+
+  /* moved house code below zreset (here) because it would affect what items load at boot */
+  if (!mini_mud)
+  {
+    log("Booting houses.");
+    House_boot();
+  }
 
   log("Boot db -- DONE.");
 }

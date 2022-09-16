@@ -1791,119 +1791,119 @@ void load_armor(void)
 
   /* LIGHT ARMOR ********************/
   setarmor(SPEC_ARMOR_TYPE_PADDED, "padded body armor", ARMOR_TYPE_LIGHT,
-           50, 9, 8, 0, 5, 30, 20,
+           50, 9, 14, 0, 5, 30, 20,
            7, MATERIAL_COTTON, ITEM_WEAR_BODY, "More than simple clothing, padded armor combines heavy, quilted cloth and layers of densely packed stuffing to create a cheap and basic protection. It is typically worn by those not intending to face lethal combat or those who wish their maneuverability to be impacted as little as possible.");
   setarmor(SPEC_ARMOR_TYPE_PADDED_HEAD, "padded armor helm", ARMOR_TYPE_LIGHT,
-           50, 1, 8, 0, 5, 30, 20,
+           50, 1, 14, 0, 5, 30, 20,
            1, MATERIAL_COTTON, ITEM_WEAR_HEAD, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_PADDED_ARMS, "padded armor sleeves", ARMOR_TYPE_LIGHT,
-           50, 1, 8, 0, 5, 30, 20,
+           50, 1, 14, 0, 5, 30, 20,
            1, MATERIAL_COTTON, ITEM_WEAR_ARMS, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_PADDED_LEGS, "padded armor leggings", ARMOR_TYPE_LIGHT,
-           50, 1, 8, 0, 5, 30, 20,
+           50, 1, 14, 0, 5, 30, 20,
            1, MATERIAL_COTTON, ITEM_WEAR_LEGS, "<ask staff to fill out>");
 
   setarmor(SPEC_ARMOR_TYPE_LEATHER, "leather armor", ARMOR_TYPE_LIGHT,
-           100, 14, 6, 0, 10, 30, 20,
+           100, 14, 13, 0, 10, 30, 20,
            9, MATERIAL_LEATHER, ITEM_WEAR_BODY, "Leather armor is made up of multiple overlapping pieces of leather, boiled to increase their natural toughness and then deliberately stitched together. Although not as sturdy as metal armor, the flexibility it allows wearers makes it among the most widely used types of armor.");
   setarmor(SPEC_ARMOR_TYPE_LEATHER_HEAD, "leather helm", ARMOR_TYPE_LIGHT,
-           100, 4, 6, 0, 10, 30, 20,
+           100, 4, 13, 0, 10, 30, 20,
            2, MATERIAL_LEATHER, ITEM_WEAR_HEAD, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_LEATHER_ARMS, "leather sleeves", ARMOR_TYPE_LIGHT,
-           100, 4, 6, 0, 10, 30, 20,
+           100, 4, 13, 0, 10, 30, 20,
            2, MATERIAL_LEATHER, ITEM_WEAR_ARMS, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_LEATHER_LEGS, "leather leggings", ARMOR_TYPE_LIGHT,
-           100, 4, 6, 0, 10, 30, 20,
+           100, 4, 13, 0, 10, 30, 20,
            2, MATERIAL_LEATHER, ITEM_WEAR_LEGS, "<ask staff to fill out>");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER, "studded leather armor", ARMOR_TYPE_LIGHT,
-           250, 20, 5, -1, 15, 30, 20,
+           250, 20, 12, -1, 15, 30, 20,
            11, MATERIAL_LEATHER, ITEM_WEAR_BODY, "An improved form of leather armor, studded leather armor is covered with dozens of metal protuberances. While these rounded studs offer little defense individually, in the numbers they are arrayed in upon such armor, they help catch lethal edges and channel them away from vital spots. The rigidity caused by the additional metal does, however, result in less mobility than is afforded by a suit of normal leather armor.");
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_HEAD, "studded leather helm", ARMOR_TYPE_LIGHT,
-           250, 6, 5, -1, 15, 30, 20,
+           250, 6, 12, -1, 15, 30, 20,
            3, MATERIAL_LEATHER, ITEM_WEAR_HEAD, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_ARMS, "studded leather sleeves", ARMOR_TYPE_LIGHT,
-           250, 6, 5, -1, 15, 30, 20,
+           250, 6, 12, -1, 15, 30, 20,
            3, MATERIAL_LEATHER, ITEM_WEAR_ARMS, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_STUDDED_LEATHER_LEGS, "studded leather leggings", ARMOR_TYPE_LIGHT,
-           250, 6, 5, -1, 15, 30, 20,
+           250, 6, 12, -1, 15, 30, 20,
            3, MATERIAL_LEATHER, ITEM_WEAR_LEGS, "<ask staff to fill out>");
 
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN, "light chainmail armor", ARMOR_TYPE_LIGHT,
-           1000, 24, 4, -2, 20, 30, 20,
+           1000, 24, 11, -2, 20, 30, 20,
            13, MATERIAL_STEEL, ITEM_WEAR_BODY, "This armor is made up of thousands of interlocking metal rings, laid on top of leather armor.");
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_HEAD, "light chainmail helm", ARMOR_TYPE_LIGHT,
-           1000, 9, 4, -2, 20, 30, 20,
+           1000, 9, 11, -2, 20, 30, 20,
            4, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_ARMS, "light chainmail sleeves", ARMOR_TYPE_LIGHT,
-           1000, 9, 4, -2, 20, 30, 20,
+           1000, 9, 11, -2, 20, 30, 20,
            4, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_LIGHT_CHAIN_LEGS, "light chainmail leggings", ARMOR_TYPE_LIGHT,
-           1000, 9, 4, -2, 20, 30, 20,
+           1000, 9, 11, -2, 20, 30, 20,
            4, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill out>");
 
   /******************* MEDIUM ARMOR *******************************************/
 
   setarmor(SPEC_ARMOR_TYPE_HIDE, "hide armor", ARMOR_TYPE_MEDIUM,
-           150, 26, 4, -3, 20, 20, 15,
+           150, 26, 10, -3, 20, 20, 15,
            13, MATERIAL_LEATHER, ITEM_WEAR_BODY, "Hide armor is made from the tanned skin of particularly thick-hided beasts, stitched with either multiple overlapping layers of crude leather or exterior pieces of leather stuffed with padding or fur. Damage to the armor is typically repaired by restitching gashes or adding new pieces of hide, giving the most heavily used suits a distinctively patchwork quality.");
   setarmor(SPEC_ARMOR_TYPE_HIDE_HEAD, "hide helm", ARMOR_TYPE_MEDIUM,
-           150, 10, 4, -3, 20, 20, 15,
+           150, 10, 10, -3, 20, 20, 15,
            4, MATERIAL_LEATHER, ITEM_WEAR_HEAD, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_HIDE_ARMS, "hide sleeves", ARMOR_TYPE_MEDIUM,
-           150, 10, 4, -3, 20, 20, 15,
+           150, 10, 10, -3, 20, 20, 15,
            4, MATERIAL_LEATHER, ITEM_WEAR_ARMS, "<ask staff to fill out>");
   setarmor(SPEC_ARMOR_TYPE_HIDE_LEGS, "hide leggings", ARMOR_TYPE_MEDIUM,
-           150, 10, 4, -3, 20, 20, 15,
+           150, 10, 10, -3, 20, 20, 15,
            4, MATERIAL_LEATHER, ITEM_WEAR_LEGS, "<ask staff to fill out>");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SCALE, "scale armor", ARMOR_TYPE_MEDIUM,
-           500, 32, 3, -4, 25, 20, 15,
+           500, 32, 9, -4, 25, 20, 15,
            15, MATERIAL_STEEL, ITEM_WEAR_BODY, "Scale mail is made up of dozens of small, overlapping metal plates. Similar to both splint mail and banded mail, scalemail has a flexible arrangement of scales in an attempt to avoid hindering the wearer’s mobility, but at the expense of omitting additional protective layers of armor. A suit of scale mail includes gauntlets.");
   setarmor(SPEC_ARMOR_TYPE_SCALE_HEAD, "scale helm", ARMOR_TYPE_MEDIUM,
-           500, 12, 3, -4, 25, 20, 15,
+           500, 12, 9, -4, 25, 20, 15,
            5, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_SCALE_ARMS, "scale sleeves", ARMOR_TYPE_MEDIUM,
-           500, 12, 3, -4, 25, 20, 15,
+           500, 12, 9, -4, 25, 20, 15,
            5, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_SCALE_LEGS, "scale leggings", ARMOR_TYPE_MEDIUM,
-           500, 12, 3, -4, 25, 20, 15,
+           500, 12, 9, -4, 25, 20, 15,
            5, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL, "chainmail armor", ARMOR_TYPE_MEDIUM,
-           1500, 37, 2, -5, 30, 20, 15,
+           1500, 37, 8, -5, 30, 20, 15,
            27, MATERIAL_STEEL, ITEM_WEAR_BODY, "Chainmail protects the wearer with a complete mesh of chain links that cover the torso and arms, and extends below the waist. Multiple interconnected pieces offer additional protection over vital areas. The suit includes gauntlets. It uses thicker rings and heavier leather than light chainmail.");
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
-           1500, 15, 2, -5, 30, 20, 15,
+           1500, 15, 8, -5, 30, 20, 15,
            11, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   /* duplicate item */
   setarmor(SPEC_ARMOR_TYPE_CHAIN_HEAD, "chainmail helm", ARMOR_TYPE_MEDIUM,
-           1500, 15, 2, -5, 30, 20, 15,
+           1500, 15, 8, -5, 30, 20, 15,
            11, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_ARMS, "chainmail sleeves", ARMOR_TYPE_MEDIUM,
-           1500, 15, 2, -5, 30, 20, 15,
+           1500, 15, 8, -5, 30, 20, 15,
            11, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_CHAINMAIL_LEGS, "chainmail leggings", ARMOR_TYPE_MEDIUM,
-           1500, 15, 2, -5, 30, 20, 15,
+           1500, 15, 8, -5, 30, 20, 15,
            11, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL, "piecemeal armor", ARMOR_TYPE_MEDIUM,
-           2000, 35, 3, -4, 25, 20, 15,
+           2000, 35, 9, -4, 25, 20, 15,
            19, MATERIAL_STEEL, ITEM_WEAR_BODY, "This type of armor typically consists of a metal breastplate and mismatched pieces of other different armor types patched together. Though certainly not fashionable, it is nonetheless fairly functional.");
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_HEAD, "piecemeal helm", ARMOR_TYPE_MEDIUM,
-           2000, 14, 3, -4, 25, 20, 15,
+           2000, 14, 9, -4, 25, 20, 15,
            7, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_ARMS, "piecemeal sleeves", ARMOR_TYPE_MEDIUM,
-           2000, 14, 3, -4, 25, 20, 15,
+           2000, 14, 9, -4, 25, 20, 15,
            7, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_PIECEMEAL_LEGS, "piecemeal leggings", ARMOR_TYPE_MEDIUM,
-           2000, 14, 3, -4, 25, 20, 15,
+           2000, 14, 9, -4, 25, 20, 15,
            7, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   /******************* HEAVY ARMOR *******************************************/
@@ -1912,58 +1912,58 @@ void load_armor(void)
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_SPLINT, "splint mail armor", ARMOR_TYPE_HEAVY,
-           2000, 46, 0, -7, 40, 20, 15,
+           2000, 46, 5, -7, 40, 20, 15,
            21, MATERIAL_STEEL, ITEM_WEAR_BODY, "Splint mail is made up of overlapping layers of metal strips attached to a backing of leather or sturdy fabric. These splints are of greater size and durability than those that compose a suit of scale mail, improving the protection they afford the wearer, but at the cost of flexibility. A suit of splint mail includes gauntlets.");
   setarmor(SPEC_ARMOR_TYPE_SPLINT_HEAD, "splint mail helm", ARMOR_TYPE_HEAVY,
-           2000, 19, 0, -7, 40, 20, 15,
+           2000, 19, 5, -7, 40, 20, 15,
            8, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_SPLINT_ARMS, "splint mail sleeves", ARMOR_TYPE_HEAVY,
-           2000, 19, 0, -7, 40, 20, 15,
+           2000, 19, 5, -7, 40, 20, 15,
            8, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_SPLINT_LEGS, "splint mail leggings", ARMOR_TYPE_HEAVY,
-           2000, 19, 0, -7, 40, 20, 15,
+           2000, 19, 5, -7, 40, 20, 15,
            8, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   setarmor(SPEC_ARMOR_TYPE_BANDED, "banded mail armor", ARMOR_TYPE_HEAVY,
-           2500, 47, 1, -6, 35, 20, 15,
+           2500, 47, 7, -6, 35, 20, 15,
            17, MATERIAL_STEEL, ITEM_WEAR_BODY, "Banded mail is made up of overlapping strips of metal, fastened to a sturdy backing of leather and chain. The size of the metal plates, interconnected metal bands, and layers of underlying armor make it a more significant defense than similar armors, like scale mail or splint mail.");
   setarmor(SPEC_ARMOR_TYPE_BANDED_HEAD, "banded mail helm", ARMOR_TYPE_HEAVY,
-           2500, 20, 1, -6, 35, 20, 15,
+           2500, 20, 7, -6, 35, 20, 15,
            6, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_BANDED_ARMS, "banded mail sleeves", ARMOR_TYPE_HEAVY,
-           2500, 20, 1, -6, 35, 20, 15,
+           2500, 20, 7, -6, 35, 20, 15,
            6, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_BANDED_LEGS, "banded mail leggings", ARMOR_TYPE_HEAVY,
-           2500, 20, 1, -6, 35, 20, 15,
+           2500, 20, 7, -6, 35, 20, 15,
            6, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE, "half plate armor", ARMOR_TYPE_HEAVY,
-           6000, 52, 1, -6, 40, 20, 15,
+           6000, 52, 7, -6, 40, 20, 15,
            23, MATERIAL_STEEL, ITEM_WEAR_BODY, "Half-plate armor combines elements of full plate and chainmail, incorporating several sizable plates of sculpted metal with an underlying mesh of chain links. While this suit protects vital areas with several layers of armor, it is not sculpted to a single individual’s frame, reducing its wearer’s mobility even more than a suit of full plate. Half-plate armor includes gauntlets and a helm.");
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_HEAD, "half plate helm", ARMOR_TYPE_HEAVY,
-           6000, 22, 1, -6, 40, 20, 15,
+           6000, 22, 7, -6, 40, 20, 15,
            9, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_ARMS, "half plate sleeves", ARMOR_TYPE_HEAVY,
-           6000, 22, 1, -6, 40, 20, 15,
+           6000, 22, 7, -6, 40, 20, 15,
            9, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_HALF_PLATE_LEGS, "half plate leggings", ARMOR_TYPE_HEAVY,
-           6000, 22, 1, -6, 40, 20, 15,
+           6000, 22, 7, -6, 40, 20, 15,
            9, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   /* (armor, name, type,
    *    cost, AC, dexBonusCap, armorCheckPenalty, spellFailChance, (move)30ft, (move)20ft,
    *    weight, material, wear) */
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE, "full plate armor", ARMOR_TYPE_HEAVY,
-           15000, 60, 1, -6, 35, 20, 15,
+           15000, 60, 7, -6, 35, 20, 15,
            23, MATERIAL_STEEL, ITEM_WEAR_BODY, "This metal suit comprises multiple pieces of interconnected and overlaying metal plates, incorporating the benefits of numerous types of lesser armor. A complete suit of full plate (or platemail, as it is often called) includes gauntlets, heavy leather boots, a visored helmet, and a thick layer of padding that is worn underneath the armor.");
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_HEAD, "full plate helm", ARMOR_TYPE_HEAVY,
-           15000, 25, 1, -6, 35, 20, 15,
+           15000, 25, 7, -6, 35, 20, 15,
            9, MATERIAL_STEEL, ITEM_WEAR_HEAD, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_ARMS, "full plate sleeves", ARMOR_TYPE_HEAVY,
-           15000, 25, 1, -6, 35, 20, 15,
+           15000, 25, 7, -6, 35, 20, 15,
            9, MATERIAL_STEEL, ITEM_WEAR_ARMS, "<ask staff to fill this out>");
   setarmor(SPEC_ARMOR_TYPE_FULL_PLATE_LEGS, "full plate leggings", ARMOR_TYPE_HEAVY,
-           15000, 25, 1, -6, 35, 20, 15,
+           15000, 25, 7, -6, 35, 20, 15,
            9, MATERIAL_STEEL, ITEM_WEAR_LEGS, "<ask staff to fill this out>");
 
   /* (armor, name, type,
@@ -1979,7 +1979,7 @@ void load_armor(void)
            200, 20, 99, -2, 15, 999, 999,
            13, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "A heavy shield is strapped to one's forearm and gripped by hand and is relatively heavy.");
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
-           300, 40, 2, -10, 50, 999, 999,
+           300, 40, 7, -10, 50, 999, 999,
            45, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "A tower shield is strapped to one's forearm and gripped by hand and is relatively very heavy.  It often resembles a wall and protects most of the body.");
 }
 

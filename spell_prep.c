@@ -2160,11 +2160,13 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   if (IN_ROOM(ch) != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
     bonus_time += prep_time / 4;
   /*spells/affections*/
-  /* song of focused mind, halves prep time */
+  /* song of focused mind, halves prep time (this is the wrong place) */
+  /*
   if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
   {
     bonus_time += prep_time / 2;
   }
+  */
   /** end bonus calculations **/
 
   prep_time -= bonus_time;
@@ -2324,7 +2326,7 @@ int star_circlet_proc(struct char_data *ch)
 
 /* this will move the spell from the prep-queue to the collection, and if
  * appropriate continue the preparation process - restart the event with
- * the correct prep-time for the next spell in the queue */
+ * the correct prep-time for the next spell in the queue ; default return time is 1 RL sec */
 EVENTFUNC(event_preparation)
 {
   int class = 0;
@@ -2392,6 +2394,12 @@ EVENTFUNC(event_preparation)
       if (INNATE_MAGIC(ch, class))
       {
         reset_preparation_time(ch, class);
+
+        if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
+        {
+          return ((1 * PASSES_PER_SEC) / 2);
+        }
+
         return (1 * PASSES_PER_SEC);
       }
     }
@@ -2414,6 +2422,12 @@ EVENTFUNC(event_preparation)
       if (SPELL_PREP_QUEUE(ch, class))
       {
         reset_preparation_time(ch, class);
+
+        if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
+        {
+          return ((1 * PASSES_PER_SEC) / 2);
+        }
+
         return (1 * PASSES_PER_SEC);
       }
     }
@@ -2446,6 +2460,11 @@ EVENTFUNC(event_preparation)
       return 0;
     }
     break;
+  }
+
+  if (affected_by_spell(ch, SKILL_SONG_OF_FOCUSED_MIND))
+  {
+    return ((1 * PASSES_PER_SEC) / 2);
   }
 
   return (1 * PASSES_PER_SEC);

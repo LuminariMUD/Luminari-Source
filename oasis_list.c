@@ -228,10 +228,18 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
                                                            "[%s, affecting room VNum %d, %s %s] "
                                                            "%s%s%s\r\n",
                              QGRN, ++found, QNRM, /**/ QCYN, QYEL, ov, QCYN, QNRM,
-                             (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch" : "BROKEN switch type",
+                             (v1 == 0) ? "Push switch" : (v1 == 1) ? "Pull switch"
+                                                                   : "BROKEN switch type",
                              v2,
-                             (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks" : (v4 == 2) ? "Opens" : "BROKEN exit action",
-                             (v3 == 0) ? "North" : (v3 == 1) ? "East" : (v3 == 2) ? "South" : (v3 == 3) ? "West" : (v3 == 4) ? "Up" : (v3 == 5) ? "Down" : "BROKEN direction",
+                             (v4 == 0) ? "Unhides" : (v4 == 1) ? "Unlocks"
+                                                 : (v4 == 2)   ? "Opens"
+                                                               : "BROKEN exit action",
+                             (v3 == 0) ? "North" : (v3 == 1) ? "East"
+                                               : (v3 == 2)   ? "South"
+                                               : (v3 == 3)   ? "West"
+                                               : (v3 == 4)   ? "Up"
+                                               : (v3 == 5)   ? "Down"
+                                                             : "BROKEN direction",
                              QCYN, obj_proto[r_num].short_description, QNRM);
           break;
 
@@ -786,10 +794,10 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\r\n");
         return;
       } /*else {
-          perform_region_type_list(ch, arg2); 
+          perform_region_type_list(ch, arg2);
         }
-             
-        if (!*arg2 && is_number(arg)) 
+
+        if (!*arg2 && is_number(arg))
           perform_region_dist_list(ch, arg);
         else*/
     }
@@ -823,10 +831,10 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\r\n");
         return;
       } /*else {
-          perform_region_type_list(ch, arg2); 
+          perform_region_type_list(ch, arg2);
         }
-             
-        if (!*arg2 && is_number(arg)) 
+
+        if (!*arg2 && is_number(arg))
           perform_region_dist_list(ch, arg);
         else*/
     }
@@ -990,6 +998,12 @@ ACMD(do_oasis_list)
 
 ACMD(do_oasis_links)
 {
+  if (!ch)
+    return;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
   zone_rnum zrnum;
   zone_vnum zvnum;
   room_rnum nr, to_room;
@@ -1160,12 +1174,12 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     case 'D':
     case 'R':
       temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), subcmd).arg1);
-      //send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
+      // send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
       break;
     case 'O':
     case 'M':
       temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), subcmd).arg3);
-      //send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
+      // send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
       break;
     }
     if (temp_num >= bottom && temp_num <= top)
@@ -1349,11 +1363,7 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
                       obj_proto[i].short_description, QYEL,
                       item_types[obj_proto[i].obj_flags.type_flag], QNRM,
                       obj_proto[i].obj_flags.cost, QYEL,
-                      obj_proto[i].obj_flags.type_flag == ITEM_WORN ? wears_text : 
-                      (
-                      obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : 
-                      (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : "")
-                      ),
+                      obj_proto[i].obj_flags.type_flag == ITEM_WORN ? wears_text : (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : "")),
                       QNRM, obj_proto[i].proto_script ? " [TRIG]" : "");
 
       if (len > sizeof(buf))
@@ -1373,8 +1383,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
   shop_rnum i;
   shop_vnum bottom, top;
   int j, counter = 0;
-  //mob_vnum mob_vnum = NOBODY;
-  //struct char_data *mob = NULL;
+  // mob_vnum mob_vnum = NOBODY;
+  // struct char_data *mob = NULL;
 
   if (rnum != NOWHERE)
   {
@@ -1399,7 +1409,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
 
       /* determine shopkeeper information -zusuk */
       //      if (SHOP_KEEPER(i) > -1 && SHOP_KEEPER(i) < top_of_mobt) {
-      //mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
+      // mob_vnum = mob_index[SHOP_KEEPER(i)].vnum;
       /*
         if (!(mob = read_mobile(SHOP_KEEPER(i), REAL))) {
           send_to_char(ch, "Mob data possibly corrupt, please notify a coder.\r\n");

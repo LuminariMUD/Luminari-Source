@@ -3216,10 +3216,15 @@ void advance_level(struct char_data *ch, int class)
 /* if you get multiplier for backstab, calculated here */
 int backstab_mult(struct char_data *ch)
 {
-  if (HAS_FEAT(ch, FEAT_BACKSTAB))
-    return 2;
+  int multiplier = 0;
 
-  return 1;
+  if (IS_ROGUE_TYPE(ch))
+    multiplier += 2;
+
+  if (HAS_FEAT(ch, FEAT_BACKSTAB))
+    multiplier += 2;
+
+  return multiplier;
 }
 
 // used by handler.c, completely depreacted function right now
@@ -4222,30 +4227,32 @@ void load_class_list(void)
   feat_assignment(CLASS_MONK, FEAT_FLURRY_OF_BLOWS, Y, 1, N);
   feat_assignment(CLASS_MONK, FEAT_STUNNING_FIST, Y, 1, N);
   feat_assignment(CLASS_MONK, FEAT_EVASION, Y, 2, N);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 3, Y);
   feat_assignment(CLASS_MONK, FEAT_STILL_MIND, Y, 3, N);
-  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 4, Y);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 4, Y);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 5, Y);
   feat_assignment(CLASS_MONK, FEAT_PURITY_OF_BODY, Y, 5, N);
   feat_assignment(CLASS_MONK, FEAT_SPRING_ATTACK, Y, 5, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 6, Y);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 6, Y);
   feat_assignment(CLASS_MONK, FEAT_WHOLENESS_OF_BODY, Y, 7, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 8, Y);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 9, Y);
   feat_assignment(CLASS_MONK, FEAT_IMPROVED_EVASION, Y, 9, N);
-  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 10, Y);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 10, Y);
   feat_assignment(CLASS_MONK, FEAT_DIAMOND_BODY, Y, 11, N);
   feat_assignment(CLASS_MONK, FEAT_GREATER_FLURRY, Y, 11, N);
   feat_assignment(CLASS_MONK, FEAT_ABUNDANT_STEP, Y, 12, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 12, Y);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 12, Y);
   feat_assignment(CLASS_MONK, FEAT_DIAMOND_SOUL, Y, 13, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 14, Y);
   feat_assignment(CLASS_MONK, FEAT_QUIVERING_PALM, Y, 15, N);
   feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 15, Y);
   feat_assignment(CLASS_MONK, FEAT_TIMELESS_BODY, Y, 16, N);
-  /* note this feat does nothing currently */
   feat_assignment(CLASS_MONK, FEAT_TONGUE_OF_THE_SUN_AND_MOON, Y, 17, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 18, Y);
+  feat_assignment(CLASS_MONK, FEAT_KI_STRIKE, Y, 18, Y);
   feat_assignment(CLASS_MONK, FEAT_EMPTY_BODY, Y, 19, N);
   feat_assignment(CLASS_MONK, FEAT_PERFECT_SELF, Y, 20, N);
   feat_assignment(CLASS_MONK, FEAT_SLOW_FALL, Y, 20, Y);
