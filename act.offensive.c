@@ -5136,7 +5136,7 @@ ACMD(do_wholenessofbody)
   act("$n's body glows \tWwhite\tn as some wounds heal!", FALSE, ch, 0, NULL, TO_NOTVICT);
   attach_mud_event(new_mud_event(eWHOLENESSOFBODY, ch, NULL),
                    (4 * SECS_PER_MUD_DAY));
-  GET_HIT(ch) += 20 + (MONK_TYPE(ch) + (GET_WIS_BONUS(ch) * 2) * 3;
+  GET_HIT(ch) += 20 + (MONK_TYPE(ch) + (GET_WIS_BONUS(ch) * 2) * 3);
   update_pos(ch);
 
   /* Actions */
