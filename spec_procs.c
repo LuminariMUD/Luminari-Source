@@ -6817,6 +6817,21 @@ SPECIAL(spiderdagger)
   return FALSE;
 }
 
+/* damage added to arrows, the code is with the arrow (look for WARBOW_VNUM) */
+SPECIAL(warbow)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Chance of extra damage added to fired arrows.\r\n");
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 /* from homeland */
 SPECIAL(sparksword)
 {

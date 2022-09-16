@@ -7857,8 +7857,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   /* Calculate damage for this hit */
-  dam = compute_hit_damage(ch, victim, w_type, diceroll, 0,
-                           is_critical, attack_type);
+  dam += compute_hit_damage(ch, victim, w_type, diceroll, 0,
+                            is_critical, attack_type);
   if (type == TYPE_ATTACK_OF_OPPORTUNITY && has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
     dam += 2;
   dam += powerful_blow_bonus; /* ornir is going to yell at me for this :p  -zusuk */
@@ -8146,6 +8146,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       victim_ac = 0,      /* Target's AC, from compute_ac(). */
       calc_bab = penalty, /* ch's base attack bonus for the attack. */
       diceroll = 0,       /* ch's attack roll. */
+      can_hit = 0,        /* ch successfully hit? */
       dam = 0;            /* Damage for the attack, with mods. */
 
   bool is_critical = FALSE;
@@ -8305,6 +8306,21 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     if (wielded && GET_OBJ_VAL(wielded, 5) > 0)
       GET_OBJ_VAL(wielded, 5)
     --;
+
+    /* we are checking here for spec procs associated with arrows */
+#define WARBOW_VNUM 132115
+    if (is_wearing(ch, WARBOW_VNUM) && !rand_number(0, 10))
+    {
+      act("$p\tw \tWsparks with power\tw as it is fired toward $N!\tn",
+          FALSE, ch, wielded, victim, TO_CHAR);
+      act("$p\tw used by $n \tWsparks with power\tw as it is fired toward you!\tn",
+          FALSE, ch, wielded, victim, TO_VICT);
+      act("$p\tw used by $n \tWsparks with power\tw as it is fired toward $N!\tn",
+          FALSE, ch, wielded, victim, TO_ROOM);
+
+      dam += dice(14, 5);
+    }
+#undef WARBOW_VNUM
   }
 
   /* Get the important numbers : ch's Attack bonus and victim's AC
@@ -8366,13 +8382,13 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     diceroll = d20(ch);
   if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(victim))
   {
-    dam = TRUE;
+    can_hit = TRUE;
     is_critical = TRUE;
     /* old critical message was here -zusuk */
   }
   else if (diceroll == 20)
   { /*auto hit, not critical though*/
-    dam = TRUE;
+    can_hit = TRUE;
   }
   else if (!AWAKE(victim))
   {
@@ -8380,7 +8396,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       send_to_char(ch, "\tW[down!]\tn");
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "\tR[down!]\tn");
-    dam = TRUE;
+    can_hit = TRUE;
   }
   else if (diceroll == 1)
   {
@@ -8388,11 +8404,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       send_to_char(ch, "[stum!]");
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       send_to_char(victim, "[stum!]");
-    dam = FALSE;
+    can_hit = FALSE;
   }
   else
   {
-    dam = (calc_bab + diceroll >= victim_ac);
+    can_hit = (calc_bab + diceroll >= victim_ac);
   }
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
   {
@@ -8566,7 +8582,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     return (HIT_MISS);
   }
 
-  if (!dam)
+  if (can_hit <= 0)
   {
     /* So if we have actually hit, then dam > 0. This is how we process a miss. */
     handle_missed_attack(ch, victim, type, w_type, dam_type, attack_type, missile);
