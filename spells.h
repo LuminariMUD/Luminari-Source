@@ -672,7 +672,7 @@
 // spells are in a table separate from skills, abilities and everything else
 // Gicker Feb 5, 2021
 #define MAX_SPELLS 2000
-#define TOP_SPELL_DEFINE 2000
+#define TOP_SPELL_DEFINE 2300
 
 #define START_SKILLS 2000
 
@@ -906,6 +906,8 @@
  * define it with a 'spellname'. */
 #define SPELL_DG_AFFECT 2298
 
+#define TOP_SPELLS_POWERS_SKILLS_BOMBS 2300
+
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 2299 */
 
 /**********  IMPORTANT ********************************/
@@ -941,8 +943,8 @@
 
 /* other attack types */
 
-#define TYPE_MOVING_WATER 793
-#define TYPE_SUN_DAMAGE 794
+#define TYPE_MOVING_WATER 2393
+#define TYPE_SUN_DAMAGE 2394
 #define TYPE_ESHIELD 2395
 #define TYPE_CSHIELD 2396
 #define TYPE_FSHIELD 2397
