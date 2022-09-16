@@ -944,9 +944,10 @@
 #define PRF_AVOID_ENCOUNTERS 55       // will try to avoid random encounters in wilderness
 #define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
 #define PRF_DISPTIME 57               // shows game time in prompt
+#define PRF_AUTO_STAND 58             // attempt to auto stand
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 58
+#define NUM_PRF_FLAGS 59
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

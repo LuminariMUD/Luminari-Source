@@ -4866,6 +4866,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   return (MIN(MAX_DAM_BONUS, dambonus));
 }
 
+/* when unarmed, this is how we handle weapon dice */
 void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
 {
   if (!ch)
@@ -4882,50 +4883,65 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
   {
     if (monkLevel && monk_gear_ok(ch))
     { // monk?
-      if (monkLevel < 4)
+      if (monkLevel < 3)
       {
         *diceOne = 1;
         *diceTwo = 6;
       }
-      else if (monkLevel < 8)
+      else if (monkLevel < 6)
       {
         *diceOne = 1;
         *diceTwo = 8;
       }
-      else if (monkLevel < 12)
+      else if (monkLevel < 9)
       {
         *diceOne = 1;
         *diceTwo = 10;
       }
-      else if (monkLevel < 16)
+      else if (monkLevel < 12)
       {
         *diceOne = 2;
         *diceTwo = 6;
       }
-      else if (monkLevel < 20)
+      else if (monkLevel < 15)
       {
         *diceOne = 4;
         *diceTwo = 4;
       }
-      else if (monkLevel < 25)
+      else if (monkLevel < 18)
       {
         *diceOne = 4;
         *diceTwo = 5;
       }
-      else if (monkLevel < 29)
+      else if (monkLevel < 21)
       {
         *diceOne = 4;
+        *diceTwo = 6;
+      }
+      else if (monkLevel < 24)
+      {
+        *diceOne = 5;
+        *diceTwo = 6;
+      }
+      else if (monkLevel < 27)
+      {
+        *diceOne = 6;
         *diceTwo = 6;
       }
       else
       {
         *diceOne = 7;
-        *diceTwo = 5;
+        *diceTwo = 7;
       }
       if (GET_RACE(ch) == RACE_TRELUX)
       {
+        /* at level 20 they get an extra die/roll */
+        *diceOne = *diceOne + 1 + (GET_LEVEL(ch) / 20);
+        *diceTwo = *diceTwo + 1 + (GET_LEVEL(ch) / 20);
+      }
+      if (IS_LICH(ch))
+      {
         *diceOne = *diceOne + 1;
-        *diceTwo = *diceTwo + 1;
       }
     }
 
@@ -4938,13 +4954,13 @@ void compute_barehand_dam_dice(struct char_data *ch, int *diceOne, int *diceTwo)
       {
         if (affected_by_spell(ch, PSIONIC_OAK_BODY) || affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
         {
-          *diceOne = 3;
-          *diceTwo = 6;
+          *diceOne = 3 + (GET_LEVEL(ch) / 20);
+          *diceTwo = 6 + (GET_LEVEL(ch) / 20);
         }
         else
         {
-          *diceOne = 2;
-          *diceTwo = 6;
+          *diceOne = 2 + (GET_LEVEL(ch) / 20);
+          *diceTwo = 6 + (GET_LEVEL(ch) / 20);
         }
       }
 
@@ -5087,7 +5103,12 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
       threat_range -= HAS_FEAT(ch, FEAT_CRITICAL_SPECIALIST);
   }
 
-  if (HAS_FEAT(ch, FEAT_KEEN_STRIKE) && (wielded == NULL))
+  if (HAS_FEAT(ch, FEAT_KEEN_STRIKE) && is_bare_handed(ch))
+  {
+    threat_range -= 2;
+  }
+
+  if (HAS_FEAT(ch, FEAT_TONGUE_OF_THE_SUN_AND_MOON) && is_bare_handed(ch))
   {
     threat_range--;
   }
@@ -7664,13 +7685,16 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
   if (affected_by_spell(ch, SKILL_QUIVERING_PALM))
   {
-    int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
     if (!wielded || (OBJ_FLAGGED(wielded, ITEM_KI_FOCUS)) || (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK))
     {
+      int keen_strike_bonus = HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4;
+      int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch) + keen_strike_bonus;
+
       send_to_char(ch, "[QUIVERING-PALM] ");
       send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
       act("$n performs a \tYquivering palm\tn attack on $N!",
           FALSE, ch, wielded, victim, TO_NOTVICT);
+
       /* apply quivering palm affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
           !savingthrow(victim, SAVING_FORT, 0, quivering_palm_dc))
@@ -7688,8 +7712,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         return dam;
       }
       else
-      { /* quivering palm will still do damage */
-        dam += 1 + GET_WIS_BONUS(ch);
+      { /* failed, but quivering palm will still do damage */
+        dam += (GET_WIS_BONUS(ch) + keen_strike_bonus) * (MONK_TYPE(ch) / 2) + 20;
       }
       /* ok, now remove quivering palm */
       affect_from_char(ch, SKILL_QUIVERING_PALM);

@@ -6290,6 +6290,9 @@ ACMD(do_gen_tog)
   case SCMD_USE_STORED_CONSUMABLES:
     result = PRF_TOG_CHK(ch, PRF_USE_STORED_CONSUMABLES);
     break;
+  case SCMD_AUTO_STAND:
+    result = PRF_TOG_CHK(ch, PRF_AUTO_STAND);
+    break;
   case SCMD_NOCHARMIERESCUES:
     result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);
     break;

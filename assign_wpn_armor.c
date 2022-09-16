@@ -1979,7 +1979,7 @@ void load_armor(void)
            200, 20, 99, -2, 15, 999, 999,
            13, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "A heavy shield is strapped to one's forearm and gripped by hand and is relatively heavy.");
   setarmor(SPEC_ARMOR_TYPE_TOWER_SHIELD, "tower shield", ARMOR_TYPE_TOWER_SHIELD,
-           300, 40, 10, -10, 50, 999, 999,
+           300, 40, 7, -10, 50, 999, 999,
            45, MATERIAL_WOOD, ITEM_WEAR_SHIELD, "A tower shield is strapped to one's forearm and gripped by hand and is relatively very heavy.  It often resembles a wall and protects most of the body.");
 }
 
