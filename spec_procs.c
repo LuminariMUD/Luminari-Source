@@ -5629,7 +5629,7 @@ SPECIAL(courage)
     act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
 
     call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_POTION);
-    if (is_wearing(ch, 139250))
+    if (is_wearing(ch, 13925))
       call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_POTION);
 
     GET_OBJ_SPECTIMER(courage, 0) = 72;
