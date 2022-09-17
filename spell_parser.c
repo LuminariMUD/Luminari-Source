@@ -1437,15 +1437,15 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SOUNDPROOF) && !is_spellnum_psionic(spellnum))
   {
-          send_to_char(ch, "You can not even speak a single word!\r\n");
-          return 0;
+    send_to_char(ch, "You can not even speak a single word!\r\n");
+    return 0;
   }
 
   if (AFF_FLAGGED(ch, AFF_SILENCED) && !is_spellnum_psionic(spellnum))
   {
-          send_to_char(ch, "You are unable to make a sound.\r\n");
-          act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
-          return 0;
+    send_to_char(ch, "You are unable to make a sound.\r\n");
+    act("$n tries to speak, but cannot seem to make a sound.", TRUE, ch, 0, 0, TO_ROOM);
+    return 0;
   }
 
   // epic spell cooldown
@@ -2621,6 +2621,10 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
          MAG_UNAFFECTS | MAG_ALTER_OBJS,
          NULL, 4, 13, ABJURATION, FALSE); // wizard 4, cleric 4
+  spello(SPELL_DISPEL_INVIS, "dispel invis", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_EQUIP, FALSE,
+         MAG_UNAFFECTS | MAG_ALTER_OBJS,
+         NULL, 4, 13, ABJURATION, FALSE);
   spello(SPELL_ENDURANCE, "endurance", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your magical endurance has faded away.", 2, 11,
@@ -3500,10 +3504,10 @@ void mag_assign_spells(void)
   spello(SPELL_HEDGING_WEAPONS, "hedging weapons", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "The last of your hedging weapons dissipates.", 4, 8, ABJURATION, FALSE);
   spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
   spello(SPELL_LESSER_RESTORATION, "lesser restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
-  spello(SPELL_RESTORATION, "restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 5, 15, CONJURATION, FALSE);  
+  spello(SPELL_RESTORATION, "restoration", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 5, 15, CONJURATION, FALSE);
   spello(SPELL_DIVINE_FAVOR, "divine favor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel the divine favor subside.", 4, 8, EVOCATION, FALSE);
   spello(SPELL_SILENCE, "silence", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-               "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
+         "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
   spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
   spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
@@ -3513,7 +3517,7 @@ void mag_assign_spells(void)
          NULL, 3, 8, NOSCHOOL, FALSE);
   spello(SPELL_DOOM, "doom", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
          "You are no longer filled with feelings of doom.", 2, 8, NECROMANCY, FALSE);
-         
+
   // endurance - shared
   // negative energy ray - shared
   // endure elements - shared
@@ -3685,6 +3689,9 @@ void mag_assign_spells(void)
   // mass enhance - shared
 
   // 8th circle
+  spello(SPELL_RESURRECT, "resurrection", 72, 57, 1, POS_FIGHTING,
+         TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
+         NULL, 10, 15, NECROMANCY, FALSE); // wiz4, cle3
   spello(SPELL_SANCTUARY, "sanctuary", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "The white aura around your body fades.", 8, 22, NOSCHOOL, FALSE);
@@ -3786,16 +3793,16 @@ void mag_assign_spells(void)
          "You feel your divine power ebb away.", 5, 13, EVOCATION, FALSE);
 
   spello(SPELL_AIR_WALK, "air walk", 37, 22, 1, POS_FIGHTING,
-          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-          "You drift slowly to the ground.", 3, 11, TRANSMUTATION, FALSE);
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "You drift slowly to the ground.", 3, 11, TRANSMUTATION, FALSE);
 
   spello(SPELL_GASEOUS_FORM, "gaseous form", 0, 0, 0, POS_FIGHTING,
-        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-        "You return to your normal solid form.", 4, 11, TRANSMUTATION, FALSE);
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "You return to your normal solid form.", 4, 11, TRANSMUTATION, FALSE);
 
   spello(SPELL_WIND_WALL, "wind wall", 0, 0, 0, POS_FIGHTING,
-               TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-               "The wall of swirling wind dissipates.", 3, 7, EVOCATION, FALSE);
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "The wall of swirling wind dissipates.", 3, 7, EVOCATION, FALSE);
 
   spello(SPELL_KEEN_EDGE, "keen edge", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -4180,7 +4187,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   skillo(SKILL_SONG_OF_DRAGONS, "song of dragons", ACTIVE_SKILL);                 // 599
                                                                                   /* end songs */
 
-        /****note weapon specialist and luck of heroes inserted in free slots ***/
+  /****note weapon specialist and luck of heroes inserted in free slots ***/
 }
 
 void display_shadowcast_spells(struct char_data *ch)
