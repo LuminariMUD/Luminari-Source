@@ -91,14 +91,12 @@ void sort_spells(void)
   }
 
   qsort(&spell_sort_info[1], TOP_SPELLS_POWERS_SKILLS_BOMBS, sizeof(int), compare_spells);
-
 }
 
 SPECIAL(warbow)
 {
   return 0;
 }
-
 
 // returns true if you have all the requisites for the skill
 // false if you don't
@@ -5597,7 +5595,7 @@ SPECIAL(ches)
   return FALSE;
 }
 
-/* from homeland */
+/* two versionf of the mace:  139250 plus the less powerful 139251 */
 SPECIAL(courage)
 {
   if (!ch)
@@ -5605,52 +5603,40 @@ SPECIAL(courage)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Invoke by 'courage' once a week.\r\n");
+    send_to_char(ch, "Invoke by whiper 'courage' once every 3 days: prayer and mass enhance\r\n");
     return TRUE;
   }
 
-  if (cmd && argument && cmd_info[cmd].command_pointer == do_say)
+  if (!is_wearing(ch, 139251) && !is_wearing(ch, 139250))
+    return FALSE;
+
+  struct obj_data *courage = (struct obj_data *)me;
+
+  skip_spaces(&argument);
+
+  if (!strcmp(argument, "courage") && CMD_IS("whisper"))
   {
-    if (!is_wearing(ch, 139251) && !is_wearing(ch, 139250))
-      return FALSE;
 
-    skip_spaces(&argument);
-    if (!strcmp(argument, "courage"))
+    if (GET_OBJ_SPECTIMER(courage, 0) > 0)
     {
-
-      if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
-      {
-        send_to_char(ch, "Nothing happens.\r\n");
-        return TRUE;
-      }
-
-      act("$n \tLinvokes $s \tygolden mace\tn.", FALSE, ch, 0, 0, TO_ROOM);
-      act("\tLYou invoke your \tygolden mace\tn.", FALSE, ch, 0, 0, TO_CHAR);
-
-      call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_POTION);
-      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_POTION);
-
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12 * 5;
+      send_to_char(ch, "Nothing happens.\r\n");
       return TRUE;
     }
-    return FALSE;
+
+    /* should be good! */
+
+    act("$n \tLinvokes $s $p!", FALSE, ch, courage, 0, TO_ROOM);
+    act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
+
+    call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_POTION);
+    if (is_wearing(ch, 139250))
+      call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_POTION);
+
+    GET_OBJ_SPECTIMER(courage, 0) = 72;
+    return TRUE;
   }
-  if (cmd)
-    return FALSE;
 
-  struct char_data *vict = FIGHTING(ch);
-
-  if (!vict)
-    return FALSE;
-
-  int power = 25;
-  if (GET_OBJ_VNUM(((struct obj_data *)me)) == 139250)
-    power = 15;
-  if (rand_number(0, power))
-  {
-    // TODO, cool damage proc here..
-  }
-  return TRUE;
+  return FALSE;
 }
 
 /* from homeland */
