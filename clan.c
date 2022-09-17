@@ -1730,8 +1730,7 @@ ACMD(do_claninfo) /* Information about clans */
       if ((GET_IDNUM(ch) == clan_list[i].leader) ||
           (GET_LEVEL(ch) == LVL_IMPL))
       {
-        send_to_char(ch, "Bank   : %s%ld coins%s\r\n", QYEL,
-                     clan_list[i].treasure, QNRM);
+        send_to_char(ch, "Bank   : %s%ld coin%s%s\r\n", QYEL, clan_list[i].treasure, clan_list[i].treasure == 1 ? "" : "s", QNRM);
       }
       send_to_char(ch, "App Lev: %s%d%s\r\n", QYEL, clan_list[i].applev, QNRM);
       send_to_char(ch, "App Fee: %s%d%s\r\n", QYEL, clan_list[i].appfee, QNRM);

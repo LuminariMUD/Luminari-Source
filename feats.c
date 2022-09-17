@@ -648,29 +648,29 @@ void assign_feats(void)
                    "Can create vampire spawn from a corpse killed by level drain.",
                    "Can create vampire spawn from a corpse killed by level drain. This is applied by using the 'slam' attack maneuver, and applying the level drain, at least once before killing the creature.");
   feato(FEAT_VAMPIRE_DOMINATE, "vampiric domination", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Can charm intelligent beings with a simple gaze.",
+        "Can charm intelligent beings with a simple gaze.");
   feato(FEAT_VAMPIRE_ENERGY_DRAIN, "vampiric energy drain", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Can drain energy from foes with an unarmed attack.",
+        "Can drain energy from foes with an unarmed attack.");
   feato(FEAT_VAMPIRE_CHANGE_SHAPE, "vampiric shapechange", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Can assume the form of a wolf or giant bat.",
+        "Can assume the form of a wolf or giant bat.");
   feato(FEAT_VAMPIRE_GASEOUS_FORM, "vampiric gaseous form", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Can assume gaseous state at will.",
+        "Can assume gaseous state at will.");
   feato(FEAT_VAMPIRE_SPIDER_CLIMB, "vampiric spider climb", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Can easily scale any climable surface.",
+        "Can easily scale any climable surface.");
   feato(FEAT_VAMPIRE_SKILL_BONUSES, "vampiric skill bonuses", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Gains a +8 racial bonus to the following skills: bluff, perception, sense motive, stealth.",
+        "Gains a +8 racial bonus to the following skills: bluff, perception, sense motive, stealth.");
   feato(FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS, "vampiric ability score boosts", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Gains the following ability score bonuses: Str +6, Dex +4, Int +2, Wis +2, Cha +4",
+        "Gains the following ability score bonuses: Str +6, Dex +4, Int +2, Wis +2, Cha +4");
   feato(FEAT_VAMPIRE_BONUS_FEATS, "vampiric bonus feats", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "",
-                   "");
+        "Gains the following bonus feats: Alertness, Combat Reflexes, Dodge, Improved Initiative, Lightning Reflexes, and Toughness.",
+        "Gains the following bonus feats: Alertness, Combat Reflexes, Dodge, Improved Initiative, Lightning Reflexes, and Toughness.");
 
   /* Trelux */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

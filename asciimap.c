@@ -109,93 +109,94 @@ static struct map_info_type compact_door_info[] = {
 /* The last 3 MUST remain the same, although the symbol can be changed */
 /* New sectors also need to be added to the perform_map function below */
 static struct map_info_type map_info[] = {
-  { SECT_INSIDE, "\tc[\tn.\tc]\tn"}, /* 0 */
-  { SECT_CITY, "\tc[\twC\tc]\tn"},
-  { SECT_FIELD, "\tc[\tg,\tc]\tn"},
-  { SECT_FOREST, "\tc[\tG\t=Y\tn\tc]\tn"},
-  { SECT_HILLS, "\tc[\ty^\tc]\tn"},
-  { SECT_MOUNTAIN, "\tc[\trm\tc]\tn"}, /* 5 */
-  { SECT_WATER_SWIM, "\tc[\tc\t=~\tn\tc]\tn"},
-  { SECT_WATER_NOSWIM, "\tc[\tb\t==\tn\tc]\tn"},
-  { SECT_FLYING, "\tc[\tC^\tc]\tn"},
-  { SECT_UNDERWATER, "\tc[\tbU\tc]\tn"},
-  { SECT_ZONE_START, "\tc[\tRX\tc]\tn"}, /* 10 */
-  { SECT_ROAD_NS, "\tc[\tD|\tc]\tn"}, /* 11 */
-  { SECT_ROAD_EW, "\tc[\tD-\tc]\tn"}, /* 12 */
-  { SECT_ROAD_INT, "\tc[\tD+\tc]\tn"}, /* 13 */
-  { SECT_DESERT, "\tc[\tY.\tc]\tn"}, //14
-  { SECT_OCEAN, "\tc[\tB\t=o\tn\tc]\tn"}, //15
-  { SECT_MARSHLAND, "\tc[\tM,\tc]\tn"}, //16
-  { SECT_HIGH_MOUNTAIN, "\tc[\tRM\tc]\tn"}, //17
-  { SECT_PLANES, "\tc[\tD.\tc]\tn"}, //18
-  { SECT_UD_WILD, "\tc[\tM\t=Y\tn\tc]\tn"},
-  { SECT_UD_CITY, "\tc[\tmC\tc]\tn"}, // 20
-  { SECT_UD_INSIDE, "\tc[\tm.\tc]\tn"},
-  { SECT_UD_WATER, "\tc[\tm\t=~\tn\tc]\tn"},
-  { SECT_UD_NOSWIM, "\tc[\tM\t==\tn\tc]\tn"},
-  { SECT_UD_NOGROUND, "\tc[\tm^\tc]\tn"},
-  { SECT_LAVA, "\tc[\tR.\tc]\tn"}, //25  
-  { SECT_D_ROAD_NS, "\tc[\ty|\tc]\tn"},
-  { SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"},
-  { SECT_D_ROAD_INT, "\tc[\ty+\tc]\tn"},
-  { SECT_CAVE, "\tc[\tD\t=C\tc]\tn"},
-  { SECT_JUNGLE, "\tc[\tg&\tc]\tn"},
-  { SECT_TUNDRA, "\tc[\tW.\tc]\tn"},
-  { SECT_TAIGA, "\tc[\tgA\tc]\tn"},
-  { SECT_BEACH, "\tc[\ty:\tc]\tn"},
-  { SECT_SEAPORT, "\tc[\tRS\tc]\tn"}, /* 34 */
-   { SECT_INSIDE_ROOM, "\tc[\ty*\tc]\tn"}, /* 35 */
+    {SECT_INSIDE, "\tc[\tn.\tc]\tn"}, /* 0 */
+    {SECT_CITY, "\tc[\twC\tc]\tn"},
+    {SECT_FIELD, "\tc[\tg,\tc]\tn"},
+    {SECT_FOREST, "\tc[\tG\t=Y\tn\tc]\tn"},
+    {SECT_HILLS, "\tc[\ty^\tc]\tn"},
+    {SECT_MOUNTAIN, "\tc[\trm\tc]\tn"}, /* 5 */
+    {SECT_WATER_SWIM, "\tc[\tc\t=~\tn\tc]\tn"},
+    {SECT_WATER_NOSWIM, "\tc[\tb\t==\tn\tc]\tn"},
+    {SECT_FLYING, "\tc[\tC^\tc]\tn"},
+    {SECT_UNDERWATER, "\tc[\tbU\tc]\tn"},
+    {SECT_ZONE_START, "\tc[\tRX\tc]\tn"},    /* 10 */
+    {SECT_ROAD_NS, "\tc[\tD|\tc]\tn"},       /* 11 */
+    {SECT_ROAD_EW, "\tc[\tD-\tc]\tn"},       /* 12 */
+    {SECT_ROAD_INT, "\tc[\tD+\tc]\tn"},      /* 13 */
+    {SECT_DESERT, "\tc[\tY.\tc]\tn"},        // 14
+    {SECT_OCEAN, "\tc[\tB\t=o\tn\tc]\tn"},   // 15
+    {SECT_MARSHLAND, "\tc[\tM,\tc]\tn"},     // 16
+    {SECT_HIGH_MOUNTAIN, "\tc[\tRM\tc]\tn"}, // 17
+    {SECT_PLANES, "\tc[\tD.\tc]\tn"},        // 18
+    {SECT_UD_WILD, "\tc[\tM\t=Y\tn\tc]\tn"},
+    {SECT_UD_CITY, "\tc[\tmC\tc]\tn"}, // 20
+    {SECT_UD_INSIDE, "\tc[\tm.\tc]\tn"},
+    {SECT_UD_WATER, "\tc[\tm\t=~\tn\tc]\tn"},
+    {SECT_UD_NOSWIM, "\tc[\tM\t==\tn\tc]\tn"},
+    {SECT_UD_NOGROUND, "\tc[\tm^\tc]\tn"},
+    {SECT_LAVA, "\tc[\tR.\tc]\tn"}, // 25
+    {SECT_D_ROAD_NS, "\tc[\ty|\tc]\tn"},
+    {SECT_D_ROAD_EW, "\tc[\ty-\tc]\tn"},
+    {SECT_D_ROAD_INT, "\tc[\ty+\tc]\tn"},
+    {SECT_CAVE, "\tc[\tD\t=C\tc]\tn"},
+    {SECT_JUNGLE, "\tc[\tg&\tc]\tn"},
+    {SECT_TUNDRA, "\tc[\tW.\tc]\tn"},
+    {SECT_TAIGA, "\tc[\tgA\tc]\tn"},
+    {SECT_BEACH, "\tc[\ty:\tc]\tn"},
+    {SECT_SEAPORT, "\tc[\tRS\tc]\tn"},     /* 34 */
+    {SECT_INSIDE_ROOM, "\tc[\ty*\tc]\tn"}, /* 35 */
+    {SECT_RIVER, "\tc[\tc\t=~\tn\tc]\tn"}, // 36
 
-  { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
-  { SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
-  { SECT_STRANGE, "\tc[\tR?\tc]\tn"},
-  { SECT_HERE, "\tc[\tW&\tc]\tn"},
+    {-1, ""},            /* RESERVED, NUM_ROOM_SECTORS */
+    {SECT_EMPTY, "   "}, /* NUM_ROOM_SECTORS + 1 */
+    {SECT_STRANGE, "\tc[\tR?\tc]\tn"},
+    {SECT_HERE, "\tc[\tW&\tc]\tn"},
 };
 
 static struct map_info_type world_map_info[] = {
-  { SECT_INSIDE, "\tn.\tn"}, /* 0 */
-  { SECT_CITY, "\twC\tn"},
-  { SECT_FIELD, "\tg,\tn"},
-  { SECT_FOREST, "\tG\t=Y\tn"},
-  { SECT_HILLS, "\ty^\tn"},
-  { SECT_MOUNTAIN, "\trm\tn"}, /* 5 */
-  { SECT_WATER_SWIM, "\tc\t=~\tn"},
-  { SECT_WATER_NOSWIM, "\tb\t==\tn"},
-  { SECT_FLYING, "\tC^\tn"},
-  { SECT_UNDERWATER, "\tbU\tn"},
-  { SECT_ZONE_START, "\tRX\tn"}, /* 10 */
-  { SECT_ROAD_NS, "\tD|\tn"}, /* 11 */
-  { SECT_ROAD_EW, "\tD-\tn"}, /* 12 */
-  { SECT_ROAD_INT, "\tD+\tn"}, /* 13 */
-  { SECT_DESERT, "\tY.\tn"}, /* 14 */
-  { SECT_OCEAN, "\tB\t=o\tn"}, /* 15 */
-  { SECT_MARSHLAND, "\tM,\tn"}, /* 16 */
-  { SECT_HIGH_MOUNTAIN, "\tRM\tn"}, /* 17 */
-  { SECT_PLANES, "\tM.\tn"}, /* 18 */
-  { SECT_UD_WILD, "\tM\t=Y\tn"},
-  { SECT_UD_CITY, "\tmC\tn"}, // 20
-  { SECT_UD_INSIDE, "\tm.\tn"},
-  { SECT_UD_WATER, "\tm\t=~\tn\tn"},
-  { SECT_UD_NOSWIM, "\tM\t==\tn\tn"},
-  { SECT_UD_NOGROUND, "\tm^\tn"},
-  { SECT_LAVA, "\tR.\tc]\tn"}, //25  
-  { SECT_D_ROAD_NS, "\ty|\tn"},
-  { SECT_D_ROAD_EW, "\ty-\tn"},
-  { SECT_D_ROAD_INT, "\ty+\tn"},
-  { SECT_CAVE, "\tD\t=C\tn"},
-  { SECT_JUNGLE, "\tg&\tn"},
-  { SECT_TUNDRA, "\tW.\tn"},
-  { SECT_TAIGA, "\tgA\tn"},
-  { SECT_BEACH, "\ty:\tn"},
-  { SECT_SEAPORT, "\tRS\tn"}, /* 34 */
-  { SECT_INSIDE_ROOM, "\ty*\tn"}, /* 35 */
+    {SECT_INSIDE, "\tn.\tn"}, /* 0 */
+    {SECT_CITY, "\twC\tn"},
+    {SECT_FIELD, "\tg,\tn"},
+    {SECT_FOREST, "\tG\t=Y\tn"},
+    {SECT_HILLS, "\ty^\tn"},
+    {SECT_MOUNTAIN, "\trm\tn"}, /* 5 */
+    {SECT_WATER_SWIM, "\tc\t=~\tn"},
+    {SECT_WATER_NOSWIM, "\tb\t==\tn"},
+    {SECT_FLYING, "\tC^\tn"},
+    {SECT_UNDERWATER, "\tbU\tn"},
+    {SECT_ZONE_START, "\tRX\tn"},    /* 10 */
+    {SECT_ROAD_NS, "\tD|\tn"},       /* 11 */
+    {SECT_ROAD_EW, "\tD-\tn"},       /* 12 */
+    {SECT_ROAD_INT, "\tD+\tn"},      /* 13 */
+    {SECT_DESERT, "\tY.\tn"},        /* 14 */
+    {SECT_OCEAN, "\tB\t=o\tn"},      /* 15 */
+    {SECT_MARSHLAND, "\tM,\tn"},     /* 16 */
+    {SECT_HIGH_MOUNTAIN, "\tRM\tn"}, /* 17 */
+    {SECT_PLANES, "\tM.\tn"},        /* 18 */
+    {SECT_UD_WILD, "\tM\t=Y\tn"},
+    {SECT_UD_CITY, "\tmC\tn"}, // 20
+    {SECT_UD_INSIDE, "\tm.\tn"},
+    {SECT_UD_WATER, "\tm\t=~\tn\tn"},
+    {SECT_UD_NOSWIM, "\tM\t==\tn\tn"},
+    {SECT_UD_NOGROUND, "\tm^\tn"},
+    {SECT_LAVA, "\tR.\tc]\tn"}, // 25
+    {SECT_D_ROAD_NS, "\ty|\tn"},
+    {SECT_D_ROAD_EW, "\ty-\tn"},
+    {SECT_D_ROAD_INT, "\ty+\tn"},
+    {SECT_CAVE, "\tD\t=C\tn"},
+    {SECT_JUNGLE, "\tg&\tn"},
+    {SECT_TUNDRA, "\tW.\tn"},
+    {SECT_TAIGA, "\tgA\tn"},
+    {SECT_BEACH, "\ty:\tn"},
+    {SECT_SEAPORT, "\tRS\tn"},     /* 34 */
+    {SECT_INSIDE_ROOM, "\ty*\tn"}, /* 35 */
+    {SECT_RIVER, "\tc\t=~\tn"}, // 36
 
-  { -1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
-  { SECT_EMPTY, " "},
-  { SECT_STRANGE, "\tR?\tn"},
-  { SECT_HERE, "\tW&\tn"},
+    {-1, ""}, /* RESERVED, NUM_ROOM_SECTORS */
+    {SECT_EMPTY, " "},
+    {SECT_STRANGE, "\tR?\tn"},
+    {SECT_HERE, "\tW&\tn"},
 };
-
 
 static int map[MAX_MAP][MAX_MAP];
 /*
@@ -601,6 +602,7 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap) {
   count += sprintf(buf + count, "\tn%s Cave\\\\", map_info[SECT_CAVE].disp);
   count += sprintf(buf + count, "\tn%s Sea Port\\\\", map_info[SECT_SEAPORT].disp);
   count += sprintf(buf + count, "\tn%s Inside Room\\\\", map_info[SECT_INSIDE_ROOM].disp);
+  count += sprintf(buf + count, "\tn%s River\\\\", map_info[SECT_RIVER].disp);
 
   strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
 
