@@ -114,7 +114,6 @@ ACMD(do_accexp)
   int i = 0, j = 0;
   int cost = 0;
   int align_change = 100;
-  struct obj_data *obj = NULL;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
