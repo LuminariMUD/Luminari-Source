@@ -70,6 +70,7 @@ const bool locked_races[NUM_RACES] = {
     Y, /*drow (advanced)*/
     Y, /*duergar (advanced)*/
        // Y, /*lich*/
+       // Y, /*vampire*/
 };
 
 int has_unlocked_race(struct char_data *ch, int race)

@@ -1078,20 +1078,26 @@ void assign_races(void)
            /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
   set_race_details(RACE_VAMPIRE,
-                   /*descrip*/ "Few creatures are more feared than the lich. The pinnacle of necromantic art, who "
-                               "has chosen to shed his life as a method to cheat death by becoming undead. While many who reach "
-                               "such heights of power stop at nothing to achieve immortality, the idea of becoming a lich is "
-                               "abhorrent to most creatures. The process involves the extraction of ones life-force and its "
-                               "imprisonment in a specially prepared phylactery.  One gives up life, but in trapping "
-                               "life he also traps his death, and as long as his phylactery remains intact he can continue on in "
-                               "his research and work without fear of the passage of time."
+                   /*descrip*/ "Vampires are one of the most fearsome of the Undead creatures in Lumia. With unnatural strength, "
+                               " agility and cunning, they can easily overpower most other creatures with their physical "
+                               "prowess alone. But the vampire is much more deadly than just his claws and wits. Vampires have "
+                               "a number of supernatural abilities that inspire dread in his foes.  Gaining sustenance from "
+                               "the blood of the living, vampires can heal quickly from almost any wound. For the victims "
+                               "of their feeding, they may raise again as vampiric spawn... an undead creature under the vampire's "
+                               "control with many vampiric abilities of their own. They may also call animal minions to aid them "
+                               "in battle, from wolves, to swarms of rats and vampire bats as well. They can dominate intelligent "
+                               "foes with a simple gaze, and they may drain the energy of living beings with an unarmed attack. "
+                               "They can also assume the form of a wolf or a giant bat, as well as assume a gasoeus form at will, "
+                               "and have the ability to scale sheer surfaces as easily as a spider may."
                                "\r\n\r\n"
-                               "The quest to become a lich is a lengthy one. While construction of the magical phylactery to "
-                               "contain ones soul is a critical component, a prospective lich must also learn the "
-                               "secrets of transferring his soul into the receptacle and of preparing his body for the "
-                               "transformation into undeath, neither of which are simple tasks. Further complicating the ritual "
-                               "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
-                               "might simply kill another or drive him insane. "
+                               "But a vampire is not without its weaknesses. Exposed to sunlight, they will quickly be reduced "
+                               "to ash, and moving water is worse, able to kill a vampire submerged in running water in less than a minute."
+                               "\r\n\r\n"
+                               "Being a vampire is a state most would consider a curse, however there are legends of those who "
+                               "sought out the 'gift' of vampirism, with some few who actually obtained it. To this day however, "
+                               "such secrets have been lost to the ages. However these are the days of great heroes and villains, "
+                               "and such days often bring to light secrets of the past. Perhaps one day soon the legends may become "
+                               "reality."
                                "\r\n\r\n"
                                "Please note that a Vampire will be the same size class they were before the transformation.\r\n  "
                                "Please note that a Vampire is the one of the only Epic Races that can multi-class.\r\n  "
@@ -1923,6 +1929,8 @@ int parse_race_long(const char *arg_in)
     return RACE_TRELUX;
   if (is_abbrev(arg, "lich"))
     return RACE_LICH;
+  if (is_abbrev(arg, "vampire"))
+    return RACE_VAMPIRE;
   if (is_abbrev(arg, "crystaldwarf"))
     return RACE_CRYSTAL_DWARF;
   if (is_abbrev(arg, "crystal-dwarf"))
