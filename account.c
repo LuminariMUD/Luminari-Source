@@ -107,15 +107,13 @@ int has_unlocked_class(struct char_data *ch, int class)
   return FALSE;
 }
 
-#define APPLE 13400 /* good */
-#define FLESH 13401 /* evil */
 #define ALIGN_COST 2000
 ACMD(do_accexp)
 {
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   int i = 0, j = 0;
   int cost = 0;
-  int food_item = NOTHING;
+  int align_change = 100;
   struct obj_data *obj = NULL;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
@@ -123,7 +121,7 @@ ACMD(do_accexp)
   if (!*arg)
   {
     send_to_char(ch, "Usage: accexp [class | race | align] [<class-name to unlock> | "
-                     "<race-name to unlock> | <flesh (evil) OR apple (good)>]\r\n");
+                     "<race-name to unlock> | <evil OR good>]\r\n");
     return;
   }
 
@@ -134,46 +132,57 @@ ACMD(do_accexp)
 
     if (!*arg2)
     {
-      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
+      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
       return;
     }
 
-    if (is_abbrev(arg2, "flesh"))
+    if (is_abbrev(arg2, "evil"))
     {
-      food_item = FLESH;
+      align_change *= -1;
     }
-    else if (is_abbrev(arg2, "apple"))
+    else if (is_abbrev(arg2, "good"))
     {
-      food_item = APPLE;
+      ; /* base value above is fine */
     }
     else
     {
-      send_to_char(ch, "Please choose 'apple' for good alignment change or 'flesh' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
+      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
       return;
     }
 
     if (ch->desc && ch->desc->account)
     {
-      if (GET_ACCEXP_DESC(ch) >= cost)
+      if ((GET_ALIGNMENT(ch) + align_change) > 1099 || (GET_ALIGNMENT(ch) + align_change) < -1099)
+      {
+        send_to_char(ch, "You have the maximum alignment already!\r\n");
+        return;
+      }
+      else if (GET_ACCEXP_DESC(ch) >= cost)
       {
         GET_ACCEXP_DESC(ch) -= cost;
         save_account(ch->desc->account);
-        send_to_char(ch, "You have unlocked a food item that will change your alignment by 100 points.  Use the 'eat' command to use the item!\r\n");
+        send_to_char(ch, "You have changed your alignment by %d points, costing %d account points!\r\n",
+                     align_change, cost);
 
-        obj = read_object(food_item, VIRTUAL);
+        GET_ALIGNMENT(ch) += align_change;
 
-        if (obj)
-          obj_to_char(obj, ch);
-        else
+        if (GET_ALIGNMENT(ch) > 1000)
         {
-          send_to_char(ch, "Notify staff of bug in account.c - no food object!\r\n");
+          GET_ALIGNMENT(ch) = 1000;
+          send_to_char(ch, "You have the maximum good alignment now.\r\n");
+        }
+
+        if (GET_ALIGNMENT(ch) < -1000)
+        {
+          GET_ALIGNMENT(ch) = -1000;
+          send_to_char(ch, "You have the maximum evil alignment now.\r\n");
         }
 
         return;
       }
       else
       {
-        send_to_char(ch, "You need %d account experience to purchase that item and you only have %d.\r\n",
+        send_to_char(ch, "You need %d account experience to purchase that change and you only have %d.\r\n",
                      cost, GET_ACCEXP_DESC(ch));
         return;
       }
@@ -327,8 +336,6 @@ ACMD(do_accexp)
     return;
   }
 }
-#undef APPLE
-#undef FLESH
 
 int load_account(char *name, struct account_data *account)
 {
