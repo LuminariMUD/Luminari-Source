@@ -862,6 +862,9 @@ SAVING_WILL here...  */
     case SPELL_LOCATE_OBJECT:
       MANUAL_SPELL(spell_locate_object);
       break;
+    case SPELL_RESURRECT:
+      MANUAL_SPELL(spell_resurrect);
+      break;
     case SPELL_AUGURY:
       MANUAL_SPELL(spell_augury);
       break;
@@ -3689,9 +3692,9 @@ void mag_assign_spells(void)
   // mass enhance - shared
 
   // 8th circle
-  spello(SPELL_RESURRECT, "resurrection", 72, 57, 1, POS_FIGHTING,
+  spello(SPELL_RESURRECT, "resurrection", 0, 0, 0, POS_FIGHTING,
          TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
-         NULL, 10, 15, NECROMANCY, FALSE); // wiz4, cle3
+         NULL, 10, 15, NECROMANCY, FALSE);
   spello(SPELL_SANCTUARY, "sanctuary", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "The white aura around your body fades.", 8, 22, NOSCHOOL, FALSE);
