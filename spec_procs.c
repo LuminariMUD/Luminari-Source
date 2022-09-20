@@ -7274,7 +7274,7 @@ SPECIAL(celestial_sword)
     return FALSE;
 
   struct obj_data *celestial = (struct obj_data *)me, *obj = NULL;
-  bool found = FALSE;
+  // bool found = FALSE;
 
   skip_spaces(&argument);
 
