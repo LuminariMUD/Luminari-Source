@@ -1661,10 +1661,17 @@ static void zone_yell(struct char_data *ch, const char *buf)
   int num_targets = 0;
 
   if (!ch)
-  return;
+    return;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
 
   for (i = character_list; i; i = i->next)
   {
+
+    if (IN_ROOM(i) == NOWHERE)
+      continue;
+
     if (world[ch->in_room].zone == world[i->in_room].zone)
     {
 
