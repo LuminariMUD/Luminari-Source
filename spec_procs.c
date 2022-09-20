@@ -7376,10 +7376,10 @@ SPECIAL(celestial_sword)
   } /* end room revive proc */
 #endif
 
-    call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL)
-        call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL)
-            call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL)
-                GET_OBJ_SPECTIMER(celestial, 0) = 12;
+    call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
+    GET_OBJ_SPECTIMER(celestial, 0) = 12;
 
     /* failed! */
     return FALSE;
