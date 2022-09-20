@@ -1689,6 +1689,7 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 void raw_kill(struct char_data *ch, struct char_data *killer)
 {
   struct char_data *k, *temp;
+  struct affected_type af;
 
   /* stop relevant fighting */
   if (FIGHTING(ch))
@@ -1856,6 +1857,14 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
     /* get you back to life */
     GET_HIT(ch) = 1;
     update_pos(ch);
+
+    // Apply recently deceased affect
+    new_affect(&af);
+    af.spell = AFFECT_RECENTLY_DIED;
+    af.location = APPLY_NONE;
+    af.modifier = 0;
+    af.duration = 30; // 3 minutes
+    affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
 
     /* move char to starting room */
     char_to_room(ch, r_mortal_start_room);

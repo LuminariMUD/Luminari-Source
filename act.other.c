@@ -2072,6 +2072,8 @@ ACMD(do_tame)
 /* the guts of the respec mechanic */
 void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
 {
+  struct affected_type af;
+
   /* in the clear! */
   int tempXP = GET_EXP(ch);
 
@@ -2102,6 +2104,13 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   do_start(ch);
   HAS_SET_STATS_STUDY(ch) = FALSE;
   GET_EXP(ch) = tempXP;
+
+  new_affect(&af);
+  af.spell = AFFECT_RECENTLY_RESPECED;
+  af.location = APPLY_NONE;
+  af.modifier = 0;
+  af.duration = 100; // 10 minutes
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
 
   if (!silent)
   {

@@ -1956,7 +1956,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
-  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT)
+  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT && 
+      !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
   {
     if (IN_SUNLIGHT(ch))
     {

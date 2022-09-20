@@ -3917,6 +3917,13 @@ void mag_assign_spells(void)
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          "The effects of your ability score damage expires.", 1, 1, NOSCHOOL, FALSE);
 
+  spello(AFFECT_RECENTLY_DIED, "recent death", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         "The effects of your recent death subside.", 1, 1, NOSCHOOL, FALSE);
+  spello(AFFECT_RECENTLY_RESPECED, "recent respec", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         "Your protection for being recently respecced has expired.", 1, 1, NOSCHOOL, FALSE);
+
   spello(ABILITY_BLOOD_DRAIN, "vampiric blood drain", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
 

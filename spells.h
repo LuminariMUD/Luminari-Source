@@ -550,6 +550,8 @@
 #define AFFECT_LEVEL_DRAIN 1226
 #define ABILITY_CREATE_VAMPIRE_SPAWN 1227
 #define ABILITY_BLOOD_DRAIN 1228
+#define AFFECT_RECENTLY_DIED 1229
+#define AFFECT_RECENTLY_RESPECED 1230
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
