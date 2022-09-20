@@ -88,6 +88,37 @@ int boot_high = 0;
 #define WPT_SHADOWDANCER 13
 #define WPT_ASSASSIN 14
 
+const char *const eq_ordering_1[NUM_WEARS] = {
+    WEAR_LIGHT,         //<used as light>
+    WEAR_BADGE,         //<worn as a badge>
+    WEAR_HEAD,          //<worn on head>
+    WEAR_EYES,          //<worn on eyes>
+    WEAR_EAR_R,         //<worn in ear>
+    WEAR_EAR_L,         //<worn in ear>
+    WEAR_FACE,          //<worn on face>
+    WEAR_NECK_1,        //<worn around neck>
+    WEAR_NECK_2,        //<worn around neck>
+    WEAR_BODY,          //<worn on body>
+    WEAR_ABOUT,         //<worn about body>
+    WEAR_AMMO_POUCH,    //<worn as ammo pouch>
+    WEAR_WAIST,         //<worn about waist>
+    WEAR_ARMS,          //<worn on arms>
+    WEAR_WRIST_R,       //<worn around wrist>
+    WEAR_WRIST_L,       //<worn around wrist>
+    WEAR_HANDS,         //<worn on hands>
+    WEAR_FINGER_R,      //<worn on finger>
+    WEAR_FINGER_L,      //<worn on finger>
+    WEAR_WIELD_1,       //<wielding/held slots>
+    WEAR_HOLD_1,        //<wielding/held slots>
+    WEAR_WIELD_OFFHAND, //<wielding/held slots>
+    WEAR_HOLD_2,        //<wielding/held slots>
+    WEAR_WIELD_2H,      //<wielding/held slots>
+    WEAR_HOLD_2H,       //<wielding/held slots>
+    WEAR_SHIELD,        //<worn as shield>
+    WEAR_LEGS,          //<worn on legs>
+    WEAR_FEET,          //<worn on feet>
+};
+
 /*******  UTILITY FUNCTIONS ***********/
 
 /* function to display some basic info about a mobile that is 'identified' or
@@ -664,12 +695,15 @@ static void look_at_char(struct char_data *i, struct char_data *ch)
     send_to_char(ch, "\r\n"); /* act() does capitalization. */
     act("$n is using:", FALSE, i, 0, ch, TO_VICT);
     for (j = 0; j < NUM_WEARS; j++)
-      if (GET_EQ(i, j) && CAN_SEE_OBJ(ch, GET_EQ(i, j)))
+    {
+      if (GET_EQ(i, eq_ordering_1[j]) && CAN_SEE_OBJ(ch, GET_EQ(i, eq_ordering_1[j])))
       {
-        send_to_char(ch, "%s", wear_where[j]);
-        show_obj_to_char(GET_EQ(i, j), ch, SHOW_OBJ_SHORT, 0);
+        send_to_char(ch, "%s", wear_where[eq_ordering_1[j]]);
+        show_obj_to_char(GET_EQ(i, eq_ordering_1[j]), ch, SHOW_OBJ_SHORT, 0);
       }
+    }
   }
+
   if (ch != i && (IS_ROGUE(ch) || GET_LEVEL(ch) >= LVL_IMMORT))
   {
     act("\r\nYou attempt to peek at $s inventory:", FALSE, i, 0, ch, TO_VICT);
@@ -3309,19 +3343,19 @@ ACMD(do_equipment)
   send_to_char(ch, "You are using:\r\n");
   for (i = 0; i < NUM_WEARS; i++)
   {
-    if (GET_EQ(ch, i))
+    if (GET_EQ(ch, eq_ordering_1[i]))
     {
       found = TRUE;
-      if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
+      if (CAN_SEE_OBJ(ch, GET_EQ(ch, eq_ordering_1[i])))
       {
-        send_to_char(ch, "%s", wear_where[i]);
+        send_to_char(ch, "%s", wear_where[eq_ordering_1[i]]);
         /* added this as a clue to players */
-        switch (i)
+        switch (eq_ordering_1[i])
         {
         case WEAR_WIELD_1:
         case WEAR_WIELD_OFFHAND:
         case WEAR_WIELD_2H:
-          if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(GET_EQ(ch, i))))
+          if (!is_proficient_with_weapon(ch, GET_WEAPON_TYPE(GET_EQ(ch, eq_ordering_1[i]))))
             send_to_char(ch, "(not proficient) ");
           break;
         case WEAR_SHIELD:
@@ -3347,11 +3381,11 @@ ACMD(do_equipment)
         default:
           break;
         }
-        show_obj_to_char(GET_EQ(ch, i), ch, SHOW_OBJ_SHORT, mxp_type);
+        show_obj_to_char(GET_EQ(ch, eq_ordering_1[i]), ch, SHOW_OBJ_SHORT, mxp_type);
       }
       else
       {
-        send_to_char(ch, "%s", wear_where[i]);
+        send_to_char(ch, "%s", wear_where[eq_ordering_1[i]]);
         send_to_char(ch, "Something.\r\n");
       }
     }
