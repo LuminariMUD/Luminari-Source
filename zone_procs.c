@@ -1126,7 +1126,7 @@ SPECIAL(tia_rapier)
         "\tLfrom you and transfers it back to $m.\tn",
         FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
     damage(ch, vict, dice(5, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_WEAPON_SPELL);
     return 1;
   }
 
@@ -1438,7 +1438,7 @@ int prisoner_attacks(struct char_data *ch)
     selected = breath[selected];
 
     // do a breath..  level 40 breath since she breaths every round.
-    call_magic(ch, FIGHTING(ch), 0, selected, 0, 34, CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, selected, 0, 34, CAST_INNATE);
 
     return 1;
   }
@@ -2227,7 +2227,7 @@ SPECIAL(ymir)
 
   if (FIGHTING(ch) && !rand_number(0, 4))
   {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FROST_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);
     return 1;
   }
 
@@ -2241,7 +2241,7 @@ SPECIAL(planetar)
 
   if (FIGHTING(ch) && !rand_number(0, 5))
   {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_LIGHTNING_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);
     return 1;
   }
 
@@ -2352,7 +2352,7 @@ SPECIAL(mistweave)
           "\tLenshrouding the eyes of $N.",
           FALSE, ch, obj, vict, TO_ROOM);
 
-      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 0, 30, CAST_SPELL);
+      call_magic(ch, FIGHTING(ch), 0, SPELL_BLINDNESS, 0, 30, CAST_WEAPON_SPELL);
       GET_OBJ_SPECTIMER(obj, 0) = 24;
       return 1;
     }
@@ -2406,12 +2406,12 @@ SPECIAL(frostbite)
 
       pct = rand_number(0, 99);
       if (pct < 55)
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 20, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 20, CAST_WEAPON_SPELL);
       else if (pct < 85)
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_WEAPON_SPELL);
       else
       {
-        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_CONE_OF_COLD, 0, 30, CAST_WEAPON_SPELL);
         if (!paralysis_immunity(vict))
         {
           new_affect(&af);
@@ -2662,7 +2662,7 @@ SPECIAL(valkyrie_sword)
       "\tYengulfing $n's \tYfoe.",
       ch, vict, (struct obj_data *)me, 0);
 
-  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 0, 30, CAST_SPELL);
+  call_magic(ch, vict, 0, SPELL_BURNING_HANDS, 0, 30, CAST_WEAPON_SPELL);
 
   return 1;
 }
@@ -2690,7 +2690,7 @@ SPECIAL(planetar_sword)
                    0,
                    "\tWA nimbus of holy light surrounds $n's\tW sword, bathing $m in its radiance.",
                    ch, ch, (struct obj_data *)me, SPELL_CURE_CRITIC);
-    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return 1;
   case 2:
     weapons_spells("\tWA glowing nimbus of light emanates forth blasting the foul evil in its presence.\tn",

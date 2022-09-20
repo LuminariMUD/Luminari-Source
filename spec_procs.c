@@ -1660,6 +1660,9 @@ static void zone_yell(struct char_data *ch, const char *buf)
   struct char_data *vict = NULL;
   int num_targets = 0;
 
+  if (!ch)
+  return;
+
   for (i = character_list; i; i = i->next)
   {
     if (world[ch->in_room].zone == world[i->in_room].zone)
@@ -1982,7 +1985,7 @@ SPECIAL(shadowdragon)
     GET_MOVE(vict) -= (10 + dice(5, 4));
   }
 
-  call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, FIGHTING(ch), 0, SPELL_DARKNESS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
 
   return TRUE;
 }
@@ -2003,7 +2006,7 @@ SPECIAL(imix)
 
   if (!rand_number(0, 3) && FIGHTING(ch))
   {
-    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, FIGHTING(ch), 0, SPELL_FIRE_BREATHE, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return TRUE;
   }
 
@@ -2998,7 +3001,7 @@ SPECIAL(snake)
 
   act("$n bites $N!", 1, ch, 0, FIGHTING(ch), TO_NOTVICT);
   act("$n bites you!", 1, ch, 0, FIGHTING(ch), TO_VICT);
-  call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
   return (TRUE);
 }
 
@@ -4521,7 +4524,7 @@ SPECIAL(gromph)
     ch = (struct char_data *)me;
     act("$n sighs at YOU and mutters, 'You insolent worm!'", FALSE, ch, 0, victim, TO_VICT);
     act("$n sighs at $N, 'You insolent worm!'", FALSE, ch, 0, victim, TO_NOTVICT);
-    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
+    call_magic(ch, victim, 0, SPELL_MISSILE_STORM, 0, 30, CAST_WEAPON_SPELL);
     return TRUE;
   }
 
@@ -5213,7 +5216,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
   act(to_ch, FALSE, ch, obj, vict, TO_CHAR);
   act(to_vict, FALSE, ch, obj, vict, TO_VICT);
   act(to_room, FALSE, ch, obj, vict, TO_NOTVICT);
-  call_magic(ch, vict, 0, spl, 0, level, CAST_WAND);
+  call_magic(ch, vict, 0, spl, 0, level, CAST_WEAPON_SPELL);
 }
 
 /* very simple ship code system */
@@ -5449,7 +5452,7 @@ SPECIAL(spikeshield)
         "\tLfrom you and transfers it back to $m.\tn",
         FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
     damage(ch, vict, 15, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_WEAPON_SPELL);
     return TRUE;
   }
 
@@ -5587,7 +5590,7 @@ SPECIAL(ches)
       act("\tC$n whispers to $s $p",
           FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
-      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
       return TRUE;
     }
@@ -5628,9 +5631,9 @@ SPECIAL(courage)
     act("$n \tLinvokes $s $p!", FALSE, ch, courage, 0, TO_ROOM);
     act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
 
-    call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     if (is_wearing(ch, 13925))
-      call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER(courage, 0) = 72;
     return TRUE;
@@ -5697,7 +5700,7 @@ SPECIAL(helmblade)
         "\tWThe \tYHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
         "\tWThe \tWHOLY\tW power of \tYHelm\tW flows through $n's\tW body, cleaning $m of \tLevil\tW and nourishing $m.\tn",
         ch, vict, (struct obj_data *)me, 0);
-    call_magic(ch, ch, 0, SPELL_CURE_SERIOUS, 0, GET_LEVEL(ch), CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_CURE_SERIOUS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return TRUE;
   case 1:
     weapons_spells(
@@ -5933,7 +5936,7 @@ SPECIAL(haste_bracers)
           "\tW$n's $p \tcglow with a blue aura.\tn\r\n"
           "\tW$n moves with \tCl\tci\tCg\tch\tCt\tW speed.\tn\r\n",
           FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_SPELL);
+      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 84;
       return TRUE;
     }
@@ -6409,7 +6412,7 @@ SPECIAL(purity)
         "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn",
         FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
-    call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
   }
   damage(ch, vict, dam, -1, DAM_HOLY, FALSE); // type -1 = no dam message
   return TRUE;
@@ -6665,9 +6668,9 @@ SPECIAL(tyrantseye)
         "words to his \tgscepter\tL. $N \tLis blinded by a brilliant \tWFLASH\tn "
         "\tLas a \tpbolt\tL of crackling \tGgreen energy\tL is hurled toward $M!\tn",
         ch, vict, (struct obj_data *)me, 0);
-    call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 0, 30, CAST_SPELL);
-    call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, 30, CAST_SPELL);
-    call_magic(ch, vict, 0, SPELL_SLOW, 0, 30, CAST_SPELL);
+    call_magic(ch, vict, 0, SPELL_MISSILE_STORM, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, vict, 0, SPELL_SLOW, 0, 30, CAST_WEAPON_SPELL);
     return TRUE;
   case 10:
     weapons_spells(
@@ -6685,8 +6688,8 @@ SPECIAL(tyrantseye)
       in = i->next;
       if (!IS_NPC(i) || IS_PET(i))
       {
-        call_magic(ch, i, 0, SPELL_CURSE, 0, 30, CAST_SPELL);
-        call_magic(ch, i, 0, SPELL_POISON, 0, 30, CAST_SPELL);
+        call_magic(ch, i, 0, SPELL_CURSE, 0, 30, CAST_WEAPON_SPELL);
+        call_magic(ch, i, 0, SPELL_POISON, 0, 30, CAST_WEAPON_SPELL);
       }
       return TRUE;
     }
@@ -6744,8 +6747,8 @@ SPECIAL(spiderdagger)
       send_to_char(ch, "\tLYou invoke \tmLloth\tw.\tn\r\n");
       act("\tw$n raises $s $p \tw high and calls on \tmLloth.\tn",
           FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-      call_magic(ch, ch, 0, SPELL_NON_DETECTION, 0, 30, CAST_POTION);
-      call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 0, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_NON_DETECTION, 0, 30, CAST_WEAPON_SPELL);
+      call_magic(ch, ch, 0, SPELL_CIRCLE_A_GOOD, 0, 30, CAST_WEAPON_SPELL);
 
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
       return TRUE;
@@ -7003,12 +7006,12 @@ SPECIAL(whisperwind)
             1, ch, whisperwind, vict, TO_VICT);
 
         /* harm spell */
-        call_magic(ch, vict, 0, SPELL_HARM, 0, 30, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_HARM, 0, 30, CAST_WEAPON_SPELL);
         /* up to 3 dispel evils */
         for (i = 0; i < 3; i++)
         {
           if (valid_fight_cond(ch, TRUE))
-            call_magic(ch, vict, 0, SPELL_DISPEL_EVIL, 0, 30, CAST_SPELL);
+            call_magic(ch, vict, 0, SPELL_DISPEL_EVIL, 0, 30, CAST_WEAPON_SPELL);
           if (GET_POS(vict) == POS_DEAD)
             break;
         }
@@ -7212,12 +7215,12 @@ SPECIAL(ancient_moonblade)
             1, ch, whisperwind, vict, TO_VICT);
 
         /* harm spell */
-        call_magic(ch, vict, 0, SPELL_HARM, 0, 30, CAST_SPELL);
+        call_magic(ch, vict, 0, SPELL_HARM, 0, 30, CAST_WEAPON_SPELL);
         /* up to 3 dispel evils */
         for (i = 0; i < 3; i++)
         {
           if (valid_fight_cond(ch, TRUE))
-            call_magic(ch, vict, 0, SPELL_DISPEL_EVIL, 0, 30, CAST_SPELL);
+            call_magic(ch, vict, 0, SPELL_DISPEL_EVIL, 0, 30, CAST_WEAPON_SPELL);
           if (GET_POS(vict) == POS_DEAD)
             break;
         }
@@ -7246,8 +7249,8 @@ SPECIAL(celestial_sword)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse (don't have to be in the same room).\r\n"
-                     "Whisper 'messiah' to attempt to resurrect all the player corpses in the room.\r\n");
+    send_to_char(ch, "Whisper 'revive' to resurrect from your last corpse every 2 days (don't have to be in the same room).\r\n"
+                     "Whisper 'messiah' to cast a strong group heal every 12 hours\r\n");
     return TRUE;
   }
 
@@ -7315,6 +7318,8 @@ SPECIAL(celestial_sword)
       return TRUE;
     }
 
+    /* i couldn't get this to stop crashing, disabled for now -zusuk */
+#if 0
     /* lets try to find your corpse.. */
     for (obj = object_list; obj; obj = obj->next)
     {
@@ -7353,6 +7358,12 @@ SPECIAL(celestial_sword)
     send_to_char(ch, "No corpses were found...\r\n");
     return FALSE;
   } /* end room revive proc */
+#endif
+
+  call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL)
+  call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL)
+  call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL)
+  GET_OBJ_SPECTIMER(celestial, 0) = 12;
 
   /* failed! */
   return FALSE;
@@ -7466,7 +7477,7 @@ SPECIAL(vengeance)
         "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
         "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
         ch, vict, (struct obj_data *)me, 0);
-    call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WAND);
+    call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return TRUE;
   }
   weapons_spells(
@@ -7909,7 +7920,7 @@ SPECIAL(rune_scimitar)
         "\tLfrom $N\tL.\tn",
         FALSE, ch, scimitar, vict, TO_NOTVICT);
     damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_WEAPON_SPELL);
     return TRUE;
   }
 
@@ -7926,7 +7937,7 @@ SPECIAL(rune_scimitar)
         "\tLfrom $N\tL.\tn",
         FALSE, ch, scimitar, vict, TO_NOTVICT);
     damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_SPELL);
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_WEAPON_SPELL);
     return TRUE;
   }
 
@@ -8059,7 +8070,7 @@ SPECIAL(tormblade)
   {
     act("$n's $p hums loudly.", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
     act("Your $p hums loudly.", FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-    call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_WAND);
+    call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
     return TRUE;
   }
 
@@ -8171,7 +8182,7 @@ SPECIAL(air_sphere)
       SET_BIT_AR(af.bitvector, AFF_HASTE);
       affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
 
-      call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_POTION);
+      call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_WEAPON_SPELL);
 
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
       return TRUE;
@@ -8730,9 +8741,9 @@ SPECIAL(stability_boots)
         "\twbefore the eddies are drawn inward around your body.\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
-    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 30, CAST_POTION);
-    call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_POTION);
-    call_magic(ch, ch, 0, SPELL_SHADOW_SHIELD, 0, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, ch, 0, SPELL_SHADOW_SHIELD, 0, 30, CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
     return TRUE;
@@ -8781,8 +8792,8 @@ SPECIAL(hellfire)
         "\tLThe flames rise and protects $m!\tn\r\n",
         FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
-    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 26, CAST_POTION);
-    call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 26, CAST_WEAPON_SPELL);
+    call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
     return TRUE;
@@ -8853,7 +8864,7 @@ SPECIAL(angel_leggings)
     if (DEBUGMODE)
       send_to_char(ch, "Debug - Mark 9\r\n");
 
-    call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
 
@@ -8926,7 +8937,7 @@ SPECIAL(dragon_robes)
     if (DEBUGMODE)
       send_to_char(ch, "Debug - Mark 9\r\n");
 
-    call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_POTION);
+    call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
 
@@ -9101,7 +9112,7 @@ SPECIAL(clang_bracer)
       send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
                                  "blow clear as if it were yesterday.  You feel your muscles tighten "
                                  "then relax as the skill of ancient warriors is merged with your own.\r\n");
-      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_POTION);
+      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_WEAPON_SPELL);
       GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
       return TRUE;
     }
