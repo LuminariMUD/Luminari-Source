@@ -1488,7 +1488,7 @@ static void make_corpse(struct char_data *ch)
     corpse->drainKilled = true;
   // The character's short desc for things like vampire spawn
   corpse->char_sdesc = strdup(ch->player.short_descr);
-  
+
   /* ok done setting up the corpse */
 
   /* transfer character's inventory to the corpse */
@@ -3598,7 +3598,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     {
       damtype_reduction = (float)compute_damtype_reduction(victim, dam_type);
       damtype_reduction = (((float)(damtype_reduction / 100.0)) * (float)dam);
-      dam -= (int) damtype_reduction;
+      dam -= (int)damtype_reduction;
     }
 
     if (dam <= 0 && (ch != victim))
@@ -4319,7 +4319,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       act("$n fully assimilates your form, gaining some of your power.", false, ch, 0, victim, TO_VICT);
       act("$n fully assimilates the form of $N gaining some of $S power.", false, ch, 0, victim, TO_NOTVICT);
     }
-    
+
     return (dam_killed_vict(ch, victim));
   }
 
@@ -4712,7 +4712,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += GET_LEVEL(ch) / 2;
   }
 
-  /* ranged includes arrow enhancement bonus */
+  /* ranged includes arrow enhancement bonus + special ranged bonus to favored enemies with the epic favored enemy feat */
   if (can_fire_ammo(ch, TRUE))
   {
     if (display_mode)
@@ -4723,6 +4723,32 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC) && display_mode)
       send_to_char(ch, "Enhance ammo magic bonus: \tR%d\tn\r\n", HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC));
     dambonus += HAS_FEAT(ch, FEAT_ENHANCE_ARROW_MAGIC);
+
+    /* favored enemy */
+    if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER))
+    {
+      // checking if we have humanoid favored enemies for PC victims
+      if (!IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
+      {
+
+        if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
+        {
+          if (display_mode)
+            send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n", GET_DEX_BONUS(ch));
+          dambonus += GET_DEX_BONUS(ch);
+        }
+      }
+      else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
+      {
+
+        if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
+        {
+          if (display_mode)
+            send_to_char(ch, "Epic favored enemy ranged dex bonus: \tR%d\tn\r\n", GET_DEX_BONUS(ch));
+          dambonus += GET_DEX_BONUS(ch);
+        }
+      }
+    }
   }
 
   /* wildshape bonus */
@@ -4802,26 +4828,26 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     {
       if (display_mode)
         send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2);
-      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
 
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
         if (display_mode)
           send_to_char(ch, "Epic favored enemy bonus: \tR4\tn\r\n");
-        dambonus += 4;
+        dambonus += 6;
       }
     }
     else if (IS_NPC(vict) && IS_FAV_ENEMY_OF(ch, GET_RACE(vict)))
     {
       if (display_mode)
         send_to_char(ch, "Favored enemy bonus: \tR%d\tn\r\n", CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2);
-      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      dambonus += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
 
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
         if (display_mode)
           send_to_char(ch, "Epic favored enemy bonus: \tR4\tn\r\n");
-        dambonus += 4;
+        dambonus += 6;
       }
     }
   }
@@ -6791,18 +6817,18 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     // checking if we have humanoid favored enemies for PC victims
     if (!IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, RACE_TYPE_HUMANOID))
     {
-      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
-        bonuses[BONUS_TYPE_MORALE] += 4;
+        bonuses[BONUS_TYPE_MORALE] += 6;
       }
     }
     else if (IS_NPC(victim) && IS_FAV_ENEMY_OF(ch, GET_RACE(victim)))
     {
-      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 5 + 2;
+      bonuses[BONUS_TYPE_MORALE] += CLASS_LEVEL(ch, CLASS_RANGER) / 3 + 2;
       if (HAS_FEAT(ch, FEAT_EPIC_FAVORED_ENEMY))
       {
-        bonuses[BONUS_TYPE_MORALE] += 4;
+        bonuses[BONUS_TYPE_MORALE] += 6;
       }
     }
   }
