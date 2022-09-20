@@ -1879,25 +1879,24 @@ const char *wear_where[] = {
     "\tY{Worn On Finger}\tn     ",
     "\tY{Worn Around Neck}\tn   ",
     "\tY{Worn Around Neck}\tn   ",
-    "\tY{Worn On Body}\tn       ", // 5
-    "\tY{Worn On Head}\tn       ",
-    "\tY{Worn On Legs}\tn       ",
+    "\tY\t+{Worn On Body}\tn       ", // 5
+    "\tY\t+{Worn On Head}\tn       ",
+    "\tY\t+{Worn On Legs}\tn       ",
     "\tY{Worn On Feet}\tn       ",
     "\tY{Worn On Hands}\tn      ",
-    "\tY{Worn On Arms}\tn       ", // 10
-    "\tY{Worn As Shield}\tn     ",
+    "\tY\t+{Worn On Arms}\tn       ", // 10
+    "\tY\t+{Worn As Shield}\tn     ",
     "\tY{Worn About Body}\tn    ",
     "\tY{Worn About Waist}\tn   ",
     "\tY{Worn Around Wrist}\tn  ",
     "\tY{Worn Around Wrist}\tn  ", // 15
-    "\tY{Wielded}\tn            ",
-    "\tY{Held}\tn               ",
-    "\tY{Wielded Offhand}\tn    ",
-    "\tY{Held Offhand}\tn       ",
-    "\tY{Wielded Twohanded}\tn  ", // 20
-    "\tY{Held Twohanded}\tn     ",
+    "\tR{Wielded}\tn            ",
+    "\tR{Held}\tn               ",
+    "\tR{Wielded Offhand}\tn    ",
+    "\tR{Held Offhand}\tn       ",
+    "\tR{Wielded Twohanded}\tn  ", // 20
+    "\tR{Held Twohanded}\tn     ",
     "\tY{Worn On Face}\tn       ",
-    /* todo */
     "\tY{Worn As Ammo Pouch}\tn ",
     "\tY{Worn In Ear}\tn        ",
     "\tY{Worn In Ear}\tn        ", // 25
@@ -1933,7 +1932,6 @@ const char *equipment_types[] = {
     "Wielded twohands", // 20
     "Held twohands",
     "Worn on face",
-    /* todo */
     "Worn as ammo pouch",
     "Worn in right ear",
     "Worn in left ear", // 25

@@ -585,7 +585,7 @@
 /* last playable race above +1 */
 #define NUM_RACES 13
 
-#define RACE_LICH 13 /*quest only race*/
+#define RACE_LICH 13    /*quest only race*/
 #define RACE_VAMPIRE 89 /*quest only race*/
 
 /* coming soon!*/
@@ -949,7 +949,7 @@
 #define PRF_USE_STORED_CONSUMABLES 56 // will use the stored consumables system instead of stock TBAMUD use command
 #define PRF_DISPTIME 57               // shows game time in prompt
 #define PRF_AUTO_STAND 58             // attempt to auto stand
-#define PRF_BLOOD_DRAIN 59        // Vampires will drain blood when grappling if this is turned on.
+#define PRF_BLOOD_DRAIN 59            // Vampires will drain blood when grappling if this is turned on.
 
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS 60
@@ -1198,11 +1198,10 @@
 #define WEAR_HOLD_2H 21       // two-hand held
 #define WEAR_FACE 22          // equipment location face
 #define WEAR_AMMO_POUCH 23    // ammo pouch (for ranged weapons)
-/* unfinished (might not implement) */
-#define WEAR_EAR_R 24 /* worn on/in right ear */
-#define WEAR_EAR_L 25 /* worn on/in left ear */
-#define WEAR_EYES 26  /* worn in/over eye(s) */
-#define WEAR_BADGE 27 /* attached to your body armor as a badge */
+#define WEAR_EAR_R 24         /* worn on/in right ear */
+#define WEAR_EAR_L 25         /* worn on/in left ear */
+#define WEAR_EYES 26          /* worn in/over eye(s) */
+#define WEAR_BADGE 27         /* attached to your body armor as a badge */
 /** Total number of available equipment lcoations */
 #define NUM_WEARS 28
 /**/
@@ -2088,7 +2087,7 @@
 #define FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT 869
 #define FEAT_VAMPIRE_CREATE_SPAWN 870
 #define FEAT_VAMPIRE_DOMINATE 871
-#define FEAT_VAMPIRE_ENERGY_DRAIN 872 
+#define FEAT_VAMPIRE_ENERGY_DRAIN 872
 #define FEAT_VAMPIRE_CHANGE_SHAPE 873
 #define FEAT_VAMPIRE_GASEOUS_FORM 874
 #define FEAT_VAMPIRE_SPIDER_CLIMB 875
@@ -3764,7 +3763,7 @@ struct char_special_data
 
     bool autodoor_message; // used for message handling in autodoor
 
-    bool drainKilled;        // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
+    bool drainKilled; // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
 };
 
 /* old memorization struct */
