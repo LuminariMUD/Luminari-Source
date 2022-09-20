@@ -2120,7 +2120,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     act("$N ignores the spell affect, as it only affects the living.", TRUE, ch, 0, victim, TO_ROOM);
     return 1;
   }
-  
+
   if (spellnum == SPELL_UNDEATH_TO_DEATH && !IS_UNDEAD(victim))
   {
     act("You ignore the spell affect, as it only affects undead.", TRUE, ch, 0, victim, TO_VICT);
@@ -6993,7 +6993,7 @@ static const char *mag_summon_fail_msgs[] = {
     "You failed.\r\n",
     "There is no corpse!\r\n",
     "Your summons go unanswered.\r\n",
-    };
+};
 
 /* Defines for Mag_Summons */
 // objects
@@ -7020,18 +7020,18 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_FIRE_ELEMENTAL 51
 #define MOB_EARTH_ELEMENTAL 52
 #define MOB_AIR_ELEMENTAL 53
-#define MOB_WATER_ELEMENTAL 54      // these elementals are for rest of s.c.
-#define MOB_GHOST 55                // great animation
-#define MOB_SPECTRE 56              // great animation
-#define MOB_BANSHEE 57              // great animation
-#define MOB_WIGHT 58                // great animation
-#define MOB_BLADE_OF_DISASTER 59    // black blade of disaster
-#define MOB_DIRE_RAT 9400           // summon natures ally i
-#define MOB_ECTOPLASMIC_SHAMBLER 93 // ectoplasmic shambler psionic ability
+#define MOB_WATER_ELEMENTAL 54                // these elementals are for rest of s.c.
+#define MOB_GHOST 55                          // great animation
+#define MOB_SPECTRE 56                        // great animation
+#define MOB_BANSHEE 57                        // great animation
+#define MOB_WIGHT 58                          // great animation
+#define MOB_BLADE_OF_DISASTER 59              // black blade of disaster
+#define MOB_DIRE_RAT 9400                     // summon natures ally i
+#define MOB_ECTOPLASMIC_SHAMBLER 93           // ectoplasmic shambler psionic ability
 #define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 9419 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421 // Potential mob for children of the night vampire ability.
-#define MOB_CREATE_VAMPIRE_SPAWN 9422 // Mob to use for create vampire spawn
+#define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420   // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421   // Potential mob for children of the night vampire ability.
+#define MOB_CREATE_VAMPIRE_SPAWN 9422         // Mob to use for create vampire spawn
 
 bool isSummonMob(int vnum)
 {
@@ -7156,7 +7156,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     pfail = 10; /* 10% failure, should vary in the future. */
     break;
 
-    case ABILITY_CREATE_VAMPIRE_SPAWN: // necromancy
+  case ABILITY_CREATE_VAMPIRE_SPAWN: // necromancy
     if (obj == NULL || !IS_CORPSE(obj))
     {
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
@@ -7731,7 +7731,16 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
 
     default:
       /* generic healing */
-      GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + healing);
+
+      /* generic healing only takes you to the max */
+      if (GET_HIT(victim) >= GET_MAX_HIT(victim))
+        break; /* nothing to do here! */
+
+      healing = MIN(healing, (GET_MAX_HIT(victim) - GET_HIT(victim)));
+
+      GET_HIT(victim) += healing;
+
+      /* all done! */
       break;
     }
   }
