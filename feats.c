@@ -624,29 +624,29 @@ void assign_feats(void)
   /* Vampire */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_VAMPIRE_NATURAL_ARMOR, "vampiric natural armor", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-              "Vampires receive +6 natural armor.",
-              "Vampires receive +6 natural armor.");
+        "Vampires receive +6 natural armor.",
+        "Vampires receive +6 natural armor.");
   feato(FEAT_VAMPIRE_DAMAGE_REDUCTION, "vampiric damage reduction", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "Vampires receive DR 10/magic+silver.",
-                   "Vampires receive DR 10/magic+silver.");
+        "Vampires receive DR 10/magic+silver.",
+        "Vampires receive DR 10/magic+silver.");
   feato(FEAT_VAMPIRE_ENERGY_RESISTANCE, "vampiric energy resistance", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "Vampires have 10 resistance to cold or electricity.",
-                   "Vampires have 10 resistance to cold or electricity.");
+        "Vampires have 10 resistance to cold or electricity.",
+        "Vampires have 10 resistance to cold or electricity.");
   feato(FEAT_VAMPIRE_FAST_HEALING, "vampiric fast healing", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "Vampires heal 5 hp per six second round.",
-                   "Vampires heal 5 hp per six second round, provided they are not in sunlight or moving water.");
+        "Vampires heal 5 hp per six second round.",
+        "Vampires heal 5 hp per six second round, provided they are not in sunlight or moving water.");
   feato(FEAT_VAMPIRE_WEAKNESSES, "vampiric weaknesses", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "Vampires sustain 1d6 damage every six second round they are exposed to sunlight. They are also damaged by 1/3 their maximum hp every round they stand in running water (such as a river).",
-                   "Vampires sustain 1d6 damage every six second round they are exposed to sunlight. They are also damaged by 1/3 their maximum hp every round they stand in running water (such as a river).");
+        "Vampires sustain 1d6 damage every six second round they are exposed to sunlight. They are also damaged by 1/3 their maximum hp every round they stand in running water (such as a river).",
+        "Vampires sustain 1d6 damage every six second round they are exposed to sunlight. They are also damaged by 1/3 their maximum hp every round they stand in running water (such as a river).");
   feato(FEAT_VAMPIRE_BLOOD_DRAIN, "vampiric blood drain", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "A vampire can feed off of a living, grappled opponent. Each round they drain 1d4 constitution damage, and heals 5 hp, also gaining 5 temporary hp if currently at maximum hp.",
-                   "A vampire can feed off of a living, grappled opponent. Each round they drain 1d4 constitution damage, and heals 5 hp, also gaining 5 temporary hp if currently at maximum hp.");
+        "A vampire can feed off of a living, grappled opponent. Each round they drain 1d4 constitution damage, and heals 5 hp, also gaining 5 temporary hp if currently at maximum hp.",
+        "A vampire can feed off of a living, grappled opponent. Each round they drain 1d4 constitution damage, and heals 5 hp, also gaining 5 temporary hp if currently at maximum hp.");
   feato(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "children of the night", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "Once per day, the vampire can summon forth 2d6 wolves, dire rats and/or dire bats.",
-                   "Once per day, the vampire can summon forth 2d6 wolves, dire rats and/or dire bats.");
+        "Once per day, the vampire can summon forth 2d6 wolves, dire rats and/or dire bats.",
+        "Once per day, the vampire can summon forth 2d6 wolves, dire rats and/or dire bats.");
   feato(FEAT_VAMPIRE_CREATE_SPAWN, "create vampire spawn", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-                   "Can create vampire spawn from a corpse killed by level drain.",
-                   "Can create vampire spawn from a corpse killed by level drain. This is applied by using the 'slam' attack maneuver, and applying the level drain, at least once before killing the creature.");
+        "Can create vampire spawn from a corpse killed by level drain.",
+        "Can create vampire spawn from a corpse killed by level drain. This is applied by using the 'slam' attack maneuver, and applying the level drain, at least once before killing the creature.");
   feato(FEAT_VAMPIRE_DOMINATE, "vampiric domination", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "Can charm intelligent beings with a simple gaze.",
         "Can charm intelligent beings with a simple gaze.");
@@ -3030,8 +3030,8 @@ void assign_feats(void)
         "act as a bane weapon and do an additional 2d6 damage.");
   feato(FEAT_EPIC_FAVORED_ENEMY, "epic favored enemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "gain extra bonus to dam against fav enemy",
-        "You will gain an extra +4 to attack bonus and damage against any of your "
-        "favored enemies.");
+        "You will gain an extra +6 to attack bonus and damage against any of your "
+        "favored enemies and will add your dex bonus to ranged attacks.");
 
   /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
