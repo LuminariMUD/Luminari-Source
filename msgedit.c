@@ -321,13 +321,13 @@ ACMD(do_msgedit)
 
   if ((num = atoi(argument)) < 0)
   {
-    send_to_char(ch, "You must select a message # between 0 and %d.\r\n", MAX_MESSAGES);
+    send_to_char(ch, "You must select a message # between 0 and %d.\r\n", TOP_SKILL_DEFINE);
     return;
   }
 
-  if (num >= MAX_MESSAGES)
+  if (num >= TOP_SKILL_DEFINE)
   {
-    send_to_char(ch, "You must select a message # between 0 and %d.\r\n", MAX_MESSAGES - 1);
+    send_to_char(ch, "You must select a message # between 0 and %d.\r\n", TOP_SKILL_DEFINE - 1);
     return;
   }
 
