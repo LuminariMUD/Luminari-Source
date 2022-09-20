@@ -7381,493 +7381,1022 @@ SPECIAL(celestial_sword)
     call_magic(ch, NULL, NULL, SPELL_GROUP_HEAL, 0, 30, CAST_WEAPON_SPELL);
     GET_OBJ_SPECTIMER(celestial, 0) = 12;
 
-    /* failed! */
+    return TRUE; /* made it! */
+  }
+
+  /* failed? */
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(chionthar_ferry)
+{
+  if (cmd)
     return FALSE;
-  }
 
-  /* from homeland */
-  SPECIAL(chionthar_ferry)
+  if (!cmd && !strcmp(argument, "identify"))
   {
-    if (cmd)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This is a ferry.\r\n");
-      return TRUE;
-    }
-
-    update_ship((struct obj_data *)me, 104262, 104266, 1, 4);
+    send_to_char(ch, "This is a ferry.\r\n");
     return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(alandor_ferry)
-  {
-    if (cmd)
-      return FALSE;
+  update_ship((struct obj_data *)me, 104262, 104266, 1, 4);
+  return TRUE;
+}
 
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This is a ferry.\r\n");
-      return TRUE;
-    }
-
-    update_ship((struct obj_data *)me, 126423, 126428, 1, 4);
-    return TRUE;
-  }
-
-  /* from homeland */
-  SPECIAL(md_carpet)
-  {
-    if (cmd)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This is a transport carpet.\r\n");
-      return TRUE;
-    }
-
-    update_ship((struct obj_data *)me, 120036, 120040, 3, 10);
-    return TRUE;
-  }
-
-  /* from homeland */
-  SPECIAL(floating_teleport)
-  {
-    int door;
-    struct obj_data *obj = (struct obj_data *)me;
-    room_rnum roomnum;
-
-    if (cmd)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This appears to be a floating (moving) portal.\r\n");
-      return TRUE;
-    }
-
-    if (((door = rand_number(0, 30)) < NUM_OF_DIRS) && CAN_GO(obj, door) &&
-        (world[EXIT(obj, door)->to_room].zone == world[obj->in_room].zone))
-    {
-      roomnum = EXIT(obj, door)->to_room;
-      act("$p floats away.", FALSE, 0, obj, 0, TO_ROOM);
-      obj_from_room(obj);
-      obj_to_room(obj, roomnum);
-      act("$p floats in.", FALSE, 0, obj, 0, TO_ROOM);
-      return TRUE;
-    }
+/* from homeland */
+SPECIAL(alandor_ferry)
+{
+  if (cmd)
     return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a ferry.\r\n");
+    return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(vengeance)
+  update_ship((struct obj_data *)me, 126423, 126428, 1, 4);
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(md_carpet)
+{
+  if (cmd)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
   {
+    send_to_char(ch, "This is a transport carpet.\r\n");
+    return TRUE;
+  }
 
-    if (!ch)
-      return FALSE;
+  update_ship((struct obj_data *)me, 120036, 120040, 3, 10);
+  return TRUE;
+}
 
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Procs mass cure light and word of faith.\r\n");
-      return TRUE;
-    }
+/* from homeland */
+SPECIAL(floating_teleport)
+{
+  int door;
+  struct obj_data *obj = (struct obj_data *)me;
+  room_rnum roomnum;
 
-    struct char_data *vict = FIGHTING(ch);
+  if (cmd)
+    return FALSE;
 
-    if (cmd || !vict)
-      return FALSE;
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a floating (moving) portal.\r\n");
+    return TRUE;
+  }
 
-    int power = 10;
-    if (GET_OBJ_VNUM(((struct obj_data *)me)) == 101199)
-      power = 5;
-    if (rand_number(0, power))
-      return FALSE;
+  if (((door = rand_number(0, 30)) < NUM_OF_DIRS) && CAN_GO(obj, door) &&
+      (world[EXIT(obj, door)->to_room].zone == world[obj->in_room].zone))
+  {
+    roomnum = EXIT(obj, door)->to_room;
+    act("$p floats away.", FALSE, 0, obj, 0, TO_ROOM);
+    obj_from_room(obj);
+    obj_to_room(obj, roomnum);
+    act("$p floats in.", FALSE, 0, obj, 0, TO_ROOM);
+    return TRUE;
+  }
+  return FALSE;
+}
 
-    if (GET_HIT(ch) < GET_MAX_HIT(ch) && rand_number(0, 4))
-    {
-      weapons_spells(
-          "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
-          "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
-          "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-      call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
-      return TRUE;
-    }
+/* from homeland */
+SPECIAL(vengeance)
+{
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Procs mass cure light and word of faith.\r\n");
+    return TRUE;
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (cmd || !vict)
+    return FALSE;
+
+  int power = 10;
+  if (GET_OBJ_VNUM(((struct obj_data *)me)) == 101199)
+    power = 5;
+  if (rand_number(0, power))
+    return FALSE;
+
+  if (GET_HIT(ch) < GET_MAX_HIT(ch) && rand_number(0, 4))
+  {
     weapons_spells(
-        "\tWYour blade starts to shake violently, nearly tearing itself from your grip,\tn\r\n"
-        "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
-        "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
-
-        "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
-        "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
-        "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
-
-        "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
-        "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
-        "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
-        ch, vict, (struct obj_data *)me, SPELL_WORD_OF_FAITH);
-    return TRUE;
-  }
-
-  /* from homeland */
-  SPECIAL(neverwinter_button_control)
-  {
-    struct obj_data *dummy = NULL;
-    struct obj_data *obj = (struct obj_data *)me;
-    struct char_data *i = NULL;
-    bool change = FALSE;
-
-    if (cmd)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This appears to be a button control...\r\n");
-      return TRUE;
-    }
-
-    if (!CAN_GO(obj, EAST) && !CAN_GO(obj, SOUTH) && !CAN_GO(obj, WEST))
-    {
-      if (IS_CLOSED(real_room(123637), DOWN))
-      {
-        OPEN_DOOR(real_room(123637), dummy, DOWN);
-        OPEN_DOOR(real_room(123641), dummy, UP);
-        change = TRUE;
-      }
-    }
-
-    if (change && GET_OBJ_SPECTIMER(obj, 0) == 0)
-    {
-      for (i = character_list; i; i = i->next)
-        if (world[obj->in_room].zone == world[i->in_room].zone)
-          send_to_char(i, "\tLYou hear a slight rumbling.\tn\r\n");
-      GET_OBJ_SPECTIMER(obj, 0) = 9999;
-    }
-
-    return FALSE;
-  }
-
-  /* from homeland */
-  SPECIAL(neverwinter_valve_control)
-  {
-    /* A- North
-       B- East
-       C- South
-       D- West
-     */
-    struct char_data *i = NULL;
-    struct obj_data *dummy = 0;
-    struct obj_data *obj = (struct obj_data *)me;
-    bool avalve = FALSE, bvalve = FALSE, cvalve = FALSE, dvalve = FALSE, change = FALSE;
-
-    if (cmd)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This appears to be a valve control...\r\n");
-      return TRUE;
-    }
-
-    if (!CAN_GO(obj, NORTH))
-      avalve = TRUE;
-
-    if (!CAN_GO(obj, EAST))
-      bvalve = TRUE;
-
-    if (!CAN_GO(obj, SOUTH))
-      cvalve = TRUE;
-
-    if (!CAN_GO(obj, WEST))
-      dvalve = TRUE;
-
-    if (avalve && bvalve && !cvalve && dvalve)
-    {
-      if (!IS_CLOSED(real_room(123440), EAST))
-        OPEN_DOOR(real_room(123440), dummy, EAST);
-      if (!IS_CLOSED(real_room(123441), WEST))
-        OPEN_DOOR(real_room(123441), dummy, WEST);
-      if (!IS_CLOSED(real_room(123469), EAST))
-        OPEN_DOOR(real_room(123469), dummy, EAST);
-      if (!IS_CLOSED(real_room(123470), WEST))
-        OPEN_DOOR(real_room(123470), dummy, WEST);
-      if (IS_CLOSED(real_room(123533), EAST))
-      {
-        OPEN_DOOR(real_room(123533), dummy, EAST);
-        change = TRUE;
-      }
-      if (IS_CLOSED(real_room(123534), WEST))
-        OPEN_DOOR(real_room(123534), dummy, WEST);
-    }
-    else if (avalve && !bvalve && cvalve && !dvalve)
-    {
-      if (IS_CLOSED(real_room(123440), EAST))
-      {
-        OPEN_DOOR(real_room(123440), dummy, EAST);
-        change = TRUE;
-      }
-      if (IS_CLOSED(real_room(123441), WEST))
-        OPEN_DOOR(real_room(123441), dummy, WEST);
-      if (!IS_CLOSED(real_room(123469), EAST))
-        OPEN_DOOR(real_room(123469), dummy, EAST);
-      if (!IS_CLOSED(real_room(123470), WEST))
-        OPEN_DOOR(real_room(123470), dummy, WEST);
-      if (!IS_CLOSED(real_room(123533), EAST))
-        OPEN_DOOR(real_room(123533), dummy, EAST);
-      if (!IS_CLOSED(real_room(123534), WEST))
-        OPEN_DOOR(real_room(123534), dummy, WEST);
-    }
-    else if (!avalve && bvalve && cvalve && dvalve)
-    {
-      if (!IS_CLOSED(real_room(123440), EAST))
-        OPEN_DOOR(real_room(123440), dummy, EAST);
-      if (!IS_CLOSED(real_room(123441), WEST))
-        OPEN_DOOR(real_room(123441), dummy, WEST);
-      if (IS_CLOSED(real_room(123469), EAST))
-      {
-        OPEN_DOOR(real_room(123469), dummy, EAST);
-        change = TRUE;
-      }
-      if (IS_CLOSED(real_room(123470), WEST))
-        OPEN_DOOR(real_room(123470), dummy, WEST);
-      if (!IS_CLOSED(real_room(123533), EAST))
-        OPEN_DOOR(real_room(123533), dummy, EAST);
-      if (!IS_CLOSED(real_room(123534), WEST))
-        OPEN_DOOR(real_room(123534), dummy, WEST);
-    }
-    else
-    {
-      if (!IS_CLOSED(real_room(123440), EAST))
-        OPEN_DOOR(real_room(123440), dummy, EAST);
-      if (!IS_CLOSED(real_room(123441), WEST))
-        OPEN_DOOR(real_room(123441), dummy, WEST);
-      if (!IS_CLOSED(real_room(123469), EAST))
-        OPEN_DOOR(real_room(123469), dummy, EAST);
-      if (!IS_CLOSED(real_room(123470), WEST))
-        OPEN_DOOR(real_room(123470), dummy, WEST);
-      if (!IS_CLOSED(real_room(123533), EAST))
-        OPEN_DOOR(real_room(123533), dummy, EAST);
-      if (!IS_CLOSED(real_room(123534), WEST))
-        OPEN_DOOR(real_room(123534), dummy, WEST);
-    }
-
-    if (change)
-      for (i = character_list; i; i = i->next)
-        if (world[obj->in_room].zone == world[i->in_room].zone)
-          send_to_char(i, "\tgYou hear the flow of rushing sewage somewhere.\tn\r\n");
-
-    return FALSE;
-  }
-
-  /* crashing!! */
-  SPECIAL(bloodaxe)
-  {
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc:  Bite.\r\n");
-      return TRUE;
-    }
-
-    if (!is_wearing(ch, 117014))
-      return FALSE;
-
-    struct char_data *vict = FIGHTING(ch);
-
-    if (cmd || !vict || rand_number(0, 16))
-      return FALSE;
-
-    int dam = rand_number(8, 8);
-
-    GET_HIT(vict) -= dam;
-
-    if (dam < GET_HIT(vict))
-    {
-      weapons_spells(
-          "\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
-          "the axehead reshapes into a powerful maw and bites $N\tL in the throat.\tRBlood \tLflows "
-          "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
-          "a satisfied grin the maw reverts back to an axehead.\tn",
-          "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
-          "the axehead reshapes into a powerful maw and bites you in the throat. \tRBlood \tLflows "
-          "between the canine jaws and spills to the ground and you howl in pain. With "
-          "a satisfied grin the maw reverts back to an axehead.\tn",
-          "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
-          "the axehead reshapes into a powerful maw and bites $N\tL in the throat. \tRBlood \tLflows "
-          "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
-          "a satisfied grin the maw reverts back to an axehead.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-    }
-    else
-    {
-      weapons_spells("\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly the "
-                     "axehead reshapes into a powerful maw and bites $N\tL in the throat. $N\tL "
-                     "looks at the \tRblood \tLflowing freely from the wound, then $S\tL eyes "
-                     "\twglazes \tLover and $E falls to the ground, \trDEAD\tL. With a "
-                     "satisfied grin the maw reverts back to an axehead.\tn",
-                     "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly the axehead "
-                     "reshapes into a powerful maw and bites'you in the throat. You look at "
-                     "the \tRblood \tLflowing freely from the wound, then your eyes \twglazes "
-                     "\tLover and you fall to the ground, \trDEAD\tL.\tn",
-                     "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly the axehead "
-                     "reshapes into a powerful maw and bites $N\tL in the throat. $N\tL looks at the "
-                     "\tRblood \tLflowing freely from the wound, then $S eyes \twglazes "
-                     "\tLover and $E falls to the ground, \trDEAD\tL. With a satisfied grin "
-                     "the maw reverts back to an axehead.\tn",
-                     ch, vict, (struct obj_data *)me, 0);
-      GET_HIT(vict) = -100;
-    }
-    return TRUE;
-  }
-
-  /* from homeland */
-  SPECIAL(skullsmasher)
-  {
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc:  Knockdown.\r\n");
-      return TRUE;
-    }
-
-    struct char_data *vict = FIGHTING(ch);
-
-    if (cmd || !vict)
-      return FALSE;
-
-    int power = 25;
-
-    if (GET_OBJ_VNUM(((struct obj_data *)me)) == 101850)
-      power = 15;
-    if (rand_number(0, power))
-      return FALSE;
-    if (MOB_FLAGGED(vict, MOB_NOBASH))
-      return FALSE;
-    if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
-      return FALSE;
-
-    weapons_spells(
-        "\tLAs you swing your maul at $N \tLit connects with $S head\tn\r\n"
-        "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain\tL shows on\tn\r\n"
-        "\tL$S face as $E slowly slumps to the ground.\tn",
-
-        "\tLAs $n \tLswings $s maul at you it connects with your head\tn\r\n"
-        "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A feeling of overwhelming \trpain\tL courses\tn\r\n"
-        "\tLthrough your body, and you feel yourself slump to the ground.\tn",
-
-        "\tLAs $n \tLswings $s maul at $N \tLit connects with $S head\tn\r\n"
-        "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain \tLshows on\tn\r\n"
-        "\tL$S face as $E slowly slumps to the ground.\tn",
+        "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
+        "\tWYour sword begins to \tphum \tWloudly and then \tCglows\tW as it pours its healing powers into you.\tn",
+        "$n's \tWsword begings to \tphum \tWloudly and then \tCglow\tW as it pours its healing powers into $m\tW.\tn",
         ch, vict, (struct obj_data *)me, 0);
-    change_position(vict, POS_SITTING);
-    USE_FULL_ROUND_ACTION(vict);
+    call_magic(ch, 0, 0, SPELL_MASS_CURE_LIGHT, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
+    return TRUE;
+  }
+  weapons_spells(
+      "\tWYour blade starts to shake violently, nearly tearing itself from your grip,\tn\r\n"
+      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+      "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
+
+      "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
+      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+      "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
+
+      "\tW$n's\tW blade starts to shake violently, nearly tearing itself from $s grip,\tn\r\n"
+      "\tWas it begins to \tCglow\tW with a \tcholy light\tW.  Suddenly a \tYblinding \tfflash\tn\tW of pure\tn\r\n"
+      "\tWgoodness is released from the sword striking down any \trevil\tW in the area.\tn",
+      ch, vict, (struct obj_data *)me, SPELL_WORD_OF_FAITH);
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(neverwinter_button_control)
+{
+  struct obj_data *dummy = NULL;
+  struct obj_data *obj = (struct obj_data *)me;
+  struct char_data *i = NULL;
+  bool change = FALSE;
+
+  if (cmd)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a button control...\r\n");
     return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(acidsword)
+  if (!CAN_GO(obj, EAST) && !CAN_GO(obj, SOUTH) && !CAN_GO(obj, WEST))
   {
-    int dam;
-    struct char_data *vict = NULL;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
+    if (IS_CLOSED(real_room(123637), DOWN))
     {
-      send_to_char(ch, "Proc: Acid corrosion.\r\n");
-      return TRUE;
+      OPEN_DOOR(real_room(123637), dummy, DOWN);
+      OPEN_DOOR(real_room(123641), dummy, UP);
+      change = TRUE;
     }
+  }
 
-    if (!is_wearing(ch, 135199))
-      return FALSE;
+  if (change && GET_OBJ_SPECTIMER(obj, 0) == 0)
+  {
+    for (i = character_list; i; i = i->next)
+      if (world[obj->in_room].zone == world[i->in_room].zone)
+        send_to_char(i, "\tLYou hear a slight rumbling.\tn\r\n");
+    GET_OBJ_SPECTIMER(obj, 0) = 9999;
+  }
 
-    vict = FIGHTING(ch);
+  return FALSE;
+}
 
-    if (cmd || !vict || rand_number(0, 16))
-      return FALSE;
+/* from homeland */
+SPECIAL(neverwinter_valve_control)
+{
+  /* A- North
+     B- East
+     C- South
+     D- West
+   */
+  struct char_data *i = NULL;
+  struct obj_data *dummy = 0;
+  struct obj_data *obj = (struct obj_data *)me;
+  bool avalve = FALSE, bvalve = FALSE, cvalve = FALSE, dvalve = FALSE, change = FALSE;
 
-    dam = dice(4, 3);
+  if (cmd)
+    return FALSE;
 
-    GET_HIT(vict) -= dam;
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a valve control...\r\n");
+    return TRUE;
+  }
 
-    if (GET_HIT(vict) > -9)
+  if (!CAN_GO(obj, NORTH))
+    avalve = TRUE;
+
+  if (!CAN_GO(obj, EAST))
+    bvalve = TRUE;
+
+  if (!CAN_GO(obj, SOUTH))
+    cvalve = TRUE;
+
+  if (!CAN_GO(obj, WEST))
+    dvalve = TRUE;
+
+  if (avalve && bvalve && !cvalve && dvalve)
+  {
+    if (!IS_CLOSED(real_room(123440), EAST))
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+    if (!IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (!IS_CLOSED(real_room(123469), EAST))
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+    if (!IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (IS_CLOSED(real_room(123533), EAST))
     {
-      weapons_spells(
-          "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-          "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-          "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-          "$N\tL, hissing as it starts to corrode.\tn",
-          "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-          "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-          "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-          "you\tL, hissing as it starts to corrode.\tn",
-          "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-          "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-          "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
-          "$N, hissing as it starts to corrode.\tn",
-          ch, vict, (struct obj_data *)me, 0);
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+      change = TRUE;
     }
-    else
+    if (IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+  else if (avalve && !bvalve && cvalve && !dvalve)
+  {
+    if (IS_CLOSED(real_room(123440), EAST))
     {
-      weapons_spells(
-          "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-          "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-          "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-          "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
-          "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-          "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-          "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
-          "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
-          "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
-          "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
-          "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
-          "you, hissing as it melts you to o\twoz\tLing pulp.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-      GET_HIT(vict) = -50;
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+      change = TRUE;
+    }
+    if (IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (!IS_CLOSED(real_room(123469), EAST))
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+    if (!IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (!IS_CLOSED(real_room(123533), EAST))
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+    if (!IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+  else if (!avalve && bvalve && cvalve && dvalve)
+  {
+    if (!IS_CLOSED(real_room(123440), EAST))
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+    if (!IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (IS_CLOSED(real_room(123469), EAST))
+    {
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+      change = TRUE;
+    }
+    if (IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (!IS_CLOSED(real_room(123533), EAST))
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+    if (!IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+  else
+  {
+    if (!IS_CLOSED(real_room(123440), EAST))
+      OPEN_DOOR(real_room(123440), dummy, EAST);
+    if (!IS_CLOSED(real_room(123441), WEST))
+      OPEN_DOOR(real_room(123441), dummy, WEST);
+    if (!IS_CLOSED(real_room(123469), EAST))
+      OPEN_DOOR(real_room(123469), dummy, EAST);
+    if (!IS_CLOSED(real_room(123470), WEST))
+      OPEN_DOOR(real_room(123470), dummy, WEST);
+    if (!IS_CLOSED(real_room(123533), EAST))
+      OPEN_DOOR(real_room(123533), dummy, EAST);
+    if (!IS_CLOSED(real_room(123534), WEST))
+      OPEN_DOOR(real_room(123534), dummy, WEST);
+  }
+
+  if (change)
+    for (i = character_list; i; i = i->next)
+      if (world[obj->in_room].zone == world[i->in_room].zone)
+        send_to_char(i, "\tgYou hear the flow of rushing sewage somewhere.\tn\r\n");
+
+  return FALSE;
+}
+
+/* crashing!! */
+SPECIAL(bloodaxe)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc:  Bite.\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 117014))
+    return FALSE;
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (cmd || !vict || rand_number(0, 16))
+    return FALSE;
+
+  int dam = rand_number(8, 8);
+
+  GET_HIT(vict) -= dam;
+
+  if (dam < GET_HIT(vict))
+  {
+    weapons_spells(
+        "\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
+        "the axehead reshapes into a powerful maw and bites $N\tL in the throat.\tRBlood \tLflows "
+        "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
+        "a satisfied grin the maw reverts back to an axehead.\tn",
+        "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
+        "the axehead reshapes into a powerful maw and bites you in the throat. \tRBlood \tLflows "
+        "between the canine jaws and spills to the ground and you howl in pain. With "
+        "a satisfied grin the maw reverts back to an axehead.\tn",
+        "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly "
+        "the axehead reshapes into a powerful maw and bites $N\tL in the throat. \tRBlood \tLflows "
+        "between the the canine jaws and spills to the ground and $N\tL howls in pain. With "
+        "a satisfied grin the maw reverts back to an axehead.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+  }
+  else
+  {
+    weapons_spells("\tLYour $p \tLstarts \trhumming \tLlouder and louder. Suddenly the "
+                   "axehead reshapes into a powerful maw and bites $N\tL in the throat. $N\tL "
+                   "looks at the \tRblood \tLflowing freely from the wound, then $S\tL eyes "
+                   "\twglazes \tLover and $E falls to the ground, \trDEAD\tL. With a "
+                   "satisfied grin the maw reverts back to an axehead.\tn",
+                   "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly the axehead "
+                   "reshapes into a powerful maw and bites'you in the throat. You look at "
+                   "the \tRblood \tLflowing freely from the wound, then your eyes \twglazes "
+                   "\tLover and you fall to the ground, \trDEAD\tL.\tn",
+                   "$n's $p \tLstarts \trhumming \tLlouder and louder. Suddenly the axehead "
+                   "reshapes into a powerful maw and bites $N\tL in the throat. $N\tL looks at the "
+                   "\tRblood \tLflowing freely from the wound, then $S eyes \twglazes "
+                   "\tLover and $E falls to the ground, \trDEAD\tL. With a satisfied grin "
+                   "the maw reverts back to an axehead.\tn",
+                   ch, vict, (struct obj_data *)me, 0);
+    GET_HIT(vict) = -100;
+  }
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(skullsmasher)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc:  Knockdown.\r\n");
+    return TRUE;
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (cmd || !vict)
+    return FALSE;
+
+  int power = 25;
+
+  if (GET_OBJ_VNUM(((struct obj_data *)me)) == 101850)
+    power = 15;
+  if (rand_number(0, power))
+    return FALSE;
+  if (MOB_FLAGGED(vict, MOB_NOBASH))
+    return FALSE;
+  if (AFF_FLAGGED(vict, AFF_IMMATERIAL))
+    return FALSE;
+
+  weapons_spells(
+      "\tLAs you swing your maul at $N \tLit connects with $S head\tn\r\n"
+      "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain\tL shows on\tn\r\n"
+      "\tL$S face as $E slowly slumps to the ground.\tn",
+
+      "\tLAs $n \tLswings $s maul at you it connects with your head\tn\r\n"
+      "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A feeling of overwhelming \trpain\tL courses\tn\r\n"
+      "\tLthrough your body, and you feel yourself slump to the ground.\tn",
+
+      "\tLAs $n \tLswings $s maul at $N \tLit connects with $S head\tn\r\n"
+      "\tLand suddenly \tWgl\two\tWws brigh\twt\tWly\tL.  A look of overwhelming \trpain \tLshows on\tn\r\n"
+      "\tL$S face as $E slowly slumps to the ground.\tn",
+      ch, vict, (struct obj_data *)me, 0);
+  change_position(vict, POS_SITTING);
+  USE_FULL_ROUND_ACTION(vict);
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(acidsword)
+{
+  int dam;
+  struct char_data *vict = NULL;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Acid corrosion.\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 135199))
+    return FALSE;
+
+  vict = FIGHTING(ch);
+
+  if (cmd || !vict || rand_number(0, 16))
+    return FALSE;
+
+  dam = dice(4, 3);
+
+  GET_HIT(vict) -= dam;
+
+  if (GET_HIT(vict) > -9)
+  {
+    weapons_spells(
+        "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+        "$N\tL, hissing as it starts to corrode.\tn",
+        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+        "you\tL, hissing as it starts to corrode.\tn",
+        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
+        "$N, hissing as it starts to corrode.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+  }
+  else
+  {
+    weapons_spells(
+        "\tLYour\tn $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+        "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
+        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\tn\r\n"
+        "$N\tL, hissing as it melts\tn $N \tLto o\twoz\tLing pulp.\tn",
+        "$n's $p \tLstarts to \tGglow \tLwith a \tgd\tGi\tgm gr\tGe\tgen\r\n"
+        "sh\tGe\tgen \tLand suddenly a \tgth\tGi\tgn str\tGea\tgm of ac\tGi\tgd\r\n"
+        "sp\tGe\tgws fo\tGr\tgth \tLfrom the tip of the blade and strikes\r\n"
+        "you, hissing as it melts you to o\twoz\tLing pulp.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+    GET_HIT(vict) = -50;
+  }
+  return TRUE;
+}
+
+/* malevolence - this has a spec abillity vamp AND a blur attack -zusuk */
+SPECIAL(malevolence)
+{
+  struct char_data *vict = NULL;
+  int num_hits = 0, i = 0;
+  struct obj_data *malevolence = (struct obj_data *)me;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Attack Blur (3-5 bonus attacks on proc)\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132101))
+    return FALSE;
+
+  vict = FIGHTING(ch);
+
+  if (cmd || !vict || rand_number(0, 15))
+    return FALSE;
+
+  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
+      TRUE, ch, malevolence, vict, TO_CHAR);
+  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
+      TRUE, ch, malevolence, vict, TO_VICT);
+  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
+      TRUE, ch, malevolence, vict, TO_NOTVICT);
+
+  num_hits = rand_number(3, 5);
+
+  for (i = 0; i <= num_hits; i++)
+  {
+    if (valid_fight_cond(ch, TRUE))
+      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+
+  return TRUE;
+}
+
+SPECIAL(rune_scimitar)
+{
+  struct char_data *vict = NULL;
+  int num_hits = 0, i = 0;
+  struct obj_data *scimitar = (struct obj_data *)me;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Attack Blur (4-7 bonus attacks on proc)\r\n");
+    send_to_char(ch, "Proc: Deft Parry - on parry will do a light vamp attack\r\n");
+    send_to_char(ch, "Proc: Deft Dodge - on dodge will do a light vamp attack\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132126))
+    return FALSE;
+
+  vict = FIGHTING(ch);
+
+  if (cmd || !vict)
+    return FALSE;
+
+  /* blur attack proc */
+  if (!rand_number(0, 15))
+  {
+    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
+        TRUE, ch, scimitar, vict, TO_CHAR);
+    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+        TRUE, ch, scimitar, vict, TO_VICT);
+    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+        TRUE, ch, scimitar, vict, TO_NOTVICT);
+
+    num_hits = rand_number(4, 7);
+
+    for (i = 0; i <= num_hits; i++)
+    {
+      if (valid_fight_cond(ch, TRUE))
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     }
     return TRUE;
   }
 
-  /* malevolence - this has a spec abillity vamp AND a blur attack -zusuk */
-  SPECIAL(malevolence)
+  /* parry proc */
+  else if (!strcmp(argument, "parry") && rand_number(0, 2))
   {
-    struct char_data *vict = NULL;
-    int num_hits = 0, i = 0;
-    struct obj_data *malevolence = (struct obj_data *)me;
+    act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N \tLand transfers it back to you.\tn",
+        FALSE, ch, scimitar, vict, TO_CHAR);
+    act("\tLAs \tn$n\tL parries your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom you and transfers it back to $m.\tn",
+        FALSE, ch, scimitar, vict, TO_VICT);
+    act("\tLAs \tn$n\tL parries \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N\tL.\tn",
+        FALSE, ch, scimitar, vict, TO_NOTVICT);
+    damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_WEAPON_SPELL);
+    return TRUE;
+  }
 
-    if (!ch)
-      return FALSE;
+  /* dodge proc */
+  else if (!strcmp(argument, "dodge") && !rand_number(0, 3))
+  {
+    act("\tLAs you dodge the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N \tLand transfers it back to you.\tn",
+        FALSE, ch, scimitar, vict, TO_CHAR);
+    act("\tLAs \tn$n\tL dodges your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom you and transfers it back to $m.\tn",
+        FALSE, ch, scimitar, vict, TO_VICT);
+    act("\tLAs \tn$n\tL dodges \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
+        "\tLfrom $N\tL.\tn",
+        FALSE, ch, scimitar, vict, TO_NOTVICT);
+    damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
+    call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_WEAPON_SPELL);
+    return TRUE;
+  }
 
-    if (!cmd && !strcmp(argument, "identify"))
+  /* didn't do anything! */
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(snakewhip)
+{
+  // struct affected_type af;
+  struct obj_data *weepan = (struct obj_data *)me;
+  int dam;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc:  Drow-only, Snake-Bite.\r\n");
+    return TRUE;
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (cmd || !vict || GET_POS(ch) == POS_DEAD)
+    return FALSE;
+
+  if ((GET_RACE(ch) != RACE_DROW || GET_SEX(ch) != SEX_FEMALE) && is_wearing(ch, 135500))
+  {
+    if (GET_HIT(ch) > 0)
     {
-      send_to_char(ch, "Proc: Attack Blur (3-5 bonus attacks on proc)\r\n");
+      act("\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
+          "All three snakeheads suddenly lunges forwardand sink their fangs in you throat. \r\n"
+          "You barely have time to feel the terrible pain before you fall over with \tRbl\tro\tRod\r\n"
+          "\tLflowing freely from the wounds in your neck.\tn",
+          FALSE, ch,
+          weepan, 0, TO_CHAR);
+
+      act("$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
+          "All three snakeheads suddenly lunges forward and sink their fangs in $n's \tLthroat.\r\n"
+          "$n \tLbarely have time to feel the terrible pain before falling over with \tRbl\tro\tRod\r\n"
+          "\tLflowing freely from the wounds in the neck.\tn",
+          FALSE, ch,
+          weepan, 0, TO_ROOM);
+      GET_HIT(ch) = -5;
+      change_position(ch, POS_INCAP);
+    }
+    return TRUE;
+  }
+  if (rand_number(0, 15))
+    return FALSE;
+
+  dam = dice(GET_LEVEL(ch), 3);
+
+  GET_HIT(vict) -= dam;
+
+  if (GET_HIT(vict) > -9)
+  {
+    weapons_spells(
+        "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+        "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
+        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\nwith fury as all three snakeheads suddenly lunges for you.\r\n"
+        "Their fangs sink deep into the \tRfl\tre\tRsh \tLand you cry out in pain.\tn",
+        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+        "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+  }
+  else
+  {
+    weapons_spells(
+        "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+        "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
+        "falls over dead.\tn",
+        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for you.\r\n"
+        "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away your remaining life and\r\n"
+        "you fall over dead.\tn",
+        "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
+        "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
+        "falls over dead.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+    GET_HIT(vict) = -50;
+  }
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(tormblade)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
+                     "                    Torms Protection of Evil on critical hits.\r\n");
+    return TRUE;
+  }
+
+  struct char_data *vict;
+  struct affected_type af;
+
+  if (cmd)
+    return FALSE;
+
+  vict = FIGHTING(ch);
+  if (!vict)
+    return FALSE;
+  if (!IS_EVIL(vict))
+    return FALSE;
+
+  if (argument)
+  {
+    skip_spaces(&argument);
+    if (!strcmp(argument, "critical"))
+    {
+      // okies, we assume its a crit then.
+      act("$n's $p shines as it protects $m.", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+      act("Your $p shines as it protects you.", FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+      new_affect(&af);
+      af.spell = SPELL_PROT_FROM_EVIL;
+      af.modifier = 2;
+      af.location = APPLY_AC_NEW;
+      af.duration = dice(1, 4);
+      affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
       return TRUE;
     }
+  }
+  if (!rand_number(0, 30))
+  {
+    act("$n's $p hums loudly.", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+    act("Your $p hums loudly.", FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
+    return TRUE;
+  }
 
-    if (!is_wearing(ch, 132101))
-      return FALSE;
+  return FALSE;
+}
 
+/* from homeland */
+SPECIAL(witherdirk)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Contagion\r\n");
+    return TRUE;
+  }
+
+  struct char_data *vict;
+
+  if (cmd)
+    return FALSE;
+
+  vict = FIGHTING(ch);
+  if (!vict)
+    return FALSE;
+
+  if (rand_number(0, 30))
+    return FALSE;
+
+  weapons_spells(
+      "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
+      "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
+      "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into YOUR skin,\tn\r\n"
+      "\tgputrid\tr blo\tro\trd\tL wells up in YOUR eyes, causing great pain and discomfort.\tn",
+      "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
+      "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
+      ch, vict, (struct obj_data *)me, SPELL_CONTAGION);
+
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(air_sphere)
+{
+  int dam = 0;
+  struct char_data *vict;
+  struct affected_type af;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Electric Shock, on saying 'storm', haste and "
+                     "chain lightning.\r\n");
+    return TRUE;
+  }
+
+  if (!cmd && FIGHTING(ch) && !rand_number(0, 25))
+  {
     vict = FIGHTING(ch);
+    dam = 20 + dice(2, 8);
+    act("\tbYour \tBsphere of lighting \tYglows bright\tb as electricity\r\n"
+        "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
+        "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\tn\r\n"
+        "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
+        FALSE, ch, 0, vict, TO_CHAR);
+    act("$n's \tBsphere of lighting \tYglows bright\tb as electricity\tn\r\n"
+        "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
+        "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\r\n"
+        "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
+        FALSE, ch, 0, vict, TO_ROOM);
+    damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); // type -1 = no message
+    return TRUE;
+  }
 
-    if (cmd || !vict || rand_number(0, 15))
+  // haste/chain once a day on command
+  if (cmd && argument && CMD_IS("say"))
+  {
+    if (!is_wearing(ch, 136100))
       return FALSE;
 
-    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
-        TRUE, ch, malevolence, vict, TO_CHAR);
-    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
-        TRUE, ch, malevolence, vict, TO_VICT);
-    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
-        TRUE, ch, malevolence, vict, TO_NOTVICT);
+    skip_spaces(&argument);
+    if (!strcmp(argument, "storm"))
+    {
+      if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+      {
+        send_to_char(ch, "Nothing happens.\r\n");
+        return TRUE;
+      }
 
-    num_hits = rand_number(3, 5);
+      act("\tcAs you speak to your \tbsphere of lightning\tc, it begins to \tWglow\tc and fill with violent\tn\r\n"
+          "\tcenergy.  The energy builds until it \tba\twrc\tbs and \tBc\tbrackle\tBs\tc all over the sphere before\tn\r\n"
+          "\tcit lets loose in a violent \tblightning storm\tc.  As the energy from the storm begins\tn\r\n"
+          "\tcto fade, a jolt of \tYelectricity\tc flows up through your arms, causing your heart to\tn\r\n"
+          "\tcrace really fast!\tn",
+          FALSE, ch, 0, 0, TO_CHAR);
+      act("\tcAs $n \tcspeaks a word of power to $s \tbsphere of lightning\tc,\tn\r\n"
+          "\tcit \tWglows brightly\tc and violent energy begins to fill it. The sphere\tn\r\n"
+          "\tba\twrc\tbs\tc and \tBc\tbrackle\tBs\tc before it lets loose a violent \tblightning\tn\r\n"
+          "\tbstorm\tc.  The energy begins to fade, but before this can happen a jolt of \tYelectricity\tn\r\n"
+          "\tcflows up $n's\tc arms and causes $s heart to race really fast!",
+          FALSE, ch, 0, 0, TO_ROOM);
+
+      new_affect(&af);
+      af.spell = SPELL_HASTE;
+      af.duration = 100;
+      SET_BIT_AR(af.bitvector, AFF_HASTE);
+      affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+
+      call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_WEAPON_SPELL);
+
+      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(bolthammer)
+{
+  int dam;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc:  Lightning bolt.\r\n");
+    return TRUE;
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  if (cmd || !vict || rand_number(0, 18))
+    return FALSE;
+
+  dam = 25 + dice(1, 30);
+
+  if (dam < GET_HIT(vict))
+  {
+    weapons_spells(
+        "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+        "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
+        "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
+
+        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes you\tn\r\n"
+        "\tlwith full force.\tn",
+
+        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+        "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
+        "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+  }
+  else
+  {
+    dam += 20;
+    weapons_spells(
+        "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and the sound of th\tYun\tLder can be\tn\r\n"
+        "\tLheard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
+        "$N \tLwith full force. When the flash is gone\r\n"
+
+        "\tL you see the corpse of\tn $N \tLstill twitching on the ground.\tn",
+        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
+        "\tLyou with full force. You twitch a few times before your body goes still forever.\tn",
+
+        "$n's�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn \tn\r\n"
+        "$N \tLwith full force. When the flash is gone you see\r\n"
+        "\tLthe corpse of\tn $N \tLstill twitching on the ground.\tn",
+        ch, vict, (struct obj_data *)me, 0);
+  }
+
+  damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); // type -1 = no message
+  return TRUE;
+}
+
+/* from jot i think */
+SPECIAL(rughnark)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: magical damage 25+10d4 for high level monks.  Will work better for non-good monks\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 114838))
+    return FALSE;
+
+  if (cmd)
+    return FALSE;
+
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
+    return FALSE;
+
+  int dam = 0;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!vict)
+    return FALSE;
+
+  if (dice(1, 40) < 38)
+    return FALSE;
+
+  if (IS_GOOD(ch) && dice(1, 10) > 5)
+    return FALSE;
+
+  dam = 25 + dice(10, 4);
+
+  if (dam > GET_HIT(vict))
+    dam = GET_HIT(vict);
+
+  weapons_spells(
+      "\tLAs you make contact with your opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
+      "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of your\tn\r\n"
+      "\tLopponent as $E screams in agony and pain.\tn",
+
+      "\tLAs $n make contact with you, the twin \tWmithril\tL blades rip apart\tn\r\n"
+      "\tLyour flesh in a gory display of blood, tearing huge chunks of meat out of your\tn\r\n"
+      "\tLown body as you scream in agony.\tn",
+
+      "\tLAs $n makes contact with $s opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
+      "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of $s\tn\r\n"
+      "\tLopponent as $E screams in agony and pain.\tn",
+      ch, vict, (struct obj_data *)me, 0);
+  damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
+  return TRUE;
+}
+
+/* from the prisoner trove 132128 */
+SPECIAL(speed_gaunts)
+{
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc: Extra attacks & chance to do a powerful vamp attack (powerful monks only)\r\n");
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, 132128))
+    return FALSE;
+
+  if (cmd)
+    return FALSE;
+
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
+    return FALSE;
+
+  int dam = 0, num_hits = 0, i = 0;
+  struct char_data *vict = FIGHTING(ch);
+
+  if (!vict)
+    return FALSE;
+
+  struct obj_data *gaunts = (struct obj_data *)me;
+
+  /* odds to succeed on vamp proc */
+  if (!rand_number(0, 37))
+  {
+
+    dam = rand_number(175, 300);
+
+    weapons_spells(
+        "\tWSuddenly, $p\tW glows brightly as your body starts to \tCflicker\tW in and out of reality!  "
+        "You \tCphase away\tW, dodging \tn$N's\tW attack and quickly \tCphase back\tW \twslamming your "
+        "gauntlets powerfully\tW into $N where upon impact they flare with \tRvampiric power\tW drawing "
+        "the lifeforce out of $M !\tn",
+
+        "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
+        "$n \tCphases away\tW, dodging your attack and quickly \tCphases back\tW slamming $s gauntlets "
+        "powerfully into you where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
+        "out of you!\tn",
+
+        "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
+        "$n \tCphases away\tW, dodging $N's\tW attack and quickly \tCphases back\tW slamming $s gauntlets "
+        "powerfully into $N\tW where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
+        "out of you!\tn",
+        ch,
+        vict,
+        gaunts,
+        0);
+    damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
+    process_healing(ch, ch, -1, dam, 0);
+
+    return TRUE;
+  }
+
+  /* we failed vamp, lets try for the attack-blur proc */
+  else if (!rand_number(0, 26))
+  {
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as your strikes begin to speed up!",
+        TRUE, ch, gaunts, vict, TO_CHAR);
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
+        TRUE, ch, gaunts, vict, TO_VICT);
+    act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
+        TRUE, ch, gaunts, vict, TO_NOTVICT);
+
+    num_hits = rand_number(4, 7);
 
     for (i = 0; i <= num_hits; i++)
     {
@@ -7878,1871 +8407,1345 @@ SPECIAL(celestial_sword)
     return TRUE;
   }
 
-  SPECIAL(rune_scimitar)
-  {
-    struct char_data *vict = NULL;
-    int num_hits = 0, i = 0;
-    struct obj_data *scimitar = (struct obj_data *)me;
+  return FALSE;
+}
 
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc: Attack Blur (4-7 bonus attacks on proc)\r\n");
-      send_to_char(ch, "Proc: Deft Parry - on parry will do a light vamp attack\r\n");
-      send_to_char(ch, "Proc: Deft Dodge - on dodge will do a light vamp attack\r\n");
-      return TRUE;
-    }
-
-    if (!is_wearing(ch, 132126))
-      return FALSE;
-
-    vict = FIGHTING(ch);
-
-    if (cmd || !vict)
-      return FALSE;
-
-    /* blur attack proc */
-    if (!rand_number(0, 15))
-    {
-      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
-          TRUE, ch, scimitar, vict, TO_CHAR);
-      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
-          TRUE, ch, scimitar, vict, TO_VICT);
-      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
-          TRUE, ch, scimitar, vict, TO_NOTVICT);
-
-      num_hits = rand_number(4, 7);
-
-      for (i = 0; i <= num_hits; i++)
-      {
-        if (valid_fight_cond(ch, TRUE))
-          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-      }
-      return TRUE;
-    }
-
-    /* parry proc */
-    else if (!strcmp(argument, "parry") && rand_number(0, 2))
-    {
-      act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
-          "\tLfrom $N \tLand transfers it back to you.\tn",
-          FALSE, ch, scimitar, vict, TO_CHAR);
-      act("\tLAs \tn$n\tL parries your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
-          "\tLfrom you and transfers it back to $m.\tn",
-          FALSE, ch, scimitar, vict, TO_VICT);
-      act("\tLAs \tn$n\tL parries \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
-          "\tLfrom $N\tL.\tn",
-          FALSE, ch, scimitar, vict, TO_NOTVICT);
-      damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_WEAPON_SPELL);
-      return TRUE;
-    }
-
-    /* dodge proc */
-    else if (!strcmp(argument, "dodge") && !rand_number(0, 3))
-    {
-      act("\tLAs you dodge the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
-          "\tLfrom $N \tLand transfers it back to you.\tn",
-          FALSE, ch, scimitar, vict, TO_CHAR);
-      act("\tLAs \tn$n\tL dodges your attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
-          "\tLfrom you and transfers it back to $m.\tn",
-          FALSE, ch, scimitar, vict, TO_VICT);
-      act("\tLAs \tn$n\tL dodges \tn$N's\tL attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
-          "\tLfrom $N\tL.\tn",
-          FALSE, ch, scimitar, vict, TO_NOTVICT);
-      damage(ch, vict, dice(10, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-      call_magic(ch, ch, 0, SPELL_CURE_CRITIC, 0, 1, CAST_WEAPON_SPELL);
-      return TRUE;
-    }
-
-    /* didn't do anything! */
+/* from homeland */
+SPECIAL(magma)
+{
+  if (!ch)
     return FALSE;
-  }
 
-  /* from homeland */
-  SPECIAL(snakewhip)
+  if (!cmd && !strcmp(argument, "identify"))
   {
-    // struct affected_type af;
-    struct obj_data *weepan = (struct obj_data *)me;
-    int dam;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc:  Drow-only, Snake-Bite.\r\n");
-      return TRUE;
-    }
-
-    struct char_data *vict = FIGHTING(ch);
-
-    if (cmd || !vict || GET_POS(ch) == POS_DEAD)
-      return FALSE;
-
-    if ((GET_RACE(ch) != RACE_DROW || GET_SEX(ch) != SEX_FEMALE) && is_wearing(ch, 135500))
-    {
-      if (GET_HIT(ch) > 0)
-      {
-        act("\tLYour $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against you.\r\n"
-            "All three snakeheads suddenly lunges forwardand sink their fangs in you throat. \r\n"
-            "You barely have time to feel the terrible pain before you fall over with \tRbl\tro\tRod\r\n"
-            "\tLflowing freely from the wounds in your neck.\tn",
-            FALSE, ch,
-            weepan, 0, TO_CHAR);
-
-        act("$n's $p \tLh\tYi\tLss\tYe\tLs angrily as it turns against $n\tL. \r\n"
-            "All three snakeheads suddenly lunges forward and sink their fangs in $n's \tLthroat.\r\n"
-            "$n \tLbarely have time to feel the terrible pain before falling over with \tRbl\tro\tRod\r\n"
-            "\tLflowing freely from the wounds in the neck.\tn",
-            FALSE, ch,
-            weepan, 0, TO_ROOM);
-        GET_HIT(ch) = -5;
-        change_position(ch, POS_INCAP);
-      }
-      return TRUE;
-    }
-    if (rand_number(0, 15))
-      return FALSE;
-
-    dam = dice(GET_LEVEL(ch), 3);
-
-    GET_HIT(vict) -= dam;
-
-    if (GET_HIT(vict) > -9)
-    {
-      weapons_spells(
-          "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-          "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
-          "$n's $p \tLh\tYi\tLss\tYe\tLs\r\nwith fury as all three snakeheads suddenly lunges for you.\r\n"
-          "Their fangs sink deep into the \tRfl\tre\tRsh \tLand you cry out in pain.\tn",
-          "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-          "Their fangs sink deep into the \tRfl\tre\tRsh \tLand $N \tLcries out in pain.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-    }
-    else
-    {
-      weapons_spells(
-          "\tLYour $p \tLh\tYi\tLss\tYe\tLs with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-          "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
-          "falls over dead.\tn",
-          "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for you.\r\n"
-          "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away your remaining life and\r\n"
-          "you fall over dead.\tn",
-          "$n's $p \tLh\tYi\tLss\tYe\tLs\r\n with fury as all three snakeheads suddenly lunges for $N\tL.\r\n"
-          "Their fangs sink deep into the \tRfl\tre\tRsh\tL, draining away the remaining life of $N \tLwho\r\n"
-          "falls over dead.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-      GET_HIT(vict) = -50;
-    }
+    send_to_char(ch, "Proc: magmaburst (fire damage for monk.)\r\n");
     return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(tormblade)
-  {
-    if (!ch)
-      return FALSE;
+  int dam = 0;
+  struct char_data *vict = 0;
 
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc only vs Evil:  Dispel Magic randomly on hit.\r\n"
-                       "                    Torms Protection of Evil on critical hits.\r\n");
-      return TRUE;
-    }
-
-    struct char_data *vict;
-    struct affected_type af;
-
-    if (cmd)
-      return FALSE;
-
-    vict = FIGHTING(ch);
-    if (!vict)
-      return FALSE;
-    if (!IS_EVIL(vict))
-      return FALSE;
-
-    if (argument)
-    {
-      skip_spaces(&argument);
-      if (!strcmp(argument, "critical"))
-      {
-        // okies, we assume its a crit then.
-        act("$n's $p shines as it protects $m.", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-        act("Your $p shines as it protects you.", FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-        new_affect(&af);
-        af.spell = SPELL_PROT_FROM_EVIL;
-        af.modifier = 2;
-        af.location = APPLY_AC_NEW;
-        af.duration = dice(1, 4);
-        affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
-        return TRUE;
-      }
-    }
-    if (!rand_number(0, 30))
-    {
-      act("$n's $p hums loudly.", FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-      act("Your $p hums loudly.", FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-      call_magic(ch, vict, 0, SPELL_DISPEL_MAGIC, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
-      return TRUE;
-    }
-
+  if (cmd)
     return FALSE;
+
+  if (!FIGHTING(ch))
+    return FALSE;
+
+  if (dice(1, 40) < 39)
+    return FALSE;
+
+  if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
+    return FALSE;
+
+  vict = FIGHTING(ch);
+  dam = 50 + dice(30, 5);
+  if (dam > GET_HIT(vict))
+    dam = GET_HIT(vict);
+  if (dam < 50)
+    return FALSE;
+  weapons_spells(
+      "\tLAs your hands \twimpact\tL with your opponent, the \trflowing m\tRagm\tra\tn\r\n"
+      "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+      "\tLAs $n\tL's hands \twimpact\tL with YOU, the \trflowing m\tRagm\tra\tn\r\n"
+      "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+      "\tLAs $n\tL's hands \twimpact\tL with $s opponent, the \trflowing m\tRagm\tra\tn\r\n"
+      "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+      ch, vict, (struct obj_data *)me, 0);
+  damage(ch, vict, dam, -1, DAM_FIRE, FALSE); // type -1 = no message
+  return TRUE;
+}
+
+/* from homeland */
+SPECIAL(halberd)
+{
+  struct affected_type af;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Proc:  blur, stun, slow.\r\n");
+    return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(witherdirk)
+  struct char_data *vict = FIGHTING(ch);
+
+  if (cmd || !vict)
+    return FALSE;
+
+  switch (rand_number(0, 30))
   {
-    if (!ch)
+  case 27:
+    if (!can_stun(vict))
       return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc: Contagion\r\n");
-      return TRUE;
-    }
-
-    struct char_data *vict;
-
-    if (cmd)
-      return FALSE;
-
-    vict = FIGHTING(ch);
-    if (!vict)
-      return FALSE;
-
-    if (rand_number(0, 30))
-      return FALSE;
-
+    // A slight chance to stun
     weapons_spells(
-        "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
-        "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
-        "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into YOUR skin,\tn\r\n"
-        "\tgputrid\tr blo\tro\trd\tL wells up in YOUR eyes, causing great pain and discomfort.\tn",
-        "\tLThe dirk \trwrithes\tL and \twtwists\tL as it bites deep into $N\tL's skin,\tn\r\n"
-        "\tgputrid\tr blo\tro\trd\tL wells up in $S eyes, causing great pain and discomfort.\tn",
-        ch, vict, (struct obj_data *)me, SPELL_CONTAGION);
-
-    return TRUE;
-  }
-
-  /* from homeland */
-  SPECIAL(air_sphere)
-  {
-    int dam = 0;
-    struct char_data *vict;
-    struct affected_type af;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc: Electric Shock, on saying 'storm', haste and "
-                       "chain lightning.\r\n");
-      return TRUE;
-    }
-
-    if (!cmd && FIGHTING(ch) && !rand_number(0, 25))
-    {
-      vict = FIGHTING(ch);
-      dam = 20 + dice(2, 8);
-      act("\tbYour \tBsphere of lighting \tYglows bright\tb as electricity\r\n"
-          "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
-          "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\tn\r\n"
-          "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
-          FALSE, ch, 0, vict, TO_CHAR);
-      act("$n's \tBsphere of lighting \tYglows bright\tb as electricity\tn\r\n"
-          "\tbc\tBr\tbackl\tBe\tbs \tball about its surface.\tn\r\n"
-          "\tbSuddenly the \tYglow \tWintensifies\tb and a \tB\tfbolt of lightning\r\n"
-          "\tbshoots forth from the sphere band strikes $N \tbdead on!\tn",
-          FALSE, ch, 0, vict, TO_ROOM);
-      damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); // type -1 = no message
-      return TRUE;
-    }
-
-    // haste/chain once a day on command
-    if (cmd && argument && CMD_IS("say"))
-    {
-      if (!is_wearing(ch, 136100))
-        return FALSE;
-
-      skip_spaces(&argument);
-      if (!strcmp(argument, "storm"))
-      {
-        if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
-        {
-          send_to_char(ch, "Nothing happens.\r\n");
-          return TRUE;
-        }
-
-        act("\tcAs you speak to your \tbsphere of lightning\tc, it begins to \tWglow\tc and fill with violent\tn\r\n"
-            "\tcenergy.  The energy builds until it \tba\twrc\tbs and \tBc\tbrackle\tBs\tc all over the sphere before\tn\r\n"
-            "\tcit lets loose in a violent \tblightning storm\tc.  As the energy from the storm begins\tn\r\n"
-            "\tcto fade, a jolt of \tYelectricity\tc flows up through your arms, causing your heart to\tn\r\n"
-            "\tcrace really fast!\tn",
-            FALSE, ch, 0, 0, TO_CHAR);
-        act("\tcAs $n \tcspeaks a word of power to $s \tbsphere of lightning\tc,\tn\r\n"
-            "\tcit \tWglows brightly\tc and violent energy begins to fill it. The sphere\tn\r\n"
-            "\tba\twrc\tbs\tc and \tBc\tbrackle\tBs\tc before it lets loose a violent \tblightning\tn\r\n"
-            "\tbstorm\tc.  The energy begins to fade, but before this can happen a jolt of \tYelectricity\tn\r\n"
-            "\tcflows up $n's\tc arms and causes $s heart to race really fast!",
-            FALSE, ch, 0, 0, TO_ROOM);
-
-        new_affect(&af);
-        af.spell = SPELL_HASTE;
-        af.duration = 100;
-        SET_BIT_AR(af.bitvector, AFF_HASTE);
-        affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
-
-        call_magic(ch, 0, 0, SPELL_CHAIN_LIGHTNING, 0, 20, CAST_WEAPON_SPELL);
-
-        GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
-        return TRUE;
-      }
-    }
-    return FALSE;
-  }
-
-  /* from homeland */
-  SPECIAL(bolthammer)
-  {
-    int dam;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc:  Lightning bolt.\r\n");
-      return TRUE;
-    }
-
-    struct char_data *vict = FIGHTING(ch);
-
-    if (cmd || !vict || rand_number(0, 18))
-      return FALSE;
-
-    dam = 25 + dice(1, 30);
-
-    if (dam < GET_HIT(vict))
-    {
-      weapons_spells(
-          "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
-          "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
-          "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
-
-          "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
-          "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes you\tn\r\n"
-          "\tlwith full force.\tn",
-
-          "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
-          "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
-          "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-    }
-    else
-    {
-      dam += 20;
-      weapons_spells(
-          "\tLYour\tn $p \tLstarts to \twth\tWr\twob \tLviolently and the sound of th\tYun\tLder can be\tn\r\n"
-          "\tLheard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
-          "$N \tLwith full force. When the flash is gone\r\n"
-
-          "\tL you see the corpse of\tn $N \tLstill twitching on the ground.\tn",
-          "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
-          "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
-          "\tLyou with full force. You twitch a few times before your body goes still forever.\tn",
-
-          "$n's�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
-          "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn \tn\r\n"
-          "$N \tLwith full force. When the flash is gone you see\r\n"
-          "\tLthe corpse of\tn $N \tLstill twitching on the ground.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-    }
-
-    damage(ch, vict, dam, -1, DAM_ELECTRIC, FALSE); // type -1 = no message
-    return TRUE;
-  }
-
-  /* from jot i think */
-  SPECIAL(rughnark)
-  {
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc: magical damage 25+10d4 for high level monks.  Will work better for non-good monks\r\n");
-      return TRUE;
-    }
-
-    if (!is_wearing(ch, 114838))
-      return FALSE;
-
-    if (cmd)
-      return FALSE;
-
-    if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
-      return FALSE;
-
-    int dam = 0;
-    struct char_data *vict = FIGHTING(ch);
-
-    if (!vict)
-      return FALSE;
-
-    if (dice(1, 40) < 38)
-      return FALSE;
-
-    if (IS_GOOD(ch) && dice(1, 10) > 5)
-      return FALSE;
-
-    dam = 25 + dice(10, 4);
-
-    if (dam > GET_HIT(vict))
-      dam = GET_HIT(vict);
-
-    weapons_spells(
-        "\tLAs you make contact with your opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
-        "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of your\tn\r\n"
-        "\tLopponent as $E screams in agony and pain.\tn",
-
-        "\tLAs $n make contact with you, the twin \tWmithril\tL blades rip apart\tn\r\n"
-        "\tLyour flesh in a gory display of blood, tearing huge chunks of meat out of your\tn\r\n"
-        "\tLown body as you scream in agony.\tn",
-
-        "\tLAs $n makes contact with $s opponent, the twin \tWmithril\tL blades rip apart\tn\r\n"
-        "\tLthe flesh in a gory display of blood, tearing huge chunks of meat out of $s\tn\r\n"
-        "\tLopponent as $E screams in agony and pain.\tn",
+        "\tcYour\tn $p \tcreverberates loudly as it sends\tn\r\n"
+        "\tcforth a \tWthunderous blast \tcat \tn$N\tc.  $E is knocked backwards as the\tn\r\n"
+        "\tcfull brunt of the blast hits $M squarely.\tn",
+        "\tc$n\tn $p \tcreverberates loudly as it sends\tn\r\n"
+        "\tcforth a \tWthunderous blast \tcat YOU.  You are knocked backwards as the\tn\r\n"
+        "\tcfull brunt of the blast hits YOU squarely.\tn",
+        "\tc$n\tn $p \tcreverberates loudly as it sends\tn\r\n"
+        "\tcforth a \tWthunderous blast \tcat $N.  $E is knocked backwards as the\tn\r\n"
+        "\tcfull brunt of the blast hits $M squarely.\tn",
         ch, vict, (struct obj_data *)me, 0);
-    damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
+    new_affect(&af);
+    af.spell = SKILL_CHARGE;
+    SET_BIT_AR(af.bitvector, AFF_STUN);
+    af.duration = dice(1, 4);
+    affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
     return TRUE;
-  }
+    break;
 
-  /* from the prisoner trove 132128 */
-  SPECIAL(speed_gaunts)
-  {
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc: Extra attacks & chance to do a powerful vamp attack (powerful monks only)\r\n");
-      return TRUE;
-    }
-
-    if (!is_wearing(ch, 132128))
-      return FALSE;
-
-    if (cmd)
-      return FALSE;
-
-    if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
-      return FALSE;
-
-    int dam = 0, num_hits = 0, i = 0;
-    struct char_data *vict = FIGHTING(ch);
-
-    if (!vict)
-      return FALSE;
-
-    struct obj_data *gaunts = (struct obj_data *)me;
-
-    /* odds to succeed on vamp proc */
-    if (!rand_number(0, 37))
-    {
-
-      dam = rand_number(175, 300);
-
-      weapons_spells(
-          "\tWSuddenly, $p\tW glows brightly as your body starts to \tCflicker\tW in and out of reality!  "
-          "You \tCphase away\tW, dodging \tn$N's\tW attack and quickly \tCphase back\tW \twslamming your "
-          "gauntlets powerfully\tW into $N where upon impact they flare with \tRvampiric power\tW drawing "
-          "the lifeforce out of $M !\tn",
-
-          "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
-          "$n \tCphases away\tW, dodging your attack and quickly \tCphases back\tW slamming $s gauntlets "
-          "powerfully into you where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
-          "out of you!\tn",
-
-          "\tWSuddenly, $p\tW glows brightly as $n's\tW body starts to \tCflicker\tW in and out of reality!  "
-          "$n \tCphases away\tW, dodging $N's\tW attack and quickly \tCphases back\tW slamming $s gauntlets "
-          "powerfully into $N\tW where upon impact they flare with \tRvampiric power\tW drawing the lifeforce "
-          "out of you!\tn",
-          ch,
-          vict,
-          gaunts,
-          0);
-      damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
-      process_healing(ch, ch, -1, dam, 0);
-
-      return TRUE;
-    }
-
-    /* we failed vamp, lets try for the attack-blur proc */
-    else if (!rand_number(0, 26))
-    {
-      act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as your strikes begin to speed up!",
-          TRUE, ch, gaunts, vict, TO_CHAR);
-      act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
-          TRUE, ch, gaunts, vict, TO_VICT);
-      act("$p\tn flares a \tGgreen\tn sheen before pulsing with \tWwhite light\tn as $n's\tn strikes begin to speed up!",
-          TRUE, ch, gaunts, vict, TO_NOTVICT);
-
-      num_hits = rand_number(4, 7);
-
-      for (i = 0; i <= num_hits; i++)
-      {
-        if (valid_fight_cond(ch, TRUE))
-          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-      }
-
-      return TRUE;
-    }
-
-    return FALSE;
-  }
-
-  /* from homeland */
-  SPECIAL(magma)
-  {
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc: magmaburst (fire damage for monk.)\r\n");
-      return TRUE;
-    }
-
-    int dam = 0;
-    struct char_data *vict = 0;
-
-    if (cmd)
-      return FALSE;
-
-    if (!FIGHTING(ch))
-      return FALSE;
-
-    if (dice(1, 40) < 39)
-      return FALSE;
-
-    if (MONK_TYPE(ch) < 20 && !IS_NPC(ch))
-      return FALSE;
-
-    vict = FIGHTING(ch);
-    dam = 50 + dice(30, 5);
-    if (dam > GET_HIT(vict))
-      dam = GET_HIT(vict);
-    if (dam < 50)
-      return FALSE;
+  case 21:
+    // blur
     weapons_spells(
-        "\tLAs your hands \twimpact\tL with your opponent, the \trflowing m\tRagm\tra\tn\r\n"
-        "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
-        "\tLAs $n\tL's hands \twimpact\tL with YOU, the \trflowing m\tRagm\tra\tn\r\n"
-        "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
-        "\tLAs $n\tL's hands \twimpact\tL with $s opponent, the \trflowing m\tRagm\tra\tn\r\n"
-        "\trignites\tL and emits a \twburst\tL of \tRf\tYi\tRr\tre\tL and \tyr\tLo\tyck\tL.\tn",
+        "\tcAs your\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
+        "\tcit quickly enshrouding you.  The \twm\tWi\twst \tcinduces you into a deep trance as your\tn\r\n"
+        "\tctrance as your body melds with your\tn $p. \r\n\tcYou begin to \tCmove "
+        "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed \tCblurring out of focus.\tn\tn",
+
+        "\tcAs $n\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
+        "\tcit quickly enshrouding $m.  The \twm\tWi\twst \tcinduces $m into a deep\tn\r\n"
+        "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
+        "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
+
+        "\tcAs $n\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
+        "\tcit quickly enshrouding $m.  The \twm\tWi\twst \tcinduces $m into a deep\tn\r\n"
+        "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
+        "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
         ch, vict, (struct obj_data *)me, 0);
-    damage(ch, vict, dam, -1, DAM_FIRE, FALSE); // type -1 = no message
+    return TRUE;
+    break;
+
+  case 17:
+  case 16:
+    // damage, and a chance to slow.
+    weapons_spells(
+        "\tcYour\tn $p \tcravenously slashes deep into \tn$N\tn\r\n"
+        "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
+        "\tc$n\tn $p \tMravenously slashes deep into YOU inflicting\tn\r\n"
+        "\tclife-threatening wounds causing YOU to convulse and \tRbleed profusely.\tn",
+        "\tc$n\tn $p \tcravenously slashes deep into \tn$N\tc\r\n"
+        "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
+        ch, vict, (struct obj_data *)me, SPELL_SLOW);
+    damage(ch, vict, 10 + dice(2, 4), -1, DAM_POISON, FALSE); // type -1 = no message
+    return TRUE;
+    break;
+
+  default:
+    return FALSE;
+  }
+  return FALSE;
+}
+
+SPECIAL(bank)
+{
+  int amount;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a bank.\r\n");
     return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(halberd)
+  if (CMD_IS("balance"))
   {
-    struct affected_type af;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Proc:  blur, stun, slow.\r\n");
-      return TRUE;
-    }
-
-    struct char_data *vict = FIGHTING(ch);
-
-    if (cmd || !vict)
-      return FALSE;
-
-    switch (rand_number(0, 30))
-    {
-    case 27:
-      if (!can_stun(vict))
-        return FALSE;
-      // A slight chance to stun
-      weapons_spells(
-          "\tcYour\tn $p \tcreverberates loudly as it sends\tn\r\n"
-          "\tcforth a \tWthunderous blast \tcat \tn$N\tc.  $E is knocked backwards as the\tn\r\n"
-          "\tcfull brunt of the blast hits $M squarely.\tn",
-          "\tc$n\tn $p \tcreverberates loudly as it sends\tn\r\n"
-          "\tcforth a \tWthunderous blast \tcat YOU.  You are knocked backwards as the\tn\r\n"
-          "\tcfull brunt of the blast hits YOU squarely.\tn",
-          "\tc$n\tn $p \tcreverberates loudly as it sends\tn\r\n"
-          "\tcforth a \tWthunderous blast \tcat $N.  $E is knocked backwards as the\tn\r\n"
-          "\tcfull brunt of the blast hits $M squarely.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-      new_affect(&af);
-      af.spell = SKILL_CHARGE;
-      SET_BIT_AR(af.bitvector, AFF_STUN);
-      af.duration = dice(1, 4);
-      affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
-      return TRUE;
-      break;
-
-    case 21:
-      // blur
-      weapons_spells(
-          "\tcAs your\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
-          "\tcit quickly enshrouding you.  The \twm\tWi\twst \tcinduces you into a deep trance as your\tn\r\n"
-          "\tctrance as your body melds with your\tn $p. \r\n\tcYou begin to \tCmove "
-          "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed \tCblurring out of focus.\tn\tn",
-
-          "\tcAs $n\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
-          "\tcit quickly enshrouding $m.  The \twm\tWi\twst \tcinduces $m into a deep\tn\r\n"
-          "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
-          "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
-
-          "\tcAs $n\tn $p \tctumultuously resonates, a strange \twm\tWi\twst \tcemanates from\tn\r\n"
-          "\tcit quickly enshrouding $m.  The \twm\tWi\twst \tcinduces $m into a deep\tn\r\n"
-          "\tctrance as $m body melds with $s\tn $p.  \r\n\tc$e begins to \tCmove \tn"
-          "\tCat a \tcrapid\tCly in\tccreas\tCing sp\tceed then $e \tCblurs out of focus.\tn",
-          ch, vict, (struct obj_data *)me, 0);
-      return TRUE;
-      break;
-
-    case 17:
-    case 16:
-      // damage, and a chance to slow.
-      weapons_spells(
-          "\tcYour\tn $p \tcravenously slashes deep into \tn$N\tn\r\n"
-          "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
-          "\tc$n\tn $p \tMravenously slashes deep into YOU inflicting\tn\r\n"
-          "\tclife-threatening wounds causing YOU to convulse and \tRbleed profusely.\tn",
-          "\tc$n\tn $p \tcravenously slashes deep into \tn$N\tc\r\n"
-          "\tcinflicting life-threatening wounds causing $M to convulse and \tRbleed profusely.\tn",
-          ch, vict, (struct obj_data *)me, SPELL_SLOW);
-      damage(ch, vict, 10 + dice(2, 4), -1, DAM_POISON, FALSE); // type -1 = no message
-      return TRUE;
-      break;
-
-    default:
-      return FALSE;
-    }
-    return FALSE;
+    if (GET_BANK_GOLD(ch) > 0)
+      send_to_char(ch, "\twYour current balance is \tW%d \tYcoins\tw.\tn\r\n", GET_BANK_GOLD(ch));
+    else
+      send_to_char(ch, "\twYou currently have \tWno\tw money deposited.\tn\r\n");
+    return (TRUE);
   }
-
-  SPECIAL(bank)
+  else if (CMD_IS("deposit"))
   {
-    int amount;
 
-    if (!cmd && !strcmp(argument, "identify"))
+    /* code to accomdate "all" */
+    skip_spaces(&argument);
+    if (is_abbrev(argument, "all"))
     {
-      send_to_char(ch, "This appears to be a bank.\r\n");
-      return TRUE;
-    }
-
-    if (CMD_IS("balance"))
-    {
-      if (GET_BANK_GOLD(ch) > 0)
-        send_to_char(ch, "\twYour current balance is \tW%d \tYcoins\tw.\tn\r\n", GET_BANK_GOLD(ch));
-      else
-        send_to_char(ch, "\twYou currently have \tWno\tw money deposited.\tn\r\n");
-      return (TRUE);
-    }
-    else if (CMD_IS("deposit"))
-    {
-
-      /* code to accomdate "all" */
-      skip_spaces(&argument);
-      if (is_abbrev(argument, "all"))
-      {
-        amount = GET_GOLD(ch);
-        send_to_char(ch, "\twYou deposit all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
-        act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
-        decrease_gold(ch, amount);
-        increase_bank(ch, amount);
-        return (TRUE);
-      }
-
-      if ((amount = atoi(argument)) <= 0)
-      {
-        send_to_char(ch, "How much do you want to deposit?\r\n");
-        return (TRUE);
-      }
-      if (GET_GOLD(ch) < amount)
-      {
-        send_to_char(ch, "You don't have that many coins!\r\n");
-        return (TRUE);
-      }
+      amount = GET_GOLD(ch);
+      send_to_char(ch, "\twYou deposit all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
+      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       decrease_gold(ch, amount);
       increase_bank(ch, amount);
-      send_to_char(ch, "\twYou deposit \tW%d\tY coins\tw.\tn\r\n", amount);
-      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       return (TRUE);
     }
-    else if (CMD_IS("withdraw"))
+
+    if ((amount = atoi(argument)) <= 0)
     {
+      send_to_char(ch, "How much do you want to deposit?\r\n");
+      return (TRUE);
+    }
+    if (GET_GOLD(ch) < amount)
+    {
+      send_to_char(ch, "You don't have that many coins!\r\n");
+      return (TRUE);
+    }
+    decrease_gold(ch, amount);
+    increase_bank(ch, amount);
+    send_to_char(ch, "\twYou deposit \tW%d\tY coins\tw.\tn\r\n", amount);
+    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+    return (TRUE);
+  }
+  else if (CMD_IS("withdraw"))
+  {
 
-      /* code to accomdate "all" */
-      skip_spaces(&argument);
-      if (is_abbrev(argument, "all"))
-      {
-        amount = GET_BANK_GOLD(ch);
-        send_to_char(ch, "\twYou withdraw all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
-        act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
-        increase_gold(ch, amount);
-        decrease_bank(ch, amount);
-        return (TRUE);
-      }
-
-      if ((amount = atoi(argument)) <= 0)
-      {
-        send_to_char(ch, "How much do you want to withdraw?\r\n");
-        return (TRUE);
-      }
-      if (GET_BANK_GOLD(ch) < amount)
-      {
-        send_to_char(ch, "You don't have that many coins deposited!\r\n");
-        return (TRUE);
-      }
+    /* code to accomdate "all" */
+    skip_spaces(&argument);
+    if (is_abbrev(argument, "all"))
+    {
+      amount = GET_BANK_GOLD(ch);
+      send_to_char(ch, "\twYou withdraw all (\tW%d\tw) your \tYcoins\tw.\tn\r\n", amount);
+      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       increase_gold(ch, amount);
       decrease_bank(ch, amount);
-      send_to_char(ch, "\twYou withdraw \tW%d \tYcoins\tw.\tn\r\n", amount);
-      act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
       return (TRUE);
     }
-    else
-      return (FALSE);
+
+    if ((amount = atoi(argument)) <= 0)
+    {
+      send_to_char(ch, "How much do you want to withdraw?\r\n");
+      return (TRUE);
+    }
+    if (GET_BANK_GOLD(ch) < amount)
+    {
+      send_to_char(ch, "You don't have that many coins deposited!\r\n");
+      return (TRUE);
+    }
+    increase_gold(ch, amount);
+    decrease_bank(ch, amount);
+    send_to_char(ch, "\twYou withdraw \tW%d \tYcoins\tw.\tn\r\n", amount);
+    act("$n makes a bank transaction.", TRUE, ch, 0, FALSE, TO_ROOM);
+    return (TRUE);
   }
+  else
+    return (FALSE);
+}
 
-  /*
-     Portal that will jump to a player's clanhall
-     Exit depends on which clan player belongs to
-     Created by Jamdog - 4th July 2006
-   */
-  SPECIAL(clanportal)
+/*
+   Portal that will jump to a player's clanhall
+   Exit depends on which clan player belongs to
+   Created by Jamdog - 4th July 2006
+ */
+SPECIAL(clanportal)
+{
+  int iPlayerClan = -1;
+  struct obj_data *obj = (struct obj_data *)me;
+  struct obj_data *port;
+  zone_vnum z;
+  room_vnum r;
+  char obj_name[MAX_INPUT_LENGTH];
+  room_rnum was_in = IN_ROOM(ch);
+  struct follow_type *k;
+
+  if (!cmd && !strcmp(argument, "identify"))
   {
-    int iPlayerClan = -1;
-    struct obj_data *obj = (struct obj_data *)me;
-    struct obj_data *port;
-    zone_vnum z;
-    room_vnum r;
-    char obj_name[MAX_INPUT_LENGTH];
-    room_rnum was_in = IN_ROOM(ch);
-    struct follow_type *k;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This appears to be a clan portal.\r\n");
-      return TRUE;
-    }
-
-    if (!CMD_IS("enter"))
-      return FALSE;
-
-    argument = one_argument_u(argument, obj_name);
-
-    /* Check that the player is trying to enter THIS portal */
-    if (!(port = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))
-    {
-      return (FALSE);
-    }
-
-    if (port != obj)
-      return (FALSE);
-
-    iPlayerClan = GET_CLAN(ch);
-
-    if (iPlayerClan == NO_CLAN)
-    {
-      send_to_char(ch, "You try to enter the portal, but it returns you back to the same room!\n\r");
-      return TRUE;
-    }
-
-    if ((z = get_clanhall_by_char(ch)) == NOWHERE)
-    {
-      send_to_char(ch, "Your clan does not have a clanhall!\n\r");
-      log("Warning: Clan Portal - No clanhall (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);
-      return TRUE;
-    }
-
-    //  r = (z * 100) + 1;    /* Get room xxx01 in zone xxx */
-    /* for now lets have the exit room be 3000, until we get hometowns in, etc */
-    r = 3000;
-
-    if (!(real_room(r)))
-    {
-      send_to_char(ch, "Your clanhall is currently broken - contact an Imm!\n\r");
-      log("Warning: Clan Portal failed (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);
-      return TRUE;
-    }
-
-    /* First, move the player */
-    if (!(House_can_enter(ch, r)))
-    {
-      send_to_char(ch, "That's private property -- no trespassing!\r\n");
-      return TRUE;
-    }
-
-    act("$n enters $p, and vanishes!", FALSE, ch, port, 0, TO_ROOM);
-    act("You enter $p, and you are transported elsewhere", FALSE, ch, port, 0, TO_CHAR);
-    char_from_room(ch);
-    char_to_room(ch, real_room(r));
-    look_at_room(ch, 0);
-    act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM);
-
-    /* Then, any followers should auto-follow (Jamdog 19th June 2006) */
-    for (k = ch->followers; k; k = k->next)
-    {
-      if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
-      {
-        act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
-        char_from_room(k->follower);
-        char_to_room(k->follower, real_room(r));
-        look_at_room(k->follower, 0);
-        act("$n appears from thin air!", FALSE, k->follower, 0, 0, TO_ROOM);
-      }
-    }
+    send_to_char(ch, "This appears to be a clan portal.\r\n");
     return TRUE;
   }
 
-  /* re-written...  will now give fireshield/haste -zusuk */
-  SPECIAL(stability_boots)
-  {
-    int timer = 0;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Flurry of buffs by saying 'whirlwind'.\r\n");
-      return TRUE;
-    }
-
-    if (!cmd)
-      return FALSE;
-    if (!argument)
-      return FALSE;
-
-    skip_spaces(&argument);
-
-    if (!is_wearing(ch, 132133))
-      return FALSE;
-
-    if (cmd && CMD_IS("say") && !strcmp(argument, "whirlwind"))
-    {
-      timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
-      if (timer > 0)
-      {
-        send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
-        return TRUE;
-      }
-
-      act("\twSmall eddies of wind begin to form around the edges of the area, \tn\r\n"
-          "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
-          "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
-          "\twbefore the eddies are drawn inward around your body.\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-      act("\tw$n utters a word towards $p...   Small eddies of wind begin to form around the edges of the area, \tn\r\n"
-          "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
-          "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
-          "\twbefore the eddies are drawn inward around your body.\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-
-      call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 30, CAST_WEAPON_SPELL);
-      call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
-      call_magic(ch, ch, 0, SPELL_SHADOW_SHIELD, 0, 30, CAST_WEAPON_SPELL);
-
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
-      return TRUE;
-    }
+  if (!CMD_IS("enter"))
     return FALSE;
+
+  argument = one_argument_u(argument, obj_name);
+
+  /* Check that the player is trying to enter THIS portal */
+  if (!(port = get_obj_in_list_vis(ch, obj_name, NULL, world[(IN_ROOM(ch))].contents)))
+  {
+    return (FALSE);
   }
 
-  /* re-written...  will now give fireshield/haste -zusuk */
-  SPECIAL(hellfire)
+  if (port != obj)
+    return (FALSE);
+
+  iPlayerClan = GET_CLAN(ch);
+
+  if (iPlayerClan == NO_CLAN)
   {
-    int timer = 0;
-
-    if (!ch)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Invoke haste and fireshield on armor by saying 'Hellfire'.\r\n");
-      return TRUE;
-    }
-
-    if (!cmd)
-      return FALSE;
-    if (!argument)
-      return FALSE;
-
-    skip_spaces(&argument);
-
-    if (!is_wearing(ch, 132102))
-      return FALSE;
-
-    if (cmd && CMD_IS("say") && !strcmp(argument, "hellfire"))
-    {
-      timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
-      if (timer > 0)
-      {
-        send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
-        return TRUE;
-      }
-
-      act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
-          "\tLThe flames rise and protects YOU!\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-
-      act("\tLThe pure flames of $n\tL's $p\tL is invoked.\tn\r\n"
-          "\tLThe flames rise and protects $m!\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-
-      call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 26, CAST_WEAPON_SPELL);
-      call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_WEAPON_SPELL);
-
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  /* from homeland */
-  SPECIAL(angel_leggings)
-  {
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 1\r\n");
-
-    if (!ch)
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 2\r\n");
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Invoke fly by keyword 'Elysium'.\r\n");
-      return TRUE;
-    }
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 3\r\n");
-
-    if (!cmd)
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 4\r\n");
-
-    if (!argument)
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 5\r\n");
-
-    if (!is_wearing(ch, 106021))
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
-
-    skip_spaces(&argument);
-
-    if (cmd && CMD_IS("say") && !strcmp(argument, "elysium"))
-    {
-      if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
-      {
-        if (DEBUGMODE)
-          send_to_char(ch, "Debug - Mark 8\r\n");
-
-        send_to_char(ch, "Nothing happens.\r\n");
-        return TRUE;
-      }
-
-      act("\tWThe power of $p\tW is invoked.\tn\r\n"
-          "\tcYour feet slowly raise off the ground.\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-      act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
-          "\tw$s feet slowly raise of the ground!\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-
-      if (DEBUGMODE)
-        send_to_char(ch, "Debug - Mark 9\r\n");
-
-      call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_WEAPON_SPELL);
-
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
-
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  /* zusuk's epic robes from cloud realms */
-  SPECIAL(dragon_robes)
-  {
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 1\r\n");
-
-    if (!ch)
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 2\r\n");
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "Invoke displace by keyword 'Power'.\r\n");
-      return TRUE;
-    }
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 3\r\n");
-
-    if (!cmd)
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 4\r\n");
-
-    if (!argument)
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug - Mark 5\r\n");
-
-    /*[144669]*/
-    if (!is_wearing(ch, 144669))
-      return FALSE;
-
-    if (DEBUGMODE)
-      send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
-
-    skip_spaces(&argument);
-
-    if (cmd && CMD_IS("say") && !strcmp(argument, "power"))
-    {
-      if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
-      {
-        if (DEBUGMODE)
-          send_to_char(ch, "Debug - Mark 8\r\n");
-
-        send_to_char(ch, "Nothing happens.\r\n");
-        return TRUE;
-      }
-
-      act("\tWThe power of $p\tW is invoked.\tn\r\n"
-          "\tcYour form begins to shimmer in and out of reality!\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
-      act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
-          "\tw$s begins to shimmer in and out of reality!\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
-
-      if (DEBUGMODE)
-        send_to_char(ch, "Debug - Mark 9\r\n");
-
-      call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_WEAPON_SPELL);
-
-      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
-
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  /* from homeland, converts an object type PET into an actual
-   * pet mobile follower, object vnum must match mobile vnum */
-  SPECIAL(bought_pet)
-  {
-
-    if (cmd)
-      return FALSE;
-
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This appears to be a pet.\r\n");
-      return TRUE;
-    }
-
-    struct follow_type *f = NULL;
-
-    for (f = ch->followers; f; f = f->next)
-    {
-      if (IS_NPC(f->follower) && MOB_FLAGGED(f->follower, MOB_MERCENARY) && AFF_FLAGGED(f->follower, AFF_CHARM))
-      {
-        send_to_char(ch, "You may only have one purchased follower.\r\n");
-        return 1;
-      }
-    }
-
-    struct obj_data *obj = (struct obj_data *)me;
-
-    if (obj->carried_by == 0)
-      return FALSE;
-
-    if (IS_NPC(obj->carried_by))
-      return FALSE;
-
-    struct char_data *pet = NULL;
-
-    pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
-
-    /* found matching vnum for obejct, loaded pet succesfully */
-    if (pet)
-    {
-      char_to_room(pet, obj->carried_by->in_room);
-      add_follower(pet, obj->carried_by);
-      SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
-
-      /* success message */
-      send_to_char(obj->carried_by, "You have acquired a companion.\r\n");
-
-      /* get rid of the purchased object */
-      extract_obj(obj);
-      return TRUE;
-    }
-
-    /* failed to load pet */
-    return FALSE;
-  }
-
-  /* from homeland, i doubt we are going to port this, houses replace these */
-  /*
-  SPECIAL(storage_chest) {
-    if (cmd)
-      return FALSE;
-    if (!cmd && !strcmp(argument, "identify"))
-    {
-      send_to_char(ch, "This is a player storage chest.\r\n");
-      return TRUE;
-    }
-
-    struct obj_data *chest = (struct obj_data*) me;
-    if (GET_OBJ_VAL(chest, 3) != 0)
-      return FALSE;
-    ch = chest->carried_by;
-    if (!ch) {
-      REMOVE_BIT(GET_OBJ_EXTRA(chest), ITEM_INVISIBLE);
-      return FALSE;
-    }
-    if (IS_NPC(ch) || IS_PET(ch))
-      return FALSE;
-
-    snprintf(buf2, sizeof(buf2), "chest storage %s", GET_NAME(ch));
-    chest->name = str_dup(buf2);
-
-    if (GET_OBJ_VNUM(chest) == 1291) {
-      snprintf(buf2, sizeof(buf2), "\tLAn ornate \tcmithril\tL chest owned by \tw%s\tL rests here.\tn", GET_NAME(ch));
-      chest->description = str_dup(buf2);
-      snprintf(buf2, sizeof(buf2), "\tLan ornate \tcmithril\tL chest owned by \tw%s\tn", GET_NAME(ch));
-      chest->short_description = str_dup(buf2);
-
-    } else {
-      snprintf(buf2, sizeof(buf2), "\tLA storage chest owned by \tW%s\tL is standing here.\tn", GET_NAME(ch));
-      chest->description = str_dup(buf2);
-      snprintf(buf2, sizeof(buf2), "\tLa chest owned by \tW%s\tn", GET_NAME(ch));
-      chest->short_description = str_dup(buf2);
-    }
-    GET_OBJ_VAL(chest, 3) = -GET_IDNUM(ch);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_VALUES);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_NAME);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_DESC);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_SHORT);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_TYPE);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEAR);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_EXTRA);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_TIMER);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEIGHT);
-    SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_COST);
-    save_chests();
+    send_to_char(ch, "You try to enter the portal, but it returns you back to the same room!\n\r");
     return TRUE;
   }
-   */
 
-  /* from homeland */
-  SPECIAL(clang_bracer)
+  if ((z = get_clanhall_by_char(ch)) == NOWHERE)
   {
-    if (!cmd && !strcmp(argument, "identify"))
+    send_to_char(ch, "Your clan does not have a clanhall!\n\r");
+    log("Warning: Clan Portal - No clanhall (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);
+    return TRUE;
+  }
+
+  //  r = (z * 100) + 1;    /* Get room xxx01 in zone xxx */
+  /* for now lets have the exit room be 3000, until we get hometowns in, etc */
+  r = 3000;
+
+  if (!(real_room(r)))
+  {
+    send_to_char(ch, "Your clanhall is currently broken - contact an Imm!\n\r");
+    log("Warning: Clan Portal failed (Player: %s, Clan ID: %d)", GET_NAME(ch), iPlayerClan);
+    return TRUE;
+  }
+
+  /* First, move the player */
+  if (!(House_can_enter(ch, r)))
+  {
+    send_to_char(ch, "That's private property -- no trespassing!\r\n");
+    return TRUE;
+  }
+
+  act("$n enters $p, and vanishes!", FALSE, ch, port, 0, TO_ROOM);
+  act("You enter $p, and you are transported elsewhere", FALSE, ch, port, 0, TO_CHAR);
+  char_from_room(ch);
+  char_to_room(ch, real_room(r));
+  look_at_room(ch, 0);
+  act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM);
+
+  /* Then, any followers should auto-follow (Jamdog 19th June 2006) */
+  for (k = ch->followers; k; k = k->next)
+  {
+    if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
     {
-      send_to_char(ch, "Dwarf and Group Only.  Invoke battle prowess by saying 'argenoth'.\r\n");
+      act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
+      char_from_room(k->follower);
+      char_to_room(k->follower, real_room(r));
+      look_at_room(k->follower, 0);
+      act("$n appears from thin air!", FALSE, k->follower, 0, 0, TO_ROOM);
+    }
+  }
+  return TRUE;
+}
+
+/* re-written...  will now give fireshield/haste -zusuk */
+SPECIAL(stability_boots)
+{
+  int timer = 0;
+
+  if (!ch)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Flurry of buffs by saying 'whirlwind'.\r\n");
+    return TRUE;
+  }
+
+  if (!cmd)
+    return FALSE;
+  if (!argument)
+    return FALSE;
+
+  skip_spaces(&argument);
+
+  if (!is_wearing(ch, 132133))
+    return FALSE;
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "whirlwind"))
+  {
+    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
+    if (timer > 0)
+    {
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
       return TRUE;
     }
 
-    if (ch && is_wearing(ch, 121456))
-    {
-      if (!cmd && GET_RACE(ch) != RACE_DWARF)
-      {
-        act("\tLThe bracer begins to glow on your arm, clenching tighter and "
-            "tighter until you rip it off in agony.\tn",
-            FALSE, ch, 0, 0,
-            TO_CHAR);
-        act("\tLA bracer on $n\tL's arm begins to glow brightly and a look of "
-            "intense pain crosses $s face as $e rips the bracer free.\tn",
-            FALSE, ch, 0, 0, TO_ROOM);
+    act("\twSmall eddies of wind begin to form around the edges of the area, \tn\r\n"
+        "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
+        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
+        "\twbefore the eddies are drawn inward around your body.\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    act("\tw$n utters a word towards $p...   Small eddies of wind begin to form around the edges of the area, \tn\r\n"
+        "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
+        "\twup in its intensity, lifting up from the ground to build into a howling whirlwind \tn\r\n"
+        "\twbefore the eddies are drawn inward around your body.\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
-        if (GET_EQ(ch, WEAR_WRIST_R) == (obj_data *)me)
-          obj_to_char(unequip_char(ch, WEAR_WRIST_R), ch);
-        else if (GET_EQ(ch, WEAR_WRIST_L) == (obj_data *)me)
-          obj_to_char(unequip_char(ch, WEAR_WRIST_L), ch);
-        return TRUE;
-      }
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
+    call_magic(ch, ch, 0, SPELL_SHADOW_SHIELD, 0, 30, CAST_WEAPON_SPELL);
 
-      // invoke it!
-      if (!cmd)
-        return FALSE;
-      if (!argument)
-        return FALSE;
-      if (!CMD_IS("say"))
-        return FALSE;
-      skip_spaces(&argument);
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
+    return TRUE;
+  }
+  return FALSE;
+}
 
-      if (!strcmp(argument, "argenoth"))
-      {
-        if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
-        {
-          send_to_char(ch, "You attempt to invoke your bracer, but nothing happens.\r\n");
-          return TRUE;
-        }
+/* re-written...  will now give fireshield/haste -zusuk */
+SPECIAL(hellfire)
+{
+  int timer = 0;
 
-        struct group_data *group;
-
-        if ((group = GROUP(ch)) == NULL)
-        {
-          send_to_char(ch, "You recall from lore this item will not work unless in a group.\r\n");
-          return FALSE;
-        }
-
-        /* success! */
-        send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
-                                   "blow clear as if it were yesterday.  You feel your muscles tighten "
-                                   "then relax as the skill of ancient warriors is merged with your own.\r\n");
-        call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_WEAPON_SPELL);
-        GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
-        return TRUE;
-      }
-    }
+  if (!ch)
     return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Invoke haste and fireshield on armor by saying 'Hellfire'.\r\n");
+    return TRUE;
   }
 
-  /* from homeland */
-  SPECIAL(menzo_chokers)
-  {
-    struct affected_type *af2;
-    struct affected_type af;
+  if (!cmd)
+    return FALSE;
+  if (!argument)
+    return FALSE;
 
-    if (!ch)
+  skip_spaces(&argument);
+
+  if (!is_wearing(ch, 132102))
+    return FALSE;
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "hellfire"))
+  {
+    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
+    if (timer > 0)
+    {
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
+      return TRUE;
+    }
+
+    act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
+        "\tLThe flames rise and protects YOU!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+
+    act("\tLThe pure flames of $n\tL's $p\tL is invoked.\tn\r\n"
+        "\tLThe flames rise and protects $m!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+
+    call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 26, CAST_WEAPON_SPELL);
+    call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_WEAPON_SPELL);
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/* from homeland */
+SPECIAL(angel_leggings)
+{
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 1\r\n");
+
+  if (!ch)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 2\r\n");
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Invoke fly by keyword 'Elysium'.\r\n");
+    return TRUE;
+  }
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 3\r\n");
+
+  if (!cmd)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 4\r\n");
+
+  if (!argument)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 5\r\n");
+
+  if (!is_wearing(ch, 106021))
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
+
+  skip_spaces(&argument);
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "elysium"))
+  {
+    if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+    {
+      if (DEBUGMODE)
+        send_to_char(ch, "Debug - Mark 8\r\n");
+
+      send_to_char(ch, "Nothing happens.\r\n");
+      return TRUE;
+    }
+
+    act("\tWThe power of $p\tW is invoked.\tn\r\n"
+        "\tcYour feet slowly raise off the ground.\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
+        "\tw$s feet slowly raise of the ground!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+
+    if (DEBUGMODE)
+      send_to_char(ch, "Debug - Mark 9\r\n");
+
+    call_magic(ch, ch, 0, SPELL_FLY, 0, 30, CAST_WEAPON_SPELL);
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/* zusuk's epic robes from cloud realms */
+SPECIAL(dragon_robes)
+{
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 1\r\n");
+
+  if (!ch)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 2\r\n");
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Invoke displace by keyword 'Power'.\r\n");
+    return TRUE;
+  }
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 3\r\n");
+
+  if (!cmd)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 4\r\n");
+
+  if (!argument)
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug - Mark 5\r\n");
+
+  /*[144669]*/
+  if (!is_wearing(ch, 144669))
+    return FALSE;
+
+  if (DEBUGMODE)
+    send_to_char(ch, "Debug 7 - Argument: %s\r\n", argument);
+
+  skip_spaces(&argument);
+
+  if (cmd && CMD_IS("say") && !strcmp(argument, "power"))
+  {
+    if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+    {
+      if (DEBUGMODE)
+        send_to_char(ch, "Debug - Mark 8\r\n");
+
+      send_to_char(ch, "Nothing happens.\r\n");
+      return TRUE;
+    }
+
+    act("\tWThe power of $p\tW is invoked.\tn\r\n"
+        "\tcYour form begins to shimmer in and out of reality!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+    act("\tWThe power of $n\tW's $p\tW is invoked.\tn\r\n"
+        "\tw$s begins to shimmer in and out of reality!\tn\r\n",
+        FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
+
+    if (DEBUGMODE)
+      send_to_char(ch, "Debug - Mark 9\r\n");
+
+    call_magic(ch, ch, 0, SPELL_DISPLACEMENT, 0, 30, CAST_WEAPON_SPELL);
+
+    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 48;
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/* from homeland, converts an object type PET into an actual
+ * pet mobile follower, object vnum must match mobile vnum */
+SPECIAL(bought_pet)
+{
+
+  if (cmd)
+    return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This appears to be a pet.\r\n");
+    return TRUE;
+  }
+
+  struct follow_type *f = NULL;
+
+  for (f = ch->followers; f; f = f->next)
+  {
+    if (IS_NPC(f->follower) && MOB_FLAGGED(f->follower, MOB_MERCENARY) && AFF_FLAGGED(f->follower, AFF_CHARM))
+    {
+      send_to_char(ch, "You may only have one purchased follower.\r\n");
+      return 1;
+    }
+  }
+
+  struct obj_data *obj = (struct obj_data *)me;
+
+  if (obj->carried_by == 0)
+    return FALSE;
+
+  if (IS_NPC(obj->carried_by))
+    return FALSE;
+
+  struct char_data *pet = NULL;
+
+  pet = read_mobile(GET_OBJ_VNUM(obj), VIRTUAL);
+
+  /* found matching vnum for obejct, loaded pet succesfully */
+  if (pet)
+  {
+    char_to_room(pet, obj->carried_by->in_room);
+    add_follower(pet, obj->carried_by);
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+
+    /* success message */
+    send_to_char(obj->carried_by, "You have acquired a companion.\r\n");
+
+    /* get rid of the purchased object */
+    extract_obj(obj);
+    return TRUE;
+  }
+
+  /* failed to load pet */
+  return FALSE;
+}
+
+/* from homeland, i doubt we are going to port this, houses replace these */
+/*
+SPECIAL(storage_chest) {
+  if (cmd)
+    return FALSE;
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "This is a player storage chest.\r\n");
+    return TRUE;
+  }
+
+  struct obj_data *chest = (struct obj_data*) me;
+  if (GET_OBJ_VAL(chest, 3) != 0)
+    return FALSE;
+  ch = chest->carried_by;
+  if (!ch) {
+    REMOVE_BIT(GET_OBJ_EXTRA(chest), ITEM_INVISIBLE);
+    return FALSE;
+  }
+  if (IS_NPC(ch) || IS_PET(ch))
+    return FALSE;
+
+  snprintf(buf2, sizeof(buf2), "chest storage %s", GET_NAME(ch));
+  chest->name = str_dup(buf2);
+
+  if (GET_OBJ_VNUM(chest) == 1291) {
+    snprintf(buf2, sizeof(buf2), "\tLAn ornate \tcmithril\tL chest owned by \tw%s\tL rests here.\tn", GET_NAME(ch));
+    chest->description = str_dup(buf2);
+    snprintf(buf2, sizeof(buf2), "\tLan ornate \tcmithril\tL chest owned by \tw%s\tn", GET_NAME(ch));
+    chest->short_description = str_dup(buf2);
+
+  } else {
+    snprintf(buf2, sizeof(buf2), "\tLA storage chest owned by \tW%s\tL is standing here.\tn", GET_NAME(ch));
+    chest->description = str_dup(buf2);
+    snprintf(buf2, sizeof(buf2), "\tLa chest owned by \tW%s\tn", GET_NAME(ch));
+    chest->short_description = str_dup(buf2);
+  }
+  GET_OBJ_VAL(chest, 3) = -GET_IDNUM(ch);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_VALUES);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_NAME);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_DESC);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_SHORT);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_TYPE);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEAR);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_EXTRA);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_TIMER);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_WEIGHT);
+  SET_BIT(GET_OBJ_SAVED(chest), SAVE_OBJ_COST);
+  save_chests();
+  return TRUE;
+}
+ */
+
+/* from homeland */
+SPECIAL(clang_bracer)
+{
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Dwarf and Group Only.  Invoke battle prowess by saying 'argenoth'.\r\n");
+    return TRUE;
+  }
+
+  if (ch && is_wearing(ch, 121456))
+  {
+    if (!cmd && GET_RACE(ch) != RACE_DWARF)
+    {
+      act("\tLThe bracer begins to glow on your arm, clenching tighter and "
+          "tighter until you rip it off in agony.\tn",
+          FALSE, ch, 0, 0,
+          TO_CHAR);
+      act("\tLA bracer on $n\tL's arm begins to glow brightly and a look of "
+          "intense pain crosses $s face as $e rips the bracer free.\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+
+      if (GET_EQ(ch, WEAR_WRIST_R) == (obj_data *)me)
+        obj_to_char(unequip_char(ch, WEAR_WRIST_R), ch);
+      else if (GET_EQ(ch, WEAR_WRIST_L) == (obj_data *)me)
+        obj_to_char(unequip_char(ch, WEAR_WRIST_L), ch);
+      return TRUE;
+    }
+
+    // invoke it!
+    if (!cmd)
       return FALSE;
+    if (!argument)
+      return FALSE;
+    if (!CMD_IS("say"))
+      return FALSE;
+    skip_spaces(&argument);
 
-    if (!cmd && !strcmp(argument, "identify"))
+    if (!strcmp(argument, "argenoth"))
     {
-      send_to_char(ch, "For Drow, finding pair will give +1 to hitroll.\r\n");
+      if (GET_OBJ_SPECTIMER((struct obj_data *)me, 0) > 0)
+      {
+        send_to_char(ch, "You attempt to invoke your bracer, but nothing happens.\r\n");
+        return TRUE;
+      }
+
+      struct group_data *group;
+
+      if ((group = GROUP(ch)) == NULL)
+      {
+        send_to_char(ch, "You recall from lore this item will not work unless in a group.\r\n");
+        return FALSE;
+      }
+
+      /* success! */
+      send_to_group(NULL, group, "The memories of ancient battles fills your mind, each "
+                                 "blow clear as if it were yesterday.  You feel your muscles tighten "
+                                 "then relax as the skill of ancient warriors is merged with your own.\r\n");
+      call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, 30, CAST_WEAPON_SPELL);
+      GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 24;
       return TRUE;
     }
+  }
+  return FALSE;
+}
 
-    for (af2 = ch->affected; af2; af2 = af2->next)
-    {
-      if (af2->spell == AFF_MENZOCHOKER)
-      {
-        if (!is_wearing(ch, 135626) || !is_wearing(ch, 135627))
-        {
-          send_to_char(ch, "\tLYou suddenly feel bereft of your \tmgoddess's\tL"
-                           " touch.\tn\r\n");
-          affect_from_char(ch, AFF_MENZOCHOKER);
-        }
-        return FALSE;
-      }
-    }
+/* from homeland */
+SPECIAL(menzo_chokers)
+{
+  struct affected_type *af2;
+  struct affected_type af;
 
-    if (is_wearing(ch, 135626) && is_wearing(ch, 135627))
-    {
-      if (GET_RACE(ch) == RACE_DROW)
-      {
-        send_to_char(ch, "\tLYour blood quickens, as if your soul has been touched "
-                         "by a higher power.\tn\r\n");
-        af.location = APPLY_HITROLL;
-        af.duration = 5;
-        af.modifier = 1;
-        SET_BIT_AR(af.bitvector, AFF_MENZOCHOKER);
-        affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
-        return FALSE;
-      }
-    }
+  if (!ch)
     return FALSE;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "For Drow, finding pair will give +1 to hitroll.\r\n");
+    return TRUE;
   }
 
-  int get_vendor_armor_cost(struct char_data * ch, int level, int armortype, sbyte masterwork)
+  for (af2 = ch->affected; af2; af2 = af2->next)
   {
-    int cost = 0;
-
-    cost += armor_list[armortype].cost;
-
-    if (masterwork)
-      cost += 200;
-
-    switch (level)
+    if (af2->spell == AFF_MENZOCHOKER)
     {
-    case 1:
-      cost += 5000;
-      break;
-    case 2:
-      cost += 10000;
-      break;
-    case 3:
-      cost += 20000;
-      break;
-    case 4:
-      cost += 50000;
-      break;
+      if (!is_wearing(ch, 135626) || !is_wearing(ch, 135627))
+      {
+        send_to_char(ch, "\tLYou suddenly feel bereft of your \tmgoddess's\tL"
+                         " touch.\tn\r\n");
+        affect_from_char(ch, AFF_MENZOCHOKER);
+      }
+      return FALSE;
     }
-
-    if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
-      cost /= 4;
-
-    int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
-    cost = (cost * 100) / (100 + mod);
-
-    return MAX(1, cost);
   }
 
-  int get_vendor_weapon_cost(struct char_data * ch, int level, int weapontype, sbyte masterwork)
+  if (is_wearing(ch, 135626) && is_wearing(ch, 135627))
   {
-    int cost = 0;
-
-    cost += weapon_list[weapontype].cost;
-
-    if (masterwork)
-      cost += 300;
-
-    switch (level)
+    if (GET_RACE(ch) == RACE_DROW)
     {
-    case 1:
-      cost += 5000;
-      break;
-    case 2:
-      cost += 10000;
-      break;
-    case 3:
-      cost += 20000;
-      break;
-    case 4:
-      cost += 50000;
-      break;
+      send_to_char(ch, "\tLYour blood quickens, as if your soul has been touched "
+                       "by a higher power.\tn\r\n");
+      af.location = APPLY_HITROLL;
+      af.duration = 5;
+      af.modifier = 1;
+      SET_BIT_AR(af.bitvector, AFF_MENZOCHOKER);
+      affect_join(ch, &af, FALSE, FALSE, TRUE, FALSE);
+      return FALSE;
     }
+  }
+  return FALSE;
+}
 
-    int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
-    cost = (cost * 100) / (100 + mod);
+int get_vendor_armor_cost(struct char_data *ch, int level, int armortype, sbyte masterwork)
+{
+  int cost = 0;
 
-    return MAX(1, cost);
+  cost += armor_list[armortype].cost;
+
+  if (masterwork)
+    cost += 200;
+
+  switch (level)
+  {
+  case 1:
+    cost += 5000;
+    break;
+  case 2:
+    cost += 10000;
+    break;
+  case 3:
+    cost += 20000;
+    break;
+  case 4:
+    cost += 50000;
+    break;
   }
 
-  void display_buy_armor_types(struct char_data * ch, int level, sbyte masterwork, char *type)
+  if (armor_list[armortype].armorType != ARMOR_TYPE_SHIELD && armor_list[armortype].armorType != ARMOR_TYPE_TOWER_SHIELD)
+    cost /= 4;
+
+  int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
+  cost = (cost * 100) / (100 + mod);
+
+  return MAX(1, cost);
+}
+
+int get_vendor_weapon_cost(struct char_data *ch, int level, int weapontype, sbyte masterwork)
+{
+  int cost = 0;
+
+  cost += weapon_list[weapontype].cost;
+
+  if (masterwork)
+    cost += 300;
+
+  switch (level)
   {
+  case 1:
+    cost += 5000;
+    break;
+  case 2:
+    cost += 10000;
+    break;
+  case 3:
+    cost += 20000;
+    break;
+  case 4:
+    cost += 50000;
+    break;
+  }
 
-    int i = 0;
-    int cost = 0;
-    int wear = ITEM_WEAR_TAKE;
-    char wear_str[50];
+  int mod = MIN(50, GET_CHA(ch) + compute_ability(ch, ABILITY_APPRAISE));
+  cost = (cost * 100) / (100 + mod);
 
-    if (is_abbrev(type, "body"))
+  return MAX(1, cost);
+}
+
+void display_buy_armor_types(struct char_data *ch, int level, sbyte masterwork, char *type)
+{
+
+  int i = 0;
+  int cost = 0;
+  int wear = ITEM_WEAR_TAKE;
+  char wear_str[50];
+
+  if (is_abbrev(type, "body"))
+  {
+    wear = ITEM_WEAR_BODY;
+    snprintf(wear_str, sizeof(wear_str), "BODY");
+  }
+  else if (is_abbrev(type, "arms"))
+  {
+    wear = ITEM_WEAR_ARMS;
+    snprintf(wear_str, sizeof(wear_str), "ARMS");
+  }
+  else if (is_abbrev(type, "legs"))
+  {
+    wear = ITEM_WEAR_LEGS;
+    snprintf(wear_str, sizeof(wear_str), "LEGS");
+  }
+  else if (is_abbrev(type, "head"))
+  {
+    wear = ITEM_WEAR_HEAD;
+    snprintf(wear_str, sizeof(wear_str), "HEAD");
+  }
+  else if (is_abbrev(type, "shield"))
+  {
+    wear = ITEM_WEAR_SHIELD;
+    snprintf(wear_str, sizeof(wear_str), "SHIELD");
+  }
+  else
+  {
+    send_to_char(ch, "Please specify body, arms, legs, head or shield.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "%s\r\n", wear_str);
+  for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
+  {
+    if (armor_list[i].wear != wear)
+      continue;
+    cost = get_vendor_armor_cost(ch, level, i, masterwork);
+    if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
     {
-      wear = ITEM_WEAR_BODY;
-      snprintf(wear_str, sizeof(wear_str), "BODY");
-    }
-    else if (is_abbrev(type, "arms"))
-    {
-      wear = ITEM_WEAR_ARMS;
-      snprintf(wear_str, sizeof(wear_str), "ARMS");
-    }
-    else if (is_abbrev(type, "legs"))
-    {
-      wear = ITEM_WEAR_LEGS;
-      snprintf(wear_str, sizeof(wear_str), "LEGS");
-    }
-    else if (is_abbrev(type, "head"))
-    {
-      wear = ITEM_WEAR_HEAD;
-      snprintf(wear_str, sizeof(wear_str), "HEAD");
-    }
-    else if (is_abbrev(type, "shield"))
-    {
-      wear = ITEM_WEAR_SHIELD;
-      snprintf(wear_str, sizeof(wear_str), "SHIELD");
+      send_to_char(ch, "%-25s ", armor_list[i].name);
+      send_to_char(ch, " %d gold\r\n", MAX(1, cost));
     }
     else
     {
-      send_to_char(ch, "Please specify body, arms, legs, head or shield.\r\n");
-      return;
+      send_to_char(ch, "%-25s ", armor_list[i].name);
+      send_to_char(ch, " %d gold each\r\n", MAX(1, cost));
     }
-
-    send_to_char(ch, "%s\r\n", wear_str);
-    for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
-    {
-      if (armor_list[i].wear != wear)
-        continue;
-      cost = get_vendor_armor_cost(ch, level, i, masterwork);
-      if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
-      {
-        send_to_char(ch, "%-25s ", armor_list[i].name);
-        send_to_char(ch, " %d gold\r\n", MAX(1, cost));
-      }
-      else
-      {
-        send_to_char(ch, "%-25s ", armor_list[i].name);
-        send_to_char(ch, " %d gold each\r\n", MAX(1, cost));
-      }
-    }
-    if (level > 0)
-      send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
   }
+  if (level > 0)
+    send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
+}
 
-  void display_buy_weapon_types(struct char_data * ch, int level, sbyte masterwork)
+void display_buy_weapon_types(struct char_data *ch, int level, sbyte masterwork)
+{
+
+  int i = 0, cost = 0;
+
+  for (i = 2; i < NUM_WEAPON_TYPES; i++)
   {
-
-    int i = 0, cost = 0;
-
-    for (i = 2; i < NUM_WEAPON_TYPES; i++)
-    {
-      cost = get_vendor_weapon_cost(ch, level, i, masterwork);
-      send_to_char(ch, "%25s %6d gold ", weapon_list[i].name, cost);
-      if ((i % 2) == 1)
-        send_to_char(ch, "\r\n");
-    }
-    if ((i % 2) != 1)
+    cost = get_vendor_weapon_cost(ch, level, i, masterwork);
+    send_to_char(ch, "%25s %6d gold ", weapon_list[i].name, cost);
+    if ((i % 2) == 1)
       send_to_char(ch, "\r\n");
-    if (level > 0)
-      send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
   }
+  if ((i % 2) != 1)
+    send_to_char(ch, "\r\n");
+  if (level > 0)
+    send_to_char(ch, "These prices are for +%d items.\r\n\r\n", level);
+}
 
 #define MASTERWORK_MSG "Please specify whether you prefer mundane or masterwork items.\r\n"                             \
                        "Mundane items provide no bonuses.\r\n"                                                          \
                        "Masterwork weapons provide +1 to attack roll, but not damage. They cost an extra 300 gold.\r\n" \
                        "Masterwork armor reduces the armor check penalty for certain skills, by one.  They cost an extra 50 gold per piece.\r\n"
 
-  void set_weapon_name(struct obj_data * obj, int type)
+void set_weapon_name(struct obj_data *obj, int type)
+{
+
+  char buf[200];
+
+  snprintf(buf, sizeof(buf), "%s %s", AN(weapon_list[type].name), weapon_list[type].name);
+  obj->short_description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s %s lies here.", AN(weapon_list[type].name), weapon_list[type].name);
+  obj->description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s", weapon_list[type].name);
+  obj->name = strdup(buf);
+}
+
+void set_armor_name(struct obj_data *obj, int type)
+{
+
+  char buf[200];
+
+  snprintf(buf, sizeof(buf), "%s %s", AN(armor_list[type].name), armor_list[type].name);
+  obj->short_description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s %s lies here.", AN(armor_list[type].name), armor_list[type].name);
+  obj->description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s", armor_list[type].name);
+  obj->name = strdup(buf);
+}
+
+void set_masterwork_obj_name(struct obj_data *obj)
+{
+
+  char buf[200];
+
+  snprintf(buf, sizeof(buf), "%s (masterwork)", obj->short_description);
+  obj->short_description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s (masterwork)", obj->description);
+  obj->description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s masterwork", obj->name);
+  obj->name = strdup(buf);
+}
+
+void set_magical_obj_name(struct obj_data *obj, int level)
+{
+
+  char buf[200];
+  int i = 0;
+
+  snprintf(buf, sizeof(buf), "%s (+%d)", obj->short_description, level);
+  obj->short_description = strdup(buf);
+
+  snprintf(buf, sizeof(buf), "%s (+%d)", obj->description, level);
+  obj->description = strdup(buf);
+
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
   {
-
-    char buf[200];
-
-    snprintf(buf, sizeof(buf), "%s %s", AN(weapon_list[type].name), weapon_list[type].name);
-    obj->short_description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s %s lies here.", AN(weapon_list[type].name), weapon_list[type].name);
-    obj->description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s", weapon_list[type].name);
-    obj->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
+    for (i = 0; i < strlen(buf); i++)
+      if (buf[i] == ' ')
+        buf[i] = '-';
+    char res_buf[128];
+    snprintf(res_buf, sizeof(res_buf), " %s +%d", obj->name, level);
+    strlcat(buf, res_buf, sizeof(buf));
   }
-
-  void set_armor_name(struct obj_data * obj, int type)
+  else
   {
-
-    char buf[200];
-
-    snprintf(buf, sizeof(buf), "%s %s", AN(armor_list[type].name), armor_list[type].name);
-    obj->short_description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s %s lies here.", AN(armor_list[type].name), armor_list[type].name);
-    obj->description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s", armor_list[type].name);
-    obj->name = strdup(buf);
+    snprintf(buf, sizeof(buf), "%s +%d", obj->name, level);
   }
+  obj->name = strdup(buf);
+}
 
-  void set_masterwork_obj_name(struct obj_data * obj)
+SPECIAL(buyarmor)
+{
+
+  if (!CMD_IS("buy") && !CMD_IS("list"))
+    return 0;
+
+  struct char_data *keeper = (struct char_data *)me;
+  int level = 0;
+  char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the armor's name
+                  // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
+                  // vendors level 1 and up ONLY sell weapons of their level bonus
+      arg2[100];  // name of the armor desired
+
+  half_chop(argument, arg1, arg2);
+
+  if (GET_LEVEL(keeper) <= 10)
+    level = 0;
+  else if (GET_LEVEL(keeper) <= 15)
+    level = 1;
+  else if (GET_LEVEL(keeper) <= 20)
+    level = 2;
+  else if (GET_LEVEL(keeper) <= 25)
+    level = 3;
+  else if (GET_LEVEL(keeper) <= 30)
+    level = 4;
+
+  if (CMD_IS("list"))
   {
-
-    char buf[200];
-
-    snprintf(buf, sizeof(buf), "%s (masterwork)", obj->short_description);
-    obj->short_description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s (masterwork)", obj->description);
-    obj->description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s masterwork", obj->name);
-    obj->name = strdup(buf);
-  }
-
-  void set_magical_obj_name(struct obj_data * obj, int level)
-  {
-
-    char buf[200];
-    int i = 0;
-
-    snprintf(buf, sizeof(buf), "%s (+%d)", obj->short_description, level);
-    obj->short_description = strdup(buf);
-
-    snprintf(buf, sizeof(buf), "%s (+%d)", obj->description, level);
-    obj->description = strdup(buf);
-
-    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
-    {
-      snprintf(buf, sizeof(buf), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
-      for (i = 0; i < strlen(buf); i++)
-        if (buf[i] == ' ')
-          buf[i] = '-';
-      char res_buf[128];
-      snprintf(res_buf, sizeof(res_buf), " %s +%d", obj->name, level);
-      strlcat(buf, res_buf, sizeof(buf));
-    }
-    else
-    {
-      snprintf(buf, sizeof(buf), "%s +%d", obj->name, level);
-    }
-    obj->name = strdup(buf);
-  }
-
-  SPECIAL(buyarmor)
-  {
-
-    if (!CMD_IS("buy") && !CMD_IS("list"))
-      return 0;
-
-    struct char_data *keeper = (struct char_data *)me;
-    int level = 0;
-    char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the armor's name
-                    // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
-                    // vendors level 1 and up ONLY sell weapons of their level bonus
-        arg2[100];  // name of the armor desired
-
-    half_chop(argument, arg1, arg2);
-
-    if (GET_LEVEL(keeper) <= 10)
-      level = 0;
-    else if (GET_LEVEL(keeper) <= 15)
-      level = 1;
-    else if (GET_LEVEL(keeper) <= 20)
-      level = 2;
-    else if (GET_LEVEL(keeper) <= 25)
-      level = 3;
-    else if (GET_LEVEL(keeper) <= 30)
-      level = 4;
-
-    if (CMD_IS("list"))
-    {
-      if (!*arg1)
-      {
-        if (level == 0)
-        {
-          send_to_char(ch, MASTERWORK_MSG);
-          return 1;
-        }
-      }
-      if (!*arg2 && level == 0)
-      {
-        send_to_char(ch, "Please specify body, arms, legs, head or shield.\r\n");
-        return 1;
-      }
-      if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork")))
-      {
-        send_to_char(ch, MASTERWORK_MSG);
-        return 1;
-      }
-      display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false, level == 0 ? strdup(arg2) : strdup(arg1));
-      return 1;
-    }
-
-    if (!*argument)
-    {
-      if (level == 0)
-        send_to_char(ch, MASTERWORK_MSG);
-      else
-        send_to_char(ch, "Please specify the type of magical armor/shield you want to purchase.\r\n");
-      return 1;
-    }
-
     if (!*arg1)
     {
       if (level == 0)
+      {
         send_to_char(ch, MASTERWORK_MSG);
-      else
-        send_to_char(ch, "Please specify the type of magical armor/shield you want to purchase.\r\n");
-      return 1;
+        return 1;
+      }
     }
-
     if (!*arg2 && level == 0)
     {
-      send_to_char(ch, "Please specify which armor piece you wish to buy.\r\n"
-                       "Type buy (mundane|masterwork) (full name of armor piece/shield)\r\n"
-                       "A list can be seen by typing: list (mundane|masterwork) (body|arms|legs|head|shield)\r\n");
-      send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
+      send_to_char(ch, "Please specify body, arms, legs, head or shield.\r\n");
       return 1;
     }
-
     if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork")))
     {
       send_to_char(ch, MASTERWORK_MSG);
       return 1;
     }
-
-    if (level > 0 && *argument)
-    { // let's just work with arg2 to keep things easy
-      skip_spaces(&argument);
-      snprintf(arg2, sizeof(arg2), "%s", argument);
-    }
-
-    int i = 0, cost = 0;
-
-    for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
-    {
-      if (!strcmp(arg2, armor_list[i].name))
-        break;
-    }
-
-    if (i >= NUM_SPEC_ARMOR_TYPES)
-    {
-      send_to_char(ch, "Please specify which armor piece you wish to buy.  A list can be seen by typing: list (body|arms|legs|head|shield)\r\n");
-      send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
-      send_to_char(ch, "\r\nYou must specify the exact, full name of the armor you wish to buy, in lowercase.\r\n");
-      return 1;
-    }
-
-    sbyte mundane = TRUE;
-
-    // We want mundane to be the default since we're using is_abbrev and they both start with "m"
-    if (!is_abbrev(arg1, "mundane"))
-    {
-      mundane = FALSE;
-    }
-
-    cost = get_vendor_armor_cost(ch, level, i, !mundane);
-
-    if (GET_GOLD(ch) < cost)
-    {
-      send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, armor_list[i].name, GET_GOLD(ch));
-      return 1;
-    }
-
-    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
-    {
-      act("You can't carry any more items.", FALSE, ch, 0, 0, TO_CHAR);
-      return (1);
-    }
-
-    struct obj_data *obj = NULL;
-    obj_vnum base_vnum = 0;
-
-    if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
-    {
-      base_vnum = 61;
-    }
-    else
-    {
-      switch (i % 4)
-      {
-      case 0:
-        base_vnum = 55;
-        break;
-      case 1:
-        base_vnum = 56;
-        break;
-      case 2:
-        base_vnum = 60;
-        break;
-      case 3:
-        base_vnum = 57;
-        break;
-      }
-    }
-
-    if ((obj = read_object(base_vnum, VIRTUAL)) == NULL)
-    {
-      send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", armor_list[i].name);
-      return 1;
-    }
-
-    set_armor_object(obj, i);
-    GET_OBJ_COST(obj) = cost;
-    set_armor_name(obj, i);
-    if (!mundane && level == 0)
-    {
-      set_masterwork_obj_name(obj);
-      SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
-    }
-    if (level > 0)
-    {
-      set_magical_obj_name(obj, level);
-      SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
-      GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
-    }
-
-    GET_GOLD(ch) -= cost;
-    obj_to_char(obj, ch);
-    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
-
+    display_buy_armor_types(ch, level, level == 0 ? !is_abbrev(arg1, "mundane") : false, level == 0 ? strdup(arg2) : strdup(arg1));
     return 1;
   }
 
-  SPECIAL(buyweapons)
+  if (!*argument)
   {
+    if (level == 0)
+      send_to_char(ch, MASTERWORK_MSG);
+    else
+      send_to_char(ch, "Please specify the type of magical armor/shield you want to purchase.\r\n");
+    return 1;
+  }
 
-    if (!CMD_IS("buy") && !CMD_IS("list"))
-      return 0;
+  if (!*arg1)
+  {
+    if (level == 0)
+      send_to_char(ch, MASTERWORK_MSG);
+    else
+      send_to_char(ch, "Please specify the type of magical armor/shield you want to purchase.\r\n");
+    return 1;
+  }
 
-    struct char_data *keeper = (struct char_data *)me;
-    int level = 0;
-    char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the weapon's name
-                    // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
-                    // vendors level 1 and up ONLY sell weapons of their level bonus
-        arg2[100];  // name of the weapon desired
+  if (!*arg2 && level == 0)
+  {
+    send_to_char(ch, "Please specify which armor piece you wish to buy.\r\n"
+                     "Type buy (mundane|masterwork) (full name of armor piece/shield)\r\n"
+                     "A list can be seen by typing: list (mundane|masterwork) (body|arms|legs|head|shield)\r\n");
+    send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
+    return 1;
+  }
 
-    half_chop(argument, arg1, arg2);
+  if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork")))
+  {
+    send_to_char(ch, MASTERWORK_MSG);
+    return 1;
+  }
 
-    if (GET_LEVEL(keeper) <= 10)
-      level = 0;
-    else if (GET_LEVEL(keeper) <= 15)
-      level = 1;
-    else if (GET_LEVEL(keeper) <= 20)
-      level = 2;
-    else if (GET_LEVEL(keeper) <= 25)
-      level = 3;
-    else if (GET_LEVEL(keeper) <= 30)
-      level = 4;
+  if (level > 0 && *argument)
+  { // let's just work with arg2 to keep things easy
+    skip_spaces(&argument);
+    snprintf(arg2, sizeof(arg2), "%s", argument);
+  }
 
-    if (CMD_IS("list"))
+  int i = 0, cost = 0;
+
+  for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
+  {
+    if (!strcmp(arg2, armor_list[i].name))
+      break;
+  }
+
+  if (i >= NUM_SPEC_ARMOR_TYPES)
+  {
+    send_to_char(ch, "Please specify which armor piece you wish to buy.  A list can be seen by typing: list (body|arms|legs|head|shield)\r\n");
+    send_to_char(ch, "Masterwork armor costs 50 gold more per piece, or 200 gold more for shields and bucklers.\r\n");
+    send_to_char(ch, "\r\nYou must specify the exact, full name of the armor you wish to buy, in lowercase.\r\n");
+    return 1;
+  }
+
+  sbyte mundane = TRUE;
+
+  // We want mundane to be the default since we're using is_abbrev and they both start with "m"
+  if (!is_abbrev(arg1, "mundane"))
+  {
+    mundane = FALSE;
+  }
+
+  cost = get_vendor_armor_cost(ch, level, i, !mundane);
+
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, armor_list[i].name, GET_GOLD(ch));
+    return 1;
+  }
+
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
+  {
+    act("You can't carry any more items.", FALSE, ch, 0, 0, TO_CHAR);
+    return (1);
+  }
+
+  struct obj_data *obj = NULL;
+  obj_vnum base_vnum = 0;
+
+  if (armor_list[i].armorType == ARMOR_TYPE_SHIELD || armor_list[i].armorType == ARMOR_TYPE_TOWER_SHIELD)
+  {
+    base_vnum = 61;
+  }
+  else
+  {
+    switch (i % 4)
     {
-      if (!*arg1)
-      {
-        if (level == 0)
-        {
-          send_to_char(ch, MASTERWORK_MSG);
-          return 1;
-        }
-      }
-      if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork")))
+    case 0:
+      base_vnum = 55;
+      break;
+    case 1:
+      base_vnum = 56;
+      break;
+    case 2:
+      base_vnum = 60;
+      break;
+    case 3:
+      base_vnum = 57;
+      break;
+    }
+  }
+
+  if ((obj = read_object(base_vnum, VIRTUAL)) == NULL)
+  {
+    send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", armor_list[i].name);
+    return 1;
+  }
+
+  set_armor_object(obj, i);
+  GET_OBJ_COST(obj) = cost;
+  set_armor_name(obj, i);
+  if (!mundane && level == 0)
+  {
+    set_masterwork_obj_name(obj);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+  }
+  if (level > 0)
+  {
+    set_magical_obj_name(obj, level);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+    GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
+  }
+
+  GET_GOLD(ch) -= cost;
+  obj_to_char(obj, ch);
+  send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
+
+  return 1;
+}
+
+SPECIAL(buyweapons)
+{
+
+  if (!CMD_IS("buy") && !CMD_IS("list"))
+    return 0;
+
+  struct char_data *keeper = (struct char_data *)me;
+  int level = 0;
+  char arg1[100], // masterwork or mundane? if level is zero, if level > 0, then it's the weapon's name
+                  // which we'll copy into arg2 so we don't need to mess around with 2 variables, since
+                  // vendors level 1 and up ONLY sell weapons of their level bonus
+      arg2[100];  // name of the weapon desired
+
+  half_chop(argument, arg1, arg2);
+
+  if (GET_LEVEL(keeper) <= 10)
+    level = 0;
+  else if (GET_LEVEL(keeper) <= 15)
+    level = 1;
+  else if (GET_LEVEL(keeper) <= 20)
+    level = 2;
+  else if (GET_LEVEL(keeper) <= 25)
+    level = 3;
+  else if (GET_LEVEL(keeper) <= 30)
+    level = 4;
+
+  if (CMD_IS("list"))
+  {
+    if (!*arg1)
+    {
+      if (level == 0)
       {
         send_to_char(ch, MASTERWORK_MSG);
         return 1;
       }
-      display_buy_weapon_types(ch, level, !is_abbrev(arg1, "mundane"));
-      return 1;
     }
-
-    if (!*argument)
-    {
-      if (level == 0)
-        send_to_char(ch, MASTERWORK_MSG);
-      else
-        send_to_char(ch, "Please specify the type of magical weapon you want to purchase.\r\n");
-      return 1;
-    }
-
-    if (!*arg1)
-    {
-      if (level == 0)
-        send_to_char(ch, MASTERWORK_MSG);
-      else
-        send_to_char(ch, "Please specify the type of magical weapon you want to purchase.\r\n");
-      return 1;
-    }
-
-    if (!*arg2 && level == 0)
-    {
-      display_buy_weapon_types(ch, 0, false);
-      send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
-      return 1;
-    }
-
     if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork")))
     {
       send_to_char(ch, MASTERWORK_MSG);
       return 1;
     }
-
-    if (level > 0 && *argument)
-    { // let's just work with arg2 to keep things easy
-      skip_spaces(&argument);
-      snprintf(arg2, sizeof(arg2), "%s", argument);
-    }
-
-    int i = 0, cost = 0;
-
-    for (i = 0; i < NUM_WEAPON_TYPES; i++)
-    {
-      if (!strcmp(arg2, weapon_list[i].name))
-        break;
-    }
-
-    if (i >= NUM_WEAPON_TYPES)
-    {
-      display_buy_weapon_types(ch, 0, false);
-      send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
-      send_to_char(ch, "\r\nYou must specify the exact, full name of the weapon you wish to buy, in lowercase.\r\n");
-      return 1;
-    }
-
-    sbyte mundane = TRUE;
-
-    // We want mundane to be the default since we're using is_abbrev and they both start with "m"
-    if (!is_abbrev(arg1, "mundane"))
-    {
-      mundane = FALSE;
-    }
-
-    cost = get_vendor_weapon_cost(ch, level, i, !mundane);
-
-    if (GET_GOLD(ch) < cost)
-    {
-      send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, weapon_list[i].name, GET_GOLD(ch));
-      return 1;
-    }
-
-    if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
-    {
-      act("You can't carry any more items.", FALSE, ch, 0, 0, TO_CHAR);
-      return (1);
-    }
-
-    struct obj_data *obj = NULL;
-    obj_vnum base_vnum = 66;
-
-    if ((obj = read_object(base_vnum, VIRTUAL)) == NULL)
-    {
-      send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", weapon_list[i].name);
-      return 1;
-    }
-
-    set_weapon_object(obj, i);
-    GET_OBJ_COST(obj) = cost;
-    set_weapon_name(obj, i);
-    if (!mundane && level == 0)
-    {
-      set_masterwork_obj_name(obj);
-      SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
-      obj->affected[0].location = APPLY_HITROLL;
-      obj->affected[0].modifier = 1;
-      obj->affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
-    }
-    if (level > 0)
-    {
-      set_magical_obj_name(obj, level);
-      SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
-      GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
-    }
-
-    GET_GOLD(ch) -= cost;
-    obj_to_char(obj, ch);
-    send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
-
+    display_buy_weapon_types(ch, level, !is_abbrev(arg1, "mundane"));
     return 1;
   }
 
-  /*************************/
-  /* end object procedures */
-  /*************************/
+  if (!*argument)
+  {
+    if (level == 0)
+      send_to_char(ch, MASTERWORK_MSG);
+    else
+      send_to_char(ch, "Please specify the type of magical weapon you want to purchase.\r\n");
+    return 1;
+  }
+
+  if (!*arg1)
+  {
+    if (level == 0)
+      send_to_char(ch, MASTERWORK_MSG);
+    else
+      send_to_char(ch, "Please specify the type of magical weapon you want to purchase.\r\n");
+    return 1;
+  }
+
+  if (!*arg2 && level == 0)
+  {
+    display_buy_weapon_types(ch, 0, false);
+    send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
+    return 1;
+  }
+
+  if (level == 0 && (!is_abbrev(arg1, "mundane") && !is_abbrev(arg1, "masterwork")))
+  {
+    send_to_char(ch, MASTERWORK_MSG);
+    return 1;
+  }
+
+  if (level > 0 && *argument)
+  { // let's just work with arg2 to keep things easy
+    skip_spaces(&argument);
+    snprintf(arg2, sizeof(arg2), "%s", argument);
+  }
+
+  int i = 0, cost = 0;
+
+  for (i = 0; i < NUM_WEAPON_TYPES; i++)
+  {
+    if (!strcmp(arg2, weapon_list[i].name))
+      break;
+  }
+
+  if (i >= NUM_WEAPON_TYPES)
+  {
+    display_buy_weapon_types(ch, 0, false);
+    send_to_char(ch, "Masterwork weapons cost 300 gold pieces more.\r\n");
+    send_to_char(ch, "\r\nYou must specify the exact, full name of the weapon you wish to buy, in lowercase.\r\n");
+    return 1;
+  }
+
+  sbyte mundane = TRUE;
+
+  // We want mundane to be the default since we're using is_abbrev and they both start with "m"
+  if (!is_abbrev(arg1, "mundane"))
+  {
+    mundane = FALSE;
+  }
+
+  cost = get_vendor_weapon_cost(ch, level, i, !mundane);
+
+  if (GET_GOLD(ch) < cost)
+  {
+    send_to_char(ch, "You need %d gold to buy %s, but you only have %d.\r\n", cost, weapon_list[i].name, GET_GOLD(ch));
+    return 1;
+  }
+
+  if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch))
+  {
+    act("You can't carry any more items.", FALSE, ch, 0, 0, TO_CHAR);
+    return (1);
+  }
+
+  struct obj_data *obj = NULL;
+  obj_vnum base_vnum = 66;
+
+  if ((obj = read_object(base_vnum, VIRTUAL)) == NULL)
+  {
+    send_to_char(ch, "There seems to be an error in purchasing %s.  Please inform a staff member.\r\n", weapon_list[i].name);
+    return 1;
+  }
+
+  set_weapon_object(obj, i);
+  GET_OBJ_COST(obj) = cost;
+  set_weapon_name(obj, i);
+  if (!mundane && level == 0)
+  {
+    set_masterwork_obj_name(obj);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+    obj->affected[0].location = APPLY_HITROLL;
+    obj->affected[0].modifier = 1;
+    obj->affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  }
+  if (level > 0)
+  {
+    set_magical_obj_name(obj, level);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MASTERWORK);
+    GET_OBJ_VAL(obj, 4) = level; // Enhancement Bonus
+  }
+
+  GET_GOLD(ch) -= cost;
+  obj_to_char(obj, ch);
+  send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
+
+  return 1;
+}
+
+/*************************/
+/* end object procedures */
+/*************************/
 
 #undef DEBUGMODE
 
-  /* EoF */
+/* EoF */
