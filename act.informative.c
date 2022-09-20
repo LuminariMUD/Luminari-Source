@@ -88,7 +88,7 @@ int boot_high = 0;
 #define WPT_SHADOWDANCER 13
 #define WPT_ASSASSIN 14
 
-const char *const eq_ordering_1[NUM_WEARS] = {
+const int eq_ordering_1[NUM_WEARS] = {
     WEAR_LIGHT,         //<used as light>
     WEAR_BADGE,         //<worn as a badge>
     WEAR_HEAD,          //<worn on head>
