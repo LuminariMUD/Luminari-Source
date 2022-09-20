@@ -2528,7 +2528,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         }
         else
         { // not dead
-          if (msg->hit_msg.attacker_msg)
+          if (msg->hit_msg.attacker_msg && ch != vict)
           {
             send_to_char(ch, CCYEL(ch, C_CMP));
             act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
