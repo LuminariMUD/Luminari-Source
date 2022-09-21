@@ -2798,6 +2798,48 @@ bool room_is_dark(room_rnum room) {
   return (FALSE);
 }
 
+// returns true if there are sunlight conditions in specified room,
+// mainly used to check for vampire abilities and weaknesses
+bool is_room_in_sunlight(room_rnum room)
+{
+  if (room != NOWHERE)
+    return false;
+  if (!ROOM_OUTDOORS(room))
+    return false;
+  if (weather_info.sunlight != SUN_LIGHT || weather_info.sky != SKY_CLOUDLESS)
+    return false;
+  if (ROOM_FLAGGED(room, ROOM_DARK) && ROOM_FLAGGED(room, ROOM_MAGICDARK))
+    return false;
+  if (ROOM_FLAGGED(room, ROOM_FOG))
+    return false;
+  if (ROOM_AFFECTED(room, RAFF_DARKNESS) || 
+      ROOM_AFFECTED(room, RAFF_ACID_FOG) ||
+      ROOM_AFFECTED(room, RAFF_BILLOWING) || 
+      ROOM_AFFECTED(room, RAFF_OBSCURING_MIST) ||
+      ROOM_AFFECTED(room, RAFF_FOG))
+    return false;
+  /* sectors dark by nature */
+  if (SECT(room) == SECT_UNDERWATER)
+    return false;
+  if (SECT(room) == SECT_UD_WILD)
+    return false;
+  if (SECT(room) == SECT_UD_CITY)
+    return false;
+  if (SECT(room) == SECT_UD_INSIDE)
+    return false;
+  if (SECT(room) == SECT_UD_WATER)
+    return false;
+  if (SECT(room) == SECT_UD_NOSWIM)
+    return false;
+  if (SECT(room) == SECT_UD_NOGROUND)
+    return false;
+  if (SECT(room) == SECT_CAVE)
+    return false;
+
+
+  return true;
+}
+
 /** Calculates the Levenshtein distance between two strings. Currently used
  * by the mud to make suggestions to the player when commands are mistyped.
  * This function is most useful when an index of possible choices are available
