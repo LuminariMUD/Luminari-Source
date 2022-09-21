@@ -1816,15 +1816,15 @@ void update_damage_and_effects_over_time(void)
     // First they must have the feat
     // They must be grappling the target and have them pinned
     // The target has to be living and not an ooze (needs blood)
-    // The target has to have consitution score above zero and hp above -10
+    // The target has to have hp above -10
     // If the character is either not good, or good, and the target is evil or not sentient, we allow it
     // If they're a player and blood drain is not enabled, it won't happen
     if (HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN) && (vict = GRAPPLE_TARGET(ch)) && AFF_FLAGGED(vict, AFF_PINNED) &&
-        IS_LIVING(vict) && !IS_OOZE(vict) && GET_CON(vict) > 0 && GET_HIT(vict) > -10 &&
+        IS_LIVING(vict) && !IS_OOZE(vict) && GET_HIT(vict) > -10 &&
         (!IS_GOOD(ch) || (IS_GOOD(ch) && (IS_EVIL(vict) || !IS_SENTIENT(vict)))) &&
         (IS_NPC(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BLOOD_DRAIN))))
     {
-      if (IN_SUNLIGHT(ch))
+      if (IN_SUNLIGHT(ch) && !is_covered(ch))
       {
         send_to_char(ch, "You cannot summon the strength to drain your victim's blood in sunlight.\r\n");
       }
@@ -1835,12 +1835,17 @@ void update_damage_and_effects_over_time(void)
       else
       {
         struct affected_type af, af2;
-        new_affect(&af);
-        af.spell = ABILITY_SCORE_DAMAGE;
-        af.location = APPLY_CON;
-        af.modifier = dice(1, 4);
-        af.duration = 10 * 60 * 24;
-        affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
+        if (GET_CON(vict) > 0)
+        {
+          new_affect(&af);
+          af.spell = ABILITY_SCORE_DAMAGE;
+          af.location = APPLY_CON;
+          af.modifier = dice(1, 4);
+          af.duration = 10 * 60 * 24;
+          if ((GET_CON(vict) - af.modifier) < 0)
+            af.modifier = GET_CON(vict);
+          affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
+        }
         
         new_affect(&af2);
         af2.spell = ABILITY_BLOOD_DRAIN;
@@ -1864,7 +1869,7 @@ void update_damage_and_effects_over_time(void)
     if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT && 
         !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
     {
-      if (IN_SUNLIGHT(ch))
+      if (IN_SUNLIGHT(ch) && !is_covered(ch))
       {
         damage(ch, ch, dice(1, 6), TYPE_SUN_DAMAGE, DAM_LIGHT, FALSE);
       }
@@ -1876,7 +1881,14 @@ void update_damage_and_effects_over_time(void)
 
     if (HAS_FEAT(ch, FEAT_VAMPIRE_DAMAGE_REDUCTION))
     {
-      if (!affected_by_spell(ch, RACIAL_ABILITY_VAMPIRE_DR))
+      if (!CAN_USE_VAMPIRE_ABILITY(ch))
+      {
+        if (affected_by_spell(ch, RACIAL_ABILITY_VAMPIRE_DR))
+        {
+          affect_from_char(ch, RACIAL_ABILITY_VAMPIRE_DR);
+        }
+      }
+      else if (!affected_by_spell(ch, RACIAL_ABILITY_VAMPIRE_DR))
       {
         call_magic(ch, ch, NULL, RACIAL_ABILITY_VAMPIRE_DR, 0, GET_LEVEL(ch), CAST_INNATE);
       }

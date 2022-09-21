@@ -424,6 +424,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
 void perform_sap(struct char_data *ch, struct char_data *vict);
 void perform_kick(struct char_data *ch, struct char_data *vict);
+void perform_slam(struct char_data *ch, struct char_data *vict);
 bool perform_dirtkick(struct char_data *ch, struct char_data *vict);
 void perform_assist(struct char_data *ch, struct char_data *helpee);
 void perform_springleap(struct char_data *ch, struct char_data *vict);
@@ -518,6 +519,8 @@ ACMD_DECL(do_faeriefire);
 ACMDCHECK(can_faeriefire);
 ACMD_DECL(do_kick);
 ACMDCHECK(can_kick);
+ACMD_DECL(do_slam);
+ACMDCHECK(can_slam);
 ACMD_DECL(do_seekerarrow);
 ACMDCHECK(can_seekerarrow);
 ACMD_DECL(do_arrowswarm);
@@ -584,6 +587,12 @@ ACMD_DECL(do_children_of_the_night);
 ACMDCHECK(can_children_of_the_night);
 ACMDCHECK(can_create_vampire_spawn);
 ACMD_DECL(do_create_vampire_spawn);
+ACMDCHECK(can_vampiric_gaseous_form);
+ACMD_DECL(do_vampiric_gaseous_form);
+ACMDCHECK(can_vampiric_shape_change);
+ACMD_DECL(do_vampiric_shape_change);
+ACMDCHECK(can_vampiric_dominate);
+ACMD_DECL(do_vampiric_dominate);
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
  ****************************************************************************/

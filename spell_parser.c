@@ -4035,6 +4035,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   skillo(SKILL_BASH, "bash", ACTIVE_SKILL);
   skillo(SKILL_MUMMY_DUST, "es mummy dust", CASTER_SKILL);
   skillo(SKILL_KICK, "kick", ACTIVE_SKILL);
+  skillo(SKILL_SLAM, "slam", ACTIVE_SKILL);
   skillo(SKILL_WEAPON_SPECIALIST, "weapon specialist", PASSIVE_SKILL); // 405
   skillo(SKILL_WHIRLWIND, "weapon whirlwind", ACTIVE_SKILL);
   skillo(SKILL_RESCUE, "rescue", ACTIVE_SKILL);

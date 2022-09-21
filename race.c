@@ -1165,6 +1165,17 @@ void assign_races(void)
                         N, N, N, N, N, N, N, N, N, N, N, N,
                         /* blast punch stab slice thrust hack rake peck smash trample charge gore */
                         N, N, N, N, N, N, Y, Y, N, N, N, N);
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_BAT, "bat", "Bat", "Bat", "Bat", "Bat",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_ANIMAL, SIZE_DIMINUTIVE, FALSE, 0, 0, IS_NORMAL);
+  set_race_attack_types(RACE_BAT,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        N, N, N, N, Y, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
   /****************************************************************************/
 
   /****************************************************************************/

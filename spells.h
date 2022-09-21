@@ -838,6 +838,7 @@
 #define SKILL_SACRED_FLAMES 2149
 #define SKILL_EPIC_WILDSHAPE 2150 // implemented
 #define SKILL_DRAGON_BITE 2151
+#define SKILL_SLAM 2152
 
 /* reserving this space for different performances 2180 - 2199*/
 #define TOP_OF_PERFORMANCES 2180

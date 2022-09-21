@@ -5203,6 +5203,11 @@ ACMDCHECK(can_kick)
   return CAN_CMD;
 }
 
+ACMDCHECK(can_slam)
+{
+  return CAN_CMD;
+}
+
 ACMDCHECK(can_feint)
 {
   return CAN_CMD;
@@ -8293,14 +8298,18 @@ ACMD(do_children_of_the_night)
 {
   PREREQ_CHECK(can_children_of_the_night);
   PREREQ_HAS_USES(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "You must recover before you can call your children of the night.\r\n");
+  
+  if (!CAN_USE_VAMPIRE_ABILITY(ch))
+  {
+    send_to_char(ch, "You cannot use your vampiric abilities when in sunlight or moving water.\r\n");
+    return;
+  }
 
   perform_children_of_the_night(ch);
 }
 
 void perform_children_of_the_night(struct char_data *ch)
 {
-
-
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT);
@@ -8322,6 +8331,12 @@ ACMDCHECK(can_create_vampire_spawn)
 ACMDU(do_create_vampire_spawn)
 {
   PREREQ_CHECK(can_create_vampire_spawn);
+
+  if (!CAN_USE_VAMPIRE_ABILITY(ch))
+  {
+    send_to_char(ch, "You cannot use your vampiric abilities when in sunlight or moving water.\r\n");
+    return;
+  }
 
   struct obj_data *obj = NULL;
   
@@ -8354,6 +8369,223 @@ ACMDU(do_create_vampire_spawn)
   act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, obj, 0, TO_CHAR);
 
   call_magic(ch, ch, obj, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
+}
+
+ACMDCHECK(can_vampiric_gaseous_form)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_GASEOUS_FORM, "You have no idea how.\r\n");
+  
+  return CAN_CMD;
+}
+
+ACMD(do_vampiric_gaseous_form)
+{
+  PREREQ_CHECK(can_vampiric_gaseous_form);
+
+  if (!CAN_USE_VAMPIRE_ABILITY(ch))
+  {
+    send_to_char(ch, "You cannot use your vampiric abilities when in sunlight or moving water.\r\n");
+    return;
+  }
+
+  act("You draw upon your vampiric ablity and your body shifts into a gaseous state.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n's body assumes a gaseous state.", FALSE, ch, 0, 0, TO_ROOM);
+
+  call_magic(ch, ch, 0, SPELL_GASEOUS_FORM, 0, GET_LEVEL(ch), CAST_INNATE);
+}
+
+ACMDCHECK(can_vampiric_shape_change)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CHANGE_SHAPE, "You have no idea how.\r\n");
+  
+  return CAN_CMD;
+}
+
+ACMDU(do_vampiric_shape_change)
+{
+  PREREQ_CHECK(can_vampiric_shape_change);
+
+  if (!CAN_USE_VAMPIRE_ABILITY(ch))
+  {
+    send_to_char(ch, "You cannot use your vampiric abilities when in sunlight or moving water.\r\n");
+    return;
+  }
+
+  if (IS_WILDSHAPED(ch))
+  {
+    send_to_char(ch, "You cannot shift form while wildshaped.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You must specify either 'wolf' or 'bat' form.\r\n");
+    return;
+  }
+
+  act("You draw upon your vampiric ablity and shift into animal form.", FALSE, ch, 0, 0, TO_CHAR);
+
+  /* act.other.c, part of druid wildshape engine, the value "2" notifies the
+      the function that this is the vampiric change shape ability */
+  wildshape_engine(ch, argument, 2);
+
+}
+
+ACMDCHECK(can_vampiric_dominate)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_DOMINATE, "You have no idea how.\r\n");
+  
+  return CAN_CMD;
+}
+
+ACMDU(do_vampiric_dominate)
+{
+  PREREQ_CHECK(can_vampiric_dominate);
+
+  if (!CAN_USE_VAMPIRE_ABILITY(ch))
+  {
+    send_to_char(ch, "You cannot use your vampiric abilities when in sunlight or moving water.\r\n");
+    return;
+  }
+
+  struct char_data *vict;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You must specify who you would like to try and dominate.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, argument, 0)))
+  {
+    send_to_char(ch, "There is no one in the room by that description.\r\n");
+    return;
+  }
+
+  if (!IS_SENTIENT(vict))
+  {
+    send_to_char(ch, "You can only dominate sentient beings.\r\n");
+    return;
+  }
+
+  act("You draw upon your vampiric ablity and try to dominate $N.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n gazes into your eyes and tries to dominate your will!", FALSE, ch, 0, vict, TO_VICT);
+  act("$n gazes into $N's eyes and tries to dominate $S will!", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  effect_charm(ch, vict, SPELL_DOMINATE_PERSON, CAST_INNATE, GET_LEVEL(ch));
+}
+
+/* slam engine */
+void perform_slam(struct char_data *ch, struct char_data *vict)
+{
+  int discipline_bonus = 0, dc = 0, diceOne = 0, diceTwo = 0;
+  struct affected_type af;
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
+      ch->next_in_room != vict && vict->next_in_room != ch)
+  {
+    send_to_char(ch, "You simply can't reach that far.\r\n");
+    return;
+  }
+
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
+  {
+    act("$n sprawls completely through $N as $e tries to slam $M.", FALSE, ch, NULL, vict, TO_NOTVICT);
+    act("You sprawl completely through $N as you try to slam $M!", FALSE, ch, NULL, vict, TO_CHAR);
+    act("$n sprawls completely through you as $e tries to slam you!", FALSE, ch, NULL, vict, TO_VICT);
+    change_position(ch, POS_SITTING);
+    return;
+  }
+
+  /* maneuver bonus/penalty */
+  if (!IS_NPC(ch) && compute_ability(ch, ABILITY_DISCIPLINE))
+    discipline_bonus += compute_ability(ch, ABILITY_DISCIPLINE);
+  if (!IS_NPC(vict) && compute_ability(vict, ABILITY_DISCIPLINE))
+    discipline_bonus -= compute_ability(vict, ABILITY_DISCIPLINE);
+
+  /* saving throw dc */
+  dc = GET_LEVEL(ch) / 2 + GET_STR_BONUS(ch);
+
+  /* monk damage? */
+  compute_barehand_dam_dice(ch, &diceOne, &diceTwo);
+  if (diceOne < 1)
+    diceOne = 1;
+  if (diceTwo < 2)
+    diceTwo = 2;
+
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_SLAM, 0) > 0)
+  {
+    damage(ch, vict, dice(diceOne, diceTwo) + GET_STR_BONUS(ch), SKILL_SLAM, DAM_FORCE, FALSE);
+
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_DRAIN) && IS_LIVING(vict) && CAN_USE_VAMPIRE_ABILITY(ch))
+    {
+      if (daily_uses_remaining(ch, FEAT_VAMPIRE_ENERGY_DRAIN) > 0)
+      {
+        if (!mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+        {
+          new_affect(&af);
+          af.spell = AFFECT_LEVEL_DRAIN;
+          af.location = APPLY_SPECIAL;
+          af.modifier = 1;
+          af.duration = 10;
+          affect_join(vict, &af, TRUE, FALSE, TRUE, FALSE);
+          act("You drain some of $N's life force away.", FALSE, ch, 0, vict, TO_CHAR);
+          act("$n drains some of your life force away.", FALSE, ch, 0, vict, TO_VICT);
+          act("$n drains some of $N's life force away.", FALSE, ch, 0, vict, TO_NOTVICT);
+        }
+        if (!IS_NPC(ch))
+          start_daily_use_cooldown(ch, FEAT_VAMPIRE_ENERGY_DRAIN);
+      }
+    }
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+  }
+  else
+    damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
+}
+
+ACMD(do_slam)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+
+  PREREQ_CAN_FIGHT();
+
+  PREREQ_NOT_NPC();
+
+  one_argument(argument, arg, sizeof(arg));
+
+  /* find the victim */
+  vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM);
+
+  /* we have a disqualifier here due to action system */
+  if (!FIGHTING(ch) && !vict)
+  {
+    send_to_char(ch, "Who do you want to slam?\r\n");
+    return;
+  }
+  if (vict == ch)
+  {
+    send_to_char(ch, "You slam yourself.\r\n");
+    return;
+  }
+  if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
+    vict = FIGHTING(ch);
+
+  perform_slam(ch, vict);
 }
 
 /* cleanup! */

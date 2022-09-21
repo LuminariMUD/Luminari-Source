@@ -668,10 +668,10 @@
 #define RACE_EFREETI 87
 #define RACE_RAT 88
 // Vampire defined above as 89
-
+#define RACE_BAT 90
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_EXTENDED_RACES 90
+#define NUM_EXTENDED_RACES 91
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -3052,6 +3052,7 @@
 #define COMBAT_MANEUVER_TYPE_INIT_GRAPPLE 6
 #define COMBAT_MANEUVER_TYPE_PIN 7
 #define COMBAT_MANEUVER_TYPE_BITE 8
+#define COMBAT_MANEUVER_TYPE_SLAM 9
 
 /* Critical hit types */
 #define CRIT_X2 0

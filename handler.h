@@ -27,6 +27,7 @@ void affect_join(struct char_data *ch, struct affected_type *af,
                  bool add_dur, bool avg_dur, bool add_mod, bool avg_mod);
 void affect_modify_ar(struct char_data *ch, byte loc, sbyte mod, int bitv[],
                       bool add);
+void change_spell_mod(struct char_data *ch, int spellnum, int location, int amount, bool display);
 void reset_char_points(struct char_data *ch);
 
 /* MSDP */

@@ -692,7 +692,7 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_NATURALARMOR] += (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 ? 4 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 2 : 1));
   }
   // vampires
-  if (HAS_FEAT(ch, FEAT_VAMPIRE_NATURAL_ARMOR))
+  if (HAS_FEAT(ch, FEAT_VAMPIRE_NATURAL_ARMOR) && CAN_USE_VAMPIRE_ABILITY(ch))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 6;
   }
@@ -2673,7 +2673,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE))
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE) && CAN_USE_VAMPIRE_ABILITY(ch))
       dam_reduction += 10;
     break;
   case DAM_AIR:
@@ -2701,7 +2701,7 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE))
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE) && CAN_USE_VAMPIRE_ABILITY(ch))
       dam_reduction += 10;
     break;
   case DAM_UNHOLY:
@@ -3639,9 +3639,8 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     {
       // We want to handle incorporeal affect on damage before applying damage reduction
       // damage by a spell will always do full damage to incorporeal creatures
-      // we halve damage for undead sorcerer bloodline users of icorporeal form
-      // At some point we want to incorporate this into the incorporeal flag in itself -- Gicker
-      if (IS_INCORPOREAL(victim) && HAS_FEAT(victim, FEAT_INCORPOREAL_FORM))
+      // we halve damage against an incorporeal person in most circumstances
+      if (IS_INCORPOREAL(victim))
       {
         // damage is normal if you're using a ghost touch weapon, or you're incorporeal yourself
         if (is_using_ghost_touch_weapon(ch) || IS_INCORPOREAL(ch))
@@ -3651,7 +3650,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
       // The same is also true.  If you are incorporeal and your foe isn't, you deal 1/2 damage
       // If you're using a ghost touch weapon you do full damage
-      else if (IS_INCORPOREAL(ch) && HAS_FEAT(ch, FEAT_INCORPOREAL_FORM))
+      else if (IS_INCORPOREAL(ch))
       {
         // damage is normal if you're using a ghost touch weapon, or if your foe is also incorporeal
         if (is_using_ghost_touch_weapon(ch) || IS_INCORPOREAL(victim))
@@ -6883,6 +6882,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     }
     calc_bab -= 2;
   }
+
+  calc_bab -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 
   /* Add up all the bonuses */
   for (i = 0; i < NUM_BONUS_TYPES; i++)

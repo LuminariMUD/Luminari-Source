@@ -327,8 +327,49 @@ int compute_dexterity_bonus(struct char_data *ch) {
     dexterity_bonus -= 2;
   if (AFF_FLAGGED(ch, AFF_PINNED))
     dexterity_bonus = -5;
+  dexterity_bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 
   return (MIN(compute_gear_max_dex(ch), dexterity_bonus));
+}
+
+int compute_strength_bonus(struct char_data *ch) {
+  if (!ch) return 0;
+  int bonus = (GET_STR(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_constitution_bonus(struct char_data *ch) {
+  if (!ch) return 0;
+  int bonus = (GET_CON(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_intelligence_bonus(struct char_data *ch) {
+  if (!ch) return 0;
+  int bonus = (GET_INT(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_wisdom_bonus(struct char_data *ch) {
+  if (!ch) return 0;
+  int bonus = (GET_WIS(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
+}
+
+int compute_charisma_bonus(struct char_data *ch) {
+  if (!ch) return 0;
+  int bonus = (GET_CHA(ch) - 10) / 2;
+  bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
+  return bonus;
 }
 
 int stats_cost_chart[11] = {/* cost for total points */
@@ -3651,6 +3692,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
       break;
+    case FEAT_VAMPIRE_ENERGY_DRAIN:
+      daily_uses = 1 + (GET_LEVEL(ch) / 3);
+      break;
     case FEAT_STUNNING_FIST:
       daily_uses += CLASS_LEVEL(ch, CLASS_MONK) + (GET_LEVEL(ch) - CLASS_LEVEL(ch, CLASS_MONK)) / 4;
       break;
@@ -6227,6 +6271,7 @@ bool is_spell_restoreable(int spell)
   case SPELL_POISON_BREATHE:
   case SPELL_FEAR:
   case WEAPON_POISON_BLACK_ADDER_VENOM:
+  case AFFECT_LEVEL_DRAIN:
   /* case SKILL_AFFECT_WILDSHAPE:
   case SKILL_AFFECT_RAGE:
   case SPELL_AFFECT_PRAYER_DEBUFF: */
@@ -6310,4 +6355,21 @@ void set_vampire_spawn_feats(struct char_data *mob)
   SET_FEAT(mob, FEAT_VAMPIRE_CHANGE_SHAPE, 1);
   SET_FEAT(mob, FEAT_VAMPIRE_GASEOUS_FORM, 1);
   SET_FEAT(mob, FEAT_VAMPIRE_SPIDER_CLIMB, 1);
+}
+
+// returns true if the character is wearing a non-container
+// object on his about worn slot.  Also, if the person is
+// grappling or affected by a wind_wall affect, it will
+// return false.
+bool is_covered(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  if (!GET_EQ(ch, WEAR_ABOUT) || GET_OBJ_TYPE(GET_EQ(ch, WEAR_ABOUT)) != ITEM_WORN)
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_WIND_WALL))
+    return false;
+
+  return true;
 }
