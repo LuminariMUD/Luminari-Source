@@ -228,6 +228,7 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
 const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
+bool is_room_in_sunlight(room_rnum room);
 bool is_covered(struct char_data *ch);
 void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
@@ -1959,9 +1960,7 @@ void char_from_furniture(struct char_data *ch);
                         (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
                         GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
 
-#define IN_SUNLIGHT(ch) (OUTSIDE(ch) && weather_info.sunlight == SUN_LIGHT && weather_info.sky == SKY_CLOUDLESS && \
-                         IN_ROOM(ch) != NOWHERE && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS) && \
-                         !ROOM_FLAGGED(IN_ROOM(ch), ROOM_DARK))
+#define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch)  (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
 
