@@ -3824,7 +3824,34 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
   /* todo: maybe make die() return a value to let us know if there really is a corpse */
 
+  /* we make everyone in the room with auto-collect search for ammo here before
+     any of the autolooting, etc */
+  for (tch = world[rnum].people; tch; tch = tch->next_in_room)
+  {
+    if (!tch)
+      continue;
+    if (IS_NPC(tch))
+    {
+      if (tch->master && PRF_FLAGGED(tch->master, PRF_AUTOCOLLECT) && !IS_NPC(tch->master))
+      {
+        perform_collect(tch->master, FALSE);
+        // attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
+      }
+      else
+      {
+        continue;
+      }
+    }
+    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
+    {
+      perform_collect(tch, FALSE);
+      // attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
+    }
+  }
+
   // handle dead mob and PRF_
+
+  /* auto split / auto gold */
   if (!IS_NPC(ch) && GROUP(ch) && (local_gold > 0) && PRF_FLAGGED(ch, PRF_AUTOSPLIT))
   {
     generic_find("corpse", FIND_OBJ_ROOM, ch, &tmp_char, &corpse_obj);
@@ -3846,37 +3873,15 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   else if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOGOLD))
   {
     do_get(ch, "all.coin corpse", 0, 0);
-    do_get(ch, "all.coins", 0, 0); // added for incorporeal - no corpse -zusuk
+    do_get(ch, "all.coin", 0, 0); // added for incorporeal - no corpse -zusuk
   }
   else if (IS_NPC(ch) && ch->master && (ch != victim) && (ch->master != victim) && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_AUTOGOLD))
   {
     do_get(ch->master, "all.coin corpse", 0, 0);
-    do_get(ch->master, "all.coins", 0, 0); // added for incorporeal - no corpse -zusuk
+    do_get(ch->master, "all.coin", 0, 0); // added for incorporeal - no corpse -zusuk
   }
 
-  /* we make everyone in the room with auto-collect search for ammo here before
-   any of the autolooting, etc */
-  for (tch = world[rnum].people; tch; tch = tch->next_in_room)
-  {
-    if (!tch)
-      continue;
-    if (IS_NPC(tch))
-    {
-      if (tch->master && PRF_FLAGGED(tch->master, PRF_AUTOCOLLECT) && !IS_NPC(tch->master))
-      {
-        attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
-      }
-      else
-      {
-        continue;
-      }
-    }
-    if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
-    {
-      attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
-    }
-  }
-
+  /* autoloot */
   if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT))
   {
     do_get(ch, "all corpse", 0, 0);
@@ -3887,6 +3892,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     do_get(ch->master, "all corpse", 0, 0);
   }
 
+  /* autosac */
   if (IS_NPC(victim) && !IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOSAC))
   {
     do_sac(ch, "corpse", 0, 0);
