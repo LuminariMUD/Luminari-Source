@@ -1960,7 +1960,8 @@ void char_from_furniture(struct char_data *ch);
                         GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
 
 #define IN_SUNLIGHT(ch) (OUTSIDE(ch) && weather_info.sunlight == SUN_LIGHT && weather_info.sky == SKY_CLOUDLESS && \
-                         IN_ROOM(ch) != NOWHERE && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS))
+                         IN_ROOM(ch) != NOWHERE && !ROOM_AFFECTED(IN_ROOM(ch), RAFF_DARKNESS) && \
+                         !ROOM_FLAGGED(IN_ROOM(ch), ROOM_DARK))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch)  (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
 
