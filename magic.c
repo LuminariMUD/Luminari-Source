@@ -2416,7 +2416,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   int i, j, x, spell_school = NOSCHOOL, caster_level = 0;
   int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0;
   bool is_mind_affect = FALSE;
-  struct damage_reduction_type *new_dr = NULL;
+  struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL;
   bool is_immune_sleep = FALSE;
 
   if (victim == NULL || ch == NULL)
@@ -5802,6 +5802,41 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
+  case RACIAL_ABILITY_VAMPIRE_DR:
+   
+    /* Remove the dr. */
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    {
+      if (dr->spell == spellnum)
+      {
+        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      }
+    }
+
+    af[0].location = APPLY_DR;
+    af[0].modifier = 0;
+    af[0].duration = 10 * 60 * 24;
+
+    CREATE(new_dr, struct damage_reduction_type, 1);
+
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
+    new_dr->bypass_val[0] = MATERIAL_SILVER;
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_MATERIAL;
+    new_dr->bypass_val[1] = MATERIAL_ALCHEMAL_SILVER;
+
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_MAGIC;
+    new_dr->bypass_val[2] = 1;
+
+    new_dr->amount = 10;
+    new_dr->max_damage = -1;
+    new_dr->spell = RACIAL_ABILITY_VAMPIRE_DR;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(victim);
+    GET_DR(victim) = new_dr;
+
+    break;
+
   case SPELL_STRENGTH: // transmutation
     af[0].location = APPLY_STR;
     af[0].duration = (caster_level * 12) + 100;
@@ -8153,19 +8188,38 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
           continue;
         if (!is_spell_restoreable(spellnum))
           continue;
-        if (ch == victim)
+        if (spellnum == AFFECT_LEVEL_DRAIN && get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL) > 1)
         {
-          snprintf(message, sizeof(message), "You remove the '%s' affecting you.", spell_info[spellnum].name);
-          act(message, FALSE, ch, 0, 0, TO_CHAR);
+          change_spell_mod(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL, -1, TRUE);
+          if (ch == victim)
+          {
+            snprintf(message, sizeof(message), "You reduce the degree thast '%s' is affecting you.", spell_info[spellnum].name);
+            act(message, FALSE, ch, 0, 0, TO_CHAR);
+          }
+          else
+          {
+            snprintf(message, sizeof(message), "You reduce the degree thast '%s' is affecting $N.", spell_info[spellnum].name);
+            act(message, FALSE, ch, 0, victim, TO_CHAR);
+            snprintf(message, sizeof(message), "$n reduces the degree thast '%s' is affecting you.", spell_info[spellnum].name);
+            act(message, FALSE, ch, 0, victim, TO_VICT);
+          }
         }
         else
         {
-          snprintf(message, sizeof(message), "You remove the '%s' affecting $N.", spell_info[spellnum].name);
-          act(message, FALSE, ch, 0, victim, TO_CHAR);
-          snprintf(message, sizeof(message), "$n removes the '%s' affecting you.", spell_info[spellnum].name);
-          act(message, FALSE, ch, 0, victim, TO_VICT);
+          if (ch == victim)
+          {
+            snprintf(message, sizeof(message), "You remove the '%s' affecting you.", spell_info[spellnum].name);
+            act(message, FALSE, ch, 0, 0, TO_CHAR);
+          }
+          else
+          {
+            snprintf(message, sizeof(message), "You remove the '%s' affecting $N.", spell_info[spellnum].name);
+            act(message, FALSE, ch, 0, victim, TO_CHAR);
+            snprintf(message, sizeof(message), "$n removes the '%s' affecting you.", spell_info[spellnum].name);
+            act(message, FALSE, ch, 0, victim, TO_VICT);
+          }
+          affect_from_char(ch, spellnum);
         }
-        affect_from_char(ch, spellnum);
         // lesser restoration will only cure one affect
         if (spellnum == SPELL_LESSER_RESTORATION)
           break;

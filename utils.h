@@ -120,6 +120,11 @@ int compute_arcane_level(struct char_data *ch);
 int compute_divine_level(struct char_data *ch);
 bool compute_has_combat_feat(struct char_data *ch, int cfeat, int weapon);
 int compute_dexterity_bonus(struct char_data *ch);
+int compute_strength_bonus(struct char_data *ch);
+int compute_constitution_bonus(struct char_data *ch);
+int compute_intelligence_bonus(struct char_data *ch);
+int compute_wisdom_bonus(struct char_data *ch);
+int compute_charisma_bonus(struct char_data *ch);
 int damage_type_to_resistance_type(int type);
 int stats_point_left(struct char_data *ch);
 int smite_evil_target_type(struct char_data *ch);
@@ -223,6 +228,7 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
 const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
+bool is_covered(struct char_data *ch);
 void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
@@ -848,7 +854,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_REAL_STR(ch) ((ch)->real_abils.str)
 #define GET_DISGUISE_STR(ch) ((ch)->disguise_abils.str)
 #define GET_STR(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_STR(ch) + (ch)->aff_abils.str : (ch)->aff_abils.str)
-#define GET_STR_BONUS(ch) ((GET_STR(ch) - 10) / 2)
+#define GET_STR_BONUS(ch) (compute_strength_bonus(ch))
 /** Current strength modifer of ch, not in use (from stock circle) */
 #define GET_ADD(ch) ((ch)->aff_abils.str_add)
 
@@ -862,23 +868,23 @@ void char_from_furniture(struct char_data *ch);
 #define GET_REAL_CON(ch) ((ch)->real_abils.con)
 #define GET_DISGUISE_CON(ch) ((ch)->disguise_abils.con)
 #define GET_CON(ch) ((AFF_FLAGGED(ch, AFF_WILD_SHAPE) && GET_DISGUISE_RACE(ch)) ? GET_DISGUISE_CON(ch) + (ch)->aff_abils.con : (ch)->aff_abils.con)
-#define GET_CON_BONUS(ch) ((GET_CON(ch) - 10) / 2)
+#define GET_CON_BONUS(ch) (compute_constitution_bonus(ch))
 
 /** Current intelligence of ch. */
 #define GET_REAL_INT(ch) ((ch)->real_abils.intel)
 #define GET_INT(ch) ((ch)->aff_abils.intel)
 #define GET_INT_BONUS(ch) (((ch)->aff_abils.intel - 10) / 2)
-#define GET_REAL_INT_BONUS(ch) (((ch)->real_abils.intel - 10) / 2)
+#define GET_REAL_INT_BONUS(ch) (compute_intelligence_bonus(ch))
 
 /** Current wisdom of ch. */
 #define GET_REAL_WIS(ch) ((ch)->real_abils.wis)
 #define GET_WIS(ch) ((ch)->aff_abils.wis)
-#define GET_WIS_BONUS(ch) (((ch)->aff_abils.wis - 10) / 2)
+#define GET_WIS_BONUS(ch) (compute_wisdom_bonus(ch))
 
 /** Current charisma of ch. */
 #define GET_REAL_CHA(ch) ((ch)->real_abils.cha)
 #define GET_CHA(ch) ((ch)->aff_abils.cha)
-#define GET_CHA_BONUS(ch) (((ch)->aff_abils.cha - 10) / 2)
+#define GET_CHA_BONUS(ch) (compute_charisma_bonus(ch))
 
 /** Experience points of ch. */
 #define GET_EXP(ch) ((ch)->points.exp)
@@ -1953,8 +1959,9 @@ void char_from_furniture(struct char_data *ch);
                         (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
                         GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
 
-#define IN_SUNLIGHT(ch) (OUTSIDE(ch) && weather_info.sunlight == SUN_LIGHT)
+#define IN_SUNLIGHT(ch) (OUTSIDE(ch) && weather_info.sunlight == SUN_LIGHT && weather_info.sky == SKY_CLOUDLESS)
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
+#define CAN_USE_VAMPIRE_ABILITY(ch)  (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
 
 #define IS_SENTIENT(ch) (IS_HUMANOID(ch) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_SENTIENT)))
 

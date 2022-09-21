@@ -273,6 +273,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"disengage", "disen", POS_STANDING, do_disengage, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"display", "disp", POS_DEAD, do_display, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"divinebond", "divineb", POS_DEAD, do_divine_bond, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"dominate", "dominate", POS_FIGHTING, do_vampiric_dominate, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_dominate},
     {"donate", "don", POS_RECLINING, do_drop, 0, SCMD_DONATE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"doublemanifest", "doublemanifest", POS_FIGHTING, do_double_manifest, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_double_manifest},
     {"drink", "dri", POS_RECLINING, do_drink, 0, SCMD_DRINK, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -373,6 +374,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"gsay", "gsay", POS_SLEEPING, do_gsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gtell", "gt", POS_SLEEPING, do_gsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"gain", "gain", POS_RECLINING, do_gain, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"gaseousform", "gaseous", POS_FIGHTING, do_vampiric_gaseous_form, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_gaseous_form},
     {"guard", "guard", POS_FIGHTING, do_guard, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_guard},
     {"grapple", "grapple", POS_RECLINING, do_grapple, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"gravemagic", "grave", POS_FIGHTING, do_grave_magic, 1, 0, FALSE, ACTION_MOVE, {6, 0}, NULL},
@@ -680,6 +682,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shieldpunch", "shieldp", POS_FIGHTING, do_process_attack, 1, AA_SHIELDPUNCH, FALSE, ACTION_NONE, {0, 0}, can_shieldpunch},
     {"shieldcharge", "shieldc", POS_FIGHTING, do_shieldcharge, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldcharge},
     {"shieldslam", "shields", POS_FIGHTING, do_shieldslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_shieldslam},
+    {"slam", "slam", POS_FIGHTING, do_slam, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_slam},
     {"slayer", "slay", POS_RECLINING, do_slayer, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"springleap", "springleap", POS_RECLINING, do_springleap, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"surpriseaccuracy", "surpriseaccuracy", POS_FIGHTING, do_surpriseaccuracy, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_surpriseaccuracy},
@@ -743,6 +746,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"value", "val", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"vampireform", "vampireform", POS_FIGHTING, do_vampiric_shape_change, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_gaseous_form},
     {"version", "ver", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"visible", "vis", POS_RECLINING, do_visible, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vnum", "vnum", POS_DEAD, do_vnum, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

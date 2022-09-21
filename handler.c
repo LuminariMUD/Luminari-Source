@@ -2789,6 +2789,26 @@ int get_char_affect_modifier(struct char_data *ch, int spellnum, int location)
   return 0;
 }
 
+// This will change the specified spell/ability's apply type by amount.
+// example: you could specify to reduce the strength spell APPLY_STR by 3
+// if display is true it will show a message to the ch
+void change_spell_mod(struct char_data *ch, int spellnum, int location, int amount, bool display)
+{
+  struct affected_type *af = NULL;
+
+  for (af = ch->affected; af; af = af->next)
+  {
+    if (af->spell == spellnum && af->location == location)
+    {
+      af->modifier += amount;
+      if (display)
+      {
+        send_to_char(ch, "Your %s %s effect has been changed by %d and is now %d.\r\n", spell_info[spellnum].name, apply_types[location], amount, af->modifier);
+      }
+    }    
+  }
+}
+
 // checks if a character is affected by a certain apply_ type
 bool has_affect_modifier_type(struct char_data *ch, int location)
 {

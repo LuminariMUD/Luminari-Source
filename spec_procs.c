@@ -959,6 +959,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
         value += 4;
       }
     }
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
+      value += 8;
     value += compute_gear_armor_penalty(ch);
     return value;
 
@@ -1000,6 +1002,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     if (AFF_FLAGGED(ch, AFF_DEAF))
       value -= 4;
     if (IS_LICH(ch))
+      value += 8;
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
     return value;
   case ABILITY_HEAL:
@@ -1097,6 +1101,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
+      value += 30;
     value += compute_gear_armor_penalty(ch);
     return value;
   case ABILITY_SLEIGHT_OF_HAND:
@@ -1115,6 +1121,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
+      value += 8;
     return value;
   case ABILITY_DIPLOMACY:
     value += GET_CHA_BONUS(ch);
@@ -1180,6 +1188,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += MAX(1, CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2);
     }
     if (IS_LICH(ch))
+      value += 8;
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
     return value;
   case ABILITY_SURVIVAL:

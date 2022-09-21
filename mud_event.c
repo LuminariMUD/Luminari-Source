@@ -191,6 +191,7 @@ struct mud_event_list mud_event_index[] = {
     /*140*/
     {"Item SpecAb Cooldown: Summon Item", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_ITEM_SUMMON
     {"Children of the Night", event_daily_use_cooldown, EVENT_CHAR}, // eCHILDRENOFTHENIGHT
+    {"Vampiric Energy Drain", event_daily_use_cooldown, EVENT_CHAR}, // eVAMPIREENERGYDRAIN
 
 };
 
@@ -332,6 +333,9 @@ EVENTFUNC(event_countdown)
     break;
   case eCHILDRENOFTHENIGHT:
     send_to_char(ch, "You are now able to call your children of the night again.\r\n");
+    break;
+    case eVAMPIREENERGYDRAIN:
+    send_to_char(ch, "You are now able to perform vampiric energy drain with a slam attack again.\r\n");
     break;
   case eBANE:
     send_to_char(ch, "You are now able to use your bane ability again.\r\n");
@@ -705,6 +709,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eCHILDRENOFTHENIGHT:
     featnum = FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT;
     send_to_char(ch, "One of your children of the night uses has recovered.\r\n");
+    break;
+  case eVAMPIREENERGYDRAIN:
+    featnum = FEAT_VAMPIRE_ENERGY_DRAIN;
+    send_to_char(ch, "One of your vampiric energy drain uses has recovered.\r\n");
     break;
   case eBANE:
     featnum = FEAT_BANE;

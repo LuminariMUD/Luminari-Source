@@ -2802,6 +2802,12 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         continue;
       }
     }
+    else if (mode == 2)
+    {
+      // Vampire Form - Wolf or Bat
+      if (i != RACE_WOLF && i != RACE_BAT)
+        continue;
+    }
     else if (mode == 0)
     { /*druid*/
       switch (race_list[i].family)
@@ -3031,6 +3037,7 @@ void cleanup_wildshape_feats(struct char_data *ch)
     break;
   case RACE_EAGLE:
   case RACE_PIXIE:
+  case RACE_BAT:
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     break;
   case RACE_MANTICORE:
@@ -3312,6 +3319,7 @@ void assign_wildshape_feats(struct char_data *ch)
     MOB_SET_FEAT(ch, FEAT_INFRAVISION, 1);
     break;
   case RACE_EAGLE:
+  case RACE_BAT:
     MOB_SET_FEAT(ch, FEAT_WINGS, 1);
     break;
   case RACE_EFREETI:
@@ -3421,7 +3429,7 @@ bool wildshape_engine(struct char_data *ch, const char *argument, int mode)
 
   if (i == -1)
   { /* failed to find the race! (0 is human) */
-    send_to_char(ch, "Please select a race to wildshape/polymorph to or select 'return'.\r\n");
+    send_to_char(ch, "Please select a race to wildshape/polymorph/vampireform to or select 'return'.\r\n");
     display_eligible_wildshape_races(ch, argument, FALSE, mode);
     return FALSE;
   }
