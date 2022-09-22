@@ -880,7 +880,8 @@ ACMD(do_hsort)
   /* under constructions */
 
   struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
-                  *armor = NULL, *crafting = NULL, *misc = NULL, *obj = NULL;
+                  *armor = NULL, *crafting = NULL, *misc = NULL,
+                  *obj = NULL, *next_obj = NULL;
   int i = NOWHERE;
   room_rnum location = NOWHERE;
   bool found = FALSE;
@@ -1020,14 +1021,32 @@ ACMD(do_hsort)
     }
   }
 
+  /* message/save and out if the containers are already here! */
+  if (found)
+  {
+    send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
+                     "magical animated dustpan and broom!  In a blur, they quickly "
+                     "go to work stomping, whizzing, flying about setting up "
+                     "containers then disappear!\r\n");
+    act("You watch as $n gestures casually summoning a pair of worker-golems, "
+        "magical animated dustpan and broom!  In a blur, they quickly "
+        "go to work stomping, whizzing, flying about setting up containers in "
+        "the area then disappearing!\r\n",
+        FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    perform_save(ch, 0);
+    return;
+  }
+
   /* done handling containers */
+  found = FALSE;
 
   /* now just plop anything in the room that is takeable and
        not the containers into the containers! */
 
   /* looping through the room's objects */
-  for (obj = world[location].contents; obj; obj = obj->next_content)
+  for (obj = world[location].contents; obj; obj = next_obj)
   {
+    next_obj = obj->next_content; /* increment */
 
     /* debug */ send_to_char(ch, "| %s", GET_OBJ_SHORT(obj));
 
@@ -1043,7 +1062,7 @@ ACMD(do_hsort)
     case ITEM_FOUNTAIN:  /*fallthrough*/
     case ITEM_PORTAL:    /*fallthrough*/
     case ITEM_WALL:
-      continue;
+      break;
 
       /* trinkets, fallthrough */
     case ITEM_LIGHT:
@@ -1054,7 +1073,7 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, trinkets);
-      continue;
+      break;
 
       /* consumables, fallthrough */
     case ITEM_SPELLBOOK:
@@ -1071,7 +1090,7 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, consumables);
-      continue;
+      break;
 
       /* weapons, fallthrough */
     case ITEM_WEAPON:
@@ -1080,14 +1099,14 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, weapons);
-      continue;
+      break;
 
       /* armor */
     case ITEM_ARMOR:
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, armor);
-      continue;
+      break;
 
       /* crafting, fallthrough */
     case ITEM_CRYSTAL:
@@ -1101,13 +1120,13 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, crafting);
-      continue;
+      break;
 
     default: /* misc container */
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, misc);
-      continue;
+      break;
     }
   } /* end for */
 
