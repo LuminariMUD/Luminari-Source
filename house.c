@@ -875,7 +875,7 @@ ACMD(do_hsort)
 {
 
   /* under constructions */
-  if (GET_LEVEL(ch) < LVL_IMMORT)
+  if (port != 4101)
     return;
   /* under constructions */
 
