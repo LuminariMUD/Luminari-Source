@@ -6911,6 +6911,8 @@ int compute_cmb(struct char_data *ch,     /* Attacker */
   if (has_teamwork_feat(ch, FEAT_COORDINATED_MANEUVERS))
     cm_bonus += 2;
 
+  cm_bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+
   switch (combat_maneuver_type)
   {
   case COMBAT_MANEUVER_TYPE_KNOCKDOWN:
@@ -7001,6 +7003,8 @@ int compute_cmd(struct char_data *vict,   /* Defender */
 
   if (has_teamwork_feat(vict, FEAT_COORDINATED_DEFENSE))
     cm_defense += 2;
+
+  cm_defense -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense += BAB(vict);

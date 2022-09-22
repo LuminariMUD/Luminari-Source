@@ -190,6 +190,7 @@ int compute_mag_saves(struct char_data *vict,
     saves -= 1;
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_SHADOW_MASTER) && IS_SHADOW_CONDITIONS(vict))
     saves += 2;
+  saves -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 
   /* determine base, add/minus bonus/penalty and return */
   if (IS_NPC(vict))
