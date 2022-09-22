@@ -872,6 +872,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   if (char_has_mud_event(ch, eHOLYJAVELIN))
     value -= 2;
+  value -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set

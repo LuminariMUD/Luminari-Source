@@ -1819,8 +1819,9 @@ void update_damage_and_effects_over_time(void)
     // The target has to have hp above -10
     // If the character is either not good, or good, and the target is evil or not sentient, we allow it
     // If they're a player and blood drain is not enabled, it won't happen
+    // NOTE - THIS NEEDS TO BE MADE INTO A FUNCTION -- Gicker
     if (HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN) && (vict = GRAPPLE_TARGET(ch)) && AFF_FLAGGED(vict, AFF_PINNED) &&
-        IS_LIVING(vict) && !IS_OOZE(vict) && GET_HIT(vict) > -10 &&
+        IS_LIVING(vict) && !IS_OOZE(vict) && !IS_ELEMENTAL(vict) && GET_HIT(vict) > -10 &&
         (!IS_GOOD(ch) || (IS_GOOD(ch) && (IS_EVIL(vict) || !IS_SENTIENT(vict)))) &&
         (IS_NPC(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BLOOD_DRAIN))))
     {
@@ -1835,17 +1836,6 @@ void update_damage_and_effects_over_time(void)
       else
       {
         struct affected_type af, af2;
-        if (GET_CON(vict) > 0)
-        {
-          new_affect(&af);
-          af.spell = ABILITY_SCORE_DAMAGE;
-          af.location = APPLY_CON;
-          af.modifier = dice(1, 4);
-          af.duration = 10 * 60 * 24;
-          if ((GET_CON(vict) - af.modifier) < 0)
-            af.modifier = GET_CON(vict);
-          affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
-        }
         
         new_affect(&af2);
         af2.spell = ABILITY_BLOOD_DRAIN;
@@ -1859,6 +1849,23 @@ void update_damage_and_effects_over_time(void)
         act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
 
         damage(ch, vict, 5, ABILITY_BLOOD_DRAIN, DAM_BLOOD_DRAIN, FALSE);
+
+        if (GET_CON(vict) > 0)
+        {
+          if (!mag_savingthrow(ch, vict, ABILITY_SCORE_DAMAGE, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+          {
+            new_affect(&af);
+            af.spell = ABILITY_SCORE_DAMAGE;
+            af.location = APPLY_CON;
+            af.modifier = dice(1, 4);
+            af.duration = 10 * 60 * 24;
+            if ((GET_CON(vict) - af.modifier) < 0)
+              af.modifier = GET_CON(vict);
+            affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
+            act("You drain some of $N's constitution.", FALSE, ch, 0, vict, TO_CHAR);
+            act("You feel your constitution being drained.", FALSE, ch, 0, vict, TO_VICT);
+          }
+        }
 
         GET_HIT(ch) += 5;
         GET_HIT(ch) = MIN(GET_MAX_HIT(ch) * 2, GET_HIT(ch));
