@@ -874,6 +874,7 @@ ACMD(do_house)
 ACMD(do_hsort)
 {
 
+  /* this was here for debugging/testing */
   /*
   if (port != 4101)
     return;
