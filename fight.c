@@ -7006,7 +7006,7 @@ int compute_cmd(struct char_data *vict,   /* Defender */
   if (has_teamwork_feat(vict, FEAT_COORDINATED_DEFENSE))
     cm_defense += 2;
 
-  cm_defense -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+  cm_defense -= get_char_affect_modifier(vict, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 
   /* CMD = 10 + Base attack bonus + Strength modifier + Dexterity modifier + special size modifier + miscellaneous modifiers */
   cm_defense += BAB(vict);
