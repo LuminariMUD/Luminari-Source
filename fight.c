@@ -3829,6 +3829,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   {
     if (!tch)
       continue;
+
     if (IS_NPC(tch))
     {
       if (tch->master && PRF_FLAGGED(tch->master, PRF_AUTOCOLLECT) && !IS_NPC(tch->master))
@@ -3841,6 +3842,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
         continue;
       }
     }
+
     if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_AUTOCOLLECT))
     {
       perform_collect(tch, FALSE);

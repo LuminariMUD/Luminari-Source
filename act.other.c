@@ -3975,6 +3975,16 @@ ACMD(do_quit)
   }
 }
 
+void perform_save(struct char_data *ch, int mode)
+{
+  save_char_pets(ch);
+  save_char(ch, mode);
+  Crash_crashsave(ch);
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_HOUSE_CRASH))
+    House_crashsave(GET_ROOM_VNUM(IN_ROOM(ch)));
+  GET_LOADROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
+}
+
 ACMD(do_save)
 {
   if (IS_NPC(ch) || !ch->desc)
@@ -3982,12 +3992,7 @@ ACMD(do_save)
 
   send_to_char(ch, "Saving %s.\r\n", GET_NAME(ch));
 
-  save_char_pets(ch);
-  save_char(ch, 0);
-  Crash_crashsave(ch);
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_HOUSE_CRASH))
-    House_crashsave(GET_ROOM_VNUM(IN_ROOM(ch)));
-  GET_LOADROOM(ch) = GET_ROOM_VNUM(IN_ROOM(ch));
+  perform_save(ch, 0);
 }
 
 /* Generic function for commands which are normally overridden by special

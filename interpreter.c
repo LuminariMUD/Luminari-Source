@@ -410,6 +410,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"hp", "hp", POS_DEAD, do_hp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hsedit", "hsedit", POS_DEAD, do_oasis_hsedit, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hunts", "hunts", POS_RECLINING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"hsort", "hsort", POS_RECLINING, do_hsort, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
