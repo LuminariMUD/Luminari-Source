@@ -1,14 +1,14 @@
 /**
-* @file house.h                                    Part of LuminariMUD
-* Player house structures, prototypes and defines.
-* 
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*                                                                        
-* All rights reserved.  See license for complete information.                                                                
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University 
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               
-*/
+ * @file house.h                                    Part of LuminariMUD
+ * Player house structures, prototypes and defines.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ */
 #ifndef _HOUSE_H_
 #define _HOUSE_H_
 
@@ -70,5 +70,6 @@ void hcontrol_list_houses(struct char_data *ch, char *arg);
 /* In game Commands */
 ACMD_DECL(do_hcontrol);
 ACMD_DECL(do_house);
+ACMD_DECL(do_hsort);
 
 #endif /* _HOUSE_H_ */
