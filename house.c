@@ -890,12 +890,23 @@ ACMD(do_hsort)
 
   /* make sure everything is in place! */
   if (!ROOM_FLAGGED(location, ROOM_HOUSE))
+  {
     send_to_char(ch, "You must be in your house to sort it.\r\n");
-  else if ((i = find_house(GET_ROOM_VNUM(location))) == NOWHERE)
+    return;
+  }
+
+  if ((i = find_house(GET_ROOM_VNUM(location))) == NOWHERE)
+  {
     send_to_char(ch, "Um.. this house seems to be screwed up.  Report to staff: (hsort001)!\r\n");
+    return;
+  }
+
   /* we got the house num */
-  else if (GET_IDNUM(ch) != house_control[i].owner)
+  if (GET_IDNUM(ch) != house_control[i].owner)
+  {
     send_to_char(ch, "Only the primary owner can sort it.\r\n");
+    return;
+  }
 
   /* should be valid conditions to start */
 
@@ -1032,7 +1043,7 @@ ACMD(do_hsort)
     case ITEM_FOUNTAIN:  /*fallthrough*/
     case ITEM_PORTAL:    /*fallthrough*/
     case ITEM_WALL:
-      break;
+      continue;
 
       /* trinkets, fallthrough */
     case ITEM_LIGHT:
@@ -1043,7 +1054,7 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, trinkets);
-      break;
+      continue;
 
       /* consumables, fallthrough */
     case ITEM_SPELLBOOK:
@@ -1060,7 +1071,7 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, consumables);
-      break;
+      continue;
 
       /* weapons, fallthrough */
     case ITEM_WEAPON:
@@ -1069,14 +1080,14 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, weapons);
-      break;
+      continue;
 
       /* armor */
     case ITEM_ARMOR:
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, armor);
-      break;
+      continue;
 
       /* crafting, fallthrough */
     case ITEM_CRYSTAL:
@@ -1090,13 +1101,13 @@ ACMD(do_hsort)
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, crafting);
-      break;
+      continue;
 
     default: /* misc container */
       found = TRUE;
       obj_from_room(obj);
       obj_to_obj(obj, misc);
-      break;
+      continue;
     }
   } /* end for */
 
