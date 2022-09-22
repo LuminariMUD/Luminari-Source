@@ -21,6 +21,8 @@
 #include "modify.h"
 #include "mysql.h"
 #include "clan.h"
+#include "act.h"        /* for perform_save() */
+#include "dg_scripts.h" /* for load_otriggers() */
 
 #define MAX_BAG_ROWS 5
 
@@ -45,6 +47,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg);
 static void hcontrol_destroy_house(struct char_data *ch, char *arg);
 static void hcontrol_pay_house(struct char_data *ch, char *arg);
 static void House_listrent(struct char_data *ch, room_vnum vnum);
+
 /* CONVERSION code starts here -- see comment below. */
 static int ascii_convert_house(struct char_data *ch, obj_vnum vnum);
 static void hcontrol_convert_houses(struct char_data *ch);
@@ -287,13 +290,16 @@ void House_delete_file(room_vnum vnum)
 
   if (!House_get_filename(vnum, filename, sizeof(filename)))
     return;
+
   if (!(fl = fopen(filename, "rb")))
   {
     if (errno != ENOENT)
       log("SYSERR: Error deleting house file #%d. (1): %s", vnum, strerror(errno));
     return;
   }
+
   fclose(fl);
+
   if (remove(filename) < 0)
     log("SYSERR: Error deleting house file #%d. (2): %s", vnum, strerror(errno));
 }
@@ -309,12 +315,15 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
 
   if (!House_get_filename(vnum, filename, sizeof(filename)))
     return;
+
   if (!(fl = fopen(filename, "rb")))
   {
     send_to_char(ch, "No objects on file for house #%d.\r\n", vnum);
     return;
   }
+
   *buf = '\0';
+
   len = snprintf(buf, sizeof(buf), "filename: %s\r\n", filename);
 
   loaded = objsave_parse_objects_db(NULL, vnum);
@@ -360,6 +369,7 @@ void House_save_control(void)
     perror("SYSERR: Unable to open house control file.");
     return;
   }
+
   /* write all the house control recs in one fell swoop.  Pretty nifty, eh? */
   if (fwrite(house_control, sizeof(struct house_control_rec), num_of_houses, fl) != num_of_houses)
   {
@@ -388,6 +398,7 @@ void House_boot(void)
       perror("SYSERR: " HCONTROL_FILE);
     return;
   }
+
   while (!feof(fl) && num_of_houses < MAX_HOUSES)
   {
     if (fread(&temp_house, sizeof(struct house_control_rec), 1, fl) != 1)
@@ -462,6 +473,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
     send_to_char(ch, "No houses have been defined.\r\n");
     return;
   }
+
   send_to_char(ch,
                "Address  Atrium  Build Date  Guests  Owner        Last Paymt\r\n"
                "-------  ------  ----------  ------  ------------ ----------\r\n");
@@ -500,6 +512,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
   }
 }
 
+/* building a house */
 static void hcontrol_build_house(struct char_data *ch, char *arg)
 {
   char arg1[MAX_INPUT_LENGTH];
@@ -517,17 +530,21 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
 
   /* first arg: house's vnum */
   arg = one_argument_u(arg, arg1);
+
   if (!*arg1)
   {
     send_to_char(ch, "%s", HCONTROL_FORMAT);
     return;
   }
+
   virt_house = atoi(arg1);
+
   if ((real_house = real_room(virt_house)) == NOWHERE)
   {
     send_to_char(ch, "No such room exists.\r\n");
     return;
   }
+
   if ((find_house(virt_house)) != NOWHERE)
   {
     send_to_char(ch, "House already exists.\r\n");
@@ -536,16 +553,19 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
 
   /* second arg: direction of house's exit */
   arg = one_argument_u(arg, arg1);
+
   if (!*arg1)
   {
     send_to_char(ch, "%s", HCONTROL_FORMAT);
     return;
   }
+
   if ((exit_num = search_block(arg1, dirs, FALSE)) < 0)
   {
     send_to_char(ch, "'%s' is not a valid direction.\r\n", arg1);
     return;
   }
+
   if (TOROOM(real_house, exit_num) == NOWHERE)
   {
     send_to_char(ch, "There is no exit %s from room %d.\r\n", dirs[exit_num], virt_house);
@@ -563,11 +583,13 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
 
   /* third arg: player's name */
   one_argument(arg, arg1, sizeof(arg1));
+
   if (!*arg1)
   {
     send_to_char(ch, "%s", HCONTROL_FORMAT);
     return;
   }
+
   if ((owner = get_id_by_name(arg1)) < 0)
   {
     send_to_char(ch, "Unknown player '%s'.\r\n", arg1);
@@ -594,6 +616,7 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
   House_save_control();
 }
 
+/* destroying a house */
 static void hcontrol_destroy_house(struct char_data *ch, char *arg)
 {
   int i, j;
@@ -604,11 +627,13 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
     send_to_char(ch, "%s", HCONTROL_FORMAT);
     return;
   }
+
   if ((i = find_house(atoi(arg))) == NOWHERE)
   {
     send_to_char(ch, "Unknown house.\r\n");
     return;
   }
+
   if ((real_atrium = real_room(house_control[i].atrium)) == NOWHERE)
     log("SYSERR: House %d had invalid atrium %d!", atoi(arg), house_control[i].atrium);
   else
@@ -622,6 +647,7 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_PRIVATE);
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE_CRASH);
   }
+
   House_delete_file(house_control[i].vnum);
 
   for (j = i; j < num_of_houses - 1; j++)
@@ -639,6 +665,7 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
       SET_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 }
 
+/* function to handle paying house expenses */
 static void hcontrol_pay_house(struct char_data *ch, char *arg)
 {
   int i;
@@ -656,6 +683,118 @@ static void hcontrol_pay_house(struct char_data *ch, char *arg)
     send_to_char(ch, "Payment recorded.\r\n");
   }
 }
+
+/* Misc. administrative functions */
+
+/* crash-save all the houses */
+void House_save_all(void)
+{
+  int i;
+  room_rnum real_house;
+
+  for (i = 0; i < num_of_houses; i++)
+    if ((real_house = real_room(house_control[i].vnum)) != NOWHERE)
+      if (ROOM_FLAGGED(real_house, ROOM_HOUSE_CRASH))
+        House_crashsave(house_control[i].vnum);
+}
+
+/* note: arg passed must be house vnum, so there. */
+int House_can_enter(struct char_data *ch, room_vnum house)
+{
+  int i, j;
+  zone_vnum zvnum;
+
+  /* Not a house */
+  if ((i = find_house(house)) == NOWHERE)
+    return (1);
+
+  /* Not a god house, and player is a god */
+  if ((GET_LEVEL(ch) >= LVL_GRSTAFF) && (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
+    return (1);
+
+  switch (house_control[i].mode)
+  {
+  case HOUSE_PRIVATE:
+  case HOUSE_GOD: /* A god's house can ONLY be entered by the owner and guests - already checked above */
+
+    if (GET_IDNUM(ch) == house_control[i].owner)
+      return (1);
+
+    for (j = 0; j < house_control[i].num_of_guests; j++)
+      if (GET_IDNUM(ch) == house_control[i].guests[j])
+        return (1);
+
+    break;
+
+  case HOUSE_CLAN: /* Clan-owned houses - Only clan members may enter */
+
+    zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
+
+    log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan_list[GET_CLAN(ch)].hall);
+
+    if ((GET_CLAN(ch) > 0) && (clan_list[GET_CLAN(ch)].hall == zvnum))
+      return (1);
+
+    break;
+
+  default:
+    mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Invalid house type in room %d", house_control[i].vnum);
+    break;
+  }
+
+  return (0);
+}
+
+/* list the guests of house */
+void House_list_guests(struct char_data *ch, int i, int quiet)
+{
+  int j, num_printed;
+  char *temp;
+
+  if (house_control[i].num_of_guests == 0)
+  {
+    if (!quiet)
+      send_to_char(ch, "  Guests: None\r\n");
+    return;
+  }
+
+  send_to_char(ch, "  Guests: ");
+
+  for (num_printed = j = 0; j < house_control[i].num_of_guests; j++)
+  {
+    /* Avoid <UNDEF>. -gg 6/21/98 */
+    if ((temp = get_name_by_id(house_control[i].guests[j])) == NULL)
+      continue;
+
+    num_printed++;
+    send_to_char(ch, "%c%s ", UPPER(*temp), temp + 1);
+  }
+
+  if (num_printed == 0)
+    send_to_char(ch, "all dead");
+
+  send_to_char(ch, "\r\n");
+}
+
+bool is_house_owner(struct char_data *ch, int room_vnum)
+{
+  int i;
+  bool bRet = FALSE;
+
+  for (i = 0; i < num_of_houses; i++)
+  {
+    if ((house_control[i].vnum == room_vnum) || (house_control[i].atrium == room_vnum))
+    {
+      if (house_control[i].owner == GET_IDNUM(ch))
+      {
+        bRet = TRUE;
+      }
+    }
+  }
+  return (bRet);
+}
+
+/* commands */
 
 /* The hcontrol command itself, used by imms to create/destroy houses */
 ACMD(do_hcontrol)
@@ -724,113 +863,309 @@ ACMD(do_house)
   }
 }
 
-/* Misc. administrative functions */
-
-/* crash-save all the houses */
-void House_save_all(void)
+/* a command to sort one's house, will set up containers and dump items
+   in those containers -Zusuk */
+#define CONT_TRINKETS 868
+#define CONT_CONSUMABLES 869
+#define CONT_WEAPONS 870
+#define CONT_ARMOR 871
+#define CONT_CRAFTING 872
+#define CONT_MISC 873
+ACMD(do_hsort)
 {
-  int i;
-  room_rnum real_house;
 
-  for (i = 0; i < num_of_houses; i++)
-    if ((real_house = real_room(house_control[i].vnum)) != NOWHERE)
-      if (ROOM_FLAGGED(real_house, ROOM_HOUSE_CRASH))
-        House_crashsave(house_control[i].vnum);
-}
-/* note: arg passed must be house vnum, so there. */
-int House_can_enter(struct char_data *ch, room_vnum house)
-{
-  int i, j;
-  zone_vnum zvnum;
+  /* this was here for debugging/testing */
+  /*
+  if (port != 4101)
+    return;
+  */
 
-  /* Not a house */
-  if ((i = find_house(house)) == NOWHERE)
-    return (1);
+  struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
+                  *armor = NULL, *crafting = NULL, *misc = NULL,
+                  *obj = NULL, *next_obj = NULL;
+  int i = NOWHERE;
+  room_rnum location = NOWHERE;
+  bool found = FALSE;
 
-  /* Not a god house, and player is a god */
-  if ((GET_LEVEL(ch) >= LVL_GRSTAFF) && (house_control[i].mode != HOUSE_GOD)) /* Even gods can't just walk into Imm-owned houses */
-    return (1);
+  /* grab ch's location */
+  location = IN_ROOM(ch);
 
-  switch (house_control[i].mode)
+  /* make sure everything is in place! */
+  if (!ROOM_FLAGGED(location, ROOM_HOUSE))
   {
-  case HOUSE_PRIVATE:
-  case HOUSE_GOD: /* A god's house can ONLY be entered by the owner and guests - already checked above */
-
-    if (GET_IDNUM(ch) == house_control[i].owner)
-      return (1);
-
-    for (j = 0; j < house_control[i].num_of_guests; j++)
-      if (GET_IDNUM(ch) == house_control[i].guests[j])
-        return (1);
-
-    break;
-
-  case HOUSE_CLAN: /* Clan-owned houses - Only clan members may enter */
-
-    zvnum = zone_table[real_zone_by_thing(house_control[i].vnum)].number;
-
-    log("(HCE) Zone: %d, Clan ID: %d, Clanhall Zone: %d", zvnum, GET_CLAN(ch), clan_list[GET_CLAN(ch)].hall);
-
-    if ((GET_CLAN(ch) > 0) && (clan_list[GET_CLAN(ch)].hall == zvnum))
-      return (1);
-
-    break;
-
-  default:
-    mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Invalid house type in room %d", house_control[i].vnum);
-    break;
-  }
-
-  return (0);
-}
-
-void House_list_guests(struct char_data *ch, int i, int quiet)
-{
-  int j, num_printed;
-  char *temp;
-
-  if (house_control[i].num_of_guests == 0)
-  {
-    if (!quiet)
-      send_to_char(ch, "  Guests: None\r\n");
+    send_to_char(ch, "You must be in your house to sort it.\r\n");
     return;
   }
 
-  send_to_char(ch, "  Guests: ");
-
-  for (num_printed = j = 0; j < house_control[i].num_of_guests; j++)
+  if ((i = find_house(GET_ROOM_VNUM(location))) == NOWHERE)
   {
-    /* Avoid <UNDEF>. -gg 6/21/98 */
-    if ((temp = get_name_by_id(house_control[i].guests[j])) == NULL)
-      continue;
-
-    num_printed++;
-    send_to_char(ch, "%c%s ", UPPER(*temp), temp + 1);
+    send_to_char(ch, "Um.. this house seems to be screwed up.  Report to staff: (hsort001)!\r\n");
+    return;
   }
 
-  if (num_printed == 0)
-    send_to_char(ch, "all dead");
-
-  send_to_char(ch, "\r\n");
-}
-
-bool is_house_owner(struct char_data *ch, int room_vnum)
-{
-  int i;
-  bool bRet = FALSE;
-
-  for (i = 0; i < num_of_houses; i++)
+  /* we got the house num */
+  if (GET_IDNUM(ch) != house_control[i].owner)
   {
-    if ((house_control[i].vnum == room_vnum) || (house_control[i].atrium == room_vnum))
+    send_to_char(ch, "Only the primary owner can sort it.\r\n");
+    return;
+  }
+
+  /* should be valid conditions to start */
+
+  /* we are setting up various containers in the room now (if they don't exist) */
+
+  /* trinkets container */
+  trinkets = get_obj_in_list_num(real_object(CONT_TRINKETS), world[location].contents);
+  if (!trinkets) /* need to load object */
+  {
+    trinkets = read_object(CONT_TRINKETS, VIRTUAL);
+    if (trinkets)
     {
-      if (house_control[i].owner == GET_IDNUM(ch))
-      {
-        bRet = TRUE;
-      }
+      obj_to_room(trinkets, location);
+      load_otrigger(trinkets);
+      found = TRUE;
+    }
+    else /* problem here! */
+    {
+      send_to_char(ch, "PROBLEM!  Report to staff: (container001)!\r\n");
+      return;
     }
   }
-  return (bRet);
+
+  /* consumables container */
+  consumables = get_obj_in_list_num(real_object(CONT_CONSUMABLES), world[location].contents);
+  if (!consumables) /* need to load object */
+  {
+    consumables = read_object(CONT_CONSUMABLES, VIRTUAL);
+    if (consumables)
+    {
+      obj_to_room(consumables, location);
+      load_otrigger(consumables);
+      found = TRUE;
+    }
+    else /* problem here! */
+    {
+      send_to_char(ch, "PROBLEM!  Report to staff: (container002)!\r\n");
+      return;
+    }
+  }
+
+  /* weapons container */
+  weapons = get_obj_in_list_num(real_object(CONT_WEAPONS), world[location].contents);
+  if (!weapons) /* need to load object */
+  {
+    weapons = read_object(CONT_WEAPONS, VIRTUAL);
+    if (weapons)
+    {
+      obj_to_room(weapons, location);
+      load_otrigger(weapons);
+      found = TRUE;
+    }
+    else /* problem here! */
+    {
+      send_to_char(ch, "PROBLEM!  Report to staff: (container003)!\r\n");
+      return;
+    }
+  }
+
+  /* armor container */
+  armor = get_obj_in_list_num(real_object(CONT_ARMOR), world[location].contents);
+  if (!armor) /* need to load object */
+  {
+    armor = read_object(CONT_ARMOR, VIRTUAL);
+    if (armor)
+    {
+      obj_to_room(armor, location);
+      load_otrigger(armor);
+      found = TRUE;
+    }
+    else /* problem here! */
+    {
+      send_to_char(ch, "PROBLEM!  Report to staff: (container004)!\r\n");
+      return;
+    }
+  }
+
+  /* crafting container */
+  crafting = get_obj_in_list_num(real_object(CONT_CRAFTING), world[location].contents);
+  if (!crafting) /* need to load object */
+  {
+    crafting = read_object(CONT_CRAFTING, VIRTUAL);
+    if (crafting)
+    {
+      obj_to_room(crafting, location);
+      load_otrigger(crafting);
+      found = TRUE;
+    }
+    else /* problem here! */
+    {
+      send_to_char(ch, "PROBLEM!  Report to staff: (container005)!\r\n");
+      return;
+    }
+  }
+
+  /* misc container */
+  misc = get_obj_in_list_num(real_object(CONT_MISC), world[location].contents);
+  if (!misc) /* need to load object */
+  {
+    misc = read_object(CONT_MISC, VIRTUAL);
+    if (misc)
+    {
+      obj_to_room(misc, location);
+      load_otrigger(misc);
+      found = TRUE;
+    }
+    else /* problem here! */
+    {
+      send_to_char(ch, "PROBLEM!  Report to staff: (container006)!\r\n");
+      return;
+    }
+  }
+
+  /* message/save and out if the containers are already here! */
+  if (found)
+  {
+    send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
+                     "magical animated dustpan and broom!  In a blur, they quickly "
+                     "go to work stomping, whizzing, flying about setting up "
+                     "containers then disappear!\r\n");
+    act("You watch as $n gestures casually summoning a pair of worker-golems, "
+        "magical animated dustpan and broom!  In a blur, they quickly "
+        "go to work stomping, whizzing, flying about setting up containers in "
+        "the area then disappearing!\r\n",
+        FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    perform_save(ch, 0);
+    return;
+  }
+
+  /* done handling containers */
+  found = FALSE;
+
+  /* now just plop anything in the room that is takeable and
+       not the containers into the containers! */
+
+  /* looping through the room's objects */
+  for (obj = world[location].contents; obj; obj = next_obj)
+  {
+    next_obj = obj->next_content; /* increment */
+
+    /* debug */ /*send_to_char(ch, "| %s", GET_OBJ_SHORT(obj));*/
+
+    if (!(CAN_WEAR(obj, ITEM_WEAR_TAKE)))
+      continue;
+
+    switch (GET_OBJ_TYPE(obj))
+    {
+
+      /* we aren't sorting these items */
+    case ITEM_CONTAINER: /*fallthrough*/
+    case ITEM_FURNITURE: /*fallthrough*/
+    case ITEM_FOUNTAIN:  /*fallthrough*/
+    case ITEM_PORTAL:    /*fallthrough*/
+    case ITEM_WALL:
+      break;
+
+      /* trinkets, fallthrough */
+    case ITEM_LIGHT:
+    case ITEM_WORN:
+    case ITEM_CLANARMOR:
+    case ITEM_GEAR_OUTFIT:
+    case ITEM_AMMO_POUCH:
+      found = TRUE;
+      obj_from_room(obj);
+      obj_to_obj(obj, trinkets);
+      break;
+
+      /* consumables, fallthrough */
+    case ITEM_SPELLBOOK:
+    case ITEM_DISGUISE:
+    case ITEM_PICK:
+    case ITEM_FOOD:
+    case ITEM_DRINKCON:
+    case ITEM_WEAPON_OIL:
+    case ITEM_POISON:
+    case ITEM_POTION:
+    case ITEM_STAFF:
+    case ITEM_WAND:
+    case ITEM_SCROLL:
+      found = TRUE;
+      obj_from_room(obj);
+      obj_to_obj(obj, consumables);
+      break;
+
+      /* weapons, fallthrough */
+    case ITEM_WEAPON:
+    case ITEM_FIREWEAPON:
+    case ITEM_MISSILE:
+      found = TRUE;
+      obj_from_room(obj);
+      obj_to_obj(obj, weapons);
+      break;
+
+      /* armor */
+    case ITEM_ARMOR:
+      found = TRUE;
+      obj_from_room(obj);
+      obj_to_obj(obj, armor);
+      break;
+
+      /* crafting, fallthrough */
+    case ITEM_CRYSTAL:
+    case ITEM_ESSENCE:
+    case ITEM_MATERIAL:
+    case ITEM_RESOURCE:
+    case ITEM_BLUEPRINT:
+    case ITEM_HUNT_TROPHY:
+    case ITEM_BOWL:
+    case ITEM_INGREDIENT:
+      found = TRUE;
+      obj_from_room(obj);
+      obj_to_obj(obj, crafting);
+      break;
+
+    default: /* misc container */
+      found = TRUE;
+      obj_from_room(obj);
+      obj_to_obj(obj, misc);
+      break;
+    }
+  } /* end for */
+
+  /* last message/save! */
+  if (found)
+  {
+    send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
+                     "magical animated dustpan and broom!  In a blur, they quickly "
+                     "go to work stomping, whizzing, flying about sorting and "
+                     "cleaning the area then disappear!\r\n");
+    act("You watch as $n gestures casually summoning a pair of worker-golems, "
+        "magical animated dustpan and broom!  In a blur, they quickly "
+        "go to work stomping, whizzing, flying about sorting and "
+        "cleaning the area then disappear!\r\n",
+        FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    perform_save(ch, 0);
+  }
+  else
+  {
+    send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
+                     "magical animated dustpan and broom!  They look about hovering "
+                     "briefly, noticing that there is nothing to do, they smirk in your "
+                     "general direction then disappear!\r\n");
+    act("You watch as $n gestures casually summoning a pair of worker-golems, "
+        "magical animated dustpan and broom!  They look about hovering "
+        "briefly, noticing that there is nothing to do, they smirk in $n's "
+        "general direction then disappear!\r\n",
+        FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+  }
+
+  /* we are done! */
 }
+#undef CONT_TRINKETS
+#undef CONT_CONSUMABLES
+#undef CONT_WEAPONS
+#undef CONT_ARMOR
+#undef CONT_CRAFTING
+#undef CONT_MISC
 
 /*************************************************************************
  * All code below this point and the code above, marked "CONVERSION"     *
@@ -979,3 +1314,5 @@ static struct obj_data *Obj_from_store(struct obj_file_elem object, int *locatio
 
   return (obj);
 }
+
+/* EOF */
