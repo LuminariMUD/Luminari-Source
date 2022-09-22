@@ -615,9 +615,10 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent);
 int perform_tailsweep(struct char_data *ch);
 int perform_dragonbite(struct char_data *ch, struct char_data *vict);
 void perform_children_of_the_night(struct char_data *ch);
+void perform_save(struct char_data *ch, int mode);
 
-    /* do_gen_tog */
-    ACMD_DECL(do_gen_tog);
+/* do_gen_tog */
+ACMD_DECL(do_gen_tog);
 
 /* sub-command defines */
 #define SCMD_NOSUMMON 0
