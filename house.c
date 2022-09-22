@@ -1048,7 +1048,7 @@ ACMD(do_hsort)
   {
     next_obj = obj->next_content; /* increment */
 
-    /* debug */ send_to_char(ch, "| %s", GET_OBJ_SHORT(obj));
+    /* debug */ /*send_to_char(ch, "| %s", GET_OBJ_SHORT(obj));*/
 
     if (!(CAN_WEAR(obj, ITEM_WEAR_TAKE)))
       continue;
