@@ -874,10 +874,10 @@ ACMD(do_house)
 ACMD(do_hsort)
 {
 
-  /* under constructions */
+  /*
   if (port != 4101)
     return;
-  /* under constructions */
+  */
 
   struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
                   *armor = NULL, *crafting = NULL, *misc = NULL,
