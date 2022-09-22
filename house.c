@@ -873,6 +873,12 @@ ACMD(do_house)
 #define CONT_MISC 873
 ACMD(do_hsort)
 {
+
+  /* under constructions */
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+    return;
+  /* under constructions */
+
   struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
                   *armor = NULL, *crafting = NULL, *misc = NULL, *obj = NULL;
   int i = NOWHERE;
@@ -896,7 +902,7 @@ ACMD(do_hsort)
   /* we are setting up various containers in the room now (if they don't exist) */
 
   /* trinkets container */
-  trinkets = get_obj_in_list_num(CONT_TRINKETS, world[location].contents);
+  trinkets = get_obj_in_list_num(real_object(CONT_TRINKETS), world[location].contents);
   if (!trinkets) /* need to load object */
   {
     trinkets = read_object(CONT_TRINKETS, VIRTUAL);
@@ -914,7 +920,7 @@ ACMD(do_hsort)
   }
 
   /* consumables container */
-  consumables = get_obj_in_list_num(CONT_CONSUMABLES, world[location].contents);
+  consumables = get_obj_in_list_num(real_object(CONT_CONSUMABLES), world[location].contents);
   if (!consumables) /* need to load object */
   {
     consumables = read_object(CONT_CONSUMABLES, VIRTUAL);
@@ -932,7 +938,7 @@ ACMD(do_hsort)
   }
 
   /* weapons container */
-  weapons = get_obj_in_list_num(CONT_WEAPONS, world[location].contents);
+  weapons = get_obj_in_list_num(real_object(CONT_WEAPONS), world[location].contents);
   if (!weapons) /* need to load object */
   {
     weapons = read_object(CONT_WEAPONS, VIRTUAL);
@@ -950,7 +956,7 @@ ACMD(do_hsort)
   }
 
   /* armor container */
-  armor = get_obj_in_list_num(CONT_ARMOR, world[location].contents);
+  armor = get_obj_in_list_num(real_object(CONT_ARMOR), world[location].contents);
   if (!armor) /* need to load object */
   {
     armor = read_object(CONT_ARMOR, VIRTUAL);
@@ -968,7 +974,7 @@ ACMD(do_hsort)
   }
 
   /* crafting container */
-  crafting = get_obj_in_list_num(CONT_CRAFTING, world[location].contents);
+  crafting = get_obj_in_list_num(real_object(CONT_CRAFTING), world[location].contents);
   if (!crafting) /* need to load object */
   {
     crafting = read_object(CONT_CRAFTING, VIRTUAL);
@@ -986,7 +992,7 @@ ACMD(do_hsort)
   }
 
   /* misc container */
-  misc = get_obj_in_list_num(CONT_MISC, world[location].contents);
+  misc = get_obj_in_list_num(real_object(CONT_MISC), world[location].contents);
   if (!misc) /* need to load object */
   {
     misc = read_object(CONT_MISC, VIRTUAL);
