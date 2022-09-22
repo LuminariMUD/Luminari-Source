@@ -1017,6 +1017,9 @@ ACMD(do_hsort)
   /* looping through the room's objects */
   for (obj = world[location].contents; obj; obj = obj->next_content)
   {
+
+    /* debug */ send_to_char(ch, "| %s", GET_OBJ_SHORT(obj));
+
     if (!(CAN_WEAR(obj, ITEM_WEAR_TAKE)))
       continue;
 
