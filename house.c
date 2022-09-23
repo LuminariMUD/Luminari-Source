@@ -912,7 +912,7 @@ int can_hsort(struct char_data *ch, room_rnum location, bool silent)
   }
 
   /* we got the house num */
-  if (GET_IDNUM(ch) != house_control[i].owner)
+  if (ch && GET_IDNUM(ch) != house_control[i].owner)
   {
     if (!silent && ch)
       send_to_char(ch, "Only the primary owner can sort it.\r\n");
