@@ -32,7 +32,7 @@ extern int num_of_houses;                                  /* house.c */
 extern const char *dirs[];                                 /* constants.c */
 /*------------------------------------------------------------------------*/
 /* external function protos */
-int find_house(room_vnum vnum);         /* house.c */
+house_rnum find_house(room_vnum vnum);  /* house.c */
 void House_save_control(void);          /* house.c */
 void House_delete_file(room_vnum vnum); /* house.c */
 extern void strip_string(char *buffer);
@@ -130,7 +130,7 @@ void hsedit_setup_existing(struct descriptor_data *d, int real_num)
 /*-----------------------------------------------------------1-------------*/
 void hsedit_save_internally(struct descriptor_data *d)
 {
-  int house_rnum;
+  house_rnum house_rnum;
 
   /* this is done rather differently from the other OLCs */
   /* Houses have a pre-allocated list size, so just copy */
@@ -189,7 +189,8 @@ void free_house(struct house_control_rec *house)
 
 void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
 {
-  int i, j;
+  house_rnum i;
+  int j;
   room_rnum real_atrium, real_house;
 
   if ((i = find_house(house_vnum)) == NOWHERE)
@@ -1067,7 +1068,8 @@ void hsedit_string_cleanup(struct descriptor_data *d, int terminator)
 
 ACMD(do_oasis_hsedit)
 {
-  int number = NOWHERE, save = 0, real_num;
+  int number = NOWHERE, save = 0;
+  house_rnum real_num;
   struct descriptor_data *d;
   const char *buf3;
   char buf1[MAX_STRING_LENGTH];

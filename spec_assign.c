@@ -143,6 +143,7 @@ void assign_mobiles(void)
   ASSIGNMOB(822, player_owned_shops); /* zusuk created shop for melaw */
   ASSIGNMOB(825, player_owned_shops); /* thazull created shop for Ellyanor */
   ASSIGNMOB(830, player_owned_shops); /* Ickthak the Kobold - for Thimblethorp */
+  ASSIGNMOB(836, player_owned_shops); /* Towering Woman - for Brondo */
 
   /* mayors */
   ASSIGNMOB(3105, mayor);

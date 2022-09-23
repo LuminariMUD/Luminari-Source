@@ -36,7 +36,7 @@ int num_of_houses = 0;
 
 /* functions */
 void House_delete_file(room_vnum vnum);
-int find_house(room_vnum vnum);
+house_rnum find_house(room_vnum vnum);
 void House_save_control(void);
 
 /* local functions */
@@ -348,9 +348,9 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
 }
 
 /* Functions for house administration (creation, deletion, etc. */
-int find_house(room_vnum vnum)
+house_rnum find_house(room_vnum vnum)
 {
-  int i;
+  house_rnum i;
 
   for (i = 0; i < num_of_houses; i++)
     if (house_control[i].vnum == vnum)
@@ -446,7 +446,7 @@ const char *HCONTROL_FORMAT =
 
 void hcontrol_list_houses(struct char_data *ch, char *arg)
 {
-  int i;
+  house_rnum i;
   char *timestr, *temp;
   char built_on[128], last_pay[128], own_name[MAX_NAME_LENGTH + 1];
 
@@ -619,7 +619,8 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
 /* destroying a house */
 static void hcontrol_destroy_house(struct char_data *ch, char *arg)
 {
-  int i, j;
+  house_rnum i;
+  int j;
   room_rnum real_atrium, real_house;
 
   if (!*arg)
@@ -668,7 +669,7 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
 /* function to handle paying house expenses */
 static void hcontrol_pay_house(struct char_data *ch, char *arg)
 {
-  int i;
+  house_rnum i;
 
   if (!*arg)
     send_to_char(ch, "%s", HCONTROL_FORMAT);
@@ -701,7 +702,8 @@ void House_save_all(void)
 /* note: arg passed must be house vnum, so there. */
 int House_can_enter(struct char_data *ch, room_vnum house)
 {
-  int i, j;
+  house_rnum i;
+  int j;
   zone_vnum zvnum;
 
   /* Not a house */
@@ -823,7 +825,8 @@ ACMD(do_hcontrol)
 ACMD(do_house)
 {
   char arg[MAX_INPUT_LENGTH];
-  int i, j, id;
+  house_rnum i;
+  int j, id;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -871,44 +874,58 @@ ACMD(do_house)
 #define CONT_ARMOR 871
 #define CONT_CRAFTING 872
 #define CONT_MISC 873
-ACMD(do_hsort)
+
+int can_hsort(struct char_data *ch, room_rnum location, bool silent)
 {
 
-  /* this was here for debugging/testing */
-  /*
-  if (port != 4101)
-    return;
-  */
-
-  struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
-                  *armor = NULL, *crafting = NULL, *misc = NULL,
-                  *obj = NULL, *next_obj = NULL;
-  int i = NOWHERE;
-  room_rnum location = NOWHERE;
-  bool found = FALSE;
-
-  /* grab ch's location */
-  location = IN_ROOM(ch);
+  if (location == NOWHERE)
+  {
+    return 0;
+  }
 
   /* make sure everything is in place! */
   if (!ROOM_FLAGGED(location, ROOM_HOUSE))
   {
-    send_to_char(ch, "You must be in your house to sort it.\r\n");
-    return;
+    if (!silent && ch)
+      send_to_char(ch, "You must be in your house to sort it.\r\n");
+
+    return 0;
   }
 
   if ((i = find_house(GET_ROOM_VNUM(location))) == NOWHERE)
   {
-    send_to_char(ch, "Um.. this house seems to be screwed up.  Report to staff: (hsort001)!\r\n");
-    return;
+    if (!silent && ch)
+      send_to_char(ch, "Um.. this house seems to be screwed up.  Report to staff: (hsort001)!\r\n");
+
+    return 0;
   }
 
   /* we got the house num */
   if (GET_IDNUM(ch) != house_control[i].owner)
   {
-    send_to_char(ch, "Only the primary owner can sort it.\r\n");
-    return;
+    if (!silent && ch)
+      send_to_char(ch, "Only the primary owner can sort it.\r\n");
+
+    return 0;
   }
+
+  /* should be clear */
+  return 1;
+}
+
+int perform_hsort(struct char_data *ch, room_rnum location)
+{
+
+  if (location == NOWHERE)
+  {
+    return 0;
+  }
+
+  struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
+                  *armor = NULL, *crafting = NULL, *misc = NULL,
+                  *obj = NULL, *next_obj = NULL;
+  house_rnum i = NOWHERE;
+  bool found = FALSE;
 
   /* should be valid conditions to start */
 
@@ -927,8 +944,9 @@ ACMD(do_hsort)
     }
     else /* problem here! */
     {
-      send_to_char(ch, "PROBLEM!  Report to staff: (container001)!\r\n");
-      return;
+      if (!silent && ch)
+        send_to_char(ch, "PROBLEM!  Report to staff: (container001)!\r\n");
+      return 0;
     }
   }
 
@@ -945,8 +963,9 @@ ACMD(do_hsort)
     }
     else /* problem here! */
     {
-      send_to_char(ch, "PROBLEM!  Report to staff: (container002)!\r\n");
-      return;
+      if (!silent && ch)
+        send_to_char(ch, "PROBLEM!  Report to staff: (container002)!\r\n");
+      return 0;
     }
   }
 
@@ -963,8 +982,9 @@ ACMD(do_hsort)
     }
     else /* problem here! */
     {
-      send_to_char(ch, "PROBLEM!  Report to staff: (container003)!\r\n");
-      return;
+      if (!silent && ch)
+        send_to_char(ch, "PROBLEM!  Report to staff: (container003)!\r\n");
+      return 0;
     }
   }
 
@@ -981,8 +1001,9 @@ ACMD(do_hsort)
     }
     else /* problem here! */
     {
-      send_to_char(ch, "PROBLEM!  Report to staff: (container004)!\r\n");
-      return;
+      if (!silent && ch)
+        send_to_char(ch, "PROBLEM!  Report to staff: (container004)!\r\n");
+      return 0;
     }
   }
 
@@ -999,8 +1020,9 @@ ACMD(do_hsort)
     }
     else /* problem here! */
     {
-      send_to_char(ch, "PROBLEM!  Report to staff: (container005)!\r\n");
-      return;
+      if (!silent && ch)
+        send_to_char(ch, "PROBLEM!  Report to staff: (container005)!\r\n");
+      return 0;
     }
   }
 
@@ -1017,25 +1039,38 @@ ACMD(do_hsort)
     }
     else /* problem here! */
     {
-      send_to_char(ch, "PROBLEM!  Report to staff: (container006)!\r\n");
-      return;
+      if (!silent && ch)
+        send_to_char(ch, "PROBLEM!  Report to staff: (container006)!\r\n");
+      return 0;
     }
   }
 
   /* message/save and out if the containers are already here! */
   if (found)
   {
-    send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
-                     "magical animated dustpan and broom!  In a blur, they quickly "
-                     "go to work stomping, whizzing, flying about setting up "
-                     "containers then disappear!\r\n");
-    act("You watch as $n gestures casually summoning a pair of worker-golems, "
-        "magical animated dustpan and broom!  In a blur, they quickly "
-        "go to work stomping, whizzing, flying about setting up containers in "
-        "the area then disappearing!\r\n",
-        FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
-    perform_save(ch, 0);
-    return;
+    if (!silent && ch)
+    {
+      send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
+                       "magical animated dustpan and broom!  In a blur, they quickly "
+                       "go to work stomping, whizzing, flying about setting up "
+                       "containers then disappear!\r\n");
+      act("You watch as $n gestures casually summoning a pair of worker-golems, "
+          "magical animated dustpan and broom!  In a blur, they quickly "
+          "go to work stomping, whizzing, flying about setting up containers in "
+          "the area then disappearing!\r\n",
+          FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    }
+
+    if (ch)
+    {
+      perform_save(ch, 0);
+    }
+    else
+    {
+      House_crashsave(GET_ROOM_VNUM(location));
+    }
+
+    return 1;
   }
 
   /* done handling containers */
@@ -1134,18 +1169,21 @@ ACMD(do_hsort)
   /* last message/save! */
   if (found)
   {
-    send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
-                     "magical animated dustpan and broom!  In a blur, they quickly "
-                     "go to work stomping, whizzing, flying about sorting and "
-                     "cleaning the area then disappear!\r\n");
-    act("You watch as $n gestures casually summoning a pair of worker-golems, "
-        "magical animated dustpan and broom!  In a blur, they quickly "
-        "go to work stomping, whizzing, flying about sorting and "
-        "cleaning the area then disappear!\r\n",
-        FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    if (!silent)
+    {
+      send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
+                       "magical animated dustpan and broom!  In a blur, they quickly "
+                       "go to work stomping, whizzing, flying about sorting and "
+                       "cleaning the area then disappear!\r\n");
+      act("You watch as $n gestures casually summoning a pair of worker-golems, "
+          "magical animated dustpan and broom!  In a blur, they quickly "
+          "go to work stomping, whizzing, flying about sorting and "
+          "cleaning the area then disappear!\r\n",
+          FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    }
     perform_save(ch, 0);
   }
-  else
+  else if (!silent)
   {
     send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
                      "magical animated dustpan and broom!  They look about hovering "
@@ -1156,9 +1194,39 @@ ACMD(do_hsort)
         "briefly, noticing that there is nothing to do, they smirk in $n's "
         "general direction then disappear!\r\n",
         FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+    return 0; /* sort of a fail */
   }
 
+  /* made it! */
+  return 1;
+}
+
+/* here is the command entry point */
+ACMD(do_hsort)
+{
+
+  /* this was here for debugging/testing */
+  /*
+  if (port != 4101)
+    return;
+  */
+
+  /* grab the players' room! */
+  room_rnum location = NOWHERE;
+
+  /* grab ch's location */
+  location = IN_ROOM(ch);
+
+  /* make sure everything is in place! */
+  if (!can_hsort(ch, location, FALSE))
+  {
+    return;
+  }
+
+  perform_hsort(ch, location, FALSE);
+
   /* we are done! */
+  return;
 }
 #undef CONT_TRINKETS
 #undef CONT_CONSUMABLES

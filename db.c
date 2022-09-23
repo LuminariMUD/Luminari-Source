@@ -180,7 +180,7 @@ static void free_followers(struct follow_type *k);
 static void load_default_config(void);
 static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
-static int hsort(const void *a, const void *b);
+static int help_sort(const void *a, const void *b);
 void assign_deities(void);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
@@ -1382,7 +1382,7 @@ void index_boot(int mode)
   /* Sort the help index. */
   if (mode == DB_BOOT_HLP)
   {
-    qsort(help_table, top_of_helpt, sizeof(struct help_index_element), hsort);
+    qsort(help_table, top_of_helpt, sizeof(struct help_index_element), help_sort);
   }
 }
 
@@ -3417,7 +3417,7 @@ void load_help(FILE *fl, char *name)
   }
 }
 
-static int hsort(const void *a, const void *b)
+static int help_sort(const void *a, const void *b)
 {
   const struct help_index_element *a1, *b1;
 
