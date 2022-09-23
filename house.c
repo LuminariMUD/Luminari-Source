@@ -892,6 +892,8 @@ int can_hsort(struct char_data *ch, room_rnum location, bool silent)
     return 0;
   }
 
+  house_rnum i = NOWHERE;
+
   if ((i = find_house(GET_ROOM_VNUM(location))) == NOWHERE)
   {
     if (!silent && ch)
@@ -913,7 +915,7 @@ int can_hsort(struct char_data *ch, room_rnum location, bool silent)
   return 1;
 }
 
-int perform_hsort(struct char_data *ch, room_rnum location)
+int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
 {
 
   if (location == NOWHERE)
@@ -924,7 +926,6 @@ int perform_hsort(struct char_data *ch, room_rnum location)
   struct obj_data *trinkets = NULL, *consumables = NULL, *weapons = NULL,
                   *armor = NULL, *crafting = NULL, *misc = NULL,
                   *obj = NULL, *next_obj = NULL;
-  house_rnum i = NOWHERE;
   bool found = FALSE;
 
   /* should be valid conditions to start */
