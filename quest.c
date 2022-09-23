@@ -34,7 +34,7 @@ extern struct house_control_rec house_control[MAX_HOUSES]; /* house.c */
 /*------------------------------------------------------------------------*/
 /* external function protos */
 
-int find_house(room_vnum vnum); /* house.c */
+house_rnum find_house(room_vnum vnum); /* house.c */
 /*-------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------
@@ -542,7 +542,8 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 {
   struct char_data *i;
   qst_rnum rnum;
-  int found = TRUE, index = -1, house_num = -1;
+  int found = TRUE, index = -1;
+  house_rnum house_num = NOWHERE;
 
   if (IS_NPC(ch))
     return;

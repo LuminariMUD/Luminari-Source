@@ -3277,6 +3277,7 @@ typedef IDXTYPE path_vnum;   /**< vnum specifically for paths */
 
 /* Various real (array-reference) number types. */
 typedef IDXTYPE room_rnum;   /**< references an instance of a room */
+typedef IDXTYPE house_rnum;  /**< references an instance of a house */
 typedef IDXTYPE obj_rnum;    /**< references an instance of a obj */
 typedef IDXTYPE mob_rnum;    /**< references an instance of a mob (NPC) */
 typedef IDXTYPE zone_rnum;   /**< references an instance of a zone */
