@@ -1071,7 +1071,7 @@ int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
           FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
     }
 
-    if (ch && silent)
+    if (ch && !silent)
     {
       perform_save(ch, 0);
     }
