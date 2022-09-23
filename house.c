@@ -193,11 +193,11 @@ static int House_load(room_vnum vnum)
 
   /* we are sorting the house here */
   /* make sure everything is in place! */
-  // if (can_hsort(NULL, real_room(vnum), TRUE))
-  //{
-  /* engine! */
-  // perform_hsort(NULL, real_room(vnum), TRUE);
-  //}
+  if (can_hsort(NULL, real_room(vnum), TRUE))
+  {
+    /* engine! */
+    perform_hsort(NULL, real_room(vnum), TRUE);
+  }
   /***** end sorting ***************/
 
   return (1);
