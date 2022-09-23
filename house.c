@@ -191,6 +191,15 @@ static int House_load(room_vnum vnum)
 
   fclose(fl);
 
+  /* we are sorting the house here */
+  /* make sure everything is in place! */
+  if (can_hsort(NULL, real_room(vnum), TRUE))
+  {
+    /* engine! */
+    perform_hsort(NULL, real_room(vnum), TRUE);
+  }
+  /***** end sorting ***************/
+
   return (1);
 }
 
@@ -1219,12 +1228,11 @@ ACMD(do_hsort)
   location = IN_ROOM(ch);
 
   /* make sure everything is in place! */
-  if (!can_hsort(ch, location, FALSE))
+  if (can_hsort(ch, location, FALSE))
   {
-    return;
+    /* engine! */
+    perform_hsort(ch, location, FALSE);
   }
-
-  perform_hsort(ch, location, FALSE);
 
   /* we are done! */
   return;
