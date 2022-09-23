@@ -1069,10 +1069,6 @@ int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
           "go to work stomping, whizzing, flying about setting up containers in "
           "the area then disappearing!\r\n",
           FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
-    }
-
-    if (ch && !silent)
-    {
       perform_save(ch, 0);
     }
     else
