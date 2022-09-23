@@ -179,10 +179,11 @@
                                   descriptions in a static room, useful for  \ \ \ \
                                   rooms that block different directions.     \ \ \ \
                                   (eg. around obstacles.) */
+#define ROOM_PLAYER_SHOP 35     /* indicates player shop, currently used so hsort() won't work */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 35
+#define NUM_ROOM_FLAGS 36
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events

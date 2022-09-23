@@ -193,11 +193,11 @@ static int House_load(room_vnum vnum)
 
   /* we are sorting the house here */
   /* make sure everything is in place! */
-  if (can_hsort(NULL, real_room(vnum), TRUE))
-  {
-    /* engine! */
-    perform_hsort(NULL, real_room(vnum), TRUE);
-  }
+  // if (can_hsort(NULL, real_room(vnum), TRUE))
+  //{
+  /* engine! */
+  // perform_hsort(NULL, real_room(vnum), TRUE);
+  //}
   /***** end sorting ***************/
 
   return (1);
@@ -893,10 +893,20 @@ int can_hsort(struct char_data *ch, room_rnum location, bool silent)
   }
 
   /* make sure everything is in place! */
+
   if (!ROOM_FLAGGED(location, ROOM_HOUSE))
   {
     if (!silent && ch)
       send_to_char(ch, "You must be in your house to sort it.\r\n");
+
+    return 0;
+  }
+
+  /* player shops can't be sorted */
+  if (ROOM_FLAGGED(location, ROOM_PLAYER_SHOP))
+  {
+    if (!silent && ch)
+      send_to_char(ch, "You can't use this command in a player shop.\r\n");
 
     return 0;
   }
