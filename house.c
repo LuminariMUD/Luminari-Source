@@ -1175,7 +1175,7 @@ int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
   /* last message/save! */
   if (found)
   {
-    if (!silent)
+    if (!silent && ch)
     {
       send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
                        "magical animated dustpan and broom!  In a blur, they quickly "
@@ -1186,10 +1186,14 @@ int perform_hsort(struct char_data *ch, room_rnum location, bool silent)
           "go to work stomping, whizzing, flying about sorting and "
           "cleaning the area then disappear!\r\n",
           FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+      perform_save(ch, 0);
     }
-    perform_save(ch, 0);
+    else
+    {
+      House_crashsave(GET_ROOM_VNUM(location));
+    }
   }
-  else if (!silent)
+  else if (!silent && ch)
   {
     send_to_char(ch, "You gesture casually summoning a pair of worker-golems, "
                      "magical animated dustpan and broom!  They look about hovering "
