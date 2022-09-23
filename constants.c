@@ -1137,6 +1137,7 @@ const char *room_bits[] = {
     "Climb-Needed",
     "Trapped",
     "Wild-Generated-Desc",
+    "Player-Shop",
     "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
