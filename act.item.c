@@ -210,9 +210,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
   case ITEM_WAND: /* 3 */ /* fallthrough */
   case ITEM_STAFF:        /* 4 */
-    send_to_char(ch, "Spell: %s at level %d, %d (of %d) charges remaining\r\n",
-                 spell_info[GET_OBJ_VAL(item, 3)].name, GET_OBJ_VAL(item, 0),
-                 GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 1));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Spell: %s at level %d, %d (of %d) charges remaining\r\n",
+                    spell_info[GET_OBJ_VAL(item, 3)].name, GET_OBJ_VAL(item, 0),
+                    GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 1));
+    else
+      send_to_char(ch, "Spell: %s at level %d, %d (of %d) charges remaining\r\n",
+                   spell_info[GET_OBJ_VAL(item, 3)].name, GET_OBJ_VAL(item, 0),
+                   GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 1));
     break;
 
   case ITEM_FIREWEAPON: /* 7 */
@@ -229,43 +234,91 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     /* weapon poison */
     if (item->weapon_poison.poison)
     {
-      send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
-                   spell_info[item->weapon_poison.poison].name,
-                   item->weapon_poison.poison_level,
-                   item->weapon_poison.poison_hits);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
+                      spell_info[item->weapon_poison.poison].name,
+                      item->weapon_poison.poison_level,
+                      item->weapon_poison.poison_hits);
+      else
+        send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
+                     spell_info[item->weapon_poison.poison].name,
+                     item->weapon_poison.poison_level,
+                     item->weapon_poison.poison_hits);
     }
 
-    send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
-                 weapon_list[GET_WEAPON_TYPE(item)].name,
-                 GET_WEAPON_TYPE(item),
-                 GET_ENHANCEMENT_BONUS(item));
-    send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f.\r\n",
-                 GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
-                 ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
+                    weapon_list[GET_WEAPON_TYPE(item)].name,
+                    GET_WEAPON_TYPE(item),
+                    GET_ENHANCEMENT_BONUS(item));
+    else
+      send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
+                   weapon_list[GET_WEAPON_TYPE(item)].name,
+                   GET_WEAPON_TYPE(item),
+                   GET_ENHANCEMENT_BONUS(item));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Todam: %dd%d, Avg Damage: %.1f.\r\n",
+                    GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
+                    ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
+    else
+      send_to_char(ch, "Todam: %dd%d, Avg Damage: %.1f.\r\n",
+                   GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2),
+                   ((GET_OBJ_VAL(item, 2) + 1) / 2.0) * GET_OBJ_VAL(item, 1));
 
     /* weapon special abilities*/
-    send_to_char(ch, "Special Abilities:\r\n");
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Special Abilities:\r\n");
+    else
+      send_to_char(ch, "Special Abilities:\r\n");
+
     for (specab = item->special_abilities; specab != NULL; specab = specab->next)
     {
       found = TRUE;
       sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
-      send_to_char(ch, "Ability: %s Level: %d\r\n"
-                       "    Activation Methods: %s\r\n"
-                       "    CommandWord: %s\r\n"
-                       "    Values: [%d] [%d] [%d] [%d]\r\n",
-                   special_ability_info[specab->ability].name,
-                   specab->level, actmtds,
-                   (specab->command_word == NULL ? "Not set." : specab->command_word),
-                   specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Ability: %s Level: %d\r\n"
+                                       "    Activation Methods: %s\r\n"
+                                       "    CommandWord: %s\r\n"
+                                       "    Values: [%d] [%d] [%d] [%d]\r\n",
+                      special_ability_info[specab->ability].name,
+                      specab->level, actmtds,
+                      (specab->command_word == NULL ? "Not set." : specab->command_word),
+                      specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      else
+        send_to_char(ch, "Ability: %s Level: %d\r\n"
+                         "    Activation Methods: %s\r\n"
+                         "    CommandWord: %s\r\n"
+                         "    Values: [%d] [%d] [%d] [%d]\r\n",
+                     special_ability_info[specab->ability].name,
+                     specab->level, actmtds,
+                     (specab->command_word == NULL ? "Not set." : specab->command_word),
+                     specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+
       if (specab->ability == WEAPON_SPECAB_BANE)
       {
-        send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        else
+          send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+
         if (specab->value[1])
-          send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        {
+          if (mode == ITEM_STAT_MODE_G_LORE)
+            send_to_group(NULL, GROUP(ch), "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+          else
+            send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        }
       }
     }
     if (!found)
-      send_to_char(ch, "No weapon special abilities assigned.\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "No weapon special abilities assigned.\r\n");
+      else
+        send_to_char(ch, "No weapon special abilities assigned.\r\n");
+    }
 
     /* values defined by weapon type */
     int weapon_val = GET_OBJ_VAL(item, 0);
@@ -288,7 +341,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       crit_multi = 6;
       break;
     }
-    send_to_char(ch, "Values defined by weapon type:\r\n");
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Values defined by weapon type:\r\n");
+    else
+      send_to_char(ch, "Values defined by weapon type:\r\n");
+
     sprintbit(weapon_list[weapon_val].weaponFlags, weapon_flags, buf, sizeof(buf));
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
@@ -299,11 +357,19 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
-      send_to_char(ch, "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
-                   weapon_list[weapon_val].numDice, weapon_list[weapon_val].diceSize,
-                   (20 - weapon_list[weapon_val].critRange),
-                   crit_multi, buf);
+
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
+                      weapon_list[weapon_val].numDice, weapon_list[weapon_val].diceSize,
+                      (20 - weapon_list[weapon_val].critRange),
+                      crit_multi, buf);
+      else
+        send_to_char(ch, "Damage: %dD%d, Threat: %d, Crit. Multi: %d, Weapon Flags: %s\r\n",
+                     weapon_list[weapon_val].numDice, weapon_list[weapon_val].diceSize,
+                     (20 - weapon_list[weapon_val].critRange),
+                     crit_multi, buf);
     }
+
     sprintbit(weapon_list[weapon_val].damageTypes, weapon_damage_types, buf2, sizeof(buf2));
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
@@ -312,10 +378,19 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
-      send_to_char(ch, "Damage-Types: %s\r\n", buf2);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Damage-Types: %s\r\n", buf2);
+      else
+        send_to_char(ch, "Damage-Types: %s\r\n", buf2);
     }
-    send_to_char(ch, "Range: %d, Family: %s\r\n",
-                 weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]);
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Range: %d, Family: %s\r\n",
+                    weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]);
+    else
+      send_to_char(ch, "Range: %d, Family: %s\r\n",
+                   weapon_list[weapon_val].range, weapon_family[weapon_list[weapon_val].weaponFamily]);
+
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       send_to_char(ch, "Sugg. Size: %s, Sugg. Material: %s, Handle Type: %s, Head Type: %s\r\n",
@@ -325,9 +400,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
-      send_to_char(ch, "Handle Type: %s, Head Type: %s\r\n",
-                   weapon_handle_types[weapon_list[weapon_val].handle_type],
-                   weapon_head_types[weapon_list[weapon_val].head_type]);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Handle Type: %s, Head Type: %s\r\n",
+                      weapon_handle_types[weapon_list[weapon_val].handle_type],
+                      weapon_head_types[weapon_list[weapon_val].head_type]);
+      else
+        send_to_char(ch, "Handle Type: %s, Head Type: %s\r\n",
+                     weapon_handle_types[weapon_list[weapon_val].handle_type],
+                     weapon_head_types[weapon_list[weapon_val].head_type]);
     }
 
     break;
@@ -341,12 +421,22 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     else
     {
       /* players should see the float value */
-      send_to_char(ch, "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
-                   (float)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
+
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
+                      (float)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
+      else
+        send_to_char(ch, "AC-apply: [%.1f], Enhancement Bonus: +%d\r\n",
+                     (float)GET_OBJ_VAL(item, 0) / 10.0, GET_ENHANCEMENT_BONUS(item));
     }
     /* values defined by armor type */
     int armor_val = GET_OBJ_VAL(item, 1);
-    send_to_char(ch, "Values defined by armor type:\r\n");
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Values defined by armor type:\r\n");
+    else
+      send_to_char(ch, "Values defined by armor type:\r\n");
+
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       send_to_char(ch, "Armor: %s, Type: %s, Sugg. Cost: %d, Sugg. AC: %d,\r\n",
@@ -357,14 +447,27 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
-      send_to_char(ch, "Armor-Proficiency: %s, Armor-Type: %s\r\n", armor_list[armor_val].name,
-                   armor_type[armor_list[armor_val].armorType]);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Armor-Proficiency: %s, Armor-Type: %s\r\n", armor_list[armor_val].name,
+                      armor_type[armor_list[armor_val].armorType]);
+      else
+        send_to_char(ch, "Armor-Proficiency: %s, Armor-Type: %s\r\n", armor_list[armor_val].name,
+                     armor_type[armor_list[armor_val].armorType]);
     }
-    send_to_char(ch, "Max Dex Bonus: %d, Armor-Check: %d, Spell-Fail: %d, 30ft: %d, 20ft: %d,\r\n",
-                 armor_list[armor_val].dexBonus,
-                 armor_list[armor_val].armorCheck,
-                 armor_list[armor_val].spellFail,
-                 armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot);
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Max Dex Bonus: %d, Armor-Check: %d, Spell-Fail: %d, 30ft: %d, 20ft: %d,\r\n",
+                    armor_list[armor_val].dexBonus,
+                    armor_list[armor_val].armorCheck,
+                    armor_list[armor_val].spellFail,
+                    armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot);
+    else
+      send_to_char(ch, "Max Dex Bonus: %d, Armor-Check: %d, Spell-Fail: %d, 30ft: %d, 20ft: %d,\r\n",
+                   armor_list[armor_val].dexBonus,
+                   armor_list[armor_val].armorCheck,
+                   armor_list[armor_val].spellFail,
+                   armor_list[armor_val].thirtyFoot, armor_list[armor_val].twentyFoot);
+
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       send_to_char(ch, "Sugg. Weight: %d, Sugg. Material: %s, Sugg. Wear-Slot: %s\r\n",
@@ -372,27 +475,52 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
                    material_name[armor_list[armor_val].material],
                    wear_bits[armor_list[armor_val].wear]);
     }
+
     /* Special abilities*/
     found = FALSE;
-    send_to_char(ch, "Special Abilities:\r\n");
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Special Abilities:\r\n");
+    else
+      send_to_char(ch, "Special Abilities:\r\n");
+
     for (specab = item->special_abilities; specab != NULL; specab = specab->next)
     {
       found = TRUE;
       sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
-      send_to_char(ch, "Ability: %s Level: %d\r\n"
-                       "    Activation Methods: %s\r\n"
-                       "    CommandWord: %s\r\n"
-                       "    Values: [%d] [%d] [%d] [%d]\r\n",
-                   special_ability_info[specab->ability].name,
-                   specab->level, actmtds,
-                   (specab->command_word == NULL ? "Not set." : specab->command_word),
-                   specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Ability: %s Level: %d\r\n"
+                                       "    Activation Methods: %s\r\n"
+                                       "    CommandWord: %s\r\n"
+                                       "    Values: [%d] [%d] [%d] [%d]\r\n",
+                      special_ability_info[specab->ability].name,
+                      specab->level, actmtds,
+                      (specab->command_word == NULL ? "Not set." : specab->command_word),
+                      specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      else
+        send_to_char(ch, "Ability: %s Level: %d\r\n"
+                         "    Activation Methods: %s\r\n"
+                         "    CommandWord: %s\r\n"
+                         "    Values: [%d] [%d] [%d] [%d]\r\n",
+                     special_ability_info[specab->ability].name,
+                     specab->level, actmtds,
+                     (specab->command_word == NULL ? "Not set." : specab->command_word),
+                     specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
 
       if (specab->ability == WEAPON_SPECAB_BANE)
       {
-        send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        else
+          send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+
         if (specab->value[1])
-          send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        {
+          if (mode == ITEM_STAT_MODE_G_LORE)
+            send_to_group(NULL, GROUP(ch), "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+          else
+            send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        }
       }
     }
     if (!found)
