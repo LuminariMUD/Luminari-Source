@@ -405,8 +405,10 @@ void finalize_study(struct descriptor_data *d)
           GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
         break;
       case FEAT_EPIC_TOUGHNESS:
-        for (j = 0; j < GET_LEVEL(ch); j++)
-          GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
+          GET_REAL_MAX_HIT(ch) += 30;
+        break;
+      case FEAT_EPIC_PSI_MIND :
+          GET_REAL_MAX_PSP(ch) += 50;
         break;
       case FEAT_DAMAGE_REDUCTION:
         /* Create the DR structure and attach it to the player. */

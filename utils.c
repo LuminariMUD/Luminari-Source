@@ -5077,6 +5077,8 @@ int get_power_penetrate_mod(struct char_data *ch)
     bonus += 3;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_POWER_PENETRATION))
     bonus += 3;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_POWER_PENETRATION ))
+    bonus += 6;
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_BREACH_POWER_RESISTANCE))
     bonus += MAX(0, GET_INT_BONUS(ch));
@@ -5657,7 +5659,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
   }
   if (HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS))
   {
-    max_hp += GET_LEVEL(ch) * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS);
+    max_hp += 30 * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS);
     if (display)
       send_to_char(ch, "%-40s = +%d\r\n", "Feat 'Epic Toughness'", 30 * HAS_FEAT(ch, FEAT_EPIC_TOUGHNESS));
   }

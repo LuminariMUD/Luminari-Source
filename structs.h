@@ -2096,14 +2096,18 @@
 #define FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS 877
 #define FEAT_VAMPIRE_BONUS_FEATS 878
 /* END vampire racial feats */
+#define FEAT_EPIC_SHAMBLER 879
+#define FEAT_EPIC_POWER_PENETRATION 880
+#define FEAT_EPIC_POWER_DAMAGE 881
+#define FEAT_EPIC_PSI_MIND 882
 
 /******/
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 879
+#define FEAT_LAST_FEAT 883
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 880
+#define NUM_FEATS 884
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

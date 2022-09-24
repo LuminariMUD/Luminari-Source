@@ -21,8 +21,8 @@
 #include "actions.h"
 #include "feats.h"
 
+/* defines */
 #define DEBUG_MODE FALSE
-
 /* this will determine whether the system is ran through events or the tick system */
 /* #define EVENT_RAN */
 
@@ -318,7 +318,7 @@ ACMD(do_perform)
     {
       event_cancel_specific(ch, eBARDIC_PERFORMANCE);
       act("You stopped your performance.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n stops performing.", FALSE, ch, 0, 0, TO_ROOM);
+      act("$n stops performing.", TRUE, ch, 0, 0, TO_ROOM);
       return;
     }
 #else
@@ -326,7 +326,7 @@ ACMD(do_perform)
     {
       IS_PERFORMING(ch) = FALSE;
       act("You stopped your performance.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n stops performing.", FALSE, ch, 0, 0, TO_ROOM);
+      act("$n stops performing.", TRUE, ch, 0, 0, TO_ROOM);
       return;
     }
 #endif
@@ -342,7 +342,7 @@ ACMD(do_perform)
   if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
   {
     act("You stopped your current performance.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n stops performing...", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
     event_cancel_specific(ch, eBARDIC_PERFORMANCE);
   }
 #else
@@ -350,7 +350,7 @@ ACMD(do_perform)
   {
     IS_PERFORMING(ch) = FALSE;
     act("You stop your current performance.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n stops performing...", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
   }
 #endif
 
@@ -378,7 +378,7 @@ ACMD(do_perform)
 
         /* SUCCESS! */
         act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
-        act("$n starts performing.", FALSE, ch, 0, 0, TO_ROOM);
+        act("$n starts performing.", TRUE, ch, 0, 0, TO_ROOM);
 
 #ifdef EVENT_RAN
         char buf[128];
@@ -488,7 +488,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       SET_BIT_AR(af[1].bitvector, AFF_HASTE);
       act("You feel the world slow down around you.", FALSE, tch, 0, 0,
           TO_CHAR);
-      act("$n starts to move with uncanny speed.", FALSE, tch, 0, 0,
+      act("$n starts to move with uncanny speed.", TRUE, tch, 0, 0,
           TO_ROOM);
     }
     break;
@@ -598,7 +598,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       af[0].duration = 30;
       SET_BIT_AR(af[0].bitvector, AFF_FLYING);
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
-      act("$n fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_ROOM);
+      act("$n fly through the air, free as a bird!", TRUE, tch, 0, 0, TO_ROOM);
     }
     alter_move(tch, -rand_number(3, effectiveness / 3));
     break;
@@ -631,7 +631,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
     if (rand_number(0, 100) < effectiveness)
     {
-      act("$n shivers with fear.", FALSE, tch, 0, 0, TO_ROOM);
+      act("$n shivers with fear.", TRUE, tch, 0, 0, TO_ROOM);
       SET_BIT_AR(af[0].bitvector, AFF_FEAR);
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -(1 + effectiveness / 10);
@@ -642,7 +642,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   case SKILL_SONG_OF_ROOTING:
     if (rand_number(0, 100) < effectiveness)
     {
-      act("$n has spawned roots.", FALSE, tch, 0, 0, TO_ROOM);
+      act("$n has spawned roots.", TRUE, tch, 0, 0, TO_ROOM);
       SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
       af[0].location = APPLY_DAMROLL;
       af[0].modifier = -effectiveness / 5;
@@ -657,7 +657,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   case SKILL_SONG_OF_THE_MAGI:
     if (rand_number(0, 100) < effectiveness)
     {
-      act("$n seems more vulnerable to magic.", FALSE, tch, 0, 0, TO_ROOM);
+      act("$n seems more vulnerable to magic.", TRUE, tch, 0, 0, TO_ROOM);
       af[0].location = APPLY_SAVING_WILL;
       af[0].modifier = -(1 + effectiveness / 4);
 
@@ -736,63 +736,76 @@ int process_performance(struct char_data *ch, int performance_num, int effective
   /* performance message */
   switch (performance_num)
   {
+
   case SKILL_SONG_OF_HEALING:
     act("You sing a song to heal all wounds.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song so well you feel your pain and suffering ebbing away.", FALSE,
+    act("$n sings a song so well you feel your pain and suffering ebbing away.", TRUE,
         ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_DANCE_OF_PROTECTION:
     act("You dance to protect yourself from harm.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n performs a dance that envelops you in protection.", FALSE, ch, 0, 0,
+    act("$n performs a dance that envelops you in protection.", TRUE, ch, 0, 0,
         TO_ROOM);
     break;
+
   case SKILL_SONG_OF_FLIGHT:
     act("You sing a song that lifts the spirits high.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song that lifts the spirits high.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song that lifts the spirits high.", TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_SONG_OF_HEROISM:
     act("You sing a song that makes your heart swell with pride.", FALSE, ch, 0, 0,
         TO_CHAR);
-    act("$n sings a song that makes your heart swell with pride.", FALSE, ch, 0, 0,
+    act("$n sings a song that makes your heart swell with pride.", TRUE, ch, 0, 0,
         TO_ROOM);
     break;
+
   case SKILL_ORATORY_OF_REJUVENATION:
     act("You conduct an oratory to rejuvenate the exhausted.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n conducts an oratory which eases some of your exhaustion.", FALSE, ch,
+    act("$n conducts an oratory which eases some of your exhaustion.", TRUE, ch,
         0, 0, TO_ROOM);
     break;
+
   case SKILL_ACT_OF_FORGETFULNESS:
     act("You act out a skit causing forgetfulness.", FALSE, ch, 0, 0, TO_CHAR);
     act("As you observe $n acting out a skit, suddenly you can hardly "
         "remember what you were doing.",
-        FALSE, ch, 0, 0, TO_ROOM);
+        TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_SONG_OF_REVELATION:
     act("You sing a song to reveal what is hidden.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song that seems to enhance your vision.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song that seems to enhance your vision.", TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_SONG_OF_DRAGONS:
     act("You sing a song that defies the mightiest of dragons.", FALSE, ch, 0, 0,
         TO_CHAR);
-    act("$n sings a song that defies the mightiest of dragons, inspiring you to truly heroic deeds!", FALSE, ch, 0, 0,
+    act("$n sings a song that defies the mightiest of dragons, inspiring you to truly heroic deeds!", TRUE, ch, 0, 0,
         TO_ROOM);
     break;
+
   case SKILL_SONG_OF_FOCUSED_MIND:
     act("You sing a song which focuses the minds of the listener.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song which seems to focus your mind.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song which seems to focus your mind.", TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_SONG_OF_FEAR:
     act("You sing a song which strikes fear into your enemies.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song which stikes fear into your heart!", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song which stikes fear into your heart!", TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_SONG_OF_ROOTING:
     act("You sing a song which makes your enemies paralysed.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song so well, you feel paralysed by the tune.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song so well, you feel paralysed by the tune.", TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   case SKILL_SONG_OF_THE_MAGI:
     act("You sing a song so well, that magic in itself feels strengthened by it.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song which makes you forget completely about hostile magic.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song which makes you forget completely about hostile magic.", TRUE, ch, 0, 0, TO_ROOM);
     break;
+
   default:
     return_val = 0;
     log("SYSERR: messages in process_performance reached default case! "
@@ -950,7 +963,7 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
     if (!rand_number(0, 9) && rand_number(2, 11111) <= GET_OBJ_VAL(instrument, 3))
     {
       act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_CHAR);
-      act("$n's $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch, instrument, 0, TO_ROOM);
+      act("$n's $p cannot take the strain of magic any longer, and it breaks!", TRUE, ch, instrument, 0, TO_ROOM);
       extract_obj(instrument);
       instrument = NULL;
       effectiveness -= 5;
@@ -1011,7 +1024,7 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   if (!rand_number(0, 1) && rand_number(1, 101) < difficulty)
   {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
-    act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n stutters in the performance!", TRUE, ch, 0, 0, TO_ROOM);
     GET_PERFORMING(ch) = -1;
     IS_PERFORMING(ch) = FALSE;
     return 0;
