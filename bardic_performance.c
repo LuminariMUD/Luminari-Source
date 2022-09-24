@@ -21,6 +21,8 @@
 #include "actions.h"
 #include "feats.h"
 
+#define DEBUG_MODE FALSE
+
 /* this will determine whether the system is ran through events or the tick system */
 /* #define EVENT_RAN */
 
@@ -202,6 +204,11 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 
   if (IN_ROOM(ch) == NOWHERE)
     return 0;
+
+  if (DEBUG_MODE)
+  {
+    send_to_char(ch, "can_perform(): PNum: %d, NeedCheck %d, Silent %d.\r\n", performance_num, need_check, silent);
+  }
 
   /* check for disqualifiers */
 
@@ -410,6 +417,11 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
   if (!tch)
     return 0;
+
+  if (DEBUG_MODE)
+  {
+    send_to_char(ch, "performance_effects(): tch: %s, SNum: %d, Effect %d, AoE %d.\r\n", GET_NAME(tch), spellnum, effectiveness, aoe);
+  }
 
   /* init affect array */
   for (i = 0; i < BARD_AFFECTS; i++)
@@ -711,6 +723,12 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 /* main function for performance effects / message / targets / etc */
 int process_performance(struct char_data *ch, int performance_num, int effectiveness, int aoe)
 {
+
+  if (DEBUG_MODE)
+  {
+    send_to_char(ch, "process_performance(): PNum: %d, Effect %d, AoE %d.\r\n", GET_NAME(tch), performance_num, effectiveness, aoe);
+  }
+
   struct char_data *tch = NULL, *tch_next = NULL;
   int return_val = 1;
   bool hit_self = FALSE, hit_leader = FALSE;
@@ -877,7 +895,7 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   {
     /* we don't check if they have a bardic_performanc event here represented by the first FALSE */
     /* the messages were sent via the last FALSE in can_perform()! */
-    GET_PERFORMING(ch) = 0;
+    GET_PERFORMING(ch) = -1;
     IS_PERFORMING(ch) = FALSE;
     return 0;
   }
@@ -984,7 +1002,7 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
                            performance_info[performance_num][PERFORMANCE_AOE]))
   {
     send_to_char(ch, "Your performance fails!\r\n");
-    GET_PERFORMING(ch) = 0;
+    GET_PERFORMING(ch) = -1;
     IS_PERFORMING(ch) = FALSE;
     return 0; /* process performance failed somehow */
   }
@@ -994,7 +1012,7 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", FALSE, ch, 0, 0, TO_ROOM);
-    GET_PERFORMING(ch) = 0;
+    GET_PERFORMING(ch) = -1;
     IS_PERFORMING(ch) = FALSE;
     return 0;
   }
@@ -1067,7 +1085,7 @@ void pulse_bardic_performance()
   for (pt = descriptor_list; pt; pt = pt->next)
   {
     if (IS_PLAYING(pt) && pt->character &&
-        IS_PERFORMING(pt->character) && GET_PERFORMING(pt->character))
+        IS_PERFORMING(pt->character) && (GET_PERFORMING(pt->character) >= 0)) /* GET_PERFORMING: -1 is no perform/fail */
     {
       /* this is the main engine */
       (bardic_performance_engine(pt->character, GET_PERFORMING(pt->character)));
