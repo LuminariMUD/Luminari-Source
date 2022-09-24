@@ -5517,60 +5517,60 @@ ACMD(do_greport)
 
   hp_pct = ((float)GET_HIT(ch)) / ((float)GET_MAX_HIT(ch)) * 100.00;
   if (hp_pct >= 100)
-    *hp_clr = CBWHT(ch, C_NRM);
+    hp_clr = CBWHT(ch, C_NRM);
   else if (hp_pct >= 95)
-    *hp_clr = CCNRM(ch, C_NRM);
+    hp_clr = CCNRM(ch, C_NRM);
   else if (hp_pct >= 75)
-    *hp_clr = CBGRN(ch, C_NRM);
+    hp_clr = CBGRN(ch, C_NRM);
   else if (hp_pct >= 55)
-    *hp_clr = CBBLK(ch, C_NRM);
+    hp_clr = CBBLK(ch, C_NRM);
   else if (hp_pct >= 35)
-    *hp_clr = CBMAG(ch, C_NRM);
+    hp_clr = CBMAG(ch, C_NRM);
   else if (hp_pct >= 15)
-    *hp_clr = CBBLU(ch, C_NRM);
+    hp_clr = CBBLU(ch, C_NRM);
   else if (hp_pct >= 1)
-    *hp_clr = CBRED(ch, C_NRM);
+    hp_clr = CBRED(ch, C_NRM);
   else
-    *hp_clr = CBFRED(ch, C_NRM);
+    hp_clr = CBFRED(ch, C_NRM);
 
   mv_pct = ((float)GET_MOVE(ch)) / ((float)GET_MAX_MOVE(ch)) * 100.00;
   if (mv_pct >= 100.0)
-    *mv_clr = CBWHT(ch, C_NRM);
+    mv_clr = CBWHT(ch, C_NRM);
   else if (mv_pct >= 95.0)
-    *mv_clr = CCNRM(ch, C_NRM);
+    mv_clr = CCNRM(ch, C_NRM);
   else if (mv_pct >= 75.0)
-    *mv_clr = CBGRN(ch, C_NRM);
+    mv_clr = CBGRN(ch, C_NRM);
   else if (mv_pct >= 55.0)
-    *mv_clr = CBBLK(ch, C_NRM);
+    mv_clr = CBBLK(ch, C_NRM);
   else if (mv_pct >= 35.0)
-    *mv_clr = CBMAG(ch, C_NRM);
+    mv_clr = CBMAG(ch, C_NRM);
   else if (mv_pct >= 15.0)
-    *mv_clr = CBBLU(ch, C_NRM);
+    mv_clr = CBBLU(ch, C_NRM);
   else if (mv_pct >= 1.0)
-    *mv_clr = CBRED(ch, C_NRM);
+    mv_clr = CBRED(ch, C_NRM);
   else
-    *mv_clr = CBFRED(ch, C_NRM);
+    mv_clr = CBFRED(ch, C_NRM);
 
   if (IS_PSI_TYPE(ch))
   {
 
     psp_pct = ((float)GET_MOVE(ch)) / ((float)GET_MAX_MOVE(ch)) * 100.00;
     if (psp_pct >= 100.0)
-      *psp_clr = CBWHT(ch, C_NRM);
+      psp_clr = CBWHT(ch, C_NRM);
     else if (psp_pct >= 95.0)
-      *psp_clr = CCNRM(ch, C_NRM);
+      psp_clr = CCNRM(ch, C_NRM);
     else if (psp_pct >= 75.0)
-      *psp_clr = CBGRN(ch, C_NRM);
+      psp_clr = CBGRN(ch, C_NRM);
     else if (psp_pct >= 55.0)
-      *psp_clr = CBBLK(ch, C_NRM);
+      psp_clr = CBBLK(ch, C_NRM);
     else if (psp_pct >= 35.0)
-      *psp_clr = CBMAG(ch, C_NRM);
+      psp_clr = CBMAG(ch, C_NRM);
     else if (psp_pct >= 15.0)
-      *psp_clr = CBBLU(ch, C_NRM);
+      psp_clr = CBBLU(ch, C_NRM);
     else if (psp_pct >= 1.0)
-      *psp_clr = CBRED(ch, C_NRM);
+      psp_clr = CBRED(ch, C_NRM);
     else
-      *psp_clr = CBFRED(ch, C_NRM);
+      psp_clr = CBFRED(ch, C_NRM);
 
     send_to_group(NULL, group, "%s \tnreports: %s%d/%d\tnH, %s%d/%d\tnP, %s%d/%d\tnV\r\n",
                   GET_NAME(ch), hp_clr, GET_HIT(ch), GET_MAX_HIT(ch),
