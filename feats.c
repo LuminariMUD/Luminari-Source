@@ -3421,13 +3421,13 @@ void assign_feats(void)
         "+2 bonus on manifester level checks to defeat power resistance",
         "+2 bonus on manifester level checks to defeat power resistance");
   feato(FEAT_GREATER_POWER_PENETRATION, "greater power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
-        "+2 to manifester level checks to defeat power resistance",
-        "+2 to manifester level checks to defeat power resistance");
+        "+3 to manifester level checks to defeat power resistance",
+        "+3 to manifester level checks to defeat power resistance");
   feat_prereq_feat(FEAT_GREATER_POWER_PENETRATION, FEAT_POWER_PENETRATION, 1);
-  feato(FEAT_EPIC_POWER_PENETRATION, "greater power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
-        "+2 to manifester level checks to defeat power resistance",
-        "+2 to manifester level checks to defeat power resistance");
-  feat_prereq_feat(FEAT_EPIC_POWER_PENETRATION, FEAT_GREATER_POWER_PENETRATION, 1);
+  feato(FEAT_MIGHTY_POWER_PENETRATION, "mighty power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+3 to manifester level checks to defeat power resistance",
+        "+3 to manifester level checks to defeat power resistance");
+  feat_prereq_feat(FEAT_MIGHTY_POWER_PENETRATION, FEAT_GREATER_POWER_PENETRATION, 1);
 
   feato(FEAT_BREACH_POWER_RESISTANCE, "breach power resistance", TRUE, FALSE, FALSE, FEAT_TYPE_PSIONIC,
         "While psionic focus is active, gain your intelligence bonus on attempts to overcome power resistance.",
@@ -3464,7 +3464,7 @@ void assign_feats(void)
         "+1 power damage per die rolled",
         "You gain +1 power damage per die rolled, example:  if you are level 10 and "
         "normally create a 10d6 damage energy burst, with this feat your energy burst would "
-        "do 10d6+10. Maximum of 3 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
+        "do 10d6+10. Maximum of 4 ranks, rank 1-any psionic level, rank 2, psionic level 5+, rank 3, psionic level 10+");
 
   feato(FEAT_EMPOWERED_PSIONICS, "empowered magic", FALSE, TRUE, TRUE, FEAT_TYPE_PSIONIC,
         "+1 to all power dcs",
@@ -4736,7 +4736,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) * 5))
         return FALSE;
-      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) >= 3)
+      if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) >= 4)
         return FALSE;
       return TRUE;
 

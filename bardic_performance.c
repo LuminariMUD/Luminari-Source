@@ -791,7 +791,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
   case PERFORM_AOE_GROUP:
     if (!GROUP(ch))
     { /* self only */
-      performance_effects(ch, ch, performance_num, effectiveness, aoe);
+      return_val = performance_effects(ch, ch, performance_num, effectiveness, aoe);
     }
     else
     {
@@ -809,13 +809,13 @@ int process_performance(struct char_data *ch, int performance_num, int effective
         if (GROUP(ch)->leader && GROUP(ch)->leader == tch)
           hit_leader = TRUE;
 
-        performance_effects(ch, tch, performance_num, effectiveness, aoe);
+        return_val = performance_effects(ch, tch, performance_num, effectiveness, aoe);
       }
 
       /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
       if (!hit_self)
       {
-        performance_effects(ch, ch, performance_num, effectiveness, aoe);
+        return_val = performance_effects(ch, ch, performance_num, effectiveness, aoe);
 
         if (ch == GROUP(ch)->leader)
           hit_leader = TRUE;
@@ -823,7 +823,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
 
       /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
       if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
-        performance_effects(ch, GROUP(ch)->leader, performance_num, effectiveness, aoe);
+        return_val = performance_effects(ch, GROUP(ch)->leader, performance_num, effectiveness, aoe);
     }
     break;
 
@@ -837,7 +837,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
       /* check if offensive aoe is OK */
       if (aoeOK(ch, tch, performance_num))
       {
-        performance_effects(ch, tch, performance_num, effectiveness, aoe);
+        return_val = performance_effects(ch, tch, performance_num, effectiveness, aoe);
       }
     } /* end for loop */
     break;
@@ -849,7 +849,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
     {
       tch_next = tch->next_in_room;
 
-      performance_effects(ch, tch, performance_num, effectiveness, aoe);
+      return_val = performance_effects(ch, tch, performance_num, effectiveness, aoe);
     } /* end for loop */
     break;
 

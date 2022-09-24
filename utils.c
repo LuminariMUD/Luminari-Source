@@ -5074,9 +5074,9 @@ int get_power_penetrate_mod(struct char_data *ch)
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_POWER_PENETRATION))
     bonus += 2;
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_GREATER_POWER_PENETRATION))
-    bonus += 2;
-  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EPIC_POWER_PENETRATION))
-    bonus += 2;
+    bonus += 3;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_MIGHTY_POWER_PENETRATION))
+    bonus += 3;
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_BREACH_POWER_RESISTANCE))
     bonus += MAX(0, GET_INT_BONUS(ch));
