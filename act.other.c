@@ -5512,7 +5512,7 @@ ACMD(do_greport)
     return;
   }
 
-  char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
+  const char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
   float hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
 
   hp_pct = ((float)GET_HIT(ch)) / ((float)GET_MAX_HIT(ch)) * 100.00;
