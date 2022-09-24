@@ -5205,67 +5205,67 @@ ACMDU(do_title)
 static void print_group(struct char_data *ch)
 {
   struct char_data *k = NULL;
-
   const char *hp_clr = NULL, *psp_clr = NULL, *mv_clr = NULL;
   float hp_pct = 0.0, psp_pct = 0.0, mv_pct = 0.0;
-
-  hp_pct = ((float)GET_HIT(ch)) / ((float)GET_MAX_HIT(ch)) * 100.00;
-  if (hp_pct >= 100.0)
-    hp_clr = CBWHT(ch, C_NRM);
-  else if (hp_pct >= 95.0)
-    hp_clr = CCNRM(ch, C_NRM);
-  else if (hp_pct >= 75.0)
-    hp_clr = CBGRN(ch, C_NRM);
-  else if (hp_pct >= 55.0)
-    hp_clr = CBBLK(ch, C_NRM);
-  else if (hp_pct >= 35.0)
-    hp_clr = CBMAG(ch, C_NRM);
-  else if (hp_pct >= 15.0)
-    hp_clr = CBBLU(ch, C_NRM);
-  else if (hp_pct >= 1.0)
-    hp_clr = CBRED(ch, C_NRM);
-  else
-    hp_clr = CBFRED(ch, C_NRM);
-
-  mv_pct = ((float)GET_MOVE(ch)) / ((float)GET_MAX_MOVE(ch)) * 100.00;
-  if (mv_pct >= 100.0)
-    mv_clr = CBWHT(ch, C_NRM);
-  else if (mv_pct >= 95.0)
-    mv_clr = CCNRM(ch, C_NRM);
-  else if (mv_pct >= 75.0)
-    mv_clr = CBGRN(ch, C_NRM);
-  else if (mv_pct >= 55.0)
-    mv_clr = CBBLK(ch, C_NRM);
-  else if (mv_pct >= 35.0)
-    mv_clr = CBMAG(ch, C_NRM);
-  else if (mv_pct >= 15.0)
-    mv_clr = CBBLU(ch, C_NRM);
-  else if (mv_pct >= 1.0)
-    mv_clr = CBRED(ch, C_NRM);
-  else
-    mv_clr = CBFRED(ch, C_NRM);
-
-  psp_pct = ((float)GET_PSP(ch)) / ((float)GET_MAX_PSP(ch)) * 100.00;
-  if (psp_pct >= 100.0)
-    psp_clr = CBWHT(ch, C_NRM);
-  else if (psp_pct >= 95.0)
-    psp_clr = CCNRM(ch, C_NRM);
-  else if (psp_pct >= 75.0)
-    psp_clr = CBGRN(ch, C_NRM);
-  else if (psp_pct >= 55.0)
-    psp_clr = CBBLK(ch, C_NRM);
-  else if (psp_pct >= 35.0)
-    psp_clr = CBMAG(ch, C_NRM);
-  else if (psp_pct >= 15.0)
-    psp_clr = CBBLU(ch, C_NRM);
-  else if (psp_pct >= 1.0)
-    psp_clr = CBRED(ch, C_NRM);
-  else
-    psp_clr = CBFRED(ch, C_NRM);
 
   send_to_char(ch, "Your group consists of:\r\n");
 
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
+  {
+    hp_pct = ((float)GET_HIT(k)) / ((float)GET_MAX_HIT(k)) * 100.00;
+    if (hp_pct >= 100.0)
+      hp_clr = CBWHT(ch, C_NRM);
+    else if (hp_pct >= 95.0)
+      hp_clr = CCNRM(ch, C_NRM);
+    else if (hp_pct >= 75.0)
+      hp_clr = CBGRN(ch, C_NRM);
+    else if (hp_pct >= 55.0)
+      hp_clr = CBBLK(ch, C_NRM);
+    else if (hp_pct >= 35.0)
+      hp_clr = CBMAG(ch, C_NRM);
+    else if (hp_pct >= 15.0)
+      hp_clr = CBBLU(ch, C_NRM);
+    else if (hp_pct >= 1.0)
+      hp_clr = CBRED(ch, C_NRM);
+    else
+      hp_clr = CBFRED(ch, C_NRM);
+
+    mv_pct = ((float)GET_MOVE(k)) / ((float)GET_MAX_MOVE(k)) * 100.00;
+    if (mv_pct >= 100.0)
+      mv_clr = CBWHT(ch, C_NRM);
+    else if (mv_pct >= 95.0)
+      mv_clr = CCNRM(ch, C_NRM);
+    else if (mv_pct >= 75.0)
+      mv_clr = CBGRN(ch, C_NRM);
+    else if (mv_pct >= 55.0)
+      mv_clr = CBBLK(ch, C_NRM);
+    else if (mv_pct >= 35.0)
+      mv_clr = CBMAG(ch, C_NRM);
+    else if (mv_pct >= 15.0)
+      mv_clr = CBBLU(ch, C_NRM);
+    else if (mv_pct >= 1.0)
+      mv_clr = CBRED(ch, C_NRM);
+    else
+      mv_clr = CBFRED(ch, C_NRM);
+
+    psp_pct = ((float)GET_PSP(k)) / ((float)GET_MAX_PSP(k)) * 100.00;
+    if (psp_pct >= 100.0)
+      psp_clr = CBWHT(ch, C_NRM);
+    else if (psp_pct >= 95.0)
+      psp_clr = CCNRM(ch, C_NRM);
+    else if (psp_pct >= 75.0)
+      psp_clr = CBGRN(ch, C_NRM);
+    else if (psp_pct >= 55.0)
+      psp_clr = CBBLK(ch, C_NRM);
+    else if (psp_pct >= 35.0)
+      psp_clr = CBMAG(ch, C_NRM);
+    else if (psp_pct >= 15.0)
+      psp_clr = CBBLU(ch, C_NRM);
+    else if (psp_pct >= 1.0)
+      psp_clr = CBRED(ch, C_NRM);
+    else
+      psp_clr = CBFRED(ch, C_NRM);
+
     send_to_char(ch, "%s%-*s: [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d XP TNL]%s\r\n",
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
                  count_color_chars(GET_NAME(k)) + 28, GET_NAME(k),
@@ -5274,6 +5274,7 @@ static void print_group(struct char_data *ch)
                  psp_clr, GET_PSP(k), GET_MAX_PSP(k),
                  MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
                  CCNRM(ch, C_NRM));
+  }
 }
 
 /* Putting this here - no better place to put it really. */
