@@ -3882,15 +3882,27 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
     do_get(ch->master, "all.coin", 0, 0); // added for incorporeal - no corpse -zusuk
   }
 
+  struct group_data *group = GROUP(ch);
+
   /* autoloot */
-  if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT))
+  if (group && IS_SET(GROUP_FLAGS(group), GROUP_LOOTZ))
   {
-    do_get(ch, "all corpse", 0, 0);
-    // do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
+    /* only the leader will be looting */
+
+    if (GROUP_LEADER(group) == ch)
+      do_get(ch, "all corpse", 0, GET_SUBCMD_GLOOT);
   }
-  else if (IS_NPC(ch) && (ch != victim) && ch->master && (IN_ROOM(ch) == IN_ROOM(ch->master)) && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_AUTOLOOT))
+  else
   {
-    do_get(ch->master, "all corpse", 0, 0);
+    if (!IS_NPC(ch) && (ch != victim) && PRF_FLAGGED(ch, PRF_AUTOLOOT))
+    {
+      do_get(ch, "all corpse", 0, 0);
+      // do_get(ch, "all.coin", 0, 0);  //added for incorporeal - no corpse
+    }
+    else if (IS_NPC(ch) && (ch != victim) && ch->master && (IN_ROOM(ch) == IN_ROOM(ch->master)) && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_AUTOLOOT))
+    {
+      do_get(ch->master, "all corpse", 0, 0);
+    }
   }
 
   /* autosac */

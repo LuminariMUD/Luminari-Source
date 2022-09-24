@@ -280,6 +280,9 @@ ACMD_DECL(do_rank);
 #define LOCK_DOOR(room, obj, door) ((obj) ? (SET_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (SET_BIT(EXITN(room, door)->exit_info, EX_LOCKED_EASY)))
 #define UNLOCK_DOOR(room, obj, door) ((obj) ? (REMOVE_BIT(GET_OBJ_VAL(obj, 1), CONT_LOCKED)) : (remove_locked_door_flags(room, door)))
 #define IS_CLOSED(x, y) (EXIT_FLAGGED(world[(x)].dir_option[(y)], EX_CLOSED))
+/* added subcommands for do_get() for group loot system */
+#define GET_SUBCMD_NORMAL 0
+#define GET_SUBCMD_GLOOT 1
 
 /* HACK: Had to change this with the new lock strengths from homeland... */
 

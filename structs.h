@@ -306,9 +306,10 @@
 #define HISTORY_SIZE 5 /**< Number of last commands kept in each history */
 
 /* Group Defines */
-#define GROUP_OPEN (1 << 0) /**< Group is open for members */
-#define GROUP_ANON (1 << 1) /**< Group is Anonymous */
-#define GROUP_NPC (1 << 2)  /**< Group created by NPC and thus not listed */
+#define GROUP_OPEN (1 << 0)  /**< Group is open for members */
+#define GROUP_ANON (1 << 1)  /**< Group is Anonymous */
+#define GROUP_NPC (1 << 2)   /**< Group created by NPC and thus not listed */
+#define GROUP_LOOTZ (1 << 3) /**< Group will be using the group phat lootz system */
 
 // size definitions, based on DnD3.5
 #define SIZE_UNDEFINED (-1)
@@ -3422,6 +3423,7 @@ struct obj_data
     struct trig_proto_list *proto_script; /**< list of default triggers  */
     struct script_data *script;           /**< script info for the object */
 
+    struct obj_data *next_gitem;    /**< For group loot list   */
     struct obj_data *next_content;  /**< For 'contains' lists   */
     struct obj_data *next;          /**< For the object list */
     struct char_data *sitting_here; /**< For furniture, who is sitting in it */
@@ -3584,9 +3586,10 @@ struct time_data
 /* Group Data Struct */
 struct group_data
 {
-    struct char_data *leader;  // leader of group
-    struct list_data *members; // list of members
-    int group_flags;           // group flags set
+    struct char_data *leader;  /**< leader of group >**/
+    struct list_data *members; /**< list of members >**/
+    int group_flags;           /**< group flags set >**/
+    struct obj_data *gitems;   /**< List head for objects in group loot >**/
 };
 
 /** The pclean_criteria_data is set up in config.c and used in db.c to determine
