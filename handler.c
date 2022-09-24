@@ -1372,6 +1372,18 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     if (!IS_NPC(ch))
       SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
 
+    /* group loot system */
+    /*
+    struct group_data *group = GROUP(ch);
+
+    if (group && IS_SET(GROUP_FLAGS(group), GROUP_LOOTZ) && GROUP_LEADER(group) && GROUP_LEADER(group) == ch)
+    {
+      // add it to the group list
+      object->next_gitem = group->gitems;
+      group->gitems = object;
+    }
+    */
+
     if (ch->desc)
     {
       update_msdp_inventory(ch);
@@ -1385,8 +1397,8 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
 /* take an object from a char */
 void obj_from_char(struct obj_data *object)
 {
-  struct obj_data *temp;
-  struct char_data *ch;
+  struct obj_data *temp = NULL;
+  struct char_data *ch = NULL;
 
   ch = object->carried_by;
 
@@ -1395,6 +1407,25 @@ void obj_from_char(struct obj_data *object)
     log("SYSERR: NULL object passed to obj_from_char.");
     return;
   }
+
+  /* group loot system */
+  /*
+  struct group_data *group = NULL;
+
+  if (ch & ch->desc)
+  {
+    group = GROUP(ch);
+
+    if (group && IS_SET(GROUP_FLAGS(group), GROUP_LOOTZ))
+    {
+      // add it to the group list
+      object->next_gitem = group->gitems;
+      group->gitems = object;
+    }
+  }
+  */
+
+  /* engine! */
   REMOVE_FROM_LIST(object, object->carried_by->carrying, next_content);
 
   /* set flag for crash-save system, but not on mobs! */
@@ -2644,7 +2675,7 @@ int find_all_dots(char *arg)
 /* Group Handlers */
 struct group_data *create_group(struct char_data *leader)
 {
-  struct group_data *new_group;
+  struct group_data *new_group = NULL;
 
   /* Allocate Group Memory & Attach to Group List*/
   CREATE(new_group, struct group_data, 1);
@@ -2655,12 +2686,15 @@ struct group_data *create_group(struct char_data *leader)
 
   /* Clear Data */
   new_group->group_flags = 0;
+  new_group->gitems = NULL;
 
   /* Assign Data */
   SET_BIT(GROUP_FLAGS(new_group), GROUP_OPEN);
 
   if (IS_NPC(leader))
     SET_BIT(GROUP_FLAGS(new_group), GROUP_NPC);
+
+  send_to_char(leader, "You have created a new group, type 'group option' to toggle your group settings.\r\n");
 
   join_group(leader, new_group);
 
@@ -2805,7 +2839,7 @@ void change_spell_mod(struct char_data *ch, int spellnum, int location, int amou
       {
         send_to_char(ch, "Your %s %s effect has been changed by %d and is now %d.\r\n", spell_info[spellnum].name, apply_types[location], amount, af->modifier);
       }
-    }    
+    }
   }
 }
 

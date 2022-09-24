@@ -4002,6 +4002,58 @@ ACMD(do_not_here)
   send_to_char(ch, "Sorry, but you cannot do that here!\r\n");
 }
 
+/* check if we can lore the target */
+int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct obj_data *target_obj, bool silent)
+{
+  bool knowledge = FALSE;
+  int lore_bonus = 0;
+
+  /* establish any lore bonus */
+  if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
+  {
+    lore_bonus += 4;
+    if (GET_WIS_BONUS(ch) > 0)
+      lore_bonus += GET_WIS_BONUS(ch);
+  }
+  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE))
+  {
+    lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
+  }
+
+  /* good enough lore for object? */
+  if (target_obj && GET_OBJ_COST(target_obj) <=
+                        lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  {
+    knowledge = TRUE;
+  }
+
+  if (target_obj && !knowledge)
+  {
+    if (!silent)
+      send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
+    return 0;
+  }
+
+  /* good enough lore for mobile? */
+  knowledge = FALSE;
+  lore_bonus += HAS_FEAT(ch, FEAT_MONSTER_LORE) ? GET_WIS_BONUS(ch) : 0;
+
+  if (target_ch && (GET_LEVEL(target_ch) * 2) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
+  {
+    knowledge = TRUE;
+  }
+
+  if (target_ch && !knowledge)
+  {
+    if (!silent)
+      send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
+    return 0;
+  }
+
+  /* we made it! */
+  return 1;
+}
+
 /* ability lore, functions like identify */
 ACMD(do_lore)
 {
@@ -4009,8 +4061,6 @@ ACMD(do_lore)
   struct char_data *tch = NULL;
   struct obj_data *tobj = NULL;
   int target = 0;
-  bool knowledge = FALSE;
-  int lore_bonus = 0;
 
   if (IS_NPC(ch))
     return;
@@ -4042,44 +4092,9 @@ ACMD(do_lore)
   send_to_char(ch, "You attempt to utilize your vast knowledge of lore...\r\n");
   USE_STANDARD_ACTION(ch);
 
-  /* establish any lore bonus */
-  if (HAS_FEAT(ch, FEAT_KNOWLEDGE))
+  if (!can_lore_target(ch, tch, tobj, FALSE))
   {
-    lore_bonus += 4;
-    if (GET_WIS_BONUS(ch) > 0)
-      lore_bonus += GET_WIS_BONUS(ch);
-  }
-  if (CLASS_LEVEL(ch, CLASS_BARD) && HAS_FEAT(ch, FEAT_BARDIC_KNOWLEDGE))
-  {
-    lore_bonus += CLASS_LEVEL(ch, CLASS_BARD);
-  }
-
-  /* good enough lore for object? */
-  if (tobj && GET_OBJ_COST(tobj) <=
-                  lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
-  {
-    knowledge = TRUE;
-  }
-
-  if (tobj && !knowledge)
-  {
-    send_to_char(ch, "Your knowledge is not extensive enough to know about this object!\r\n");
-    return;
-  }
-
-  /* good enough lore for mobile? */
-  knowledge = FALSE;
-  lore_bonus += HAS_FEAT(ch, FEAT_MONSTER_LORE) ? GET_WIS_BONUS(ch) : 0;
-
-  if (tch && (GET_LEVEL(tch) * 2) <= lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
-  {
-    knowledge = TRUE;
-  }
-
-  if (tch && !knowledge)
-  {
-    send_to_char(ch, "Your knowledge is not extensive enough to know about this creature!\r\n");
-    return;
+    return; /* message sent in can_lore_target() */
   }
 
   /* success! */
@@ -5380,7 +5395,7 @@ void update_msdp_inventory(struct char_data *ch)
 
 static void display_group_list(struct char_data *ch)
 {
-  struct group_data *group;
+  struct group_data *group = NULL;
   int count = 0;
 
   if (group_list->iSize)
@@ -5434,6 +5449,7 @@ ACMDU(do_group)
     return;
   }
 
+  /* creating a new group */
   if (is_abbrev(buf, "new"))
   {
     if (GROUP(ch))
@@ -5441,8 +5457,12 @@ ACMDU(do_group)
     else
       create_group(ch);
   }
+
+  /* see all the viewable groups in the game */
   else if (is_abbrev(buf, "list"))
     display_group_list(ch);
+
+  /* try to join a group by name of member */
   else if (is_abbrev(buf, "join"))
   {
     skip_spaces(&argument);
@@ -5476,8 +5496,12 @@ ACMDU(do_group)
       send_to_char(ch, "That group isn't accepting members.\r\n");
       return;
     }
+
+    /* made it! */
     join_group(ch, GROUP(vict));
   }
+
+  /* leader can kick members */
   else if (is_abbrev(buf, "kick"))
   {
     skip_spaces(&argument);
@@ -5510,6 +5534,8 @@ ACMDU(do_group)
     send_to_char(vict, "You have been kicked out of the group.\r\n");
     leave_group(vict);
   }
+
+  /* member can leave group */
   else if (is_abbrev(buf, "leave"))
   {
     if (!GROUP(ch))
@@ -5519,9 +5545,12 @@ ACMDU(do_group)
     }
     leave_group(ch);
   }
+
+  /* options for this particular group */
   else if (is_abbrev(buf, "option"))
   {
     skip_spaces(&argument);
+
     if (!GROUP(ch))
     {
       send_to_char(ch, "But you aren't part of a group!\r\n");
@@ -5533,21 +5562,44 @@ ACMDU(do_group)
       return;
     }
 
+    /* whether new members can join this group */
     if (is_abbrev(argument, "open"))
     {
       TOGGLE_BIT(GROUP_FLAGS(GROUP(ch)), GROUP_OPEN);
       send_to_char(ch, "The group is now %s to new members.\r\n",
-                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_OPEN) ? "open" : "closed");
+                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_OPEN) ? "OPEN" : "CLOSED");
     }
+
+    /* whether this group will show up in 'group list' */
     else if (is_abbrev(argument, "anonymous"))
     {
       TOGGLE_BIT(GROUP_FLAGS(GROUP(ch)), GROUP_ANON);
       send_to_char(ch, "The group location is now %s to other players.\r\n",
-                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_ANON) ? "invisible" : "visible");
+                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_ANON) ? "INVISIBLE" : "VISIBLE");
     }
+
+    /* whether this group will be using the group loot system */
+    /*
+    else if (is_abbrev(argument, "lootz"))
+    {
+      TOGGLE_BIT(GROUP_FLAGS(GROUP(ch)), GROUP_LOOTZ);
+      send_to_char(ch, "The group loot system is now %s for the group.\r\n",
+                   IS_SET(GROUP_FLAGS(GROUP(ch)), GROUP_LOOTZ) ? "ON" : "OFF");
+    }
+    */
+
+    /* invalid input given for option */
     else
-      send_to_char(ch, "The flag options are: Open, Anonymous\r\n");
+    {
+      send_to_char(ch, "The flag options are:\r\n"
+                       " Open - whether new members can join this group\r\n"
+                       " Anonymous - whether this group will show up in the 'group list' command\r\n"
+                       " Lootz - whther this group will be using the group loot system\r\n"
+                       "\r\n");
+    }
   }
+
+  /* invalid input */
   else
   {
     send_to_char(ch, "You must specify a group option, or type HELP GROUP for more info.\r\n");
