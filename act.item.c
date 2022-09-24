@@ -105,7 +105,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   int v3 = GET_OBJ_VAL(item, 2);
   int v4 = GET_OBJ_VAL(item, 3);
 
-  text_line(ch, "\tcItem-Type Specific Values:\tn", line_length, '-', '-');
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "\tc-----------Item-Type Specific Values:--------------\tn");
+  else
+    text_line(ch, "\tcItem-Type Specific Values:\tn", line_length, '-', '-');
 
   switch (GET_OBJ_TYPE(item))
   {
@@ -193,10 +196,16 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
   case ITEM_SCROLL: /* 2 */ /* fallthrough */
   case ITEM_POTION:         /* 10 */
-    send_to_char(ch, "Spells: (Level %d) %s%s%s%s%s\r\n", GET_OBJ_VAL(item, 0),
-                 GET_OBJ_VAL(item, 1) > 0 ? spell_info[GET_OBJ_VAL(item, 1)].name : "",
-                 GET_OBJ_VAL(item, 2) > 0 ? ", " : "", GET_OBJ_VAL(item, 2) > 0 ? spell_info[GET_OBJ_VAL(item, 2)].name : "",
-                 GET_OBJ_VAL(item, 3) > 0 ? ", " : "", GET_OBJ_VAL(item, 3) > 0 ? spell_info[GET_OBJ_VAL(item, 3)].name : "");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Spells: (Level %d) %s%s%s%s%s\r\n", GET_OBJ_VAL(item, 0),
+                    GET_OBJ_VAL(item, 1) > 0 ? spell_info[GET_OBJ_VAL(item, 1)].name : "",
+                    GET_OBJ_VAL(item, 2) > 0 ? ", " : "", GET_OBJ_VAL(item, 2) > 0 ? spell_info[GET_OBJ_VAL(item, 2)].name : "",
+                    GET_OBJ_VAL(item, 3) > 0 ? ", " : "", GET_OBJ_VAL(item, 3) > 0 ? spell_info[GET_OBJ_VAL(item, 3)].name : "");
+    else
+      send_to_char(ch, "Spells: (Level %d) %s%s%s%s%s\r\n", GET_OBJ_VAL(item, 0),
+                   GET_OBJ_VAL(item, 1) > 0 ? spell_info[GET_OBJ_VAL(item, 1)].name : "",
+                   GET_OBJ_VAL(item, 2) > 0 ? ", " : "", GET_OBJ_VAL(item, 2) > 0 ? spell_info[GET_OBJ_VAL(item, 2)].name : "",
+                   GET_OBJ_VAL(item, 3) > 0 ? ", " : "", GET_OBJ_VAL(item, 3) > 0 ? spell_info[GET_OBJ_VAL(item, 3)].name : "");
     break;
 
   case ITEM_WAND: /* 3 */ /* fallthrough */
@@ -829,33 +838,62 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   char buf[MAX_STRING_LENGTH];
   int line_length = 80;
 
-  text_line(ch, "\tcObject Information\tn", line_length, '-', '-');
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "\tc----------Object Information---------------\tn");
+  else
+    text_line(ch, "\tcObject Information\tn", line_length, '-', '-');
 
   /* display id# related values */
   /* put object type in buf */
   sprinttype(GET_OBJ_TYPE(j), item_types, buf, sizeof(buf));
   if (mode == ITEM_STAT_MODE_IMMORTAL)
   {
-    send_to_char(ch, "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
-                 buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
-                 GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
+                    buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
+                    GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+    else
+      send_to_char(ch, "\tCType:\tn %s, VNum: [%5d], RNum: [%5d], Idnum: [%5ld], SpecProc: %s\r\n",
+                   buf, vnum, GET_OBJ_RNUM(j), GET_ID(j),
+                   GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
   }
   else if (GET_OBJ_TYPE(j) == ITEM_WEAPON_OIL)
   {
-    send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: Adds '%s' to a weapon with 'apply' command\r\n",
-                 buf, special_ability_info[GET_OBJ_VAL(j, 0)].name);
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "\tCItem Type:\tn %s, Special Feature: Adds '%s' to a weapon with 'apply' command\r\n",
+                    buf, special_ability_info[GET_OBJ_VAL(j, 0)].name);
+    else
+      send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: Adds '%s' to a weapon with 'apply' command\r\n",
+                   buf, special_ability_info[GET_OBJ_VAL(j, 0)].name);
   }
   else
   {
-    send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: %s\r\n", buf,
-                 GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "\tCItem Type:\tn %s, Special Feature: %s\r\n", buf,
+                    GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
+    else
+      send_to_char(ch, "\tCItem Type:\tn %s, Special Feature: %s\r\n", buf,
+                   GET_OBJ_SPEC(j) ? (get_spec_func_name(GET_OBJ_SPEC(j))) : "None");
   }
 
   /* display description information */
-  text_line(ch, "\tcDescription Information\tn", line_length, '-', '-');
-  send_to_char(ch, "Name: '%s'\r\n",
-               j->short_description ? j->short_description : "<None>");
-  send_to_char(ch, "Keywords: %s\r\n", j->name);
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "\tc--------------Description Information--------------\tn");
+  else
+    text_line(ch, "\tcDescription Information\tn", line_length, '-', '-');
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Name: '%s'\r\n",
+                  j->short_description ? j->short_description : "<None>");
+  else
+    send_to_char(ch, "Name: '%s'\r\n",
+                 j->short_description ? j->short_description : "<None>");
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Keywords: %s\r\n", j->name);
+  else
+    send_to_char(ch, "Keywords: %s\r\n", j->name);
+
   if (mode == ITEM_STAT_MODE_IMMORTAL)
   {
     send_to_char(ch, "L-Desc: '%s'\r\n",
@@ -872,13 +910,29 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   }
 
   /* various variables */
-  text_line(ch, "\tcVarious Variables\tn", line_length, '-', '-');
-  send_to_char(ch, "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
-               GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
-  send_to_char(ch, "Size: %s, Material: %s, Bound to: %s\r\n",
-               size_names[GET_OBJ_SIZE(j)],
-               material_name[GET_OBJ_MATERIAL(j)],
-               (get_name_by_id(GET_OBJ_BOUND_ID(j)) != NULL) ? CAP(get_name_by_id(GET_OBJ_BOUND_ID(j))) : "(Unknown)");
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "\tc------------------Various Variables--------------\tn");
+  else
+    text_line(ch, "\tcVarious Variables\tn", line_length, '-', '-');
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
+                  GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
+  else
+    send_to_char(ch, "Weight: %d, Value: %d, Cost/day: %d, Timer: %d, Min level: %d\r\n",
+                 GET_OBJ_WEIGHT(j), GET_OBJ_COST(j), GET_OBJ_RENT(j), GET_OBJ_TIMER(j), GET_OBJ_LEVEL(j));
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Size: %s, Material: %s, Bound to: %s\r\n",
+                  size_names[GET_OBJ_SIZE(j)],
+                  material_name[GET_OBJ_MATERIAL(j)],
+                  (get_name_by_id(GET_OBJ_BOUND_ID(j)) != NULL) ? CAP(get_name_by_id(GET_OBJ_BOUND_ID(j))) : "(Unknown)");
+  else
+    send_to_char(ch, "Size: %s, Material: %s, Bound to: %s\r\n",
+                 size_names[GET_OBJ_SIZE(j)],
+                 material_name[GET_OBJ_MATERIAL(j)],
+                 (get_name_by_id(GET_OBJ_BOUND_ID(j)) != NULL) ? CAP(get_name_by_id(GET_OBJ_BOUND_ID(j))) : "(Unknown)");
+
   if (mode == ITEM_STAT_MODE_IMMORTAL)
   {
     for (i = 0; i < SPEC_TIMER_MAX; i++)
@@ -894,25 +948,55 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
     {
       if (GET_OBJ_SPECTIMER(j, i))
       {
-        send_to_char(ch, "Special Timer %d: %d Game-Hours | ", (i + 1), GET_OBJ_SPECTIMER(j, i));
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Special Timer %d: %d Game-Hours | ", (i + 1), GET_OBJ_SPECTIMER(j, i));
+        else
+          send_to_char(ch, "Special Timer %d: %d Game-Hours | ", (i + 1), GET_OBJ_SPECTIMER(j, i));
         display = TRUE;
       }
     }
     if (display)
-      send_to_char(ch, "\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "\r\n");
+      else
+        send_to_char(ch, "\r\n");
+    }
   }
 
   /* flags */
-  text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "\tcObject Bits / Affections\tn");
+  else
+    text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
+
   sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
-  send_to_char(ch, "Can be worn on: %s\r\n", buf);
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Can be worn on: %s\r\n", buf);
+  else
+    send_to_char(ch, "Can be worn on: %s\r\n", buf);
+
   sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
-  send_to_char(ch, "Set char bits : %s\r\n", buf);
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Set char bits : %s\r\n", buf);
+  else
+    send_to_char(ch, "Set char bits : %s\r\n", buf);
+
   sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
-  send_to_char(ch, "Extra flags   : %s\r\n", buf);
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Extra flags   : %s\r\n", buf);
+  else
+    send_to_char(ch, "Extra flags   : %s\r\n", buf);
+
   /* affections */
   found = FALSE;
-  send_to_char(ch, "Affections:");
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "Affections:");
+  else
+    send_to_char(ch, "Affections:");
+
   for (i = 0; i < MAX_OBJ_AFFECT; i++)
   {
     if (j->affected[i].modifier)
@@ -923,23 +1007,46 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
         feat_num = j->affected[i].modifier;
         if (feat_num < 0 || feat_num >= NUM_FEATS)
           feat_num = FEAT_UNDEFINED;
-        send_to_char(ch, "%s %s:(%d) %s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
+
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "%s %s:(%d) %s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
+        else
+          send_to_char(ch, "%s %s:(%d) %s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
       }
       else if (j->affected[i].location == APPLY_SKILL)
       {
         feat_num = j->affected[i].specific;
         if (feat_num < START_GENERAL_ABILITIES || feat_num > END_CRAFT_ABILITIES)
           feat_num = ABILITY_UNDEFINED;
-        send_to_char(ch, "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
-                     j->affected[i].modifier, ability_names[feat_num], bonus_types[j->affected[i].bonus_type]);
+
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
+                        j->affected[i].modifier, ability_names[feat_num], bonus_types[j->affected[i].bonus_type]);
+        else
+          send_to_char(ch, "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
+                       j->affected[i].modifier, ability_names[feat_num], bonus_types[j->affected[i].bonus_type]);
       }
       else
-        send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+        else
+          send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+      }
     }
   }
+
   if (!found)
-    send_to_char(ch, " None");
-  send_to_char(ch, "\r\n");
+  {
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), " None");
+    else
+      send_to_char(ch, " None");
+  }
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "\r\n");
+  else
+    send_to_char(ch, "\r\n");
 
   /* location info */
   if (mode == ITEM_STAT_MODE_IMMORTAL)
@@ -984,7 +1091,15 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
     /* check the object for a script */
     do_sstat_object(ch, j);
   }
-  draw_line(ch, line_length, '-', '-');
+
+  if (mode == ITEM_STAT_MODE_G_LORE)
+  {
+    send_to_group(NULL, GROUP(ch), "=====================================================================");
+    send_to_group(NULL, GROUP(ch), "=====================================================================");
+    send_to_group(NULL, GROUP(ch), "=====================================================================");
+  }
+  else
+    draw_line(ch, line_length, '-', '-');
 }
 
 /*
