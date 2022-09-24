@@ -2110,6 +2110,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     if (HAS_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE))
       dam += num_dice * HAS_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE);
+
+    if (HAS_FEAT(ch, FEAT_EPIC_POWER_DAMAGE))
+      dam += num_dice * 3;
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
@@ -2187,6 +2190,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       ++;
       break;
     }
+
     if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
       dam *= 0.10;
   }
@@ -5804,7 +5808,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case RACIAL_ABILITY_VAMPIRE_DR:
-   
+
     /* Remove the dr. */
     for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
     {
@@ -7446,6 +7450,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     fmsg = rand_number(2, 6); /* Random fail message. */
     mob_num = MOB_ECTOPLASMIC_SHAMBLER;
     mob_level = (GET_PSIONIC_LEVEL(ch) > 20) ? ((GET_PSIONIC_LEVEL(ch) - 20) / 2) + 20 : GET_PSIONIC_LEVEL(ch);
+
+    /* epic shambler */
+    if (HAS_FEAT(ch, FEAT_EPIC_SHAMBLER))
+      mob_level = GET_PSIONIC_LEVEL(ch) + 1;
+
     pfail = 0;
     break;
 
@@ -7549,10 +7558,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       autoroll_mob(mob, TRUE, TRUE);
       GET_LEVEL(mob) = temp_level;
       break;
+
     case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
       GET_LEVEL(mob) = MAX(1, GET_LEVEL(ch) / 2);
       autoroll_mob(mob, TRUE, TRUE);
       break;
+
     case ABILITY_CREATE_VAMPIRE_SPAWN:
       GET_LEVEL(mob) = MIN(25, GET_LEVEL(ch));
       autoroll_mob(mob, TRUE, TRUE);
@@ -7567,14 +7578,20 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         mob->player.long_descr = strdup(desc);
       }
       break;
+
     case SPELL_CLONE:
       /* Don't mess up the prototype; use new string copies. */
       mob->player.name = strdup(GET_NAME(ch));
       mob->player.short_descr = strdup(GET_NAME(ch));
       break;
+
     case PSIONIC_ECTOPLASMIC_SHAMBLER:
       GET_LEVEL(mob) = mob_level;
+
       autoroll_mob(mob, TRUE, TRUE);
+
+      GET_HITROLL(mob) += 10; /* help them hit a bit */
+
       break;
     }
 
@@ -7618,6 +7635,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
 
     int spell_focus_bonus = 0;
+
     switch (spellnum)
     {
     case SPELL_ANIMATE_DEAD:

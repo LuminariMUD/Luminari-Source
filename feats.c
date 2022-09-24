@@ -3022,7 +3022,6 @@ void assign_feats(void)
         "Extra attack with offhand weapon while wearing light or lighter armor");
   feat_prereq_feat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, FEAT_GREATER_DUAL_WEAPON_FIGHTING, 1);
   feat_prereq_attribute(FEAT_PERFECT_DUAL_WEAPON_FIGHTING, AB_DEX, 21);
-  epicfeat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING);
 
   feato(FEAT_BANE_OF_ENEMIES, "bane of enemies", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "weapon acts as bane",
@@ -3335,6 +3334,8 @@ void assign_feats(void)
                  "the rager is nearly unstoppable",
                  "While raging, you have to be brought to -121 or lower to be stopped.");
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
   /* Sorcerer/Wizard */
   feato(FEAT_SUMMON_FAMILIAR, "summon familiar", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "summon a magical pet",
@@ -3381,6 +3382,8 @@ void assign_feats(void)
         "have both aligned attack good and aligned attack lawful, you cannot gain double "
         "the bonus against a lawful good target.");
   feat_prereq_bab(FEAT_ALIGNED_ATTACK_LAW, 6);
+
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   feato(FEAT_CRITICAL_FOCUS, "critical focus", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
         "When psionic focus is active, your critical hits land more often and for more damage.",
@@ -3433,6 +3436,8 @@ void assign_feats(void)
         "While psionic focus is active, gain your intelligence bonus on attempts to overcome power resistance.",
         "While psionic focus is active, gain your intelligence bonus on attempts to overcome power resistance.");
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
   feato(FEAT_DOUBLE_MANIFEST, "double manifest", TRUE, FALSE, FALSE, FEAT_TYPE_PSIONIC,
         "When activated (with the doublemanifest command) the next manifestation you perform will be executed twice.",
         "When activated (with the doublemanifest command) the next manifestation you perform will be executed twice.");
@@ -3480,6 +3485,8 @@ void assign_feats(void)
         "When psionic focus is active, save dcs for manifested powers are at +3.");
   feat_prereq_class_level(FEAT_PSIONIC_ENDOWMENT, CLASS_PSIONICIST, 1);
 
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
   feato(FEAT_PROFICIENT_AUGMENTING, "proficient augmenting", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
         "The manifesting time increase from augmenting a psionic power is reduced by 1.",
         "The manifesting time increase from augmenting a psionic power is reduced by 1. "
@@ -3498,8 +3505,35 @@ void assign_feats(void)
         "The manifesting time increase from augmenting a psionic power is reduced by 3. "
         "While psionic focus is active, your maximum augmenting limit is increased by 3."
         "This feat does not affect the 'augment' crafting command.");
-  feat_prereq_class_level(FEAT_MASTER_AUGMENTING, CLASS_PSIONICIST, 20);
+  feat_prereq_class_level(FEAT_MASTER_AUGMENTING, CLASS_PSIONICIST, 15);
   feat_prereq_feat(FEAT_MASTER_AUGMENTING, FEAT_EXPERT_AUGMENTING, 1);
+
+  /* epic psi */
+  /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
+
+  feato(FEAT_EPIC_PSI_MIND, "the psi mind", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+50 psp",
+        "Your maximum PSP is increase by 50 points.");
+  feat_prereq_class_level(FEAT_EPIC_PSI_MIND, CLASS_PSIONICIST, 20);
+
+  feato(FEAT_EPIC_SHAMBLER, "epic shambler", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "augmented shambler if you have one",
+        "If you have a Shambler, it's power will be highly accentuated");
+  feat_prereq_class_level(FEAT_EPIC_SHAMBLER, CLASS_PSIONICIST, 20);
+
+  feato(FEAT_EPIC_POWER_PENETRATION, "epic power penetration", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "save dcs for manifested powers are at +6.",
+        "DC's against your manifestions are calculated with a +6 bonus.");
+  feat_prereq_class_level(FEAT_EPIC_POWER_PENETRATION, CLASS_PSIONICIST, 20);
+
+  feato(FEAT_EPIC_POWER_DAMAGE, "epic power damage", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "+3 power damage per die rolled",
+        "You gain +3 power damage per die rolled, example:  if you are level 20 and "
+        "normally create a 20d6 damage energy burst, with this feat your energy burst would "
+        "do 20d6+60.");
+  feat_prereq_class_level(FEAT_EPIC_POWER_DAMAGE, CLASS_PSIONICIST, 20);
+
+  /**************************/
 
   /* weapon master */
   /*lvl 1*/ feato(FEAT_WEAPON_OF_CHOICE, "weapons of choice", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -4218,9 +4252,11 @@ void assign_feats(void)
   combatfeat(FEAT_POWER_CRITICAL);
   combatfeat(FEAT_WEAPON_FLURRY);
   combatfeat(FEAT_WEAPON_SUPREMACY);
-  /*epic combat feat*/ combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
+  /*epic combat feats*/
+  combatfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
 
   /* Epic Feats */
+  epicfeat(FEAT_PERFECT_DUAL_WEAPON_FIGHTING);
   epicfeat(FEAT_BANE_OF_ENEMIES);
   epicfeat(FEAT_EPIC_WEAPON_SPECIALIZATION);
   epicfeat(FEAT_EPIC_PROWESS);
@@ -4231,6 +4267,10 @@ void assign_feats(void)
   epicfeat(FEAT_EPIC_SKILL_FOCUS);
   epicfeat(FEAT_EPIC_DODGE);
   epicfeat(FEAT_EPIC_COMBAT_CHALLENGE);
+  epicfeat(FEAT_EPIC_SHAMBLER);
+  epicfeat(FEAT_EPIC_POWER_PENETRATION);
+  epicfeat(FEAT_EPIC_POWER_DAMAGE);
+  epicfeat(FEAT_EPIC_PSI_MIND);
   epicfeat(FEAT_EPIC_TOUGHNESS);
   epicfeat(FEAT_GREAT_STRENGTH);
   epicfeat(FEAT_GREAT_CONSTITUTION);
@@ -4737,6 +4777,34 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) * 5))
         return FALSE;
       if (HAS_REAL_FEAT(ch, FEAT_ENHANCED_POWER_DAMAGE) >= 4)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_EPIC_SHAMBLER:
+      if (!IS_PSIONIC(ch))
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_EPIC_POWER_PENETRATION:
+      if (!IS_PSIONIC(ch))
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_EPIC_POWER_DAMAGE:
+      if (!IS_PSIONIC(ch))
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_EPIC_PSI_MIND:
+      if (!IS_PSIONIC(ch))
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) < 20)
         return FALSE;
       return TRUE;
 

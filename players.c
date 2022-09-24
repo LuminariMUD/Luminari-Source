@@ -508,6 +508,7 @@ int load_char(const char *name, struct char_data *ch)
     CASTING_CLASS(ch) = 0;
     for (i = 0; i < MAX_PERFORMANCE_VARS; i++)
       GET_PERFORMANCE_VAR(ch, i) = 0;
+    GET_PERFORMING(ch) = -1; /* 0 is an actual performance */
     PIXIE_DUST_USES(ch) = 0;
     PIXIE_DUST_TIMER(ch) = 0;
     GRAVE_TOUCH_USES(ch) = PFDEF_GRAVE_TOUCH_USES;
