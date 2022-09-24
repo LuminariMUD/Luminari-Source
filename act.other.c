@@ -5270,8 +5270,8 @@ static void print_group(struct char_data *ch)
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
                  count_color_chars(GET_NAME(k)) + 28, GET_NAME(k),
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
-                 mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
                  psp_clr, GET_PSP(k), GET_MAX_PSP(k),
+                 mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
                  MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
                  CCNRM(ch, C_NRM));
   }
