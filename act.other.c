@@ -4109,6 +4109,74 @@ ACMD(do_lore)
   }
 }
 
+/* ability group lore, functions like identify for all items in bag */
+ACMD(do_glore)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *tobj = NULL;
+  int target = 0;
+
+  if (IS_NPC(ch))
+    return;
+
+  if (!IS_NPC(ch) && !GET_ABILITY(ch, ABILITY_LORE))
+  {
+    send_to_char(ch, "You have no ability to do that!\r\n");
+    return;
+  }
+
+  if (!GROUP(ch))
+  {
+    send_to_char(ch, "You need to be in a group to use this.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+
+  target = generic_find(arg, FIND_OBJ_INV, ch, NULL, &tobj);
+
+  if (*arg)
+  {
+    if (!target)
+    {
+      act("There is nothing to here to use your Lore ability on...", FALSE,
+          ch, NULL, NULL, TO_CHAR);
+      return;
+    }
+  }
+  else
+  {
+    act("You need a container to target...", FALSE,
+        ch, NULL, NULL, TO_CHAR);
+    return;
+  }
+
+  if (GET_OBJ_TYPE(tobj) != ITEM_CONTAINER)
+  {
+    send_to_char(ch, "You need to target a container bub!\r\n");
+    return;
+  }
+
+  if (OBJVAL_FLAGGED(tobj, CONT_CLOSED))
+  {
+    send_to_char(ch, "It is closed.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You attempt to utilize your vast knowledge of lore...\r\n");
+  USE_STANDARD_ACTION(ch);
+
+  struct obj_data *i = NULL;
+
+  for (i = tobj->contains; i; i = i->next_content)
+  {
+    if (i && can_lore_target(ch, NULL, i, TRUE))
+    {
+      do_stat_object(ch, i, ITEM_STAT_MODE_G_LORE);
+    }
+  }
+}
+
 /* a generic command to get rid of a fly / levitate flag */
 ACMD(do_land)
 {
