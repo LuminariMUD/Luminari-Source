@@ -726,7 +726,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
 
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "process_performance(): PNum: %d, Effect %d, AoE %d.\r\n", GET_NAME(tch), performance_num, effectiveness, aoe);
+    send_to_char(ch, "process_performance(): PNum: %d, Effect %d, AoE %d.\r\n", performance_num, effectiveness, aoe);
   }
 
   struct char_data *tch = NULL, *tch_next = NULL;
