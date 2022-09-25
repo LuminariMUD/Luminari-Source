@@ -144,7 +144,7 @@ int isname(const char *str, const char *namelist)
 }
 
 /* modify a character's given apply-type (loc) by value */
-void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg)
+void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *msg)
 {
 
   switch (loc)
@@ -319,7 +319,7 @@ void aff_apply_modify(struct char_data *ch, byte loc, sbyte mod, const char *msg
   } /* switch */
 }
 
-void affect_modify_ar(struct char_data *ch, byte loc, sbyte mod, int bitv[], bool add)
+void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bool add)
 {
   int i, j;
 
