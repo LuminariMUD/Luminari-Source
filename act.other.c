@@ -197,7 +197,7 @@ ACMD(do_cexchange)
     /* cap for account xp currently */
     if ((amount + (float)GET_ACCEXP_DESC(ch)) > 99999999.9)
     {
-      send_to_char(ch, "Account experience caps at 34K.\r\n");
+      send_to_char(ch, "Account experience caps at 100mil.\r\n");
       return;
     }
     break;
@@ -315,8 +315,7 @@ ACMD(do_cexchange)
   {
   case SRC_DST_ACCEXP:
     send_to_char(ch, "%d account experience.", (int)amount);
-    GET_ACCEXP_DESC(ch) += (int)amount;
-    save_account(ch->desc->account);
+    change_account_xp(ch, (int)amount);
     break;
   case SRC_DST_QP:
     send_to_char(ch, "%d quest points.", (int)amount);
