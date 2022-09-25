@@ -440,8 +440,8 @@ void reset_char_points(struct char_data *ch)
 }
 
 #define BASE_STAT_CAP 22
-#define HP_CAP 300
-#define PSP_CAP 400
+#define HP_CAP 500
+#define PSP_CAP 600
 #define MOVE_CAP 4000
 #define HITDAM_CAP 20
 #define AC_CAP -160

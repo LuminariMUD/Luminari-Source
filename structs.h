@@ -3645,15 +3645,15 @@ struct char_ability_data
 /* Character 'points', or health statistics. (we have points and real_points) */
 struct char_point_data
 {
-    sh_int psp;            /**< Current psp level  */
-    sh_int max_psp;        /**< Max psp level */
+    int psp;               /**< Current psp level  */
+    int max_psp;           /**< Max psp level */
     int hit;               /**< Curent hit point, or health, level */
     int max_hit;           /**< Max hit point, or health, level */
-    sh_int move;           /**< Current move point, or stamina, level */
-    sh_int max_move;       /**< Max move point, or stamina, level */
-    sh_int armor;          // armor class
-    sh_int disguise_armor; /* disguise armor class bonus */
-    sh_int spell_res;      // spell resistance
+    int move;              /**< Current move point, or stamina, level */
+    int max_move;          /**< Max move point, or stamina, level */
+    sh_int armor;          /**< armor class */
+    sh_int disguise_armor; /**< disguise armor class bonus */
+    sh_int spell_res;      /**< spell resistance */
 
     int gold;      /**< Current gold carried on character */
     int bank_gold; /**< Gold the char has in a bank account	*/
@@ -3662,9 +3662,9 @@ struct char_point_data
     sbyte hitroll; /**< Any bonus or penalty to the hit roll */
     sbyte damroll; /**< Any bonus or penalty to the damage roll */
 
-    int size;                                        // size
+    int size;                                        /**< size */
     sh_int apply_saving_throw[NUM_OF_SAVING_THROWS]; /**< Saving throw (Bonuses) */
-    sh_int resistances[NUM_DAM_TYPES];               // resistances (dam-types)
+    sh_int resistances[NUM_DAM_TYPES];               /**< resistances (dam-types) */
 
     /* note - if you add something new here, make sure to check
      handler.c reset_char_points() to see if it needs to be added */
