@@ -194,7 +194,7 @@ ACMD(do_cexchange)
     cost = (float)ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
-    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 33999.0)
+    if ((amount + (float)GET_ACCEXP_DESC(ch)) > 99999999.9)
     {
       send_to_char(ch, "Account experience caps at 34K.\r\n");
       return;
@@ -236,7 +236,7 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_ACCEXP_DESC(ch) -= pool;
+    change_account_xp(ch, -pool);
     save_account(ch->desc->account);
     send_to_char(ch, "You exchange %d account exp for ", (int)pool);
     break;
@@ -7227,6 +7227,33 @@ static const char *const hints[] = {
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*53*/ "\tR[HINT]:\tn \ty"
            "Want to see a full list of all implement spells and skills in the game?  Type respectively 'masterlist spells' or 'masterlist skills'"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*54*/ "\tR[HINT]:\tn \ty"
+           "There is a shop that offers a service that will elighten your mind as to the basic "
+           "enchantments found on all of your worn equipment.  It is one west of 'recall.'  The "
+           "cost varies by the skill of the requester, beginning at 100 gold coins for a complete "
+           "novice and up to 3000 gold coins for the most skilled of heroes.  To receive this "
+           "enlightenment, simply use (type) the word: \tReqstats\ty"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*55*/ "\tR[HINT]:\tn \ty"
+           "There is a player-owned shop in Sanctus, where you can buy very powerful end-game gear."
+           "From the Center of Sanctus, head 3 south, 1 east, then 1 south.  "
+           "You will find 'A Shopper's Paradise' owned by Melaw and ran by Onat."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*56*/ "\tR[HINT]:\tn \ty"
+           "There is a player-owned shop in Sanctus, where you can buy some different gear.  "
+           "From the Center of Sanctus, head 3 south, 1 east, then 1 north.  You will find "
+           "'Weaver and Fagn's' owned by Ellyanor and ran by Kyrt."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*57*/ "\tR[HINT]:\tn \ty"
+           "There is a player-owned shop in Sanctus, where you can buy some different gear."
+           "From the Center of Sanctus, head 3 south, 1 west, then 1 north.  You will find "
+           "'The Kobold's Den' owned by Thimblethorp and ran by Ickthak."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*58*/ "\tR[HINT]:\tn \ty"
+           "There is a player-owned shop in Ashenport, where you can buy very powerful end-game gear."
+           "From Inside the Northern Gates of Ashenport, head 1 south, 1 west, then 1 north.  You will "
+           "find 'Brondo's Bar and Grill' owned by Brondo and ran by The Towering Woman."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
