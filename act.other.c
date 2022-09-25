@@ -49,6 +49,7 @@
 #include "spell_prep.h"
 #include "premadebuilds.h"
 #include "staff_events.h"
+#include "account.h"
 
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
