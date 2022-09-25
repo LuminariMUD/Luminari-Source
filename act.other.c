@@ -4131,6 +4131,13 @@ ACMD(do_glore)
     return;
   }
 
+  if (!*argument)
+  {
+    act("You need to select a target container...", FALSE,
+        ch, NULL, NULL, TO_CHAR);
+    return;
+  }
+
   one_argument(argument, arg, sizeof(arg));
 
   target = generic_find(arg, FIND_OBJ_INV, ch, NULL, &tobj);
@@ -5662,7 +5669,7 @@ ACMDU(do_group)
       send_to_char(ch, "The flag options are:\r\n"
                        " Open - whether new members can join this group\r\n"
                        " Anonymous - whether this group will show up in the 'group list' command\r\n"
-                       " Lootz - whther this group will be using the group loot system\r\n"
+                       /*" Lootz - whether this group will be using the group loot system\r\n"*/
                        "\r\n");
     }
   }
