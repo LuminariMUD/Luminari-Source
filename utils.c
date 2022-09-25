@@ -5726,7 +5726,7 @@ void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict
     if (IS_SET_AR(af->bitvector, aff_flag))
     {
       spell = af->spell;
-      if (spell < 1 || spell >= NUM_SPELLS) continue;
+      if (spell < 1 || spell >= TOP_SPELLS_POWERS_SKILLS_BOMBS) continue;
       if (display) {
         send_to_char(vict, "Affect '%s' has been healed!\r\n", spell_info[spell].name);
         send_to_char(ch, "%s's Affect '%s' has been healed!\r\n", GET_NAME(vict), spell_info[spell].name);
