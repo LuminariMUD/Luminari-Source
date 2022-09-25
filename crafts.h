@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Crafts System                                                           
-/  Created By: Created by Vatiken, (Joseph Arnusch)                                                           
-\              installed by Ornir                                               
-/                                                           
-\  Created: June 21st, 2012                                                          
-/                                                                                                                                                                                       
+\
+/  Luminari Crafts System
+/  Created By: Created by Vatiken, (Joseph Arnusch)
+\              installed by Ornir
+/
+\  Created: June 21st, 2012
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 struct craft_data
@@ -74,7 +74,7 @@ void free_craft(struct craft_data *craft);
 void load_crafts(void);
 void list_all_crafts(struct char_data *ch);
 void list_available_crafts(struct char_data *ch);
-void show_craft(struct char_data *ch, struct craft_data *craft);
+void show_craft(struct char_data *ch, struct craft_data *craft, int mode);
 struct craft_data *get_craft_from_arg(char *arg);
 struct craft_data *get_craft_from_id(int id);
 

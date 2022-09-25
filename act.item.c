@@ -132,9 +132,14 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
     else
     {
-      send_to_char(ch, "This appears to be a %s switch...\r\n",
-                   v1 == 0 ? "\tcpush\tn" : v1 == 1 ? "\tcpull\tn"
-                                                    : "(broken! report to staff)");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "This appears to be a %s switch...\r\n",
+                      v1 == 0 ? "\tcpush\tn" : v1 == 1 ? "\tcpull\tn"
+                                                       : "(broken! report to staff)");
+      else
+        send_to_char(ch, "This appears to be a %s switch...\r\n",
+                     v1 == 0 ? "\tcpush\tn" : v1 == 1 ? "\tcpull\tn"
+                                                      : "(broken! report to staff)");
     }
     break;
 
@@ -145,18 +150,28 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     /* object value (2) is the effect */
     /* object value (3) is the trap difficulty */
     /* object value (4) is whether this trap has been "detected" yet */
-    send_to_char(ch, "Trap type: %s\r\n", trap_type[GET_OBJ_VAL(item, 0)]);
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Trap type: %s\r\n", trap_type[GET_OBJ_VAL(item, 0)]);
+    else
+      send_to_char(ch, "Trap type: %s\r\n", trap_type[GET_OBJ_VAL(item, 0)]);
+
     switch (GET_OBJ_VAL(item, 0))
     {
     case TRAP_TYPE_ENTER_ROOM:
       break;
     case TRAP_TYPE_LEAVE_ROOM:
       break;
+
     case TRAP_TYPE_OPEN_DOOR:
       /*fall-through*/
     case TRAP_TYPE_UNLOCK_DOOR:
-      send_to_char(ch, "Direction: %s\r\n", dirs[GET_OBJ_VAL(item, 1)]);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Direction: %s\r\n", dirs[GET_OBJ_VAL(item, 1)]);
+      else
+        send_to_char(ch, "Direction: %s\r\n", dirs[GET_OBJ_VAL(item, 1)]);
       break;
+
     case TRAP_TYPE_OPEN_CONTAINER:
       /*fall-through*/
     case TRAP_TYPE_UNLOCK_CONTAINER:
@@ -164,36 +179,68 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     case TRAP_TYPE_GET_OBJECT:
       target_obj = real_object(GET_OBJ_VAL(item, 1));
 
-      send_to_char(ch, "Target Object: %s\r\n",
-                   (target_obj == NOTHING) ? "Nothing" : obj_proto[target_obj].short_description);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Target Object: %s\r\n",
+                      (target_obj == NOTHING) ? "Nothing" : obj_proto[target_obj].short_description);
+      else
+        send_to_char(ch, "Target Object: %s\r\n",
+                     (target_obj == NOTHING) ? "Nothing" : obj_proto[target_obj].short_description);
       break;
     }
+
     if (GET_OBJ_VAL(item, 2) <= 0 || GET_OBJ_VAL(item, 2) >= TOP_TRAP_EFFECTS)
     {
-      send_to_char(ch, "Invalid trap effect on this object [1]\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Invalid trap effect on this object [1]\r\n");
+      else
+        send_to_char(ch, "Invalid trap effect on this object [1]\r\n");
     }
     else if (GET_OBJ_VAL(item, 2) < TRAP_EFFECT_FIRST_VALUE && GET_OBJ_VAL(item, 2) >= LAST_SPELL_DEFINE)
     {
-      send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Invalid trap effect on this object [2]\r\n");
+      else
+        send_to_char(ch, "Invalid trap effect on this object [2]\r\n");
     }
     else if (GET_OBJ_VAL(item, 2) >= TRAP_EFFECT_FIRST_VALUE)
     {
-      /* homeland port */
-      send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
+      else
+        send_to_char(ch, "Trap effect: %s\r\n", trap_effects[GET_OBJ_VAL(item, 2) - 1000]);
     }
     else
     {
-      send_to_char(ch, "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(item, 2)].name);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(item, 2)].name);
+      else
+        send_to_char(ch, "Spell effect: %s\r\n", spell_info[GET_OBJ_VAL(item, 2)].name);
     }
-    send_to_char(ch, "Trap DC: %d\r\n", GET_OBJ_VAL(item, 3));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Trap DC: %d\r\n", GET_OBJ_VAL(item, 3));
+    else
+      send_to_char(ch, "Trap DC: %d\r\n", GET_OBJ_VAL(item, 3));
+
     break;
 
   case ITEM_LIGHT: /* 1 */ /**< Item is a light source */
     if (GET_OBJ_VAL(item, 2) == -1)
-      send_to_char(ch, "Hours left: Infinite\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Hours left: Infinite\r\n");
+      else
+        send_to_char(ch, "Hours left: Infinite\r\n");
+    }
     else
-      send_to_char(ch, "Hours left: [%d]\r\n", GET_OBJ_VAL(item, 2));
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Hours left: [%d]\r\n", GET_OBJ_VAL(item, 2));
+      else
+        send_to_char(ch, "Hours left: [%d]\r\n", GET_OBJ_VAL(item, 2));
+    }
     break;
+
   case ITEM_SCROLL: /* 2 */ /* fallthrough */
   case ITEM_POTION:         /* 10 */
     if (mode == ITEM_STAT_MODE_G_LORE)
@@ -221,13 +268,21 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_FIREWEAPON: /* 7 */
-    send_to_char(ch,
-                 "**Deprecated, report to staff to fix this item**\r\n"
-                 "Type:                   %s\r\n"
-                 "Damage:                 %d\r\n"
-                 "Breaking Probability:   %d percent\r\n",
-                 ranged_weapons[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
-                 GET_OBJ_VAL(item, 2));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "**Deprecated, report to staff to fix this item**\r\n"
+                                     "Type:                   %s\r\n"
+                                     "Damage:                 %d\r\n"
+                                     "Breaking Probability:   %d percent\r\n",
+                    ranged_weapons[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
+                    GET_OBJ_VAL(item, 2));
+    else
+      send_to_char(ch,
+                   "**Deprecated, report to staff to fix this item**\r\n"
+                   "Type:                   %s\r\n"
+                   "Damage:                 %d\r\n"
+                   "Breaking Probability:   %d percent\r\n",
+                   ranged_weapons[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
+                   GET_OBJ_VAL(item, 2));
     break;
 
   case ITEM_WEAPON: /* 5 */
@@ -277,6 +332,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     {
       found = TRUE;
       sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
+
       if (mode == ITEM_STAT_MODE_G_LORE)
         send_to_group(NULL, GROUP(ch), "Ability: %s Level: %d\r\n"
                                        "    Activation Methods: %s\r\n"
@@ -524,34 +580,60 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       }
     }
     if (!found)
-      send_to_char(ch, "No special abilities assigned.\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "No special abilities assigned.\r\n");
+      else
+        send_to_char(ch, "No special abilities assigned.\r\n");
+    }
 
     break;
 
   case ITEM_CONTAINER: /* 15 */
     sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof(buf));
-    send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
-                 GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
-                 YESNO(GET_OBJ_VAL(item, 3)));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
+                    GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
+                    YESNO(GET_OBJ_VAL(item, 3)));
+    else
+      send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse: %s\r\n",
+                   GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
+                   YESNO(GET_OBJ_VAL(item, 3)));
     break;
 
   case ITEM_AMMO_POUCH: /* 36 */
     sprintbit(GET_OBJ_VAL(item, 1), container_bits, buf, sizeof(buf));
-    send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
-                 GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
-                 YESNO(GET_OBJ_VAL(item, 3)));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
+                    GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
+                    YESNO(GET_OBJ_VAL(item, 3)));
+    else
+      send_to_char(ch, "Weight capacity: %d, Lock Type: %s, Key Num: %d, Corpse?: %s\r\n",
+                   GET_OBJ_VAL(item, 0), buf, GET_OBJ_VAL(item, 2),
+                   YESNO(GET_OBJ_VAL(item, 3)));
     break;
 
   case ITEM_DRINKCON: /* fallthrough */ /* 17 */
   case ITEM_FOUNTAIN:                   /* 23 */
     sprinttype(GET_OBJ_VAL(item, 2), drinks, buf, sizeof(buf));
-    send_to_char(ch, "Capacity: %d, Contains: %d, Spell: %s:%s, Liquid: %s\r\n",
-                 GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)),
-                 (GET_OBJ_VAL(item, 3) > 0) ? spell_info[GET_OBJ_VAL(item, 3)].name : "none", buf);
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Capacity: %d, Contains: %d, Spell: %s:%s, Liquid: %s\r\n",
+                    GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)),
+                    (GET_OBJ_VAL(item, 3) > 0) ? spell_info[GET_OBJ_VAL(item, 3)].name : "none", buf);
+    else
+      send_to_char(ch, "Capacity: %d, Contains: %d, Spell: %s:%s, Liquid: %s\r\n",
+                   GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), YESNO(GET_OBJ_VAL(item, 3)),
+                   (GET_OBJ_VAL(item, 3) > 0) ? spell_info[GET_OBJ_VAL(item, 3)].name : "none", buf);
     break;
 
   case ITEM_NOTE: /* 16 */
-    send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
+    else
+      send_to_char(ch, "Tongue: %d\r\n", GET_OBJ_VAL(item, 0));
     break;
 
   case ITEM_BOAT: /* 22 */
@@ -561,80 +643,161 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_FOOD: /* 19 */
-    send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+    else
+      send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
     break;
 
   case ITEM_MONEY: /* 20 */
-    send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(item, 0));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Coins: %d\r\n", GET_OBJ_VAL(item, 0));
+    else
+      send_to_char(ch, "Coins: %d\r\n", GET_OBJ_VAL(item, 0));
     break;
 
   case ITEM_PORTAL: /* 29 */
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       if (GET_OBJ_VAL(item, 0) == PORTAL_NORMAL)
-        send_to_char(ch, "Type: Normal Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Type: Normal Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+        else
+          send_to_char(ch, "Type: Normal Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      }
       else if (GET_OBJ_VAL(item, 0) == PORTAL_RANDOM)
-        send_to_char(ch, "Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2));
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2));
+        else
+          send_to_char(ch, "Type: Random Portal to range %d-%d\r\n", GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2));
+      }
       else if (GET_OBJ_VAL(item, 0) == PORTAL_CLANHALL)
-        send_to_char(ch, "Type: Clanportal (destination depends on player)\r\n");
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Type: Clanportal (destination depends on player)\r\n");
+        else
+          send_to_char(ch, "Type: Clanportal (destination depends on player)\r\n");
+      }
       else if (GET_OBJ_VAL(item, 0) == PORTAL_CHECKFLAGS)
-        send_to_char(ch, "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+        else
+          send_to_char(ch, "Type: Checkflags Portal to %d\r\n", GET_OBJ_VAL(item, 1));
+      }
     }
     break;
 
   case ITEM_FURNITURE: /* 6 */
-    send_to_char(ch, "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1));
-    send_to_char(ch, "Holding : ");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1));
+    else
+      send_to_char(ch, "Can hold: [%d] Num. of People in: [%d]\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Holding : ");
+    else
+      send_to_char(ch, "Holding : ");
+
     for (tempch = OBJ_SAT_IN_BY(item); tempch; tempch = NEXT_SITTING(tempch))
-      send_to_char(ch, "%s ", GET_NAME(tempch));
-    send_to_char(ch, "\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "%s ", GET_NAME(tempch));
+      else
+        send_to_char(ch, "%s ", GET_NAME(tempch));
+    }
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "\r\n");
+    else
+      send_to_char(ch, "\r\n");
     break;
 
   case ITEM_MISSILE: /* 14 */
     /* weapon poison */
     if (item->weapon_poison.poison)
     {
-      send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
-                   spell_info[item->weapon_poison.poison].name,
-                   item->weapon_poison.poison_level,
-                   item->weapon_poison.poison_hits);
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
+                      spell_info[item->weapon_poison.poison].name,
+                      item->weapon_poison.poison_level,
+                      item->weapon_poison.poison_hits);
+      else
+        send_to_char(ch, "Weapon Poisoned: %s, Level of Poison: %d, Applications Left: %d\r\n",
+                     spell_info[item->weapon_poison.poison].name,
+                     item->weapon_poison.poison_level,
+                     item->weapon_poison.poison_hits);
     }
-    send_to_char(ch,
-                 "Type:                   %s\r\n"
-                 "Enhancement:            %d\r\n"
-                 "Imbued with spell:      %d\r\n"
-                 "Duration left on imbue: %d hours\r\n"
-                 "Breaking Probability:   %d percent\r\n",
-                 ammo_types[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 4), GET_OBJ_VAL(item, 1),
-                 GET_OBJ_TIMER(item), GET_OBJ_VAL(item, 2));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Type:                   %s\r\n"
+                                     "Enhancement:            %d\r\n"
+                                     "Imbued with spell:      %d\r\n"
+                                     "Duration left on imbue: %d hours\r\n"
+                                     "Breaking Probability:   %d percent\r\n",
+                    ammo_types[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 4), GET_OBJ_VAL(item, 1),
+                    GET_OBJ_TIMER(item), GET_OBJ_VAL(item, 2));
+    else
+      send_to_char(ch,
+                   "Type:                   %s\r\n"
+                   "Enhancement:            %d\r\n"
+                   "Imbued with spell:      %d\r\n"
+                   "Duration left on imbue: %d hours\r\n"
+                   "Breaking Probability:   %d percent\r\n",
+                   ammo_types[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 4), GET_OBJ_VAL(item, 1),
+                   GET_OBJ_TIMER(item), GET_OBJ_VAL(item, 2));
+
     if (mode == ITEM_STAT_MODE_IMMORTAL)
+    {
       send_to_char(ch, "Missile belongs to: %ld\r\n", MISSILE_ID(item));
+    }
     break;
 
   case ITEM_SPELLBOOK: /* 28 */
-    display_spells(ch, item);
+    display_spells(ch, item, mode);
     break;
 
   case ITEM_POISON: /* 33 */
-    send_to_char(ch, "Poison:       %s\r\n", spell_name(GET_OBJ_VAL(item, 0)));
-    send_to_char(ch, "Level:        %d\r\n", GET_OBJ_VAL(item, 1));
-    send_to_char(ch, "Applications: %d\r\n", GET_OBJ_VAL(item, 2));
-    send_to_char(ch, "Hits/App:     %d\r\n", GET_OBJ_VAL(item, 3));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Poison:       %s\r\n"
+                                     "Level:        %d\r\n"
+                                     "Applications: %d\r\n"
+                                     "Hits/App:     %d\r\n",
+                    spell_name(GET_OBJ_VAL(item, 0)), GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
+    else
+      send_to_char(ch, "Poison:       %s\r\n"
+                       "Level:        %d\r\n"
+                       "Applications: %d\r\n"
+                       "Hits/App:     %d\r\n",
+                   spell_name(GET_OBJ_VAL(item, 0)), GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
     break;
 
   case ITEM_WORN: /* 11 */
     /* monk glove */
     if (CAN_WEAR(item, ITEM_WEAR_HANDS) && GET_OBJ_VAL(item, 0))
-      send_to_char(ch, "Monk Glove Enchantment: %d\r\n", GET_OBJ_VAL(item, 0));
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Monk Glove Enchantment: %d\r\n", GET_OBJ_VAL(item, 0));
+      else
+        send_to_char(ch, "Monk Glove Enchantment: %d\r\n", GET_OBJ_VAL(item, 0));
+    }
     /* default */
     else
     {
-      send_to_char(ch, "Wearable item.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Wearable item.\r\n");
+      else
+        send_to_char(ch, "Wearable item.\r\n");
     }
     break;
 
   case ITEM_CRYSTAL: /* 25 */
-    send_to_char(ch, "Arcanite crafting crystal - can be used in crafting.\r\n");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Arcanite crafting crystal - can be used in crafting.\r\n");
+    else
+      send_to_char(ch, "Arcanite crafting crystal - can be used in crafting.\r\n");
     break;
 
   case ITEM_TREASURE: /* 8 */
@@ -670,29 +833,60 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     /* Special abilities*/
     found = FALSE;
-    send_to_char(ch, "Special Abilities:\r\n");
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Special Abilities:\r\n");
+    else
+      send_to_char(ch, "Special Abilities:\r\n");
+
     for (specab = item->special_abilities; specab != NULL; specab = specab->next)
     {
+
       found = TRUE;
       sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
-      send_to_char(ch, "Ability: %s Level: %d\r\n"
-                       "    Activation Methods: %s\r\n"
-                       "    CommandWord: %s\r\n"
-                       "    Values: [%d] [%d] [%d] [%d]\r\n",
-                   special_ability_info[specab->ability].name,
-                   specab->level, actmtds,
-                   (specab->command_word == NULL ? "Not set." : specab->command_word),
-                   specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Ability: %s Level: %d\r\n"
+                                       "    Activation Methods: %s\r\n"
+                                       "    CommandWord: %s\r\n"
+                                       "    Values: [%d] [%d] [%d] [%d]\r\n",
+                      special_ability_info[specab->ability].name,
+                      specab->level, actmtds,
+                      (specab->command_word == NULL ? "Not set." : specab->command_word),
+                      specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      else
+        send_to_char(ch, "Ability: %s Level: %d\r\n"
+                         "    Activation Methods: %s\r\n"
+                         "    CommandWord: %s\r\n"
+                         "    Values: [%d] [%d] [%d] [%d]\r\n",
+                     special_ability_info[specab->ability].name,
+                     specab->level, actmtds,
+                     (specab->command_word == NULL ? "Not set." : specab->command_word),
+                     specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
 
       if (specab->ability == WEAPON_SPECAB_BANE)
       {
-        send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        else
+          send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+
         if (specab->value[1])
-          send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        {
+          if (mode == ITEM_STAT_MODE_G_LORE)
+            send_to_group(NULL, GROUP(ch), "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+          else
+            send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        }
       }
     }
     if (!found)
-      send_to_char(ch, "No special abilities assigned.\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "No special abilities assigned.\r\n");
+      else
+        send_to_char(ch, "No special abilities assigned.\r\n");
+    }
 
     break;
 
@@ -700,36 +894,74 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_INSTRUMENT: /* 38 */
-    send_to_char(ch, "Instrument class: %s\r\n", instrument_names[GET_OBJ_VAL(item, 0)]);
-    send_to_char(ch, "Difficulty:       %d\r\n", GET_OBJ_VAL(item, 1));
-    send_to_char(ch, "Level:            %d\r\n", GET_OBJ_VAL(item, 2));
-    send_to_char(ch, "Breakability:     %d\r\n", GET_OBJ_VAL(item, 3));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Instrument class: %s\r\n"
+                                     "Difficulty:       %d\r\n"
+                                     "Level:            %d\r\n"
+                                     "Breakability:     %d\r\n",
+                    instrument_names[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
+    else
+      send_to_char(ch, "Instrument class: %s\r\n"
+                       "Difficulty:       %d\r\n"
+                       "Level:            %d\r\n"
+                       "Breakability:     %d\r\n",
+                   instrument_names[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1), GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
 
     /* Special abilities*/
     found = FALSE;
-    send_to_char(ch, "Special Abilities:\r\n");
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Special Abilities:\r\n");
+    else
+      send_to_char(ch, "Special Abilities:\r\n");
+
     for (specab = item->special_abilities; specab != NULL; specab = specab->next)
     {
       found = TRUE;
       sprintbit(specab->activation_method, activation_methods, actmtds, MAX_STRING_LENGTH);
-      send_to_char(ch, "Ability: %s Level: %d\r\n"
-                       "    Activation Methods: %s\r\n"
-                       "    CommandWord: %s\r\n"
-                       "    Values: [%d] [%d] [%d] [%d]\r\n",
-                   special_ability_info[specab->ability].name,
-                   specab->level, actmtds,
-                   (specab->command_word == NULL ? "Not set." : specab->command_word),
-                   specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Ability: %s Level: %d\r\n"
+                                       "    Activation Methods: %s\r\n"
+                                       "    CommandWord: %s\r\n"
+                                       "    Values: [%d] [%d] [%d] [%d]\r\n",
+                      special_ability_info[specab->ability].name,
+                      specab->level, actmtds,
+                      (specab->command_word == NULL ? "Not set." : specab->command_word),
+                      specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
+      else
+        send_to_char(ch, "Ability: %s Level: %d\r\n"
+                         "    Activation Methods: %s\r\n"
+                         "    CommandWord: %s\r\n"
+                         "    Values: [%d] [%d] [%d] [%d]\r\n",
+                     special_ability_info[specab->ability].name,
+                     specab->level, actmtds,
+                     (specab->command_word == NULL ? "Not set." : specab->command_word),
+                     specab->value[0], specab->value[1], specab->value[2], specab->value[3]);
 
       if (specab->ability == WEAPON_SPECAB_BANE)
       {
-        send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+        else
+          send_to_char(ch, "Bane Race: %s.\r\n", race_family_types[specab->value[0]]);
+
         if (specab->value[1])
-          send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        {
+          if (mode == ITEM_STAT_MODE_G_LORE)
+            send_to_group(NULL, GROUP(ch), "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+          else
+            send_to_char(ch, "Bane Subrace: %s.\r\n", npc_subrace_types[specab->value[1]]);
+        }
       }
     }
     if (!found)
-      send_to_char(ch, "No special abilities assigned.\r\n");
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "No special abilities assigned.\r\n");
+      else
+        send_to_char(ch, "No special abilities assigned.\r\n");
+    }
 
   case ITEM_DISGUISE: /* 39 */
     break;
@@ -739,7 +971,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     if (GET_OBJ_VAL(item, WALL_TYPE) >= NUM_WALL_TYPES ||
         GET_OBJ_VAL(item, WALL_TYPE) < 0)
     {
-      send_to_char(ch, "Invalid wall type, let staff know please.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Invalid wall type, let staff know please.\r\n");
+      else
+        send_to_char(ch, "Invalid wall type, let staff know please.\r\n");
       break;
     }
 
@@ -768,17 +1003,32 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       found_player = TRUE;
     }
 
-    send_to_char(ch, "Wall Type:                  %s\r\n", wall_sname);
-    send_to_char(ch, "Stops movement? :           %s\r\n", wall_stopmove ? "yes" : "no");
-    send_to_char(ch, "Direction wall is blocking: %s\r\n", dirs[GET_OBJ_VAL(item, WALL_DIR)]);
-    send_to_char(ch, "Level:                      %d\r\n", wall_level);
-    /* duration = 0 is default:  */
-    send_to_char(ch, "Duration:                   %d\r\n", wall_duration ? wall_duration : 1 + wall_level / 10);
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Wall Type:                  %s\r\n"
+                                     "Stops movement? :           %s\r\n"
+                                     "Direction wall is blocking: %s\r\n"
+                                     "Level:                      %d\r\n"
+                                     /* duration = 0 is default:  */
+                                     "Duration:                   %d\r\n",
+                    wall_sname, wall_stopmove ? "yes" : "no", dirs[GET_OBJ_VAL(item, WALL_DIR)],
+                    wall_level, wall_duration ? wall_duration : 1 + wall_level / 10);
+    else
+      send_to_char(ch, "Wall Type:                  %s\r\n"
+                       "Stops movement? :           %s\r\n"
+                       "Direction wall is blocking: %s\r\n"
+                       "Level:                      %d\r\n"
+                       /* duration = 0 is default:  */
+                       "Duration:                   %d\r\n",
+                   wall_sname, wall_stopmove ? "yes" : "no", dirs[GET_OBJ_VAL(item, WALL_DIR)],
+                   wall_level, wall_duration ? wall_duration : 1 + wall_level / 10);
 
     /* if we found the player, we can also check if this victim is a friend! */
     if (found_player && !aoeOK(wall_creator, ch, wall_spellnum))
     {
-      send_to_char(ch, "*An ally created this wall, you can pass it safely.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "*An ally created this wall, you can pass it safely.\r\n");
+      else
+        send_to_char(ch, "*An ally created this wall, you can pass it safely.\r\n");
     }
 
     break;
@@ -804,19 +1054,27 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     if (!pet)
     {
-      send_to_char(ch, "Broken item, let staff know!\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Broken item, let staff know!\r\n");
+      else
+        send_to_char(ch, "Broken item, let staff know!\r\n");
     }
     else
     {
       char_to_room(pet, 0);
-      send_to_char(ch, "When bought, makes follower: %s\r\n", GET_NAME(pet));
+
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "When bought, makes follower: %s\r\n", GET_NAME(pet));
+      else
+        send_to_char(ch, "When bought, makes follower: %s\r\n", GET_NAME(pet));
+
       extract_char(pet);
     }
 
     break;
 
   case ITEM_BLUEPRINT: /* 47 */
-    show_craft(ch, get_craft_from_id(GET_OBJ_VAL(item, 0)));
+    show_craft(ch, get_craft_from_id(GET_OBJ_VAL(item, 0)), mode);
     break;
 
   case ITEM_TREASURE_CHEST: /* 48 */
@@ -825,30 +1083,62 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
         Generic has equal chance for any type.  Gold provides 5x as much money. */
     switch (LOOTBOX_TYPE(item))
     {
+
     case LOOTBOX_TYPE_GENERIC:
-      send_to_char(ch, "Generic treasure, equal chance for all item types.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Generic treasure, equal chance for all item types.\r\n");
+      else
+        send_to_char(ch, "Generic treasure, equal chance for all item types.\r\n");
       break;
+
     case LOOTBOX_TYPE_WEAPON:
-      send_to_char(ch, "Treasure: Weapons, guaranteed weapon, low chance for other items.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure: Weapons, guaranteed weapon, low chance for other items.\r\n");
+      else
+        send_to_char(ch, "Treasure: Weapons, guaranteed weapon, low chance for other items.\r\n");
       break;
+
     case LOOTBOX_TYPE_ARMOR:
-      send_to_char(ch, "Treasure: Armor, guaranteed armor, low chance for other items.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure: Armor, guaranteed armor, low chance for other items.\r\n");
+      else
+        send_to_char(ch, "Treasure: Armor, guaranteed armor, low chance for other items.\r\n");
       break;
+
     case LOOTBOX_TYPE_CONSUMABLE:
-      send_to_char(ch, "Treasure: Consumables, guaranteed at least one consumable, low chance for other items.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure: Consumables, guaranteed at least one consumable, low chance for other items.\r\n");
+      else
+        send_to_char(ch, "Treasure: Consumables, guaranteed at least one consumable, low chance for other items.\r\n");
       break;
+
     case LOOTBOX_TYPE_TRINKET:
-      send_to_char(ch, "Treasure: Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure: Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n");
+      else
+        send_to_char(ch, "Treasure: Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n");
       break;
+
     case LOOTBOX_TYPE_GOLD:
-      send_to_char(ch, "Treasure: Gold, much more gold, low chance for other items.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure: Gold, much more gold, low chance for other items.\r\n");
+      else
+        send_to_char(ch, "Treasure: Gold, much more gold, low chance for other items.\r\n");
       break;
+
     case LOOTBOX_TYPE_CRYSTAL:
-      send_to_char(ch, "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+      else
+        send_to_char(ch, "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
       break;
-    case LOOTBOX_TYPE_UNDEFINED:
+
+    case LOOTBOX_TYPE_UNDEFINED: /*fallthrough*/
     default:
-      send_to_char(ch, "Treasure type is broken, let staff know please.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure type is broken, let staff know please.\r\n");
+      else
+        send_to_char(ch, "Treasure type is broken, let staff know please.\r\n");
       break;
     }
 
@@ -856,32 +1146,53 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     switch (LOOTBOX_LEVEL(item))
     {
     case LOOTBOX_LEVEL_MUNDANE:
-      send_to_char(ch, "Grade: Mundane\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Grade: Mundane\r\n");
+      else
+        send_to_char(ch, "Grade: Mundane\r\n");
       break;
 
     case LOOTBOX_LEVEL_MINOR:
-      send_to_char(ch, "Grade: Minor (level 10 or less)\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Grade: Minor (level 10 or less)\r\n");
+      else
+        send_to_char(ch, "Grade: Minor (level 10 or less)\r\n");
       break;
 
     case LOOTBOX_LEVEL_TYPICAL:
-      send_to_char(ch, "Grade: Typical(level 15 or less)\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Grade: Typical(level 15 or less)\r\n");
+      else
+        send_to_char(ch, "Grade: Typical(level 15 or less)\r\n");
       break;
 
     case LOOTBOX_LEVEL_MEDIUM:
-      send_to_char(ch, "Grade: Medium (level 20 or less)\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Grade: Medium (level 20 or less)\r\n");
+      else
+        send_to_char(ch, "Grade: Medium (level 20 or less)\r\n");
       break;
 
     case LOOTBOX_LEVEL_MAJOR:
-      send_to_char(ch, "Grade: Major (level 25 or less)\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Grade: Major (level 25 or less)\r\n");
+      else
+        send_to_char(ch, "Grade: Major (level 25 or less)\r\n");
       break;
 
     case LOOTBOX_LEVEL_SUPERIOR:
-      send_to_char(ch, "Grade: Superior (level 26 or higher)\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Grade: Superior (level 26 or higher)\r\n");
+      else
+        send_to_char(ch, "Grade: Superior (level 26 or higher)\r\n");
       break;
 
-    case LOOTBOX_TYPE_UNDEFINED:
+    case LOOTBOX_TYPE_UNDEFINED: /*fallthrough*/
     default:
-      send_to_char(ch, "Treasure grade is broken, let staff know please.\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Treasure grade is broken, let staff know please.\r\n");
+      else
+        send_to_char(ch, "Treasure grade is broken, let staff know please.\r\n");
       break;
     }
 
@@ -891,20 +1202,33 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     break;
 
   case ITEM_WEAPON_OIL: /* 50 */
-    send_to_char(ch, "\tCSpecial Feature: Adds '\tn%s\tC' to a weapon with 'applyoil' command\tn\r\n",
-                 special_ability_info[GET_OBJ_VAL(item, 0)].name);
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "\tCSpecial Feature: Adds '\tn%s\tC' to a weapon with 'applyoil' command\tn\r\n",
+                    special_ability_info[GET_OBJ_VAL(item, 0)].name);
+    else
+
+      send_to_char(ch, "\tCSpecial Feature: Adds '\tn%s\tC' to a weapon with 'applyoil' command\tn\r\n",
+                   special_ability_info[GET_OBJ_VAL(item, 0)].name);
     break;
 
   case ITEM_GEAR_OUTFIT:
-    send_to_char(ch, "Outfit Crate Type: %s\r\n", GET_OBJ_VAL(item, OUTFIT_VAL_TYPE) == OUTFIT_TYPE_WEAPON ? "Weapons" : "Full Armor Set/Shield");
-    send_to_char(ch, "Enhancement Bonus: %d\r\n", GET_OBJ_VAL(item, OUTFIT_VAL_BONUS));
-    send_to_char(ch, "Object Material: %s\r\n", material_name[GET_OBJ_VAL(item, OUTFIT_VAL_MATERIAL)]);
-    send_to_char(ch, "Object Bonus Affects: +%d to %s (%s)\r\n", GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_MOD), apply_types[GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_LOC)],
+    send_to_char(ch, "Outfit Crate Type: %s\r\n"
+                     "Enhancement Bonus: %d\r\n"
+                     "Object Material: %s\r\n"
+                     "Object Bonus Affects: +%d to %s (%s)\r\n",
+                 GET_OBJ_VAL(item, OUTFIT_VAL_TYPE) == OUTFIT_TYPE_WEAPON ? "Weapons" : "Full Armor Set/Shield",
+                 GET_OBJ_VAL(item, OUTFIT_VAL_BONUS),
+                 material_name[GET_OBJ_VAL(item, OUTFIT_VAL_MATERIAL)],
+                 GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_MOD),
+                 apply_types[GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_LOC)],
                  bonus_types[GET_OBJ_VAL(item, OUTFIT_VAL_APPLY_BONUS)]);
     break;
 
   default:
-    send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Report this item to a coder to add the ITEM_type\r\n");
+    else
+      send_to_char(ch, "Report this item to a coder to add the ITEM_type\r\n");
     break;
   }
 
@@ -924,15 +1248,25 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     ; // send_to_char(ch, "No weapon spells on this weapon!\r\n");
   else
   {
-    send_to_char(ch, "Gear Spells:\r\n");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Gear Spells:\r\n");
+    else
+      send_to_char(ch, "Gear Spells:\r\n");
+
     for (i = 0; i < MAX_WEAPON_SPELLS; i++)
     { /* increment this weapons spells */
       if (GET_WEAPON_SPELL(item, i))
       {
-        send_to_char(ch, "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
-                     spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
-                     GET_WEAPON_SPELL_PCT(item, i),
-                     GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No");
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                        spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
+                        GET_WEAPON_SPELL_PCT(item, i),
+                        GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No");
+        else
+          send_to_char(ch, "Spell: %s, Level: %d, Percent: %d, Procs in combat?: %s\r\n",
+                       spell_info[GET_WEAPON_SPELL(item, i)].name, GET_WEAPON_SPELL_LVL(item, i),
+                       GET_WEAPON_SPELL_PCT(item, i),
+                       GET_WEAPON_SPELL_AGG(item, i) ? "Yes" : "No");
       }
     }
   }
@@ -943,13 +1277,19 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     name = obj_index[GET_OBJ_RNUM(item)].func;
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
-      send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Special Procedure 'identify' tag:\r\n");
+      else
+        send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
       if (name)
         (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
     }
     else
     {
-      send_to_char(ch, "Special 'identify' tag:\r\n");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "Special 'identify' tag:\r\n");
+      else
+        send_to_char(ch, "Special 'identify' tag:\r\n");
       if (name)
         (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
     }

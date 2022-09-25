@@ -381,6 +381,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"goodlance", "goodlance", POS_STANDING, do_goodlance, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"goodtouch", "goodtouch", POS_STANDING, do_goodtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"guimode", "guimode", POS_DEAD, do_gen_tog, 1, SCMD_GUI_MODE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"glore", "glore", POS_RESTING, do_glore, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

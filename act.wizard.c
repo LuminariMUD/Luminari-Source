@@ -3523,7 +3523,7 @@ ACMD(do_show)
     if (!*value)
       list_all_crafts(ch);
     else
-      show_craft(ch, get_craft_from_arg(value));
+      show_craft(ch, get_craft_from_arg(value), 0);
     break;
 
     /* show todo */
