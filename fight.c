@@ -3284,6 +3284,9 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   if (HAS_FEAT(ch, FEAT_SHRUG_DAMAGE))
     damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE);
 
+  if (FIGHTING(ch) && affected_by_spell(ch, SKILL_RAGE) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
+    damage_reduction += 3;
+
   if (affected_by_spell(ch, SPELL_EPIC_MAGE_ARMOR))
     damage_reduction += 6;
 
@@ -8906,6 +8909,13 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   {
     bonus_mainhand_attacks += GET_LEVEL(ch) - 30;
     attacks_at_max_bab += GET_LEVEL(ch) - 30;
+  }
+
+  /* raging critical bonus attack */
+  if (affected_by_spell(ch, SKILL_RAGE) && HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY))
+  {
+    bonus_mainhand_attacks++;
+    attacks_at_max_bab++;
   }
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */

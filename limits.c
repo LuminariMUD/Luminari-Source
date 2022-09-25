@@ -43,7 +43,7 @@ bool death_check(struct char_data *ch)
 
   if (HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY) && affected_by_spell(ch, SKILL_RAGE))
   {
-    if (GET_HIT(ch) <= -121)
+    if (GET_HIT(ch) <= -(GET_MAX_HIT(ch) / 2))
     {
       damage(ch, ch, 999, TYPE_UNDEFINED, DAM_FORCE, FALSE);
       return TRUE; // dead for sure now!
@@ -404,14 +404,21 @@ int regen_hps(struct char_data *ch)
   {
     if (!((IN_SUNLIGHT(ch)) || (IN_MOVING_WATER(ch))))
       hp += 5;
+    if (FIGHTING(ch))
+      hp += 3;
   }
 
   // half-troll racial innate regeneration
-  if (GET_RACE(ch) == RACE_HALF_TROLL)
+  if (HAS_FEAT(ch, FEAT_TROLL_REGENERATION))
   {
     hp += 3;
     if (FIGHTING(ch))
       hp += 3;
+  }
+
+  if (FIGHTING(ch) && affected_by_spell(ch, SKILL_RAGE) && HAS_FEAT(ch, FEAT_DEATHLESS_FRENZY))
+  {
+    hp += 3;
   }
 
   if (affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) && HAS_FEAT(ch, FEAT_RENEWED_DEFENSE))
@@ -1836,7 +1843,7 @@ void update_damage_and_effects_over_time(void)
       else
       {
         struct affected_type af, af2;
-        
+
         new_affect(&af2);
         af2.spell = ABILITY_BLOOD_DRAIN;
         af2.location = APPLY_SPECIAL;
@@ -1873,7 +1880,7 @@ void update_damage_and_effects_over_time(void)
       }
     }
 
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT && 
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
         !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
     {
       if (IN_SUNLIGHT(ch) && !is_covered(ch))

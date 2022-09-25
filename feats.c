@@ -3278,10 +3278,10 @@ void assign_feats(void)
         "+6 to strength, constitution, and will-saves when raging");
   feato(FEAT_MIGHTY_RAGE, "mighty rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "+9 to str, con and will when raging",
-        "+9 to strength, constitution, and will-saves when raging");
+        "+9 to strength, constitution, and will-saves when raging...  Will also give 3 DR while in combat raging");
   feato(FEAT_INDOMITABLE_RAGE, "indomitable rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "+12 to str, con and will when raging",
-        "+12 to strength, constitution, and will-saves when raging");
+        "+12 to strength, constitution, and will-saves when raging...  Will also give a bonus to hitroll and damroll");
   feato(FEAT_TIRELESS_RAGE, "tireless rage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "no fatigue after raging",
         "no fatigue after raging");
@@ -3322,7 +3322,7 @@ void assign_feats(void)
                  "your criticals knock over opponents while raging",
                  "While raging, on successful criticals, against opponents that are standing, and not too "
                  "much larger or smaller than you, your powerful critical attacks will knock "
-                 "them down.");
+                 "them down.  Will also give an extra attack in combat while raging");
   /*epic*/ feato(FEAT_EATER_OF_MAGIC, "eater of magic", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "successful saving throws will heal rager",
                  "While raging, if the rager makes a successful saving throw, they recover "
@@ -3332,7 +3332,7 @@ void assign_feats(void)
                  "While raging, you will gain a 15 bonus to all your resistances.");
   /*epic*/ feato(FEAT_DEATHLESS_FRENZY, "deathless frenzy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
                  "the rager is nearly unstoppable",
-                 "While raging, you have to be brought to -121 or lower to be stopped.");
+                 "While raging, you have to be brought to half max hit or lower to be stopped and regens faster in combat.");
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 

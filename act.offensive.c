@@ -37,7 +37,7 @@
 #include "spec_procs.h" /* for is_wearing() */
 
 /* defines */
-#define RAGE_AFFECTS 5
+#define RAGE_AFFECTS 7
 #define SACRED_FLAMES_AFFECTS 1
 #define INNER_FIRE_AFFECTS 6
 #define D_STANCE_AFFECTS 4
@@ -2425,7 +2425,18 @@ ACMD(do_rage)
 
   af[4].location = APPLY_HIT;
   af[4].modifier = bonus * 2;
-  af[4].bonus_type = BONUS_TYPE_MORALE;
+
+  /* hit/damroll bonuses */
+  bonus = 1;
+  if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_INDOMITABLE_RAGE))
+    bonus += 3;
+
+  af[5].location = APPLY_HITROLL;
+  af[5].modifier = bonus;
+
+  af[5].location = APPLY_DAMROLL;
+  af[5].modifier = bonus;
+  /******/
 
   for (i = 0; i < RAGE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
@@ -8298,7 +8309,7 @@ ACMD(do_children_of_the_night)
 {
   PREREQ_CHECK(can_children_of_the_night);
   PREREQ_HAS_USES(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "You must recover before you can call your children of the night.\r\n");
-  
+
   if (!CAN_USE_VAMPIRE_ABILITY(ch))
   {
     send_to_char(ch, "You cannot use your vampiric abilities when in sunlight or moving water.\r\n");
@@ -8317,14 +8328,17 @@ void perform_children_of_the_night(struct char_data *ch)
   act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0, TO_CHAR);
 
   call_magic(ch, ch, 0, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, 0, GET_LEVEL(ch), CAST_INNATE);
-
 }
 
 ACMDCHECK(can_create_vampire_spawn)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CREATE_SPAWN, "You have no idea how.\r\n");
-  if (HAS_PET_VAMPIRE_SPAWN(ch)) { send_to_char(ch, "You have already created vampiric spawn.\r\n"); return 0; }
-  
+  if (HAS_PET_VAMPIRE_SPAWN(ch))
+  {
+    send_to_char(ch, "You have already created vampiric spawn.\r\n");
+    return 0;
+  }
+
   return CAN_CMD;
 }
 
@@ -8339,7 +8353,7 @@ ACMDU(do_create_vampire_spawn)
   }
 
   struct obj_data *obj = NULL;
-  
+
   skip_spaces(&argument);
 
   if (!*argument)
@@ -8374,7 +8388,7 @@ ACMDU(do_create_vampire_spawn)
 ACMDCHECK(can_vampiric_gaseous_form)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_GASEOUS_FORM, "You have no idea how.\r\n");
-  
+
   return CAN_CMD;
 }
 
@@ -8397,7 +8411,7 @@ ACMD(do_vampiric_gaseous_form)
 ACMDCHECK(can_vampiric_shape_change)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CHANGE_SHAPE, "You have no idea how.\r\n");
-  
+
   return CAN_CMD;
 }
 
@@ -8430,13 +8444,12 @@ ACMDU(do_vampiric_shape_change)
   /* act.other.c, part of druid wildshape engine, the value "2" notifies the
       the function that this is the vampiric change shape ability */
   wildshape_engine(ch, argument, 2);
-
 }
 
 ACMDCHECK(can_vampiric_dominate)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_DOMINATE, "You have no idea how.\r\n");
-  
+
   return CAN_CMD;
 }
 
