@@ -3242,7 +3242,7 @@
 #define MAX_DAM_BONUS 120
 #define MAX_AC 60      /* this is now CONFIG_PLAYER_AC_CAP */
 #define MAX_CONCEAL 50 // its percentage
-#define MAX_DAM_REDUC 20
+#define MAX_DAM_REDUC 25
 #define MAX_ENERGY_ABSORB 20
 /* NOTE: oasis.h has a maximum value for weapon dice, this is diffrent */
 /* 2nd NOTE:  Hard-coded weapon dice caps in db.c */
