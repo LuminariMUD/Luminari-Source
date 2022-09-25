@@ -3670,7 +3670,7 @@ void assign_feats(void)
               "As a swift action, the stalwart defender heals 1d8 points of damage + his "
               "Constitution modifier + 10. For every two levels the stalwart defender "
               "has attained above 2nd, this healing increases by 1d8.  This power "
-              "can be used only once per day and only while in a defensive stance.");
+              "can be used only once per day and only while in a defensive stance.  This feat also gives a high regen rate while fighting during defensive stance.");
   /*9*/ feato(FEAT_MOBILE_DEFENSE, "mobile defense", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "Allows one to move while in defensive stance",
               "A stalwart defender can adjust his position while maintaining a defensive "
