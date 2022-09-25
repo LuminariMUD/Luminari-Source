@@ -1278,7 +1278,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "Special Procedure 'identify' tag:\r\n");
+        ;
       else
         send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
       if (name)
@@ -1287,9 +1287,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     else
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "Special 'identify' tag:\r\n");
+        ;
       else
         send_to_char(ch, "Special 'identify' tag:\r\n");
+
       if (name)
         (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
     }
@@ -1307,7 +1308,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   int line_length = 80;
 
   if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "\tc----------Object Information---------------\tn");
+    ;
   else
     text_line(ch, "\tcObject Information\tn", line_length, '-', '-');
 
@@ -1346,7 +1347,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
 
   /* display description information */
   if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "\tc--------------Description Information--------------\tn");
+    ;
   else
     text_line(ch, "\tcDescription Information\tn", line_length, '-', '-');
 
@@ -1379,7 +1380,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
 
   /* various variables */
   if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "\tc------------------Various Variables--------------\tn");
+    ;
   else
     text_line(ch, "\tcVarious Variables\tn", line_length, '-', '-');
 
@@ -1435,7 +1436,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   /* flags */
 
   if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "\tcObject Bits / Affections\tn");
+    ;
   else
     text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
 
@@ -1461,7 +1462,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   found = FALSE;
 
   if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "Affections:");
+    send_to_group(NULL, GROUP(ch), "Affections:\r\n");
   else
     send_to_char(ch, "Affections:");
 
@@ -1477,7 +1478,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
           feat_num = FEAT_UNDEFINED;
 
         if (mode == ITEM_STAT_MODE_G_LORE)
-          send_to_group(NULL, GROUP(ch), "%s %s:(%d) %s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
+          send_to_group(NULL, GROUP(ch), "%s %s:(%d) %s (%s)\r\n", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
         else
           send_to_char(ch, "%s %s:(%d) %s (%s)", found++ ? "," : "", buf, j->affected[i].modifier, feat_list[feat_num].name, bonus_types[j->affected[i].bonus_type]);
       }
@@ -1488,7 +1489,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
           feat_num = ABILITY_UNDEFINED;
 
         if (mode == ITEM_STAT_MODE_G_LORE)
-          send_to_group(NULL, GROUP(ch), "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
+          send_to_group(NULL, GROUP(ch), "%s %s:(%s%d) %s (%s)\r\n", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
                         j->affected[i].modifier, ability_names[feat_num], bonus_types[j->affected[i].bonus_type]);
         else
           send_to_char(ch, "%s %s:(%s%d) %s (%s)", found++ ? "," : "", buf, (j->affected[i].modifier >= 0) ? "+" : "",
@@ -1497,7 +1498,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
       else
       {
         if (mode == ITEM_STAT_MODE_G_LORE)
-          send_to_group(NULL, GROUP(ch), "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
+          send_to_group(NULL, GROUP(ch), "%s %+d to %s (%s)\r\n", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
         else
           send_to_char(ch, "%s %+d to %s (%s)", found++ ? "," : "", j->affected[i].modifier, buf, bonus_types[j->affected[i].bonus_type]);
       }
@@ -1562,8 +1563,6 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
 
   if (mode == ITEM_STAT_MODE_G_LORE)
   {
-    send_to_group(NULL, GROUP(ch), "=====================================================================");
-    send_to_group(NULL, GROUP(ch), "=====================================================================");
     send_to_group(NULL, GROUP(ch), "=====================================================================");
   }
   else
