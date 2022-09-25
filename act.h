@@ -712,6 +712,7 @@ ACMD_DECL(do_purify);
 ACMD_DECL(do_happyhour);
 ACMD_DECL(do_hide);
 ACMD_DECL(do_lore);
+ACMD_DECL(do_glore);
 ACMD_DECL(do_not_here);
 ACMD_DECL(do_practice);
 ACMD_DECL(do_report);

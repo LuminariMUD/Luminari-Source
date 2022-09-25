@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Crafts System                                                           
-/  Created By: Created by Vatiken, (Joseph Arnusch)                                                           
-\              installed by Ornir                                               
-/  Header file: crafts.h                                                           
-\  Created: June 21st, 2012                                                          
-/                                                                                                                                                                                       
+\
+/  Luminari Crafts System
+/  Created By: Created by Vatiken, (Joseph Arnusch)
+\              installed by Ornir
+/  Header file: crafts.h
+\  Created: June 21st, 2012
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
@@ -24,6 +24,7 @@
 #include "spells.h"
 #include "mud_event.h"
 #include "crafts.h"
+#include "item.h"
 
 /* Statics */
 static void craftedit_disp_menu(struct descriptor_data *d);
@@ -494,7 +495,7 @@ void list_available_crafts(struct char_data *ch)
     send_to_char(ch, "\r\n%sAll Requirement Met    %sMissing Requirements%s\r\n", CCGRN(ch, C_NRM), CCRED(ch, C_NRM), CCNRM(ch, C_NRM));
 }
 
-void show_craft(struct char_data *ch, struct craft_data *craft)
+void show_craft(struct char_data *ch, struct craft_data *craft, int mode)
 {
   struct requirement_data *req;
   obj_rnum rnum;
@@ -504,35 +505,86 @@ void show_craft(struct char_data *ch, struct craft_data *craft)
 
   if (!IS_SET(CRAFT_FLAGS(craft), CRAFT_RECIPE))
   {
-    send_to_char(ch, "Craft: %s, (%d)\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Craft: %s, (%d)\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
+    else
+      send_to_char(ch, "Craft: %s, (%d)\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
+
     rnum = real_object(CRAFT_OBJVNUM(craft));
-    send_to_char(ch, "Makes: %s!\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
-    send_to_char(ch, "Time: %d\r\n", CRAFT_TIMER(craft));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Makes: %s!\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+    else
+      send_to_char(ch, "Makes: %s!\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Time: %d\r\n", CRAFT_TIMER(craft));
+    else
+      send_to_char(ch, "Time: %d\r\n", CRAFT_TIMER(craft));
 
     while ((req = (struct requirement_data *)simple_list(craft->requirements)) != NULL)
     {
       if ((rnum = real_object(req->req_vnum)) == NOWHERE)
-        send_to_char(ch, "Req: NO OBJECT! ");
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Req: NO OBJECT! ");
+        else
+          send_to_char(ch, "Req: NO OBJECT! ");
+      }
       else
-        send_to_char(ch, "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description, req->req_amount, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description, req->req_amount, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
+        else
+          send_to_char(ch, "Req: %-14s (%-2d) %s ", obj_proto[rnum].short_description, req->req_amount, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "In Room" : "In Inventory");
+      }
 
-      send_to_char(ch, "%s\r\n", IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "%s\r\n", IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
+      else
+        send_to_char(ch, "%s\r\n", IS_SET(req->req_flags, REQ_FLAG_NO_REMOVE) ? "No Remove" : "Remove");
     }
   }
   else
   {
-    send_to_char(ch, "Item: %-14s   Print Id: %d\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
-    rnum = real_object(CRAFT_OBJVNUM(craft));
-    send_to_char(ch, "These prints display in detail the how-to of creating %s.\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
-    send_to_char(ch, "Judging by the difficulty, you estimate that will take about %d seconds.\r\n", CRAFT_TIMER(craft));
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Item: %-14s   Print Id: %d\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
+    else
+      send_to_char(ch, "Item: %-14s   Print Id: %d\r\n", CRAFT_NAME(craft), CRAFT_ID(craft));
 
-    send_to_char(ch, "Gazing at the requirements list, you envision what you need:\r\n");
+    rnum = real_object(CRAFT_OBJVNUM(craft));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "These prints display in detail the how-to of creating %s.\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+    else
+      send_to_char(ch, "These prints display in detail the how-to of creating %s.\r\n", rnum == NOTHING ? "Nothing" : obj_proto[rnum].short_description);
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Judging by the difficulty, you estimate that will take about %d seconds.\r\n", CRAFT_TIMER(craft));
+    else
+      send_to_char(ch, "Judging by the difficulty, you estimate that will take about %d seconds.\r\n", CRAFT_TIMER(craft));
+
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Gazing at the requirements list, you envision what you need:\r\n");
+    else
+      send_to_char(ch, "Gazing at the requirements list, you envision what you need:\r\n");
+
     while ((req = (struct requirement_data *)simple_list(craft->requirements)) != NULL)
     {
       if ((rnum = real_object(req->req_vnum)) == NOWHERE)
-        send_to_char(ch, "Req: NO OBJECT! ");
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "Req: NO OBJECT! ");
+        else
+          send_to_char(ch, "Req: NO OBJECT! ");
+      }
       else
-        send_to_char(ch, "  %d, %s %s.\r\n", req->req_amount, obj_proto[rnum].short_description, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room" : "in your possession");
+      {
+        if (mode == ITEM_STAT_MODE_G_LORE)
+          send_to_group(NULL, GROUP(ch), "  %d, %s %s.\r\n", req->req_amount, obj_proto[rnum].short_description, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room" : "in your possession");
+        else
+          send_to_char(ch, "  %d, %s %s.\r\n", req->req_amount, obj_proto[rnum].short_description, IS_SET(req->req_flags, REQ_FLAG_IN_ROOM) ? "in the room" : "in your possession");
+      }
     }
   }
 }

@@ -431,7 +431,7 @@ void show_obj_to_char(struct obj_data *obj, struct char_data *ch, int mode, int 
       send_to_char(ch, "It looks like a drink container.");
       break;
     case ITEM_BLUEPRINT:
-      show_craft(ch, get_craft_from_id(GET_OBJ_VAL(obj, 0)));
+      show_craft(ch, get_craft_from_id(GET_OBJ_VAL(obj, 0)), 0);
       break;
     default:
       send_to_char(ch, "You see nothing special..");
@@ -1427,7 +1427,10 @@ static void look_in_obj(struct char_data *ch, char *arg)
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
   {
-    display_spells(ch, obj);
+    if (GET_LEVEL(ch) < LVL_IMMORT)
+      display_spells(ch, obj, 0);
+    else
+      display_spells(ch, obj, 0);
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_SCROLL)
   {

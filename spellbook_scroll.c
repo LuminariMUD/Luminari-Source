@@ -24,6 +24,7 @@
 #include "handler.h"    // for obj_from_char()
 #include "spec_procs.h" // for compute_ability
 #include "spell_prep.h"
+#include "item.h"
 
 /* local, global variables, defines */
 char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -53,8 +54,9 @@ void display_scroll(struct char_data *ch, struct obj_data *obj)
   return;
 }
 
-/* This function displays the contents of ch's given spellbook */
-void display_spells(struct char_data *ch, struct obj_data *obj)
+/* This function displays the contents of ch's given spellbook
+     mode was added to support displaying spells to group  */
+void display_spells(struct char_data *ch, struct obj_data *obj, int mode)
 {
   int i;
 
@@ -63,19 +65,33 @@ void display_spells(struct char_data *ch, struct obj_data *obj)
 
   if (!obj->sbinfo)
   {
-    send_to_char(ch, "This spellbook is completely unused...\r\n");
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "This spellbook is completely unused...\r\n");
+    else
+      send_to_char(ch, "This spellbook is completely unused...\r\n");
     return;
   }
 
-  send_to_char(ch, "The spellbook contains the following spell(s):\r\n");
-  send_to_char(ch, "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+  if (mode == ITEM_STAT_MODE_G_LORE)
+    send_to_group(NULL, GROUP(ch), "The spellbook contains the following spell(s):\r\n"
+                                   "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+  else
+    send_to_char(ch, "The spellbook contains the following spell(s):\r\n"
+                     "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
 
   for (i = 0; i < SPELLBOOK_SIZE; i++)
   {
     if (obj->sbinfo[i].spellname)
-      send_to_char(ch, "%-20s		[%2d]\r\n",
-                   spell_info[obj->sbinfo[i].spellname].name,
-                   ((spell_info[obj->sbinfo[i].spellname].min_level[CLASS_WIZARD] + 1) / 2));
+    {
+      if (mode == ITEM_STAT_MODE_G_LORE)
+        send_to_group(NULL, GROUP(ch), "%-20s		[%2d]\r\n",
+                      spell_info[obj->sbinfo[i].spellname].name,
+                      ((spell_info[obj->sbinfo[i].spellname].min_level[CLASS_WIZARD] + 1) / 2));
+      else
+        send_to_char(ch, "%-20s		[%2d]\r\n",
+                     spell_info[obj->sbinfo[i].spellname].name,
+                     ((spell_info[obj->sbinfo[i].spellname].min_level[CLASS_WIZARD] + 1) / 2));
+    }
   }
 
   return;
@@ -232,7 +248,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
       return FALSE;
     }
   }
-  else //classes besides wizard
+  else // classes besides wizard
     return FALSE;
 
   return TRUE;
