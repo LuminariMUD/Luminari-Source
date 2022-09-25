@@ -274,13 +274,13 @@ void hazard_tick(struct char_data *ch)
     {
     case SECT_LAVA:
       if (!AFF_FLAGGED(ch, AFF_ELEMENT_PROT))
-        damage(ch, ch, rand_number(1, 50), TYPE_UNDEFINED, DAM_FIRE, FALSE);
+        damage(ch, ch, rand_number(1, 50), TYPE_LAVA_DAMAGE, DAM_FIRE, FALSE);
       break;
     case SECT_UNDERWATER:
       if (IS_NPC(ch) && (GET_MOB_VNUM(ch) == 1260 || IS_UNDEAD(ch)))
         break;
-      if (!AFF_FLAGGED(ch, AFF_WATER_BREATH) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
-        damage(ch, ch, rand_number(1, 65), TYPE_UNDEFINED, DAM_WATER, FALSE);
+      if (!IS_UNDEAD(ch) && !AFF_FLAGGED(ch, AFF_WATER_BREATH) && !ROOM_FLAGGED(IN_ROOM(ch), ROOM_AIRY))
+        damage(ch, ch, rand_number(1, 65), TYPE_DROWNING, DAM_WATER, FALSE);
       break;
     }
   }

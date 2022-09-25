@@ -946,6 +946,8 @@
 
 /* other attack types */
 
+#define TYPE_LAVA_DAMAGE 2391
+#define TYPE_DROWNING 2392
 #define TYPE_MOVING_WATER 2393
 #define TYPE_SUN_DAMAGE 2394
 #define TYPE_ESHIELD 2395
