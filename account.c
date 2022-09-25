@@ -83,6 +83,8 @@ int change_account_xp(struct char_data *ch, int change_val)
   if (GET_ACCEXP_DESC(ch) > 100000000)
     GET_ACCEXP_DESC(ch) = 100000000;
 
+  save_account(ch->desc->account);
+
   return GET_ACCEXP_DESC(ch);
 }
 
@@ -172,7 +174,6 @@ ACMD(do_accexp)
       else if (GET_ACCEXP_DESC(ch) >= cost)
       {
         change_account_xp(ch, -cost);
-        save_account(ch->desc->account);
         send_to_char(ch, "You have changed your alignment by %d points, costing %d account points!\r\n",
                      align_change, cost);
 
@@ -251,12 +252,11 @@ ACMD(do_accexp)
       }
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        change_account_xp(ch, -cost);
         ch->desc->account->races[j] = i;
-        save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
                          "and future characters on your account!.\r\n",
                      race_list[i].type);
+        change_account_xp(ch, -cost); /* this will call save_account() for us */
         return;
       }
       else
@@ -320,12 +320,11 @@ ACMD(do_accexp)
       }
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        change_account_xp(ch, -cost);
         ch->desc->account->classes[j] = i;
-        save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the prestige class '%s' for all "
                          "character and future characters on your account!.\r\n",
                      CLSLIST_NAME(i));
+        change_account_xp(ch, -cost); /* this will call save_account() for us */
         return;
       }
       else
@@ -601,8 +600,13 @@ void save_account(struct account_data *account)
     next_desc = j->next;
 
     if (j->account)
+    {
       if (j->account->id == account->id)
+      {
         load_account_unlocks(j->account);
+        GET_ACCEXP_DESC(j->character) = account->experience;
+      }
+    }
   }
 }
 

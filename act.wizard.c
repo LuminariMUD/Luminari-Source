@@ -4304,8 +4304,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     send_to_char(ch, "%s's %s for %s set to %d.\r\n", GET_NAME(vict), set_fields[mode].cmd, arg1, value);
     break;
   case 80: /* accexp - account experience */
-    GET_ACCEXP_DESC(vict) = RANGE(0, 34000);
-    save_account(vict->desc->account);
+    change_account_xp(vict, RANGE(0, 99999999));
     break;
   case 81: // weapon-master level
     CLASS_LEVEL(vict, CLASS_WEAPON_MASTER) = RANGE(0, LVL_IMMORT - 1);
@@ -4339,8 +4338,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     affect_total(vict);
     break;
   case 89: /* addaccexp - Adds *additional* account experience */
-    GET_ACCEXP_DESC(vict) += RANGE(0, 34000);
-    save_account(vict->desc->account);
+    change_account_xp(vict, RANGE(0, 9999999));
     break;
   case 90: // alchemist level
     CLASS_LEVEL(vict, CLASS_ALCHEMIST) = RANGE(0, LVL_IMMORT - 1);
@@ -9041,7 +9039,7 @@ ACMD(do_award)
     GET_QUESTPOINTS(victim) += amount;
     break;
   case 2: // accountexperience
-    GET_ACCEXP_DESC(victim) += amount;
+    change_account_xp(ch, amount);
     break;
   case 3: // gold
     GET_GOLD(victim) += amount;
