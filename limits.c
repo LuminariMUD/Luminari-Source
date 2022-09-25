@@ -31,6 +31,7 @@
 #include "alchemy.h"
 #include "staff_events.h"
 #include "missions.h"
+#include "account.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
