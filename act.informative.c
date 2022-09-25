@@ -6314,7 +6314,7 @@ SPECIAL(eqstats)
         /* good enough lore for object? */
         if (GET_EQ(ch, i) && GET_OBJ_COST(GET_EQ(ch, i)) > lore_app[(compute_ability(ch, ABILITY_LORE) + lore_bonus)])
         {
-          send_to_char(ch, " (couldn't identify)");
+          send_to_char(ch, " (couldn't identify)\r\n");
           continue;
         }
         if (GET_OBJ_TYPE(obj) == ITEM_WEAPON || GET_OBJ_TYPE(obj) == ITEM_ARMOR)
