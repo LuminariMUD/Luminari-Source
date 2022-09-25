@@ -604,7 +604,8 @@ void save_account(struct account_data *account)
       if (j->account->id == account->id)
       {
         load_account_unlocks(j->account);
-        GET_ACCEXP_DESC(j->character) = account->experience;
+        if (IS_PLAYING(j))
+          GET_ACCEXP_DESC(j->character) = account->experience;
       }
     }
   }
