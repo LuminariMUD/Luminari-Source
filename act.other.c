@@ -4114,7 +4114,6 @@ ACMD(do_glore)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *tobj = NULL;
-  int target = 0;
 
   if (IS_NPC(ch))
     return;
@@ -4140,20 +4139,16 @@ ACMD(do_glore)
 
   one_argument(argument, arg, sizeof(arg));
 
-  target = generic_find(arg, FIND_OBJ_INV, ch, NULL, &tobj);
-
-  if (*arg)
-  {
-    if (!target)
-    {
-      act("There is nothing to here to use your Lore ability on...", FALSE,
-          ch, NULL, NULL, TO_CHAR);
-      return;
-    }
-  }
-  else
+  if (!*arg)
   {
     act("You need a container to target...", FALSE,
+        ch, NULL, NULL, TO_CHAR);
+    return;
+  }
+
+  if (!(tobj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
+  {
+    act("You don't see that container...", FALSE,
         ch, NULL, NULL, TO_CHAR);
     return;
   }
