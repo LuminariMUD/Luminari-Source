@@ -9041,7 +9041,7 @@ ACMD(do_award)
     GET_QUESTPOINTS(victim) += amount;
     break;
   case 2: // accountexperience
-    victim->desc->account->experience += amount;
+    GET_ACCEXP_DESC(victim) += amount;
     break;
   case 3: // gold
     GET_GOLD(victim) += amount;

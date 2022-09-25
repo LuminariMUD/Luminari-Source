@@ -73,6 +73,19 @@ const bool locked_races[NUM_RACES] = {
        // Y, /*vampire*/
 };
 
+int change_account_xp(struct char_data *ch, int change_val)
+{
+  GET_ACCEXP_DESC(ch) += change_val;
+
+  if (GET_ACCEXP_DESC(ch) < 0)
+    GET_ACCEXP_DESC(ch) = 0;
+
+  if (GET_ACCEXP_DESC(ch) > 100000000)
+    GET_ACCEXP_DESC(ch) = 100000000;
+
+  return GET_ACCEXP_DESC(ch);
+}
+
 int has_unlocked_race(struct char_data *ch, int race)
 {
   if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH)
@@ -158,7 +171,7 @@ ACMD(do_accexp)
       }
       else if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        GET_ACCEXP_DESC(ch) -= cost;
+        change_account_xp(ch, -cost);
         save_account(ch->desc->account);
         send_to_char(ch, "You have changed your alignment by %d points, costing %d account points!\r\n",
                      align_change, cost);
@@ -238,7 +251,7 @@ ACMD(do_accexp)
       }
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        GET_ACCEXP_DESC(ch) -= cost;
+        change_account_xp(ch, -cost);
         ch->desc->account->races[j] = i;
         save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
@@ -307,7 +320,7 @@ ACMD(do_accexp)
       }
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
-        GET_ACCEXP_DESC(ch) -= cost;
+        change_account_xp(ch, -cost);
         ch->desc->account->classes[j] = i;
         save_account(ch->desc->account);
         send_to_char(ch, "You have unlocked the prestige class '%s' for all "

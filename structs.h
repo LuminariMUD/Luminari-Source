@@ -4733,7 +4733,7 @@ struct account_data
     char password[MAX_PWD_LENGTH + 1];
     sbyte bad_password_count;
     char *character_names[MAX_CHARS_PER_ACCOUNT];
-    ush_int experience;
+    int experience;
     //        ush_int gift_experience;
     //        sbyte level;
     //        int account_flags;
