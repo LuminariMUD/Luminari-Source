@@ -172,12 +172,6 @@ ACMD(do_cexchange)
     show_exchange_rates(ch);
     return;
   }
-  else if (amount >= 99999)
-  {
-    send_to_char(ch, "The second argument needs to be below 99999.\r\n");
-    show_exchange_rates(ch);
-    return;
-  }
 
   if (is_abbrev(arg1, "accexp"))
   {
@@ -207,6 +201,13 @@ ACMD(do_cexchange)
   switch (source)
   {
   case SRC_DST_EXP:
+
+    /* amount limitation */
+    if (amount >= 99999)
+    {
+      send_to_char(ch, "The second argument (amount) needs to be below 99999.\r\n");
+      return;
+    }
 
     /* how much is this transaction going to "cost" */
     cost = ACCEXP_EXCHANGE_RATE * amount;
@@ -238,6 +239,13 @@ ACMD(do_cexchange)
 
   case SRC_DST_ACCEXP:
 
+    /* amount limitation */
+    if (amount >= 99999)
+    {
+      send_to_char(ch, "The second argument (amount) needs to be below 99999.\r\n");
+      return;
+    }
+
     /* how much is this transaction going to "cost" */
     cost = GOLD_EXCHANGE_RATE * amount;
 
@@ -256,6 +264,13 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_GOLD:
+
+    /* amount limitation */
+    if (amount >= 99999)
+    {
+      send_to_char(ch, "The second argument (amount) needs to be below 99999.\r\n");
+      return;
+    }
 
     /* how much is this transaction going to "cost" */
     cost = QP_EXCHANGE_RATE * amount;
@@ -277,6 +292,13 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_QP:
+
+    /* amount limitation */
+    if (amount >= 1000000000)
+    {
+      send_to_char(ch, "The second argument (amount) needs to be below 1 bil.\r\n");
+      return;
+    }
 
     /* there is a "profit" in this exchange */
     if ((int)amount % (int)(1.0 / EXP_EXCHANGE_RATE))
@@ -305,30 +327,6 @@ ACMD(do_cexchange)
   default: /* should never get here */
     show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in 1st exchange switch in do_cexchange.\r\n");
-    return;
-  }
-
-  switch (source)
-  {
-
-  case SRC_DST_ACCEXP: /* acquiring gold! */
-
-    break;
-
-  case SRC_DST_GOLD: /* acquiring qp! */
-
-    break;
-
-  case SRC_DST_QP:
-    break;
-
-  case SRC_DST_EXP:
-
-    break;
-
-  default: /*shouldn't get here*/
-    show_exchange_rates(ch);
-    send_to_char(ch, "Please report to staff: reached default case in source switch in do_exchange.\r\n");
     return;
   }
 
