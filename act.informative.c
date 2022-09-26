@@ -2535,6 +2535,13 @@ ACMD(do_examine)
   }
 }
 
+/* command to check your stat caps! */
+ACMD(do_statcap)
+{
+  compute_char_cap(ch, 1);
+}
+
+/* commnand to check your gold balance! */
 ACMD(do_gold)
 {
   if (GET_GOLD(ch) == 0)
