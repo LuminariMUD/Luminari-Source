@@ -682,7 +682,8 @@ void compute_char_cap(struct char_data *ch, int mode)
     hit_cap += 25;
   }
 
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
+  {
     dam_cap += COMBAT_MODE_VALUE(ch) * 2;
   }
 
@@ -690,27 +691,11 @@ void compute_char_cap(struct char_data *ch, int mode)
 
   /*************/
 
-  /* debug */
-  /*
-  send_to_char(ch, "\tGCharacter stat cap debug, ask staff to turn this off please:\tn\r\n"
-                   "Str cap: \tR%d\tn.\r\n"
-                   "Dex cap: \tR%d\tn.\r\n"
-                   "Con cap: \tR%d\tn.\r\n"
-                   "Int cap: \tR%d\tn.\r\n"
-                   "Wis cap: \tR%d\tn.\r\n"
-                   "Cha cap: \tR%d\tn.\r\n"
-                   "\r\n"
-                   "Hit cap: \tR%d\tn.\r\n"
-                   "Dam cap: \tR%d\tn.\r\n"
-                   , str_cap, dex_cap, con_cap, int_cap, wis_cap, cha_cap, hit_cap, dam_cap);
-  */
-  /* end debug */
-
   /* viewable mode! */
   if (mode)
   {
     send_to_char(ch, "\tC");
-    text_line(ch, "\tY**Your Stat CAPs**\tC", line_length, '-', '-');
+    text_line(ch, "\tY**Your Stat CAPs**\tC", 80, '-', '-');
     send_to_char(ch, "\tn");
 
     send_to_char(ch, "\r\n");
@@ -741,7 +726,7 @@ void compute_char_cap(struct char_data *ch, int mode)
     send_to_char(ch, "Save - Death: \tR*%d*\tn\r\n", save_cap);
 
     send_to_char(ch, "\tC");
-    draw_line(ch, line_length, '-', '-');
+    draw_line(ch, 80, '-', '-');
     send_to_char(ch, "\tn\r\n");
 
     /* done! */
