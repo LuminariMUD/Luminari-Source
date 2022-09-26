@@ -1126,7 +1126,7 @@ SPECIAL(tia_rapier)
         "\tLfrom you and transfers it back to $m.\tn",
         FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
     damage(ch, vict, dice(5, 5), -1, DAM_ENERGY, FALSE); // type -1 = no dam message
-    call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_WEAPON_SPELL);
+    process_healing(vict, ch, -1, (dice(5, 5) + GET_DEX_BONUS(ch)), 0);
     return 1;
   }
 
