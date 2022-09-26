@@ -60,7 +60,7 @@
 #define TOG_ON 1
 
 /* debugging */
-#define DEBUG_MODE TRUE
+#define DEBUG_MODE FALSE
 
 /* Local defined utility functions */
 /* do_group utility functions */
@@ -135,13 +135,16 @@ ACMD(do_cexchange)
   float amount = 0.0, cost = 0.0;
   int source = 0, xp_excess = 0;
 
-  /*temp*/
-  if (GET_LEVEL(ch) < LVL_STAFF)
+  /*debug*/
+  if (DEBUG_MODE)
   {
-    send_to_char(ch, "Under construction!\r\n");
-    return;
+    if (GET_LEVEL(ch) < LVL_STAFF)
+    {
+      send_to_char(ch, "Under construction!\r\n");
+      return;
+    }
   }
-  /*TEMP*/
+  /* end debug */
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -166,6 +169,12 @@ ACMD(do_cexchange)
   if (amount <= 0.0)
   {
     send_to_char(ch, "The second argument needs to be above 0.\r\n");
+    show_exchange_rates(ch);
+    return;
+  }
+  else if (amount >= 99999)
+  {
+    send_to_char(ch, "The second argument needs to be below 99999.\r\n");
     show_exchange_rates(ch);
     return;
   }
