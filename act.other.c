@@ -59,6 +59,9 @@
 #define TOG_OFF 0
 #define TOG_ON 1
 
+/* debugging */
+#define DEBUG_MODE TRUE
+
 /* Local defined utility functions */
 /* do_group utility functions */
 static void print_group(struct char_data *ch);
@@ -110,7 +113,7 @@ void show_exchange_rates(struct char_data *ch)
 
 void show_exchange_rates(struct char_data *ch)
 {
-  send_to_char(ch, "Usage: exchange <currency source> <amount to purchase>\r\n");
+  send_to_char(ch, "Usage: cexchange <currency source> <amount to purchase>\r\n");
   send_to_char(ch, "This command is used to exchange in-game currencies including your "
                    "experience points, gold coins, account experience or quest points.\r\n");
   send_to_char(ch, "The exchange order is: exp -> accexp -> gold -> qp -> (back to start) exp -> ...\r\n");
@@ -130,7 +133,7 @@ ACMD(do_cexchange)
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   float amount = 0.0, pool = 0.0, cost = 0.0;
-  int source = 0, exchange = 0;
+  int source = 0;
 
   /*temp*/
   if (GET_LEVEL(ch) < LVL_STAFF)
@@ -158,7 +161,7 @@ ACMD(do_cexchange)
     return;
   }
 
-  amount = (float)atoi(arg2);
+  amount = atoi(arg2);
 
   if (amount <= 0.0)
   {
@@ -170,22 +173,18 @@ ACMD(do_cexchange)
   if (is_abbrev(arg1, "accexp"))
   {
     source = SRC_DST_ACCEXP;
-    exchange = SRC_DST_GOLD;
   }
   else if (is_abbrev(arg1, "qp"))
   {
     source = SRC_DST_QP;
-    exchange = SRC_DST_EXP;
   }
   else if (is_abbrev(arg1, "gold"))
   {
     source = SRC_DST_GOLD;
-    exchange = SRC_DST_QP;
   }
   else if (is_abbrev(arg1, "exp"))
   {
     source = SRC_DST_EXP;
-    exchange = SRC_DST_ACCEXP;
   }
   else
   {
@@ -212,11 +211,11 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_ACCEXP:
-    cost = (float)GOLD_EXCHANGE_RATE * amount;
+    cost = GOLD_EXCHANGE_RATE * amount;
     break;
 
   case SRC_DST_GOLD:
-    cost = (float)QP_EXCHANGE_RATE * amount;
+    cost = QP_EXCHANGE_RATE * amount;
     break;
 
   case SRC_DST_QP:
@@ -228,13 +227,19 @@ ACMD(do_cexchange)
       return;
     }
 
-    cost = (float)EXP_EXCHANGE_RATE * amount;
+    cost = EXP_EXCHANGE_RATE * amount;
     break;
 
   default: /* should never get here */
     show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in 1st exchange switch in do_cexchange.\r\n");
     return;
+  }
+
+  /* debugging */
+  if (DEBUG_MODE)
+  {
+    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.  ");
   }
 
   /* can we afford it? if so, go ahead and make exchange */
@@ -331,6 +336,12 @@ ACMD(do_cexchange)
     show_exchange_rates(ch);
     send_to_char(ch, "Please report to staff: reached default case in source switch in do_exchange.\r\n");
     return;
+  }
+
+  /* debugging */
+  if (DEBUG_MODE)
+  {
+    send_to_char(ch, "cexchange() debug 2: pool: %lf.\r\n", pool);
   }
 
   /* done! */
@@ -7854,5 +7865,8 @@ ACMDU(do_fiendishboon)
   SET_FIENDISH_BOON(ch, i);
   send_to_char(ch, "You have activated your '%s' fiendish boon.\r\n", fiendish_boons[i]);
 }
+
+/* undefines */
+#undef DEBUG_MODE
 
 /*EOF*/
