@@ -29,6 +29,7 @@ void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[],
                       bool add);
 void change_spell_mod(struct char_data *ch, int spellnum, int location, int amount, bool display);
 void reset_char_points(struct char_data *ch);
+void compute_char_cap(struct char_data *ch, int mode);
 
 /* MSDP */
 void update_msdp_affects(struct char_data *ch);

@@ -439,6 +439,9 @@ void reset_char_points(struct char_data *ch)
   //  }
 }
 
+/* this is our system to limit the stats of characters
+     -added a viewable mode! 0 = default, 1 = view
+-zusuk */
 #define BASE_STAT_CAP 22
 #define HP_CAP 500
 #define PSP_CAP 600
@@ -446,24 +449,15 @@ void reset_char_points(struct char_data *ch)
 #define HITDAM_CAP 20
 #define AC_CAP -160
 #define SAVE_CAP 15
-#define RESIST_CAP 99
-void compute_char_cap(struct char_data *ch)
+#define SPELL_RESIST_CAP 75
+void compute_char_cap(struct char_data *ch, int mode)
 {
   int hp_cap, psp_cap, move_cap, hit_cap, dam_cap, ac_cap,
-      save_cap, resist_cap, class, class_level = 0;
+      save_cap, spell_resist_cap, class, class_level = 0;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
   int rage_bonus = 0;
 
   /* values are between 1..stat-cap, not < 1 and not > stat-cap */
-  /* trying to disable this -zusuk */
-  /*
-  (ch)->aff_abils.dex = MAX(1, MIN(GET_DEX(ch), STAT_CAP));
-  GET_INT(ch) = MAX(1, MIN(GET_INT(ch), STAT_CAP));
-  GET_WIS(ch) = MAX(1, MIN(GET_WIS(ch), STAT_CAP));
-  (ch)->aff_abils.con = MAX(1, MIN(GET_CON(ch), STAT_CAP));
-  GET_CHA(ch) = MAX(1, MIN(GET_CHA(ch), STAT_CAP));
-  (ch)->aff_abils.str = MAX(1, MIN(GET_STR(ch), STAT_CAP));
-  */
 
   (ch)->points.size = MAX(SIZE_FINE, MIN(GET_SIZE(ch), SIZE_COLOSSAL));
 
@@ -474,7 +468,8 @@ void compute_char_cap(struct char_data *ch)
   /*****************/
   /* PC Cap System */
 
-  /* start with base */
+  /*** start with base ***/
+
   str_cap = BASE_STAT_CAP + GET_REAL_STR(ch);
   dex_cap = BASE_STAT_CAP + GET_REAL_DEX(ch);
   con_cap = BASE_STAT_CAP + GET_REAL_CON(ch);
@@ -486,9 +481,11 @@ void compute_char_cap(struct char_data *ch)
   move_cap = MOVE_CAP + GET_REAL_MAX_MOVE(ch);
   hit_cap = HITDAM_CAP + GET_REAL_HITROLL(ch);
   dam_cap = HITDAM_CAP + GET_REAL_DAMROLL(ch);
-  resist_cap = RESIST_CAP + GET_REAL_SPELL_RES(ch);
+  spell_resist_cap = SPELL_RESIST_CAP + GET_REAL_SPELL_RES(ch);
   ac_cap = AC_CAP;
   save_cap = SAVE_CAP;
+
+  /***  end base *****/
 
   /* here for reference
   "Wizard"       int, dex, wis
@@ -506,17 +503,19 @@ void compute_char_cap(struct char_data *ch)
   "Bard"         cha, dex,      (hitroll, damroll, str, int)
    */
 
-  /* here is the actual class modifiers */
+  /*** here is the actual class modifiers ***/
+
   for (class = 0; class < MAX_CLASSES; class ++)
   {
     if ((class_level = CLASS_LEVEL(ch, class)) > 0)
     {
       switch (class)
       {
+      case CLASS_PSIONICIST:
       case CLASS_WIZARD:
         int_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
-        wis_cap += class_level / 4 + 1;
+        con_cap += class_level / 4 + 1;
         break;
       case CLASS_CLERIC:
       case CLASS_INQUISITOR:
@@ -536,7 +535,10 @@ void compute_char_cap(struct char_data *ch)
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
+      case CLASS_SHADOW_DANCER:
       case CLASS_ARCANE_SHADOW:
+      case CLASS_DUELIST:
+      case CLASS_ASSASSIN:
         str_cap += class_level / 8 + 1;
         dex_cap += class_level / 4 + 1;
         int_cap += class_level / 4 + 1;
@@ -551,32 +553,31 @@ void compute_char_cap(struct char_data *ch)
         dam_cap += class_level / 3;
         break;
       case CLASS_WARRIOR:
+      case CLASS_WEAPON_MASTER:
         str_cap += class_level / 4 + 1;
         con_cap += class_level / 4 + 1;
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
-      case CLASS_WEAPON_MASTER:
-        str_cap += class_level / 4 + 1;
-        dex_cap += class_level / 4 + 1;
-        hit_cap += class_level / 3;
-        dam_cap += class_level / 3;
-        break;
       case CLASS_MONK:
-        wis_cap += class_level / 4 + 1;
-        dex_cap += class_level / 4 + 1;
-        hit_cap += class_level / 3;
-        dam_cap += class_level / 3;
-        break;
       case CLASS_SACRED_FIST:
         wis_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
-      case CLASS_ELDRITCH_KNIGHT:
+      case CLASS_SPELLSWORD:
         int_cap += class_level / 4 + 1;
         str_cap += class_level / 4 + 1;
+        cha_cap += class_level / 4 + 1;
+        hit_cap += class_level / 3;
+        dam_cap += class_level / 3;
+        break;
+      case CLASS_ELDRITCH_KNIGHT:
+      case CLASS_ALCHEMIST:
+        int_cap += class_level / 4 + 1;
+        str_cap += class_level / 4 + 1;
+        cha_cap += class_level / 4 + 1;
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
@@ -586,6 +587,7 @@ void compute_char_cap(struct char_data *ch)
         wis_cap += class_level / 4 + 1;
         break;
       case CLASS_DRUID:
+      case CLASS_SHIFTER:
         str_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
         wis_cap += class_level / 4 + 1;
@@ -601,6 +603,9 @@ void compute_char_cap(struct char_data *ch)
             rage_bonus = 9;
           else if (class_level >= 27) /*indomitable*/
             rage_bonus = 12;
+
+          hit_cap += 5;
+          dam_cap += 5;
         }
 
         str_cap += class_level / 4 + 1 + rage_bonus;
@@ -626,6 +631,7 @@ void compute_char_cap(struct char_data *ch)
         cha_cap += class_level / 4 + 1;
         break;
       case CLASS_PALADIN:
+      case CLASS_BLACKGUARD:
         str_cap += class_level / 4 + 1;
         cha_cap += class_level / 4 + 1;
         hit_cap += class_level / 3;
@@ -646,22 +652,43 @@ void compute_char_cap(struct char_data *ch)
         hit_cap += class_level / 6;
         dam_cap += class_level / 6;
         break;
+      /* shouldn't get here! */
+      default:
+        str_cap += class_level / 10 + 1;
+        con_cap += class_level / 10 + 1;
+        dex_cap += class_level / 10 + 1;
+        cha_cap += class_level / 10 + 1;
+        int_cap += class_level / 10 + 1;
+        wis_cap += class_level / 10 + 1;
+        hit_cap += class_level / 10;
+        dam_cap += class_level / 10;
+        break;
       }
     }
   }
+  /*** end class calculations ****/
 
-  /* some more cap adjustments */
+  /*** some more cap adjustments ***/
 
   if (affected_by_spell(ch, SKILL_SACRED_FLAMES))
   {
     dam_cap += 20;
   }
+
   if (affected_by_spell(ch, SPELL_BATTLETIDE))
   {
     /* increased this # drastically due to twilight proc -zusuk */
-    dam_cap += 20;
-    hit_cap += 20;
+    dam_cap += 25;
+    hit_cap += 25;
   }
+
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK)) {
+    dam_cap += COMBAT_MODE_VALUE(ch) * 2;
+  }
+
+  /* rage is calculated in above switch */
+
+  /*************/
 
   /* debug */
   /*
@@ -679,7 +706,51 @@ void compute_char_cap(struct char_data *ch)
   */
   /* end debug */
 
-  /* cap stats according to adjustments */
+  /* viewable mode! */
+  if (mode)
+  {
+    send_to_char(ch, "\tC");
+    text_line(ch, "\tY**Your Stat CAPs**\tC", line_length, '-', '-');
+    send_to_char(ch, "\tn");
+
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tYAttributes:\tn\r\n");
+    send_to_char(ch, "Strength:     \tR*%d*\tn\r\n", str_cap);
+    send_to_char(ch, "Constitution: \tR*%d*\tn\r\n", con_cap);
+    send_to_char(ch, "Dexterity:    \tR*%d*\tn\r\n", dex_cap);
+    send_to_char(ch, "Intelligence: \tR*%d*\tn\r\n", int_cap);
+    send_to_char(ch, "Wisdom:       \tR*%d*\tn\r\n", wis_cap);
+    send_to_char(ch, "Charisma:     \tR*%d*\tn\r\n", cha_cap);
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tYPoints:\tn\r\n");
+    send_to_char(ch, "Hit Points:              \tR* TBD - need to check with Gicker :) *\tn\r\n");
+    send_to_char(ch, "Psionic Strength Points: \tR*%d*\tn\r\n", psp_cap);
+    send_to_char(ch, "Movement Points:         \tR*%d*\tn\r\n", move_cap);
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tYHitroll, Damroll, Armor Class:\tn\r\n");
+    send_to_char(ch, "Armor Class: \tR* TBD *\tn\r\n");
+    send_to_char(ch, "Hitroll:     \tR*%d*\tn\r\n", hit_cap);
+    send_to_char(ch, "Damroll:     \tR*%d*\tn\r\n", dam_cap);
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tYSpell Resist & Saving Throws:\tn\r\n");
+    send_to_char(ch, "Spell Resist: \tR*%d*\tn\r\n", spell_resist_cap);
+    send_to_char(ch, "Save - Fortitude: \tR*%d*\tn\r\n", save_cap);
+    send_to_char(ch, "Save - Reflex: \tR*%d*\tn\r\n", save_cap);
+    send_to_char(ch, "Save - Will: \tR*%d*\tn\r\n", save_cap);
+    send_to_char(ch, "Save - Poison: \tR*%d*\tn\r\n", save_cap);
+    send_to_char(ch, "Save - Death: \tR*%d*\tn\r\n", save_cap);
+
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+    send_to_char(ch, "\tn\r\n");
+
+    /* done! */
+    return;
+  }
+
+  /*** cap stats according to adjustments ***/
+
+  /* basic attributes */
   (ch)->aff_abils.dex = MIN(dex_cap, GET_DEX(ch));
   GET_INT(ch) = MIN(int_cap, GET_INT(ch));
   GET_WIS(ch) = MIN(wis_cap, GET_WIS(ch));
@@ -687,8 +758,28 @@ void compute_char_cap(struct char_data *ch)
   GET_CHA(ch) = MIN(cha_cap, GET_CHA(ch));
   (ch)->aff_abils.str = MIN(str_cap, GET_STR(ch));
 
+  /* hitroll + damroll + AC */
   GET_HITROLL(ch) = MIN(hit_cap, GET_HITROLL(ch));
   GET_DAMROLL(ch) = MIN(dam_cap, GET_DAMROLL(ch));
+  /*(ch)->points->armor = MIN(ac_cap, GET_AC(ch));*/ /* haven't check this -zusuk */
+
+  /* points: hp, psp, moves */
+  /*GET_MAX_HIT(ch) = MIN(hp_cap, GET_MAX_HIT(ch));*/ /* gicker moved this out of here */
+  GET_MAX_PSP(ch) = MIN(psp_cap, GET_MAX_PSP(ch));
+  GET_MAX_MOVE(ch) = MIN(move_cap, GET_MAX_MOVE(ch));
+
+  /* saving throws */
+  GET_SAVE(ch, SAVING_FORT) = MIN(save_cap, GET_SAVE(ch, SAVING_FORT));
+  GET_SAVE(ch, SAVING_REFL) = MIN(save_cap, GET_SAVE(ch, SAVING_REFL));
+  GET_SAVE(ch, SAVING_WILL) = MIN(save_cap, GET_SAVE(ch, SAVING_WILL));
+  GET_SAVE(ch, SAVING_POISON) = MIN(save_cap, GET_SAVE(ch, SAVING_POISON));
+  GET_SAVE(ch, SAVING_DEATH) = MIN(save_cap, GET_SAVE(ch, SAVING_DEATH));
+
+  /* spell resist */
+  GET_SPELL_RES(ch) = MIN(spell_resist_cap, GET_SPELL_RES(ch));
+
+  /* all done! */
+  return;
 }
 #undef BASE_STAT_CAP
 #undef HP_CAP
@@ -825,7 +916,7 @@ void affect_total_plus(struct char_data *ch, int at_armor)
   }
 
   /* cap character */
-  compute_char_cap(ch);
+  compute_char_cap(ch, 0);
 
   /* any dynamic stats need to be modified? (example, con -> hps) */
   if (IS_NPC(ch))

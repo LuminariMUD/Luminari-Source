@@ -227,6 +227,7 @@ ACMD_DECL(do_examine);
 ACMD_DECL(do_exits);
 ACMD_DECL(do_survey);
 ACMD_DECL(do_gold);
+ACMD_DECL(do_statcap);
 ACMD_DECL(do_help);
 ACMD_DECL(do_history);
 ACMD_DECL(do_inventory);

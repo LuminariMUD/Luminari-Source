@@ -113,7 +113,7 @@ void show_exchange_rates(struct char_data *ch)
 
 void show_exchange_rates(struct char_data *ch)
 {
-  send_to_char(ch, "Usage: cexchange <currency source> <amount to purchase>\r\n");
+  send_to_char(ch, "Usage: cexchange <currency source> <amount to purchase of exchange currency>\r\n");
   send_to_char(ch, "This command is used to exchange in-game currencies including your "
                    "experience points, gold coins, account experience or quest points.\r\n");
   send_to_char(ch, "The exchange order is: exp -> accexp -> gold -> qp -> (back to start) exp -> ...\r\n");
@@ -150,7 +150,6 @@ ACMD(do_cexchange)
 
   if (!*arg1 || !*arg2)
   {
-    send_to_char(ch, "You need to provide more information.\r\n");
     show_exchange_rates(ch);
     return;
   }
@@ -159,8 +158,8 @@ ACMD(do_cexchange)
 
   if (!is_number(arg2))
   {
-    send_to_char(ch, "The third argument is invalid, it needs to be a number.\r\n");
     show_exchange_rates(ch);
+    send_to_char(ch, "The second argument is invalid, it needs to be a number.\r\n");
     return;
   }
 
@@ -168,8 +167,8 @@ ACMD(do_cexchange)
 
   if (amount <= 0.0)
   {
-    send_to_char(ch, "The second argument needs to be above 0.\r\n");
     show_exchange_rates(ch);
+    send_to_char(ch, "The second argument needs to be above 0.\r\n");
     return;
   }
 
@@ -191,8 +190,8 @@ ACMD(do_cexchange)
   }
   else
   {
-    send_to_char(ch, "The first argument is invalid.\r\n");
     show_exchange_rates(ch);
+    send_to_char(ch, "The first argument is invalid or missing.\r\n");
     return;
   }
 
@@ -252,7 +251,8 @@ ACMD(do_cexchange)
     /* can we afford it? if so, go ahead and make exchange */
     if ((float)GET_ACCEXP_DESC(ch) < cost)
     {
-      send_to_char(ch, "You do not have enough account exp, you need %d total.\r\n", (int)cost);
+      send_to_char(ch, "You do not have enough account exp, you need %d total (you have %d).\r\n",
+                   (int)cost, GET_ACCEXP_DESC(ch));
       return;
     }
 
@@ -279,8 +279,8 @@ ACMD(do_cexchange)
     if ((float)GET_GOLD(ch) < cost)
     {
       send_to_char(ch, "You do not have enough gold on hand, you need %d total on "
-                       "hand (not in bank) to make the exchange.\r\n",
-                   (int)cost);
+                       "hand (not in bank) to make the exchange (you have %d).\r\n",
+                   (int)cost, GET_GOLD(ch));
       return;
     }
 
@@ -292,6 +292,12 @@ ACMD(do_cexchange)
     break;
 
   case SRC_DST_QP:
+
+    if (GET_LEVEL(ch) < (LVL_IMMORT - 1))
+    {
+      send_to_char(ch, "This exchange is reserved for level 30 chars!\r\n");
+      return;
+    }
 
     /* amount limitation */
     if (amount >= 1000000000)
@@ -323,7 +329,8 @@ ACMD(do_cexchange)
     /* can we afford it? if so, go ahead and make exchange */
     if ((float)GET_QUESTPOINTS(ch) < cost)
     {
-      send_to_char(ch, "You do not have enough quest points, you need %d total.\r\n", (int)cost);
+      send_to_char(ch, "You do not have enough quest points, you need %d total (you have %d).\r\n",
+                   (int)cost, GET_QUESTPOINTS(ch));
       return;
     }
 
@@ -336,7 +343,7 @@ ACMD(do_cexchange)
 
   default: /* should never get here */
     show_exchange_rates(ch);
-    send_to_char(ch, "Please report to staff: reached default case in 1st exchange switch in do_cexchange.\r\n");
+    send_to_char(ch, "Please report to staff: reached default case in exchange switch in do_cexchange.\r\n");
     return;
   }
 
