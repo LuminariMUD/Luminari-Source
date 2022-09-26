@@ -239,7 +239,7 @@ ACMD(do_cexchange)
   /* debugging */
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.  ");
+    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.  ", source, amount, cost);
   }
 
   /* can we afford it? if so, go ahead and make exchange */
