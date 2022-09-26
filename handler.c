@@ -581,11 +581,6 @@ void compute_char_cap(struct char_data *ch, int mode)
         hit_cap += class_level / 3;
         dam_cap += class_level / 3;
         break;
-      case CLASS_SHIFTER:
-        str_cap += class_level / 4 + 1;
-        dex_cap += class_level / 4 + 1;
-        wis_cap += class_level / 4 + 1;
-        break;
       case CLASS_DRUID:
       case CLASS_SHIFTER:
         str_cap += class_level / 4 + 1;
