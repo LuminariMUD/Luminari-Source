@@ -723,11 +723,17 @@ void compute_char_cap(struct char_data *ch, int mode)
     send_to_char(ch, "\r\n");
     send_to_char(ch, "\tYSpell Resist & Saving Throws:\tn\r\n");
     send_to_char(ch, "Spell Resist:     \tR*%d*\tn\r\n", spell_resist_cap);
-    send_to_char(ch, "Save - Fortitude: \tR*%d*\tn\r\n", save_fort_cap);
-    send_to_char(ch, "Save - Reflex:    \tR*%d*\tn\r\n", save_rflx_cap);
-    send_to_char(ch, "Save - Will:      \tR*%d*\tn\r\n", save_will_cap);
-    send_to_char(ch, "Save - Poison:    \tR*%d*\tn\r\n", save_psn_cap);
-    send_to_char(ch, "Save - Death:     \tR*%d*\tn\r\n", save_dth_cap);
+    /* MAX_GOLD is our signal for mag_saves */
+    send_to_char(ch, "Save - Fortitude: \tR*%d*\tn\r\n",
+                 compute_mag_saves(ch, SAVING_FORT, MAX_GOLD) + save_fort_cap);
+    send_to_char(ch, "Save - Reflex:    \tR*%d*\tn\r\n",
+                 compute_mag_saves(ch, SAVING_REFL, MAX_GOLD) + save_rflx_cap);
+    send_to_char(ch, "Save - Will:      \tR*%d*\tn\r\n",
+                 compute_mag_saves(ch, SAVING_WILL, MAX_GOLD) + save_will_cap);
+    send_to_char(ch, "Save - Poison:    \tR*%d*\tn\r\n",
+                 compute_mag_saves(ch, SAVING_POISON, MAX_GOLD) + save_psn_cap);
+    send_to_char(ch, "Save - Death:     \tR*%d*\tn\r\n",
+                 compute_mag_saves(ch, SAVING_DEATH, MAX_GOLD) + save_dth_cap);
 
     send_to_char(ch, "\tC");
     draw_line(ch, 80, '-', '-');
