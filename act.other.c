@@ -258,8 +258,8 @@ ACMD(do_cexchange)
 
     /* bingo! */
     change_account_xp(ch, -(int)pool); /* loss */
-    increase_gold(ch, amount);         /* gain */
-    send_to_char(ch, "You exchange %d account exp for %d gold.", (int)pool, amount);
+    increase_gold(ch, (int)amount);    /* gain */
+    send_to_char(ch, "You exchange %d account exp for %d gold.", (int)pool, (int)amount);
     break;
 
   case SRC_DST_GOLD:                /* acquiring qp! */
@@ -281,8 +281,8 @@ ACMD(do_cexchange)
 
     /* bingo! */
     increase_gold(ch, -(int)pool);
-    GET_QUESTPOINTS(ch) += amount;
-    send_to_char(ch, "You exchange %d gold for %d qp.", (int)pool, amount);
+    GET_QUESTPOINTS(ch) += (int)amount;
+    send_to_char(ch, "You exchange %d gold for %d qp.", (int)pool, (int)amount);
     break;
 
   case SRC_DST_QP:
@@ -302,8 +302,8 @@ ACMD(do_cexchange)
 
     /* bingo! */
     GET_QUESTPOINTS(ch) -= (int)pool;
-    GET_EXP(ch) += amount;
-    send_to_char(ch, "You exchange %d quest points for %d exp", (int)pool, amount);
+    GET_EXP(ch) += (int)amount;
+    send_to_char(ch, "You exchange %d quest points for %d exp", (int)pool, (int)amount);
     break;
 
   case SRC_DST_EXP:
@@ -322,9 +322,9 @@ ACMD(do_cexchange)
     }
 
     /* bingo! */
-    GET_EXP(ch) -= (int)pool;      /* loss*/
-    change_account_xp(ch, amount); /* gain */
-    send_to_char(ch, "You exchange %d experience points for %d accexp", (int)pool, amount);
+    GET_EXP(ch) -= (int)pool;           /* loss*/
+    change_account_xp(ch, (int)amount); /* gain */
+    send_to_char(ch, "You exchange %d experience points for %d accexp", (int)pool, (int)amount);
     break;
 
   default: /*shouldn't get here*/
