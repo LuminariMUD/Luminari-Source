@@ -132,8 +132,8 @@ ACMD(do_cexchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
-  float amount = 0.0, pool = 0.0, cost = 0.0;
-  int source = 0;
+  float amount = 0.0, cost = 0.0;
+  int source = 0, xp_excess = 0;
 
   /*temp*/
   if (GET_LEVEL(ch) < LVL_STAFF)
@@ -195,10 +195,11 @@ ACMD(do_cexchange)
 
   /* everything should be valid by now, so time for some math */
 
-  /* how much is this transaction going to "cost" */
   switch (source)
   {
   case SRC_DST_EXP:
+
+    /* how much is this transaction going to "cost" */
     cost = ACCEXP_EXCHANGE_RATE * amount;
 
     /* cap for account xp currently */
@@ -208,14 +209,62 @@ ACMD(do_cexchange)
       return;
     }
 
+    /* xp has to be overflow! */
+    xp_excess = (GET_EXP(ch) - level_exp(ch, (LVL_IMMORT - 1)));
+
+    /* can we afford it? if so, go ahead and make exchange */
+    if (xp_excess < cost)
+    {
+      send_to_char(ch, "You do not have enough experience points, you need an xp-excess of %d (you have %d).\r\n",
+                   (int)cost, xp_excess);
+      return;
+    }
+
+    /* bingo! */
+    GET_EXP(ch) -= (int)cost;           /* loss*/
+    change_account_xp(ch, (int)amount); /* gain */
+    send_to_char(ch, "You exchange %d experience points for %d accexp\r\n", (int)cost, (int)amount);
+
     break;
 
   case SRC_DST_ACCEXP:
+
+    /* how much is this transaction going to "cost" */
     cost = GOLD_EXCHANGE_RATE * amount;
+
+    /* can we afford it? if so, go ahead and make exchange */
+    if ((float)GET_ACCEXP_DESC(ch) < cost)
+    {
+      send_to_char(ch, "You do not have enough account exp, you need %d total.\r\n", (int)cost);
+      return;
+    }
+
+    /* bingo! */
+    change_account_xp(ch, -(int)cost); /* loss */
+    increase_gold(ch, (int)amount);    /* gain */
+    send_to_char(ch, "You exchange %d account exp for %d gold\r\n", (int)cost, (int)amount);
+
     break;
 
   case SRC_DST_GOLD:
+
+    /* how much is this transaction going to "cost" */
     cost = QP_EXCHANGE_RATE * amount;
+
+    /* can we afford it? if so, go ahead and make exchange */
+    if ((float)GET_GOLD(ch) < cost)
+    {
+      send_to_char(ch, "You do not have enough gold on hand, you need %d total on "
+                       "hand (not in bank) to make the exchange.\r\n",
+                   (int)cost);
+      return;
+    }
+
+    /* bingo! */
+    increase_gold(ch, -(int)cost);
+    GET_QUESTPOINTS(ch) += (int)amount;
+    send_to_char(ch, "You exchange %d gold for %d qp\r\n", (int)cost, (int)amount);
+
     break;
 
   case SRC_DST_QP:
@@ -227,7 +276,21 @@ ACMD(do_cexchange)
       return;
     }
 
+    /* how much is this transaction going to "cost" */
     cost = EXP_EXCHANGE_RATE * amount;
+
+    /* can we afford it? if so, go ahead and make exchange */
+    if ((float)GET_QUESTPOINTS(ch) < cost)
+    {
+      send_to_char(ch, "You do not have enough quest points, you need %d total.\r\n", (int)cost);
+      return;
+    }
+
+    /* bingo! */
+    GET_QUESTPOINTS(ch) -= (int)cost;
+    GET_EXP(ch) += (int)amount;
+    send_to_char(ch, "You exchange %d quest points for %d exp\r\n", (int)cost, (int)amount);
+
     break;
 
   default: /* should never get here */
@@ -236,100 +299,22 @@ ACMD(do_cexchange)
     return;
   }
 
-  /* debugging */
-  if (DEBUG_MODE)
-  {
-    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.\r\n", source, amount, cost);
-  }
-
-  /* can we afford it? if so, go ahead and make exchange */
   switch (source)
   {
 
-  case SRC_DST_ACCEXP:                /* acquiring gold! */
-    pool = cost * GOLD_EXCHANGE_RATE; /* amount we need */
+  case SRC_DST_ACCEXP: /* acquiring gold! */
 
-    if (pool < 1.0)
-    {
-      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
-      return;
-    }
-
-    if ((float)GET_ACCEXP_DESC(ch) < pool)
-    {
-      send_to_char(ch, "You do not have enough account exp, you need %d total.\r\n", (int)pool);
-      return;
-    }
-
-    /* bingo! */
-    change_account_xp(ch, -(int)pool); /* loss */
-    increase_gold(ch, (int)amount);    /* gain */
-    send_to_char(ch, "You exchange %d account exp for %d gold\r\n", (int)pool, (int)amount);
     break;
 
-  case SRC_DST_GOLD:                /* acquiring qp! */
-    pool = cost * QP_EXCHANGE_RATE; /* amount we need */
+  case SRC_DST_GOLD: /* acquiring qp! */
 
-    if (pool < 1.0)
-    {
-      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
-      return;
-    }
-
-    if ((float)GET_GOLD(ch) < pool)
-    {
-      send_to_char(ch, "You do not have enough gold on hand, you need %d total on "
-                       "hand (not in bank) to make the exchange.\r\n",
-                   (int)pool);
-      return;
-    }
-
-    /* bingo! */
-    increase_gold(ch, -(int)pool);
-    GET_QUESTPOINTS(ch) += (int)amount;
-    send_to_char(ch, "You exchange %d gold for %d qp\r\n", (int)pool, (int)amount);
     break;
 
   case SRC_DST_QP:
-    pool = cost * EXP_EXCHANGE_RATE; /* amount we need */
-
-    if (pool < 1.0)
-    {
-      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
-      return;
-    }
-
-    if ((float)GET_QUESTPOINTS(ch) < pool)
-    {
-      send_to_char(ch, "You do not have enough quest points, you need %d total.\r\n", (int)pool);
-      return;
-    }
-
-    /* bingo! */
-    GET_QUESTPOINTS(ch) -= (int)pool;
-    GET_EXP(ch) += (int)amount;
-    send_to_char(ch, "You exchange %d quest points for %d exp\r\n", (int)pool, (int)amount);
     break;
 
   case SRC_DST_EXP:
-    pool = cost * ((float)ACCEXP_EXCHANGE_RATE); /* amount we need */
 
-    if (pool <= 0.0)
-    {
-      send_to_char(ch, "You need to increase the amount for this exchange.\r\n");
-      return;
-    }
-
-    if ((float)GET_EXP(ch) < pool)
-    {
-      send_to_char(ch, "You do not have enough experience points, you need %d total.\r\n", (int)pool);
-      return;
-    }
-
-    /* bingo! */
-    GET_EXP(ch) -= (int)pool;           /* loss*/
-    change_account_xp(ch, (int)amount); /* gain */
-    send_to_char(ch, "You exchange %d experience points for %d accexp\r\n", (int)pool, (int)amount);
     break;
 
   default: /*shouldn't get here*/
@@ -341,7 +326,7 @@ ACMD(do_cexchange)
   /* debugging */
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "cexchange() debug 2: pool: %lf.\r\n", pool);
+    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.\r\n", source, amount, cost);
   }
 
   /* done! */
