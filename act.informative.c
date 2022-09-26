@@ -4154,7 +4154,7 @@ ACMD(do_levels)
       break;
     len += nlen;
 
-    // why are we checking sex for titles?  titles use to be sex
+    // why are we checking sex for titles?  titles used to be sex
     // dependent...  -zusuk
     switch (GET_SEX(ch))
     {

@@ -3685,12 +3685,12 @@ const struct set_struct
     {"premadebuild", LVL_STAFF, PC, MISC},      /* 93 */
     {"psionicist", LVL_IMPL, PC, NUMBER},       /* 94 */
     {"deity", LVL_BUILDER, PC, MISC},           /* 95 */
-
-    {"eldritchknight", LVL_IMPL, PC, NUMBER}, /* 96 */
-    {"spellsword", LVL_IMPL, PC, NUMBER},     /* 97 */
-    {"shadowdancer", LVL_IMPL, PC, NUMBER},   /* 98 */
-    {"blackguard", LVL_IMPL, PC, NUMBER},     /* 99 */
-    {"assassin", LVL_IMPL, PC, NUMBER},       /* 100 */
+    {"eldritchknight", LVL_IMPL, PC, NUMBER},   /* 96 */
+    {"spellsword", LVL_IMPL, PC, NUMBER},       /* 97 */
+    {"shadowdancer", LVL_IMPL, PC, NUMBER},     /* 98 */
+    {"blackguard", LVL_IMPL, PC, NUMBER},       /* 99 */
+    {"assassin", LVL_IMPL, PC, NUMBER},         /* 100 */
+    {"inquisitor", LVL_IMPL, PC, NUMBER},       /* 101 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -3724,6 +3724,7 @@ const struct set_struct
  * CLASS_SHADOWDANCER CLASS_SHADOW_DANCER
  * CLASS_BLACKGUARD
  * CLASS_ASSASSIN
+ * CLASS_INQUISITOR
  */
 
 static int perform_set(struct char_data *ch, struct char_data *vict, int mode, char *val_arg)
@@ -4405,6 +4406,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
 
   case 100: // assassin
     CLASS_LEVEL(vict, CLASS_ASSASSIN) = RANGE(0, LVL_IMMORT - 1);
+    affect_total(vict);
+    break;
+
+  case 100: // inquisitor
+    CLASS_LEVEL(vict, CLASS_INQUISITOR) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
     break;
 
