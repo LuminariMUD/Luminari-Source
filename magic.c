@@ -133,10 +133,10 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   return FALSE;
 }
 
-// Saving Throws, ch is challenger, vict is resistor, modifier applys to vict
-
-int compute_mag_saves(struct char_data *vict,
-                      int type, int modifier)
+/* Saving Throws, ch is challenger, vict is resistor, modifier applys to vict
+     using modifier of MAX_GOLD as signal for calculating cap
+ */
+int compute_mag_saves(struct char_data *vict, int type, int modifier)
 {
 
   int saves = 0;
@@ -197,8 +197,17 @@ int compute_mag_saves(struct char_data *vict,
     saves += (GET_LEVEL(vict) / 3) + 1;
   else
     saves += saving_throws(vict, type);
-  saves += GET_SAVE(vict, type);
-  saves += modifier;
+
+  /* display mode (used in handler for stat caps) */
+  if (modifier == MAX_GOLD)
+  {
+    ;
+  }
+  else
+  {
+    saves += GET_SAVE(vict, type);
+    saves += modifier;
+  }
 
   return MIN(99, MAX(saves, 0));
 }
