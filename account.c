@@ -768,7 +768,7 @@ void perform_do_account(struct char_data *ch, struct char_data *vict)
   send_to_char(ch,
                "\tcEmail: \tn%s\r\n"
                //    "Level: %d\r\n"
-               "\tcExperience: \tn%d (notice: this caps at 34,000)\r\n"
+               "\tcExperience: \tn%d (notice: this caps at 100mil)\r\n"
                //    "Gift Experience: %d\r\n"
                //    "Web Site Password: %s\r\n"
                "\tcCharacters:\tn\r\n",
