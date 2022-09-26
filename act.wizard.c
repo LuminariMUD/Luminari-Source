@@ -4409,7 +4409,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     affect_total(vict);
     break;
 
-  case 100: // inquisitor
+  case 101: // inquisitor
     CLASS_LEVEL(vict, CLASS_INQUISITOR) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
     break;
