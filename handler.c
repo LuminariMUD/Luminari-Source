@@ -453,7 +453,8 @@ void reset_char_points(struct char_data *ch)
 void compute_char_cap(struct char_data *ch, int mode)
 {
   int hp_cap, psp_cap, move_cap, hit_cap, dam_cap, ac_cap,
-      save_cap, spell_resist_cap, class, class_level = 0;
+      spell_resist_cap, class, class_level = 0;
+  int save_fort_cap, save_rflx_cap, save_will_cap, save_psn_cap, save_dth_cap;
   int str_cap, dex_cap, con_cap, wis_cap, int_cap, cha_cap;
   int rage_bonus = 0;
 
@@ -476,14 +477,22 @@ void compute_char_cap(struct char_data *ch, int mode)
   wis_cap = BASE_STAT_CAP + GET_REAL_WIS(ch);
   int_cap = BASE_STAT_CAP + GET_REAL_INT(ch);
   cha_cap = BASE_STAT_CAP + GET_REAL_CHA(ch);
+
   hp_cap = HP_CAP + GET_REAL_MAX_HIT(ch);
   psp_cap = PSP_CAP + GET_REAL_MAX_PSP(ch);
   move_cap = MOVE_CAP + GET_REAL_MAX_MOVE(ch);
+
+  spell_resist_cap = SPELL_RESIST_CAP + GET_REAL_SPELL_RES(ch);
+
   hit_cap = HITDAM_CAP + GET_REAL_HITROLL(ch);
   dam_cap = HITDAM_CAP + GET_REAL_DAMROLL(ch);
-  spell_resist_cap = SPELL_RESIST_CAP + GET_REAL_SPELL_RES(ch);
   ac_cap = AC_CAP;
-  save_cap = SAVE_CAP;
+
+  save_fort_cap = GET_REAL_SAVE(ch, SAVING_FORT) + SAVE_CAP;
+  save_rflx_cap = GET_REAL_SAVE(ch, SAVING_REFL) + SAVE_CAP;
+  save_will_cap = GET_REAL_SAVE(ch, SAVING_WILL) + SAVE_CAP;
+  save_psn_cap = GET_REAL_SAVE(ch, SAVING_POISON) + SAVE_CAP;
+  save_dth_cap = GET_REAL_SAVE(ch, SAVING_DEATH) + SAVE_CAP;
 
   /***  end base *****/
 
@@ -714,11 +723,11 @@ void compute_char_cap(struct char_data *ch, int mode)
     send_to_char(ch, "\r\n");
     send_to_char(ch, "\tYSpell Resist & Saving Throws:\tn\r\n");
     send_to_char(ch, "Spell Resist: \tR*%d*\tn\r\n", spell_resist_cap);
-    send_to_char(ch, "Save - Fortitude: \tR*%d*\tn\r\n", save_cap);
-    send_to_char(ch, "Save - Reflex: \tR*%d*\tn\r\n", save_cap);
-    send_to_char(ch, "Save - Will: \tR*%d*\tn\r\n", save_cap);
-    send_to_char(ch, "Save - Poison: \tR*%d*\tn\r\n", save_cap);
-    send_to_char(ch, "Save - Death: \tR*%d*\tn\r\n", save_cap);
+    send_to_char(ch, "Save - Fortitude: \tR*%d*\tn\r\n", save_fort_cap);
+    send_to_char(ch, "Save - Reflex: \tR*%d*\tn\r\n", save_rflx_cap);
+    send_to_char(ch, "Save - Will: \tR*%d*\tn\r\n", save_will_cap);
+    send_to_char(ch, "Save - Poison: \tR*%d*\tn\r\n", save_psn_cap);
+    send_to_char(ch, "Save - Death: \tR*%d*\tn\r\n", save_dth_cap);
 
     send_to_char(ch, "\tC");
     draw_line(ch, 80, '-', '-');
@@ -749,11 +758,11 @@ void compute_char_cap(struct char_data *ch, int mode)
   GET_MAX_MOVE(ch) = MIN(move_cap, GET_MAX_MOVE(ch));
 
   /* saving throws */
-  GET_SAVE(ch, SAVING_FORT) = MIN(save_cap, GET_SAVE(ch, SAVING_FORT));
-  GET_SAVE(ch, SAVING_REFL) = MIN(save_cap, GET_SAVE(ch, SAVING_REFL));
-  GET_SAVE(ch, SAVING_WILL) = MIN(save_cap, GET_SAVE(ch, SAVING_WILL));
-  GET_SAVE(ch, SAVING_POISON) = MIN(save_cap, GET_SAVE(ch, SAVING_POISON));
-  GET_SAVE(ch, SAVING_DEATH) = MIN(save_cap, GET_SAVE(ch, SAVING_DEATH));
+  GET_SAVE(ch, SAVING_FORT) = MIN(save_fort_cap, GET_SAVE(ch, SAVING_FORT));
+  GET_SAVE(ch, SAVING_REFL) = MIN(save_rflx_cap, GET_SAVE(ch, SAVING_REFL));
+  GET_SAVE(ch, SAVING_WILL) = MIN(save_will_cap, GET_SAVE(ch, SAVING_WILL));
+  GET_SAVE(ch, SAVING_POISON) = MIN(save_psn_cap, GET_SAVE(ch, SAVING_POISON));
+  GET_SAVE(ch, SAVING_DEATH) = MIN(save_dth_cap, GET_SAVE(ch, SAVING_DEATH));
 
   /* spell resist */
   GET_SPELL_RES(ch) = MIN(spell_resist_cap, GET_SPELL_RES(ch));
