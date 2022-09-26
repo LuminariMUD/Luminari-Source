@@ -133,7 +133,7 @@ ACMD(do_cexchange)
   char arg1[MAX_STRING_LENGTH] = {'\0'};
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   float amount = 0.0, cost = 0.0;
-  int source = 0, xp_excess = 0;
+  int source = 0, xp_excess = 0, xp_profit = 0;
 
   /*debug*/
   if (DEBUG_MODE)
@@ -300,15 +300,25 @@ ACMD(do_cexchange)
       return;
     }
 
+    /* this is the inverse of our exchange rate */
+    xp_profit = ((int)(1.0 / EXP_EXCHANGE_RATE) + 1);
+
     /* there is a "profit" in this exchange */
-    if ((int)amount % (int)(1.0 / EXP_EXCHANGE_RATE))
+    if ((int)amount % xp_profit)
     {
-      send_to_char(ch, "To exchange qp to exp, you need to pick increments of %d.\r\n", (int)(1.0 / EXP_EXCHANGE_RATE));
+      send_to_char(ch, "To exchange qp to exp, you need to pick increments of %d.\r\n", xp_profit);
       return;
     }
 
     /* how much is this transaction going to "cost" */
     cost = EXP_EXCHANGE_RATE * amount;
+
+    /* just in case of a math error? */
+    if (cost < 1.0)
+    {
+      send_to_char(ch, "ERR: Report to Staff (cexchange001)\r\n");
+      return;
+    }
 
     /* can we afford it? if so, go ahead and make exchange */
     if ((float)GET_QUESTPOINTS(ch) < cost)
