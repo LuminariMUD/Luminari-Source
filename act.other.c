@@ -239,7 +239,7 @@ ACMD(do_cexchange)
   /* debugging */
   if (DEBUG_MODE)
   {
-    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.  ", source, amount, cost);
+    send_to_char(ch, "cexchange() debug 1: source: %d, amount: %lf, cost: %lf.\r\n", source, amount, cost);
   }
 
   /* can we afford it? if so, go ahead and make exchange */
@@ -247,7 +247,7 @@ ACMD(do_cexchange)
   {
 
   case SRC_DST_ACCEXP:                /* acquiring gold! */
-    pool = cost / GOLD_EXCHANGE_RATE; /* amount we need */
+    pool = cost * GOLD_EXCHANGE_RATE; /* amount we need */
 
     if (pool < 1.0)
     {
@@ -264,11 +264,11 @@ ACMD(do_cexchange)
     /* bingo! */
     change_account_xp(ch, -(int)pool); /* loss */
     increase_gold(ch, (int)amount);    /* gain */
-    send_to_char(ch, "You exchange %d account exp for %d gold.", (int)pool, (int)amount);
+    send_to_char(ch, "You exchange %d account exp for %d gold\r\n", (int)pool, (int)amount);
     break;
 
   case SRC_DST_GOLD:                /* acquiring qp! */
-    pool = cost / QP_EXCHANGE_RATE; /* amount we need */
+    pool = cost * QP_EXCHANGE_RATE; /* amount we need */
 
     if (pool < 1.0)
     {
@@ -287,11 +287,11 @@ ACMD(do_cexchange)
     /* bingo! */
     increase_gold(ch, -(int)pool);
     GET_QUESTPOINTS(ch) += (int)amount;
-    send_to_char(ch, "You exchange %d gold for %d qp.", (int)pool, (int)amount);
+    send_to_char(ch, "You exchange %d gold for %d qp\r\n", (int)pool, (int)amount);
     break;
 
   case SRC_DST_QP:
-    pool = cost / EXP_EXCHANGE_RATE; /* amount we need */
+    pool = cost * EXP_EXCHANGE_RATE; /* amount we need */
 
     if (pool < 1.0)
     {
@@ -308,11 +308,11 @@ ACMD(do_cexchange)
     /* bingo! */
     GET_QUESTPOINTS(ch) -= (int)pool;
     GET_EXP(ch) += (int)amount;
-    send_to_char(ch, "You exchange %d quest points for %d exp", (int)pool, (int)amount);
+    send_to_char(ch, "You exchange %d quest points for %d exp\r\n", (int)pool, (int)amount);
     break;
 
   case SRC_DST_EXP:
-    pool = cost / ((float)ACCEXP_EXCHANGE_RATE); /* amount we need */
+    pool = cost * ((float)ACCEXP_EXCHANGE_RATE); /* amount we need */
 
     if (pool <= 0.0)
     {
@@ -329,7 +329,7 @@ ACMD(do_cexchange)
     /* bingo! */
     GET_EXP(ch) -= (int)pool;           /* loss*/
     change_account_xp(ch, (int)amount); /* gain */
-    send_to_char(ch, "You exchange %d experience points for %d accexp", (int)pool, (int)amount);
+    send_to_char(ch, "You exchange %d experience points for %d accexp\r\n", (int)pool, (int)amount);
     break;
 
   default: /*shouldn't get here*/
