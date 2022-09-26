@@ -74,10 +74,10 @@ void save_char_pets(struct char_data *ch);
 
 /* exchange code */
 
-#define EXP_EXCHANGE_RATE 0.00001    /* how much doex exp cost (purchase currency = qp) */
-#define ACCEXP_EXCHANGE_RATE 12000.0 /* how much does accexp cost (purchase currency = xp) */
-#define GOLD_EXCHANGE_RATE 10.0      /* how much does gold cost (purchase currency = account xp) */
-#define QP_EXCHANGE_RATE 300.0       /* how much does qp cost (purchase currency = gold) */
+#define EXP_EXCHANGE_RATE 0.00001   /* how much doex exp cost (purchase currency = qp) */
+#define ACCEXP_EXCHANGE_RATE 8000.0 /* how much does accexp cost (purchase currency = xp) */
+#define GOLD_EXCHANGE_RATE 10.0     /* how much does gold cost (purchase currency = account xp) */
+#define QP_EXCHANGE_RATE 300.0      /* how much does qp cost (purchase currency = gold) */
 
 #define SRC_DST_ACCEXP 1
 #define SRC_DST_QP 2
@@ -127,7 +127,7 @@ void show_exchange_rates(struct char_data *ch)
   return;
 }
 
-/* currency exchange code, first version, unfinished */
+/* currency exchange code, second version, only direct exchange in currency to designated currency */
 ACMD(do_cexchange)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
