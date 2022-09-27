@@ -856,12 +856,13 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
           break;
 
         case NPC_MODE_DISPLAY:
-          send_to_char(ch, "%-8s%s %-*s%s %s%s\r\n",
-                         GET_NAME(pet),                     
-                         30 + count_color_chars(world[IN_ROOM(pet)].name),
+          send_to_char(ch, "%-8s%s - [%5d] %s%s (in %s%s)\r\n",
+                         GET_NAME(i),
+                         QNRM,
+                         GET_ROOM_VNUM(IN_ROOM(pet)),
                          world[IN_ROOM(pet)].name,
                          QNRM,
-                         zone_table[(world[IN_ROOM(pet)].zone)].name,
+                         GET_NAME(pet),
                          QNRM);
           break;
 
