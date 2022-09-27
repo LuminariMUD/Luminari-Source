@@ -1015,7 +1015,7 @@ void npc_spellup(struct char_data *ch)
   /* try animate undead first */
   /* UPDATE: plans to add a mob flag for this, for now restrict to mobs
    over level 30 -zusuk */
-  if (GET_LEVEL(ch) > 30 && !HAS_PET_UNDEAD(ch) && !rand_number(0, 1) && !ch->master)
+  if (GET_LEVEL(ch) > 30 && !check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD) && !rand_number(0, 1) && !ch->master)
   {
     for (obj = world[ch->in_room].contents; obj; obj = obj->next_content)
     {
@@ -1034,7 +1034,7 @@ void npc_spellup(struct char_data *ch)
   /* try for an elemental */
   /* UPDATE: plans to add a mob flag for this, for now restrict to mobs
    over level 30 -zusuk */
-  if (GET_LEVEL(ch) > 30 && !HAS_PET_ELEMENTAL(ch) && !rand_number(0, 6) && !ch->master)
+  if (GET_LEVEL(ch) > 30 && !check_npc_followers(ch, NPC_MODE_FLAG, MOB_ELEMENTAL) && !rand_number(0, 6) && !ch->master)
   {
     if (level >= spell_info[SPELL_SUMMON_CREATURE_9].min_level[GET_CLASS(ch)])
     {
@@ -1070,7 +1070,12 @@ void npc_spellup(struct char_data *ch)
   /* try healing */
   if (GET_HIT(victim) && (GET_MAX_HIT(victim) / GET_HIT(victim)) >= 2)
   {
-    if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)])
+    if (GROUP(ch) && level >= spell_info[SPELL_GROUP_HEAL].min_level[GET_CLASS(ch)])
+    {
+      cast_spell(ch, victim, NULL, SPELL_GROUP_HEAL, 0);
+      return;
+    }
+    else if (level >= spell_info[SPELL_HEAL].min_level[GET_CLASS(ch)])
     {
       cast_spell(ch, victim, NULL, SPELL_HEAL, 0);
       return;
