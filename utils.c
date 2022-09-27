@@ -806,6 +806,87 @@ int color_count(char *bufptr) {
   return count;
 }
 
+/*
+this function is to deal with our follower army! -zusuk
+   in - ch: pc we're dealing with
+   in - mode: what mode are we using, we have display, flag based, total count, specific vnum
+   in - variable: for flag mode, mob_flag...  specific mode, mob_vnum
+   out - count of followers   
+   */
+/* reference
+  #define NPC_MODE_DISPLAY 0
+  #define NPC_MODE_FLAG 1
+  #define NPC_MODE_SPECIFIC 2
+  #define NPC_MODE_COUNT 3
+*/
+int check_npc_followers(struct char_data *ch, int mode, int variable) {
+  struct follow_type *k = NULL, *next = NULL;
+  struct char_data *pet = NULL;
+  int total_count = 0, flag_count = 0, vnum_count = 0;
+
+  if (mode == NPC_MODE_DISPLAY)
+    text_line(ch, "Pets Charmees NPC Followers", 80, "-", "-");
+
+  /* loop through followers */
+  for (k = ch->followers; k; k = next) {
+    next = k->next;
+
+    pet = k->follower;
+
+    /* is this a charmee? */
+    if (IS_PET(pet)) {
+
+      /* found a pet! */
+      total_count++;
+
+      switch (mode) {
+
+        case NPC_MODE_FLAG:
+          if (MOB_FLAGGED(pet, variable)) {
+            flag_count++;
+          }
+
+          break;
+
+        case NPC_MODE_SPECIFIC:
+          if (GET_MOB_VNUM(pet) == variable) {
+            vnum_count++;
+          }
+
+          break;
+
+        case NPC_MODE_DISPLAY:
+          send_to_char(ch, "%-8s%s %-*s%s %s%s\r\n",
+                         GET_NAME(pet),                     
+                         30 + count_color_chars(world[IN_ROOM(pet)].name),
+                         world[IN_ROOM(pet)].name,
+                         QNRM,
+                         zone_table[(world[IN_ROOM(pet)].zone)].name,
+                         QNRM);
+          break;
+
+
+      } /* end switch */
+    } /* end charmee check */      
+  } /* end for */
+
+  switch (mode) {
+
+    case NPC_MODE_FLAG:
+      return flag_count;
+
+    case NPC_MODE_SPECIFIC:
+      return vnum_count;
+
+    case NPC_MODE_DISPLAY:
+      draw_line(ch, 80, "-", "-");
+      break;
+
+  } /* end switch */
+
+  return total_count;
+}
+
 /* check if ch has a specific (by vnum) follower or not */
 int specific_follower_count(struct char_data *ch, mob_vnum mvnum) {
   struct follow_type *k = NULL, *next = NULL;
@@ -821,91 +902,20 @@ int specific_follower_count(struct char_data *ch, mob_vnum mvnum) {
   return count;
 }
 
-/* check if ch has a "misc" follower or not */
-bool has_pet_follower(struct char_data *ch) {
+/* check count for ch of followers by mob_flag type */
+int count_follower_by_type(struct char_data *ch, int mob_flag) {
   struct follow_type *k = NULL, *next = NULL;
+  int count = 0;
 
   for (k = ch->followers; k; k = next) {
     next = k->next;
     if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-            !MOB_FLAGGED(k->follower, MOB_ELEMENTAL) &&
-            !MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD) &&
-            !MOB_FLAGGED(k->follower, MOB_C_FAMILIAR) &&
-            !MOB_FLAGGED(k->follower, MOB_C_ANIMAL) &&
-            !MOB_FLAGGED(k->follower, MOB_C_MOUNT)
-            ) {
-      return TRUE;
+            (MOB_FLAGGED(k->follower, mob_flag))) {
+      count++;
     }
   }
 
-  return FALSE;
-}
-
-/* check if ch has an elemental follower or not */
-bool has_elemental_follower(struct char_data *ch) {
-  struct follow_type *k = NULL, *next = NULL;
-
-  for (k = ch->followers; k; k = next) {
-    next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-            (MOB_FLAGGED(k->follower, MOB_ELEMENTAL))) {
-      return TRUE;
-    }
-  }
-
-  return FALSE;
-}
-
-/* check if ch has an undead follower or not */
-bool has_undead_follower(struct char_data *ch)
-{
-  struct follow_type *k = NULL, *next = NULL;
-
-  for (k = ch->followers; k; k = next)
-  {
-    next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-        (MOB_FLAGGED(k->follower, MOB_ANIMATED_DEAD)))
-    {
-      return TRUE;
-    }
-  }
-
-  return FALSE;
-}
-
-/* check if ch has a vampire children of the night follower */
-bool has_children_of_the_night(struct char_data *ch)
-{
-  struct follow_type *k = NULL, *next = NULL;
-
-  for (k = ch->followers; k; k = next)
-  {
-    next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) >= 9419 && GET_MOB_VNUM(k->follower) <= 9421)
-    {
-      return TRUE;
-    }
-  }
-
-  return FALSE;
-}
-
-/* check if ch has a vampire spawn follower */
-bool has_vampire_spawn_follower(struct char_data *ch)
-{
-  struct follow_type *k = NULL, *next = NULL;
-
-  for (k = ch->followers; k; k = next)
-  {
-    next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && GET_MOB_VNUM(k->follower) == 9422)
-    {
-      return TRUE;
-    }
-  }
-
-  return FALSE;
+  return count;
 }
 
 /* this will calculate the arcana-golem race bonus caster level */
@@ -2396,7 +2406,7 @@ void die_follower(struct char_data *ch) {
   }
 }
 
-/** Adds a new follower to a group.
+/** Adds a new follower to a leader (following).
  * @todo Maybe make circle_follow an inherent part of this function?
  * @pre Make sure to call circle_follow first. ch may also not already
  * be following anyone, otherwise core dump.
@@ -6463,3 +6473,6 @@ void apply_dr_type(struct char_data *ch, int type)
     break;
   }  
 }
+=======
+/* EoF */
+>>>>>>> Stashed changes

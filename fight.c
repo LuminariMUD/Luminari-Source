@@ -1222,7 +1222,6 @@ void check_killer(struct char_data *ch, struct char_data *vict)
 }
 
 /* a function that sets ch fighting victim */
-
 /* TRUE - succeeding in engaging in combat
    FALSE - failed to engage in combat */
 bool set_fighting(struct char_data *ch, struct char_data *vict)

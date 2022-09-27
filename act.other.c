@@ -7780,6 +7780,15 @@ ACMDU(do_holyweapon)
     return;
   }
 
+  /* going to check bogus weapon types */
+  switch (i)
+  {
+  case WEAPON_TYPE_UNARMED:
+  case WEAPON_TYPE_UNDEFINED:
+    send_to_char(ch, "Sorry, that is not a valid weapon type.\r\n");
+    return;
+  }
+
   GET_HOLY_WEAPON_TYPE(ch) = i;
   send_to_char(ch, "You have set your %sholy weapon type to %s.\r\n", subcmd ? "un" : "", weapon_list[GET_HOLY_WEAPON_TYPE(ch)].name);
   save_char(ch, 0);

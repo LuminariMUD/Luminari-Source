@@ -5641,6 +5641,12 @@ SPECIAL(courage)
     return FALSE;
 
   struct obj_data *courage = (struct obj_data *)me;
+  int wpn_level = 0;
+
+  if (is_wearing(ch, 139251))
+    wpn_level = 25;
+  if (is_wearing(ch, 139250))
+    wpn_level = 30;
 
   skip_spaces(&argument);
 
@@ -5653,14 +5659,21 @@ SPECIAL(courage)
       return TRUE;
     }
 
+    if (!GROUP(ch))
+    {
+      send_to_char(ch, "You have to be in a group for this power.\r\n");
+      return TRUE;
+    }
+
     /* should be good! */
 
     act("$n \tLinvokes $s $p!", FALSE, ch, courage, 0, TO_ROOM);
     act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
 
-    call_magic(ch, ch, 0, SPELL_MASS_ENHANCE, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
-    if (is_wearing(ch, 13925))
-      call_magic(ch, ch, 0, SPELL_PRAYER, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
+    call_magic(ch, ch, NULL, SPELL_MASS_ENHANCE, 0, wpn_level, CAST_WEAPON_SPELL);
+
+    if (is_wearing(ch, 139250))
+      call_magic(ch, ch, NULL, SPELL_PRAYER, 0, wpn_level, CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER(courage, 0) = 72;
     return TRUE;
@@ -9024,8 +9037,18 @@ SPECIAL(bought_pet)
     send_to_char(obj->carried_by, "You have acquired a companion.\r\n");
 
     /* get rid of the purchased object */
+    obj_from_char(obj);
     extract_obj(obj);
+
+    /* bingo */
     return TRUE;
+  }
+
+  /* clean up */
+  if (obj && obj->carried_by && !IS_NPC(obj->carried_by))
+  {
+    obj_from_char(obj);
+    extract_obj(obj);
   }
 
   /* failed to load pet */

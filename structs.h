@@ -877,9 +877,15 @@
 #define MOB_ABIL_FROST_BREATH 82
 #define MOB_ABIL_MAGIC_IMMUNITY 83
 #define MOB_ABIL_INVISIBILITY 84
+#define MOB_C_O_T_N 85
+#define MOB_VAMP_SPWN 86
 /**********************/
-#define NUM_MOB_FLAGS 85
+#define NUM_MOB_FLAGS 87
+/**********************/
+/**********************/
 
+/**********************/
+/* misc defines */
 #define SHAPE_AFFECTS 3
 #define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
 #define MOB_GHOUL 35          // " " level 11+
@@ -890,7 +896,11 @@
 #define MOB_PALADIN_MOUNT_SMALL 91
 #define MOB_EPIC_PALADIN_MOUNT 79
 #define MOB_EPIC_PALADIN_MOUNT_SMALL 92
+#define MAX_MERCS 3
+/***  end misc defines ****/
+/**********************/
 
+/**********************/
 /* Preference flags: used by char_data.player_specials.pref */
 #define PRF_BRIEF 0                   /**< Room descs won't normally be shown */
 #define PRF_COMPACT 1                 /**< No extra CRLF pair before prompts */
