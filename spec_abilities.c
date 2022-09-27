@@ -687,12 +687,13 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       break;
     }
 
-    if (HAS_PET(ch))
+    mob_num = specab->value[0]; /* Val 0 is mob VNUM */
+
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       break;
     }
-    mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
     /* Display the message for the ability. */
     act("You bring your $o to your mouth and blow.", FALSE, ch, obj, ch, TO_CHAR);
