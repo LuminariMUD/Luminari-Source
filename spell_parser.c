@@ -2583,7 +2583,7 @@ void mag_assign_spells(void)
   /* Do not change the loop below. */
   for (i = 0; i <= TOP_SPELL_DEFINE; i++)
     unused_spell(i);
-  for (i = 0; i <= TOP_SKILL_DEFINE; i++)
+  for (i = 0; i <= (TOP_SKILL_DEFINE + 1); i++)
     unused_skill(i);
   /* Do not change the loop above. */
 
