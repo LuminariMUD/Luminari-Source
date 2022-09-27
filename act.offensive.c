@@ -1569,15 +1569,18 @@ bool perform_dirtkick(struct char_data *ch, struct char_data *vict)
     dam = dice(1, GET_LEVEL(ch));
     damage(ch, vict, dam, SKILL_DIRT_KICK, 0, FALSE);
 
-    if (!savingthrow(vict, SAVING_REFL, 0, (10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch))) && can_blind(vict))
+    if (!AFF_FLAGGED(vict, AFF_BLIND) && !savingthrow(vict, SAVING_REFL, 0, (10 + (GET_LEVEL(ch) / 2) + GET_DEX_BONUS(ch))) && can_blind(vict))
     {
       new_affect(&af);
+
       af.spell = SKILL_DIRT_KICK;
       SET_BIT_AR(af.bitvector, AFF_BLIND);
       af.modifier = -4;
       af.duration = dice(1, GET_LEVEL(ch) / 5);
       af.location = APPLY_HITROLL;
+
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
+
       act("$n blinds $N with the debris!!", FALSE, ch, NULL, vict, TO_NOTVICT);
       act("You blind $N with debris!", FALSE, ch, NULL, vict, TO_CHAR);
       act("$n blinds you with debris!!", FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
@@ -1908,6 +1911,11 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
     {
       USE_MOVE_ACTION(ch);
     }
+
+    if (!FIGHTING(ch))
+      set_fighting(ch, vict);
+    if (!FIGHTING(vict))
+      set_fighting(vict, ch);
 
     return TRUE;
   }
@@ -2721,6 +2729,11 @@ ACMD(do_kill)
              ch->next_in_room != vict && vict->next_in_room != ch)
     {
       send_to_char(ch, "You simply can't reach that far.\r\n");
+      return;
+    }
+    else if (ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL) && GET_LEVEL(ch) < LVL_IMPL)
+    {
+      send_to_char(ch, "Targets room just has such a peaceful, easy feeling...\r\n");
       return;
     }
     else if (GET_LEVEL(ch) <= GET_LEVEL(vict) ||
@@ -8333,7 +8346,8 @@ void perform_children_of_the_night(struct char_data *ch)
 ACMDCHECK(can_create_vampire_spawn)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CREATE_SPAWN, "You have no idea how.\r\n");
-  if (HAS_PET_VAMPIRE_SPAWN(ch))
+
+  if (count_follower_by_type(ch, MOB_VAMP_SPWN))
   {
     send_to_char(ch, "You have already created vampiric spawn.\r\n");
     return 0;

@@ -5949,7 +5949,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_TIMESTOP: // abjuration
-    af[0].duration = 7;
+    af[0].duration = 14;
     SET_BIT_AR(af[0].bitvector, AFF_TIME_STOPPED);
 
     accum_duration = FALSE;
@@ -7493,7 +7493,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_SUMMON_CREATURE_8: // conjuration
   case SPELL_SUMMON_CREATURE_7: // conjuration
   case SPELL_ELEMENTAL_SWARM:
-    if (HAS_PET_ELEMENTAL(ch))
+    if (count_follower_by_type(ch, MOB_ELEMENTAL))
     {
       send_to_char(ch, "You can't control more elementals!\r\n");
       return;
@@ -7502,21 +7502,21 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ANIMATE_DEAD:
   case SPELL_GREATER_ANIMATION:
   case SPELL_MUMMY_DUST:
-    if (HAS_PET_UNDEAD(ch))
+    if (count_follower_by_type(ch, MOB_ANIMATED_DEAD))
     {
       send_to_char(ch, "You can't control more undead!\r\n");
       return;
     }
     break;
   case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
-    if (HAS_PET_CHILDREN_OF_THE_NIGHT(ch))
+    if (count_follower_by_type(ch, MOB_C_O_T_N))
     {
       send_to_char(ch, "You can't control more vampiric minions!\r\n");
       return;
     }
     break;
   case ABILITY_CREATE_VAMPIRE_SPAWN:
-    if (HAS_PET_VAMPIRE_SPAWN(ch))
+    if (count_follower_by_type(ch, MOB_VAMP_SPWN))
     {
       send_to_char(ch, "You can't control more vampiric spawn!\r\n");
       return;
@@ -8021,7 +8021,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   struct obj_data *eq = NULL;
   char message[200];
 
-  struct affected_type *af = NULL;
+  struct affected_type *af = NULL, *next = NULL;
 
   if (victim == NULL)
     return;
@@ -8257,8 +8257,10 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   }
 
   /* this is to try and clean up bits related to the spell */
-  for (af = victim->affected; af; af = af->next)
+  for (af = victim->affected; af; af = next)
   {
+    next = af->next;
+
     if (af && affect && af->bitvector && IS_SET_AR(af->bitvector, affect))
     {
       if (victim && af->spell)

@@ -242,12 +242,8 @@ const char *a_or_an(const char *string);
 bool is_fav_enemy_of(struct char_data *ch, int race);
 int compute_arcana_golem_level(struct char_data *ch);
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);
-bool has_pet_follower(struct char_data *ch);
+int count_follower_by_type(struct char_data *ch, int mob_flag);
 int specific_follower_count(struct char_data *ch, mob_vnum mvnum);
-bool has_elemental_follower(struct char_data *ch);
-bool has_undead_follower(struct char_data *ch);
-bool has_children_of_the_night(struct char_data *ch);
-bool has_vampire_spawn_follower(struct char_data *ch);
 int color_count(char *bufptr);
 bool using_monk_gloves(struct char_data *ch);
 int num_obj_in_obj(struct obj_data *obj);
@@ -1414,18 +1410,11 @@ void char_from_furniture(struct char_data *ch);
 
 /* a function to check if a mobile is a 'pet' */
 #define IS_PET(ch) (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
-/* new system:
- * 1)  can have 1 elemental
- * 2)  can have 1 undead
- * 3)  can have 1 other
- * 4)  can have mount/familiar/companion
- */
-#define HAS_PET_UNDEAD(ch) (has_undead_follower(ch))
-#define HAS_PET_CHILDREN_OF_THE_NIGHT(ch) (has_children_of_the_night(ch))
-#define HAS_PET_VAMPIRE_SPAWN(ch) (has_vampire_spawn_follower(ch))
-#define HAS_PET_ELEMENTAL(ch) (has_elemental_follower(ch))
-#define HAS_PET(ch) (has_pet_follower(ch))
 #define SPECIFIC_PET_COUNT(ch, mobvnum) (specific_follower_count(ch, mobvnum))
+#define NPC_MODE_DISPLAY 0
+#define NPC_MODE_FLAG 1
+#define NPC_MODE_SPECIFIC 2
+#define NPC_MODE_COUNT 3
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i) (GET_SUBRACE(ch, 0) == i || \

@@ -1074,8 +1074,8 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
  * affect_location_apply */
 void affect_remove(struct char_data *ch, struct affected_type *af)
 {
-  int i;
-  struct affected_type *temp;
+  int i = 0;
+  struct affected_type *temp = NULL;
   int empty_bits[AF_ARRAY_MAX];
   // bool is_ac_new = false;
 
@@ -1151,7 +1151,7 @@ void affect_type_from_char(struct char_data *ch, int type)
 /* Call affect_remove with every affect from the spell "spell" */
 void affect_from_char(struct char_data *ch, int spell)
 {
-  struct affected_type *hjp, *next;
+  struct affected_type *hjp = NULL, *next = NULL;
 
   for (hjp = ch->affected; hjp; hjp = next)
   {

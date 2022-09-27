@@ -3142,10 +3142,9 @@ void assign_feats(void)
         "extra unarmed attack when using flurry of blows",
         "extra unarmed attack when using flurry of blows, at level 15 you get yet "
         "another bonus attack at full BAB");
-  /*unfinished*/ feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-                       "Gain 10/magic damage reduction (unfinished)",
-                       "Gain 10/magic damage reduction [note: until our damage reduction system is "
-                       "changed, this feat will give a flat 3 damage reduction against ALL incoming attacks");
+  feato(FEAT_PERFECT_SELF, "perfect self", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Gain 3 DR",
+        "Gain 3 damage reduction against all incoming attacks.");
   feato(FEAT_PURITY_OF_BODY, "purity of body", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "immune to poison",
         "immune to poison");
