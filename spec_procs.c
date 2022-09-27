@@ -5126,7 +5126,7 @@ SPECIAL(pet_shops)
       send_to_char(ch, "You don't have enough gold!\r\n");
       return (TRUE);
     }
-    if (has_pet_follower(ch))
+    if (check_npc_followers(ch, NPC_MODE_COUNT, 0) >= GET_CHA_BONUS(ch))
     {
       send_to_char(ch, "You can't have any more pets!\r\n");
       return (TRUE);
