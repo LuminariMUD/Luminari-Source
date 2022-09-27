@@ -825,7 +825,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
   int total_count = 0, flag_count = 0, vnum_count = 0;
 
   if (mode == NPC_MODE_DISPLAY)
-    text_line(ch, "Pets Charmees NPC Followers", 80, "-", "-");
+    text_line(ch, "Pets Charmees NPC Followers", 80, '-', '-');
 
   /* loop through followers */
   for (k = ch->followers; k; k = next) {
@@ -879,7 +879,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
       return vnum_count;
 
     case NPC_MODE_DISPLAY:
-      draw_line(ch, 80, "-", "-");
+      draw_line(ch, 80, '-', '-');
       break;
 
   } /* end switch */
