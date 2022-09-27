@@ -8267,7 +8267,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         found = TRUE;
       }
     }
-    if (af && affect2 && IS_SET_AR(af->bitvector, affect2))
+    if (af && affect2 && af->bitvector && IS_SET_AR(af->bitvector, affect2))
     {
       if (victim && af->spell)
       {
@@ -8283,9 +8283,11 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
     return;
   }
+  /* end bit clean up */
 
   /* first remove spell affect */
   affect_from_char(victim, spell);
+
   /* special scenario:  dg-script affliction */
   // affect_type_from_char(victim, affect);
   if (affected_by_spell(victim, SPELL_DG_AFFECT) && AFF_FLAGGED(victim, affect))
@@ -8298,6 +8300,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   if (AFF_FLAGGED(victim, affect))
     REMOVE_BIT_AR(AFF_FLAGS(victim), affect);
 
+  /* send messages */
   if (to_notvict != NULL)
     act(to_notvict, TRUE, ch, 0, victim, TO_NOTVICT);
   if (to_vict != NULL)
@@ -8511,6 +8514,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Not a valid target (astral, ethereal, elemental, prime)");
       return;
     }
+
     if (!valid_mortal_tele_dest(ch, gate_dest, FALSE))
     {
       send_to_char(ch, "Your %s is being blocked at the destination!\r\n", spellnum == SPELL_GATE ? "magic" : "power");
@@ -8608,7 +8612,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     obj_to_floor = TRUE;
     object_vnum = 805;
     break;
-    /* these have been made maual spells */
+    /* these have been made manual spells */
     /*
       case SPELL_WALL_OF_FIRE:
         to_char = "You create $p.";

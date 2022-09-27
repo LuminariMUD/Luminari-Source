@@ -2414,6 +2414,15 @@ ACMD(do_masterlist)
 
     len += nlen;
     counter++;
+
+    /* debugging this issue */
+    /*
+    if (counter >= 7000000)
+    {
+      send_to_char(ch, "error, report to staff masterlist001\r\n");
+      break;
+    }
+    */
   }
   nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                   "\r\n\tCTotal:\tn  %d\r\n", counter);

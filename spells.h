@@ -997,6 +997,7 @@
 #define MIN_LANGUAGES SKILL_LANG_LOW
 #define MAX_LANGUAGES SKILL_LANG_HIGH
 
+/*****  !!!! MAKE SURE MAX_SKILLS (structs.h) IS BIGGER THAN THIS NUMBER!!! -zusuk ******/
 #define TOP_SKILL_DEFINE 2433
 
 /*----------------------------------------------------------------------------------------------*/
