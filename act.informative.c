@@ -2395,7 +2395,7 @@ ACMD(do_masterlist)
 
   for (; bottom < top; bottom++)
   {
-    i = spell_sort_info[bottom];
+    i = spell_sort_info[bottom]; /* make sure spell_sort_info[] define is big enough! */
 
     if (!strcmp(spell_info[i].name, "!UNUSED!"))
       continue;

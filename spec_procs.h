@@ -16,7 +16,7 @@
 
 #include "spells.h"
 
-int spell_sort_info[TOP_SPELLS_POWERS_SKILLS_BOMBS + 1];
+int spell_sort_info[TOP_SKILL_DEFINE];
 
 extern int prisoner_heads;
 
