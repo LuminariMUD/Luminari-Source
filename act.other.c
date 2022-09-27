@@ -700,7 +700,7 @@ ACMD(do_animatedead)
     return;
   }
 
-  if (HAS_PET_UNDEAD(ch))
+  if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATE_DEAD))
   {
     send_to_char(ch, "You can't control more undead!\r\n");
     return;
