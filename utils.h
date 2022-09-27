@@ -111,6 +111,7 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
 void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
+void apply_dr_type(struct char_data *ch, int type);
 bool can_silence(struct char_data *ch);
 int get_default_spell_weapon(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);

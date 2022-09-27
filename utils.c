@@ -6417,3 +6417,49 @@ bool is_covered(struct char_data *ch)
 
   return true;
 }
+
+void apply_dr_type(struct char_data *ch, int type)
+{
+  struct affected_type af;
+  struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL;
+
+  new_affect(&af);
+
+  switch (type)
+  {
+
+    case RACIAL_ABILITY_VAMPIRE_DR:
+    // Remove the dr and we'll reapply it. 
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    {
+      if (dr->spell == type)
+      {
+        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      }
+    }
+
+    af.location = APPLY_DR;
+    af.modifier = 0;
+    af.duration = 10 * 60 * 24;
+
+    CREATE(new_dr, struct damage_reduction_type, 1);
+
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
+    new_dr->bypass_val[0] = MATERIAL_SILVER;
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_MATERIAL;
+    new_dr->bypass_val[1] = MATERIAL_ALCHEMAL_SILVER;
+
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_MAGIC;
+    new_dr->bypass_val[2] = 1;
+
+    new_dr->amount = 10;
+    new_dr->max_damage = -1;
+    new_dr->spell = RACIAL_ABILITY_VAMPIRE_DR;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(ch);
+    GET_DR(ch) = new_dr;
+    affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+    break;
+  }  
+}
