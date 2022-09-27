@@ -6428,7 +6428,6 @@ bool is_covered(struct char_data *ch)
   return true;
 }
 
-<<<<<<< Updated upstream
 void apply_dr_type(struct char_data *ch, int type)
 {
   struct affected_type af;
@@ -6474,6 +6473,5 @@ void apply_dr_type(struct char_data *ch, int type)
     break;
   }  
 }
-=======
 /* EoF */
->>>>>>> Stashed changes
+
