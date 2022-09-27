@@ -1410,6 +1410,7 @@ void char_from_furniture(struct char_data *ch);
 
 /* a function to check if a mobile is a 'pet' */
 #define IS_PET(ch) (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+check_npc_followers(struct char_data *ch, int mode, int variable);
 #define SPECIFIC_PET_COUNT(ch, mobvnum) (specific_follower_count(ch, mobvnum))
 #define NPC_MODE_DISPLAY 0
 #define NPC_MODE_FLAG 1
