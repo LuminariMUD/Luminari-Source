@@ -7523,7 +7523,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
     break;
   default:
-    if (HAS_PET(ch))
+    if (check_npc_followers(ch, NPC_MODE_COUNT, 0) >= GET_CHA_BONUS(ch))
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       return;
