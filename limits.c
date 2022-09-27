@@ -1904,7 +1904,7 @@ void update_damage_and_effects_over_time(void)
       }
       else if (!affected_by_spell(ch, RACIAL_ABILITY_VAMPIRE_DR))
       {
-        call_magic(ch, ch, NULL, RACIAL_ABILITY_VAMPIRE_DR, 0, GET_LEVEL(ch), CAST_INNATE);
+        apply_dr_type(ch, RACIAL_ABILITY_VAMPIRE_DR);
       }
     }
 
