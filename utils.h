@@ -1408,14 +1408,15 @@ void char_from_furniture(struct char_data *ch);
  for zone-procs */
 #define PROC_FIRED(ch) ((ch)->mob_specials.proc_fired)
 
-/* a function to check if a mobile is a 'pet' */
-#define IS_PET(ch) (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
-int check_npc_followers(struct char_data *ch, int mode, int variable);
-#define SPECIFIC_PET_COUNT(ch, mobvnum) (specific_follower_count(ch, mobvnum))
+/**********************************************/
+/*** functions / definese for handling pets ***/
 #define NPC_MODE_DISPLAY 0
 #define NPC_MODE_FLAG 1
 #define NPC_MODE_SPECIFIC 2
 #define NPC_MODE_COUNT 3
+#define IS_PET(ch) (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
+int check_npc_followers(struct char_data *ch, int mode, int variable);
+/**********************************************/
 
 /** Has Subrace will check the (3) arrays if subrace is there **/
 #define HAS_SUBRACE(ch, i) (GET_SUBRACE(ch, 0) == i || \

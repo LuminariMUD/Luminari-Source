@@ -824,8 +824,11 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
   struct char_data *pet = NULL;
   int total_count = 0, flag_count = 0, vnum_count = 0;
 
-  if (mode == NPC_MODE_DISPLAY)
+  if (mode == NPC_MODE_DISPLAY) {
     text_line(ch, "Pets Charmees NPC Followers", 80, '-', '-');
+    send_to_char(ch, "Your Charisma allows for %d maximum NPC followers.\r\n",
+      GET_CHA_BONUS(ch))
+  }
 
   /* loop through followers */
   for (k = ch->followers; k; k = next) {
