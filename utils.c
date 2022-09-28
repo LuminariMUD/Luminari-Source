@@ -890,37 +890,6 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
   return total_count;
 }
 
-/* check if ch has a specific (by vnum) follower or not */
-int specific_follower_count(struct char_data *ch, mob_vnum mvnum) {
-  struct follow_type *k = NULL, *next = NULL;
-  int count = 0;
-
-  for (k = ch->followers; k; k = next) {
-    next = k->next;
-    if (IS_NPC(k->follower) && GET_MOB_VNUM(k->follower) == mvnum) {
-      count++;
-    }
-  }
-
-  return count;
-}
-
-/* check count for ch of followers by mob_flag type */
-int count_follower_by_type(struct char_data *ch, int mob_flag) {
-  struct follow_type *k = NULL, *next = NULL;
-  int count = 0;
-
-  for (k = ch->followers; k; k = next) {
-    next = k->next;
-    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) &&
-            (MOB_FLAGGED(k->follower, mob_flag))) {
-      count++;
-    }
-  }
-
-  return count;
-}
-
 /* this will calculate the arcana-golem race bonus caster level */
 int compute_arcana_golem_level(struct char_data *ch) {
   if (!ch)
