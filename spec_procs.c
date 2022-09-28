@@ -9003,15 +9003,10 @@ SPECIAL(bought_pet)
     return TRUE;
   }
 
-  struct follow_type *f = NULL;
-
-  for (f = ch->followers; f; f = f->next)
+  if (check_npc_followers(ch, NPC_MODE_COUNT, 0) >= GET_CHA_BONUS(ch))
   {
-    if (IS_NPC(f->follower) && MOB_FLAGGED(f->follower, MOB_MERCENARY) && AFF_FLAGGED(f->follower, AFF_CHARM))
-    {
-      send_to_char(ch, "You may only have one purchased follower.\r\n");
-      return 1;
-    }
+    send_to_char(ch, "Sorry, you already have enough followers.\r\n");
+    return 1;
   }
 
   struct obj_data *obj = (struct obj_data *)me;
