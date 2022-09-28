@@ -928,12 +928,10 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
           break;
 
         case NPC_MODE_DISPLAY:
-          send_to_char(ch, "%-2d) %-8s%s - %s%s Slot?: %s\r\n",
+          send_to_char(ch, "\tC%-2d\tw)\tC %-8s \tw-\tC %s \tw-\tC Slot?: %s\r\n",
                          total_count,
                          GET_NAME(pet),
-                         QNRM,
                          world[IN_ROOM(pet)].name,
-                         QNRM,
                          not_npc_limit(pet) ? "\tWNo\tn" : "\tRYes\tn");
           break;
 
