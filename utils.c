@@ -806,6 +806,69 @@ int color_count(char *bufptr) {
   return count;
 }
 
+/* support function for check_npc_followers(), checks to see if this mobile should be counted
+   towards your npc pet/charmee limit */
+bool not_npc_limit(struct char_data *pet) {
+  bool counts = FALSE;
+
+  /* we have a list of flags to reference, then specific VNUMS to check */
+
+  /* flags */
+  if (MOB_FLAGGED(ch, MOB_C_O_T_N))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_VAMP_SPWN))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_DRAGON_KNIGHT))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_MUMMY_DUST))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_SHADOW))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_MERCENARY))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_PLANAR_ALLY))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_ANIMATED_DEAD))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_ELEMENTAL))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_C_ANIMAL))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_C_FAMILIAR))
+    counts = TRUE;
+  if (MOB_FLAGGED(ch, MOB_C_MOUNT))
+    counts = TRUE;
+
+  /* vnums */
+  switch (GET_MOB_VNUM(ch)) {
+
+    /* spirit eagle */
+    case 101225:
+    counts = TRUE;
+    break;
+
+    /* large spirit eagle */
+    case 132131:
+    counts = TRUE;
+    break;
+
+    /* Fullstaff's horn */
+    case 11389:
+    counts = TRUE;
+    break;
+
+    /* small figurine carved in black stone */
+    case 132199:
+    counts = TRUE;
+    break;
+
+    default:
+    break;
+  }
+
+  return counts;
+}
+
 /*
 this function is to deal with our follower army! -zusuk
    in - ch: pc we're dealing with
@@ -848,14 +911,12 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
           if (MOB_FLAGGED(pet, variable)) {
             flag_count++;
           }
-
           break;
 
         case NPC_MODE_SPECIFIC:
           if (GET_MOB_VNUM(pet) == variable) {
             vnum_count++;
           }
-
           break;
 
         case NPC_MODE_DISPLAY:
@@ -867,9 +928,10 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
                          QNRM);
           break;
 
-        default:
+        case NPC_MODE_SPARE:
           /* the above categories are NOT eatting up slots, this is the actual # of slots we compare to charisma bonus below */
-          overflow++;
+          if (!not_npc_limit(pet)) 
+            overflow++;
           break;
 
       } /* end switch */

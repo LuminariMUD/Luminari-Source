@@ -1475,6 +1475,8 @@ const char *action_bits[] = {
     "Ability-Invisibility",
     "Child-of-the-Night", /* 85 */
     "Vampire-Spawn",
+    "Dragon-Knight",
+    "Mummy-Dust",
     "\n"};
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 

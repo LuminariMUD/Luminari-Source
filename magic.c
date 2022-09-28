@@ -7509,21 +7509,21 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
     break;
   case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
-    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_C_O_T_N))
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_C_O_T_N))
     {
       send_to_char(ch, "You can't control more vampiric minions!\r\n");
       return;
     }
     break;
   case ABILITY_CREATE_VAMPIRE_SPAWN:
-    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_VAMP_SPWN))
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_VAMP_SPWN))
     {
       send_to_char(ch, "You can't control more vampiric spawn!\r\n");
       return;
     }
     break;
   default:
-    if (check_npc_followers(ch, NPC_MODE_COUNT, 0) >= GET_CHA_BONUS(ch))
+    if (!check_npc_followers(ch, NPC_MODE_SPARE, 0))
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       return;

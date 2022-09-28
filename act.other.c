@@ -1849,6 +1849,7 @@ ACMD(do_call)
      MOB_C_ANIMAL -> animal companion
      MOB_C_FAMILIAR -> familiar
      MOB_C_MOUNT -> paladin mount
+     MOB_SHADOW -> shadow for shadow dancer
    */
   if (!argument)
   {

@@ -5126,7 +5126,7 @@ SPECIAL(pet_shops)
       send_to_char(ch, "You don't have enough gold!\r\n");
       return (TRUE);
     }
-    if (check_npc_followers(ch, NPC_MODE_COUNT, 0) >= GET_CHA_BONUS(ch))
+    if (!check_npc_followers(ch, NPC_MODE_SPARE, 0))
     {
       send_to_char(ch, "You can't have any more pets!\r\n");
       return (TRUE);
@@ -9003,10 +9003,10 @@ SPECIAL(bought_pet)
     return TRUE;
   }
 
-  if (check_npc_followers(ch, NPC_MODE_COUNT, 0) >= GET_CHA_BONUS(ch))
+  if (!check_npc_followers(ch, NPC_MODE_SPARE, 0))
   {
     send_to_char(ch, "Sorry, you already have enough followers.\r\n");
-    return 1;
+    return FALSE;
   }
 
   struct obj_data *obj = (struct obj_data *)me;
