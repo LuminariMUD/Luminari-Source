@@ -234,6 +234,7 @@ ACMD_DECL(do_inventory);
 ACMD_DECL(do_levels);
 ACMD_DECL(do_scan);
 ACMD_DECL(do_score);
+ACMD_DECL(do_pets);
 ACMD_DECL(do_spot);
 ACMD_DECL(do_listen);
 ACMD_DECL(do_time);

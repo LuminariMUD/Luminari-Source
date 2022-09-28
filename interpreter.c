@@ -566,6 +566,7 @@ cpp_extern const struct command_info cmd_info[] = {
     //{ "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"perfmon", "perfmon", POS_DEAD, do_perfmon, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"priceset", "priceset", POS_RECLINING, do_priceset, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"pets", "pets", POS_RECLINING, do_pets, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

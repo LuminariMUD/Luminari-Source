@@ -6240,6 +6240,13 @@ ACMD(do_armorinfo)
   page_string(ch->desc, buf, 1);
 }
 
+/* interface to see your npc army! */
+ACMD(do_pets)
+{
+  check_npc_followers(ch, NPC_MODE_DISPLAY, 0);
+}
+
+/* brief display on left side of mobile indicating their toughness */
 ACMD(do_autocon)
 {
   if (PRF_FLAGGED(ch, PRF_AUTOCON))
