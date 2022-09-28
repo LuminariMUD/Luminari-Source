@@ -824,8 +824,10 @@ bool not_npc_limit(struct char_data *pet) {
     counts = TRUE;
   if (MOB_FLAGGED(pet, MOB_SHADOW))
     counts = TRUE;
+  /*
   if (MOB_FLAGGED(pet, MOB_MERCENARY))
     counts = TRUE;
+  */
   if (MOB_FLAGGED(pet, MOB_PLANAR_ALLY))
     counts = TRUE;
   if (MOB_FLAGGED(pet, MOB_ANIMATED_DEAD))
