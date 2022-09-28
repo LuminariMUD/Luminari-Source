@@ -889,7 +889,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
       draw_line(ch, 80, '-', '-');
 
       if (mode == NPC_MODE_DISPLAY) {
-        send_to_char(ch, "\tCYou have %d pets, your Charisma allows for %d (minimum 1 base extra) maximum NPC followers beyond your base followers.\tn\r\n",
+        send_to_char(ch, "\tCYou have %d pets, your Charisma allows for %d (minimum 1 extra) maximum NPC followers beyond your base followers.\tn\r\n",
           total_count, (GET_CHA_BONUS(ch) + 1));
       } 
 
@@ -907,7 +907,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
 
       spare = spare - overflow;
 
-      return (MAX(0, (overflow - spare)));
+      return (MAX(0, spare));
 
   } /* end switch */
 
