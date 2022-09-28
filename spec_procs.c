@@ -7108,7 +7108,7 @@ SPECIAL(ancient_moonblade)
       return TRUE;
     }
 
-    if (SPECIFIC_PET_COUNT(ch, LARGE_SPIRIT_EAGLE) <= 0)
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, LARGE_SPIRIT_EAGLE) <= 0)
     {
       act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
           "a \tWghostly mist \tcswirls\r\n"
