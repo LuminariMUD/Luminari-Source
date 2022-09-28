@@ -5626,26 +5626,34 @@ SPECIAL(ches)
 }
 
 /* two versionf of the mace:  139250 plus the less powerful 139251 */
+#define COURAGE_MACE 139251
+#define UPGRADED_COURAGE_MACE 139250
 SPECIAL(courage)
 {
   if (!ch)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
-  {
-    send_to_char(ch, "Invoke by whiper 'courage' once every 3 days: prayer and mass enhance\r\n");
-    return TRUE;
-  }
-
-  if (!is_wearing(ch, 139251) && !is_wearing(ch, 139250))
-    return FALSE;
-
   struct obj_data *courage = (struct obj_data *)me;
   int wpn_level = 0;
 
-  if (is_wearing(ch, 139251))
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    if (GET_OBJ_VNUM(courage) == COURAGE_MACE)
+      send_to_char(ch, "Invoke by whiper 'courage' once every 3 days: mass enhance\r\n");
+    else if (GET_OBJ_VNUM(courage) == UPGRADED_COURAGE_MACE)
+      send_to_char(ch, "Invoke by whiper 'courage' once every 3 days: prayer and mass enhance\r\n");
+    else
+      return FALSE;
+
+    return TRUE;
+  }
+
+  if (!is_wearing(ch, COURAGE_MACE) && !is_wearing(ch, UPGRADED_COURAGE_MACE))
+    return FALSE;
+
+  if (is_wearing(ch, COURAGE_MACE))
     wpn_level = 25;
-  if (is_wearing(ch, 139250))
+  if (is_wearing(ch, UPGRADED_COURAGE_MACE))
     wpn_level = 30;
 
   skip_spaces(&argument);
@@ -5672,7 +5680,7 @@ SPECIAL(courage)
 
     call_magic(ch, ch, NULL, SPELL_MASS_ENHANCE, 0, wpn_level, CAST_WEAPON_SPELL);
 
-    if (is_wearing(ch, 139250))
+    if (is_wearing(ch, UPGRADED_COURAGE_MACE))
       call_magic(ch, ch, NULL, SPELL_PRAYER, 0, wpn_level, CAST_WEAPON_SPELL);
 
     GET_OBJ_SPECTIMER(courage, 0) = 72;
@@ -5681,6 +5689,8 @@ SPECIAL(courage)
 
   return FALSE;
 }
+#undef COURAGE_MACE
+#undef UPGRADED_COURAGE_MACE
 
 /* from homeland */
 SPECIAL(flamingwhip)
