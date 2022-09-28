@@ -932,7 +932,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
                          QNRM,
                          world[IN_ROOM(pet)].name,
                          QNRM,
-                         not_npc_limit(pet) ? "\tWNo\tn" "\tRYes\tn");
+                         not_npc_limit(pet) ? "\tWNo\tn" : "\tRYes\tn");
           break;
 
       } /* end switch */
