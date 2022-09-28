@@ -796,6 +796,9 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
       break;
     }
 
+    /*** NOTE!!  Make sure to add the mob's vnum to util.c not_npc_limit() if you
+     *           do not want this mobile to count towards PC's pet limit
+     */
     mob_num = specab->value[0]; /* Val 0 is mob VNUM */
 
     if (check_npc_followers(ch, NPC_MODE_SPECIFIC, mob_num))

@@ -879,8 +879,10 @@
 #define MOB_ABIL_INVISIBILITY 84
 #define MOB_C_O_T_N 85
 #define MOB_VAMP_SPWN 86
+#define MOB_DRAGON_KNIGHT 87
+#define MOB_MUMMY_DUST 88
 /**********************/
-#define NUM_MOB_FLAGS 87
+#define NUM_MOB_FLAGS 89
 /**********************/
 /**********************/
 
