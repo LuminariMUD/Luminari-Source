@@ -8315,6 +8315,12 @@ ACMDCHECK(can_children_of_the_night)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "You have no idea how.\r\n");
   ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT), "You have already called your children of the night!\r\n");
+ if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_C_O_T_N))
+  {
+    send_to_char(ch, "Wha?!  You have already called your children of the night!\r\n");
+    return 0;
+  }
+
   return CAN_CMD;
 }
 
@@ -8347,7 +8353,8 @@ ACMDCHECK(can_create_vampire_spawn)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_VAMPIRE_CREATE_SPAWN, "You have no idea how.\r\n");
 
-  if (count_follower_by_type(ch, MOB_VAMP_SPWN))
+
+  if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_VAMP_SPWN))
   {
     send_to_char(ch, "You have already created vampiric spawn.\r\n");
     return 0;
