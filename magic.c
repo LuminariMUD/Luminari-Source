@@ -7493,7 +7493,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_SUMMON_CREATURE_8: // conjuration
   case SPELL_SUMMON_CREATURE_7: // conjuration
   case SPELL_ELEMENTAL_SWARM:
-    if (count_follower_by_type(ch, MOB_ELEMENTAL))
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ELEMENTAL))
     {
       send_to_char(ch, "You can't control more elementals!\r\n");
       return;
@@ -7502,21 +7502,21 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ANIMATE_DEAD:
   case SPELL_GREATER_ANIMATION:
   case SPELL_MUMMY_DUST:
-    if (count_follower_by_type(ch, MOB_ANIMATED_DEAD))
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
     {
       send_to_char(ch, "You can't control more undead!\r\n");
       return;
     }
     break;
   case VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT:
-    if (count_follower_by_type(ch, MOB_C_O_T_N))
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_C_O_T_N))
     {
       send_to_char(ch, "You can't control more vampiric minions!\r\n");
       return;
     }
     break;
   case ABILITY_CREATE_VAMPIRE_SPAWN:
-    if (count_follower_by_type(ch, MOB_VAMP_SPWN))
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_VAMP_SPWN))
     {
       send_to_char(ch, "You can't control more vampiric spawn!\r\n");
       return;
