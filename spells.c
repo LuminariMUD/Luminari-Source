@@ -405,7 +405,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
                                        GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
-  else if (!check_npc_followers(ch, NPC_MODE_SPARE, 0))
+  else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
     send_to_char(ch, "You can not manage more followers!\r\n");
 
   else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION) &&

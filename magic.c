@@ -7501,10 +7501,23 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     break;
   case SPELL_ANIMATE_DEAD:
   case SPELL_GREATER_ANIMATION:
-  case SPELL_MUMMY_DUST:
     if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
     {
       send_to_char(ch, "You can't control more undead!\r\n");
+      return;
+    }
+    break;
+  case SPELL_MUMMY_DUST:
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_MUMMY_DUST))
+    {
+      send_to_char(ch, "You can't control more mummies via the mummy dust spell!\r\n");
+      return;
+    }
+    break;
+  case SPELL_DRAGON_KNIGHT:
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_DRAGON_KNIGHT))
+    {
+      send_to_char(ch, "You can't control more dragons via the dragon knight spell!\r\n");
       return;
     }
     break;
@@ -7523,7 +7536,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
     break;
   default:
-    if (!check_npc_followers(ch, NPC_MODE_SPARE, 0))
+    if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
     {
       send_to_char(ch, "You can't control more followers!\r\n");
       return;

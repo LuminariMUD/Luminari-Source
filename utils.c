@@ -887,7 +887,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *pet = NULL;
   int total_count = 0, flag_count = 0, vnum_count = 0,
-      overflow = 0, spare = 0;
+      paid_slot = 0, free_slot = 0, spare = 0;
 
   if (mode == NPC_MODE_DISPLAY) {
     text_line(ch, "\tYPets Charmees NPC Followers\tn", 80, '-', '-');
@@ -905,6 +905,12 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
       /* found a pet!  this is our total # of followers*/
       total_count++;
 
+      /* we differentiate between npc's that don't take up slots vs every other form of charmee here */
+      if (not_npc_limit(pet))
+        free_slot++;
+      else
+        paid_slot++;
+
       switch (mode) {
 
         case NPC_MODE_FLAG:
@@ -920,23 +926,28 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
           break;
 
         case NPC_MODE_DISPLAY:
-          send_to_char(ch, "%-2d) %-8s%s - %s%s\r\n",
+          send_to_char(ch, "%-2d) %-8s%s - %s%s Slot?: %s\r\n",
                          total_count,
                          GET_NAME(pet),
                          QNRM,
                          world[IN_ROOM(pet)].name,
-                         QNRM);
-          break;
-
-        case NPC_MODE_SPARE:
-          /* the above categories are NOT eatting up slots, this is the actual # of slots we compare to charisma bonus below */
-          if (!not_npc_limit(pet)) 
-            overflow++;
+                         QNRM,
+                         not_npc_limit(pet) ? "\tWNo\tn" "\tRYes\tn");
           break;
 
       } /* end switch */
     } /* end charmee check */      
   } /* end for */
+
+  /* charisma bonus, spare represents our extra slots */
+  if (GET_CHA_BONUS(ch) <= 0)
+    spare = 0;
+  else
+    spare = GET_CHA_BONUS(ch);
+
+  spare++; /* base 1 */
+
+  spare = spare - paid_slot;
 
   /* out we go! */
   switch (mode) {
@@ -951,25 +962,15 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
       draw_line(ch, 80, '-', '-');
 
       if (mode == NPC_MODE_DISPLAY) {
-        send_to_char(ch, "\tCYou have %d pets, your Charisma allows for %d (minimum 1 extra) maximum NPC followers beyond your base followers.\tn\r\n",
-          total_count, (GET_CHA_BONUS(ch) + 1));
+        send_to_char(ch, "\tCYou have %d pets, %d of them don't take slots, %d do...  your Charisma allows for %d more.  (minimum 1 extra)\tn\r\n",
+          total_count, free_slot, paid_slot, spare);
       } 
 
       break;
 
     case NPC_MODE_SPARE:
 
-      /* charisma bonus, spare represents our extra slots */
-      if (GET_CHA_BONUS(ch) <= 0)
-        spare = 0;
-      else
-        spare = GET_CHA_BONUS(ch);
-
-      spare++; /* base 1 */
-
-      spare = spare - overflow;
-
-      return (MAX(0, spare));
+      return (spare);
 
   } /* end switch */
 

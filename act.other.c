@@ -1994,7 +1994,7 @@ ACMD(do_purify)
    to get rid of your followers in a bind */
 ACMD(do_dismiss)
 {
-  struct follow_type *k = NULL;
+  struct follow_type *k = NULL, *next = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
@@ -2009,10 +2009,18 @@ ACMD(do_dismiss)
     snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
-    for (k = ch->followers; k; k = k->next)
+    for (k = ch->followers; k; k = next) {
+      next = k->next;
+
+
       if (IN_ROOM(ch) != IN_ROOM(k->follower))
-        if (AFF_FLAGGED(k->follower, AFF_CHARM))
+      {
+        if (IS_PET(k->follower))
+        {
           extract_char(k->follower);
+        }
+      }
+    }
 
     return;
   }
