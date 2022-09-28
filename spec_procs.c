@@ -6899,7 +6899,7 @@ SPECIAL(whisperwind)
       return TRUE;
     }
 
-    if (SPECIFIC_PET_COUNT(ch, SPIRIT_EAGLE) <= 0)
+    if (check_npc_followers(ch, NPC_MODE_SPECIFIC, SPIRIT_EAGLE) <= 0)
     {
       act("\tcAs you whisper '\tCwind\tc' to your \tWmoon\tCblade\tc, "
           "a \tWghostly mist \tcswirls\r\n"
