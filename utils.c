@@ -825,9 +825,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
   int total_count = 0, flag_count = 0, vnum_count = 0;
 
   if (mode == NPC_MODE_DISPLAY) {
-    text_line(ch, "Pets Charmees NPC Followers", 80, '-', '-');
-    send_to_char(ch, "Your Charisma allows for %d maximum NPC followers.\r\n",
-      GET_CHA_BONUS(ch));
+    text_line(ch, "\tYPets Charmees NPC Followers\tn", 80, '-', '-');
   } 
 
   /* loop through followers */
@@ -859,20 +857,19 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
           break;
 
         case NPC_MODE_DISPLAY:
-          send_to_char(ch, "%-8s%s - %s%s (in %s%s)\r\n",
+          send_to_char(ch, "%-2d) %-8s%s - %s%s\r\n",
+                         total_count,
                          GET_NAME(pet),
                          QNRM,
                          world[IN_ROOM(pet)].name,
-                         QNRM,
-                         GET_NAME(pet),
                          QNRM);
           break;
-
 
       } /* end switch */
     } /* end charmee check */      
   } /* end for */
 
+  /* out we go! */
   switch (mode) {
 
     case NPC_MODE_FLAG:
@@ -883,6 +880,12 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
 
     case NPC_MODE_DISPLAY:
       draw_line(ch, 80, '-', '-');
+
+      if (mode == NPC_MODE_DISPLAY) {
+        send_to_char(ch, "\tCYou have %d pets, your Charisma allows for %d maximum NPC followers.\tn\r\n",
+          total_count, GET_CHA_BONUS(ch));
+      } 
+
       break;
 
   } /* end switch */
