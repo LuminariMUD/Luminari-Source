@@ -1414,6 +1414,7 @@ void char_from_furniture(struct char_data *ch);
 #define NPC_MODE_FLAG 1
 #define NPC_MODE_SPECIFIC 2
 #define NPC_MODE_COUNT 3
+#define NPC_MODE_SPARE 4
 #define IS_PET(ch) (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master)
 int check_npc_followers(struct char_data *ch, int mode, int variable);
 /**********************************************/

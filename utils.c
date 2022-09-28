@@ -818,11 +818,13 @@ this function is to deal with our follower army! -zusuk
   #define NPC_MODE_FLAG 1
   #define NPC_MODE_SPECIFIC 2
   #define NPC_MODE_COUNT 3
+  #define NPC_MODE_SPARE 4
 */
 int check_npc_followers(struct char_data *ch, int mode, int variable) {
   struct follow_type *k = NULL, *next = NULL;
   struct char_data *pet = NULL;
-  int total_count = 0, flag_count = 0, vnum_count = 0;
+  int total_count = 0, flag_count = 0, vnum_count = 0,
+      overflow = 0, spare = 0;
 
   if (mode == NPC_MODE_DISPLAY) {
     text_line(ch, "\tYPets Charmees NPC Followers\tn", 80, '-', '-');
@@ -837,7 +839,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
     /* is this a charmee? */
     if (IS_PET(pet)) {
 
-      /* found a pet! */
+      /* found a pet!  this is our total # of followers*/
       total_count++;
 
       switch (mode) {
@@ -865,6 +867,11 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
                          QNRM);
           break;
 
+        default:
+          /* the above categories are NOT eatting up slots, this is the actual # of slots we compare to charisma bonus below */
+          overflow++;
+          break;
+
       } /* end switch */
     } /* end charmee check */      
   } /* end for */
@@ -882,11 +889,25 @@ int check_npc_followers(struct char_data *ch, int mode, int variable) {
       draw_line(ch, 80, '-', '-');
 
       if (mode == NPC_MODE_DISPLAY) {
-        send_to_char(ch, "\tCYou have %d pets, your Charisma allows for %d maximum NPC followers.\tn\r\n",
-          total_count, GET_CHA_BONUS(ch));
+        send_to_char(ch, "\tCYou have %d pets, your Charisma allows for %d (minimum 1 base extra) maximum NPC followers beyond your base followers.\tn\r\n",
+          total_count, (GET_CHA_BONUS(ch) + 1));
       } 
 
       break;
+
+    case NPC_MODE_SPARE:
+
+      /* charisma bonus, spare represents our extra slots */
+      if (GET_CHA_BONUS(ch) <= 0)
+        spare = 0;
+      else
+        spare = GET_CHA_BONUS(ch);
+
+      spare++; /* base 1 */
+
+      spare = spare - overflow;
+
+      return (MAX(0, (overflow - spare)));
 
   } /* end switch */
 
