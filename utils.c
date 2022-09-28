@@ -814,33 +814,33 @@ bool not_npc_limit(struct char_data *pet) {
   /* we have a list of flags to reference, then specific VNUMS to check */
 
   /* flags */
-  if (MOB_FLAGGED(ch, MOB_C_O_T_N))
+  if (MOB_FLAGGED(pet, MOB_C_O_T_N))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_VAMP_SPWN))
+  if (MOB_FLAGGED(pet, MOB_VAMP_SPWN))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_DRAGON_KNIGHT))
+  if (MOB_FLAGGED(pet, MOB_DRAGON_KNIGHT))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_MUMMY_DUST))
+  if (MOB_FLAGGED(pet, MOB_MUMMY_DUST))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_SHADOW))
+  if (MOB_FLAGGED(pet, MOB_SHADOW))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_MERCENARY))
+  if (MOB_FLAGGED(pet, MOB_MERCENARY))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_PLANAR_ALLY))
+  if (MOB_FLAGGED(pet, MOB_PLANAR_ALLY))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_ANIMATED_DEAD))
+  if (MOB_FLAGGED(pet, MOB_ANIMATED_DEAD))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_ELEMENTAL))
+  if (MOB_FLAGGED(pet, MOB_ELEMENTAL))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_C_ANIMAL))
+  if (MOB_FLAGGED(pet, MOB_C_ANIMAL))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_C_FAMILIAR))
+  if (MOB_FLAGGED(pet, MOB_C_FAMILIAR))
     counts = TRUE;
-  if (MOB_FLAGGED(ch, MOB_C_MOUNT))
+  if (MOB_FLAGGED(pet, MOB_C_MOUNT))
     counts = TRUE;
 
   /* vnums */
-  switch (GET_MOB_VNUM(ch)) {
+  switch (GET_MOB_VNUM(pet)) {
 
     /* spirit eagle */
     case 101225:
