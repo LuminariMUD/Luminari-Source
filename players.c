@@ -803,6 +803,8 @@ int load_char(const char *name, struct char_data *ch)
             free(GET_HOST(ch));
           GET_HOST(ch) = strdup(line);
         }
+        else if (!strcmp(tag, "HPRg"))
+          GET_HP_REGEN(ch) = atoi(line);
         else if (!strcmp(tag, "Hrol"))
           GET_REAL_HITROLL(ch) = atoi(line);
         else if (!strcmp(tag, "Hung"))
@@ -877,6 +879,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_MISSION_DIFFICULTY(ch) = atoi(line);
         else if (!strcmp(tag, "MiRN"))
           GET_MISSION_NPC_NAME_NUM(ch) = atoi(line);
+        else if (!strcmp(tag, "MVRg"))
+          GET_MV_REGEN(ch) = atoi(line);
         break;
 
       case 'N':
@@ -947,6 +951,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_PREFERRED_DIVINE(ch) = atoi(line);
         else if (!strcmp(tag, "PSP "))
           load_HMVS(ch, line, LOAD_PSP);
+        else if (!strcmp(tag, "PSRg"))
+          GET_PSP_REGEN(ch) = atoi(line);
         else if (!strcmp(tag, "PsET"))
           GET_PSIONIC_ENERGY_TYPE(ch) = atoi(line);
         else if (!strcmp(tag, "PxDU"))
@@ -1536,6 +1542,13 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "PSP : %d/%d\n", GET_PSP(ch), GET_MAX_PSP(ch));
   if (GET_MOVE(ch) != PFDEF_MOVE || GET_MAX_MOVE(ch) != PFDEF_MAXMOVE)
     fprintf(fl, "Move: %d/%d\n", GET_MOVE(ch), GET_MAX_MOVE(ch));
+
+  if (GET_HP_REGEN(ch) != PFDEF_HP_REGEN)
+    fprintf(fl, "HPRg : %d\n", GET_HP_REGEN(ch));
+  if (GET_MV_REGEN(ch) != PFDEF_MV_REGEN)
+    fprintf(fl, "MVRg : %d\n", GET_MV_REGEN(ch));
+  if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
+    fprintf(fl, "PSRg : %d\n", GET_PSP_REGEN(ch));
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
     fprintf(fl, "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));

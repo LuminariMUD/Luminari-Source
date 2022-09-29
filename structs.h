@@ -2622,9 +2622,12 @@
 #define APPLY_SKILL 50
 #define APPLY_SPECIAL 51
 #define APPLY_POWER_RES 52
+#define APPLY_HP_REGEN 53
+#define APPLY_MV_REGEN 54
+#define APPLY_PSP_REGEN 55
 
 /** Total number of applies */
-#define NUM_APPLIES 53
+#define NUM_APPLIES 56
 
 // number of award types.  do_award in act.wizard.c
 #define NUM_AWARD_TYPES 11
@@ -3709,6 +3712,9 @@ struct char_special_data_saved
     int feats[NUM_FEATS];                       /* Feats (value is the number of times each feat is taken) */
     int combat_feats[NUM_CFEATS][FT_ARRAY_MAX]; /* One bitvector array per CFEAT_ type  */
     int school_feats[NUM_SFEATS];               /* One bitvector array per CFEAT_ type  */
+    int hp_regen;
+    int mv_regen;
+    int psp_regen;
 };
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */

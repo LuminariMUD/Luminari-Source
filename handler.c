@@ -310,6 +310,8 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
     break;
   case APPLY_SPECIAL:
     break;
+  case APPLY_HP_REGEN:
+    break;
     /* end Do Not Use */
 
   default:
