@@ -908,6 +908,10 @@ void char_from_furniture(struct char_data *ch);
 #define GET_REAL_MAX_PSP(ch) ((ch)->real_points.max_psp)
 #define GET_MAX_PSP(ch) ((ch)->points.max_psp)
 #define GET_AUGMENT_PSP(ch) ((ch)->player_specials->augment_psp)
+// Regen Rates
+#define GET_HP_REGEN(ch) (ch->char_specials.saved.hp_regen)
+#define GET_MV_REGEN(ch) (ch->char_specials.saved.mv_regen)
+#define GET_PSP_REGEN(ch) (ch->char_specials.saved.psp_regen)
 /** Gold on ch. */
 #define GET_GOLD(ch) ((ch)->points.gold)
 /** Gold in bank of ch. */

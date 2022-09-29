@@ -2368,6 +2368,9 @@ const char *apply_types[] = {
     "Skill-Bonus",
     "Special",
     "Power-Resist",
+    "HP-Regen",
+    "MV-Regen",
+    "PSP-Regen",
     "\n" /*51*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);

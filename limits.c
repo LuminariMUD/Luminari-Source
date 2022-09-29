@@ -437,6 +437,9 @@ int regen_hps(struct char_data *ch)
       hp += 3;
   }
 
+  if (!FIGHTING(ch))
+    hp += GET_HP_REGEN(ch);
+
   /* these are last bonuses (outside of exceptions) because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
   {
@@ -604,8 +607,7 @@ void regen_update(struct char_data *ch)
   {
     if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 15)
     {
-      GET_HIT(ch)
-      --;
+      GET_HIT(ch)--;
     }
     else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 45)
     {
@@ -628,8 +630,7 @@ void regen_update(struct char_data *ch)
   /* handle move regen here */
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
-    GET_MOVE(ch)
-    --;
+    GET_MOVE(ch)--;
   }
   else if (!AFF_FLAGGED(ch, AFF_FATIGUED))
   {
@@ -640,6 +641,9 @@ void regen_update(struct char_data *ch)
 
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_ENDURANCE))
       move_regen += 2;
+
+    if (!FIGHTING(ch))
+      move_regen += GET_MV_REGEN(ch);
 
     move_regen *= 10; /* conversion to gicker's new system */
 
@@ -681,8 +685,10 @@ void regen_psp(void)
       continue;
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
-      GET_PSP(d->character)
-    ++;
+      GET_PSP(d->character)++;
+
+    if (!FIGHTING(d->character))
+      GET_PSP(d->character) += GET_PSP_REGEN(d->character);
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
       if (HAS_FEAT(d->character, FEAT_PSIONIC_RECOVERY))
@@ -704,8 +710,7 @@ void regen_psp(void)
 
     /* we also have a de-regen if over max in another function */
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character)
-    --;
+      GET_PSP(d->character)--;
   }
 }
 
