@@ -307,6 +307,9 @@ bool npc_rescue(struct char_data *ch)
   struct char_data *victim = NULL;
   int loop_counter = 0;
 
+  if (GET_HIT(ch) <= 1)
+    return FALSE; /* too weak */ 
+
   // going to prioritize rescuing master (if it has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 1) &&
       (GET_MAX_HIT(ch) / GET_HIT(ch)) <= 2)
@@ -325,9 +328,15 @@ bool npc_rescue(struct char_data *ch)
     do
     {
       victim = (struct char_data *)random_from_list(GROUP(ch)->members);
+
+      if (!victim || GET_HIT(victim) <= 1)
+        continue;
+
       loop_counter++;
+
       if (loop_counter >= RESCUE_LOOP)
         break;
+
     } while (!victim || victim == ch || !FIGHTING(victim) ||
              ((GET_MAX_HIT(victim) / GET_HIT(victim)) > 3));
 
