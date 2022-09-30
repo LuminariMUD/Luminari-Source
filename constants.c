@@ -2179,6 +2179,7 @@ const char *item_types[] = {
     "Hunt Trophy",
     "Weapon Oil",
     "Gear Outfit",
+    "Drink",
     "\n"};
 CHECK_TABLE_SIZE(item_types, NUM_ITEM_TYPES + 1);
 

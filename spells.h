@@ -511,6 +511,9 @@
 /** Total Number of defined spells  */
 #define NUM_SPELLS 442
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
+
+#define MAX_SPELL_AFFECTS 6 /* change if more needed */
+
 /*******************************/
 
 /** We're setting apart some numbers for spell affects.
@@ -552,6 +555,8 @@
 #define ABILITY_BLOOD_DRAIN 1228
 #define AFFECT_RECENTLY_DIED 1229
 #define AFFECT_RECENTLY_RESPECED 1230
+#define AFFECT_FOOD 1231
+#define AFFECT_DRINK 1232
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c

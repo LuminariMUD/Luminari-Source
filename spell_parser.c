@@ -3923,6 +3923,12 @@ void mag_assign_spells(void)
   spello(AFFECT_RECENTLY_RESPECED, "recent respec", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          "Your protection for being recently respecced has expired.", 1, 1, NOSCHOOL, FALSE);
+  spello(AFFECT_FOOD, "food", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         "You are no longer affected by your last meal.", 1, 1, NOSCHOOL, FALSE);
+  spello(AFFECT_DRINK, "drink", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         "You are no longer affected by your last drink.", 1, 1, NOSCHOOL, FALSE);
 
   spello(ABILITY_BLOOD_DRAIN, "vampiric blood drain", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);

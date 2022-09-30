@@ -104,6 +104,9 @@ const char * walkto_landmarks[][4] = {
   {"1030", "103487", "armor shop",       "sells +1 armor"},
   {"1030", "103488", "weapon shop",      "sells +1 weapons"},
   {"1030", "103016", "post office",      "send and receive mail"},
+  {"1030", "103053", "grocer",           "food and drink"},
+  {"1030", "103052", "baker",            "bread & pastries"},
+  {"1030", "103070", "elfstone tavern",  "specialty drinks"},
   {"0",    "", "always last item", ""}
 };
 

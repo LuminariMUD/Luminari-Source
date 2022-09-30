@@ -2418,7 +2418,6 @@ int isMagicArmored(struct char_data *ch, struct char_data *victim, int spellnum)
 // 20 rounds = 1 real minute
 // 1200 rounds = 1 real hour
 // old tick = 75 seconds, or 1.25 minutes or 25 rounds
-#define MAX_SPELL_AFFECTS 6 /* change if more needed */
 
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic)

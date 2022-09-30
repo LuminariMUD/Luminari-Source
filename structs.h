@@ -2297,8 +2297,9 @@
 #define ITEM_HUNT_TROPHY 49    // used to mark a hunt target mob
 #define ITEM_WEAPON_OIL 50
 #define ITEM_GEAR_OUTFIT 51
+#define ITEM_DRINK 52          // Used for the nerw drink system.  Replaces drink containers and fountains.
 /* make sure to add to - display_item_object_values() */
-#define NUM_ITEM_TYPES 52 /** Total number of item types.*/
+#define NUM_ITEM_TYPES 53 /** Total number of item types.*/
 
 /* reference notes on homeland-port */
 /* swapped free1 (7) with fireweapon, swapped free2 (14) with missile

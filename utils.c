@@ -6567,5 +6567,26 @@ void apply_dr_type(struct char_data *ch, int type)
     break;
   }  
 }
+
+char * apply_types_lowercase(int apply_type)
+{
+  char apply_text[100];
+  int i = 0;
+
+  if (apply_type >= NUM_APPLIES || apply_type < 0)
+    return NULL;
+
+  snprintf(apply_text, sizeof(apply_text), "%s", apply_types[apply_type]);
+
+  for (i = 0; i < strlen(apply_text); i++)
+  {
+    apply_text[i] = tolower(apply_text[i]);
+    if (apply_text[i] == '-')
+      apply_text[i] = ' ';
+  }
+
+  return strdup(apply_text);
+
+}
 /* EoF */
 
