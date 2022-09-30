@@ -1664,7 +1664,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_NEGATIVE;
     num_dice = MIN(26, level);
     size_dice = 8;
-    bonus = num_dice + 20;
+    bonus = num_dice + level;
     break;
 
   case SPELL_DISPEL_EVIL:

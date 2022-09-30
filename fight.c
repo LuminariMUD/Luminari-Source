@@ -4927,7 +4927,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Precise Strike bonus: \tR%d\tn\r\n",
                    MAX(1, CLASS_LEVEL(ch, CLASS_DUELIST)));
   }
-  if (vict && !IS_IMMUNE_CRITS(vict) && !IS_NPC(ch) &&
+  if (vict && !IS_IMMUNE_CRITS(ch, vict) && !IS_NPC(ch) &&
       HAS_FEAT(ch, FEAT_PRECISE_STRIKE) && HAS_FREE_HAND(ch) &&
       compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
   {
@@ -5454,6 +5454,16 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
                     int calc_bab, int victim_ac)
 {
   int threat_range, confirm_roll = d20(ch) + calc_bab;
+  int powerful_being = 0;
+
+  /* new code to help really powerful beings overcome checks here */
+  if (IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+  {
+    /* base 20% chance of overcoming defense */
+    powerful_being = 20;
+    /* every level above 30 gives another 10% */
+    powerful_being += (GET_LEVEL(ch) - (LVL_IMMORT - 1)) * 10
+  }
 
   if (FIGHTING(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) >= 10 && is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_JUSTICE))
     confirm_roll += get_judgement_bonus(ch, INQ_JUDGEMENT_JUSTICE);
@@ -5462,12 +5472,34 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 
   if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced))
   {
-    FIGHTING(ch)->preserve_organs_procced = TRUE;
-    return FALSE;
+
+    if (!powerful_being)
+    {
+      FIGHTING(ch)->preserve_organs_procced = TRUE;
+      return FALSE;
+    }
+    if (rand_number(1, 100) > powerful_being)
+    {
+      FIGHTING(ch)->preserve_organs_procced = TRUE;
+      return FALSE;
+    }
+
+    /* we get here, the powerful being beat it */
   }
 
   if (FIGHTING(ch) && (affected_by_spell(FIGHTING(ch), PSIONIC_BODY_OF_IRON) || affected_by_spell(FIGHTING(ch), PSIONIC_SHADOW_BODY)))
-    return FALSE;
+  {
+    if (!powerful_being)
+    {
+      return FALSE;
+    }
+    if (rand_number(1, 100) > powerful_being)
+    {
+      return FALSE;
+    }
+
+    /* we get here, the powerful being beat it */
+  }
 
   threat_range = determine_threat_range(ch, wielded);
 
@@ -5576,7 +5608,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     damage_holder = dam; /* store so we don't multiply a multiply */
 
     /* handle critical hit damage here */
-    if (is_critical && !IS_IMMUNE_CRITS(victim))
+    if (is_critical && !IS_IMMUNE_CRITS(ch, victim))
     {
 
       /* critical message */
@@ -5798,8 +5830,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         wielded = GET_EQ(ch, WEAR_HANDS);
 
       /* process weapon abilities - critical */
-      if (is_critical && !(IS_NPC(victim) && GET_RACE(victim) == RACE_TYPE_UNDEAD))
+      if (is_critical && !IS_IMMUNE_CRITS(ch, victim))
         process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_CRIT, NULL);
+
       /*chaotic weapon*/
       if ((obj_has_special_ability(wielded, WEAPON_SPECAB_ANARCHIC) ||
            HAS_FEAT(ch, FEAT_CHAOTIC_WEAPON)) &&
@@ -7613,6 +7646,52 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
   return;
 }
 
+int can_sneak_attack(struct char_data *ch, struct char_data *victim) {
+
+  /* we will check for disqualifiers first */
+
+  if (!ch or !! victim) /*dumdum*/
+    return FALSE;
+
+  /* base level here! */
+  if (!HAS_FEAT(ch, FEAT_SNEAK_ATTACK))
+    return FALSE;
+
+  /* preserve organs defended from this sneak attack */
+  if (FIGHTING(ch) && KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !FIGHTING(ch)->preserve_organs_procced)
+    return FALSE;
+
+  /* concealment check to avoid sneak attack */
+  if (compute_concealment(victim) > rand_number(1, 101))
+    return FALSE;
+
+  /* ok they don't have any easy out, and we know the attacker has sneak attack... is the target vulnerable? */
+
+  /* Flat-footed */
+  if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+    return TRUE;
+
+  /* No dex bonus to ac */
+  if (!(has_dex_bonus_to_ac(ch, victim)))  
+    return TRUE;
+
+  if (is_flanked(ch, victim))
+    return TRUE;
+
+  /*  -    -   -  */
+
+  /* not vulnerable to sneak attack! */
+  return FALSE;
+}
+  else if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
+           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1 || (FIGHTING(ch)->preserve_organs_procced)) &&
+           (compute_concealment(victim) == 0) &&
+           (
+            || 
+            ||               /* Flanked */
+            ))
+
+
 /* called from hit() */
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
@@ -7910,13 +7989,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     /* Calculate regular sneak attack damage. */
   }
-  else if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
-           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1 || (FIGHTING(ch)->preserve_organs_procced)) &&
-           (compute_concealment(victim) == 0) &&
-           ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
-            || !(has_dex_bonus_to_ac(ch, victim))  /* No dex bonus to ac */
-            || is_flanked(ch, victim)              /* Flanked */
-            ))
+  
+  else if (can_sneak_attack(ch, victim))
   {
 
     /* Display why we are sneak attacking */
@@ -8483,7 +8557,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     diceroll = d20(ch) + HAS_FEAT(ch, FEAT_WEAPON_TRAINING);
   else
     diceroll = d20(ch);
-  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(victim))
+  if (is_critical_hit(ch, wielded, diceroll, calc_bab, victim_ac) && !IS_IMMUNE_CRITS(ch, victim))
   {
     can_hit = TRUE;
     is_critical = TRUE;

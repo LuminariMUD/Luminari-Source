@@ -987,9 +987,9 @@ int hunts_special_armor_type(int hunt_record)
   case HUNT_TYPE_BANDERSNATCH:
     return AFF_MINOR_GLOBE;
   case HUNT_TYPE_BANSHEE:
-    return AFF_BLUR;
-  case HUNT_TYPE_BARGHEST:
     return AFF_BLINKING;
+  case HUNT_TYPE_BARGHEST:
+    return AFF_BLUR;
   default:
     return 0;
   }
@@ -1010,7 +1010,7 @@ int get_hunt_armor_drop_vnum(int hunt_record)
     return 60006;
   case HUNT_TYPE_WILL_O_WISP:
     return 60008;
-  case HUNT_TYPE_BARGHEST:
+  case HUNT_TYPE_BANSHEE:
     return 60010;
   case HUNT_TYPE_BLACK_PUDDING:
     return 60012;
@@ -1060,7 +1060,7 @@ int get_hunt_armor_drop_vnum(int hunt_record)
     return 60033;
   case HUNT_TYPE_BANDERSNATCH:
     return 60035;
-  case HUNT_TYPE_BANSHEE:
+  case HUNT_TYPE_BARGHEST:
     return 60037;
   default:
     return 0;
@@ -1082,7 +1082,7 @@ int get_hunt_weapon_drop_vnum(int hunt_record)
     return 60007;
   case HUNT_TYPE_WILL_O_WISP:
     return 60009;
-  case HUNT_TYPE_BARGHEST:
+  case HUNT_TYPE_BANSHEE:
     return 60011;
   case HUNT_TYPE_BLACK_PUDDING:
     return 60013;
@@ -1126,7 +1126,7 @@ int get_hunt_weapon_drop_vnum(int hunt_record)
     return 60034;
   case HUNT_TYPE_BANDERSNATCH:
     return 60036;
-  case HUNT_TYPE_BANSHEE:
+  case HUNT_TYPE_BARGHEST:
     return 60038;
   default:
     return 0;
@@ -1299,7 +1299,7 @@ int obj_vnum_to_hunt_type(int vnum)
     return HUNT_TYPE_WILL_O_WISP;
   case 60010:
   case 60011:
-    return HUNT_TYPE_BARGHEST;
+    return HUNT_TYPE_BANSHEE;
   case 60012:
   case 60013:
     return HUNT_TYPE_BLACK_PUDDING;
@@ -1344,7 +1344,7 @@ int obj_vnum_to_hunt_type(int vnum)
     return HUNT_TYPE_BANDERSNATCH;
   case 60037:
   case 60038:
-    return HUNT_TYPE_BANSHEE;
+    return HUNT_TYPE_BARGHEST;
   }
   return 0;
 }
