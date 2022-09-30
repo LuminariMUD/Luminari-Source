@@ -1120,8 +1120,10 @@
 #define BONUS_TYPE_SHIELD 17       /* Shield bonus */
 #define BONUS_TYPE_SIZE 18         /* Size bonus */
 #define BONUS_TYPE_TRAIT 19        /* Character Trait bonus */
+#define BONUS_TYPE_FOOD 20         // For food items only.
+#define BONUS_TYPE_DRINK 21        // For drink items only.
 /**/
-#define NUM_BONUS_TYPES 20
+#define NUM_BONUS_TYPES 22
 /****/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
