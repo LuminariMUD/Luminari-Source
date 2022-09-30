@@ -7646,11 +7646,12 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
   return;
 }
 
+/* is ch sneak attacking victim? */
 int can_sneak_attack(struct char_data *ch, struct char_data *victim) {
 
   /* we will check for disqualifiers first */
 
-  if (!ch or !! victim) /*dumdum*/
+  if (!ch || !victim) /*dumdum*/
     return FALSE;
 
   /* base level here! */
@@ -7683,14 +7684,6 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim) {
   /* not vulnerable to sneak attack! */
   return FALSE;
 }
-  else if (HAS_FEAT(ch, FEAT_SNEAK_ATTACK) &&
-           (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1 || (FIGHTING(ch)->preserve_organs_procced)) &&
-           (compute_concealment(victim) == 0) &&
-           (
-            || 
-            ||               /* Flanked */
-            ))
-
 
 /* called from hit() */
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
