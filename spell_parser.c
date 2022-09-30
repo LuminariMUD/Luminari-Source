@@ -3700,7 +3700,7 @@ void mag_assign_spells(void)
          "The white aura around your body fades.", 8, 22, NOSCHOOL, FALSE);
   spello(SPELL_DESTRUCTION, "destruction", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
-         NULL, 9, 22, NOSCHOOL, FALSE);
+         NULL, 5, 22, NOSCHOOL, FALSE);
   spello(SPELL_WORD_OF_FAITH, "word of faith", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You no longer feel divinely inflicted.", 0, 22,

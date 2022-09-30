@@ -96,6 +96,7 @@ bool is_incorporeal(struct char_data *ch);
 bool is_spell_restoreable(int spell);
 sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level);
 int get_poison_save_mod(struct char_data *ch, struct char_data *victim);
+int is_immune_to_crits(struct char_data *attacker, struct char_data *target);
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, sbyte display);
 sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte display);
@@ -2002,9 +2003,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 /* IS_ for other special situations */
 #define IS_INCORPOREAL(ch) (is_incorporeal(ch))
 
-#define IS_IMMUNE_CRITS(ch) (IS_UNDEAD(ch) ||                                                                       \
-                             (!IS_NPC(ch) && (KNOWS_DISCOVERY(ch, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1)) || \
-                             (affected_by_spell(ch, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1))
+#define IS_IMMUNE_CRITS(ch, vict) (is_immune_to_crits(ch, vict))
 
 #define IS_FRIGHTENED(ch) (AFF_FLAGGED(ch, AFF_FEAR) || AFF_FLAGGED(ch, AFF_SHAKEN))
 

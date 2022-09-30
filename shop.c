@@ -363,17 +363,17 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
   if (GET_OBJ_RNUM(obj1) != GET_OBJ_RNUM(obj2))
     return (FALSE);
 
-  //log("Obj1 cost: %d Obj2 cost: %d", GET_OBJ_COST(obj1), GET_OBJ_COST(obj2));
+  // log("Obj1 cost: %d Obj2 cost: %d", GET_OBJ_COST(obj1), GET_OBJ_COST(obj2));
 
   if (GET_OBJ_COST(obj1) != GET_OBJ_COST(obj2))
     return (FALSE);
 
   for (aindex = 0; aindex < MAX_OBJ_AFFECT; aindex++)
   {
-    //log("obj1 affected[%d] location: %d obj2 affected[%d] location: %d", aindex, obj1->affected[aindex].location,
-    //aindex, obj2->affected[aindex].location);
-    //log("obj1 affected[%d] modifier: %d obj2 affected[%d] modifier: %d", aindex, obj1->affected[aindex].modifier,
-    //aindex, obj2->affected[aindex].modifier);
+    // log("obj1 affected[%d] location: %d obj2 affected[%d] location: %d", aindex, obj1->affected[aindex].location,
+    // aindex, obj2->affected[aindex].location);
+    // log("obj1 affected[%d] modifier: %d obj2 affected[%d] modifier: %d", aindex, obj1->affected[aindex].modifier,
+    // aindex, obj2->affected[aindex].modifier);
     if ((obj1->affected[aindex].location != obj2->affected[aindex].location) ||
         (obj1->affected[aindex].modifier != obj2->affected[aindex].modifier))
       return (FALSE);
@@ -569,6 +569,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
+
   if (!*arg || !buynum)
   {
     char buf[MAX_INPUT_LENGTH];
@@ -577,9 +578,11 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
+
   if (!(obj = get_purchase_obj(ch, arg, keeper, shop_nr, TRUE)))
     return;
 
+  /* enough qp's? */
   if (OBJ_FLAGGED(obj, ITEM_QUEST))
   {
     if (GET_OBJ_COST(obj) > GET_QUESTPOINTS(ch) && !IS_STAFF(ch))
@@ -615,6 +618,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     }
   }
 
+  /* got enough inventory/strength to acquire this item? */
   if (IS_NPC(ch) || (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)))
   {
     if (IS_CARRYING_N(ch) + 1 > CAN_CARRY_N(ch))
@@ -629,6 +633,19 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     }
   }
 
+  /* follower check for pet object system */
+  if (GET_OBJ_TYPE(obj) == ITEM_PET)
+  {
+    if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    {
+      send_to_char(ch, "Sorry, you already have enough followers.\r\n");
+      return;
+    }
+  }
+
+  /* should be good! */
+
+  /* handle quest point transaction */
   if (OBJ_FLAGGED(obj, ITEM_QUEST))
   {
     while (obj &&
@@ -666,6 +683,8 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
         break;
     }
   }
+
+  /* regulard gold coins transaction */
   else
   {
     while (obj && (GET_GOLD(ch) >= buy_price(obj, shop_nr, keeper, ch) || IS_STAFF(ch)) && IS_CARRYING_N(ch) < CAN_CARRY_N(ch) && bought < buynum && IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj) <= CAN_CARRY_W(ch))
@@ -694,15 +713,19 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       if (GET_OBJ_TYPE(obj) == ITEM_PET)
       {
         bought_pet(ch, obj, 0, "");
-        return;
+        return; /* you can buy only one pet at a time */
       }
 
       last_obj = obj;
+
       obj = get_purchase_obj(ch, arg, keeper, shop_nr, FALSE);
+
       if (!same_obj(obj, last_obj))
         break;
     }
   }
+
+  /* somewhere along the line, we didn't fulfill the full transaction amount */
   if (bought < buynum)
   {
     char buf[MAX_INPUT_LENGTH];
@@ -724,6 +747,8 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
       snprintf(buf, sizeof(buf), "%s Something screwy only gave you %d.", GET_NAME(ch), bought);
     do_tell(keeper, buf, cmd_tell, 0);
   }
+
+  /* shopkeeper acquires the gold */
   if (!IS_STAFF(ch) && obj && !OBJ_FLAGGED(obj, ITEM_QUEST))
   {
     increase_gold(keeper, goldamt);
@@ -1397,7 +1422,7 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
       read_line(shop_f, "%d", &SHOP_BROKE_TEMPER(top_shop));
       read_line(shop_f, "%ld", &SHOP_BITVECTOR(top_shop));
       read_line(shop_f, "%d", &SHOP_KEEPER(top_shop));
-      //mudlog(NRM, LVL_IMMORT, TRUE, "SHOP #%d, KEEPER: %d", SHOP_NUM(top_shop), SHOP_KEEPER(top_shop));
+      // mudlog(NRM, LVL_IMMORT, TRUE, "SHOP #%d, KEEPER: %d", SHOP_NUM(top_shop), SHOP_KEEPER(top_shop));
       SHOP_KEEPER(top_shop) = real_mobile(SHOP_KEEPER(top_shop));
       read_line(shop_f, "%d", &SHOP_TRADE_WITH(top_shop));
 
@@ -1777,7 +1802,7 @@ bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper
 {
   char buf[MAX_STRING_LENGTH];
   struct obj_data *obj;
-  //int i, found;
+  // int i, found;
 
   if (!is_ok(keeper, ch, shop_nr))
     return FALSE;

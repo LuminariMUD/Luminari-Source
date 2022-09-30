@@ -806,6 +806,41 @@ int color_count(char *bufptr) {
   return count;
 }
 
+/* determines if you can crit this target based on attacker
+     added attacker so we can account for powerful beings that can critical hit through anything potentially -zusuk */
+int is_immune_to_crits(struct char_data *attacker, struct char_data *target) {
+  int powerful_being = 0;
+
+    /* new code to help really powerful beings overcome checks here */
+  if (attacker && IS_NPC(attacker) && GET_LEVEL(attacker) >= LVL_IMMORT)
+  {
+    /* base 20% chance of overcoming defense */
+    powerful_being = 20;
+
+    /* every level above 30 gives another 10% */
+    powerful_being += (GET_LEVEL(attacker) - (LVL_IMMORT - 1)) * 10
+
+    if (rand_number(1, 100) < powerful_being)
+      return FALSE; /* immune to this crit this pass! */
+  }
+
+  /* now to normal conditions for critical immunity */
+
+  /* undead immune to crits, not vital organs */
+  if (IS_UNDEAD(target))
+    return TRUE;
+
+  /* preserve organs as 25% of stopping crits */
+  if (!IS_NPC(target) && (KNOWS_DISCOVERY(target, ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1))
+    return TRUE; /* avoided this crit! */
+   
+  if (affected_by_spell(target, SPELL_SHIELD_OF_FORTIFICATION) && dice(1, 4) == 1)
+    return TRUE; /* avoided this crit! */
+
+  /* not immune to crits! */
+  return FALSE;
+}
+
 /* support function for check_npc_followers(), checks to see if this mobile should be counted
    towards your npc pet/charmee limit */
 bool not_npc_limit(struct char_data *pet) {
