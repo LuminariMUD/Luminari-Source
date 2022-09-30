@@ -1011,7 +1011,8 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
     write_to_output(d, "Max drink units (-1 for unlimited) : ");
     break;
   case ITEM_FOOD:
-    write_to_output(d, "Hours to fill stomach : ");
+  case ITEM_DRINK:
+    write_to_output(d, "How many rounds (6 seconds) will it last? : ");
     break;
   case ITEM_MONEY:
     write_to_output(d, "Number of gold coins : ");
@@ -1117,11 +1118,6 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
   case ITEM_MISSILE:
     // write_to_output(d, "Size of damage dice : ");
     break;
-  case ITEM_FOOD:
-    oedit_disp_spells_menu(d);
-    /* Values 2 and 3 are unused, jump to 4...Odd. */
-    //    oedit_disp_val4_menu(d);
-    break;
   case ITEM_AMMO_POUCH:
   case ITEM_CONTAINER:
     /* These are flags, needs a bit of special handling. */
@@ -1187,10 +1183,6 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
     break;
   case ITEM_INSTRUMENT:
     write_to_output(d, "Instrument Level (0-10): ");
-    break;
-  case ITEM_FOOD:
-    /* val 3 is unused, jump to 4 */
-    oedit_disp_val4_menu(d);
     break;
   case ITEM_SCROLL:
   case ITEM_POTION:
@@ -1285,9 +1277,6 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
   case ITEM_DRINKCON:
   case ITEM_FOUNTAIN:
     write_to_output(d, "Spell # (0 = no spell) : ");
-    break;
-  case ITEM_FOOD:
-    write_to_output(d, "Poisoned (0 = not poison) : ");
     break;
   default:
     oedit_disp_menu(d);

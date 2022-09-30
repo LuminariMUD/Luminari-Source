@@ -2871,7 +2871,141 @@ void name_to_drinkcon(struct obj_data *obj, int type)
   obj->name = new_name;
 }
 
-ACMD(do_drink)
+ACMDU(do_drink)
+{
+  struct obj_data *obj;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "What do you want to drink?\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, argument, NULL, ch->carrying)))
+  {
+    send_to_char(ch, "You don't have a drink of that description in your inventory.\r\n");
+    return;
+  }
+
+  if (GET_OBJ_TYPE(obj) == ITEM_DRINKCON)
+  {
+    send_to_char(ch, "Drink containers are now deprecated. Please look for drinks of the 'Drink' type and not 'Liquid-Cont'.\r\n");
+    return;
+  }
+  else if (GET_OBJ_TYPE(obj) != ITEM_DRINK)
+  {
+    send_to_char(ch, "You cannot drink that item.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_DRINK))
+  {
+    send_to_char(ch, "You are not thirsty right now.\r\n");
+    return;
+  }
+
+
+  struct affected_type af[MAX_SPELL_AFFECTS];
+  int i = 0;
+  bool found = false;
+  
+  for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+  {
+    if (obj->affected[i].location != APPLY_NONE)
+    {
+      new_affect(&(af[i]));
+      af[i].spell = AFFECT_DRINK;
+      af[i].location = obj->affected[i].location;
+      af[i].modifier = obj->affected[i].modifier;
+      af[i].bonus_type = obj->affected[i].bonus_type;
+      af[i].duration = GET_OBJ_VAL(obj, 0);
+      send_to_char(ch, "You gain +%d to %s from drinking %s.\r\n", 
+                   af[i].modifier, apply_types_lowercase(af[i].location), obj->short_description);
+      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+      found = true;
+    }
+  }
+
+  act("You drink from $p.", TRUE, ch, obj, 0, TO_CHAR);
+  act("$n drinks from $p.", TRUE, ch, obj, 0, TO_ROOM);
+
+  if (!found)
+  {
+    act("Eating $p had no affect.", TRUE, ch, obj, 0, TO_CHAR);
+  }
+
+  obj_from_char(obj);
+  extract_obj(obj);
+
+}
+
+ACMDU(do_eat)
+{
+  struct obj_data *obj;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "What do you want to eat?\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, argument, NULL, ch->carrying)))
+  {
+    send_to_char(ch, "You don't have any food by that description in your inventory.\r\n");
+    return;
+  }
+
+  if (GET_OBJ_TYPE(obj) != ITEM_FOOD && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "You cannot eat that item.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, AFFECT_FOOD))
+  {
+    send_to_char(ch, "You are not hungry right now.\r\n");
+    return;
+  }
+
+
+  struct affected_type af[MAX_SPELL_AFFECTS];
+  int i = 0;
+  bool found = false;
+  
+  for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+  {
+    if (obj->affected[i].location != APPLY_NONE)
+    {
+      new_affect(&(af[i]));
+      af[i].spell = AFFECT_FOOD;
+      af[i].location = obj->affected[i].location;
+      af[i].modifier = obj->affected[i].modifier;
+      af[i].bonus_type = obj->affected[i].bonus_type;
+      af[i].duration = GET_OBJ_VAL(obj, 0);
+      send_to_char(ch, "You gain +%d to %s from eating %s.\r\n", 
+                   af[i].modifier, apply_types_lowercase(af[i].location), obj->short_description);
+      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+      found = true;
+    }
+  }
+
+  act("You eat $p.", TRUE, ch, obj, 0, TO_CHAR);
+  act("$n eats $p.", TRUE, ch, obj, 0, TO_ROOM);
+  if (!found)
+  {
+    act("Eating $p had no affect.", TRUE, ch, obj, 0, TO_CHAR);
+  }
+
+  obj_from_char(obj);
+  extract_obj(obj);
+
+}
+
+ACMD(do_drink_old)
 {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *temp;
@@ -3076,7 +3210,7 @@ ACMD(do_drink)
   return;
 }
 
-ACMD(do_eat)
+ACMD(do_eat_old)
 {
   char arg[MAX_INPUT_LENGTH];
   struct obj_data *food;
