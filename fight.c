@@ -5462,7 +5462,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* base 20% chance of overcoming defense */
     powerful_being = 20;
     /* every level above 30 gives another 10% */
-    powerful_being += (GET_LEVEL(ch) - (LVL_IMMORT - 1)) * 10
+    powerful_being += (GET_LEVEL(ch) - (LVL_IMMORT - 1)) * 10;
   }
 
   if (FIGHTING(ch) && CLASS_LEVEL(ch, CLASS_INQUISITOR) >= 10 && is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_JUSTICE))
