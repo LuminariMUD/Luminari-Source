@@ -818,7 +818,7 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target) {
     powerful_being = 20;
 
     /* every level above 30 gives another 10% */
-    powerful_being += (GET_LEVEL(attacker) - (LVL_IMMORT - 1)) * 10
+    powerful_being += (GET_LEVEL(attacker) - (LVL_IMMORT - 1)) * 10;
 
     if (rand_number(1, 100) < powerful_being)
       return FALSE; /* immune to this crit this pass! */
