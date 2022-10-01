@@ -2455,7 +2455,6 @@ void init_start_char(struct char_data *ch)
     }
   }
   GET_DR(ch) = NULL;
-  save_char(ch, 0);
 
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
@@ -2577,6 +2576,8 @@ void init_start_char(struct char_data *ch)
   send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
+
+  save_char(ch, 0);
 }
 
 /* Some initializations for characters, including initial skills */
