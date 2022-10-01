@@ -870,6 +870,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
     {
     case RACE_LICH:
     case RACE_VAMPIRE:
+    case -1:
       OLC_QUEST(d)->race_reward = number;
       break;
 
