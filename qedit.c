@@ -419,7 +419,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   quest->value[0], quest->value[1],
                   quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
                   quest->race_reward,
-                  (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_RACE_TYPES) ? race_list[quest->race_reward].type_color : "n/a",
+                  (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_EXTENDED_RACES) ? race_list[quest->race_reward].type_color : "n/a",
                   quest->value[2],
                   quest->value[3],
                   quest->prereq == NOTHING ? -1 : quest->prereq,
