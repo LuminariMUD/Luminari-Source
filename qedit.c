@@ -210,29 +210,40 @@ static void qedit_setup_new(struct descriptor_data *d)
   CREATE(quest, struct aq_data, 1);
 
   /* Set default values                                         */
-  quest->vnum = OLC_NUM(d);    /* Quest vnum             */
-  quest->qm = NOBODY;          /* Questmaster rnum       */
-  quest->flags = 0;            /* Quest bitflags         */
-  quest->type = AQ_UNDEFINED;  /* Quest type             */
-  quest->target = NOTHING;     /* Quest target           */
-  quest->prereq = NOTHING;     /* Prerequisite object    */
-  quest->value[0] = 0;         /* Points for completing  */
-  quest->value[1] = 0;         /* Points for abandoning  */
-  quest->value[2] = 0;         /* Minimum level          */
-  quest->value[3] = LVL_IMPL;  /* Maximim level          */
-  quest->value[4] = -1;        /* Time limit             */
-  quest->value[5] = NOBODY;    /* Mob to return object   */
-  quest->value[6] = 1;         /* Quantity of targets    */
+  quest->vnum = OLC_NUM(d);   /* Quest vnum             */
+  quest->qm = NOBODY;         /* Questmaster rnum       */
+  quest->flags = 0;           /* Quest bitflags         */
+  quest->type = AQ_UNDEFINED; /* Quest type             */
+  quest->target = NOTHING;    /* Quest target           */
+  quest->prereq = NOTHING;    /* Prerequisite object    */
+
+  quest->value[0] = 0;        /* Points for completing  */
+  quest->value[1] = 0;        /* Points for abandoning  */
+  quest->value[2] = 0;        /* Minimum level          */
+  quest->value[3] = LVL_IMPL; /* Maximim level          */
+  quest->value[4] = -1;       /* Time limit             */
+  quest->value[5] = NOBODY;   /* Mob to return object   */
+  quest->value[6] = 1;        /* Quantity of targets    */
+
   quest->prev_quest = NOTHING; /* Previous quest         */
   quest->next_quest = NOTHING; /* Next quest             */
-  quest->gold_reward = 0;      /* Prize in gold coins    */
-  quest->exp_reward = 0;       /* Prize in exp points    */
-  quest->obj_reward = NOTHING; /* vnum of reward object  */
+
+  quest->gold_reward = 0;              /* Prize in gold coins    */
+  quest->exp_reward = 0;               /* Prize in exp points    */
+  quest->obj_reward = NOTHING;         /* vnum of reward object  */
+  quest->race_reward = RACE_UNDEFINED; /* num of race for race change reward */
+
+  /* for expansion */
+  quest->unused_int1 = -1;
+  quest->unused_int2 = -1;
+  quest->unused_int3 = -1;
+
   quest->name = strdup("Undefined Quest");
   quest->desc = strdup("Quest definition is incomplete.");
   quest->info = strdup("There is no information on this quest.\r\n");
   quest->done = strdup("You have completed the quest.\r\n");
   quest->quit = strdup("You have abandoned the quest.\r\n");
+
   quest->func = NULL; /* Secondary qm spec proc */
 
   /* Set the descriptor OLC structure to point to this quest    */
@@ -376,6 +387,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   "\tg B\tn) Completed      : [\tc%6d\tn] \tg C\tn) Abandoned   : [\tc%6d\tn]\r\n"
                   "\tn    Other Rewards Rewards\r\n"
                   "\tg G\tn) Gold Coins     : [\tc%6d\tn] \tg T\tn) Exp Points  : [\tc%6d\tn] \tg O\tn) Object : [\tc%6d\tn]\r\n"
+                  "\tg R\tn) Race           : [\tc%6d\tn] (%s)\r\n"
                   "\tn    Level Limits to Accept Quest\r\n"
                   "\tg D\tn) Lower Level    : [\tc%6d\tn] \tg E\tn) Upper Level : [\tc%6d\tn]\r\n"
                   "\tg F\tn) Prerequisite   : [\tc%6d\tn] \ty%s\r\n"
@@ -406,7 +418,9 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   quest->value[6],
                   quest->value[0], quest->value[1],
                   quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
-                  quest->value[2], quest->value[3],
+                  quest->race_reward, race_list[quest->race_reward].type_color,
+                  quest->value[2],
+                  quest->value[3],
                   quest->prereq == NOTHING ? -1 : quest->prereq,
                   quest->prereq == NOTHING ? "" : real_object(quest->prereq) == NOTHING ? "an unknown object"
                                                                                         : obj_proto[real_object(quest->prereq)].short_description,
@@ -644,6 +658,12 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = QEDIT_OBJ;
       write_to_output(d, "Enter the prize object vnum (-1 for none) : ");
       break;
+    case 'r':
+    case 'R':
+      OLC_MODE(d) = QEDIT_RACE;
+      write_to_output(d, "Enter the prize race (Lich %d or Vampire %d) by race # (-1 for none) : ",
+                      RACE_LICH, RACE_VAMPIRE);
+      break;
     case 'l':
     case 'L':
       OLC_MODE(d) = QEDIT_TIMELIMIT;
@@ -841,6 +861,24 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       }
     OLC_QUEST(d)->obj_reward = number;
     break;
+  case QEDIT_RACE:
+
+    number = atoi(arg);
+
+    switch (number)
+    {
+    case RACE_LICH:
+    case RACE_VAMPIRE:
+      OLC_QUEST(d)->race_reward = number;
+      break;
+
+    default:
+      write_to_output(d, "Not a valid race, try again : ");
+      return;
+    }
+
+    break;
+
   default:
     /*. We should never get here . */
     cleanup_olc(d, CLEANUP_ALL);
