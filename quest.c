@@ -1441,8 +1441,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                  QST_POINTS(rnum) /*val0*/, QST_PENALTY(rnum) /*val1*/, QST_MINLEVEL(rnum) /*val2*/,
                  QST_MAXLEVEL(rnum) /*val3*/,
                  QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
-                 race_list[QST_RACE(rnum)].type_color, QST_RACE(rnum),
                  rewardname,
+                 race_list[QST_RACE(rnum)].type_color, QST_RACE(rnum),
                  buf);
 
     if (QST_PREREQ(rnum) != NOTHING)
