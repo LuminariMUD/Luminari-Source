@@ -2009,9 +2009,9 @@ ACMD(do_dismiss)
     snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
-    for (k = ch->followers; k; k = next) {
+    for (k = ch->followers; k; k = next)
+    {
       next = k->next;
-
 
       if (IN_ROOM(ch) != IN_ROOM(k->follower))
       {
@@ -2021,6 +2021,8 @@ ACMD(do_dismiss)
         }
       }
     }
+
+    save_char_pets(ch);
 
     return;
   }
@@ -2090,6 +2092,8 @@ ACMD(do_dismiss)
         FALSE, ch, 0, vict, TO_VICT);
     act("With a wave, $n dismisses $N.",
         TRUE, ch, 0, vict, TO_NOTVICT);
+
+    save_char_pets(ch);
   }
 }
 
