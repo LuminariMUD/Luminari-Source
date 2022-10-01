@@ -3205,7 +3205,7 @@ void advance_level(struct char_data *ch, int class)
 
   /* make sure you aren't snooping someone you shouldn't with new level */
   snoop_check(ch);
-  save_char(ch, 0);
+  save_char(ch, 1);
 }
 
 /* if you get multiplier for backstab, calculated here */
