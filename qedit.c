@@ -875,7 +875,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       break;
 
     default:
-      write_to_output(d, "Not a valid race, try again : ");
+      write_to_output(d, "Not a valid race, try again (-1 to cancel) : ");
       return;
     }
 
