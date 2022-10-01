@@ -2404,9 +2404,9 @@ void spell_level(int spell, int chclass, int level)
 {
   int bad = 0;
 
-  if (spell < 0 || spell > TOP_SPELL_DEFINE)
+  if (spell < 0 || spell > MAX_SKILLS)
   {
-    log("SYSERR: attempting assign to illegal spellnum %d/%d", spell, TOP_SPELL_DEFINE);
+    log("SYSERR: attempting assign to illegal spellnum %d/%d", spell, MAX_SKILLS);
     return;
   }
 
