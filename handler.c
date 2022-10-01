@@ -312,10 +312,15 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
     break;
   case APPLY_HP_REGEN:
     break;
+  case APPLY_MV_REGEN:
+    break;
+  case APPLY_PSP_REGEN:
+    break;
+
     /* end Do Not Use */
 
   default:
-    log("SYSERR: Unknown apply adjust %d attempt (%s, affect_modify).", loc, __FILE__);
+    log("SYSERR: Unknown apply adjust to %s (location: %d) attempt (%s, affect_modify).", GET_NAME(ch), loc, __FILE__);
     break;
 
   } /* switch */
