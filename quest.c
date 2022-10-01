@@ -392,6 +392,7 @@ void complete_quest(struct char_data *ch, int index)
   qst_vnum vnum = GET_QUEST(ch, index);
   struct obj_data *new_obj = NULL;
   int happy_qp = 0, happy_gold = 0, happy_exp = 0;
+  struct descriptor_data *pt = NULL;
 
   /* dummy check */
   if (GET_QUEST(ch, index) == NOTHING)
