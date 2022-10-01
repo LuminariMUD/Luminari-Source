@@ -8277,6 +8277,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       {
         affect_from_char(victim, af->spell);
         found = TRUE;
+        continue;
       }
     }
     if (af && affect2 && af->bitvector && IS_SET_AR(af->bitvector, affect2))
@@ -8285,6 +8286,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
       {
         affect_from_char(victim, af->spell);
         found = TRUE;
+        continue;
       }
     }
   }

@@ -2547,6 +2547,9 @@ void init_start_char(struct char_data *ch)
   case RACE_LICH:
     GET_MAX_HIT(ch) += 10; /* vital */
     break;
+  case RACE_VAMPIRE:
+    GET_MAX_HIT(ch) += 10; /* vital */
+    break;
   case RACE_ARCANA_GOLEM:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     break;
@@ -3115,6 +3118,9 @@ void advance_level(struct char_data *ch, int class)
   case RACE_LICH:
     add_hp += 4;
     break;
+  case RACE_VAMPIRE:
+    add_hp += 4;
+    break;
   default:
     break;
   }
@@ -3352,6 +3358,10 @@ int level_exp(struct char_data *ch, int level)
     break;
 
   case RACE_LICH:
+    exp *= 10;
+    break;
+
+  case RACE_VAMPIRE:
     exp *= 10;
     break;
 
