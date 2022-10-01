@@ -2400,6 +2400,7 @@ return;
   cast_spell(ch, tch, tobj, spellnum, metamagic);
 }
 
+/* assignment */
 void spell_level(int spell, int chclass, int level)
 {
   int bad = 0;
