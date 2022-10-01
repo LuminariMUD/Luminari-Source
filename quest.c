@@ -249,7 +249,7 @@ void parse_quest(FILE *quest_f, int nr)
       (retval = sscanf(line, " %d %d %d %d %d %d %d",
                        t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6)))
   {
-    if (retval != 3 || retval != 7)
+    if (retval != 3 && retval != 7)
     {
       log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n",
           retval, line);
