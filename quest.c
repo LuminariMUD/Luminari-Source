@@ -420,6 +420,24 @@ void complete_quest(struct char_data *ch, int index)
     return;
   }
 
+  /* does this race reward convert you into another race?  we have some important requirements! */
+  if (QST_RACE(rnum) < NUM_EXTENDED_RACES && QST_RACE(rnum) > RACE_UNDEFINED)
+  {
+    if (GET_LEVEL(ch) < 30)
+    {
+      send_to_char(ch, "You must be level 30 to change races.\r\n");
+      return;
+    }
+
+    /* these parameters break the game */
+    if (GROUP(ch) || ch->master || ch->followers)
+    {
+      send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to change races.\r\n"
+                         "You can dismiss npc followers with the 'dismiss' command.  You can leave your group with 'group leave.'\r\n");
+      return;
+    }
+  }
+
   /* Quest complete! */
 
   /* any quest point reward for this quest? */
@@ -504,21 +522,6 @@ void complete_quest(struct char_data *ch, int index)
 
     case RACE_VAMPIRE:
 
-      /* level requirement for lich */
-      if (GET_LEVEL(ch) < 30)
-      {
-        send_to_char(ch, "You must be level 30 to become a Vampire.\r\n");
-        return;
-      }
-
-      /* these parameters break the game */
-      if (GROUP(ch) || ch->master || ch->followers)
-      {
-        send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to become a VAMPIRE.\r\n"
-                         "You can dismiss npc followers with the 'dismiss' command.\r\n");
-        return;
-      }
-
       GET_REAL_RACE(ch) = RACE_VAMPIRE;
       /* Zhentil Keep - hometwon system not implemented yet */
       // GET_HOMETOWN(ch) = 3;
@@ -550,21 +553,6 @@ void complete_quest(struct char_data *ch, int index)
       break;
 
     case RACE_LICH:
-
-      /* level requirement for lich */
-      if (GET_LEVEL(ch) < 30)
-      {
-        send_to_char(ch, "You must be level 30 to become a Lich.\r\n");
-        return;
-      }
-
-      /* these parameters break the game */
-      if (GROUP(ch) || ch->master || ch->followers)
-      {
-        send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to become a LICH.\r\n"
-                         "You can dismiss npc followers with the 'dismiss' command.\r\n");
-        return;
-      }
 
       GET_REAL_RACE(ch) = RACE_LICH;
       /* Zhentil Keep - hometwon system not implemented yet */

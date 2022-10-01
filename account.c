@@ -90,7 +90,7 @@ int change_account_xp(struct char_data *ch, int change_val)
 
 int has_unlocked_race(struct char_data *ch, int race)
 {
-  if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH)
+  if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
     return FALSE;
 
   if (!locked_races[race])
