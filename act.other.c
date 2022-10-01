@@ -2387,7 +2387,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
     send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
   }
 
-  save_char(ch, 0);
+  save_char(ch, 1);
 
   return;
 }
