@@ -2577,7 +2577,7 @@ void init_start_char(struct char_data *ch)
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
 
-  save_char(ch, 0);
+  save_char(ch, 1);
 }
 
 /* Some initializations for characters, including initial skills */
