@@ -178,6 +178,7 @@ void parse_quest(FILE *quest_f, int nr)
   int retval = 0, t[7];
   char f1[128], buf2[MAX_STRING_LENGTH];
 
+  /* init some vars */
   aquest_table[i].vnum = nr;
   aquest_table[i].qm = NOBODY;
   aquest_table[i].name = NULL;
@@ -198,6 +199,13 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].gold_reward = 0;
   aquest_table[i].exp_reward = 0;
   aquest_table[i].obj_reward = NOTHING;
+  aquest_table[i].race_reward = RACE_UNDEFINED;
+
+  /* this is for expansion */
+  aquest_table[i].unused_int1 = -1;
+  aquest_table[i].unused_int2 = -1;
+  aquest_table[i].unused_int3 = -1;
+  /* end init */
 
   /* begin to parse the data */
   aquest_table[i].name = fread_string(quest_f, buf2);
@@ -205,11 +213,13 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].info = fread_string(quest_f, buf2);
   aquest_table[i].done = fread_string(quest_f, buf2);
   aquest_table[i].quit = fread_string(quest_f, buf2);
+
+  /* parse the first line of ints */
   if (!get_line(quest_f, line) ||
       (retval = sscanf(line, " %d %d %s %d %d %d %d",
                        t, t + 1, f1, t + 2, t + 3, t + 4, t + 5)) != 7)
   {
-    log("Format error in numeric line (expected 7, got %d), %s\n",
+    log("Format error in numeric line 1 (expected 7, got %d), %s\n",
         retval, line);
     exit(1);
   }
@@ -220,30 +230,48 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].prev_quest = (t[3] == -1) ? NOTHING : t[3];
   aquest_table[i].next_quest = (t[4] == -1) ? NOTHING : t[4];
   aquest_table[i].prereq = (t[5] == -1) ? NOTHING : t[5];
+
+  /* parse the second line of ints */
   if (!get_line(quest_f, line) ||
       (retval = sscanf(line, " %d %d %d %d %d %d %d",
                        t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6)) != 7)
   {
-    log("Format error in numeric line (expected 7, got %d), %s\n",
+    log("Format error in numeric line 2 (expected 7, got %d), %s\n",
         retval, line);
     exit(1);
   }
   for (j = 0; j < 7; j++)
     aquest_table[i].value[j] = t[j];
 
+  /* parse the third line of ints
+       re-wrote this to handle the old 3 values or new 7 values -zusuk */
   if (!get_line(quest_f, line) ||
-      (retval = sscanf(line, " %d %d %d",
-                       t, t + 1, t + 2)) != 3)
+      (retval = sscanf(line, " %d %d %d %d %d %d %d",
+                       t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6)))
   {
-    log("Format error in numeric (rewards) line (expected 3, got %d), %s\n",
-        retval, line);
-    exit(1);
+    if (retval != 3 && retval != 7)
+    {
+      log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n",
+          retval, line);
+      exit(1);
+    }
   }
 
   aquest_table[i].gold_reward = t[0];
   aquest_table[i].exp_reward = t[1];
   aquest_table[i].obj_reward = (t[2] == -1) ? NOTHING : t[2];
 
+  if (retval == 7)
+  {
+    aquest_table[i].race_reward = t[3];
+
+    /* for expansion */
+    aquest_table[i].unused_int1 = t[4];
+    aquest_table[i].unused_int2 = t[5];
+    aquest_table[i].unused_int3 = t[6];
+  }
+
+  /* finish 'er up! */
   for (;;)
   {
     if (!get_line(quest_f, line))
@@ -251,6 +279,7 @@ void parse_quest(FILE *quest_f, int nr)
       log("Format error in %s\n", line);
       exit(1);
     }
+
     switch (*line)
     {
     case 'S':
@@ -363,6 +392,7 @@ void complete_quest(struct char_data *ch, int index)
   qst_vnum vnum = GET_QUEST(ch, index);
   struct obj_data *new_obj = NULL;
   int happy_qp = 0, happy_gold = 0, happy_exp = 0;
+  struct descriptor_data *pt = NULL;
 
   /* dummy check */
   if (GET_QUEST(ch, index) == NOTHING)
@@ -388,6 +418,24 @@ void complete_quest(struct char_data *ch, int index)
     send_to_char(ch, "Please 'bug submit': complete_quest() RNum is NOTHING\r\n");
     log("UH OH: complete_quest() rnum is NOTHING!");
     return;
+  }
+
+  /* does this race reward convert you into another race?  we have some important requirements! */
+  if (QST_RACE(rnum) < NUM_EXTENDED_RACES && QST_RACE(rnum) > RACE_UNDEFINED)
+  {
+    if (GET_LEVEL(ch) < 30)
+    {
+      send_to_char(ch, "You must be level 30 to change races.\r\n");
+      return;
+    }
+
+    /* these parameters break the game */
+    if (GROUP(ch) || ch->master || ch->followers)
+    {
+      send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to change races.\r\n"
+                         "You can dismiss npc followers with the 'dismiss' command.  You can leave your group with 'group leave.'\r\n");
+      return;
+    }
   }
 
   /* Quest complete! */
@@ -465,6 +513,83 @@ void complete_quest(struct char_data *ch, int index)
       }
     }
   }
+
+  /* does this race reward convert you into another race? */
+  if (QST_RACE(rnum) < NUM_EXTENDED_RACES && QST_RACE(rnum) > RACE_UNDEFINED)
+  {
+    switch (QST_RACE(rnum))
+    {
+
+    case RACE_VAMPIRE:
+
+      GET_REAL_RACE(ch) = RACE_VAMPIRE;
+      /* Zhentil Keep - hometwon system not implemented yet */
+      // GET_HOMETOWN(ch) = 3;
+
+      respec_engine(ch, CLASS_WARRIOR, NULL, TRUE);
+      GET_EXP(ch) = 0;
+      GET_ALIGNMENT(ch) = -1000;
+
+      /* Messages */
+      for (pt = descriptor_list; pt; pt = pt->next)
+      {
+        if (IS_PLAYING(pt) && pt->character && pt->character != ch)
+        {
+          send_to_char(pt->character, "\tL%s's \tWlifeforce\tL is ripped apart, who realizes\tn\r\n"
+                                      "\tLthat death has arrived. %s's \tLbody is now merely a "
+                                      "vessel for power.  %s \tLhas become a \tYVAMPIRE\tn\r\n",
+                       GET_NAME(ch), GET_NAME(ch), GET_NAME(ch));
+        }
+      }
+
+      send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
+                       " and you realize\tn\r\n"
+                       "\tLthat you are dieing. Your body is now merely a "
+                       "vessel for your power.\tn\r\n");
+
+      send_to_char(ch, "You are now a \tLVAMPIRE!\tn\r\n");
+      log("Quest Log : %s has changed into to a VAMPIRE!", GET_NAME(ch));
+
+      break;
+
+    case RACE_LICH:
+
+      GET_REAL_RACE(ch) = RACE_LICH;
+      /* Zhentil Keep - hometwon system not implemented yet */
+      // GET_HOMETOWN(ch) = 3;
+
+      respec_engine(ch, CLASS_WIZARD, NULL, TRUE);
+      GET_EXP(ch) = 0;
+      GET_ALIGNMENT(ch) = -1000;
+
+      /* Messages */
+      for (pt = descriptor_list; pt; pt = pt->next)
+      {
+        if (IS_PLAYING(pt) && pt->character && pt->character != ch)
+        {
+          send_to_char(pt->character, "\tL%s's \tWlifeforce\tL is ripped apart, who realizes\tn\r\n"
+                                      "\tLthat death has arrived. %s's \tLbody is now merely a "
+                                      "vessel for power.  %s \tLhas become a \tYLICH\tn\r\n",
+                       GET_NAME(ch), GET_NAME(ch), GET_NAME(ch));
+        }
+      }
+
+      send_to_char(ch, "\tLYour \tWlifeforce\tL is ripped apart of you,"
+                       " and you realize\tn\r\n"
+                       "\tLthat you are dieing. Your body is now merely a "
+                       "vessel for your power.\tn\r\n");
+
+      send_to_char(ch, "You are now a \tLLICH!\tn\r\n");
+      log("Quest Log : %s has changed into to a LICH!", GET_NAME(ch));
+
+      break;
+
+    default:
+      log("Quest Log : %s reached default in race reward for quest!", GET_NAME(ch));
+      break;
+    }
+  }
+
   /* end rewards */
 
   /* handle throwing quest in history and repeatable quests */
@@ -1285,6 +1410,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                  "Target: \ty%d\tn \ty%s\tn, Quantity: \ty%d\tn\r\n"
                  "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
                  "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s\r\n"
+                 "Quest Race Reward: %s (%d)\r\n"
                  "Flags : \tc%s\tn\r\n",
 
                  QST_NUM(rnum), rnum,
@@ -1302,7 +1428,9 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                  QST_QUANTITY(rnum),
                  QST_POINTS(rnum) /*val0*/, QST_PENALTY(rnum) /*val1*/, QST_MINLEVEL(rnum) /*val2*/,
                  QST_MAXLEVEL(rnum) /*val3*/,
-                 QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), rewardname,
+                 QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
+                 rewardname,
+                 race_list[QST_RACE(rnum)].type_color, QST_RACE(rnum),
                  buf);
 
     if (QST_PREREQ(rnum) != NOTHING)

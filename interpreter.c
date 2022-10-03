@@ -2666,6 +2666,9 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_LICH:
       perform_help(d, "race-lich");
       break;
+    case RACE_VAMPIRE:
+      perform_help(d, "race-vampire");
+      break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;

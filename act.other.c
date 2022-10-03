@@ -2009,9 +2009,9 @@ ACMD(do_dismiss)
     snprintf(buf, sizeof(buf), "$n dismisses $s non present followers.");
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
-    for (k = ch->followers; k; k = next) {
+    for (k = ch->followers; k; k = next)
+    {
       next = k->next;
-
 
       if (IN_ROOM(ch) != IN_ROOM(k->follower))
       {
@@ -2021,6 +2021,8 @@ ACMD(do_dismiss)
         }
       }
     }
+
+    save_char_pets(ch);
 
     return;
   }
@@ -2090,6 +2092,8 @@ ACMD(do_dismiss)
         FALSE, ch, 0, vict, TO_VICT);
     act("With a wave, $n dismisses $N.",
         TRUE, ch, 0, vict, TO_NOTVICT);
+
+    save_char_pets(ch);
   }
 }
 
@@ -2343,7 +2347,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   GET_CLASS(ch) = class;
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
 
-  if (GET_REAL_RACE(ch) != RACE_LICH)
+  if (GET_REAL_RACE(ch) != RACE_LICH && GET_REAL_RACE(ch) != RACE_VAMPIRE)
   {
     if (*arg && is_abbrev(arg, "premade"))
       GET_PREMADE_BUILD_CLASS(ch) = class;
@@ -2383,7 +2387,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
     send_to_char(ch, "\tDType 'gain' to regain your level(s)...\tn\r\n");
   }
 
-  save_char(ch, 0);
+  save_char(ch, 1);
 
   return;
 }

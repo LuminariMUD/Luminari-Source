@@ -55,21 +55,29 @@
 /* Main quest struct ************************************************** */
 struct aq_data
 {
-  qst_vnum vnum;       /* Virtual nr of the quest              */
-  char *name;          /* For qlist and the sort               */
-  char *desc;          /* Description of the quest             */
-  char *info;          /* Message displayed when accepted      */
-  char *done;          /* Message displayed when completed     */
-  char *quit;          /* Message displayed when quit quest    */
-  long flags;          /* Flags (repeatable, etc               */
-  int type;            /* Quest type                           */
-  mob_vnum qm;         /* questmaster offering quest           */
-  int target;          /* Target value                         */
-  obj_vnum prereq;     /* Object required to undertake quest   */
-  int value[7];        /* Quest values                         */
+  qst_vnum vnum;   /* Virtual nr of the quest              */
+  char *name;      /* For qlist and the sort               */
+  char *desc;      /* Description of the quest             */
+  char *info;      /* Message displayed when accepted      */
+  char *done;      /* Message displayed when completed     */
+  char *quit;      /* Message displayed when quit quest    */
+  long flags;      /* Flags (repeatable, etc               */
+  int type;        /* Quest type                           */
+  mob_vnum qm;     /* questmaster offering quest           */
+  int target;      /* Target value                         */
+  obj_vnum prereq; /* Object required to undertake quest   */
+
+  int value[7]; /* Quest values                         */
+
   int gold_reward;     /* Number of gold coins given as reward */
   int exp_reward;      /* Experience points given as a reward  */
   obj_vnum obj_reward; /* vnum of object given as a reward     */
+  int race_reward;     /* new race given as a reward           */
+
+  int unused_int1; /* expansion slot 1 */
+  int unused_int2; /* expansion slot 2 */
+  int unused_int3; /* expansion slot 3 */
+
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
   SPECIAL_DECL(*func); /* secondary spec_proc for the QM       */
@@ -96,6 +104,11 @@ struct aq_data
 #define QST_GOLD(i) (aquest_table[i].gold_reward)
 #define QST_EXP(i) (aquest_table[i].exp_reward)
 #define QST_OBJ(i) (aquest_table[i].obj_reward)
+#define QST_RACE(i) (aquest_table[i].race_reward)
+
+#define QST_UNUSED1(i) (aquest_table[i].unused_int1)
+#define QST_UNUSED2(i) (aquest_table[i].unused_int2)
+#define QST_UNUSED3(i) (aquest_table[i].unused_int3)
 
 #define QST_FUNC(i) (aquest_table[i].func)
 #define QST_PREV(i) (aquest_table[i].prev_quest)
@@ -163,6 +176,7 @@ int save_quests(zone_rnum zone_num);
 #define QEDIT_GOLD 22
 #define QEDIT_EXP 23
 #define QEDIT_OBJ 24
+#define QEDIT_RACE 25
 /* ******************************************************************** */
 
 /* AQ Global Variables ************************************************ */

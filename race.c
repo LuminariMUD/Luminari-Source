@@ -1137,6 +1137,8 @@ void assign_races(void)
   feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_SKILL_BONUSES, 1, N);
   feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS, 1, N);
   feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_BONUS_FEATS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_HARDY, 1, N);
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
