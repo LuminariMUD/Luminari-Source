@@ -2455,7 +2455,6 @@ void init_start_char(struct char_data *ch)
     }
   }
   GET_DR(ch) = NULL;
-  save_char(ch, 0);
 
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
@@ -2548,6 +2547,9 @@ void init_start_char(struct char_data *ch)
   case RACE_LICH:
     GET_MAX_HIT(ch) += 10; /* vital */
     break;
+  case RACE_VAMPIRE:
+    GET_MAX_HIT(ch) += 10; /* vital */
+    break;
   case RACE_ARCANA_GOLEM:
     GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     break;
@@ -2577,6 +2579,8 @@ void init_start_char(struct char_data *ch)
   send_to_char(ch, "%d \tMClass Feat points gained.\tn\r\n", GET_CLASS_FEATS(ch, GET_CLASS(ch)));
   GET_TRAINS(ch) += trains;
   send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
+
+  save_char(ch, 1);
 }
 
 /* Some initializations for characters, including initial skills */
@@ -3114,6 +3118,9 @@ void advance_level(struct char_data *ch, int class)
   case RACE_LICH:
     add_hp += 4;
     break;
+  case RACE_VAMPIRE:
+    add_hp += 4;
+    break;
   default:
     break;
   }
@@ -3204,7 +3211,7 @@ void advance_level(struct char_data *ch, int class)
 
   /* make sure you aren't snooping someone you shouldn't with new level */
   snoop_check(ch);
-  save_char(ch, 0);
+  save_char(ch, 1);
 }
 
 /* if you get multiplier for backstab, calculated here */
@@ -3351,6 +3358,10 @@ int level_exp(struct char_data *ch, int level)
     break;
 
   case RACE_LICH:
+    exp *= 10;
+    break;
+
+  case RACE_VAMPIRE:
     exp *= 10;
     break;
 

@@ -2776,6 +2776,8 @@ bool char_has_ultra(struct char_data *ch) {
     return TRUE;
   if (GET_RACE(ch) == RACE_LICH)
     return TRUE;
+  if (GET_RACE(ch) == RACE_VAMPIRE)
+    return TRUE;
 
   return FALSE;
 }

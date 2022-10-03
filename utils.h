@@ -1937,7 +1937,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_ANIMAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ANIMAL) || \
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL))
 #define IS_UNDEAD(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || \
-                       IS_LICH(ch) ||                                      \
+                       IS_LICH(ch) || IS_VAMPIRE(ch) ||                    \
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD))
 #define IS_ELEMENTAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) || \
                           (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL))
