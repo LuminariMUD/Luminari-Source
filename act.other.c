@@ -7716,10 +7716,10 @@ ACMD(do_summon)
       continue;
     if (IN_ROOM(tch) == IN_ROOM(ch))
       continue;
-    act("$n disappears in a flash of light.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n disappears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
     char_from_room(tch);
     char_to_room(tch, IN_ROOM(ch));
-    act("$n appears in a flash of light.", FALSE, ch, 0, 0, TO_ROOM);
+    act("$n appears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
     found = true;
   }
 
