@@ -1271,10 +1271,19 @@ void update_player_misc(void)
       }
     }
 
+    if (IS_VAMPIRE(ch) && GET_SETCLOAK_TIMER(ch) > 0)
+    {
+      GET_SETCLOAK_TIMER(ch)--;
+      if (GET_SETCLOAK_TIMER(ch) == 0)
+      {
+        send_to_char(ch, "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
+      }
+    }
+      
+
     if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
     {
-      EFREETI_MAGIC_TIMER(ch)
-      --;
+      EFREETI_MAGIC_TIMER(ch)--;
       if (EFREETI_MAGIC_TIMER(ch) <= 0)
       {
         EFREETI_MAGIC_TIMER(ch) = 0;
@@ -1295,8 +1304,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
     {
-      PIXIE_DUST_TIMER(ch)
-      --;
+      PIXIE_DUST_TIMER(ch)--;
       if (PIXIE_DUST_TIMER(ch) <= 0)
       {
         PIXIE_DUST_TIMER(ch) = 0;

@@ -28,6 +28,7 @@ SPECIAL_DECL(buyweapons);
 SPECIAL_DECL(buyarmor);
 SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
+SPECIAL_DECL(vampire_cloak);
 
 /* local (file scope only) functions */
 static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
@@ -785,6 +786,8 @@ void assign_objects(void)
   ASSIGNOBJ(103672, bought_pet);
   ASSIGNOBJ(103673, bought_pet);
   ASSIGNOBJ(103674, bought_pet);
+
+  ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
 
   /* not yet defined
   ASSIGNOBJ(101290, storage_chest);

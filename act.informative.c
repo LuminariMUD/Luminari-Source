@@ -1931,6 +1931,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(k, eCHANNELENERGY)))
     send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
+  if (GET_SETCLOAK_TIMER(ch) > 0)
+    send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n", GET_SETCLOAK_TIMER(ch) * 6);
   if (PIXIE_DUST_TIMER(ch) > 0)
     send_to_char(ch, "Pixie Dust Cooldown - Duration: %d seconds\r\n", PIXIE_DUST_TIMER(ch) * 6);
   if (EFREETI_MAGIC_TIMER(ch) > 0)

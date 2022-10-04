@@ -1976,6 +1976,8 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
       (OBJ_FLAGGED(obj, ITEM_ANTI_CRYSTAL_DWARF) && IS_CRYSTAL_DWARF(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_TRELUX) && IS_TRELUX(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_LICH) && IS_LICH(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_ANTI_VAMPIRE) && IS_VAMPIRE(ch)) ||
+      (OBJ_FLAGGED(obj, ITEM_VAMPIRE_ONLY) && !IS_VAMPIRE(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_ARCANA_GOLEM) && IS_ARCANA_GOLEM(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DROW) && IS_DROW(ch)) ||
       (OBJ_FLAGGED(obj, ITEM_ANTI_DUERGAR) && IS_DUERGAR(ch)) ||

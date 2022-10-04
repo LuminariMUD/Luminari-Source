@@ -320,6 +320,12 @@ void hunt_victim(struct char_data *ch)
     return;
   }
 
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    send_to_char(ch, "You can't hunt anything while you're under someone else's control.\r\n");
+    return;
+  }
+
   /* if ch has memory, try finding a new hunting victim */
   if (!HUNTING(ch))
   {
@@ -368,6 +374,12 @@ void hunt_victim(struct char_data *ch)
   if (!ok_damage_shopkeeper(vict, ch))
   {
     send_to_char(ch, "You are a shopkeeper (that can't be damaged), it doesn't make sense for you to hunt!\r\n");
+    return;
+  }
+
+  if (ch->master && vict == ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+  {
+    HUNTING(ch) = NULL;
     return;
   }
 

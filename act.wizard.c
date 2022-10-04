@@ -3004,6 +3004,8 @@ ACMD(do_wizutil)
       clear_char_event_list(vict);
       // reset their mission ready status
       GET_MISSION_COOLDOWN(vict) = 0;
+      // Clear Misc Cooldowns
+      clear_misc_cooldowns(vict);
       // clear affects
       if (vict->affected || AFF_FLAGS(vict))
       {
@@ -7648,6 +7650,8 @@ int get_eq_score(obj_rnum a)
       case ITEM_ANTI_BERSERKER:
       case ITEM_ANTI_TRELUX:
       case ITEM_ANTI_LICH:
+      case ITEM_ANTI_VAMPIRE:
+      case ITEM_VAMPIRE_ONLY:
       case ITEM_ANTI_SORCERER:
       case ITEM_ANTI_PALADIN:
       case ITEM_ANTI_RANGER:

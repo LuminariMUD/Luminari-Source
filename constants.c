@@ -2311,6 +2311,8 @@ const char *extra_bits[] = {
     "Anti-Eldritch-Knight",
     "Shocking Weapon",
     "Anti-Lich",
+    "Anti-Vampire",
+    "Vampire-Only",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 

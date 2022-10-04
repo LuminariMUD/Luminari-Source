@@ -37,6 +37,7 @@
 #include "premadebuilds.h"
 #include "craft.h"
 #include "fight.h"
+#include "missions.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -6515,10 +6516,19 @@ bool is_covered(struct char_data *ch)
 {
   if (!ch) return false;
 
-  if (!GET_EQ(ch, WEAR_ABOUT) || GET_OBJ_TYPE(GET_EQ(ch, WEAR_ABOUT)) != ITEM_WORN)
+  // wind will blow off any covering they have.
+  if (AFF_FLAGGED(ch, AFF_WIND_WALL))
     return false;
 
-  if (AFF_FLAGGED(ch, AFF_WIND_WALL))
+  // if grappling, they cannot keep their cloak covering them
+  if (AFF_FLAGGED(ch, AFF_GRAPPLED))
+    return false;
+
+  // They must be wearing a vampire cloak on the about location
+  // to resist sunlight affects
+  struct obj_data *cloak = GET_EQ(ch, WEAR_ABOUT);
+
+  if (!cloak || GET_OBJ_VNUM(cloak) != VAMPIRE_CLOAK_OBJ_VNUM)
     return false;
 
   return true;
@@ -6590,5 +6600,132 @@ char * apply_types_lowercase(int apply_type)
   return strdup(apply_text);
 
 }
+
+bool valid_vampire_cloak_apply(int type)
+{
+  switch (type)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_CON:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CHA:
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_WILL:
+    case APPLY_AC_NEW:
+    case APPLY_DAMROLL:
+    case APPLY_DR:
+    case APPLY_HIT:
+    case APPLY_HITROLL:
+    case APPLY_HP_REGEN:
+    case APPLY_MOVE:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP:
+    case APPLY_PSP_REGEN:
+    case APPLY_RES_FIRE:
+    case APPLY_RES_COLD:
+    case APPLY_RES_AIR:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ACID:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_POISON:
+    case APPLY_RES_DISEASE:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_ENERGY:
+    case APPLY_RES_WATER:
+      return true;
+  }
+  return false;
+}
+
+int get_vampire_cloak_bonus(int level, int type)
+{
+
+  int amount = (level / 15) + 1;
+
+  switch (type)
+  {
+    case APPLY_STR:
+    case APPLY_DEX:
+    case APPLY_CON:
+    case APPLY_INT:
+    case APPLY_WIS:
+    case APPLY_CHA:
+    case APPLY_SAVING_REFL:
+    case APPLY_SAVING_FORT:
+    case APPLY_SAVING_WILL:
+      return amount * 2;
+
+    case APPLY_AC_NEW:
+    case APPLY_DR:    
+    case APPLY_HP_REGEN:
+    case APPLY_MV_REGEN:
+    case APPLY_PSP_REGEN:
+      return amount;
+
+    case APPLY_DAMROLL:
+    case APPLY_HITROLL:
+      return amount + 1;
+
+    case APPLY_HIT:
+    case APPLY_MOVE:
+    case APPLY_PSP:
+      return amount * 20;
+
+    case APPLY_RES_FIRE:
+    case APPLY_RES_COLD:
+    case APPLY_RES_AIR:
+    case APPLY_RES_EARTH:
+    case APPLY_RES_ACID:
+    case APPLY_RES_HOLY:
+    case APPLY_RES_ELECTRIC:
+    case APPLY_RES_UNHOLY:
+    case APPLY_RES_SLICE:
+    case APPLY_RES_PUNCTURE:
+    case APPLY_RES_FORCE:
+    case APPLY_RES_SOUND:
+    case APPLY_RES_POISON:
+    case APPLY_RES_DISEASE:
+    case APPLY_RES_NEGATIVE:
+    case APPLY_RES_ILLUSION:
+    case APPLY_RES_MENTAL:
+    case APPLY_RES_LIGHT:
+    case APPLY_RES_ENERGY:
+    case APPLY_RES_WATER:
+      return amount * 10;
+  }
+  return 0;
+}
+
+void clear_misc_cooldowns(struct char_data *ch)
+{
+  if (!ch || IS_NPC(ch))
+    return;
+
+  GET_SETCLOAK_TIMER(ch) = 0;
+  PIXIE_DUST_TIMER(ch) = 0;
+  EFREETI_MAGIC_TIMER(ch) = 0;
+  DRAGON_MAGIC_TIMER(ch) = 0;
+  LAUGHING_TOUCH_TIMER(ch) = 0;
+  FLEETING_GLANCE_TIMER(ch) = 0;
+  FEY_SHADOW_WALK_TIMER(ch) = 0;
+  GRAVE_TOUCH_TIMER(ch) = 0;
+  GRASP_OF_THE_DEAD_TIMER(ch) = 0;
+  INCORPOREAL_FORM_TIMER(ch) = 0;
+  GET_MISSION_COOLDOWN(ch) = 0;
+
+}
+
 /* EoF */
 

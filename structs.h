@@ -2556,8 +2556,10 @@
 #define ITEM_ANTI_ELDRITCH_KNIGHT 91
 #define ITEM_SHOCK 92     // for shocking weapons
 #define ITEM_ANTI_LICH 93 /* Not usable by lich */
+#define ITEM_ANTI_VAMPIRE 94 // Not useable by Lich
+#define ITEM_VAMPIRE_ONLY 95 // Only vampires can use
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 94
+#define NUM_ITEM_FLAGS 96
 
 /* homeland-port */
 /*
@@ -3999,6 +4001,8 @@ struct player_special_data_saved
     byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
     byte slayer_judgement;                      // which judgement is using the slayer bonus
+
+    int setcloak_timer;       // used for setting stats on vampire cloaks.
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
