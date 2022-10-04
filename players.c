@@ -662,6 +662,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_REAL_CHA(ch) = atoi(line);
         else if (!strcmp(tag, "Clas"))
           GET_CLASS(ch) = atoi(line);
+        else if (!strcmp(tag, "ClkT"))
+          GET_SETCLOAK_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "Coll"))
           load_spell_collection(fl, ch);
         else if (!strcmp(tag, "Con "))
@@ -1549,6 +1551,9 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "MVRg : %d\n", GET_MV_REGEN(ch));
   if (GET_PSP_REGEN(ch) != PFDEF_PSP_REGEN)
     fprintf(fl, "PSRg : %d\n", GET_PSP_REGEN(ch));
+
+  if (GET_SETCLOAK_TIMER(ch) != PFDEF_SETCLOAK_TIMER)
+    fprintf(fl, "ClkT : %d\n", GET_SETCLOAK_TIMER(ch));
 
   if (GET_STR(ch) != PFDEF_STR || GET_ADD(ch) != PFDEF_STRADD)
     fprintf(fl, "Str : %d/%d\n", GET_STR(ch), GET_ADD(ch));

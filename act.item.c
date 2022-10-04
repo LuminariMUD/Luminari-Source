@@ -113,6 +113,11 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   switch (GET_OBJ_TYPE(item))
   {
 
+  case ITEM_FOOD:
+  case ITEM_DRINK:
+    send_to_char(ch, "Duration: %d\r\n", GET_OBJ_VAL(item, 0));
+    break;
+
   case ITEM_SWITCH: /* 35 */ /* activation mechanism */
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
@@ -642,12 +647,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   case ITEM_KEY: /* 18 */
     break;
 
-  case ITEM_FOOD: /* 19 */
-    if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
-    else
-      send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
-    break;
+  // case ITEM_FOOD: // 19 
+  // New food type above in switch statement
+  //   if (mode == ITEM_STAT_MODE_G_LORE)
+  //     send_to_group(NULL, GROUP(ch), "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+  //   else
+  //     send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+  //   break;
 
   case ITEM_MONEY: /* 20 */
     if (mode == ITEM_STAT_MODE_G_LORE)
@@ -1288,7 +1294,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
         ;
-      else
+      else if (GET_OBJ_TYPE(item) != ITEM_FOOD && GET_OBJ_TYPE(item) != ITEM_DRINK)
         send_to_char(ch, "Special 'identify' tag:\r\n");
 
       if (name)
@@ -1440,23 +1446,25 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   else
     text_line(ch, "\tcObject Bits / Affections\tn", line_length, '-', '-');
 
-  sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
-  if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "Can be worn on: %s\r\n", buf);
-  else
-    send_to_char(ch, "Can be worn on: %s\r\n", buf);
+  if (GET_OBJ_TYPE(j) != ITEM_FOOD && GET_OBJ_TYPE(j) != ITEM_DRINK)
+  {
+    sprintbitarray(GET_OBJ_WEAR(j), wear_bits, TW_ARRAY_MAX, buf);
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Can be worn on: %s\r\n", buf);
+    else
+      send_to_char(ch, "Can be worn on: %s\r\n", buf);
+    sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Set char bits : %s\r\n", buf);
+    else
+      send_to_char(ch, "Set char bits : %s\r\n", buf);
 
-  sprintbitarray(GET_OBJ_AFFECT(j), affected_bits, AF_ARRAY_MAX, buf);
-  if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "Set char bits : %s\r\n", buf);
-  else
-    send_to_char(ch, "Set char bits : %s\r\n", buf);
-
-  sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
-  if (mode == ITEM_STAT_MODE_G_LORE)
-    send_to_group(NULL, GROUP(ch), "Extra flags   : %s\r\n", buf);
-  else
-    send_to_char(ch, "Extra flags   : %s\r\n", buf);
+    sprintbitarray(GET_OBJ_EXTRA(j), extra_bits, EF_ARRAY_MAX, buf);
+    if (mode == ITEM_STAT_MODE_G_LORE)
+      send_to_group(NULL, GROUP(ch), "Extra flags   : %s\r\n", buf);
+    else
+      send_to_char(ch, "Extra flags   : %s\r\n", buf);
+  }
 
   /* affections */
   found = FALSE;
@@ -2920,6 +2928,7 @@ ACMDU(do_drink)
       af[i].location = obj->affected[i].location;
       af[i].modifier = obj->affected[i].modifier;
       af[i].bonus_type = obj->affected[i].bonus_type;
+      af[i].specific = obj->affected[i].specific;
       af[i].duration = GET_OBJ_VAL(obj, 0);
       send_to_char(ch, "You gain +%d to %s from drinking %s.\r\n", 
                    af[i].modifier, apply_types_lowercase(af[i].location), obj->short_description);
@@ -2985,6 +2994,7 @@ ACMDU(do_eat)
       af[i].location = obj->affected[i].location;
       af[i].modifier = obj->affected[i].modifier;
       af[i].bonus_type = obj->affected[i].bonus_type;
+      af[i].specific= obj->affected[i].specific;
       af[i].duration = GET_OBJ_VAL(obj, 0);
       send_to_char(ch, "You gain +%d to %s from eating %s.\r\n", 
                    af[i].modifier, apply_types_lowercase(af[i].location), obj->short_description);

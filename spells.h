@@ -930,6 +930,9 @@
 /** total number of ranged attack types */
 #define NUM_RANGED_TYPES 1
 
+// Vampire cloak
+#define VAMPIRE_CLOAK_OBJ_VNUM 34700
+
 /* not hard coded, but up to 2375 */
 
 /* weapon type macros, returns true or false */

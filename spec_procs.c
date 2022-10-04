@@ -9781,6 +9781,128 @@ SPECIAL(buyweapons)
   return 1;
 }
 
+SPECIAL(vampire_cloak)
+{
+  if (!CMD_IS("setcloak"))
+  {
+    return 0;
+  }
+
+  if (IS_NPC(ch))
+  {
+    return 0;
+  }
+
+  struct obj_data *obj = NULL;
+  int i = 0, count = 0, choice = 0, result = 0;
+
+  if (!(obj = GET_EQ(ch, WEAR_ABOUT)))
+  {
+    send_to_char(ch, "You must be wearing your vampire cloak to set its abilities.\r\n");
+    return 1;
+  }
+
+  if (GET_OBJ_VNUM(obj) != VAMPIRE_CLOAK_OBJ_VNUM)
+  {
+    send_to_char(ch, "You must be wearing your vampire cloak to set its abilities.\r\n");
+    return 1;
+  }
+
+  if (!IS_VAMPIRE(ch))
+  {
+    send_to_char(ch, "Only vampires can benefit from a vampire cloak.\r\n");
+    return 1;
+  }
+
+  // todo: check to see if setcloak timer is in effect
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You must specify one of the following:\r\n");
+    for (i = 0; i < NUM_APPLIES; i++)
+    {
+      if (valid_vampire_cloak_apply(i)) {
+        count++;
+        if ((count % 4) == 3 || (count % 4) == 0)
+          send_to_char(ch, "\tC");
+        else
+          send_to_char(ch, "\tc");
+        send_to_char(ch, "%2d) \tn+%d to %-16s %s", count, get_vampire_cloak_bonus(GET_LEVEL(ch), i), apply_types_lowercase(i),
+                     get_vampire_cloak_bonus(GET_LEVEL(ch), i) >= 10 ? "" : " ");
+        if ((count % 2) == 0)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if ((count % 2) == 1)
+          send_to_char(ch, "\r\n");
+
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Please enter 'setcloak (number)' where number is the number of the bonus type you'd like above.\r\n");
+    send_to_char(ch, "\r\n");
+    return 1;
+  }
+
+  choice = atoi(argument);
+
+  if (choice <= APPLY_NONE || choice >= NUM_APPLIES)
+  {
+    send_to_char(ch, "That is not a valid bonus type.  Please type 'setcloak' by itself to see a list of options.\r\n");
+    return 1;
+  }
+
+  for (i = 0; i < NUM_APPLIES; i++)
+  {
+    if (valid_vampire_cloak_apply(i)) {
+      count++;
+      if (choice == count)
+      {
+        result = i;
+        break;
+      }
+    }
+  }
+
+  if (!valid_vampire_cloak_apply(result))
+  {
+    send_to_char(ch, "That is not a valid bonus type.  Please type 'setcloak' by itself to see a list of options.\r\n");
+    return 1;
+  }
+
+  if (GET_SETCLOAK_TIMER(ch) > 0)
+  {
+    send_to_char(ch, "You still have %d rounds to wait before you can change or set your vampire cloak bonuses.\r\n", GET_SETCLOAK_TIMER(ch));
+    return 1;
+  }
+
+  // clear existing bonuses
+  for (i = 0; i < MAX_SPELL_AFFECTS; i++)
+  {
+    obj->affected[i].location = 0;
+    obj->affected[i].modifier = 0;
+    obj->affected[i].bonus_type = 0;
+    obj->affected[i].specific = 0;
+  }
+
+  // add on new bonuses
+  obj->affected[0].location = result;
+  obj->affected[0].modifier = get_vampire_cloak_bonus(GET_LEVEL(ch), result);
+  obj->affected[0].bonus_type = BONUS_TYPE_RACIAL;
+  
+  send_to_char(ch, "\tcYour vampire cloak now offers +%d to your %s!\r\n\tn", obj->affected[0].modifier, apply_types_lowercase(result));
+
+  // set the min level on the cloak
+  GET_OBJ_LEVEL(obj) = (GET_LEVEL(ch) / 15) * 15; // This ensures the only results will be 0, 15 and 30.
+
+  // make sure it's vampire only
+  REMOVE_OBJ_FLAG(obj, ITEM_ANTI_VAMPIRE);
+  SET_OBJ_FLAG(obj, ITEM_VAMPIRE_ONLY);
+
+  GET_SETCLOAK_TIMER(ch) = 100;
+
+  return 1;
+
+}
+
 /*************************/
 /* end object procedures */
 /*************************/
@@ -9788,3 +9910,4 @@ SPECIAL(buyweapons)
 #undef DEBUGMODE
 
 /* EoF */
+

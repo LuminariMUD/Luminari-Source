@@ -116,5 +116,6 @@
 #define PFDEF_HP_REGEN 0
 #define PFDEF_MV_REGEN 0
 #define PFDEF_PSP_REGEN 0
+#define PFDEF_SETCLOAK_TIMER 0
 
 #endif /* _PFDEFAULTS_H_ */

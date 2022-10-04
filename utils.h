@@ -112,6 +112,8 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
 void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
+bool valid_vampire_cloak_apply(int type);
+int get_vampire_cloak_bonus(int level, int type);
 void apply_dr_type(struct char_data *ch, int type);
 bool can_silence(struct char_data *ch);
 int get_default_spell_weapon(struct char_data *ch);
@@ -226,6 +228,7 @@ int file_head(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 int file_tail(FILE *file, char *buf, size_t bufsize, int lines_to_read);
 size_t file_sizeof(FILE *file);
 int file_numlines(FILE *file);
+void clear_misc_cooldowns(struct char_data *ch);
 IDXTYPE atoidx(const char *str_to_conv);
 char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
 const char *strpaste(const char *str1, const char *str2, const char *joiner);
@@ -1964,6 +1967,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define CAN_USE_VAMPIRE_ABILITY(ch)  (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
 
 #define IS_SENTIENT(ch) (IS_HUMANOID(ch) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_SENTIENT)))
+
+#define GET_SETCLOAK_TIMER(ch)  (ch->player_specials->saved.setcloak_timer)
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)

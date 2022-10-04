@@ -642,6 +642,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sedit", "sedit", POS_DEAD, do_oasis_sedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"send", "send", POS_SLEEPING, do_send, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"set", "set", POS_DEAD, do_set, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setcloak", "setcloak", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
