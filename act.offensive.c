@@ -5021,6 +5021,35 @@ ACMD(do_layonhands)
   perform_layonhands(ch, vict);
 }
 
+ACMDCHECK(can_mastermind)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_MASTER_OF_THE_MIND, "How do you plan on doing that?\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_mastermind)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_mastermind);
+  PREREQ_HAS_USES(FEAT_CRYSTAL_FIST, "You have expended all of your mastermind attempts.\r\n");
+
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = PSIONIC_ABILITY_MASTERMIND;
+  af.duration = 10;
+  af.location = APPLY_SPECIAL;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+
+  send_to_char(ch, "You have tapped into your mind mastery.  Your next beneficial power will affect\r\n"
+                   "your whole group (in the same room as you).  Or, your next violent spell will\r\n"
+                   "affect all non-group members in your room.\r\n");
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_MASTER_OF_THE_MIND);
+}
+
 ACMDCHECK(can_crystalfist)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_CRYSTAL_FIST, "How do you plan on doing that?\r\n");
@@ -5034,12 +5063,11 @@ ACMD(do_crystalfist)
   PREREQ_CHECK(can_crystalfist);
   PREREQ_HAS_USES(FEAT_CRYSTAL_FIST, "You are too exhausted to use crystal fist.\r\n");
 
-  send_to_char(ch, "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn\r\n");
-  act("\tCRazor sharp crystals sprout from $n's arms and hands!\tn",
-      FALSE, ch, 0, 0, TO_NOTVICT);
+  // send_to_char(ch, "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn\r\n");
+  // act("\tCRazor sharp crystals sprout from $n's arms and hands!\tn", FALSE, ch, 0, 0, TO_NOTVICT);
+  // attach_mud_event(new_mud_event(eCRYSTALFIST_AFF, ch, NULL), (3 * SECS_PER_MUD_HOUR));
 
-  attach_mud_event(new_mud_event(eCRYSTALFIST_AFF, ch, NULL),
-                   (3 * SECS_PER_MUD_HOUR));
+  call_magic(ch, ch, 0, RACIAL_ABILITY_CRYSTAL_FIST, 0, GET_LEVEL(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_FIST);
@@ -5058,12 +5086,12 @@ ACMD(do_crystalbody)
   PREREQ_CHECK(can_crystalbody);
   PREREQ_HAS_USES(FEAT_CRYSTAL_BODY, "You are too exhausted to harden your body.\r\n");
 
-  send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
-  act("\tCYou watch as $n's crystalline body becomes harder!\tn",
-      FALSE, ch, 0, 0, TO_NOTVICT);
 
-  attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL),
-                   (3 * SECS_PER_MUD_HOUR));
+  // This ability is now handled in magic.c
+  //send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
+  //act("\tCYou watch as $n's crystalline body becomes harder!\tn", FALSE, ch, 0, 0, TO_NOTVICT);
+  //attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL), (3 * SECS_PER_MUD_HOUR));
+  call_magic(ch, ch, 0, RACIAL_ABILITY_CRYSTAL_BODY, 0, GET_LEVEL(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_CRYSTAL_BODY);

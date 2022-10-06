@@ -5612,6 +5612,12 @@ void load_class_list(void)
   feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_8TH_CIRCLE, Y, 15, N);
   feat_assignment(CLASS_PSIONICIST, FEAT_PSIONICIST_9TH_CIRCLE, Y, 17, N);
   feat_assignment(CLASS_PSIONICIST, FEAT_PERPETUAL_FORESIGHT, Y, 20, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EPIC_PSIONICS, Y, 21, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EPIC_AUGMENTING, Y, 23, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EPIC_PSIONICS, Y, 25, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EPIC_AUGMENTING, Y, 27, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_EPIC_PSIONICS, Y, 29, N);
+  feat_assignment(CLASS_PSIONICIST, FEAT_MASTER_OF_THE_MIND, Y, 30, N);
   /*epic*/
   /* list of class feats */
   feat_assignment(CLASS_PSIONICIST, FEAT_COMBAT_MANIFESTATION, Y, NOASSIGN_FEAT, N);

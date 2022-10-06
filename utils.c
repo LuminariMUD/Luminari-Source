@@ -3895,6 +3895,7 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_SLA_FAERIE_FIRE:
     case FEAT_SLA_LEVITATE:
     case FEAT_SLA_DARKNESS:
+    case FEAT_MASTER_OF_THE_MIND:
       daily_uses = 3;
       break;
     case FEAT_SHADOW_ILLUSION:
@@ -5538,6 +5539,11 @@ bool can_spell_be_revoked(int spellnum)
     case PSIONIC_TRUE_METABOLISM:
     case PSIONIC_ASSIMILATE:
     case PSIONIC_CONCUSSIVE_ONSLAUGHT:
+
+    // Other
+    case RACIAL_ABILITY_CRYSTAL_BODY:
+    case RACIAL_ABILITY_CRYSTAL_FIST:
+
       return true;
   }
   return false;
@@ -6725,6 +6731,36 @@ void clear_misc_cooldowns(struct char_data *ch)
   INCORPOREAL_FORM_TIMER(ch) = 0;
   GET_MISSION_COOLDOWN(ch) = 0;
 
+}
+
+bool can_mastermind_power(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+
+  if (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END)
+    return false;
+
+  // We want to exclude some spell groups.
+  if ((IS_SET(spell_info[spellnum].routines, MAG_ALTER_OBJS)) || 
+      (IS_SET(spell_info[spellnum].routines, MAG_GROUPS)) || 
+      (IS_SET(spell_info[spellnum].routines, MAG_MASSES)) || 
+      (IS_SET(spell_info[spellnum].routines, MAG_AREAS)) || 
+      (IS_SET(spell_info[spellnum].routines, MAG_SUMMONS)) || 
+      (IS_SET(spell_info[spellnum].routines, MAG_CREATIONS)) || 
+      (IS_SET(spell_info[spellnum].routines, MAG_ROOM)))
+    return false;
+
+  // There are some powers we may want to exclude
+  // empty right now -- remove this comment if we add any --
+  switch (spellnum)
+  {
+    default: break;
+  }
+
+  if (!affected_by_spell(ch, PSIONIC_ABILITY_MASTERMIND))
+    return false;
+
+  return true;
 }
 
 /* EoF */

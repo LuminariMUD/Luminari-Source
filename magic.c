@@ -294,6 +294,14 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     break;
   }
 
+  if (is_spellnum_psionic(spellnum))
+  {
+    if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
+    {
+      challenge += HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 2 : 1);
+    }
+  }
+
   if (IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US))
     challenge += 4;
 
@@ -918,6 +926,38 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     save_negates = TRUE;
     break;
+
+    case PSIONIC_IMPALE_MIND: // Epic
+
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return 0;
+      GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+      save = SAVING_WILL;
+      mag_resist = TRUE;
+      element = DAM_MENTAL;
+      num_dice = 40 + GET_AUGMENT_PSP(ch);
+      size_dice = 10;
+      bonus = 0;
+      save_negates = TRUE;
+      break;
+
+    case PSIONIC_PSYCHOKINETIC_THRASHING: // Epic
+      save = -1;
+      mag_resist = TRUE;
+      element = DAM_FORCE;
+      num_dice = 30 + (GET_AUGMENT_PSP(ch) / 2);
+      size_dice = 6;
+      bonus = 0;
+      break;
+
+    case PSIONIC_RAZOR_STORM: // Epic
+      save = -1;                                     // no save
+      mag_resist = FALSE;
+      element = DAM_SLICE;
+      num_dice = 20 + GET_AUGMENT_PSP(ch);
+      size_dice = 4;
+      bonus = 0;
+      break;
 
   case PSIONIC_ENERGY_RAY: /* 1st circle */
     if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND)
@@ -2122,6 +2162,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     if (HAS_FEAT(ch, FEAT_EPIC_POWER_DAMAGE))
       dam += num_dice * 3;
+    // each rank of epic psionics increases psi power damage by 10%, or 20% if under psionic focus affect
+    if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
+      dam = dam * (100 + (HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 20 : 10)) / 100;
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
@@ -3494,6 +3537,48 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_DR(victim) = new_dr;
 
     accum_duration = FALSE;
+    break;
+
+  case PSIONIC_EPIC_PSIONIC_WARD:
+
+    // Remove the dr.
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    {
+      if (dr->spell == spellnum)
+      {
+        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      }
+    }
+    
+    af[0].location = APPLY_AC_NEW;
+    af[0].modifier = MIN(6, (GET_INT_BONUS(ch) / 2)) + GET_AUGMENT_PSP(ch) / 10;
+    af[0].duration = 600;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_DR;
+    af[1].modifier = 0;
+    af[1].duration = 600;
+
+    to_vict = "Your body becomes like that of a living shadow.";
+    to_room = "$N's body becomes like that of a living shadow.";
+
+    CREATE(new_dr, struct damage_reduction_type, 1);
+
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[0] = 0;
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0; /* Unused. */
+
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0; /* Unused. */
+
+    new_dr->amount = 5 + GET_AUGMENT_PSP(ch) / 10;
+    new_dr->max_damage = -1;
+    new_dr->spell = PSIONIC_EPIC_PSIONIC_WARD;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(victim);
+    GET_DR(victim) = new_dr;
     break;
 
   case PSIONIC_TRUE_METABOLISM:
@@ -5813,6 +5898,55 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
+    case RACIAL_ABILITY_CRYSTAL_BODY:
+
+    /* Remove the dr. */
+    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    {
+      if (dr->spell == spellnum)
+      {
+        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
+      }
+    }
+    
+    af[0].location = APPLY_DR;
+    af[0].modifier = 0;
+    af[0].duration = 10 + level / 2;
+    to_room = "\tCYou watch as $n's crystalline body becomes harder!\tn";
+    to_vict = "\tCYour crystalline body becomes harder!\tn";
+
+    CREATE(new_dr, struct damage_reduction_type, 1);
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0; // Unused.
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0; // Unused.
+
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0; // Unused.
+
+    new_dr->amount = 3;
+    new_dr->max_damage = -1;
+    new_dr->spell = RACIAL_ABILITY_CRYSTAL_BODY;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(victim);
+    GET_DR(victim) = new_dr;
+    break;
+
+  case RACIAL_ABILITY_CRYSTAL_FIST:
+
+    af[0].location = APPLY_DAMROLL;
+    af[0].bonus_type = BONUS_TYPE_RACIAL;
+    af[0].duration = 10 + level / 2;
+    af[0].modifier = 3;
+
+    to_vict = "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn";
+    to_room = "\tCRazor sharp crystals sprout from $n's arms and hands!\tn";
+
+    break;
+
+
   case RACIAL_ABILITY_VAMPIRE_DR:
 
     /* Remove the dr. */
@@ -6320,6 +6454,15 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case PSIONIC_TOWER_OF_IRON_WILL:
     mag_affects(level, ch, tch, obj, PSIONIC_TOWER_OF_IRON_WILL, savetype, casttype, 0);
     break;
+  default:
+    if (can_mastermind_power(ch, spellnum))
+      {
+        if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+          mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, 0);
+        else if (IS_SET(spell_info[spellnum].routines, MAG_POINTS))
+          mag_points(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype, casttype);
+      }
+    break;
   }
 }
 
@@ -6437,6 +6580,9 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
   if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
     perform_mag_groups(level, ch, GROUP(ch)->leader, obj, spellnum, savetype, casttype);
+  
+  if (affected_by_spell(ch, PSIONIC_ABILITY_MASTERMIND))
+    affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
 }
 
 /** Mass spells affect every creature in the room except the caster,
@@ -6897,6 +7043,22 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
       break;
     }
     break;
+
+    default:
+      if (can_mastermind_power(ch, spellnum))
+      {
+        if (IS_SET(spell_info[spellnum].routines, MAG_DAMAGE) && IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+          is_eff_and_dam = true;
+        else if (IS_SET(spell_info[spellnum].routines, MAG_DAMAGE))
+          ;
+        else if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+          isEffect = true;
+        else if (IS_SET(spell_info[spellnum].routines, MAG_UNAFFECTS))
+          is_uneffect = true;
+        else
+          return;// can only handle damage, effects and unaffects.
+        affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
+      }
   }
 
   if (to_char != NULL)

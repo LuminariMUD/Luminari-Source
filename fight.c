@@ -3241,7 +3241,7 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 {
   int damage_reduction = 0;
 
-  if (char_has_mud_event(ch, eCRYSTALBODY_AFF))
+  if (affected_by_spell(ch, RACIAL_ABILITY_CRYSTAL_BODY))
     damage_reduction += 3;
 
   //  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
@@ -4818,7 +4818,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
 
   /* crystal fist */
-  if (char_has_mud_event(ch, eCRYSTALFIST_AFF))
+  if (affected_by_spell(ch, RACIAL_ABILITY_CRYSTAL_FIST))
   {
     dambonus += 3;
     if (display_mode)
@@ -4932,6 +4932,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       compute_gear_armor_type(ch) <= ARMOR_TYPE_LIGHT)
   {
     dambonus += MAX(1, CLASS_LEVEL(ch, CLASS_DUELIST));
+  }
+
+  if (HAS_FEAT(ch, FEAT_MASTER_OF_THE_MIND))
+  {
+    dambonus += MIN((affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 10 : 5), GET_INT_BONUS(ch));
+    if (display_mode)
+      send_to_char(ch, "Master of the Mind bonus: \tR%d\tn\r\n",
+                   MIN((affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 10 : 5), GET_INT_BONUS(ch)));
   }
 
   /* light blindness - dayblind, underdark/underworld penalties */
@@ -6710,6 +6718,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   /**/
 
   /* Insight bonus  */
+  if (HAS_FEAT(ch, FEAT_MASTER_OF_THE_MIND))
+  {
+    bonuses[BONUS_TYPE_INSIGHT] = MIN((affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 10 : 5), GET_INT_BONUS(ch));
+  }
 
   /* Luck bonus */
 

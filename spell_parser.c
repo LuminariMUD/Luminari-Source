@@ -346,6 +346,11 @@ bool isEpicSpell(int spellnum)
   case SPELL_HELLBALL:
   case SPELL_EPIC_MAGE_ARMOR:
   case SPELL_EPIC_WARDING:
+
+  case PSIONIC_IMPALE_MIND:
+  case PSIONIC_RAZOR_STORM:
+  case PSIONIC_PSYCHOKINETIC_THRASHING:
+  case PSIONIC_EPIC_PSIONIC_WARD:
     return TRUE;
   }
   return FALSE;
@@ -765,13 +770,13 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_ALTER_OBJS))
     mag_alter_objs(spell_level, caster, ovict, spellnum, savetype, casttype);
 
-  if (IS_SET(SINFO.routines, MAG_GROUPS))
+  if (IS_SET(SINFO.routines, MAG_GROUPS) || (can_mastermind_power(caster, spellnum) && !SINFO.violent))
     mag_groups(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_MASSES))
     mag_masses(spell_level, caster, ovict, spellnum, savetype, casttype, metamagic);
 
-  if (IS_SET(SINFO.routines, MAG_AREAS))
+  if (IS_SET(SINFO.routines, MAG_AREAS) || (can_mastermind_power(caster, spellnum) && SINFO.violent))
     mag_areas(spell_level, caster, ovict, spellnum, metamagic, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_SUMMONS))
@@ -2046,6 +2051,35 @@ return;
         return;
       }
       break;
+    case PSIONIC_IMPALE_MIND:
+      if (!HAS_FEAT(ch, FEAT_PSI_POWER_IMPALE_MIND))
+      {
+        send_to_char(ch, "You do not have the 'impale mind' feat!!\r\n");
+        return;
+      }
+      break;
+    case PSIONIC_RAZOR_STORM:
+      if (!HAS_FEAT(ch, FEAT_PSI_POWER_RAZOR_STORM))
+      {
+        send_to_char(ch, "You do not have the 'razor storm' feat!!\r\n");
+        return;
+      }
+      break;
+    case PSIONIC_PSYCHOKINETIC_THRASHING:
+      if (!HAS_FEAT(ch, FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING))
+      {
+        send_to_char(ch, "You do not have the 'psychokinetic thrashing' feat!!\r\n");
+        return;
+      }
+      break;
+    case PSIONIC_EPIC_PSIONIC_WARD:
+      if (!HAS_FEAT(ch, FEAT_PSI_POWER_EPIC_PSIONIC_WARD))
+      {
+        send_to_char(ch, "You do not have the 'epic psionic ward' feat!!\r\n");
+        return;
+      }
+      break;
+    
     default:
       send_to_char(ch, "You do not have the appropriate feat!!\r\n");
       return;
@@ -3933,6 +3967,18 @@ void mag_assign_spells(void)
 
   spello(ABILITY_BLOOD_DRAIN, "vampiric blood drain", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
+
+  spello(RACIAL_ABILITY_CRYSTAL_BODY, "crystal body", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+         "Your enhanced crystal body returns to normal.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(RACIAL_ABILITY_CRYSTAL_FIST, "crystal fist", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+         "Your enhanced crystal fists return to normal.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(PSIONIC_ABILITY_MASTERMIND, "mastermind", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+         "Your mastermind bonus expires.", 1, 1, NOSCHOOL, FALSE);
 
   spello(RACIAL_ABILITY_VAMPIRE_DR, "vampire damage reduction", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);

@@ -42,6 +42,7 @@ void unused_psionic_power(int pwr)
     psionic_powers[pwr].augment_amount = 0;
     psionic_powers[pwr].max_augment = 0;
     psionic_powers[pwr].power_type = PSIONIC_POWER_TYPE_NONE;
+    psionic_powers[pwr].is_epic = false;
 }
 
 void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augment_amount, int max_augment, int power_type, int targets, int violent, int routines, const char *wearoff, int time)
@@ -52,6 +53,11 @@ void psiono(int pwr, const char *name, int psp_cost, bool can_augment, int augme
     psionic_powers[pwr].max_augment = max_augment;
     psionic_powers[pwr].power_type = power_type;
     spello(pwr, name, 0, 0, 0, POS_FIGHTING, targets, violent, routines, wearoff, time, 0, NOSCHOOL, false);
+}
+
+void epic_psionic_power(int pwr)
+{
+    psionic_powers[pwr].is_epic = true;
 }
 
 void assign_psionic_powers(void)
@@ -173,6 +179,18 @@ void assign_psionic_powers(void)
     // psiono(PSIONIC_APOPSI, "apopsi", 17, false, TELEPATHY, TAR_CHAR_ROOM|TAR_NOT_SELF, true, MAG_AFFECTS, "Your addled mind returns to normal.", 9);
     psiono(PSIONIC_ASSIMILATE, "assimilate", 17, false, 0, 0, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE | MAG_AFFECTS, NULL, 9);
     // psiono(PSIONIC_TIMELESS_BODY, "timeless body", 17, false, PSYCHOPORTATION, TAR_CHAR_ROOM|TAR_SELF_ONLY, false, MAG_AFFECTS, "Your timeless body effect expires.", 9);
+
+    // epic psionic powers
+    psiono(PSIONIC_IMPALE_MIND, "impale mind", 30, true, 1, 100, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE | MAG_AFFECTS, "Your psychically impaled mind has healed", 10);
+    psiono(PSIONIC_RAZOR_STORM, "razor storm", 30, true, 1, 100, METACREATIVITY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 10);
+    psiono(PSIONIC_PSYCHOKINETIC_THRASHING, "psychokinetic thrashing", 30, true, 1, 100, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_DAMAGE, NULL, 10);
+    psiono(PSIONIC_EPIC_PSIONIC_WARD, "epic psionic ward", 30, true, 10, 100, TELEPATHY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "You feel your psionic ward dissipate.", 10);
+
+    epic_psionic_power(PSIONIC_IMPALE_MIND);
+    epic_psionic_power(PSIONIC_RAZOR_STORM);
+    epic_psionic_power(PSIONIC_PSYCHOKINETIC_THRASHING);
+    epic_psionic_power(PSIONIC_EPIC_PSIONIC_WARD);
+
 }
 
 #define MANIFEST_NO_ARG "You must specify the number of power points to augment your power with, or 0.\r\n"                                            \
@@ -259,7 +277,10 @@ int max_augment_psp_allowed(struct char_data *ch, int spellnum)
         if (HAS_REAL_FEAT(ch, FEAT_MASTER_AUGMENTING))
             limit++;
     }
-    limit = MIN(limit, psionic_powers[spellnum].max_augment);
+
+    limit += HAS_FEAT(ch, FEAT_EPIC_AUGMENTING) * 5;
+
+    limit = MIN(limit, psionic_powers[spellnum].max_augment + (HAS_FEAT(ch, FEAT_EPIC_AUGMENTING) * 5));
     limit = MAX(limit, 0);
     return limit;
 }

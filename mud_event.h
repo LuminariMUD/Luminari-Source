@@ -171,6 +171,7 @@ typedef enum
   /*140*/ eITEM_SPECAB_ITEM_SUMMON, // summon item
   eCHILDRENOFTHENIGHT,              // children of the night vampire ability
   eVAMPIREENERGYDRAIN,              // energy drain vampire ability
+  eMASTERMIND,                     // mastermind ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

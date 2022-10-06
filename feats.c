@@ -2525,31 +2525,37 @@ void assign_feats(void)
         "Once per game day, you can cast a spell that will conjure a powerful Mummy "
         "Lord to assist you in combat.");
   feat_prereq_ability(FEAT_MUMMY_DUST, ABILITY_SPELLCRAFT, 23);
+  feat_prereq_spellcasting(FEAT_MUMMY_DUST, CASTING_TYPE_ARCANE, 3, 9);
   feato(FEAT_DRAGON_KNIGHT, "dragon knight", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - dragon knight",
         "Once per game day, you can cast a spell that will conjure a small red dragon"
         " to assist you in combat.");
   feat_prereq_ability(FEAT_DRAGON_KNIGHT, ABILITY_SPELLCRAFT, 25);
+  feat_prereq_spellcasting(FEAT_DRAGON_KNIGHT, CASTING_TYPE_ARCANE, 3, 9);
   feato(FEAT_GREATER_RUIN, "greater ruin", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - greater ruin",
         "Once per game day, you can cast a spell that will cause serious damage to "
         "a selected target.");
   feat_prereq_ability(FEAT_GREATER_RUIN, ABILITY_SPELLCRAFT, 27);
+  feat_prereq_spellcasting(FEAT_GREATER_RUIN, CASTING_TYPE_ARCANE, 3, 9);
   feato(FEAT_HELLBALL, "hellball", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - greater ruin",
         "Once per game day, you can cast a spell that will cause serious damage to "
         "all the targets in a room.");
   feat_prereq_ability(FEAT_HELLBALL, ABILITY_SPELLCRAFT, 29);
+  feat_prereq_spellcasting(FEAT_HELLBALL, CASTING_TYPE_ARCANE, 3, 9);
   feato(FEAT_EPIC_MAGE_ARMOR, "epic mage armor", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - epic mage armor",
         "Once per game day, you can cast a spell that will give a 10 AC bonus to "
         "the caster and general damage reduction of 6.");
   feat_prereq_ability(FEAT_EPIC_MAGE_ARMOR, ABILITY_SPELLCRAFT, 31);
+  feat_prereq_spellcasting(FEAT_EPIC_MAGE_ARMOR, CASTING_TYPE_ARCANE, 3, 9);
   feato(FEAT_EPIC_WARDING, "epic warding", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - epic warding",
         "Once per game day, you can cast a spell that will absorb a massive amount "
         "of damage.");
   feat_prereq_ability(FEAT_EPIC_WARDING, ABILITY_SPELLCRAFT, 32);
+  feat_prereq_spellcasting(FEAT_EPIC_WARDING, CASTING_TYPE_ARCANE, 3, 9);
   /* zusuk marker */
 
   /* Crafting feats */
@@ -3532,6 +3538,39 @@ void assign_feats(void)
         "do 20d6+60.");
   feat_prereq_class_level(FEAT_EPIC_POWER_DAMAGE, CLASS_PSIONICIST, 20);
 
+  // EPIC PSIONICIST ABILITIES (AUTOMATICALLY GAINED)
+  feato(FEAT_EPIC_AUGMENTING, "epic augmenting", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
+      "Each rank increases the amount of augment points you can use on a power by 5.",
+      "Each rank increases the amount of augment points you can use on a power by 5.");
+  feato(FEAT_EPIC_PSIONICS, "epic psionics", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
+      "Each rank increases psionic power damage by 10% and DRs by +1.",
+      "Each rank increases psionic power damage by 10% and DRs by +1. If psionic focus is active, the damage increase is 20% and the DR bonus is +2.");
+  feato(FEAT_MASTER_OF_THE_MIND, "master of the mind", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
+      "You can make powers area of affect 3 times per day. You can also add you intelligence bonus to weapon/unarmed attack and damage rolls.",
+      "You become a master of all things mental. 3 times per day you can manifest an ability as a group or area ability that will affect "
+      "all group members or all enemies in the room depending on the nature of the power. This ability uses the 'mastermind' command. You can also "
+      "add your intelligence bonus to weapon/unarmed attack and damage rolls (Max of +5 or +10 if under psionic focus).");
+  feato(FEAT_PSI_POWER_IMPALE_MIND, "impale mind", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Gain access to the impale mind power.",
+        "Gain access to the impale mind power.");
+  feat_prereq_class_level(FEAT_PSI_POWER_IMPALE_MIND, CLASS_PSIONICIST, 21);
+  feat_prereq_ability(FEAT_PSI_POWER_IMPALE_MIND, ABILITY_SPELLCRAFT, 21);
+  feato(FEAT_PSI_POWER_RAZOR_STORM, "razor storm", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Gain access to the razor storm power.",
+        "Gain access to the razor storm power.");
+  feat_prereq_class_level(FEAT_PSI_POWER_RAZOR_STORM, CLASS_PSIONICIST, 21);
+  feat_prereq_ability(FEAT_PSI_POWER_RAZOR_STORM, ABILITY_SPELLCRAFT, 21);
+  feato(FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING, "psychokinetic thrashing", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Gain access to the psychokinetic thrashing power.",
+        "Gain access to the psychokinetic thrashing power.");
+  feat_prereq_class_level(FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING, CLASS_PSIONICIST, 21);
+  feat_prereq_ability(FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING, ABILITY_SPELLCRAFT, 21);
+  feato(FEAT_PSI_POWER_EPIC_PSIONIC_WARD, "epic psionic ward", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
+        "Gain access to the epic psionic ward power.",
+        "Gain access to the epic psionic ward power.");
+  feat_prereq_class_level(FEAT_PSI_POWER_EPIC_PSIONIC_WARD, CLASS_PSIONICIST, 21);
+  feat_prereq_ability(FEAT_PSI_POWER_EPIC_PSIONIC_WARD, ABILITY_SPELLCRAFT, 21);
+
   /**************************/
 
   /* weapon master */
@@ -4299,6 +4338,12 @@ void assign_feats(void)
   epicfeat(FEAT_EPIC_SPELL_FOCUS);
   epicfeat(FEAT_MASTER_AUGMENTING);
 
+  // Epic psionic power feats
+  epicfeat(FEAT_PSI_POWER_IMPALE_MIND);
+  epicfeat(FEAT_PSI_POWER_RAZOR_STORM);
+  epicfeat(FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING);
+  epicfeat(FEAT_PSI_POWER_EPIC_PSIONIC_WARD);
+
   epicfeat(FEAT_LAST_FEAT);
 
   /* Feats with "Daily Use" Mechanic, make sure to add to
@@ -4373,6 +4418,7 @@ void assign_feats(void)
   dailyfeat(FEAT_TRUE_JUDGEMENT, eTRUEJUDGEMENT);
   dailyfeat(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, eCHILDRENOFTHENIGHT);
   dailyfeat(FEAT_VAMPIRE_ENERGY_DRAIN, eVAMPIREENERGYDRAIN);
+  dailyfeat(FEAT_MASTER_OF_THE_MIND, eMASTERMIND);
   /** END **/
 }
 
@@ -5214,6 +5260,23 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return TRUE;
       if (is_proficient_with_weapon(ch, iarg) &&
           has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_PSI_POWER_IMPALE_MIND:
+      if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 21 && PSIONIC_LEVEL(ch) >= 21)
+        return TRUE;
+      return FALSE;
+    case FEAT_PSI_POWER_RAZOR_STORM:
+      if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 21 && PSIONIC_LEVEL(ch) >= 21)
+        return TRUE;
+      return FALSE;
+    case FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING:
+      if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 21 && PSIONIC_LEVEL(ch) >= 21)
+        return TRUE;
+      return FALSE;
+    case FEAT_PSI_POWER_EPIC_PSIONIC_WARD:
+      if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 21 && PSIONIC_LEVEL(ch) >= 21)
         return TRUE;
       return FALSE;
 
