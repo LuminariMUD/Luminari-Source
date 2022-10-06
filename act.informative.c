@@ -1781,10 +1781,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Crystal Fist Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
     send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST_AFF)))
-    send_to_char(ch, "Crystal Fist Bonus - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
-  if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY_AFF)))
-    send_to_char(ch, "Crystal Body Bonus - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eMASTERMIND)))
+    send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_LEVITATE)))
     send_to_char(ch, "Levitate Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_DARKNESS)))
