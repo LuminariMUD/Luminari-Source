@@ -38,6 +38,7 @@
 #include "craft.h"
 #include "fight.h"
 #include "missions.h"
+#include "psionics.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -6750,6 +6751,10 @@ bool can_mastermind_power(struct char_data *ch, int spellnum)
       (IS_SET(spell_info[spellnum].routines, MAG_ROOM)))
     return false;
 
+  // Self only spells we will also skip
+  if (IS_SET(spell_info[spellnum].targets, TAR_SELF_ONLY))
+    return false;
+
   // There are some powers we may want to exclude
   // empty right now -- remove this comment if we add any --
   switch (spellnum)
@@ -6761,6 +6766,72 @@ bool can_mastermind_power(struct char_data *ch, int spellnum)
     return false;
 
   return true;
+}
+
+bool has_epic_power(struct char_data *ch, int powernum)
+{
+  if (powernum < PSIONIC_POWER_START || powernum > PSIONIC_POWER_END)
+    return false;
+
+  if (!psionic_powers[powernum].is_epic)
+    return false;
+
+  switch (powernum)
+  {
+    case PSIONIC_IMPALE_MIND:
+      if (HAS_FEAT(ch, FEAT_PSI_POWER_IMPALE_MIND))
+        return true;
+      else
+        return false;
+    case PSIONIC_RAZOR_STORM:
+      if (HAS_FEAT(ch, FEAT_PSI_POWER_RAZOR_STORM))
+        return true;
+      else
+        return false;
+    case PSIONIC_PSYCHOKINETIC_THRASHING:
+      if (HAS_FEAT(ch, FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING))
+        return true;
+      else
+        return false;
+    case PSIONIC_EPIC_PSIONIC_WARD:
+      if (HAS_FEAT(ch, FEAT_PSI_POWER_EPIC_PSIONIC_WARD))
+        return true;
+      else
+        return false;
+    
+  }
+
+  return false;
+}
+
+void manifest_mastermind_power(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+
+  if (IN_ROOM(ch) == NOWHERE) return;
+
+  if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
+  {
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+    {
+      if (spell_info[CASTING_SPELLNUM(ch)].violent)
+      {
+        if (!aoeOK(ch, tch, CASTING_SPELLNUM(ch)))
+        {
+          continue;
+        }
+
+        call_magic(ch, tch, 0, CASTING_SPELLNUM(ch), 0, GET_PSIONIC_LEVEL(ch), CAST_SPELL);
+      }
+      else
+      {
+        if (aoeOK(ch, tch, CASTING_SPELLNUM(ch)))
+          continue;
+
+        call_magic(ch, tch, 0, CASTING_SPELLNUM(ch), 0, GET_PSIONIC_LEVEL(ch), CAST_SPELL);
+      }
+    }
+  }
 }
 
 /* EoF */

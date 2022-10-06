@@ -7059,6 +7059,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
           return;// can only handle damage, effects and unaffects.
         affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
       }
+      break;
   }
 
   if (to_char != NULL)

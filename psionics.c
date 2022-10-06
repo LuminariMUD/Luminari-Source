@@ -280,7 +280,7 @@ int max_augment_psp_allowed(struct char_data *ch, int spellnum)
 
     limit += HAS_FEAT(ch, FEAT_EPIC_AUGMENTING) * 5;
 
-    limit = MIN(limit, psionic_powers[spellnum].max_augment + (HAS_FEAT(ch, FEAT_EPIC_AUGMENTING) * 5));
+    limit = MIN(limit, psionic_powers[spellnum].max_augment);
     limit = MAX(limit, 0);
     return limit;
 }
@@ -305,7 +305,7 @@ int adjust_augment_psp_for_spell(struct char_data *ch, int spellnum)
 int get_augment_casting_time_adjustment(struct char_data *ch)
 {
     // we'll allow for two free augment psp before we start increasing cast time
-    int adjustment = (GET_AUGMENT_PSP(ch) - 2) / 2;
+    int adjustment = (GET_AUGMENT_PSP(ch) - 2 - HAS_FEAT(ch, FEAT_EPIC_AUGMENTING)) / 2;
     if (HAS_REAL_FEAT(ch, FEAT_PROFICIENT_AUGMENTING))
         adjustment--;
     if (HAS_REAL_FEAT(ch, FEAT_EXPERT_AUGMENTING))

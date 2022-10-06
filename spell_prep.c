@@ -719,7 +719,7 @@ int num_psionicist_powers_available(struct char_data *ch)
 
   num_powers += HAS_FEAT(ch, FEAT_EXPANDED_KNOWLEDGE);
 
-  for (i = 1; i <= level; i++)
+  for (i = 1; i <= MIN(20, level); i++)
     num_powers += 2;
 
   return num_powers;
@@ -815,6 +815,9 @@ bool is_a_known_spell(struct char_data *ch, int class, int spellnum)
   case CLASS_INQUISITOR:
   case CLASS_CLERIC:
     if (is_domain_spell_of_ch(ch, spellnum))
+      return TRUE;
+  case CLASS_PSIONICIST:
+    if (has_epic_power(ch, spellnum))
       return TRUE;
   default:
     break;
