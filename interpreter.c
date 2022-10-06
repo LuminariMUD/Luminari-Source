@@ -479,6 +479,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"mail", "mail", POS_STANDING, do_new_mail, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"map", "map", POS_STANDING, do_map, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"mark", "mark", POS_STANDING, do_mark, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"mastermind", "mastermind", POS_FIGHTING, do_mastermind, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_mastermind},
     {"maxhp", "maxhp", POS_DEAD, do_maxhp, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"medit", "med", POS_DEAD, do_oasis_medit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"meditate", "meditate", POS_RESTING, do_gen_preparation, 0, SCMD_MEDITATE, FALSE, ACTION_NONE, {0, 0}, NULL},

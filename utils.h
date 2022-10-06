@@ -234,6 +234,7 @@ char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad);
 const char *strpaste(const char *str1, const char *str2, const char *joiner);
 struct char_data *is_playing(char *vict_name);
 char *add_commas(long X);
+bool can_mastermind_power(struct char_data *ch, int spellnum);
 bool is_room_in_sunlight(room_rnum room);
 bool is_covered(struct char_data *ch);
 void new_affect(struct affected_type *af);
@@ -802,6 +803,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0)
+#define PSIONIC_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
 #define IS_SPELLCASTER_CLASS(c) (c == CLASS_WIZARD || c == CLASS_CLERIC || c == CLASS_SORCERER || c == CLASS_DRUID || \
                                  c == CLASS_PALADIN || c == CLASS_ALCHEMIST || c == CLASS_RANGER || c == CLASS_BARD || c == CLASS_INQUISITOR)
 

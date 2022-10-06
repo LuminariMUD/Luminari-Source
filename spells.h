@@ -557,6 +557,9 @@
 #define AFFECT_RECENTLY_RESPECED 1230
 #define AFFECT_FOOD 1231
 #define AFFECT_DRINK 1232
+#define RACIAL_ABILITY_CRYSTAL_FIST 1233
+#define RACIAL_ABILITY_CRYSTAL_BODY 1234
+#define PSIONIC_ABILITY_MASTERMIND 1235
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -663,8 +666,16 @@
 #define PSIONIC_BARRED_MIND_PERSONAL 1594
 #define PSIONIC_PSYCHOPORT_GREATER 1595
 #define PSIONIC_TRUE_METABOLISM 1596
+// epic
+#define PSIONIC_IMPALE_MIND 1597
+#define PSIONIC_ECTOPLASMIC_GOLIATH 1598
+#define PSIONIC_RAZOR_STORM 1599
+#define PSIONIC_PSYCHOKINETIC_THRASHING 1600
+#define PSIONIC_EPIC_PSIONIC_WARD 1601
+// end epic
+
 /***************************************/
-#define PSIONIC_POWER_END 1597
+#define PSIONIC_POWER_END 1602
 /***************************************/
 /***************************************/
 

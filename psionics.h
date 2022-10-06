@@ -19,6 +19,7 @@ struct psionic_power_data
   short int action_type;
   short int power_level;
   short int power_type;
+  bool is_epic;
 };
 
 void assign_psionic_powers(void);

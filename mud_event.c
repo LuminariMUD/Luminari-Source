@@ -192,6 +192,7 @@ struct mud_event_list mud_event_index[] = {
     {"Item SpecAb Cooldown: Summon Item", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_ITEM_SUMMON
     {"Children of the Night", event_daily_use_cooldown, EVENT_CHAR}, // eCHILDRENOFTHENIGHT
     {"Vampiric Energy Drain", event_daily_use_cooldown, EVENT_CHAR}, // eVAMPIREENERGYDRAIN
+    {"Master of the Mind", event_daily_use_cooldown, EVENT_CHAR}, // eMASTERMIND
 
 };
 
@@ -304,6 +305,9 @@ EVENTFUNC(event_countdown)
   case eVANISHED:
     send_to_char(ch, "You are now able to vanish again.\r\n");
     break;
+    case eMASTERMIND:
+    send_to_char(ch, "You are now able to use your mastermind ability again.\r\n");
+    break;
   case eINVISIBLE_ROGUE:
     send_to_char(ch, "You are now able to use your 'invisible rogue' ability again.\r\n");
     break;
@@ -334,7 +338,7 @@ EVENTFUNC(event_countdown)
   case eCHILDRENOFTHENIGHT:
     send_to_char(ch, "You are now able to call your children of the night again.\r\n");
     break;
-    case eVAMPIREENERGYDRAIN:
+  case eVAMPIREENERGYDRAIN:
     send_to_char(ch, "You are now able to perform vampiric energy drain with a slam attack again.\r\n");
     break;
   case eBANE:
@@ -717,6 +721,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eBANE:
     featnum = FEAT_BANE;
     send_to_char(ch, "One of your bane ability uses has recovered.\r\n");
+    break;
+  case eMASTERMIND:
+    featnum = FEAT_MASTER_OF_THE_MIND;
+    send_to_char(ch, "One of your mastermind ability uses has recovered.\r\n");
     break;
   case eCHANNELENERGY:
     featnum = FEAT_CHANNEL_ENERGY;

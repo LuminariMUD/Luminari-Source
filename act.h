@@ -563,6 +563,8 @@ ACMD_DECL(do_crystalfist);
 ACMDCHECK(can_crystalfist);
 ACMD_DECL(do_crystalbody);
 ACMDCHECK(can_crystalbody);
+ACMD_DECL(do_mastermind);
+ACMDCHECK(can_mastermind);
 ACMD_DECL(do_surpriseaccuracy);
 ACMDCHECK(can_surpriseaccuracy);
 ACMD_DECL(do_powerfulblow);
