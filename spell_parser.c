@@ -770,13 +770,13 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_ALTER_OBJS))
     mag_alter_objs(spell_level, caster, ovict, spellnum, savetype, casttype);
 
-  if (IS_SET(SINFO.routines, MAG_GROUPS) || (can_mastermind_power(caster, spellnum) && !SINFO.violent))
+  if (IS_SET(SINFO.routines, MAG_GROUPS))
     mag_groups(spell_level, caster, ovict, spellnum, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_MASSES))
     mag_masses(spell_level, caster, ovict, spellnum, savetype, casttype, metamagic);
 
-  if (IS_SET(SINFO.routines, MAG_AREAS) || (can_mastermind_power(caster, spellnum) && SINFO.violent))
+  if (IS_SET(SINFO.routines, MAG_AREAS))
     mag_areas(spell_level, caster, ovict, spellnum, metamagic, savetype, casttype);
 
   if (IS_SET(SINFO.routines, MAG_SUMMONS))
@@ -1008,8 +1008,7 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       }
       else
       {
-        GET_OBJ_VAL(obj, 2)
-        --;
+        GET_OBJ_VAL(obj, 2)--;
       }
       USE_STANDARD_ACTION(ch);
 
@@ -1283,16 +1282,34 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
   send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
-  call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
-             (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+  
+  if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
+  {
+    manifest_mastermind_power(ch);
+  }
+  else
+  {
+    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+               (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+  }
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION) && CASTING_SPELLNUM(ch) >= PSIONIC_POWER_START && CASTING_SPELLNUM(ch) <= PSIONIC_POWER_END)
   {
     send_to_char(ch, "\tW[DOUBLE MANIFEST!]\tn");
-    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
-               (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+    if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
+    {
+      manifest_mastermind_power(ch);
+    }
+    else
+    {
+      call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
+                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+    }
     affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
   }
+
+  if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
+    affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
 
   resetCastingData(ch);
 }

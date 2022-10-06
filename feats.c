@@ -3540,8 +3540,8 @@ void assign_feats(void)
 
   // EPIC PSIONICIST ABILITIES (AUTOMATICALLY GAINED)
   feato(FEAT_EPIC_AUGMENTING, "epic augmenting", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
-      "Each rank increases the amount of augment points you can use on a power by 5.",
-      "Each rank increases the amount of augment points you can use on a power by 5.");
+      "Each rank increases the amount of augment points you can use on a power by 5. Also reduces manifesting time by 1 per rank.",
+      "Each rank increases the amount of augment points you can use on a power by 5. Also reduces manifesting time by 1 per rank.");
   feato(FEAT_EPIC_PSIONICS, "epic psionics", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
       "Each rank increases psionic power damage by 10% and DRs by +1.",
       "Each rank increases psionic power damage by 10% and DRs by +1. If psionic focus is active, the damage increase is 20% and the DR bonus is +2.");
