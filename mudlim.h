@@ -46,6 +46,7 @@ extern "C"
     int increase_bank(struct char_data *ch, int amt);
     int decrease_bank(struct char_data *ch, int deduction);
     void increase_anger(struct char_data *ch, float amount);
+    int vamp_blood_drain(struct char_data *ch, struct char_data *vict);
 
 #ifdef __cplusplus
 }
