@@ -1277,17 +1277,18 @@ void update_player_misc(void)
 
     if (IS_VAMPIRE(ch) && GET_SETCLOAK_TIMER(ch) > 0)
     {
-      GET_SETCLOAK_TIMER(ch)--;
+      GET_SETCLOAK_TIMER(ch)
+      --;
       if (GET_SETCLOAK_TIMER(ch) == 0)
       {
         send_to_char(ch, "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
       }
     }
-      
 
     if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
     {
-      EFREETI_MAGIC_TIMER(ch)--;
+      EFREETI_MAGIC_TIMER(ch)
+      --;
       if (EFREETI_MAGIC_TIMER(ch) <= 0)
       {
         EFREETI_MAGIC_TIMER(ch) = 0;
@@ -1308,7 +1309,8 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
     {
-      PIXIE_DUST_TIMER(ch)--;
+      PIXIE_DUST_TIMER(ch)
+      --;
       if (PIXIE_DUST_TIMER(ch) <= 0)
       {
         PIXIE_DUST_TIMER(ch) = 0;
@@ -1795,6 +1797,9 @@ void increase_anger(struct char_data *ch, float amount)
     GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
 }
 
+/* function that performs the "meat" of the vampiric blood drain mechanic!
+     -note in its current form its also used for mobiles, so requirement checks
+      are not made here */
 int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af, af2;
@@ -1877,14 +1882,15 @@ void update_damage_and_effects_over_time(void)
       act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
     }
 
-    // vampire blood drain conditions:
-    // First they must have the feat
-    // They must be grappling the target and have them pinned
-    // The target has to be living and not an ooze (needs blood)
-    // The target has to have hp above -10
-    // If the character is either not good, or good, and the target is evil or not sentient, we allow it
-    // If they're a player and blood drain is not enabled, it won't happen
-    // NOTE - THIS NEEDS TO BE MADE INTO A FUNCTION -- Gicker
+    /* vampire blood drain conditions:
+         - First they must have the feat
+         - They must be grappling the target and have them pinned
+         - The target has to be living and not an ooze (needs blood)
+         - The target has to have hp above -10
+         - If the character is either not good, or good, and the target is evil or not sentient, we allow it
+         - If they're a player and blood drain is not enabled, it won't happen
+         - NOTE - THIS NEEDS TO BE MADE INTO A FUNCTION -- Gicker
+         - additional note - i did a quick hackjob of making it into a function so i can use it for a mobile spec proc! -zusuk */
     if (HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN) && (vict = GRAPPLE_TARGET(ch)) && AFF_FLAGGED(vict, AFF_PINNED) &&
         IS_LIVING(vict) && !IS_OOZE(vict) && !IS_ELEMENTAL(vict) && GET_HIT(vict) > -10 &&
         (!IS_GOOD(ch) || (IS_GOOD(ch) && (IS_EVIL(vict) || !IS_SENTIENT(vict)))) &&
@@ -1900,7 +1906,6 @@ void update_damage_and_effects_over_time(void)
       }
       else
       {
-
         vamp_blood_drain(ch, vict);
       }
     }
