@@ -607,7 +607,8 @@ void regen_update(struct char_data *ch)
   {
     if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 15)
     {
-      GET_HIT(ch)--;
+      GET_HIT(ch)
+      --;
     }
     else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 45)
     {
@@ -630,7 +631,8 @@ void regen_update(struct char_data *ch)
   /* handle move regen here */
   if (GET_MOVE(ch) > GET_MAX_MOVE(ch))
   {
-    GET_MOVE(ch)--;
+    GET_MOVE(ch)
+    --;
   }
   else if (!AFF_FLAGGED(ch, AFF_FATIGUED))
   {
@@ -685,7 +687,8 @@ void regen_psp(void)
       continue;
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
-      GET_PSP(d->character)++;
+      GET_PSP(d->character)
+    ++;
 
     if (!FIGHTING(d->character))
       GET_PSP(d->character) += GET_PSP_REGEN(d->character);
@@ -710,7 +713,8 @@ void regen_psp(void)
 
     /* we also have a de-regen if over max in another function */
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
-      GET_PSP(d->character)--;
+      GET_PSP(d->character)
+    --;
   }
 }
 
@@ -1791,6 +1795,47 @@ void increase_anger(struct char_data *ch, float amount)
     GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
 }
 
+int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
+{
+  struct affected_type af, af2;
+
+  new_affect(&af2);
+  af2.spell = ABILITY_BLOOD_DRAIN;
+  af2.location = APPLY_SPECIAL;
+  af2.modifier = 0;
+  af2.duration = 10;
+  affect_join(vict, &af2, FALSE, FALSE, FALSE, FALSE);
+
+  act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n leans into your neck and drains the blood from your body.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
+
+  damage(ch, vict, 5, ABILITY_BLOOD_DRAIN, DAM_BLOOD_DRAIN, FALSE);
+
+  if (GET_CON(vict) > 0)
+  {
+    if (!mag_savingthrow(ch, vict, ABILITY_SCORE_DAMAGE, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+    {
+      new_affect(&af);
+      af.spell = ABILITY_SCORE_DAMAGE;
+      af.location = APPLY_CON;
+      af.modifier = dice(1, 4);
+      af.duration = 10 * 60 * 24;
+      if ((GET_CON(vict) - af.modifier) < 0)
+        af.modifier = GET_CON(vict);
+      affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
+      act("You drain some of $N's constitution.", FALSE, ch, 0, vict, TO_CHAR);
+      act("You feel your constitution being drained.", FALSE, ch, 0, vict, TO_VICT);
+    }
+  }
+
+  GET_HIT(ch) += 5;
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch) * 2, GET_HIT(ch));
+  act("The blood bolsters your strength.", FALSE, ch, 0, vict, TO_CHAR);
+
+  return 1;
+}
+
 void update_damage_and_effects_over_time(void)
 {
   int dam = 0;
@@ -1855,41 +1900,8 @@ void update_damage_and_effects_over_time(void)
       }
       else
       {
-        struct affected_type af, af2;
 
-        new_affect(&af2);
-        af2.spell = ABILITY_BLOOD_DRAIN;
-        af2.location = APPLY_SPECIAL;
-        af2.modifier = 0;
-        af2.duration = 10;
-        affect_join(vict, &af2, FALSE, FALSE, FALSE, FALSE);
-
-        act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
-        act("$n leans into your neck and drains the blood from your body.", FALSE, ch, 0, vict, TO_CHAR);
-        act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
-
-        damage(ch, vict, 5, ABILITY_BLOOD_DRAIN, DAM_BLOOD_DRAIN, FALSE);
-
-        if (GET_CON(vict) > 0)
-        {
-          if (!mag_savingthrow(ch, vict, ABILITY_SCORE_DAMAGE, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
-          {
-            new_affect(&af);
-            af.spell = ABILITY_SCORE_DAMAGE;
-            af.location = APPLY_CON;
-            af.modifier = dice(1, 4);
-            af.duration = 10 * 60 * 24;
-            if ((GET_CON(vict) - af.modifier) < 0)
-              af.modifier = GET_CON(vict);
-            affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
-            act("You drain some of $N's constitution.", FALSE, ch, 0, vict, TO_CHAR);
-            act("You feel your constitution being drained.", FALSE, ch, 0, vict, TO_VICT);
-          }
-        }
-
-        GET_HIT(ch) += 5;
-        GET_HIT(ch) = MIN(GET_MAX_HIT(ch) * 2, GET_HIT(ch));
-        act("The blood bolsters your strength.", FALSE, ch, 0, vict, TO_CHAR);
+        vamp_blood_drain(ch, vict);
       }
     }
 
