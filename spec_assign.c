@@ -73,6 +73,22 @@ static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname))
 void assign_mobiles(void)
 {
 
+  /* vampire mobs (spec to do vampire-like abilities) */
+  ASSIGNMOB(29906, vampire_mob);  /* erich - master vampire */
+  ASSIGNMOB(29241, vampire_mob);  /* tiersten */
+  ASSIGNMOB(26115, vampire_mob);  /* vampiress */
+  ASSIGNMOB(157709, vampire_mob); /* young vampires */
+  ASSIGNMOB(120004, vampire_mob); /* a vampire */
+  ASSIGNMOB(121763, vampire_mob); /* a feeding vampire */
+  ASSIGNMOB(101047, vampire_mob); /* a vicious vampire */
+  ASSIGNMOB(125503, vampire_mob); /* a vampirical ixzan */
+  ASSIGNMOB(110608, vampire_mob); /* a dwarven vampire */
+  ASSIGNMOB(196052, vampire_mob); /* hel's emissary */
+  ASSIGNMOB(117032, vampire_mob); /* a vampire */
+  ASSIGNMOB(117026, vampire_mob); /* a vampire */
+  ASSIGNMOB(117014, vampire_mob); /* a vampire */
+  ASSIGNMOB(117012, vampire_mob); /* zarkathan */
+
   // mosswood
   ASSIGNMOB(145391, buyweapons);
   ASSIGNMOB(145392, buyarmor);

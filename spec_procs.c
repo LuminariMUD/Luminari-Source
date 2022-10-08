@@ -3298,7 +3298,7 @@ SPECIAL(vampire_mob)
   if (vict)
   {
     /* vampire bite */
-    if (!rand_number(0, 2))
+    if (!rand_number(0, 3))
     {
       act("$n sinks $s fangs into $N!", 1, ch, 0, vict, TO_NOTVICT);
       act("$n sinks $s fangs into you!", 1, ch, 0, vict, TO_VICT);
@@ -3308,13 +3308,13 @@ SPECIAL(vampire_mob)
       return 1;
     }
     /* blood drain */
-    else if (!rand_number(0, 2))
+    else if (!rand_number(0, 3))
     {
       vamp_blood_drain(ch, vict);
       return 1;
     }
     /* vicious attacks */
-    else if (!rand_number(0, 2))
+    else if (!rand_number(0, 3))
     {
       int i = 0;
 
@@ -3326,12 +3326,13 @@ SPECIAL(vampire_mob)
         if (valid_fight_cond(ch, TRUE))
           hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
+
       return 1;
     }
   }
 
   /* this is the vampire's regular form defensive arsenal */
-  if (!rand_number(0, 4) && GET_HIT(ch) < GET_MAX_HIT(ch))
+  if (!rand_number(0, 6) && GET_HIT(ch) < GET_MAX_HIT(ch))
   {
     rejuv = GET_HIT(ch) + dice(10, GET_LEVEL(ch));
 
@@ -3347,7 +3348,7 @@ SPECIAL(vampire_mob)
       act("\tr$n turns into a bat to escape the fray then turns back into vampire form!\tn",
           FALSE, ch, 0, 0, TO_ROOM);
 
-    act("\trThe wounds on $n's body begin to close as $s is regenerated!\tn",
+    act("\trThe wounds on $n's body begin to close as $e is regenerated!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
     act("\tr$n returns to the fray!\tn",
         FALSE, ch, 0, 0, TO_ROOM);
@@ -9897,7 +9898,8 @@ SPECIAL(vampire_cloak)
     send_to_char(ch, "You must specify one of the following:\r\n");
     for (i = 0; i < NUM_APPLIES; i++)
     {
-      if (valid_vampire_cloak_apply(i)) {
+      if (valid_vampire_cloak_apply(i))
+      {
         count++;
         if ((count % 4) == 3 || (count % 4) == 0)
           send_to_char(ch, "\tC");
@@ -9910,7 +9912,7 @@ SPECIAL(vampire_cloak)
       }
     }
     if ((count % 2) == 1)
-          send_to_char(ch, "\r\n");
+      send_to_char(ch, "\r\n");
 
     send_to_char(ch, "\r\n");
     send_to_char(ch, "Please enter 'setcloak (number)' where number is the number of the bonus type you'd like above.\r\n");
@@ -9928,7 +9930,8 @@ SPECIAL(vampire_cloak)
 
   for (i = 0; i < NUM_APPLIES; i++)
   {
-    if (valid_vampire_cloak_apply(i)) {
+    if (valid_vampire_cloak_apply(i))
+    {
       count++;
       if (choice == count)
       {
@@ -9963,7 +9966,7 @@ SPECIAL(vampire_cloak)
   obj->affected[0].location = result;
   obj->affected[0].modifier = get_vampire_cloak_bonus(GET_LEVEL(ch), result);
   obj->affected[0].bonus_type = BONUS_TYPE_RACIAL;
-  
+
   send_to_char(ch, "\tcYour vampire cloak now offers +%d to your %s!\r\n\tn", obj->affected[0].modifier, apply_types_lowercase(result));
 
   // set the min level on the cloak
@@ -9976,7 +9979,6 @@ SPECIAL(vampire_cloak)
   GET_SETCLOAK_TIMER(ch) = 100;
 
   return 1;
-
 }
 
 /*************************/
@@ -9986,4 +9988,3 @@ SPECIAL(vampire_cloak)
 #undef DEBUGMODE
 
 /* EoF */
-
