@@ -3282,6 +3282,82 @@ SPECIAL(janitor)
   return (FALSE);
 }
 
+/* custom mob code for vampire mobs -zusuk */
+SPECIAL(vampire_mob)
+{
+  if (cmd)
+    return 0;
+
+  if (!ch)
+    return 0;
+
+  int rejuv = 0;
+  struct char_data *vict = FIGHTING(ch);
+
+  /* this is the vampire's regular form offensive arsenal */
+  if (vict)
+  {
+    /* vampire bite */
+    if (!rand_number(0, 2))
+    {
+      act("$n sinks $s fangs into $N!", 1, ch, 0, vict, TO_NOTVICT);
+      act("$n sinks $s fangs into you!", 1, ch, 0, vict, TO_VICT);
+      call_magic(ch, vict, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
+      damage(ch, vict, rand_number(GET_LEVEL(ch), 6), -1, DAM_POISON, FALSE);
+
+      return 1;
+    }
+    /* blood drain */
+    else if (!rand_number(0, 2))
+    {
+      vamp_blood_drain(ch, vict);
+      return 1;
+    }
+    /* vicious attacks */
+    else if (!rand_number(0, 2))
+    {
+      int i = 0;
+
+      act("$n acts with inhuman speed!", 1, ch, 0, NULL, TO_ROOM);
+
+      /* spam some attacks */
+      for (i = 0; i <= rand_number(3, 6); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+      return 1;
+    }
+  }
+
+  /* this is the vampire's regular form defensive arsenal */
+  if (!rand_number(0, 4) && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    rejuv = GET_HIT(ch) + dice(10, GET_LEVEL(ch));
+
+    if (rejuv > GET_MAX_HIT(ch))
+      rejuv = GET_MAX_HIT(ch);
+
+    GET_HIT(ch) = rejuv;
+
+    if (rand_number(0, 1))
+      act("\tr$n turns into gaseous form to escape the fray then turns back into vampire form!\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+    else
+      act("\tr$n turns into a bat to escape the fray then turns back into vampire form!\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+
+    act("\trThe wounds on $n's body begin to close as $s is regenerated!\tn",
+        FALSE, ch, 0, 0, TO_ROOM);
+    act("\tr$n returns to the fray!\tn",
+        FALSE, ch, 0, 0, TO_ROOM);
+
+    return 1;
+  }
+
+  return 0;
+}
+
 /* from homeland */
 SPECIAL(fzoul)
 {
