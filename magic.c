@@ -927,37 +927,37 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     save_negates = TRUE;
     break;
 
-    case PSIONIC_IMPALE_MIND: // Epic
+  case PSIONIC_IMPALE_MIND: // Epic
 
-      if (is_immune_mind_affecting(ch, victim, TRUE))
-        return 0;
-      GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
-      save = SAVING_WILL;
-      mag_resist = TRUE;
-      element = DAM_MENTAL;
-      num_dice = 40 + GET_AUGMENT_PSP(ch);
-      size_dice = 10;
-      bonus = 0;
-      save_negates = TRUE;
-      break;
+    if (is_immune_mind_affecting(ch, victim, TRUE))
+      return 0;
+    GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
+    save = SAVING_WILL;
+    mag_resist = TRUE;
+    element = DAM_MENTAL;
+    num_dice = 40 + GET_AUGMENT_PSP(ch);
+    size_dice = 10;
+    bonus = 0;
+    save_negates = TRUE;
+    break;
 
-    case PSIONIC_PSYCHOKINETIC_THRASHING: // Epic
-      save = -1;
-      mag_resist = TRUE;
-      element = DAM_FORCE;
-      num_dice = 30 + (GET_AUGMENT_PSP(ch) / 2);
-      size_dice = 6;
-      bonus = 0;
-      break;
+  case PSIONIC_PSYCHOKINETIC_THRASHING: // Epic
+    save = -1;
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    num_dice = 30 + (GET_AUGMENT_PSP(ch) / 2);
+    size_dice = 6;
+    bonus = 0;
+    break;
 
-    case PSIONIC_RAZOR_STORM: // Epic
-      save = -1;                                     // no save
-      mag_resist = FALSE;
-      element = DAM_SLICE;
-      num_dice = 20 + GET_AUGMENT_PSP(ch);
-      size_dice = 4;
-      bonus = 0;
-      break;
+  case PSIONIC_RAZOR_STORM: // Epic
+    save = -1;              // no save
+    mag_resist = FALSE;
+    element = DAM_SLICE;
+    num_dice = 20 + GET_AUGMENT_PSP(ch);
+    size_dice = 4;
+    bonus = 0;
+    break;
 
   case PSIONIC_ENERGY_RAY: /* 1st circle */
     if (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND)
@@ -3549,7 +3549,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
       }
     }
-    
+
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = MIN(6, (GET_INT_BONUS(ch) / 2)) + GET_AUGMENT_PSP(ch) / 10;
     af[0].duration = 600;
@@ -5898,7 +5898,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
-    case RACIAL_ABILITY_CRYSTAL_BODY:
+  case RACIAL_ABILITY_CRYSTAL_BODY:
 
     /* Remove the dr. */
     for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
@@ -5908,7 +5908,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         REMOVE_FROM_LIST(dr, GET_DR(ch), next);
       }
     }
-    
+
     af[0].location = APPLY_DR;
     af[0].modifier = 0;
     af[0].duration = 10 + level / 2;
@@ -5945,7 +5945,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "\tCRazor sharp crystals sprout from $n's arms and hands!\tn";
 
     break;
-
 
   case RACIAL_ABILITY_VAMPIRE_DR:
 
@@ -6456,12 +6455,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   default:
     if (can_mastermind_power(ch, spellnum))
-      {
-        if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
-          mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, 0);
-        else if (IS_SET(spell_info[spellnum].routines, MAG_POINTS))
-          mag_points(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype, casttype);
-      }
+    {
+      if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+        mag_affects(level, ch, tch, obj, spellnum, savetype, casttype, 0);
+      else if (IS_SET(spell_info[spellnum].routines, MAG_POINTS))
+        mag_points(level, ch, tch, obj, SPELL_CURE_MODERATE, savetype, casttype);
+    }
     break;
   }
 }
@@ -6580,7 +6579,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   /* this is a dummy check added due to an uknown bug with lists :(  -zusuk */
   if (!hit_leader && GROUP(ch)->leader && IN_ROOM(GROUP(ch)->leader) == IN_ROOM(ch))
     perform_mag_groups(level, ch, GROUP(ch)->leader, obj, spellnum, savetype, casttype);
-  
+
   if (affected_by_spell(ch, PSIONIC_ABILITY_MASTERMIND))
     affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
 }
@@ -7044,22 +7043,22 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     }
     break;
 
-    default:
-      if (can_mastermind_power(ch, spellnum))
-      {
-        if (IS_SET(spell_info[spellnum].routines, MAG_DAMAGE) && IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
-          is_eff_and_dam = true;
-        else if (IS_SET(spell_info[spellnum].routines, MAG_DAMAGE))
-          ;
-        else if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
-          isEffect = true;
-        else if (IS_SET(spell_info[spellnum].routines, MAG_UNAFFECTS))
-          is_uneffect = true;
-        else
-          return;// can only handle damage, effects and unaffects.
-        affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
-      }
-      break;
+  default:
+    if (can_mastermind_power(ch, spellnum))
+    {
+      if (IS_SET(spell_info[spellnum].routines, MAG_DAMAGE) && IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+        is_eff_and_dam = true;
+      else if (IS_SET(spell_info[spellnum].routines, MAG_DAMAGE))
+        ;
+      else if (IS_SET(spell_info[spellnum].routines, MAG_AFFECTS))
+        isEffect = true;
+      else if (IS_SET(spell_info[spellnum].routines, MAG_UNAFFECTS))
+        is_uneffect = true;
+      else
+        return; // can only handle damage, effects and unaffects.
+      affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
+    }
+    break;
   }
 
   if (to_char != NULL)
