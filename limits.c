@@ -1824,7 +1824,7 @@ int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
       new_affect(&af);
       af.spell = ABILITY_SCORE_DAMAGE;
       af.location = APPLY_CON;
-      af.modifier = dice(1, 4);
+      af.modifier = -dice(1, 4);
       af.duration = 10 * 60 * 24;
       if ((GET_CON(vict) - af.modifier) < 0)
         af.modifier = GET_CON(vict);
