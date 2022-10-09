@@ -1167,6 +1167,7 @@ static const struct spec_func_data spec_func_list[] = {
     /* v-z */
     {"Valkyrie Sword", valkyrie_sword, ""},
     {"Vampire", vampire, ""},
+    {"Vampire Mob", vampire_mob, ""},
     {"Vaprak Claws", vaprak_claws, ""},
     {"Vengeance", vengeance, ""},
     {"ViperDagger", viperdagger, ""},
