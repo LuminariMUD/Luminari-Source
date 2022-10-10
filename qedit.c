@@ -354,7 +354,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
     break;
 
   case AQ_WILD_FIND:
-    snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d", quest->coord_x, quest->coord_y);
+    snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d per the next line", quest->coord_x, quest->coord_y);
     break;
 
   case AQ_ROOM_FIND:
