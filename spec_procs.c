@@ -3311,8 +3311,10 @@ SPECIAL(vampire_mob)
       corpse = make_a_corpse_4_npcs(ch);
       if (corpse)
       {
-        act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_CHAR);
-        act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_ROOM);
+        // act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_CHAR);
+        // act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_ROOM);
+        act("You draw upon your vampiric strength and attempt to convert the minion corpse into vampiric spawn", FALSE, ch, 0, 0, TO_CHAR);
+        act("$n draws upon vampiric strength and attempts to convert the minion corpse into vampiric spawn", FALSE, ch, 0, 0, TO_ROOM);
         call_magic(ch, ch, corpse, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
       }
 
