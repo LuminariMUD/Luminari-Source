@@ -34,7 +34,11 @@
 #define AQ_CRAFT_RESTRING 18   /* Player must restring an item            */
 #define AQ_COMPLETE_MISSION 19 /* Player must complete a mission          */
 #define AQ_HOUSE_FIND 20       /* Player must reach house                */
-#define NUM_AQ_TYPES 21        /* Used in qedit functions                 */
+#define AQ_WILD_FIND 21        /* Player must find specific wilderness room */
+/************************/
+#define NUM_AQ_TYPES 22 /* Used in qedit functions                 */
+/************************/
+/************************/
 
 #define MAX_QUEST_NAME 40  /* Length of quest name                 */
 #define MAX_QUEST_DESC 75  /* Length of quest description          */
@@ -74,8 +78,9 @@ struct aq_data
   obj_vnum obj_reward; /* vnum of object given as a reward     */
   int race_reward;     /* new race given as a reward           */
 
-  int unused_int1; /* expansion slot 1 */
-  int unused_int2; /* expansion slot 2 */
+  int coord_x; /* find coordinate quest, x-value */
+  int coord_y; /* find coordinate quest, y-value */
+
   int unused_int3; /* expansion slot 3 */
 
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
@@ -106,8 +111,9 @@ struct aq_data
 #define QST_OBJ(i) (aquest_table[i].obj_reward)
 #define QST_RACE(i) (aquest_table[i].race_reward)
 
-#define QST_UNUSED1(i) (aquest_table[i].unused_int1)
-#define QST_UNUSED2(i) (aquest_table[i].unused_int2)
+#define QST_COORD_X(i) (aquest_table[i].coord_x)
+#define QST_COORD_Y(i) (aquest_table[i].coord_y)
+
 #define QST_UNUSED3(i) (aquest_table[i].unused_int3)
 
 #define QST_FUNC(i) (aquest_table[i].func)
@@ -177,6 +183,8 @@ int save_quests(zone_rnum zone_num);
 #define QEDIT_EXP 23
 #define QEDIT_OBJ 24
 #define QEDIT_RACE 25
+#define QEDIT_COORD_X 26
+#define QEDIT_COORD_Y 27
 /* ******************************************************************** */
 
 /* AQ Global Variables ************************************************ */

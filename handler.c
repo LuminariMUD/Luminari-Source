@@ -1416,6 +1416,7 @@ void char_to_room(struct char_data *ch, room_rnum room)
 
     /* autoquest system check point -Zusuk */
     autoquest_trigger_check(ch, 0, 0, 0, AQ_ROOM_FIND);
+    autoquest_trigger_check(ch, 0, 0, 0, AQ_WILD_FIND);
     autoquest_trigger_check(ch, 0, 0, 0, AQ_MOB_FIND);
     autoquest_trigger_check(ch, 0, 0, 0, AQ_HOUSE_FIND);
 
