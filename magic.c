@@ -7130,26 +7130,27 @@ static const char *mag_summon_msgs[] = {
     "With a roar $N soars to the ground next to $n.",                                           // 14 young red dragon
     "$N pops into existence next to $n.",                                                       // 15 shelgarn's dragger
     "$N skimpers into the area, then quickly moves next to $n.",                                // 16 dire badger
-    "$N charges into the area, looks left, then right... "
-    "then quickly moves next to $n.",                                          // 17 dire boar
-    "$N moves into the area, sniffing cautiously.",                            // 18 dire wolf
-    "$N neighs and walks up to $n.",                                           // 19 phantom steed
-    "$N skitters into the area and moves next to $n.",                         // 20 dire spider
-    "$N lumbers into the area and moves next to $n.",                          // 21 dire bear
-    "$N manifests with an ancient howl, then moves towards $n.",               // 22 hound
-    "$N stalks into the area, roars loudly, then moves towards $n.",           // 23 d tiger
-    "$N pops into existence next to $n.",                                      // 24 black blade of disaster
-    "$N skulks into the area, seemingly from nowhere!",                        // 25 shambler
-    "\tCYou make a magical gesture, you feel a strong breeze.\tn",             // air elemental
-    "\tYYou make a magical gesture, you feel a sudden shift in the earth.\tn", // earth elemental
-    "\tRYou make a magical gesture, you feel a searing heat.\tn",              // fire elemental
-    "\tBYou make a magical gesture, you feel the dust swirl.\tn",              // water elemental
-    "$N skulks into the area, seemingly from nowhere!",                        // shambling mound
-    "$N strides into the area with threatening growls!",                       // children of the night wolves
-    "$N creep into the area with horribly noisy squeeks",                      // children of the night rats
-    "$N flies into the area screeching loudly.",                               // children of the night bats
-    "$n raises $n!",                                                           // create vampire spawn
+    "$N charges into the area, looks left, then right... "                                      /* 17 */
+    "then quickly moves next to $n.",                                                           // 18 dire boar
+    "$N moves into the area, sniffing cautiously.",                                             // 19 dire wolf
+    "$N neighs and walks up to $n.",                                                            // 20 phantom steed
+    "$N skitters into the area and moves next to $n.",                                          // 21 dire spider
+    "$N lumbers into the area and moves next to $n.",                                           // 22 dire bear
+    "$N manifests with an ancient howl, then moves towards $n.",                                // 23 hound
+    "$N stalks into the area, roars loudly, then moves towards $n.",                            // 24 d tiger
+    "$N pops into existence next to $n.",                                                       // 25 black blade of disaster
+    "$N skulks into the area, seemingly from nowhere!",                                         // 26 shambler
+    "\tCYou make a magical gesture, you feel a strong breeze.\tn",                              // 27 air elemental
+    "\tYYou make a magical gesture, you feel a sudden shift in the earth.\tn",                  // 28 earth elemental
+    "\tRYou make a magical gesture, you feel a searing heat.\tn",                               // 29 fire elemental
+    "\tBYou make a magical gesture, you feel the dust swirl.\tn",                               // 30 water elemental
+    "$N skulks into the area, seemingly from nowhere!",                                         // 31 shambling mound
+    "$N strides into the area with threatening growls!",                                        // 32 children of the night wolves
+    "$N creep into the area with horribly noisy squeeks",                                       // 33 children of the night rats
+    "$N flies into the area screeching loudly.",                                                // 34 children of the night bats
+    "$n raises $n!",                                                                            // 35 create vampire spawn
 };
+
 static const char *mag_summon_to_msgs[] = {
     "\r\n",                                                                    // 0
     "You make the magical gesture; you feel a strong breeze!",                 // 1
@@ -7187,7 +7188,6 @@ static const char *mag_summon_to_msgs[] = {
     "$N creep into the area with horribly noisy squeeks",                      // 33 children of the night rats
     "$N flies into the area screeching loudly.",                               // 34 children of the night bats
     "$n raises $n!",                                                           // 35 create vampire spawn
-
 };
 
 /* Keep the \r\n because these use send_to_char. */
