@@ -7149,6 +7149,12 @@ static const char *mag_summon_msgs[] = {
     "$N creep into the area with horribly noisy squeeks",                                       // 33 children of the night rats
     "$N flies into the area screeching loudly.",                                                // 34 children of the night bats
     "$n raises $n!",                                                                            // 35 create vampire spawn
+    "\r\n",                                                                                     // filler
+    "\r\n",                                                                                     // filler
+    "\r\n",                                                                                     // filler
+    "\r\n",                                                                                     // filler
+    "\r\n",                                                                                     // filler
+    "\r\n",                                                                                     // filler
 };
 
 static const char *mag_summon_to_msgs[] = {
@@ -7188,6 +7194,12 @@ static const char *mag_summon_to_msgs[] = {
     "$N creep into the area with horribly noisy squeeks",                      // 33 children of the night rats
     "$N flies into the area screeching loudly.",                               // 34 children of the night bats
     "$n raises $n!",                                                           // 35 create vampire spawn
+    "\r\n",                                                                    // filler
+    "\r\n",                                                                    // filler
+    "\r\n",                                                                    // filler
+    "\r\n",                                                                    // filler
+    "\r\n",                                                                    // filler
+    "\r\n",                                                                    // filler
 };
 
 /* Keep the \r\n because these use send_to_char. */
