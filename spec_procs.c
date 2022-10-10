@@ -3293,10 +3293,33 @@ SPECIAL(vampire_mob)
 
   int rejuv = 0;
   struct char_data *vict = FIGHTING(ch);
+  struct obj_data *corpse = NULL;
 
   /* this is the vampire's regular form offensive arsenal */
   if (vict)
   {
+    /* make sure we have our followers! */
+    if (!PROC_FIRED(ch))
+    {
+
+      act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n reaches out into the wilds to pull forth children of the night.", FALSE, ch, 0, 0, TO_ROOM);
+      call_magic(ch, ch, 0, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, 0, GET_LEVEL(ch), CAST_INNATE);
+
+      act("You turn to a nearby minion, grab him by the neck, and with a smile snap his neck.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n turns to a nearby minion, grabs him by the neck, and with a smile snaps his neck.  The fresh corpse conveniently lays before $n.", FALSE, ch, 0, 0, TO_ROOM);
+      corpse = make_a_corpse_4_npcs(ch);
+      if (corpse)
+      {
+        act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_CHAR);
+        act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_ROOM);
+        call_magic(ch, ch, corpse, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
+      }
+
+      /* done */
+      PROC_FIRED(ch) = TRUE;
+    }
+
     /* vampire bite */
     if (!rand_number(0, 3))
     {

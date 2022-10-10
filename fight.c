@@ -1343,6 +1343,62 @@ void stop_fighting(struct char_data *ch)
   ch->player_specials->has_banishment_been_attempted = false;
 }
 
+/* threw together this function to make corpses on the whim, originally made for
+     vampire npc mob proc spawns  -zusuk */
+struct obj_data *make_a_corpse_4_npcs(struct char_data *ch)
+{
+  char buf2[MAX_NAME_LENGTH + 64] = {'\0'};
+  struct obj_data *corpse = NULL;
+  int x = 0, y = 0;
+
+  /* create the corpse object, blank prototype */
+  corpse = create_obj();
+
+  /* start setting up all the variables for a corpse */
+  corpse->item_number = NOTHING;
+
+  IN_ROOM(corpse) = NOWHERE;
+
+  snprintf(buf2, sizeof(buf2), "corpse minion");
+  corpse->name = strdup(buf2);
+
+  snprintf(buf2, sizeof(buf2), "The corpse of a minion is lying here.");
+  corpse->description = strdup(buf2);
+
+  snprintf(buf2, sizeof(buf2), "the corpse of a minion");
+  corpse->short_description = strdup(buf2);
+
+  GET_OBJ_TYPE(corpse) = ITEM_CONTAINER;
+
+  for (x = y = 0; x < EF_ARRAY_MAX || y < TW_ARRAY_MAX; x++, y++)
+  {
+    if (x < EF_ARRAY_MAX)
+      GET_OBJ_EXTRA_AR(corpse, x) = 0;
+    if (y < TW_ARRAY_MAX)
+      corpse->obj_flags.wear_flags[y] = 0;
+  }
+
+  SET_BIT_AR(GET_OBJ_WEAR(corpse), ITEM_WEAR_TAKE);
+
+  SET_BIT_AR(GET_OBJ_EXTRA(corpse), ITEM_NODONATE);
+
+  GET_OBJ_VAL(corpse, 0) = 0; /* You can't store stuff in a corpse */
+
+  GET_OBJ_VAL(corpse, 3) = 1; /* corpse identifier */
+
+  GET_OBJ_WEIGHT(corpse) = GET_WEIGHT(ch);
+
+  GET_OBJ_RENT(corpse) = 100000;
+
+  GET_OBJ_TIMER(corpse) = CONFIG_MAX_PC_CORPSE_TIME;
+  /* ok done setting up the corpse */
+
+  /* place corpse in room */
+  obj_to_room(corpse, IN_ROOM(ch));
+
+  return corpse;
+}
+
 /* PC:  function for creating corpses, ch just died -zusuk */
 static void make_pc_corpse(struct char_data *ch)
 {
@@ -7659,7 +7715,8 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
 }
 
 /* is ch sneak attacking victim? */
-int can_sneak_attack(struct char_data *ch, struct char_data *victim) {
+int can_sneak_attack(struct char_data *ch, struct char_data *victim)
+{
 
   /* we will check for disqualifiers first */
 
@@ -7685,7 +7742,7 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim) {
     return TRUE;
 
   /* No dex bonus to ac */
-  if (!(has_dex_bonus_to_ac(ch, victim)))  
+  if (!(has_dex_bonus_to_ac(ch, victim)))
     return TRUE;
 
   if (is_flanked(ch, victim))
@@ -7994,7 +8051,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     /* Calculate regular sneak attack damage. */
   }
-  
+
   else if (can_sneak_attack(ch, victim))
   {
 
