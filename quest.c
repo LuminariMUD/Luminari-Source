@@ -674,7 +674,6 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
   qst_rnum rnum;
   int found = TRUE, index = -1;
   house_rnum house_num = NOWHERE;
-  room_rnum location = NOWHERE;
 
   if (IS_NPC(ch))
     return;
