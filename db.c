@@ -581,6 +581,9 @@ ACMD(do_reboot)
   send_to_char(ch, "%s", CONFIG_OK);
 }
 
+/* loads up: zone table, triggers, wilderness, regions, region-paths, renum_world(), start rooms,
+     mobs, objects, renumbers zone table, auto quests, hlquests, class list, assign/sort feats,
+     extended races, armor/weapon lists, domains and deities */
 void boot_world(void)
 {
   int x = 0;
