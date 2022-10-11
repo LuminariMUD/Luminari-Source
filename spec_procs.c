@@ -3295,22 +3295,67 @@ SPECIAL(vampire_mob)
   struct char_data *vict = FIGHTING(ch);
   struct obj_data *corpse = NULL;
 
+  /* this is the vampire's defensive arsenal */
+  if (!rand_number(0, 6) && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    rejuv = GET_HIT(ch) + dice(10, GET_LEVEL(ch));
+
+    if (rejuv > GET_MAX_HIT(ch))
+      rejuv = GET_MAX_HIT(ch);
+
+    GET_HIT(ch) = rejuv;
+
+    if (vict) /* flavor messages */
+    {
+      if (rand_number(0, 1))
+        act("\tr$n turns into gaseous form to escape the fray then turns back into vampire form!\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+      else
+        act("\tr$n turns into a bat to escape the fray then turns back into vampire form!\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+    }
+
+    act("\trThe wounds on $n's body begin to close as $e is regenerated!\tn",
+        FALSE, ch, 0, 0, TO_ROOM);
+
+    if (vict) /* flavor messages */
+    {
+      act("\tr$n returns to the fray!\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+    }
+
+    /* removed the call to return here to make sure we can process an offensive proc */
+    // return 1;
+  }
+
   /* this is the vampire's regular form offensive arsenal */
   if (vict)
   {
+
     /* make sure we have our followers! */
     if (!PROC_FIRED(ch))
     {
 
+      /* set up a group if we don't have one */
+      if (!GROUP(ch))
+      {
+        create_group(ch);
+      }
+
+      /* get our children of the night first! */
       act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0, TO_CHAR);
       act("$n reaches out into the wilds to pull forth children of the night.", FALSE, ch, 0, 0, TO_ROOM);
       call_magic(ch, ch, 0, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, 0, GET_LEVEL(ch), CAST_INNATE);
 
+      /* now create our vampire spawn */
       act("You turn to a nearby minion, grab him by the neck, and with a smile snap his neck.", FALSE, ch, 0, 0, TO_CHAR);
       act("$n turns to a nearby minion, grabs him by the neck, and with a smile snaps his neck.  The fresh corpse conveniently lays before $n.", FALSE, ch, 0, 0, TO_ROOM);
+
+      /* this creates a generic corpse */
       corpse = make_a_corpse_4_npcs(ch);
       if (corpse)
       {
+        /* messaging and actual call fo spell if we got a corpse */
         act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_CHAR);
         act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_ROOM);
         call_magic(ch, ch, corpse, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
@@ -3333,7 +3378,11 @@ SPECIAL(vampire_mob)
     /* blood drain */
     else if (!rand_number(0, 3))
     {
+      act("You quickly pin $N.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n briefly pins $N!", 1, ch, 0, vict, TO_NOTVICT);
+      act("$n briefly pins you!", 1, ch, 0, vict, TO_VICT);
       vamp_blood_drain(ch, vict);
+
       return 1;
     }
     /* vicious attacks */
@@ -3352,31 +3401,6 @@ SPECIAL(vampire_mob)
 
       return 1;
     }
-  }
-
-  /* this is the vampire's regular form defensive arsenal */
-  if (!rand_number(0, 6) && GET_HIT(ch) < GET_MAX_HIT(ch))
-  {
-    rejuv = GET_HIT(ch) + dice(10, GET_LEVEL(ch));
-
-    if (rejuv > GET_MAX_HIT(ch))
-      rejuv = GET_MAX_HIT(ch);
-
-    GET_HIT(ch) = rejuv;
-
-    if (rand_number(0, 1))
-      act("\tr$n turns into gaseous form to escape the fray then turns back into vampire form!\tn",
-          FALSE, ch, 0, 0, TO_ROOM);
-    else
-      act("\tr$n turns into a bat to escape the fray then turns back into vampire form!\tn",
-          FALSE, ch, 0, 0, TO_ROOM);
-
-    act("\trThe wounds on $n's body begin to close as $e is regenerated!\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
-    act("\tr$n returns to the fray!\tn",
-        FALSE, ch, 0, 0, TO_ROOM);
-
-    return 1;
   }
 
   return 0;

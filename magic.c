@@ -221,10 +221,10 @@ int mag_savingthrow(struct char_data *ch, struct char_data *vict,
   return mag_savingthrow_full(ch, vict, type, modifier, casttype, level, school, 0);
 }
 
-const char *save_names[] = {"Fort", "Refl", "Will", "", ""};
-// TRUE = resisted
-// FALSE = Failed to resist
-// modifier applies to victim, higher the better (for the victim)
+const char *save_names[NUM_SAVINGS] = {"Fort", "Refl", "Will", "Poison", "Death"};
+/* TRUE = resisted
+   FALSE = Failed to resist
+     modifier applies to victim, higher the better (for the victim) */
 int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
                          int type, int modifier, int casttype, int level, int school, int spellnum)
 {
