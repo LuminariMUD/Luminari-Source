@@ -7166,13 +7166,13 @@ int compute_cmd(struct char_data *vict,   /* Defender */
   if (has_teamwork_feat(vict, FEAT_COORDINATED_DEFENSE))
     cm_defense += 2;
 
-  if (IS_VAMPIRE(ch))
+  if (IS_VAMPIRE(vict))
   {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    if (TIME_SINCE_LAST_FEEDING(vict) <= 20)
     {
       cm_defense += 2;
     }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    else if (TIME_SINCE_LAST_FEEDING(vict) >= 80)
     {
       cm_defense -= 2;
     }
