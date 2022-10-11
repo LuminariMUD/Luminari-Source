@@ -225,6 +225,7 @@ SPECIAL_DECL(tyrantseye);
 /* v-z */
 SPECIAL_DECL(valkyrie_sword);
 SPECIAL_DECL(vampire);
+SPECIAL_DECL(vampire_mob);
 SPECIAL_DECL(vaprak_claws);
 SPECIAL_DECL(vengeance);
 SPECIAL_DECL(viperdagger);

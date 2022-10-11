@@ -233,9 +233,10 @@ static void qedit_setup_new(struct descriptor_data *d)
   quest->obj_reward = NOTHING;         /* vnum of reward object  */
   quest->race_reward = RACE_UNDEFINED; /* num of race for race change reward */
 
+  quest->coord_x = 0;
+  quest->coord_y = 0;
+
   /* for expansion */
-  quest->unused_int1 = -1;
-  quest->unused_int2 = -1;
   quest->unused_int3 = -1;
 
   quest->name = strdup("Undefined Quest");
@@ -352,6 +353,10 @@ static void qedit_disp_menu(struct descriptor_data *d)
              real_object(quest->target) == NOTHING ? "An unknown object" : obj_proto[real_object(quest->target)].short_description);
     break;
 
+  case AQ_WILD_FIND:
+    snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d per the next line", quest->coord_x, quest->coord_y);
+    break;
+
   case AQ_ROOM_FIND:
   case AQ_ROOM_CLEAR:
     snprintf(targetname, sizeof(targetname), "%s",
@@ -382,6 +387,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   "\tg 7\tn) Quest Type     : \tc%s %s\r\n"
                   "\tg 8\tn) Quest Master   : [\tc%6d\tn] \ty%s\r\n"
                   "\tg 9\tn) Quest Target   : [\tc%6d\tn] \ty%s\r\n"
+                  "\tg H\tn) X-Coord (wild) : [\tc%6d\tn] \tg I\tn) Y-Coord     : [\tc%6d\tn]\r\n"
                   "\tg A\tn) Quantity       : [\tc%6d\tn]\r\n"
                   "\tn    Quest Point Rewards\r\n"
                   "\tg B\tn) Completed      : [\tc%6d\tn] \tg C\tn) Abandoned   : [\tc%6d\tn]\r\n"
@@ -415,6 +421,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   quest->qm == NOBODY ? -1 : quest->qm,
                   real_mobile(quest->qm) == NOBODY ? "Invalid Mob" : mob_proto[(real_mobile(quest->qm))].player.short_descr,
                   quest->target == NOBODY ? -1 : quest->target, targetname,
+                  quest->coord_x, quest->coord_y,
                   quest->value[6],
                   quest->value[0], quest->value[1],
                   quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
@@ -649,6 +656,16 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = QEDIT_GOLD;
       write_to_output(d, "Enter the number of gold coins (0 for none) : ");
       break;
+    case 'h':
+    case 'H':
+      OLC_MODE(d) = QEDIT_COORD_X;
+      write_to_output(d, "Enter the X-Coordinate for the Wilderness Room Find : ");
+      break;
+    case 'i':
+    case 'I':
+      OLC_MODE(d) = QEDIT_COORD_Y;
+      write_to_output(d, "Enter the Y-Coordinate for the Wilderness Room Find : ");
+      break;
     case 't':
     case 'T':
       OLC_MODE(d) = QEDIT_EXP;
@@ -822,6 +839,13 @@ void qedit_parse(struct descriptor_data *d, char *arg)
 
     OLC_QUEST(d)->target = number;
 
+    break;
+
+  case QEDIT_COORD_X:
+    OLC_QUEST(d)->coord_x = number;
+    break;
+  case QEDIT_COORD_Y:
+    OLC_QUEST(d)->coord_y = number;
     break;
 
   case QEDIT_NEXTQUEST:
