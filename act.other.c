@@ -6814,7 +6814,15 @@ ACMD(do_gen_tog)
       /* 45 */
       {"You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
        "You will no use the stock consumables system (HELP USE).\r\n"},
-  };
+      // 46
+      {
+          "You will no longer automatically stand if knocked down in combat.\r\n",
+          "You will now automatically stand if knocked down in combat.\r\n"},
+      // 47
+      {
+          "You will no longer automatically hit mobs when typing 'hit' by itself.\r\n",
+          "You will now automatically hit the first eligible mob in the room by typing 'hit' by itself.\r\n"
+      }};
 
   if (IS_NPC(ch))
     return;
@@ -6826,6 +6834,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTO_STAND:
     result = PRF_TOG_CHK(ch, PRF_AUTO_STAND);
+    break;
+  case SCMD_AUTOHIT:
+    result = PRF_TOG_CHK(ch, PRF_AUTOHIT);
     break;
   case SCMD_NOCHARMIERESCUES:
     result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);

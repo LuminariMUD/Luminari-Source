@@ -964,9 +964,10 @@
 #define PRF_DISPTIME 57               // shows game time in prompt
 #define PRF_AUTO_STAND 58             // attempt to auto stand
 #define PRF_BLOOD_DRAIN 59            // Vampires will drain blood when grappling if this is turned on.
+#define PRF_AUTOHIT 60                // You will hit the first eligible mob in the room when typing 'hit' by itself.
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 60
+#define NUM_PRF_FLAGS 61
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

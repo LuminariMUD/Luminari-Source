@@ -675,6 +675,7 @@ ACMD_DECL(do_gen_tog);
 #define SCMD_NOCHARMIERESCUES 44
 #define SCMD_USE_STORED_CONSUMABLES 45
 #define SCMD_AUTO_STAND 46
+#define SCMD_AUTOHIT 47
 
 /* do_quit */
 ACMD_DECL(do_quit);

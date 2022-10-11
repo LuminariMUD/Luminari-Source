@@ -2556,7 +2556,10 @@ ACMD(do_hit)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
-  int chInitiative = 0, victInitiative = 0;
+  int chInitiative = 0, victInitiative = 0, i = 0;
+  struct char_data *mob = NULL;
+  bool found = false;
+  char mob_keys[200];
 
   PREREQ_CAN_FIGHT();
 
@@ -2571,8 +2574,40 @@ ACMD(do_hit)
   one_argument(argument, arg, sizeof(arg));
   if (!*arg)
   {
-    send_to_char(ch, "Hit who?\r\n");
-    return;
+    if (!PRF_FLAGGED(ch, PRF_AUTOHIT))
+    {
+      send_to_char(ch, "Hit who?\r\n");
+      return;
+    }
+    else
+    {
+      // auto hit is enabled.  We're going to try to attack the first mob we can see in the room.
+      if (IN_ROOM(ch) == NOWHERE)
+      {
+        return;
+      }
+      for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
+      {
+        if (!IS_NPC(mob)) continue;
+        if (AFF_FLAGGED(mob, AFF_CHARM)) continue;
+        if (mob->master && mob->master == ch) continue;
+        if (!CAN_SEE(ch, mob)) continue;
+
+        // ok we found one
+        found = true;
+        snprintf(mob_keys, sizeof(mob_keys), "%s", (mob)->player.name);
+        for (i = 0; i < strlen(mob_keys); i++)
+          if (mob_keys[i] == ' ')
+            mob_keys[i] = '-';
+        do_hit(ch, strdup(mob_keys), cmd, subcmd);
+        return;
+      }
+      if (!found)
+      {
+        send_to_char(ch, "There are no eligible mobs here. Please specify your target instead.\r\n");
+        return;
+      }
+    }
   }
 
   /* grab our target */
