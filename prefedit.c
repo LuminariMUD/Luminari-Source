@@ -219,8 +219,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
   send_to_char(d->character,
                "%s1%s) Use Stored Consumables  %s[%s%3s%s]\r\n"
                /* Line 1 (1) - use stored consumables */
-               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n",
+               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n"
                /* Line 2 (2) - Auto Stand */
+               "%s2%s) Auto Hit %s[%s%3s%s]\r\n",
+               /* Line 3 (3) - Auto Hit */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
@@ -229,7 +231,12 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTO_STAND) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STAND)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STAND)), CCCYN(d->character, C_NRM),
+               /*******3*********/
+               CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTOHIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOHIT)), CCCYN(d->character, C_NRM)
                /*end*/);
 
   /* Finishing Off */
@@ -898,6 +905,10 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '2':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_STAND);
+      break;
+
+    case '3':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOHIT);
       break;
 
     default:
