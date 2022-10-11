@@ -6834,5 +6834,21 @@ void manifest_mastermind_power(struct char_data *ch)
   }
 }
 
+int vampire_last_feeding_adjustment(struct char_data *ch)
+{
+  if (IS_VAMPIRE(ch))
+  {
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    {
+      return 2;
+    }
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    {
+      return -2;
+    }
+  }
+  return 0;
+}
+
 /* EoF */
 

@@ -874,17 +874,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   value -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
   // vampire bonuses / penalties for feeding
-  if (IS_VAMPIRE(ch))
-  {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      value += 2;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      value -= 2;
-    }
-  }
+  value += vampire_last_feeding_adjustment(ch);
   // try to avoid sending NPC's here, but just in case:
   /* Note on this:  More and more it seems necessary to have some
    * sort of NPC skill system in place, either an actual set

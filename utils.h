@@ -163,6 +163,7 @@ int comp_base_str(struct char_data *ch);
 int comp_dex_cost(struct char_data *ch, int number);
 int comp_base_dex(struct char_data *ch);
 bool is_spell_or_spell_like(int type);
+int vampire_last_feeding_adjustment(struct char_data *ch);
 bool can_dam_be_resisted(int type);
 void dismiss_all_followers(struct char_data *ch);
 void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display);

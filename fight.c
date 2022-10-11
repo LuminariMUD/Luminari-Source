@@ -4907,21 +4907,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
 
   // vampire bonuses / penalties for feeding
-  if (IS_VAMPIRE(ch))
-  {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      dambonus += 2;
-       if (display_mode)
-        send_to_char(ch, "Vampire Recent Feeding Bonus: \tR+2\tn\r\n");
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      dambonus -= 2;
-      if (display_mode)
-        send_to_char(ch, "Vampire Blood Starved Penalty: \tR-2\tn\r\n");
-    }
-  }
+  dambonus += vampire_last_feeding_adjustment(ch);
 
   /* favored enemy */
   if (vict && vict != ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_RANGER))
@@ -7017,20 +7003,14 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     calc_bab -= 2;
   }
 
-  if (IS_VAMPIRE(ch))
+  // vampire bonuses / penalties for feeding
+  calc_bab += vampire_last_feeding_adjustment(ch);
+  if (DEBUGMODE)
   {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      calc_bab += 2;
-      if (DEBUGMODE)
-        send_to_char(ch, "RECENT BLOOD FEEDING\r\n");
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      calc_bab -= 2;
-      if (DEBUGMODE)
-        send_to_char(ch, "BLOOD STARVED\r\n");
-    }
+    if (vampire_last_feeding_adjustment(ch) > 0)
+      send_to_char(ch, "VAMPIRE RECENT FEEDING\r\n");
+    else
+      send_to_char(ch, "VAMPIRE BLOOD STARVED\r\n");
   }
 
   calc_bab -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
@@ -7061,17 +7041,8 @@ int compute_cmb(struct char_data *ch,     /* Attacker */
   if (has_teamwork_feat(ch, FEAT_COORDINATED_MANEUVERS))
     cm_bonus += 2;
 
-  if (IS_VAMPIRE(ch))
-  {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      cm_bonus += 2;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      cm_bonus -= 2;
-    }
-  }
+  // vampire bonuses / penalties for feeding
+  cm_bonus += vampire_last_feeding_adjustment(ch);
 
   cm_bonus -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 
@@ -7166,17 +7137,8 @@ int compute_cmd(struct char_data *vict,   /* Defender */
   if (has_teamwork_feat(vict, FEAT_COORDINATED_DEFENSE))
     cm_defense += 2;
 
-  if (IS_VAMPIRE(vict))
-  {
-    if (TIME_SINCE_LAST_FEEDING(vict) <= 20)
-    {
-      cm_defense += 2;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(vict) >= 80)
-    {
-      cm_defense -= 2;
-    }
-  }
+  // vampire bonuses / penalties for feeding
+  cm_defense += vampire_last_feeding_adjustment(vict);
 
   cm_defense -= get_char_affect_modifier(vict, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
 

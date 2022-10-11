@@ -364,30 +364,10 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
 
   // vampire bonuses / penalties for feeding
-  if (IS_VAMPIRE(ch))
-  {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      challenge += 2;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      challenge -= 2;
-    }
-  }
+  challenge += vampire_last_feeding_adjustment(ch);
 
   // vampire bonuses / penalties for feeding
-  if (IS_VAMPIRE(vict))
-  {
-    if (TIME_SINCE_LAST_FEEDING(vict) <= 20)
-    {
-      savethrow += 2;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(vict) >= 80)
-    {
-      savethrow -= 2;
-    }
-  }
+  savethrow += vampire_last_feeding_adjustment(vict);
 
   if (has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER))
   {
@@ -2195,17 +2175,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
 
   // vampire bonuses / penalties for feeding
-  if (IS_VAMPIRE(ch))
-  {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      dam = dam * 11 / 10;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      dam = dam * 9 / 10;
-    }
-  }
+  dam = dam * (10 + vampire_last_feeding_adjustment(ch)) / 10;
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
     dam += num_dice;
@@ -7993,17 +7963,8 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
     healing = (float)healing * 1.50;
 
   // vampire bonuses / penalties for feeding
-  if (IS_VAMPIRE(ch))
-  {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
-    {
-      healing = (float)healing * 1.10;
-    }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
-    {
-      healing = (float)healing * 0.90;
-    }
-  }
+  // vampire bonuses / penalties for feeding
+  healing = healing * (10 + vampire_last_feeding_adjustment(ch)) / 10;
 
   /* message to ch / victim */
   send_to_char(ch, "<%d> ", healing);
