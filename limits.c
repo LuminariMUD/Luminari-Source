@@ -1898,7 +1898,7 @@ void update_damage_and_effects_over_time(void)
     {
       if (IN_SUNLIGHT(ch) && !is_covered(ch))
       {
-        damage(ch, ch, dice(1, 6), TYPE_SUN_DAMAGE, DAM_LIGHT, FALSE);
+        damage(ch, ch, dice(1, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
       }
       if (IN_MOVING_WATER(ch))
       {
