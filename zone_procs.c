@@ -1523,25 +1523,25 @@ void prisoner_gear_loading(struct char_data *ch)
 
   int objNums[TOP_UNIQUES + 1] = {
       MALEVOLENCE,      /* for warrior, berserker, giantslayer, battlerager */
-      CELESTIAL_SWRD,   /* good only warrior types? */
+      CELESTIAL_SWRD,   /* good only warrior types? - index 1 */
       HELL_SWRD,        /* evil only warrior types? */
       MAGI_STAFF,       /* wizard types */
       MOONBLADE,        /* bladesinger, ranger */
-      DROW_SCIMITAR,    /* shadowstalker, weaponmaster */
+      DROW_SCIMITAR,    /* shadowstalker, weaponmaster - index 5 */
       CRYSTAL_RAPIER,   /* swashbuckler */
       STAR_CRICLET,     /* caster circlet */
       HOLY_PLATE,       /* good only arnmor ? */
       DRAGONBONE_PLATE, /* heavy armor ? */
-      SPEED_GAUNT,      /* monk gauntlets */
+      SPEED_GAUNT,      /* monk gauntlets - index 10 */
       SHADOW_CLOAK,     /* evil rogue cloak? */
       ELVEN_CLOAK,      /* good elven rogue cloak? */
       RUNED_QUIVER,     /* quiver */
       SLAADI_GOGS,      /* psi eyewear */
-      MANDRAKE_EAR,     /* earring */
+      MANDRAKE_EAR,     /* earring - index 15 */
       MITH_ARROW,       /* arrows */
       ARM_VALOR,        /* armplates of valor */
       BLACK_FIGURINE,   /* summons gargoyle */
-      STABILITY_BOOTS,  /* stability boots! */
+      STABILITY_BOOTS,  /* stability boots! - index 19 */
   };
 
   /* we are giving a random weapon oil, lets have a list of options! */
@@ -1574,7 +1574,7 @@ void prisoner_gear_loading(struct char_data *ch)
     return;
 
   if (IS_STAFF_EVENT && STAFF_EVENT_NUM == THE_PRISONER_EVENT)
-    num_treasure = rand_number(NUM_TREASURE, TOP_UNIQUES - 1);
+    num_treasure = rand_number(NUM_TREASURE + 1, TOP_UNIQUES - 2);
   else
     num_treasure = NUM_TREASURE;
 

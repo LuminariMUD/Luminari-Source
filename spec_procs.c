@@ -3282,6 +3282,130 @@ SPECIAL(janitor)
   return (FALSE);
 }
 
+/* custom mob code for vampire mobs -zusuk */
+SPECIAL(vampire_mob)
+{
+  if (cmd)
+    return 0;
+
+  if (!ch)
+    return 0;
+
+  int rejuv = 0;
+  struct char_data *vict = FIGHTING(ch);
+  struct obj_data *corpse = NULL;
+
+  /* this is the vampire's defensive arsenal */
+  if (!rand_number(0, 6) && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    rejuv = GET_HIT(ch) + dice(10, GET_LEVEL(ch));
+
+    if (rejuv > GET_MAX_HIT(ch))
+      rejuv = GET_MAX_HIT(ch);
+
+    GET_HIT(ch) = rejuv;
+
+    if (vict) /* flavor messages */
+    {
+      if (rand_number(0, 1))
+        act("\tr$n turns into gaseous form to escape the fray then turns back into vampire form!\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+      else
+        act("\tr$n turns into a bat to escape the fray then turns back into vampire form!\tn",
+            FALSE, ch, 0, 0, TO_ROOM);
+    }
+
+    act("\trThe wounds on $n's body begin to close as $e is regenerated!\tn",
+        FALSE, ch, 0, 0, TO_ROOM);
+
+    if (vict) /* flavor messages */
+    {
+      act("\tr$n returns to the fray!\tn",
+          FALSE, ch, 0, 0, TO_ROOM);
+    }
+
+    /* removed the call to return here to make sure we can process an offensive proc */
+    // return 1;
+  }
+
+  /* this is the vampire's regular form offensive arsenal */
+  if (vict)
+  {
+
+    /* make sure we have our followers! */
+    if (!PROC_FIRED(ch))
+    {
+
+      /* set up a group if we don't have one */
+      if (!GROUP(ch))
+      {
+        create_group(ch);
+      }
+
+      /* get our children of the night first! */
+      act("You reach out into the wilds to pull forth your children of the night.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n reaches out into the wilds to pull forth children of the night.", FALSE, ch, 0, 0, TO_ROOM);
+      call_magic(ch, ch, 0, VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, 0, GET_LEVEL(ch), CAST_INNATE);
+
+      /* now create our vampire spawn */
+      act("You turn to a nearby minion, grab him by the neck, and with a smile snap his neck.", FALSE, ch, 0, 0, TO_CHAR);
+      act("$n turns to a nearby minion, grabs him by the neck, and with a smile snaps his neck.  The fresh corpse conveniently lays before $n.", FALSE, ch, 0, 0, TO_ROOM);
+
+      /* this creates a generic corpse */
+      corpse = make_a_corpse_4_npcs(ch);
+      if (corpse)
+      {
+        /* messaging and actual call fo spell if we got a corpse */
+        act("You draw upon your vampiric strength and attempt to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_CHAR);
+        act("$n draws upon vampiric strength and attempts to convert $p into vampiric spawn", FALSE, ch, corpse, 0, TO_ROOM);
+        call_magic(ch, ch, corpse, ABILITY_CREATE_VAMPIRE_SPAWN, 0, GET_LEVEL(ch), CAST_INNATE);
+      }
+
+      /* done */
+      PROC_FIRED(ch) = TRUE;
+    }
+
+    /* vampire bite */
+    if (!rand_number(0, 3))
+    {
+      act("$n sinks $s fangs into $N!", 1, ch, 0, vict, TO_NOTVICT);
+      act("$n sinks $s fangs into you!", 1, ch, 0, vict, TO_VICT);
+      call_magic(ch, vict, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_INNATE);
+      damage(ch, vict, rand_number(GET_LEVEL(ch), 6), -1, DAM_POISON, FALSE);
+
+      return 1;
+    }
+    /* blood drain */
+    else if (!rand_number(0, 3))
+    {
+      act("You quickly pin $N.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n briefly pins $N!", 1, ch, 0, vict, TO_NOTVICT);
+      act("$n briefly pins you!", 1, ch, 0, vict, TO_VICT);
+      vamp_blood_drain(ch, vict);
+
+      return 1;
+    }
+    /* vicious attacks */
+    else if (!rand_number(0, 3))
+    {
+      int i = 0;
+
+      act("$n acts with inhuman speed!", 1, ch, 0, NULL, TO_ROOM);
+
+      /* spam some attacks */
+      for (i = 0; i <= rand_number(3, 6); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* from homeland */
 SPECIAL(fzoul)
 {
@@ -9821,7 +9945,8 @@ SPECIAL(vampire_cloak)
     send_to_char(ch, "You must specify one of the following:\r\n");
     for (i = 0; i < NUM_APPLIES; i++)
     {
-      if (valid_vampire_cloak_apply(i)) {
+      if (valid_vampire_cloak_apply(i))
+      {
         count++;
         if ((count % 4) == 3 || (count % 4) == 0)
           send_to_char(ch, "\tC");
@@ -9834,7 +9959,7 @@ SPECIAL(vampire_cloak)
       }
     }
     if ((count % 2) == 1)
-          send_to_char(ch, "\r\n");
+      send_to_char(ch, "\r\n");
 
     send_to_char(ch, "\r\n");
     send_to_char(ch, "Please enter 'setcloak (number)' where number is the number of the bonus type you'd like above.\r\n");
@@ -9852,7 +9977,8 @@ SPECIAL(vampire_cloak)
 
   for (i = 0; i < NUM_APPLIES; i++)
   {
-    if (valid_vampire_cloak_apply(i)) {
+    if (valid_vampire_cloak_apply(i))
+    {
       count++;
       if (choice == count)
       {
@@ -9887,7 +10013,7 @@ SPECIAL(vampire_cloak)
   obj->affected[0].location = result;
   obj->affected[0].modifier = get_vampire_cloak_bonus(GET_LEVEL(ch), result);
   obj->affected[0].bonus_type = BONUS_TYPE_RACIAL;
-  
+
   send_to_char(ch, "\tcYour vampire cloak now offers +%d to your %s!\r\n\tn", obj->affected[0].modifier, apply_types_lowercase(result));
 
   // set the min level on the cloak
@@ -9900,7 +10026,6 @@ SPECIAL(vampire_cloak)
   GET_SETCLOAK_TIMER(ch) = 100;
 
   return 1;
-
 }
 
 /*************************/
@@ -9910,4 +10035,3 @@ SPECIAL(vampire_cloak)
 #undef DEBUGMODE
 
 /* EoF */
-

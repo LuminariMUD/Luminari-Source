@@ -42,13 +42,13 @@ house_rnum find_house(room_vnum vnum); /* house.c */
  *--------------------------------------------------------------------------*/
 
 const char *quest_types[NUM_AQ_TYPES + 1] = {
-    "Object", /* 0 */
-    "Room",
-    "Find mob",
-    "Kill mob",
-    "Save mob",
-    "Return object", /* 5 */
-    "Clear room",
+    "Acquire Object", /* 0 */
+    "Find Room",
+    "Find Mob",
+    "Kill Mob",
+    "Save Mob",
+    "Return Object", /* 5 */
+    "Clear Room",
     "Complete a Supplyorder",
     "Craft Item",
     "ReSize Item",
@@ -62,8 +62,10 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {
     "Convert Item",
     "ReString Item",
     "Complete a Mission",
-    "Find a Player House", /* 20 */
+    "Find a Player House",           /* 20 */
+    "Get to Wilderness Coordinates", /* 21 */
     "\n"};
+
 const char *aq_flags[] = {
     "REPEATABLE",
     "\n"};
@@ -201,10 +203,12 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].obj_reward = NOTHING;
   aquest_table[i].race_reward = RACE_UNDEFINED;
 
+  aquest_table[i].coord_x = -1;
+  aquest_table[i].coord_y = -1;
+
   /* this is for expansion */
-  aquest_table[i].unused_int1 = -1;
-  aquest_table[i].unused_int2 = -1;
   aquest_table[i].unused_int3 = -1;
+
   /* end init */
 
   /* begin to parse the data */
@@ -265,9 +269,10 @@ void parse_quest(FILE *quest_f, int nr)
   {
     aquest_table[i].race_reward = t[3];
 
+    aquest_table[i].coord_x = t[4];
+    aquest_table[i].coord_y = t[5];
+
     /* for expansion */
-    aquest_table[i].unused_int1 = t[4];
-    aquest_table[i].unused_int2 = t[5];
     aquest_table[i].unused_int3 = t[6];
   }
 
@@ -433,7 +438,7 @@ void complete_quest(struct char_data *ch, int index)
     if (GROUP(ch) || ch->master || ch->followers)
     {
       send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to change races.\r\n"
-                         "You can dismiss npc followers with the 'dismiss' command.  You can leave your group with 'group leave.'\r\n");
+                       "You can dismiss npc followers with the 'dismiss' command.  You can leave your group with 'group leave.'\r\n");
       return;
     }
   }
@@ -738,6 +743,21 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
       /* debug */ /*send_to_char(ch, "DEBUG - Your IDNUM (%ld), House (%ld)\r\n", GET_IDNUM(ch), house_control[house_num].owner);*/
       if (GET_IDNUM(ch) == house_control[house_num].owner)
         generic_complete_quest(ch, index);
+
+      break;
+
+    case AQ_WILD_FIND:
+
+      /* are we in a wilderness room? */
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+      {
+        if (X_LOC(ch) == QST_COORD_X(rnum) &&
+            Y_LOC(ch) == QST_COORD_Y(rnum))
+        {
+          /* made it! */
+          generic_complete_quest(ch, index);
+        }
+      }
 
       break;
 
@@ -1374,6 +1394,10 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     case AQ_OBJ_RETURN:
       snprintf(targetname, sizeof(targetname), "%s",
                real_object(QST_TARGET(rnum)) == NOTHING ? "An unknown object" : obj_proto[real_object(QST_TARGET(rnum))].short_description);
+      break;
+
+    case AQ_WILD_FIND:
+      snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d ", QST_COORD_X(rnum), QST_COORD_Y(rnum));
       break;
 
     case AQ_ROOM_FIND:

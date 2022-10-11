@@ -1180,8 +1180,9 @@
 #define SAVING_FORT 0
 #define SAVING_REFL 1
 #define SAVING_WILL 2
-#define SAVING_POISON 3 /* this is not really used -zusuk */
-#define SAVING_DEATH 4  /* this is not really used -zusuk */
+#define SAVING_POISON 3
+#define SAVING_DEATH 4
+#define NUM_SAVINGS 5
 /*----------------------------------*/
 
 /***
