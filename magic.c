@@ -363,6 +363,32 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (IS_UNDEAD(ch) && affected_by_spell(vict, SPELL_VEIL_OF_POSITIVE_ENERGY))
     savethrow += 2;
 
+  // vampire bonuses / penalties for feeding
+  if (IS_VAMPIRE(ch))
+  {
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    {
+      challenge += 2;
+    }
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    {
+      challenge -= 2;
+    }
+  }
+
+  // vampire bonuses / penalties for feeding
+  if (IS_VAMPIRE(vict))
+  {
+    if (TIME_SINCE_LAST_FEEDING(vict) <= 20)
+    {
+      savethrow += 2;
+    }
+    else if (TIME_SINCE_LAST_FEEDING(vict) >= 80)
+    {
+      savethrow -= 2;
+    }
+  }
+
   if (has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER))
   {
     if (IS_EVIL(vict) && !IS_EVIL(ch))
@@ -2134,6 +2160,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   } /* end switch(spellnum) */
   /**************************/
+  
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -2165,6 +2192,19 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     // each rank of epic psionics increases psi power damage by 10%, or 20% if under psionic focus affect
     if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
       dam = dam * (100 + (HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 20 : 10)) / 100;
+  }
+
+  // vampire bonuses / penalties for feeding
+  if (IS_VAMPIRE(ch))
+  {
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    {
+      dam = dam * 11 / 10;
+    }
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    {
+      dam = dam * 9 / 10;
+    }
   }
 
   if (HAS_FEAT(ch, FEAT_DRACONIC_BLOODLINE_ARCANA) && element == draconic_heritage_energy_types[GET_BLOODLINE_SUBTYPE(ch)])
@@ -7951,6 +7991,19 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   /* healing domain */
   if (HAS_FEAT(ch, FEAT_EMPOWERED_HEALING))
     healing = (float)healing * 1.50;
+
+  // vampire bonuses / penalties for feeding
+  if (IS_VAMPIRE(ch))
+  {
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    {
+      healing = (float)healing * 1.10;
+    }
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    {
+      healing = (float)healing * 0.90;
+    }
+  }
 
   /* message to ch / victim */
   send_to_char(ch, "<%d> ", healing);

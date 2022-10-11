@@ -4010,6 +4010,8 @@ struct player_special_data_saved
     byte slayer_judgement;                      // which judgement is using the slayer bonus
 
     int setcloak_timer;       // used for setting stats on vampire cloaks.
+
+    int time_since_last_feeding;    // how long since the vampire last fed on blood
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
