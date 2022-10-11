@@ -1817,6 +1817,11 @@ int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 
   damage(ch, vict, 5, ABILITY_BLOOD_DRAIN, DAM_BLOOD_DRAIN, FALSE);
 
+  TIME_SINCE_LAST_FEEDING(ch) -= 10;
+
+  if (TIME_SINCE_LAST_FEEDING(ch) < 0)
+    TIME_SINCE_LAST_FEEDING(ch) = 0;
+
   if (GET_CON(vict) > 0)
   {
     if (!mag_savingthrow(ch, vict, ABILITY_SCORE_DAMAGE, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
@@ -1908,6 +1913,11 @@ void update_damage_and_effects_over_time(void)
       {
         vamp_blood_drain(ch, vict);
       }
+    }
+
+    if (IS_VAMPIRE(ch) && TIME_SINCE_LAST_FEEDING(ch) <= 100)
+    {
+      TIME_SINCE_LAST_FEEDING(ch)++;
     }
 
     if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
