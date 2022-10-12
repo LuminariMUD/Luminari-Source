@@ -1830,7 +1830,7 @@ int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
       af.spell = ABILITY_SCORE_DAMAGE;
       af.location = APPLY_CON;
       af.modifier = -dice(1, 4);
-      af.duration = 10 * 60 * 24;
+      af.duration = 50; // approx five minutes
       if ((GET_CON(vict) - af.modifier) < 0)
         af.modifier = GET_CON(vict);
       affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
@@ -1867,7 +1867,7 @@ void update_damage_and_effects_over_time(void)
       struct affected_type af;
       new_affect(&af);
       af.spell = ABILITY_SCORE_DAMAGE;
-      af.duration = 10 * 60 * 24;
+      af.duration = 50; // approx 5 minutes
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       affect_to_char(ch, &af);
 
