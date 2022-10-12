@@ -3560,11 +3560,11 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
     if (GET_LEVEL(mob) > 30)
       GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
     if (GET_LEVEL(mob) > 31)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.2;
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
     if (GET_LEVEL(mob) > 32)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.3;
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
     if (GET_LEVEL(mob) > 33)
-      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.4;
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
   }
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
