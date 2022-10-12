@@ -1096,6 +1096,21 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     break;
   }
 
+  /* this is the powerful being system */
+  if (IS_POWERFUL_BEING(ch))
+  {
+    armorclass++;
+
+    if (GET_LEVEL(ch) > 30)
+      armorclass++;
+    if (GET_LEVEL(ch) > 31)
+      armorclass++;
+    if (GET_LEVEL(ch) > 32)
+      armorclass++;
+    if (GET_LEVEL(ch) > 33)
+      armorclass++;
+  }
+
   /* value for normal mode */
   return (MIN(CONFIG_PLAYER_AC_CAP, armorclass));
 }
@@ -7019,7 +7034,41 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     calc_bab += bonuses[i];
 
-  return (MIN(MAX_BAB, calc_bab));
+  int maximum_bab = MAX_BAB;
+
+  /* powerful being mechanics */
+  if (IS_POWERFUL_BEING(ch) && victim)
+  {
+    /* this bonus will only kick in IF the defender doesn't have iron skin & epic warding */
+    if (!affected_by_spell(victim, SPELL_IRONSKIN) && !affected_by_spell(victim, SPELL_EPIC_WARDING))
+    {
+      maximum_bab += 2;
+      calc_bab += 2;
+
+      if (GET_LEVEL(ch) > 30)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 31)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 32)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 33)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+    }
+  }
+
+  return (MIN(maximum_bab, calc_bab));
 }
 
 /* compute a combat maneuver bonus (attack) value */
