@@ -814,7 +814,7 @@ int is_immune_to_crits(struct char_data *attacker, struct char_data *target) {
   int powerful_being = 0;
 
     /* new code to help really powerful beings overcome checks here */
-  if (attacker && IS_NPC(attacker) && GET_LEVEL(attacker) >= LVL_IMMORT)
+  if (IS_POWERFUL_BEING(attacker))
   {
     /* base 20% chance of overcoming defense */
     powerful_being = 20;
