@@ -5524,7 +5524,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   int powerful_being = 0;
 
   /* new code to help really powerful beings overcome checks here */
-  if (IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+  if (IS_POWERFUL_BEING(ch))
   {
     /* base 20% chance of overcoming defense */
     powerful_being = 20;
@@ -5540,7 +5540,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced))
   {
 
-    if (!powerful_being)
+    if (!IS_POWERFUL_BEING(ch))
     {
       FIGHTING(ch)->preserve_organs_procced = TRUE;
       return FALSE;
@@ -5556,7 +5556,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 
   if (FIGHTING(ch) && (affected_by_spell(FIGHTING(ch), PSIONIC_BODY_OF_IRON) || affected_by_spell(FIGHTING(ch), PSIONIC_SHADOW_BODY)))
   {
-    if (!powerful_being)
+    if (!IS_POWERFUL_BEING(ch))
     {
       return FALSE;
     }
