@@ -8416,7 +8416,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
           continue;
         if (spellnum == AFFECT_LEVEL_DRAIN && get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL) > 1)
         {
-          change_spell_mod(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL, -1, TRUE);
+          change_spell_mod(victim, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL, -1, TRUE);
           if (ch == victim)
           {
             snprintf(message, sizeof(message), "You reduce the degree thast '%s' is affecting you.", spell_info[spellnum].name);
@@ -8444,7 +8444,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
             snprintf(message, sizeof(message), "$n removes the '%s' affecting you.", spell_info[spellnum].name);
             act(message, FALSE, ch, 0, victim, TO_VICT);
           }
-          affect_from_char(ch, spellnum);
+          affect_from_char(victim, spellnum);
         }
         // lesser restoration will only cure one affect
         if (spellnum == SPELL_LESSER_RESTORATION)
