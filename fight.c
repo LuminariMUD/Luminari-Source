@@ -7037,10 +7037,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   int maximum_bab = MAX_BAB;
 
   /* powerful being mechanics */
-  if (IS_POWERFUL_BEING(ch) && victim)
+  if (IS_POWERFUL_BEING(ch) && FIGHTING(ch))
   {
     /* this bonus will only kick in IF the defender doesn't have iron skin & epic warding */
-    if (!affected_by_spell(victim, SPELL_IRONSKIN) && !affected_by_spell(victim, SPELL_EPIC_WARDING))
+    if (!affected_by_spell(FIGHTING(ch), SPELL_IRONSKIN) && !affected_by_spell(FIGHTING(ch), SPELL_EPIC_WARDING))
     {
       maximum_bab += 2;
       calc_bab += 2;
