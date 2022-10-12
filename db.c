@@ -3552,6 +3552,21 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   else
     GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_PSP(mob));
 
+  /* powerful being bump! -zusuk */
+  if (IS_POWERFUL_BEING(mob))
+  {
+    GET_MAX_HIT(mob) += 500;
+
+    if (GET_LEVEL(mob) > 30)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 31)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.2;
+    if (GET_LEVEL(mob) > 32)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.3;
+    if (GET_LEVEL(mob) > 33)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.4;
+  }
+
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
 
   if (GET_SPELL_RES(mob) < 0)
