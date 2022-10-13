@@ -1041,7 +1041,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
   set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_LICH, 2, 2, 6, 2, 2, 2);           /* str con int wis dex cha */
+  set_race_abilities(RACE_LICH, -2, 0, 6, 2, 0, 6);          /* str con int wis dex cha */
   set_race_alignments(RACE_LICH, N, N, N, N, N, N, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_LICH,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -1106,7 +1106,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Vampire.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Vampire.");
   set_race_genders(RACE_VAMPIRE, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_VAMPIRE, 6, 0, 2, 2, 4, 4);           /* str con int wis dex cha */
+  set_race_abilities(RACE_VAMPIRE, 6, 2, 2, 2, 4, 4);           /* str con int wis dex cha */
   set_race_alignments(RACE_VAMPIRE, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_VAMPIRE,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
