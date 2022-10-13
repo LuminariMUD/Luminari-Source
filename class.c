@@ -784,7 +784,7 @@ bool display_class_prereqs(struct char_data *ch, const char *classname)
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n\r\n");
+  // send_to_char(ch, "\tcNote: Epic races currently can not multi-class\tn\r\n\r\n");
 
   return TRUE;
 }
@@ -836,6 +836,7 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
   }
 
   /* prevent epic race from currently multi-classing */
+  /* disabled! */
   if (iarg == MODE_CLASSLIST_NORMAL)
   {
     for (i = 0; i < NUM_CLASSES; i++)
@@ -843,16 +844,18 @@ bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg
         break;
     switch (GET_REAL_RACE(ch))
     {
+      /*
     case RACE_CRYSTAL_DWARF:
-      if (classnum == i) /* char class selection and current class match? */
+      if (classnum == i) // char class selection and current class match?
         ;
       else
         return FALSE;
     case RACE_TRELUX:
-      if (classnum == i) /* char class selection and current class match? */
+      if (classnum == i) // char class selection and current class match?
         ;
       else
         return FALSE;
+        */
     default:
       break;
     }
@@ -1861,6 +1864,8 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_WINGS},
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_EQ},
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_TRELUX_PINCERS},
+    {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_INSECTBEING},
+
 
     /* class, race, stacks?, level, feat_ name */
     /* Lich */
@@ -3350,11 +3355,11 @@ int level_exp(struct char_data *ch, int level)
 
     /* epic races */
   case RACE_CRYSTAL_DWARF:
-    exp *= 8;
+    exp *= 7;
     break;
 
   case RACE_TRELUX:
-    exp *= 8;
+    exp *= 7;
     break;
 
   case RACE_LICH:

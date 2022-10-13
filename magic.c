@@ -5920,8 +5920,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_DR;
-    af[0].modifier = 0;
-    af[0].duration = 10 + level / 2;
+    af[0].modifier = 3;
+    af[0].duration = 24 + GET_CON_BONUS(ch) + level / 2;
     to_room = "\tCYou watch as $n's crystalline body becomes harder!\tn";
     to_vict = "\tCYour crystalline body becomes harder!\tn";
 
@@ -5944,11 +5944,48 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_DR(victim) = new_dr;
     break;
 
+  case RACIAL_ABILITY_INSECTBEING:
+
+    af[0].location = APPLY_AC_NEW;
+    af[0].bonus_type = BONUS_TYPE_RACIAL;
+    af[0].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[0].modifier = level / 6;
+
+    af[1].location = APPLY_HITROLL;
+    af[1].bonus_type = BONUS_TYPE_RACIAL;
+    af[1].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[1].modifier = level / 6;
+
+    af[2].location = APPLY_SAVING_FORT;
+    af[2].bonus_type = BONUS_TYPE_RACIAL;
+    af[2].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[2].modifier = level / 6;
+
+    af[3].location = APPLY_SAVING_WILL;
+    af[3].bonus_type = BONUS_TYPE_RACIAL;
+    af[3].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[3].modifier = level / 6;
+
+    af[4].location = APPLY_SAVING_REFL;
+    af[4].bonus_type = BONUS_TYPE_RACIAL;
+    af[4].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[4].modifier = level / 6;
+
+    af[5].location = APPLY_DEX;
+    af[5].bonus_type = BONUS_TYPE_RACIAL;
+    af[5].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[5].modifier = level / 6;
+
+    to_vict = "\tCYou attune to your insect being!\tn";
+    to_room = "\tC$n attunes to $s insect being!\tn";
+
+    break;
+
   case RACIAL_ABILITY_CRYSTAL_FIST:
 
     af[0].location = APPLY_DAMROLL;
     af[0].bonus_type = BONUS_TYPE_RACIAL;
-    af[0].duration = 10 + level / 2;
+    af[0].duration = 24 + GET_CON_BONUS(ch) + level / 2;
     af[0].modifier = 3;
 
     to_vict = "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn";

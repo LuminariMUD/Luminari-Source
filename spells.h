@@ -560,6 +560,7 @@
 #define RACIAL_ABILITY_CRYSTAL_FIST 1233
 #define RACIAL_ABILITY_CRYSTAL_BODY 1234
 #define PSIONIC_ABILITY_MASTERMIND 1235
+#define RACIAL_ABILITY_INSECTBEING 1236
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c

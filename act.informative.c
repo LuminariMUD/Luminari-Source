@@ -1777,6 +1777,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Crippling Critical Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDEFENSIVE_STANCE)))
     send_to_char(ch, "Defensive Stance Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eINSECTBEING)))
+    send_to_char(ch, "Insect Being Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALFIST)))
     send_to_char(ch, "Crystal Fist Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCRYSTALBODY)))
@@ -2753,6 +2755,8 @@ ACMD(do_innates)
       send_to_char(ch, "\tRtrelux eq (help TRELUX-EQ)\tn\r\n");
       send_to_char(ch, "trelux exoskeleton (help TRELUX-EXOSKELETON)\r\n");
       send_to_char(ch, "trelux pincers (help TRELUX-PINCERS)\r\n");
+      send_to_char(ch, "insectbeing (help INSECTBEING)\r\n");
+
       break;
     case RACE_CRYSTAL_DWARF:
       send_to_char(ch, "vital (start with +10 hps bonus)\r\n");

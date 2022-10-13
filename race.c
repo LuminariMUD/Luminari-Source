@@ -1009,6 +1009,8 @@ void assign_races(void)
   feat_race_assignment(RACE_TRELUX, FEAT_WINGS, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EQ, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS, 1, N);
+  feat_race_assignment(RACE_TRELUX, FEAT_INSECTBEING, 1, N);
+
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
@@ -1035,7 +1037,6 @@ void assign_races(void)
                                "might simply kill another or drive him insane. "
                                "\r\n\r\n"
                                "Please note that a Lich will be the same size class they were before the transformation.\r\n  "
-                               "Please note that a Lich is the one of the only Epic Races that can multi-class.\r\n  "
                                "Please note that becoming a lich requires level 30 and will reset your exp to 0.\r\n  "
                                "Please note that a Lich has all the advantages/disadvantages of being Undead.\r\n  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
@@ -1100,7 +1101,6 @@ void assign_races(void)
                                "reality."
                                "\r\n\r\n"
                                "Please note that a Vampire will be the same size class they were before the transformation.\r\n  "
-                               "Please note that a Vampire is the one of the only Epic Races that can multi-class.\r\n  "
                                "Please note that becoming a Vampire requires level 30 and will reset your exp to 0.\r\n  "
                                "Please note that a Vampire has all the advantages/disadvantages of being Undead.\r\n  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Vampire.",
