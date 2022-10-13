@@ -308,7 +308,7 @@ bool npc_rescue(struct char_data *ch)
   int loop_counter = 0;
 
   if (GET_HIT(ch) <= 1)
-    return FALSE; /* too weak */ 
+    return FALSE; /* too weak */
 
   // going to prioritize rescuing master (if it has one)
   if (AFF_FLAGGED(ch, AFF_CHARM) && ch->master && !rand_number(0, 1) &&
@@ -636,6 +636,7 @@ void npc_ability_behave(struct char_data *ch)
   else
     npc_offensive_spells(ch);
   return;
+
   // we need to code the abilities before we go ahead with this
   struct char_data *vict = NULL;
   int num_targets = 0;
@@ -901,6 +902,7 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
    2) lay on hands
    3) smite evil
    4) switch opponents
+   5) turn undead
    */
 
   /* first rescue friends/master */
@@ -916,6 +918,9 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
 
   if (IS_EVIL(vict))
     perform_smite(ch, SMITE_TYPE_EVIL);
+
+  if (IS_UNDEAD(vict) && GET_LEVEL(ch) > 2)
+    perform_turnundead(ch, vict, (GET_LEVEL(ch) - 2));
 
   if (percent <= 25.0)
     perform_layonhands(ch, ch);
@@ -1200,15 +1205,26 @@ void npc_offensive_spells(struct char_data *ch)
       return;
     }
     break;
-    /* our 'healing' types will do another check for spellup */
   case CLASS_DRUID:
-  case CLASS_CLERIC:
+    /* our 'healing' types will do another check for spellup */
     /* additional 25% of spellup instead of offensive spell */
     if (!rand_number(0, 3))
     {
       npc_spellup(ch);
       return;
     }
+
+    break;
+
+  case CLASS_CLERIC:
+    /* our 'healing' types will do another check for spellup */
+    /* additional 25% of spellup instead of offensive spell */
+    if (!rand_number(0, 3))
+    {
+      npc_spellup(ch);
+      return;
+    }
+
     break;
   }
 
@@ -1233,6 +1249,13 @@ void npc_offensive_spells(struct char_data *ch)
       cast_spell(ch, tch, NULL, spellnum, 0);
       return;
     }
+  }
+
+  /* our clerics will try to turn here, paladins do it in paladin_behave() */
+  if (GET_CLASS(ch) == CLASS_CLERIC && !rand_number(0, 2) && IS_UNDEAD(tch))
+  {
+    perform_turnundead(ch, tch, GET_LEVEL(ch));
+    return;
   }
 
   /* we intentionally fall through here,
