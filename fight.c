@@ -4896,6 +4896,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Crystal fist bonus: \tR3\tn\r\n");
   }
 
+  /* insectbeing trelux */
+  if (affected_by_spell(ch, RACIAL_ABILITY_INSECTBEING))
+  {
+    dambonus += GET_LEVEL(ch) / 6;
+    if (display_mode)
+      send_to_char(ch, "Insect-Being bonus: \tR%d\tn\r\n", GET_LEVEL(ch) / 6);
+  }
+
   /* smite evil (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict && IS_EVIL(vict))
   {

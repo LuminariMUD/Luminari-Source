@@ -3892,6 +3892,7 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_SLA_STRENGTH:
     case FEAT_SLA_ENLARGE:
     case FEAT_CRYSTAL_FIST:
+    case FEAT_INSECTBEING:
     case FEAT_CRYSTAL_BODY:
     case FEAT_SLA_FAERIE_FIRE:
     case FEAT_SLA_LEVITATE:
@@ -5544,6 +5545,7 @@ bool can_spell_be_revoked(int spellnum)
     // Other
     case RACIAL_ABILITY_CRYSTAL_BODY:
     case RACIAL_ABILITY_CRYSTAL_FIST:
+    case RACIAL_ABILITY_INSECTBEING:
 
       return true;
   }

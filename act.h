@@ -566,6 +566,8 @@ ACMD_DECL(do_crystalbody);
 ACMDCHECK(can_crystalbody);
 ACMD_DECL(do_mastermind);
 ACMDCHECK(can_mastermind);
+ACMD_DECL(do_insectbeing);
+ACMDCHECK(can_insectbeing);
 ACMD_DECL(do_surpriseaccuracy);
 ACMDCHECK(can_surpriseaccuracy);
 ACMD_DECL(do_powerfulblow);

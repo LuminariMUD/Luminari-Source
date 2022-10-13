@@ -5106,7 +5106,7 @@ ACMD(do_mastermind)
 
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_mastermind);
-  PREREQ_HAS_USES(FEAT_CRYSTAL_FIST, "You have expended all of your mastermind attempts.\r\n");
+  PREREQ_HAS_USES(FEAT_MASTER_OF_THE_MIND "You have expended all of your mastermind attempts.\r\n");
 
   struct affected_type af;
 
@@ -5122,6 +5122,25 @@ ACMD(do_mastermind)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MASTER_OF_THE_MIND);
+}
+
+ACMDCHECK(can_insectbeing)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_INSECTBEING, "How do you plan on doing that?\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_insectbeing)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_insectbeing);
+  PREREQ_HAS_USES(FEAT_INSECTBEING, "You are too exhausted to use insect being.\r\n");
+
+  call_magic(ch, ch, 0, RACIAL_ABILITY_INSECTBEING, 0, GET_LEVEL(ch), CAST_INNATE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_INSECTBEING);
 }
 
 ACMDCHECK(can_crystalfist)

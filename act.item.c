@@ -647,13 +647,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   case ITEM_KEY: /* 18 */
     break;
 
-  // case ITEM_FOOD: // 19 
-  // New food type above in switch statement
-  //   if (mode == ITEM_STAT_MODE_G_LORE)
-  //     send_to_group(NULL, GROUP(ch), "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
-  //   else
-  //     send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
-  //   break;
+    // case ITEM_FOOD: // 19
+    // New food type above in switch statement
+    //   if (mode == ITEM_STAT_MODE_G_LORE)
+    //     send_to_group(NULL, GROUP(ch), "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+    //   else
+    //     send_to_char(ch, "Makes full: %d, Spellnum: %d (%s), Poisoned: %s\r\n", GET_OBJ_VAL(item, 0), GET_OBJ_VAL(item, 1), spell_info[GET_OBJ_VAL(item, 1)].name, YESNO(GET_OBJ_VAL(item, 3)));
+    //   break;
 
   case ITEM_MONEY: /* 20 */
     if (mode == ITEM_STAT_MODE_G_LORE)
@@ -2914,11 +2914,10 @@ ACMDU(do_drink)
     return;
   }
 
-
   struct affected_type af[MAX_SPELL_AFFECTS];
   int i = 0;
   bool found = false;
-  
+
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
     if (obj->affected[i].location != APPLY_NONE)
@@ -2930,7 +2929,7 @@ ACMDU(do_drink)
       af[i].bonus_type = obj->affected[i].bonus_type;
       af[i].specific = obj->affected[i].specific;
       af[i].duration = GET_OBJ_VAL(obj, 0);
-      send_to_char(ch, "You gain +%d to %s from drinking %s.\r\n", 
+      send_to_char(ch, "You gain +%d to %s from drinking %s.\r\n",
                    af[i].modifier, apply_types_lowercase(af[i].location), obj->short_description);
       affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
       found = true;
@@ -2947,7 +2946,6 @@ ACMDU(do_drink)
 
   obj_from_char(obj);
   extract_obj(obj);
-
 }
 
 ACMDU(do_eat)
@@ -2980,11 +2978,10 @@ ACMDU(do_eat)
     return;
   }
 
-
   struct affected_type af[MAX_SPELL_AFFECTS];
   int i = 0;
   bool found = false;
-  
+
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
     if (obj->affected[i].location != APPLY_NONE)
@@ -2994,9 +2991,9 @@ ACMDU(do_eat)
       af[i].location = obj->affected[i].location;
       af[i].modifier = obj->affected[i].modifier;
       af[i].bonus_type = obj->affected[i].bonus_type;
-      af[i].specific= obj->affected[i].specific;
+      af[i].specific = obj->affected[i].specific;
       af[i].duration = GET_OBJ_VAL(obj, 0);
-      send_to_char(ch, "You gain +%d to %s from eating %s.\r\n", 
+      send_to_char(ch, "You gain +%d to %s from eating %s.\r\n",
                    af[i].modifier, apply_types_lowercase(af[i].location), obj->short_description);
       affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
       found = true;
@@ -3012,7 +3009,6 @@ ACMDU(do_eat)
 
   obj_from_char(obj);
   extract_obj(obj);
-
 }
 
 ACMD(do_drink_old)
@@ -3807,9 +3803,8 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     }
   }
 
-  if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R ||
-                                      where == WEAR_FINGER_L || where == WEAR_HEAD ||
-                                      where == WEAR_LEGS || where == WEAR_FEET || where == WEAR_HANDS))
+  if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R || where == WEAR_FINGER_L ||
+                                      where == WEAR_FEET || where == WEAR_HANDS))
   {
     send_to_char(ch, "Your anatomy does not allow you to wear that...\r\n");
     return;

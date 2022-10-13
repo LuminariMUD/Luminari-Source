@@ -190,10 +190,11 @@ struct mud_event_list mud_event_index[] = {
     {"Holy Javelin", event_holy_javelin, EVENT_CHAR},         // eHOLYJAVELIN
     /*140*/
     {"Item SpecAb Cooldown: Summon Item", event_daily_use_cooldown, EVENT_OBJECT}, // eITEM_SPECAB_ITEM_SUMMON
-    {"Children of the Night", event_daily_use_cooldown, EVENT_CHAR}, // eCHILDRENOFTHENIGHT
-    {"Vampiric Energy Drain", event_daily_use_cooldown, EVENT_CHAR}, // eVAMPIREENERGYDRAIN
-    {"Master of the Mind", event_daily_use_cooldown, EVENT_CHAR}, // eMASTERMIND
-
+    {"Children of the Night", event_daily_use_cooldown, EVENT_CHAR},               // eCHILDRENOFTHENIGHT
+    {"Vampiric Energy Drain", event_daily_use_cooldown, EVENT_CHAR},               // eVAMPIREENERGYDRAIN
+    {"Master of the Mind", event_daily_use_cooldown, EVENT_CHAR},                  // eMASTERMIND
+    {"Insect Being", event_daily_use_cooldown, EVENT_CHAR},                        // eINSECTBEING
+                                                                                   /*145*/
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -305,7 +306,7 @@ EVENTFUNC(event_countdown)
   case eVANISHED:
     send_to_char(ch, "You are now able to vanish again.\r\n");
     break;
-    case eMASTERMIND:
+  case eMASTERMIND:
     send_to_char(ch, "You are now able to use your mastermind ability again.\r\n");
     break;
   case eINVISIBLE_ROGUE:
@@ -657,6 +658,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eCRYSTALFIST:
     featnum = FEAT_CRYSTAL_FIST;
     send_to_char(ch, "You may enhance your unarmed attacks again.\r\n");
+    break;
+  case eINSECTBEING:
+    featnum = FEAT_INSECTBEING;
+    send_to_char(ch, "You may use insect being again.\r\n");
     break;
   case eSLA_INVIS:
     featnum = FEAT_SLA_INVIS;
