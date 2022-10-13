@@ -3301,11 +3301,9 @@ SPECIAL(dracolich_mob)
   if (FIGHTING(ch) && rand_number(0, 1))
   {
 
-    if (!rand_number(0, 3))
+    if (!rand_number(0, 3) && call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);)
     {
-
-      call_magic(ch, FIGHTING(ch), 0, SPELL_GAS_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);
-
+      /* looks like the breathe weapon worked */
       return 1;
     }
     else if (!rand_number(0, 3) && perform_tailsweep(ch))
@@ -3315,12 +3313,16 @@ SPECIAL(dracolich_mob)
     }
     else if (!rand_number(0, 3) && perform_dragonfear(ch))
     {
-      /* looks like we did the dragonbite to at least one victim */
+      /* looks like we did the dragonfear to at least one victim */
       return 1;
     }
     else if (!rand_number(0, 4))
     {
       int i = 0;
+
+      act("\tWWith power and determination you unleash an aggressive flurry of attacks!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
 
       /* spam some attacks */
       for (i = 0; i <= rand_number(2, 4); i++)
@@ -3338,6 +3340,9 @@ SPECIAL(dracolich_mob)
     if (!(vict = npc_find_target(ch, &use_aoe)))
       return 0;
 
+    act("\tWWith a grin, you whisper, 'die' while touching $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
+        TO_CHAR);
+
     act("\tL$n cackles with glee at the fray, enjoying every second of the battle\r\n"
         "\tL $s sets her gaze upon you with the most wicked grin you have ever known.",
         FALSE, ch, 0, vict, TO_VICT);
@@ -3346,6 +3351,7 @@ SPECIAL(dracolich_mob)
         FALSE, ch, 0, vict, TO_VICT);
     act("\tLAs the life fades from your body, before collapsing you see is $n's wicked grin staring into your soul..\tn",
         FALSE, ch, 0, vict, TO_VICT);
+
     act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
         "$n \tLreaches out with a skeletal claw and touches \tn$N\tL!\tn",
         TRUE, ch, 0, vict, TO_NOTVICT);
@@ -3353,8 +3359,6 @@ SPECIAL(dracolich_mob)
         "$n\tL literally sucks the life force from $N,\tn\r\n"
         "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
         TRUE, ch, 0, vict, TO_NOTVICT);
-    act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
-        TO_CHAR);
 
     /* added a way to reduce the effectiveness of this attack -zusuk */
     if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
