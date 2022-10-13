@@ -623,7 +623,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       break;
     case '9':
       OLC_MODE(d) = QEDIT_TARGET;
-      write_to_output(d, "Enter target mob/obj vnum or mission "
+      write_to_output(d, "Enter target mob/obj vnum, amount of gold coins, or mission "
                          "difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 severe): ");
       break;
     case 'a':
