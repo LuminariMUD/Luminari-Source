@@ -3297,11 +3297,42 @@ SPECIAL(dracolich_mob)
   if (cmd)
     return 0;
 
-  if (!FIGHTING(ch))
-    return 0;
+  /* this is the offensive arsenal */
+  if (FIGHTING(ch) && rand_number(0, 1))
+  {
 
+    if (!rand_number(0, 3))
+    {
+
+      call_magic(ch, FIGHTING(ch), 0, SPELL_GAS_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);
+
+      return 1;
+    }
+    else if (!rand_number(0, 3) && perform_tailsweep(ch))
+    {
+      /* looks like we did the tailsweeep successffully to at least one victim */
+      return 1;
+    }
+    else if (!rand_number(0, 3) && perform_dragonfear(ch))
+    {
+      /* looks like we did the dragonbite to at least one victim */
+      return 1;
+    }
+    else if (!rand_number(0, 4))
+    {
+      int i = 0;
+
+      /* spam some attacks */
+      for (i = 0; i <= rand_number(2, 4); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+      return 1;
+    }
+  }
   /* special dracolich drain */
-  if (!rand_number(0, 8))
+  else if (!rand_number(0, 6))
   {
     /* find random target, and num targets */
     if (!(vict = npc_find_target(ch, &use_aoe)))
@@ -3344,42 +3375,6 @@ SPECIAL(dracolich_mob)
       GET_HIT(ch) += hitpoints;
 
     return 1;
-  }
-  /* this is the rest of the arsenal */
-  else if (!rand_number(0, 2))
-  {
-    if (!FIGHTING(ch))
-      return 0;
-
-    if (!rand_number(0, 3))
-    {
-
-      call_magic(ch, FIGHTING(ch), 0, SPELL_GAS_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);
-
-      return 1;
-    }
-    else if (!rand_number(0, 3) && perform_tailsweep(ch))
-    {
-      /* looks like we did the tailsweeep successffully to at least one victim */
-      return 1;
-    }
-    else if (!rand_number(0, 3) && perform_dragonfear(ch))
-    {
-      /* looks like we did the dragonbite to at least one victim */
-      return 1;
-    }
-    else if (!rand_number(0, 4))
-    {
-      int i = 0;
-
-      /* spam some attacks */
-      for (i = 0; i <= rand_number(2, 4); i++)
-      {
-        if (valid_fight_cond(ch, TRUE))
-          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
-      }
-      return 1;
-    }
   }
 
   return 0;
