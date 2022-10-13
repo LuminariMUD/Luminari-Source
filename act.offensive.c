@@ -5106,7 +5106,7 @@ ACMD(do_mastermind)
 
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_mastermind);
-  PREREQ_HAS_USES(FEAT_MASTER_OF_THE_MIND "You have expended all of your mastermind attempts.\r\n");
+  PREREQ_HAS_USES(FEAT_MASTER_OF_THE_MIND, "You have expended all of your mastermind attempts.\r\n");
 
   struct affected_type af;
 
