@@ -439,6 +439,7 @@ void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char
 void throw_hedging_weapon(struct char_data *ch);
 void perform_true_judgement(struct char_data *ch);
 int perform_dragonfear(struct char_data *ch);
+bool perform_lichtouch(struct char_data *ch, struct char_data *vict);
 
 /* Functions with subcommands */
 /* do_hit */

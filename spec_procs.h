@@ -144,7 +144,7 @@ SPECIAL_DECL(jot_invasion_loader);
 SPECIAL_DECL(kt_kenjin);
 SPECIAL_DECL(kt_shadowmaker);
 SPECIAL_DECL(kt_twister);
-SPECIAL_DECL(lichdrain);
+SPECIAL_DECL(lich_mob);
 
 /* m-o */
 SPECIAL_DECL(magi_staff);
