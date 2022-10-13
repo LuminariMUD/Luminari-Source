@@ -557,13 +557,25 @@ void assign_mobiles(void)
   ASSIGNMOB(115008, phantom);
 
   /*Mithril Hall Palace*/
-  ASSIGNMOB(126332, lich_mob);
+  ASSIGNMOB(126332, lich_mob); /* tharger */
 
   /*Lizard Marsh*/
-  ASSIGNMOB(121210, lich_mob);
+  ASSIGNMOB(121210, lich_mob); /* redeye */
 
   /*Deep Caverns*/
-  ASSIGNMOB(136903, lich_mob);
+  ASSIGNMOB(136903, lich_mob); /* Azcre */
+
+  /* more lich! */
+  ASSIGNMOB(180300, lich_mob); /* an undead creature */
+  ASSIGNMOB(157502, lich_mob); /* an ancient lich */
+  ASSIGNMOB(135517, lich_mob); /* the lichdrow Dyrr */
+  ASSIGNMOB(114933, lich_mob); /* Thak Neleth */
+  ASSIGNMOB(109505, lich_mob); /* Mortanen */
+  ASSIGNMOB(107850, lich_mob); /* Aumvor, the Lichlord */
+  ASSIGNMOB(105783, lich_mob); /* Rekalogh, the Archwizard of Gracklstugh */
+  ASSIGNMOB(29239, lich_mob);  /* the Liche */
+  ASSIGNMOB(24712, lich_mob);  /* the demilich */
+  ASSIGNMOB(114124, lich_mob); /* the Banelich */
 
   /*Longsaddle*/
   ASSIGNMOB(106807, receptionist);
