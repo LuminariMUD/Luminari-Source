@@ -3478,8 +3478,13 @@ ACMDCHECK(can_dragonfear)
 /* the engine for dragon fear mechanic */
 int perform_dragonfear(struct char_data *ch)
 {
+
+  if (!ch)
+    return 0;
+
   struct affected_type af;
   bool got_em = FALSE;
+  struct char_data *vict = NULL, *next_vict = NULL;
 
   act("You raise your head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
   act("$n raises $s head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
@@ -3523,8 +3528,6 @@ int perform_dragonfear(struct char_data *ch)
 /* this is another version of dragon fear (frightful above is another version) */
 ACMD(do_dragonfear)
 {
-  struct char_data *vict, *next_vict;
-
   PREREQ_CAN_FIGHT();
   PREREQ_CHECK(can_dragonfear);
   PREREQ_NOT_PEACEFUL_ROOM();
