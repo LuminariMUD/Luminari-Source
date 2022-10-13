@@ -1721,7 +1721,7 @@ SPECIAL(the_prisoner)
 }
 
 /* this is the final form of the prisoner! */
-SPECIAL(dracolich)
+SPECIAL(prisoner_dracolich)
 {
   struct char_data *vict = NULL;
   int hitpoints = 0, use_aoe = 0;

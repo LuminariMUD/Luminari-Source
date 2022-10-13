@@ -644,8 +644,16 @@ void assign_mobiles(void)
   ASSIGNMOB(145182, ttf_rotbringer);
   ASSIGNMOB(145189, ttf_patrol);
 
-  ASSIGNMOB(113751, dracolich);
+  ASSIGNMOB(113751, prisoner_dracolich);
   ASSIGNMOB(113750, the_prisoner);
+
+  /* dracolich mobs */
+  ASSIGNMOB(138703, dracolich_mob); /* Neremeezder */
+  ASSIGNMOB(110600, dracolich_mob); /* Aurgloroasa */
+  ASSIGNMOB(31102, dracolich_mob);  /* a dracolich */
+  ASSIGNMOB(29905, dracolich_mob);  /* Wyrenthoth */
+  ASSIGNMOB(5010, dracolich_mob);   /* the dracolich */
+  ASSIGNMOB(138419, dracolich_mob); /* Daurgothoth */
 
   /* Tower of Kenjin */
   ASSIGNMOB(132910, kt_kenjin);
@@ -1038,7 +1046,8 @@ static const struct spec_func_data spec_func_list[] = {
     {"Disruption Mace", disruption_mace, ""},
     {"Dog", dog, ""},
     {"Dorf Axe", dorfaxe, ""},
-    {"Dracolich", dracolich, ""},
+    {"Prisoner Dracolich", prisoner_dracolich, ""},
+    {"Dracolich", dracolich_mob, ""},
     {"Dragon Robes", dragon_robes, ""},
     {"Dragonbone Hammer", dragonbone_hammer, ""},
     //{"Drow Scimitar", drow_scimitar, ""},

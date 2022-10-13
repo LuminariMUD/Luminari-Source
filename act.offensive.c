@@ -2086,7 +2086,7 @@ int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_le
 
   /* messaging! */
   act("You raise your divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
-  act("$n raises $s divine symbol towards you declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n raises $s divine symbol towards you declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_VICT);
   act("$n raises $s divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_NOTVICT);
 
   switch (turn_result)
@@ -3475,24 +3475,14 @@ ACMDCHECK(can_dragonfear)
   return CAN_CMD;
 }
 
-ACMD(do_dragonfear)
+/* the engine for dragon fear mechanic */
+int perform_dragonfear(struct char_data *ch)
 {
-  struct char_data *vict, *next_vict;
-
-  PREREQ_CAN_FIGHT();
-  PREREQ_CHECK(can_dragonfear);
-  PREREQ_NOT_PEACEFUL_ROOM();
-
-  if (!is_action_available(ch, atSWIFT, FALSE))
-  {
-    send_to_char(ch, "You have already used your swift action this round.\r\n");
-    return;
-  }
-
   struct affected_type af;
+  bool got_em = FALSE;
 
-  act("You raise your huge dragonic head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n raises $s huge dragonic head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
+  act("You raise your head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n raises $s head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
@@ -3508,15 +3498,45 @@ ACMD(do_dragonfear)
         continue;
       if (mag_savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
         continue;
-      // success
-      act("You have been shaken by the dragon's might.", FALSE, ch, 0, vict, TO_VICT);
+
+      /* success */
+      act("You have been shaken by $n's might.", FALSE, ch, 0, vict, TO_VICT);
+      act("$N has been shaken by $n's might.", FALSE, ch, 0, vict, TO_ROOM);
       new_affect(&af);
       af.spell = SPELL_DRAGONFEAR;
       af.duration = dice(5, 6);
       SET_BIT_AR(af.bitvector, AFF_SHAKEN);
       affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+
+      /* Failed save, tough luck. */
+      send_to_char(vict, "You PANIC!\r\n");
+      perform_flee(vict);
+      perform_flee(vict);
+
+      got_em = TRUE;
     }
   }
+
+  return got_em;
+}
+
+/* this is another version of dragon fear (frightful above is another version) */
+ACMD(do_dragonfear)
+{
+  struct char_data *vict, *next_vict;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_dragonfear);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  /* engine */
+  perform_dragonfear(ch);
 
   USE_SWIFT_ACTION(ch);
 }
