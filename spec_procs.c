@@ -4450,7 +4450,7 @@ SPECIAL(lich_mob)
       act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
 
       /* spam some nukes! */
-      for (i = 0; i <= rand_number(2, 3); i++)
+      for (i = 0; i <= rand_number(1, 3); i++)
       {
         if (valid_fight_cond(ch, TRUE))
         {
