@@ -299,7 +299,8 @@ static void qedit_disp_menu(struct descriptor_data *d)
   sprintbit(quest->flags, aq_flags, quest_flags, sizeof(quest_flags));
 
   /* create target mob for returning object quest */
-  if (quest->type == AQ_OBJ_RETURN)
+  if (quest->type == AQ_OBJ_RETURN ||
+      quest->type == AQ_GIVE_GOLD)
   {
     if ((return_mob = real_mobile(quest->value[5])) != NOBODY)
       snprintf(buf2, sizeof(buf2), "to %s [%d]",
@@ -351,6 +352,10 @@ static void qedit_disp_menu(struct descriptor_data *d)
   case AQ_OBJ_RETURN:
     snprintf(targetname, sizeof(targetname), "%s",
              real_object(quest->target) == NOTHING ? "An unknown object" : obj_proto[real_object(quest->target)].short_description);
+    break;
+
+  case AQ_GIVE_GOLD:
+    snprintf(targetname, sizeof(targetname), "Must give at least %d gold coins.", quest->target);
     break;
 
   case AQ_WILD_FIND:
@@ -417,7 +422,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                       : "Nothing\r\n",
                   quest_flags,
                   quest->type == AQ_UNDEFINED ? "undefined" : quest_types[quest->type],
-                  quest->type == AQ_OBJ_RETURN ? buf2 : "",
+                  (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD) ? buf2 : "",
                   quest->qm == NOBODY ? -1 : quest->qm,
                   real_mobile(quest->qm) == NOBODY ? "Invalid Mob" : mob_proto[(real_mobile(quest->qm))].player.short_descr,
                   quest->target == NOBODY ? -1 : quest->target, targetname,
@@ -738,10 +743,10 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
     OLC_QUEST(d)->type = number;
-    if (number == AQ_OBJ_RETURN)
+    if (number == AQ_OBJ_RETURN || number == AQ_GIVE_GOLD)
     {
       OLC_MODE(d) = QEDIT_RETURNMOB;
-      write_to_output(d, "Enter mob vnum to return object to : ");
+      write_to_output(d, "Enter mob vnum to return object/gold to : ");
       return;
     }
     break;

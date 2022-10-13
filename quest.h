@@ -35,8 +35,9 @@
 #define AQ_COMPLETE_MISSION 19 /* Player must complete a mission          */
 #define AQ_HOUSE_FIND 20       /* Player must reach house                */
 #define AQ_WILD_FIND 21        /* Player must find specific wilderness room */
+#define AQ_GIVE_GOLD 22        /* Player must give at least X gold */
 /************************/
-#define NUM_AQ_TYPES 22 /* Used in qedit functions                 */
+#define NUM_AQ_TYPES 23 /* Used in qedit functions                 */
 /************************/
 /************************/
 

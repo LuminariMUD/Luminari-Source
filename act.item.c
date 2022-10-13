@@ -2697,6 +2697,9 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict,
 
   increase_gold(vict, amount);
   bribe_mtrigger(vict, ch, amount);
+
+  /* autoquest system check point -Zusuk */
+  autoquest_trigger_check(ch, vict, NULL, amount, AQ_GIVE_GOLD);
 }
 
 ACMDU(do_give)

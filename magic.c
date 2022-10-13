@@ -8789,6 +8789,12 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       return;
     }
 
+    if (IS_POWERFUL_BEING(vict))
+    {
+      send_to_char(ch, "Portal failed!  The target is a powerful being and easily dismises the portal from the other side!\r\n");
+      return;
+    }
+
     if (IN_ROOM(ch) == NOWHERE)
     {
       send_to_char(ch, "Portal failed!  You are NOWHERE!  (report to imm bug magic8274)\r\n");

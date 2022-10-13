@@ -1721,7 +1721,7 @@ ASPELL(spell_summon)
 
   if (GET_LEVEL(victim) > MIN(LVL_IMMORT - 1, level + 3))
   {
-    send_to_char(ch, "%s", SUMMON_FAIL);
+    send_to_char(ch, "(level) %s", SUMMON_FAIL);
     return;
   }
 
@@ -1737,9 +1737,10 @@ ASPELL(spell_summon)
     return;
   }
 
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOSUMMON))
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_NOSUMMON) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOSUMMON))
   {
-    send_to_char(ch, SUMMON_FAIL);
+    send_to_char(ch, "(no-summon room) %s", SUMMON_FAIL);
     return;
   }
 
@@ -1768,15 +1769,26 @@ ASPELL(spell_summon)
     }
   }
 
-  if (mag_resistance(ch, victim, 0))
-    return;
-
   if (MOB_FLAGGED(victim, MOB_NOSUMMON))
   {
     send_to_char(ch, "Your victim seems unsummonable.");
     return;
   }
 
+  if (AFF_FLAGGED(victim, AFF_NOTELEPORT))
+  {
+    send_to_char(ch, "Your traget seems to be affected by teleport protection!\r\n");
+    return;
+  }
+
+  if (IS_POWERFUL_BEING(victim))
+  {
+    send_to_char(ch, "Summon failed!  The target is a powerful being and easily dismisses your annoying magic!\r\n");
+    return;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+    return;
   if (IS_NPC(victim) && mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
   {
     send_to_char(ch, "%s", SUMMON_FAIL);
@@ -1817,6 +1829,12 @@ ASPELL(spell_teleport)
   if (MOB_FLAGGED(victim, MOB_NOSUMMON))
   {
     send_to_char(ch, "The teleportation magic while beginning to form, flashes brightly, then dies suddenly!\r\n");
+    return;
+  }
+
+  if (IS_POWERFUL_BEING(victim))
+  {
+    send_to_char(ch, "Teleport failed!  The target is a powerful being and easily dismisses your magic from the other side!\r\n");
     return;
   }
 
