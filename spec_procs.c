@@ -4362,7 +4362,7 @@ int perform_lichdrain(struct char_data *ch)
   struct char_data *vict = 0;
   int dam = 0;
 
-  if (cmd || GET_POS(ch) == POS_DEAD)
+  if (GET_POS(ch) == POS_DEAD)
     return FALSE;
   if (rand_number(0, 3))
     return FALSE;
@@ -4417,7 +4417,9 @@ SPECIAL(lich_mob)
   if (cmd)
     return 0;
 
-  vict = FIGHTING(ch);
+  /* find random target, and num targets */
+  if (!(vict = npc_find_target(ch, &use_aoe)))
+    return 0;
 
   /* this is the offensive arsenal */
   if (vict && rand_number(0, 1))
@@ -4433,7 +4435,7 @@ SPECIAL(lich_mob)
       /* looks like we did the lichtouch! */
       return 1;
     }
-    else if (!rand_number(0, 2) && (IS_UNDEAD(vict) || IS_LICH(vict)) &&
+    else if (!rand_number(0, 2) && (IS_UNDEAD(ch) || IS_LICH(ch)) &&
              perform_lichtouch(ch, ch))
     {
       /* looks like we did the self healing lichtouch */
