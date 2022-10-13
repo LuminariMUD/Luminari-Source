@@ -2013,56 +2013,26 @@ ACMDCHECK(can_turnundead)
   return CAN_CMD;
 }
 
-/* turn undead skill (clerics, paladins, etc) */
-ACMD(do_turnundead)
+/* this is the engine for turn undead */
+int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_level)
 {
-  struct char_data *vict = NULL;
-  int turn_level = 0;
-  int turn_difference = 0, turn_result = 0, turn_roll = 0;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  PREREQ_CAN_FIGHT();
-  PREREQ_CHECK(can_turnundead);
-
-  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
-    turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
-  turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
-
-  if (turn_level <= 0)
-  {
-    // This should never happen because of the ACMDCHECK_PERMFAIL_IF() in can_turnundead, but leave it in place just to be safe.
-    send_to_char(ch, "You do not possess divine favor!\r\n");
-    return;
-  }
-
-  one_argument(argument, buf, sizeof(buf));
-  if (!(vict = get_char_room_vis(ch, buf, NULL)))
-  {
-    send_to_char(ch, "Turn who?\r\n");
-    return;
-  }
-
-  if (vict == ch)
-  {
-    send_to_char(ch, "How do you plan to turn yourself?\r\n");
-    return;
-  }
-
-  if (!IS_UNDEAD(vict))
+  /* this is redundant IF you came in the normal way, but its here in case we are coming in more directly */
+  if (!vict || !IS_UNDEAD(vict))
   {
     send_to_char(ch, "You can only attempt to turn undead!\r\n");
-    return;
+    return 0;
   }
 
-  /* too powerful */
-  if (GET_LEVEL(vict) >= LVL_IMMORT)
+  /* powerful being mechanic here will override the turn_level */
+  if (IS_POWERFUL_BEING(ch))
   {
-    send_to_char(ch, "This undead is too powerful!\r\n");
-    return;
+    turn_level = GET_LEVEL(ch) + 1;
   }
 
-  turn_difference = (turn_level - GET_LEVEL(vict));
-  turn_roll = d20(ch);
+  int turn_difference = (turn_level - GET_LEVEL(vict));
+  int turn_roll = d20(ch);
+  int turn_result = 0;
 
   switch (turn_difference)
   {
@@ -2114,6 +2084,11 @@ ACMD(do_turnundead)
   else if (turn_difference >= 6)
     turn_result = 2;
 
+  /* messaging! */
+  act("You raise your divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n raises $s divine symbol towards you declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n raises $s divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_NOTVICT);
+
   switch (turn_result)
   {
   case 0: /* Undead resists turning */
@@ -2124,6 +2099,13 @@ ACMD(do_turnundead)
       hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     break;
   case 1: /* Undead is turned */
+
+    /* nice nasty bonus to powerful beings turn ability! */
+    if (IS_POWERFUL_BEING(ch))
+    {
+      call_magic(ch, vict, 0, SPELL_GREATER_RUIN, 0, GET_LEVEL(ch), CAST_INNATE);
+    }
+
     act("The power of your faith overwhelms $N, who flees!", FALSE, ch, 0, vict, TO_CHAR);
     act("The power of $N's faith overwhelms you! You flee in terror!!!", FALSE, vict, 0, ch, TO_CHAR);
     act("The power of $N's faith overwhelms $n, who flees!", FALSE, vict, 0, ch, TO_NOTVICT);
@@ -2136,6 +2118,59 @@ ACMD(do_turnundead)
     dam_killed_vict(ch, vict);
     break;
   }
+
+  return 1;
+}
+
+/* turn undead skill (clerics, paladins, etc) */
+ACMD(do_turnundead)
+{
+  struct char_data *vict = NULL;
+  int turn_level = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_turnundead);
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
+    turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
+  turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
+
+  if (turn_level <= 0)
+  {
+    // This should never happen because of the ACMDCHECK_PERMFAIL_IF() in can_turnundead, but leave it in place just to be safe.
+    send_to_char(ch, "You do not possess divine favor!\r\n");
+    return;
+  }
+
+  one_argument(argument, buf, sizeof(buf));
+  if (!(vict = get_char_room_vis(ch, buf, NULL)))
+  {
+    send_to_char(ch, "Turn who?\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "How do you plan to turn yourself?\r\n");
+    return;
+  }
+
+  if (!IS_UNDEAD(vict))
+  {
+    send_to_char(ch, "You can only attempt to turn undead!\r\n");
+    return;
+  }
+
+  /* too powerful */
+  if (GET_LEVEL(vict) >= LVL_IMMORT)
+  {
+    send_to_char(ch, "This undead is too powerful!\r\n");
+    return;
+  }
+
+  /* this is the engine and messaging! */
+  perform_turnundead(ch, vict, turn_level);
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
@@ -2588,10 +2623,14 @@ ACMD(do_hit)
       }
       for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
       {
-        if (!IS_NPC(mob)) continue;
-        if (AFF_FLAGGED(mob, AFF_CHARM)) continue;
-        if (mob->master && mob->master == ch) continue;
-        if (!CAN_SEE(ch, mob)) continue;
+        if (!IS_NPC(mob))
+          continue;
+        if (AFF_FLAGGED(mob, AFF_CHARM))
+          continue;
+        if (mob->master && mob->master == ch)
+          continue;
+        if (!CAN_SEE(ch, mob))
+          continue;
 
         // ok we found one
         found = true;
@@ -5121,11 +5160,10 @@ ACMD(do_crystalbody)
   PREREQ_CHECK(can_crystalbody);
   PREREQ_HAS_USES(FEAT_CRYSTAL_BODY, "You are too exhausted to harden your body.\r\n");
 
-
   // This ability is now handled in magic.c
-  //send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
-  //act("\tCYou watch as $n's crystalline body becomes harder!\tn", FALSE, ch, 0, 0, TO_NOTVICT);
-  //attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL), (3 * SECS_PER_MUD_HOUR));
+  // send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
+  // act("\tCYou watch as $n's crystalline body becomes harder!\tn", FALSE, ch, 0, 0, TO_NOTVICT);
+  // attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL), (3 * SECS_PER_MUD_HOUR));
   call_magic(ch, ch, 0, RACIAL_ABILITY_CRYSTAL_BODY, 0, GET_LEVEL(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))

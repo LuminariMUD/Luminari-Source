@@ -414,6 +414,7 @@ extern const char *const cmd_door[];
  * Begin Functions and defines for act.offensive.c
  ****************************************************************************/
 /* functions */
+int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_level);
 void clear_rage(struct char_data *ch);
 void clear_defensive_stance(struct char_data *ch);
 void perform_stunningfist(struct char_data *ch);
