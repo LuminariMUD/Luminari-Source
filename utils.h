@@ -1967,6 +1967,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                         (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
                         GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
 
+#define IS_POWERFUL_BEING(ch) ((ch && IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT))
+
 #define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch)  (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))

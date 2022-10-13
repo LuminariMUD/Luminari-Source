@@ -97,7 +97,8 @@ SPECIAL_DECL(cube_slider);
 SPECIAL_DECL(disruption_mace);
 SPECIAL_DECL(dog);
 SPECIAL_DECL(dorfaxe);
-SPECIAL_DECL(dracolich);
+SPECIAL_DECL(prisoner_dracolich);
+SPECIAL_DECL(dracolich_mob);
 SPECIAL_DECL(dragonbone_hammer);
 SPECIAL_DECL(drow_scimitar);
 SPECIAL_DECL(duergar_guard);
@@ -143,7 +144,7 @@ SPECIAL_DECL(jot_invasion_loader);
 SPECIAL_DECL(kt_kenjin);
 SPECIAL_DECL(kt_shadowmaker);
 SPECIAL_DECL(kt_twister);
-SPECIAL_DECL(lichdrain);
+SPECIAL_DECL(lich_mob);
 
 /* m-o */
 SPECIAL_DECL(magi_staff);

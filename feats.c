@@ -692,9 +692,7 @@ void assign_feats(void)
   feato(FEAT_TRELUX_EQ, "trelux eq", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "can't use some eq slots",
         "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, wear "
-        "gloves, use shields or wear rings.  The shape of their head and antennae prevent "
-        "the usage of helmets as well.  Finally, due to their insect-like legs, Trelux cannot "
-        "wear items on their legs and feet.");
+        "gloves, use shields or wear rings.");
   feato(FEAT_TRELUX_PINCERS, "trelux pincers", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "trelux natural pincer weapon",
         "Trelux don't have hands, they have insect-like pincers.  These pincers can "
@@ -706,6 +704,9 @@ void assign_feats(void)
   feato(FEAT_TRELUX_RACIAL_ADJUSTMENT, "trelux racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+4 dex, +2 str, +4 con",
         "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
+  feato(FEAT_INSECTBEING, "insect being", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "powerful boost to stats 3x/day",
+        "Allows you to tap into your insect being, greatly enhancing your stats 3x / day");
 
   /* Shared - Various */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -3540,16 +3541,16 @@ void assign_feats(void)
 
   // EPIC PSIONICIST ABILITIES (AUTOMATICALLY GAINED)
   feato(FEAT_EPIC_AUGMENTING, "epic augmenting", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
-      "Each rank increases the amount of augment points you can use on a power by 5. Also reduces manifesting time by 1 per rank.",
-      "Each rank increases the amount of augment points you can use on a power by 5. Also reduces manifesting time by 1 per rank.");
+        "Each rank increases the amount of augment points you can use on a power by 5. Also reduces manifesting time by 1 per rank.",
+        "Each rank increases the amount of augment points you can use on a power by 5. Also reduces manifesting time by 1 per rank.");
   feato(FEAT_EPIC_PSIONICS, "epic psionics", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
-      "Each rank increases psionic power damage by 10% and DRs by +1.",
-      "Each rank increases psionic power damage by 10% and DRs by +1. If psionic focus is active, the damage increase is 20% and the DR bonus is +2.");
+        "Each rank increases psionic power damage by 10% and DRs by +1.",
+        "Each rank increases psionic power damage by 10% and DRs by +1. If psionic focus is active, the damage increase is 20% and the DR bonus is +2.");
   feato(FEAT_MASTER_OF_THE_MIND, "master of the mind", TRUE, FALSE, TRUE, FEAT_TYPE_PSIONIC,
-      "You can make powers area of affect 3 times per day. You can also add you intelligence bonus to weapon/unarmed attack and damage rolls.",
-      "You become a master of all things mental. 3 times per day you can manifest an ability as a group or area ability that will affect "
-      "all group members or all enemies in the room depending on the nature of the power. This ability uses the 'mastermind' command. You can also "
-      "add your intelligence bonus to weapon/unarmed attack and damage rolls (Max of +5 or +10 if under psionic focus).");
+        "You can make powers area of affect 3 times per day. You can also add you intelligence bonus to weapon/unarmed attack and damage rolls.",
+        "You become a master of all things mental. 3 times per day you can manifest an ability as a group or area ability that will affect "
+        "all group members or all enemies in the room depending on the nature of the power. This ability uses the 'mastermind' command. You can also "
+        "add your intelligence bonus to weapon/unarmed attack and damage rolls (Max of +5 or +10 if under psionic focus).");
   feato(FEAT_PSI_POWER_IMPALE_MIND, "impale mind", TRUE, TRUE, FALSE, FEAT_TYPE_PSIONIC,
         "Gain access to the impale mind power.",
         "Gain access to the impale mind power.");
@@ -4355,6 +4356,7 @@ void assign_feats(void)
   dailyfeat(FEAT_WILD_SHAPE, eWILD_SHAPE);
   dailyfeat(FEAT_CRYSTAL_BODY, eCRYSTALBODY);
   dailyfeat(FEAT_CRYSTAL_FIST, eCRYSTALFIST);
+  dailyfeat(FEAT_INSECTBEING, eINSECTBEING);
   dailyfeat(FEAT_SLA_STRENGTH, eSLA_STRENGTH);
   dailyfeat(FEAT_SLA_ENLARGE, eSLA_ENLARGE);
   dailyfeat(FEAT_SLA_INVIS, eSLA_INVIS);

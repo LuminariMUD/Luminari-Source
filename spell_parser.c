@@ -1008,7 +1008,8 @@ void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
       }
       else
       {
-        GET_OBJ_VAL(obj, 2)--;
+        GET_OBJ_VAL(obj, 2)
+        --;
       }
       USE_STANDARD_ACTION(ch);
 
@@ -1282,7 +1283,7 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
   send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
-  
+
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
   {
     manifest_mastermind_power(ch);
@@ -1303,7 +1304,7 @@ void finishCasting(struct char_data *ch)
     else
     {
       call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), CASTING_SPELLNUM(ch), CASTING_METAMAGIC(ch),
-                (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
+                 (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch), CAST_SPELL);
     }
     affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
   }
@@ -2096,7 +2097,7 @@ return;
         return;
       }
       break;
-    
+
     default:
       send_to_char(ch, "You do not have the appropriate feat!!\r\n");
       return;
@@ -3986,15 +3987,19 @@ void mag_assign_spells(void)
          TAR_IGNORE, TRUE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
 
   spello(RACIAL_ABILITY_CRYSTAL_BODY, "crystal body", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "Your enhanced crystal body returns to normal.", 1, 1, NOSCHOOL, FALSE);
 
   spello(RACIAL_ABILITY_CRYSTAL_FIST, "crystal fist", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "Your enhanced crystal fists return to normal.", 1, 1, NOSCHOOL, FALSE);
 
+  spello(RACIAL_ABILITY_INSECTBEING, "insect being", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+         "Your hyper activation of your insect being fades.", 1, 1, NOSCHOOL, FALSE);
+
   spello(PSIONIC_ABILITY_MASTERMIND, "mastermind", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, 
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "Your mastermind bonus expires.", 1, 1, NOSCHOOL, FALSE);
 
   spello(RACIAL_ABILITY_VAMPIRE_DR, "vampire damage reduction", 0, 0, 0, POS_FIGHTING,

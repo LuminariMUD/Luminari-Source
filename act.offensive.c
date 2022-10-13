@@ -2013,56 +2013,26 @@ ACMDCHECK(can_turnundead)
   return CAN_CMD;
 }
 
-/* turn undead skill (clerics, paladins, etc) */
-ACMD(do_turnundead)
+/* this is the engine for turn undead */
+int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_level)
 {
-  struct char_data *vict = NULL;
-  int turn_level = 0;
-  int turn_difference = 0, turn_result = 0, turn_roll = 0;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  PREREQ_CAN_FIGHT();
-  PREREQ_CHECK(can_turnundead);
-
-  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
-    turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
-  turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
-
-  if (turn_level <= 0)
-  {
-    // This should never happen because of the ACMDCHECK_PERMFAIL_IF() in can_turnundead, but leave it in place just to be safe.
-    send_to_char(ch, "You do not possess divine favor!\r\n");
-    return;
-  }
-
-  one_argument(argument, buf, sizeof(buf));
-  if (!(vict = get_char_room_vis(ch, buf, NULL)))
-  {
-    send_to_char(ch, "Turn who?\r\n");
-    return;
-  }
-
-  if (vict == ch)
-  {
-    send_to_char(ch, "How do you plan to turn yourself?\r\n");
-    return;
-  }
-
-  if (!IS_UNDEAD(vict))
+  /* this is redundant IF you came in the normal way, but its here in case we are coming in more directly */
+  if (!vict || !IS_UNDEAD(vict))
   {
     send_to_char(ch, "You can only attempt to turn undead!\r\n");
-    return;
+    return 0;
   }
 
-  /* too powerful */
-  if (GET_LEVEL(vict) >= LVL_IMMORT)
+  /* powerful being mechanic here will override the turn_level */
+  if (IS_POWERFUL_BEING(ch))
   {
-    send_to_char(ch, "This undead is too powerful!\r\n");
-    return;
+    turn_level = GET_LEVEL(ch) + 1;
   }
 
-  turn_difference = (turn_level - GET_LEVEL(vict));
-  turn_roll = d20(ch);
+  int turn_difference = (turn_level - GET_LEVEL(vict));
+  int turn_roll = d20(ch);
+  int turn_result = 0;
 
   switch (turn_difference)
   {
@@ -2114,6 +2084,11 @@ ACMD(do_turnundead)
   else if (turn_difference >= 6)
     turn_result = 2;
 
+  /* messaging! */
+  act("You raise your divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n raises $s divine symbol towards you declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_VICT);
+  act("$n raises $s divine symbol toward $N declaring, 'BEGONE!'", FALSE, ch, 0, vict, TO_NOTVICT);
+
   switch (turn_result)
   {
   case 0: /* Undead resists turning */
@@ -2124,6 +2099,13 @@ ACMD(do_turnundead)
       hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
     break;
   case 1: /* Undead is turned */
+
+    /* nice nasty bonus to powerful beings turn ability! */
+    if (IS_POWERFUL_BEING(ch))
+    {
+      call_magic(ch, vict, 0, SPELL_GREATER_RUIN, 0, GET_LEVEL(ch), CAST_INNATE);
+    }
+
     act("The power of your faith overwhelms $N, who flees!", FALSE, ch, 0, vict, TO_CHAR);
     act("The power of $N's faith overwhelms you! You flee in terror!!!", FALSE, vict, 0, ch, TO_CHAR);
     act("The power of $N's faith overwhelms $n, who flees!", FALSE, vict, 0, ch, TO_NOTVICT);
@@ -2136,6 +2118,59 @@ ACMD(do_turnundead)
     dam_killed_vict(ch, vict);
     break;
   }
+
+  return 1;
+}
+
+/* turn undead skill (clerics, paladins, etc) */
+ACMD(do_turnundead)
+{
+  struct char_data *vict = NULL;
+  int turn_level = 0;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_turnundead);
+
+  if (CLASS_LEVEL(ch, CLASS_PALADIN) > 2)
+    turn_level += CLASS_LEVEL(ch, CLASS_PALADIN) - 2;
+  turn_level += CLASS_LEVEL(ch, CLASS_CLERIC);
+
+  if (turn_level <= 0)
+  {
+    // This should never happen because of the ACMDCHECK_PERMFAIL_IF() in can_turnundead, but leave it in place just to be safe.
+    send_to_char(ch, "You do not possess divine favor!\r\n");
+    return;
+  }
+
+  one_argument(argument, buf, sizeof(buf));
+  if (!(vict = get_char_room_vis(ch, buf, NULL)))
+  {
+    send_to_char(ch, "Turn who?\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "How do you plan to turn yourself?\r\n");
+    return;
+  }
+
+  if (!IS_UNDEAD(vict))
+  {
+    send_to_char(ch, "You can only attempt to turn undead!\r\n");
+    return;
+  }
+
+  /* too powerful */
+  if (GET_LEVEL(vict) >= LVL_IMMORT)
+  {
+    send_to_char(ch, "This undead is too powerful!\r\n");
+    return;
+  }
+
+  /* this is the engine and messaging! */
+  perform_turnundead(ch, vict, turn_level);
 
   /* Actions */
   USE_STANDARD_ACTION(ch);
@@ -2588,10 +2623,14 @@ ACMD(do_hit)
       }
       for (mob = world[IN_ROOM(ch)].people; mob; mob = mob->next_in_room)
       {
-        if (!IS_NPC(mob)) continue;
-        if (AFF_FLAGGED(mob, AFF_CHARM)) continue;
-        if (mob->master && mob->master == ch) continue;
-        if (!CAN_SEE(ch, mob)) continue;
+        if (!IS_NPC(mob))
+          continue;
+        if (AFF_FLAGGED(mob, AFF_CHARM))
+          continue;
+        if (mob->master && mob->master == ch)
+          continue;
+        if (!CAN_SEE(ch, mob))
+          continue;
 
         // ok we found one
         found = true;
@@ -3436,24 +3475,19 @@ ACMDCHECK(can_dragonfear)
   return CAN_CMD;
 }
 
-ACMD(do_dragonfear)
+/* the engine for dragon fear mechanic */
+int perform_dragonfear(struct char_data *ch)
 {
-  struct char_data *vict, *next_vict;
 
-  PREREQ_CAN_FIGHT();
-  PREREQ_CHECK(can_dragonfear);
-  PREREQ_NOT_PEACEFUL_ROOM();
-
-  if (!is_action_available(ch, atSWIFT, FALSE))
-  {
-    send_to_char(ch, "You have already used your swift action this round.\r\n");
-    return;
-  }
+  if (!ch)
+    return 0;
 
   struct affected_type af;
+  bool got_em = FALSE;
+  struct char_data *vict = NULL, *next_vict = NULL;
 
-  act("You raise your huge dragonic head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n raises $s huge dragonic head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
+  act("You raise your head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n raises $s head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
@@ -3469,15 +3503,43 @@ ACMD(do_dragonfear)
         continue;
       if (mag_savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
         continue;
-      // success
-      act("You have been shaken by the dragon's might.", FALSE, ch, 0, vict, TO_VICT);
+
+      /* success */
+      act("You have been shaken by $n's might.", FALSE, ch, 0, vict, TO_VICT);
+      act("$N has been shaken by $n's might.", FALSE, ch, 0, vict, TO_ROOM);
       new_affect(&af);
       af.spell = SPELL_DRAGONFEAR;
       af.duration = dice(5, 6);
       SET_BIT_AR(af.bitvector, AFF_SHAKEN);
       affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+
+      /* Failed save, tough luck. */
+      send_to_char(vict, "You PANIC!\r\n");
+      perform_flee(vict);
+      perform_flee(vict);
+
+      got_em = TRUE;
     }
   }
+
+  return got_em;
+}
+
+/* this is another version of dragon fear (frightful above is another version) */
+ACMD(do_dragonfear)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_dragonfear);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  /* engine */
+  perform_dragonfear(ch);
 
   USE_SWIFT_ACTION(ch);
 }
@@ -5067,7 +5129,7 @@ ACMD(do_mastermind)
 
   PREREQ_NOT_NPC();
   PREREQ_CHECK(can_mastermind);
-  PREREQ_HAS_USES(FEAT_CRYSTAL_FIST, "You have expended all of your mastermind attempts.\r\n");
+  PREREQ_HAS_USES(FEAT_MASTER_OF_THE_MIND, "You have expended all of your mastermind attempts.\r\n");
 
   struct affected_type af;
 
@@ -5083,6 +5145,25 @@ ACMD(do_mastermind)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_MASTER_OF_THE_MIND);
+}
+
+ACMDCHECK(can_insectbeing)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_INSECTBEING, "How do you plan on doing that?\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_insectbeing)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_insectbeing);
+  PREREQ_HAS_USES(FEAT_INSECTBEING, "You are too exhausted to use insect being.\r\n");
+
+  call_magic(ch, ch, 0, RACIAL_ABILITY_INSECTBEING, 0, GET_LEVEL(ch), CAST_INNATE);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_INSECTBEING);
 }
 
 ACMDCHECK(can_crystalfist)
@@ -5121,11 +5202,10 @@ ACMD(do_crystalbody)
   PREREQ_CHECK(can_crystalbody);
   PREREQ_HAS_USES(FEAT_CRYSTAL_BODY, "You are too exhausted to harden your body.\r\n");
 
-
   // This ability is now handled in magic.c
-  //send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
-  //act("\tCYou watch as $n's crystalline body becomes harder!\tn", FALSE, ch, 0, 0, TO_NOTVICT);
-  //attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL), (3 * SECS_PER_MUD_HOUR));
+  // send_to_char(ch, "\tCYour crystalline body becomes harder!\tn\r\n");
+  // act("\tCYou watch as $n's crystalline body becomes harder!\tn", FALSE, ch, 0, 0, TO_NOTVICT);
+  // attach_mud_event(new_mud_event(eCRYSTALBODY_AFF, ch, NULL), (3 * SECS_PER_MUD_HOUR));
   call_magic(ch, ch, 0, RACIAL_ABILITY_CRYSTAL_BODY, 0, GET_LEVEL(ch), CAST_INNATE);
 
   if (!IS_NPC(ch))
@@ -7497,11 +7577,21 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
       ch->next_in_room != vict && vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
-    return FALSE;
+
+    if (!IS_POWERFUL_BEING(ch))
+      return FALSE;
   }
 
   /* compute amount of points heal vs damage */
   int amount = 10 + GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
+  int dc = 10 + GET_INT_BONUS(ch) + (GET_LEVEL(ch) / 2);
+
+  if (IS_POWERFUL_BEING(ch))
+  {
+    amount *= 2;
+    amount += (GET_LEVEL(ch) - 30) * 50;
+    dc += (GET_LEVEL(ch) - 30) * 4;
+  }
 
   /* this skill will heal undead */
   if (IS_UNDEAD(vict) || IS_LICH(vict))
@@ -7510,14 +7600,14 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 
     if (ch == vict)
     {
-      act("You focus necromantic power inward, and the surge of negative energy heals you.", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n glows with necromantic negative energy as wounds heal.", FALSE, ch, 0, vict, TO_NOTVICT);
+      act("\tWYou focus necromantic power inward, and the surge of negative energy heals you.\tn", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n \tWglows with necromantic negative energy as wounds heal.\tn", FALSE, ch, 0, vict, TO_NOTVICT);
     }
     else
     {
-      act("You reach out and touch $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n reaches out and touches you with necromantic power, and the surge of negative energy heals you.", FALSE, ch, 0, vict, TO_VICT);
-      act("$n reaches out and touches $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_NOTVICT);
+      act("\tWYou reach out and touch $N with necromantic power, and the surge of negative energy heals $M.\tn", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n \tWreaches out and touches you with necromantic power, and the surge of negative energy heals you.\tn", FALSE, ch, 0, vict, TO_VICT);
+      act("$n \tWreaches out and touches $N with necromantic power, and the surge of negative energy heals $M.\tn", FALSE, ch, 0, vict, TO_NOTVICT);
     }
 
     process_healing(ch, vict, RACIAL_LICH_TOUCH, amount, 0);
@@ -7541,12 +7631,12 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   if (!pvp_ok(ch, vict, true))
     return FALSE;
 
-  act("You reach out and touch $N with negative energy, and $E wilts before you.", FALSE, ch, 0, vict, TO_CHAR);
-  act("$n reaches out and touches you with negative energy, causing you to wilt before $m.", FALSE, ch, 0, vict, TO_VICT);
-  act("$n reaches out and touches $N with negative energy, causing $M to wilt!", FALSE, ch, 0, vict, TO_NOTVICT);
+  act("\tLYou reach out and touch $N with \tRnegative energy\tL, and $E wilts before you.\tn", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n \tLreaches out and touches you with \tRnegative energy\tL, causing you to wilt before $m.\tn", FALSE, ch, 0, vict, TO_VICT);
+  act("$n \tLreaches out and touches $N with \tRnegative energy\tL, causing $M to wilt!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
 
   /* paralysis - fortitude save */
-  if (!savingthrow(vict, SAVING_FORT, 0, 0))
+  if (!savingthrow(vict, SAVING_FORT, 0, dc))
   {
     if (!paralysis_immunity(vict))
     {
@@ -7560,11 +7650,11 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
 
-      act("$n glows with black energy as $s touch paralyzes $N!",
+      act("$n \tWglows with \tLblack energy as $s touch \tWparalyzes $N!\tn",
           FALSE, ch, NULL, vict, TO_NOTVICT);
-      act("You glow with black energy as you paralyze $N with your touch!",
+      act("You \tWglow with \tLblack energy as you \tWparalyze $N with your touch!\tn",
           FALSE, ch, NULL, vict, TO_CHAR);
-      act("$n glows with black energy as $s touch paralyzes you!",
+      act("$n \tWglows with \tLblack energy as $s touch \tWparalyzes you!\tn",
           FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
     }
   }

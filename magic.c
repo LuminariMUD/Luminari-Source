@@ -296,43 +296,43 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
 
   if (is_spellnum_psionic(spellnum))
   {
-    if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
+    if (ch && HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
     {
       challenge += HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 2 : 1);
     }
   }
 
-  if (IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US))
+  if (ch && IS_UNDEAD(ch) && HAS_FEAT(vict, FEAT_ONE_OF_US))
     challenge += 4;
 
-  if (HAS_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA) && school == ENCHANTMENT)
+  if (ch && HAS_FEAT(ch, FEAT_FEY_BLOODLINE_ARCANA) && school == ENCHANTMENT)
     challenge += 2;
 
-  if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), school))
+  if (ch && HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), school))
   {
     /*deubg*/
     // send_to_char(ch, "Bingo!\r\n");
     challenge += 2;
   }
-  if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), school))
+  if (ch && HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), school))
   {
     /*deubg*/
     // send_to_char(ch, "Bingo 2!\r\n");
     challenge += 2;
   }
-  if (HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), school))
+  if (ch && HAS_FEAT(ch, FEAT_EPIC_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_EPIC_SPELL_FOCUS), school))
   {
     /*deubg*/
     // send_to_char(ch, "Bingo 2!\r\n");
     challenge += 3;
   }
-  if (!IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school)
+  if (ch && !IS_NPC(ch) && GET_SPECIALTY_SCHOOL(ch) == school)
   {
     /*deubg*/
     // send_to_char(ch, "Bingo 3!\r\n");
     challenge += 2;
   }
-  if (HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER) && GET_BLOODLINE_SUBTYPE(ch) == school)
+  if (ch && HAS_REAL_FEAT(ch, FEAT_SCHOOL_POWER) && GET_BLOODLINE_SUBTYPE(ch) == school)
   {
     challenge += 2;
   }
@@ -340,27 +340,28 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   if (IN_ROOM(vict) != NOWHERE && ROOM_AFFECTED(IN_ROOM(vict), RAFF_SACRED_SPACE) && IS_EVIL(vict))
     challenge += 1;
 
-  if (HAS_FEAT(ch, FEAT_WIZ_DEBUFF) && !rand_number(0, 2))
+  if (ch && HAS_FEAT(ch, FEAT_WIZ_DEBUFF) && !rand_number(0, 2))
   {
     send_to_char(ch, "\tW*you flare with magical POWAH!*\tn ");
     challenge += 20;
   }
 
-  challenge += GET_DC_BONUS(ch);
+  if (ch)
+    challenge += GET_DC_BONUS(ch);
 
-  if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
+  if (ch && AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
     savethrow += 2;
-  if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch))
+  if (ch && AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch))
     savethrow += 2;
-  if (casttype == CAST_WEAPON_POISON)
+  if (ch && casttype == CAST_WEAPON_POISON)
     savethrow += get_poison_save_mod(ch, vict);
-  if (IS_FRIGHTENED(ch))
+  if (ch && IS_FRIGHTENED(ch))
     savethrow -= 2;
   if (affected_by_aura_of_despair(vict))
     savethrow -= 2;
   if (AFF_FLAGGED(vict, AFF_SICKENED))
     savethrow -= 2;
-  if (IS_UNDEAD(ch) && affected_by_spell(vict, SPELL_VEIL_OF_POSITIVE_ENERGY))
+  if (ch && IS_UNDEAD(ch) && affected_by_spell(vict, SPELL_VEIL_OF_POSITIVE_ENERGY))
     savethrow += 2;
 
   // vampire bonuses / penalties for feeding
@@ -371,9 +372,9 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
 
   if (has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER))
   {
-    if (IS_EVIL(vict) && !IS_EVIL(ch))
+    if (ch && IS_EVIL(vict) && !IS_EVIL(ch))
       savethrow += has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER);
-    else if (!IS_EVIL(vict) && IS_EVIL(ch))
+    else if (ch && !IS_EVIL(vict) && IS_EVIL(ch))
       savethrow += has_teamwork_feat(vict, FEAT_PHALANX_FIGHTER);
   }
 
@@ -2140,7 +2141,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   } /* end switch(spellnum) */
   /**************************/
-  
 
   if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     size_dice++;
@@ -5920,8 +5920,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_DR;
-    af[0].modifier = 0;
-    af[0].duration = 10 + level / 2;
+    af[0].modifier = 3;
+    af[0].duration = 24 + GET_CON_BONUS(ch) + level / 2;
     to_room = "\tCYou watch as $n's crystalline body becomes harder!\tn";
     to_vict = "\tCYour crystalline body becomes harder!\tn";
 
@@ -5944,11 +5944,48 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_DR(victim) = new_dr;
     break;
 
+  case RACIAL_ABILITY_INSECTBEING:
+
+    af[0].location = APPLY_AC_NEW;
+    af[0].bonus_type = BONUS_TYPE_RACIAL;
+    af[0].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[0].modifier = level / 6;
+
+    af[1].location = APPLY_HITROLL;
+    af[1].bonus_type = BONUS_TYPE_RACIAL;
+    af[1].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[1].modifier = level / 6;
+
+    af[2].location = APPLY_SAVING_FORT;
+    af[2].bonus_type = BONUS_TYPE_RACIAL;
+    af[2].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[2].modifier = level / 6;
+
+    af[3].location = APPLY_SAVING_WILL;
+    af[3].bonus_type = BONUS_TYPE_RACIAL;
+    af[3].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[3].modifier = level / 6;
+
+    af[4].location = APPLY_SAVING_REFL;
+    af[4].bonus_type = BONUS_TYPE_RACIAL;
+    af[4].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[4].modifier = level / 6;
+
+    af[5].location = APPLY_DEX;
+    af[5].bonus_type = BONUS_TYPE_RACIAL;
+    af[5].duration = 24 + GET_CON_BONUS(ch) + level / 2;
+    af[5].modifier = level / 6;
+
+    to_vict = "\tCYou attune to your insect being!\tn";
+    to_room = "\tC$n attunes to $s insect being!\tn";
+
+    break;
+
   case RACIAL_ABILITY_CRYSTAL_FIST:
 
     af[0].location = APPLY_DAMROLL;
     af[0].bonus_type = BONUS_TYPE_RACIAL;
-    af[0].duration = 10 + level / 2;
+    af[0].duration = 24 + GET_CON_BONUS(ch) + level / 2;
     af[0].modifier = 3;
 
     to_vict = "\tCLarge, razor sharp crystals sprout from your hands and arms!\tn";

@@ -1009,6 +1009,8 @@ void assign_races(void)
   feat_race_assignment(RACE_TRELUX, FEAT_WINGS, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_EQ, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS, 1, N);
+  feat_race_assignment(RACE_TRELUX, FEAT_INSECTBEING, 1, N);
+
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
@@ -1035,13 +1037,12 @@ void assign_races(void)
                                "might simply kill another or drive him insane. "
                                "\r\n\r\n"
                                "Please note that a Lich will be the same size class they were before the transformation.\r\n  "
-                               "Please note that a Lich is the one of the only Epic Races that can multi-class.\r\n  "
                                "Please note that becoming a lich requires level 30 and will reset your exp to 0.\r\n  "
                                "Please note that a Lich has all the advantages/disadvantages of being Undead.\r\n  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
   set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_LICH, 2, 2, 6, 2, 2, 2);           /* str con int wis dex cha */
+  set_race_abilities(RACE_LICH, -2, 0, 6, 2, 0, 6);          /* str con int wis dex cha */
   set_race_alignments(RACE_LICH, N, N, N, N, N, N, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_LICH,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -1100,13 +1101,12 @@ void assign_races(void)
                                "reality."
                                "\r\n\r\n"
                                "Please note that a Vampire will be the same size class they were before the transformation.\r\n  "
-                               "Please note that a Vampire is the one of the only Epic Races that can multi-class.\r\n  "
                                "Please note that becoming a Vampire requires level 30 and will reset your exp to 0.\r\n  "
                                "Please note that a Vampire has all the advantages/disadvantages of being Undead.\r\n  ",
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Vampire.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Vampire.");
   set_race_genders(RACE_VAMPIRE, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_VAMPIRE, 6, 0, 2, 2, 4, 4);           /* str con int wis dex cha */
+  set_race_abilities(RACE_VAMPIRE, 6, 2, 2, 2, 4, 4);           /* str con int wis dex cha */
   set_race_alignments(RACE_VAMPIRE, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_VAMPIRE,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */

@@ -3284,6 +3284,112 @@ SPECIAL(janitor)
   return (FALSE);
 }
 
+/* this is the generic dracolich procs -zusuk */
+SPECIAL(dracolich_mob)
+{
+  struct char_data *vict = NULL;
+  int hitpoints = 0, use_aoe = 0;
+
+  if (!ch)
+    return 0;
+
+  /* note that the !vict is moved below */
+  if (cmd)
+    return 0;
+
+  /* this is the offensive arsenal */
+  if (FIGHTING(ch) && rand_number(0, 1))
+  {
+
+    if (!rand_number(0, 3) && call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE))
+    {
+      /* looks like the breathe weapon worked */
+      return 1;
+    }
+    else if (!rand_number(0, 3) && perform_tailsweep(ch))
+    {
+      /* looks like we did the tailsweeep successffully to at least one victim */
+      return 1;
+    }
+    else if (!rand_number(0, 3) && perform_dragonfear(ch))
+    {
+      /* looks like we did the dragonfear to at least one victim */
+      return 1;
+    }
+    else if (!rand_number(0, 4))
+    {
+      int i = 0;
+
+      act("\tWWith power and determination you unleash an aggressive flurry of attacks!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of attacks!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+
+      /* spam some attacks */
+      for (i = 0; i <= rand_number(2, 4); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+      return 1;
+    }
+  }
+  /* special dracolich drain */
+  else if (!rand_number(0, 6))
+  {
+    /* find random target, and num targets */
+    if (!(vict = npc_find_target(ch, &use_aoe)))
+      return 0;
+
+    act("\tWWith a grin, you whisper, 'die' while touching $N, who keels over and falls over in excruciating pain!\tn", TRUE, ch, 0, vict,
+        TO_CHAR);
+
+    act("\tL$n cackles with glee at the fray, enjoying every second of the battle\r\n"
+        "\tL $s sets her gaze upon you with the most wicked grin you have ever known.",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
+        "\tWAs you flail in pain, you see a stream of your own life force flowing away from you..",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("\tLAs the life drains from your body, you see $n's wicked grin staring into your soul..\tn",
+        FALSE, ch, 0, vict, TO_VICT);
+
+    act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
+        "$n \tLreaches out with a skeletal claw and touches \tn$N\tL!\tn",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+        "$n\tL literally sucks the life force from $N,\tn\r\n"
+        "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+
+    /* added a way to reduce the effectiveness of this attack -zusuk */
+    if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
+    {
+      hitpoints = damage(ch, vict, rand_number(100, GET_LEVEL(ch) * 20), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+    }
+    else
+    {
+      if (GET_HIT(vict) <= 20)
+      {                                                                                            /* try to finish the victim */
+        hitpoints = damage(ch, vict, rand_number(100, GET_LEVEL(ch) * 20), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+      }
+      else
+      {
+        hitpoints = GET_HIT(vict);
+        GET_HIT(vict) = 21;
+      }
+    }
+
+    /* heal/vamp effect from the attack */
+    if (hitpoints < 120)
+      hitpoints = 120;
+
+    GET_HIT(ch) += hitpoints;
+
+    return 1;
+  }
+
+  return 0;
+}
+
 /* custom mob code for vampire mobs -zusuk */
 SPECIAL(vampire_mob)
 {
@@ -4245,14 +4351,18 @@ SPECIAL(phantom)
   return TRUE;
 }
 
-/* from homeland */
-SPECIAL(lichdrain)
+/* this is the old lichdrain, don't think it works in its current
+   implementation */
+int perform_lichdrain(struct char_data *ch)
 {
+  if (!ch)
+    return 0;
+
   struct char_data *tch = 0;
   struct char_data *vict = 0;
   int dam = 0;
 
-  if (cmd || GET_POS(ch) == POS_DEAD)
+  if (GET_POS(ch) == POS_DEAD)
     return FALSE;
   if (rand_number(0, 3))
     return FALSE;
@@ -4292,6 +4402,83 @@ SPECIAL(lichdrain)
   GET_HIT(vict) -= dam;
   USE_FULL_ROUND_ACTION(vict);
   return TRUE;
+}
+
+/* threw this together so the experience of encountering lich isn't a pleasant one :P */
+SPECIAL(lich_mob)
+{
+  struct char_data *vict = NULL;
+  int use_aoe = 0;
+
+  if (!ch)
+    return 0;
+
+  /* note that the !vict is moved below */
+  if (cmd)
+    return 0;
+
+  /* find random target, and num targets */
+  if (!(vict = npc_find_target(ch, &use_aoe)))
+    return 0;
+
+  /* this is the offensive arsenal */
+  if (vict && rand_number(0, 1))
+  {
+
+    if (!rand_number(0, 5))
+    {
+      act("\tWWith power and determination you unleash an aggressive BURST of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+
+      /* looks like the swarm worked */
+      if (call_magic(ch, vict, 0, SPELL_METEOR_SWARM, 0, GET_LEVEL(ch), CAST_INNATE))
+        return 1;
+    }
+    else if (!rand_number(0, 2) && (!IS_UNDEAD(vict) && !IS_LICH(vict)) &&
+             perform_lichtouch(ch, vict))
+    {
+      /* looks like we did the lichtouch! */
+      return 1;
+    }
+    else if (!rand_number(0, 2) && (IS_UNDEAD(ch) || IS_LICH(ch)) &&
+             perform_lichtouch(ch, ch))
+    {
+      /* looks like we did the self healing lichtouch */
+      return 1;
+    }
+    else if (!rand_number(0, 4))
+    {
+      int i = 0;
+
+      act("\tWWith power and determination you unleash an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+
+      /* spam some nukes! */
+      for (i = 0; i <= rand_number(1, 3); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+        {
+          switch (rand_number(0, 2))
+          {
+          case 0:
+            call_magic(ch, vict, 0, SPELL_PRISMATIC_SPRAY, 0, GET_LEVEL(ch), CAST_INNATE);
+            break;
+          case 1:
+            call_magic(ch, vict, 0, SPELL_CHAIN_LIGHTNING, 0, GET_LEVEL(ch), CAST_INNATE);
+            break;
+          default:
+            call_magic(ch, vict, 0, SPELL_THUNDERCLAP, 0, GET_LEVEL(ch), CAST_INNATE);
+            break;
+          }
+        }
+      }
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 /* from homeland */
@@ -8398,11 +8585,11 @@ SPECIAL(bolthammer)
         "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
         "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
 
-        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
         "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes you\tn\r\n"
         "\tlwith full force.\tn",
 
-        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
         "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
         "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
         ch, vict, (struct obj_data *)me, 0);
@@ -8416,11 +8603,11 @@ SPECIAL(bolthammer)
         "$N \tLwith full force. When the flash is gone\r\n"
 
         "\tL you see the corpse of\tn $N \tLstill twitching on the ground.\tn",
-        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
         "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
         "\tLyou with full force. You twitch a few times before your body goes still forever.\tn",
 
-        "$n's�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
         "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn \tn\r\n"
         "$N \tLwith full force. When the flash is gone you see\r\n"
         "\tLthe corpse of\tn $N \tLstill twitching on the ground.\tn",

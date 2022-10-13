@@ -2123,14 +2123,15 @@
 #define FEAT_PSI_POWER_RAZOR_STORM 887
 #define FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING 888
 #define FEAT_PSI_POWER_EPIC_PSIONIC_WARD 889
-
+/******/
+#define FEAT_INSECTBEING 890
 /******/
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 890
+#define FEAT_LAST_FEAT 891
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 891
+#define NUM_FEATS 892
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -2305,7 +2306,7 @@
 #define ITEM_HUNT_TROPHY 49    // used to mark a hunt target mob
 #define ITEM_WEAPON_OIL 50
 #define ITEM_GEAR_OUTFIT 51
-#define ITEM_DRINK 52          // Used for the nerw drink system.  Replaces drink containers and fountains.
+#define ITEM_DRINK 52 // Used for the nerw drink system.  Replaces drink containers and fountains.
 /* make sure to add to - display_item_object_values() */
 #define NUM_ITEM_TYPES 53 /** Total number of item types.*/
 
@@ -2562,8 +2563,8 @@
 #define ITEM_ANTI_ARCANE_SHADOW 89
 #define ITEM_ANTI_SACRED_FIST 90
 #define ITEM_ANTI_ELDRITCH_KNIGHT 91
-#define ITEM_SHOCK 92     // for shocking weapons
-#define ITEM_ANTI_LICH 93 /* Not usable by lich */
+#define ITEM_SHOCK 92        // for shocking weapons
+#define ITEM_ANTI_LICH 93    /* Not usable by lich */
 #define ITEM_ANTI_VAMPIRE 94 // Not useable by Lich
 #define ITEM_VAMPIRE_ONLY 95 // Only vampires can use
 /** Total number of item flags */
@@ -4010,9 +4011,9 @@ struct player_special_data_saved
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
     byte slayer_judgement;                      // which judgement is using the slayer bonus
 
-    int setcloak_timer;       // used for setting stats on vampire cloaks.
+    int setcloak_timer; // used for setting stats on vampire cloaks.
 
-    int time_since_last_feeding;    // how long since the vampire last fed on blood
+    int time_since_last_feeding; // how long since the vampire last fed on blood
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

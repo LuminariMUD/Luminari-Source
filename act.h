@@ -414,6 +414,7 @@ extern const char *const cmd_door[];
  * Begin Functions and defines for act.offensive.c
  ****************************************************************************/
 /* functions */
+int perform_turnundead(struct char_data *ch, struct char_data *vict, int turn_level);
 void clear_rage(struct char_data *ch);
 void clear_defensive_stance(struct char_data *ch);
 void perform_stunningfist(struct char_data *ch);
@@ -423,8 +424,7 @@ void perform_rescue(struct char_data *ch, struct char_data *vict);
 void perform_smite(struct char_data *ch, int smite_type);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
-bool perform_knockdown(struct char_data *ch, struct char_data *vict,
-                       int skill);
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill);
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
 void perform_sap(struct char_data *ch, struct char_data *vict);
@@ -438,6 +438,9 @@ int perform_collect(struct char_data *ch, bool silent);
 void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char *cruelty);
 void throw_hedging_weapon(struct char_data *ch);
 void perform_true_judgement(struct char_data *ch);
+int perform_dragonfear(struct char_data *ch);
+bool perform_lichtouch(struct char_data *ch, struct char_data *vict);
+
 /* Functions with subcommands */
 /* do_hit */
 ACMD_DECL(do_hit);
@@ -451,7 +454,6 @@ ACMD_DECL(do_mark);
 
 /* Functions without subcommands */
 ACMD_DECL(do_cexchange);
-// ACMD(do_cexchange);
 ACMD_DECL(do_fire);
 ACMD_DECL(do_aura_of_vengeance);
 ACMD_DECL(do_aura_of_justice);
@@ -565,6 +567,8 @@ ACMD_DECL(do_crystalbody);
 ACMDCHECK(can_crystalbody);
 ACMD_DECL(do_mastermind);
 ACMDCHECK(can_mastermind);
+ACMD_DECL(do_insectbeing);
+ACMDCHECK(can_insectbeing);
 ACMD_DECL(do_surpriseaccuracy);
 ACMDCHECK(can_surpriseaccuracy);
 ACMD_DECL(do_powerfulblow);
