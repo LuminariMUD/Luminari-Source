@@ -4408,7 +4408,7 @@ int perform_lichdrain(struct char_data *ch)
 SPECIAL(lich_mob)
 {
   struct char_data *vict = NULL;
-  int hitpoints = 0, use_aoe = 0;
+  int use_aoe = 0;
 
   if (!ch)
     return 0;
