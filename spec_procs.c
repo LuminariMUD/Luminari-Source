@@ -3284,6 +3284,107 @@ SPECIAL(janitor)
   return (FALSE);
 }
 
+/* this is the generic dracolich procs -zusuk */
+SPECIAL(dracolich_mob)
+{
+  struct char_data *vict = NULL;
+  int hitpoints = 0, use_aoe = 0;
+
+  if (!ch)
+    return 0;
+
+  /* note that the !vict is moved below */
+  if (cmd)
+    return 0;
+
+  if (!FIGHTING(ch))
+    return 0;
+
+  /* special dracolich drain */
+  if (!rand_number(0, 8))
+  {
+    /* find random target, and num targets */
+    if (!(vict = npc_find_target(ch, &use_aoe)))
+      return 0;
+
+    act("\tL$n cackles with glee at the fray, enjoying every second of the battle\r\n"
+        "\tL $s sets her gaze upon you with the most wicked grin you have ever known.",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
+        "\tWAs you fall, you see a stream of your own life force flowing away from you..",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("\tLAs the life fades from your body, before collapsing you see is $n's wicked grin staring into your soul..\tn",
+        FALSE, ch, 0, vict, TO_VICT);
+    act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
+        "$n \tLreaches out with a skeletal claw and touches \tn$N\tL!\tn",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+    act("\tL$N\tr SCREAMS\tL in agony, doubling over in pain so intense it makes you cringe!!\tn\r\n"
+        "$n\tL literally sucks the life force from $N,\tn\r\n"
+        "\tLwho crumples into a ball of unfathomable pain onto the ground...\tn",
+        TRUE, ch, 0, vict, TO_NOTVICT);
+    act("\tWWith a grin, you whisper, 'die' at $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
+        TO_CHAR);
+
+    /* added a way to reduce the effectiveness of this attack -zusuk */
+    if (AFF_FLAGGED(vict, AFF_DEATH_WARD) && !rand_number(0, 2))
+    {
+      hitpoints = damage(ch, vict, rand_number(100, GET_LEVEL(ch) * 20), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+    }
+    else
+    {
+      hitpoints = GET_HIT(vict);
+
+      GET_HIT(vict) = 0;
+    }
+
+    if (hitpoints < 99)
+      hitpoints = 99;
+
+    if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
+      GET_HIT(ch) += hitpoints;
+
+    return 1;
+  }
+  /* this is the rest of the arsenal */
+  else if (!rand_number(0, 2))
+  {
+    if (!FIGHTING(ch))
+      return 0;
+
+    if (!rand_number(0, 3))
+    {
+
+      call_magic(ch, FIGHTING(ch), 0, SPELL_GAS_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);
+
+      return 1;
+    }
+    else if (!rand_number(0, 3) && perform_tailsweep(ch))
+    {
+      /* looks like we did the tailsweeep successffully to at least one victim */
+      return 1;
+    }
+    else if (!rand_number(0, 3) && perform_dragonfear(ch))
+    {
+      /* looks like we did the dragonbite to at least one victim */
+      return 1;
+    }
+    else if (!rand_number(0, 4))
+    {
+      int i = 0;
+
+      /* spam some attacks */
+      for (i = 0; i <= rand_number(2, 4); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /* custom mob code for vampire mobs -zusuk */
 SPECIAL(vampire_mob)
 {
