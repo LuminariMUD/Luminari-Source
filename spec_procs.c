@@ -4425,12 +4425,18 @@ SPECIAL(lich_mob)
   if (vict && rand_number(0, 1))
   {
 
-    if (!rand_number(0, 5) && call_magic(ch, vict, 0, SPELL_HELLBALL, 0, GET_LEVEL(ch), CAST_INNATE))
+    if (!rand_number(0, 5))
     {
-      /* looks like the hellball worked */
-      return 1;
+      act("\tWWith power and determination you unleash an aggressive BURST of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive BURST of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+
+      /* looks like the swarm worked */
+      if (call_magic(ch, vict, 0, SPELL_METEOR_SWARM, 0, GET_LEVEL(ch), CAST_INNATE))
+        return 1;
     }
-    else if (!rand_number(0, 2) && perform_lichtouch(ch, vict))
+    else if (!rand_number(0, 2) && (!IS_UNDEAD(vict) && !IS_LICH(vict)) &&
+             perform_lichtouch(ch, vict))
     {
       /* looks like we did the lichtouch! */
       return 1;
