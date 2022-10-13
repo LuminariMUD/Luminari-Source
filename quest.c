@@ -64,6 +64,7 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {
     "Complete a Mission",
     "Find a Player House",           /* 20 */
     "Get to Wilderness Coordinates", /* 21 */
+    "Give Gold",                     /* 22 */
     "\n"};
 
 const char *aq_flags[] = {
@@ -797,6 +798,12 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
           generic_complete_quest(ch, index);
       break;
 
+    case AQ_GIVE_GOLD:
+      if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
+        if (GET_GOLD(vict) >= QST_TARGET(rnum))
+          generic_complete_quest(ch, index);
+      break;
+
     case AQ_ROOM_CLEAR:
       if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
       {
@@ -1398,6 +1405,10 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                real_object(QST_TARGET(rnum)) == NOTHING ? "An unknown object" : obj_proto[real_object(QST_TARGET(rnum))].short_description);
       break;
 
+    case AQ_GIVE_GOLD:
+      snprintf(targetname, sizeof(targetname), "Minimum gold need to be given: %d ", QST_TARGET(rnum));
+      break;
+
     case AQ_WILD_FIND:
       snprintf(targetname, sizeof(targetname), "Co-ords: %d, %d ", QST_COORD_X(rnum), QST_COORD_Y(rnum));
       break;
@@ -1471,7 +1482,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                    QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
                    QST_PREREQ(rnum) == NOTHING ? "" : real_object(QST_PREREQ(rnum)) == NOTHING ? "an unknown object"
                                                                                                : obj_proto[real_object(QST_PREREQ(rnum))].short_description);
-    if (QST_TYPE(rnum) == AQ_OBJ_RETURN)
+    if (QST_TYPE(rnum) == AQ_OBJ_RETURN || QST_TYPE(rnum) == AQ_GIVE_GOLD)
       send_to_char(ch, "Mob   : [\ty%5d\tn] \ty%s\tn\r\n",
                    QST_RETURNMOB(rnum),
                    real_mobile(QST_RETURNMOB(rnum)) == NOBODY ? "an unknown mob" : mob_proto[real_mobile(QST_RETURNMOB(rnum))].player.short_descr);
