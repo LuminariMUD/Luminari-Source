@@ -9966,6 +9966,33 @@ SPECIAL(vampire_cloak)
     send_to_char(ch, "\r\n");
     send_to_char(ch, "Please enter 'setcloak (number)' where number is the number of the bonus type you'd like above.\r\n");
     send_to_char(ch, "\r\n");
+    send_to_char(ch, "Or, you can type 'setcloak description (new description)' to restring the cloak.\r\n");
+    send_to_char(ch, "\r\n");
+    return 1;
+  }
+
+  char arg[200], desc[255], longD[255];
+
+  half_chop(argument, arg, desc);
+
+  if (is_abbrev(arg, "description"))
+  {
+    if (!*desc)
+    {
+      send_to_char(ch, "You need to provide a new description for the cloak.  Use: setcloak description (new description)\r\n");
+      return 1;
+    }
+
+    if (strlen(desc) > 80)
+    {
+      send_to_char(ch, "That description is too long.\r\n");
+    }
+
+    send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", obj->short_description, desc);
+    obj->name = strdup(desc);
+    obj->short_description = strdup(desc);
+    snprintf(longD, sizeof(longD), "%s is here.", CAP(desc));
+    obj->description = strdup(longD);
     return 1;
   }
 
