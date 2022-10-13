@@ -3340,16 +3340,16 @@ SPECIAL(dracolich_mob)
     if (!(vict = npc_find_target(ch, &use_aoe)))
       return 0;
 
-    act("\tWWith a grin, you whisper, 'die' while touching $N, who keels over and falls incapacitated!\tn", TRUE, ch, 0, vict,
+    act("\tWWith a grin, you whisper, 'die' while touching $N, who keels over and falls over in excruciating pain!\tn", TRUE, ch, 0, vict,
         TO_CHAR);
 
     act("\tL$n cackles with glee at the fray, enjoying every second of the battle\r\n"
         "\tL $s sets her gaze upon you with the most wicked grin you have ever known.",
         FALSE, ch, 0, vict, TO_VICT);
     act("\tWAAAHHHH! You SCREAM in agony, a pain more intense than you have ever felt!\r\n"
-        "\tWAs you fall, you see a stream of your own life force flowing away from you..",
+        "\tWAs you flail in pain, you see a stream of your own life force flowing away from you..",
         FALSE, ch, 0, vict, TO_VICT);
-    act("\tLAs the life fades from your body, before collapsing you see is $n's wicked grin staring into your soul..\tn",
+    act("\tLAs the life drains from your body, you see $n's wicked grin staring into your soul..\tn",
         FALSE, ch, 0, vict, TO_VICT);
 
     act("$n \tLturns and gazes at \tn$N\tL, who freezes in place.\tn\r\n"
@@ -3367,16 +3367,22 @@ SPECIAL(dracolich_mob)
     }
     else
     {
-      hitpoints = GET_HIT(vict);
-
-      GET_HIT(vict) = 0;
+      if (GET_HIT(vict) <= 20)
+      {                                                                                            /* try to finish the victim */
+        hitpoints = damage(ch, vict, rand_number(100, GET_LEVEL(ch) * 20), -1, DAM_UNHOLY, FALSE); // type -1 = no dam message
+      }
+      else
+      {
+        hitpoints = GET_HIT(vict);
+        GET_HIT(vict) = 21;
+      }
     }
 
-    if (hitpoints < 99)
-      hitpoints = 99;
+    /* heal/vamp effect from the attack */
+    if (hitpoints < 120)
+      hitpoints = 120;
 
-    if (GET_HIT(ch) + hitpoints < GET_MAX_HIT(ch))
-      GET_HIT(ch) += hitpoints;
+    GET_HIT(ch) += hitpoints;
 
     return 1;
   }
@@ -4345,9 +4351,13 @@ SPECIAL(phantom)
   return TRUE;
 }
 
-/* from homeland */
-SPECIAL(lichdrain)
+/* this is the old lichdrain, don't think it works in its current
+   implementation */
+int perform_lichdrain(struct char_data *ch)
 {
+  if (!ch)
+    return 0;
+
   struct char_data *tch = 0;
   struct char_data *vict = 0;
   int dam = 0;
@@ -4392,6 +4402,75 @@ SPECIAL(lichdrain)
   GET_HIT(vict) -= dam;
   USE_FULL_ROUND_ACTION(vict);
   return TRUE;
+}
+
+/* threw this together so the experience of encountering lich isn't a pleasant one :P */
+SPECIAL(lich_mob)
+{
+  struct char_data *vict = NULL;
+  int hitpoints = 0, use_aoe = 0;
+
+  if (!ch)
+    return 0;
+
+  /* note that the !vict is moved below */
+  if (cmd)
+    return 0;
+
+  vict = FIGHTING(ch);
+
+  /* this is the offensive arsenal */
+  if (vict && rand_number(0, 1))
+  {
+
+    if (!rand_number(0, 5) && call_magic(ch, vict, 0, SPELL_HELLBALL, 0, GET_LEVEL(ch), CAST_INNATE))
+    {
+      /* looks like the hellball worked */
+      return 1;
+    }
+    else if (!rand_number(0, 2) && perform_lichtouch(ch, vict))
+    {
+      /* looks like we did the lichtouch! */
+      return 1;
+    }
+    else if (!rand_number(0, 2) && (IS_UNDEAD(vict) || IS_LICH(vict)) &&
+             perform_lichtouch(ch, ch))
+    {
+      /* looks like we did the self healing lichtouch */
+      return 1;
+    }
+    else if (!rand_number(0, 4))
+    {
+      int i = 0;
+
+      act("\tWWith power and determination you unleash an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_CHAR);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", FALSE, ch, 0, FIGHTING(ch), TO_VICT);
+      act("$n\tL, with power and determination, unleashes an aggressive flurry of magic!\tn", TRUE, ch, 0, FIGHTING(ch), TO_NOTVICT);
+
+      /* spam some nukes! */
+      for (i = 0; i <= rand_number(2, 3); i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+        {
+          switch (rand_number(0, 2))
+          {
+          case 0:
+            call_magic(ch, vict, 0, SPELL_PRISMATIC_SPRAY, 0, GET_LEVEL(ch), CAST_INNATE);
+            break;
+          case 1:
+            call_magic(ch, vict, 0, SPELL_CHAIN_LIGHTNING, 0, GET_LEVEL(ch), CAST_INNATE);
+            break;
+          default:
+            call_magic(ch, vict, 0, SPELL_THUNDERCLAP, 0, GET_LEVEL(ch), CAST_INNATE);
+            break;
+          }
+        }
+      }
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 /* from homeland */
@@ -8498,11 +8577,11 @@ SPECIAL(bolthammer)
         "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
         "\tLfrom the head of the warhammer and strikes\tn $N \tLwith full force.\tn",
 
-        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
         "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes you\tn\r\n"
         "\tlwith full force.\tn",
 
-        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and\tn\r\n"
         "\tLthe sound of th\tYun\tLder can be heard. Suddenly a bolt of \tclig\tChtn\tcing \tLleaps\tn\r\n"
         "\tLfrom the head of the warhammer and strikes $N \tLwith full force.\tn",
         ch, vict, (struct obj_data *)me, 0);
@@ -8516,11 +8595,11 @@ SPECIAL(bolthammer)
         "$N \tLwith full force. When the flash is gone\r\n"
 
         "\tL you see the corpse of\tn $N \tLstill twitching on the ground.\tn",
-        "$n'�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
         "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn\r\n"
         "\tLyou with full force. You twitch a few times before your body goes still forever.\tn",
 
-        "$n's�s $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
+        "$n's $p \tLstarts to \twth\tWr\twob \tLviolently and the soundof th\tYun\tLder can be heard.\tn\r\n"
         "\tLSuddenly a bolt of \tclig\tChtn\tcing \tLleaps from the head of the warhammer and strikes\tn \tn\r\n"
         "$N \tLwith full force. When the flash is gone you see\r\n"
         "\tLthe corpse of\tn $N \tLstill twitching on the ground.\tn",

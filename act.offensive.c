@@ -7577,11 +7577,21 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
       ch->next_in_room != vict && vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
-    return FALSE;
+
+    if (!IS_POWERFUL_BEING(ch))
+      return FALSE;
   }
 
   /* compute amount of points heal vs damage */
   int amount = 10 + GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
+  int dc = 10 + GET_INT_BONUS(ch) + (GET_LEVEL(ch) / 3);
+
+  if (IS_POWERFUL_BEING(ch))
+  {
+    amount *= 2;
+    amount += (GET_LEVEL(ch) - 30) * 50;
+    dc += (GET_LEVEL(ch) - 30) * 4;
+  }
 
   /* this skill will heal undead */
   if (IS_UNDEAD(vict) || IS_LICH(vict))
@@ -7626,7 +7636,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   act("$n reaches out and touches $N with negative energy, causing $M to wilt!", FALSE, ch, 0, vict, TO_NOTVICT);
 
   /* paralysis - fortitude save */
-  if (!savingthrow(vict, SAVING_FORT, 0, 0))
+  if (!savingthrow(vict, SAVING_FORT, 0, dc))
   {
     if (!paralysis_immunity(vict))
     {
