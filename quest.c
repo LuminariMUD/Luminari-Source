@@ -1349,6 +1349,8 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char targetname[MAX_STRING_LENGTH] = {'\0'};
   char rewardname[MAX_STRING_LENGTH] = {'\0'};
+  char racename[MAX_STRING_LENGTH] = {'\0'};
+  bool valid_race = FALSE;
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "Huh!?!\r\n");
@@ -1423,6 +1425,13 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
              real_object(QST_OBJ(rnum)) == NOTHING ? "An unknown object" : obj_proto[real_object(QST_OBJ(rnum))].short_description);
 
     qmrnum = real_mobile(QST_MASTER(rnum));
+
+    if (QST_RACE(rnum) < NUM_EXTENDED_RACES && QST_RACE(rnum) > RACE_UNDEFINED)
+    {
+      snprintf(racename, sizeof(racename), "%s", race_list[QST_RACE(rnum)].type_color);
+      valid_race = TRUE;
+    }
+
     send_to_char(ch,
                  "VNum  : [\ty%5d\tn], RNum: [\ty%5d\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
                  "Name  : \ty%s\tn\r\n"
@@ -1454,7 +1463,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                  QST_MAXLEVEL(rnum) /*val3*/,
                  QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
                  rewardname,
-                 race_list[QST_RACE(rnum)].type_color, QST_RACE(rnum),
+                 valid_race ? racename : "N/A", QST_RACE(rnum),
                  buf);
 
     if (QST_PREREQ(rnum) != NOTHING)

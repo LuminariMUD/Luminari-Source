@@ -1096,6 +1096,21 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     break;
   }
 
+  /* this is the powerful being system */
+  if (IS_POWERFUL_BEING(ch))
+  {
+    armorclass++;
+
+    if (GET_LEVEL(ch) > 30)
+      armorclass++;
+    if (GET_LEVEL(ch) > 31)
+      armorclass++;
+    if (GET_LEVEL(ch) > 32)
+      armorclass++;
+    if (GET_LEVEL(ch) > 33)
+      armorclass++;
+  }
+
   /* value for normal mode */
   return (MIN(CONFIG_PLAYER_AC_CAP, armorclass));
 }
@@ -4881,6 +4896,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Crystal fist bonus: \tR3\tn\r\n");
   }
 
+  /* insectbeing trelux */
+  if (affected_by_spell(ch, RACIAL_ABILITY_INSECTBEING))
+  {
+    dambonus += GET_LEVEL(ch) / 6;
+    if (display_mode)
+      send_to_char(ch, "Insect-Being bonus: \tR%d\tn\r\n", GET_LEVEL(ch) / 6);
+  }
+
   /* smite evil (remove after one attack) */
   if (affected_by_spell(ch, SKILL_SMITE_EVIL) && vict && IS_EVIL(vict))
   {
@@ -5524,7 +5547,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   int powerful_being = 0;
 
   /* new code to help really powerful beings overcome checks here */
-  if (IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT)
+  if (IS_POWERFUL_BEING(ch))
   {
     /* base 20% chance of overcoming defense */
     powerful_being = 20;
@@ -5540,7 +5563,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
   if (FIGHTING(ch) && KNOWS_DISCOVERY(FIGHTING(ch), ALC_DISC_PRESERVE_ORGANS) && dice(1, 4) == 1 && !(FIGHTING(ch)->preserve_organs_procced))
   {
 
-    if (!powerful_being)
+    if (!IS_POWERFUL_BEING(ch))
     {
       FIGHTING(ch)->preserve_organs_procced = TRUE;
       return FALSE;
@@ -5556,7 +5579,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
 
   if (FIGHTING(ch) && (affected_by_spell(FIGHTING(ch), PSIONIC_BODY_OF_IRON) || affected_by_spell(FIGHTING(ch), PSIONIC_SHADOW_BODY)))
   {
-    if (!powerful_being)
+    if (!IS_POWERFUL_BEING(ch))
     {
       return FALSE;
     }
@@ -7019,7 +7042,41 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   for (i = 0; i < NUM_BONUS_TYPES; i++)
     calc_bab += bonuses[i];
 
-  return (MIN(MAX_BAB, calc_bab));
+  int maximum_bab = MAX_BAB;
+
+  /* powerful being mechanics */
+  if (IS_POWERFUL_BEING(ch) && FIGHTING(ch))
+  {
+    /* this bonus will only kick in IF the defender doesn't have iron skin & epic warding */
+    if (!affected_by_spell(FIGHTING(ch), SPELL_IRONSKIN) && !affected_by_spell(FIGHTING(ch), SPELL_EPIC_WARDING))
+    {
+      maximum_bab += 2;
+      calc_bab += 2;
+
+      if (GET_LEVEL(ch) > 30)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 31)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 32)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+      if (GET_LEVEL(ch) > 33)
+      {
+        maximum_bab += 2;
+        calc_bab += 2;
+      }
+    }
+  }
+
+  return (MIN(maximum_bab, calc_bab));
 }
 
 /* compute a combat maneuver bonus (attack) value */

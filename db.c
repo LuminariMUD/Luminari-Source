@@ -1856,6 +1856,7 @@ static void renum_zone_table(void)
     }
 }
 
+/* basic vitals when loading a mobile */
 static void parse_simple_mob(FILE *mob_f, int i, int nr)
 {
   int j, t[10];
@@ -1901,7 +1902,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
   GET_MOVE(mob_proto + i) = t[5];
 
   GET_REAL_MAX_PSP(mob_proto + i) = 10;
-  GET_REAL_MAX_MOVE(mob_proto + i) = 50;
+  GET_REAL_MAX_MOVE(mob_proto + i) = 1000;
 
   GET_REAL_SPELL_RES(mob_proto + i) = 0;
 
@@ -2384,6 +2385,7 @@ static void parse_espec(char *buf, int i, int nr)
   interpret_espec(buf, ptr, i, nr);
 }
 
+/* these are the enhanced (espec) mobiles */
 static void parse_enhanced_mob(FILE *mob_f, int i, int nr)
 {
   char line[READ_SIZE];
@@ -2407,6 +2409,7 @@ static void parse_enhanced_mob(FILE *mob_f, int i, int nr)
   exit(1);
 }
 
+/* this will read from file the mobile info and overlay it on prototypes */
 void parse_mobile(FILE *mob_f, int nr)
 {
   static int i = 0;
@@ -3538,12 +3541,31 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   /* Allocate mobile event list */
   // mob->events = create_list();
 
+  /* the very old, and really should be replaced system is as such for max-hp of mobiles:
+    max-hp = <mobile hp> dice <mobile psp> + <mobile moves>
+    AKA:  xDy + z
+      this is triggered by when you see the current max-hit is zero (0) -zusuk  */
   if (!GET_MAX_HIT(mob))
   {
     GET_MAX_HIT(mob) = dice(GET_HIT(mob), GET_PSP(mob)) + GET_MOVE(mob);
   }
   else
     GET_MAX_HIT(mob) = rand_number(GET_HIT(mob), GET_PSP(mob));
+
+  /* powerful being bump! -zusuk */
+  if (IS_POWERFUL_BEING(mob))
+  {
+    GET_MAX_HIT(mob) += 500;
+
+    if (GET_LEVEL(mob) > 30)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 31)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 32)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+    if (GET_LEVEL(mob) > 33)
+      GET_MAX_HIT(mob) += GET_MAX_HIT(mob) * 0.1;
+  }
 
   GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob);
 

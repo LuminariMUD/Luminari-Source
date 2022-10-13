@@ -99,6 +99,7 @@ void assign_mobiles(void)
   ASSIGNMOB(103498, buyweapons);
   ASSIGNMOB(103801, huntsmaster);
 
+  /* faction mission system */
   ASSIGNMOB(103698, faction_mission);
 
   assign_kings_castle();
@@ -208,7 +209,7 @@ void assign_mobiles(void)
   ASSIGNMOB(196032, gatehouse_guard);
   ASSIGNMOB(196200, jot_invasion_loader); // this will load invasion
 
-  /* more homeland assigns, unsorted */
+  /* more assigns unsorted */
   ASSIGNMOB(200002, postmaster);
   ASSIGNMOB(200001, receptionist);
   /* not yet defined
@@ -254,6 +255,7 @@ void assign_mobiles(void)
   ASSIGNMOB(122009, trade_master);
   ASSIGNMOB(122010, trade_master);
    */
+
   /* trade object mobs */
   /* not yet defined
   ASSIGNOBJ(122000, trade_object);
@@ -551,22 +553,23 @@ void assign_mobiles(void)
   ASSIGNMOB(113010, bank);
   ASSIGNMOB(105039, bank);
 
-  /*Mithril Hall Palace*/
-  ASSIGNMOB(126332, lichdrain);
-
   /*Labyrinth*/
   ASSIGNMOB(115008, phantom);
 
+  /*Mithril Hall Palace*/
+  ASSIGNMOB(126332, lich_mob);
+
   /*Lizard Marsh*/
-  ASSIGNMOB(121210, lichdrain);
+  ASSIGNMOB(121210, lich_mob);
 
   /*Deep Caverns*/
-  ASSIGNMOB(136903, lichdrain);
+  ASSIGNMOB(136903, lich_mob);
 
   /*Longsaddle*/
   ASSIGNMOB(106807, receptionist);
   ASSIGNMOB(106827, receptionist);
 
+  /* assign harpell with loop */
   int j;
   for (j = 106830; j <= 106863; j++)
   {
@@ -575,6 +578,7 @@ void assign_mobiles(void)
     else
       ASSIGNMOB(j, harpell);
   }
+  /* end harpell assign loop */
 
   /*Ashabenford*/
   ASSIGNMOB(113701, receptionist);
@@ -603,6 +607,7 @@ void assign_mobiles(void)
   ASSIGNMOB(100501, skeleton_zombie);
   // ASSIGNMOB(100011, skeleton_zombie);
 
+  /* totem animals */
   ASSIGNMOB(101400, totemanimal);
   ASSIGNMOB(101401, totemanimal);
   ASSIGNMOB(101402, totemanimal);
@@ -616,6 +621,7 @@ void assign_mobiles(void)
   ASSIGNMOB(101413, totemanimal);
   ASSIGNMOB(101414, totemanimal);
 
+  /* fire plane invoker */
   ASSIGNMOB(112501, fp_invoker);
 
   /*Menzo*/
@@ -644,8 +650,17 @@ void assign_mobiles(void)
   ASSIGNMOB(145182, ttf_rotbringer);
   ASSIGNMOB(145189, ttf_patrol);
 
-  ASSIGNMOB(113751, dracolich);
+  /* big baddie - the prisoner */
+  ASSIGNMOB(113751, prisoner_dracolich);
   ASSIGNMOB(113750, the_prisoner);
+
+  /* dracolich mobs */
+  ASSIGNMOB(138703, dracolich_mob); /* Neremeezder */
+  ASSIGNMOB(110600, dracolich_mob); /* Aurgloroasa */
+  ASSIGNMOB(31102, dracolich_mob);  /* a dracolich */
+  ASSIGNMOB(29905, dracolich_mob);  /* Wyrenthoth */
+  ASSIGNMOB(5010, dracolich_mob);   /* the dracolich */
+  ASSIGNMOB(138419, dracolich_mob); /* Daurgothoth */
 
   /* Tower of Kenjin */
   ASSIGNMOB(132910, kt_kenjin);
@@ -1038,7 +1053,8 @@ static const struct spec_func_data spec_func_list[] = {
     {"Disruption Mace", disruption_mace, ""},
     {"Dog", dog, ""},
     {"Dorf Axe", dorfaxe, ""},
-    {"Dracolich", dracolich, ""},
+    {"Prisoner Dracolich", prisoner_dracolich, ""},
+    {"Dracolich", dracolich_mob, ""},
     {"Dragon Robes", dragon_robes, ""},
     {"Dragonbone Hammer", dragonbone_hammer, ""},
     //{"Drow Scimitar", drow_scimitar, ""},
@@ -1086,7 +1102,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Kenjin", kt_kenjin, ""},
     //{"ShadowMaker", kt_shadowmaker, ""},
     {"Twister", kt_twister, ""},
-    {"LichDrain", lichdrain, ""},
+    {"Lich", lich_mob, ""},
 
     /* m-o */
     {"Magma", magma, ""},
