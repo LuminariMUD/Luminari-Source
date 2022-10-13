@@ -3301,7 +3301,7 @@ SPECIAL(dracolich_mob)
   if (FIGHTING(ch) && rand_number(0, 1))
   {
 
-    if (!rand_number(0, 3) && call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE);)
+    if (!rand_number(0, 3) && call_magic(ch, FIGHTING(ch), 0, SPELL_ACID_BREATHE, 0, GET_LEVEL(ch), CAST_INNATE))
     {
       /* looks like the breathe weapon worked */
       return 1;
