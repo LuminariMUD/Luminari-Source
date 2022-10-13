@@ -7584,7 +7584,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 
   /* compute amount of points heal vs damage */
   int amount = 10 + GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
-  int dc = 10 + GET_INT_BONUS(ch) + (GET_LEVEL(ch) / 3);
+  int dc = 10 + GET_INT_BONUS(ch) + (GET_LEVEL(ch) / 2);
 
   if (IS_POWERFUL_BEING(ch))
   {
@@ -7600,14 +7600,14 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 
     if (ch == vict)
     {
-      act("You focus necromantic power inward, and the surge of negative energy heals you.", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n glows with necromantic negative energy as wounds heal.", FALSE, ch, 0, vict, TO_NOTVICT);
+      act("\tWYou focus necromantic power inward, and the surge of negative energy heals you.\tn", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n \tWglows with necromantic negative energy as wounds heal.\tn", FALSE, ch, 0, vict, TO_NOTVICT);
     }
     else
     {
-      act("You reach out and touch $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_CHAR);
-      act("$n reaches out and touches you with necromantic power, and the surge of negative energy heals you.", FALSE, ch, 0, vict, TO_VICT);
-      act("$n reaches out and touches $N with necromantic power, and the surge of negative energy heals $M.", FALSE, ch, 0, vict, TO_NOTVICT);
+      act("\tWYou reach out and touch $N with necromantic power, and the surge of negative energy heals $M.\tn", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n \tWreaches out and touches you with necromantic power, and the surge of negative energy heals you.\tn", FALSE, ch, 0, vict, TO_VICT);
+      act("$n \tWreaches out and touches $N with necromantic power, and the surge of negative energy heals $M.\tn", FALSE, ch, 0, vict, TO_NOTVICT);
     }
 
     process_healing(ch, vict, RACIAL_LICH_TOUCH, amount, 0);
@@ -7631,9 +7631,9 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   if (!pvp_ok(ch, vict, true))
     return FALSE;
 
-  act("You reach out and touch $N with negative energy, and $E wilts before you.", FALSE, ch, 0, vict, TO_CHAR);
-  act("$n reaches out and touches you with negative energy, causing you to wilt before $m.", FALSE, ch, 0, vict, TO_VICT);
-  act("$n reaches out and touches $N with negative energy, causing $M to wilt!", FALSE, ch, 0, vict, TO_NOTVICT);
+  act("\tLYou reach out and touch $N with \tRnegative energy\tL, and $E wilts before you.\tn", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n \tLreaches out and touches you with \tRnegative energy\tL, causing you to wilt before $m.\tn", FALSE, ch, 0, vict, TO_VICT);
+  act("$n \tLreaches out and touches $N with \tRnegative energy\tL, causing $M to wilt!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
 
   /* paralysis - fortitude save */
   if (!savingthrow(vict, SAVING_FORT, 0, dc))
@@ -7650,11 +7650,11 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
 
-      act("$n glows with black energy as $s touch paralyzes $N!",
+      act("$n \tWglows with \tLblack energy as $s touch \tWparalyzes $N!\tn",
           FALSE, ch, NULL, vict, TO_NOTVICT);
-      act("You glow with black energy as you paralyze $N with your touch!",
+      act("You \tWglow with \tLblack energy as you \tWparalyze $N with your touch!\tn",
           FALSE, ch, NULL, vict, TO_CHAR);
-      act("$n glows with black energy as $s touch paralyzes you!",
+      act("$n \tWglows with \tLblack energy as $s touch \tWparalyzes you!\tn",
           FALSE, ch, NULL, vict, TO_VICT | TO_SLEEP);
     }
   }
