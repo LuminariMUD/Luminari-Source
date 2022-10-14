@@ -78,11 +78,10 @@ struct aq_data
   int exp_reward;      /* Experience points given as a reward  */
   obj_vnum obj_reward; /* vnum of object given as a reward     */
   int race_reward;     /* new race given as a reward           */
+  int follower_reward; /* gain a npc follower as a reward */
 
   int coord_x; /* find coordinate quest, x-value */
   int coord_y; /* find coordinate quest, y-value */
-
-  int unused_int3; /* expansion slot 3 */
 
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
@@ -100,6 +99,7 @@ struct aq_data
 #define QST_MASTER(i) (aquest_table[i].qm)
 #define QST_TARGET(i) (aquest_table[i].target)
 #define QST_PREREQ(i) (aquest_table[i].prereq)
+
 #define QST_POINTS(i) (aquest_table[i].value[0])
 #define QST_PENALTY(i) (aquest_table[i].value[1])
 #define QST_MINLEVEL(i) (aquest_table[i].value[2])
@@ -107,15 +107,15 @@ struct aq_data
 #define QST_TIME(i) (aquest_table[i].value[4])
 #define QST_RETURNMOB(i) (aquest_table[i].value[5])
 #define QST_QUANTITY(i) (aquest_table[i].value[6])
+
 #define QST_GOLD(i) (aquest_table[i].gold_reward)
 #define QST_EXP(i) (aquest_table[i].exp_reward)
 #define QST_OBJ(i) (aquest_table[i].obj_reward)
 #define QST_RACE(i) (aquest_table[i].race_reward)
+#define QST_FOLLOWER(i) (aquest_table[i].follower_reward)
 
 #define QST_COORD_X(i) (aquest_table[i].coord_x)
 #define QST_COORD_Y(i) (aquest_table[i].coord_y)
-
-#define QST_UNUSED3(i) (aquest_table[i].unused_int3)
 
 #define QST_FUNC(i) (aquest_table[i].func)
 #define QST_PREV(i) (aquest_table[i].prev_quest)
@@ -186,6 +186,7 @@ int save_quests(zone_rnum zone_num);
 #define QEDIT_RACE 25
 #define QEDIT_COORD_X 26
 #define QEDIT_COORD_Y 27
+#define QEDIT_FOLLOWER 28
 /* ******************************************************************** */
 
 /* AQ Global Variables ************************************************ */

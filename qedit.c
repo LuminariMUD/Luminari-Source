@@ -232,12 +232,10 @@ static void qedit_setup_new(struct descriptor_data *d)
   quest->exp_reward = 0;               /* Prize in exp points    */
   quest->obj_reward = NOTHING;         /* vnum of reward object  */
   quest->race_reward = RACE_UNDEFINED; /* num of race for race change reward */
+  quest->follower_reward = NOBODY;
 
   quest->coord_x = 0;
   quest->coord_y = 0;
-
-  /* for expansion */
-  quest->unused_int3 = -1;
 
   quest->name = strdup("Undefined Quest");
   quest->desc = strdup("Quest definition is incomplete.");
@@ -392,15 +390,15 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   "\tg 7\tn) Quest Type     : \tc%s %s\r\n"
                   "\tg 8\tn) Quest Master   : [\tc%6d\tn] \ty%s\r\n"
                   "\tg 9\tn) Quest Target   : [\tc%6d\tn] \ty%s\r\n"
-                  "\tg H\tn) X-Coord (wild) : [\tc%6d\tn] \tg I\tn) Y-Coord     : [\tc%6d\tn]\r\n"
+                  "\tg H\tn) X-Coord (wild) : [\tc%6d\tn]      \tg I\tn) Y-Coord     : [\tc%6d\tn]\r\n"
                   "\tg A\tn) Quantity       : [\tc%6d\tn]\r\n"
                   "\tn    Quest Point Rewards\r\n"
-                  "\tg B\tn) Completed      : [\tc%6d\tn] \tg C\tn) Abandoned   : [\tc%6d\tn]\r\n"
+                  "\tg B\tn) Completed      : [\tc%6d\tn]      \tg C\tn) Abandoned   : [\tc%6d\tn]\r\n"
                   "\tn    Other Rewards Rewards\r\n"
-                  "\tg G\tn) Gold Coins     : [\tc%6d\tn] \tg T\tn) Exp Points  : [\tc%6d\tn] \tg O\tn) Object : [\tc%6d\tn]\r\n"
-                  "\tg R\tn) Race           : [\tc%6d\tn] (%s)\r\n"
+                  "\tg G\tn) Gold Coins     : [\tc%6d\tn]      \tg T\tn) Exp Points  : [\tc%6d\tn] \tg O\tn) Object : [\tc%6d\tn]\r\n"
+                  "\tg R\tn) Race           : [\tc%6d\tn] (%s) \tg J\tn) Follower    : [\tc%6d\tn] \ty%s\r\n"
                   "\tn    Level Limits to Accept Quest\r\n"
-                  "\tg D\tn) Lower Level    : [\tc%6d\tn] \tg E\tn) Upper Level : [\tc%6d\tn]\r\n"
+                  "\tg D\tn) Lower Level    : [\tc%6d\tn]      \tg E\tn) Upper Level : [\tc%6d\tn]\r\n"
                   "\tg F\tn) Prerequisite   : [\tc%6d\tn] \ty%s\r\n"
                   "\tg L\tn) Time Limit     : [\tc%6d\tn]\r\n"
                   "\tg N\tn) Next Quest     : [\tc%6d\tn] \ty%s\r\n"
@@ -432,6 +430,8 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
                   quest->race_reward,
                   (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_EXTENDED_RACES) ? race_list[quest->race_reward].type_color : "n/a",
+                  quest->follower_reward == NOBODY ? -1 : quest->follower_reward,
+                  real_mobile(quest->follower_reward) == NOBODY ? "Invalid Mob" : mob_proto[(real_mobile(quest->follower_reward))].player.short_descr,
                   quest->value[2],
                   quest->value[3],
                   quest->prereq == NOTHING ? -1 : quest->prereq,
@@ -671,6 +671,11 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       OLC_MODE(d) = QEDIT_COORD_Y;
       write_to_output(d, "Enter the Y-Coordinate for the Wilderness Room Find : ");
       break;
+    case 'j':
+    case 'J':
+      OLC_MODE(d) = QEDIT_FOLLOWER;
+      write_to_output(d, "Enter vnum of follower reward : ");
+      break;
     case 't':
     case 'T':
       OLC_MODE(d) = QEDIT_EXP;
@@ -907,6 +912,17 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       write_to_output(d, "Not a valid race, try again (-1 to cancel) : ");
       return;
     }
+
+    break;
+
+  case QEDIT_FOLLOWER:
+    if ((number = atoi(arg)) != -1)
+      if (real_mobile(number) == NOBODY)
+      {
+        write_to_output(d, "That mobile does not exist, try again : ");
+        return;
+      }
+    OLC_QUEST(d)->follower_reward = number;
 
     break;
 
