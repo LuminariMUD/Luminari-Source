@@ -52,12 +52,10 @@ int copy_quest(struct aq_data *to, struct aq_data *from, int free_old_strings, i
   to->exp_reward = from->exp_reward;
   to->obj_reward = from->obj_reward;
   to->race_reward = from->race_reward;
+  to->follower_reward = from->follower_reward;
 
   to->coord_x = from->coord_x;
   to->coord_y = from->coord_y;
-
-  /* for expansion */
-  to->unused_int3 = from->unused_int3;
 
   to->func = from->func;
 
@@ -289,7 +287,7 @@ int save_quests(zone_rnum zone_num)
                "%s%c\n"
                "%d %d %s %d %d %d %d\n"
                "%d %d %d %d %d %d %d\n"
-               "%d %d %d %d %d %d %d\n" /* last var for expansion */
+               "%d %d %d %d %d %d %d\n"
                "S\n",
                QST_NUM(rnum),
                QST_NAME(rnum) ? QST_NAME(rnum) : "Untitled", STRING_TERMINATOR,
@@ -310,7 +308,7 @@ int save_quests(zone_rnum zone_num)
                QST_QUANTITY(rnum), QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
                QST_RACE(rnum),
                QST_COORD_X(rnum), QST_COORD_Y(rnum),
-               QST_UNUSED3(rnum)); /* for easy expansion */
+               QST_FOLLOWER(rnum));
 
       fprintf(sf, convert_from_tabs(buf), 0);
 

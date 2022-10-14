@@ -203,12 +203,10 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].exp_reward = 0;
   aquest_table[i].obj_reward = NOTHING;
   aquest_table[i].race_reward = RACE_UNDEFINED;
+  aquest_table[i].follower_reward = NOBODY;
 
   aquest_table[i].coord_x = -1;
   aquest_table[i].coord_y = -1;
-
-  /* this is for expansion */
-  aquest_table[i].unused_int3 = -1;
 
   /* end init */
 
@@ -273,8 +271,7 @@ void parse_quest(FILE *quest_f, int nr)
     aquest_table[i].coord_x = t[4];
     aquest_table[i].coord_y = t[5];
 
-    /* for expansion */
-    aquest_table[i].unused_int3 = t[6];
+    aquest_table[i].follower_reward = t[6];
   }
 
   /* finish 'er up! */
@@ -399,6 +396,7 @@ void complete_quest(struct char_data *ch, int index)
   struct obj_data *new_obj = NULL;
   int happy_qp = 0, happy_gold = 0, happy_exp = 0;
   struct descriptor_data *pt = NULL;
+  struct char_data *mob = NULL;
 
   /* dummy check */
   if (GET_QUEST(ch, index) == NOTHING)
@@ -440,6 +438,17 @@ void complete_quest(struct char_data *ch, int index)
     {
       send_to_char(ch, "You cannot be part of a group, be following someone, or have followers of your own to change races.\r\n"
                        "You can dismiss npc followers with the 'dismiss' command.  You can leave your group with 'group leave.'\r\n");
+      return;
+    }
+  }
+
+  /* is the race reward follower (if there is one) valid?  the full processing is below
+       this is "pre-flight" */
+  if (QST_FOLLOWER(rnum) != NOBODY)
+  {
+    if (!(mob = read_mobile(QST_FOLLOWER(rnum), VIRTUAL)))
+    {
+      send_to_char(ch, "Report to staff:  quest follower invalid.\r\n");
       return;
     }
   }
@@ -594,6 +603,36 @@ void complete_quest(struct char_data *ch, int index)
       log("Quest Log : %s reached default in race reward for quest!", GET_NAME(ch));
       break;
     }
+  }
+
+  /* is there a follower reward for this quest?  "pre-flight" was checked above */
+  if (QST_FOLLOWER(rnum) != NOBODY)
+  {
+    if (!mob)
+    {
+      send_to_char(ch, "Report to staff:  quest follower invalid (2).\r\n");
+      return;
+    }
+
+    /* should be good, do all the work! */
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+    }
+    char_to_room(mob, IN_ROOM(ch));
+    IS_CARRYING_W(mob) = 0;
+    IS_CARRYING_N(mob) = 0;
+    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+
+    act("$N approaches you and quickly falls into line.", FALSE, ch, 0, mob, TO_CHAR);
+    act("You approach $n and quickly fall into line.", FALSE, ch, 0, mob, TO_VICT);
+    act("$N approaches $n and quickly falls into line.", FALSE, ch, 0, mob, TO_ROOM);
+
+    load_mtrigger(mob);
+    add_follower(mob, ch);
+    if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+      join_group(mob, GROUP(ch));
   }
 
   /* end rewards */
@@ -1367,13 +1406,14 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 /* allows staff to view detailed info about any quest in game */
 void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
-  qst_rnum rnum;
-  mob_rnum qmrnum;
+  qst_rnum rnum = NOTHING;
+  mob_rnum qmrnum = NOBODY;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char targetname[MAX_STRING_LENGTH] = {'\0'};
   char rewardname[MAX_STRING_LENGTH] = {'\0'};
   char racename[MAX_STRING_LENGTH] = {'\0'};
-  bool valid_race = FALSE;
+  char followername[MAX_STRING_LENGTH] = {'\0'};
+  bool valid_race = FALSE, valid_follower = FALSE;
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "Huh!?!\r\n");
@@ -1453,12 +1493,22 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 
     qmrnum = real_mobile(QST_MASTER(rnum));
 
+    /* race reward info */
     if (QST_RACE(rnum) < NUM_EXTENDED_RACES && QST_RACE(rnum) > RACE_UNDEFINED)
     {
       snprintf(racename, sizeof(racename), "%s", race_list[QST_RACE(rnum)].type_color);
       valid_race = TRUE;
     }
 
+    /* follower reward info */
+    if (QST_FOLLOWER(rnum) != NOBODY)
+    {
+      snprintf(followername, sizeof(followername), "%s",
+               real_mobile(QST_FOLLOWER(rnum)) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(QST_FOLLOWER(rnum))]));
+      valid_follower = TRUE;
+    }
+
+    /* display time! */
     send_to_char(ch,
                  "VNum  : [\ty%5d\tn], RNum: [\ty%5d\tn] -- Questmaster: [\ty%5d\tn] \ty%s\tn\r\n"
                  "Name  : \ty%s\tn\r\n"
@@ -1471,6 +1521,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                  "Value : \ty%d\tn, Penalty: \ty%d\tn, Min Level: \ty%2d\tn, Max Level: \ty%2d\tn\r\n"
                  "Gold Reward: \ty%d\tn, Exp Reward: \ty%d\tn, Obj Reward: \ty(%d)\tn %s\r\n"
                  "Quest Race Reward: %s (%d)\r\n"
+                 "Quest Follower Reward: %s (%d)\r\n"
                  "Flags : \tc%s\tn\r\n",
 
                  QST_NUM(rnum), rnum,
@@ -1491,6 +1542,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
                  QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum),
                  rewardname,
                  valid_race ? racename : "N/A", QST_RACE(rnum),
+                 valid_follower ? followername : "N/A", QST_FOLLOWER(rnum),
                  buf);
 
     if (QST_PREREQ(rnum) != NOTHING)
