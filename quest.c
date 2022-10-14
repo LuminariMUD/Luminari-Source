@@ -24,6 +24,7 @@
 #include "mud_event.h"
 #include "missions.h"
 #include "house.h"
+#include "dg_scripts.h" /* for load_mtrigger() */
 
 /*-------------------------------------------------------------------*/
 /* External data */
