@@ -697,14 +697,18 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
   int flag_num = atoi(arg);
   obj_vnum ov = NOTHING;
   char buf[MAX_STRING_LENGTH];
+  struct obj_data *obj = NULL;
 
   len = snprintf(buf, sizeof(buf), "Objects with the affect '%s'\r\n"
                                    "Index VNum    Num   Object Name                                Object Type\r\n"
                                    "----- ------- ----- ------------------------------------------ ----------------\r\n",
                  arg);
+
   for (num = 0; num <= top_of_objt; num++)
   {
-    if (OBJAFF_FLAGGED(obj_proto[num], flag_num))
+    obj = &obj_proto[num];
+
+    if (obj && OBJAFF_FLAGGED(obj, flag_num))
     {
       ov = obj_index[num].vnum;
       tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
