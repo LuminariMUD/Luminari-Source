@@ -928,10 +928,12 @@ ACMD(do_oasis_list)
       send_to_char(ch, "       %solist type <num>%s    - List all objects of a specified type\r\n", QYEL, QNRM);
       send_to_char(ch, "       %solist affect <num>%s  - List top %d objects with affect\r\n", QYEL, QNRM, MAX_OBJ_LIST);
       send_to_char(ch, "       %solist worn <num>%s    - List all objects worn in the specified location.\r\n", QYEL, QNRM);
-      send_to_char(ch, "Just type %solist affect%s, %solist type%s or %solist worn%s to view available options\r\n", QYEL, QNRM, QYEL, QNRM, QYEL, QNRM);
+      send_to_char(ch, "       %solist perm <num>%s    - List all objects with perm affection.\r\n", QYEL, QNRM);
+      send_to_char(ch, "Just type %solist perm%s, %solist affect%s, %solist type%s or %solist worn%s to view available options\r\n",
+                   QYEL, QNRM, QYEL, QNRM, QYEL, QNRM, QYEL, QNRM);
       return;
     }
-    else if (is_abbrev(arg, "type") || is_abbrev(arg, "affect") || is_abbrev(arg, "worn"))
+    else if (is_abbrev(arg, "type") || is_abbrev(arg, "affect") || is_abbrev(arg, "worn") || is_abbrev(arg, "perm"))
     {
       if (is_abbrev(arg, "type"))
       {
