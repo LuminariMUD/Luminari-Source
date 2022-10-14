@@ -671,8 +671,9 @@ void generic_complete_quest(struct char_data *ch, int index)
 void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
                              struct obj_data *object, int variable, int type)
 {
-  struct char_data *i;
-  qst_rnum rnum;
+  struct char_data *i = NULL;
+  struct obj_data *obj = NULL;
+  qst_rnum rnum = NOTHING;
   int found = TRUE, index = -1;
   house_rnum house_num = NOWHERE;
 
@@ -795,13 +796,29 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
     case AQ_OBJ_RETURN:
       if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
         if (object && (GET_OBJ_VNUM(object) == QST_TARGET(rnum)))
+        {
           generic_complete_quest(ch, index);
+
+          /* we are now removing the object once returned so the mob isn't killed and robbed -zusuk */
+          obj = get_obj_in_list_num(real_object(QST_TARGET(rnum)),
+                                    victim->carrying);
+          if (obj)
+          {
+            obj_from_char(obj);
+            obj_to_room(obj, real_room(1));
+          }
+        }
       break;
 
     case AQ_GIVE_GOLD:
       if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
         if (GET_GOLD(vict) >= QST_TARGET(rnum))
+        {
           generic_complete_quest(ch, index);
+
+          /* we are now removing the gold once returned so the mob isn't killed and robbed -zusuk */
+          GET_GOLD(vict) = 0;
+        }
       break;
 
     case AQ_ROOM_CLEAR:
@@ -855,7 +872,6 @@ void check_timed_quests(void)
 
 /*--------------------------------------------------------------------------*/
 /* Quest Command Helper Functions                                           */
-
 /*--------------------------------------------------------------------------*/
 void list_quests(struct char_data *ch, zone_rnum zone, qst_vnum vmin, qst_vnum vmax)
 {
