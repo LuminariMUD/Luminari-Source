@@ -801,7 +801,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
 
           /* we are now removing the object once returned so the mob isn't killed and robbed -zusuk */
           obj = get_obj_in_list_num(real_object(QST_TARGET(rnum)),
-                                    victim->carrying);
+                                    vict->carrying);
           if (obj)
           {
             obj_from_char(obj);
