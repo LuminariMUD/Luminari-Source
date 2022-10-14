@@ -8662,7 +8662,7 @@ ACMDU(do_vampiric_dominate)
   act("$n gazes into your eyes and tries to dominate your will!", FALSE, ch, 0, vict, TO_VICT);
   act("$n gazes into $N's eyes and tries to dominate $S will!", FALSE, ch, 0, vict, TO_NOTVICT);
 
-  effect_charm(ch, vict, SPELL_DOMINATE_PERSON, CAST_INNATE, GET_LEVEL(ch));
+  effect_charm(ch, vict, ABILITY_VAMPIRIC_DOMINATION, CAST_INNATE, GET_LEVEL(ch));
 }
 
 /* slam engine */
@@ -8730,6 +8730,9 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
           act("You drain some of $N's life force away.", FALSE, ch, 0, vict, TO_CHAR);
           act("$n drains some of your life force away.", FALSE, ch, 0, vict, TO_VICT);
           act("$n drains some of $N's life force away.", FALSE, ch, 0, vict, TO_NOTVICT);
+          
+          // set the enemy as drainkilled so they can be turned into a vampire spawn if they do end up being killed.
+          vict->char_specials.drainKilled = true;
         }
         if (!IS_NPC(ch))
           start_daily_use_cooldown(ch, FEAT_VAMPIRE_ENERGY_DRAIN);
@@ -8740,7 +8743,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
     damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
   }
   else
-    damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
+    damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);
 }
 
 ACMD(do_slam)

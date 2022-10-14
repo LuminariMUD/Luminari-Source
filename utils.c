@@ -2910,7 +2910,7 @@ bool room_is_dark(room_rnum room) {
 // mainly used to check for vampire abilities and weaknesses
 bool is_room_in_sunlight(room_rnum room)
 {
-  if (room != NOWHERE)
+  if (room == NOWHERE)
     return false;
   if (!ROOM_OUTDOORS(room))
     return false;
@@ -4255,11 +4255,12 @@ int calculate_cp(struct obj_data *obj) {
 
 bool is_incorporeal(struct char_data *ch)
 {
+
   if (AFF_FLAGGED(ch, AFF_IMMATERIAL) || HAS_SUBRACE(ch, SUBRACE_INCORPOREAL))
-  // || HAS_FEAT(ch, FEAT_GHOSTLY_INCORPOREALITY))
     return true;
 
-  return false;
+  // not the most elegant... but we can fix later if we want.
+  return is_immaterial(ch);
 }
 
 bool paralysis_immunity(struct char_data *ch) {
@@ -6850,6 +6851,20 @@ int vampire_last_feeding_adjustment(struct char_data *ch)
     }
   }
   return 0;
+}
+
+bool is_immaterial(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (affected_by_spell(ch, SPELL_GASEOUS_FORM))
+    return true;
+  
+  if (AFF_FLAGGED(ch, AFF_IMMATERIAL))
+    return true;
+
+  return false;
 }
 
 /* EoF */

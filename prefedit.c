@@ -221,8 +221,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 1 (1) - use stored consumables */
                "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n"
                /* Line 2 (2) - Auto Stand */
-               "%s2%s) Auto Hit %s[%s%3s%s]\r\n",
+               "%s3%s) Auto Hit %s[%s%3s%s]\r\n"
                /* Line 3 (3) - Auto Hit */
+                "%s4%s) Vampiric Blood Drain %s[%s%3s%s]\r\n",
+               /* Line 4 (4) - Vampiric Blood Drain */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
@@ -236,7 +238,12 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTOHIT) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOHIT)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTOHIT)), CCCYN(d->character, C_NRM),
+               /*******4*********/
+               CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_BLOOD_DRAIN)), CCCYN(d->character, C_NRM)
                /*end*/);
 
   /* Finishing Off */
@@ -909,6 +916,10 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '3':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTOHIT);
+      break;
+
+    case '4':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_BLOOD_DRAIN);
       break;
 
     default:

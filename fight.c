@@ -3396,6 +3396,11 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
   if (IS_SHADOW_CONDITIONS(ch) && HAS_FEAT(ch, FEAT_SHADOW_MASTER))
     damage_reduction += 5;
 
+  if (IS_VAMPIRE(ch) && !IN_SUNLIGHT(ch))
+  {
+    damage_reduction += 10;
+  }
+
   if (GET_EQ(ch, WEAR_BODY) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_BODY)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONHIDE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONSCALE) ||
@@ -3726,7 +3731,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       else if (IS_INCORPOREAL(ch))
       {
         // damage is normal if you're using a ghost touch weapon, or if your foe is also incorporeal
-        if (is_using_ghost_touch_weapon(ch) || IS_INCORPOREAL(victim))
+        if (is_using_ghost_touch_weapon(victim) || IS_INCORPOREAL(victim))
           ;
         else
           dam /= 2;
@@ -8823,7 +8828,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   } /* End of totaldefense */
 
-  if (attack_type != ATTACK_TYPE_RANGED && affected_by_spell(ch, SPELL_GASEOUS_FORM) && AFF_FLAGGED(victim, AFF_WIND_WALL))
+  if (attack_type != ATTACK_TYPE_RANGED && is_immaterial(ch) && AFF_FLAGGED(victim, AFF_WIND_WALL))
   {
     act("You are unable to get close enough to $N to complete your attack.", FALSE, ch, 0, victim, TO_CHAR);
     act("$n is unable to get close enough to You to complete $s attack.", FALSE, ch, 0, victim, TO_VICT);
@@ -9900,7 +9905,7 @@ void handle_smash_defense(struct char_data *ch)
     return;
   if (GET_POS(vict) <= POS_SITTING)
     return;
-  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
+  if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch) && !IS_INCORPOREAL(ch))
     return;
   if (MOB_FLAGGED(vict, MOB_NOBASH))
     return;

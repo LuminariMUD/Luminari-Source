@@ -248,6 +248,7 @@ int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
 int count_non_protocol_chars(const char *str);
 const char *a_or_an(const char *string);
+bool is_immaterial(struct char_data *ch);
 bool is_fav_enemy_of(struct char_data *ch, int race);
 int compute_arcana_golem_level(struct char_data *ch);
 bool process_iron_golem_immunity(struct char_data *ch, struct char_data *victim, int element, int dam);

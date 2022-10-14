@@ -2191,7 +2191,6 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   {
     send_to_char(ch, "Spiritual Weapon (a weapon of force attacks your foe each round)\r\n");
   }
-
   /* salvation */
   if (CLASS_LEVEL(k, CLASS_CLERIC) >= 14)
   {
@@ -2228,6 +2227,12 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
+  
+  if (vampire_last_feeding_adjustment(k) > 0)
+  send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
+  if (vampire_last_feeding_adjustment(k) < 0)
+  send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
+
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');

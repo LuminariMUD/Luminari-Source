@@ -1009,9 +1009,9 @@ int gain_exp(struct char_data *ch, int gain, int mode)
       }
       gain = MIN(gain_cap, gain);
       break;
-    case GAIN_EXP_MODE_DEFAULT:
     case GAIN_EXP_MODE_GROUP:
     case GAIN_EXP_MODE_SOLO:
+    case GAIN_EXP_MODE_DEFAULT:
     case GAIN_EXP_MODE_TRAP:
     default:
       xp_to_lvl = level_exp(ch, GET_LEVEL(ch) + 1) - level_exp(ch, GET_LEVEL(ch));
@@ -1925,26 +1925,11 @@ void update_damage_and_effects_over_time(void)
     {
       if (IN_SUNLIGHT(ch) && !is_covered(ch))
       {
-        damage(ch, ch, dice(1, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
+        damage(ch, ch, dice(2, 6), TYPE_SUN_DAMAGE, DAM_SUNLIGHT, FALSE);
       }
       if (IN_MOVING_WATER(ch))
       {
         damage(ch, ch, GET_MAX_HIT(ch) / 3, TYPE_MOVING_WATER, DAM_WATER, FALSE);
-      }
-    }
-
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_DAMAGE_REDUCTION))
-    {
-      if (!CAN_USE_VAMPIRE_ABILITY(ch))
-      {
-        if (affected_by_spell(ch, RACIAL_ABILITY_VAMPIRE_DR))
-        {
-          affect_from_char(ch, RACIAL_ABILITY_VAMPIRE_DR);
-        }
-      }
-      else if (!affected_by_spell(ch, RACIAL_ABILITY_VAMPIRE_DR))
-      {
-        apply_dr_type(ch, RACIAL_ABILITY_VAMPIRE_DR);
       }
     }
 

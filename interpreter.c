@@ -755,7 +755,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"value", "val", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
-    {"vampireform", "vampireform", POS_FIGHTING, do_vampiric_shape_change, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_gaseous_form},
+    {"vampireform", "vampireform", POS_FIGHTING, do_vampiric_shape_change, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_shape_change},
     {"version", "ver", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"visible", "vis", POS_RECLINING, do_visible, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vnum", "vnum", POS_DEAD, do_vnum, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

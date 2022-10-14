@@ -561,6 +561,7 @@
 #define RACIAL_ABILITY_CRYSTAL_BODY 1234
 #define PSIONIC_ABILITY_MASTERMIND 1235
 #define RACIAL_ABILITY_INSECTBEING 1236
+#define ABILITY_VAMPIRIC_DOMINATION 1237
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -926,7 +927,7 @@
  * define it with a 'spellname'. */
 #define SPELL_DG_AFFECT 2298
 
-#define TOP_SPELLS_POWERS_SKILLS_BOMBS 2300
+#define TOP_SPELLS_POWERS_SKILLS_BOMBS 2299
 
 /* NEW NPC/OBJECT SPELLS can be inserted here up to 2299 */
 

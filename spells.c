@@ -411,6 +411,9 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION) &&
            CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
+  
+  else if (spellnum == ABILITY_VAMPIRIC_DOMINATION && level < GET_LEVEL(victim))
+    send_to_char(ch, "Your victim is too powerful.\r\n");
 
   /* player charming another player - no legal reason for this */
   else if (!CONFIG_PK_ALLOWED && !IS_NPC(victim))
