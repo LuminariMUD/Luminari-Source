@@ -5993,41 +5993,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     break;
 
-  case RACIAL_ABILITY_VAMPIRE_DR:
-
-    /* Remove the dr. */
-    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
-    {
-      if (dr->spell == spellnum)
-      {
-        REMOVE_FROM_LIST(dr, GET_DR(ch), next);
-      }
-    }
-
-    af[0].location = APPLY_DR;
-    af[0].modifier = 0;
-    af[0].duration = 10 * 60 * 24;
-
-    CREATE(new_dr, struct damage_reduction_type, 1);
-
-    new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
-    new_dr->bypass_val[0] = MATERIAL_SILVER;
-
-    new_dr->bypass_cat[1] = DR_BYPASS_CAT_MATERIAL;
-    new_dr->bypass_val[1] = MATERIAL_ALCHEMAL_SILVER;
-
-    new_dr->bypass_cat[2] = DR_BYPASS_CAT_MAGIC;
-    new_dr->bypass_val[2] = 1;
-
-    new_dr->amount = 10;
-    new_dr->max_damage = -1;
-    new_dr->spell = RACIAL_ABILITY_VAMPIRE_DR;
-    new_dr->feat = FEAT_UNDEFINED;
-    new_dr->next = GET_DR(victim);
-    GET_DR(victim) = new_dr;
-
-    break;
-
   case SPELL_STRENGTH: // transmutation
     af[0].location = APPLY_STR;
     af[0].duration = (level * 12) + 100;
@@ -7814,7 +7779,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
         mob->player.name = strdup(desc);
         snprintf(desc, sizeof(desc), "the vampiric spawn of %s", obj->char_sdesc);
         mob->player.short_descr = strdup(desc);
-        snprintf(desc, sizeof(desc), "The vampiric spawn of %s is here.", obj->char_sdesc);
+        snprintf(desc, sizeof(desc), "The vampiric spawn of %s is here.\r\n", obj->char_sdesc);
         mob->player.long_descr = strdup(desc);
       }
       break;

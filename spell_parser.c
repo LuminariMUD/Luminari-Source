@@ -4008,6 +4008,10 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
   spello(ABILITY_CREATE_VAMPIRE_SPAWN, "create vampiric spawn", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
+  
+  spello(ABILITY_VAMPIRIC_DOMINATION, "vampiric domination", 51, 36, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         "You feel the domination effects wear off.", 10, 15, ENCHANTMENT, FALSE);
 
   spello(PSIONIC_ABILITY_PSIONIC_FOCUS, "psionic focus", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
