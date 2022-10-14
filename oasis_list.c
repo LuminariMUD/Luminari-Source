@@ -691,6 +691,36 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   page_string(ch->desc, buf, TRUE);
 }
 
+void perform_obj_perms_list(struct char_data *ch, char *arg)
+{
+  int num = 0, found = 0, len = 0, tmp_len = 0;
+  int flag_num = atoi(arg);
+  obj_vnum ov = NOTHING;
+  char buf[MAX_STRING_LENGTH];
+
+  len = snprintf(buf, sizeof(buf), "Objects with the affect '%s'\r\n"
+                                   "Index VNum    Num   Object Name                                Object Type\r\n"
+                                   "----- ------- ----- ------------------------------------------ ----------------\r\n",
+                 arg);
+  for (num = 0; num <= top_of_objt; num++)
+  {
+    if (OBJAFF_FLAGGED(obj_proto[num], flag_num))
+    {
+      ov = obj_index[num].vnum;
+      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s[%s%5d%s] %s(%s%3d%s)%s %-*s%s [%s]%s%s\r\n",
+                         QGRN, ++found, QNRM, QCYN, QYEL, ov, QCYN, QNRM,
+                         QGRN, obj_index[num].number, QNRM, QCYN, 42 + count_color_chars(obj_proto[num].short_description),
+                         obj_proto[num].short_description, QYEL, item_types[obj_proto[num].obj_flags.type_flag], QNRM,
+                         obj_proto[num].proto_script ? " [TRIG]" : "");
+      len += tmp_len;
+      if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
+        break; /* zusuk put this check here */
+    }
+  }
+
+  page_string(ch->desc, buf, TRUE);
+}
+
 void perform_obj_name_list(struct char_data *ch, char *arg)
 {
   int num, found = 0, len = 0, tmp_len = 0;
@@ -936,6 +966,25 @@ ACMD(do_oasis_list)
           return;
         }
         perform_obj_worn_list(ch, arg2);
+      }
+      else if (is_abbrev(arg, "perm"))
+      {
+        if (!*arg2)
+        {
+          send_to_char(ch, "Which object perm flags do you want to list?\r\n");
+          for (i = 1; i < NUM_AFF_FLAGS; i++)
+          {
+            send_to_char(ch, "%s%2d%s-%s%-14s%s", QNRM, i, QNRM, QYEL, affected_bits[i], QNRM);
+            if (!(i % 4))
+              send_to_char(ch, "\r\n");
+          }
+          send_to_char(ch, "\r\n");
+          send_to_char(ch, "Usage: %solist perm <num>%s\r\n", QYEL, QNRM);
+          send_to_char(ch, "Displays objects permanent affects in the selected location.\r\n");
+
+          return;
+        }
+        perform_obj_perms_list(ch, arg2);
       }
       else
       { /* Assume arg = affect */
