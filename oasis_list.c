@@ -986,7 +986,7 @@ ACMD(do_oasis_list)
           send_to_char(ch, "Which object perm flags do you want to list?\r\n");
           for (i = 1; i < NUM_AFF_FLAGS; i++)
           {
-            send_to_char(ch, "%s%2d%s-%s%-24s%s", QNRM, i, QNRM, QYEL, affected_bits[i], QNRM);
+            send_to_char(ch, "%s%3d%s-%s%-20s%s", QNRM, i, QNRM, QYEL, affected_bits[i], QNRM);
             if (!(i % 3))
               send_to_char(ch, "\r\n");
           }
