@@ -405,10 +405,10 @@ void finalize_study(struct descriptor_data *d)
           GET_REAL_MAX_HIT(ch) += LEVELUP(ch)->feats[i];
         break;
       case FEAT_EPIC_TOUGHNESS:
-          GET_REAL_MAX_HIT(ch) += 30;
+        GET_REAL_MAX_HIT(ch) += 30;
         break;
-      case FEAT_EPIC_PSI_MIND :
-          GET_REAL_MAX_PSP(ch) += 50;
+      case FEAT_EPIC_PSI_MIND:
+        GET_REAL_MAX_PSP(ch) += 50;
         break;
       case FEAT_DAMAGE_REDUCTION:
         /* Create the DR structure and attach it to the player. */
@@ -2159,7 +2159,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
                   "\r\n"
-                  "* - An asterisk indicates you don't have access to this option.\r\n"
+                  "* - An asterisk indicates you don't have access to this option.  %s\r\n"
                   "Enter Choice : ",
 
                   mgn,
@@ -2179,7 +2179,8 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             // D
                   MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
-                  grn, nrm);
+                  grn, nrm,
+                  (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
 
   OLC_MODE(d) = STUDY_GEN_MAIN_MENU;
 }
