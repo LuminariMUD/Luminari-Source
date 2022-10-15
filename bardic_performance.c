@@ -105,20 +105,25 @@ int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
 
 /* local functions for modifying chars points (hitpoints or moves)
  * note: negative (-) is healing -- 09/2022, replaced with process_healing() -zusuk */
+/*
 static void alter_hit(struct char_data *ch, int points, bool unused)
 {
-  GET_HIT(ch) -= points;
-  GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
-  update_pos(ch);
+ GET_HIT(ch) -= points;
+ GET_HIT(ch) = MIN(GET_HIT(ch), GET_MAX_HIT(ch));
+ update_pos(ch);
 }
+*/
 
 /* local functions for modifying chars points (hitpoints or moves) */
+/* note : negative(-) is healing-- 09 / 2022, replaced with process_healing() - zusuk */
+/*
 static void alter_move(struct char_data *ch, int points)
 {
   GET_MOVE(ch) -= points;
   GET_MOVE(ch) = MIN(GET_MOVE(ch), GET_MAX_MOVE(ch));
   update_pos(ch);
 }
+*/
 
 /* checks if incoming performance number is actually a valid performance */
 bool is_valid_performance(int performance_num)
