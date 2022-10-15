@@ -3748,8 +3748,7 @@ struct condensed_combat_data
     int num_targets_hit_by_your_spells;
 
     int num_times_hit_by_spell;
-
-}
+};
 
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data
@@ -4036,7 +4035,7 @@ struct player_special_data_saved
 
     int time_since_last_feeding; // how long since the vampire last fed on blood
 
-    int buff_abilities[MAX_BUFFS][2];  // This is used with the buff command to simplify the process of buffing by casters
+    int buff_abilities[MAX_BUFFS][2]; // This is used with the buff command to simplify the process of buffing by casters
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
