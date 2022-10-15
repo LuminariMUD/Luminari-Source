@@ -6549,15 +6549,17 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
     break;
   }
 
+  /* if you are not groupped, just hit self with this spell and exit */
   if (!GROUP(ch))
   {
-    send_to_char(ch, "You must be part of a group to cast this spell. See HELP GROUPS.\r\n");
+    perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
     return;
   }
 
+  /* if you are not groupped, just hit self with this spell and exit */
   if ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) == NULL)
   {
-    send_to_char(ch, "You must be part of a group to cast this spell. See HELP GROUPS.\r\n");
+    perform_mag_groups(level, ch, ch, obj, spellnum, savetype, casttype);
     return;
   }
 
