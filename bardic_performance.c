@@ -452,7 +452,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
   case SKILL_SONG_OF_HEALING:
     send_to_char(tch, "You are soothed by the power of music!\r\n");
-    process_healing(ch, tch, SKILL_SONG_OF_HEALING, rand_number(effectiveness, effectiveness * 2 + 10), 0);
+    process_healing(ch, tch, SKILL_SONG_OF_HEALING, rand_number(effectiveness, effectiveness * 2 + 10), 0, 0);
     break;
 
   case SKILL_DANCE_OF_PROTECTION:
@@ -497,10 +497,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     if (GET_HIT(tch) < GET_MAX_HIT(tch))
     {
       send_to_char(tch, "You are soothed by the power of music!\r\n");
-      alter_hit(tch, -rand_number(effectiveness / 3, effectiveness / 2), FALSE);
+      process_healing(ch, tch, SKILL_ORATORY_OF_REJUVENATION, rand_number(effectiveness / 3, effectiveness / 2), 0, 0);
     }
 
-    alter_move(tch, -rand_number(effectiveness * 4, effectiveness * 6));
+    process_healing(ch, tch, SKILL_ORATORY_OF_REJUVENATION, 0, rand_number(effectiveness * 40, effectiveness * 60 + 60), 0);
 
     if (rand_number(0, 100) < effectiveness && affected_by_spell(tch, SPELL_POISON))
     {
@@ -600,7 +600,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
       act("$n fly through the air, free as a bird!", TRUE, tch, 0, 0, TO_ROOM);
     }
-    alter_move(tch, -rand_number(3, effectiveness / 3));
+    process_healing(ch, tch, SKILL_SONG_OF_FLIGHT, 0, rand_number(50, effectiveness * 10 / 3 + 50), 0);
     break;
 
   /* increases memming / casting effectiveness */

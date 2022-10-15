@@ -8040,7 +8040,7 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
 void mag_points(int level, struct char_data *ch, struct char_data *victim,
                 struct obj_data *obj, int spellnum, int savetype, int casttype)
 {
-  int healing = 0, move = 0, max_psp = 0;
+  int healing = 0, move = 0, psp = 0, max_psp = 0;
   const char *to_notvict = NULL, *to_char = NULL, *to_vict = NULL;
 
   if (victim == NULL)
@@ -8258,7 +8258,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (to_char != NULL)
     act(to_char, TRUE, ch, 0, victim, TO_CHAR);
 
-  process_healing(ch, victim, spellnum, healing, move);
+  process_healing(ch, victim, spellnum, healing, move, psp);
 }
 
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
