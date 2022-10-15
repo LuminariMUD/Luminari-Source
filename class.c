@@ -339,7 +339,7 @@ void classo(int class_num, const char *name, const char *abbrev, const char *col
             const char *menu_name, int max_level, bool locked_class, int prestige_class,
             int base_attack_bonus, int hit_dice, int psp_gain, int move_gain,
             int trains_gain, bool in_game, int unlock_cost, int epic_feat_progression,
-            const char *spell_prog, const char *descrip)
+            const char *spell_prog, const char *primary_attribute, const char *descrip)
 {
   class_list[class_num].name = name;
   class_list[class_num].abbrev = abbrev;
@@ -357,6 +357,7 @@ void classo(int class_num, const char *name, const char *abbrev, const char *col
   class_list[class_num].unlock_cost = unlock_cost;
   class_list[class_num].epic_feat_progression = epic_feat_progression;
   class_list[class_num].prestige_spell_progression = spell_prog;
+  class_list[class_num].primary_attribute = primary_attribute;
   class_list[class_num].descrip = descrip;
   /* list of prereqs */
   class_list[class_num].prereq_list = NULL;
@@ -452,6 +453,7 @@ void init_class_list(int class_num)
   class_list[class_num].unlock_cost = 0;
   class_list[class_num].epic_feat_progression = 5;
   class_list[class_num].prestige_spell_progression = "no progression";
+  class_list[class_num].primary_attribute = "no primary attribute";
   class_list[class_num].descrip = "undescribed class";
 
   int i = 0;
@@ -986,6 +988,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
                CLSLIST_EFEATP(class));
   send_to_char(ch, "\tcClass in Game?   : \tn%s\r\n", CLSLIST_INGAME(class) ? "\tnYes\tn" : "\trNo, ask staff\tn");
   send_to_char(ch, "\tcPrestige Spell   : \tn%s\r\n", class_list[class].prestige_spell_progression);
+  send_to_char(ch, "\tcPrimary Attribute: \tn%s\r\n", CLSLIST_ATTRIBUTE(class));
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -1103,7 +1106,7 @@ void display_imm_classlist(struct char_data *ch)
   size_t len = 0;
 
   send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
-  send_to_char(ch, " DESCRIP\r\n");
+  send_to_char(ch, " Attribute DESCRIP\r\n");
   send_to_char(ch, " Sv-Fort Sv-Refl Sv-Will\r\n");
   send_to_char(ch, "    acrobatics,stealth,perception,heal,intimidate,concentration,spellcraft\r\n");
   send_to_char(ch, "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
@@ -1115,7 +1118,7 @@ void display_imm_classlist(struct char_data *ch)
   for (i = 0; i < NUM_CLASSES; i++)
   {
     len += snprintf(buf + len, sizeof(buf) - len,
-                    "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d\r\n     %s\r\n"
+                    "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d %s\r\n     %s\r\n"
                     "  %s %s %s\r\n"
                     "     %s %s %s %s %s %s %s\r\n"
                     "     %s %s %s %s %s %s %s %s\r\n"
@@ -1125,7 +1128,7 @@ void display_imm_classlist(struct char_data *ch)
                     CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
                     (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i),
                     CLSLIST_MVS(i), CLSLIST_TRAINS(i), CLSLIST_INGAME(i) ? "Y" : "N", CLSLIST_COST(i), CLSLIST_EFEATP(i),
-                    CLSLIST_DESCRIP(i),
+                    CLSLIST_ATTRIBUTE(i), CLSLIST_DESCRIP(i),
                     CLSLIST_SAVES(i, 0) ? "G" : "B", CLSLIST_SAVES(i, 1) ? "G" : "B", CLSLIST_SAVES(i, 2) ? "G" : "B",
                     (CLSLIST_ABIL(i, ABILITY_ACROBATICS) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_ACROBATICS) ? "CC" : "NA"),
                     (CLSLIST_ABIL(i, ABILITY_STEALTH) == 2) ? "CA" : (CLSLIST_ABIL(i, ABILITY_STEALTH) ? "CC" : "NA"),
