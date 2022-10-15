@@ -4452,6 +4452,39 @@ ACMD(do_toggle)
       {"rp", PRF_RP, 0,
        "You will no longer display to others that you would like to Role-play.\r\n",
        "You will now display to others that you would like to Role-play.\r\n"},
+      /* 41 */
+      {"aoebomb", PRF_AOE_BOMBS, 0,
+       "Your bombs will now only affect single targets.\r\n",
+       "Your bombs will now affect multiple targets.\r\n"},
+      /*42*/
+      {"autocon", PRF_AUTOCON, 0,
+       "You will no longer see level differences between you and mobs when you type look.\r\n",
+       "You will now see level differences between you and mobs when you type look.\r\n"},
+      /* 43 */
+      {"smashdefense", PRF_SMASH_DEFENSE, 0,
+       "You will no longer use smash defense in combat.\r\n",
+       "You will now use smash defense in combat (if you know it).\r\n"},
+      /* 44 */
+      {"charmierescue", PRF_NO_CHARMIE_RESCUE, 0,
+       "You will now allow charmies to rescue you and other group members.\r\n",
+       "You will no longer allow charmies to rescue you and other group members\r\n"},
+      /* 45 */
+      {"storedconsumables", PRF_USE_STORED_CONSUMABLES, 0,
+       "You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
+       "You will no use the stock consumables system (HELP USE).\r\n"},
+      /* 46 */
+      {"autostand", PRF_AUTO_STAND, 0,
+       "You will no longer automatically stand if knocked down in combat.\r\n",
+       "You will now automatically stand if knocked down in combat.\r\n"},
+      /* 47 */
+      {"autohit", PRF_AUTOHIT, 0,
+       "You will no longer automatically hit mobs when typing 'hit' by itself.\r\n",
+       "You will now automatically hit the first eligible mob in the room by typing 'hit' by itself.\r\n"},
+      /*48*/
+      {"nofollow", PRF_NO_FOLLOW, 0,
+       "Players can now follow you.\r\n",
+       "Players can no longer follow you!\r\n"},
+
       /*LAST*/
       {"\n", 0, -1, "\n", "\n"} /* must be last */
   };
