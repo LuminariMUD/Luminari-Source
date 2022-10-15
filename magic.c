@@ -3626,6 +3626,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "You are already affected by an elemental shield!\r\n");
       return;
     }
+
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_ASHIELD);
 
@@ -3650,11 +3651,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_AID:
-    if (affected_by_spell(victim, SPELL_BLESS) ||
-        affected_by_spell(victim, SPELL_PRAYER))
+    if (affected_by_spell(victim, SPELL_PRAYER))
     {
       send_to_char(ch, "The target is already blessed!\r\n");
       return;
+    }
+    if (affected_by_spell(victim, SPELL_BLESS))
+    {
+      affect_from_char(victim, SPELL_BLESS);
     }
 
     af[0].location = APPLY_HITROLL;
@@ -3662,30 +3666,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = 300;
     af[0].bonus_type = BONUS_TYPE_MORALE;
 
-    //      af[1].location = APPLY_DAMROLL;
-    //      af[1].modifier = 3;
-    //      af[1].duration = 300;
-    //      af[1].bonus_type = BONUS_TYPE_MORALE;
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 2;
+    af[1].duration = 300;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
 
-    af[2].location = APPLY_SAVING_WILL;
-    af[2].modifier = 2;
+    af[2].location = APPLY_HIT;
+    af[2].modifier = dice(2, 6) + MAX(level, 15);
     af[2].duration = 300;
     af[2].bonus_type = BONUS_TYPE_MORALE;
-
-    //      af[3].location = APPLY_SAVING_FORT;
-    //      af[3].modifier = 2;
-    //      af[3].duration = 300;
-    //      af[3].bonus_type = BONUS_TYPE_MORALE;
-    //
-    //      af[4].location = APPLY_SAVING_REFL;
-    //      af[4].modifier = 2;
-    //      af[4].duration = 300;
-    //      af[4].bonus_type = BONUS_TYPE_MORALE;
-
-    af[5].location = APPLY_HIT;
-    af[5].modifier = dice(2, 6) + MAX(level, 15);
-    af[5].duration = 300;
-    af[5].bonus_type = BONUS_TYPE_MORALE;
 
     to_room = "$n is now divinely aided!";
     to_vict = "You feel divinely aided.";
@@ -4499,17 +4488,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_EPIC_WARDING: // no school
-    if (affected_by_spell(victim, SPELL_STONESKIN) ||
-        affected_by_spell(victim, SPELL_IRONSKIN))
+    if (affected_by_spell(victim, SPELL_STONESKIN))
     {
-      send_to_char(ch, "A magical ward is already in effect on target.\r\n");
-      return;
+      affect_from_char(victim, SPELL_STONESKIN);
     }
+    if (affected_by_spell(victim, SPELL_IRONSKIN))
+    {
+      affect_from_char(victim, SPELL_IRONSKIN);
+    }
+
     SET_BIT_AR(af[0].bitvector, AFF_WARDED);
     af[0].duration = 600;
     to_room = "$n becomes surrounded by a powerful magical ward!";
     to_vict = "You become surrounded by a powerful magical ward!";
-    GET_STONESKIN(victim) = MIN(700, level * 60);
+    GET_STONESKIN(victim) = level * 60;
     break;
 
   case SPELL_EXPEDITIOUS_RETREAT: // transmutation
@@ -4682,9 +4674,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_GLOBE_OF_INVULN: // abjuration
     if (affected_by_spell(victim, SPELL_MINOR_GLOBE))
     {
-      send_to_char(ch, "You are already affected by a globe spell!\r\n");
-      return;
+      affect_from_char(victim, SPELL_MINOR_GLOBE);
     }
+
     af[0].duration = 50;
     SET_BIT_AR(af[0].bitvector, AFF_GLOBE_OF_INVULN);
 
@@ -4734,9 +4726,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_GREATER_HEROISM: // enchantment
     if (affected_by_spell(victim, SPELL_HEROISM))
     {
-      send_to_char(ch, "The target is already heroic!\r\n");
-      return;
+      affect_from_char(victim, SPELL_HEROISM);
     }
+
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 4;
     af[0].duration = 300;
@@ -4801,6 +4793,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {
       affect_from_char(victim, SPELL_GREATER_MIRROR_IMAGE);
     }
+
     af[0].duration = 300;
     SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
     to_room = "$n grins as multiple images pop up and smile!";
@@ -4811,8 +4804,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_GREATER_SPELL_MANTLE: // abjuration
     if (affected_by_spell(victim, SPELL_MANTLE))
     {
-      send_to_char(ch, "A magical mantle is already in effect on target.\r\n");
-      return;
+      affect_from_char(victim, SPELL_MANTLE);
     }
 
     af[0].duration = level * 4;
@@ -5051,18 +5043,22 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_IRONSKIN: // transmutation
-    if (affected_by_spell(victim, SPELL_STONESKIN) ||
-        affected_by_spell(victim, SPELL_EPIC_WARDING))
+    if (affected_by_spell(victim, SPELL_EPIC_WARDING))
     {
-      send_to_char(ch, "A magical ward is already in effect on target.\r\n");
+      send_to_char(ch, "A magical ward is already in effect on the target.\r\n");
       return;
     }
+    if (affected_by_spell(victim, SPELL_STONESKIN))
+    {
+      affect_from_char(victim, SPELL_STONESKIN);
+    }
+
     SET_BIT_AR(af[0].bitvector, AFF_WARDED);
     af[0].duration = 600;
     to_room = "$n's skin takes on the texture of iron!";
     to_vict = "Your skin takes on the texture of iron!";
     level = MAX(10, level);
-    GET_STONESKIN(victim) = MIN(450, level * 35);
+    GET_STONESKIN(victim) = level * 35;
     break;
 
   case SPELL_IRRESISTIBLE_DANCE: // enchantment
@@ -5127,10 +5123,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MASS_CHARISMA: // transmutation
     if (affected_by_spell(victim, SPELL_CHARISMA))
     {
-      send_to_char(ch, "Your target already has a charisma spell in effect.\r\n");
-      send_to_char(victim, "You already has a charisma spell in effect (mass charisma failed).\r\n");
-      return;
+      affect_from_char(victim, SPELL_CHARISMA);
     }
+
     af[0].location = APPLY_CHA;
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 2 + (level / 5);
@@ -5141,9 +5136,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MASS_CUNNING: // transmutation
     if (affected_by_spell(victim, SPELL_CUNNING))
     {
-      send_to_char(ch, "Your target already has a cunning spell in effect.\r\n");
-      send_to_char(victim, "You already has a cunning spell in effect (mass cunning failed).\r\n");
-      return;
+      affect_from_char(victim, SPELL_CUNNING);
     }
 
     af[0].location = APPLY_INT;
@@ -5155,14 +5148,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MASS_ENDURANCE: // transmutation
-    if (
-        affected_by_spell(victim, SPELL_ENDURANCE) ||
-        affected_by_spell(victim, SPELL_MASS_ENHANCE))
+    if (affected_by_spell(victim, SPELL_MASS_ENHANCE))
     {
       send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
       send_to_char(victim, "You already have a physical enhancement spell in effect! (mass endurance failed)\r\n");
       return;
     }
+    if (affected_by_spell(victim, SPELL_ENDURANCE))
+    {
+      affect_from_char(victim, SPELL_ENDURANCE);
+    }
+
     af[0].location = APPLY_CON;
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 2 + (level / 5);
@@ -5170,17 +5166,81 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's begins to feel more hardy!";
     break;
 
-  case SPELL_MASS_ENHANCE: // transmutation
-    if (affected_by_spell(victim, SPELL_GRACE) ||
-        affected_by_spell(victim, SPELL_MASS_GRACE) ||
-        affected_by_spell(victim, SPELL_ENDURANCE) ||
-        affected_by_spell(victim, SPELL_MASS_ENDURANCE) ||
-        affected_by_spell(victim, SPELL_MASS_STRENGTH) ||
-        affected_by_spell(victim, SPELL_STRENGTH))
+  case SPELL_MASS_GRACE: // transmutation
+    if (affected_by_spell(victim, SPELL_MASS_ENHANCE))
     {
       send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
-      send_to_char(victim, "You already have a physical enhancement spell in effect! (mass enhance failed)\r\n");
+      send_to_char(victim, "You already have a physical enhancement spell in effect! (mass grace failed)\r\n");
       return;
+    }
+    if (affected_by_spell(victim, SPELL_GRACE))
+    {
+      affect_from_char(victim, SPELL_GRACE);
+    }
+
+    af[0].location = APPLY_DEX;
+    af[0].duration = (level * 12) + 100;
+    af[0].modifier = 2 + (level / 5);
+    to_vict = "You feel more dextrous!";
+    to_room = "$n's appears to be more dextrous!";
+    break;
+
+  case SPELL_MASS_STRENGTH: // transmutation
+    if (affected_by_spell(victim, SPELL_MASS_ENHANCE))
+    {
+      send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
+      send_to_char(victim, "You already have a physical enhancement spell in effect! (mass strength failed)\r\n");
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_STRENGTH))
+    {
+      affect_from_char(victim, SPELL_STRENGTH);
+    }
+
+    af[0].location = APPLY_STR;
+    af[0].duration = (level * 12) + 100;
+    af[0].modifier = 2 + (level / 5);
+    to_vict = "You feel stronger!";
+    to_room = "$n's muscles begin to bulge!";
+    break;
+
+  case SPELL_MASS_WISDOM: // transmutation
+    if (affected_by_spell(victim, SPELL_WISDOM))
+    {
+      affect_from_char(victim, SPELL_WISDOM);
+    }
+
+    af[0].location = APPLY_WIS;
+    af[0].duration = (level * 12) + 100;
+    af[0].modifier = 2 + (level / 5);
+    to_vict = "You feel more wise!";
+    to_room = "$n's wisdom increases!";
+    break;
+
+  case SPELL_MASS_ENHANCE: // transmutation
+    if (affected_by_spell(victim, SPELL_GRACE))
+    {
+      affect_from_char(victim, SPELL_GRACE);
+    }
+    if (affected_by_spell(victim, SPELL_MASS_GRACE))
+    {
+      affect_from_char(victim, SPELL_MASS_GRACE);
+    }
+    if (affected_by_spell(victim, SPELL_ENDURANCE))
+    {
+      affect_from_char(victim, SPELL_ENDURANCE);
+    }
+    if (affected_by_spell(victim, SPELL_MASS_ENDURANCE))
+    {
+      affect_from_char(victim, SPELL_MASS_ENDURANCE);
+    }
+    if (affected_by_spell(victim, SPELL_MASS_STRENGTH))
+    {
+      affect_from_char(victim, SPELL_MASS_STRENGTH);
+    }
+    if (affected_by_spell(victim, SPELL_STRENGTH))
+    {
+      affect_from_char(victim, SPELL_STRENGTH);
     }
 
     af[0].location = APPLY_STR;
@@ -5202,22 +5262,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's physical attributes are enhanced!";
     break;
 
-  case SPELL_MASS_GRACE: // transmutation
-    if (
-        affected_by_spell(victim, SPELL_GRACE) ||
-        affected_by_spell(victim, SPELL_MASS_ENHANCE))
-    {
-      send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
-      send_to_char(victim, "You already have a physical enhancement spell in effect! (mass grace failed)\r\n");
-      return;
-    }
-    af[0].location = APPLY_DEX;
-    af[0].duration = (level * 12) + 100;
-    af[0].modifier = 2 + (level / 5);
-    to_vict = "You feel more dextrous!";
-    to_room = "$n's appears to be more dextrous!";
-    break;
-
   case SPELL_MASS_HOLD_PERSON: // enchantment
     if (paralysis_immunity(victim))
     {
@@ -5235,37 +5279,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = dice(3, 4);
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
-    break;
-
-  case SPELL_MASS_STRENGTH: // transmutation
-    if (
-        affected_by_spell(victim, SPELL_STRENGTH) ||
-        affected_by_spell(victim, SPELL_MASS_ENHANCE))
-    {
-      send_to_char(ch, "Your target already has a physical enhancement spell in effect.\r\n");
-      send_to_char(victim, "You already have a physical enhancement spell in effect! (mass strength failed)\r\n");
-      return;
-    }
-    af[0].location = APPLY_STR;
-    af[0].duration = (level * 12) + 100;
-    af[0].modifier = 2 + (level / 5);
-    to_vict = "You feel stronger!";
-    to_room = "$n's muscles begin to bulge!";
-    break;
-
-  case SPELL_MASS_WISDOM: // transmutation
-    if (
-        affected_by_spell(victim, SPELL_WISDOM))
-    {
-      send_to_char(ch, "Your target already has awisdom spell in effect.\r\n");
-      send_to_char(victim, "You already have a wisdom spell in effect! (mass wisdom failed)\r\n");
-      return;
-    }
-    af[0].location = APPLY_WIS;
-    af[0].duration = (level * 12) + 100;
-    af[0].modifier = 2 + (level / 5);
-    to_vict = "You feel more wise!";
-    to_room = "$n's wisdom increases!";
     break;
 
   case SPELL_MINOR_GLOBE: // abjuration
@@ -5313,10 +5326,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MIRROR_IMAGE: // illusion
+    if (affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
+    {
+      send_to_char(ch, "You are already affected by greater mirror image!\r\n");
+      return;
+    }
+
     if (affected_by_spell(victim, SPELL_MIRROR_IMAGE))
     {
       affect_from_char(victim, SPELL_MIRROR_IMAGE);
     }
+
     af[0].duration = 300;
     SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
     to_room = "$n grins as multiple images pop up and smile!";
@@ -5429,11 +5449,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_PRAYER:
-    if (affected_by_spell(victim, SPELL_BLESS) ||
-        affected_by_spell(victim, SPELL_AID))
+    if (affected_by_spell(victim, SPELL_BLESS))
     {
-      send_to_char(ch, "The target is already blessed!\r\n");
-      return;
+      affect_from_char(victim, SPELL_BLESS);
+    }
+    if (affected_by_spell(victim, SPELL_AID))
+    {
+      affect_from_char(victim, SPELL_AID);
     }
 
     af[0].location = APPLY_HITROLL;
