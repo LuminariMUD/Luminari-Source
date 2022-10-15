@@ -681,6 +681,7 @@ ACMD_DECL(do_gen_tog);
 #define SCMD_AUTO_STAND 46
 #define SCMD_AUTOHIT 47
 #define SCMD_NO_FOLLOW 48
+#define SCMD_CONDENSED 49
 
 /* do_quit */
 ACMD_DECL(do_quit);

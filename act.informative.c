@@ -4484,6 +4484,10 @@ ACMD(do_toggle)
       {"nofollow", PRF_NO_FOLLOW, 0,
        "Players can now follow you.\r\n",
        "Players can no longer follow you!\r\n"},
+      /*49*/
+      {"condensed", PRF_CONDENSED, 0,
+       "You will now see full combat details.\r\n",
+       "You will now see condensed combat messages.\r\n"},
 
       /*LAST*/
       {"\n", 0, -1, "\n", "\n"} /* must be last */

@@ -6824,6 +6824,9 @@ ACMD(do_gen_tog)
       /*48*/
       {"Players can now follow you.\r\n",
        "Players can no longer follow you!\r\n"},
+      /*49*/
+      {"You will now see full combat details.\r\n",
+       "You will now see condensed combat messages.\r\n"},
 
   };
 
@@ -6841,9 +6844,13 @@ ACMD(do_gen_tog)
   case SCMD_AUTOHIT:
     result = PRF_TOG_CHK(ch, PRF_AUTOHIT);
     break;
+  case SCMD_CONDENSED:
+    result = PRF_TOG_CHK(ch, PRF_CONDENSED);
+    break;
   case SCMD_NO_FOLLOW:
     /* this command on usage will drop all your PC followers -zusuk */
-    for (k = ch->followers; k; k = j) {
+    for (k = ch->followers; k; k = j)
+    {
       j = k->next;
 
       if (!IS_NPC(k->follower))
