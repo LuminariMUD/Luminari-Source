@@ -3263,7 +3263,7 @@ ACMD(do_follow)
   }
 
   /* easy out */
-  if (PRF_FLAGGED(leader, PRF_AUTOHIT))
+  if (PRF_FLAGGED(leader, PRF_NO_FOLLOW))
   {
     act("$N has $S nofollow toggled.", FALSE, ch, 0, leader, TO_CHAR);
     return;
