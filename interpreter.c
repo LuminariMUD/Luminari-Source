@@ -258,6 +258,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cexchange", "cexchange", POS_RECLINING, do_cexchange, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"createspawn", "createspawn", POS_STANDING, do_create_vampire_spawn, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_create_vampire_spawn},
     {"cruelties", "cruelties", POS_RECLINING, do_cruelties, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"condensed", "condensed", POS_DEAD, do_gen_tog, 0, SCMD_CONDENSED, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
     {"date", "da", POS_DEAD, do_date, 1, SCMD_DATE, TRUE, ACTION_NONE, {0, 0}, NULL},

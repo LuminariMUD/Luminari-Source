@@ -966,9 +966,10 @@
 #define PRF_BLOOD_DRAIN 59            // Vampires will drain blood when grappling if this is turned on.
 #define PRF_AUTOHIT 60                // You will hit the first eligible mob in the room when typing 'hit' by itself.
 #define PRF_NO_FOLLOW 61              /**< Toggle PC followers */
+#define PRF_CONDENSED 62              /**< Toggle combat condensed mode */
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 62
+#define NUM_PRF_FLAGS 63
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -3732,18 +3733,34 @@ struct char_special_data_saved
     int psp_regen;
 };
 
+/* not saved player data used for condensed combat */
+struct condensed_combat_data
+{
+    int num_times_attacking;
+    int num_times_hit_targets;
+
+    int num_times_hit_by_others;
+    int num_times_others_attack_you;
+
+    int num_targets_hit_by_your_spells;
+
+    int num_times_hit_by_spell;
+
+}
+
 /** Special playing constants shared by PCs and NPCs which aren't in pfile */
 struct char_special_data
 {
     /* combat related */
-    int initiative;             /* What is this char's initiative score? */
-    struct char_data *fighting; /**< Target of fight; else NULL */
-    struct char_data *hunting;  /**< Target of NPC hunt; else NULL */
-    int totalDefense;           // how many totaldefense attempts left in the round
-    struct char_data *guarding; // target for 'guard' ability
-    bool firing;                // is char firing missile weapon?
-    int mounted_blocks_left;    // how many mounted combat blocks left in the round
-    int deflect_arrows_left;    //
+    int initiative;                                 /* What is this char's initiative score? */
+    struct char_data *fighting;                     /**< Target of fight; else NULL */
+    struct char_data *hunting;                      /**< Target of NPC hunt; else NULL */
+    int totalDefense;                               /* how many totaldefense attempts left in the round */
+    struct char_data *guarding;                     /* target for 'guard' ability */
+    bool firing;                                    /* is char firing missile weapon? */
+    int mounted_blocks_left;                        /* how many mounted combat blocks left in the round */
+    int deflect_arrows_left;                        /* deflect arrows left */
+    struct condensed_combat_data *condensed_combat; /* condensed combat struct */
 
     /* Mode Data */
     int mode_value; /* Bonus/penalty for power attack and combat expertise. */

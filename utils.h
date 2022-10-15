@@ -968,6 +968,8 @@ void char_from_furniture(struct char_data *ch);
 #define GUARDING(ch) ((ch)->char_specials.guarding)
 /** Is ch firing a missile weapon? */
 #define FIRING(ch) ((ch)->char_specials.firing)
+/** Condensed Combat */
+#define CNDNSD(ch) ((ch)->char_specials.condensed_combat)
 
 /* Mode data  */
 /* Power attack level and Combat expertise level are stored in the same place*/

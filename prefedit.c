@@ -225,8 +225,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 3 (3) - Auto Hit */
                "%s4%s) Vampiric Blood Drain    %s[%s%3s%s]\r\n"
                /* Line 4 (4) - Vampiric Blood Drain */
-               "%s5%s) No Follow (PC)          %s[%s%3s%s]\r\n",
+               "%s5%s) No Follow (PC)          %s[%s%3s%s]\r\n"
                /* Line 5 (5) - No Follow (PC) */
+               "%s6%s) Condensed Combat Mode   %s[%s%3s%s]\r\n",
+               /* Line 6 (6) - Condensed Combat Mode */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
@@ -250,7 +252,12 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_NO_FOLLOW) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_NO_FOLLOW)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_NO_FOLLOW)), CCCYN(d->character, C_NRM),
+               /*******6*********/
+               CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_CONDENSED) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_CONDENSED)), CCCYN(d->character, C_NRM)
                /*end*/);
 
   /* Finishing Off */
@@ -931,6 +938,10 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '5':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NO_FOLLOW);
+      break;
+
+    case '6':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CONDENSED);
       break;
 
     default:
