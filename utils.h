@@ -141,7 +141,7 @@ bool affected_by_aura_of_faith(struct char_data *ch);
 bool affected_by_aura_of_depravity(struct char_data *ch);
 bool affected_by_aura_of_righteousness(struct char_data *ch);
 bool is_fear_spell(int spellnum);
-char * apply_types_lowercase(int apply_type);
+char *apply_types_lowercase(int apply_type);
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
 int num_blackguard_cruelties_known(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen(struct char_data *ch);
@@ -1810,6 +1810,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define CLSLIST_INGAME(classnum) (class_list[classnum].in_game)
 #define CLSLIST_COST(classnum) (class_list[classnum].unlock_cost)
 #define CLSLIST_EFEATP(classnum) (class_list[classnum].epic_feat_progression)
+#define CLSLIST_ATTRIBUTE(classnum) (class_list[classnum].primary_attribute)
 #define CLSLIST_DESCRIP(classnum) (class_list[classnum].descrip)
 #define CLSLIST_SAVES(classnum, savenum) (class_list[classnum].preferred_saves[savenum])
 #define CLSLIST_ABIL(classnum, abilnum) (class_list[classnum].class_abil[abilnum])
@@ -1964,20 +1965,20 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
                          (!IS_NPC(ch) && !IS_MORPHED(ch)))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
-#define IS_VAMPIRE(ch)  ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) || \
+#define IS_VAMPIRE(ch) ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) ||         \
                         (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
-                        GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
+                                        GET_SUBRACE(ch, 1) == SUBRACE_VAMPIRE || GET_SUBRACE(ch, 2) == SUBRACE_VAMPIRE)))
 
 #define IS_POWERFUL_BEING(ch) ((ch && IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT))
 
 #define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
-#define CAN_USE_VAMPIRE_ABILITY(ch)  (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
+#define CAN_USE_VAMPIRE_ABILITY(ch) (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
 #define TIME_SINCE_LAST_FEEDING(ch) (ch->player_specials->saved.time_since_last_feeding)
 
 #define IS_SENTIENT(ch) (IS_HUMANOID(ch) || (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_SENTIENT)))
 
-#define GET_SETCLOAK_TIMER(ch)  (ch->player_specials->saved.setcloak_timer)
+#define GET_SETCLOAK_TIMER(ch) (ch->player_specials->saved.setcloak_timer)
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)
