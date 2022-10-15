@@ -7955,9 +7955,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
    in - ch is causing the heal, victim is receiving the heal, healing is the amount of HP restored, move is the amount of movement points restored
    out - TRUE if successful, FALSE if failed
    */
-bool process_healing(struct char_data *ch, struct char_data *victim, int spellnum, int healing, int move)
+bool process_healing(struct char_data *ch, struct char_data *victim, int spellnum, int healing, int move, int psp)
 {
-  int start = GET_HIT(victim);
+  int start_hp = GET_HIT(victim);
+  int start_mv = GET_MOVE(victim);
+  int start_psp = GET_PSP(victim);
 
   /* black mantle reduces effectiveness of healing by 20% */
   if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
@@ -7970,11 +7972,17 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   // vampire bonuses / penalties for feeding
   // vampire bonuses / penalties for feeding
   healing = healing * (10 + vampire_last_feeding_adjustment(ch)) / 10;
+  move = move * (10 + vampire_last_feeding_adjustment(ch)) / 10;
 
   /* message to ch / victim */
-  send_to_char(ch, "<%d> ", healing);
-  if (ch != victim)
-    send_to_char(victim, "<%d> ", healing);
+  if (healing)
+  {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+      send_to_char(ch, "<%d> ", healing);
+    if (ch != victim)
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
+        send_to_char(victim, "<%d> ", healing);
+  }
 
   /* any special handling due to specific spellnum? */
   if (spellnum == -1)
@@ -8014,11 +8022,16 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   /* this is for movement */
   GET_MOVE(victim) = MIN(GET_MAX_MOVE(victim), GET_MOVE(victim) + move);
 
+  /* this is for PSP */
+  GET_PSP(victim) = MIN(GET_MAX_PSP(victim), GET_PSP(victim) + psp);
+
   /* standard practice! */
   update_pos(victim);
 
-  /* we improved our starting hp */
-  if (GET_HIT(victim) > start)
+  /* we improved our starting hp or moves */
+  if (GET_HIT(victim) > start_hp ||
+      GET_PSP(victim) > start_psp ||
+      GET_MOVE(victim) > start_mv)
     return TRUE;
 
   return FALSE;
