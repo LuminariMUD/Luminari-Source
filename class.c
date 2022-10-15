@@ -3403,6 +3403,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCost efeatp*/
          -1, N, N, L, 6, 0, 1, 2, Y, 0, 5,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Intelligence, Con/Dex for survivability",
          /*Descrip*/ "Beyond the veil of the mundane hide the secrets of absolute "
                      "power. The works of beings beyond mortals, the legends of realms where titans "
                      "and spirits tread, the lore of creations both wondrous and terrible—such "
@@ -3715,6 +3716,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          -1, N, N, M, 8, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Wisdom, Cha affects some of their abilities..  Con for survivability, Str for combat",
          /*descrip*/ "In faith and the miracles of the divine, many find a greater "
                      "purpose. Called to serve powers beyond most mortal understanding, all priests "
                      "preach wonders and provide for the spiritual needs of their people. Clerics "
@@ -3954,6 +3956,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          -1, N, N, H, 8, 0, 2, 8, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, Str for combat",
          /*descrip*/ "Life is an endless adventure for those who live by their wits. "
                      "Ever just one step ahead of danger, rogues bank on their cunning, skill, and "
                      "charm to bend fate to their favor. Never knowing what to expect, they prepare "
@@ -4059,6 +4062,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 2,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, alternatively Dex... Con for survivability, 13 Int unlocks feat chains",
          /*descrip*/ "Some take up arms for glory, wealth, or revenge. Others do "
                      "battle to prove themselves, to protect others, or because they know nothing "
                      "else. Still others learn the ways of weaponcraft to hone their bodies in "
@@ -4199,6 +4203,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 8, 0, 2, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/ "For the truly exemplary, martial skill transcends the "
                      "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
                      "artists search out methods of battle beyond swords and shields, finding "
@@ -4296,6 +4301,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, M, 8, 0, 3, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/ "Within the purity of the elements and the order of the wilds "
                      "lingers a power beyond the marvels of civilization. Furtive yet undeniable, "
                      "these primal magics are guarded over by servants of philosophical balance "
@@ -4519,6 +4525,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD  psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 12, 0, 2, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Con/Dex for survivability - Con helps some of their skills",
          /*descrip*/ "For some, there is only rage. In the ways of their people, in "
                      "the fury of their passion, in the howl of battle, conflict is all these brutal "
                      "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
@@ -4630,6 +4637,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, L, 6, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Charisma, Con/Dex for survivability",
          /*descrip*/ "Scions of innately magical bloodlines, the chosen of deities, "
                      "the spawn of monsters, pawns of fate and destiny, or simply flukes of fickle "
                      "magic, sorcerers look within themselves for arcane prowess and draw forth might "
@@ -4933,6 +4941,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
          /*descrip*/ "Through a select, worthy few shines the power of the divine. "
                      "Called paladins, these noble souls dedicate their swords and lives to the "
                      "battle against evil. Knights, crusaders, and law-bringers, paladins seek not "
@@ -5098,6 +5107,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, H, 10, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Charisma, Con for survivability, Str for combat",
          /*descrip*/ "Blackguards, also referred to as antipaladins, are the quintessential "
                      "champions of evil in Faerun. They lead armies of dread forces such as undead, "
                      "fiends, and other extra-planar beings, often in the name of the more malevolent "
@@ -5280,6 +5290,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, H, 10, 0, 3, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Dexterity or Str, Con for survivability, they need a little Wis for spellcasting",
          /*descrip*/ "For those who relish the thrill of the hunt, there are only "
                      "predators and prey. Be they scouts, trackers, or bounty hunters, rangers share "
                      "much in common: unique mastery of specialized weapons, skill at stalking even "
@@ -5421,6 +5432,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp */
          -1, N, N, M, 8, 0, 2, 6, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Charisma, Int for skills, Con/Dex for survivability",
          /*descrip*/ "Untold wonders and secrets exist for those skillful enough to "
                      "discover them. Through cleverness, talent, and magic, these cunning few unravel "
                      "the wiles of the world, becoming adept in the arts of persuasion, manipulation, "
@@ -5582,6 +5594,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          30, N, N, L, 6, 0, 1, 2, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Intelligence, Dex/Con for survivability",
          /*descrip*/ "The powers of the mind are varied and limitless, and the psion "
                      "learns how to unlock them. The psion learns to manifest psionic "
                      "powers that alter himself and the world around him. Due to the "
@@ -5778,6 +5791,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Con/Dex for survivability",
          /*descrip*/ "For the weapon master, perfection is found in the mastery of a "
                      "single melee weapon. A weapon master seeks to unite this weapon of choice with "
                      "his body, to make them one, and to use the weapon as naturally and without "
@@ -5837,6 +5851,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "arcane: 3/4 of arcane archer level",
+         /*primary attributes*/ "Dexterity, your primary casting class stats",
          /*descrip*/ "Many who seek to perfect the use of the bow sometimes pursue "
                      "the path of the arcane archer. Arcane archers are masters of ranged combat, "
                      "as they possess the ability to strike at targets with unerring accuracy and "
@@ -5900,6 +5915,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 2, 5, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
+         /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, your primary casting class stats",
          /*descrip*/ "Few can match the guile and craftiness of arcane shadows. These "
                      "prodigious rogues blend the subtlest aspects of the arcane with the natural cunning "
                      "of the bandit and the scoundrel, using spells to enhance their natural rogue abilities. "
@@ -5967,6 +5983,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 2, 2, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement every level",
+         /*primary attributes*/ "Strength, Con/Dex for survivability, your primary casting class stats",
          /*descrip*/ "Fearsome warriors and spellcasters, eldritch knights are rare among magic-users "
                      "in their ability to wade into battle alongside fighters, barbarians, and other "
                      "martial classes. Those who must face eldritch knights in combat fear them greatly, "
@@ -6084,6 +6101,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 8, 0, 2, 2, Y, 5000, 0,
          /*prestige spell progression*/ "Arcane advancement at level one and every second level after",
+         /*primary attributes*/ "Strength, Con/Dex for survivability, your primary casting class stats",
          /*descrip*/ "The dream of melding magic and weaponplay is fulfilled in the person "
                      "of the spellsword. A student of both arcane rituals and martial techniques, "
                      "the spellsword gradually learns to cast spells in armor with less chance of "
@@ -6229,6 +6247,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 4, 4, Y, 5000, 0,
          /*prestige spell progression*/ "Divine advancement every level",
+         /*primary attributes*/ "Wisdom, Con/Dex for survivability",
          /*descrip*/ "Sacred Fists are independent organizations found within many temples.  "
                      "Their ascetic members have turned their divine magic inward, bringing their bodies "
                      "and wills into harmony.  They consider their bodies and minds gifts from their deity, "
@@ -6294,6 +6313,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 12, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Strength, Con/Dex for survivability",
          /*descrip*/ "Drawn from the ranks of guards, knights, mercenaries, and "
                      "thugs alike, stalwart defenders are masters of claiming an area and refusing "
                      "to relinquish it. This behavior is more than a tactical decision for stalwart "
@@ -6366,6 +6386,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/ "A shifter has no form they call their own. Instead, they clothe "
                      "themselves in whatever shape is most expedient at the time. While others base "
                      "their identities largely on their external forms, the shifter actually comes "
@@ -6417,6 +6438,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, M, 8, 0, 1, 6, Y, 5000, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Dexterity, Con for survivability, Int for skills, Str for combat",
          /*descrip*/ "Shadowdancers exist in the boundary between light and darkness, "
                      "where they weave together the shadows to become half-seen artists "
                      "of deception. Unbound by any specified morality or traditional code, "
@@ -6486,6 +6508,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, H, 10, 0, 1, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Dexterity/Intelligence, Con for survivability, Str for combat",
          /*descrip*/ "Duelists represent the pinnacle of elegant swordplay. They "
                      "move with a grace unmatched by most foes, parrying blows and countering attacks "
                      "with swift thrusts of their blades. They may wear armor, but generally eschew "
@@ -6551,6 +6574,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          10, Y, Y, L, 4, 0, 1, 2, Y, 5000, 0,
          /*prestige spell progression*/ "each level in -both- divine/arcane choice",
+         /*primary attributes*/ "Your primary casting class stats, Con/Dex for survivability",
          /*descrip*/ "Mystic theurges place no boundaries on their magical abilities "
                      "and find no irreconcilable paradox in devotion to the arcane as well as the "
                      "divine. They seek magic in all of its forms, finding no reason or logic in "
@@ -6619,6 +6643,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, M, 8, 0, 1, 4, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Intelligence, Con/Dex for survivability, Str for combat",
          /*descrip*/
          "Whether secreted away in a smoky basement laboratory or gleefully experimenting"
          " in a well-respected school of magic, the alchemist is often regarded as being "
@@ -6807,6 +6832,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
          -1, N, N, M, 8, 0, 1, 6, Y, 0, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/
          "Grim and determined, the inquisitor roots out enemies of the faith, "
          "using trickery and guile when righteousness and purity is not enough. "
@@ -7028,6 +7054,7 @@ void load_class_list(void)
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst eFeatp*/
          10, Y, Y, M, 8, 0, 2, 4, Y, 5000, 0,
          /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Dexterity, Con for survivability, Str for combat, Int for skills",
          /*descrip*/ "A mercenary undertaking his task with cold, professional detachment, the assassin "
                      "is equally adept at espionage, bounty hunting, and terrorism. At his core, an "
                      "assassin is an artisan, and his medium is death. Trained in a variety of killing "
