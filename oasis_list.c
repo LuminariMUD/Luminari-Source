@@ -699,10 +699,16 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
   char buf[MAX_STRING_LENGTH];
   struct obj_data *obj = NULL;
 
+  if (flag_num < 1 || flag_num >= NUM_AFF_FLAGS)
+  {
+    send_to_char(ch, "Invalid flag-number, needs to be an integer (including and) between 1 and %d.\r\n", (NUM_AFF_FLAGS - 1));
+    return;
+  }
+
   len = snprintf(buf, sizeof(buf), "Objects with the affect '%s'\r\n"
                                    "Index VNum    Num   Object Name                                Object Type\r\n"
                                    "----- ------- ----- ------------------------------------------ ----------------\r\n",
-                 arg);
+                 affected_bits[flag_num]);
 
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -980,8 +986,8 @@ ACMD(do_oasis_list)
           send_to_char(ch, "Which object perm flags do you want to list?\r\n");
           for (i = 1; i < NUM_AFF_FLAGS; i++)
           {
-            send_to_char(ch, "%s%2d%s-%s%-14s%s", QNRM, i, QNRM, QYEL, affected_bits[i], QNRM);
-            if (!(i % 4))
+            send_to_char(ch, "%s%3d%s-%s%-20s%s", QNRM, i, QNRM, QYEL, affected_bits[i], QNRM);
+            if (!(i % 3))
               send_to_char(ch, "\r\n");
           }
           send_to_char(ch, "\r\n");

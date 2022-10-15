@@ -6674,6 +6674,7 @@ ACMD(do_gen_tog)
   long result;
   int i;
   char arg[MAX_INPUT_LENGTH];
+  struct follow_type *j = NULL, *k = NULL;
 
   const char *const tog_messages[][2] = {
       /*0*/
@@ -6814,15 +6815,17 @@ ACMD(do_gen_tog)
       /* 45 */
       {"You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
        "You will no use the stock consumables system (HELP USE).\r\n"},
-      // 46
-      {
-          "You will no longer automatically stand if knocked down in combat.\r\n",
-          "You will now automatically stand if knocked down in combat.\r\n"},
-      // 47
-      {
-          "You will no longer automatically hit mobs when typing 'hit' by itself.\r\n",
-          "You will now automatically hit the first eligible mob in the room by typing 'hit' by itself.\r\n"
-      }};
+      /* 46 */
+      {"You will no longer automatically stand if knocked down in combat.\r\n",
+       "You will now automatically stand if knocked down in combat.\r\n"},
+      /* 47 */
+      {"You will no longer automatically hit mobs when typing 'hit' by itself.\r\n",
+       "You will now automatically hit the first eligible mob in the room by typing 'hit' by itself.\r\n"},
+      /*48*/
+      {"Players can now follow you.\r\n",
+       "Players can no longer follow you!\r\n"},
+
+  };
 
   if (IS_NPC(ch))
     return;
@@ -6837,6 +6840,17 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTOHIT:
     result = PRF_TOG_CHK(ch, PRF_AUTOHIT);
+    break;
+  case SCMD_NO_FOLLOW:
+    /* this command on usage will drop all your PC followers -zusuk */
+    for (k = ch->followers; k; k = j) {
+      j = k->next;
+
+      if (!IS_NPC(k->follower))
+        stop_follower(k->follower);
+    }
+
+    result = PRF_TOG_CHK(ch, PRF_NO_FOLLOW);
     break;
   case SCMD_NOCHARMIERESCUES:
     result = PRF_TOG_CHK(ch, PRF_NO_CHARMIE_RESCUE);

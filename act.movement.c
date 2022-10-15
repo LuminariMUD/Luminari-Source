@@ -1956,7 +1956,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
-  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT && 
+  if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
       !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
   {
     if (IN_SUNLIGHT(ch) && !is_covered(ch))
@@ -3235,7 +3235,7 @@ ACMD(do_wake)
 ACMD(do_follow)
 {
   char buf[MAX_INPUT_LENGTH];
-  struct char_data *leader;
+  struct char_data *leader = NULL;
 
   one_argument(argument, buf, sizeof(buf));
 
@@ -3253,11 +3253,22 @@ ACMD(do_follow)
     return;
   }
 
+  /* we now have the 'leader' aka the person we are trying to follow */
+
+  /* easy out */
   if (ch->master == leader)
   {
     act("You are already following $M.", FALSE, ch, 0, leader, TO_CHAR);
     return;
   }
+
+  /* easy out */
+  if (PRF_FLAGGED(leader, PRF_NO_FOLLOW))
+  {
+    act("$N has $S nofollow toggled.", FALSE, ch, 0, leader, TO_CHAR);
+    return;
+  }
+
   if (AFF_FLAGGED(ch, AFF_CHARM) && (ch->master))
   {
     act("But you only feel like following $N!", FALSE, ch, 0, ch->master, TO_CHAR);

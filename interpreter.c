@@ -515,6 +515,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"nochat", "nochat", POS_DEAD, do_gen_tog, 0, SCMD_NOGOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nohint", "nohint", POS_DEAD, do_gen_tog, 0, SCMD_NOHINT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nocharmierescues", "nocharmierescues", POS_DEAD, do_gen_tog, 0, SCMD_NOCHARMIERESCUES, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"nofollow", "nofollow", POS_DEAD, do_gen_tog, 0, SCMD_NO_FOLLOW, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 

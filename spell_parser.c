@@ -3595,6 +3595,9 @@ void mag_assign_spells(void)
          NULL, 3, 10, NOSCHOOL, FALSE);
   spello(SPELL_AUGURY, "augury", 30, 15, 1, POS_STANDING,
          TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 2, 10, NOSCHOOL, FALSE);
+  spello(SPELL_VIGORIZE_LIGHT, "vigorize light", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 2, 10, CONJURATION, FALSE);
+
   // detect poison - shared
   // scare - shared
   // summon creature ii - shared
@@ -3634,6 +3637,9 @@ void mag_assign_spells(void)
   spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_POINTS,
          NULL, 3, 14, NOSCHOOL, FALSE);
+  spello(SPELL_VIGORIZE_SERIOUS, "vigorize serious", 51, 36, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 3, 14, NOSCHOOL, FALSE);
   spello(SPELL_CAUSE_CRITICAL_WOUNDS, "cause critical wound", 51, 36, 1,
          POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 5, 14, NOSCHOOL, FALSE);
@@ -3671,6 +3677,9 @@ void mag_assign_spells(void)
   spello(SPELL_REGENERATION, "regeneration", 58, 43, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS | MAG_POINTS,
          "You feel the regeneration spell wear off.", 5, 16, NOSCHOOL, FALSE);
+  spello(SPELL_VIGORIZE_CRITICAL, "vigorize critical", 58, 43, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 4, 16, NOSCHOOL, FALSE);
   spello(SPELL_FREE_MOVEMENT, "free movement", 58, 43, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS | MAG_UNAFFECTS,
          "You feel the free movement spell wear off.", 5, 16, NOSCHOOL, FALSE);
@@ -3724,6 +3733,9 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_GROUPS,
+         NULL, 7, 20, NOSCHOOL, FALSE);
+  spello(SPELL_GROUP_VIGORIZE, "group vigorize", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 7, 20, NOSCHOOL, FALSE);
   spello(SPELL_SENSE_LIFE, "sense life", 79, 64, 1, POS_FIGHTING,
@@ -4008,7 +4020,7 @@ void mag_assign_spells(void)
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
   spello(ABILITY_CREATE_VAMPIRE_SPAWN, "create vampiric spawn", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
-  
+
   spello(ABILITY_VAMPIRIC_DOMINATION, "vampiric domination", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
          "You feel the domination effects wear off.", 10, 15, ENCHANTMENT, FALSE);

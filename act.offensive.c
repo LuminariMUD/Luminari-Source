@@ -7610,7 +7610,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
       act("$n \tWreaches out and touches $N with necromantic power, and the surge of negative energy heals $M.\tn", FALSE, ch, 0, vict, TO_NOTVICT);
     }
 
-    process_healing(ch, vict, RACIAL_LICH_TOUCH, amount, 0);
+    process_healing(ch, vict, RACIAL_LICH_TOUCH, amount, 0, 0);
     return TRUE;
   }
 
@@ -8730,7 +8730,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
           act("You drain some of $N's life force away.", FALSE, ch, 0, vict, TO_CHAR);
           act("$n drains some of your life force away.", FALSE, ch, 0, vict, TO_VICT);
           act("$n drains some of $N's life force away.", FALSE, ch, 0, vict, TO_NOTVICT);
-          
+
           // set the enemy as drainkilled so they can be turned into a vampire spawn if they do end up being killed.
           vict->char_specials.drainKilled = true;
         }

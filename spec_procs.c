@@ -8728,7 +8728,7 @@ SPECIAL(speed_gaunts)
         gaunts,
         0);
     damage(ch, vict, dam, -1, DAM_SLICE, FALSE); // type -1 = no message
-    process_healing(ch, ch, -1, dam, 0);
+    process_healing(ch, ch, -1, dam, 0, 0);
 
     return TRUE;
   }
