@@ -1,15 +1,15 @@
 /**
-* @file class.h
-* Header file for class specific functions and variables.
-*
-* Part of the core tbaMUD source code distribution, which is a derivative
-* of, and continuation of, CircleMUD.
-*
-* All rights reserved.  See license for complete information.
-* Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
-* CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
-*
-*/
+ * @file class.h
+ * Header file for class specific functions and variables.
+ *
+ * Part of the core tbaMUD source code distribution, which is a derivative
+ * of, and continuation of, CircleMUD.
+ *
+ * All rights reserved.  See license for complete information.
+ * Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+ * CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
+ *
+ */
 #ifndef _CLASS_H_
 #define _CLASS_H_
 
@@ -66,23 +66,24 @@ struct class_prerequisite
 /* class data, layout for storing class information for each class */
 struct class_table
 {
-  const char *name;            /* full name of class, ex. wizard (no color) */
-  const char *abbrev;          /* abbreviation of class, ex. wiz (no color) */
-  const char *colored_abbrev;  /* same as abbrev, but colored */
-  const char *menu_name;       /* colored full name of class for menu(s) */
-  int max_level;         /* maximum number of levels you can take in this class, -1 unlimited */
-  bool locked_class;     /* whether by default this class is locked or not */
-  bool prestige_class;   /* prestige class? */
-  int base_attack_bonus; /* whether high, medium or low */
-  int hit_dice;          /* how many hp this class can get on level up */
-  int psp_gain;          /* how much psp this class gets on level up */
-  int move_gain;         /* how much moves this class gets on level up */
-  int trains_gain;       /* how many trains this class gets before int bonus */
-  bool in_game;          /* class currently in the game? */
-  int unlock_cost;       /* if locked, cost to unlock in account xp */
+  const char *name;           /* full name of class, ex. wizard (no color) */
+  const char *abbrev;         /* abbreviation of class, ex. wiz (no color) */
+  const char *colored_abbrev; /* same as abbrev, but colored */
+  const char *menu_name;      /* colored full name of class for menu(s) */
+  int max_level;              /* maximum number of levels you can take in this class, -1 unlimited */
+  bool locked_class;          /* whether by default this class is locked or not */
+  bool prestige_class;        /* prestige class? */
+  int base_attack_bonus;      /* whether high, medium or low */
+  int hit_dice;               /* how many hp this class can get on level up */
+  int psp_gain;               /* how much psp this class gets on level up */
+  int move_gain;              /* how much moves this class gets on level up */
+  int trains_gain;            /* how many trains this class gets before int bonus */
+  bool in_game;               /* class currently in the game? */
+  int unlock_cost;            /* if locked, cost to unlock in account xp */
   /*note: !(CLASS_LEVEL(ch, class) % EPIC_FEAT_PROGRESSION) && IS_EPIC(ch)*/
   int epic_feat_progression;
   const char *prestige_spell_progression; /* spell progression for this prestige class */
+  const char *primary_attribute;          /* class primary attribute(s) description */
   const char *descrip;                    /* class description */
 
   const char *titles[MAX_NUM_TITLES];       /* titles every 5 levels, 3 staff, default */

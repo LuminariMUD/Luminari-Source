@@ -2227,12 +2227,11 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
-  
-  if (vampire_last_feeding_adjustment(k) > 0)
-  send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
-  if (vampire_last_feeding_adjustment(k) < 0)
-  send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
 
+  if (vampire_last_feeding_adjustment(k) > 0)
+    send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
+  if (vampire_last_feeding_adjustment(k) < 0)
+    send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -3326,6 +3325,8 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'commune' to see your Druid spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))
     send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
+    send_to_char(ch, "\tDType 'condemn' to see your BlackGuard spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
   {
     send_to_char(ch, "\tDType 'extracts' to see your Alchemist extract interface\tn\r\n");
@@ -4451,6 +4452,39 @@ ACMD(do_toggle)
       {"rp", PRF_RP, 0,
        "You will no longer display to others that you would like to Role-play.\r\n",
        "You will now display to others that you would like to Role-play.\r\n"},
+      /* 41 */
+      {"aoebomb", PRF_AOE_BOMBS, 0,
+       "Your bombs will now only affect single targets.\r\n",
+       "Your bombs will now affect multiple targets.\r\n"},
+      /*42*/
+      {"autocon", PRF_AUTOCON, 0,
+       "You will no longer see level differences between you and mobs when you type look.\r\n",
+       "You will now see level differences between you and mobs when you type look.\r\n"},
+      /* 43 */
+      {"smashdefense", PRF_SMASH_DEFENSE, 0,
+       "You will no longer use smash defense in combat.\r\n",
+       "You will now use smash defense in combat (if you know it).\r\n"},
+      /* 44 */
+      {"charmierescue", PRF_NO_CHARMIE_RESCUE, 0,
+       "You will now allow charmies to rescue you and other group members.\r\n",
+       "You will no longer allow charmies to rescue you and other group members\r\n"},
+      /* 45 */
+      {"storedconsumables", PRF_USE_STORED_CONSUMABLES, 0,
+       "You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
+       "You will no use the stock consumables system (HELP USE).\r\n"},
+      /* 46 */
+      {"autostand", PRF_AUTO_STAND, 0,
+       "You will no longer automatically stand if knocked down in combat.\r\n",
+       "You will now automatically stand if knocked down in combat.\r\n"},
+      /* 47 */
+      {"autohit", PRF_AUTOHIT, 0,
+       "You will no longer automatically hit mobs when typing 'hit' by itself.\r\n",
+       "You will now automatically hit the first eligible mob in the room by typing 'hit' by itself.\r\n"},
+      /*48*/
+      {"nofollow", PRF_NO_FOLLOW, 0,
+       "Players can now follow you.\r\n",
+       "Players can no longer follow you!\r\n"},
+
       /*LAST*/
       {"\n", 0, -1, "\n", "\n"} /* must be last */
   };

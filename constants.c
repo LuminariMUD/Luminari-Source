@@ -1545,6 +1545,7 @@ const char *preference_bits[] = {
     "Auto-SpringLeap-Stand",
     "Vampiric-Blood-Drain",
     "Auto-Hit",
+    "No-Follow",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
