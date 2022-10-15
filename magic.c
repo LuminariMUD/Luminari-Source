@@ -6410,6 +6410,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_MASS_CURE_LIGHT:
     mag_points(level, ch, tch, obj, SPELL_CURE_LIGHT, savetype, casttype);
     break;
+  case SPELL_GROUP_VIGORIZE:
+    mag_points(level, ch, tch, obj, SPELL_VIGORIZE_CRITICAL, savetype, casttype);
+    break;
   case SPELL_CIRCLE_A_EVIL:
     mag_affects(level, ch, tch, obj, SPELL_PROT_FROM_EVIL, savetype, casttype, 0);
     break;
@@ -8038,6 +8041,39 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
 
   switch (spellnum)
   {
+  case SPELL_VIGORIZE_LIGHT:
+    move = dice(20, 4) + 50;
+
+    to_notvict = "$N \twfeels a little more vigorized\tn.";
+    if (ch == victim)
+      to_char = "You \twfeel a little more vigorized\tn.";
+    else
+      to_char = "You \twvigorize light\tn on $N.";
+    to_vict = "$n \twvigorizes you lightly.\tn";
+    break;
+
+  case SPELL_VIGORIZE_SERIOUS:
+    move = dice(40, 4) + 150;
+
+    to_notvict = "$N \twfeels seriously more vigorized\tn.";
+    if (ch == victim)
+      to_char = "You \twfeel seriously more vigorized\tn.";
+    else
+      to_char = "You \twvigorize serious\tn on $N.";
+    to_vict = "$n \twvigorizes you seriously.\tn";
+    break;
+
+  case SPELL_VIGORIZE_CRITICAL:
+    move = dice(60, 5) + 150 + (level * 10);
+
+    to_notvict = "$N \twfeels critically more vigorized\tn.";
+    if (ch == victim)
+      to_char = "You \twfeel critically more vigorized\tn.";
+    else
+      to_char = "You \twvigorize critically\tn on $N.";
+    to_vict = "$n \twvigorizes you critically.\tn";
+    break;
+
   case SPELL_CURE_LIGHT:
     healing = dice(2, 4) + 5 + MIN(10, level);
 

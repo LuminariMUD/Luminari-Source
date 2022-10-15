@@ -2227,12 +2227,11 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
-  
-  if (vampire_last_feeding_adjustment(k) > 0)
-  send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
-  if (vampire_last_feeding_adjustment(k) < 0)
-  send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
 
+  if (vampire_last_feeding_adjustment(k) > 0)
+    send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
+  if (vampire_last_feeding_adjustment(k) < 0)
+    send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
 
   send_to_char(ch, "\tC");
   draw_line(ch, 80, '-', '-');
@@ -3326,6 +3325,8 @@ ACMD(do_score)
     send_to_char(ch, "\tDType 'commune' to see your Druid spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_PALADIN))
     send_to_char(ch, "\tDType 'chant' to see your Paladin spell interface\tn\r\n");
+  if (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
+    send_to_char(ch, "\tDType 'condemn' to see your BlackGuard spell interface\tn\r\n");
   if (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
   {
     send_to_char(ch, "\tDType 'extracts' to see your Alchemist extract interface\tn\r\n");
