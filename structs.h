@@ -2643,6 +2643,9 @@
 /** Total number of applies */
 #define NUM_APPLIES 56
 
+// maximum number of spells/powers to buff
+#define MAX_BUFFS 20
+
 // number of award types.  do_award in act.wizard.c
 #define NUM_AWARD_TYPES 11
 
@@ -4014,6 +4017,8 @@ struct player_special_data_saved
     int setcloak_timer; // used for setting stats on vampire cloaks.
 
     int time_since_last_feeding; // how long since the vampire last fed on blood
+
+    int buff_abilities[MAX_BUFFS][2];  // This is used with the buff command to simplify the process of buffing by casters
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4082,6 +4087,10 @@ struct player_special_data
     room_vnum walkto_location;
 
     struct char_data *judgement_target; // target of an inquisitor's judgement
+
+    // for the self buffing system
+    int buffing_timer;
+    int buffing_countdown;
 };
 
 /** Special data used by NPCs, not PCs */
