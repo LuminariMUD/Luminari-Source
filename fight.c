@@ -6622,8 +6622,14 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
         random = rand_number(1, 100);
         if (GET_WEAPON_SPELL_PCT(wpn, i) >= random)
         {
-          act("$p leaps to action with an attack of its own.", TRUE, ch, wpn, 0, TO_CHAR);
-          act("$p leaps to action with an attack of its own.", TRUE, ch, wpn, 0, TO_ROOM);
+          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            act("$p leaps to action with an attack of its own.", TRUE, ch, wpn, 0, TO_CHAR);
+          }
+          act("$p leaps to action with an attack of its own.", -1234, ch, wpn, 0, TO_ROOM);
           if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i), 0, GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
             return;
         }
@@ -6723,8 +6729,16 @@ void idle_weapon_spells(struct char_data *ch)
             if (!affected_by_spell(ch, GET_WEAPON_SPELL(gear, j)) &&
                 GET_WEAPON_SPELL_PCT(gear, j) >= random)
             {
-              act(buf, TRUE, ch, gear, 0, TO_CHAR);
-              act(buf, TRUE, ch, gear, 0, TO_ROOM);
+
+              if (PRF_FLAGGED(ch, PRF_CONDENSED))
+              {
+              }
+              else
+              {
+                act(buf, TRUE, ch, gear, 0, TO_CHAR);
+              }
+
+              act(buf, -1234, ch, gear, 0, TO_ROOM);
               call_magic(ch, ch, NULL, GET_WEAPON_SPELL(gear, j), 0, GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
               return;
               /* we exit here because we don't want two or more items proccing off the same tick */
@@ -10182,15 +10196,26 @@ void perform_violence(struct char_data *ch, int phase)
   {
     if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
-      send_to_char(ch, "Phase 0/1: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
+      /* wordy version */
+      /*
+      send_to_char(ch, "Phase %d: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
                        "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
-                       "non-melee attacks, with %d ranged attacks and %d melee attacks.\r\n",
-                   CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
+                       "non-melee attacks, with %d ranged attacks and %d melee attacks.\r\n", phase,
+                   CNDNSD(ch)->num_times_attacking,
+                   CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
                    CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
-                   CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+                   CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);*/
+      send_to_char(ch, "Phase %d: You attacked %d times, hitting with %d attacks.  "
+                       "You were attacked %d times, defending %d times, struck with %d attacks.\r\n",
+                   phase, CNDNSD(ch)->num_times_attacking,
+                   (CNDNSD(ch)->num_times_hit_targets + CNDNSD(ch)->num_times_hit_targets_melee + CNDNSD(ch)->num_times_hit_targets_ranged),
+                   CNDNSD(ch)->num_times_others_attack_you,
+                   (CNDNSD(ch)->num_times_shieldblock + CNDNSD(ch)->num_times_parry + CNDNSD(ch)->num_times_dodge + CNDNSD(ch)->num_times_glance),
+                   (CNDNSD(ch)->num_times_hit_by_others + CNDNSD(ch)->num_times_hit_by_others_ranged + CNDNSD(ch)->num_times_hit_by_others_melee));
       init_condensed_combat_data(ch);
     }
   }
+  /* this is if we want to move it to different phases */
   /*
   if (phase == 2)
   {
@@ -10205,6 +10230,9 @@ void perform_violence(struct char_data *ch, int phase)
       init_condensed_combat_data(ch);
     }
   }
+  */
+  /* this is if we want to move it to different phases */
+  /*
   if (phase == 3)
   {
     if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))

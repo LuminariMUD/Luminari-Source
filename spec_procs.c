@@ -5553,9 +5553,24 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
   if (level > 30)
     level = 30;
 
-  act(to_ch, FALSE, ch, obj, vict, TO_CHAR);
-  act(to_vict, FALSE, ch, obj, vict, TO_VICT);
-  act(to_room, FALSE, ch, obj, vict, TO_NOTVICT);
+  if (PRF_FLAGGED(to_ch, PRF_CONDENSED))
+  {
+  }
+  else
+  {
+    act(to_ch, FALSE, ch, obj, vict, TO_CHAR);
+  }
+
+  if (PRF_FLAGGED(to_vict, PRF_CONDENSED))
+  {
+  }
+  else
+  {
+    act(to_vict, FALSE, ch, obj, vict, TO_VICT);
+  }
+
+  act(to_room, -1234, ch, obj, vict, TO_NOTVICT);
+
   call_magic(ch, vict, 0, spl, 0, level, CAST_WEAPON_SPELL);
 }
 
@@ -5782,15 +5797,31 @@ SPECIAL(spikeshield)
   // blocking
   if (!strcmp(argument, "shieldblock") && !rand_number(0, 2))
   {
-    act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
-        "\tLfrom $N \tLand transfers it back to you.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("\tLYour \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
+          "\tLfrom $N \tLand transfers it back to you.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+    }
+
+    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
+          "\tLfrom you and transfers it back to $m.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+    }
+
     act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N\tL.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
-    act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
-        "\tLfrom you and transfers it back to $m.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+
     damage(ch, vict, 15, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_WEAPON_SPELL);
     return TRUE;
@@ -5798,17 +5829,34 @@ SPECIAL(spikeshield)
 
   if (!strcmp(argument, "shieldpunch"))
   {
-    act("\tLYou slam your \tcshield \tLinto $N\tL\tn\r\n"
-        "\tLcausing the rows of\tr spikes \tLto drive into $S body.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("\tLYou slam your \tcshield \tLinto $N\tL\tn\r\n"
+          "\tLcausing the rows of\tr spikes \tLto drive into $S body.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+    }
+
+    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("$n \tLslams $s \tcshield\tL into you\tn\r\n"
+          "\tLcausing the rows of \trspikes\tL to drive into your body.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+    }
+
     act("$n \tLslams $s \tcshield\tL into $N\tL\tn\r\n"
         "\tLcausing the rows of \trspikes\tL to drive into $S body.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
-    act("$n \tLslams $s \tcshield\tL into you\tn\r\n"
-        "\tLcausing the rows of \trspikes\tL to drive into your body.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+
     damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE,
            FALSE); // type -1 = no dam message
+
     return TRUE;
   }
 
@@ -5882,27 +5930,44 @@ SPECIAL(ches)
     skip_spaces(&argument);
     if (!strcmp(argument, "critical"))
     {
-      act("\tLAs your \tcstiletto \tLplunges deep into $N,\tn\r\n"
-          "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
-          "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
-          "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
-          "\tLflows through the weapon into $N\tn\r\n"
-          "\tLcausing $S hair to stand on end.\tn",
-          FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
-      act("\tLAs $n's \tcstiletto \tLplunges deep into your body,\tn\r\n"
-          "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
-          "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
-          "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
-          "\tLflows through the weapon into you, \tLcausing your hair to stand on end.\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("\tLAs your \tcstiletto \tLplunges deep into $N,\tn\r\n"
+            "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
+            "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
+            "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
+            "\tLflows through the weapon into $N\tn\r\n"
+            "\tLcausing $S hair to stand on end.\tn",
+            FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+      }
+
+      if (PRF_FLAGGED(vict, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("\tLAs $n's \tcstiletto \tLplunges deep into your body,\tn\r\n"
+            "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
+            "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
+            "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
+            "\tLflows through the weapon into you, \tLcausing your hair to stand on end.\tn\r\n",
+            FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+      }
+
       act("\tLAs $n's \tcstiletto \tLplunges deep into $N, \tn\r\n"
           "\tcs\tCp\tcar\tCk\tcs \tLbegin to \tYcrackle\tL about the hilt.  Suddenly a\tn\r\n"
           "\tBbolt of lightning \tLraces down from above to meet up\tn\r\n"
           "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
           "\tLflows through the weapon into $N \tn\r\n"
           "\tLcausing $S hair to stand on end.\tn\tn\r\n",
-          FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+          -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+
       damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE); // type -1 = no dam message
+
       return TRUE;
     }
   }
@@ -5920,6 +5985,7 @@ SPECIAL(ches)
         send_to_char(ch, "Nothing happens.\r\n");
         return TRUE;
       }
+
       act("\tcAs you quietly speak the word of power to your stiletto\tn\r\n"
           "\tcthe aquamarine on the hilt begins to fizzle and pop. The\tn\r\n"
           "\tcnoise continues to culminate until there is a loud crack.\tn\r\n"
@@ -5927,6 +5993,7 @@ SPECIAL(ches)
           "\tcelectric shock flows up your hand into your body.  You\tn\r\n"
           "\tcsuddenly feel your heart begin to race REALLY fast!\tn",
           FALSE, ch, (struct obj_data *)me, 0, TO_CHAR);
+
       act("\tC$n whispers to $s $p",
           FALSE, ch, (struct obj_data *)me, 0, TO_ROOM);
 
@@ -5988,7 +6055,7 @@ SPECIAL(courage)
 
     /* should be good! */
 
-    act("$n \tLinvokes $s $p!", FALSE, ch, courage, 0, TO_ROOM);
+    act("$n \tLinvokes $s $p!", -1234, ch, courage, 0, TO_ROOM);
     act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
 
     call_magic(ch, ch, NULL, SPELL_MASS_ENHANCE, 0, wpn_level, CAST_WEAPON_SPELL);
@@ -6027,6 +6094,7 @@ SPECIAL(flamingwhip)
       "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning YOU\tr badly!\tn",
       "\tr$n\tr's $p \trlashes out with infernal \tRfire\tr, burning $N\tr badly!\tn",
       ch, vict, (struct obj_data *)me, 0);
+
   damage(ch, vict, dice(6, 4), -1, DAM_FIRE, FALSE); // type -1 = no dam message
 
   return TRUE;
@@ -6747,37 +6815,67 @@ SPECIAL(purity)
   dam = dice(2, 24);
   if (dam < GET_HIT(vict) + 10)
   {
-    act("\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\tw.\r\n"
-        "A beam of concetrated \tWholiness \twshoots towards $N.\r\n"
-        "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+          "A beam of concetrated \tWholiness \twshoots towards $N.\r\n"
+          "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+    }
+
+    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+          "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
+          "The \tWlightbeam \twsurrounds you and you howl in pain and fear.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+    }
+
     act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
         "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
         "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
-    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
-        "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
-        "The \tWlightbeam \twsurrounds you and you howl in pain and fear.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
   }
   else
   {
-    act("\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\t.w\r\n"
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("\twThe head of your $p starts to \tYglow \twwith a \tWbright white light\t.w\r\n"
+          "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
+          "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
+    }
+
+    if (PRF_FLAGGED(vict, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
+          "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
+          "The \tWlightbeam \twburns a hole right through you and you fall lifeless to the ground.\tn",
+          FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
+    }
+
+    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
         "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
         "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_CHAR);
-    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
-        "A beam of concentrated \tWholiness \twshoots towards you.\r\n"
-        "The \tWlightbeam \twburns a hole right through you and you fall lifeless to the ground.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_VICT);
-    act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
-        "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
-        "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn",
-        FALSE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
   }
+
   damage(ch, vict, dam, -1, DAM_HOLY, FALSE); // type -1 = no dam message
+
   return TRUE;
 }
 
@@ -6899,7 +6997,9 @@ SPECIAL(greatsword)
       "\tCSilvery flames shoot from $n's $p\tC towards you\tC.\r\nThe flames sear and burn you and you scream in pain.\tn",
       "\tCSilvery flames shoot from $n's $p\tC towards $N\tC.\r\nThe flames sear and burn $N\tC who screams in pain.\tn",
       ch, vict, (struct obj_data *)me, 0);
+
   damage(ch, vict, dam, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
+
   return TRUE;
 }
 
