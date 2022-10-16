@@ -10182,7 +10182,7 @@ void perform_violence(struct char_data *ch, int phase)
   {
     if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
-      send_to_char(ch, "P0/1: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
+      send_to_char(ch, "Phase 0/1: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
                        "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
                        "non-melee attacks, with %d ranged attacks and %d melee attacks.\r\n",
                    CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
@@ -10191,6 +10191,7 @@ void perform_violence(struct char_data *ch, int phase)
       init_condensed_combat_data(ch);
     }
   }
+  /*
   if (phase == 2)
   {
     if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
@@ -10217,6 +10218,7 @@ void perform_violence(struct char_data *ch, int phase)
       init_condensed_combat_data(ch);
     }
   }
+  */
   /* end condensed "workspace" */
   /***********************************************************/
 
