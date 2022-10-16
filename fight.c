@@ -2565,7 +2565,6 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   struct obj_data *shield = NULL;
   int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   bool is_ranged = FALSE;
-  struct char_data *to = NULL;
 
   if (DEBUGMODE)
   {
@@ -2714,197 +2713,197 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
                for condensed combat mode handling -zusuk */
           act(msg->hit_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
-        }
 
-        return SKILL_MESSAGE_GENERIC_HIT;
-      }
-    } /* end if-check for situation where we did some damage */
-    else if (ch != vict)
-    {
-      /* dam == 0, we did not do any damage! */
+          return SKILL_MESSAGE_GENERIC_HIT;
+        } /* end 'did some damage but not dead' section */
 
-      if (DEBUGMODE)
+      } /* end if-check for situation where we did some damage */
+      else if (ch != vict)
       {
-        send_to_char(ch, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-        send_to_char(vict, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-      }
+        /* dam == 0, we did not do any damage! */
 
-      /* do we have armor that can stop a blow? */
-      struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
-      int armor_val = -1;
-      if (armor)
-        armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
-
-      /* insert more colorful defensive messages here */
-
-      /* shield block */
-      if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 3))
-      {
-        return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
-
-        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+        if (DEBUGMODE)
         {
-          CNDNSD(ch)->num_times_attacking++;
-        }
-        else
-        {
-          send_to_char(ch, CCYEL(ch, C_CMP));
-          act("$N blocks your attack with $p!", FALSE, ch, shield, vict, TO_CHAR);
-          send_to_char(ch, CCNRM(ch, C_CMP));
+          send_to_char(ch, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+          send_to_char(vict, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
         }
 
-        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+        /* do we have armor that can stop a blow? */
+        struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
+        int armor_val = -1;
+        if (armor)
+          armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
+
+        /* insert more colorful defensive messages here */
+
+        /* shield block */
+        if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 3))
         {
-          CNDNSD(vict)->num_times_others_attack_you++;
-          CNDNSD(vict)->num_times_shieldblock;
-        }
-        else
-        {
-          send_to_char(vict, CCRED(vict, C_CMP));
-          act("You block $n's attack with $p!", FALSE, ch, shield, vict, TO_VICT | TO_SLEEP);
-          send_to_char(vict, CCNRM(vict, C_CMP));
-        }
+          return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
 
-        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
-             for condensed combat mode handling -zusuk */
-        act("$N blocks $n's attack with $p!", -1234, ch, shield, vict, TO_NOTVICT);
-
-        /* fire any shieldblock specs we might have */
-        name = obj_index[GET_OBJ_RNUM(shield)].func;
-        if (name)
-          (name)(vict, shield, 0, "shieldblock");
-
-        /* parry */
-      }
-      else if (opponent_weapon && !rand_number(0, 2))
-      {
-        return_value = SKILL_MESSAGE_MISS_PARRY;
-
-        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-        {
-          CNDNSD(ch)->num_times_attacking++;
-        }
-        else
-        {
-          send_to_char(ch, CCYEL(ch, C_CMP));
-          act("$N parries your attack with $p!", FALSE, ch, opponent_weapon, vict, TO_CHAR);
-          send_to_char(ch, CCNRM(ch, C_CMP));
-        }
-
-        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-        {
-          CNDNSD(vict)->num_times_others_attack_you++;
-          CNDNSD(vict)->num_times_parry++;
-        }
-        else
-        {
-          send_to_char(vict, CCRED(vict, C_CMP));
-          act("You parry $n's attack with $p!", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
-          send_to_char(vict, CCNRM(vict, C_CMP));
-        }
-
-        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
-             for condensed combat mode handling -zusuk */
-        act("$N parries $n's attack with $p!", -1234, ch, opponent_weapon, vict, TO_NOTVICT);
-
-        /* fire any parry specs we might have */
-        name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
-        if (name)
-          (name)(vict, opponent_weapon, 0, "parry");
-
-        /* glance off armor */
-      }
-      else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE &&
-               !rand_number(0, 2))
-      {
-        return_value = SKILL_MESSAGE_MISS_GLANCE;
-
-        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-        {
-          CNDNSD(ch)->num_times_attacking++;
-        }
-        else
-        {
-          send_to_char(ch, CCYEL(ch, C_CMP));
-          act("Your attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_CHAR);
-          send_to_char(ch, CCNRM(ch, C_CMP));
-        }
-
-        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
-        {
-          CNDNSD(vict)->num_times_others_attack_you++;
-          CNDNSD(vict)->num_times_glance++;
-        }
-        else
-        {
-          send_to_char(vict, CCRED(vict, C_CMP));
-          act("$n's attack glances off $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
-          send_to_char(vict, CCNRM(vict, C_CMP));
-        }
-
-        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
-             for condensed combat mode handling -zusuk */
-        act("$n's attack glances off $p, protecting $N!", -1234, ch, armor, vict, TO_NOTVICT);
-
-        /* fire any glance specs we might have */
-        name = obj_index[GET_OBJ_RNUM(armor)].func;
-        if (name)
-          (name)(vict, armor, 0, "glance");
-      }
-      else
-      {
-        /* we fell through to generic miss message from file */
-
-        return_value = SKILL_MESSAGE_MISS_GENERIC;
-
-        /* default to miss messages in-file */
-        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
-        {
-          CNDNSD(ch)->num_times_attacking++;
-        }
-        else
-        {
-          if (msg->miss_msg.attacker_msg)
+          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          {
+            CNDNSD(ch)->num_times_attacking++;
+          }
+          else
           {
             send_to_char(ch, CCYEL(ch, C_CMP));
-            act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+            act("$N blocks your attack with $p!", FALSE, ch, shield, vict, TO_CHAR);
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
-        }
 
-        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          {
+            CNDNSD(vict)->num_times_others_attack_you++;
+            CNDNSD(vict)->num_times_shieldblock;
+          }
+          else
+          {
+            send_to_char(vict, CCRED(vict, C_CMP));
+            act("You block $n's attack with $p!", FALSE, ch, shield, vict, TO_VICT | TO_SLEEP);
+            send_to_char(vict, CCNRM(vict, C_CMP));
+          }
+
+          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+               for condensed combat mode handling -zusuk */
+          act("$N blocks $n's attack with $p!", -1234, ch, shield, vict, TO_NOTVICT);
+
+          /* fire any shieldblock specs we might have */
+          name = obj_index[GET_OBJ_RNUM(shield)].func;
+          if (name)
+            (name)(vict, shield, 0, "shieldblock");
+
+          /* parry */
+        }
+        else if (opponent_weapon && !rand_number(0, 2))
         {
-          CNDNSD(vict)->num_times_others_attack_you++;
-          CNDNSD(vict)->num_times_dodge++;
+          return_value = SKILL_MESSAGE_MISS_PARRY;
+
+          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          {
+            CNDNSD(ch)->num_times_attacking++;
+          }
+          else
+          {
+            send_to_char(ch, CCYEL(ch, C_CMP));
+            act("$N parries your attack with $p!", FALSE, ch, opponent_weapon, vict, TO_CHAR);
+            send_to_char(ch, CCNRM(ch, C_CMP));
+          }
+
+          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          {
+            CNDNSD(vict)->num_times_others_attack_you++;
+            CNDNSD(vict)->num_times_parry++;
+          }
+          else
+          {
+            send_to_char(vict, CCRED(vict, C_CMP));
+            act("You parry $n's attack with $p!", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
+            send_to_char(vict, CCNRM(vict, C_CMP));
+          }
+
+          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+               for condensed combat mode handling -zusuk */
+          act("$N parries $n's attack with $p!", -1234, ch, opponent_weapon, vict, TO_NOTVICT);
+
+          /* fire any parry specs we might have */
+          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+          if (name)
+            (name)(vict, opponent_weapon, 0, "parry");
+
+          /* glance off armor */
+        }
+        else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE &&
+                 !rand_number(0, 2))
+        {
+          return_value = SKILL_MESSAGE_MISS_GLANCE;
+
+          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          {
+            CNDNSD(ch)->num_times_attacking++;
+          }
+          else
+          {
+            send_to_char(ch, CCYEL(ch, C_CMP));
+            act("Your attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_CHAR);
+            send_to_char(ch, CCNRM(ch, C_CMP));
+          }
+
+          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          {
+            CNDNSD(vict)->num_times_others_attack_you++;
+            CNDNSD(vict)->num_times_glance++;
+          }
+          else
+          {
+            send_to_char(vict, CCRED(vict, C_CMP));
+            act("$n's attack glances off $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
+            send_to_char(vict, CCNRM(vict, C_CMP));
+          }
+
+          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+               for condensed combat mode handling -zusuk */
+          act("$n's attack glances off $p, protecting $N!", -1234, ch, armor, vict, TO_NOTVICT);
+
+          /* fire any glance specs we might have */
+          name = obj_index[GET_OBJ_RNUM(armor)].func;
+          if (name)
+            (name)(vict, armor, 0, "glance");
         }
         else
         {
-          send_to_char(vict, CCRED(vict, C_CMP));
-          act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-          send_to_char(vict, CCNRM(vict, C_CMP));
-        }
+          /* we fell through to generic miss message from file */
 
-        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
-             for condensed combat mode handling -zusuk */
-        act(msg->miss_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
+          return_value = SKILL_MESSAGE_MISS_GENERIC;
 
-        /* fire any dodge specs we might have, right now its only on weapons */
-        if (opponent_weapon)
-        {
-          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
-          if (name)
+          /* default to miss messages in-file */
+          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
           {
-            (name)(vict, opponent_weapon, 0, "dodge");
+            CNDNSD(ch)->num_times_attacking++;
+          }
+          else
+          {
+            if (msg->miss_msg.attacker_msg)
+            {
+              send_to_char(ch, CCYEL(ch, C_CMP));
+              act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+              send_to_char(ch, CCNRM(ch, C_CMP));
+            }
+          }
+
+          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          {
+            CNDNSD(vict)->num_times_others_attack_you++;
+            CNDNSD(vict)->num_times_dodge++;
+          }
+          else
+          {
+            send_to_char(vict, CCRED(vict, C_CMP));
+            act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+            send_to_char(vict, CCNRM(vict, C_CMP));
+          }
+
+          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+               for condensed combat mode handling -zusuk */
+          act(msg->miss_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
+
+          /* fire any dodge specs we might have, right now its only on weapons */
+          if (opponent_weapon)
+          {
+            name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+            if (name)
+            {
+              (name)(vict, opponent_weapon, 0, "dodge");
+            }
           }
         }
-      }
-    } /* this ends our check for a scenario where no damage is inflicted */
+      } /* this ends our check for a scenario where no damage is inflicted */
 
-    return (return_value);
-  } /* attacktype check */
-} /* for loop for damage messages */
+      return (return_value);
+    } /* attacktype check */
+  }   /* for loop for damage messages */
 
-return (return_value); /* did not find a message to use? */
+  return (return_value); /* did not find a message to use? */
 }
 #undef TRELUX_CLAWS
 
