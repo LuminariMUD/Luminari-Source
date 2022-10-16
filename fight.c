@@ -10176,6 +10176,7 @@ void perform_violence(struct char_data *ch, int phase)
     }
   }
 
+  /***********************************************************/
   /* this is the "workspace" for the condensed output -zusuk */
   if (phase == 1 || phase == 0)
   {
@@ -10187,6 +10188,7 @@ void perform_violence(struct char_data *ch, int phase)
                    CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
                    CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
                    CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+      init_condensed_combat_data(ch);
     }
   }
   if (phase == 2)
@@ -10199,6 +10201,7 @@ void perform_violence(struct char_data *ch, int phase)
                    CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
                    CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
                    CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+      init_condensed_combat_data(ch);
     }
   }
   if (phase == 3)
@@ -10211,9 +10214,11 @@ void perform_violence(struct char_data *ch, int phase)
                    CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
                    CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
                    CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+      init_condensed_combat_data(ch);
     }
   }
   /* end condensed "workspace" */
+  /***********************************************************/
 
   // if they're affected by hedging weapon, we'll throw one at our current fighting target
   throw_hedging_weapon(ch);
