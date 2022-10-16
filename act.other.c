@@ -6675,6 +6675,7 @@ ACMD(do_gen_tog)
   int i;
   char arg[MAX_INPUT_LENGTH];
   struct follow_type *j = NULL, *k = NULL;
+  struct condensed_combat_data *combat_data = NULL;
 
   const char *const tog_messages[][2] = {
       /*0*/
@@ -6844,9 +6845,30 @@ ACMD(do_gen_tog)
   case SCMD_AUTOHIT:
     result = PRF_TOG_CHK(ch, PRF_AUTOHIT);
     break;
+
   case SCMD_CONDENSED:
+
+    /* if we don't have a structure allocated, do it now */
+    if (!CNDNSD(ch))
+    {
+      CREATE(combat_data, struct condensed_combat_data, 1);
+
+      CNDNSD(ch) = combat_data;
+    }
+
+    /* initialize the combat data every time we hit this toggle */
+    CNDNSD(ch)->num_times_attacking = 0;
+    CNDNSD(ch)->num_times_hit_targets = 0;
+    CNDNSD(ch)->num_times_hit_by_others = 0;
+    CNDNSD(ch)->num_times_others_attack_you = 0;
+    CNDNSD(ch)->num_targets_hit_by_your_spells = 0;
+    CNDNSD(ch)->num_times_hit_by_spell = 0;
+
+    /* go ahead toggle too! */
     result = PRF_TOG_CHK(ch, PRF_CONDENSED);
+
     break;
+
   case SCMD_NO_FOLLOW:
     /* this command on usage will drop all your PC followers -zusuk */
     for (k = ch->followers; k; k = j)

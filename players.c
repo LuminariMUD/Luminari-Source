@@ -472,6 +472,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_TOTAL_AOO(ch) = 0;
     GET_ACCOUNT_NAME(ch) = NULL;
     LEVELUP(ch) = NULL;
+    CNDNSD(ch) = NULL;
     GET_DR(ch) = NULL;
     GET_WALKTO_LOC(ch) = 0;
     GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
