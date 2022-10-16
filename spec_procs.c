@@ -5553,7 +5553,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
   if (level > 30)
     level = 30;
 
-  if (PRF_FLAGGED(to_ch, PRF_CONDENSED))
+  if (PRF_FLAGGED(ch, PRF_CONDENSED))
   {
   }
   else
@@ -5561,7 +5561,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
     act(to_ch, FALSE, ch, obj, vict, TO_CHAR);
   }
 
-  if (PRF_FLAGGED(to_vict, PRF_CONDENSED))
+  if (PRF_FLAGGED(vict, PRF_CONDENSED))
   {
   }
   else
