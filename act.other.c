@@ -6675,7 +6675,6 @@ ACMD(do_gen_tog)
   int i;
   char arg[MAX_INPUT_LENGTH];
   struct follow_type *j = NULL, *k = NULL;
-  struct condensed_combat_data *combat_data = NULL;
 
   const char *const tog_messages[][2] = {
       /*0*/
