@@ -6848,21 +6848,9 @@ ACMD(do_gen_tog)
 
   case SCMD_CONDENSED:
 
-    /* if we don't have a structure allocated, do it now */
-    if (!CNDNSD(ch))
-    {
-      CREATE(combat_data, struct condensed_combat_data, 1);
-
-      CNDNSD(ch) = combat_data;
-    }
-
-    /* initialize the combat data every time we hit this toggle */
-    CNDNSD(ch)->num_times_attacking = 0;
-    CNDNSD(ch)->num_times_hit_targets = 0;
-    CNDNSD(ch)->num_times_hit_by_others = 0;
-    CNDNSD(ch)->num_times_others_attack_you = 0;
-    CNDNSD(ch)->num_targets_hit_by_your_spells = 0;
-    CNDNSD(ch)->num_times_hit_by_spell = 0;
+    /* make sure we have the struct set up and reset it if we do */
+    send_to_char(ch, "Condensed combat data reset.\r\n");
+    init_condensed_combat_data(ch);
 
     /* go ahead toggle too! */
     result = PRF_TOG_CHK(ch, PRF_CONDENSED);

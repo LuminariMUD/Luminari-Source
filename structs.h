@@ -3739,14 +3739,24 @@ struct char_special_data_saved
 /* not saved player data used for condensed combat */
 struct condensed_combat_data
 {
+    /* attacker */
     int num_times_attacking;
-    int num_times_hit_targets;
+    int num_times_hit_targets; /* skills / spells (non melee) */
+    int num_times_hit_targets_ranged;
+    int num_times_hit_targets_melee;
+    int num_times_performed_deathblow;
 
-    int num_times_hit_by_others;
+    /* target/victim */
     int num_times_others_attack_you;
+    int num_times_shieldblock;
+    int num_times_parry;
+    int num_times_glance;
+    int num_times_dodge;
+    int num_times_hit_by_others;
+    int num_times_hit_by_others_ranged;
+    int num_times_hit_by_others_melee;
 
     int num_targets_hit_by_your_spells;
-
     int num_times_hit_by_spell;
 };
 
