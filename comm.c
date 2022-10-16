@@ -3523,11 +3523,30 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
   last_act_message = strdup(lbuf);
 }
 
+/* the central act() function for handling messaging
+     as a temporary solution i'm using the hide_invisible field as
+     a field for other extraneous handling not originally built
+     into this function until we develop a more elegant handling -zusuk
+   hide_invisible = -1234 : this is for handling to_room condensed combat mode scenarios -zusuk */
 const char *act(const char *str, int hide_invisible, struct char_data *ch,
                 struct obj_data *obj, void *vict_obj, int type)
 {
   struct char_data *to = NULL;
   int to_sleeping = 0;
+  int hide_invis = FALSE;
+  bool handle_condensed = FALSE;
+
+  /* signal -1234 is FALSE for hididing invisible AND used to let us know we are handling
+     a condensed-combat potentialy scenario */
+  if (hide_invisible == -1234)
+  {
+    hide_invis = FALSE;
+    handle_condensed = TRUE;
+  }
+  else
+    hide_invis = hide_invisible;
+
+  /* use only hide_invis (not hide_invisible) past this point :) */
 
   /*
   if (ch && ch->in_room > top_of_world)
@@ -3556,6 +3575,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
   if (!(dg_act_check = !IS_SET(type, DG_NO_TRIG)))
     REMOVE_BIT(type, DG_NO_TRIG);
 
+  /* to character */
   if (type == TO_CHAR)
   {
     if (ch && SENDOK(ch))
@@ -3566,6 +3586,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
     return NULL;
   }
 
+  /* to victim / target */
   if (type == TO_VICT)
   {
     if ((to = vict_obj) != NULL && SENDOK(to))
@@ -3576,6 +3597,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
     return NULL;
   }
 
+  /* this is for the global emote channel */
   if (type == TO_GMOTE && !IS_NPC(ch))
   {
     struct descriptor_data *i;
@@ -3595,6 +3617,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
     }
     return last_act_message;
   }
+
   /* ASSUMPTION: at this point we know type must be TO_NOTVICT or TO_ROOM */
 
   if (ch && IN_ROOM(ch) != NOWHERE)
@@ -3613,14 +3636,32 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
     return NULL;
   }
 
+  /* loop through all the peeps in the room */
   for (; to; to = to->next_in_room)
   {
+    /* general check that its okay for this character to see a message including
+         if target is writing or sleeping */
     if (!SENDOK(to) || (to == ch))
       continue;
-    if (hide_invisible && ch && !CAN_SEE(to, ch))
+    /* is this message visible to those that can't see? */
+    if (hide_invis && ch && !CAN_SEE(to, ch))
       continue;
+    /* TO_NOTVICT mode will not accomodate object target */
     if (type != TO_ROOM && to == vict_obj)
       continue;
+
+    /* this is for handling condensed */
+    if (handle_condensed && ch && PRF_FLAGGED(to, PRF_CONDENSED) && CNDNSD(to))
+    {
+      if (ch && GROUP(ch) && to && GROUP(to) && GROUP(ch) == GROUP(to))
+      {
+        /* TODO:  more handling? */
+      }
+
+      continue;
+    }
+
+    /* made it!  show the message */
     perform_act(str, ch, obj, vict_obj, to, TRUE);
   }
   return last_act_message;

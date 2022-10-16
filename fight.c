@@ -141,6 +141,43 @@ static char *replace_string(const char *str, const char *weapon_singular,
 
 /************ utility functions *********************/
 
+/* function to create/initialize/reset the condensed combat mode */
+void init_condensed_combat_data(struct char_data *ch)
+{
+
+  /* if we don't have a structure allocated, do it now */
+  if (!CNDNSD(ch))
+  {
+    CREATE(combat_data, struct condensed_combat_data, 1);
+
+    CNDNSD(ch) = combat_data;
+  }
+
+  /* initialize the combat data every time we hit this function */
+
+  /* attacker */
+  CNDNSD(ch)->num_times_attacking = 0;
+  CNDNSD(ch)->num_times_hit_targets = 0;
+  CNDNSD(ch)->num_times_hit_targets_ranged = 0;
+  CNDNSD(ch)->num_times_hit_targets_melee = 0;
+  CNDNSD(ch)->num_times_performed_deathblow = 0;
+
+  /* target/victim */
+  CNDNSD(ch)->num_times_others_attack_you = 0;
+  CNDNSD(ch)->num_times_shieldblock = 0;
+  CNDNSD(ch)->num_times_parry = 0;
+  CNDNSD(ch)->num_times_glance = 0;
+  CNDNSD(ch)->num_times_dodge = 0;
+  CNDNSD(ch)->num_times_hit_by_others = 0;
+  CNDNSD(ch)->num_times_hit_by_others_ranged = 0;
+  CNDNSD(ch)->num_times_hit_by_others_melee = 0;
+
+  CNDNSD(ch)->num_targets_hit_by_your_spells = 0;
+  CNDNSD(ch)->num_times_hit_by_spell = 0;
+
+  return;
+}
+
 /* simple utility function to check if ch is tanking */
 bool is_tanking(struct char_data *ch)
 {
@@ -2423,22 +2460,42 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   else
     msgnum = 13;
 
-  /* ranged */
+  /* ranged, not dead */
   if (offhand == 2 && last_missile && GET_POS(victim) > POS_DEAD)
   {
 
     /* damage message to room */
-    act(dam_ranged[msgnum].to_room, FALSE, ch, last_missile, victim, TO_NOTVICT);
+    /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+         for condensed combat mode handling -zusuk */
+    act(dam_ranged[msgnum].to_room, -1234, ch, last_missile, victim, TO_NOTVICT);
 
     /* damage message to damager */
-    act(dam_ranged[msgnum].to_char, FALSE, ch, last_missile, victim, TO_CHAR);
-    send_to_char(ch, CCNRM(ch, C_CMP));
+    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    {
+      CNDNSD(ch)->num_times_attacking++;
+      CNDNSD(ch)->num_times_hit_targets_ranged++;
+    }
+    else
+    {
+      act(dam_ranged[msgnum].to_char, FALSE, ch, last_missile, victim, TO_CHAR);
+      send_to_char(ch, CCNRM(ch, C_CMP));
+    }
 
     /* damage message to damagee */
-    send_to_char(victim, CCRED(victim, C_CMP));
-    act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
-    send_to_char(victim, CCNRM(victim, C_CMP));
-  } /* non ranged */
+    if (PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
+    {
+      CNDNSD(victim)->num_times_others_attack_you++;
+      CNDNSD(victim)->num_times_hit_by_others_ranged++;
+    }
+    else
+    {
+      send_to_char(victim, CCRED(victim, C_CMP));
+      act(dam_ranged[msgnum].to_victim, FALSE, ch, last_missile, victim, TO_VICT | TO_SLEEP);
+      send_to_char(victim, CCNRM(victim, C_CMP));
+    }
+  }
+
+  /* non ranged, not dead */
   else if (GET_POS(victim) > POS_DEAD)
   {
     char *buf = NULL;
@@ -2448,24 +2505,42 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural),
     dam;
     GUI_CMBT_NOTVICT_OPEN(ch, victim);
-    act(buf, FALSE, ch, NULL, victim, TO_NOTVICT);
+    /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+         for condensed combat mode handling -zusuk */
+    act(buf, -1234, ch, NULL, victim, TO_NOTVICT);
     GUI_CMBT_NOTVICT_CLOSE(ch, victim);
 
     /* damage message to damager (to_ch) */
-    buf = replace_string(dam_weapons[msgnum].to_char,
-                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
-    GUI_CMBT_OPEN(ch);
-    act(buf, FALSE, ch, NULL, victim, TO_CHAR);
-    send_to_char(ch, CCNRM(ch, C_CMP));
-    GUI_CMBT_CLOSE(ch);
+    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    {
+      CNDNSD(ch)->num_times_attacking++;
+      CNDNSD(ch)->num_times_hit_targets_melee++;
+    }
+    else
+    {
+      buf = replace_string(dam_weapons[msgnum].to_char,
+                           attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+      GUI_CMBT_OPEN(ch);
+      act(buf, FALSE, ch, NULL, victim, TO_CHAR);
+      send_to_char(ch, CCNRM(ch, C_CMP));
+      GUI_CMBT_CLOSE(ch);
+    }
 
     /* damage message to damagee (to_vict) */
-    buf = replace_string(dam_weapons[msgnum].to_victim,
-                         attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
-    GUI_CMBT_OPEN(victim);
-    act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
-    send_to_char(victim, CCNRM(victim, C_CMP));
-    GUI_CMBT_CLOSE(victim);
+    if (PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
+    {
+      CNDNSD(victim)->num_times_others_attack_you++;
+      CNDNSD(victim)->num_times_hit_by_others_melee++;
+    }
+    else
+    {
+      buf = replace_string(dam_weapons[msgnum].to_victim,
+                           attack_hit_text[w_type].singular, attack_hit_text[w_type].plural);
+      GUI_CMBT_OPEN(victim);
+      act(buf, FALSE, ch, NULL, victim, TO_VICT | TO_SLEEP);
+      send_to_char(victim, CCNRM(victim, C_CMP));
+      GUI_CMBT_CLOSE(victim);
+    }
   }
   else
   {
@@ -2488,6 +2563,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
   struct obj_data *shield = NULL;
   int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   bool is_ranged = FALSE;
+  struct char_data *to = NULL;
 
   if (DEBUGMODE)
   {
@@ -2562,11 +2638,15 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
       {
 
         if (GET_POS(vict) == POS_DEAD)
-        { // death messages
+        {
+          /* death messages */
+
           /* Don't send redundant color codes for TYPE_SUFFERING & other types
            * of damage without attacker_msg. */
+
           if (is_ranged)
-          { /* ranged attack death blow */
+          {
+            /* ranged attack death blow */
             /* death message to room */
             act("* THWISH * $n fires $p at $N * THUNK * $E \tRcollapses\tn to the ground!",
                 FALSE, ch, weap, vict, TO_NOTVICT);
@@ -2580,7 +2660,8 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             return SKILL_MESSAGE_DEATH_BLOW; /* no reason to stay here */
           }
           else
-          { /* NOT ranged death blow */
+          {
+            /* NOT ranged death blow */
             if (msg->die_msg.attacker_msg)
             {
               send_to_char(ch, CCYEL(ch, C_CMP));
@@ -2593,130 +2674,235 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(vict, CCNRM(vict, C_CMP));
 
             act(msg->die_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+
             return SKILL_MESSAGE_DEATH_BLOW;
           }
         }
         else
-        { // not dead
+        {
+          /* we did some damage, but not dead */
+
           if (msg->hit_msg.attacker_msg && ch != vict)
           {
-            send_to_char(ch, CCYEL(ch, C_CMP));
-            act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
-            send_to_char(ch, CCNRM(ch, C_CMP));
+            if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+            {
+              CNDNSD(ch)->num_times_attacking++;
+              CNDNSD(ch)->num_times_hit_targets++;
+            }
+            else
+            {
+              send_to_char(ch, CCYEL(ch, C_CMP));
+              act(msg->hit_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
+              send_to_char(ch, CCNRM(ch, C_CMP));
+            }
           }
 
-          send_to_char(vict, CCRED(vict, C_CMP));
-          act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
-          send_to_char(vict, CCNRM(vict, C_CMP));
+          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          {
+            CNDNSD(vict)->num_times_others_attack_you++;
+            CNDNSD(vict)->num_times_hit_by_others++;
+          }
+          else
+          {
+            send_to_char(vict, CCRED(vict, C_CMP));
+            act(msg->hit_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
+            send_to_char(vict, CCNRM(vict, C_CMP));
+          }
 
-          act(msg->hit_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
-
-          return SKILL_MESSAGE_GENERIC_HIT;
+          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+               for condensed combat mode handling -zusuk */
+          act(msg->hit_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
         }
-      } /* dam == 0, we did not do any damage! */
-      else if (ch != vict)
+
+        return SKILL_MESSAGE_GENERIC_HIT;
+      }
+    } /* end if-check for situation where we did some damage */
+    else if (ch != vict)
+    {
+      /* dam == 0, we did not do any damage! */
+
+      if (DEBUGMODE)
       {
-        if (DEBUGMODE)
+        send_to_char(ch, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+        send_to_char(vict, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+      }
+
+      /* do we have armor that can stop a blow? */
+      struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
+      int armor_val = -1;
+      if (armor)
+        armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
+
+      /* insert more colorful defensive messages here */
+
+      /* shield block */
+      if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 3))
+      {
+        return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
+
+        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
         {
-          send_to_char(ch, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
-          send_to_char(vict, "Debug - We are in skill_message() - ZERO DAMAGE, dam %d, ch %s, vict %s, attacktype %d, dualing %d\r\n", dam, GET_NAME(ch), GET_NAME(vict), attacktype, dualing);
+          CNDNSD(ch)->num_times_attacking++;
         }
-
-        /* do we have armor that can stop a blow? */
-        struct obj_data *armor = GET_EQ(vict, WEAR_BODY);
-        int armor_val = -1;
-        if (armor)
-          armor_val = GET_OBJ_VAL(armor, 1); /* armor type */
-
-        /* insert more colorful defensive messages here */
-
-        /* shield block */
-        if ((shield = GET_EQ(vict, WEAR_SHIELD)) && !rand_number(0, 3))
+        else
         {
-          return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
-
           send_to_char(ch, CCYEL(ch, C_CMP));
           act("$N blocks your attack with $p!", FALSE, ch, shield, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
+        }
+
+        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+        {
+          CNDNSD(vict)->num_times_others_attack_you++;
+          CNDNSD(vict)->num_times_shieldblock;
+        }
+        else
+        {
           send_to_char(vict, CCRED(vict, C_CMP));
           act("You block $n's attack with $p!", FALSE, ch, shield, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act("$N blocks $n's attack with $p!", FALSE, ch, shield, vict, TO_NOTVICT);
-
-          /* fire any shieldblock specs we might have */
-          name = obj_index[GET_OBJ_RNUM(shield)].func;
-          if (name)
-            (name)(vict, shield, 0, "shieldblock");
-
-          /* parry */
         }
-        else if (opponent_weapon && !rand_number(0, 2))
-        {
-          return_value = SKILL_MESSAGE_MISS_PARRY;
 
+        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+             for condensed combat mode handling -zusuk */
+        act("$N blocks $n's attack with $p!", -1234, ch, shield, vict, TO_NOTVICT);
+
+        /* fire any shieldblock specs we might have */
+        name = obj_index[GET_OBJ_RNUM(shield)].func;
+        if (name)
+          (name)(vict, shield, 0, "shieldblock");
+
+        /* parry */
+      }
+      else if (opponent_weapon && !rand_number(0, 2))
+      {
+        return_value = SKILL_MESSAGE_MISS_PARRY;
+
+        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+        {
+          CNDNSD(ch)->num_times_attacking++;
+        }
+        else
+        {
           send_to_char(ch, CCYEL(ch, C_CMP));
           act("$N parries your attack with $p!", FALSE, ch, opponent_weapon, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
+        }
+
+        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+        {
+          CNDNSD(vict)->num_times_others_attack_you++;
+          CNDNSD(vict)->num_times_parry++;
+        }
+        else
+        {
           send_to_char(vict, CCRED(vict, C_CMP));
           act("You parry $n's attack with $p!", FALSE, ch, opponent_weapon, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act("$N parries $n's attack with $p!", FALSE, ch, opponent_weapon, vict, TO_NOTVICT);
-
-          /* fire any parry specs we might have */
-          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
-          if (name)
-            (name)(vict, opponent_weapon, 0, "parry");
-
-          /* glance off armor */
         }
-        else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE &&
-                 !rand_number(0, 2))
+
+        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+             for condensed combat mode handling -zusuk */
+        act("$N parries $n's attack with $p!", -1234, ch, opponent_weapon, vict, TO_NOTVICT);
+
+        /* fire any parry specs we might have */
+        name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+        if (name)
+          (name)(vict, opponent_weapon, 0, "parry");
+
+        /* glance off armor */
+      }
+      else if (armor && armor_list[armor_val].armorType > ARMOR_TYPE_NONE &&
+               !rand_number(0, 2))
+      {
+        return_value = SKILL_MESSAGE_MISS_GLANCE;
+
+        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
         {
-          return_value = SKILL_MESSAGE_MISS_GLANCE;
+          CNDNSD(ch)->num_times_attacking++;
+        }
+        else
+        {
           send_to_char(ch, CCYEL(ch, C_CMP));
           act("Your attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_CHAR);
           send_to_char(ch, CCNRM(ch, C_CMP));
+        }
+
+        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+        {
+          CNDNSD(vict)->num_times_others_attack_you++;
+          CNDNSD(vict)->num_times_glance++;
+        }
+        else
+        {
           send_to_char(vict, CCRED(vict, C_CMP));
           act("$n's attack glances off $p!", FALSE, ch, armor, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act("$n's attack glances off $p, protecting $N!", FALSE, ch, armor, vict, TO_NOTVICT);
+        }
 
-          /* fire any glance specs we might have */
-          name = obj_index[GET_OBJ_RNUM(armor)].func;
-          if (name)
-            (name)(vict, armor, 0, "glance");
+        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+             for condensed combat mode handling -zusuk */
+        act("$n's attack glances off $p, protecting $N!", -1234, ch, armor, vict, TO_NOTVICT);
+
+        /* fire any glance specs we might have */
+        name = obj_index[GET_OBJ_RNUM(armor)].func;
+        if (name)
+          (name)(vict, armor, 0, "glance");
+      }
+      else
+      {
+        /* we fell through to generic miss message from file */
+
+        return_value = SKILL_MESSAGE_MISS_GENERIC;
+
+        /* default to miss messages in-file */
+        if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+        {
+          CNDNSD(ch)->num_times_attacking++;
         }
         else
-        { /* we fell through to generic miss message from file */
-          return_value = SKILL_MESSAGE_MISS_GENERIC;
-          /* default to miss messages in-file */
+        {
           if (msg->miss_msg.attacker_msg)
           {
             send_to_char(ch, CCYEL(ch, C_CMP));
             act(msg->miss_msg.attacker_msg, FALSE, ch, weap, vict, TO_CHAR);
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
+        }
+
+        if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+        {
+          CNDNSD(vict)->num_times_others_attack_you++;
+          CNDNSD(vict)->num_times_dodge++;
+        }
+        else
+        {
           send_to_char(vict, CCRED(vict, C_CMP));
           act(msg->miss_msg.victim_msg, FALSE, ch, weap, vict, TO_VICT | TO_SLEEP);
           send_to_char(vict, CCNRM(vict, C_CMP));
-          act(msg->miss_msg.room_msg, FALSE, ch, weap, vict, TO_NOTVICT);
+        }
 
-          /* fire any dodge specs we might have, right now its only on weapons */
-          if (opponent_weapon)
+        /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+             for condensed combat mode handling -zusuk */
+        act(msg->miss_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
+
+        /* fire any dodge specs we might have, right now its only on weapons */
+        if (opponent_weapon)
+        {
+          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
+          if (name)
           {
-            name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
-            if (name)
-            {
-              (name)(vict, opponent_weapon, 0, "dodge");
-            }
+            (name)(vict, opponent_weapon, 0, "dodge");
           }
         }
       }
-      return (return_value);
-    } /* attacktype check */
-  }   /* for loop for damage messages */
+    } /* this ends our check for a scenario where no damage is inflicted */
 
-  return (return_value); /* did not find a message to use? */
+    return (return_value);
+  } /* attacktype check */
+} /* for loop for damage messages */
+
+return (return_value); /* did not find a message to use? */
 }
 #undef TRELUX_CLAWS
 
@@ -9989,6 +10175,45 @@ void perform_violence(struct char_data *ch, int phase)
     }
   }
 
+  /* this is the "workspace" for the condensed output -zusuk */
+  if (phase == 1 || phase == 0)
+  {
+    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    {
+      send_to_char(ch, "P0/1: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
+                       "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
+                       "non-melee attacks, with %d ranged attacks and %d melee attacks.\r\n",
+                   CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
+                   CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
+                   CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+    }
+  }
+  if (phase == 2)
+  {
+    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    {
+      send_to_char(ch, "P2: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
+                       "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
+                       "non-melee attacks, with %d ranged attacks and %d melee attacks.\r\n",
+                   CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
+                   CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
+                   CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+    }
+  }
+  if (phase == 3)
+  {
+    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    {
+      send_to_char(ch, "P3: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
+                       "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
+                       "non-melee attacks, with %d ranged attacks and %d melee attacks.\r\n",
+                   CNDNSD(ch)->num_times_attacking, CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
+                   CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
+                   CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);
+    }
+  }
+  /* end condensed "workspace" */
+
   // if they're affected by hedging weapon, we'll throw one at our current fighting target
   throw_hedging_weapon(ch);
 
@@ -10278,3 +10503,5 @@ void perform_violence(struct char_data *ch, int phase)
 #undef DRACOLICH_PRISONER /* vnum for special mobile 'the dracolich of the prisoner' */
 
 #undef DEBUGMODE
+
+/* EoF */
