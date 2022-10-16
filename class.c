@@ -2463,6 +2463,11 @@ void init_start_char(struct char_data *ch)
   }
   GET_DR(ch) = NULL;
 
+  /* gonna clear the condensed combat data if it exists */
+  if (CNDNSD(ch))
+    free(CNDNSD(ch));
+  CNDNSD(ch) = NULL;
+
   /* reset skills/abilities */
   /* we don't want players to lose their hard-earned crafting skills */
   for (i = START_SKILLS; i < NUM_SKILLS; i++)

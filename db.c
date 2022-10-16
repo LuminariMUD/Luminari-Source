@@ -4934,6 +4934,11 @@ void free_char(struct char_data *ch)
     }
   }
 
+  /* gonna clear the condensed combat data if it exists */
+  if (CNDNSD(ch))
+    free(CNDNSD(ch));
+  CNDNSD(ch) = NULL;
+
   /* spell prep system */
   if (ch)
     destroy_spell_prep_queue(ch);
