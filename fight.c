@@ -148,6 +148,8 @@ void init_condensed_combat_data(struct char_data *ch)
   /* if we don't have a structure allocated, do it now */
   if (!CNDNSD(ch))
   {
+    struct condensed_combat_data *combat_data = NULL;
+
     CREATE(combat_data, struct condensed_combat_data, 1);
 
     CNDNSD(ch) = combat_data;
