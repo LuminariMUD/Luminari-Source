@@ -5894,8 +5894,21 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     {
 
       /* critical message */
-      send_to_char(ch, "\tW[CRIT!]\tn");
-      send_to_char(victim, "\tR[CRIT!]\tn");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tW[CRIT!]\tn");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tR[CRIT!]\tn");
+      }
 
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
         dam += 2;
@@ -5961,10 +5974,27 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         if (!pMudEvent)
           ;
         else
-        { /* decide on the effect to drop */
-          act("\tRYou strike $N with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_CHAR);
-          act("\tr$n strikes you with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_VICT);
-          act("\tr$n strikes $N with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_NOTVICT);
+        {
+          /* decide on the effect to drop */
+
+          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            act("\tRYou strike $N with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_CHAR);
+          }
+
+          if (PRF_FLAGGED(victim, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            act("\tr$n strikes you with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_VICT);
+          }
+
+          act("\tr$n strikes $N with a crippling critical!\tn", -1234, ch, NULL, victim, TO_NOTVICT);
+
           switch (atoi((char *)pMudEvent->sVariables))
           {
           case 1: /* 1d4 strength damage */
@@ -8074,9 +8104,24 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (HAS_FEAT(ch, FEAT_EXPLOIT_WEAKNESS))
     {
       victim->player.exploit_weaknesses = 2;
-      act("You have exploited $N's weaknesses", TRUE, ch, 0, victim, TO_CHAR);
-      act("$n has exploited YOUR weaknesses", TRUE, ch, 0, victim, TO_VICT);
-      act("$n has exploited $N's weaknesses", TRUE, ch, 0, victim, TO_NOTVICT);
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("You have exploited $N's weaknesses", TRUE, ch, 0, victim, TO_CHAR);
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("$n has exploited YOUR weaknesses", TRUE, ch, 0, victim, TO_VICT);
+      }
+
+      act("$n has exploited $N's weaknesses", -1234, ch, 0, victim, TO_NOTVICT);
     }
     if (HAS_REAL_FEAT(ch, FEAT_SPELL_CRITICAL) && !HAS_ELDRITCH_SPELL_CRIT(ch))
     {
@@ -8089,7 +8134,14 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* without a bonus to the challenge here, this was completely ineffective -zusuk */
       if (!mag_savingthrow(ch, victim, SAVING_FORT, 10, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
       {
-        send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
+        }
+
         new_affect(&af);
         af.spell = SPELL_BLINDNESS;
         af.duration = dice(1, 6);
@@ -8100,7 +8152,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        send_to_char(ch, "[\tWSHADOW-BLIND FAILED!\tn] ");
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "[\tWSHADOW-BLIND FAILED!\tn] ");
+        }
       }
     }
   }
@@ -8112,24 +8170,48 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
    * routines, then called as an attack action. */
   if (affected_by_spell(ch, SPELL_TRUE_STRIKE))
   {
-    send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(ch, "[\tWTRUE-STRIKE\tn] ");
+    }
     affect_from_char(ch, SPELL_TRUE_STRIKE);
   }
   if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
   {
-    send_to_char(ch, "[\tWINEVITABLE-STRIKE\tn] ");
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(ch, "[\tWINEVITABLE-STRIKE\tn] ");
+    }
     affect_from_char(ch, PSIONIC_INEVITABLE_STRIKE);
   }
   /* rage powers */
   if (affected_by_spell(ch, SKILL_SURPRISE_ACCURACY))
   {
-    send_to_char(ch, "[\tWSURPRISE_ACCURACY\tn] ");
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(ch, "[\tWSURPRISE_ACCURACY\tn] ");
+    }
     affect_from_char(ch, SKILL_SURPRISE_ACCURACY);
   }
   int powerful_blow_bonus = 0;
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW))
   {
-    send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
+    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      send_to_char(ch, "[\tWPOWERFUL_BLOW\tn] ");
+    }
     affect_from_char(ch, SKILL_POWERFUL_BLOW);
     powerful_blow_bonus += CLASS_LEVEL(ch, CLASS_BERSERKER);
     /* what is this?  because we are removing the affect, it won't
@@ -8139,19 +8221,47 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     if (IS_EVIL(victim))
     {
-      send_to_char(ch, "[SMITE-EVIL] ");
-      send_to_char(victim, "[\tRSMITE-EVIL\tn] ");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[SMITE-EVIL] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRSMITE-EVIL\tn] ");
+      }
+
       act("$n performs a \tYsmiting\tn attack on $N!",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
+          -1234, ch, wielded, victim, TO_NOTVICT);
     }
     if (affected_by_spell(ch, SPELL_FIRE_OF_ENTANGLEMENT) && dice(1, 5) == 1)
     {
       if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, CASTING_TYPE_DIVINE, DIVINE_LEVEL(ch), EVOCATION) &&
           !affected_by_spell(victim, AFFECT_ENTANGLING_FLAMES) && !mag_resistance(ch, victim, 0))
       {
-        send_to_char(ch, "[ENTANGLING-FLAMES] ");
-        send_to_char(victim, "[\tRENTANGLING-FLAMES\tn] ");
-        act("$n entangles $N in chains of flickering flame!", FALSE, ch, wielded, victim, TO_NOTVICT);
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "[ENTANGLING-FLAMES] ");
+        }
+
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "[\tRENTANGLING-FLAMES\tn] ");
+        }
+
+        act("$n entangles $N in chains of flickering flame!", -1234, ch, wielded, victim, TO_NOTVICT);
 
         new_affect(&af);
         af.spell = AFFECT_ENTANGLING_FLAMES;
@@ -8167,20 +8277,48 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     if (IS_GOOD(victim))
     {
-      send_to_char(ch, "[SMITE-GOOD] ");
-      send_to_char(victim, "[\tRSMITE-GOOD\tn] ");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[SMITE-GOOD] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRSMITE-GOOD\tn] ");
+      }
+
       act("$n performs a \tYsmiting\tn attack on $N!",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
+          -1234, ch, wielded, victim, TO_NOTVICT);
     }
   }
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION))
   {
     if (victim)
     {
-      send_to_char(ch, "[DESTRUCTIVE-SMITE] ");
-      send_to_char(victim, "[\tRDESTRUCTIVE-SMITE\tn] ");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[DESTRUCTIVE-SMITE] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRDESTRUCTIVE-SMITE\tn] ");
+      }
+
       act("$n performs a \tYsmiting\tn attack on $N!",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
+          -1234, ch, wielded, victim, TO_NOTVICT);
     }
   }
   if (affected_by_spell(ch, SKILL_STUNNING_FIST))
@@ -8191,10 +8329,26 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!savingthrow(victim, SAVING_FORT, 0,
                        ((HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4) + 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch))))
       {
-        send_to_char(ch, "[STUNNING-FIST] ");
-        send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
+
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "[STUNNING-FIST] ");
+        }
+
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "[\tRSTUNNING-FIST\tn] ");
+        }
+
         act("$n performs a \tYstunning fist\tn attack on $N!",
-            FALSE, ch, wielded, victim, TO_NOTVICT);
+            -1234, ch, wielded, victim, TO_NOTVICT);
+
         if (!char_has_mud_event(victim, eSTUNNED))
         {
           attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), 6 * PASSES_PER_SEC);
@@ -8202,8 +8356,21 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        send_to_char(ch, "[\tRstunning fist saved\tn] ");
-        send_to_char(victim, "[\tWstunning fist saved\tn] ");
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "[\tRstunning fist saved\tn] ");
+        }
+
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "[\tWstunning fist saved\tn] ");
+        }
       }
       /* regardless, remove affect */
       affect_from_char(ch, SKILL_STUNNING_FIST);
@@ -8216,10 +8383,24 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       int keen_strike_bonus = HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4;
       int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch) + keen_strike_bonus;
 
-      send_to_char(ch, "[QUIVERING-PALM] ");
-      send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[QUIVERING-PALM] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRQUIVERING-PALM\tn] ");
+      }
+
       act("$n performs a \tYquivering palm\tn attack on $N!",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
+          -1234, ch, wielded, victim, TO_NOTVICT);
 
       /* apply quivering palm affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
@@ -8250,9 +8431,24 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     int true_judgement_dc = 10 + (CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2) + GET_WIS_BONUS(ch);
     if (victim == GET_JUDGEMENT_TARGET(ch))
     {
-      send_to_char(ch, "[TRUE-JUDGEMENT] ");
-      send_to_char(victim, "[\tRTRUE-JUDGEMENT\tn] ");
-      act("$n performs a \tYtrue judgement\tn attack on $N!", FALSE, ch, wielded, victim, TO_NOTVICT);
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[TRUE-JUDGEMENT] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRTRUE-JUDGEMENT\tn] ");
+      }
+
+      act("$n performs a \tYtrue judgement\tn attack on $N!", -1234, ch, wielded, victim, TO_NOTVICT);
 
       if (!is_immune_death_magic(ch, victim, false) && !savingthrow(victim, SAVING_FORT, 0, true_judgement_dc))
       {
@@ -8279,10 +8475,26 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                         MAX(GET_CHA_BONUS(ch), GET_INT_BONUS(ch));
     if (can_fire_ammo(ch, TRUE))
     {
-      send_to_char(ch, "[ARROW OF DEATH] ");
-      send_to_char(victim, "[\tRARROW OF DEATH\tn] ");
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[ARROW OF DEATH] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRARROW OF DEATH\tn] ");
+      }
+
       act("$n performs an \tDarrow of death\tn attack on $N!",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
+          -1234, ch, wielded, victim, TO_NOTVICT);
+
       /* apply death arrow affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
           !savingthrow(victim, SAVING_FORT, 0, deatharrow_dc))
@@ -8327,8 +8539,21 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     if (sneakdam)
     {
-      send_to_char(ch, "[\tDSNEAK\tn] ");
-      send_to_char(victim, "[\tRSNEAK\tn] ");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[\tDSNEAK\tn] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRSNEAK\tn] ");
+      }
     }
 
     /* Calculate regular sneak attack damage. */
@@ -8340,33 +8565,60 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     /* Display why we are sneak attacking */
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
     {
-      send_to_char(ch, "\tW[");
-      if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
-        send_to_char(ch, "FF");
-      if (!has_dex_bonus_to_ac(ch, victim))
-        send_to_char(ch, "Dx");
-      if (is_flanked(ch, victim))
-        send_to_char(ch, "Fk");
-      send_to_char(ch, "]\tn");
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tW[");
+        if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+          send_to_char(ch, "FF");
+        if (!has_dex_bonus_to_ac(ch, victim))
+          send_to_char(ch, "Dx");
+        if (is_flanked(ch, victim))
+          send_to_char(ch, "Fk");
+        send_to_char(ch, "]\tn");
+      }
     }
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
     {
-      send_to_char(victim, "\tR[");
-      if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
-        send_to_char(victim, "FF");
-      if (!has_dex_bonus_to_ac(ch, victim))
-        send_to_char(victim, "Dx");
-      if (is_flanked(ch, victim))
-        send_to_char(victim, "Fk");
-      send_to_char(victim, "]\tn");
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tR[");
+        if (AFF_FLAGGED(victim, AFF_FLAT_FOOTED))
+          send_to_char(victim, "FF");
+        if (!has_dex_bonus_to_ac(ch, victim))
+          send_to_char(victim, "Dx");
+        if (is_flanked(ch, victim))
+          send_to_char(victim, "Fk");
+        send_to_char(victim, "]\tn");
+      }
     }
 
     sneakdam = dice(HAS_FEAT(ch, FEAT_SNEAK_ATTACK), 6);
 
     if (sneakdam)
     {
-      send_to_char(ch, "[\tDSNEAK\tn] ");
-      send_to_char(victim, "[\tRSNEAK\tn] ");
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "[\tDSNEAK\tn] ");
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "[\tRSNEAK\tn] ");
+      }
     }
   }
 
@@ -8497,12 +8749,26 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       af.modifier = -(dice(2, 4));
       affect_to_char(victim, &af);
 
-      act("Your well placed attack \tTcripples\tn $N!",
-          FALSE, ch, wielded, victim, TO_CHAR);
-      act("A well placed attack from $n \tTcripples\tn you!",
-          FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("Your well placed attack \tTcripples\tn $N!",
+            FALSE, ch, wielded, victim, TO_CHAR);
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("A well placed attack from $n \tTcripples\tn you!",
+            FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+      }
+
       act("A well placed attack from $n \tTcripples\tn $N!",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
+          -1234, ch, wielded, victim, TO_NOTVICT);
     }
   }
 
@@ -8517,9 +8783,23 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       af.modifier = -4;
       affect_to_char(ch, &af);
 
-      act("$n's stunning barrier stuns you!", FALSE, ch, wielded, victim, TO_CHAR);
-      act("Your stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_VICT);
-      act("$n's stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_NOTVICT);
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("$n's stunning barrier stuns you!", FALSE, ch, wielded, victim, TO_CHAR);
+      }
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        act("Your stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_VICT);
+      }
+
+      act("$n's stunning barrier stuns $N!", -1234, ch, wielded, victim, TO_NOTVICT);
 
       affect_from_char(victim, SPELL_STUNNING_BARRIER);
     }

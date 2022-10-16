@@ -2722,9 +2722,23 @@ ACMD(do_hit)
       /* this is just to avoid silly messages in peace rooms -zusuk */
       if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) && !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL))
       {
-        send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
-        send_to_char(ch,
-                     "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+
+        if (PRF_FLAGGED(vict, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
+        }
+
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch,
+                       "\tyYour opponents superior \tYinitiative\ty grants the first strike!\tn\r\n");
+        }
       }
 
       /* vict is taking an action so loses the Flat-footed flag */
