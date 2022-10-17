@@ -4545,8 +4545,14 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   dam = MAX(MIN(dam, 1499), 0); // damage cap
   GET_HIT(victim) -= dam;
-  CNDNSD(ch)->damage_inflicted += dam;
-  CNDNSD(victim)->damage_received += dam;
+  if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+  {
+    CNDNSD(ch)->damage_inflicted += dam;
+  }
+  if (PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
+  {
+    CNDNSD(victim)->damage_received += dam;
+  }
 
   // check for life shield spell
   if (victim && ch != victim && IS_UNDEAD(ch) && affected_by_spell(victim, SPELL_LIFE_SHIELD))
