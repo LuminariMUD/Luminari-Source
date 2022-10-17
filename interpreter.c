@@ -1819,11 +1819,12 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
   return (found);
 }
 
-/* load the player, put them in the right room - used by copyover_recover too */
+/* load the player, put them in the right room - used by copyover_recover too
+     this is also used for some initializing -zusuk */
 int enter_player_game(struct descriptor_data *d)
 {
-  int load_result;
-  room_vnum load_room;
+  int load_result - 1;
+  room_vnum load_room = NOWHERE;
   int i = 0;
 
   reset_char(d->character);
@@ -1845,11 +1846,13 @@ int enter_player_game(struct descriptor_data *d)
       load_room = r_mortal_start_room;
   }
 
+  /* send frozen characters to a special room if assigned */
   if (PLR_FLAGGED(d->character, PLR_FROZEN))
     load_room = r_frozen_start_room;
 
   /* copyover */
   GET_ID(d->character) = GET_IDNUM(d->character);
+
   /* find_char helper */
   add_to_lookup_table(GET_ID(d->character), (void *)d->character);
 
@@ -1864,6 +1867,7 @@ int enter_player_game(struct descriptor_data *d)
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
 
+  /* load up their pets, new system by gicksta */
   load_char_pets(d->character);
 
   /* Save the character and their object file */
@@ -1873,33 +1877,37 @@ int enter_player_game(struct descriptor_data *d)
   /* Check for a login trigger in the players' start room */
   login_wtrigger(&world[IN_ROOM(d->character)], d->character);
 
-  // this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak
-  // MXPSendTag(d, "<VERSION>");
+  /* this is already called in perform_dupe_check() before we get here, shouldn't be needed here -Nashak */
+  /* MXPSendTag(d, "<VERSION>"); */
 
   new_mail_alert(d->character, FALSE);
 
   /* START PLAYER STAT HACKS */
 
-  // movement hack.  We changed movement to be out of 1,000
-  // need to check for old characters and get them up to speed.
+  /* movement hack.  We changed movement to be out of 1,000
+     need to check for old characters and get them up to speed. */
   if (GET_REAL_MAX_MOVE(d->character) < 400)
     GET_REAL_MAX_MOVE(d->character) *= 10;
 
   /* END PLAYER STAT HACKS */
 
-  // if they are on a mission, but a reboot/copyover has cleared the mobs, reload the mission mobs
+  /* if they are on a mission, but a reboot/copyover has cleared the mobs, reload the mission mobs */
   create_mission_on_entry(d->character);
 
-  // If they're wildshaped, they re-enter as their natural form
+  /* If they're wildshaped, they re-enter as their natural form */
   wildshape_return(d->character);
 
-  // make sure we assign any new spells
+  /* make sure we assign any new spells */
   for (i = 0; i < NUM_CLASSES; i++)
   {
     if (CLASS_LEVEL(d->character, i))
       init_class(d->character, i, CLASS_LEVEL(d->character, i));
   }
 
+  /* initialize the characters condensed combat data struct */
+  init_condensed_combat_data(d->character);
+
+  /* all done! */
   return load_result;
 }
 

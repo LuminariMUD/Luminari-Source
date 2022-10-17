@@ -179,6 +179,7 @@ void init_condensed_combat_data(struct char_data *ch)
   CNDNSD(ch)->num_targets_hit_by_your_spells = 0;
   CNDNSD(ch)->num_times_hit_by_spell = 0;
 
+  /* all done */
   return;
 }
 
