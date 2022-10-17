@@ -1823,7 +1823,7 @@ static bool perform_new_char_dupe_check(struct descriptor_data *d)
      this is also used for some initializing -zusuk */
 int enter_player_game(struct descriptor_data *d)
 {
-  int load_result - 1;
+  int load_result = -1;
   room_vnum load_room = NOWHERE;
   int i = 0;
 
@@ -1911,6 +1911,7 @@ int enter_player_game(struct descriptor_data *d)
   return load_result;
 }
 
+/* protocol handling event */
 EVENTFUNC(get_protocols)
 {
   struct descriptor_data *d;
