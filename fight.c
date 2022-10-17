@@ -3718,9 +3718,10 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     if (dam_type == DAM_POISON && !can_poison(victim))
       return 0;
+
     /* handle concealment */
     int concealment = compute_concealment(victim);
-    // seeking weapons (ranged weapons only) bypass concealment always
+    /* seeking weapons (ranged weapons only) bypass concealment always */
     if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
       concealment = 0;
     if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
@@ -3737,10 +3738,24 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* trelux racial dodge */
     if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4) && !is_spell)
     {
-      send_to_char(victim, "\tWYou leap away avoiding the attack!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm as he leaps away!\tn\r\n",
-                   GET_NAME(victim));
-      act("$n fails to harm $N as $S leaps away!", FALSE, ch, 0, victim,
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tWYou leap away avoiding the attack!\tn\r\n");
+      }
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tRYou fail to cause %s any harm as he leaps away!\tn\r\n",
+                     GET_NAME(victim));
+      }
+
+      act("$n fails to harm $N as $S leaps away!", -1234, ch, 0, victim,
           TO_NOTVICT);
       return -1;
     }
@@ -3748,11 +3763,26 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* stalwart defender */
     if (HAS_FEAT(victim, FEAT_LAST_WORD) && !rand_number(0, 9) && !is_spell)
     {
-      send_to_char(victim, "\tWYour defensive stance holds firm against the onlsaught!\tn\r\n");
-      send_to_char(ch, "\tRYou fail to cause %s any harm as the defensive stance holds firms!\tn\r\n",
-                   GET_NAME(victim));
-      act("$n fails to harm $N as the defensive stance holds firm!", FALSE, ch, 0, victim,
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tWYour defensive stance holds firm against the onlsaught!\tn\r\n");
+      }
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tRYou fail to cause %s any harm as the defensive stance holds firms!\tn\r\n",
+                     GET_NAME(victim));
+      }
+
+      act("$n fails to harm $N as the defensive stance holds firm!", -1234, ch, 0, victim,
           TO_NOTVICT);
+
       return -1;
     }
 
@@ -3764,14 +3794,31 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       {
         if (rand_number(0, GET_IMAGES(victim)))
         {
-          send_to_char(victim, "\tWOne of your images is destroyed!\tn\r\n");
-          send_to_char(ch, "\tRYou have struck an illusionary "
-                           "image of %s!\tn\r\n",
-                       GET_NAME(victim));
-          act("$n struck an illusionary image of $N!", FALSE, ch, 0, victim,
+
+          if (PRF_FLAGGED(victim, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            send_to_char(victim, "\tWOne of your images is destroyed!\tn\r\n");
+          }
+
+          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            send_to_char(ch, "\tRYou have struck an illusionary "
+                             "image of %s!\tn\r\n",
+                         GET_NAME(victim));
+          }
+
+          act("$n struck an illusionary image of $N!", -1234, ch, 0, victim,
               TO_NOTVICT);
+
           GET_IMAGES(victim)
           --;
+
           if (GET_IMAGES(victim) <= 0)
           {
             send_to_char(victim, "\t2All of your illusionary "
@@ -3849,21 +3896,55 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       damage_reduction = compute_energy_absorb(victim, dam_type);
       dam -= compute_energy_absorb(victim, dam_type);
     }
+
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
-      send_to_char(ch, "\tRYou fail to cause %s any harm! (energy absorb: %d)\tn\r\n",
-                   GET_NAME(victim), damage_reduction);
-      act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
+
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
+      }
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tRYou fail to cause %s any harm! (energy absorb: %d)\tn\r\n",
+                     GET_NAME(victim), damage_reduction);
+      }
+
+      act("$n fails to do any harm to $N!", -1234, ch, 0, victim,
           TO_NOTVICT);
+
       return -1;
     }
     else if (damage_reduction)
     {
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
-        send_to_char(victim, "\tW<EA:%d>\tn", damage_reduction);
+      {
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "\tW<EA:%d>\tn", damage_reduction);
+        }
+      }
+
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tR<oEA:%d>\tn", damage_reduction);
+      {
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "\tR<oEA:%d>\tn", damage_reduction);
+        }
+      }
     }
 
     /* damage type PERCENTAGE reduction */
@@ -3877,26 +3958,78 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     if (dam <= 0 && (ch != victim))
     {
-      send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int)damtype_reduction);
-      send_to_char(ch, "\tRYou fail to cause %s any harm! (dam-type reduction: %d)\tn\r\n",
-                   GET_NAME(victim), (int)damtype_reduction);
-      act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
+      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int)damtype_reduction);
+      }
+
+      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tRYou fail to cause %s any harm! (dam-type reduction: %d)\tn\r\n",
+                     GET_NAME(victim), (int)damtype_reduction);
+      }
+
+      act("$n fails to do any harm to $N!", -1234, ch, 0, victim,
           TO_NOTVICT);
+
       return -1;
     }
     else if (damtype_reduction < 0)
-    { // no reduction, vulnerability
+    {
+      /* no reduction, vulnerability */
+
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
-        send_to_char(victim, "\tR<TR:%d>\tn", (int)damtype_reduction);
+      {
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "\tR<TR:%d>\tn", (int)damtype_reduction);
+        }
+      }
+
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tW<oTR:%d>\tn", (int)damtype_reduction);
+      {
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "\tW<oTR:%d>\tn", (int)damtype_reduction);
+        }
+      }
     }
     else if (damtype_reduction > 0)
     {
+
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
-        send_to_char(victim, "\tW<TR:%d>\tn", (int)damtype_reduction);
+      {
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "\tW<TR:%d>\tn", (int)damtype_reduction);
+        }
+      }
+
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tR<oTR:%d>\tn", (int)damtype_reduction);
+      {
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "\tR<oTR:%d>\tn", (int)damtype_reduction);
+        }
+      }
     }
 
     /* damage reduction system (old version) */
@@ -3928,19 +4061,53 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       dam -= MIN(dam, damage_reduction);
       if (!dam && (ch != victim))
       {
-        send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
-        send_to_char(ch, "\tRYou fail to cause %s any harm! (damaged reduction: %d)\tn\r\n",
-                     GET_NAME(victim), damage_reduction);
-        act("$n fails to do any harm to $N!", FALSE, ch, 0, victim,
+
+        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
+        }
+
+        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(ch, "\tRYou fail to cause %s any harm! (damaged reduction: %d)\tn\r\n",
+                       GET_NAME(victim), damage_reduction);
+        }
+
+        act("$n fails to do any harm to $N!", -1234, ch, 0, victim,
             TO_NOTVICT);
+
         return -1;
       }
       else if (damage_reduction)
       {
+
         if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
-          send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
+        {
+          if (PRF_FLAGGED(victim, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            send_to_char(victim, "\tW<DR:%d>\tn", damage_reduction);
+          }
+        }
+
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-          send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
+        {
+          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          {
+          }
+          else
+          {
+            send_to_char(ch, "\tR<oDR:%d>\tn", damage_reduction);
+          }
+        }
       }
     }
 
