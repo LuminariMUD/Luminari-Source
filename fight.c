@@ -163,6 +163,7 @@ void init_condensed_combat_data(struct char_data *ch)
   CNDNSD(ch)->num_times_hit_targets_ranged = 0;
   CNDNSD(ch)->num_times_hit_targets_melee = 0;
   CNDNSD(ch)->num_times_performed_deathblow = 0;
+  CNDNSD(ch)->damage_inflicted = 0;
 
   /* target/victim */
   CNDNSD(ch)->num_times_others_attack_you = 0;
@@ -173,6 +174,7 @@ void init_condensed_combat_data(struct char_data *ch)
   CNDNSD(ch)->num_times_hit_by_others = 0;
   CNDNSD(ch)->num_times_hit_by_others_ranged = 0;
   CNDNSD(ch)->num_times_hit_by_others_melee = 0;
+  CNDNSD(ch)->damage_received = 0;
 
   CNDNSD(ch)->num_targets_hit_by_your_spells = 0;
   CNDNSD(ch)->num_times_hit_by_spell = 0;
@@ -4543,6 +4545,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   dam = MAX(MIN(dam, 1499), 0); // damage cap
   GET_HIT(victim) -= dam;
+  CNDNSD(ch)->damage_inflicted += dam;
+  CNDNSD(victim)->damage_received += dam;
 
   // check for life shield spell
   if (victim && ch != victim && IS_UNDEAD(ch) && affected_by_spell(victim, SPELL_LIFE_SHIELD))
@@ -10711,13 +10715,15 @@ void perform_violence(struct char_data *ch, int phase)
                    CNDNSD(ch)->num_times_hit_targets, CNDNSD(ch)->num_times_hit_targets_melee, CNDNSD(ch)->num_times_hit_targets_ranged,
                    CNDNSD(ch)->num_times_others_attack_you, CNDNSD(ch)->num_times_shieldblock, CNDNSD(ch)->num_times_parry, CNDNSD(ch)->num_times_dodge, CNDNSD(ch)->num_times_glance, CNDNSD(ch)->num_times_hit_by_others,
                    CNDNSD(ch)->num_times_hit_by_others_ranged, CNDNSD(ch)->num_times_hit_by_others_melee);*/
-      send_to_char(ch, "Phase %d: You attacked %d times, hitting with %d attacks.  "
-                       "You were attacked %d times, defending %d times, struck with %d attacks.\r\n",
+      send_to_char(ch, "Phase %d: You attacked %d times, hitting with %d attacks for \tW%d\tn damage.  "
+                       "You were attacked %d times, defending %d times, struck with %d attacks for \tR%d\tn damage.\r\n",
                    phase, CNDNSD(ch)->num_times_attacking,
                    (CNDNSD(ch)->num_times_hit_targets + CNDNSD(ch)->num_times_hit_targets_melee + CNDNSD(ch)->num_times_hit_targets_ranged),
+                   CNDNSD(ch)->damage_inflicted,
                    CNDNSD(ch)->num_times_others_attack_you,
                    (CNDNSD(ch)->num_times_shieldblock + CNDNSD(ch)->num_times_parry + CNDNSD(ch)->num_times_dodge + CNDNSD(ch)->num_times_glance),
-                   (CNDNSD(ch)->num_times_hit_by_others + CNDNSD(ch)->num_times_hit_by_others_ranged + CNDNSD(ch)->num_times_hit_by_others_melee));
+                   (CNDNSD(ch)->num_times_hit_by_others + CNDNSD(ch)->num_times_hit_by_others_ranged + CNDNSD(ch)->num_times_hit_by_others_melee),
+                   CNDNSD(ch)->damage_received);
       init_condensed_combat_data(ch);
     }
   }

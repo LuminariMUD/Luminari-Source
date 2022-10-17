@@ -3745,6 +3745,7 @@ struct condensed_combat_data
     int num_times_hit_targets_ranged;
     int num_times_hit_targets_melee;
     int num_times_performed_deathblow;
+    int damage_inflicted;
 
     /* target/victim */
     int num_times_others_attack_you;
@@ -3755,6 +3756,7 @@ struct condensed_combat_data
     int num_times_hit_by_others;
     int num_times_hit_by_others_ranged;
     int num_times_hit_by_others_melee;
+    int damage_received;
 
     int num_targets_hit_by_your_spells;
     int num_times_hit_by_spell;
