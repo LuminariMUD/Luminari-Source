@@ -6634,7 +6634,24 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
        ROOM_AFFECTED(vict->in_room, RAFF_ANTI_MAGIC)))
     return;
 
-  int i = 0, random;
+  int i = 0, random = -1;
+  const char *buf = "$p begins to vibrate and release sparks of energy before leaping to action with an attack of its own!";
+
+  /* give some random messages */
+  switch (dice(1, 4))
+  {
+  case 1:
+    buf = "$p hums with power then releases its magic!";
+    break;
+  case 2:
+    buf = "$p flashes with energy then releases its magic!";
+    break;
+  case 3:
+    buf = "$p glows and lets off a deep sound while releasing its magic!";
+    break;
+  default: /* default "leaps to action" */
+    break;
+  }
 
   if (wpn && HAS_SPELLS(wpn))
   {
@@ -6657,9 +6674,10 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
           }
           else
           {
-            act("$p leaps to action with an attack of its own.", TRUE, ch, wpn, 0, TO_CHAR);
+            act(buf, TRUE, ch, wpn, 0, TO_CHAR);
           }
-          act("$p leaps to action with an attack of its own.", -1234, ch, wpn, 0, TO_ROOM);
+          act(buf, -1234, ch, wpn, 0, TO_ROOM);
+
           if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i), 0, GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
             return;
         }
@@ -6723,6 +6741,8 @@ void idle_weapon_spells(struct char_data *ch)
   int random = 0, i = 0, j = 0;
   struct obj_data *gear = NULL;
   const char *buf = "$p begins to vibrate and release sparks of energy!";
+  int spellnum = -1;
+  bool affected_by_spellnum = FALSE;
 
   /* give some random messages */
   switch (dice(1, 4))
@@ -6756,7 +6776,44 @@ void idle_weapon_spells(struct char_data *ch)
           if (GET_WEAPON_SPELL(gear, j) && !GET_WEAPON_SPELL_AGG(gear, j))
           {
             random = rand_number(1, 100);
-            if (!affected_by_spell(ch, GET_WEAPON_SPELL(gear, j)) &&
+            spellnum = GET_WEAPON_SPELL(gear, j);
+
+            /* this is for redundant mass spells being reapplied since they don't match the affection spell */
+            switch (spellnum)
+            {
+            case SPELL_MASS_FALSE_LIFE:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_FALSE_LIFE);
+              break;
+            case SPELL_MASS_CHARISMA:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_CHARISMA);
+              break;
+            case SPELL_MASS_CUNNING:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_CUNNING);
+              break;
+            case SPELL_MASS_ENDURANCE:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_ENDURANCE);
+              break;
+            case SPELL_MASS_FLY:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_FLY);
+              break;
+            case SPELL_MASS_GRACE:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_GRACE);
+              break;
+            case SPELL_MASS_HASTE:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_HASTE);
+              break;
+            case SPELL_MASS_STRENGTH:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_STRENGTH);
+              break;
+            case SPELL_MASS_WISDOM:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_WISDOM);
+              break;
+            default:
+              affected_by_spellnum = affected_by_spell(ch, spellnum);
+              break;
+            }
+
+            if (!affected_by_spellnum &&
                 GET_WEAPON_SPELL_PCT(gear, j) >= random)
             {
 
@@ -6769,7 +6826,9 @@ void idle_weapon_spells(struct char_data *ch)
               }
 
               act(buf, -1234, ch, gear, 0, TO_ROOM);
-              call_magic(ch, ch, NULL, GET_WEAPON_SPELL(gear, j), 0, GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
+
+              call_magic(ch, ch, NULL, spellnum, 0, GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
+
               return;
               /* we exit here because we don't want two or more items proccing off the same tick */
             }

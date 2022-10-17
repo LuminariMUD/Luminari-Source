@@ -6366,10 +6366,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_affect = FALSE;
   }
 
+  /* send messages */
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
   if (to_room != NULL)
-    act(to_room, TRUE, victim, 0, ch, TO_ROOM);
+    act(to_room, -1234, victim, 0, ch, TO_ROOM);
 
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
