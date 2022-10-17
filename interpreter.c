@@ -63,6 +63,7 @@
 #include "missions.h"
 #include "transport.h"
 #include "hunts.h"
+#include "fight.h" /* for init condensed combat */
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
