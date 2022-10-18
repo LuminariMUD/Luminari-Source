@@ -1798,6 +1798,518 @@ SPECIAL(prisoner_dracolich)
 /* End 'the Prisoner' */
 /**********************/
 
+/**********************/
+/* Fire Giant Zone(s) */
+/**********************/
+
+/*** fg invasion - zusuk threw this together for some quick end-game content ****/
+
+/* limits */
+#define MAX_JARL 200     /* jarl hunters */
+#define MAX_EFREETI 50   /* efreeti mercs */
+#define MAX_FG_GUARDS 10 /* fire giant guards by the king, this is per room */
+/* end limits */
+
+/* here is the treasure from the invasion */
+/* in treasure room */
+#define ETHER_LEGGINGS 34548
+#define FLAMEKISS_LYRE 34549
+#define SLAADI_BELT 34550        /* the intricately runed belt of the slaadi lords (Slot: About Waist) Armor Class: 10, Hitpoints: 50, Mana: 50, Detect Magic (Item Type: Armor) \
+                                  * Float, Magic, No Burn, No Locate NO-WARRIOR NO-CLERIC NO-THIEF * Keywords:(runed belt slaadi lords) * Weight: 0 */
+#define BASTION 34551            /* the blood-soaked bastion of defense (Slot: Shield) Armor Class: 25, Hitpoints: 25, Save Spell: -5, Bludgeon: 3%, Pierce: 3%, Ranged: 3%, \
+            Slash: 3%, Unarmed: 3% (Item Type: Armor) * Procs: Powers: Blessing of Gorm * Bless, Magic NO-MAGE NO-CLERIC NO-THIEF * Keywords:(bastion shield blood soaked blood-soaked defense) */
+#define DIVINE_SPARK 34552       /* a divine spark (Slot: Can't Wear) (Item Type: Light) * Lit, No Locate * Keywords:(spark divine) * Weight: 0, Value: 777 copper * Zone: Bahamut's Palace \
+        (For Quest) * Last ID: 2021-01-01 */
+#define BALORSKIN_LEGGINGS 34553 /* a frightening pair of razored balor skin leggings (Slot: Legs) Armor Class: 15, Hitpoints: 40, Save Breath: -8, Electricity: 5%, Fire: 5%, Farsee \
+  (Item Type: Armor) * NO-WARRIOR NO-MAGE NO-THIEF * Keywords:(leggings balor) * Weight: 1 */
+
+/* following 4 items are on the elite squads, 1 per squad */
+/* end treasure */
+
+/* this is the list of load rooms */
+#define TREASURE_ROOM 34655      /* this will load 2 treasure items */
+#define NEAR_KING 34514          /* location for an elite squad */
+#define NEAR_QUEEN 34506         /* location for an elite squad */
+#define WITH_GRUGNAR 34587       /* location for an elite squad */
+#define COMMUNITY_QUARTERS 34644 /* location for an elite squad */
+#define DISTRIBUTION_1 34656     /* distribution room, has 10 exits to randomly drop mobs */
+#define GUARDROOM_1 34516        /* extra guards load */
+#define GUARDROOM_2 34518        /* extra guards load */
+#define THRONE_ROOM 34517        /* extra guards load */
+#define THE_SHAFT 106700         /* load room for the valkyrie */
+/* end list of the load rooms */
+
+/* this is the mobiles we are loading for the invasion */
+#define JARL 34543                /* random distribution */
+#define EFREETI_MERCS 34544       /* random distribution */
+#define THRONE_GUARDS 34545       /* extra king guards */
+#define FROST_GIANT_GENERAL 34546 /* elite squad member/leader */
+#define FROST_GIANT_MAGE 34547    /* elite squad member */
+#define FROST_GIANT_PRIEST 34548  /* elite squad member */
+#define THE_VALKYRIE 34549        /* harbringer of the invasion */
+/* end mobile list */
+
+/* spec proc for loading the fire giant invasion */
+SPECIAL(fg_invasion_loader)
+{
+  struct char_data *tch = NULL, *chmove = NULL,
+                   *glammad = NULL, *leader = NULL, *mob = NULL;
+  int i = 0;
+  int where = -1;
+  struct obj_data *obj = NULL, *obj2 = NULL;
+  obj_rnum objrnum = NOTHING;
+  room_rnum roomrnum = NOWHERE;
+  mob_rnum mobrnum = NOWHERE;
+
+  /* if a command is sent to this function, exit...  if we already ran this function, exit */
+  if (cmd || PROC_FIRED(ch) == TRUE)
+    return 0;
+
+  /* we are loading 2 out of the 4 items from this invasion into the treasure room behind the king */
+  /* ether leggings to treasure room */
+  if ((objrnum = real_object(ETHER_LEGGINGS)) != NOWHERE)
+  {
+    if ((obj = read_object(objrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(TREASURE_ROOM)) != NOWHERE)
+      {
+        obj_to_room(obj, roomrnum);
+      }
+    }
+  }
+  /* flamekiss lyre to treasure room */
+  if ((objrnum = real_object(FLAMEKISS_LYRE)) != NOWHERE)
+  {
+    if ((obj = read_object(objrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(TREASURE_ROOM)) != NOWHERE)
+      {
+        obj_to_room(obj, roomrnum);
+      }
+    }
+  }
+  /* end treasure room code */
+
+  /* extra jarls to deal with, these will distribute to one of 10 rooms, check out the distribution room to see the exits */
+  for (i = 0; i < MAX_JARL; i++)
+  {
+    if ((mobrnum = real_mobile(JARL)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(DISTRIBUTION_1)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  /* extra efreeti mercs to deal with, these will distribute to one of 10 rooms, check out the distribution room to see the exits */
+  for (i = 0; i < MAX_EFREETI; i++)
+  {
+    if ((mobrnum = real_mobile(EFREETI_MERCS)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(DISTRIBUTION_1)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  /* end distribution room distributing */
+
+  /* extra throne guards around the king */
+  for (i = 0; i < MAX_FG_GUARDS; i++)
+  {
+    if ((mobrnum = real_mobile(THRONE_GUARDS)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(GUARDROOM_1)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  for (i = 0; i < MAX_FG_GUARDS; i++)
+  {
+    if ((mobrnum = real_mobile(THRONE_GUARDS)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(GUARDROOM_2)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  for (i = 0; i < MAX_FG_GUARDS; i++)
+  {
+    if ((mobrnum = real_mobile(THRONE_GUARDS)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(THRONE_ROOM)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+        }
+      }
+    }
+  }
+  /* end throne guards */
+
+  /**************************************************/
+
+  /* we have 4 elite hit-groups composed of
+       - 4 generals
+       - 3 wizards
+       - 3 priests
+    they are laid out here to obtain the 4 items */
+
+  /* near the king */
+  /* assign the leader + equip him with the special item */
+  if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+  {
+    if ((leader = read_mobile(mobrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(NEAR_KING)) != NOWHERE)
+      {
+        char_to_room(leader, roomrnum);
+        /* create our leader */
+        if (!GROUP(leader))
+          create_group(leader);
+
+        /* equip him/her */
+        obj = read_object(SLAADI_BELT, VIRTUAL);
+        obj_to_char(obj, leader);
+        where = find_eq_pos(leader, obj, 0);
+        perform_wear(leader, obj, where);
+      }
+    }
+  }
+  /* 3 more generals */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(NEAR_KING)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 mages */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_MAGE)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(NEAR_KING)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 priests */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_PRIEST)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(NEAR_KING)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* END near the king */
+
+  /* near the queen */
+  /* assign the leader + equip him with the special item */
+  if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+  {
+    if ((leader = read_mobile(mobrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(NEAR_QUEEN)) != NOWHERE)
+      {
+        char_to_room(leader, roomrnum);
+        /* create our leader */
+        if (!GROUP(leader))
+          create_group(leader);
+
+        /* equip him/her */
+        obj = read_object(BASTION, VIRTUAL);
+        obj_to_char(obj, leader);
+        where = find_eq_pos(leader, obj, 0);
+        perform_wear(leader, obj, where);
+      }
+    }
+  }
+  /* 3 more generals */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(NEAR_QUEEN)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 mages */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_MAGE)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(NEAR_QUEEN)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 priests */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_PRIEST)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(NEAR_QUEEN)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* END near the queen */
+
+  /* with grungnar */
+  /* assign the leader + equip him with the special item */
+  if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+  {
+    if ((leader = read_mobile(mobrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(WITH_GRUGNAR)) != NOWHERE)
+      {
+        char_to_room(leader, roomrnum);
+        /* create our leader */
+        if (!GROUP(leader))
+          create_group(leader);
+
+        /* equip him/her */
+        obj = read_object(DIVINE_SPARK, VIRTUAL);
+        obj_to_char(obj, leader);
+        where = find_eq_pos(leader, obj, 0);
+        perform_wear(leader, obj, where);
+      }
+    }
+  }
+  /* 3 more generals */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(WITH_GRUGNAR)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 mages */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_MAGE)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(WITH_GRUGNAR)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 priests */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_PRIEST)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(WITH_GRUGNAR)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* END with grugnar */
+
+  /* community quarter */
+  /* assign the leader + equip him with the special item */
+  if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+  {
+    if ((leader = read_mobile(mobrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(COMMUNITY_QUARTERS)) != NOWHERE)
+      {
+        char_to_room(leader, roomrnum);
+        /* create our leader */
+        if (!GROUP(leader))
+          create_group(leader);
+
+        /* equip him/her */
+        obj = read_object(BALORSKIN_LEGGINGS, VIRTUAL);
+        obj_to_char(obj, leader);
+        where = find_eq_pos(leader, obj, 0);
+        perform_wear(leader, obj, where);
+      }
+    }
+  }
+  /* 3 more generals */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_GENERAL)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(COMMUNITY_QUARTERS)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 mages */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_MAGE)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(COMMUNITY_QUARTERS)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* 3 priests */
+  for (i = 0; i < 3; i++)
+  {
+    if ((mobrnum = real_mobile(FROST_GIANT_PRIEST)) != NOBODY)
+    {
+      if ((mob = read_mobile(mobrnum, REAL)) != NULL)
+      {
+        if ((roomrnum = real_room(COMMUNITY_QUARTERS)) != NOWHERE)
+        {
+          char_to_room(mob, roomrnum);
+          if (leader)
+          {
+            add_follower(mob, leader);
+            join_group(mob, GROUP(leader));
+          }
+        }
+      }
+    }
+  }
+  /* END with grugnar */
+
+  /* Valkyrie - the harbringer of the invasion */
+  if ((roomrnum = real_room(THE_SHAFT)) != NOWHERE)
+  {
+    if ((mob = read_mobile(THE_VALKYRIE, VIRTUAL)) != NULL)
+    {
+      char_to_room(mob, roomrnum);
+    }
+  }
+
+  /* signal that this is all done */
+  PROC_FIRED(ch) = TRUE;
+
+  /* exit */
+  return 1;
+}
+
+/**********************/
+/*   End Fire Giant   */
+/**********************/
+
 /*****************/
 /* Jot           */
 /*****************/
@@ -2182,6 +2694,7 @@ SPECIAL(jot_invasion_loader)
   return 1;
 }
 
+/* thrym jot fight spec */
 SPECIAL(thrym)
 {
   if (!ch)
