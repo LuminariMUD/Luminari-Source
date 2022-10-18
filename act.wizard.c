@@ -6715,7 +6715,8 @@ bool AddRecentPlayer(char *chname, char *chhost, bool newplr, bool cpyplr)
   this->new_player = newplr;
   this->copyover_player = cpyplr;
   strcpy(this->host, chhost);
-  strcpy(this->name, chname);
+  if (chname)
+    strcpy(this->name, chname);
   max_vnum = get_max_recent();
   this->vnum = max_vnum; /* Possibly should be +1 ? */
 
