@@ -1814,16 +1814,11 @@ SPECIAL(prisoner_dracolich)
 /* in treasure room */
 #define ETHER_LEGGINGS 34548
 #define FLAMEKISS_LYRE 34549
-#define SLAADI_BELT 34550        /* the intricately runed belt of the slaadi lords (Slot: About Waist) Armor Class: 10, Hitpoints: 50, Mana: 50, Detect Magic (Item Type: Armor) \
-                                  * Float, Magic, No Burn, No Locate NO-WARRIOR NO-CLERIC NO-THIEF * Keywords:(runed belt slaadi lords) * Weight: 0 */
-#define BASTION 34551            /* the blood-soaked bastion of defense (Slot: Shield) Armor Class: 25, Hitpoints: 25, Save Spell: -5, Bludgeon: 3%, Pierce: 3%, Ranged: 3%, \
-            Slash: 3%, Unarmed: 3% (Item Type: Armor) * Procs: Powers: Blessing of Gorm * Bless, Magic NO-MAGE NO-CLERIC NO-THIEF * Keywords:(bastion shield blood soaked blood-soaked defense) */
-#define DIVINE_SPARK 34552       /* a divine spark (Slot: Can't Wear) (Item Type: Light) * Lit, No Locate * Keywords:(spark divine) * Weight: 0, Value: 777 copper * Zone: Bahamut's Palace \
-        (For Quest) * Last ID: 2021-01-01 */
-#define BALORSKIN_LEGGINGS 34553 /* a frightening pair of razored balor skin leggings (Slot: Legs) Armor Class: 15, Hitpoints: 40, Save Breath: -8, Electricity: 5%, Fire: 5%, Farsee \
-  (Item Type: Armor) * NO-WARRIOR NO-MAGE NO-THIEF * Keywords:(leggings balor) * Weight: 1 */
-
 /* following 4 items are on the elite squads, 1 per squad */
+#define SLAADI_BELT 34550
+#define BASTION 34551
+#define DIVINE_SPARK 34552
+#define BALORSKIN_LEGGINGS 34553
 /* end treasure */
 
 /* this is the list of load rooms */
@@ -2305,6 +2300,7 @@ SPECIAL(fg_invasion_loader)
   return 1;
 }
 
+/* for the low price of 20 hps, this special instrument will transform to any type -zusuk */
 SPECIAL(flamekissed_instrument)
 {
   if (!ch)
@@ -2442,6 +2438,35 @@ SPECIAL(flamekissed_instrument)
 
   return 0;
 }
+
+/* Undefines! */
+#undef MAX_JARL
+#undef MAX_EFREETI
+#undef MAX_FG_GUARDS
+#undef ETHER_LEGGINGS
+#undef FLAMEKISS_LYRE
+#undef SLAADI_BELT
+#undef BASTION
+#undef DIVINE_SPARK
+#undef BALORSKIN_LEGGINGS
+#undef TREASURE_ROOM
+#undef NEAR_KING
+#undef NEAR_QUEEN
+#undef WITH_GRUGNAR
+#undef COMMUNITY_QUARTERS
+#undef DISTRIBUTION_1
+#undef GUARDROOM_1
+#undef GUARDROOM_2
+#undef THRONE_ROOM
+#undef THE_SHAFT
+#undef JARL
+#undef EFREETI_MERCS
+#undef THRONE_GUARDS
+#undef FROST_GIANT_GENERAL
+#undef FROST_GIANT_MAGE
+#undef FROST_GIANT_PRIEST
+#undef THE_VALKYRIE
+/* end of undefines */
 
 /**********************/
 /*   End Fire Giant   */
