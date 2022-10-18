@@ -2305,6 +2305,148 @@ SPECIAL(fg_invasion_loader)
   return 1;
 }
 
+SPECIAL(flamekissed_instrument)
+{
+  if (!ch)
+    return 0;
+
+  if (!cmd && !strcmp(argument, "identify"))
+  {
+    send_to_char(ch, "Say an instrument name while holding to transform to that type, you will take 20 damage for the transformation.\r\n");
+    return 1;
+  }
+
+  struct obj_data *obj = (struct obj_data *)me;
+
+  if (!obj)
+    return 0;
+
+  if (!is_wearing(ch, FLAMEKISS_LYRE))
+    return 0;
+
+  if (cmd && argument && CMD_IS("say"))
+  {
+
+    skip_spaces(&argument);
+
+    if (!strcmp(argument, "lyre"))
+    {
+
+      act("\tyAs you say, '\tWlyre\ty' to $p\ty, \tyit rises forth from your hand, "
+          "\tRflame engulfs it and yourself\ty as it transforms into a \tWlyre\ty "
+          "then returning to your hands.\tn",
+          FALSE, ch, obj, NULL, TO_CHAR);
+      act("\tyAs $n\ty says, '\tWlyre\ty' to $p\ty, \tyit rises forth from $s hand, "
+          "\tRflame engulfs it and $n\ty as it transforms into a \tWlyre\ty "
+          "then returning to $s hands.\tn",
+          FALSE, ch, obj, NULL, TO_ROOM);
+
+      GET_OBJ_VAL(obj, 0) = 0; /* lyre */
+      USE_MOVE_ACTION(ch);
+      GET_HIT(ch) -= 20;
+
+      return 1;
+    }
+
+    if (!strcmp(argument, "flute"))
+    {
+
+      act("\tyAs you say, '\tWflute\ty' to $p\ty, \tyit rises forth from your hand, "
+          "\tRflame engulfs it and yourself\ty as it transforms into a \tWflute\ty "
+          "then returning to your hands.\tn",
+          FALSE, ch, obj, NULL, TO_CHAR);
+      act("\tyAs $n\ty says, '\tWflute\ty' to $p\ty, \tyit rises forth from $s hand, "
+          "\tRflame engulfs it and $n\ty as it transforms into a \tWflute\ty "
+          "then returning to $s hands.\tn",
+          FALSE, ch, obj, NULL, TO_ROOM);
+
+      GET_OBJ_VAL(obj, 0) = 1; /* flute */
+      USE_MOVE_ACTION(ch);
+      GET_HIT(ch) -= 20;
+
+      return 1;
+    }
+
+    if (!strcmp(argument, "horn"))
+    {
+
+      act("\tyAs you say, '\tWhorn\ty' to $p\ty, \tyit rises forth from your hand, "
+          "\tRflame engulfs it and yourself\ty as it transforms into a \tWhorn\ty "
+          "then returning to your hands.\tn",
+          FALSE, ch, obj, NULL, TO_CHAR);
+      act("\tyAs $n\ty says, '\tWhorn\ty' to $p\ty, \tyit rises forth from $s hand, "
+          "\tRflame engulfs it and $n\ty as it transforms into a \tWhorn\ty "
+          "then returning to $s hands.\tn",
+          FALSE, ch, obj, NULL, TO_ROOM);
+
+      GET_OBJ_VAL(obj, 0) = 2; /* horn */
+      USE_MOVE_ACTION(ch);
+      GET_HIT(ch) -= 20;
+
+      return 1;
+    }
+
+    if (!strcmp(argument, "drum"))
+    {
+
+      act("\tyAs you say, '\tWdrum\ty' to $p\ty, \tyit rises forth from your hand, "
+          "\tRflame engulfs it and yourself\ty as it transforms into a \tWdrum\ty "
+          "then returning to your hands.\tn",
+          FALSE, ch, obj, NULL, TO_CHAR);
+      act("\tyAs $n\ty says, '\tWdrum\ty' to $p\ty, \tyit rises forth from $s hand, "
+          "\tRflame engulfs it and $n\ty as it transforms into a \tWdrum\ty "
+          "then returning to $s hands.\tn",
+          FALSE, ch, obj, NULL, TO_ROOM);
+
+      GET_OBJ_VAL(obj, 0) = 3; /* drum */
+      USE_MOVE_ACTION(ch);
+      GET_HIT(ch) -= 20;
+
+      return 1;
+    }
+
+    if (!strcmp(argument, "harp"))
+    {
+
+      act("\tyAs you say, '\tWharp\ty' to $p\ty, \tyit rises forth from your hand, "
+          "\tRflame engulfs it and yourself\ty as it transforms into a \tWharp\ty "
+          "then returning to your hands.\tn",
+          FALSE, ch, obj, NULL, TO_CHAR);
+      act("\tyAs $n\ty says, '\tWharp\ty' to $p\ty, \tyit rises forth from $s hand, "
+          "\tRflame engulfs it and $n\ty as it transforms into a \tWharp\ty "
+          "then returning to $s hands.\tn",
+          FALSE, ch, obj, NULL, TO_ROOM);
+
+      GET_OBJ_VAL(obj, 0) = 4; /* harp */
+      USE_MOVE_ACTION(ch);
+      GET_HIT(ch) -= 20;
+
+      return 1;
+    }
+
+    if (!strcmp(argument, "mandolin"))
+    {
+
+      act("\tyAs you say, '\tWmandolin\ty' to $p\ty, \tyit rises forth from your hand, "
+          "\tRflame engulfs it and yourself\ty as it transforms into a \tWmandolin\ty "
+          "then returning to your hands.\tn",
+          FALSE, ch, obj, NULL, TO_CHAR);
+      act("\tyAs $n\ty says, '\tWmandolin\ty' to $p\ty, \tyit rises forth from $s hand, "
+          "\tRflame engulfs it and $n\ty as it transforms into a \tWmandolin\ty "
+          "then returning to $s hands.\tn",
+          FALSE, ch, obj, NULL, TO_ROOM);
+
+      GET_OBJ_VAL(obj, 0) = 5; /* mandolin */
+      USE_MOVE_ACTION(ch);
+      GET_HIT(ch) -= 20;
+
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 /**********************/
 /*   End Fire Giant   */
 /**********************/

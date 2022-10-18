@@ -756,6 +756,9 @@ void assign_objects(void)
   ASSIGNOBJ(224, monk_glove); /*electric damage*/
   ASSIGNOBJ(9215, monk_glove_cold);
 
+  /* fire giant zone */
+  ASSIGNOBJ(34549, flamekissed_instrument);
+
   /* the prisoner */
   ASSIGNOBJ(132125, tia_rapier);
   // ASSIGNOBJ(132109, magi_staff);
@@ -1081,6 +1084,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Fake Twilight", fake_twilight, ""},
     {"Fido", fido, ""},
     {"Fire Giant Invasion", fg_invasion_loader, ""},
+    {"FlameKissed Instrument", flamekissed_instrument, ""},
     {"Flaming Scimitar", flaming_scimitar, ""},
     {"Flaming Whip", flamingwhip, ""},
     {"Floating Teleport", floating_teleport, ""},

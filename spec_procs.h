@@ -109,6 +109,7 @@ SPECIAL_DECL(feybranche);
 SPECIAL_DECL(fake_twilight);
 SPECIAL_DECL(fido);
 SPECIAL_DECL(fg_invasion_loader);
+SPECIAL_DECL(flamekissed_instrument);
 SPECIAL_DECL(flaming_scimitar);
 SPECIAL_DECL(flamingwhip);
 SPECIAL_DECL(floating_teleport);
