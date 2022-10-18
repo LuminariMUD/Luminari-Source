@@ -1307,7 +1307,7 @@ ACMD(do_qref)
         // check in.
         for (qcom = quest->in; qcom; qcom = qcom->next)
         {
-          if (qcom->value == vnum && qcom->type == QUEST_COMMAND_ITEM)
+          if (qcom && qcom->value == vnum && qcom->type == QUEST_COMMAND_ITEM)
           {
             snprintf(buf, sizeof(buf), "\tCGIVE\tn %s to %s(\tW%d\tn)\r\n", obj_proto[real_num].short_description, mob_proto[i].player.short_descr, mob_index[i].vnum);
             send_to_char(ch, buf);
