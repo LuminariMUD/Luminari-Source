@@ -1849,14 +1849,13 @@ SPECIAL(prisoner_dracolich)
 #define THE_VALKYRIE 34549        /* harbringer of the invasion */
 /* end mobile list */
 
-/* spec proc for loading the fire giant invasion */
+/* spec proc for loading the fire giant invasion -zusuk */
 SPECIAL(fg_invasion_loader)
 {
-  struct char_data *tch = NULL, *chmove = NULL,
-                   *glammad = NULL, *leader = NULL, *mob = NULL;
+  struct char_data *leader = NULL, *mob = NULL;
   int i = 0;
   int where = -1;
-  struct obj_data *obj = NULL, *obj2 = NULL;
+  struct obj_data *obj = NULL;
   obj_rnum objrnum = NOTHING;
   room_rnum roomrnum = NOWHERE;
   mob_rnum mobrnum = NOWHERE;
