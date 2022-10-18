@@ -210,7 +210,7 @@ void assign_mobiles(void)
   ASSIGNMOB(196200, jot_invasion_loader); // this will load invasion
 
   /* fire giant zones */
-  /* ASSIGNMOB(34699, fg_invasion_loader);  */
+  ASSIGNMOB(34699, fg_invasion_loader);
 
   /* more assigns unsorted */
   ASSIGNMOB(200002, postmaster);
