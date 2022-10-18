@@ -209,6 +209,9 @@ void assign_mobiles(void)
   ASSIGNMOB(196032, gatehouse_guard);
   ASSIGNMOB(196200, jot_invasion_loader); // this will load invasion
 
+  /* fire giant zones */
+  ASSIGNMOB(34699, fg_invasion_loader); // this will load invasion
+
   /* more assigns unsorted */
   ASSIGNMOB(200002, postmaster);
   ASSIGNMOB(200001, receptionist);
@@ -1077,6 +1080,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"FeyBranche", feybranche, ""},
     {"Fake Twilight", fake_twilight, ""},
     {"Fido", fido, ""},
+    {"Fire Giant Invasion", fg_invasion_loader, ""},
     {"Flaming Scimitar", flaming_scimitar, ""},
     {"Flaming Whip", flamingwhip, ""},
     {"Floating Teleport", floating_teleport, ""},
@@ -1110,7 +1114,7 @@ static const struct spec_func_data spec_func_list[] = {
 
     /* j-l */
     {"Janitor", janitor, ""},
-    {"Invasion", jot_invasion_loader, ""},
+    {"Jot Invasion", jot_invasion_loader, ""},
     {"Kenjin", kt_kenjin, ""},
     //{"ShadowMaker", kt_shadowmaker, ""},
     {"Twister", kt_twister, ""},
