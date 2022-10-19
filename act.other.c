@@ -7941,7 +7941,7 @@ ACMDU(do_fiendishboon)
 #define NOBUFF_MSG "buffself add (spell/power name)                - Add a spell or power to your buff list.\r\n" \
                    "buffself remove (spell/power name)             - Remove a spell or power from your buff list\r\n" \
                    "buffself (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n" \
-                   "buffself list                                  - Will show you the spells and powers in your list" \
+                   "buffself list                                  - Will show you the spells and powers in your list\r\n" \
                    "buffself perform                               - Will begin buffing you with your buff list\r\n" \
                    "buffself cancel                                - Will can any buffing action in process.\r\n"
  
