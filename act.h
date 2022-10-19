@@ -744,6 +744,7 @@ ACMD_DECL(do_ethshift);
 ACMD_DECL(do_handleanimal);
 // ACMD_DECL(do_nohints);
 ACMD_DECL(do_todo);
+ACMD_DECL(do_buffself);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c

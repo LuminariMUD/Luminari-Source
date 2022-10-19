@@ -7938,6 +7938,199 @@ ACMDU(do_fiendishboon)
   send_to_char(ch, "You have activated your '%s' fiendish boon.\r\n", fiendish_boons[i]);
 }
 
+#define NOBUFF_MSG "buffself add (spell/power name)                - Add a spell or power to your buff list.\r\n" \
+                   "buffself remove (spell/power name)             - Remove a spell or power from your buff list\r\n" \
+                   "buffself (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n" \
+                   "buffself list                                  - Will show you the spells and powers in your list" \
+                   "buffself perform                               - Will begin buffing you with your buff list\r\n" \
+                   "buffself cancel                                - Will can any buffing action in process.\r\n"
+ 
+ACMD(do_buffself)
+{
+  char arg1[200], arg2[200];
+  int spellnum = 0, i = 0, aug = 0;
+  int is_spell = true; // true if it's a spell, false if it's a psionic power
+  bool found = false;
+
+  half_chop((char *)argument, arg1, arg2);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please choose one of the following options:\r\n%s", NOBUFF_MSG);
+    return;
+  }
+
+  if (!*arg2 && !is_abbrev(arg1, "list") && !is_abbrev(arg1, "perform") && !is_abbrev(arg1, "cancel"))
+  {
+    send_to_char(ch, "You did not specify a power or spell name.\r\n"
+                     "Please choose one of the following options:\r\n%s", NOBUFF_MSG);
+    return;
+  }
+
+  if (*arg2)
+  {
+    spellnum = find_skill_num(arg2);
+    is_spell = is_spell_or_power(spellnum);
+    
+    if (!is_spell)
+    {
+      send_to_char(ch, "That is not a valid spell or psionic power.\r\n");
+      return;
+    }
+
+    // now that we know it's a spell or power, we'll reduce it by one so it acts as a boolean
+    is_spell -= 1;
+
+    if (spell_info[spellnum].violent || IS_SET(spell_info[spellnum].targets, TAR_NOT_SELF))
+    {
+      send_to_char(ch, "That is not a valid buffing spell.\r\n");
+      return;
+    } 
+  }
+
+  if (isdigit(*arg1))
+  {
+    // Assign augment psp to specified psionic power.
+
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the psionic power buff you wish to assign augment psp to.\r\n");
+      return;
+    }
+
+    if (is_spell)
+    {
+      send_to_char(ch, "You can only assign augment psp to a psionic power.\r\n");
+      return;
+    }
+
+    aug = atoi(arg1);
+    
+    if (aug < 0)
+    {
+      send_to_char(ch, "Please specify the amount of psp you wish to use to augment this psionnic buff.\r\n");
+      return;
+    }
+
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      if (GET_BUFF(ch, i, 0) == spellnum)
+      {
+        found = true;
+        break;
+      }
+    }
+    if (!found)
+    {
+      send_to_char(ch, "You do not have any spells or powers in your buff list.\r\n");
+    }
+    GET_BUFF(ch, i, 1) = aug;
+    send_to_char(ch, "You assign %d augment psp to '%s'.\r\n", aug, spell_info[spellnum].name);
+  }
+  else if (is_abbrev(arg1, "add"))
+  {
+    // Add a spell/power to buff list.
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      if (GET_BUFF(ch, i, 0) == spellnum)
+      {
+        send_to_char(ch, "You already have that %s in your buff list.\r\n", is_spell ? "spell" : "power");
+        return;
+      }
+      if (GET_BUFF(ch, i, 0) == 0)
+        break;
+    }
+    if (i >= MAX_BUFFS)
+    {
+      send_to_char(ch, "All of your buff slots are full.  Please remove some using the buffself remove command.\r\n"
+                       "You can view your list of buffs with buffself list.\r\n");
+      return;
+    }
+    GET_BUFF(ch, i, 0) = spellnum;
+    send_to_char(ch, "You have added the %s '%s' to your buff list.\r\n", is_spell ? "spell" : "psionic power", spell_info[spellnum].name);
+  }
+  else if (is_abbrev(arg1, "remove"))
+  {
+    // Remove a spell/power from buff list.
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      if (GET_BUFF(ch, i, 0) == spellnum)
+      {
+        break;
+      }
+    }
+    if (i >= MAX_BUFFS)
+    {
+      send_to_char(ch, "You do not seem to have the %s '%s' in your buff list.\r\n"
+                       "You can view your list of buffs with buffself list.\r\n", is_spell ? "spell" : "psionic power", spell_info[spellnum].name);
+      return;
+    }
+    GET_BUFF(ch, i, 0) = 0;
+    GET_BUFF(ch, i, 1) = 0;
+    send_to_char(ch, "You have removed the %s '%s' from your buff list.\r\n", is_spell ? "spell" : "psionic power", spell_info[spellnum].name);
+  }
+  else if (is_abbrev(arg1, "list"))
+  {
+    // List spells and powers in your buff list
+    send_to_char(ch, "Spells and Powers in your buff list:\r\n");
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      if (GET_BUFF(ch, i, 0) > 0)
+      {
+        found = true;
+        if (is_spell_or_power(GET_BUFF(ch, i, 0)) == 2)
+        {
+          send_to_char(ch, "-- %-25s\r\n", spell_info[GET_BUFF(ch, i, 0)].name);
+        }
+        else
+        {
+          send_to_char(ch, "-- %-25s %d augment psp\r\n", spell_info[GET_BUFF(ch, i, 0)].name, GET_BUFF(ch, i, 1));
+        }
+      }
+    }
+    if (!found)
+    {
+      send_to_char(ch, "You do not have any spells or powers in your buff list.\r\n");
+    }
+  }
+  else if (is_abbrev(arg1, "perform"))
+  {
+    // Begin buffing yourself with spells/powers in your list.
+
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      if (GET_BUFF(ch, i, 0) > 0)
+      {
+        found = true;
+      }
+    }
+
+    if (!found)
+    {
+      send_to_char(ch, "You don't have any buffs in your buff list.\r\n");
+      return;
+    }
+
+    IS_BUFFING(ch) = true;
+    GET_BUFF_TIMER(ch) = 1;
+    GET_CURRENT_BUFF_SLOT(ch) = 0;
+    send_to_char(ch, "You begin buffing yourself...\r\n");
+  }
+  else if (is_abbrev(arg1, "cancel"))
+  {
+    // Begin buffing yourself with spells/powers in your list.
+    IS_BUFFING(ch) = false;
+    GET_BUFF_TIMER(ch) = 0;
+    GET_CURRENT_BUFF_SLOT(ch) = 0;
+    send_to_char(ch, "You cancel buffing yourself.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "Please choose one of the following options:\r\n%s", NOBUFF_MSG);
+    return;
+  }
+}
+
 /* undefines */
 #undef DEBUG_MODE
 
