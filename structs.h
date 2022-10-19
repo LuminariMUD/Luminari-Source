@@ -4118,8 +4118,9 @@ struct player_special_data
     struct char_data *judgement_target; // target of an inquisitor's judgement
 
     // for the self buffing system
-    int buffing_timer;
-    int buffing_countdown;
+    int buff_slot;
+    int buff_timer;
+    bool is_buffing;
 };
 
 /** Special data used by NPCs, not PCs */

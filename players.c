@@ -90,6 +90,7 @@ static void load_discoveries(FILE *fl, struct char_data *ch);
 void save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
+static void load_buffs(FILE *fl, struct char_data *ch);
 
 // external functions
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
@@ -507,6 +508,14 @@ int load_char(const char *name, struct char_data *ch)
     CASTING_SPELLNUM(ch) = 0;
     CASTING_METAMAGIC(ch) = 0;
     CASTING_CLASS(ch) = 0;
+    for (i = 0; i < MAX_BUFFS; i++)
+    {
+      GET_BUFF(ch, i, 0) = 0;
+      GET_BUFF(ch, i, 1) = 0;
+    }
+    GET_BUFF_TIMER(ch) = 0;
+    GET_CURRENT_BUFF_SLOT(ch) = 0;
+    IS_BUFFING(ch) = false;
     for (i = 0; i < MAX_PERFORMANCE_VARS; i++)
       GET_PERFORMANCE_VAR(ch, i) = 0;
     GET_PERFORMING(ch) = -1; /* 0 is an actual performance */
@@ -641,6 +650,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_BANK_GOLD(ch) = atoi(line);
         else if (!strcmp(tag, "Brth"))
           ch->player.time.birth = atol(line);
+        else if (!strcmp(tag, "Buff"))
+          load_buffs(fl, ch);
         break;
 
       case 'C':
@@ -1729,6 +1740,12 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "0 0\n");
   }
 
+  // Save Buffs
+  fprintf(fl, "Buff:\n");
+  for (i = 0; i < MAX_BUFFS; i++)
+    fprintf(fl, "%d %d %d\n", i, GET_BUFF(ch, i, 0), GET_BUFF(ch, i, 1));
+  fprintf(fl, "-1\n");
+
   /* Save Bombs */
   fprintf(fl, "Bomb:\n");
   for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
@@ -2778,6 +2795,20 @@ static void load_potions(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
       STORED_POTIONS(ch, num) = num2;
+  } while (num != -1);
+}
+
+static void load_buffs(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0, num3 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d %d", &num, &num2, &num3);
+    GET_BUFF(ch, num, 0) = num2;
+    GET_BUFF(ch, num, 1) = num3;
   } while (num != -1);
 }
 

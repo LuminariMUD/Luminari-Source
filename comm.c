@@ -190,6 +190,7 @@ void update_player_misc(void);
 void check_auto_happy_hour(void);
 void regen_psp(void);
 void process_walkto_actions(void);
+void self_buffing(void);
 
 /* externally defined functions, used locally */
 #ifdef __CXREF__
@@ -1152,6 +1153,7 @@ void heartbeat(int heart_pulse)
     next_tick--;
     PERF_PROF_EXIT(pr_msdp_update_);
     travel_tickdown();
+    self_buffing();
   }
 
   if (!(heart_pulse % (PASSES_PER_SEC * 5)))

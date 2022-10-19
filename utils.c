@@ -6867,5 +6867,24 @@ bool is_immaterial(struct char_data *ch)
   return false;
 }
 
+// returns 0 if neither spell or psionic power
+// returns 1 if psionic power
+// returns 2 if spell
+int is_spell_or_power(int spellnum)
+{
+  if (spellnum <= 0 || spellnum >= NUM_SPELLS)
+  {
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  return 2;
+}
+
 /* EoF */
 

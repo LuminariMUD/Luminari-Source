@@ -291,6 +291,7 @@ bool can_confuse(struct char_data *ch);
 bool has_psionic_body_form_active(struct char_data *ch);
 bool can_spell_be_revoked(int spellnum);
 void remove_locked_door_flags(room_rnum room, int door);
+int is_spell_or_power(int spellnum);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -2385,6 +2386,12 @@ int count_teamwork_feats_available(struct char_data *ch);
 
 // Walkto functionality
 #define GET_WALKTO_LOC(ch) (ch->player_specials->walkto_location)
+
+// Buff self
+#define GET_BUFF(ch, i, j)        (ch->player_specials->saved.buff_abilities[i][j])
+#define GET_CURRENT_BUFF_SLOT(ch) (ch->player_specials->buff_slot)
+#define GET_BUFF_TIMER(ch)        (ch->player_specials->buff_timer)
+#define IS_BUFFING(ch)            (ch->player_specials->is_buffing)
 
 #endif /* _UTILS_H_ */
 
