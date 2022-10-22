@@ -6827,6 +6827,9 @@ ACMD(do_gen_tog)
       /*49*/
       {"You will now see full combat details.\r\n",
        "You will now see condensed combat messages.\r\n"},
+      /*50*/
+      {"You will no longer be careful with your pets (and vice versa).\r\n",
+       "You will now be careful with your pets (and vice versa).\r\n"},
 
   };
 
