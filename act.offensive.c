@@ -2607,6 +2607,7 @@ ACMD(do_hit)
   }
 
   one_argument(argument, arg, sizeof(arg));
+  
   if (!*arg)
   {
     if (!PRF_FLAGGED(ch, PRF_AUTOHIT))

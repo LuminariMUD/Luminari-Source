@@ -4448,7 +4448,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     }
   }
 
-  // pets attacking pets
+  /* pets attacking pets */
   if (ch->master && victim->master == ch->master)
   {
     if (!IS_NPC(victim->master) && PRF_FLAGGED(victim->master, PRF_CAREFUL_PET))
@@ -9248,6 +9248,25 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
                   Needs improvement. */
     return (HIT_RESULT_ACTION);
   }
+
+  /* hitting pets:  some protection from a toggle if you like */
+  if (victim->master == ch)
+  {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CAREFUL_PET))
+    {
+      send_to_char(ch, "That's one of your followers...  turn off your careful pet toggle to attack that target...\r\n");
+      return (HIT_MISS);
+    }
+  }
+  if (ch->master == victim)
+  {
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CAREFUL_PET))
+    {
+      stop_fighting(ch);
+      return (HIT_MISS);
+    }
+  }
+  /* end careful pet */
 
   /* if we come into the hit() function anticipating a ranged attack, we are
    examining obvious cases where the attack will fail */
