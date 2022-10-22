@@ -4448,6 +4448,16 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     }
   }
 
+  /* pet attacking a master protection if toggled */
+  if (ch->master == victim)
+  {
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CAREFUL_PET))
+    {
+      stop_fighting(ch);
+      return 0;
+    }
+  }
+
   /* pets attacking pets */
   if (ch->master && victim->master == ch->master)
   {
