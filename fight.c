@@ -4433,10 +4433,31 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     }
   }
 
-  /* pets leave if attacked */
+  /* pets leave if attacked, now with some protection from a toggle if you like */
   if (victim->master == ch)
-    stop_follower(victim);
+  {
+    if (PRF_FLAGGED(ch, PRF_CAREFUL_PET))
+    {
+      send_to_char(ch, "That's one of your followers...  turn off your careful pet toggle to attack that target...\r\n");
+      stop_fighting(ch);
+      return 0;
+    }
+    else
+    {
+      stop_follower(victim);
+    }
+  }
 
+  /* pets attacking pets */
+  if (ch->master && victim->master == ch->master)
+  {
+    if (PRF_FLAGGED(victim->master, PRF_CAREFUL_PET))
+    {
+      stop_fighting(ch);
+      return 0;
+    }
+  }
+  
   /* if target is in your group, you forfeit your position in the group -zusuk */
   if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim) && ch != victim)
   {

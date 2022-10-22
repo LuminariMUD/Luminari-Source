@@ -6844,6 +6844,9 @@ ACMD(do_gen_tog)
   case SCMD_AUTOHIT:
     result = PRF_TOG_CHK(ch, PRF_AUTOHIT);
     break;
+  case SCMD_CAREFUL_PET:
+    result = PRF_TOG_CHK(ch, PRF_CAREFUL_PET);
+    break;
 
   case SCMD_CONDENSED:
 
@@ -7938,13 +7941,13 @@ ACMDU(do_fiendishboon)
   send_to_char(ch, "You have activated your '%s' fiendish boon.\r\n", fiendish_boons[i]);
 }
 
-#define NOBUFF_MSG "buffself add (spell/power name)                - Add a spell or power to your buff list.\r\n" \
-                   "buffself remove (spell/power name)             - Remove a spell or power from your buff list\r\n" \
-                   "buffself (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n" \
+#define NOBUFF_MSG "buffself add (spell/power name)                - Add a spell or power to your buff list.\r\n"          \
+                   "buffself remove (spell/power name)             - Remove a spell or power from your buff list\r\n"      \
+                   "buffself (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n"         \
                    "buffself list                                  - Will show you the spells and powers in your list\r\n" \
-                   "buffself perform                               - Will begin buffing you with your buff list\r\n" \
+                   "buffself perform                               - Will begin buffing you with your buff list\r\n"       \
                    "buffself cancel                                - Will can any buffing action in process.\r\n"
- 
+
 ACMD(do_buffself)
 {
   char arg1[200], arg2[200];
@@ -7963,7 +7966,8 @@ ACMD(do_buffself)
   if (!*arg2 && !is_abbrev(arg1, "list") && !is_abbrev(arg1, "perform") && !is_abbrev(arg1, "cancel"))
   {
     send_to_char(ch, "You did not specify a power or spell name.\r\n"
-                     "Please choose one of the following options:\r\n%s", NOBUFF_MSG);
+                     "Please choose one of the following options:\r\n%s",
+                 NOBUFF_MSG);
     return;
   }
 
@@ -7971,7 +7975,7 @@ ACMD(do_buffself)
   {
     spellnum = find_skill_num(arg2);
     is_spell = is_spell_or_power(spellnum);
-    
+
     if (!is_spell)
     {
       send_to_char(ch, "That is not a valid spell or psionic power.\r\n");
@@ -7985,7 +7989,7 @@ ACMD(do_buffself)
     {
       send_to_char(ch, "That is not a valid buffing spell.\r\n");
       return;
-    } 
+    }
   }
 
   if (isdigit(*arg1))
@@ -8005,7 +8009,7 @@ ACMD(do_buffself)
     }
 
     aug = atoi(arg1);
-    
+
     if (aug < 0)
     {
       send_to_char(ch, "Please specify the amount of psp you wish to use to augment this psionnic buff.\r\n");
@@ -8062,7 +8066,8 @@ ACMD(do_buffself)
     if (i >= MAX_BUFFS)
     {
       send_to_char(ch, "You do not seem to have the %s '%s' in your buff list.\r\n"
-                       "You can view your list of buffs with buffself list.\r\n", is_spell ? "spell" : "psionic power", spell_info[spellnum].name);
+                       "You can view your list of buffs with buffself list.\r\n",
+                   is_spell ? "spell" : "psionic power", spell_info[spellnum].name);
       return;
     }
     GET_BUFF(ch, i, 0) = 0;
