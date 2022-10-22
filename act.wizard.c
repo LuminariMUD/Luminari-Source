@@ -187,7 +187,7 @@ room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 
   if (isdigit(*roomstr) && !strchr(roomstr, '.'))
   {
-    if ((location = real_room((room_vnum)atoi(roomstr))) == NOWHERE)
+    if ((location = real_room((room_vnum)atoi(roomstr))) >= NOWHERE)
     {
       send_to_char(ch, "No room exists with that number.\r\n");
       return (NOWHERE);

@@ -28,6 +28,7 @@
 #include "race.h"
 #include "transport.h"
 #include "dg_scripts.h"
+#include "wilderness.h"
 
 extern struct room_data *world;
 extern struct char_data *character_list;
@@ -426,12 +427,16 @@ void travel_tickdown(void)
 {
 
   struct char_data *ch = NULL;
+  struct descriptor_data *d = NULL;
   room_rnum to_room = NOWHERE;
-  char air[200], car[200];
+  char sail[200], car[200];
 
-  for (ch = character_list; ch; ch = ch->next) {
+  for (d = descriptor_list; d; d = d->next) 
+  {
 
-    if (IS_NPC(ch) || !ch->desc)
+    ch = d->character;
+
+    if (!ch || IS_NPC(ch) || !ch->desc)
       continue;
 
     if (STATE(ch->desc) != CON_PLAYING) continue;
@@ -454,9 +459,45 @@ void travel_tickdown(void)
     } else {
       ch->player_specials->travel_timer--;
       if (ch->player_specials->travel_timer < 1) {
-        snprintf(air, sizeof(air), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
         snprintf(car, sizeof(car), "%s", carriage_locales[ch->player_specials->travel_locale][1]);
-        if ((to_room = find_target_room(ch, ch->player_specials->travel_type == TRAVEL_SAILING ? (char *)(air) : (char *)(car))) == NOWHERE) {
+        snprintf(sail, sizeof(sail), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
+        if (ch->player_specials->travel_type == TRAVEL_SAILING)
+        {
+          if (atoi(sail) < 1000000)
+          {
+            if ((to_room = find_target_room(ch, (char *)(sail))) == NOWHERE) 
+            {
+              char_from_room(ch);
+              char_to_room(ch, to_room);
+              look_at_room(ch, 0);
+              entry_memory_mtrigger(ch);
+              greet_mtrigger(ch, -1);
+              greet_memory_mtrigger(ch);     
+            }
+          }
+          /* Have two args, that means coordinates (potentially) */
+          else if ((to_room = find_room_by_coordinates(atoi(sailing_locales[ch->player_specials->travel_locale][5]), 
+                                                  atoi(sailing_locales[ch->player_specials->travel_locale][6]))) == NOWHERE)
+          {
+            if ((to_room = find_available_wilderness_room()) == NOWHERE)
+            {
+              char_from_room(ch);
+              char_to_room(ch, to_room);
+              look_at_room(ch, 0);
+              entry_memory_mtrigger(ch);
+              greet_mtrigger(ch, -1);
+              greet_memory_mtrigger(ch);
+            }
+            else
+            {
+              /* Must set the coords, etc in the going_to room. */
+              assign_wilderness_room(to_room, atoi(sailing_locales[ch->player_specials->travel_locale][5]), 
+                                              atoi(sailing_locales[ch->player_specials->travel_locale][6]));
+            }
+          }
+        }
+        else if ((to_room = find_target_room(ch,(char *)(car))) == NOWHERE) 
+        {
           char_from_room(ch);
           char_to_room(ch, to_room);
           look_at_room(ch, 0);
@@ -466,11 +507,21 @@ void travel_tickdown(void)
         }
 
         char_from_room(ch);
+
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
+        {
+          //    char_to_coords(ch, world[to_room].coords[0], world[to_room].coords[1], 0);
+          X_LOC(ch) = world[to_room].coords[0];
+          Y_LOC(ch) = world[to_room].coords[1];
+        }
+
         char_to_room(ch, to_room);
         look_at_room(ch, 0);
         entry_memory_mtrigger(ch);
         greet_mtrigger(ch, -1);
         greet_memory_mtrigger(ch);
+
+        send_to_char(ch, "Target Room: %s\r\n", sailing_locales[ch->player_specials->travel_locale][1]);
 
         if (ch->player_specials->travel_type == TRAVEL_CARRIAGE) {
           act("$n disembarks a horse-drawn carriage that grinds to a halt before you.", FALSE, ch, 0, 0, TO_ROOM);
