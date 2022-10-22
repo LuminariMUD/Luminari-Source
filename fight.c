@@ -2475,7 +2475,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     act(dam_ranged[msgnum].to_room, -1234, ch, last_missile, victim, TO_NOTVICT);
 
     /* damage message to damager */
-    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
       CNDNSD(ch)->num_times_attacking++;
       CNDNSD(ch)->num_times_hit_targets_ranged++;
@@ -2487,7 +2487,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     }
 
     /* damage message to damagee */
-    if (PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
     {
       CNDNSD(victim)->num_times_others_attack_you++;
       CNDNSD(victim)->num_times_hit_by_others_ranged++;
@@ -2516,7 +2516,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     GUI_CMBT_NOTVICT_CLOSE(ch, victim);
 
     /* damage message to damager (to_ch) */
-    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
       CNDNSD(ch)->num_times_attacking++;
       CNDNSD(ch)->num_times_hit_targets_melee++;
@@ -2532,7 +2532,7 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
     }
 
     /* damage message to damagee (to_vict) */
-    if (PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
+    if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
     {
       CNDNSD(victim)->num_times_others_attack_you++;
       CNDNSD(victim)->num_times_hit_by_others_melee++;
@@ -2688,7 +2688,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
 
           if (msg->hit_msg.attacker_msg && ch != vict)
           {
-            if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+            if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
             {
               CNDNSD(ch)->num_times_attacking++;
               CNDNSD(ch)->num_times_hit_targets++;
@@ -2701,7 +2701,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             }
           }
 
-          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
           {
             CNDNSD(vict)->num_times_others_attack_you++;
             CNDNSD(vict)->num_times_hit_by_others++;
@@ -2744,7 +2744,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         {
           return_value = SKILL_MESSAGE_MISS_SHIELDBLOCK;
 
-          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
           {
             CNDNSD(ch)->num_times_attacking++;
           }
@@ -2755,7 +2755,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
 
-          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
           {
             CNDNSD(vict)->num_times_others_attack_you++;
             CNDNSD(vict)->num_times_shieldblock;
@@ -2782,7 +2782,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         {
           return_value = SKILL_MESSAGE_MISS_PARRY;
 
-          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
           {
             CNDNSD(ch)->num_times_attacking++;
           }
@@ -2793,7 +2793,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
 
-          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
           {
             CNDNSD(vict)->num_times_others_attack_you++;
             CNDNSD(vict)->num_times_parry++;
@@ -2821,7 +2821,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
         {
           return_value = SKILL_MESSAGE_MISS_GLANCE;
 
-          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
           {
             CNDNSD(ch)->num_times_attacking++;
           }
@@ -2832,7 +2832,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(ch, CCNRM(ch, C_CMP));
           }
 
-          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
           {
             CNDNSD(vict)->num_times_others_attack_you++;
             CNDNSD(vict)->num_times_glance++;
@@ -2860,7 +2860,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
           return_value = SKILL_MESSAGE_MISS_GENERIC;
 
           /* default to miss messages in-file */
-          if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
           {
             CNDNSD(ch)->num_times_attacking++;
           }
@@ -2874,7 +2874,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             }
           }
 
-          if (PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
+          if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED) && CNDNSD(vict))
           {
             CNDNSD(vict)->num_times_others_attack_you++;
             CNDNSD(vict)->num_times_dodge++;
@@ -3741,7 +3741,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* trelux racial dodge */
     if (GET_RACE(victim) == RACE_TRELUX && !rand_number(0, 4) && !is_spell)
     {
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -3749,7 +3749,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\tWYou leap away avoiding the attack!\tn\r\n");
       }
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -3766,7 +3766,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     /* stalwart defender */
     if (HAS_FEAT(victim, FEAT_LAST_WORD) && !rand_number(0, 9) && !is_spell)
     {
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -3774,7 +3774,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\tWYour defensive stance holds firm against the onlsaught!\tn\r\n");
       }
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -3798,7 +3798,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         if (rand_number(0, GET_IMAGES(victim)))
         {
 
-          if (PRF_FLAGGED(victim, PRF_CONDENSED))
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
           {
           }
           else
@@ -3806,7 +3806,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
             send_to_char(victim, "\tWOne of your images is destroyed!\tn\r\n");
           }
 
-          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
           {
           }
           else
@@ -3903,7 +3903,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     if (dam <= 0 && (ch != victim))
     {
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -3911,7 +3911,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
       }
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -3929,7 +3929,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
     {
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       {
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -3940,7 +3940,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -3961,7 +3961,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
     if (dam <= 0 && (ch != victim))
     {
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -3969,7 +3969,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", (int)damtype_reduction);
       }
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -3989,7 +3989,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       {
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -4000,7 +4000,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -4014,7 +4014,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
       {
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -4025,7 +4025,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -4065,7 +4065,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       if (!dam && (ch != victim))
       {
 
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -4073,7 +4073,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
           send_to_char(victim, "\tWYou absorb all the damage! (%d)\tn\r\n", damage_reduction);
         }
 
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -4092,7 +4092,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
         if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
         {
-          if (PRF_FLAGGED(victim, PRF_CONDENSED))
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
           {
           }
           else
@@ -4103,7 +4103,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
 
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
         {
-          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
           {
           }
           else
@@ -4267,7 +4267,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
 
     if (IS_NPC(tch))
     {
-      if (tch->master && PRF_FLAGGED(tch->master, PRF_AUTOCOLLECT) && !IS_NPC(tch->master))
+      if (tch->master && !IS_NPC(tch->master) && PRF_FLAGGED(tch->master, PRF_AUTOCOLLECT))
       {
         perform_collect(tch->master, FALSE);
         // attach_mud_event(new_mud_event(eCOLLECT_DELAY, ch, NULL), 1);
@@ -4434,10 +4434,9 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   /* pets leave if attacked, now with some protection from a toggle if you like */
-  /*
   if (victim->master == ch)
   {
-    if (PRF_FLAGGED(ch, PRF_CAREFUL_PET))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CAREFUL_PET))
     {
       send_to_char(ch, "That's one of your followers...  turn off your careful pet toggle to attack that target...\r\n");
       stop_fighting(ch);
@@ -4452,13 +4451,12 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   // pets attacking pets
   if (ch->master && victim->master == ch->master)
   {
-    if (PRF_FLAGGED(victim->master, PRF_CAREFUL_PET))
+    if (!IS_NPC(victim->master) && PRF_FLAGGED(victim->master, PRF_CAREFUL_PET))
     {
       stop_fighting(ch);
       return 0;
     }
   }
-*/
 
   /* if target is in your group, you forfeit your position in the group -zusuk */
   if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim) && ch != victim)
@@ -4569,11 +4567,11 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
 
   dam = MAX(MIN(dam, 1499), 0); // damage cap
   GET_HIT(victim) -= dam;
-  if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
   {
     CNDNSD(ch)->damage_inflicted += dam;
   }
-  if (PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
+  if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED) && CNDNSD(victim))
   {
     CNDNSD(victim)->damage_received += dam;
   }
@@ -6095,7 +6093,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
     {
 
       /* critical message */
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -6103,7 +6101,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "\tW[CRIT!]\tn");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -6178,7 +6176,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         {
           /* decide on the effect to drop */
 
-          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
           {
           }
           else
@@ -6186,7 +6184,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
             act("\tRYou strike $N with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_CHAR);
           }
 
-          if (PRF_FLAGGED(victim, PRF_CONDENSED))
+          if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
           {
           }
           else
@@ -6870,7 +6868,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
         random = rand_number(1, 100);
         if (GET_WEAPON_SPELL_PCT(wpn, i) >= random)
         {
-          if (PRF_FLAGGED(ch, PRF_CONDENSED))
+          if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
           {
           }
           else
@@ -7018,7 +7016,7 @@ void idle_weapon_spells(struct char_data *ch)
                 GET_WEAPON_SPELL_PCT(gear, j) >= random)
             {
 
-              if (PRF_FLAGGED(ch, PRF_CONDENSED))
+              if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
               {
               }
               else
@@ -8365,7 +8363,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     {
       victim->player.exploit_weaknesses = 2;
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8373,7 +8371,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         act("You have exploited $N's weaknesses", TRUE, ch, 0, victim, TO_CHAR);
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8394,7 +8392,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       /* without a bonus to the challenge here, this was completely ineffective -zusuk */
       if (!mag_savingthrow(ch, victim, SAVING_FORT, 10, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -8412,7 +8410,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -8430,7 +8428,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
    * routines, then called as an attack action. */
   if (affected_by_spell(ch, SPELL_TRUE_STRIKE))
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
     {
     }
     else
@@ -8441,7 +8439,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
   if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
     {
     }
     else
@@ -8453,7 +8451,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   /* rage powers */
   if (affected_by_spell(ch, SKILL_SURPRISE_ACCURACY))
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
     {
     }
     else
@@ -8465,7 +8463,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   int powerful_blow_bonus = 0;
   if (affected_by_spell(ch, SKILL_POWERFUL_BLOW))
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
     {
     }
     else
@@ -8481,7 +8479,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     if (IS_EVIL(victim))
     {
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8489,7 +8487,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[SMITE-EVIL] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8505,7 +8503,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       if (!mag_savingthrow(ch, victim, SAVING_REFL, 0, CASTING_TYPE_DIVINE, DIVINE_LEVEL(ch), EVOCATION) &&
           !affected_by_spell(victim, AFFECT_ENTANGLING_FLAMES) && !mag_resistance(ch, victim, 0))
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -8513,7 +8511,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "[ENTANGLING-FLAMES] ");
         }
 
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -8537,7 +8535,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     if (IS_GOOD(victim))
     {
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8545,7 +8543,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[SMITE-GOOD] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8561,7 +8559,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   {
     if (victim)
     {
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8569,7 +8567,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[DESTRUCTIVE-SMITE] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8590,7 +8588,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                        ((HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4) + 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch))))
       {
 
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -8598,7 +8596,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "[STUNNING-FIST] ");
         }
 
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -8616,7 +8614,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       else
       {
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
@@ -8624,7 +8622,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           send_to_char(ch, "[\tRstunning fist saved\tn] ");
         }
 
-        if (PRF_FLAGGED(victim, PRF_CONDENSED))
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
         {
         }
         else
@@ -8643,7 +8641,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       int keen_strike_bonus = HAS_FEAT(ch, FEAT_KEEN_STRIKE) * 4;
       int quivering_palm_dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch) + keen_strike_bonus;
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8651,7 +8649,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[QUIVERING-PALM] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8692,7 +8690,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (victim == GET_JUDGEMENT_TARGET(ch))
     {
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8700,7 +8698,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[TRUE-JUDGEMENT] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8736,7 +8734,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (can_fire_ammo(ch, TRUE))
     {
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8744,7 +8742,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[ARROW OF DEATH] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8799,7 +8797,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     if (sneakdam)
     {
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8807,7 +8805,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[\tDSNEAK\tn] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8826,7 +8824,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
     {
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8844,7 +8842,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
     {
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -8864,7 +8862,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     if (sneakdam)
     {
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -8872,7 +8870,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "[\tDSNEAK\tn] ");
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -9009,7 +9007,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       af.modifier = -(dice(2, 4));
       affect_to_char(victim, &af);
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -9018,7 +9016,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
             FALSE, ch, wielded, victim, TO_CHAR);
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -9043,7 +9041,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       af.modifier = -4;
       affect_to_char(ch, &af);
 
-      if (PRF_FLAGGED(ch, PRF_CONDENSED))
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
       {
       }
       else
@@ -9051,7 +9049,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         act("$n's stunning barrier stuns you!", FALSE, ch, wielded, victim, TO_CHAR);
       }
 
-      if (PRF_FLAGGED(victim, PRF_CONDENSED))
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
       {
       }
       else
@@ -10734,7 +10732,7 @@ void perform_violence(struct char_data *ch, int phase)
   /* this is the "workspace" for the condensed output -zusuk */
   if (phase == 1 || phase == 0)
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
       /* wordy version */
       /*
@@ -10761,7 +10759,7 @@ void perform_violence(struct char_data *ch, int phase)
   /*
   if (phase == 2)
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
       send_to_char(ch, "P2: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
                        "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
@@ -10777,7 +10775,7 @@ void perform_violence(struct char_data *ch, int phase)
   /*
   if (phase == 3)
   {
-    if (PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
     {
       send_to_char(ch, "P3: You attacked %d times, hitting with non-melee %d times, with melee %d times, with ranged %d times.  "
                        "You were attacked %d times, shieldblocked %d times, parried %d times, dodged %d times, glanced off armor %d times, hit with %d "
@@ -11031,7 +11029,7 @@ void perform_violence(struct char_data *ch, int phase)
   {
 
     /* handle smash defense */
-    if (HAS_FEAT(ch, FEAT_SMASH_DEFENSE) && PRF_FLAGGED(ch, PRF_SMASH_DEFENSE) &&
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_SMASH_DEFENSE) && PRF_FLAGGED(ch, PRF_SMASH_DEFENSE) &&
         affected_by_spell(ch, SKILL_DEFENSIVE_STANCE) &&
         !char_has_mud_event(ch, eSMASH_DEFENSE))
       handle_smash_defense(ch);

@@ -762,7 +762,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (AFF_FLAGGED(i, AFF_INVISIBLE))
       send_to_char(ch, "*");
 
-    if (PRF_FLAGGED(ch, PRF_AUTOCON) && IS_NPC(i) && !MOB_FLAGGED(i, MOB_IS_OBJ))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOCON) && IS_NPC(i) && !MOB_FLAGGED(i, MOB_IS_OBJ))
     {
       int level_diff = GET_LEVEL(i) - GET_LEVEL(ch);
       if (level_diff < -5)
@@ -3294,7 +3294,7 @@ ACMD(do_score)
       send_to_char(ch, "You are hungry.\r\n");
     if (GET_COND(ch, THIRST) == 0)
       send_to_char(ch, "You are thirsty.\r\n");
-    if (PRF_FLAGGED(ch, PRF_SUMMONABLE))
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_SUMMONABLE))
       send_to_char(ch, "You are summonable by other players.\r\n");
     else
       send_to_char(ch, "You are NOT summonable by other players.\r\n");
@@ -3838,19 +3838,19 @@ ACMD(do_who)
           send_to_char(ch, " (HLQuest Edit)");
         if (d->connected == CON_STUDY)
           send_to_char(ch, " (Studying)");
-        if (PRF_FLAGGED(tch, PRF_BUILDWALK))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_BUILDWALK))
           send_to_char(ch, " (Buildwalking)");
-        if (PRF_FLAGGED(tch, PRF_AFK))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_AFK))
           send_to_char(ch, " (AFK)");
-        if (PRF_FLAGGED(tch, PRF_RP))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_RP))
           send_to_char(ch, " (RP)");
-        if (PRF_FLAGGED(tch, PRF_NOGOSS))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOGOSS))
           send_to_char(ch, " (nogos)");
-        if (PRF_FLAGGED(tch, PRF_NOWIZ))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOWIZ))
           send_to_char(ch, " (nowiz)");
-        if (PRF_FLAGGED(tch, PRF_NOSHOUT))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOSHOUT))
           send_to_char(ch, " (noshout)");
-        if (PRF_FLAGGED(tch, PRF_NOTELL))
+        if (!IS_NPC(tch) && PRF_FLAGGED(tch, PRF_NOTELL))
           send_to_char(ch, " (notell)");
         if (PRF_FLAGGED(tch, PRF_QUEST))
           send_to_char(ch, " (quest)");
