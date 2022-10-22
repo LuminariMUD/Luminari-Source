@@ -1152,7 +1152,7 @@ void heartbeat(int heart_pulse)
     msdp_update();
     next_tick--;
     PERF_PROF_EXIT(pr_msdp_update_);
-    travel_tickdown();
+    // travel_tickdown();
     self_buffing();
   }
 
