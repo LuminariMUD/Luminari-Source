@@ -4488,6 +4488,10 @@ ACMD(do_toggle)
       {"condensed", PRF_CONDENSED, 0,
        "You will now see full combat details.\r\n",
        "You will now see condensed combat messages.\r\n"},
+      /*50*/
+      {"carefulpet", PRF_CAREFUL_PET, 0,
+       "You will no longer be careful with your pets (and vice versa).\r\n",
+       "You will now be careful with your pets (and vice versa).\r\n"},
 
       /*LAST*/
       {"\n", 0, -1, "\n", "\n"} /* must be last */
