@@ -69,8 +69,8 @@ struct wild_map_info_type wild_map_info[] = {
     {SECT_TUNDRA, "\tW\t[u65294/.]\tn", {NULL}},
     {SECT_TAIGA, "\tg\t[u127794/A]\tn", {NULL}},
     {SECT_BEACH, "\ty\t[u65306]\t[u65306/:]\tn", {NULL}},
-    {SECT_INSIDE_ROOM, "\ty\t[u65306]\t[u65306/*]\tn", {NULL}},
     {SECT_SEAPORT, "\tR\t[u65336/S]\tn", {NULL}},
+    {SECT_INSIDE_ROOM, "\ty\t[u65306]\t[u65306/*]\tn", {NULL}},
     {SECT_RIVER, "\tB\t[u65374/~]\tn", {NULL}},
 
     {-1, "", {NULL}}, /* RESERVED, NUM_ROOM_SECTORS */

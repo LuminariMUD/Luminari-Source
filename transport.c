@@ -38,51 +38,113 @@ int is_player_grouped(struct char_data *target, struct char_data *group);
 int find_first_step(room_rnum src, room_rnum target);
 
 // To get the map coords, use the coords found in the wilderness area where the zone connects.
-// Same applies to the airship map points below. Map point will be the spot where the airship tower is.
+// Same applies to the sailing map points below. Map point will be the spot where the sailing tower is.
 
 // location name, carriage stop room vnum, cost to travel here, continent name (matched below), zone description, mapp coord x, map coord y
 const char *carriage_locales[][7] = {
-  {"ardeep forest",                         "144062", "45",   "Continent1", "level 3-12 mobs", "-40", "82"},
-  {"ashenport",                             "103000", "10",   "Continent1", "central city for low to mid levels and main quest line", "-59", "92"},
-  {"blindbreak rest",                       "40400",  "105",  "Continent1", "level 10-11 mobs, questline", "-53", "63"},
-  {"bloodfist caverns",                     "102501", "40",   "Continent8", "level 1-23 mobs", "-66", "-676"},
-  {"corm orp",                              "105001", "40",   "Continent4", "level 1-10 mobs", "167", "-85"},
-  {"dollhouse",                             "11899",  "65",   "Continent1", "level 5-8 mobs, questline", "169", "171"},
-  {"evereska",                              "120800", "65",   "Continent9", "level 1-4 mobs", "-767", "157"},
-  {"frozen castle",                         "1101",   "65",   "Continent8", "level 25-30 mobs", "-662", "-595"},
-  {"giant darkwood tree",                   "6901",   "70",   "Continent9", "level 15-20 mobs", "-717", "-51"},
-  {"glass tower",                           "11410",  "65",   "Continent5", "level 20-23 mobs", "641", "87"},
-  {"graven hollow",                         "6766",   "70",   "Continent1", "level 7-12 mobs, questline", "5", "67"},
-  {"grunwald",                              "117400", "70",   "Continent7", "level 1-16 mobs", "-509", "-170"},
-  {"hardbuckler",                           "118594", "70",   "Continent5", "level 1-12 mobs", "624", "114"},
-  {"lizard marsh",                          "121200", "70",   "Continent8", "level 10-30 mobs", "-821", "-413"},
-  {"mere of dead men",                      "126860", "110",  "Continent1", "level 9-30 mobs", "305", "313"},
-  {"memlin caverns",                        "2701",   "50",   "Continent1", "level 8-20 mobs", "80", "115"},
-  {"mithril hall",                          "108101", "120",  "Continent2", "level 6-27 mobs", "349", "769"},
-  {"mosaic cave",                           "40600",  "120",  "Continent1", "level 16-22 mobs, questline", "3", "4"},
-  {"mosswood village",                      "145387", "10",   "Continent1", "starting area, levels 1-5", "-51", "99"},
+  {"ashenport",                             "103000", "10",   "Ondius", "central city for low to mid levels and main quest line", "-59", "92"},
+  {"mosswood village",                      "145387", "10",   "Ondius", "starting area, levels 1-5", "-51", "99"},
+  {"ardeep forest",                         "144062", "45",   "Ondius", "level 3-12 mobs", "-40", "82"},
+  {"dollhouse",                             "11899",  "65",   "Ondius", "level 5-8 mobs, questline", "169", "171"},
+  {"blindbreak rest",                       "40400",  "105",  "Ondius", "level 10-11 mobs, questline", "-53", "63"},
+  {"graven hollow",                         "6766",   "70",   "Ondius", "level 7-12 mobs, questline", "5", "67"},
+  {"mere of dead men",                      "126860", "110",  "Ondius", "level 9-30 mobs", "305", "313"},
+  {"memlin caverns",                        "2701",   "50",   "Ondius", "level 8-20 mobs", "80", "115"},
+  {"mosaic cave",                           "40600",  "120",  "Ondius", "level 16-22 mobs, questline", "3", "4"},
+  {"neverwinter catacombs",                 "123200", "140",  "Ondius", "level 16-30 mobs", "60", "54"},
+  {"orc ruins",                             "106200", "30",   "Ondius", "level 9-30 mobs", "210", "233"},
+  {"orcish fort",                           "148100", "30",   "Ondius", "level 14-16 mobs", "-54", "118"},
+
+  {"bloodfist caverns",                     "102501", "40",   "East Ubdina", "level 1-23 mobs", "-66", "-676"},
+
+  {"corm orp",                              "105001", "40",   "Selerish", "level 1-10 mobs", "167", "-85"},
+  
+  {"evereska",                              "120800", "65",   "Quechian", "level 1-4 mobs", "-767", "157"},
+  {"giant darkwood tree",                   "6901",   "70",   "Quechian", "level 15-20 mobs", "-717", "-51"},
+
+  {"frozen castle",                         "1101",   "65",   "West Ubdina", "level 25-30 mobs", "-662", "-595"},
+  {"lizard marsh",                          "121200", "70",   "West Ubdina", "level 10-30 mobs", "-821", "-413"},
+
+  {"glass tower",                           "11410",  "65",   "Carstan", "level 20-23 mobs", "641", "87"},
+  {"hardbuckler",                           "118594", "70",   "Carstan", "level 1-12 mobs", "624", "114"},
+  
+  {"grunwald",                              "117400", "70",   "Hir", "level 1-16 mobs", "-509", "-170"},
+
+  {"mithril hall",                          "108101", "120",  "Kellust", "level 6-27 mobs", "349", "769"},
+
   {"neverwinter",                           "122413", "140",  "Continent3", "level 1-24 mobs", "-591", "805"},
-  {"neverwinter catacombs",                 "123200", "140",  "Continent1", "level 16-30 mobs", "60", "54"},
-  {"orc ruins",                             "106200", "30",   "Continent1", "level 9-30 mobs", "210", "233"},
-  {"orcish fort",                           "148100", "30",   "Continent1", "level 14-16 mobs", "-54", "118"},
   {"pesh",                                  "125900", "30",   "Continent7", "level 1-19 mobs", "-150", "-180"},
-  {"quagmire",                              "13240",  "30",   "Continent1", "level 1-30 mobs", "-58", "192"},
-  {"rat hills",                             "115500", "70",   "Continent1", "level 3-12 mobs", "-54", "78"},
+  {"quagmire",                              "13240",  "30",   "Ondius", "level 1-30 mobs", "-58", "192"},
+  {"rat hills",                             "115500", "70",   "Ondius", "level 3-12 mobs", "-54", "78"},
   {"reaching woods",                        "127265", "70",   "Continent9", "level 1-9, 16-19, 27 mobs", "-764", "138"},
   {"ruined keep",                           "101701", "70",   "Continent7", "level 6-18 mobs", "-121", "-99"},
   {"sanctus",                               "140",    "70",   "Continent5", "level 3-20 mobs, major city of eastern continents", "695", "-240"},
-  {"spider swamp",                          "199",    "70",   "Continent1", "level 10-20 mobs", "-44", "128"},
+  {"spider swamp",                          "199",    "70",   "Ondius", "level 10-20 mobs", "-44", "128"},
   {"the depths",                            "9200",   "70",   "Continent5", "level 20-22 mobs", "643", "-10"},
   {"tugrahk gol",                           "199",    "70",   "Continent7", "level 6-30 mobs", "-54", "-320"},
-  {"wizard training mansion",               "5900",   "10",   "Continent1", "level 3-6 mobs, questline", "-20", "99"},
+  {"wizard training mansion",               "5900",   "10",   "Ondius", "level 3-6 mobs, questline", "-20", "99"},
   {"zhentil keep",                          "119100", "70",   "Continent8", "level 1-30 mobs", "-563", "-583"},
+
   {"always the last item",                  "0",      "0",    "Nowhere",    "nothing", "0", "0"}
 };
 
-// continent name, airshop dock room vnum, Cost in gold to travel here, faction name, contintent description, map coord x, map coord y
-const char *airship_locales[][7] = {
-  {"Continent1",                      "15209", "3000",   "No Faction", "Low and mid level zones, main questline", "0", "0"},
-  {"Continent2",                      "15208", "3000",   "No Faction", "home of the dragonarmies & knights of takhisis", "500", "500"},
+// continent name,                    airshop dock room vnum, Cost in gold to travel here, faction name, contintent description, map coord x, map coord y
+const char *sailing_locales[][7] = {
+  {"ondius - ashenport",         "34801",   "100",    "Any", "Ashenport is the main city hub for the main questline and many shops & services.", "-63", "89"},
+  {"ondius - northwest seaport", "1000280", "100",    "Any", "Nearby zones: Quagmire", "-25", "198"},
+  {"ondius - southeast seaport", "1000281", "100",    "Any", "Nearby zones: Neverwinter Catacombs", "104", "39"},
+  {"ondius - northeast seaport", "1000282", "100",    "Any", "Nearby zones: Tilverton, Orc Ruins, Mere of Dead Men", "191", "295"},
+  
+  {"selerish - corm orp seaport",   "1000337", "100",  "Any", "Nearby zones: Corm Orp", "161", "-79"},
+  {"selerish - east seaport" ,      "1000284", "100",  "Any", "Nearby zones: Unknown", "358", "-200"},
+  {"selerish - south seaport" ,     "1000283", "100",  "Any", "Nearby zones: Unknown", "363", "-295"},
+
+  {"carstan - west seaport",     "1000331", "100",    "Any", "Nearby zones: Hardbuckler, Glass Tower", "575", "75"},
+  {"carstan - east seaport",     "1000332", "100",    "Any", "Nearby zones: The Depths", "743", "-22"},
+
+  {"axtros - sanctus",           "1000333", "100",    "Any", "Sanctus is a major city in Lumia with some unique products & services.", "688", "-241"},
+  {"axtros - northeast seaport", "1000334", "100",    "Any", "Nearby zones: South Wood", "866", "-284"},
+  {"axtros - southwest seaport", "1000335", "100",    "Any", "Nearby zones: Crimson Flame, Beregost", "591", "-524"},
+  {"axtros - south seaport",     "1000336", "100",    "Any", "Nearby zones: Unknown", "606", "-719"},
+
+  {"hir - southwest seaport",     "1000364", "100", "Any", "Nearby zones: ", "-442", "-303"},
+  {"hir - northwest seaport",     "1000363", "100", "Any", "Nearby zones: ", "-507", "-123"},
+  {"hir - northeast seaport",     "1000366", "100", "Any", "Nearby zones: ", "-20", "-85"},
+  {"hir - east seaport",          "1000365", "100", "Any", "Nearby zones: ", "-57", "-330"},
+
+  {"quechian - east seaport",     "1000350", "100", "Any", "Nearby zones: Evereska, Reaching Woods, Aumvor's Castle", "-651", "-4"},
+  {"quechian - southwest seaport","1000351", "100", "Any", "Nearby zones: Dragon Cult Fortress", "-782", "-110"},
+  {"quechian - northeast seaport","1000349", "100", "Any", "Nearby zones: Giant Darkwood Tree", "-703", "155"},
+
+  {"vailand - west seaport",      "1000359", "100", "Any", "Nearby zones: Unknown", "-772", "473"},
+  {"vailand - north seaport",     "1000360", "100", "Any", "Nearby zones: Zzsessak Zuhl", "-599", "455"},
+  {"vailand - central seaport",   "1000362", "100", "Any", "Nearby zones: Unknown", "-467", "204"},
+  {"vailand - south seaport",     "1000361", "100", "Any", "Nearby zones: Shadowdale, Flaming Tower", "-512", "99"},  
+
+  {"oorpii - north seaport" ,     "1000339", "100",    "Any", "Nearby zones: Soubar", "-112", "785"},
+  {"oorpii - east seaport" ,      "1000338", "100",    "Any", "Nearby zones: Skull Gorge", "-105", "510"},
+  {"oorpii - west seaport" ,      "1000279", "100",    "Any", "Nearby zones: Mount Hotenow", "-316", "520"},
+  {"oorpii - northwest seaport" , "1000278", "100",    "Any", "Nearby zones: Neverwinter", "-597", "804"},
+
+  {"kellust - north seaport",     "1000352", "100", "Any", "Nearby zones: Mithril Hall", "286", "885"},
+  {"kellust - northeast seaport", "1000358", "100", "Any", "Nearby zones: Lost City of Thunderholme", "423", "779"},
+  {"kellust - east seaport",      "1000357", "100", "Any", "Nearby zones: Temple of Twisted Flesh", "644", "644"},
+  {"kellust - southeast seaport", "1000356", "100", "Any", "Nearby zones: Unknown", "519", "539"},
+  {"kellust - southwest seaport", "1000355", "100", "Any", "Nearby zones: Neverwinter Wood", "371", "431"},
+  {"kellust - northwest seaport", "1000353", "100", "Any", "Nearby zones: Unknown", "161", "789"},
+  {"kellust - west seaport",      "1000354", "100", "Any", "Nearby zones: Dwarven Mines", "283", "724"},
+
+  {"east ubdina - southwest seaport","1000345", "100", "Any", "Nearby zones: Unknown", "-268", "-758"},
+  {"east ubdina - south seaport", "1000346", "100", "Any", "Nearby zones: Bloodfist Caverns", "-110", "-722"},
+  {"east ubdina - east seaport",  "1000348", "100", "Any", "Nearby zones: Forest of Wyrms", "73", "-603"},
+  {"east ubdina - north seaport", "1000347", "100", "Any", "Nearby zones: Settlestone", "-71", "-506"},
+
+  {"west ubdina - west seaport" , "1000340", "100",    "Any", "Nearby zones: Frozen Castle", "-683", "-626"},
+  {"west ubdina - northwest seaport", "1000341", "100","Any", "Nearby zones: Lizard Marsh", "-824", "-406"},
+  {"west ubdina - north seaport", "1000342", "100",    "Any", "Nearby zones: Dagger Falls", "-554", "-489"},
+  {"west ubdina - south seaport", "1000343", "100",    "Any", "Nearby zones: Llawryn Keep Graveyard", "-566", "-677"},
+  {"west ubdina - southeast seaport", "1000344", "100","Any", "Nearby zones: Hulburg Trail", "-371", "-789"},  
+
   {"always the last item",            "0",     "0",      "Nowhere", "nothing", "0", "0"}
 };
 
@@ -185,15 +247,15 @@ ACMDU(do_carriage) {
   }
 }
 
-ACMDU(do_airship) {
+ACMDU(do_sail) {
 
   skip_spaces(&argument);
 
   int i = 0;
   char buf[200];
   bool found = false;
-  while (atoi(airship_locales[i][1]) != 0) {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(airship_locales[i][1])) {
+  while (atoi(sailing_locales[i][1]) != 0) {
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(sailing_locales[i][1])) {
       found = true;
       break; 
     }
@@ -201,7 +263,7 @@ ACMDU(do_airship) {
   }
 
   if (!found) {
-    send_to_char(ch, "You are not at a valid airship tower.\r\n");
+    send_to_char(ch, "You are not at a valid sea port.\r\n");
     return;
   }
 
@@ -210,66 +272,67 @@ ACMDU(do_airship) {
   if (!*argument) {
     found = false;
     i = 0;
-    send_to_char(ch, "Available airship Destinations:\r\n");
-    send_to_char(ch, "%-30s %4s %10s %10s (%s)\r\n", "Airship Destination:", "Cost", "Distance", "Time (sec)", "Area Note");
+    send_to_char(ch, "Available Sailing Destinations:\r\n");
+    send_to_char(ch, "%-35s %4s %10s %10s (%s)\r\n", "Sailing Destination:", "Cost", "Distance", "Time (sec)", "Area Note");
     int j = 0;
     for (j = 0; j < 80; j++) 
       send_to_char(ch, "~");
     send_to_char(ch, "\r\n");
-    while (atoi(airship_locales[i][1]) != 0) {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(airship_locales[i][1]) && valid_airship_travel(here, i)) {
+    while (atoi(sailing_locales[i][1]) != 0) {
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(sailing_locales[i][1]) && valid_sailing_travel(here, i)) {
         found = true;
-        send_to_char(ch, "%-30s %4s %10d %10d (%s)\r\n", airship_locales[i][0],  airship_locales[i][2], get_distance(ch, i, here, TRAVEL_AIRSHIP), get_travel_time(ch, 10, i, here, TRAVEL_AIRSHIP), airship_locales[i][4]);
+        send_to_char(ch, "%-35s %4s %10d %10d (%s)\r\n", sailing_locales[i][0],  sailing_locales[i][2], get_distance(ch, i, here, TRAVEL_SAILING), get_travel_time(ch, 10, i, here, TRAVEL_SAILING), sailing_locales[i][4]);
       }
       i++;
     }
 
     if (found) {
-      send_to_char(ch, "\r\nTo take an airship, type airship <name of destination>\r\n");
+      send_to_char(ch, "\r\nTo sail somewhere, type sail <name of destination>\r\n");
+      send_to_char(ch, "\r\nYou can view our world map online at https://luminarimud.com/new-revised-worldmap-eat-your-heart-out/\r\n");
       return;
     } else {
-      send_to_char(ch, "There are no available destinations from this airship tower.\r\n");
+      send_to_char(ch, "There are no available destinations from this sea port.\r\n");
     }
     return;
   } else {
     i = 0;
     found = false;
-    while (atoi(airship_locales[i][1]) != 0) {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(airship_locales[i][1]) && valid_airship_travel(here, i)) {
-        if (is_abbrev(argument, airship_locales[i][0])) {
+    while (atoi(sailing_locales[i][1]) != 0) {
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(sailing_locales[i][1]) && valid_sailing_travel(here, i)) {
+        if (is_abbrev(argument, sailing_locales[i][0])) {
           found = true;
-          if (GET_GOLD(ch) < atoi(airship_locales[i][2])) {
-              send_to_char(ch, "You are denied entry as you cannot pay the fee of %s.\r\n", airship_locales[i][2]);
+          if (GET_GOLD(ch) < atoi(sailing_locales[i][2])) {
+              send_to_char(ch, "You are denied boarding as you cannot pay the fee of %s.\r\n", sailing_locales[i][2]);
               return;
           } else {
-              send_to_char(ch, "You give the airship pilot your fee of %s.\r\n", airship_locales[i][2]);
-              GET_GOLD(ch) -= atoi(airship_locales[i][2]);
+              send_to_char(ch, "You give the ship's captain your fee of %s.\r\n", sailing_locales[i][2]);
+              GET_GOLD(ch) -= atoi(sailing_locales[i][2]);
           }
           room_rnum to_room = NOWHERE;
-          snprintf(buf, sizeof(buf), "%s", airship_locales[i][1]);
+          snprintf(buf, sizeof(buf), "%s", sailing_locales[i][1]);
           if ((to_room = find_target_room(ch, strdup(buf))) == NOWHERE) {
-            send_to_char(ch, "There is an error with that destination.  Please report on the forums.\r\n");
+            send_to_char(ch, "There is an error with that destination.  Please report to staff.\r\n");
             return;
           }
-          enter_transport(ch, i, TRAVEL_AIRSHIP, here);
+          enter_transport(ch, i, TRAVEL_SAILING, here);
           return;
         }
       }
       i++;
     }
     if (!found) {
-      send_to_char(ch, "There is no airship destination by that name.  Type airship by itself to see a list of destinations.\r\n");
+      send_to_char(ch, "There is no sailing destination by that name.  Type sail by itself to see a list of destinations.\r\n");
       return;
     }
   }
 }
 
-int valid_airship_travel(int here, int i)
+int valid_sailing_travel(int here, int i)
 {
 
-  //When airships are set up, this will make any checks necessary to allow airship travel from the existing locale
+  //When sailing is set up, this will make any checks necessary to allow sailing travel from the existing locale
 
-   return false;
+   return true;
 }
 
 void enter_transport(struct char_data *ch, int locale, int type, int here)
@@ -287,19 +350,19 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     }
 
     room_rnum to_room = NOWHERE;
-    snprintf(air, sizeof(air), "%s", airship_locales[locale][1]);
+    snprintf(air, sizeof(air), "%s", sailing_locales[locale][1]);
     snprintf(car, sizeof(car), "%s", carriage_locales[locale][1]);
-    if ((to_room = find_target_room(ch, (type == TRAVEL_AIRSHIP) ? strdup(air) : strdup(car))) == NOWHERE) {
+    if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? strdup(air) : strdup(car))) == NOWHERE) {
     send_to_char(ch, "There is an error with that destination.  Please report on the to a staff member. ERRENTCAR001\r\n");
     return;
     }
     room_rnum taxi = cnt;
 
     if (taxi == NOWHERE) {
-    if (type != TRAVEL_AIRSHIP)
+    if (type != TRAVEL_SAILING)
         send_to_char(ch, "There are no carriages available currently.\r\n");
     else
-        send_to_char(ch, "There are no airships available currently.\r\n");
+        send_to_char(ch, "There are no ships available currently.\r\n");
     return;
     }
 
@@ -320,10 +383,10 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
             act("$n boards a carriage which heads off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
             send_to_char(tch, "Your group leader ushers you into a nearby carriage.\r\n");
             send_to_char(tch, "You hop into a carriage and head off towards %s.\r\n\r\n", carriage_locales[locale][0]);
-        } else if (type == TRAVEL_AIRSHIP) {
-            act("$n boards an airship which flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
-            send_to_char(tch, "Your group leader ushers you into the airship.\r\n");
-            send_to_char(tch, "You board the airship and fly off towards %s.\r\n\r\n", airship_locales[locale][0]);
+        } else if (type == TRAVEL_SAILING) {
+            act("$n boards a caravel, which pulls anchor and heads for the open sea.", FALSE, tch, 0, 0, TO_ROOM);
+            send_to_char(tch, "Your group leader ushers you into the ship.\r\n");
+            send_to_char(tch, "You board the caravel and sail off to %s.\r\n\r\n", sailing_locales[locale][0]);
         }
         
         char_from_room(tch);
@@ -341,9 +404,9 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     if (type == TRAVEL_CARRIAGE) {
         act("$n boards a carriage which heads off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
         send_to_char(ch, "You hop into a carriage and head off towards %s.\r\n\r\n", carriage_locales[locale][0]);
-    } else if (type == TRAVEL_AIRSHIP) {
-        act("$n boards an airship which flies off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
-        send_to_char(ch, "You board the airship and fly off towards %s.\r\n\r\n", airship_locales[locale][0]);
+    } else if (type == TRAVEL_SAILING) {
+        act("$n boards a caravel which sails off into the distance.", FALSE, ch, 0, 0, TO_ROOM);
+        send_to_char(ch, "You board the caravel and sail off towards %s.\r\n\r\n", sailing_locales[locale][0]);
     }
 
     char_from_room(ch);
@@ -391,9 +454,9 @@ void travel_tickdown(void)
     } else {
       ch->player_specials->travel_timer--;
       if (ch->player_specials->travel_timer < 1) {
-        snprintf(air, sizeof(air), "%s", airship_locales[ch->player_specials->travel_locale][1]);
+        snprintf(air, sizeof(air), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
         snprintf(car, sizeof(car), "%s", carriage_locales[ch->player_specials->travel_locale][1]);
-        if ((to_room = find_target_room(ch, ch->player_specials->travel_type == TRAVEL_AIRSHIP ? strdup(air) : strdup(car))) == NOWHERE) {
+        if ((to_room = find_target_room(ch, ch->player_specials->travel_type == TRAVEL_SAILING ? (char *)(air) : (char *)(car))) == NOWHERE) {
           char_from_room(ch);
           char_to_room(ch, to_room);
           look_at_room(ch, 0);
@@ -413,9 +476,9 @@ void travel_tickdown(void)
           act("$n disembarks a horse-drawn carriage that grinds to a halt before you.", FALSE, ch, 0, 0, TO_ROOM);
           send_to_char(ch, "You hop out of your carriage arriving at the %s.\r\n\r\n",  carriage_locales[ch->player_specials->travel_locale][0]);
         }
-        else if (ch->player_specials->travel_type == TRAVEL_AIRSHIP) {
-          act("$n disembarks an airship that just landed here.", false, ch, 0, 0, TO_ROOM);
-          send_to_char(ch, "You disembark your airship arriving at %s.\r\n\r\n", airship_locales[ch->player_specials->travel_locale][0]);
+        else if (ch->player_specials->travel_type == TRAVEL_SAILING) {
+          act("$n disembarks a caravel that just docked here.", false, ch, 0, 0, TO_ROOM);
+          send_to_char(ch, "You disembark the caravel arriving at %s.\r\n\r\n", sailing_locales[ch->player_specials->travel_locale][0]);
         }
         ch->player_specials->destination = NOWHERE;
         ch->player_specials->travel_timer = 0;
@@ -430,10 +493,10 @@ void travel_tickdown(void)
 int get_distance(struct char_data *ch, int locale, int here, int type)
 {
   int xf, xt, yf, yt;
-  xf = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[here][5]);
-  xt = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[locale][5]);
-  yf = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[here][6]);
-  yt = atoi(((type == TRAVEL_AIRSHIP)?airship_locales:carriage_locales)[locale][6]);
+  xf = atoi(((type == TRAVEL_SAILING)?sailing_locales:carriage_locales)[here][5]);
+  xt = atoi(((type == TRAVEL_SAILING)?sailing_locales:carriage_locales)[locale][5]);
+  yf = atoi(((type == TRAVEL_SAILING)?sailing_locales:carriage_locales)[here][6]);
+  yt = atoi(((type == TRAVEL_SAILING)?sailing_locales:carriage_locales)[locale][6]);
 
   int dx, dy;
 
@@ -443,7 +506,7 @@ int get_distance(struct char_data *ch, int locale, int here, int type)
   int total = pow(dx, 2) + pow(dy, 2);
   int dist = sqrt(total);
 
-  return dist;
+  return dist / 2;
 }
 
 int get_travel_time(struct char_data *ch, int speed, int locale, int here, int type)
