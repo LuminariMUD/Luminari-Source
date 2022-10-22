@@ -4434,6 +4434,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   }
 
   /* pets leave if attacked, now with some protection from a toggle if you like */
+  /*
   if (victim->master == ch)
   {
     if (PRF_FLAGGED(ch, PRF_CAREFUL_PET))
@@ -4448,7 +4449,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     }
   }
 
-  /* pets attacking pets */
+  // pets attacking pets
   if (ch->master && victim->master == ch->master)
   {
     if (PRF_FLAGGED(victim->master, PRF_CAREFUL_PET))
@@ -4457,7 +4458,8 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
       return 0;
     }
   }
-  
+*/
+
   /* if target is in your group, you forfeit your position in the group -zusuk */
   if (GROUP(ch) && GROUP(victim) && GROUP(ch) == GROUP(victim) && ch != victim)
   {
