@@ -1224,15 +1224,15 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, carriage_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
     }
-    else if (ch->player_specials->travel_type == TRAVEL_AIRSHIP)
+    else if (ch->player_specials->travel_type == TRAVEL_SAILING)
     {
-      rm->name = strdup("A Small Wooden Airship");
+      rm->name = strdup("A Large Caravel");
       snprintf(buf, sizeof(buf),
-               "This small airship is powered by aracana crystals and is of a sleek, if compact design.\r\n"
-               "The airship itself has seating for about 6 people, on wooden benches that line the railed side of the airship.\r\n"
-               "The view below is nothing short of amazing.  Judging by how far you've gone so far you should arrive in\r\n"
+               "This large passenger ship has been built with reasonably good comforts given the limited space on board.\r\n"
+               "The wind fills the sails as it pushes the vessel along to your destination. The sway of the sea is steady\r\n"
+               "and rythemic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, airship_locales[ch->player_specials->travel_locale][0]);
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, sailing_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
     }
   }

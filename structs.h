@@ -4085,10 +4085,10 @@ struct player_special_data
     char *new_mail_subject;
     char *new_mail_content;
     byte has_eldritch_knight_spell_critical;
-    int destination;                      // used for carriage and airship systems
-    int travel_timer;                     // used for carriage and airship systems
-    int travel_type;                      // used for carriage and airship systems
-    int travel_locale;                    // used for carriage and airship systems
+    int destination;                      // used for carriage and sailing systems
+    int travel_timer;                     // used for carriage and sailing systems
+    int travel_type;                      // used for carriage and sailing systems
+    int travel_locale;                    // used for carriage and sailing systems
     int bane_race;                        // used in applyoil command to create a proper bane weapon
     int bane_subrace;                     // used in applyoil command to create a proper bane weapon
     int augment_psp;                      // used when augmenting psionic powers
