@@ -967,6 +967,7 @@
 #define PRF_AUTOHIT 60                // You will hit the first eligible mob in the room when typing 'hit' by itself.
 #define PRF_NO_FOLLOW 61              /**< Toggle PC followers */
 #define PRF_CONDENSED 62              /**< Toggle combat condensed mode */
+#define PRF_CAREFUL_PET 63            /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
 
 /** Total number of available PRF flags */
 #define NUM_PRF_FLAGS 63

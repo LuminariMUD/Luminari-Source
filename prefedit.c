@@ -257,7 +257,13 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_CONDENSED) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_CONDENSED)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_CONDENSED)), CCCYN(d->character, C_NRM),
+               /*******7*********/
+               CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_CAREFUL_PET) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_CAREFUL_PET)), CCCYN(d->character, C_NRM)
+
                /*end*/);
 
   /* Finishing Off */
@@ -942,6 +948,10 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '6':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CONDENSED);
+      break;
+
+    case '7':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CAREFUL_PET);
       break;
 
     default:
