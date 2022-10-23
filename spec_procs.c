@@ -3614,7 +3614,7 @@ SPECIAL(clan_cleric)
     short int price;
   } clan_prices[] = {
       /* Spell Num (defined)      Name shown        Price  */
-      {SPELL_ARMOR, "armor             ", 75},
+      {SPELL_SHIELD_OF_FAITH, "shield of faith  ", 75},
       {SPELL_BLESS, "bless            ", 150},
       {SPELL_REMOVE_POISON, "remove poison    ", 525},
       {SPELL_CURE_BLIND, "cure blindness   ", 375},

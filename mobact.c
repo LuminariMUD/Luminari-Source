@@ -43,7 +43,7 @@ void npc_racial_behave(struct char_data *ch);
 
 /* list of spells mobiles will use for spellups */
 int valid_spellup_spell[SPELLUP_SPELLS] = {
-    SPELL_ARMOR, // 0
+    SPELL_SHIELD_OF_FAITH, // 0
     SPELL_BLESS,
     SPELL_DETECT_ALIGN,
     SPELL_DETECT_INVIS,

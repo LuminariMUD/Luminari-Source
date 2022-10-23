@@ -3541,7 +3541,7 @@ void mag_assign_spells(void)
          "You feel less agile in your armor.", 4, 8, TRANSMUTATION, FALSE);
   spello(SPELL_FIRE_OF_ENTANGLEMENT, "fire of entanglement", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "The entangling flame around your weapons disappears.", 4, 8, EVOCATION, FALSE);
-  spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+  spello(SPELL_SHIELD_OF_FAITH, "shield of faith", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You feel less protected.", 4, 8, CONJURATION, FALSE);
   spello(SPELL_BESTOW_WEAPON_PROFICIENCY, "bestow weapon proficiency", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You feel less proficient.", 4, 8, ENCHANTMENT, FALSE);
@@ -3566,8 +3566,6 @@ void mag_assign_spells(void)
          "You feel the power that is muting you fade.", 3, 11, ILLUSION, FALSE); // wiz2, cle3
   spello(SPELL_CAUSE_LIGHT_WOUNDS, "cause light wound", 30, 15, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE, NULL, 2, 8, NOSCHOOL, FALSE);
-  spello(SPELL_ARMOR, "armor", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
-         MAG_AFFECTS, "You feel less protected.", 4, 8, CONJURATION, FALSE);
   spello(SPELL_REMOVE_FEAR, "remove fear", 44, 29, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS,
          NULL, 3, 8, NOSCHOOL, FALSE);
@@ -3664,7 +3662,7 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_UNAFFECTS | MAG_ALTER_OBJS,
          NULL, 7, 16, NOSCHOOL, FALSE);
   /* protection from evil (declared above) */
-  spello(SPELL_GROUP_ARMOR, "group armor", 58, 43, 1, POS_FIGHTING,
+  spello(SPELL_GROUP_SHIELD_OF_FAITH, "group shield of faith", 58, 43, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 5, 16, NOSCHOOL, FALSE);
   spello(SPELL_FLAME_STRIKE, "flame strike", 58, 43, 1, POS_FIGHTING,
