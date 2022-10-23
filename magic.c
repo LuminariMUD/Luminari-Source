@@ -2389,89 +2389,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   return (damage(ch, victim, dam, spellnum, element, FALSE));
 }
 
-/* make sure you don't stack armor spells for silly high AC */
-int isMagicArmored(struct char_data *ch, struct char_data *victim, int spellnum)
-{
-
-  switch (spellnum)
-  {
-  case SPELL_EPIC_MAGE_ARMOR:
-    if (affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_SHIELD) ||
-        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-        affected_by_spell(victim, SPELL_ARMOR) ||
-        affected_by_spell(victim, SPELL_BARKSKIN))
-    {
-      send_to_char(ch, "Your target already has magical armoring!\r\n");
-      return TRUE;
-    }
-    return FALSE;
-  case SPELL_MAGE_ARMOR:
-    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_SHIELD) ||
-        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-        affected_by_spell(victim, SPELL_ARMOR) ||
-        affected_by_spell(victim, SPELL_BARKSKIN))
-    {
-      send_to_char(ch, "Your target already has magical armoring!\r\n");
-      return TRUE;
-    }
-    return FALSE;
-  case SPELL_SHIELD:
-    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-        affected_by_spell(victim, SPELL_ARMOR) ||
-        affected_by_spell(victim, SPELL_BARKSKIN))
-    {
-      send_to_char(ch, "Your target already has magical armoring!\r\n");
-      return TRUE;
-    }
-    return FALSE;
-  case SPELL_SHADOW_SHIELD:
-    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_SHIELD) ||
-        affected_by_spell(victim, SPELL_ARMOR) ||
-        affected_by_spell(victim, SPELL_BARKSKIN))
-    {
-      send_to_char(ch, "Your target already has magical armoring!\r\n");
-      return TRUE;
-    }
-    return FALSE;
-
-  case SPELL_ARMOR:
-    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_SHIELD) ||
-        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-        affected_by_spell(victim, SPELL_BARKSKIN))
-    {
-      send_to_char(ch, "Your target already has magical armoring!\r\n");
-      return TRUE;
-    }
-    return FALSE;
-  case SPELL_BARKSKIN:
-    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_MAGE_ARMOR) ||
-        affected_by_spell(victim, SPELL_SHIELD) ||
-        affected_by_spell(victim, SPELL_SHADOW_SHIELD) ||
-        affected_by_spell(victim, SPELL_ARMOR))
-    {
-      send_to_char(ch, "Your target already has magical armoring!\r\n");
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  return FALSE;
-}
-
 // converted affects to rounds
 // 20 rounds = 1 real minute
 // 1200 rounds = 1 real hour
 // old tick = 75 seconds, or 1.25 minutes or 25 rounds
-
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic)
 {
@@ -3680,15 +3601,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel divinely aided.";
     break;
 
-  case SPELL_ARMOR:
-    if (isMagicArmored(ch, victim, spellnum))
-      return;
+  case SPELL_SHIELD_OF_FAITH:
 
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
     af[0].duration = 400;
+    af[0].bonus_type = BONUS_TYPE_DEFLECTION;
     to_vict = "You feel someone protecting you.";
-    to_room = "$n is surrounded by magical armor!";
+    to_room = "$n is surrounded by a shield of faith!";
     break;
 
   case SPELL_RIGHTEOUS_VIGOR:
@@ -3832,8 +3752,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_BARKSKIN: // transmutation
-    if (isMagicArmored(ch, victim, spellnum))
-      return;
 
     af[0].location = APPLY_AC_NEW;
     if (level >= 12)
@@ -4474,12 +4392,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_EPIC_MAGE_ARMOR: // epic
-    if (isMagicArmored(ch, victim, spellnum))
-      return;
+    if (affected_by_spell(victim, SPELL_MAGE_ARMOR))
+    {
+      affect_from_char(victim, SPELL_MAGE_ARMOR);
+    }
 
     af[0].location = APPLY_AC_NEW;
-    af[0].modifier = 10;
-    af[0].duration = 1200;
+    af[0].modifier = 12;
+    af[0].duration = 2400;
     af[0].bonus_type = BONUS_TYPE_ARMOR;
 
     accum_duration = FALSE;
@@ -5092,8 +5012,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_MAGE_ARMOR: // conjuration
-    if (isMagicArmored(ch, victim, spellnum))
+    if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR))
+    {
+      send_to_char("You are affected already by a more powerful magical armoring!\r\n");
       return;
+    }
 
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
@@ -5715,8 +5638,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_SHADOW_SHIELD: // illusion
-    if (isMagicArmored(ch, victim, spellnum))
-      return;
+
+    if (affected_by_spell(victim, SPELL_SHIELD))
+    {
+      affect_from_char(victim, SPELL_SHIELD);
+    }
 
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 5;
@@ -5729,7 +5655,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[1].bonus_type = BONUS_TYPE_RESISTANCE;
 
     af[2].location = APPLY_DR;
-    af[2].modifier = 0;
+    af[2].modifier = 12;
     af[2].duration = level * 5;
 
     CREATE(new_dr, struct damage_reduction_type, 1);
@@ -5755,9 +5681,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_SHIELD: // transmutation
-    if (isMagicArmored(ch, victim, spellnum))
+    if (affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
+    {
+      send_to_char(ch, "You are already affected by greater mirror image!\r\n");
       return;
-
+    }
+    
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
     af[0].duration = 300;
@@ -6406,8 +6335,8 @@ static void perform_mag_groups(int level, struct char_data *ch,
     if (IS_UNDEAD(tch))
       mag_points(level, ch, tch, obj, ABILITY_CHANNEL_NEGATIVE_ENERGY, savetype, casttype);
     break;
-  case SPELL_GROUP_ARMOR:
-    mag_affects(level, ch, tch, obj, SPELL_ARMOR, savetype, casttype, 0);
+  case SPELL_GROUP_SHIELD_OF_FAITH:
+    mag_affects(level, ch, tch, obj, SPELL_SHIELD_OF_FAITH, savetype, casttype, 0);
     break;
   case SPELL_COMMUNAL_PROTECTION_FROM_ENERGY:
     mag_affects(level, ch, tch, obj, SPELL_PROTECTION_FROM_ENERGY, savetype, casttype, 0);
@@ -6530,7 +6459,7 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You summon massive beams of healing light!\tn";
     to_room = "$n summons massive beams of healing light!\tn";
     break;
-  case SPELL_GROUP_ARMOR:
+  case SPELL_GROUP_SHIELD_OF_FAITH:
     to_char = "You manifest magical armoring for your companions!\tn";
     to_room = "$n manifests magical armoring for $s companions!\tn";
     break;

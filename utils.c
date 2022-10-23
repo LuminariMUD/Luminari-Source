@@ -5362,7 +5362,7 @@ bool can_spell_be_revoked(int spellnum)
     case SPELL_WIND_WALL:
     case SPELL_GASEOUS_FORM:
     case SPELL_AIR_WALK:
-    case SPELL_ARMOR: 
+    case SPELL_SHIELD_OF_FAITH: 
     case SPELL_BLESS: 
     case SPELL_DETECT_ALIGN: 
     case SPELL_DETECT_INVIS: 
@@ -5373,7 +5373,7 @@ bool can_spell_be_revoked(int spellnum)
     case SPELL_SANCTUARY: 
     case SPELL_STRENGTH: 
     case SPELL_SENSE_LIFE: 
-    case SPELL_GROUP_ARMOR: 
+    case SPELL_GROUP_SHIELD_OF_FAITH: 
     case SPELL_INFRAVISION: 
     case SPELL_WATERWALK: 
     case SPELL_FLY: 
