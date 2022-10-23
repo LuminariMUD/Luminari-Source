@@ -8311,9 +8311,9 @@ SPECIAL(malevolence)
     return FALSE;
 
   /* this will not proc more than once per 6 seconds */
-  if (!char_has_mud_event(victim, eBLUR_ATTACK_DELAY))
+  if (!char_has_mud_event(ch, eBLUR_ATTACK_DELAY))
   {
-    attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, victim, NULL), 6 * PASSES_PER_SEC);
+    attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, ch, NULL), 6 * PASSES_PER_SEC);
 
     act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
         TRUE, ch, malevolence, vict, TO_CHAR);
@@ -8364,9 +8364,9 @@ SPECIAL(rune_scimitar)
   {
 
     /* this will not proc more than once per 6 seconds */
-    if (!char_has_mud_event(victim, eBLUR_ATTACK_DELAY))
+    if (!char_has_mud_event(ch, eBLUR_ATTACK_DELAY))
     {
-      attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, victim, NULL), 6 * PASSES_PER_SEC);
+      attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, ch, NULL), 6 * PASSES_PER_SEC);
       act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
           TRUE, ch, scimitar, vict, TO_CHAR);
       act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
