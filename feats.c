@@ -1102,6 +1102,14 @@ void assign_feats(void)
   feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_STEALTH, 25);
   feat_prereq_ability(FEAT_SELF_CONCEALMENT, ABILITY_ACROBATICS, 25);
   feat_prereq_attribute(FEAT_SELF_CONCEALMENT, AB_DEX, 21);
+
+  feato(FEAT_EPIC_SHIELD_USER, "epic shield user", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+        "10 percent chance to avoid damage against you per rank",
+        "You get 10 chance to avoid damage for all incoming attacks against you per rank, "
+        "capping at 20 percent.");
+  feat_prereq_feat(FEAT_EPIC_SHIELD_USER, FEAT_SHIELD_SLAM, 1);
+  feat_prereq_attribute(FEAT_EPIC_SHIELD_USER, AB_STR, 19);
+
   feato(FEAT_EPIC_PROWESS, "epic prowess", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
         "+1 to all attacks per rank",
         "+1 to all attacks per rank");
@@ -4301,6 +4309,7 @@ void assign_feats(void)
   epicfeat(FEAT_EPIC_PROWESS);
   epicfeat(FEAT_SWARM_OF_ARROWS);
   epicfeat(FEAT_SELF_CONCEALMENT);
+  epicfeat(FEAT_EPIC_SHIELD_USER);
   epicfeat(FEAT_INTENSIFY_SPELL);
   epicfeat(FEAT_EPIC_SPELLCASTING);
   epicfeat(FEAT_EPIC_SKILL_FOCUS);
@@ -4671,6 +4680,15 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (GET_ABILITY(ch, ABILITY_ACROBATICS) < 25)
         return FALSE;
       if (ch->real_abils.dex < 21)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_EPIC_SHIELD_USER:
+      if (!has_feat_requirement_check(ch, FEAT_SHIELD_SLAM))
+        return FALSE;
+      if (ch->real_abils.str < 19)
+        return FALSE;
+      if (HAS_REAL_FEAT(ch, FEAT_EPIC_SHIELD_USER) >= 2)
         return FALSE;
       return TRUE;
 
@@ -6501,6 +6519,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (%d%% miss)", feat_list[i].name, HAS_FEAT(ch, FEAT_SELF_CONCEALMENT) * 10);
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_EPIC_SHIELD_USER)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d%% dam avoid)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_SHIELD_USER) * 10);
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d%% dam avoid)", feat_list[i].name, HAS_FEAT(ch, FEAT_EPIC_SHIELD_USER) * 10);
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

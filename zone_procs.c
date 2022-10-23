@@ -1805,9 +1805,9 @@ SPECIAL(prisoner_dracolich)
 /*** fg invasion - zusuk threw this together for some quick end-game content ****/
 
 /* limits */
-#define MAX_JARL 200     /* jarl hunters */
-#define MAX_EFREETI 50   /* efreeti mercs */
-#define MAX_FG_GUARDS 10 /* fire giant guards by the king, this is per room */
+#define MAX_JARL 100    /* jarl hunters */
+#define MAX_EFREETI 40  /* efreeti mercs */
+#define MAX_FG_GUARDS 6 /* fire giant guards by the king, this is per room */
 /* end limits */
 
 /* here is the treasure from the invasion */
@@ -1819,6 +1819,7 @@ SPECIAL(prisoner_dracolich)
 #define BASTION 34551
 #define DIVINE_SPARK 34552
 #define BALORSKIN_LEGGINGS 34553
+#define ADAMANTINE_LEGGINGS 34554
 /* end treasure */
 
 /* this is the list of load rooms */
@@ -1859,7 +1860,7 @@ SPECIAL(fg_invasion_loader)
   if (cmd || PROC_FIRED(ch) == TRUE)
     return 0;
 
-  /* we are loading 2 out of the 4 items from this invasion into the treasure room behind the king */
+  /* we are loading 3 items from this invasion into the treasure room behind the king */
   /* ether leggings to treasure room */
   if ((objrnum = real_object(ETHER_LEGGINGS)) != NOWHERE)
   {
@@ -1873,6 +1874,17 @@ SPECIAL(fg_invasion_loader)
   }
   /* flamekiss lyre to treasure room */
   if ((objrnum = real_object(FLAMEKISS_LYRE)) != NOWHERE)
+  {
+    if ((obj = read_object(objrnum, REAL)) != NULL)
+    {
+      if ((roomrnum = real_room(TREASURE_ROOM)) != NOWHERE)
+      {
+        obj_to_room(obj, roomrnum);
+      }
+    }
+  }
+  /* adamantine leggings to treasure room */
+  if ((objrnum = real_object(ADAMANTINE_LEGGINGS)) != NOWHERE)
   {
     if ((obj = read_object(objrnum, REAL)) != NULL)
     {
