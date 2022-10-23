@@ -5251,7 +5251,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MIRROR_IMAGE: // illusion
     if (affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
     {
-      send_to_char(ch, "You are already affected by greater mirror image!\r\n");
+      send_to_char(victim, "You are already affected by greater mirror image!\r\n");
       return;
     }
 
@@ -5681,12 +5681,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_SHIELD: // transmutation
-    if (affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE))
+    if (affected_by_spell(victim, SPELL_SHADOW_SHIELD))
     {
-      send_to_char(ch, "You are already affected by greater mirror image!\r\n");
+      send_to_char(victim, "You are already affected by shadow shield protection!\r\n");
       return;
     }
-    
+
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
     af[0].duration = 300;
