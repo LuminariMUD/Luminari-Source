@@ -8310,19 +8310,25 @@ SPECIAL(malevolence)
   if (cmd || !vict || rand_number(0, 15))
     return FALSE;
 
-  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
-      TRUE, ch, malevolence, vict, TO_CHAR);
-  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
-      TRUE, ch, malevolence, vict, TO_VICT);
-  act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
-      TRUE, ch, malevolence, vict, TO_NOTVICT);
-
-  num_hits = rand_number(3, 5);
-
-  for (i = 0; i <= num_hits; i++)
+  /* this will not proc more than once per 6 seconds */
+  if (!char_has_mud_event(victim, eBLUR_ATTACK_DELAY))
   {
-    if (valid_fight_cond(ch, TRUE))
-      hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, victim, NULL), 6 * PASSES_PER_SEC);
+
+    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as your attacks begin to speed up!",
+        TRUE, ch, malevolence, vict, TO_CHAR);
+    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
+        TRUE, ch, malevolence, vict, TO_VICT);
+    act("$p\tn glows with a bright \tYyellow\tn sheen before pulsing with \tRblood red malevolent light\tn as $n's\tn attacks begin to speed up!",
+        TRUE, ch, malevolence, vict, TO_NOTVICT);
+
+    num_hits = rand_number(3, 5);
+
+    for (i = 0; i <= num_hits; i++)
+    {
+      if (valid_fight_cond(ch, TRUE))
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+    }
   }
 
   return TRUE;
@@ -8340,8 +8346,8 @@ SPECIAL(rune_scimitar)
   if (!cmd && !strcmp(argument, "identify"))
   {
     send_to_char(ch, "Proc: Attack Blur (4-7 bonus attacks on proc)\r\n");
-    send_to_char(ch, "Proc: Deft Parry - on parry will do a light vamp attack\r\n");
-    send_to_char(ch, "Proc: Deft Dodge - on dodge will do a light vamp attack\r\n");
+    send_to_char(ch, "Proc: Deft Parry - on parry will do a light vamp attack (not negative energy)\r\n");
+    send_to_char(ch, "Proc: Deft Dodge - on dodge will do a light vamp attack (not negative energy)\r\n");
     return TRUE;
   }
 
@@ -8356,25 +8362,31 @@ SPECIAL(rune_scimitar)
   /* blur attack proc */
   if (!rand_number(0, 15))
   {
-    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
-        TRUE, ch, scimitar, vict, TO_CHAR);
-    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
-        TRUE, ch, scimitar, vict, TO_VICT);
-    act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
-        TRUE, ch, scimitar, vict, TO_NOTVICT);
 
-    num_hits = rand_number(4, 7);
-
-    for (i = 0; i <= num_hits; i++)
+    /* this will not proc more than once per 6 seconds */
+    if (!char_has_mud_event(victim, eBLUR_ATTACK_DELAY))
     {
-      if (valid_fight_cond(ch, TRUE))
-        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      attach_mud_event(new_mud_event(eBLUR_ATTACK_DELAY, victim, NULL), 6 * PASSES_PER_SEC);
+      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tY as your attacks begin to speed up!\tn",
+          TRUE, ch, scimitar, vict, TO_CHAR);
+      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+          TRUE, ch, scimitar, vict, TO_VICT);
+      act("$p\tY glows with a \tLdark sheen\tY before pulsing with \tBblue arcane light\tn as $n's\tY attacks begin to speed up!\tn",
+          TRUE, ch, scimitar, vict, TO_NOTVICT);
+
+      num_hits = rand_number(4, 7);
+
+      for (i = 0; i <= num_hits; i++)
+      {
+        if (valid_fight_cond(ch, TRUE))
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+      return TRUE;
     }
-    return TRUE;
   }
 
   /* parry proc */
-  else if (!strcmp(argument, "parry") && rand_number(0, 2))
+  else if (!strcmp(argument, "parry") && rand_number(0, 3))
   {
     act("\tLAs you parry the attack, \tn$p \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N \tLand transfers it back to you.\tn",

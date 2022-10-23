@@ -173,6 +173,8 @@ typedef enum
   eVAMPIREENERGYDRAIN,              // energy drain vampire ability
   eMASTERMIND,                      // mastermind ability
   eINSECTBEING,                     /* insect being ability */
+  /*145*/
+  eBLUR_ATTACK_DELAY, /* stop blur attack proccing too much :) */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
