@@ -5014,7 +5014,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_MAGE_ARMOR: // conjuration
     if (affected_by_spell(victim, SPELL_EPIC_MAGE_ARMOR))
     {
-      send_to_char("You are affected already by a more powerful magical armoring!\r\n");
+      send_to_char(victim, "You are affected already by a more powerful magical armoring!\r\n");
       return;
     }
 
