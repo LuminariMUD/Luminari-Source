@@ -2115,6 +2115,7 @@
 #define FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS 877
 #define FEAT_VAMPIRE_BONUS_FEATS 878
 /* END vampire racial feats */
+/* some new epic psi feats */
 #define FEAT_EPIC_SHAMBLER 879
 #define FEAT_EPIC_POWER_PENETRATION 880
 #define FEAT_EPIC_POWER_DAMAGE 881
@@ -2126,15 +2127,16 @@
 #define FEAT_PSI_POWER_RAZOR_STORM 887
 #define FEAT_PSI_POWER_PSYCHOKINETIC_THRASHING 888
 #define FEAT_PSI_POWER_EPIC_PSIONIC_WARD 889
-/******/
+/*** end new psi epic feats ***/
+/* moar feats! */
 #define FEAT_INSECTBEING 890
-/******/
+#define FEAT_EPIC_SHIELD_USER 891
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 891
+#define FEAT_LAST_FEAT 892
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 892
+#define NUM_FEATS 893
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

@@ -3789,6 +3789,34 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       return -1;
     }
 
+    /* epic shield user */
+    if (GET_EQ(victim, WEAR_SHIELD) && dam_type != DAM_MENTAL &&
+        (HAS_FEAT(victim, FEAT_EPIC_SHIELD_USER) * 10) >= rand_number(1, 100))
+    {
+      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(victim, "\tWYour %s holds firm against the onlsaught!\tn\r\n",
+                     GET_OBJ_SHORT(GET_EQ(victim, WEAR_SHIELD)));
+      }
+
+      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+      {
+      }
+      else
+      {
+        send_to_char(ch, "\tR%s\tR blocks the attack with %s\tR!\tn\r\n",
+                     GET_NAME(victim), GET_OBJ_SHORT(GET_EQ(victim, WEAR_SHIELD)));
+      }
+
+      act("$N blocks the attack from $n with $p!", -1234, ch, GET_EQ(victim, WEAR_SHIELD), victim,
+          TO_NOTVICT);
+
+      return -1;
+    }
+
     /* mirror image gives (1 / (# of image + 1)) chance of hitting */
     /* Don't allow mirror image to absorb spells - Danavan 2018-04-09 */
     if (!is_spell && (affected_by_spell(victim, SPELL_MIRROR_IMAGE) || affected_by_spell(victim, SPELL_GREATER_MIRROR_IMAGE)) && dam > 0)
