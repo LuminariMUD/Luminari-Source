@@ -691,8 +691,7 @@ void assign_feats(void)
         "Commands: 'fly' and 'land'  Those with wings are able to fly at will.");
   feato(FEAT_TRELUX_EQ, "trelux eq", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "can't use some eq slots",
-        "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, wear "
-        "gloves, use shields or wear rings.");
+        "Due to their pincer-like hands, Trelux cannot wield weapons, hold items, use shields or wear rings.");
   feato(FEAT_TRELUX_PINCERS, "trelux pincers", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "trelux natural pincer weapon",
         "Trelux don't have hands, they have insect-like pincers.  These pincers can "

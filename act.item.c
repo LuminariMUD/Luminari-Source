@@ -3806,8 +3806,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     }
   }
 
-  if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R || where == WEAR_FINGER_L ||
-                                      where == WEAR_FEET || where == WEAR_HANDS))
+  if (GET_RACE(ch) == RACE_TRELUX && (where == WEAR_FINGER_R || where == WEAR_FINGER_L)
   {
     send_to_char(ch, "Your anatomy does not allow you to wear that...\r\n");
     return;
