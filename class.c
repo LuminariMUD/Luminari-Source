@@ -3781,7 +3781,7 @@ void load_class_list(void)
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
-  spell_assignment(CLASS_CLERIC, SPELL_ARMOR, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_SHIELD_OF_FAITH, 1);
   spell_assignment(CLASS_CLERIC, SPELL_CURE_LIGHT, 1);
   spell_assignment(CLASS_CLERIC, SPELL_ENDURANCE, 1);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSE_LIGHT_WOUNDS, 1);
@@ -3872,7 +3872,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_POISON, 9);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_POISON, 9);
   spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_EVIL, 9);
-  spell_assignment(CLASS_CLERIC, SPELL_GROUP_ARMOR, 9);
+  spell_assignment(CLASS_CLERIC, SPELL_GROUP_SHIELD_OF_FAITH, 9);
   spell_assignment(CLASS_CLERIC, SPELL_FLAME_STRIKE, 9);
   spell_assignment(CLASS_CLERIC, SPELL_PROT_FROM_GOOD, 9);
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CURE_MODERATE, 9);
@@ -5046,7 +5046,7 @@ void load_class_list(void)
   /* 1st circle */
   spell_assignment(CLASS_PALADIN, SPELL_CURE_LIGHT, 6);
   spell_assignment(CLASS_PALADIN, SPELL_ENDURANCE, 6);
-  spell_assignment(CLASS_PALADIN, SPELL_ARMOR, 6);
+  spell_assignment(CLASS_PALADIN, SPELL_SHIELD_OF_FAITH, 6);
   spell_assignment(CLASS_PALADIN, SPELL_DIVINE_FAVOR, 6);
   spell_assignment(CLASS_PALADIN, SPELL_ENDURE_ELEMENTS, 6);
   spell_assignment(CLASS_PALADIN, SPELL_PROT_FROM_EVIL, 6);
