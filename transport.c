@@ -89,7 +89,7 @@ const char *carriage_locales[][7] = {
   {"always the last item",                  "0",      "0",    "Nowhere",    "nothing", "0", "0"}
 };
 
-// continent name,                    airshop dock room vnum, Cost in gold to travel here, faction name, contintent description, map coord x, map coord y
+// continent name, airshop dock room vnum, Cost in gold to travel here, faction name, contintent description, map coord x, map coord y
 const char *sailing_locales[][7] = {
   {"ondius - ashenport",         "34801",   "100",    "Any", "Ashenport is the main city hub for the main questline and many shops & services.", "-63", "89"},
   {"ondius - northwest seaport", "1000280", "100",    "Any", "Nearby zones: Quagmire", "-25", "198"},
@@ -433,7 +433,6 @@ void travel_tickdown(void)
 
   for (d = descriptor_list; d; d = d->next) 
   {
-
     ch = d->character;
 
     if (!ch || IS_NPC(ch) || !ch->desc)
