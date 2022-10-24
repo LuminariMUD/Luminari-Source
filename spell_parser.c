@@ -2924,7 +2924,7 @@ void mag_assign_spells(void)
   spello(SPELL_MAGIC_STONE, "magic stone", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_CREATIONS,
          NULL, 3, 7, TRANSMUTATION, FALSE);
-  spello(SPELL_SHIELD, "shield", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_SHIELD, "mage shield", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your magical shield fades away.", 3, 7, TRANSMUTATION, FALSE);
 

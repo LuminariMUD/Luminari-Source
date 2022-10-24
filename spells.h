@@ -147,12 +147,12 @@
 #define SPELL_STRENGTH 39       // done
 #define SPELL_SUMMON 40         // done
 #define SPELL_VENTRILOQUATE 41
-#define SPELL_WORD_OF_RECALL 42        // done
-#define SPELL_REMOVE_POISON 43         // done
-#define SPELL_SENSE_LIFE 44            // done
-#define SPELL_ANIMATE_DEAD 45          // done
-#define SPELL_DISPEL_GOOD 46           // done
-#define SPELL_GROUP_ARMOR 47           // done
+#define SPELL_WORD_OF_RECALL 42 // done
+#define SPELL_REMOVE_POISON 43  // done
+#define SPELL_SENSE_LIFE 44     // done
+#define SPELL_ANIMATE_DEAD 45   // done
+#define SPELL_DISPEL_GOOD 46    // done
+#define SPELL_GROUP_ARMOR 47    // done
 #define SPELL_GROUP_SHIELD_OF_FAITH SPELL_GROUP_ARMOR
 #define SPELL_GROUP_HEAL 48            // done
 #define SPELL_GROUP_RECALL 49          // done
@@ -196,6 +196,7 @@
 #define SPELL_SCARE 87                 // done
 #define SPELL_SHELGARNS_BLADE 88       // done
 #define SPELL_SHIELD 89                // done
+#define SPELL_MAGE_SHIELD SPELL_SHIELD
 #define SPELL_SUMMON_CREATURE_1 90     // done
 #define SPELL_TRUE_STRIKE 91           // done
 #define SPELL_WALL_OF_FOG 92           // done
