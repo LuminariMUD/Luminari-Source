@@ -1086,6 +1086,14 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "east") &&
            !is_abbrev(complete_cmd_info[cmd].command, "west") &&
            !is_abbrev(complete_cmd_info[cmd].command, "south") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "northwest") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "northeast") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "southeast") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "southwest") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "nw") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "ne") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "se") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "sw") &&
            !is_abbrev(complete_cmd_info[cmd].command, "get") &&  /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
