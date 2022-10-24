@@ -2436,7 +2436,7 @@ ACMD(do_rage)
   bonus = get_rage_bonus(ch);
 
   /* duration */
-  duration = 6 + GET_CON_BONUS(ch) * 2;
+  duration = 12 + GET_CON_BONUS(ch) * 3;
 
   send_to_char(ch, "You go into a \tRR\trA\tRG\trE\tn!.\r\n");
   act("$n goes into a \tRR\trA\tRG\trE\tn!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2607,6 +2607,7 @@ ACMD(do_hit)
   }
 
   one_argument(argument, arg, sizeof(arg));
+
   if (!*arg)
   {
     if (!PRF_FLAGGED(ch, PRF_AUTOHIT))

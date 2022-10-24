@@ -153,6 +153,7 @@
 #define SPELL_ANIMATE_DEAD 45          // done
 #define SPELL_DISPEL_GOOD 46           // done
 #define SPELL_GROUP_ARMOR 47           // done
+#define SPELL_GROUP_SHIELD_OF_FAITH SPELL_GROUP_ARMOR
 #define SPELL_GROUP_HEAL 48            // done
 #define SPELL_GROUP_RECALL 49          // done
 #define SPELL_INFRAVISION 50           // done

@@ -194,7 +194,9 @@ struct mud_event_list mud_event_index[] = {
     {"Vampiric Energy Drain", event_daily_use_cooldown, EVENT_CHAR},               // eVAMPIREENERGYDRAIN
     {"Master of the Mind", event_daily_use_cooldown, EVENT_CHAR},                  // eMASTERMIND
     {"Insect Being", event_daily_use_cooldown, EVENT_CHAR},                        // eINSECTBEING
-                                                                                   /*145*/
+    /*145*/
+    {"Blur attack delay", event_countdown, EVENT_CHAR}, // eBLUR_ATTACK_DELAY
+
 };
 
 /* init_events() is the ideal function for starting global events. This
@@ -492,6 +494,10 @@ EVENTFUNC(event_countdown)
     break;
   case eCOLLECT_DELAY:
     perform_collect(ch, FALSE);
+    break;
+  case eBLUR_ATTACK_DELAY:
+    /* sending a message here is annoying :) */
+    /* send_to_char(ch, "You can blur attack again.\r\n"); */
     break;
   case eQUEST_COMPLETE:
     qvnum = atoi((char *)pMudEvent->sVariables);

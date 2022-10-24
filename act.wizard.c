@@ -2259,8 +2259,9 @@ ACMD(do_date)
   tmstr = (char *)asctime(localtime(&mytime));
   *(tmstr + strlen(tmstr) - 1) = '\0';
 
-  if (subcmd == SCMD_DATE)
+  if (subcmd == SCMD_DATE) {
     send_to_char(ch, "Current machine time: %s\r\n", tmstr);
+  }
   else
   {
     mytime = time(0) - boot_time;
