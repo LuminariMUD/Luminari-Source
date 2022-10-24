@@ -10258,7 +10258,7 @@ SPECIAL(vampire_cloak)
     return 1;
   }
 
-  char arg[200], desc[255], longD[255];
+  char arg[200], desc[255], longD[255], oldD[255];
 
   half_chop(argument, arg, desc);
 
@@ -10275,9 +10275,12 @@ SPECIAL(vampire_cloak)
       send_to_char(ch, "That description is too long.\r\n");
     }
 
-    send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", obj->short_description, desc);
-    obj->name = strdup(desc);
+    snprintf(oldD, sizeof(oldD), "%s", obj->short_description);
+    parse_at(desc);
     obj->short_description = strdup(desc);
+    send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", oldD, desc);
+    strip_colors(desc);
+    obj->name = strdup(desc);
     snprintf(longD, sizeof(longD), "%s is here.", CAP(desc));
     obj->description = strdup(longD);
     return 1;
