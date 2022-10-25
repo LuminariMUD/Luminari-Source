@@ -980,9 +980,18 @@ void game_loop(socket_t local_mother_desc)
           d->character->char_specials.timer = 0;
           if (STATE(d) == CON_PLAYING && GET_WAS_IN(d->character) != NOWHERE)
           {
+
             if (IN_ROOM(d->character) != NOWHERE)
               char_from_room(d->character);
+
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(GET_WAS_IN(d->character)), ZONE_WILDERNESS))
+            {
+              X_LOC(d->character) = world[GET_WAS_IN(d->character)].coords[0];
+              Y_LOC(d->character) = world[GET_WAS_IN(d->character)].coords[1];
+            }
+
             char_to_room(d->character, GET_WAS_IN(d->character));
+
             GET_WAS_IN(d->character) = NOWHERE;
             act("$n has returned.", TRUE, d->character, 0, 0, TO_ROOM);
           }

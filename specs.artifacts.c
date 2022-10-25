@@ -212,6 +212,13 @@ int OakenDefender(P_obj obj, P_char ch, int cmd, char *arg)
                send_to_char("Bug in conjure elemental.  Tell a god!\n", ch);
                return FALSE;
             }
+
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+            {
+               X_LOC(treant) = world[ch->in_room].coords[0];
+               Y_LOC(treant) = world[ch->in_room].coords[1];
+            }
+
             char_to_room(treant, ch->in_room, 0);
 
             bzero(&af, sizeof(af));
@@ -279,10 +286,24 @@ int OakenDefender(P_obj obj, P_char ch, int cmd, char *arg)
                if (world[ch->in_room].number == world[treant->in_room].number)
                {
                   char_from_room(treant);
+
+                  if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(home)), ZONE_WILDERNESS))
+                  {
+                     X_LOC(ch) = world[real_room(home)].coords[0];
+                     Y_LOC(ch) = world[real_room(home)].coords[1];
+                  }
+
                   char_to_room(ch, real_room(home), -1);
                }
             }
             char_from_room(ch);
+
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(home)), ZONE_WILDERNESS))
+            {
+               X_LOC(ch) = world[real_room(home)].coords[0];
+               Y_LOC(ch) = world[real_room(home)].coords[1];
+            }
+
             char_to_room(ch, real_room(home), -1);
 
             SET_BIT(obj->value[0], TRORXEK_RECALL);
@@ -1046,6 +1067,13 @@ int Fade2(P_obj obj, P_char ch, int cmd, char *arg)
                 FALSE, ch, obj, target, TO_ROOM);
 
             char_from_room(ch);
+
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(target->in_room), ZONE_WILDERNESS))
+            {
+               X_LOC(ch) = world[target->in_room].coords[0];
+               Y_LOC(ch) = world[target->in_room].coords[1];
+            }
+
             char_to_room(ch, target->in_room, -1);
 
             Stun(ch, (PULSE_VIOLENCE * 3));
@@ -1150,6 +1178,13 @@ int NeverLooseItem(P_obj obj, P_char ch, int cmd, char *arg)
          }
 
          char_from_room(ch);
+
+         if (ZONE_FLAGGED(GET_ROOM_ZONE(target->in_room), ZONE_WILDERNESS))
+         {
+            X_LOC(ch) = world[target->in_room].coords[0];
+            Y_LOC(ch) = world[target->in_room].coords[1];
+         }
+
          char_to_room(ch, target->in_room, -1);
 
          if (!strcmp(word3, "visible"))
@@ -1414,6 +1449,13 @@ int MinorHealback(P_obj obj, P_char ch, int cmd, char *arg)
          }
 
          char_from_room(ch);
+
+         if (ZONE_FLAGGED(GET_ROOM_ZONE(target->in_room), ZONE_WILDERNESS))
+         {
+            X_LOC(ch) = world[target->in_room].coords[0];
+            Y_LOC(ch) = world[target->in_room].coords[1];
+         }
+
          char_to_room(ch, target->in_room, -1);
 
          if (!strcmp(word3, "visible"))
@@ -1846,6 +1888,13 @@ int HornOfHenekar(P_obj obj, P_char ch, int cmd, char *arg)
                    FALSE, ch, obj, target, TO_ROOM);
 
                char_from_room(ch);
+
+               if (ZONE_FLAGGED(GET_ROOM_ZONE(target->in_room), ZONE_WILDERNESS))
+               {
+                  X_LOC(ch) = world[target->in_room].coords[0];
+                  Y_LOC(ch) = world[target->in_room].coords[1];
+               }
+
                char_to_room(ch, target->in_room, -1);
             }
 

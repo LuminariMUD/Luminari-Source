@@ -5491,7 +5491,15 @@ SPECIAL(pet_shops)
       /* free(pet->player.description); don't free the prototype! */
       pet->player.description = strdup(buf);
     }
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(pet) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(pet) = world[IN_ROOM(ch)].coords[1];
+    }
+
     char_to_room(pet, IN_ROOM(ch));
+
     add_follower(pet, ch);
 
     /* Be certain that pets can't get/carry/use/wield/wear items */
@@ -5714,6 +5722,13 @@ ACMD(do_disembark)
   // int was_in = ch->in_room;
   act("$n disembarks.", TRUE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(ship->in_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[ship->in_room].coords[0];
+    Y_LOC(ch) = world[ship->in_room].coords[1];
+  }
+
   char_to_room(ch, ship->in_room);
   act("$n disembarks from $p.", TRUE, ch, ship, 0, TO_ROOM);
   look_at_room(ch, 0);
@@ -6595,6 +6610,13 @@ SPECIAL(xvim_artifact)
           "horrid visage\r\nof a \tmNightmare\tL stands before you.\tn",
           1, ch, 0, FIGHTING(ch), TO_ROOM);
       pet = read_mobile(real_mobile(100505), REAL);
+
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+      {
+        X_LOC(pet) = world[ch->in_room].coords[0];
+        Y_LOC(pet) = world[ch->in_room].coords[1];
+      }
+
       char_to_room(pet, ch->in_room);
       add_follower(pet, ch);
       GET_MAX_HIT(pet) = GET_HIT(ch) = GET_LEVEL(ch) * 10 + dice(GET_LEVEL(ch), 6);
@@ -7340,6 +7362,13 @@ SPECIAL(whisperwind)
       pet = read_mobile(real_mobile(SPIRIT_EAGLE), REAL);
       if (pet)
       {
+
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+        {
+          X_LOC(pet) = world[ch->in_room].coords[0];
+          Y_LOC(pet) = world[ch->in_room].coords[1];
+        }
+
         char_to_room(pet, ch->in_room);
         add_follower(pet, ch);
         SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
@@ -7549,6 +7578,13 @@ SPECIAL(ancient_moonblade)
       pet = read_mobile(real_mobile(LARGE_SPIRIT_EAGLE), REAL);
       if (pet)
       {
+
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+        {
+          X_LOC(pet) = world[ch->in_room].coords[0];
+          Y_LOC(pet) = world[ch->in_room].coords[1];
+        }
+
         char_to_room(pet, ch->in_room);
         add_follower(pet, ch);
         SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
@@ -9156,6 +9192,13 @@ SPECIAL(clanportal)
   act("$n enters $p, and vanishes!", FALSE, ch, port, 0, TO_ROOM);
   act("You enter $p, and you are transported elsewhere", FALSE, ch, port, 0, TO_CHAR);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(r)), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[real_room(r)].coords[0];
+    Y_LOC(ch) = world[real_room(r)].coords[1];
+  }
+
   char_to_room(ch, real_room(r));
   look_at_room(ch, 0);
   act("$n appears from thin air!", FALSE, ch, 0, 0, TO_ROOM);
@@ -9167,6 +9210,13 @@ SPECIAL(clanportal)
     {
       act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
       char_from_room(k->follower);
+
+      if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(r)), ZONE_WILDERNESS))
+      {
+        X_LOC(k->follower) = world[real_room(r)].coords[0];
+        Y_LOC(k->follower) = world[real_room(r)].coords[1];
+      }
+
       char_to_room(k->follower, real_room(r));
       look_at_room(k->follower, 0);
       act("$n appears from thin air!", FALSE, k->follower, 0, 0, TO_ROOM);
@@ -9459,6 +9509,13 @@ SPECIAL(bought_pet)
   /* found matching vnum for obejct, loaded pet succesfully */
   if (pet)
   {
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(obj->carried_by->in_room), ZONE_WILDERNESS))
+    {
+      X_LOC(pet) = world[obj->carried_by->in_room].coords[0];
+      Y_LOC(pet) = world[obj->carried_by->in_room].coords[1];
+    }
+
     char_to_room(pet, obj->carried_by->in_room);
     add_follower(pet, obj->carried_by);
     SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);

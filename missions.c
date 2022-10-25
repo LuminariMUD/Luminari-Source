@@ -525,7 +525,14 @@ void create_mission_mobs(char_data *ch)
 
         if (real_room(to_room) != NOWHERE)
         {
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(to_room)), ZONE_WILDERNESS))
+            {
+                X_LOC(mob) = world[real_room(to_room)].coords[0];
+                Y_LOC(mob) = world[real_room(to_room)].coords[1];
+            }
+
             char_to_room(mob, real_room(to_room));
+
             if (i > 0)
             {
                 sprintf(buf, "%ld", GET_IDNUM(ch));

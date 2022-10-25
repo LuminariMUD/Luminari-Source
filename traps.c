@@ -377,6 +377,11 @@ EVENTFUNC(event_trap_triggered)
           struct char_data *mob = read_mobile(TRAP_DARK_WARRIOR_MOBILE, VIRTUAL);
           if (mob)
           {
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+            {
+              X_LOC(mob) = world[ch->in_room].coords[0];
+              Y_LOC(mob) = world[ch->in_room].coords[1];
+            }
             char_to_room(mob, ch->in_room);
             remember(mob, ch);
           }
@@ -413,7 +418,7 @@ EVENTFUNC(event_trap_triggered)
         break;
 
       case TRAP_EFFECT_FREEZING_CONDITIONS:
-        //cold damage..
+        // cold damage..
         dam = dice(10, 20);
         dam_type = DAM_COLD;
         to_char = "\tbThe bone-chilling cold bites deep into you, causing you to shudder uncontrollably.\tn";
@@ -421,7 +426,7 @@ EVENTFUNC(event_trap_triggered)
         break;
 
       case TRAP_EFFECT_SKELETAL_HANDS:
-        //skeletal stuff.
+        // skeletal stuff.
         if (dice(1, 10) < 5)
         {
           dam = GET_MAX_HIT(ch) * 2;
@@ -444,13 +449,18 @@ EVENTFUNC(event_trap_triggered)
         to_char = "\tLYou are suddenly entangled in sticky strands of \twspider silk\tL, held fast as spiders descend from above.\tn";
         to_room = "\tn$n \tLis suddenly encased in a cocoon of silk, held fast as spiders descend on $m from all sides.\tn";
 
-        //spiders loading..
+        // spiders loading..
         count = dice(1, 3);
         for (i = 0; i < count; i++)
         {
           struct char_data *mob = read_mobile(TRAP_SPIDER_MOBILE, VIRTUAL);
           if (mob)
           {
+            if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+            {
+              X_LOC(mob) = world[ch->in_room].coords[0];
+              Y_LOC(mob) = world[ch->in_room].coords[1];
+            }
             char_to_room(mob, ch->in_room);
             remember(mob, ch);
             /* popular demand asks that we add this -zusuk */

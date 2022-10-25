@@ -592,7 +592,14 @@ struct char_data *create_encounter_mob(struct char_data *ch, int vnum, struct ch
   struct char_data *mob = read_mobile(vnum, VIRTUAL, level);
   if (mob) {
     remember(mob, ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(ch->in_room), ZONE_WILDERNESS))
+    {
+      X_LOC(mob) = world[ch->in_room].coords[0];
+      Y_LOC(mob) = world[ch->in_room].coords[1];
+    }
     char_to_room(mob, ch->in_room);
+
     SET_BIT(AFF_FLAGS(mob), AFF_GROUP);
     SET_BIT(MOB_FLAGS(mob), MOB_HUNTER);
     if (master)

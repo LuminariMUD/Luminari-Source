@@ -739,7 +739,15 @@ ACMD(do_animatedead)
     send_to_char(ch, "You don't quite remember how to make that creature.\r\n");
     return;
   }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  }
+
   char_to_room(mob, IN_ROOM(ch));
+
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
   SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
@@ -890,6 +898,13 @@ ACMD(do_abundantstep)
     act("$n is suddenly absent.", TRUE, ch, 0, 0, TO_ROOM);
 
     char_from_room(ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(room_tracker), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[room_tracker].coords[0];
+      Y_LOC(ch) = world[room_tracker].coords[1];
+    }
+
     char_to_room(ch, room_tracker);
 
     act("$n is suddenly present.", TRUE, ch, 0, 0, TO_ROOM);
@@ -1006,6 +1021,13 @@ ACMDU(do_ethshift)
   act("$n slowly fades out of existence and is gone.",
       FALSE, shiftee, 0, 0, TO_ROOM);
   char_from_room(shiftee);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(shift_dest), ZONE_WILDERNESS))
+  {
+    X_LOC(shiftee) = world[shift_dest].coords[0];
+    Y_LOC(shiftee) = world[shift_dest].coords[1];
+  }
+
   char_to_room(shiftee, shift_dest);
   act("$n slowly fades into existence.", FALSE, shiftee, 0, 0, TO_ROOM);
   send_to_char(shiftee, "You slowly fade back into existence...\r\n");
@@ -1936,7 +1958,7 @@ ACMD(do_call)
   }
   else
   {
-    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow>\r\n");
+    send_to_char(ch, "Usage:  call <companion/familiar/mount/shadow>\r\n  Lost followers can be retrieved via 'summon' command.\r\n");
     return;
   }
 
@@ -7748,8 +7770,17 @@ ACMD(do_dice)
   return;
 }
 
+/* summon command will bring all your pets to you */
+#define SUMMON_COST 500
 ACMD(do_summon)
 {
+
+  if (GET_MOVE(ch) < 500)
+  {
+    send_to_char(ch, "It costs %d movement points to summon all your pets/mercs to you.\r\n", SUMMON_COST);
+    return;
+  }
+
   struct char_data *tch = NULL;
   bool found = false;
 
@@ -7767,10 +7798,22 @@ ACMD(do_summon)
       continue;
     if (IN_ROOM(tch) == IN_ROOM(ch))
       continue;
+
+    /* leave the current room into the ether */
     act("$n disappears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
     char_from_room(tch);
+
+    /* set coords if necessary */
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
+    }
+
+    /* move into the new location! */
     char_to_room(tch, IN_ROOM(ch));
     act("$n appears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
+
     found = true;
   }
 
@@ -7778,7 +7821,13 @@ ACMD(do_summon)
   {
     send_to_char(ch, "You do not have any charmies that require summoning.\r\n");
   }
+
+  /* cost of 500 moves */
+  process_healing(ch, ch, -1, 0, -SUMMON_COST, 0);
+
+  return;
 }
+#undef SUMMON_COST
 
 /* some cleanup */
 #undef NUM_HINTS
