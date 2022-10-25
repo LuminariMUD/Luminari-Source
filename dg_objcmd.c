@@ -451,14 +451,17 @@ static OCMD(do_oteleport)
         continue;
       }
 
+      char_from_room(ch);
+
       /* check for wilderness movement */
       if (ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS))
       {
         X_LOC(ch) = world[target].coords[0];
         Y_LOC(ch) = world[target].coords[1];
       }
-      char_from_room(ch);
+
       char_to_room(ch, target);
+
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
 
@@ -475,14 +478,18 @@ static OCMD(do_oteleport)
           log("SYSERR: NOWHERE for %s, spot 2 (dg_objcmd.c)", GET_NAME(ch));
           return;
         }
+
+        char_from_room(ch);
+
         /* check for wilderness movement */
         if (ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS))
         {
           X_LOC(ch) = world[target].coords[0];
           Y_LOC(ch) = world[target].coords[1];
         }
-        char_from_room(ch);
+
         char_to_room(ch, target);
+
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
     }
@@ -541,6 +548,13 @@ static OCMD(do_dgoload)
       obj_log(obj, "oload: bad mob vnum");
       return;
     }
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(rnum), ZONE_WILDERNESS))
+    {
+      X_LOC(mob) = world[rnum].coords[0];
+      Y_LOC(mob) = world[rnum].coords[1];
+    }
+
     char_to_room(mob, rnum);
 
     if (SCRIPT(obj))
@@ -672,7 +686,7 @@ static OCMD(do_odoor)
   struct room_direction_data *newexit;
   int dir, fd, to_room;
 
-  const char * const door_field[] = {
+  const char *const door_field[] = {
       "purge",
       "description",
       "flags",

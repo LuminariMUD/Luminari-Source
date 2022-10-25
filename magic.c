@@ -7544,13 +7544,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_SUMMON_NATURES_ALLY_8:
   case SPELL_SUMMON_CREATURE_8: // conjuration
     if (!mob_level)
-      mob_level = MAX(16, CASTER_LEVEL(ch) - rand_number(5, 10));
+      mob_level = MAX(16, CASTER_LEVEL(ch) - rand_number(3, 8));
   case SPELL_SUMMON_NATURES_ALLY_7:
   case SPELL_SUMMON_CREATURE_7: // conjuration
     if (!mob_level)
       mob_level = MAX(14, CASTER_LEVEL(ch) - rand_number(5, 10));
+
     handle_corpse = FALSE;
+
     fmsg = rand_number(2, 6); /* Random fail message. */
+
     switch (dice(1, 4))
     {
     case 1:
@@ -7570,7 +7573,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       msg = 10;
       break;
     }
+
     pfail = 10;
+
     break;
 
     /*

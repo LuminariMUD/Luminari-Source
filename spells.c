@@ -411,7 +411,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION) &&
            CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
-  
+
   else if (spellnum == ABILITY_VAMPIRIC_DOMINATION && level < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
@@ -856,6 +856,13 @@ ASPELL(spell_clairvoyance)
   /* a location has been found. */
   original_loc = IN_ROOM(ch);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[location].coords[0];
+    Y_LOC(ch) = world[location].coords[1];
+  }
+
   char_to_room(ch, location);
   look_at_room(ch, 0);
 
@@ -863,6 +870,12 @@ ASPELL(spell_clairvoyance)
   if (IN_ROOM(ch) == location)
   {
     char_from_room(ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[original_loc].coords[0];
+      Y_LOC(ch) = world[original_loc].coords[1];
+    }
     char_to_room(ch, original_loc);
   }
 }
@@ -1176,6 +1189,13 @@ ASPELL(spell_group_summon)
     act("$n disappears suddenly.", TRUE, tch, 0, 0, TO_ROOM);
 
     char_from_room(tch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
+    }
+
     char_to_room(tch, IN_ROOM(ch));
 
     act("$n arrives suddenly.", TRUE, tch, 0, 0, TO_ROOM);
@@ -1417,7 +1437,14 @@ ASPELL(spell_plane_shift)
   act("$n slowly fades out of existence and is gone.",
       FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[to_room].coords[0];
+    Y_LOC(ch) = world[to_room].coords[1];
+  }
   char_to_room(ch, to_room);
+
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
   look_at_room(ch, 0);
@@ -1459,7 +1486,13 @@ ASPELL(spell_prismatic_sphere)
     return;
   }
 
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(mob) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(mob) = world[IN_ROOM(ch)].coords[1];
+  }
   char_to_room(mob, IN_ROOM(ch));
+
   IS_CARRYING_W(mob) = 0;
   IS_CARRYING_N(mob) = 0;
 
@@ -1579,6 +1612,12 @@ ASPELL(spell_salvation) // divination
     if (!valid_mortal_tele_dest(ch, real_room(world[ch->in_room].number), TRUE))
     {
       send_to_char(ch, "You can't use salvation here.\r\n");
+      return;
+    }
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      send_to_char(ch, "You can't use salvation in the wilderness.\r\n");
       return;
     }
 
@@ -1801,6 +1840,12 @@ ASPELL(spell_summon)
   act("$n disappears suddenly.", TRUE, victim, 0, 0, TO_ROOM);
 
   char_from_room(victim);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(victim) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
+  }
   char_to_room(victim, IN_ROOM(ch));
 
   act("$n arrives suddenly.", TRUE, victim, 0, 0, TO_ROOM);
@@ -1877,7 +1922,14 @@ ASPELL(spell_teleport)
   act("$n slowly fades out of existence and is gone.",
       FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[to_room].coords[0];
+    Y_LOC(ch) = world[to_room].coords[1];
+  }
   char_to_room(ch, to_room);
+
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
   look_at_room(ch, 0);
@@ -1952,7 +2004,14 @@ ASPELL(spell_shadow_jump)
   act("$n slowly fades into the shadows and is gone.",
       FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[to_room].coords[0];
+    Y_LOC(ch) = world[to_room].coords[1];
+  }
   char_to_room(ch, to_room);
+
   act("$n slowly fades in from the shadows.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back in from the shadows...\r\n");
   look_at_room(ch, 0);
@@ -2015,7 +2074,14 @@ ASPELL(psionic_psychoportation)
   act("$n slowly fades out of existence and is gone.",
       FALSE, ch, 0, 0, TO_ROOM);
   char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[to_room].coords[0];
+    Y_LOC(ch) = world[to_room].coords[1];
+  }
   char_to_room(ch, to_room);
+
   act("$n slowly fades into existence.", FALSE, ch, 0, 0, TO_ROOM);
   send_to_char(ch, "You slowly fade back into existence...\r\n");
   look_at_room(ch, 0);
@@ -2146,6 +2212,12 @@ ASPELL(spell_resurrect)
 
   /* relocate ress-target! */
   char_from_room(ressed);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(obj->in_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ressed) = world[obj->in_room].coords[0];
+    Y_LOC(ressed) = world[obj->in_room].coords[1];
+  }
   char_to_room(ressed, obj->in_room);
 
   /* more unused code */
@@ -2284,7 +2356,14 @@ ASPELL(spell_transport_via_plants)
 
     // transport player to new location
     char_from_room(ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(to_room), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[to_room].coords[0];
+      Y_LOC(ch) = world[to_room].coords[1];
+    }
     char_to_room(ch, to_room);
+
     look_at_room(ch, 0);
     act("You find your destination, and step out through $p.", FALSE, ch, dest_obj, 0, TO_CHAR);
     act("$n steps out from inside of $p!", FALSE, ch, dest_obj, 0, TO_ROOM);
@@ -2419,6 +2498,11 @@ ASPELL(spell_wizard_eye)
   }
 
   // first load the eye
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    X_LOC(eye) = world[IN_ROOM(ch)].coords[0];
+    Y_LOC(eye) = world[IN_ROOM(ch)].coords[1];
+  }
   char_to_room(eye, IN_ROOM(ch));
   IS_CARRYING_W(eye) = 0;
   IS_CARRYING_N(eye) = 0;

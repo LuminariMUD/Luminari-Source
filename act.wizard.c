@@ -411,6 +411,13 @@ ACMD(do_trans)
           continue;
         act("$n disappears in a mushroom cloud.", FALSE, victim, 0, 0, TO_ROOM);
         char_from_room(victim);
+
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+        {
+          X_LOC(victim) = world[IN_ROOM(ch)].coords[0];
+          Y_LOC(victim) = world[IN_ROOM(ch)].coords[1];
+        }
+
         char_to_room(victim, IN_ROOM(ch));
         act("$n arrives from a puff of smoke.", FALSE, victim, 0, 0, TO_ROOM);
         act("$n has transferred you!", FALSE, ch, 0, victim, TO_VICT);
@@ -2259,7 +2266,8 @@ ACMD(do_date)
   tmstr = (char *)asctime(localtime(&mytime));
   *(tmstr + strlen(tmstr) - 1) = '\0';
 
-  if (subcmd == SCMD_DATE) {
+  if (subcmd == SCMD_DATE)
+  {
     send_to_char(ch, "Current machine time: %s\r\n", tmstr);
   }
   else

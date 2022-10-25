@@ -719,6 +719,8 @@ ACMD(do_mteleport)
 
       if (valid_dg_target(vict, DG_ALLOW_STAFFS))
       {
+        char_from_room(vict);
+
         /* check for wilderness movement */
         if (ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS))
         {
@@ -727,7 +729,6 @@ ACMD(do_mteleport)
         }
 
         /* we have to check this carefully! -zusuk */
-        char_from_room(vict);
         char_to_room(vict, target);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
@@ -751,6 +752,8 @@ ACMD(do_mteleport)
 
     if (valid_dg_target(ch, DG_ALLOW_STAFFS))
     {
+      char_from_room(vict);
+
       /* check for wilderness movement */
       if (ZONE_FLAGGED(GET_ROOM_ZONE(target), ZONE_WILDERNESS))
       {
@@ -759,7 +762,6 @@ ACMD(do_mteleport)
       }
 
       /* we have to check this carefully! -zusuk */
-      char_from_room(vict);
       char_to_room(vict, target);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }

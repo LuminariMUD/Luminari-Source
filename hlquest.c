@@ -375,10 +375,28 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim,
       break;
     case QUEST_COMMAND_LOAD_MOB_INROOM:
       mob = read_mobile(qcom->value, VIRTUAL);
+
       if (mob && qcom->location == 0)
+      {
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(victim->in_room), ZONE_WILDERNESS))
+        {
+          X_LOC(mob) = world[victim->in_room].coords[0];
+          Y_LOC(mob) = world[victim->in_room].coords[1];
+        }
+
         char_to_room(mob, victim->in_room);
+      }
       else if (mob)
+      {
+        if (ZONE_FLAGGED(GET_ROOM_ZONE(real_room(qcom->location)), ZONE_WILDERNESS))
+        {
+          X_LOC(mob) = world[real_room(qcom->location)].coords[0];
+          Y_LOC(mob) = world[real_room(qcom->location)].coords[1];
+        }
+
         char_to_room(mob, real_room(qcom->location));
+      }
+
       break;
     case QUEST_COMMAND_ATTACK_QUESTOR:
       hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
