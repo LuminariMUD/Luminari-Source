@@ -1303,7 +1303,7 @@ ASPELL(spell_locate_object)
   // char name[MAX_INPUT_LENGTH];
   // snprintf(name, sizeof(name), "%s", cast_arg2);
 
-  /* # items to show = half char's level + highest mental stat bonus */
+  /* # items to show = caster-level + highest mental stat bonus */
   bonus_stat = GET_INT_BONUS(ch);
 
   if (GET_WIS_BONUS(ch) > bonus_stat)
@@ -1312,7 +1312,7 @@ ASPELL(spell_locate_object)
   if (GET_CHA_BONUS(ch) > bonus_stat)
     bonus_stat = GET_CHA_BONUS(ch);
 
-  j = CASTER_LEVEL(ch) / 2 + bonus_stat + 1;
+  j = CASTER_LEVEL(ch) + bonus_stat;
   /* got j.. */
 
   /* loop through object list */
