@@ -32,6 +32,7 @@
 #include "staff_events.h"
 #include "missions.h"
 #include "account.h"
+#include "psionics.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -175,8 +176,7 @@ void affliction_tick(struct char_data *ch)
   else if (INCENDIARY(ch))
   {
     call_magic(ch, NULL, NULL, SPELL_INCENDIARY, 0, MAGIC_LEVEL(ch), CAST_SPELL);
-    INCENDIARY(ch)
-    --;
+    INCENDIARY(ch)--;
     if (INCENDIARY(ch) <= 0)
     {
       send_to_char(ch, "Your incendiary cloud dissipates!\r\n");

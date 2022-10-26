@@ -1688,6 +1688,8 @@ will be using for casting this spell */
   if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
   {
     casting_time += get_augment_casting_time_adjustment(ch);
+    if (IS_BUFFING(ch))
+      GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
   }
 
   if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
