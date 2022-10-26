@@ -1289,9 +1289,9 @@ ASPELL(spell_locate_creature)
 
 ASPELL(spell_locate_object)
 {
-  struct obj_data *i;
-  char name[MAX_INPUT_LENGTH];
-  int j;
+  struct obj_data *i = NULL;
+  int j = 0, bonus_stat = 0;
+  bool found = FALSE;
 
   if (!obj)
   {
@@ -1300,30 +1300,51 @@ ASPELL(spell_locate_object)
   }
 
   /*  added a global var to catch 2nd arg. */
-  snprintf(name, sizeof(name), "%s", cast_arg2);
+  // char name[MAX_INPUT_LENGTH];
+  // snprintf(name, sizeof(name), "%s", cast_arg2);
 
-  j = CASTER_LEVEL(ch) / 2; /* # items to show = twice char's level */
+  /* # items to show = half char's level + highest mental stat bonus */
+  bonus_stat = GET_INT_BONUS(ch);
 
+  if (GET_WIS_BONUS(ch) > bonus_stat)
+    bonus_stat = GET_WIS_BONUS(ch);
+
+  if (GET_CHA_BONUS(ch) > bonus_stat)
+    bonus_stat = GET_CHA_BONUS(ch);
+
+  j = CASTER_LEVEL(ch) / 2 + bonus_stat + 1;
+  /* got j.. */
+
+  /* loop through object list */
   for (i = object_list; i && (j > 0); i = i->next)
   {
-    if (!isname_obj(name, i->name))
-      continue;
 
-    send_to_char(ch, "%c%s", UPPER(*i->short_description), i->short_description + 1);
+    /* found something, bingo! */
+    if (CAN_SEE_OBJ(ch, i) && isname(cast_arg2, i->name))
+    {
+      found = TRUE;
 
-    if (i->carried_by)
-      send_to_char(ch, " is being carried by %s.\r\n", PERS(i->carried_by, ch));
-    else if (IN_ROOM(i) != NOWHERE)
-      send_to_char(ch, " is in %s.\r\n", world[IN_ROOM(i)].name);
-    else if (i->in_obj)
-      send_to_char(ch, " is in %s.\r\n", i->in_obj->short_description);
-    else if (i->worn_by)
-      send_to_char(ch, " is being worn by %s.\r\n", PERS(i->worn_by, ch));
-    else
-      send_to_char(ch, "'s location is uncertain.\r\n");
+      send_to_char(ch, "%c%s", UPPER(*i->short_description), i->short_description + 1);
 
-    j--;
+      if (i->carried_by)
+        send_to_char(ch, " is being carried by %s.\r\n", PERS(i->carried_by, ch));
+      else if (IN_ROOM(i) != NOWHERE)
+        send_to_char(ch, " is in %s.\r\n", world[IN_ROOM(i)].name);
+      else if (i->in_obj)
+        send_to_char(ch, " is in %s.\r\n", i->in_obj->short_description);
+      else if (i->worn_by)
+        send_to_char(ch, " is being worn by %s.\r\n", PERS(i->worn_by, ch));
+      else
+        send_to_char(ch, "'s location is uncertain.\r\n");
+
+      j--;
+    }
   }
+
+  if (!found)
+    send_to_char(ch, "Couldn't find any such thing.\r\n");
+
+  return;
 }
 
 ASPELL(spell_mass_domination) // enchantment
