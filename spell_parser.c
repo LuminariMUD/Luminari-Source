@@ -4014,8 +4014,6 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "Your mastermind bonus expires.", 1, 1, NOSCHOOL, FALSE);
 
-  spello(RACIAL_ABILITY_VAMPIRE_DR, "vampire damage reduction", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, FALSE);
   spello(VAMPIRE_ABILITY_CHILDREN_OF_THE_NIGHT, "vampiric children of the night", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 1, 1, NECROMANCY, FALSE);
   spello(ABILITY_CREATE_VAMPIRE_SPAWN, "create vampiric spawn", 0, 0, 0, POS_FIGHTING,
