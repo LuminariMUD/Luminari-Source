@@ -114,7 +114,6 @@ void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
 bool valid_vampire_cloak_apply(int type);
 int get_vampire_cloak_bonus(int level, int type);
-void apply_dr_type(struct char_data *ch, int type);
 bool can_silence(struct char_data *ch);
 int get_default_spell_weapon(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
