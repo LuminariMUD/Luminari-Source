@@ -2724,7 +2724,7 @@ ACMD(do_hit)
       if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL) && !ROOM_FLAGGED(IN_ROOM(vict), ROOM_PEACEFUL))
       {
 
-        if (PRF_FLAGGED(vict, PRF_CONDENSED))
+        if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_CONDENSED))
         {
         }
         else
@@ -2732,7 +2732,7 @@ ACMD(do_hit)
           send_to_char(vict, "\tYYour superior initiative grants the first strike!\tn\r\n");
         }
 
-        if (PRF_FLAGGED(ch, PRF_CONDENSED))
+        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
         }
         else
