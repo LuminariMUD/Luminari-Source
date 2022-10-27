@@ -3662,7 +3662,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
       continue;
 
     /* this is for handling condensed */
-    if (handle_condensed && ch && PRF_FLAGGED(to, PRF_CONDENSED) && CNDNSD(to))
+    if (handle_condensed && ch && !IS_NPC(to) && PRF_FLAGGED(to, PRF_CONDENSED) && CNDNSD(to))
     {
       if (ch && GROUP(ch) && to && GROUP(to) && GROUP(ch) == GROUP(to))
       {
