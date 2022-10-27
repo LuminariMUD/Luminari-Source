@@ -8028,11 +8028,14 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     move = dice(40, 4) + 150;
 
     to_notvict = "$N \twfeels seriously more vigorized\tn.";
+
     if (ch == victim)
       to_char = "You \twfeel seriously more vigorized\tn.";
     else
       to_char = "You \twvigorize serious\tn on $N.";
+
     to_vict = "$n \twvigorizes you seriously.\tn";
+
     break;
 
   case SPELL_VIGORIZE_CRITICAL:
@@ -8217,6 +8220,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (to_char != NULL)
     act(to_char, TRUE, ch, 0, victim, TO_CHAR);
 
+  /* newer centralized function for points (modifying healing, move and psp in one place) */
   process_healing(ch, victim, spellnum, healing, move, psp);
 }
 
