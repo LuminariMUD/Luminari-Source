@@ -66,7 +66,7 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k);
 static void do_stat_character(struct char_data *ch, struct char_data *k);
 static void stop_snooping(struct char_data *ch);
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall);
-static struct char_data *is_in_game(long idnum);
+//static struct char_data *is_in_game(long idnum);
 static void mob_checkload(struct char_data *ch, mob_vnum mvnum);
 static void obj_checkload(struct char_data *ch, obj_vnum ovnum);
 static void trg_checkload(struct char_data *ch, trig_vnum tvnum);
@@ -2395,6 +2395,9 @@ static void mod_llog_entry(struct last_entry *llast, int type)
 
 void add_llog_entry(struct char_data *ch, int type)
 {
+  // Gicker - 2022/10/27 - Let's use the previously 'last complete' functionality to see last logins.
+  return;
+
   FILE *fp;
   struct last_entry *llast;
   int i;
@@ -2503,19 +2506,21 @@ void list_llog_entries(struct char_data *ch)
   }
 }
 
-static struct char_data *is_in_game(long idnum)
-{
-  struct descriptor_data *i;
+// Gicker - 22/10/27 - Not needed right now as we're not using
+// llog system for the last command anymore.
+// static struct char_data *is_in_game(long idnum)
+// {
+//   struct descriptor_data *i;
 
-  for (i = descriptor_list; i; i = i->next)
-  {
-    if (i->character && GET_IDNUM(i->character) == idnum)
-    {
-      return i->character;
-    }
-  }
-  return NULL;
-}
+//   for (i = descriptor_list; i; i = i->next)
+//   {
+//     if (i->character && GET_IDNUM(i->character) == idnum)
+//     {
+//       return i->character;
+//     }
+//   }
+//   return NULL;
+// }
 
 // will show last 40 logins per character with account name, character name and last login time
 void show_full_last_command(struct char_data *ch)
@@ -2563,11 +2568,12 @@ ACMDU(do_last)
 {
   char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   struct char_data *vict = NULL;
-  struct char_data *temp;
-  int recs, i, num = 0;
-  FILE *fp;
-  time_t delta;
-  struct last_entry mlast;
+  //struct char_data *temp;
+  int num = 0;
+  //int recs, i;
+  //FILE *fp;
+  //time_t delta;
+  //struct last_entry mlast;
 
   *name = '\0';
 
@@ -2623,7 +2629,7 @@ ACMDU(do_last)
       send_to_char(ch, "You are not sufficiently godly for that!\r\n");
       return;
     }
-
+    
     send_to_char(ch, "[%5ld] [%2d %s %s] %-12s : %-18s : %-20s\r\n",
                  GET_IDNUM(vict), (int)GET_LEVEL(vict),
                  CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int)GET_RACE(vict)].abbrev_color, GET_NAME(vict),
@@ -2638,46 +2644,51 @@ ACMDU(do_last)
     num = 10;
   }
 
-  if (!(fp = fopen(LAST_FILE, "r")))
-  {
-    send_to_char(ch, "No entries found.\r\n");
-    return;
-  }
-  fseek(fp, 0L, SEEK_END);
-  recs = ftell(fp) / sizeof(struct last_entry);
+  // Gicker - 2022/10/27 - Using last "complete" for this now
+  // As having issues with the llog system
 
-  send_to_char(ch, "Last log\r\n");
-  while (num > 0 && recs > 0)
-  {
-    fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-    i = fread(&mlast, sizeof(struct last_entry), 1, fp);
-    fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
-    if (!*name || (*name && !str_cmp(name, mlast.username)))
-    {
-      send_to_char(ch, "%10.10s %20.20s %16.16s - ",
-                   mlast.username, mlast.hostname, ctime(&mlast.time));
-      if ((temp = is_in_game(mlast.idnum)) && mlast.punique == GET_PREF(temp))
-      {
-        send_to_char(ch, "Still Playing  ");
-      }
-      else
-      {
-        send_to_char(ch, "%5.5s ", ctime(&mlast.close_time) + 11);
-        delta = mlast.close_time - mlast.time;
-        send_to_char(ch, "(%5.5s) ", asctime(gmtime(&delta)) + 11);
-        send_to_char(ch, "%s", last_array[mlast.close_type]);
-      }
+  show_full_last_command(ch);
 
-      send_to_char(ch, "\r\n");
-      num--;
-    }
-    recs--;
-  }
-  fclose(fp);
-  send_to_char(ch, "\r\n"
-                   "Type last complete to see the last 40 logins with account name, character name and login time.\r\n"
-               //"Type last unique to see the last 40 logins, only showing the most recent login per account.\r\n"
-  );
+  // if (!(fp = fopen(LAST_FILE, "r")))
+  // {
+  //   send_to_char(ch, "No entries found.\r\n");
+  //   return;
+  // }
+  // fseek(fp, 0L, SEEK_END);
+  // recs = ftell(fp) / sizeof(struct last_entry);
+
+  // send_to_char(ch, "Last log\r\n");
+  // while (num > 0 && recs > 0)
+  // {
+  //   fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
+  //   i = fread(&mlast, sizeof(struct last_entry), 1, fp);
+  //   fseek(fp, -1 * (sizeof(struct last_entry)), SEEK_CUR);
+  //   if (!*name || (*name && !str_cmp(name, mlast.username)))
+  //   {
+  //     send_to_char(ch, "%10.10s %20.20s %16.16s - ",
+  //                  mlast.username, mlast.hostname, ctime(&mlast.time));
+  //     if ((temp = is_in_game(mlast.idnum)) && mlast.punique == GET_PREF(temp))
+  //     {
+  //       send_to_char(ch, "Still Playing  ");
+  //     }
+  //     else
+  //     {
+  //       send_to_char(ch, "%5.5s ", ctime(&mlast.close_time) + 11);
+  //       delta = mlast.close_time - mlast.time;
+  //       send_to_char(ch, "(%5.5s) ", asctime(gmtime(&delta)) + 11);
+  //       send_to_char(ch, "%s", last_array[mlast.close_type]);
+  //     }
+
+  //     send_to_char(ch, "\r\n");
+  //     num--;
+  //   }
+  //   recs--;
+  // }
+  // fclose(fp);
+  // send_to_char(ch, "\r\n"
+  //                  "Type last complete to see the last 40 logins with account name, character name and login time.\r\n"
+  //              //"Type last unique to see the last 40 logins, only showing the most recent login per account.\r\n"
+  // );
 }
 
 ACMD(do_force)
