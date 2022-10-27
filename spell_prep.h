@@ -301,7 +301,7 @@ extern "C"
 
 /* assuming wizard as our standard, this is the base mem time for a 1st
  * circle spell without any bonuses*/
-#define BASE_PREP_TIME 7
+#define BASE_PREP_TIME 6
 
 /* this is the value added to a circle's prep time to calculate next circle's
  * prep time, example: 7 second for 1st circle + this-interval = 2nd circle
@@ -310,16 +310,16 @@ extern "C"
 
 /* preparation times are modified by this factor, control knobs we will call
          them to easily adjust preparation time for spell */
-#define RANGER_PREP_TIME_FACTOR 4.0
-#define PALADIN_PREP_TIME_FACTOR 4.0
-#define BLACKGUARD_PREP_TIME_FACTOR 4.0
-#define DRUID_PREP_TIME_FACTOR 3.0
-#define WIZ_PREP_TIME_FACTOR 2.5
-#define CLERIC_PREP_TIME_FACTOR 3.0
-#define SORC_PREP_TIME_FACTOR 3.0
-#define BARD_PREP_TIME_FACTOR 3.0
-#define ALCHEMIST_PREP_TIME_FACTOR 3.0
-#define INQUISITOR_PREP_TIME_FACTOR 3.0
+#define RANGER_PREP_TIME_FACTOR 3.0
+#define PALADIN_PREP_TIME_FACTOR 3.0
+#define BLACKGUARD_PREP_TIME_FACTOR 3.0
+#define DRUID_PREP_TIME_FACTOR 2.5
+#define WIZ_PREP_TIME_FACTOR 2.0
+#define CLERIC_PREP_TIME_FACTOR 2.5
+#define SORC_PREP_TIME_FACTOR 2.5
+#define BARD_PREP_TIME_FACTOR 2.5
+#define ALCHEMIST_PREP_TIME_FACTOR 2.5
+#define INQUISITOR_PREP_TIME_FACTOR 2.5
 
 /* these are the subcommands for the prep system primary
        entry point: do_gen_preparation */
