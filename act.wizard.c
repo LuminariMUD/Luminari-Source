@@ -2649,6 +2649,8 @@ ACMDU(do_last)
 
   show_full_last_command(ch);
 
+  send_to_char(ch, "\r\nType 'last unique' to see the most recent unique account logins.\r\n\r\n");
+
   // if (!(fp = fopen(LAST_FILE, "r")))
   // {
   //   send_to_char(ch, "No entries found.\r\n");
