@@ -8610,6 +8610,8 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj,
     act(to_char, TRUE, ch, obj, 0, TO_ROOM);
 }
 
+#define LOOP_LIMIT_MAGCREATE 1000
+/* this function will hand spells that create objects */
 void mag_creations(int level, struct char_data *ch, struct char_data *vict,
                    struct obj_data *obj, int spellnum, int casttype)
 {
@@ -8622,6 +8624,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum gate_dest = NOWHERE;
   char buf[MEDIUM_STRING];
+  int loop_count = 0;
 
   if (ch == NULL)
     return;
@@ -8658,12 +8661,14 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
     /* where is it going? */
     one_argument(cast_arg2, arg, sizeof(arg));
+
     if (!valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE))
     {
       send_to_char(ch, "A bright flash prevents your %s from working!", spellnum == SPELL_GATE ? "spell" : "manifestation");
       return;
     }
 
+    /* astral */
     if (is_abbrev(arg, "astral"))
     {
 
@@ -8675,9 +8680,15 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
       do
       {
+        /* destination! */
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE));
+        loop_count++;
+
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE) ||
+               !valid_mortal_tele_dest(ch, gate_dest, FALSE) || loop_count < LOOP_LIMIT_MAGCREATE);
     }
+
+    /* ethereal */
     else if (is_abbrev(arg, "ethereal"))
     {
 
@@ -8689,9 +8700,15 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
       do
       {
+        /* destination! */
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE));
+        loop_count++;
+
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE) ||
+               !valid_mortal_tele_dest(ch, gate_dest, FALSE) || loop_count < LOOP_LIMIT_MAGCREATE);
     }
+
+    /* elemental */
     else if (is_abbrev(arg, "elemental"))
     {
 
@@ -8703,9 +8720,15 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
       do
       {
+        /* destination! */
         gate_dest = rand_number(0, top_of_world);
-      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL));
+        loop_count++;
+
+      } while (!ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL) ||
+               !valid_mortal_tele_dest(ch, gate_dest, FALSE) || loop_count < LOOP_LIMIT_MAGCREATE);
     }
+
+    /* prime */
     else if (is_abbrev(arg, "prime"))
     {
 
@@ -8720,11 +8743,17 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
       do
       {
+        /* destination! */
         gate_dest = rand_number(0, top_of_world);
+        loop_count++;
+
       } while ((ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ELEMENTAL) ||
                 ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ETH_PLANE) ||
-                ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE)));
+                ZONE_FLAGGED(GET_ROOM_ZONE(gate_dest), ZONE_ASTRAL_PLANE)) ||
+               !valid_mortal_tele_dest(ch, gate_dest, FALSE) || loop_count < LOOP_LIMIT_MAGCREATE);
     }
+
+    /* failed! */
     else
     {
       send_to_char(ch, "Not a valid target (astral, ethereal, elemental, prime)");
@@ -8988,10 +9017,10 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   act(to_room, FALSE, ch, tobj, 0, TO_ROOM);
   load_otrigger(tobj);
 }
+#undef LOOP_LIMIT_MAGCREATE
 
 /* so this function is becoming a beast, we have to support both
-   room-affections AND room-events now
- */
+   room-affections AND room-events now */
 void mag_room(int level, struct char_data *ch, struct obj_data *obj,
               int spellnum, int casttype)
 {
