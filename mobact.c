@@ -338,7 +338,7 @@ bool npc_rescue(struct char_data *ch)
         break;
 
     } while (!victim || victim == ch || !FIGHTING(victim) ||
-             ((GET_MAX_HIT(victim) / GET_HIT(victim)) > 3));
+             ((GET_MAX_HIT(victim) / MAX(1, GET_HIT(victim))) > 3));
 
     if (loop_counter < RESCUE_LOOP && FIGHTING(victim))
     {
