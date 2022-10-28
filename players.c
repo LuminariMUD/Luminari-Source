@@ -2136,7 +2136,7 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "DmgR:\n");
 
     /* DR from affects...*/
-    for (dr = tmp_dr; dr != NULL && 0 <= max_loop--; dr = dr->next)
+    for (dr = tmp_dr; dr != NULL && 0 <= max_loops--; dr = dr->next)
     {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
@@ -2149,7 +2149,7 @@ void save_char(struct char_data *ch, int mode)
     max_loops = 100;
 
     /* Permanent DR. */
-    for (dr = GET_DR(ch); dr != NULL && 0 <= max_loop--; dr = dr->next)
+    for (dr = GET_DR(ch); dr != NULL && 0 <= max_loops--; dr = dr->next)
     {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
@@ -2390,7 +2390,7 @@ static void load_dr(FILE *f1, struct char_data *ch)
         log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
       }
     }
-  } while (num != 0 || 0 <= max_loop--);
+  } while (num != 0 && 0 <= max_loops--);
 }
 
 /* load_affects function now handles both 32-bit and
