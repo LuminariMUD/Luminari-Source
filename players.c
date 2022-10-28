@@ -2131,10 +2131,12 @@ void save_char(struct char_data *ch, int mode)
   {
     struct damage_reduction_type *dr;
     int k = 0;
+    int max_loops = 100; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
 
     fprintf(fl, "DmgR:\n");
+
     /* DR from affects...*/
-    for (dr = tmp_dr; dr != NULL; dr = dr->next)
+    for (dr = tmp_dr; dr != NULL && 0 <= max_loop--; dr = dr->next)
     {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
@@ -2142,8 +2144,12 @@ void save_char(struct char_data *ch, int mode)
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }
     }
+
+    /* reset our counter */
+    max_loops = 100;
+
     /* Permanent DR. */
-    for (dr = GET_DR(ch); dr != NULL; dr = dr->next)
+    for (dr = GET_DR(ch); dr != NULL && 0 <= max_loop--; dr = dr->next)
     {
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
@@ -2151,8 +2157,11 @@ void save_char(struct char_data *ch, int mode)
         fprintf(fl, "%d %d\n", dr->bypass_cat[k], dr->bypass_val[k]);
       }
     }
+
+    /* done close off */
     fprintf(fl, "0 0 0 0 0\n");
   }
+  /* end DR saving */
 
   write_aliases_ascii(fl, ch);
   save_char_vars_ascii(fl, ch);
@@ -2341,6 +2350,7 @@ static void load_dr(FILE *f1, struct char_data *ch)
   struct damage_reduction_type *dr;
   int i, num, num2, num3, num4, num5, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
+  int max_loops = 100; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
 
   do
   {
@@ -2380,7 +2390,7 @@ static void load_dr(FILE *f1, struct char_data *ch)
         log("SYSERR: Invalid dr in pfile (%s), expecting 5 values", GET_NAME(ch));
       }
     }
-  } while (num != 0);
+  } while (num != 0 && 0 <= max_loop--);
 }
 
 /* load_affects function now handles both 32-bit and
