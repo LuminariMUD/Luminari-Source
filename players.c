@@ -2350,7 +2350,7 @@ static void load_dr(FILE *f1, struct char_data *ch)
   struct damage_reduction_type *dr;
   int i, num, num2, num3, num4, num5, n_vars;
   char line[MAX_INPUT_LENGTH + 1];
-  int max_loops = 100; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
+  int max_loops = 200; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
 
   do
   {
