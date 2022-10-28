@@ -2130,14 +2130,34 @@ void save_char(struct char_data *ch, int mode)
   if ((tmp_dr != NULL) || (GET_DR(ch) != NULL))
   {
     struct damage_reduction_type *dr;
-    int k = 0;
+    int k = 0, x = 0;
     int max_loops = 100; /* zusuk put this here to limit the loop, we were having issues with pfiles 10/27/22 */
+    int snum[100];
+    bool found = false;
 
     fprintf(fl, "DmgR:\n");
 
     /* DR from affects...*/
     for (dr = tmp_dr; dr != NULL && 0 <= max_loops--; dr = dr->next)
     {
+      // dupe check -- only want one DR entry per spell/ability/power
+      found = false;
+      for (x = 0; x < 100; x++)
+      {
+        if (snum[x] == dr->spell)
+        {
+          found = true;
+          break;
+        }
+        else if (snum[x] ==  0)
+        {
+          snum[x] = dr->spell;
+          break;
+        }
+      }
+      if (found || x == 100)
+        continue;
+
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
       {
@@ -2151,6 +2171,23 @@ void save_char(struct char_data *ch, int mode)
     /* Permanent DR. */
     for (dr = GET_DR(ch); dr != NULL && 0 <= max_loops--; dr = dr->next)
     {
+      // dupe check -- only want one DR entry per spell/ability/power
+      found = false;
+      for (x = 0; x < 100; x++)
+      {
+        if (snum[x] == dr->spell)
+        {
+          found = true;
+          break;
+        }
+        else if (snum[x] == 0)
+        {
+          snum[x] = dr->spell;
+          break;
+        }
+      }
+      if (found || x == 100)
+        continue;
       fprintf(fl, "1 %d %d %d %d\n", dr->amount, dr->max_damage, dr->spell, dr->feat);
       for (k = 0; k < MAX_DR_BYPASS; k++)
       {
