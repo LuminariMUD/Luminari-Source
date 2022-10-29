@@ -5894,6 +5894,45 @@ ACMDU(do_group)
     leave_group(vict);
   }
 
+  /* leader can appoint new leader */
+  else if (is_abbrev(buf, "appoint"))
+  {
+    skip_spaces(&argument);
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, "Appoint who?\r\n");
+      return;
+    }
+    else if (vict == ch)
+    {
+      send_to_char(ch, "You are already leading.\r\n");
+      return;
+    }
+    else if (!GROUP(ch))
+    {
+      send_to_char(ch, "But you are not part of a group.\r\n");
+      return;
+    }
+    else if (GROUP_LEADER(GROUP(ch)) != ch)
+    {
+      send_to_char(ch, "Only the group's leader can appoint.\r\n");
+      return;
+    }
+    else if (GROUP(vict) != GROUP(ch))
+    {
+      send_to_char(ch, "They are not a member of your group!\r\n");
+      return;
+    }
+
+    /* this is all we're really doing here :) */
+    GROUP_LEADER(GROUP(ch)) = vict;
+
+    /* send some messages and we're done */
+    send_to_char(ch, "You have appointed %s as the new leader of the group.\r\n", GET_NAME(vict));
+    send_to_char(vict, "You have been promoted to group leader.\r\n");
+    send_to_group(NULL, group, "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(group)));
+  }
+
   /* member can leave group */
   else if (is_abbrev(buf, "leave"))
   {
