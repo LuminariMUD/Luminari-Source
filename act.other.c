@@ -5930,7 +5930,7 @@ ACMDU(do_group)
     /* send some messages and we're done */
     send_to_char(ch, "You have appointed %s as the new leader of the group.\r\n", GET_NAME(vict));
     send_to_char(vict, "You have been promoted to group leader.\r\n");
-    send_to_group(NULL, group, "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(group)));
+    send_to_group(NULL, ch->group, "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(ch->group)));
   }
 
   /* member can leave group */
