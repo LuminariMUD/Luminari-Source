@@ -5864,7 +5864,7 @@ ACMDU(do_group)
   else if (is_abbrev(buf, "kick"))
   {
     skip_spaces(&argument);
-    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_WORLD)))
     {
       send_to_char(ch, "Kick out who?\r\n");
       return;
