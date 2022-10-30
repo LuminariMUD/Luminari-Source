@@ -7621,14 +7621,18 @@ static const char *const hints[] = {
            "'Weaver and Fagn's' owned by Ellyanor and ran by Kyrt."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*57*/ "\tR[HINT]:\tn \ty"
-           "There is a player-owned shop in Sanctus, where you can buy some different gear."
+           "There is a player-owned shop in Sanctus, where you can buy some different gear.  "
            "From the Center of Sanctus, head 3 south, 1 west, then 1 north.  You will find "
            "'The Kobold's Den' owned by Thimblethorp and ran by Ickthak."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*58*/ "\tR[HINT]:\tn \ty"
-           "There is a player-owned shop in Ashenport, where you can buy very powerful end-game gear."
+           "There is a player-owned shop in Ashenport, where you can buy very powerful end-game gear.  "
            "From Inside the Northern Gates of Ashenport, head 1 south, 1 west, then 1 north.  You will "
            "find 'Brondo's Bar and Grill' owned by Brondo and ran by The Towering Woman."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*59*/ "\tR[HINT]:\tn \ty"
+           "Whispers of a horrific vampire attack southwest of Beregost have attracted the eyes of "
+           "powerful entities...  (Level 30 Group Content)\r\n"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
