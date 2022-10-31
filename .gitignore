@@ -2,6 +2,9 @@
 # LuminariMUD project
 # Checked by Zusuk
 
+# Special Files
+campaign.h
+
 # Prerequisites
 *.d
 

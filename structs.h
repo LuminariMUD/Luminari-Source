@@ -16,6 +16,13 @@
 #include "protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
+// You will need to add a campaign.h file, which is not included in the git repo.
+// You can leave it blank, unless you want to add special campaign/theme-specific
+// code separate from the regular Luminari code.  In this case add a #define
+// for the campaign that you can use to disable luminari code you don't want in
+// and add theme-specific code. This is mainly used for the Faerun codebase.
+#include "campaign.h"
+
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
  * macro was introduced in pl13.  Any future code add-ons could take into
