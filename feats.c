@@ -1182,7 +1182,8 @@ void assign_feats(void)
   feat_prereq_feat(FEAT_ARMOR_PROFICIENCY_HEAVY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
   feato(FEAT_ARMOR_PROFICIENCY_SHIELD, "shield armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "able to use bucklers, shields without penalty ",
-        "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields.  Without this proficiency, wearing a shield will incur");
+        "able to use bucklers, light, medium and heavy shields without penalty, does not include tower shields.  "
+        "Without this proficiency, wearing a shield will incur a -2 penalty to combat related dice rolls.");
   feato(FEAT_ARMOR_PROFICIENCY_TOWER_SHIELD, "tower shield proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "can use tower shields without penalties",
         "can use tower shields without penalties");
