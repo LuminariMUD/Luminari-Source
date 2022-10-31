@@ -5864,7 +5864,7 @@ ACMDU(do_group)
   else if (is_abbrev(buf, "kick"))
   {
     skip_spaces(&argument);
-    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_WORLD)))
     {
       send_to_char(ch, "Kick out who?\r\n");
       return;
@@ -5892,6 +5892,45 @@ ACMDU(do_group)
     send_to_char(ch, "You have kicked %s out of the group.\r\n", GET_NAME(vict));
     send_to_char(vict, "You have been kicked out of the group.\r\n");
     leave_group(vict);
+  }
+
+  /* leader can appoint new leader */
+  else if (is_abbrev(buf, "appoint"))
+  {
+    skip_spaces(&argument);
+    if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_WORLD)))
+    {
+      send_to_char(ch, "Appoint who?\r\n");
+      return;
+    }
+    else if (vict == ch)
+    {
+      send_to_char(ch, "You are already leading.\r\n");
+      return;
+    }
+    else if (!GROUP(ch))
+    {
+      send_to_char(ch, "But you are not part of a group.\r\n");
+      return;
+    }
+    else if (GROUP_LEADER(GROUP(ch)) != ch)
+    {
+      send_to_char(ch, "Only the group's leader can appoint.\r\n");
+      return;
+    }
+    else if (GROUP(vict) != GROUP(ch))
+    {
+      send_to_char(ch, "They are not a member of your group!\r\n");
+      return;
+    }
+
+    /* this is all we're really doing here :) */
+    GROUP_LEADER(GROUP(ch)) = vict;
+
+    /* send some messages and we're done */
+    send_to_char(ch, "You have appointed %s as the new leader of the group.\r\n", GET_NAME(vict));
+    send_to_char(vict, "You have been promoted to group leader.\r\n");
+    send_to_group(NULL, GROUP(ch), "%s has assumed leadership of the group.\r\n", GET_NAME(GROUP_LEADER(GROUP(ch))));
   }
 
   /* member can leave group */
@@ -7582,14 +7621,18 @@ static const char *const hints[] = {
            "'Weaver and Fagn's' owned by Ellyanor and ran by Kyrt."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*57*/ "\tR[HINT]:\tn \ty"
-           "There is a player-owned shop in Sanctus, where you can buy some different gear."
+           "There is a player-owned shop in Sanctus, where you can buy some different gear.  "
            "From the Center of Sanctus, head 3 south, 1 west, then 1 north.  You will find "
            "'The Kobold's Den' owned by Thimblethorp and ran by Ickthak."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*58*/ "\tR[HINT]:\tn \ty"
-           "There is a player-owned shop in Ashenport, where you can buy very powerful end-game gear."
+           "There is a player-owned shop in Ashenport, where you can buy very powerful end-game gear.  "
            "From Inside the Northern Gates of Ashenport, head 1 south, 1 west, then 1 north.  You will "
            "find 'Brondo's Bar and Grill' owned by Brondo and ran by The Towering Woman."
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+    /*59*/ "\tR[HINT]:\tn \ty"
+           "Whispers of a horrific vampire attack southwest of Beregost have attracted the eyes of "
+           "powerful entities...  (Level 30 Group Content)\r\n"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 
 };
