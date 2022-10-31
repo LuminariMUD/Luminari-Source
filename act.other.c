@@ -5647,7 +5647,7 @@ static void print_group(struct char_data *ch)
                  psp_clr, GET_PSP(k), GET_MAX_PSP(k),
                  mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
                  MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
-                 IN_ROOM(ch) == IN_ROOM(k) ? "@YIR@n" : "@RAB@n",
+                 IN_ROOM(ch) == IN_ROOM(k) ? "\tYIR\tn" : "\tRAB\tn",
                  CCNRM(ch, C_NRM));
   }
 }
