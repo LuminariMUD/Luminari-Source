@@ -5642,7 +5642,7 @@ static void print_group(struct char_data *ch)
 
     send_to_char(ch, "%s%-*s: %s [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d TNL]%s\r\n",
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
-                 count_color_chars(GET_NAME(k)) + 4, GET_NAME(k),
+                 count_color_chars(GET_NAME(k)) + 12, GET_NAME(k),
                  IN_ROOM(ch) == IN_ROOM(k) ? "\tYIR\tn" : "\tRAB\tn",
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
                  psp_clr, GET_PSP(k), GET_MAX_PSP(k),
