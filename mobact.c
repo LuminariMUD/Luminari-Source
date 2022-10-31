@@ -302,7 +302,7 @@ bool npc_rescue(struct char_data *ch)
 {
 
   if (!ch)
-    return;
+    return false;
 
   if (ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_NO_CHARMIE_RESCUE))
     return false;
