@@ -301,6 +301,9 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict)
 bool npc_rescue(struct char_data *ch)
 {
 
+  if (!ch)
+    return;
+
   if (ch->master && !IS_NPC(ch->master) && PRF_FLAGGED(ch->master, PRF_NO_CHARMIE_RESCUE))
     return false;
 

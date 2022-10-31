@@ -5640,13 +5640,14 @@ static void print_group(struct char_data *ch)
     else
       psp_clr = CBFRED(ch, C_NRM);
 
-    send_to_char(ch, "%s%-*s: [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d XP TNL]%s\r\n",
+    send_to_char(ch, "%s%-*s: [%s%4d\tn/%-4d]H [%s%4d\tn/%-4d]P [%s%4d\tn/%-4d]V [%d TNL] %s%s\r\n",
                  GROUP_LEADER(GROUP(ch)) == k ? "\tG*\tn" : " ",
-                 count_color_chars(GET_NAME(k)) + 28, GET_NAME(k),
+                 count_color_chars(GET_NAME(k)) + 14, GET_NAME(k),
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
                  psp_clr, GET_PSP(k), GET_MAX_PSP(k),
                  mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
                  MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
+                 IN_ROOM(ch) == IN_ROOM(k) ? "@YIR@n" : "@RAB@n",
                  CCNRM(ch, C_NRM));
   }
 }
