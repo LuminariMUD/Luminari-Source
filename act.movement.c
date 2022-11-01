@@ -2163,6 +2163,7 @@ static int find_door(struct char_data *ch, const char *type, char *dir, const ch
 #define PRISONER_KEY_1 132130
 #define PRISONER_KEY_2 132129
 #define PRISONER_KEY_3 132150
+/* this function will destroy the keyvnums that go through it so they can't be horded, called by has_key() */
 int is_evaporating_key(struct char_data *ch, obj_vnum key)
 {
   if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
@@ -2206,17 +2207,23 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key)
   return FALSE;
 }
 
+/* this function checks that ch has in inventory or held an object with matching vnum as the door-key value
+     note - added a check for NOTHING or -1 vnum key value so corpses can't be used to open these doors -zusuk */
 int has_key(struct char_data *ch, obj_vnum key)
 {
 
+  /* special key handling */
   switch (key)
   {
+
+    /* these keys will break upon usage so they can't be horded */
   case PRISONER_KEY_1:
   /*fallthrough*/
   case PRISONER_KEY_2:
   /*fallthrough*/
   case PRISONER_KEY_3:
     return (is_evaporating_key(ch, key));
+
   default:
     break;
   }
@@ -2224,7 +2231,7 @@ int has_key(struct char_data *ch, obj_vnum key)
   if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
     return (1);
 
-  if (key == NOTHING || key == -1)
+  if (key == NOTHING || key <= -1)
     return (0);
 
   struct obj_data *o = NULL;
