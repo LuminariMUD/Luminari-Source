@@ -2224,6 +2224,9 @@ int has_key(struct char_data *ch, obj_vnum key)
   if (!IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT && PRF_FLAGGED(ch, PRF_NOHASSLE))
     return (1);
 
+  if (key == NOTHING || key == -1)
+    return (0);
+
   struct obj_data *o = NULL;
 
   for (o = ch->carrying; o; o = o->next_content)
