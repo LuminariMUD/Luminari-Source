@@ -2232,8 +2232,9 @@ int has_key(struct char_data *ch, obj_vnum key)
     return (1);
 
   /* debug */
-  send_to_char(ch, "key vnum: %d", key);
+  /* send_to_char(ch, "key vnum: %d", key); */
 
+  /* players were using corpses to open doors
   if (key == NOTHING || key <= 0)
     return (0);
 
