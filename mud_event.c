@@ -196,6 +196,8 @@ struct mud_event_list mud_event_index[] = {
     {"Insect Being", event_daily_use_cooldown, EVENT_CHAR},                        // eINSECTBEING
     /*145*/
     {"Blur attack delay", event_countdown, EVENT_CHAR}, // eBLUR_ATTACK_DELAY
+    {"Tinker ability delay", event_countdown, EVENT_CHAR}, // eTINKER
+    {"Moonbeam", event_moonbeam, EVENT_CHAR}, //eMOONBEAM
 
 };
 
@@ -309,6 +311,9 @@ EVENTFUNC(event_countdown)
     send_to_char(ch, "You are now able to vanish again.\r\n");
     break;
   case eMASTERMIND:
+    send_to_char(ch, "You are now able to use your mastermind ability again.\r\n");
+    break;
+  case eTINKER:
     send_to_char(ch, "You are now able to use your mastermind ability again.\r\n");
     break;
   case eINVISIBLE_ROGUE:
@@ -736,6 +741,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eMASTERMIND:
     featnum = FEAT_MASTER_OF_THE_MIND;
     send_to_char(ch, "One of your mastermind ability uses has recovered.\r\n");
+    break;
+  case eTINKER:
+    featnum = FEAT_TINKER;
+    send_to_char(ch, "One of your tinker ability uses has recovered.\r\n");
     break;
   case eCHANNELENERGY:
     featnum = FEAT_CHANNEL_ENERGY;

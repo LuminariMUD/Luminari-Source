@@ -627,7 +627,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"research", "research", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"releasegrapple", "releasegrapple", POS_FIGHTING, do_free_grapple, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"reneweddefense", "reneweddefense", POS_RECLINING, do_reneweddefense, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_reneweddefense},
-    {"race", "race", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"races", "races", POS_DEAD, do_race, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"racefix", "racefix", POS_DEAD, do_racefix, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rp", "rp", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resetpassword", "resetpassword", POS_DEAD, do_resetpassword, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -720,6 +721,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"thaw", "thaw", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_THAW, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"title", "title", POS_DEAD, do_title, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"time", "time", POS_DEAD, do_time, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"tinker", "tinker", POS_STANDING, do_tinker, 0, 0, TRUE, ACTION_NONE, {0, 0}, can_tinker},
     {"toggle", "toggle", POS_DEAD, do_toggle, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"track", "track", POS_STANDING, do_track, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"train", "tr", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -2655,10 +2657,10 @@ void nanny(struct descriptor_data *d, char *arg)
       perform_help(d, "race-human");
       break;
     case RACE_ELF:
-      perform_help(d, "race-elf");
+      perform_help(d, "race-moon-elf");
       break;
     case RACE_DWARF:
-      perform_help(d, "race-dwarf");
+      perform_help(d, "race-mountain-dwarf");
       break;
     case RACE_DUERGAR:
       perform_help(d, "race-duergar");
@@ -2667,7 +2669,7 @@ void nanny(struct descriptor_data *d, char *arg)
       perform_help(d, "race-half-troll");
       break;
     case RACE_HALFLING:
-      perform_help(d, "race-halfling");
+      perform_help(d, "race-lightfoot-halfling");
       break;
     case RACE_H_ELF:
       perform_help(d, "race-halfelf");
@@ -2676,7 +2678,7 @@ void nanny(struct descriptor_data *d, char *arg)
       perform_help(d, "race-halforc");
       break;
     case RACE_GNOME:
-      perform_help(d, "race-gnome");
+      perform_help(d, "race-rock-gnome");
       break;
     case RACE_ARCANA_GOLEM:
       perform_help(d, "race-arcana-golem");
@@ -2690,11 +2692,41 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_TRELUX:
       perform_help(d, "race-trelux");
       break;
-    case RACE_LICH:
-      perform_help(d, "race-lich");
+    case RACE_HIGH_ELF:
+      perform_help(d, "race-high-elf");
       break;
-    case RACE_VAMPIRE:
-      perform_help(d, "race-vampire");
+    case RACE_WILD_ELF:
+      perform_help(d, "race-wild-elf");
+      break;
+    case RACE_HALF_DROW:
+      perform_help(d, "race-half-drow");
+      break;
+    case RACE_DRAGONBORN:
+      perform_help(d, "race-dragonborn");
+      break;
+    case RACE_TIEFLING:
+      perform_help(d, "race-tielfing");
+      break;
+    case RACE_STOUT_HALFLING:
+      perform_help(d, "race-stout-halfling");
+      break;
+    case RACE_FOREST_GNOME:
+      perform_help(d, "race-forest-gnome");
+      break;
+    case RACE_GOLD_DWARF:
+      perform_help(d, "race-gold-dwarf");
+      break;
+    case RACE_AASIMAR:
+      perform_help(d, "race-aasimar");
+      break;
+    case RACE_TABAXI:
+      perform_help(d, "race-tabaxi");
+      break;
+    case RACE_GOLIATH:
+      perform_help(d, "race-goliath");
+      break;
+    case RACE_SHADE:
+      perform_help(d, "race-shade");
       break;
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");

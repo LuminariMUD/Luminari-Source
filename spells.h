@@ -509,9 +509,12 @@
 #define SPELL_GASEOUS_FORM 439
 #define SPELL_RESTORATION 440
 #define SPELL_GAS_BREATHE 441 // done, [not spell]
+#define SPELL_MINOR_ILLUSION 442
+#define SPELL_MOONBEAM 443
+#define SPELL_HELLISH_REBUKE 444
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 442
+#define NUM_SPELLS 445
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1342,6 +1345,7 @@ ASPELL(spell_wizard_eye);
 ASPELL(spell_spiritual_weapon);
 ASPELL(spell_dancing_weapon);
 ASPELL(spell_holy_javelin);
+ASPELL(spell_moonbeam);
 // psionics
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);
@@ -1448,6 +1452,17 @@ bool is_spell_mind_affecting(int snum);
 
 /* magic.c */
 bool isSummonMob(int vnum);
+
+sbyte isHighElfCantrip(struct char_data *ch, int spellnum);
+sbyte canCastAtWill(struct char_data *ch, int spellnum);
+sbyte isLunarMagic(struct char_data *ch, int spellnum);
+sbyte isDrowMagic(struct char_data *ch, int spellnum);
+sbyte isTieflingMagic(struct char_data *ch, int spellnum);
+sbyte isDuergarMagic(struct char_data *ch, int spellnum);
+sbyte isForestGnomeMagic(struct char_data *ch, int spellnum);
+sbyte isAasimarMagic(struct char_data *ch, int spellnum);
+sbyte isNaturalIllusion(struct char_data *ch, int spellnum);
+sbyte isPrimordialMagic(struct char_data *ch, int spellnum);
 
 /**/
 

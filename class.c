@@ -1780,7 +1780,7 @@ void roll_real_abils(struct char_data *ch)
   ch->aff_abils = ch->real_abils;
 }
 
-/* DEPRECATED */
+// Mostly deprecated... still used for racefix
 /* Information required for character leveling in regards to free feats
    1) required class
    2) required race
@@ -1796,23 +1796,29 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Human */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_QUICK_TO_MASTER},
     {CLASS_UNDEFINED, RACE_HUMAN, FALSE, 1, FEAT_SKILLED},
 
     /* class, race, stacks?, level, feat_ name */
     /* Dwarf */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_POISON_RESIST},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_STABILITY},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_SPELL_HARDINESS},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
     {CLASS_UNDEFINED, RACE_DWARF, FALSE, 1, FEAT_DWARF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_SHIELD_DWARF, FALSE, 1, FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_SHIELD_DWARF, FALSE, 1, FEAT_SHIELD_DWARF_ARMOR_TRAINING},
+    {CLASS_UNDEFINED, RACE_SHIELD_DWARF, FALSE, 1, FEAT_ARMOR_PROFICIENCY_LIGHT},
+    {CLASS_UNDEFINED, RACE_SHIELD_DWARF, FALSE, 1, FEAT_ARMOR_PROFICIENCY_MEDIUM},
+    {CLASS_UNDEFINED, RACE_SHIELD_DWARF, FALSE, 1, FEAT_DWARVEN_WEAPON_PROFICIENCY},
+    {CLASS_UNDEFINED, RACE_SHIELD_DWARF, FALSE, 1, FEAT_ENCUMBERED_RESILIENCE},
 
     /* class, race, stacks?, level, feat_ name */
     /* Half-Troll */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_TROLL_REGENERATION},
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_WEAKNESS_TO_FIRE},
@@ -1823,41 +1829,52 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Halfling */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_SHADOW_HOPPER},
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_LUCKY},
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
     {CLASS_UNDEFINED, RACE_HALFLING, FALSE, 1, FEAT_HALFLING_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_LIGHTFOOT_HALFLING, FALSE, 1, FEAT_LIGHTFOOT_HALFLING_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_LIGHTFOOT_HALFLING, FALSE, 1, FEAT_NATURALLY_STEALTHY},
 
     /* class, race, stacks?, level, feat_ name */
     /* Half-Elf */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_HALF_BLOOD},
     {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_KEEN_SENSES},
+    {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_ADAPTABILITY},
+    {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_HALF_ELF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_HALF_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
 
     /* class, race, stacks?, level, feat_ name */
     /* Half-Orc */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_HALF_ORC_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_MENACING},
+    {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_RELENTLESS_ENDURANCE},
+    {CLASS_UNDEFINED, RACE_HALF_ORC, FALSE, 1, FEAT_SAVAGE_ATTACKS},
 
     /* class, race, stacks?, level, feat_ name */
     /* Gnome */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_COMBAT_TRAINING_VS_GIANTS},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_RESISTANCE_TO_ILLUSIONS},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_ILLUSION_AFFINITY},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_TINKER_FOCUS},
     {CLASS_UNDEFINED, RACE_GNOME, FALSE, 1, FEAT_GNOME_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_ROCK_GNOME, FALSE, 1, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_ROCK_GNOME, FALSE, 1, FEAT_ARTIFICERS_LORE},
+    {CLASS_UNDEFINED, RACE_ROCK_GNOME, FALSE, 1, FEAT_TINKER},
 
     /* class, race, stacks?, level, feat_ name */
     /* Trelux */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_VITAL},
     {CLASS_UNDEFINED, RACE_TRELUX, FALSE, 1, FEAT_HARDY},
@@ -1871,7 +1888,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Lich */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_LICH_RACIAL_ADJUSTMENT},
     {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_VITAL},
     {CLASS_UNDEFINED, RACE_LICH, FALSE, 1, FEAT_HARDY},
@@ -1893,17 +1910,20 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* elf */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_KEEN_SENSES},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
     {CLASS_UNDEFINED, RACE_ELF, FALSE, 1, FEAT_ELF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_MOON_ELF, FALSE, 1, FEAT_MOON_ELF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_MOON_ELF, FALSE, 1, FEAT_MOON_ELF_LUNAR_MAGIC},
+    {CLASS_UNDEFINED, RACE_MOON_ELF, FALSE, 1, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT},
 
     /* class, race, stacks?, level, feat_ name */
     /* crystal dwarf */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_BODY},
     {CLASS_UNDEFINED, RACE_CRYSTAL_DWARF, FALSE, 1, FEAT_CRYSTAL_FIST},
@@ -1916,7 +1936,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Arcana Golem */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELLBATTLE},
     {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_SPELL_VULNERABILITY},
     {CLASS_UNDEFINED, RACE_ARCANA_GOLEM, FALSE, 1, FEAT_ENCHANTMENT_VULNERABILITY},
@@ -1926,7 +1946,7 @@ static int level_feats[][LEVEL_FEATS] = {
 
     /* class, race, stacks?, level, feat_ name */
     /* Drow */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_KEEN_SENSES},
@@ -1937,12 +1957,13 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_FAERIE_FIRE},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_LEVITATE},
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_SLA_DARKNESS},
+    {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_DROW_INNATE_MAGIC},
     // disadvantage
     {CLASS_UNDEFINED, RACE_DROW, FALSE, 1, FEAT_LIGHT_BLINDNESS},
 
     /* class, race, stacks?, level, feat_ name */
     /* Duergar */
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_ULTRAVISION},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_POISON_RESIST},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_PHANTASM_RESIST},
@@ -1954,13 +1975,25 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_INVIS},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_STRENGTH},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_ENLARGE},
+    {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_DUERGAR_MAGIC},
+
+      /* wood elf */
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_INFRAVISION},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_KEEN_SENSES},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_ELF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_WOOD_ELF_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_WOOD_ELF_FLEETNESS},
+    {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_WOOD_ELF_MASK_OF_THE_WILD},
 
     /*****************************************/
     /* This is always the last array element */
     /*****************************************/
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
     {CLASS_UNDEFINED, RACE_UNDEFINED, FALSE, 1, FEAT_UNDEFINED}
-    /* DEPRECATED */
+    // Mostly deprecated... still used for racefix
 
 };
 
@@ -2369,10 +2402,12 @@ void init_start_char(struct char_data *ch)
     KNOWS_CRUELTY(ch, i) = 0;
   ch->player_specials->saved.fiendish_boons = 0;
   ch->player_specials->saved.channel_energy_type = 0;
+  // this is here so that new characters can't get extra stat points from racefix command.
+  ch->player_specials->saved.new_race_stats = true;
 
-  /* clear immortal flags */
-  if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
-    i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
+      /* clear immortal flags */
+      if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+          i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
   if (PRF_FLAGGED(ch, PRF_NOHASSLE))
     i = PRF_TOG_CHK(ch, PRF_NOHASSLE);
   if (PRF_FLAGGED(ch, PRF_SHOWVNUMS))
@@ -2575,8 +2610,7 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-  ++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -3104,6 +3138,10 @@ void advance_level(struct char_data *ch, int class)
   {
     add_move += rand_number(10, 20);
   }
+  if (HAS_FEAT(ch, FEAT_WOOD_ELF_FLEETNESS))
+  {
+    add_move += 2;
+  }
 
   /* 'free' race feats gained (old system) */
   // process_level_feats(ch, class);
@@ -3148,8 +3186,7 @@ void advance_level(struct char_data *ch, int class)
   }
   if (!(GET_LEVEL(ch) % 4))
   {
-    GET_BOOSTS(ch)
-    ++;
+    GET_BOOSTS(ch)++;
     if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
@@ -4435,6 +4472,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_PROTECTION_FROM_ENERGY, 5);
   spell_assignment(CLASS_DRUID, SPELL_WIND_WALL, 5);
   spell_assignment(CLASS_DRUID, SPELL_VIGORIZE_CRITICAL, 5);
+  spell_assignment(CLASS_DRUID, SPELL_MOONBEAM, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_DRUID, SPELL_BLIGHT, 7);
@@ -7604,6 +7642,99 @@ bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy)
   }
 
   return false;
+}
+
+
+ACMD(do_racefix)
+{
+  int i = 0;
+  bool found = false;
+
+  while (level_feats[i][4] != FEAT_UNDEFINED)
+  {
+    if (level_feats[i][1] == GET_REAL_RACE(ch) && !HAS_REAL_FEAT(ch, level_feats[i][4]))
+    {
+      send_to_char(ch, "You have gained the %s racial feat.\r\n", feat_list[level_feats[i][4]].name);
+      SET_FEAT(ch, level_feats[i][4], 1);
+      found = true;
+    }
+    i++;
+  }
+
+  // We want to fix the stats, because new stats are better than old
+  if (ch->player_specials->saved.new_race_stats == false)
+  {
+    switch (GET_REAL_RACE(ch))
+    {
+    case RACE_MOON_ELF:
+      ch->real_abils.str += 2;
+      ch->real_abils.wis += 1;
+      send_to_char(ch, "Your strength has been increased by two and your wisdom by one.\r\n");
+      break;
+    case RACE_SHIELD_DWARF:
+      ch->real_abils.cha += 2;
+      ch->real_abils.str += 1;
+      send_to_char(ch, "Your strength has been increased by one and your charisma by two.\r\n");
+      break;
+    case RACE_ROCK_GNOME:
+      ch->real_abils.con -= 1;
+      ch->real_abils.intel += 2;
+      ch->real_abils.str += 2;
+      send_to_char(ch, "Your strength has been increased by two and your intelligence by two. Your consitiution has been reduced by one.\r\n");
+      break;
+    case RACE_LIGHTFOOT_HALFLING:
+      ch->real_abils.cha += 1;
+      ch->real_abils.str += 2;
+      send_to_char(ch, "Your strength has been increased by two and your charisma by one.\r\n");
+      break;
+    case RACE_HALF_ELF:
+      ch->real_abils.cha += 2;
+      send_to_char(ch, "Your charisma has been increased by two.\r\n");
+      break;
+    case RACE_HALF_ORC:
+      ch->real_abils.cha += 2;
+      ch->real_abils.intel += 2;
+      ch->real_abils.con += 1;
+      send_to_char(ch, "Your charisma and intelligence have been increased by two, and your constitution by one.\r\n");
+      break;
+    case RACE_HALF_TROLL:
+      ch->real_abils.cha += 2;
+      ch->real_abils.intel += 2;
+      ch->real_abils.wis += 2;
+      ch->real_abils.con += 2;
+      send_to_char(ch, "Your penalties to int, wis and cha have been improved from -4 to -2.  Your con has been improved by 2.\r\n");
+      break;
+    case RACE_ARCANA_GOLEM:
+      ch->real_abils.cha += 1;
+      ch->real_abils.intel += 1;
+      ch->real_abils.wis += 1;
+      ch->real_abils.con += 2;
+      ch->real_abils.str += 2;
+      send_to_char(ch, "Your penalties to str and con have been negated.  Your str, con and dex bonuses have been improved by 1.\r\n");
+      break;
+    case RACE_DROW:
+      ch->real_abils.intel += 2;
+      ch->real_abils.con += 2;
+      send_to_char(ch, "Your penalty to con has been negated and your int has increased by two.\r\n");
+      break;
+    case RACE_DUERGAR:
+      ch->real_abils.cha += 2;
+      ch->real_abils.str += 2;
+      send_to_char(ch, "Your penalty to cha has been negated and your str has increased by two.\r\n");
+      break;
+    case RACE_CRYSTAL_DWARF:
+      ch->real_abils.dex += 2;
+      ch->real_abils.wis += 2;
+      send_to_char(ch, "Your dex and wis have been increased by two.\r\n");
+      break;
+    }
+  }
+
+  // So they an only get extra stats once.
+  ch->player_specials->saved.new_race_stats = true;
+
+  if (!found)
+    send_to_char(ch, "You already have all your racial feats.\r\n");
 }
 
 /** LOCAL UNDEFINES **/

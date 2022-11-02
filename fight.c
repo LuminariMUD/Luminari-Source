@@ -893,6 +893,12 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     ac_bonus += MAX(GET_OBJ_VAL(ac_piece, 4), get_char_affect_modifier(ch, SPELL_MAGIC_VESTMENT, APPLY_SPECIAL));
   }
 
+  if (GET_EQ(ch, WEAR_BODY))
+  {
+    if (GET_EQ(ch, WEAR_BODY)->tinker_bonus)
+      ac_bonus += GET_EQ(ch, WEAR_BODY)->tinker_bonus;
+  }
+
   bonuses[BONUS_TYPE_ENHANCEMENT] = MAX(0, ac_bonus);
 
   // End of new armor piece code
@@ -1172,7 +1178,13 @@ void update_pos_dam(struct char_data *victim)
 
   if (GET_HIT(victim) <= -11)
   {
-    if (HAS_REAL_FEAT(victim, FEAT_DIEHARD) && dice(1, 3) == 1)
+    if (HAS_REAL_FEAT(victim, FEAT_RELENTLESS_ENDURANCE) && dice(1, 4) == 1)
+    {
+      act("\tYYou push through with your relentless endurance.\tn", FALSE, victim, 0, 0, TO_CHAR);
+      act("$n pushes through with $s relentless endurance.", FALSE, victim, 0, 0, TO_ROOM);
+      GET_HIT(victim) = 1;
+    }
+    else if (HAS_REAL_FEAT(victim, FEAT_DIEHARD) && dice(1, 3) == 1)
     {
       act("\tYYour die hard toughness let's you push through.\tn", FALSE, victim, 0, 0, TO_CHAR);
       act("$n's die hard toughness let's $m push through.", FALSE, victim, 0, 0, TO_ROOM);
@@ -4977,6 +4989,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "%s bonus: \tR%d\tn\r\n", strength, str_bonus);
     }
+    if (wielded && wielded->tinker_bonus > 0)
+    {
+      dambonus += wielded->tinker_bonus;
+      if (display_mode)
+        send_to_char(ch, "Tinker bonus: \tR1\tn\r\n");
+    }
     break;
 
   case ATTACK_TYPE_OFFHAND:
@@ -4984,6 +5002,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += str_bonus / 2;
     if (display_mode)
       send_to_char(ch, "Offhand %s bonus: \tR%d\tn\r\n", strength, str_bonus / 2);
+    if (wielded && wielded->tinker_bonus > 0)
+    {
+      dambonus += wielded->tinker_bonus;
+      if (display_mode)
+        send_to_char(ch, "Tinker bonus: \tR1\tn\r\n");
+    }
     break;
 
   case ATTACK_TYPE_RANGED:
@@ -5057,6 +5081,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         dambonus++;
       }
     }
+    if (wielded && wielded->tinker_bonus > 0)
+    {
+      dambonus += wielded->tinker_bonus;
+      if (display_mode)
+        send_to_char(ch, "Tinker bonus: \tR1\tn\r\n");
+    }
     break;
 
   case ATTACK_TYPE_UNARMED:
@@ -5071,6 +5101,12 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     if (display_mode)
       send_to_char(ch, "Two-hand strength bonus: \tR%d\tn\r\n", str_bonus * 3 / 2);
     dambonus += str_bonus * 3 / 2; /* 2handed weapon */
+    if (wielded && wielded->tinker_bonus > 0)
+    {
+      dambonus += wielded->tinker_bonus * 2;
+      if (display_mode)
+        send_to_char(ch, "Two Handed tinker bonus: \tR2\tn\r\n");
+    }
     break;
 
   default:
@@ -6149,6 +6185,9 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
         dam += 2;
+      
+      if (HAS_REAL_FEAT(ch, FEAT_SAVAGE_ATTACKS))
+        dam += dice(1, 6);
 
       /* high level mobs are getting a crit bonus here */
       if (IS_NPC(ch) && GET_LEVEL(ch) > 30)
@@ -7556,6 +7595,11 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       send_to_char(ch, "NOT PROFICIENT\r\n");
     }
     calc_bab -= 2;
+  }
+
+  if (wielded)
+  {
+    calc_bab += wielded->tinker_bonus;
   }
 
   // vampire bonuses / penalties for feeding

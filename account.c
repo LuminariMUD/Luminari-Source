@@ -69,8 +69,21 @@ const bool locked_races[NUM_RACES] = {
     Y, /*arcana golem (advanced)*/
     Y, /*drow (advanced)*/
     Y, /*duergar (advanced)*/
-       // Y, /*lich*/
-       // Y, /*vampire*/
+    Y, // high elf
+    N, // wild elf
+    Y, // half drow
+    Y, // dragonborn
+    Y, // tiefling
+    Y, // stout halfling
+    Y, // forest gnome
+    Y, // gold dwarf
+    Y, // aasimar
+    Y, // tabaxi
+    Y, // goliath
+    Y, // shade
+
+    // Y, /*lich*/
+    // Y, /*vampire*/
 };
 
 int change_account_xp(struct char_data *ch, int change_val)

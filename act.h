@@ -630,6 +630,7 @@ void perform_save(struct char_data *ch, int mode);
 
 /* do_gen_tog */
 ACMD_DECL(do_gen_tog);
+ACMD_DECL(do_racefix);
 
 /* sub-command defines */
 #define SCMD_NOSUMMON 0
@@ -746,6 +747,8 @@ ACMD_DECL(do_handleanimal);
 // ACMD_DECL(do_nohints);
 ACMD_DECL(do_todo);
 ACMD_DECL(do_buffself);
+ACMDCHECK(can_tinker);
+ACMD_DECL(do_tinker);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c

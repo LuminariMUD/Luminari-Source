@@ -1674,6 +1674,71 @@ ASPELL(spell_salvation) // divination
   }
 }
 
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_moonbeam) {
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *) event_obj;
+  ch = (struct char_data *) pMudEvent->pStruct;
+  if (ch && FIGHTING(ch)) //assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+    return 0;
+
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+  if (level < 1)
+    level = 15;
+
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, EVOCATION))
+    damage(ch, victim, dice(2, 10), SPELL_MOONBEAM, DAM_LIGHT, FALSE);
+  else
+    damage(ch, victim, dice(1, 10), SPELL_MOONBEAM, DAM_LIGHT, FALSE);
+
+  update_pos(victim);
+  return 0;
+}
+
+ASPELL(spell_moonbeam) {
+  int x = 0;
+
+  if (ch == NULL || victim == NULL)
+    return;
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You call forth a searing beam of moonlight upon your opponent!\r\n");
+  act("$n calls forth a searing beam of moonlight!", FALSE, ch, 0, 0, TO_ROOM);
+
+  for (x = 0; x < 5; x++) {
+    NEW_EVENT(eMOONBEAM, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+  }
+}
+
 ASPELL(spell_spellstaff)
 {
   char spellname[MAX_STRING_LENGTH] = {'\0'};

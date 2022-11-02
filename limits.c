@@ -958,6 +958,9 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     if (GET_LEVEL(ch) <= NEWBIE_LEVEL)
       gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
 
+    if (HAS_FEAT(ch, FEAT_ADAPTABILITY))
+      gain += (int) ((float) gain * .05);
+
     /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
     {

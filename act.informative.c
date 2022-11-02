@@ -1785,6 +1785,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eMASTERMIND)))
     send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eTINKER)))
+    send_to_char(ch, "Crystal Body Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_LEVITATE)))
     send_to_char(ch, "Levitate Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_DARKNESS)))
@@ -2227,6 +2229,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRImplode!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
+  if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
+    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
 
   if (vampire_last_feeding_adjustment(k) > 0)
     send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
