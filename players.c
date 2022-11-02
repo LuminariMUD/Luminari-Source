@@ -2149,7 +2149,7 @@ void save_char(struct char_data *ch, int mode)
           found = true;
           break;
         }
-        else if (snum[x] ==  0)
+        else if (snum[x] == 0)
         {
           snum[x] = dr->spell;
           break;
@@ -3155,6 +3155,9 @@ void update_player_last_on(void)
 
 void save_char_pets(struct char_data *ch)
 {
+
+  if (!ch)
+    return;
 
   struct follow_type *f = NULL;
   struct char_data *tch = NULL;
