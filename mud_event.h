@@ -175,6 +175,8 @@ typedef enum
   eINSECTBEING,                     /* insect being ability */
   /*145*/
   eBLUR_ATTACK_DELAY, /* stop blur attack proccing too much :) */
+  eTINKER, // use the rock gnome tinker ability
+  eMOONBEAM,                        // moon beam spell lingering effect
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -248,4 +250,5 @@ EVENTFUNC(event_copyover);
 EVENTFUNC(event_spiritual_weapon);
 EVENTFUNC(event_dancing_weapon);
 EVENTFUNC(event_holy_javelin);
+EVENTFUNC(event_moonbeam);
 #endif /* _MUD_EVENT_H_ */

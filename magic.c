@@ -1240,6 +1240,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
+  case SPELL_MOONBEAM: // conjuration
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_LIGHT;
+    num_dice = 2;
+    size_dice = 10;
+    bonus = 0;
+    break;
+
   case SPELL_ACID_SPLASH:
     save = SAVING_REFL;
     num_dice = 2;
@@ -1276,6 +1285,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_FIRE;
     num_dice = MIN(8, level);
     size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_HELLISH_REBUKE: // evocation
+    save = SAVING_REFL;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    num_dice = 2 + (level / 10);
+    size_dice = 10;
     bonus = 0;
     break;
 
@@ -4704,7 +4722,24 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are suddenly empowered by magic fang.";
     break;
 
+    case SPELL_MINOR_ILLUSION: //illusion
+      if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
+      {
+        send_to_char(ch, "You already have an illusory double.\r\n");
+        return;
+      }
+      af[0].duration = 300;
+      SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
+      to_room = "$n grins as a duplicate image pops up and smiles!";
+      to_vict = "You watch as a duplicate image pops up and smiles at you!";
+      GET_IMAGES(victim) = 1;
+      break;
+
   case SPELL_GREATER_MIRROR_IMAGE: // illusion
+    if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
+    {
+      affect_from_char(victim, SPELL_MINOR_ILLUSION);
+    }
     if (affected_by_spell(victim, SPELL_MIRROR_IMAGE))
     {
       affect_from_char(victim, SPELL_MIRROR_IMAGE);
@@ -5253,6 +5288,10 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {
       send_to_char(victim, "You are already affected by greater mirror image!\r\n");
       return;
+    }
+    if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
+    {
+      affect_from_char(victim, SPELL_MINOR_ILLUSION);
     }
 
     if (affected_by_spell(victim, SPELL_MIRROR_IMAGE))

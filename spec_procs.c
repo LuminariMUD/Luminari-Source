@@ -964,6 +964,12 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
+    if (HAS_FEAT(ch, FEAT_WOOD_ELF_MASK_OF_THE_WILD))
+      value += 3;
+    if (IN_NATURE(ch) && HAS_FEAT(ch, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT)) {
+      if (weather_info.sunlight == SUN_DARK || weather_info.sunlight == SUN_SET)
+        value += 6;
+    }
     value += compute_gear_armor_penalty(ch);
     return value;
 
@@ -1029,6 +1035,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += MAX(1, CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2);
     }
+    if (HAS_REAL_FEAT(ch, FEAT_MENACING))
+      value += 3;
     return value;
   case ABILITY_CONCENTRATION: /* not srd */
     if (GET_RACE(ch) == RACE_GNOME)
@@ -1064,6 +1072,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_ARTIFICERS_LORE))
+      value += 2;
     return value;
   case ABILITY_DISCIPLINE: /* NOT SRD! */
     if (GET_RACE(ch) == RACE_H_ELF)
@@ -1079,6 +1089,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_LORE: /* NOT SRD! */
     if (HAS_FEAT(ch, FEAT_INVESTIGATOR))
+      value += 2;
+    if (HAS_FEAT(ch, FEAT_ARTIFICERS_LORE))
       value += 2;
     if (GET_RACE(ch) == RACE_H_ELF)
       value += 2;

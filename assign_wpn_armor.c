@@ -261,6 +261,21 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     }
   }
 
+  if (HAS_FEAT(ch, FEAT_DWARVEN_WEAPON_PROFICIENCY))
+  {
+    switch (weapon)
+    {
+      case WEAPON_TYPE_BATTLE_AXE:
+      case WEAPON_TYPE_HEAVY_PICK:
+      case WEAPON_TYPE_LIGHT_PICK:
+      case WEAPON_TYPE_WARHAMMER:
+      case WEAPON_TYPE_LIGHT_HAMMER:
+      case WEAPON_TYPE_DWARVEN_WAR_AXE:
+      case WEAPON_TYPE_DWARVEN_URGOSH:
+      return TRUE;
+    }
+  }
+
   if (IS_DUERGAR(ch))
   {
     switch (weapon)
@@ -1489,6 +1504,9 @@ int compute_gear_armor_penalty(struct char_data *ch)
     armor_penalty -= 4;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
     armor_penalty -= 6;
+
+  if (HAS_REAL_FEAT(ch, FEAT_SHIELD_DWARF_ARMOR_TRAINING))
+    armor_penalty++;
 
   // for masterwork armor, all 4 pieces need to be masterwork to get the benefit
   if ((masterwork_bonus / 4) >= 1)

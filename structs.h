@@ -570,16 +570,20 @@
 #define RACE_UNDEFINED (-1) /*Race Undefined*/
 #define RACE_HUMAN 0        /* Race Human */
 #define RACE_ELF 1          /* Race Elf   */
+#define RACE_MOON_ELF RACE_ELF
 #define RACE_DWARF 2        /* Race Dwarf */
+#define RACE_SHIELD_DWARF RACE_DWARF
 #define RACE_H_TROLL 3      /* Race Troll (advanced) */
 #define RACE_HALF_TROLL RACE_H_TROLL
 #define RACE_CRYSTAL_DWARF 4 /* crystal dwarf (epic) */
 #define RACE_HALFLING 5      // halfling
+#define RACE_LIGHTFOOT_HALFLING RACE_HALFLING
 #define RACE_H_ELF 6         // half elf
 #define RACE_HALF_ELF RACE_H_ELF
 #define RACE_H_ORC 7 // half orc
 #define RACE_HALF_ORC RACE_H_ORC
 #define RACE_GNOME 8         // gnome
+#define RACE_ROCK_GNOME RACE_GNOME
 #define RACE_TRELUX 9        // trelux (epic)
 #define RACE_ARCANA_GOLEM 10 // arcana golem (advanced)
 #define RACE_ARCANE_GOLEM RACE_ARCANA_GOLEM
@@ -591,96 +595,109 @@
 #define RACE_DARK_DWARF RACE_DUERGAR
 #define RACE_DUERGAR_DWARF RACE_DUERGAR
 
+#define RACE_HIGH_ELF 13
+#define RACE_WOOD_ELF 14
+#define RACE_WILD_ELF RACE_WOOD_ELF
+#define RACE_HALF_DROW 15
+#define RACE_DRAGONBORN 16
+#define RACE_TIEFLING 17
+#define RACE_STOUT_HALFLING 18
+#define RACE_FOREST_GNOME 19
+#define RACE_GOLD_DWARF 20
+#define RACE_AASIMAR 21
+#define RACE_TABAXI 22
+#define RACE_GOLIATH 23
+#define RACE_SHADE 24
+
 /* last playable race above +1 */
-#define NUM_RACES 13
+#define NUM_RACES 25
 
-#define RACE_LICH 13    /*quest only race*/
-#define RACE_VAMPIRE 89 /*quest only race*/
-
-/* coming soon!*/
-#define RACE_H_OGRE 14 // not yet implemented
-#define RACE_HALF_OGRE RACE_H_OGRE
-
-#define RACE_HORSE 15
-#define RACE_HALF_DROW 16
-#define RACE_ROCK_GNOME 17
-#define RACE_DEEP_GNOME 18
+#define RACE_DEEP_GNOME 25
 #define RACE_SVIRFNEBLIN RACE_DEEP_GNOME
-#define RACE_ORC 19
-#define RACE_IRON_GOLEM 20
-#define RACE_DRAGON_CLOUD 21
-#define RACE_DINOSAUR 22
-#define RACE_PIXIE 23
-#define RACE_MEDIUM_FIRE_ELEMENTAL 24
-#define RACE_MEDIUM_EARTH_ELEMENTAL 25
-#define RACE_MEDIUM_AIR_ELEMENTAL 26
-#define RACE_MEDIUM_WATER_ELEMENTAL 27
-#define RACE_FIRE_ELEMENTAL 28
-#define RACE_EARTH_ELEMENTAL 29
-#define RACE_AIR_ELEMENTAL 30
-#define RACE_WATER_ELEMENTAL 31
-#define RACE_HUGE_FIRE_ELEMENTAL 32
-#define RACE_HUGE_EARTH_ELEMENTAL 33
-#define RACE_HUGE_AIR_ELEMENTAL 34
-#define RACE_HUGE_WATER_ELEMENTAL 35
-#define RACE_APE 36
-#define RACE_BOAR 37
-#define RACE_CHEETAH 38
-#define RACE_CROCODILE 39
-#define RACE_GIANT_CROCODILE 40
-#define RACE_HYENA 41
-#define RACE_LEOPARD 42
-#define RACE_RHINOCEROS 43
-#define RACE_WOLVERINE 44
-#define RACE_MEDIUM_VIPER 45
-#define RACE_LARGE_VIPER 46
-#define RACE_HUGE_VIPER 47
-#define RACE_CONSTRICTOR_SNAKE 48
-#define RACE_GIANT_CONSTRICTOR_SNAKE 49
-#define RACE_TIGER 50
-#define RACE_BLACK_BEAR 51
-#define RACE_BROWN_BEAR 52
-#define RACE_POLAR_BEAR 53
-#define RACE_LION 54
-#define RACE_ELEPHANT 55
-#define RACE_EAGLE 56
-#define RACE_GHOUL 57
-#define RACE_GHAST 58
-#define RACE_MUMMY 59
-#define RACE_MOHRG 60
-#define RACE_SMALL_FIRE_ELEMENTAL 61
-#define RACE_SMALL_EARTH_ELEMENTAL 62
-#define RACE_SMALL_AIR_ELEMENTAL 63
-#define RACE_SMALL_WATER_ELEMENTAL 64
-#define RACE_LARGE_FIRE_ELEMENTAL 65
-#define RACE_LARGE_EARTH_ELEMENTAL 66
-#define RACE_LARGE_AIR_ELEMENTAL 67
-#define RACE_LARGE_WATER_ELEMENTAL 68
-#define RACE_BLINK_DOG 69
-#define RACE_OWLBEAR 70
-#define RACE_SHAMBLING_MOUND 71
-#define RACE_TREANT 72
-#define RACE_MYCANOID 73
-#define RACE_SKELETON 74
-#define RACE_ZOMBIE 75
-#define RACE_WOLF 76
-#define RACE_GREAT_CAT 77
-#define RACE_MANDRAGORA 78
-#define RACE_AEON_THELETOS 79
-#define RACE_STIRGE 80
-#define RACE_WHITE_DRAGON 81
-#define RACE_BLACK_DRAGON 82
-#define RACE_GREEN_DRAGON 83
-#define RACE_BLUE_DRAGON 84
-#define RACE_RED_DRAGON 85
-#define RACE_MANTICORE 86
-#define RACE_EFREETI 87
-#define RACE_RAT 88
-// Vampire defined above as 89
-#define RACE_BAT 90
+#define RACE_ORC 26
+#define RACE_H_OGRE 27 // not yet implemented
+#define RACE_HALF_OGRE RACE_H_OGRE
+// space for new races up to 44
+
+#define RACE_LICH 45    /*quest only race*/
+#define RACE_VAMPIRE 46 /*quest only race*/
+
+// space for new quest only races up to 59
+
+#define RACE_HORSE 60
+#define RACE_IRON_GOLEM 61
+#define RACE_DRAGON_CLOUD 62
+#define RACE_DINOSAUR 63
+#define RACE_PIXIE 64
+#define RACE_MEDIUM_FIRE_ELEMENTAL 65
+#define RACE_MEDIUM_EARTH_ELEMENTAL 66
+#define RACE_MEDIUM_AIR_ELEMENTAL 67
+#define RACE_MEDIUM_WATER_ELEMENTAL 68
+#define RACE_FIRE_ELEMENTAL 69
+#define RACE_EARTH_ELEMENTAL 70
+#define RACE_AIR_ELEMENTAL 71
+#define RACE_WATER_ELEMENTAL 72
+#define RACE_HUGE_FIRE_ELEMENTAL 73
+#define RACE_HUGE_EARTH_ELEMENTAL 74
+#define RACE_HUGE_AIR_ELEMENTAL 75
+#define RACE_HUGE_WATER_ELEMENTAL 76
+#define RACE_APE 77
+#define RACE_BOAR 78
+#define RACE_CHEETAH 79
+#define RACE_CROCODILE 80
+#define RACE_GIANT_CROCODILE 81
+#define RACE_HYENA 82
+#define RACE_LEOPARD 83
+#define RACE_RHINOCEROS 84
+#define RACE_WOLVERINE 85
+#define RACE_MEDIUM_VIPER 86
+#define RACE_LARGE_VIPER 87
+#define RACE_HUGE_VIPER 88
+#define RACE_CONSTRICTOR_SNAKE 89
+#define RACE_GIANT_CONSTRICTOR_SNAKE 90
+#define RACE_TIGER 91
+#define RACE_BLACK_BEAR 92
+#define RACE_BROWN_BEAR 93
+#define RACE_POLAR_BEAR 94
+#define RACE_LION 95
+#define RACE_ELEPHANT 96
+#define RACE_EAGLE 97
+#define RACE_GHOUL 98
+#define RACE_GHAST 99
+#define RACE_MUMMY 100
+#define RACE_MOHRG 101
+#define RACE_SMALL_FIRE_ELEMENTAL 102
+#define RACE_SMALL_EARTH_ELEMENTAL 103
+#define RACE_SMALL_AIR_ELEMENTAL 104
+#define RACE_SMALL_WATER_ELEMENTAL 105
+#define RACE_LARGE_FIRE_ELEMENTAL 106
+#define RACE_LARGE_EARTH_ELEMENTAL 107
+#define RACE_LARGE_AIR_ELEMENTAL 108
+#define RACE_LARGE_WATER_ELEMENTAL 109
+#define RACE_BLINK_DOG 110
+#define RACE_OWLBEAR 111
+#define RACE_SHAMBLING_MOUND 112
+#define RACE_TREANT 113
+#define RACE_MYCANOID 114
+#define RACE_SKELETON 115
+#define RACE_ZOMBIE 116
+#define RACE_WOLF 117
+#define RACE_GREAT_CAT 118
+#define RACE_MANDRAGORA 119
+#define RACE_AEON_THELETOS 120
+#define RACE_STIRGE 121
+#define RACE_WHITE_DRAGON 122
+#define RACE_BLACK_DRAGON 123
+#define RACE_GREEN_DRAGON 124
+#define RACE_BLUE_DRAGON 125
+#define RACE_RED_DRAGON 126
+#define RACE_MANTICORE 127
+#define RACE_EFREETI 128
+#define RACE_RAT 129
+#define RACE_BAT 130
 /**/
 /* Total Number of available (in-game) PC Races*/
-#define NUM_EXTENDED_RACES 91
+#define NUM_EXTENDED_RACES 131
 /*****/
 
 // npc sub-race types, currently our NPC's get 3 of these
@@ -2138,12 +2155,44 @@
 /* moar feats! */
 #define FEAT_INSECTBEING 890
 #define FEAT_EPIC_SHIELD_USER 891
+// new racial feats
+// wood/wild elf
+#define FEAT_WOOD_ELF_RACIAL_ADJUSTMENT 892
+#define FEAT_WOOD_ELF_FLEETNESS 893
+#define FEAT_WOOD_ELF_MASK_OF_THE_WILD 894
+// moon / regular elves
+#define FEAT_MOON_ELF_RACIAL_ADJUSTMENT 895
+#define FEAT_MOON_ELF_BATHED_IN_MOONLIGHT 896
+#define FEAT_MOON_ELF_LUNAR_MAGIC 897
+// dwarf / shield dwarf
+#define FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT 898
+#define FEAT_SHIELD_DWARF_ARMOR_TRAINING 899
+#define FEAT_DWARVEN_WEAPON_PROFICIENCY 900
+#define FEAT_ENCUMBERED_RESILIENCE 901
+// lightfoot / normal halfling
+#define FEAT_LIGHTFOOT_HALFLING_RACIAL_ADJUSTMENT 902
+#define FEAT_NATURALLY_STEALTHY 903
+// gnome / rock gnome
+#define FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT 904
+#define FEAT_ARTIFICERS_LORE 905
+#define FEAT_TINKER 906
+// Half Elf
+#define FEAT_ADAPTABILITY 907
+#define FEAT_HALF_ELF_RACIAL_ADJUSTMENT 908
+// half Orc
+#define FEAT_MENACING 909
+#define FEAT_RELENTLESS_ENDURANCE 910
+#define FEAT_SAVAGE_ATTACKS 911
+// drow
+#define FEAT_DROW_INNATE_MAGIC 912
+// duergar
+#define FEAT_DUERGAR_MAGIC 913
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 892
+#define FEAT_LAST_FEAT 914
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 893
+#define NUM_FEATS 915
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3490,6 +3539,8 @@ struct obj_data
 
     bool drainKilled; // Used for corpse objects while the killed creature was killed by an energy draining creature (vampire) under the effect of AFFECT_LEVEL_DRAIN
     char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
+
+    int tinker_bonus;
 };
 
 /** Instance info for an object that gets saved to disk.
@@ -3994,6 +4045,14 @@ struct player_special_data_saved
     ubyte template;
     int premade_build;
 
+    int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
+
+    int racial_magic[3];
+    int racial_cooldown[3];
+    int primordial_magic[3];
+    int primordial_cooldown[3];
+    int dragonborn_draconic_ancestry;
+
     /* factional mission system */
     int current_mission;
     long mission_credits;
@@ -4047,7 +4106,10 @@ struct player_special_data_saved
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
     int fiendish_boons;                                 // active fiendish boons by blackguard
     int channel_energy_type;                            // neutral clerics must decide either positive or negative
-    int deity;                                          // what deity does the person follow?
+    int deity;                      // what deity does the person follow?
+    //int languages_known[NUM_LANGUAGES]; // languages known by the character
+    int speaking;                   // language currently being spoken, defaults to common
+    int region;               // the region in which a human hails from.  Used for languages
 
     byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
@@ -4058,6 +4120,8 @@ struct player_special_data_saved
     int time_since_last_feeding; // how long since the vampire last fed on blood
 
     int buff_abilities[MAX_BUFFS][2]; // This is used with the buff command to simplify the process of buffing by casters
+
+    bool new_race_stats; // For use with racefix command.
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4111,6 +4175,7 @@ struct player_special_data
     int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
 
     int casting_class; // The class number that is currently casting a spell
+    sbyte canCastInnate;        // for innate racial skills and other innate powers
 
     int concussive_onslaught_duration;
     bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt
@@ -4868,6 +4933,8 @@ struct race_data
     /* linked lists */
     struct race_feat_assign *featassign_list; /* list of feat assigns */
     struct affect_assign *affassign_list;     /* list of affect assigns */
+
+    int racial_language; // automatic spoken language for race.  Mainly used in Faeurn
 
     /* these are only ideas for now */
 

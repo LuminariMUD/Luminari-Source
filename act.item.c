@@ -6979,4 +6979,64 @@ ACMDU(do_outfit)
   }
 }
 
+ACMDCHECK(can_tinker)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_TINKER, "How do you plan on doing that?\r\n");
+  return CAN_CMD;
+}
+
+ACMDU(do_tinker)
+{
+
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_mastermind);
+  PREREQ_HAS_USES(FEAT_TINKER, "You have expended all of your tinker attempts.\r\n");
+
+  struct obj_data *obj = NULL;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please specify a weapon or piece of chest armor in your inventory to tinker with.\r\n");
+    return;
+  }
+
+  if (!(obj = get_obj_in_list_vis(ch, argument, 0, ch->carrying)))
+  {
+    send_to_char(ch, "You do not have an item in your inventory by that description.\r\n");
+    return;
+  }
+  
+  if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
+  {
+    send_to_char(ch, "The item is neither a piece of armor or a weapon.\r\n");
+    return;
+  }
+
+  if (GET_OBJ_TYPE(obj) == ITEM_ARMOR && !CAN_WEAR(obj, WEAR_BODY))
+  {
+    send_to_char(ch, "You can only tinker on armor chest pieces and weapons.\r\n");
+    return;
+  }
+
+  if (obj->tinker_bonus > 0)
+  {
+    send_to_char(ch, "This item has already been tinkered with.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You have successfully tinkered with %s, improving it.\r\n", obj->short_description);
+  if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+    send_to_char(ch, "This weapon will now get a +1 to attack roll and +1 to damage, or +2 to damage if wielded two handed.\r\n");
+  else
+    send_to_char(ch, "This armor will now bestow an additional +1 to AC.\r\n");
+  send_to_char(ch, "This bonus will reset when you leave the game or if there is a copyover.\r\n");
+  obj->tinker_bonus = 1;
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_TINKER);
+
+}
+
 /* EOF */

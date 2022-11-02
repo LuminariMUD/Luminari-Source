@@ -514,23 +514,27 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     switch (CASTING_CLASS(caster))
     {
     case CLASS_BARD:
-      /* bards can wear light armor and cast unpenalized (bard spells) */
-      if (compute_gear_armor_type(caster) > ARMOR_TYPE_LIGHT ||
-          compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
+      if (!canCastAtWill(caster, spellnum)) {
+        /* bards can wear light armor and cast unpenalized (bard spells) */
+        if (compute_gear_armor_type(caster) > ARMOR_TYPE_LIGHT ||
+            compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
+          if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
+          {
+            send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
+            act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
+            return 0;
+          }
+      }
+      break;
+    case CLASS_SORCERER:
+    case CLASS_WIZARD:
+      if (!canCastAtWill(caster, spellnum)) {
         if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
         {
           send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
           act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
           return 0;
         }
-      break;
-    case CLASS_SORCERER:
-    case CLASS_WIZARD:
-      if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
-      {
-        send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
-        act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
-        return 0;
       }
       break;
     }
@@ -873,6 +877,9 @@ SAVING_WILL here...  */
     case SPELL_AUGURY:
       MANUAL_SPELL(spell_augury);
       break;
+    case SPELL_MOONBEAM:
+        MANUAL_SPELL(spell_moonbeam);
+        break;
     case SPELL_MASS_DOMINATION:
       MANUAL_SPELL(spell_mass_domination);
       break;
@@ -1621,16 +1628,23 @@ will be using for casting this spell */
         if (GET_CASTING_CLASS(ch) != CLASS_SHADOWDANCER)
         {
           ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
-          if (ch_class == CLASS_UNDEFINED)
+          if (canCastAtWill(ch, spellnum))
           {
-            send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
-            log("spell_prep_gen_extract() failed in cast_spell()");
-            return 0;
+                  ch_class = CLASS_WIZARD;
+                  clevel = GET_LEVEL(ch);
           }
-
+          else
+          {
+            if (ch_class == CLASS_UNDEFINED)
+            {
+              send_to_char(ch, "ERR:  Report BUG770 to an IMM!\r\n");
+              log("spell_prep_gen_extract() failed in cast_spell()");
+              return 0;
+            }
           /* level to cast this particular spell as */
           clevel = CLASS_LEVEL(ch, ch_class);
           CASTING_CLASS(ch) = ch_class;
+          }
         }
         else
         {
@@ -1995,16 +2009,25 @@ ACMDU(do_gen_cast)
       }
     }
   }
-  else
+  else if (!canCastAtWill(ch, spellnum))
   {
+
+    ch->player_specials->canCastInnate = canCastAtWill(ch, spellnum);
+
+    if (!IS_CASTER(ch) && !ch->player_specials->canCastInnate) {        
+            send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
+            return;
+    }
+
     if (!IS_CASTER(ch))
     {
-      send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
-      return;
+            send_to_char(ch, "You are not even a %s!\r\n", do_cast_types[subcmd][5]);
+            return;
     }
   }
 
-  if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_PSIONIC && subcmd != SCMD_CAST_SHADOW)
+  if (GET_SKILL(ch, spellnum) == 0 && GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_PSIONIC && 
+                subcmd != SCMD_CAST_SHADOW && !canCastAtWill(ch, spellnum) && !is_domain_spell_of_ch(ch, spellnum))
   {
     send_to_char(ch, "You are unfamiliar with that %s.\r\n", do_cast_types[subcmd][2]);
     return;
@@ -2105,7 +2128,8 @@ return;
       return;
     }
   }
-  else if (GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_SHADOW &&
+  else if (!canCastAtWill(ch, spellnum) &&
+           GET_LEVEL(ch) < LVL_IMMORT && subcmd != SCMD_CAST_SHADOW &&
            (BONUS_CASTER_LEVEL(ch, CLASS_WIZARD) + CLASS_LEVEL(ch, CLASS_WIZARD) < SINFO.min_level[CLASS_WIZARD] &&
             //          BONUS_CASTER_LEVEL(ch, CLASS_PSY_WARR) + CLASS_LEVEL(ch, CLASS_PSY_WARR) < SINFO.min_level[CLASS_PSY_WARR] &&
             //          BONUS_CASTER_LEVEL(ch, CLASS_SOULKNIFE) + CLASS_LEVEL(ch, CLASS_SOULKNIFE) < SINFO.min_level[CLASS_SOULKNIFE] &&
@@ -2164,30 +2188,33 @@ return;
   else
   {
     /* SPELL PREPARATION HOOK */
-    if (GET_LEVEL(ch) < LVL_IMMORT && (class_num = spell_prep_gen_check(ch, spellnum, metamagic)) == CLASS_UNDEFINED &&
-        !isEpicSpell(spellnum) && subcmd != SCMD_CAST_SHADOW)
+    if (GET_LEVEL(ch) < LVL_IMMORT  && !canCastAtWill(ch, spellnum) &&
+                        (class_num = spell_prep_gen_check(ch, spellnum, metamagic)) == CLASS_UNDEFINED &&
+                        !isEpicSpell(spellnum) && subcmd != SCMD_CAST_SHADOW)
     {
-      send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
-                   do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
-      return;
+            send_to_char(ch, "You are not ready to %s that %s... (help preparation, or the meta-magic modification might be too high)\r\n",
+                    do_cast_types[subcmd][1], do_cast_types[subcmd][2]);
+            return;
     }
   }
 
   if (!IS_NPC(ch))
   {
-    if (subcmd != SCMD_CAST_SHADOW)
-    {
-      GET_CASTING_CLASS(ch) = class_num;
+    if (subcmd != SCMD_CAST_SHADOW) {
+            if (canCastAtWill(ch, spellnum))
+                    GET_CASTING_CLASS(ch) = class_num = CLASS_WIZARD;
+            else        
+                    GET_CASTING_CLASS(ch) = class_num;
     }
     else
     {
-      GET_CASTING_CLASS(ch) = CLASS_SHADOWDANCER;
+            GET_CASTING_CLASS(ch) = CLASS_SHADOWDANCER;
     }
   }
 
   circle = compute_spells_circle(GET_CASTING_CLASS(ch), spellnum, 0, 0);
 
-  if (!is_domain_spell_of_ch(ch, spellnum))
+  if (!canCastAtWill(ch, spellnum) && !is_domain_spell_of_ch(ch, spellnum))
   {
     switch (GET_CASTING_CLASS(ch))
     {
@@ -2841,6 +2868,9 @@ void mag_assign_spells(void)
   spello(SPELL_BURNING_HANDS, "burning hands", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 1, 7, EVOCATION, FALSE);
+  spello(SPELL_HELLISH_REBUKE, "hellish rebuke", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+        NULL, 0, 7, EVOCATION, FALSE);
   spello(SPELL_FAERIE_FIRE, "faerie fire", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          NULL, 1, 7, EVOCATION, FALSE);
@@ -3003,6 +3033,9 @@ void mag_assign_spells(void)
   spello(SPELL_MIRROR_IMAGE, "mirror image", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You watch as your images vanish.", 3, 9, ILLUSION, FALSE);
+  spello(SPELL_MINOR_ILLUSION, "minor illusion", 0, 0, 0, POS_FIGHTING,
+               TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+               "You watch as your duplicateimage vanishes.", 3, 9, ILLUSION, FALSE);
   /* divination */
   spello(SPELL_DETECT_INVIS, "detect invisibility", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -3890,6 +3923,9 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_FIGHT_VICT | TAR_NOT_SELF, TRUE, MAG_MANUAL,
          NULL, 3, 11, CONJURATION, FALSE);
 
+  spello(SPELL_MOONBEAM, "moonbeam", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL, NULL, 3, 11, EVOCATION, FALSE);
+
   spello(SPELL_INVISIBILITY_PURGE, "invisibility purge", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AREAS, NULL, 7, 11, EVOCATION, FALSE);
 
@@ -4375,6 +4411,226 @@ void display_shadowcast_spells(struct char_data *ch)
       }
     }
   }
+}
+sbyte canCastAtWill(struct char_data *ch, int spellnum)
+{
+	if (GET_LEVEL(ch) >= LVL_IMMORT) return true;
+	if (isHighElfCantrip(ch, spellnum)) return true;
+	if (isLunarMagic(ch, spellnum)) return true;
+	if (isDrowMagic(ch, spellnum)) return true;
+	if (isTieflingMagic(ch, spellnum)) return true;
+	if (isDuergarMagic(ch, spellnum)) return true;
+	if (isForestGnomeMagic(ch, spellnum)) return true;
+  if (isAasimarMagic(ch, spellnum)) return true;
+  if (isPrimordialMagic(ch, spellnum)) return true;
+  if (isNaturalIllusion(ch, spellnum)) return true;
+
+	return false;
+}
+
+sbyte isDrowMagic(struct char_data *ch, int spellnum)
+{
+  if (!HAS_FEAT(ch, FEAT_DROW_INNATE_MAGIC))
+    return false;
+  switch (spellnum)
+  {
+  case SPELL_FAERIE_FIRE:
+    if (GET_LEVEL(ch) < 1)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0)
+      GET_RACIAL_MAGIC(ch, 0) = 3;
+    if (GET_RACIAL_MAGIC(ch, 0) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+
+  case SPELL_LEVITATE:
+    if (GET_LEVEL(ch) < 3)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0)
+      GET_RACIAL_MAGIC(ch, 1) = 3;
+    if (GET_RACIAL_MAGIC(ch, 1) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+
+  case SPELL_DARKNESS:
+    if (GET_LEVEL(ch) < 5)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 2) <= 0 && GET_RACIAL_MAGIC(ch, 2) == 0)
+      GET_RACIAL_MAGIC(ch, 2) = 3;
+    if (GET_RACIAL_MAGIC(ch, 2) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+sbyte isDuergarMagic(struct char_data *ch, int spellnum)
+{
+  if (!HAS_FEAT(ch, FEAT_DUERGAR_MAGIC))
+    return false;
+  switch (spellnum)
+  {
+  case SPELL_ENLARGE_PERSON:
+    if (GET_LEVEL(ch) < 3)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0)
+      GET_RACIAL_MAGIC(ch, 1) = 3;
+    if (GET_RACIAL_MAGIC(ch, 1) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+
+  case SPELL_INVISIBLE:
+    if (GET_LEVEL(ch) < 5)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 2) <= 0 && GET_RACIAL_MAGIC(ch, 2) == 0)
+      GET_RACIAL_MAGIC(ch, 2) = 3;
+    if (GET_RACIAL_MAGIC(ch, 2) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+sbyte isNaturalIllusion(struct char_data *ch, int spellnum) {
+	return false;
+  //if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
+	if (SPELL_MINOR_ILLUSION == spellnum) return true;
+        if (GET_LEVEL(ch) >= 20 && SPELL_MIRROR_IMAGE == spellnum) return true;
+	return false;
+}
+
+sbyte isHighElfCantrip(struct char_data *ch, int spellnum) {
+	return false;
+  // if (!HAS_FEAT(ch, FEAT_HIGH_ELF_CANTRIP)) return false;
+	if (HIGH_ELF_CANTRIP(ch) != spellnum) return false;
+	if (spellnum == SPELL_ENCHANT_ITEM) return false;
+	return true;
+}
+
+sbyte isLunarMagic(struct char_data *ch, int spellnum) {
+	if (!HAS_FEAT(ch, FEAT_MOON_ELF_LUNAR_MAGIC)) return false;
+	switch (spellnum) {
+		case SPELL_MINOR_ILLUSION:
+		  if (GET_LEVEL(ch) < 1) return false;
+		  if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+		  if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		  return true;
+		  
+		case SPELL_SLEEP:
+		  if (GET_LEVEL(ch) < 3) return false;
+		  if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
+		  if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		  return true;
+		  
+		case SPELL_MOONBEAM:
+		  if (GET_LEVEL(ch) < 5) return false;
+		  if (GET_RACIAL_COOLDOWN(ch, 2) <= 0 && GET_RACIAL_MAGIC(ch, 2) == 0) GET_RACIAL_MAGIC(ch, 2) = 3;
+		  if (GET_RACIAL_MAGIC(ch, 2) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		  return true;
+	}
+	return false;
+}
+sbyte isTieflingMagic(struct char_data *ch, int spellnum) {
+  return false;
+//	if (!HAS_FEAT(ch, FEAT_TIEFLING_MAGIC)) return false;
+	switch (spellnum) {
+		case SPELL_BURNING_HANDS:
+		  if (GET_LEVEL(ch) < 1) return false;
+          if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+		  if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		  return true;
+		  
+		case SPELL_HELLISH_REBUKE:
+		  if (GET_LEVEL(ch) < 3) return false;
+                  if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
+		  if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		  return true;
+		  
+		case SPELL_DARKNESS:
+		  if (GET_LEVEL(ch) < 5) return false;
+                  if (GET_RACIAL_COOLDOWN(ch, 2) <= 0 && GET_RACIAL_MAGIC(ch, 2) == 0) GET_RACIAL_MAGIC(ch, 2) = 3;
+		  if (GET_RACIAL_MAGIC(ch, 2) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		  return true;
+	}
+	return false;
+}
+sbyte isForestGnomeMagic(struct char_data *ch, int spellnum) {
+	switch (spellnum) {
+		// case SPELL_MINOR_ILLUSION:
+		//   if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
+		//   if (GET_LEVEL(ch) < 1) return false;
+    //               if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+		//   if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+		// case SPELL_CHARM_ANIMAL:
+		//   if (!HAS_FEAT(ch, FEAT_SPEAK_WITH_BEASTS)) return false;
+		//   if (GET_LEVEL(ch) < 3) return false;
+    //               if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
+		//   if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+	}
+	return false;
+}
+
+sbyte isAasimarMagic(struct char_data *ch, int spellnum) {
+	switch (spellnum) {
+		// case SPELL_REGENERATION:
+		//   if (!HAS_FEAT(ch, FEAT_AASIMAR_HEALING_HANDS)) return false;
+		//   if (GET_LEVEL(ch) < 1) return false;
+    //               if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+		//   if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+		// case SPELL_DAYLIGHT:
+		//   if (!HAS_FEAT(ch, FEAT_AASIMAR_LIGHT_BEARER)) return false;
+		//   if (GET_LEVEL(ch) < 3) return false;
+    //               if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
+		//   if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+	}
+	return false;
+}
+
+sbyte isPrimordialMagic(struct char_data *ch, int spellnum)
+{
+	switch (spellnum) {
+		// case SPELL_CONTINUAL_FLAME:
+		//   if (!HAS_FEAT(ch, FEAT_PRIMORDIAL_SPELLCASTING)) return false;
+		//   if (GET_LEVEL(ch) < 1) return false;
+    //               if (IS_NPC(ch)) return true;
+    //               if (GET_PRIMORDIAL_COOLDOWN(ch, 0) <= 0 && GET_PRIMORDIAL_MAGIC(ch, 0) == 0) GET_PRIMORDIAL_MAGIC(ch, 0) = 3;
+		//   if (GET_PRIMORDIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+		// case SPELL_FAERIE_FIRE:
+		//   if (!HAS_FEAT(ch, FEAT_PRIMORDIAL_SPELLCASTING)) return false;
+		//   if (GET_LEVEL(ch) < 3) return false;
+    //               if (IS_NPC(ch)) return true;
+    //               if (GET_PRIMORDIAL_COOLDOWN(ch, 1) <= 0 && GET_PRIMORDIAL_MAGIC(ch, 1) == 0) GET_PRIMORDIAL_MAGIC(ch, 1) = 3;
+		//   if (GET_PRIMORDIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+    //             case SPELL_CONFUSION:
+		//   if (!HAS_FEAT(ch, FEAT_PRIMORDIAL_SPELLCASTING)) return false;
+		//   if (GET_LEVEL(ch) < 5) return false;
+    //               if (IS_NPC(ch)) return true;
+    //               if (GET_PRIMORDIAL_COOLDOWN(ch, 2) <= 0 && GET_PRIMORDIAL_MAGIC(ch, 2) == 0) GET_PRIMORDIAL_MAGIC(ch, 2) = 3;
+		//   if (GET_PRIMORDIAL_MAGIC(ch, 2) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+		//   return true;
+	}
+	return false;
 }
 
 /* must be at end of file */

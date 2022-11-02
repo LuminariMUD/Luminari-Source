@@ -999,6 +999,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'R':
         if (!strcmp(tag, "Race"))
           GET_REAL_RACE(ch) = atoi(line);
+        if (!strcmp(tag, "RacR"))
+          ch->player_specials->saved.new_race_stats = atoi(line);
         else if (!strcmp(tag, "Room"))
           GET_LOADROOM(ch) = atoi(line);
         else if (!strcmp(tag, "Res1"))
@@ -1391,6 +1393,9 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Lmot: %d\n", (int)GET_LAST_MOTD(ch));
   if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS)
     fprintf(fl, "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
+
+  if (ch->player_specials->saved.new_race_stats)
+    fprintf(fl, "RacR: %d\n", ch->player_specials->saved.new_race_stats);
 
   if (GET_HOST(ch))
     fprintf(fl, "Host: %s\n", GET_HOST(ch));

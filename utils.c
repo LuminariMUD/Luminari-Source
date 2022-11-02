@@ -1149,6 +1149,9 @@ int skill_roll(struct char_data *ch, int skillnum) {
     roll = MAX(roll, d20(ch));
   }
 
+  if (HAS_FEAT(ch, FEAT_ADAPTABILITY) && dice(1, 5) == 1)
+    roll += 3;
+
   /*if (PRF_FLAGGED(ch, PRF_TAKE_TEN))
     roll = 10;*/
 
@@ -5490,6 +5493,7 @@ bool can_spell_be_revoked(int spellnum)
     case SPELL_KEEN_EDGE:
     case SPELL_PROTECTION_FROM_ENERGY:
     case SPELL_DIVINE_POWER:
+    case SPELL_MINOR_ILLUSION:
 
     // psionic powers
     case PSIONIC_BROKER:
@@ -6283,19 +6287,19 @@ bool has_cover(struct char_data *ch, struct char_data *t)
 // one with shadow feat.
 bool can_one_with_shadows(struct char_data *ch)
 {
+  
+  return false; // remove this when shade race is added
 
-  if (!ch)
-    return false;
+  if (!ch) return false;
 
-  /* if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW))
-    return false; */
+  // if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW)) return false;
 
-  if (compute_concealment(ch) > 0)
+  if (compute_concealment(ch)> 0)
     return true;
 
   if (has_cover(ch, FIGHTING(ch)))
     return true;
-
+  
   if (!ch->group)
     return false;
 
@@ -6303,10 +6307,8 @@ bool can_one_with_shadows(struct char_data *ch)
   int num = 0;
   while ((k = (struct char_data *)simple_list(ch->group->members)) != NULL)
   {
-    if (IN_ROOM(k) != IN_ROOM(ch))
-      continue;
-    if (k == ch)
-      continue;
+    if (IN_ROOM(k) != IN_ROOM(ch)) continue;
+    if (k == ch) continue;
     num++;
   }
   if (num > 0)
@@ -6317,27 +6319,21 @@ bool can_one_with_shadows(struct char_data *ch)
 
 // This will check if there is a creature in the room, aside from the 'ch'
 // which is both larger than ch and not targetting ch in battle.
-/* bool can_naturally_stealthy(struct char_data *ch)
+bool can_naturally_stealthy(struct char_data *ch)
 {
-
-  if (!ch)
-    return false;
-  if (IN_ROOM(ch) == NOWHERE)
-    return false;
-  if (!HAS_REAL_FEAT(ch, FEAT_NATURALLY_STEALTHY))
-    return false;
+  
+  if (!ch) return false;
+  if (IN_ROOM(ch) == NOWHERE) return false;
+  if (!HAS_REAL_FEAT(ch, FEAT_NATURALLY_STEALTHY)) return false;
 
   struct char_data *t = NULL;
   int num = 0;
 
   for (t = world[IN_ROOM(ch)].people; t; t = t->next_in_room)
   {
-    if (t == ch)
-      continue;
-    if (FIGHTING(t) == ch)
-      continue;
-    if (GET_SIZE(t) <= GET_SIZE(ch))
-      continue;
+    if (t == ch) continue;
+    if (FIGHTING(t) == ch) continue;
+    if (GET_SIZE(t) <= GET_SIZE(ch)) continue;
     num++;
   }
 
@@ -6345,7 +6341,7 @@ bool can_one_with_shadows(struct char_data *ch)
     return true;
 
   return false;
-} */
+}
 
 // returns true if the damage type is to be displayed on certain
 // lists, like the resistancesd command.

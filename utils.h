@@ -217,6 +217,8 @@ bool char_has_infra(struct char_data *ch);
 bool char_has_ultra(struct char_data *ch);
 bool room_is_dark(room_rnum room);
 bool room_is_daylit(room_rnum room);
+bool can_naturally_stealthy(struct char_data *ch);
+bool can_one_with_shadows(struct char_data *ch);
 int get_party_size_same_room(struct char_data *ch);
 int get_avg_party_level_same_room(struct char_data *ch);
 int get_max_party_level_same_room(struct char_data *ch);
@@ -1446,6 +1448,9 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
   (((GET_ADD(ch) == 0) || (GET_STR(ch) != 18)) ? GET_STR(ch) : (GET_ADD(ch) <= 50) ? 26 \
                                                                                    : ((GET_ADD(ch) <= 75) ? 27 : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
 
+// returns effectve strength score for determining max carry weight
+#define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
+
 /** Return how much weight ch can carry. */
 #define CAN_CARRY_W(ch) (str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
 
@@ -1901,9 +1906,9 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_HUMAN(ch) (!IS_NPC(ch) && \
                       (GET_RACE(ch) == RACE_HUMAN))
 #define IS_ELF(ch) (!IS_NPC(ch) && \
-                    (GET_RACE(ch) == RACE_ELF))
+                    (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_WILD_ELF || GET_RACE(ch) == RACE_HIGH_ELF))
 #define IS_DWARF(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_DWARF))
+                      (GET_RACE(ch) == RACE_DWARF || GET_RACE(ch) == RACE_DUERGAR_DWARF || GET_RACE(ch) == RACE_GOLD_DWARF || GET_RACE(ch) == RACE_CRYSTAL_DWARF))
 #define IS_HALF_TROLL(ch) (!IS_NPC(ch) && \
                            (GET_RACE(ch) == RACE_HALF_TROLL))
 #define IS_CRYSTAL_DWARF(ch) (!IS_NPC(ch) && \
@@ -1913,13 +1918,13 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_LICH(ch) (!IS_NPC(ch) && \
                      (GET_RACE(ch) == RACE_LICH))
 #define IS_HALFLING(ch) (!IS_NPC(ch) && \
-                         (GET_RACE(ch) == RACE_HALFLING))
+                         (GET_RACE(ch) == RACE_HALFLING || GET_RACE(ch) == RACE_STOUT_HALFLING))
 #define IS_H_ELF(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_H_ELF))
+                      (GET_RACE(ch) == RACE_H_ELF || GET_RACE(ch) == RACE_HALF_DROW))
 #define IS_H_ORC(ch) (!IS_NPC(ch) && \
                       (GET_RACE(ch) == RACE_H_ORC))
 #define IS_GNOME(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_GNOME))
+                      (GET_RACE(ch) == RACE_GNOME || GET_RACE(ch) == RACE_FOREST_GNOME))
 #define IS_ARCANA_GOLEM(ch) (!IS_NPC(ch) && \
                              (GET_RACE(ch) == RACE_ARCANA_GOLEM))
 #define IS_ARCANE_GOLEM(ch) (!IS_NPC(ch) && \
@@ -1936,6 +1941,17 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                            (GET_RACE(ch) == RACE_DUERGAR))
 #define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
                            (GET_RACE(ch) == RACE_DUERGAR))
+
+#define GET_LANG(ch)     ((ch)->player_specials->saved.speaking)
+
+#define HIGH_ELF_CANTRIP(ch)	(ch->player_specials->saved.high_elf_cantrip)
+#define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch) (HIGH_ELF_CANTRIP(ch) || GET_RACE(d->character) != RACE_HIGH_ELF)
+#define GET_RACIAL_MAGIC(ch, slot) (ch->player_specials->saved.racial_magic[slot])
+#define GET_RACIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.racial_cooldown[slot])
+#define GET_DRAGONBORN_ANCESTRY(ch) (ch->player_specials->saved.dragonborn_draconic_ancestry)
+#define CAN_CHOOSE_DRAGONBORN_ANCESTRY(ch) (GET_DRAGONBORN_ANCESTRY(ch) || GET_RACE(d->character) != RACE_DRAGONBORN)
+#define GET_PRIMORDIAL_MAGIC(ch, slot) (ch->player_specials->saved.primordial_magic[slot])
+#define GET_PRIMORDIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.primordial_cooldown[slot])
 
 // shifter forms
 #define IS_IRON_GOLEM(ch) (!IS_NPC(ch) && (GET_RACE(ch) == RACE_IRON_GOLEM || GET_DISGUISE_RACE(ch) == RACE_IRON_GOLEM))

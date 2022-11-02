@@ -4712,6 +4712,70 @@ const char *random_surnames[NUM_SURNAMES + 1] = {
     "Heixina",
     "\n"};
 
+int racial_spells[NUM_RACES][3] = {
+    {0, 0, 0},                                                   // human -- 0
+    {SPELL_MINOR_ILLUSION, SPELL_SLEEP, SPELL_MOONBEAM},         // moon elf
+    {0, 0, 0},                                                   // mountain dwarf
+    {0, 0, 0},                                                   // half troll
+    {0, 0, 0},                                                   // crystal dwarf
+    {0, 0, 0},                                                   // lightfoot halfling -- 5
+    {0, 0, 0},                                                   // half elf
+    {0, 0, 0},                                                   // half orc
+    {0, 0, 0},                                                   // rock gnome
+    {0, 0, 0},                                                   // trelux
+    {0, 0, 0},                                                   // arcana golem -- 10
+    {SPELL_FAERIE_FIRE, SPELL_LEVITATE, SPELL_DARKNESS},         // drow elf
+    {0, SPELL_ENLARGE_PERSON, SPELL_INVISIBLE},                  // duergar dwarf
+    {0, 0, 0},                                                   // high elf
+    {0, 0, 0},                                                   // wild elf
+    {0, 0, 0},                                                   // half drow -- 15
+    {0, 0, 0},                                                   // dragonborn
+    {SPELL_BURNING_HANDS, SPELL_HELLISH_REBUKE, SPELL_DARKNESS}, // tielfing
+    {0, 0, 0},                                                   // stout halfling
+    {SPELL_MINOR_ILLUSION, SPELL_CHARM_ANIMAL, 0},               // forest gnome
+    {0, 0, 0},                                                   // gold dwarf -- 20
+    {0, 0, 0},                                                   // aasimar
+    {0, 0, 0},                                                   // tabaxi
+    {0, 0, 0},                                                   // goliath
+    {0, 0, 0},                                                   // shade
+    // {0, 0, 0},                                                   // deep gnome -- 25
+    // {0, 0, 0},                                                   // orc
+    // {0, 0, 0},                                                   // half ogre
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused -- 30
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused -- 35
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused -- 40
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // lich -- 45
+    // {0, 0, 0},                                                   // vampire
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused -- 50
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused -- 55
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused
+    // {0, 0, 0},                                                   // unused -- 60
+};
+
 const char *class_short_descriptions[] = {
     "A skilled user of magic whose knowledge of the arcane is unmatched.",                                         // wizard
     "A servant of a deity whose divine magic is unparalled.",                                                      // cleric
