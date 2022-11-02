@@ -7582,18 +7582,18 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     /* this bonus will only kick in IF the defender doesn't have iron skin & epic warding */
     if (!affected_by_spell(FIGHTING(ch), SPELL_IRONSKIN) && !affected_by_spell(FIGHTING(ch), SPELL_EPIC_WARDING))
     {
-      maximum_bab += 2;
-      calc_bab += 2;
+      maximum_bab++;
+      calc_bab++;
 
       if (GET_LEVEL(ch) > 30)
       {
-        maximum_bab += 2;
-        calc_bab += 2;
+        maximum_bab++;
+        calc_bab++;
       }
       if (GET_LEVEL(ch) > 31)
       {
-        maximum_bab += 2;
-        calc_bab += 2;
+        maximum_bab++;
+        calc_bab++;
       }
       if (GET_LEVEL(ch) > 32)
       {
