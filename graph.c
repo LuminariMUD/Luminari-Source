@@ -113,7 +113,8 @@ int find_first_step(room_rnum src, room_rnum target)
 
   if (GET_ROOM_ZONE(src) != GET_ROOM_ZONE(target))
   {
-    log("INFO: Attempt to path across zones, vnum %d (%d) to vnum %d (%d).", world[src].number, src, world[target].number, target);
+    /* i turned off the log because at spots we are purposely trying to find a target that may not be in the same zone (forced) -zusuk */
+    /* log("INFO: Attempt to path across zones, vnum %d (%d) to vnum %d (%d).", world[src].number, src, world[target].number, target); */
     return (BFS_NO_PATH);
   }
 

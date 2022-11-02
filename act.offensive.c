@@ -2948,7 +2948,7 @@ ACMD(do_order)
       send_to_char(ch, "Your superior would not approve of you giving orders.\r\n");
       return;
     }
-    if (vict)
+    if (vict && ch)
     {
       char buf[MAX_STRING_LENGTH];
 
@@ -2966,10 +2966,9 @@ ACMD(do_order)
 
       /* use a move action here -zusuk */
       USE_MOVE_ACTION(ch);
-
-      /* This is order "followers" */
     }
-    else
+
+    else if (ch) /* This is order "followers" */
     {
       char buf[MAX_STRING_LENGTH];
 
@@ -2999,6 +2998,7 @@ ACMD(do_order)
         send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
     }
   }
+  /* all done */
 }
 
 ACMD(do_flee)
