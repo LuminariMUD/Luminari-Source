@@ -6989,7 +6989,7 @@ ACMDU(do_tinker)
 {
 
   PREREQ_NOT_NPC();
-  PREREQ_CHECK(can_mastermind);
+  PREREQ_CHECK(can_tinker);
   PREREQ_HAS_USES(FEAT_TINKER, "You have expended all of your tinker attempts.\r\n");
 
   struct obj_data *obj = NULL;
@@ -7007,7 +7007,7 @@ ACMDU(do_tinker)
     send_to_char(ch, "You do not have an item in your inventory by that description.\r\n");
     return;
   }
-  
+
   if (GET_OBJ_TYPE(obj) != ITEM_ARMOR && GET_OBJ_TYPE(obj) != ITEM_WEAPON)
   {
     send_to_char(ch, "The item is neither a piece of armor or a weapon.\r\n");
@@ -7036,7 +7036,6 @@ ACMDU(do_tinker)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_TINKER);
-
 }
 
 /* EOF */
