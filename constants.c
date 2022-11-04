@@ -4187,7 +4187,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        /* rogue 2 */
     {"", "", "", ""},                                        /* warrior 3 */
     {"", "", "", ""},                                        /* monk 4 */
-    {"commune", "communing", "communed", "communion"},       // CLASS_DRUID
+    {"commune", "communing", "communed", "communions"},      // CLASS_DRUID
     {"", "", "", ""},                                        /* berserker 6 */
     {"meditate", "meditating", "meditated", "meditations"},  // CLASS_SORCERER
     {"chant", "chanting", "chanted", "petitions"},           // CLASS_PALADIN

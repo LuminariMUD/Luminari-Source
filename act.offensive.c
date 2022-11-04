@@ -2977,6 +2977,10 @@ ACMD(do_order)
 
       for (k = ch->followers; k; k = k->next)
       {
+        if (!k)
+          continue;
+        if (!ch->followers)
+          continue;
         if (!k->follower)
           continue;
         if (IN_ROOM(ch) == NOWHERE || IN_ROOM(k->follower) == NOWHERE)
