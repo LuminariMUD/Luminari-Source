@@ -2929,8 +2929,8 @@ ACMD(do_order)
 {
   char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
   bool found = FALSE;
-  struct char_data *vict;
-  struct follow_type *k;
+  struct char_data *vict = NULL;
+  struct follow_type *k = NULL;
 
   half_chop_c(argument, name, sizeof(name), message, sizeof(message));
 
