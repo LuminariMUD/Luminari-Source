@@ -966,7 +966,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 8;
     if (HAS_FEAT(ch, FEAT_WOOD_ELF_MASK_OF_THE_WILD))
       value += 3;
-    if (IN_NATURE(ch) && HAS_FEAT(ch, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT)) {
+    if (IN_NATURE(ch) && HAS_FEAT(ch, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT))
+    {
       if (weather_info.sunlight == SUN_DARK || weather_info.sunlight == SUN_SET)
         value += 6;
     }
@@ -1754,7 +1755,7 @@ bool is_wearing(struct char_data *ch, obj_vnum vnum)
   return FALSE;
 }
 
-/* from homeland */
+/* call allies to help yan */
 bool yan_yell(struct char_data *ch)
 {
   struct char_data *i;
@@ -1823,7 +1824,7 @@ bool yan_yell(struct char_data *ch)
   return FALSE;
 }
 
-/* from homeland */
+/* yan damage proc */
 void yan_maelstrom(struct char_data *ch)
 {
   struct char_data *vict;
@@ -1861,7 +1862,7 @@ void yan_maelstrom(struct char_data *ch)
   }
 }
 
-/* from homeland */
+/* yan windgust */
 void yan_windgust(struct char_data *ch)
 {
   struct char_data *vict;
@@ -1910,7 +1911,7 @@ void yan_windgust(struct char_data *ch)
   }
 }
 
-/* from homeland */
+/* chan calls allies */
 bool chan_yell(struct char_data *ch)
 {
   struct char_data *i;
@@ -1986,7 +1987,7 @@ bool chan_yell(struct char_data *ch)
 /** begin actual mob procs **/
 /****************************/
 
-/* from homeland */
+/* shadowdragon shadow breathe proc */
 SPECIAL(shadowdragon)
 {
   struct char_data *vict;
@@ -2022,7 +2023,7 @@ SPECIAL(shadowdragon)
   return TRUE;
 }
 
-/* from homeland */
+/* imix fireplane procs */
 SPECIAL(imix)
 {
   if (!ch)
@@ -2054,7 +2055,7 @@ SPECIAL(imix)
   return FALSE;
 }
 
-/* from homeland */
+/* olhydra procs */
 SPECIAL(olhydra)
 {
   struct char_data *vict;
@@ -2107,7 +2108,7 @@ SPECIAL(olhydra)
   return FALSE;
 }
 
-/* from homeland */
+/* banshee procs */
 SPECIAL(banshee)
 {
   struct char_data *vict;
@@ -2138,7 +2139,7 @@ SPECIAL(banshee)
   return FALSE;
 }
 
-/* from homeland */
+/* marsh quicksand proc */
 SPECIAL(quicksand)
 {
   struct affected_type af;
@@ -2178,7 +2179,7 @@ SPECIAL(quicksand)
   return TRUE;
 }
 
-/* from homeland */
+/* kenjin proc */
 SPECIAL(kt_kenjin)
 {
   struct affected_type af;
@@ -6172,8 +6173,6 @@ SPECIAL(helmblade)
   }
 }
 
-/* from homeland */
-
 /* obj - 113898 has special proc when combined with 113897 */
 SPECIAL(flaming_scimitar)
 {
@@ -6184,7 +6183,7 @@ SPECIAL(flaming_scimitar)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "???");
+    send_to_char(ch, "???\r\n");
     return TRUE;
   }
 
@@ -6193,7 +6192,7 @@ SPECIAL(flaming_scimitar)
   if (cmd || !vict || GET_POS(ch) == POS_DEAD)
     return FALSE;
 
-  if (GET_CLASS(ch) != CLASS_RANGER)
+  if (CLASS_LEVEL(ch, CLASS_RANGER) < 10)
   {
     act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy grasp!\tn", FALSE, ch,
         (struct obj_data *)me, NULL, TO_CHAR);
@@ -6240,8 +6239,6 @@ SPECIAL(flaming_scimitar)
   return FALSE;
 }
 
-/* from homeland */
-
 /* obj - 113897 has special proc when combined with 113898 */
 SPECIAL(frosty_scimitar)
 {
@@ -6252,7 +6249,7 @@ SPECIAL(frosty_scimitar)
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "???");
+    send_to_char(ch, "???\r\n");
     return TRUE;
   }
 
@@ -6261,7 +6258,7 @@ SPECIAL(frosty_scimitar)
   if (cmd || !vict || GET_POS(ch) == POS_DEAD)
     return FALSE;
 
-  if (GET_CLASS(ch) != CLASS_RANGER)
+  if (CLASS_LEVEL(ch, CLASS_RANGER) < 10)
   {
     act("\tWA \trsearing hot\tW pain travels up your arm as $p \tWrips itself from your unworthy grasp!\tn", FALSE, ch,
         (struct obj_data *)me, NULL, TO_CHAR);
