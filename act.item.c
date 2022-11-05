@@ -4018,9 +4018,11 @@ ACMD(do_wear)
       /* where does this gear fit? */
       if (CAN_SEE_OBJ(ch, obj) && (where = find_eq_pos(ch, obj, 0)) >= 0)
       {
+        /*
         if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
           send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
-        else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR && (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
+        else*/
+        if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR && (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
           send_to_char(ch, "You are in clan %d, This belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
         else
         {
@@ -4044,8 +4046,8 @@ ACMD(do_wear)
 
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have any %ss.\r\n", arg1);
-    else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
+    /* else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
+      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));*/
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
              (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
@@ -4067,8 +4069,8 @@ ACMD(do_wear)
   {
     if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
       send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
-    else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));
+    /*else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
+      send_to_char(ch, "You are not experienced enough to use %s.\r\n", GET_OBJ_SHORT(obj));*/
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
              (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch), GET_OBJ_VAL(obj, 2));
@@ -4104,11 +4106,11 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent)
     if (not_silent)
       send_to_char(ch, "It's too heavy for you to use.\r\n");
   }
-  else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
+  /*else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
   {
     if (not_silent)
       send_to_char(ch, "You are not experienced enough to use that.\r\n");
-  }
+  }*/
   else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
            (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
   {
@@ -4217,8 +4219,8 @@ ACMD(do_grab)
     send_to_char(ch, "Hold what?\r\n");
   else if (!(obj = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))
     send_to_char(ch, "You don't seem to have %s %s.\r\n", AN(arg), arg);
-  else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
-    send_to_char(ch, "You are not experienced enough to use that.\r\n");
+  /*else if (GET_LEVEL(ch) < GET_OBJ_LEVEL(obj))
+    send_to_char(ch, "You are not experienced enough to use that.\r\n");*/
   else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
            (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
     send_to_char(ch, "You are not in the right clan to use that.\r\n");
