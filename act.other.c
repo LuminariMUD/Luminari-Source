@@ -7605,7 +7605,7 @@ static const char *const hints[] = {
            "Want to see a full list of all implement spells and skills in the game?  Type respectively 'masterlist spells' or 'masterlist skills'"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*54*/ "\tR[HINT]:\tn \ty"
-           "There is a shop that offers a service that will elighten your mind as to the basic "
+           "There is a shop that offers a service that will enlighten your mind as to the basic "
            "enchantments found on all of your worn equipment.  It is one west of 'recall.'  The "
            "cost varies by the skill of the requester, beginning at 100 gold coins for a complete "
            "novice and up to 3000 gold coins for the most skilled of heroes.  To receive this "
