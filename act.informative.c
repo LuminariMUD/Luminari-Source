@@ -1908,6 +1908,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eDRACCLAWS)))
     send_to_char(ch, "Draconic Heritage Claws Attack Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eDRAGBREATH)))
+    send_to_char(ch, "Draconic Heritage Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_STRENGTH)))
     send_to_char(ch, "Strength Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eSLA_ENLARGE)))
@@ -3068,7 +3070,7 @@ ACMD(do_score)
   text_line(ch, "\tYScore Information\tC", line_length, '-', '-');
   send_to_char(ch, "\tcName : \tn%-20s \tcTitle   : \tn%s\r\n",
                GET_NAME(ch), GET_TITLE(ch) ? GET_TITLE(ch) : "None.");
-  send_to_char(ch, "\tcRace : \tn%-20s ", RACE_ABBR(ch));
+  send_to_char(ch, "\tcRace : \tn%-20s ", race_list[GET_RACE(ch)].type);
 
   /* Build the string of class names and levels */
   *buf = '\0';

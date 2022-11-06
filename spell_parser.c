@@ -3877,6 +3877,8 @@ void mag_assign_spells(void)
   spello(SPELL_DRACONIC_BLOODLINE_BREATHWEAPON, "draconic bloodline breath weapon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
+  spello(SPELL_DRAGONBORN_ANCESTRY_BREATH, "dragonborn breath weapon", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,

@@ -1714,7 +1714,6 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1,  N);
   feat_race_assignment(RACE_HALF_ELF, FEAT_HALF_ELF_RACIAL_ADJUSTMENT, 1,  N);
 
-#ifdef TEMP_COMMENTED
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -1751,8 +1750,9 @@ void assign_races(void)
     feat_race_assignment(RACE_HALF_DROW, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1,  N);
     feat_race_assignment(RACE_HALF_DROW, FEAT_HALF_DROW_RACIAL_ADJUSTMENT, 1,  N);
     /* affect assignment */
-    race_list[RACE_HALF_DROW].racial_language = LANG_UNDERCOMMON;
+    race_list[RACE_HALF_DROW].racial_language = SKILL_LANG_UNDERCOMMON;
     /*                  race-num  affect            lvl */
+
 
   /****************************************************************************/
   /****************************************************************************/
@@ -1789,13 +1789,14 @@ void assign_races(void)
     /* affect assignment */
     /*                  race-num  affect            lvl */
 
-  /****************************************************************************/
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_TIEFLING, "tielfing", "Tiefling", "\tATiefling\tn", "Tief", "\tATief\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+#ifdef TEMP_COMMENTED
+    /****************************************************************************/
+    /****************************************************************************/
+    /****************************************************************************/
+    /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+    add_race(RACE_TIEFLING, "tielfing", "Tiefling", "\tATiefling\tn", "Tief", "\tATief\tn",
+             /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+             RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
     set_race_details(RACE_TIEFLING,
       /*descrip*/
        "Tieflings were human-based planetouched, native outsiders that were infused "
@@ -1932,7 +1933,7 @@ void assign_races(void)
                      /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Dwarven.",
                      /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Dwarven.");
     set_race_genders(RACE_DWARF, N, Y, Y);                      /* n m f */
-    set_race_abilities(RACE_DWARF, 1, 2, 0, 0, 0, 0);           /* str con int wis dex cha */
+    set_race_abilities(RACE_DWARF, 2, 2, 0, 0, 0, 0);           /* str con int wis dex cha */
     set_race_alignments(RACE_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
     set_race_attack_types(RACE_DWARF,
                           /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -2508,7 +2509,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Trelux.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Trelux.");
   set_race_genders(RACE_TRELUX, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_TRELUX, 2, 4, 0, 0, 4, 0);           /* str con int wis dex cha */
+  set_race_abilities(RACE_TRELUX, 4, 4, 0, 0, 4, 0);           /* str con int wis dex cha */
   set_race_alignments(RACE_TRELUX, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_TRELUX,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -2652,7 +2653,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
   set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_LICH, -2, 0, 6, 2, 0, 6);          /* str con int wis dex cha */
+  set_race_abilities(RACE_LICH, 0, 2, 6, 2, 2, 6);          /* str con int wis dex cha */
   set_race_alignments(RACE_LICH, N, N, N, N, N, N, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_LICH,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -2716,7 +2717,7 @@ void assign_races(void)
                    /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Vampire.",
                    /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Vampire.");
   set_race_genders(RACE_VAMPIRE, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_VAMPIRE, 6, 2, 2, 2, 4, 4);           /* str con int wis dex cha */
+  set_race_abilities(RACE_VAMPIRE, 6, 4, 2, 2, 4, 4);           /* str con int wis dex cha */
   set_race_alignments(RACE_VAMPIRE, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
   set_race_attack_types(RACE_VAMPIRE,
                         /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
@@ -3601,6 +3602,18 @@ int parse_race_long(const char *arg_in)
     return RACE_WOOD_ELF;
   if (is_abbrev(arg, "wood elf"))
     return RACE_WOOD_ELF;
+  if (is_abbrev(arg, "dragonborn"))
+    return RACE_DRAGONBORN;
+  if (is_abbrev(arg, "dragon-born"))
+    return RACE_DRAGONBORN;
+  if (is_abbrev(arg, "dragon born"))
+    return RACE_DRAGONBORN;
+  if (is_abbrev(arg, "halfdrow"))
+    return RACE_HALF_DROW;
+  if (is_abbrev(arg, "half-drow"))
+    return RACE_HALF_DROW;
+  if (is_abbrev(arg, "half drow"))
+    return RACE_HALF_DROW;
 
   return RACE_UNDEFINED;
 }
@@ -3638,6 +3651,29 @@ int invalid_race(struct char_data *ch, struct obj_data *obj)
     return 1;
   else
     return 0;
+}
+
+sbyte has_racial_abils_unchosen(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  switch (GET_RACE(ch))
+  {
+  case RACE_HIGH_ELF:
+    if (HIGH_ELF_CANTRIP(ch) == 0)
+      return true;
+    break;
+  case RACE_DRAGONBORN:
+    if (!GET_DRAGONBORN_ANCESTRY(ch))
+      return true;
+    break;
+  }
+  return false;
 }
 
 int get_random_basic_pc_race(void)

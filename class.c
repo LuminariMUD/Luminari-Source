@@ -1827,6 +1827,21 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_STRONG_AGAINST_DISEASE},
     {CLASS_UNDEFINED, RACE_HALF_TROLL, FALSE, 1, FEAT_HALF_TROLL_RACIAL_ADJUSTMENT},
 
+    /* Half-Drow */
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_ULTRAVISION},
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_WEAPON_PROFICIENCY_DROW},
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_RESISTANCE_TO_ENCHANTMENTS},
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_HALF_BLOOD},
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_KEEN_SENSES},
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_HALF_DROW_SPELL_RESISTANCE},
+    {CLASS_UNDEFINED, RACE_HALF_DROW, FALSE, 1, FEAT_HALF_DROW_RACIAL_ADJUSTMENT},
+
+    /* Dragonborn */
+    {CLASS_UNDEFINED, RACE_DRAGONBORN, FALSE, 1, FEAT_DRAGONBORN_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_DRAGONBORN, FALSE, 1, FEAT_DRAGONBORN_BREATH},
+    {CLASS_UNDEFINED, RACE_DRAGONBORN, FALSE, 1, FEAT_DRAGONBORN_FURY},
+    {CLASS_UNDEFINED, RACE_DRAGONBORN, FALSE, 1, FEAT_DRAGONBORN_RESISTANCE},
+
     /* class, race, stacks?, level, feat_ name */
     /* Halfling */
     // Mostly deprecated... still used for racefix
@@ -1977,7 +1992,7 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_SLA_ENLARGE},
     {CLASS_UNDEFINED, RACE_DUERGAR, FALSE, 1, FEAT_DUERGAR_MAGIC},
 
-      /* wood elf */
+    /* wood elf */
     {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_INFRAVISION},
     {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_WEAPON_PROFICIENCY_ELF},
     {CLASS_UNDEFINED, RACE_WOOD_ELF, FALSE, 1, FEAT_SLEEP_ENCHANTMENT_IMMUNITY},
@@ -7667,37 +7682,44 @@ ACMD(do_racefix)
     switch (GET_REAL_RACE(ch))
     {
     case RACE_MOON_ELF:
+      found = true;
       ch->real_abils.str += 2;
       ch->real_abils.wis += 1;
       send_to_char(ch, "Your strength has been increased by two and your wisdom by one.\r\n");
       break;
     case RACE_SHIELD_DWARF:
+      found = true;
       ch->real_abils.cha += 2;
-      ch->real_abils.str += 1;
-      send_to_char(ch, "Your strength has been increased by one and your charisma by two.\r\n");
+      ch->real_abils.str += 2;
+      send_to_char(ch, "Your strength and your charisma have increased by two.\r\n");
       break;
     case RACE_ROCK_GNOME:
+      found = true;
       ch->real_abils.con -= 1;
       ch->real_abils.intel += 2;
       ch->real_abils.str += 2;
       send_to_char(ch, "Your strength has been increased by two and your intelligence by two. Your consitiution has been reduced by one.\r\n");
       break;
     case RACE_LIGHTFOOT_HALFLING:
+      found = true;
       ch->real_abils.cha += 1;
       ch->real_abils.str += 2;
       send_to_char(ch, "Your strength has been increased by two and your charisma by one.\r\n");
       break;
     case RACE_HALF_ELF:
+      found = true;
       ch->real_abils.cha += 2;
       send_to_char(ch, "Your charisma has been increased by two.\r\n");
       break;
     case RACE_HALF_ORC:
+      found = true;
       ch->real_abils.cha += 2;
       ch->real_abils.intel += 2;
       ch->real_abils.con += 1;
       send_to_char(ch, "Your charisma and intelligence have been increased by two, and your constitution by one.\r\n");
       break;
     case RACE_HALF_TROLL:
+      found = true;
       ch->real_abils.cha += 2;
       ch->real_abils.intel += 2;
       ch->real_abils.wis += 2;
@@ -7705,6 +7727,7 @@ ACMD(do_racefix)
       send_to_char(ch, "Your penalties to int, wis and cha have been improved from -4 to -2.  Your con has been improved by 2.\r\n");
       break;
     case RACE_ARCANA_GOLEM:
+      found = true;
       ch->real_abils.cha += 1;
       ch->real_abils.intel += 1;
       ch->real_abils.wis += 1;
@@ -7713,28 +7736,55 @@ ACMD(do_racefix)
       send_to_char(ch, "Your penalties to str and con have been negated.  Your str, con and dex bonuses have been improved by 1.\r\n");
       break;
     case RACE_DROW:
+      found = true;
       ch->real_abils.intel += 2;
       ch->real_abils.con += 2;
       send_to_char(ch, "Your penalty to con has been negated and your int has increased by two.\r\n");
       break;
     case RACE_DUERGAR:
+      found = true;
       ch->real_abils.cha += 2;
       ch->real_abils.str += 2;
       send_to_char(ch, "Your penalty to cha has been negated and your str has increased by two.\r\n");
       break;
     case RACE_CRYSTAL_DWARF:
+      found = true;
       ch->real_abils.dex += 2;
       ch->real_abils.wis += 2;
       send_to_char(ch, "Your dex and wis have been increased by two.\r\n");
       break;
+    case RACE_TRELUX:
+      found = true;
+      ch->real_abils.str += 2;
+      send_to_char(ch, "Your strength has been increased by two.\r\n");
+      break;
+    case RACE_VAMPIRE:
+      found = true;
+      ch->real_abils.con += 2;
+      send_to_char(ch, "Your constitution has been increased by two.\r\n");
+      break;
+    case RACE_LICH:
+      found = true;
+      ch->real_abils.str += 2;
+      ch->real_abils.con += 2;
+      ch->real_abils.dex += 2;
+      send_to_char(ch, "Your strength, dexterity and constituion have been increased by two.\r\n");
+      break;
     }
   }
 
-  // So they an only get extra stats once.
-  ch->player_specials->saved.new_race_stats = true;
-
   if (!found)
-    send_to_char(ch, "You already have all your racial feats.\r\n");
+  {
+    send_to_char(ch, "You already have all your racial feats and stat adjustments.\r\n");
+  }
+  else
+  {
+    // So they an only get extra stats once.
+    // But if there were no changes, we won't set the flag,
+    // Just in case we make changes down the line.
+    ch->player_specials->saved.new_race_stats = true;
+  }
+    
 }
 
 /** LOCAL UNDEFINES **/

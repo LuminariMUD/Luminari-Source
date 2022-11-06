@@ -2187,12 +2187,21 @@
 #define FEAT_DROW_INNATE_MAGIC 912
 // duergar
 #define FEAT_DUERGAR_MAGIC 913
+// half drow
+#define FEAT_HALF_DROW_SPELL_RESISTANCE 914
+#define FEAT_HALF_DROW_RACIAL_ADJUSTMENT 915
+// dragonborn
+#define FEAT_DRAGONBORN_BREATH 916
+#define FEAT_DRAGONBORN_RESISTANCE 917
+#define FEAT_DRAGONBORN_RACIAL_ADJUSTMENT 918
+#define FEAT_DRAGONBORN_FURY 919
+#define FEAT_DRAGONBORN_ANCESTRY 920
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 914
+#define FEAT_LAST_FEAT 921
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 915
+#define NUM_FEATS 922
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3190,6 +3199,50 @@
 #define FACTION_DARKLING 2
 #define FACTION_CRIMINAL 3
 #define NUM_FACTIONS 3
+
+// Spoken Languages
+#define LANG_COMMON 0
+#define LANG_DWARVISH 1
+#define LANG_ELVISH 2
+#define LANG_GIANT 3
+#define LANG_GNOMISH 4
+#define LANG_GOBLIN 5
+#define LANG_HALFLING 6
+#define LANG_ORC 7
+#define LANG_ABYSSAL 8
+#define LANG_CELESTIAL 9
+#define LANG_DEEP SPEECH 10
+#define LANG_DRACONIC 11
+#define LANG_INFERNAL 12
+#define LANG_PRIMORDIAL 13
+#define LANG_SYLVAN 14
+#define LANG_UNDERCOMMON 15
+#define LANG_AGLARONDAN 16
+#define LANG_ALZHEDO 17
+#define LANG_CHONDATHAN 18
+#define LANG_CHULTAN 19
+#define LANG_DAMARAN 20
+#define LANG_DAMBRATHAN 21
+#define LANG_GURAN 22
+#define LANG_HALRUAAN 23
+#define LANG_ILLUSKAN 24
+#define LANG_MIDANI 25
+#define LANG_MULAN 26
+#define LANG_NAR 27
+#define LANG_NETHERESE 28
+#define LANG_RASHEMI 29
+#define LANG_ROUSHOUM 30
+#define LANG_SHAARAN 31
+#define LANG_SHOU 32
+#define LANG_THORASS 33
+#define LANG_TUIGAN 34
+#define LANG_TURMIC 35
+#define LANG_ULUIK 36
+#define LANG_WAELAN 37
+#define LANG_DRUIDIC 38
+#define LANG_THEIVES_CANT 39
+
+#define NUM_LANGUAGES 40
 
 /* Staff Ran Event */
 #define STAFF_RAN_EVENTS_VAR 300 /* values saved for staff events on player */
@@ -4355,6 +4408,7 @@ struct level_data
     int tempMercy;
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES];
     int tempCruelty;
+    int dragonborn_draconic_ancestry;
 };
 
 /** The list element that makes up a list of characters following this

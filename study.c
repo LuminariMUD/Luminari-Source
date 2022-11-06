@@ -450,6 +450,10 @@ void finalize_study(struct descriptor_data *d)
   if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0)
     ch->player_specials->saved.sorcerer_bloodline_subtype = LEVELUP(ch)->sorcerer_bloodline_subtype;
 
+  // Assign dragonborn ancestry if necessary
+  if (LEVELUP(ch)->dragonborn_draconic_ancestry > 0)
+    ch->player_specials->saved.dragonborn_draconic_ancestry = LEVELUP(ch)->dragonborn_draconic_ancestry;
+
   // Assign chosen alchemist discoveries
   for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
   {
@@ -1571,6 +1575,32 @@ static void set_sorcerer_bloodline(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SET_S_BLOODLINE;
 }
 
+static void select_racial_abils(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+                  "\r\n-- %sSelect Racial Ability%s\r\n"
+                  "\r\n"
+                  "%s 0%s) High Elf Cantrip\r\n"
+                  "%s 1%s) Dragonborn Dragon Ancestry\r\n"
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
+
+                  mgn, nrm,
+                  /* empty line */
+                  MENU_OPT(!CAN_CHOOSE_HIGH_ELF_CANTRIP(d->character)),
+                  /* empty line */
+                  MENU_OPT(!CAN_CHOOSE_DRAGONBORN_ANCESTRY(d->character)),
+                  /* empty line */
+                  grn, nrm);
+
+  OLC_MODE(d) = STUDY_SELECT_RACIAL_ABILITY;
+}
+
 static void select_alchemist_discoveries(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -1682,6 +1712,28 @@ static void select_blackguard_cruelties(struct descriptor_data *d)
                   grn, nrm, cruelties_known);
 
   OLC_MODE(d) = STUDY_SELECT_BG_CRUELTY;
+}
+
+static void set_dragonborn_draconic_ancestry(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Your draconic ancestry determines the damage type for your\r\n");
+  write_to_output(d, "breath weapon and energy resistance once acquired.\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLACK, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLACK), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLACK));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BLUE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BLUE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BLUE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GREEN, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GREEN), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GREEN));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_RED, DRCHRTLIST_NAME(DRACONIC_HERITAGE_RED), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_RED));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_WHITE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_WHITE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_WHITE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRASS, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRASS), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRASS));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_BRONZE, DRCHRTLIST_NAME(DRACONIC_HERITAGE_BRONZE), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_BRONZE));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_COPPER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_COPPER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_COPPER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_SILVER, DRCHRTLIST_NAME(DRACONIC_HERITAGE_SILVER), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_SILVER));
+  write_to_output(d, "%2d) %15s dragon - %s damage\r\n", DRACONIC_HERITAGE_GOLD, DRCHRTLIST_NAME(DRACONIC_HERITAGE_GOLD), DRCHRT_ENERGY_TYPE(DRACONIC_HERITAGE_GOLD));
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n%sSelect the dragon type for your draconic ancestry : ", nrm);
 }
 
 static void set_domain_submenu(struct descriptor_data *d)
@@ -2155,6 +2207,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s C%s) Alchemist Discoveries Selection%s\r\n"
                   "%s D%s) Paladin Mercies%s\r\n"
                   "%s E%s) Blackguard Cruelties%s\r\n"
+                  "%s F%s) Racial Abilities Selection%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -2178,6 +2231,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", // C
                   MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             // D
                   MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
+                  MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // D
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
                   grn, nrm,
                   (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
@@ -2571,6 +2625,21 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         select_blackguard_cruelties(d);
       }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+
+    case 'F':
+    case 'f':
+      if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
+      {
+        write_to_output(d, "Please choose your feat(s) first.\r\n");
+      }
+      else if (has_racial_abils_unchosen(ch))
+        select_racial_abils(d);
       else
       {
         write_to_output(d, "That is an invalid choice!\r\n");
@@ -3898,7 +3967,101 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
 
+  case STUDY_SELECT_RACIAL_ABILITY:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
+      break;
+    default:
+      number = atoi(arg);
+      switch (number)
+      {
+      // case 0:
+      //   if (CAN_CHOOSE_HIGH_ELF_CANTRIP(ch))
+      //   {
+      //     write_to_output(d, "You are not able to select that racial ability.\r\n");
+      //     break;
+      //   }
+      //   select_high_elf_cantrip(d);
+      //   OLC_MODE(d) = SET_HIGH_ELF_CANTRIP;
+      //   return;
+      case 1:
+        if (CAN_CHOOSE_DRAGONBORN_ANCESTRY(ch))
+        {
+          write_to_output(d, "You are not able to select that racial ability.\r\n");
+          break;
+        }
+        set_dragonborn_draconic_ancestry(d);
+        OLC_MODE(d) = SET_DRAGONBORN_ANCESTRY;
+        return;
+      default:
+        write_to_output(d, "That is an invalid choice.  Please choose again: ");
+        break;
+      }
+      select_racial_abils(d);
+      break;
+    } /* end arg switch */
+    break;
+
     /*****/
+
+  case SET_DRAGONBORN_ANCESTRY:
+    number = atoi(arg);
+    if (number != DRACONIC_HERITAGE_BLACK &&
+        number != DRACONIC_HERITAGE_BLUE &&
+        number != DRACONIC_HERITAGE_GREEN &&
+        number != DRACONIC_HERITAGE_RED &&
+        number != DRACONIC_HERITAGE_WHITE &&
+        number != DRACONIC_HERITAGE_BRASS &&
+        number != DRACONIC_HERITAGE_BRONZE &&
+        number != DRACONIC_HERITAGE_COPPER &&
+        number != DRACONIC_HERITAGE_SILVER &&
+        number != DRACONIC_HERITAGE_GOLD)
+    {
+      write_to_output(d, "Invalid value!  Try again.\r\n");
+      OLC_MODE(d) = SET_DRAGONBORN_ANCESTRY;
+      set_dragonborn_draconic_ancestry(d);
+      return;
+    }
+
+    /* Store the feat number in the work area in the data structure. */
+    LEVELUP(d->character)->tempFeat = FEAT_DRAGONBORN_ANCESTRY;
+    LEVELUP(ch)->dragonborn_draconic_ancestry = number;
+    /* Display the description of the ancestry, and give the player an option. */
+    write_to_output(d, "%s%s%s: %s\r\nDraconic Ancestry: %s dragon - %s energy type\r\n"
+                       "Choose this draconic ancestry? (y/n) : ",
+                    nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description,
+                    DRCHRTLIST_NAME(LEVELUP(ch)->dragonborn_draconic_ancestry),
+                    DRCHRT_ENERGY_TYPE(LEVELUP(ch)->dragonborn_draconic_ancestry));
+    OLC_MODE(d) = STUDY_CONFIRM_DRAGONBORN_ANCESTRY;
+    break;
+
+  case STUDY_CONFIRM_DRAGONBORN_ANCESTRY:
+    switch (*arg)
+    {
+    case 'y':
+    case 'Y':
+      if (add_levelup_feat(d, LEVELUP(ch)->tempFeat))
+      {
+        write_to_output(d, "%s chosen!\r\n", feat_list[LEVELUP(ch)->tempFeat].name);
+        if (LEVELUP(ch)->dragonborn_draconic_ancestry > 0)
+        {
+          if (LEVELUP(ch)->tempFeat == FEAT_DRAGONBORN_ANCESTRY)
+          {
+            write_to_output(d, "You've selected %s dragon as your dragonborn ancestry.\r\n", DRCHRTLIST_NAME(LEVELUP(ch)->dragonborn_draconic_ancestry));
+          }
+        }
+      }
+      display_main_menu(d);
+      break;
+    default:
+      set_dragonborn_draconic_ancestry(d);
+      OLC_MODE(d) = SET_DRAGONBORN_ANCESTRY;
+      break;
+    }
+    break;
 
   case STUDY_SET_STATS:
     switch (*arg)
@@ -4443,6 +4606,28 @@ void study_parse(struct descriptor_data *d, char *arg)
   }
   /*-------------------------------------------------------------------*/
   /*. END OF CASE */
+}
+
+sbyte isSpecialFeat(int feat)
+{
+  if (isSorcBloodlineFeat(feat))
+    return true;
+  if (isRacialFeat(feat))
+    return true;
+
+  return false;
+}
+
+sbyte isRacialFeat(int feat)
+{
+  switch (feat)
+  {
+  // case FEAT_HIGH_ELF_CANTRIP:
+  //   return true;
+  case FEAT_DRAGONBORN_ANCESTRY:
+    return true;
+  }
+  return false;
 }
 
 /* some undefines from top of file */

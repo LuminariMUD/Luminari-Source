@@ -530,6 +530,7 @@ int load_char(const char *name, struct char_data *ch)
     HAS_SET_STATS_STUDY(ch) = PFDEF_HAS_SET_STATS_STUDY;
     GET_BLOODLINE_SUBTYPE(ch) = PFDEF_SORC_BLOODLINE_SUBTYPE;
     NEW_ARCANA_SLOT(ch, 0) = NEW_ARCANA_SLOT(ch, 1) = NEW_ARCANA_SLOT(ch, 2) = NEW_ARCANA_SLOT(ch, 3) = 0;
+    GET_DRAGONBORN_ANCESTRY(ch) = 0;
     for (i = 0; i < AF_ARRAY_MAX; i++)
       AFF_FLAGS(ch)
     [i] = PFDEF_AFFFLAGS;
@@ -716,6 +717,8 @@ int load_char(const char *name, struct char_data *ch)
           load_dr(fl, ch);
         else if (!strcmp(tag, "Desc"))
           ch->player.description = fread_string(fl, buf2);
+        else if (!strcmp(tag, "DrgB"))
+          GET_DRAGONBORN_ANCESTRY(ch) = atoi(line);
         else if (!strcmp(tag, "Dex "))
           GET_REAL_DEX(ch) = atoi(line);
         else if (!strcmp(tag, "Drnk"))
@@ -1393,6 +1396,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Lmot: %d\n", (int)GET_LAST_MOTD(ch));
   if (GET_LAST_NEWS(ch) != PFDEF_LASTNEWS)
     fprintf(fl, "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
+
+  fprintf(fl, "DrgB: %d\n", GET_DRAGONBORN_ANCESTRY(ch));
 
   if (ch->player_specials->saved.new_race_stats)
     fprintf(fl, "RacR: %d\n", ch->player_specials->saved.new_race_stats);
@@ -2086,6 +2091,8 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eDRACBREATH)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eDRACCLAWS)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eDRAGBREATH)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eARCANEADEPT)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));

@@ -2563,6 +2563,53 @@ ACMD(do_sacredflames)
   perform_sacred_flames(ch);
 }
 
+ACMDCHECK(can_dragonborn_breath_weapon)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DRAGONBORN_BREATH, "You do not have access to this ability.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_dragonborn_breath_weapon)
+{
+  struct char_data *vict, *next_vict;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_dragonborn_breath_weapon);
+
+  if (!IS_NPC(ch))
+  {
+    PREREQ_HAS_USES(FEAT_DRAGONBORN_BREATH, "You must recover before you can use your dragonborn ancestry breath weapon again.\r\n");
+    send_to_char(ch, "You have %d uses remaining.\r\n", uses_remaining - 1);
+  }
+
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  send_to_char(ch, "You exhale breathing out %s!\r\n", DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+  char to_room[200];
+  sprintf(to_room, "$n exhales breathing %s!", DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+  act(to_room, FALSE, ch, 0, 0, TO_ROOM);
+
+  int dam_type = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, SPELL_DRAGONBORN_ANCESTRY_BREATH))
+    {
+      if (GET_LEVEL(ch) <= 15)
+        damage(ch, vict, dice(GET_LEVEL(ch), 6), SPELL_DRAGONBORN_ANCESTRY_BREATH, dam_type,
+               FALSE);
+      else
+        damage(ch, vict, dice(GET_LEVEL(ch), 14), SPELL_DRAGONBORN_ANCESTRY_BREATH, dam_type,
+               FALSE);
+    }
+  }
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_DRAGONBORN_BREATH);
+  USE_STANDARD_ACTION(ch);
+}
+
 ACMD(do_assist)
 {
   char arg[MAX_INPUT_LENGTH];
@@ -4857,7 +4904,7 @@ ACMD(do_sorcerer_breath_weapon)
   if (!IS_NPC(ch))
   {
     PREREQ_HAS_USES(FEAT_DRACONIC_HERITAGE_BREATHWEAPON, "You must recover before you can use your draconic heritage breath weapon again.\r\n");
-    send_to_char(ch, "You have %d uses remaining.\r\n", uses_remaining);
+    send_to_char(ch, "You have %d uses remaining.\r\n", uses_remaining - 1);
   }
 
   PREREQ_NOT_PEACEFUL_ROOM();

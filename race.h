@@ -50,6 +50,7 @@ void assign_races(void);
 bool display_race_info(struct char_data *ch, const char *racename);
 int get_race_stat(int race, int stat);
 int get_random_basic_pc_race(void);
+sbyte has_racial_abils_unchosen(struct char_data *ch);
 
 /* ACMD */
 ACMD_DECL(do_race);

@@ -3974,6 +3974,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_DRACONIC_HERITAGE_CLAWS:
       daily_uses += 3 + GET_CHA_BONUS(ch);
       break;
+    case FEAT_DRAGONBORN_BREATH:
+      daily_uses = 3;
+      break;
     case FEAT_MUTAGEN:
       daily_uses = 1;
       break;
