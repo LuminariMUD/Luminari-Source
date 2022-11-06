@@ -2976,8 +2976,8 @@ ACMD(do_order)
 {
   char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
   bool found = FALSE;
-  struct char_data *vict;
-  struct follow_type *k;
+  struct char_data *vict = NULL;
+  struct follow_type *k = NULL;
 
   half_chop_c(argument, name, sizeof(name), message, sizeof(message));
 
@@ -3024,6 +3024,10 @@ ACMD(do_order)
 
       for (k = ch->followers; k; k = k->next)
       {
+        if (!k)
+          continue;
+        if (!ch->followers)
+          continue;
         if (!k->follower)
           continue;
         if (IN_ROOM(ch) == NOWHERE || IN_ROOM(k->follower) == NOWHERE)
