@@ -302,6 +302,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"dracbreath", "dracbreath", POS_FIGHTING, do_sorcerer_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_sorcerer_breath_weapon},
     {"dracclaws", "dracclaws", POS_FIGHTING, do_sorcerer_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_sorcerer_claw_attack},
     {"dracwings", "dracwings", POS_FIGHTING, do_sorcerer_draconic_wings, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"dragbreath", "dragbreath", POS_FIGHTING, do_dragonborn_breath_weapon, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_dragonborn_breath_weapon},
     {"dragonfear", "dragonfear", POS_FIGHTING, do_dragonfear, 1, 0, FALSE, ACTION_SWIFT, {6, 0}, can_dragonfear},
     {"dragonmagic", "dragonmagic", POS_FIGHTING, do_dragonmagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_dragonmagic},
     {"damage", "damage", POS_DEAD, do_damage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

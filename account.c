@@ -71,8 +71,8 @@ const bool locked_races[NUM_RACES] = {
     Y, /*duergar (advanced)*/
     Y, // high elf
     N, // wild elf
-    Y, // half drow
-    Y, // dragonborn
+    N, // half drow
+    N, // dragonborn
     Y, // tiefling
     Y, // stout halfling
     Y, // forest gnome

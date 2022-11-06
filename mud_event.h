@@ -177,6 +177,7 @@ typedef enum
   eBLUR_ATTACK_DELAY, /* stop blur attack proccing too much :) */
   eTINKER, // use the rock gnome tinker ability
   eMOONBEAM,                        // moon beam spell lingering effect
+  eDRAGBREATH,                      // Dragonborn breath weapon
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

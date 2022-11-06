@@ -399,11 +399,11 @@ void assign_feats(void)
         "+2 spell save versus damaging spells",
         "+2 spell save versus damaging spells");
   feato(FEAT_DWARF_RACIAL_ADJUSTMENT, "dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 con -2 cha",
-        "As a racial adjustment you have +2 to constitution and -2 to charisma");
+        "+2 con",
+        "As a racial adjustment you have +2 to constitution.");
   feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "shield dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 str",
-    "+2 racial bonus to strength ability score.");
+    "+2 str +2 Con",
+    "+2 racial bonus to strength and constituion ability scores.");
   feato(FEAT_SHIELD_DWARF_ARMOR_TRAINING, "dwarven armor training", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "proficiency and bonuses in light and medium armor",
     "All shield dwarves are proficient in light and medium armor, and reduce their armor check penalty in all armor by 1.");
@@ -429,8 +429,8 @@ void assign_feats(void)
   
   // Lightfoot Halflings
   feato(FEAT_LIGHTFOOT_HALFLING_RACIAL_ADJUSTMENT, "halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+1 cha",
-          "You gain +1 to charisma as racial stat adjustments.");
+          "+2 dex +1 cha",
+          "You gain +2 to dexterity ad +1 to charisma as racial stat adjustments.");
   feato(FEAT_NATURALLY_STEALTHY, "naturally stealthy", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
    "Can hide, even in battle, if there are larger creatures present.",
    "Can hide, even in battle, as long as there is a medium (or larger) creature in the room that is not currently targetting you.");
@@ -447,11 +447,38 @@ void assign_feats(void)
   "+2 cha and 2 extra ability score points at 1st level",
   "The half elf receive +2 to their charisma score and 2 more points when choosing ability scores at level one.");
 
+  // Half drow
+  feato(FEAT_HALF_DROW_RACIAL_ADJUSTMENT, "half drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 int and 2 extra ability score points at 1st level",
+        "The half drow receive +2 to their intelligence score and 2 more points when choosing ability scores at level one.");
+  feato(FEAT_HALF_DROW_SPELL_RESISTANCE, "half drow spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "5 + 1/2 level spell resist",
+        "Due to their inherited magical nature and society, Half-Drow have a strong natural resistance "
+        "to magic.  A Half-Drow's spell resistance is equal to 5 + 1/2 their level. At level 20 this "
+        "becomes 10 + 1/2 their level.  And at level 30 this becomes 15 + half their level.");
+
+  /* Dragonborn */
+  feato(FEAT_DRAGONBORN_RACIAL_ADJUSTMENT, "dragonborn racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 str +1 cha",
+        "Dragonborn racial adjustment to stats are: +2 strength +1 constitution.");
+  feato(FEAT_DRAGONBORN_BREATH, "dragonborn breath weapon", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "deals AoE elemental damage",
+        "Allows use of the dragbreath command to deal AoE elemental damage based on the draconic heritage of the dragonborn. Uses 'dragbreath' command.");
+  feato(FEAT_DRAGONBORN_RESISTANCE, "dragonborn resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "5/- DR against elemental damage associated with draconic heritage",
+        "5/- damage resistance against elemental damage based on the draconic heritage of the dragonborn.");
+  feato(FEAT_DRAGONBORN_ANCESTRY, "dragonborn ancestry", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "determines breath weapon and elemental resistance damage type",
+        "determines breath weapon and elemental resistance damage type");
+  feato(FEAT_DRAGONBORN_FURY, "dragonborn fury", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "If below 50 percent HP, +1 to attacks and +2 to damage rolls.",
+        "If the dragonborn is below 50 percent of their maximum hit points, they receive a +1 morale bonus to attack rolls and +2 morale bonus to damage rolls.");
+
   /* Half-Orc */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_HALF_ORC_RACIAL_ADJUSTMENT, "halforc racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 str, -2 int/cha",
-        "Half-Orcs as a racial adjustment have +2 strength and -2 intelligence/charisma.");
+        "+2 str +1 Con",
+        "Half-Orcs as a racial adjustment have +2 strength and +1 to Constitution.");
   feato(FEAT_MENACING, "menacing", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "+3 to intimidation skill checks",
     "The Half Orc gaings +3 to intimidation based skill and ability checks.");
@@ -483,8 +510,8 @@ void assign_feats(void)
     "chance to improve an item",
     "20% chance to increase damage of weapon by +1, or improve an armor/shield's ac bonus by 1 for shield and 0.25 for separate armor pieces using the tinker command.  20% chance that the failure will end up destroying the item. Uses the tinker command.");
   feato(FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, "rock gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+1 con",
-          "Rock Gnomes as a racial adjustment have +1 constitution.");
+          "+2 Int +1 con",
+          "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");
 
   /* Elf */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -492,11 +519,11 @@ void assign_feats(void)
         "immunity to sleep enchantments",
         "immunity to sleep enchantments");
   feato(FEAT_ELF_RACIAL_ADJUSTMENT, "elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 dex -2 con",
-        "Elven racial adjustment to stats are: +2 dexterity -2 constitution.");
+        "+2 dex",
+        "Elven racial adjustment to stats are: +2 dexterity.");
   feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+1 wis",
-          "Moon Elven racial adjustment to stats are: +1 wisdom.");
+          "+2 dex +1 wis",
+          "Moon Elven racial adjustment to stats are: +2 dexterity, +1 wisdom.");
   feato(FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, "bathed in moonlight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "+6 to stealth checks when outside at night",
     "+6 to stealth and ability checks when outside at night time.");
@@ -522,8 +549,8 @@ void assign_feats(void)
         "50 percent resist disease",
         "50 percent resist disease");
   feato(FEAT_HALF_TROLL_RACIAL_ADJUSTMENT, "halftroll racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 str/dex/con -4 int/wis/cha",
-        "As racial stat adjustments Half-Trolls get: +2 to strength/dexterity/constitution and -4 to intelligence/wisdom/charisma.");
+        "+2 str/dex +4 con -2 int/wis/cha",
+        "As racial stat adjustments Half-Trolls get: +2 to strength/dexterity, +4 to constitution and -2 to intelligence/wisdom/charisma.");
 
   /* Arcana Golem */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -558,8 +585,8 @@ void assign_feats(void)
         "strong connection to magic",
         "Arcana Golem gain a 6th of their level as bonus to Caster-Level, Spellcraft Checks and Concentration Checks.");
   feato(FEAT_ARCANA_GOLEM_RACIAL_ADJUSTMENT, "arcanagolem racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "-2 con/str, +2 int/wis/cha",
-        "Arcana Golem natural racial adjustment to stats are: -2 constitution/strength, +2 intelligence/wisdom/charisma.");
+        "+3 int/wis/cha",
+        "Arcana Golem natural racial adjustment to stats are: +3 intelligence/wisdom/charisma.");
 
   /* Crystal Dwarf */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -575,8 +602,8 @@ void assign_feats(void)
         "gain some resistances",
         "10 percent resistance to acid, puncture, poison and disease");
   feato(FEAT_CRYSTAL_DWARF_RACIAL_ADJUSTMENT, "crystaldwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+4 con, +2 str, +2 wis, +2 cha",
-        "As a natural racial bonus, crystal-dwarves start with +4 constituion, +2 to strength, wisdom and charisma.");
+        "+4 con, +2 str, +2 dex, +4 wis, +2 cha",
+        "As a natural racial bonus, crystal-dwarves start with +4 constituion and wisdom, +2 to strength, dexterity and charisma.");
 
   /* Duergar */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -602,8 +629,8 @@ void assign_feats(void)
         "+4 to spell saves",
         "A strong hardiness in resisting spells, +4 bonus to saves against magic");
   feato(FEAT_DUERGAR_RACIAL_ADJUSTMENT, "duergar racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+4 con, -2 cha",
-        "Duergar get a +4 bonus to their natural constitution and a -2 penalty to their charisma");
+        "Str +2 Con +4",
+        "Duergar get a +4 bonus to their natural constitution and a +2 bonus to their strength.");
   feato(FEAT_PHANTASM_RESIST, "strong phantasm resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+4 to phantasm saves",
         "A strong hardiness in resisting phantasms, +4 bonus to saves");
@@ -636,9 +663,8 @@ void assign_feats(void)
         "Due to their magical nature and society, Drow have a strong natural resistance "
         "to magic.  A Drow's spell resistance is equal to 10 + their level.");
   feato(FEAT_DROW_RACIAL_ADJUSTMENT, "drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 dex +2 wis +2 int +2 cha -2 con",
-        "Drow racial adjustment to stats are: +2 dexterity, +2 charisma, +2 wisdom, "
-        "+2 intelligence and -2 constitution.");
+        "Int +4 Wis +2 Dex +2 Cha +2",
+        "Drow racial adjustment to stats are: Int +4 Wis +2 Dex +2 Cha +2");
   feato(FEAT_WEAPON_PROFICIENCY_DROW, "weapon proficiency - drow", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "gain bonus weapon proficiency",
         "As part of your drow upbringing, you were trained in the usage of "
@@ -651,8 +677,8 @@ void assign_feats(void)
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   //  other lich innates that are shared, etc vital, hardy, armor skin +5, ultravision, is undead, damage resist +4, unarmed combag
   feato(FEAT_LICH_RACIAL_ADJUSTMENT, "lich racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 dex +2 con +6 int, +8 perception sense-motive stealth",
-        "Lich racial adjustment to stats are: +2 dexterity, +2 constitution, +2 charisma, "
+        "+2 dex +2 con +2 wis +6 cha +6 int, +8 perception sense-motive stealth",
+        "Lich racial adjustment to stats are: +2 dexterity, +2 constitution, +2 wisdom, +6 intelligence, +6 charisma, "
         "and +6 intelligence.  In addition they get class abilities of acrobatics and +8 racial bonus on Perception, Sense Motive, and Stealth checks");
   feato(FEAT_LICH_SPELL_RESIST, "lich spell resist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "15 + level spell resist",
@@ -726,8 +752,8 @@ void assign_feats(void)
         "Gains a +8 racial bonus to the following skills: bluff, perception, sense motive, stealth.",
         "Gains a +8 racial bonus to the following skills: bluff, perception, sense motive, stealth.");
   feato(FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS, "vampiric ability score boosts", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-        "Gains the following ability score bonuses: Str +6, Dex +4, Int +2, Wis +2, Cha +4",
-        "Gains the following ability score bonuses: Str +6, Dex +4, Int +2, Wis +2, Cha +4");
+        "Gains the following ability score bonuses: Str +6, Dex +4, Con +4, Int +2, Wis +2, Cha +4",
+        "Gains the following ability score bonuses: Str +6, Dex +4, Con +4, Int +2, Wis +2, Cha +4");
   feato(FEAT_VAMPIRE_BONUS_FEATS, "vampiric bonus feats", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "Gains the following bonus feats: Alertness, Combat Reflexes, Dodge, Improved Initiative, Lightning Reflexes, and Toughness.",
         "Gains the following bonus feats: Alertness, Combat Reflexes, Dodge, Improved Initiative, Lightning Reflexes, and Toughness.");
@@ -761,16 +787,16 @@ void assign_feats(void)
         "a partial but reduced penalty to hit with their 'off' pincer.  The vicousness of "
         "their pincers also gives a +1 bonus to their damroll bonus every 4 levels.");
   feato(FEAT_TRELUX_RACIAL_ADJUSTMENT, "trelux racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+4 dex, +2 str, +4 con",
-        "As racial modifiers, Trelux gain 4 dexterity, 2 strength and 4 constitution as a natural starting bonus.");
+        "+4 dex, +4 str, +4 con",
+        "As racial modifiers, Trelux gain 4 dexterity, 4 strength and 4 constitution as a natural starting bonus.");
   feato(FEAT_INSECTBEING, "insect being", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "powerful boost to stats 3x/day",
         "Allows you to tap into your insect being, greatly enhancing your stats 3x / day");
 
   // Wild Elves
   feato(FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, "wood elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 str",
-    "Wood Elven racial adjustment to stats are: +1 strength.");
+    "+2 Dex, +1 Str ",
+    "Wood Elven racial adjustment to stats are: +2 dexterity, +1 strength.");
   feato(FEAT_WOOD_ELF_MASK_OF_THE_WILD, "mask of the wild", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
     "+3 to stealth checks",
     "+3 to stealth based skill and ability checks.");
@@ -4504,6 +4530,7 @@ void assign_feats(void)
   dailyfeat(FEAT_VAMPIRE_ENERGY_DRAIN, eVAMPIREENERGYDRAIN);
   dailyfeat(FEAT_MASTER_OF_THE_MIND, eMASTERMIND);
   dailyfeat(FEAT_TINKER, eTINKER);
+  dailyfeat(FEAT_DRAGONBORN_BREATH, eDRAGBREATH);
   /** END **/
 }
 
@@ -5773,6 +5800,18 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
+      else if (i == FEAT_DRAGONBORN_ANCESTRY)
+      {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_DRAGONBORN_ANCESTRY(ch)));
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_DRAGONBORN_ANCESTRY(ch)));
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
+        none_shown = FALSE;
+      }
       else if (i == FEAT_SORCERER_BLOODLINE_ARCANE)
       {
         if (mode == 1)
@@ -5828,6 +5867,36 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         else
         {
           snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_BLOODLINE_SUBTYPE(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_DRAGONBORN_RESISTANCE)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s damage)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_DRAGONBORN_BREATH)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)), get_daily_uses(ch, i));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%s, %dx/day)", feat_list[i].name, DRCHRT_ENERGY_TYPE(GET_DRAGONBORN_ANCESTRY(ch)), get_daily_uses(ch, i));
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));

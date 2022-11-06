@@ -293,6 +293,8 @@ bool has_psionic_body_form_active(struct char_data *ch);
 bool can_spell_be_revoked(int spellnum);
 void remove_locked_door_flags(room_rnum room, int door);
 int is_spell_or_power(int spellnum);
+sbyte isSpecialFeat(int feat);
+sbyte isRacialFeat(int feat);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

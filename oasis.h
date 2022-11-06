@@ -652,6 +652,9 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_CONFIRM_ADD_CRUELTY 54
 #define STUDY_INQUISITOR_KNOWN_SPELLS_MENU 55
 #define INQUISITOR_STUDY_SPELLS 56
+#define SET_DRAGONBORN_ANCESTRY 57
+#define STUDY_CONFIRM_DRAGONBORN_ANCESTRY 58
+#define STUDY_SELECT_RACIAL_ABILITY 59
 
 int save_config(IDXTYPE nowhere);
 

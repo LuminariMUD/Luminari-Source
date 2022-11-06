@@ -64,6 +64,16 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DROW_SPELL_RESISTANCE))
     resist += 10 + GET_LEVEL(vict);
 
+  if (HAS_FEAT(vict, FEAT_HALF_DROW_SPELL_RESISTANCE))
+  {
+    if (GET_LEVEL(vict) >= 30)
+      resist = MAX(resist, 15 + GET_LEVEL(vict) / 2);
+    else if (GET_LEVEL(vict) >= 20)
+      resist = MAX(resist, 10 + GET_LEVEL(vict) / 2);
+    else
+      resist = MAX(resist, 5 + GET_LEVEL(vict) / 2);
+  }
+
   if (IS_LICH(vict))
     resist += 15 + GET_LEVEL(vict);
 
@@ -1890,6 +1900,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = CLASS_LEVEL(ch, CLASS_SORCERER);
     size_dice = 6;
     break;
+
+    case SPELL_DRAGONBORN_ANCESTRY_BREATH:
+      //AoE
+      save = SAVING_REFL;
+      mag_resist = FALSE;
+      element = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
+      num_dice = GET_LEVEL(ch);
+      size_dice = 6;
+      break;
 
   case SPELL_ACID: // acid fog (conjuration)
     // AoE
