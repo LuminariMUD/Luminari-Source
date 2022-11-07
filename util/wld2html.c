@@ -515,13 +515,11 @@ int real_room(int virtual, int reference)
  */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING] = {'\0'}, *buf2;
-
-  *buf2 = NULL;
+  char temp[MEDIUM_STRING] = {'\0'};
 
   do
   {
-    buf2 = fgets(temp, MEDIUM_STRING, fl);
+    fgets(temp, MEDIUM_STRING, fl);
     if (*temp)
       temp[strlen(temp) - 1] = '\0';
   } while (!feof(fl) && (*temp == '*' || !*temp));
