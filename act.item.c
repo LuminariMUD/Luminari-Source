@@ -5569,7 +5569,7 @@ ACMD(do_store)
   struct obj_data *obj = NULL;
   int i = 0;
   bool found = false;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -5690,10 +5690,10 @@ ACMD(do_store)
 
 ACMDU(do_unstore)
 {
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
   int spellnum = 0, spell_level = 99, i = 0, charges = 0;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
 
   half_chop(argument, arg1, arg2);
 
@@ -5990,7 +5990,7 @@ ACMDU(do_unstore)
 void quaff_potion(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
 
   skip_spaces(&argument);
 
@@ -6050,7 +6050,7 @@ void quaff_potion(struct char_data *ch, char *argument)
 void recite_scroll(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
 
@@ -6132,7 +6132,7 @@ void recite_scroll(struct char_data *ch, char *argument)
 void use_wand(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
 
@@ -6223,7 +6223,7 @@ void use_wand(struct char_data *ch, char *argument)
 void invoke_staff(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
   struct char_data *tch = NULL;
 
   skip_spaces(&argument);
@@ -6635,7 +6635,7 @@ ACMDU(do_outfit)
     return;
   }
 
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   int i = 0;
   struct obj_data *obj = NULL;
 

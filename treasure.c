@@ -2098,7 +2098,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   roll = dice(1, 8);
   if (roll >= 7)
   { // crest?
-    char tmp[SMALL_STRING];
+    char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " with %s %s crest",
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
@@ -2107,7 +2107,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   }
   else if (roll >= 5)
   { // or symbol?
-    char tmp[SMALL_STRING];
+    char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s",
              AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
@@ -2342,7 +2342,7 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   roll = dice(1, 8);
   if (roll >= 7)
   { // crest?
-    char tmp[SMALL_STRING];
+    char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]), armor_crests[crest_num]);
     strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
     strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
@@ -2355,7 +2355,7 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   }
   else if (roll >= 5)
   { // or symbol?
-    char tmp[SMALL_STRING];
+    char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]), armor_crests[crest_num]);
     strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
     strncat(desch, tmp, MEDIUM_STRING - strlen(desch));

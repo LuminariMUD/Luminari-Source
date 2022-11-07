@@ -303,7 +303,7 @@ void save_ibt_file(int mode)
 {
   IBT_DATA *ibtData, *first_ibt, *last_ibt;
   FILE *fp;
-  char filename[MEDIUM_STRING];
+  char filename[MEDIUM_STRING] = {'\0'};
 
   switch (mode)
   {
@@ -875,9 +875,9 @@ ACMD(do_ibt)
   }
 }
 
-/* IBT Editor OLC 
-   OLC_VAL(d)  - The IBT 'mode' - Idea, Bug or Typo 
-   OLC_NUM(d)  - The IBT number (shown in 'list')   
+/* IBT Editor OLC
+   OLC_VAL(d)  - The IBT 'mode' - Idea, Bug or Typo
+   OLC_NUM(d)  - The IBT number (shown in 'list')
    OLC_ZNUM(d) - Used as 'has changed' flag */
 ACMD(do_oasis_ibtedit)
 {

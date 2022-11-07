@@ -177,7 +177,7 @@ int count_quests(qst_vnum low, qst_vnum high)
 /* read quest from file and load it into memory */
 void parse_quest(FILE *quest_f, int nr)
 {
-  static char line[MEDIUM_STRING];
+  static char line[MEDIUM_STRING] = {'\0'};
   static int i = 0, j;
   int retval = 0, t[7];
   char f1[128], buf2[MAX_STRING_LENGTH];

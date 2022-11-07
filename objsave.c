@@ -68,14 +68,14 @@ int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fp
 /* this function will basically check if an individual object has been modified
  from its default state, if so we write those modifications to file, otherwise
  the vnum is adequate
- *note: this always will return 1 
- * 
+ *note: this always will return 1
+ *
  * If the char_data struct is NULL, this function uses the house_vnum instead.
- * This is mostly for inserting into the database and is a terribly hacky way 
+ * This is mostly for inserting into the database and is a terribly hacky way
  * to make this work. - Ornir
- 
+
  * NB: Database saving is partially implemented. *
- 
+
  */
 int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum, FILE *fp, int locate)
 {
@@ -175,22 +175,22 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 
 #ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "Vals: %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
-            GET_OBJ_VAL(obj, 0),
-            GET_OBJ_VAL(obj, 1),
-            GET_OBJ_VAL(obj, 2),
-            GET_OBJ_VAL(obj, 3),
-            GET_OBJ_VAL(obj, 4),
-            GET_OBJ_VAL(obj, 5),
-            GET_OBJ_VAL(obj, 6),
-            GET_OBJ_VAL(obj, 7),
-            GET_OBJ_VAL(obj, 8),
-            GET_OBJ_VAL(obj, 9),
-            GET_OBJ_VAL(obj, 10),
-            GET_OBJ_VAL(obj, 11),
-            GET_OBJ_VAL(obj, 12),
-            GET_OBJ_VAL(obj, 13),
-            GET_OBJ_VAL(obj, 14),
-            GET_OBJ_VAL(obj, 15));
+             GET_OBJ_VAL(obj, 0),
+             GET_OBJ_VAL(obj, 1),
+             GET_OBJ_VAL(obj, 2),
+             GET_OBJ_VAL(obj, 3),
+             GET_OBJ_VAL(obj, 4),
+             GET_OBJ_VAL(obj, 5),
+             GET_OBJ_VAL(obj, 6),
+             GET_OBJ_VAL(obj, 7),
+             GET_OBJ_VAL(obj, 8),
+             GET_OBJ_VAL(obj, 9),
+             GET_OBJ_VAL(obj, 10),
+             GET_OBJ_VAL(obj, 11),
+             GET_OBJ_VAL(obj, 12),
+             GET_OBJ_VAL(obj, 13),
+             GET_OBJ_VAL(obj, 14),
+             GET_OBJ_VAL(obj, 15));
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
@@ -343,10 +343,10 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
               obj->affected[counter2].bonus_type);
 #ifdef OBJSAVE_DB
       snprintf(line_buf, sizeof(line_buf), "Aff : %d %d %d %d\n",
-              counter2,
-              obj->affected[counter2].location,
-              obj->affected[counter2].modifier,
-              obj->affected[counter2].bonus_type);
+               counter2,
+               obj->affected[counter2].location,
+               obj->affected[counter2].modifier,
+               obj->affected[counter2].bonus_type);
       strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
     }
@@ -376,10 +376,10 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
                 buf1);
 #ifdef OBJSAVE_DB
         snprintf(line_buf, sizeof(line_buf), "EDes:\n"
-                          "%s~\n"
-                          "%s~\n",
-                ex_desc->keyword,
-                buf1);
+                                             "%s~\n"
+                                             "%s~\n",
+                 ex_desc->keyword,
+                 buf1);
         strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
       }
@@ -407,13 +407,13 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
             specab->ability, specab->level, specab->activation_method,
             specab->value[0], specab->value[1], specab->value[2], specab->value[3],
             (specab->command_word && *specab->command_word) ? specab->command_word : "");
-    #ifdef OBJSAVE_DB
+#ifdef OBJSAVE_DB
     snprintf(line_buf, sizeof(line_buf), "SpAb: %d %d %d %d %d %d %d %s\n",
-            specab->ability, specab->level, specab->activation_method,
-            specab->value[0], specab->value[1], specab->value[2], specab->value[3],
-            (specab->command_word && *specab->command_word) ? specab->command_word : "");
+             specab->ability, specab->level, specab->activation_method,
+             specab->value[0], specab->value[1], specab->value[2], specab->value[3],
+             (specab->command_word && *specab->command_word) ? specab->command_word : "");
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
-    #endif
+#endif
   }
 
   /*** end checks for object modifications ****/
@@ -731,7 +731,7 @@ void Crash_listrent(struct char_data *ch, char *name)
   char filename[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH], line[READ_SIZE];
   obj_save_data *loaded, *current;
   int rentcode, timed, netcost, gold, account, nitems, numread, len;
-  //bool using_db = FALSE;
+  // bool using_db = FALSE;
 
   if (!get_filename(filename, sizeof(filename), CRASH_FILE, name))
     return;
@@ -945,7 +945,7 @@ void Crash_crashsave(struct char_data *ch)
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
-          GET_NAME(ch));
+           GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
     log("SYSERR: Unable to delete player object save data: %s",
@@ -1112,7 +1112,7 @@ void Crash_rentsave(struct char_data *ch, int cost)
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
   snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
-          GET_NAME(ch));
+           GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
     log("SYSERR: Unable to delete player object save data: %s",
@@ -1178,14 +1178,14 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
   char buf[2048]; /* For MySQL insert. */
 
   snprintf(buf, sizeof(buf), "update player_data set obj_save_header = '%d %ld %d %d %d %d'"
-               "where name = '%s';",
-          rentcode,
-          (long)time(0),
-          cost_per_day,
-          GET_GOLD(ch),
-          GET_BANK_GOLD(ch),
-          0,
-          GET_NAME(ch));
+                             "where name = '%s';",
+           rentcode,
+           (long)time(0),
+           cost_per_day,
+           GET_GOLD(ch),
+           GET_BANK_GOLD(ch),
+           0,
+           GET_NAME(ch));
   if (mysql_query(conn, buf))
   {
     log("SYSERR: Unable to INSERT obj_save_header into PLAYER_DATA: %s", mysql_error(conn));
@@ -1300,7 +1300,7 @@ static int Crash_report_unrentables(struct char_data *ch, struct char_data *rece
 
 static void Crash_report_rent(struct char_data *ch, struct char_data *recep, struct obj_data *obj, long *cost, long *nitems, int display, int factor)
 {
-  static char buf[MEDIUM_STRING];
+  static char buf[MEDIUM_STRING] = {'\0'};
 
   if (obj)
   {
@@ -1311,7 +1311,7 @@ static void Crash_report_rent(struct char_data *ch, struct char_data *recep, str
       if (display)
       {
         snprintf(buf, sizeof(buf), "$n tells you, '%5d coins for %s..'",
-                (GET_OBJ_RENT(obj) * factor), OBJS(obj, ch));
+                 (GET_OBJ_RENT(obj) * factor), OBJS(obj, ch));
         act(buf, FALSE, recep, 0, ch, TO_VICT);
       }
     }
@@ -1350,17 +1350,17 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep,
   if (numitems > CONFIG_MAX_OBJ_SAVE)
   {
     snprintf(buf, sizeof(buf), "$n tells you, 'Sorry, but I cannot store more than %d items.'",
-            CONFIG_MAX_OBJ_SAVE);
+             CONFIG_MAX_OBJ_SAVE);
     act(buf, FALSE, recep, 0, ch, TO_VICT);
     return FALSE;
   }
   if (display)
   {
     snprintf(buf, sizeof(buf), "$n tells you, 'Plus, my %d coin fee..'",
-            CONFIG_MIN_RENT_COST * factor);
+             CONFIG_MIN_RENT_COST * factor);
     act(buf, FALSE, recep, 0, ch, TO_VICT);
     snprintf(buf, sizeof(buf), "$n tells you, 'For a total of %ld coins%s.'",
-            totalcost, (factor == RENT_FACTOR ? " per day" : ""));
+             totalcost, (factor == RENT_FACTOR ? " per day" : ""));
     act(buf, FALSE, recep, 0, ch, TO_VICT);
     if (totalcost > GET_GOLD(ch) + GET_BANK_GOLD(ch))
     {
@@ -1638,7 +1638,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "Aff "))
       {
-       sscanf(line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
+        sscanf(line, "%d %d %d %d", &t[0], &t[1], &t[2], &t[3]);
         if (t[0] < MAX_OBJ_AFFECT)
         {
           temp->affected[t[0]].location = t[1];
@@ -1748,14 +1748,14 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       {
         CREATE(temp->special_abilities, struct obj_special_ability, 1);
         sscanf(line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], f1);
-            temp->special_abilities->ability = t[0];
-            temp->special_abilities->level = t[1];
-            temp->special_abilities->activation_method = t[2];
-            temp->special_abilities->value[0] = t[3];
-            temp->special_abilities->value[1] = t[4];
-            temp->special_abilities->value[2] = t[5];
-            temp->special_abilities->value[3] = t[6];
-            temp->special_abilities->command_word = strdup(f1);
+        temp->special_abilities->ability = t[0];
+        temp->special_abilities->level = t[1];
+        temp->special_abilities->activation_method = t[2];
+        temp->special_abilities->value[0] = t[3];
+        temp->special_abilities->value[1] = t[4];
+        temp->special_abilities->value[2] = t[5];
+        temp->special_abilities->value[3] = t[6];
+        temp->special_abilities->command_word = strdup(f1);
       }
       break;
     case 'T':
@@ -1807,7 +1807,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
     }
 
-  } //end big while loop
+  } // end big while loop
 
   return head;
 }
@@ -1835,10 +1835,10 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   if (house_vnum == NOWHERE)
   {
     snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
-                 "FROM     player_save_objs "
-                 "WHERE    name = '%s' "
-                 "ORDER BY creation_date ASC;",
-            name);
+                               "FROM     player_save_objs "
+                               "WHERE    name = '%s' "
+                               "ORDER BY creation_date ASC;",
+             name);
 
     if (mysql_query(conn, buf))
     {
@@ -1856,10 +1856,10 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
   {
     /* house_vnum was given, so load the house data instead. */
     snprintf(buf, sizeof(buf), "SELECT   serialized_obj "
-                 "FROM     house_data "
-                 "WHERE    vnum = '%d' "
-                 "ORDER BY creation_date ASC;",
-            house_vnum);
+                               "FROM     house_data "
+                               "WHERE    vnum = '%d' "
+                               "ORDER BY creation_date ASC;",
+             house_vnum);
 
     if (mysql_query(conn, buf))
     {
@@ -2082,15 +2082,15 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         else if (!strcmp(tag, "SpAb"))
         {
           sscanf(*line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6], f1);
-              CREATE(temp->special_abilities, struct obj_special_ability, 1);
-              temp->special_abilities->ability = t[0];
-              temp->special_abilities->level = t[1];
-              temp->special_abilities->activation_method = t[2];
-              temp->special_abilities->value[0] = t[3];
-              temp->special_abilities->value[1] = t[4];
-              temp->special_abilities->value[2] = t[5];
-              temp->special_abilities->value[3] = t[6];
-              temp->special_abilities->command_word = strdup(f1);
+          CREATE(temp->special_abilities, struct obj_special_ability, 1);
+          temp->special_abilities->ability = t[0];
+          temp->special_abilities->level = t[1];
+          temp->special_abilities->activation_method = t[2];
+          temp->special_abilities->value[0] = t[3];
+          temp->special_abilities->value[1] = t[4];
+          temp->special_abilities->value[2] = t[5];
+          temp->special_abilities->value[3] = t[6];
+          temp->special_abilities->command_word = strdup(f1);
         }
         break;
       case 'T':
@@ -2133,7 +2133,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
       free(*line);
     }
 
-    /* So now if temp is not null, we have an object. 
+    /* So now if temp is not null, we have an object.
      * Create space for it and add it to the list.  */
     if (temp)
     {

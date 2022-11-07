@@ -1901,14 +1901,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 6;
     break;
 
-    case SPELL_DRAGONBORN_ANCESTRY_BREATH:
-      //AoE
-      save = SAVING_REFL;
-      mag_resist = FALSE;
-      element = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
-      num_dice = GET_LEVEL(ch);
-      size_dice = 6;
-      break;
+  case SPELL_DRAGONBORN_ANCESTRY_BREATH:
+    // AoE
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
+    num_dice = GET_LEVEL(ch);
+    size_dice = 6;
+    break;
 
   case SPELL_ACID: // acid fog (conjuration)
     // AoE
@@ -4741,18 +4741,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are suddenly empowered by magic fang.";
     break;
 
-    case SPELL_MINOR_ILLUSION: //illusion
-      if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
-      {
-        send_to_char(ch, "You already have an illusory double.\r\n");
-        return;
-      }
-      af[0].duration = 300;
-      SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
-      to_room = "$n grins as a duplicate image pops up and smiles!";
-      to_vict = "You watch as a duplicate image pops up and smiles at you!";
-      GET_IMAGES(victim) = 1;
-      break;
+  case SPELL_MINOR_ILLUSION: // illusion
+    if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
+    {
+      send_to_char(ch, "You already have an illusory double.\r\n");
+      return;
+    }
+    af[0].duration = 300;
+    SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
+    to_room = "$n grins as a duplicate image pops up and smiles!";
+    to_vict = "You watch as a duplicate image pops up and smiles at you!";
+    GET_IMAGES(victim) = 1;
+    break;
 
   case SPELL_GREATER_MIRROR_IMAGE: // illusion
     if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
@@ -8681,7 +8681,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool gate_process = FALSE;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum gate_dest = NOWHERE;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
   int loop_count = 0;
 
   if (ch == NULL)

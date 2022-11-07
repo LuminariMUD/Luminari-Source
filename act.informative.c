@@ -129,7 +129,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   size_t len = 0;
   int count = 0;
   bool has_subrace = false;
-  char subraces[MEDIUM_STRING];
+  char subraces[MEDIUM_STRING] = {'\0'};
 
   count = snprintf(subraces + len, sizeof(subraces) - len, ", Subrace(s): ");
   if (count > 0)
@@ -2442,7 +2442,6 @@ ACMD(do_masterlist)
   /* strcpy: OK */
   if (len >= sizeof(buf2))
     strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, sizeof(buf2 + sizeof(buf2) - strlen(overflow) - 1));
-  // strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow);
 
   page_string(ch->desc, buf2, TRUE);
 }
@@ -2542,8 +2541,7 @@ ACMD(do_examine)
   strlcpy(tempsave, arg, sizeof(tempsave));
 
   /* look_at_target() eats the number. */
-  look_at_target(ch, tempsave); /* strcpy: OK */
-  /* strcpy(tempsave, arg) */
+  look_at_target(ch, tempsave);
 
   generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
 
@@ -3051,7 +3049,7 @@ ACMD(do_score)
   float height = GET_HEIGHT(ch);
   int w_type = 0;
   int line_length = 80;
-  char dname[SMALL_STRING];
+  char dname[SMALL_STRING] = {'\0'};
 
   // get some initial info before score display
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
