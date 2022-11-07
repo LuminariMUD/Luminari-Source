@@ -489,7 +489,7 @@ void copyover_recover()
     memset((char *)d, 0, sizeof(struct descriptor_data));
     init_descriptor(d, desc); /* set up various stuff */
 
-    strlcpy(d->host, host, sizeof(d->host));
+    strcpy(d->host, host);
     d->next = descriptor_list;
     descriptor_list = d;
 
@@ -1427,8 +1427,8 @@ static char *make_prompt(struct descriptor_data *d)
       len += count;
   }
   else if (d->str)
-  { /* for the modify-str system */
-    strlcpy(prompt, "] ", sizeof(prompt));
+  {                       /* for the modify-str system */
+    strcpy(prompt, "] "); // strcpy: OK (for 'MAX_PROMPT_LENGTH >= 3')
     len += 3;
   } /* start building a prompt */
 
@@ -1960,7 +1960,7 @@ static int get_from_q(struct txt_q *queue, char *dest, int *aliased)
   if (!queue->head)
     return (0);
 
-  strlcpy(dest, queue->head->text, sizeof(dest));
+  strcpy(dest, queue->head->text); /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
 
   *aliased = queue->head->aliased;
 
@@ -2018,7 +2018,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   wantsize = size = vsnprintf(txt, sizeof(txt), format, args);
 
   /* this block is Kavir's protocol */
-  strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), sizeof(txt));
+  strcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize));
   size = wantsize;
   if (t->pProtocol->WriteOOB > 0)
     --t->pProtocol->WriteOOB;
@@ -2027,7 +2027,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   if (size < 0 || wantsize >= sizeof(txt))
   {
     size = sizeof(txt) - 1;
-    strlcpy(txt + size - strlen(text_overflow), text_overflow, sizeof(txt + size - strlen(text_overflow)));
+    strcpy(txt + size - strlen(text_overflow), text_overflow); /* strcpy: OK */
   }
 
   /* If the text is too big to fit into even a large buffer, truncate
@@ -2044,7 +2044,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
    * text just barely fits, then it's switched to a large buffer instead. */
   if (t->bufspace > size)
   {
-    strlcpy(t->output + t->bufptr, txt, sizeof(t->output + t->bufptr));
+    strcpy(t->output + t->bufptr, txt); /* strcpy: OK (size checked above) */
     t->bufspace -= size;
     t->bufptr += size;
     return (t->bufspace);
@@ -2065,9 +2065,9 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
     buf_largecount++;
   }
 
-  strlcpy(t->large_outbuf->text, t->output, sizeof(t->large_outbuf->text));
-  t->output = t->large_outbuf->text; /* make big buffer primary */
-  strcat(t->output, txt);            /* strcat: OK (size checked) */
+  strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (size checked previously) */
+  t->output = t->large_outbuf->text;        /* make big buffer primary */
+  strcat(t->output, txt);                   /* strcat: OK (size checked) */
 
   /* set the pointer for the next write */
   t->bufptr = strlen(t->output);
@@ -2311,10 +2311,10 @@ static int process_output(struct descriptor_data *t)
   int result;
 
   /* we may need this \r\n for later -- see below */
-  strlcpy(i, "\r\n", sizeof(i));
+  strcpy(i, "\r\n"); /* strcpy: OK (for 'MAX_SOCK_BUF >= 3') */
 
   /* now, append the 'real' output */
-  strlcpy(osb, t->output, sizeof(osb));
+  strcpy(osb, t->output); /* strcpy: OK (t->output:LARGE_BUFSIZE < osb:MAX_SOCK_BUF-2) */
 
   // color code fix attempt -zusuk
   // parse_at(osb);
@@ -2322,10 +2322,10 @@ static int process_output(struct descriptor_data *t)
   /* if we're in the overflow state, notify the user */
   /* Ornir attempt to remove blank lines */
   /*if (t->bufspace == 0 && !t->pProtocol->WriteOOB){
-    strcat(osb, "**OVERFLOW**\r\n");
+    strcat(osb, "**OVERFLOW**\r\n"); // strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space)
   }
   else*/
-  if (t->bufspace <= 0)
+  if (t->bufspace == 0)
   {
     strcat(osb, "**OVERFLOW**");
   }
@@ -2335,11 +2335,11 @@ static int process_output(struct descriptor_data *t)
       !PRF_FLAGGED(t->character, PRF_COMPACT))
   {
     if (!t->pProtocol->WriteOOB)
-      strcat(osb, "\r\n");
+      strcat(osb, "\r\n"); /* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
   }
 
   if (!t->pProtocol->WriteOOB) /* add a prompt */
-    strcat(i, make_prompt(t));
+    strcat(i, make_prompt(t)); /* strcpy: OK (i:MAX_SOCK_BUF reserves space) */
 
   /* now, send the output.  If this is an 'interruption', use the prepended
    * CRLF, otherwise send the straight output sans CRLF. */
@@ -2396,7 +2396,7 @@ static int process_output(struct descriptor_data *t)
   else
   {
     /* Not all data in buffer sent.  result < output buffersize. */
-    strlcpy(t->output, t->output + result, sizeof(t->output));
+    strcpy(t->output, t->output + result); /* strcpy: OK (overlap) */
     t->bufptr -= result;
     t->bufspace += result;
   }
@@ -2724,7 +2724,7 @@ static int process_input(struct descriptor_data *t)
     failed_subst = 0;
 
     if (*tmp == '!' && !(*(tmp + 1))) /* Redo last command. */
-      strlcpy(tmp, t->last_input, sizeof(tmp));
+      strcpy(tmp, t->last_input);     /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
     else if (*tmp == '!' && *(tmp + 1))
     {
       char *commandln = (tmp + 1);
@@ -2736,8 +2736,8 @@ static int process_input(struct descriptor_data *t)
       {
         if (t->history[cnt] && is_abbrev(commandln, t->history[cnt]))
         {
-          strlcpy(tmp, t->history[cnt], sizeof(tmp));
-          strlcpy(t->last_input, tmp, sizeof(t->last_input));
+          strcpy(tmp, t->history[cnt]); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
+          strcpy(t->last_input, tmp);   /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
           write_to_output(t, "%s\r\n", tmp);
           break;
         }
@@ -2748,11 +2748,11 @@ static int process_input(struct descriptor_data *t)
     else if (*tmp == '^')
     {
       if (!(failed_subst = perform_subst(t, t->last_input, tmp)))
-        strlcpy(t->last_input, tmp, sizeof(t->last_input));
+        strcpy(t->last_input, tmp); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
     }
     else
     {
-      strlcpy(t->last_input, tmp, sizeof(t->last_input));
+      strcpy(t->last_input, tmp); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
       if (t->history[t->history_pos])
         free(t->history[t->history_pos]);       /* Clear the old line. */
       t->history[t->history_pos] = strdup(tmp); /* Save the new. */
@@ -2836,7 +2836,7 @@ static int perform_subst(struct descriptor_data *t, char *orig, char *subst)
 
   /* terminate the string in case of an overflow from strncat */
   newsub[MAX_INPUT_LENGTH - 1] = '\0';
-  strlcpy(subst, newsub, sizeof(subst));
+  strcpy(subst, newsub); /* strcpy: OK (by mutual MAX_INPUT_LENGTH) */
 
   return (0);
 }
@@ -3802,7 +3802,7 @@ static void handle_webster_file(void)
   if (len >= sizeof(retval))
   {
     const char *overflow = "\r\n**OVERFLOW**\r\n";
-    strlcpy(retval + sizeof(retval) - strlen(overflow) - 1, overflow, sizeof(retval + sizeof(retval) - strlen(overflow) - 1));
+    strcpy(retval + sizeof(retval) - strlen(overflow) - 1, overflow); /* strcpy: OK */
   }
   fclose(fl);
 
