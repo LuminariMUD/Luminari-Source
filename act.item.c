@@ -2301,8 +2301,8 @@ ACMD(do_get)
     if (is_number(arg1))
     {
       amount = atoi(arg1);
-      strlcpy(arg1, arg2, sizeof(arg1)); /* strcpy: OK (sizeof: arg1 == arg2) */
-      strlcpy(arg2, arg3, sizeof(arg2)); /* strcpy: OK (sizeof: arg2 == arg3) */
+      strlcpy(arg1, arg2, sizeof(arg1));
+      strlcpy(arg2, arg3, sizeof(arg2));
     }
     cont_dotmode = find_all_dots(arg2);
     if (cont_dotmode == FIND_INDIV)

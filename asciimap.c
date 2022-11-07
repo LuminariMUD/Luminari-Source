@@ -433,10 +433,10 @@ static char *StringMap(int centre, int size)
         tmp = (map[x][y] < 0) ? door_info[NUM_DOOR_TYPES + map[x][y]].disp : map_info[map[x][y]].disp;
       else
         tmp = map_info[SECT_EMPTY].disp;
-      strcpy(mp, tmp);
+      strlcpy(mp, tmp, sizeof(mp));
       mp += strlen(tmp);
     }
-    strcpy(mp, "\r\n");
+    strlcpy(mp, "\r\n", sizeof(mp));
     mp += 2;
   }
   *mp = '\0';
@@ -501,15 +501,15 @@ static char *WorldMap(int centre, int size, int mapshape, int maptype)
       if ((mapshape == MAP_RECTANGLE && abs(centre - y) <= size * 2 && abs(centre - x) <= size) ||
           ((mapshape == MAP_CIRCLE) && (centre - x) * (centre - x) + (centre - y) * (centre - y) / 4 <= (size * size + 1)))
       {
-        strcpy(mp, world_map_info[map[x][y]].disp);
+        strlcpy(mp, world_map_info[map[x][y]].disp, sizeof(mp));
         mp += strlen(world_map_info[map[x][y]].disp);
       }
       else
       {
-        strcpy(mp++, " ");
+        strlcpy(mp++, " ", sizeof(mp +1));
       }
     }
-    strcpy(mp, "\tn\r\n");
+    strlcpy(mp, "\tn\r\n", sizeof(mp));
     mp += 4;
   }
   *mp = '\0';
@@ -528,10 +528,10 @@ static const char *CompactStringMap(int centre, int size)
     /* every column */
     for (y = centre - size; y <= centre + size; y++)
     {
-      strcpy(mp, (map[x][y] < 0) ? compact_door_info[NUM_DOOR_TYPES + map[x][y]].disp : map_info[map[x][y]].disp);
+      strlcpy(mp, (map[x][y] < 0) ? compact_door_info[NUM_DOOR_TYPES + map[x][y]].disp : map_info[map[x][y]].disp, sizeof(mp));
       mp += strlen((map[x][y] < 0) ? compact_door_info[NUM_DOOR_TYPES + map[x][y]].disp : map_info[map[x][y]].disp);
     }
-    strcpy(mp, "\r\n");
+    strlcpy(mp, "\r\n", sizeof(mp));
     mp += 2;
   }
   *mp = '\0';
@@ -638,14 +638,14 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   count += sprintf(buf + count, "\tn%s Inside Room\\\\", map_info[SECT_INSIDE_ROOM].disp);
   count += sprintf(buf + count, "\tn%s River\\\\", map_info[SECT_RIVER].disp);
 
-  strcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE));
+  strlcpy(buf, strfrmt(buf, LEGEND_WIDTH, CANVAS_HEIGHT + 2, FALSE, TRUE, TRUE), sizeof(buf));
 
   /* Start with an empty column */
   char empty_str[] = ""; // To not pass literal to avoid compiler warning
-  strcpy(buf1, strfrmt(empty_str, 0, CANVAS_HEIGHT + 2, FALSE, FALSE, TRUE));
+  strlcpy(buf1, strfrmt(empty_str, 0, CANVAS_HEIGHT + 2, FALSE, FALSE, TRUE), sizeof(buf1));
 
   /* Paste the legend */
-  strcpy(buf2, strpaste(buf1, buf, "\tD | \tn"));
+  strlcpy(buf2, strpaste(buf1, buf, "\tD | \tn"), sizeof(buf2));
 
   /* Set up the map */
   memset(buf, ' ', CANVAS_WIDTH);
@@ -655,11 +655,11 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
   else
     count += sprintf(buf + count, "\r\n%s", StringMap(centre, size));
   memset(buf + count, ' ', CANVAS_WIDTH);
-  strcpy(buf + count + CANVAS_WIDTH, "\r\n");
+  strlcpy(buf + count + CANVAS_WIDTH, "\r\n", sizeof(buf + count + CANVAS_WIDTH));
   /* Paste it on */
-  strcpy(buf2, strpaste(buf2, buf, "\tD | \tn"));
+  strlcpy(buf2, strpaste(buf2, buf, "\tD | \tn"), sizeof(buf2));
   /* Paste on the right border */
-  strcpy(buf2, strpaste(buf2, buf1, "  "));
+  strlcpy(buf2, strpaste(buf2, buf1, "  "), sizeof(buf2));
   /* Print it all out */
   send_to_char(ch, "%s", buf2);
 

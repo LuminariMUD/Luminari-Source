@@ -2439,7 +2439,6 @@ ACMD(do_masterlist)
   nlen = snprintf(buf2 + len, sizeof(buf2) - len,
                   "\r\n\tCTotal:\tn  %d\r\n", counter);
 
-  /* strcpy: OK */
   if (len >= sizeof(buf2))
     strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, sizeof(buf2 + sizeof(buf2) - strlen(overflow) - 1));
 
@@ -3547,7 +3546,7 @@ ACMD(do_who)
   // remove spaces in front of argument
   skip_spaces_c(&argument);
   // copy argument -> buf
-  strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
+  strlcpy(buf, argument, sizeof(buf));
   // first char of name_search is now NULL
   name_search[0] = '\0';
   *classes_list = '\0';
@@ -3563,7 +3562,7 @@ ACMD(do_who)
     if (isdigit(*arg))
     {
       sscanf(arg, "%d-%d", &low, &high);
-      strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+      strlcpy(buf, buf1, sizeof(buf));
 
       // arg isn't a digit, only acceptable input is '-' and a letter
     }
@@ -3574,26 +3573,26 @@ ACMD(do_who)
       {
       case 'k':
         outlaws = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'z':
         localwho = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 's':
         short_list = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'q':
         questwho = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'n':
         half_chop(buf1, name_search, buf);
         break;
       case 'r':
         who_room = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'c':
         half_chop(buf1, arg, buf);
@@ -3601,11 +3600,11 @@ ACMD(do_who)
         break;
       case 'l':
         showleader = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'g':
         showgroup = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 't':
         half_chop(buf1, arg, buf);
@@ -3917,7 +3916,7 @@ ACMD(do_users)
 
   host_search[0] = name_search[0] = '\0';
 
-  strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
+  strlcpy(buf, argument, sizeof(buf));
   while (*buf)
   {
     char buf1[MAX_INPUT_LENGTH] = {'\0'};
@@ -3932,15 +3931,15 @@ ACMD(do_users)
       case 'k':
         outlaws = 1;
         playing = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'p':
         playing = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'd':
         deadweight = 1;
-        strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+        strlcpy(buf, buf1, sizeof(buf));
         break;
       case 'l':
         playing = 1;
@@ -4514,7 +4513,7 @@ ACMD(do_toggle)
   if (!*arg)
   {
     if (!GET_WIMP_LEV(ch))
-      strlcpy(buf2, "OFF", sizeof(buf2)); /* strcpy: OK */
+      strlcpy(buf2, "OFF", sizeof(buf2));
     else
       snprintf(buf2, sizeof(buf2), "%-3.3d", GET_WIMP_LEV(ch)); /* sprintf: OK */
 

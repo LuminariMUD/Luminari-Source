@@ -157,7 +157,7 @@ ACMD(do_ban)
         timestr[10] = '\0';
       }
       else
-        strlcpy(timestr, "Unknown", sizeof(timestr)); /* strcpy: OK (strlen("Unknown") < 16) */
+        strlcpy(timestr, "Unknown", sizeof(timestr));
 
       send_to_char(ch, BAN_LIST_FORMAT, ban_node->site, ban_types[ban_node->type], timestr, ban_node->name);
     }
