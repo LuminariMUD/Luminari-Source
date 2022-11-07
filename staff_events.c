@@ -174,8 +174,9 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
           log("SYSERR: check_event_drops() created NULL object for pristine horn");
           return;
         }
+
         obj_to_char(obj, killer); // deliver object
-        buf[MAX_STRING_LENGTH] = {'\0'};
+
         if (killer && obj && obj->short_description)
         {
           send_to_char(killer, "\tYYou have found \tn%s\tn\tY!\tn\r\n", obj->short_description);
