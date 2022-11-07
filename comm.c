@@ -2009,7 +2009,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   const char *text_overflow = "\r\nOVERFLOW\r\n";
   static char txt[MAX_STRING_LENGTH] = {'\0'};
   size_t wantsize = 0;
-  int size = 0, str_size = 0;
+  int size = 0;
 
   /* if we're in the overflow state already, ignore this new output */
   if (t->bufspace == 0)
@@ -2018,8 +2018,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   wantsize = size = vsnprintf(txt, sizeof(txt), format, args);
 
   /* this block is Kavir's protocol */
-  str_size = sizeof(txt);
-  strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), str_size);
+  strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), sizeof(txt));
   size = wantsize;
   if (t->pProtocol->WriteOOB > 0)
     --t->pProtocol->WriteOOB;
@@ -2028,7 +2027,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
   if (size < 0 || wantsize >= sizeof(txt))
   {
     size = sizeof(txt) - 1;
-    strcpy(txt + size - strlen(text_overflow), text_overflow);
+    strlcpy(txt + size - strlen(text_overflow), text_overflow, sizeof(txt + size - strlen(text_overflow)));
   }
 
   /* If the text is too big to fit into even a large buffer, truncate
@@ -2045,7 +2044,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
    * text just barely fits, then it's switched to a large buffer instead. */
   if (t->bufspace > size)
   {
-    strcpy(t->output + t->bufptr, txt);
+    strlcpy(t->output + t->bufptr, txt, sizeof(t->output + t->bufptr));
     t->bufspace -= size;
     t->bufptr += size;
     return (t->bufspace);
@@ -2066,7 +2065,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format,
     buf_largecount++;
   }
 
-  strcpy(t->large_outbuf->text, t->output);
+  strlcpy(t->large_outbuf->text, t->output, sizeof(t->large_outbuf->text));
   t->output = t->large_outbuf->text; /* make big buffer primary */
   strcat(t->output, txt);            /* strcat: OK (size checked) */
 
