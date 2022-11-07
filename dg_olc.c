@@ -237,7 +237,7 @@ static void trigedit_disp_types(struct descriptor_data *d)
 {
   int i, columns = 0;
   const char **types;
-  char bitbuf[MAX_STRING_LENGTH];
+  char bitbuf[MAX_STRING_LENGTH] = {'\0'};
 
   switch (OLC_TRIG(d)->attach_type)
   {
@@ -690,7 +690,7 @@ static void trigedit_create_index(int znum, const char *type)
   FILE *newfile, *oldfile;
   char new_name[128], old_name[128];
   const char *prefix;
-  char buf[MAX_STRING_LENGTH], buf1[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'};
   int num, found = FALSE;
 
   prefix = TRG_PREFIX;

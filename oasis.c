@@ -412,7 +412,7 @@ int can_edit_zone(struct char_data *ch, zone_rnum rnum)
 
 void send_cannot_edit(struct char_data *ch, zone_vnum zone)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (GET_OLC_ZONE(ch) != NOWHERE)
   {

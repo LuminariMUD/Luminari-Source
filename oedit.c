@@ -75,8 +75,8 @@ ACMD(do_oasis_oedit)
   int number = NOWHERE, save = 0, real_num;
   struct descriptor_data *d;
   const char *buf3;
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /* No building as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
@@ -381,7 +381,7 @@ static void oedit_disp_lootbox_types(struct descriptor_data *d)
 /* For container flags. */
 static void oedit_disp_container_flags_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   get_char_colors(d->character);
   clear_screen(d);
 
@@ -436,7 +436,7 @@ static void oedit_disp_apply_prompt_bonus_type_menu(struct descriptor_data *d)
 /* Ask for *which* apply to edit. */
 static void oedit_disp_prompt_apply_menu(struct descriptor_data *d)
 {
-  char apply_buf[MAX_STRING_LENGTH];
+  char apply_buf[MAX_STRING_LENGTH] = {'\0'};
   int counter;
 
   get_char_colors(d->character);
@@ -539,7 +539,7 @@ static void oedit_disp_weapon_special_abilities_menu(struct descriptor_data *d)
 {
   struct obj_special_ability *specab;
   bool found = FALSE;
-  char actmtds[MAX_STRING_LENGTH];
+  char actmtds[MAX_STRING_LENGTH] = {'\0'};
   int counter = 0;
 
   get_char_colors(d->character);
@@ -588,7 +588,7 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d)
 {
 
   struct obj_special_ability *specab;
-  char actmtds[MAX_STRING_LENGTH];
+  char actmtds[MAX_STRING_LENGTH] = {'\0'};
 
   specab = OLC_SPECAB(d);
   if (specab == NULL)
@@ -648,7 +648,7 @@ static void oedit_weapon_specab(struct descriptor_data *d)
 
 static void oedit_disp_specab_activation_method_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   int counter, columns = 0;
 
   get_char_colors(d->character);
@@ -1413,7 +1413,7 @@ static void oedit_disp_mats_menu(struct descriptor_data *d)
 /* Object extra flags. */
 static void oedit_disp_extra_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   int counter, columns = 0;
 
   get_char_colors(d->character);
@@ -1433,7 +1433,7 @@ static void oedit_disp_extra_menu(struct descriptor_data *d)
 /* Object perm flags. */
 static void oedit_disp_perm_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   int counter, columns = 0;
 
   get_char_colors(d->character);
@@ -1480,7 +1480,7 @@ void oedit_disp_mob_recipient_menu(struct descriptor_data *d)
 /* Object wear flags. */
 static void oedit_disp_wear_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   int counter, columns = 0;
 
   get_char_colors(d->character);

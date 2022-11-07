@@ -238,7 +238,7 @@ void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
 void hsedit_disp_flags_menu(struct descriptor_data *d)
 {
   int counter, columns = 0;
-  char buf1[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   clear_screen(d);
   for (counter = 0; counter < HOUSE_NUM_FLAGS; counter++)
@@ -258,7 +258,7 @@ void hsedit_disp_flags_menu(struct descriptor_data *d)
 
 void hsedit_owner_menu(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct house_control_rec *house;
 
   house = OLC_HOUSE(d);
@@ -279,7 +279,7 @@ void hsedit_owner_menu(struct descriptor_data *d)
 
 void hsedit_dir_menu(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct house_control_rec *house;
   int house_rnum, newroom[6], i;
 
@@ -346,7 +346,7 @@ void hsedit_disp_type_menu(struct descriptor_data *d)
 
 void hsedit_disp_guest_menu(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char not_set[128];
   struct house_control_rec *house;
 
@@ -471,7 +471,7 @@ static const char *hsedit_list_guests(struct house_control_rec *thishouse, char 
 /* the main menu */
 void hsedit_disp_menu(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH], buf1[MAX_STRING_LENGTH], built_on[128], last_pay[128], buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'}, built_on[128], last_pay[128], buf2[MAX_STRING_LENGTH] = {'\0'};
   char *timestr, no_name[128];
   struct house_control_rec *house;
 
@@ -1072,8 +1072,8 @@ ACMD(do_oasis_hsedit)
   house_rnum real_num;
   struct descriptor_data *d;
   const char *buf3;
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /****************************************************************************/
   /** Parse any arguments.                                                   **/

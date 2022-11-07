@@ -35,7 +35,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
     do_kick,             /* AA_KICK */
     do_shieldpunch,      /* AA_SHIELDPUNCH */
     do_quiveringpalm,    /* AA_QUIVERINGPALM */
-    do_surpriseaccuracy,  /* AA_SURPRISE_ACCURACY */
+    do_surpriseaccuracy, /* AA_SURPRISE_ACCURACY */
     do_powerfulblow,     /* AA_POWERFUL_BLOW */
     do_comeandgetme,     /* AA_COME_AND_GET_ME */
     do_disarm,           /* AA_DISARM */
@@ -51,7 +51,7 @@ void (*attack_actions[NUM_ATTACK_ACTIONS])(struct char_data *ch,
 
 void update_msdp_actions(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH];
+  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   struct affected_type *af, *next;
   bool first = TRUE;
 
@@ -60,18 +60,18 @@ void update_msdp_actions(struct char_data *ch)
   msdp_buffer[0] = '\0';
   if (ch && ch->desc)
   {
-    //const char MsdpArrayStart[] = {(char) MSDP_ARRAY_OPEN, '\0'};
-    //const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
+    // const char MsdpArrayStart[] = {(char) MSDP_ARRAY_OPEN, '\0'};
+    // const char MsdpArrayStop[] = {(char) MSDP_ARRAY_CLOSE, '\0'};
 
     char buf[4000]; // Buffer for building the actions table for MSDP
 
     next = af->next;
     snprintf(buf, sizeof(buf), "%c%s%c%d"
-                 "%c%s%c%d"
-                 "%c%s%c%d",
-            (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
-            (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
-            (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
+                               "%c%s%c%d"
+                               "%c%s%c%d",
+             (char)MSDP_VAR, "STANDARD_ACTION", (char)MSDP_VAL, is_action_available(ch, atSTANDARD, FALSE),
+             (char)MSDP_VAR, "MOVE_ACTION", (char)MSDP_VAL, is_action_available(ch, atMOVE, FALSE),
+             (char)MSDP_VAR, "SWIFT_ACTION", (char)MSDP_VAL, is_action_available(ch, atSWIFT, FALSE));
 
     strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
     first = FALSE;

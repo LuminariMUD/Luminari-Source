@@ -5655,7 +5655,7 @@ static void print_group(struct char_data *ch)
 /* Putting this here - no better place to put it really. */
 void update_msdp_group(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH];
+  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *k;
 
   /* MSDP */
@@ -5699,7 +5699,7 @@ void update_msdp_group(struct char_data *ch)
 
 void update_msdp_inventory(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH];
+  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   obj_data *obj;
   int i = 0;
 
@@ -5796,7 +5796,7 @@ static void display_group_list(struct char_data *ch)
 
 ACMDU(do_group)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *vict;
   argument = one_argument_u(argument, buf);
 
@@ -7753,8 +7753,8 @@ ACMD(do_todo)
 
 ACMD(do_dice)
 {
-  char Gbuf1[MAX_STRING_LENGTH];
-  char Gbuf2[MAX_STRING_LENGTH];
+  char Gbuf1[MAX_STRING_LENGTH] = {'\0'};
+  char Gbuf2[MAX_STRING_LENGTH] = {'\0'};
   int rolls, size, result;
 
   if (!*argument)

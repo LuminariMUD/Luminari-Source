@@ -1931,7 +1931,7 @@ EVENTFUNC(get_protocols)
 {
   struct descriptor_data *d;
   struct mud_event_data *pMudEvent;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int len;
 
   if (event_obj == NULL)

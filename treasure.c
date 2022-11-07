@@ -4005,9 +4005,9 @@ SPECIAL(bazaar)
 /* staff tool to load random items */
 ACMD(do_loadmagicspecific)
 {
-  char arg1[MAX_STRING_LENGTH];
-  char arg2[MAX_STRING_LENGTH];
-  char arg3[MAX_STRING_LENGTH];
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
+  char arg2[MAX_STRING_LENGTH] = {'\0'};
+  char arg3[MAX_STRING_LENGTH] = {'\0'};
   int grade = 0;
   int number = 0;
   int i = 0;
@@ -4114,8 +4114,8 @@ ACMD(do_loadmagicspecific)
 /* staff tool to load random items */
 ACMD(do_loadmagic)
 {
-  char arg1[MAX_STRING_LENGTH];
-  char arg2[MAX_STRING_LENGTH];
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
+  char arg2[MAX_STRING_LENGTH] = {'\0'};
   int number = 1;
   int grade = 0;
 

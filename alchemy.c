@@ -3202,7 +3202,7 @@ bool display_discovery_info(struct char_data *ch, char *discoveryname)
     return FALSE;
 
   int discovery = -1;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   //  static int line_length = 57;
   static int line_length = 80;
@@ -3289,7 +3289,7 @@ bool display_grand_discovery_info(struct char_data *ch, char *discoveryname)
     return FALSE;
 
   int discovery = -1;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   //  static int line_length = 57;
   static int line_length = 80;
@@ -3340,7 +3340,7 @@ bool display_bomb_types(struct char_data *ch, char *keyword)
 
   if (!is_abbrev(keyword, "alchemist bombs") && !is_abbrev(keyword, "alchemist-bombs"))
     return FALSE;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   //  static int line_length = 57;
   static int line_length = 80;
@@ -3386,7 +3386,7 @@ bool display_discovery_types(struct char_data *ch, char *keyword)
   else
     grand = TRUE;
 
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   //  static int line_length = 57;
   static int line_length = 80;

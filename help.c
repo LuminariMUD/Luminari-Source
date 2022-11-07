@@ -43,7 +43,7 @@ struct help_entry_list *search_help(const char *argument, int level)
 
   struct help_entry_list *help_entries = NULL, *new_help_entry = NULL, *cur = NULL;
 
-  char buf[1024], escaped_arg[MAX_STRING_LENGTH];
+  char buf[1024], escaped_arg[MAX_STRING_LENGTH] = {'\0'};
 
   /*  Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -151,7 +151,7 @@ struct help_keyword_list *soundex_search_help_keywords(const char *argument, int
 
   struct help_keyword_list *keywords = NULL, *new_keyword = NULL, *cur = NULL;
 
-  char buf[1024], escaped_arg[MAX_STRING_LENGTH];
+  char buf[1024], escaped_arg[MAX_STRING_LENGTH] = {'\0'};
 
   /*   Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -239,7 +239,7 @@ ACMDU(do_help)
   struct help_entry_list *entries = NULL, *tmp = NULL;
   struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
 
-  char help_entry_buffer[MAX_STRING_LENGTH];
+  char help_entry_buffer[MAX_STRING_LENGTH] = {'\0'};
   char immo_data_buffer[1024];
   char *raw_argument;
 

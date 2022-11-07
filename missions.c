@@ -252,7 +252,7 @@ SPECIAL(faction_mission)
     GET_MISSION_EXP(ch) = get_mission_reward(ch, MISSION_EXP);
     GET_MISSION_NPC_NAME_NUM(ch) = dice(1, NUM_RANDOM_NPC_NAMES) - 1;
 
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     snprintf(
         buf, sizeof(buf),
@@ -421,7 +421,7 @@ void create_mission_mobs(char_data *ch)
     struct char_data *leader = NULL;
     int i = 0, randName = 0;
     room_vnum to_room = 0;
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     if (GET_CURRENT_MISSION(ch) > 0)
         to_room = atoi(mission_details[GET_CURRENT_MISSION(ch)][6]);

@@ -156,7 +156,7 @@ static int House_load(room_vnum vnum)
   FILE *fl;
   int i = 0;
   // int num_objs = 0;
-  char filename[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
   obj_save_data *loaded, *current;
   struct obj_data *cont_row[MAX_BAG_ROWS];
   room_rnum rnum;
@@ -243,7 +243,7 @@ static void House_restore_weight(struct obj_data *obj)
 void House_crashsave(room_vnum vnum)
 {
   int rnum;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   FILE *fp;
   char del_buf[2048];
 
@@ -317,8 +317,8 @@ void House_delete_file(room_vnum vnum)
 static void House_listrent(struct char_data *ch, room_vnum vnum)
 {
   FILE *fl;
-  char filename[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   obj_save_data *loaded, *current;
   int len = 0;
 

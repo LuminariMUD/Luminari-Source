@@ -301,7 +301,7 @@ ACMD(do_at)
 
 ACMD(do_goto)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
   room_rnum location;
 
@@ -628,7 +628,7 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
 
 static void do_stat_room(struct char_data *ch, struct room_data *rm)
 {
-  char buf2[MAX_STRING_LENGTH];
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct extra_descr_data *desc;
   int i, found, column;
   struct obj_data *j;
@@ -790,7 +790,7 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k)
 
 static void do_stat_character(struct char_data *ch, struct char_data *k)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, i2, column, found = FALSE, w_type, counter = 0;
   struct obj_data *j, *wielded = GET_EQ(ch, WEAR_WIELD_1);
   struct follow_type *fol;
@@ -3080,7 +3080,7 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
   if (listall)
   {
     int i, j, k, l, m, n, o;
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     sprintbitarray(zone_table[zone].zone_flags, zone_bits, ZN_ARRAY_MAX, buf);
 
@@ -4466,7 +4466,7 @@ void show_set_help(struct char_data *ch)
   const char *const set_levels[] = {"Imm", "God", "GrGod", "IMP"};
   const char *const set_targets[] = {"PC", "NPC", "BOTH"};
   const char *const set_types[] = {"MISC", "BINARY", "NUMBER", "ADDER"};
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, len = 0, add_len = 0;
 
   len = snprintf(buf, sizeof(buf), "%sCommand             Lvl    Who?  Type%s\r\n", CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
@@ -4639,7 +4639,7 @@ ACMD(do_keycheck)
   zone_rnum rzone = NOWHERE;
   room_vnum i = NOWHERE, bottom = NOWHERE, top = NOWHERE;
   int j, len = 0;
-  char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
+  char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
 
   one_argument(argument, zone_num, sizeof(zone_num));
@@ -4945,7 +4945,7 @@ ACMD(do_zcheck)
   int ac = 0;
   int affs = 0, tohit, todam, value;
   int i = 0, j = 0, k = 0, l = 0, m = 0, found = 0; /* found is used as a 'send now' flag*/
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   float avg_dam;
   size_t len = 0;
   // struct extra_descr_data *ext, *ext2;
@@ -5985,18 +5985,18 @@ ACMD(do_zpurge)
 ACMD(do_file)
 {
   /* Local variables */
-  int def_lines_to_read = 15;   /* Set the default num lines to be read. */
-  int max_lines_to_read = 300;  /* Maximum number of lines to read. */
-  FILE *req_file;               /* Pointer to file to be read. */
-  size_t req_file_size = 0;     /* Size of file to be read. */
-  int req_file_lines = 0;       /* Number of total lines in file to be read. */
-  int lines_read = 0;           /* Counts total number of lines read from the file. */
-  int req_lines = 0;            /* Number of lines requested to be displayed. */
-  int i, j;                     /* Generic loop counters. */
-  int l;                        /* Marks choice of file in fields array. */
-  char field[MAX_INPUT_LENGTH]; /* Holds users choice of file to be read. */
-  char value[MAX_INPUT_LENGTH]; /* Holds # lines to be read, if requested. */
-  char buf[MAX_STRING_LENGTH];  /* Display buffer for req_file. */
+  int def_lines_to_read = 15;           /* Set the default num lines to be read. */
+  int max_lines_to_read = 300;          /* Maximum number of lines to read. */
+  FILE *req_file;                       /* Pointer to file to be read. */
+  size_t req_file_size = 0;             /* Size of file to be read. */
+  int req_file_lines = 0;               /* Number of total lines in file to be read. */
+  int lines_read = 0;                   /* Counts total number of lines read from the file. */
+  int req_lines = 0;                    /* Number of lines requested to be displayed. */
+  int i, j;                             /* Generic loop counters. */
+  int l;                                /* Marks choice of file in fields array. */
+  char field[MAX_INPUT_LENGTH];         /* Holds users choice of file to be read. */
+  char value[MAX_INPUT_LENGTH];         /* Holds # lines to be read, if requested. */
+  char buf[MAX_STRING_LENGTH] = {'\0'}; /* Display buffer for req_file. */
 
   /* Defines which files are available to read. */
   const struct file_struct
@@ -6222,7 +6222,7 @@ ACMD(do_changelog)
 ACMD(do_plist)
 {
   int i, len = 0, count = 0;
-  char mode, buf[MAX_STRING_LENGTH * 20], name_search[MAX_NAME_LENGTH], time_str[MAX_STRING_LENGTH];
+  char mode, buf[MAX_STRING_LENGTH * 20], name_search[MAX_NAME_LENGTH], time_str[MAX_STRING_LENGTH] = {'\0'};
   struct time_info_data time_away;
   int low = 0, high = LVL_IMPL, low_day = 0, high_day = 10000, low_hr = 0, high_hr = 24;
 
@@ -6329,7 +6329,7 @@ bool change_player_name(struct char_data *ch, struct char_data *vict, char *new_
 {
   struct char_data *temp_ch = NULL;
   int plr_i = 0, i, j, k;
-  char old_name[MAX_NAME_LENGTH], old_pfile[50], new_pfile[50], buf[MAX_STRING_LENGTH];
+  char old_name[MAX_NAME_LENGTH], old_pfile[50], new_pfile[50], buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!ch)
   {
@@ -7143,8 +7143,8 @@ ACMD(do_singlefile)
 /* Command to generate a wilderness river. */
 ACMD(do_genriver)
 {
-  char arg1[MAX_STRING_LENGTH];
-  char arg2[MAX_STRING_LENGTH];
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
+  char arg2[MAX_STRING_LENGTH] = {'\0'};
   const char *name = NULL;
   int dir = 0;
   region_vnum vnum;
@@ -7210,7 +7210,7 @@ ACMD(do_genriver)
 
 ACMD(do_deletepath)
 {
-  char arg1[MAX_STRING_LENGTH];
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
   region_vnum vnum;
 
   one_argument(argument, arg1, sizeof(arg1));
@@ -7244,8 +7244,8 @@ ACMD(do_deletepath)
 /* Test command to display a map, radius 4, generated using noise. */
 ACMD(do_genmap)
 {
-  char arg1[MAX_STRING_LENGTH];
-  char arg2[MAX_STRING_LENGTH];
+  char arg1[MAX_STRING_LENGTH] = {'\0'};
+  char arg2[MAX_STRING_LENGTH] = {'\0'};
   const char *name = NULL;
   int dir = 0;
   region_vnum vnum;
@@ -7347,9 +7347,9 @@ ACMD(do_oconvert)
   int hitroll = 0, damroll = 0;
   int num, found = 0, total = 0;
   // obj_vnum ov;
-  // char buf[MAX_STRING_LENGTH];
+  // char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
+  char arg[MAX_STRING_LENGTH] = {'\0'}, arg2[MAX_STRING_LENGTH] = {'\0'};
   int iarg;
 
   if (argument == NULL)
@@ -8319,7 +8319,7 @@ ACMD(do_findmagic)
 ACMD(do_cmdlev)
 {
   int iCmd, iLev;
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
   two_arguments(argument, buf, sizeof(buf), buf2, sizeof(buf2));
 
@@ -8455,7 +8455,7 @@ ACMD(do_obind)
 
 ACMDU(do_plist) {
   int i, len = 0, count = 0;
-  char col, mode, buf[MAX_STRING_LENGTH], name_search[MAX_NAME_LENGTH], time_str[MAX_STRING_LENGTH];
+  char col, mode, buf[MAX_STRING_LENGTH] = {'\0'}, name_search[MAX_NAME_LENGTH], time_str[MAX_STRING_LENGTH] = {'\0'};
   struct time_info_data time_away;
   int low = 0, high = LVL_IMPL, low_day = 0, high_day = 10000, low_hr = 0, high_hr = 24;
   int active = 0, unactive = 0, old = 0, selected = 0;
@@ -8857,7 +8857,7 @@ ACMD(do_perfmon)
 
   if (!str_cmp(arg1, "all"))
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     size_t written = PERF_repr(buf, sizeof(buf));
     written = PERF_prof_repr_total(buf + written, sizeof(buf) - written);
@@ -8868,7 +8868,7 @@ ACMD(do_perfmon)
   }
   else if (!str_cmp(arg1, "summ"))
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     PERF_repr(buf, sizeof(buf));
     page_string(ch->desc, buf, TRUE);
@@ -8876,7 +8876,7 @@ ACMD(do_perfmon)
   }
   else if (!str_cmp(arg1, "prof"))
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     PERF_prof_repr_total(buf, sizeof(buf));
     page_string(ch->desc, buf, TRUE);
@@ -8885,7 +8885,7 @@ ACMD(do_perfmon)
   }
   else if (!str_cmp(arg1, "sect"))
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     PERF_prof_repr_sect(buf, sizeof(buf), argument);
     page_string(ch->desc, buf, TRUE);

@@ -19,7 +19,7 @@ void basic_mud_log(const char *x, ...)
 
 char *fread_string(FILE *fl, const char *error)
 {
-  char buf[MAX_STRING_LENGTH], tmp[512], *rslt, *point;
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[512], *rslt, *point;
   int flag;
 
   *buf = '\0';
@@ -66,7 +66,7 @@ char *fread_string(FILE *fl, const char *error)
 void do_list(FILE *shop_f, FILE *newshop_f, int max)
 {
   int count, temp;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   for (count = 0; count < max; count++)
   {

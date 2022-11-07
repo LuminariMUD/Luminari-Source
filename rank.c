@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Rank System                                                           
-/  Created By: Slug on fredMUD, adapted to tba3.53 by Jamdog                                                           
-\                    ported to Luminari by Zusuk             
-/  Date: November 1996, January 20th 2007, January 29 2018                                                          
-\       Command is in act.informative.c                                                   
-/  Header: act.h                                                                                                                                                                                     
+\
+/  Luminari Rank System
+/  Created By: Slug on fredMUD, adapted to tba3.53 by Jamdog
+\                    ported to Luminari by Zusuk
+/  Date: November 1996, January 20th 2007, January 29 2018
+\       Command is in act.informative.c
+/  Header: act.h
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 #include <ctype.h>
 #include <stdio.h>
@@ -87,7 +87,7 @@ ranktype rank_deaths(struct char_data *ch);
 ranktype rank_highest_xp(struct char_data *ch);
 ranktype rank_kd(struct char_data *ch);
 ranktype rank_played(struct char_data *ch);
-//ranktype rank_birth(struct char_data *ch);
+// ranktype rank_birth(struct char_data *ch);
 ranktype rank_remorts(struct char_data *ch);
 ranktype rank_blabber(struct char_data *ch);
 
@@ -123,8 +123,8 @@ void do_slug_rank(struct char_data *ch, const char *arg)
   int i, j, k;
   int rk;
   int toprank;
-  char buffer[MAX_STRING_LENGTH];
-  char keybuf[MAX_STRING_LENGTH], nbuf[MAX_STRING_LENGTH];
+  char buffer[MAX_STRING_LENGTH] = {'\0'};
+  char keybuf[MAX_STRING_LENGTH] = {'\0'}, nbuf[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *c;
   struct descriptor_data *d;
   struct key_data *tk;
@@ -278,14 +278,14 @@ void init_keys(void)
   add_key("gold", "gold carried", rank_gold);
   add_key("bank", "bank balance", rank_bank);
   add_key("age", "age", rank_age);
-  //add_key("kills", "kills", rank_kills);
-  //add_key("deaths", "deaths", rank_deaths);
-  //add_key("kd", "kills to deaths ratio", rank_kd);
+  // add_key("kills", "kills", rank_kills);
+  // add_key("deaths", "deaths", rank_deaths);
+  // add_key("kd", "kills to deaths ratio", rank_kd);
   add_key("played", "time played", rank_played);
-  //add_key("birth", "time since creation", rank_birth);
-  //add_key("remorts", "number of remorts", rank_remorts);
-  //add_key("blabber", "# of gossips", rank_blabber);
-  //add_key("clanbucks", "clan taxes earned", rank_clanbucks);
+  // add_key("birth", "time since creation", rank_birth);
+  // add_key("remorts", "number of remorts", rank_remorts);
+  // add_key("blabber", "# of gossips", rank_blabber);
+  // add_key("clanbucks", "clan taxes earned", rank_clanbucks);
 
   add_key("help", "help", NULL);
 } /* end init_keys */
@@ -541,7 +541,7 @@ ranktype rank_kd(struct char_data *ch) {
 ranktype rank_played(struct char_data *ch)
 {
   struct time_info_data playing_time;
-  //struct time_info_data real_time_passed(time_t t2, time_t t1);
+  // struct time_info_data real_time_passed(time_t t2, time_t t1);
   playing_time = *real_time_passed((time(0) - ch->player.time.logon) + ch->player.time.played, 0);
   snprintf(kbuf, sizeof(kbuf), "%3d days, %2d hours.", playing_time.day, playing_time.hours);
   return (kbuf);

@@ -31,7 +31,7 @@ static void mob_log(char_data *mob, const char *format, ...);
 static void mob_log(char_data *mob, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH];
+  char output[MAX_STRING_LENGTH] = {'\0'};
 
   snprintf(output, sizeof(output), "Mob (%s, VNum %d):: %s",
            GET_SHORT(mob), GET_MOB_VNUM(mob), format);

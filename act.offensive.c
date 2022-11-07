@@ -3010,7 +3010,7 @@ ACMD(do_order)
     }
     if (vict && ch)
     {
-      char buf[MAX_STRING_LENGTH];
+      char buf[MAX_STRING_LENGTH] = {'\0'};
 
       snprintf(buf, sizeof(buf), "$N orders you to '%s'", message);
       act(buf, FALSE, vict, 0, ch, TO_CHAR);
@@ -3030,7 +3030,7 @@ ACMD(do_order)
 
     else if (ch) /* This is order "followers" */
     {
-      char buf[MAX_STRING_LENGTH];
+      char buf[MAX_STRING_LENGTH] = {'\0'};
       struct list_data *room_list = NULL;
 
       snprintf(buf, sizeof(buf), "$n commands, '%s'.", message);

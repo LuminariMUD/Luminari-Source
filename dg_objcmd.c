@@ -60,7 +60,7 @@ struct obj_command_info
 static void obj_log(obj_data *obj, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH];
+  char output[MAX_STRING_LENGTH] = {'\0'};
 
   snprintf(output, sizeof(output), "Obj (%s, VNum %d):: %s", obj->short_description, GET_OBJ_VNUM(obj), format);
 

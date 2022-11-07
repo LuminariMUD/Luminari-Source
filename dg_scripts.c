@@ -818,7 +818,8 @@ static EVENTFUNC(trig_wait_event)
     if (!found)
     {
       log("Trigger restarted on unknown entity. Vnum: %d", GET_TRIG_VNUM(trig));
-      log("Type: %s trigger", type == MOB_TRIGGER ? "Mob" : type == OBJ_TRIGGER ? "Obj" : "Room");
+      log("Type: %s trigger", type == MOB_TRIGGER ? "Mob" : type == OBJ_TRIGGER ? "Obj"
+                                                                                : "Room");
       log("attached %d places", trig_index[trig->nr]->number);
       script_log("Trigger restart attempt on unknown entity.");
       return 0;
@@ -835,7 +836,7 @@ static EVENTFUNC(trig_wait_event)
 static void do_stat_trigger(struct char_data *ch, trig_data *trig)
 {
   struct cmdlist_element *cmd_list;
-  char sb[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char sb[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   int len = 0;
 
   if (!trig)
@@ -911,7 +912,7 @@ static void script_stat(char_data *ch, struct script_data *sc)
   trig_data *t;
   char name[MAX_INPUT_LENGTH];
   char namebuf[512];
-  char buf1[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   send_to_char(ch, "\tCScript-Stat Global Variables:\tn %s\r\n", sc->global_vars ? "" : "None");
   send_to_char(ch, "\tCScript-Stat Global context:\tn %ld\r\n", sc->context);
@@ -1445,7 +1446,7 @@ ACMD(do_detach)
  * on-line view of script errors. */
 void script_vlog(const char *format, va_list args)
 {
-  char output[MAX_STRING_LENGTH];
+  char output[MAX_STRING_LENGTH] = {'\0'};
   struct descriptor_data *i;
 
   /* parse the args, making the error message */
@@ -1675,7 +1676,7 @@ static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_dat
    * valid operands, in order of priority
    * each must also be defined in eval_op()
    */
-  const char * const ops[] = {
+  const char *const ops[] = {
       "||",
       "&&",
       "==",
@@ -2520,7 +2521,7 @@ static void process_rdelete(struct script_data *sc, trig_data *trig, char *cmd)
   struct trig_var_data *vd, *vd_prev = NULL;
   struct script_data *sc_remote = NULL;
   char *line, *var, *uid_p;
-  char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
   long uid, context;
   room_data *room;
   char_data *mob;
@@ -2818,9 +2819,8 @@ int script_driver(void *go_adress, trig_data *trig, int type, int mode)
     {
       if (process_if(p + 3, go, sc, trig, type))
         GET_TRIG_DEPTH(trig)
-        ++;
-      else
-        cl = find_else_end(trig, cl, go, sc, type);
+      ++;
+      else cl = find_else_end(trig, cl, go, sc, type);
     }
     else if (!strn_cmp("elseif ", p, 7) ||
              !strn_cmp("else", p, 4))

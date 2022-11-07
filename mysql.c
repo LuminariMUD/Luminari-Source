@@ -236,12 +236,12 @@ void load_regions()
 
   int i = 0, vtx = 0;
   int j = 0;
-  //int k = 0;
+  // int k = 0;
 
   int numrows;
 
-  char buf[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   char **tokens; /* Storage for tokenized linestring points */
   char **it;     /* Token iterator */
@@ -249,15 +249,15 @@ void load_regions()
   log("INFO: Loading region data from MySQL");
 
   snprintf(buf, sizeof(buf), "SELECT vnum, "
-               "zone_vnum, "
-               "name, "
-               "region_type, "
-               "NumPoints(ExteriorRing(`region_polygon`)), "
-               "AsText(ExteriorRing(region_polygon)), "
-               "region_props, "
-               "region_reset_data, "
-               "region_reset_time "
-               "from region_data");
+                             "zone_vnum, "
+                             "name, "
+                             "region_type, "
+                             "NumPoints(ExteriorRing(`region_polygon`)), "
+                             "AsText(ExteriorRing(region_polygon)), "
+                             "region_props, "
+                             "region_reset_data, "
+                             "region_reset_time "
+                             "from region_data");
 
   if (mysql_query(conn, buf))
   {
@@ -342,11 +342,11 @@ bool is_point_within_region(region_vnum region, int x, int y)
 
   /* Need an ORDER BY here, since we can have multiple regions. */
   snprintf(buf, sizeof(buf), "SELECT 1 "
-               "from region_index "
-               "where vnum = %d and "
-               "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
-          region,
-          x, y);
+                             "from region_index "
+                             "where vnum = %d and "
+                             "ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
+           region,
+           x, y);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -385,25 +385,25 @@ struct region_list *get_enclosing_regions(zone_rnum zone, int x, int y)
 
   /* Need an ORDER BY here, since we can have multiple regions. */
   snprintf(buf, sizeof(buf), "SELECT vnum,  "
-               "case "
-               "  when ST_Within(geomfromtext('Point(%d %d)'), region_polygon) then "
-               "  case "
-               "    when (geomfromtext('Point(%d %d)') = Centroid(region_polygon)) then '1' "
-               "    when (ST_Distance(geomfromtext('Point(%d %d)'), exteriorring(region_polygon)) > "
-               "          ST_Distance(geomfromtext('Point(%d %d)'), Centroid(region_polygon))/2) then '2' "
-               "    else '3' "
-               "  end "
-               "  else NULL "
-               "end as loc "
-               "  from region_index "
-               "  where zone_vnum = %d "
-               "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
-          x, y,
-          x, y,
-          x, y,
-          x, y,
-          zone_table[zone].number,
-          x, y);
+                             "case "
+                             "  when ST_Within(geomfromtext('Point(%d %d)'), region_polygon) then "
+                             "  case "
+                             "    when (geomfromtext('Point(%d %d)') = Centroid(region_polygon)) then '1' "
+                             "    when (ST_Distance(geomfromtext('Point(%d %d)'), exteriorring(region_polygon)) > "
+                             "          ST_Distance(geomfromtext('Point(%d %d)'), Centroid(region_polygon))/2) then '2' "
+                             "    else '3' "
+                             "  end "
+                             "  else NULL "
+                             "end as loc "
+                             "  from region_index "
+                             "  where zone_vnum = %d "
+                             "  and ST_Within(GeomFromText('POINT(%d %d)'), region_polygon)",
+           x, y,
+           x, y,
+           x, y,
+           x, y,
+           zone_table[zone].number,
+           x, y);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -460,73 +460,73 @@ struct region_proximity_list *get_nearby_regions(zone_rnum zone, int x, int y, i
 
   /* Need an ORDER BY here, since we can have multiple regions. */
   snprintf(buf, sizeof(buf), "select * from (select "
-               "  ri.vnum, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as n, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as ne, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as e, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as se, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as s, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as sw, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as w, "
-               "  case "
-               "    when ST_Intersects(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
-               "    then ST_Area(ST_Intersection(ri.region_polygon, "
-               "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as nw, "
-               "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) as dist "
-               "  from region_index as ri, "
-               "       region_data as rd "
-               "  where ri.vnum = rd.vnum and"
-               "        rd.region_type = 1 "
-               "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) desc " // GEROGRAPHIC regions only.
-               " ) nearby_regions "
-               "  where ((n > 0) or (ne > 0) or (e > 0) or (se > 0) or (s > 0) or (sw > 0) or (w > 0) or (nw > 0));",
-          x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y, /* n */
-          x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
-          x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y, /* ne */
-          x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
-          x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y, /* e */
-          x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y,
-          x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y, /* se */
-          x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y,
-          x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y, /* s */
-          x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y,
-          x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y, /* sw */
-          x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y,
-          x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y, /* w */
-          x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y,
-          x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y, /* nw */
-          x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y,
-          x, y,
-          x, y);
+                             "  ri.vnum, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as n, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as ne, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as e, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as se, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as s, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as sw, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as w, "
+                             "  case "
+                             "    when ST_Intersects(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))')) "
+                             "    then ST_Area(ST_Intersection(ri.region_polygon, "
+                             "                       geomfromtext('polygon((%d %d, %f %f, %f %f, %d %d))'))) else 0.0 end as nw, "
+                             "  ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) as dist "
+                             "  from region_index as ri, "
+                             "       region_data as rd "
+                             "  where ri.vnum = rd.vnum and"
+                             "        rd.region_type = 1 "
+                             "  order by ST_Distance(ri.region_polygon, geomfromtext('Point(%d %d)')) desc " // GEROGRAPHIC regions only.
+                             " ) nearby_regions "
+                             "  where ((n > 0) or (ne > 0) or (e > 0) or (se > 0) or (s > 0) or (sw > 0) or (w > 0) or (nw > 0));",
+           x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y, /* n */
+           x, y, (r * -.5 + x), (r * .87 + y), (r * .5 + x), (r * .87 + y), x, y,
+           x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y, /* ne */
+           x, y, (r * .5 + x), (r * .87 + y), (r * .87 + x), (r * .5 + y), x, y,
+           x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y, /* e */
+           x, y, (r * .87 + x), (r * .5 + y), (r * .87 + x), (r * -.5 + y), x, y,
+           x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y, /* se */
+           x, y, (r * .87 + x), (r * -.5 + y), (r * .5 + x), (r * -.87 + y), x, y,
+           x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y, /* s */
+           x, y, (r * .5 + x), (r * -.87 + y), (r * -.5 + x), (r * -.87 + y), x, y,
+           x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y, /* sw */
+           x, y, (r * -.5 + x), (r * -.87 + y), (r * -.87 + x), (r * -.5 + y), x, y,
+           x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y, /* w */
+           x, y, (r * -.87 + x), (r * -.5 + y), (r * -.87 + x), (r * .5 + y), x, y,
+           x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y, /* nw */
+           x, y, (r * -.87 + x), (r * .5 + y), (r * -.5 + x), (r * .87 + y), x, y,
+           x, y,
+           x, y);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -590,18 +590,18 @@ void load_paths()
   log("INFO: Loading path data from MySQL");
 
   snprintf(buf, sizeof(buf), "SELECT p.vnum, "
-               "p.zone_vnum, "
-               "p.name, "
-               "p.path_type, "
-               "NumPoints(p.path_linestring), "
-               "AsText(p.path_linestring), "
-               "p.path_props, "
-               "pt.glyph_ns, "
-               "pt.glyph_ew, "
-               "pt.glyph_int "
-               "  from path_data p,"
-               "       path_types pt"
-               "  where p.path_type = pt.path_type");
+                             "p.zone_vnum, "
+                             "p.name, "
+                             "p.path_type, "
+                             "NumPoints(p.path_linestring), "
+                             "AsText(p.path_linestring), "
+                             "p.path_props, "
+                             "pt.glyph_ns, "
+                             "pt.glyph_ew, "
+                             "pt.glyph_int "
+                             "  from path_data p,"
+                             "       path_types pt"
+                             "  where p.path_type = pt.path_type");
 
   if (mysql_query(conn, buf))
   {
@@ -626,9 +626,9 @@ void load_paths()
       for (j = 0; j <= top_of_path_table; j++)
       {
         free(path_table[j].name);
-        //free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
-        //free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
-        //free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
+        // free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
+        // free(path_table[i].glyphs[GLYPH_TYPE_PATH_EW]);
+        // free(path_table[i].glyphs[GLYPH_TYPE_PATH_INT]);
         free(path_table[j].vertices);
       }
       free(path_table);
@@ -680,9 +680,9 @@ void load_paths()
 void insert_path(struct path_data *path)
 {
   /* path_data* path_table */
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int vtx = 0;
-  char linestring[MAX_STRING_LENGTH];
+  char linestring[MAX_STRING_LENGTH] = {'\0'};
 
   snprintf(linestring, sizeof(linestring), "ST_GeomFromText('LINESTRING(");
 
@@ -695,20 +695,20 @@ void insert_path(struct path_data *path)
 
   log("INFO: Inserting Path [%d] '%s' into MySQL:", (int)path->vnum, path->name);
   snprintf(buf, sizeof(buf), "insert into path_data "
-               "(vnum, "
-               "zone_vnum, "
-               "path_type, "
-               "name, "
-               "path_props, "
-               "path_linestring) "
-               "VALUES ("
-               "%d, "
-               "%d, "
-               "%d, "
-               "'%s', "
-               "%d, "
-               "%s);",
-          path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props, linestring);
+                             "(vnum, "
+                             "zone_vnum, "
+                             "path_type, "
+                             "name, "
+                             "path_props, "
+                             "path_linestring) "
+                             "VALUES ("
+                             "%d, "
+                             "%d, "
+                             "%d, "
+                             "'%s', "
+                             "%d, "
+                             "%s);",
+           path->vnum, zone_table[path->zone].number, path->path_type, path->name, path->path_props, linestring);
 
   log("QUERY: %s", buf);
 
@@ -725,12 +725,12 @@ void insert_path(struct path_data *path)
 bool delete_path(region_vnum vnum)
 {
   /* path_data* path_table */
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   log("INFO: Deleting Path [%d] from MySQL:", (int)vnum);
   snprintf(buf, sizeof(buf), "delete from path_data "
-               "where vnum = %d;",
-          (int)vnum);
+                             "where vnum = %d;",
+           (int)vnum);
 
   log("QUERY: %s", buf);
 
@@ -760,16 +760,16 @@ struct path_list *get_enclosing_paths(zone_rnum zone, int x, int y)
   char buf[1024];
 
   snprintf(buf, sizeof(buf), "SELECT vnum, "
-               "  CASE WHEN (ST_Within(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "             ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
-               "    WHEN (ST_Within(GeomFromText('POINT(%d %d)'), path_linestring) AND "
-               "               ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
-               "    ELSE %d"
-               "  END AS glyph "
-               "  from path_index "
-               "  where zone_vnum = %d "
-               "  and ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)",
-          x, y - 1, x, y + 1, GLYPH_TYPE_PATH_NS, x - 1, y, x + 1, y, GLYPH_TYPE_PATH_EW, GLYPH_TYPE_PATH_INT, zone_table[zone].number, x, y);
+                             "  CASE WHEN (ST_Within(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+                             "             ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d"
+                             "    WHEN (ST_Within(GeomFromText('POINT(%d %d)'), path_linestring) AND "
+                             "               ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)) THEN %d "
+                             "    ELSE %d"
+                             "  END AS glyph "
+                             "  from path_index "
+                             "  where zone_vnum = %d "
+                             "  and ST_Within(GeomFromText('POINT(%d %d)'), path_linestring)",
+           x, y - 1, x, y + 1, GLYPH_TYPE_PATH_NS, x - 1, y, x + 1, y, GLYPH_TYPE_PATH_EW, GLYPH_TYPE_PATH_INT, zone_table[zone].number, x, y);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -806,12 +806,12 @@ void save_paths()
 {
 }
 
-/* 
+/*
  * Get a random point within the given region.  Note, the parameters x and y will
  * contain the random point!  If no point can be found then the function will not
- * change the values of x and y and will return false.  IF a point can be found that 
+ * change the values of x and y and will return false.  IF a point can be found that
  * point will be returned in x and y and the function will return true.
- * 
+ *
  * This function accesses the database several times.
  */
 bool get_random_region_location(region_vnum region, int *x, int *y)
@@ -821,8 +821,8 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
   int xlow, xhigh, ylow, yhigh;
   int xp, yp;
 
-  char buf[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   char **tokens; /* Storage for tokenized linestring points */
   char **it;     /* Token iterator */
@@ -835,9 +835,9 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
   log(" Getting random point in region with vnum : %d", region);
 
   snprintf(buf, sizeof(buf), "SELECT ST_AsText(ST_Envelope(region_polygon)) "
-               "from region_data "
-               "where vnum = %d;",
-          region);
+                             "from region_data "
+                             "where vnum = %d;",
+           region);
 
   /* Check the connection, reconnect if necessary. */
   mysql_ping(conn);
@@ -939,13 +939,13 @@ void who_to_mysql()
     if (PRF_FLAGGED(tch, PRF_ANON))
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, title, killer, thief) VALUES ('%s', '%s', %d, %d)",
-              GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
+               GET_NAME(tch), buf2, PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }
     else
     {
       snprintf(buf, sizeof(buf), "INSERT INTO who (player, level, title, killer, thief) VALUES ('%s', %d, '%s', %d, %d)",
-              GET_NAME(tch), GET_LEVEL(tch), buf2,
-              PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
+               GET_NAME(tch), GET_LEVEL(tch), buf2,
+               PLR_FLAGGED(tch, PLR_KILLER) ? 1 : 0, PLR_FLAGGED(tch, PLR_THIEF) ? 1 : 0);
     }
 
     if (mysql_query(conn, buf))

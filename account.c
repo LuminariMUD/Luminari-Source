@@ -628,7 +628,7 @@ void show_account_menu(struct descriptor_data *d)
 {
   int i = 0;
   struct char_data *tch = NULL, *xtch = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0;
 
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));

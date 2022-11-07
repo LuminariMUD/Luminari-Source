@@ -2335,7 +2335,7 @@ EVENTFUNC(event_preparation)
   int class = 0;
   struct char_data *ch = NULL;
   struct mud_event_data *prepare_event = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* initialize everything and dummy checks */
   *buf = '\0';

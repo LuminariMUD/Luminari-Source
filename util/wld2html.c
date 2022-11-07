@@ -53,10 +53,10 @@ typedef char byte;
 typedef sh_int room_num;
 typedef sh_int obj_num;
 
-char buf[MAX_STRING_LENGTH];
-char buf1[MAX_STRING_LENGTH];
-char buf2[MAX_STRING_LENGTH];
-char arg[MAX_STRING_LENGTH];
+char buf[MAX_STRING_LENGTH] = {'\0'};
+char buf1[MAX_STRING_LENGTH] = {'\0'};
+char buf2[MAX_STRING_LENGTH] = {'\0'};
+char arg[MAX_STRING_LENGTH] = {'\0'};
 
 int get_line(FILE *fl, char *buf);
 int real_room(int virtual, int reference);
@@ -427,7 +427,7 @@ void renum_world(void)
 /* read and allocate space for a '~'-terminated string from a given file */
 char *fread_string(FILE *fl, char *error)
 {
-  char buf[MAX_STRING_LENGTH], tmp[512], *rslt;
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[512], *rslt;
   register char *point;
   int done = 0, length = 0, templength = 0;
 

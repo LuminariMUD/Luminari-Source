@@ -1504,7 +1504,7 @@ SPECIAL(player_owned_shops)
   room_vnum house_vnum;
   struct obj_data *i, *j;
   int num = 1, hse;
-  char *temp, shop_owner[32], buf[MAX_STRING_LENGTH];
+  char *temp, shop_owner[32], buf[MAX_STRING_LENGTH] = {'\0'};
   bool found = FALSE;
 
   if (!cmd)
@@ -2666,7 +2666,7 @@ SPECIAL(chan)
 SPECIAL(guild)
 {
   int skill_num, percent;
-  char arg[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char arg[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   char *ability_name = NULL;
 
   if (IS_NPC(ch) || (!CMD_IS("practice") && !CMD_IS("train") && !CMD_IS("boosts")))
@@ -3628,7 +3628,7 @@ SPECIAL(cityguard)
 SPECIAL(clan_cleric)
 {
   int i;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   zone_vnum clanhall;
   clan_vnum clan;
   struct char_data *this_mob = (struct char_data *)me;
@@ -5419,7 +5419,7 @@ SPECIAL(dump)
 
 SPECIAL(pet_shops)
 {
-  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, pet_name[MEDIUM_STRING] = {'\0'};
   room_rnum pet_room;
   struct char_data *pet;
 

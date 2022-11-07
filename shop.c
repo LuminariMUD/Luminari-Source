@@ -268,7 +268,7 @@ static int find_oper_num(char token)
 static int evaluate_expression(struct obj_data *obj, char *expr)
 {
   struct stack_data ops, vals;
-  char *ptr, *end, name[MAX_STRING_LENGTH];
+  char *ptr, *end, name[MAX_STRING_LENGTH] = {'\0'};
   int temp, eindex;
 
   if (!expr || !*expr) /* Allows opening ( first. */
@@ -975,7 +975,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
 
 static void shopping_value(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char buf[MAX_STRING_LENGTH], name[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH];
   struct obj_data *obj;
 
   if (!is_ok(keeper, ch, shop_nr))
@@ -1047,7 +1047,7 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
 
 static void shopping_list(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char buf[MAX_STRING_LENGTH], name[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH];
   struct obj_data *obj, *last_obj = NULL;
   int cnt = 0, lindex = 0, found = FALSE, has_quest = FALSE;
   size_t len;
@@ -1286,7 +1286,7 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list,
                           int new_format, int max)
 {
   int tindex, num, len = 0, error = 0;
-  char *ptr, buf[MAX_STRING_LENGTH], *buf1 = NULL;
+  char *ptr, buf[MAX_STRING_LENGTH] = {'\0'}, *buf1 = NULL;
 
   if (!new_format)
     return (read_list(shop_f, list, 0, max, LIST_TRADE));
@@ -1525,7 +1525,7 @@ static void list_all_shops(struct char_data *ch)
       "---------------------------------------------------------\r\n";
   int shop_nr, headerlen = strlen(list_all_shops_header);
   size_t len = 0;
-  char buf[MAX_STRING_LENGTH], buf1[16];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[16];
 
   *buf = '\0';
   for (shop_nr = 0; shop_nr <= top_shop && len < sizeof(buf); shop_nr++)
@@ -1800,7 +1800,7 @@ void destroy_shops(void)
 
 bool shopping_identify(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj;
   // int i, found;
 

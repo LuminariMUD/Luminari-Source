@@ -39,77 +39,77 @@ const int restricted_school_reference[NUM_SCHOOLS + 1] = {
     -1};
 
 /* schools of magic names */
-const char * const school_names[NUM_SCHOOLS + 1] = {
-    "Universalist (No Specialty)", //0
-    "Abjurer (Abjuration)",        //1
-    "Conjurer (Conjuration)",      //2
-    "Diviner (Divination)",        //3
-    "Enchanter (Enchantment)",     //4
-    "Invoker (Evocation)",         //5
-    "Illusionist (Illusion)",      //6
-    "Necromancer (Necromancy)",    //7
-    "Transmuter (Transmutation)",  //8
+const char *const school_names[NUM_SCHOOLS + 1] = {
+    "Universalist (No Specialty)", // 0
+    "Abjurer (Abjuration)",        // 1
+    "Conjurer (Conjuration)",      // 2
+    "Diviner (Divination)",        // 3
+    "Enchanter (Enchantment)",     // 4
+    "Invoker (Evocation)",         // 5
+    "Illusionist (Illusion)",      // 6
+    "Necromancer (Necromancy)",    // 7
+    "Transmuter (Transmutation)",  // 8
     "\n"};
 
 /* schools of magic names (less detail) */
-const char * const school_names_specific[NUM_SCHOOLS + 1] = {
-    "No School",     //0
-    "Abjuration",    //1
-    "Conjuration",   //2
-    "Divination",    //3
-    "Enchantment",   //4
-    "Evocation",     //5
-    "Illusion",      //6
-    "Necromancy",    //7
-    "Transmutation", //8
+const char *const school_names_specific[NUM_SCHOOLS + 1] = {
+    "No School",     // 0
+    "Abjuration",    // 1
+    "Conjuration",   // 2
+    "Divination",    // 3
+    "Enchantment",   // 4
+    "Evocation",     // 5
+    "Illusion",      // 6
+    "Necromancy",    // 7
+    "Transmutation", // 8
     "\n"};
 
 /* description of school benefits */
-const char * const school_benefits[NUM_SCHOOLS + 1] = {
-    /*no school*/ "No benefits, but you will have access to all spells.",                                       //0
-    /*abjuration*/ "Your abjuration spells are much more powerful.",                                            //1
-    /*Conjuration*/ "Your conjured creatures are much more powerful.",                                          //2
-    /*Divination*/ "Your divination spells become more powerful.",                                              //3
-    /*Enchantment*/ "You can enchant higher level victims, and it is much harder to resist your enchantments.", //4
-    /*Evocation*/ "Do much more damage with your evocation spells.",                                            //5
-    /*Illusion*/ "Your illusion spells are much more powerful.",                                                //6
-    /*Necromancy*/ "You create much more powerful undead.",                                                     //7
-    /*Transmutation*/ "Your warding spells (such as iron skin), are much more powerful.",                       //8
+const char *const school_benefits[NUM_SCHOOLS + 1] = {
+    /*no school*/ "No benefits, but you will have access to all spells.",                                       // 0
+    /*abjuration*/ "Your abjuration spells are much more powerful.",                                            // 1
+    /*Conjuration*/ "Your conjured creatures are much more powerful.",                                          // 2
+    /*Divination*/ "Your divination spells become more powerful.",                                              // 3
+    /*Enchantment*/ "You can enchant higher level victims, and it is much harder to resist your enchantments.", // 4
+    /*Evocation*/ "Do much more damage with your evocation spells.",                                            // 5
+    /*Illusion*/ "Your illusion spells are much more powerful.",                                                // 6
+    /*Necromancy*/ "You create much more powerful undead.",                                                     // 7
+    /*Transmutation*/ "Your warding spells (such as iron skin), are much more powerful.",                       // 8
     "\n"};
 
 /* domain power names */
-const char * const domainpower_names[NUM_DOMAIN_POWERS + 1] = {
-    "Undefined", //0
+const char *const domainpower_names[NUM_DOMAIN_POWERS + 1] = {
+    "Undefined", // 0
     "Lightning Arc",
     "Electricity Resistance",
     "Acid Dart",
     "Acid Resistance",
-    "Fire Bolt", //5
+    "Fire Bolt", // 5
     "Fire Resistance",
     "Icicle",
     "Cold Resistance",
     "Curse Touch",
-    "Chaotic Weapon", //10
+    "Chaotic Weapon", // 10
     "Destructive Smite",
     "Destructive Aura",
     "Evil Touch",
     "Evil Scythe",
-    "Good Touch", //15
+    "Good Touch", // 15
     "Good Lance",
     "Healing Touch",
     "Empowered Healing",
     "Knowledge",
-    "Eye of Knowledge", //20
+    "Eye of Knowledge", // 20
     "Blessed Touch",
     "Lawful Weapon",
     "Deception",
     "Copycat",
-    "Mass Invis", //25
+    "Mass Invis", // 25
     "Resistance",
     "Saves",
     "Aura of Protection",
     "Ethereal Shift",
-    "Battle Rage", //30
+    "Battle Rage", // 30
     "Weapon Expert",
     "\n"};
 
@@ -702,7 +702,7 @@ int is_domain_spell_of_ch(struct char_data *ch, int spellnum)
 ACMD(do_domain)
 {
   int i = 0, j = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0;
 
   /* 0-value is undefined, it is used in the code, but not displayed */

@@ -942,7 +942,7 @@ void cleanup_disguise(struct char_data *ch)
 }
 void update_msdp_affects(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH];
+  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   struct affected_type *af, *next;
   bool first = TRUE;
   int i = 0;

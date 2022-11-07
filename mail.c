@@ -193,7 +193,7 @@ char *read_delete(long recipient)
 {
   FILE *mail_file, *new_file;
   struct mail_t *record = NULL, *record_to_keep = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   *buf = '\0';
 

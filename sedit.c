@@ -344,7 +344,7 @@ static void sedit_namelist_menu(struct descriptor_data *d)
 
 static void sedit_shop_flags_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   int i, count = 0;
 
   get_char_colors(d->character);
@@ -362,7 +362,7 @@ static void sedit_shop_flags_menu(struct descriptor_data *d)
 
 static void sedit_no_trade_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
   int i, count = 0;
 
   get_char_colors(d->character);
@@ -400,8 +400,8 @@ static void sedit_types_menu(struct descriptor_data *d)
 /* Display main menu. */
 static void sedit_disp_menu(struct descriptor_data *d)
 {
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct shop_data *shop;
 
   shop = OLC_SHOP(d);
