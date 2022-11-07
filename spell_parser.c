@@ -220,8 +220,8 @@ int lowest_spell_level(int spellnum)
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start)
 {
-  char lbuf[MEDIUM_STRING], buf[MEDIUM_STRING],
-      buf1[MEDIUM_STRING], buf2[MEDIUM_STRING]; /* FIXME */
+  char lbuf[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'},
+       buf1[MEDIUM_STRING] = {'\0'}, buf2[MEDIUM_STRING] = {'\0'}; /* FIXME */
   const char *format;
   struct char_data *i;
   int j, ofs = 0, dc_of_id = 0, attempt = 0;
@@ -379,7 +379,7 @@ int find_skill_num(char *name)
 {
   int skindex, ok;
   char *temp, *temp2;
-  char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
+  char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
@@ -412,7 +412,7 @@ int find_ability_num(char *name)
 {
   int skindex, ok;
   char *temp, *temp2;
-  char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
+  char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
   for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
   {
@@ -2537,7 +2537,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].name = name;
   if (wearoff == 0)
   {
-    char buf[MEDIUM_STRING];
+    char buf[MEDIUM_STRING] = {'\0'};
     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
     spell_info[spl].wear_off_msg = strdup(buf);
   }
@@ -2572,7 +2572,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
 //   skill_info[spl].name = name;
 //   if (wearoff == 0)
 //   {
-//     char buf[MEDIUM_STRING];
+//     char buf[MEDIUM_STRING] = {'\0'};
 //     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
 //     skill_info[spl].wear_off_msg = strdup(buf);
 //   }

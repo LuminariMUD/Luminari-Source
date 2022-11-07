@@ -1981,7 +1981,7 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
 {
   room_rnum was_in;
   struct follow_type *k, *next;
-  char open_cmd[MEDIUM_STRING];
+  char open_cmd[MEDIUM_STRING] = {'\0'};
 
   if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS)
     return (0);

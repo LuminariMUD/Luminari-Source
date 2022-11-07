@@ -515,7 +515,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
 {
   int num, wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
   obj_vnum ov;
-  char buf[MAX_STRING_LENGTH], bitbuf[MEDIUM_STRING];
+  char buf[MAX_STRING_LENGTH], bitbuf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
 
   wearloc = atoi(arg);
@@ -1683,7 +1683,7 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
 static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, trig_vnum vmax)
 {
   int i, bottom, top, counter = 0;
-  char trgtypes[MEDIUM_STRING];
+  char trgtypes[MEDIUM_STRING] = {'\0'};
 
   /* Expect a minimum / maximum number if the rnum for the zone is NOWHERE. */
   if (rnum != NOWHERE)

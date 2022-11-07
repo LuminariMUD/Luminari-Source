@@ -3807,7 +3807,7 @@ ACMD(do_pixiedust)
   }
 
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -3884,7 +3884,7 @@ ACMD(do_pixiedust)
 void perform_red_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -3976,7 +3976,7 @@ void perform_red_dragon_magic(struct char_data *ch, const char *argument)
 void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4068,7 +4068,7 @@ void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
 void perform_green_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4160,7 +4160,7 @@ void perform_green_dragon_magic(struct char_data *ch, const char *argument)
 void perform_black_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4252,7 +4252,7 @@ void perform_black_dragon_magic(struct char_data *ch, const char *argument)
 void perform_white_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4428,7 +4428,7 @@ ACMD(do_efreetimagic)
   }
 
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   int i = 0;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));

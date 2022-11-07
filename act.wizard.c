@@ -66,7 +66,7 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k);
 static void do_stat_character(struct char_data *ch, struct char_data *k);
 static void stop_snooping(struct char_data *ch);
 static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int listall);
-//static struct char_data *is_in_game(long idnum);
+// static struct char_data *is_in_game(long idnum);
 static void mob_checkload(struct char_data *ch, mob_vnum mvnum);
 static void obj_checkload(struct char_data *ch, obj_vnum ovnum);
 static void trg_checkload(struct char_data *ch, trig_vnum tvnum);
@@ -2568,12 +2568,12 @@ ACMDU(do_last)
 {
   char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   struct char_data *vict = NULL;
-  //struct char_data *temp;
+  // struct char_data *temp;
   int num = 0;
-  //int recs, i;
-  //FILE *fp;
-  //time_t delta;
-  //struct last_entry mlast;
+  // int recs, i;
+  // FILE *fp;
+  // time_t delta;
+  // struct last_entry mlast;
 
   *name = '\0';
 
@@ -2629,7 +2629,7 @@ ACMDU(do_last)
       send_to_char(ch, "You are not sufficiently godly for that!\r\n");
       return;
     }
-    
+
     send_to_char(ch, "[%5ld] [%2d %s %s] %-12s : %-18s : %-20s\r\n",
                  GET_IDNUM(vict), (int)GET_LEVEL(vict),
                  CLSLIST_ABBRV(GET_CLASS(vict)), race_list[(int)GET_RACE(vict)].abbrev_color, GET_NAME(vict),
@@ -6699,8 +6699,8 @@ static void clear_recent(struct recent_player *this)
 {
   this->vnum = 0;
   this->time = 0;
-  strcpy(this->name, "");
-  strcpy(this->host, "");
+  strlcpy(this->name, "", sizeof(this->name));
+  strlcpy(this->host, "", sizeof(this->host));
   this->next = NULL;
 }
 
@@ -8902,7 +8902,7 @@ ACMD(do_perfmon)
 ACMD(do_showwearoff)
 {
 
-  char arg1[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'};
 
   one_argument(argument, arg1, sizeof(arg1));
 
@@ -8991,7 +8991,7 @@ ACMD(do_resetpassword)
 ACMD(do_award)
 {
 
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING], arg3[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'}, arg3[MEDIUM_STRING] = {'\0'};
   struct char_data *victim = NULL;
   int i = 0;
   long int amount = 0;

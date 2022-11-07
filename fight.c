@@ -2297,7 +2297,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
 static char *replace_string(const char *str, const char *weapon_singular,
                             const char *weapon_plural)
 {
-  static char buf[MEDIUM_STRING];
+  static char buf[MEDIUM_STRING] = {'\0'};
   char *cp = buf;
 
   for (; *str; str++)
@@ -3057,9 +3057,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     damtype_reduction += CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 10 : 5;
   }
 
-  if (HAS_FEAT(ch, FEAT_DRAGONBORN_RESISTANCE) && draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)] == dam_type) {
+  if (HAS_FEAT(ch, FEAT_DRAGONBORN_RESISTANCE) && draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)] == dam_type)
+  {
     damtype_reduction += GET_LEVEL(ch) >= 9 ? 10 : 5;
-  }  
+  }
 
   switch (dam_type)
   {
@@ -4926,7 +4927,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   dambonus += GET_DAMROLL(ch);
   if (display_mode)
     send_to_char(ch, "Damroll: \tR%d\tn\r\n", GET_DAMROLL(ch));
-  
+
   if (HAS_REAL_FEAT(ch, FEAT_DRAGONBORN_FURY) && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch))
   {
     dambonus += 2;
@@ -6196,7 +6197,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
         dam += 2;
-      
+
       if (HAS_REAL_FEAT(ch, FEAT_SAVAGE_ATTACKS))
         dam += dice(1, 6);
 

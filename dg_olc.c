@@ -187,7 +187,7 @@ static void trigedit_disp_menu(struct descriptor_data *d)
 {
   struct trig_data *trig = OLC_TRIG(d);
   const char *attach_type;
-  char trgtypes[MEDIUM_STRING];
+  char trgtypes[MEDIUM_STRING] = {'\0'};
 
   get_char_colors(d->character);
 

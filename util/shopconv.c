@@ -165,7 +165,7 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
 int main(int argc, char *argv[])
 {
   FILE *sfp, *nsfp;
-  char fn[MEDIUM_STRING], part[MEDIUM_STRING];
+  char fn[MEDIUM_STRING] = {'\0'}, part[MEDIUM_STRING] = {'\0'};
   int result, index, i;
 
   if (argc < 2)

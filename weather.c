@@ -286,7 +286,7 @@ bool sect_no_weather(struct char_data *ch)
 struct weather_msg
 {
   int sector_type;
-  char msg[NUM_WEATHER_CHANGES][MEDIUM_STRING];
+  char msg[NUM_WEATHER_CHANGES][MEDIUM_STRING] = {'\0'};
 } weather_messages[] = {
 
     {SECT_TUNDRA,

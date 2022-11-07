@@ -412,7 +412,7 @@ static int transaction_amt(char *arg)
 
 static char *times_message(struct obj_data *obj, char *name, int num)
 {
-  static char buf[MEDIUM_STRING];
+  static char buf[MEDIUM_STRING] = {'\0'};
   size_t len;
   char *ptr;
 
@@ -1008,7 +1008,7 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
 
 static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr, struct char_data *keeper, struct char_data *ch)
 {
-  static char result[MEDIUM_STRING];
+  static char result[MEDIUM_STRING] = {'\0'};
   char itemname[128],
       quantity[16]; /* "Unlimited" or "%d" */
 
@@ -1377,7 +1377,7 @@ static char *read_shop_message(int mnum, room_vnum shr, FILE *shop_f, const char
 
 void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
 {
-  char *buf, buf2[MEDIUM_STRING];
+  char *buf, buf2[MEDIUM_STRING] = {'\0'};
   int temp, count, new_format = FALSE;
   struct shop_buy_data list[MAX_SHOP_OBJ + 1];
   int done = FALSE;
@@ -1484,7 +1484,7 @@ static char *customer_string(int shop_nr, int detailed)
 {
   int sindex = 0, flag = 1, nlen;
   size_t len = 0;
-  static char buf[MEDIUM_STRING];
+  static char buf[MEDIUM_STRING] = {'\0'};
 
   while (*trade_letters[sindex] != '\n' && len + 1 < sizeof(buf))
   {

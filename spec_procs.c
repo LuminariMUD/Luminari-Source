@@ -5406,7 +5406,7 @@ SPECIAL(dump)
 
 SPECIAL(pet_shops)
 {
-  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING];
+  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING] = {'\0'};
   room_rnum pet_room;
   struct char_data *pet;
 
