@@ -654,7 +654,7 @@ void trigedit_save(struct descriptor_data *d)
               GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
 
       /* Build the text for the script */
-      strlcpy(buf, "", sizeof(buf)); /* strcpy OK for MAX_CMD_LENGTH > 0*/
+      strlcpy(buf, "", sizeof(buf));
       for (cmd = trig->cmdlist; cmd; cmd = cmd->next)
       {
         strlcat(buf, cmd->cmd, sizeof(buf));
