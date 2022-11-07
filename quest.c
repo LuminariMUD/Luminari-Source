@@ -1670,21 +1670,21 @@ ACMD(do_aqref)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCREWARD\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
-          vnum, mob_proto[real_mobile(QST_MASTER(i)].player.short_descr, QST_MASTER(i));
+                   vnum, mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
     if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) && QST_TARGET(i) == vnum)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
-          vnum, mob_proto[real_mobile(QST_MASTER(i)].player.short_descr, QST_MASTER(i));
+                   vnum, mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
     if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) && QST_TARGET(i) == vnum)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
-          vnum, mob_proto[real_mobile(QST_MASTER(i)].player.short_descr, QST_MASTER(i));
+                   vnum, mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
   }
 
