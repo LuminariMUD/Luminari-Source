@@ -3197,7 +3197,7 @@ ACMD(do_show)
     return;
   }
 
-  strlcpy(arg, two_arguments(argument, field, sizeof(field), value, sizeof(value)), sizeof(arg)); /* strcpy: OK (argument <= MAX_INPUT_LENGTH == arg) */
+  strlcpy(arg, two_arguments(argument, field, sizeof(field), value, sizeof(value)), sizeof(arg));
 
   for (l = 0; *(fields[l].cmd) != '\n'; l++)
     if (!strncmp(field, fields[l].cmd, strlen(field)))
@@ -6227,7 +6227,7 @@ ACMD(do_plist)
   int low = 0, high = LVL_IMPL, low_day = 0, high_day = 10000, low_hr = 0, high_hr = 24;
 
   skip_spaces_c(&argument);
-  strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
+  strlcpy(buf, argument, sizeof(buf));
   name_search[0] = '\0';
 
   while (*buf)
@@ -6239,7 +6239,7 @@ ACMD(do_plist)
     {
       if (sscanf(arg, "%d-%d", &low, &high) == 1)
         high = low;
-      strlcpy(buf, buf1, sizeof(buf)); /* strcpy: OK (sizeof: buf1 == buf) */
+      strlcpy(buf, buf1, sizeof(buf));
     }
     else if (*arg == '-')
     {
@@ -6736,9 +6736,9 @@ bool AddRecentPlayer(char *chname, char *chhost, bool newplr, bool cpyplr)
   this->time = ct;
   this->new_player = newplr;
   this->copyover_player = cpyplr;
-  strcpy(this->host, chhost);
+  strlcpy(this->host, chhost, sizeof(this->host));
   if (chname)
-    strcpy(this->name, chname);
+    strlcpy(this->name, chname, sizeof(this->name));
   max_vnum = get_max_recent();
   this->vnum = max_vnum; /* Possibly should be +1 ? */
 
@@ -8461,7 +8461,7 @@ ACMDU(do_plist) {
   int active = 0, unactive = 0, old = 0, selected = 0;
 
   skip_spaces(&argument);
-  strcpy(buf, argument); // strcpy: OK (sizeof: argument == buf)
+  strlcpy(buf, argument, sizeof(buf));
   name_search[0] = '\0';
 
   while (*buf) {
@@ -8471,7 +8471,7 @@ ACMDU(do_plist) {
     if (isdigit(*arg)) {
       if (sscanf(arg, "%d-%d", &low, &high) == 1)
         high = low;
-      strcpy(buf, buf1); // strcpy: OK (sizeof: buf1 == buf)
+      strlcpy(buf, buf1, sizeof(buf));
     } else if (*arg == '-') {
       mode = *(arg + 1); // just in case; we destroy arg in the switch
       switch (mode) {
@@ -8483,15 +8483,15 @@ ACMDU(do_plist) {
           half_chop(buf1, name_search, buf);
           break;
         case 'a':
-          strcpy(buf, buf1);
+          strlcpy(buf, buf1, sizeof(buf));
           selected = active = TRUE;
           break;
         case 'u':
-          strcpy(buf, buf1);
+          strlcpy(buf, buf1, sizeof(buf));
           selected = unactive = TRUE;
           break;
         case 'o':
-          strcpy(buf, buf1);
+          strlcpy(buf, buf1, sizeof(buf));
           selected = old = TRUE;
           break;
         case 'd':
@@ -8554,7 +8554,7 @@ ACMDU(do_plist) {
     if (time_away.hours > high_hr || time_away.hours < low_hr)
       continue;
 
-    strcpy(time_str, asctime(localtime(&player_table[i].last)));
+    strlcpy(time_str, asctime(localtime(&player_table[i].last)), sizeof(time_str));
 
     time_str[strlen(time_str) - 1] = '\0';
 
