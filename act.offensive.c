@@ -2991,7 +2991,6 @@ ACMD(do_order)
   char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
   bool found = FALSE;
   struct char_data *vict = NULL, *next_vict = NULL;
-  struct follow_type *k = NULL;
 
   half_chop_c(argument, name, sizeof(name), message, sizeof(message));
 
@@ -3045,7 +3044,7 @@ ACMD(do_order)
       {
         next_vict = vict->next_in_room;
 
-        if (pet_order_chech(ch, vict))
+        if (pet_order_check(ch, vict))
         {
           add_to_list(vict, room_list);
         }
@@ -3067,7 +3066,7 @@ ACMD(do_order)
          due to our silly crash issues from earlier */
       while ((vict = (struct char_data *)simple_list(room_list)) != NULL)
       {
-        if (pet_order_chech(ch, vict))
+        if (pet_order_check(ch, vict))
         {
           found = TRUE;
           command_interpreter(vict, message);
