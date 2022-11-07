@@ -69,8 +69,7 @@ void do_list(FILE *shop_f, FILE *newshop_f, int max)
   char buf[MAX_STRING_LENGTH], *buf2;
   int i;
 
-  i = 0;
-  buf = {'\0'};
+  buf2 = NULL;
 
   for (count = 0; count < max; count++)
   {
@@ -88,8 +87,6 @@ void do_float(FILE *shop_f, FILE *newshop_f)
   float f;
   char str[20];
   int i;
-
-  i = 0;
 
   i = fscanf(shop_f, "%f \n", &f);
 
