@@ -36,6 +36,9 @@
 #include "constants.h"
 #include "spec_procs.h" /* for is_wearing() */
 
+/* externs */
+extern char cast_arg2[MAX_INPUT_LENGTH];
+
 /* defines */
 #define RAGE_AFFECTS 7
 #define SACRED_FLAMES_AFFECTS 1
@@ -4394,8 +4397,6 @@ ACMD(do_dragonmagic)
   }
   send_to_char(ch, "You have %d dragon magic uses left.\r\n", DRAGON_MAGIC_USES(ch));
 }
-
-extern char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
 
 ACMDCHECK(can_efreetimagic)
 {
