@@ -68,8 +68,6 @@ void do_list(FILE *shop_f, FILE *newshop_f, int max)
   int count, temp;
   char buf[MAX_STRING_LENGTH];
 
-  buf2 = NULL;
-
   for (count = 0; count < max; count++)
   {
     fscanf(shop_f, "%d", &temp);
@@ -201,12 +199,12 @@ int main(int argc, char *argv[])
       if (result)
       {
         sprintf(part, "mv %s.tmp %s", fn, fn);
-        i = system(part);
+        system(part);
       }
       else
       {
         sprintf(part, "mv %s.tmp %s.bak", fn, fn);
-        i = system(part);
+        system(part);
         printf("Done!\n");
       }
     }
