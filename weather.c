@@ -304,6 +304,7 @@ struct weather_msg
       "The searing hot wind calms itself slightly, but that doesn't make it any less hot.",
       "A mighty sandstorm rolls in, blistering sand beating at you mercilessly.",
       "The sandstorm moves on, all tracks covered and new dunes formed by the unrelenting wind."}},
+
     {SECT_WATER_SWIM,
      {"Soft fluffy clouds begin to drift in over the watery expanse.",
       "The soft fluffy clouds dissipate and the sun shines through.",
@@ -311,6 +312,7 @@ struct weather_msg
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
       "The rolling thunder stops, but the heavy raincover remains."}},
+
     {SECT_WATER_NOSWIM,
      {"Soft fluffy clouds begin to drift in over the watery expanse.",
       "The soft fluffy clouds dissipate and the sun shines through.",
@@ -318,6 +320,7 @@ struct weather_msg
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
       "The rolling thunder stops, but the heavy raincover remains."}},
+
     {SECT_OCEAN,
      {"Soft fluffy clouds begin to drift in over the watery expanse.",
       "The soft fluffy clouds dissipate and the sun shines through.",
@@ -325,6 +328,7 @@ struct weather_msg
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
       "The rolling thunder stops, but the heavy raincover remains."}},
+
     {SECT_MARSHLAND,
      {"The sun becomes obscured between the openings in the canopy above as heavy clouds roll in.",
       "The mucky ground below you becomes spotty with sun beams as it shines through the canopy above.",
@@ -364,6 +368,7 @@ struct weather_msg
       "The rain stops, but the cool wind continues to whip at you.",
       "Earsplitting booms echo through the mountains as it starts to thunder.",
       "The thunder stops but the cold rain and heavy winds keeps whipping at you."}},
+
     {SECT_MOUNTAIN,
      {"An icy wind starts to blow, whipping you and stirring up the clouds above.",
       "The cloudcover dissipates and the whipping wind calms itself.",
@@ -371,6 +376,7 @@ struct weather_msg
       "The rain stops, but the cool wind continues to whip at you.",
       "Earsplitting booms echo through the mountains as it starts to thunder.",
       "The thunder stops but the cold rain and heavy winds keeps whipping at you."}},
+
     {SECT_HIGH_MOUNTAIN,
      {"An icy wind starts to blow, whipping you and stirring up the clouds above.",
       "The cloudcover dissipates and the whipping wind calms itself.",
@@ -378,13 +384,15 @@ struct weather_msg
       "The rain stops, but the cool wind continues to whip at you.",
       "Earsplitting booms echo through the mountains as it starts to thunder.",
       "The thunder stops but the cold rain and heavy winds keeps whipping at you."}},
+
     {SECT_INSIDE, /* Always last - inside doesn't show weather, so default messages below */
      {"Soft fluffy clouds begin to drift in over the landscape.",
       "The soft fluffy clouds dissipate and the sun shines through.",
       "Heavy droplets begin to fall, the clouds above growing thicker.",
       "The heavy droplets of water stops falling and the cloud cover grows thinner.",
       "Loud booms announce the arrival of a fierce thunderstorm.",
-      "The rolling thunder stops, but the heavy rain cover remains."}}};
+      "The rolling thunder stops, but the heavy rain cover remains."}},
+};
 
 void send_weather(int weather_change)
 {

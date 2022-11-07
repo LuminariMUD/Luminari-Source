@@ -65,8 +65,12 @@ char *fread_string(FILE *fl, const char *error)
 
 void do_list(FILE *shop_f, FILE *newshop_f, int max)
 {
-  int count, temp, i;
+  int count, temp;
   char buf[MAX_STRING_LENGTH], *buf2;
+  int i;
+
+  i = 0;
+  buf = {'\0'};
 
   for (count = 0; count < max; count++)
   {
@@ -85,7 +89,10 @@ void do_float(FILE *shop_f, FILE *newshop_f)
   char str[20];
   int i;
 
+  i = 0;
+
   i = fscanf(shop_f, "%f \n", &f);
+
   sprintf(str, "%f", f);
   while ((str[strlen(str) - 1] == '0') && (str[strlen(str) - 2] != '.'))
     str[strlen(str) - 1] = 0;
@@ -95,6 +102,8 @@ void do_float(FILE *shop_f, FILE *newshop_f)
 void do_int(FILE *shop_f, FILE *newshop_f)
 {
   int i, j;
+
+  j = 0;
 
   j = fscanf(shop_f, "%d \n", &i);
   fprintf(newshop_f, "%d \n", i);
@@ -167,6 +176,8 @@ int main(int argc, char *argv[])
   FILE *sfp, *nsfp;
   char fn[MEDIUM_STRING] = {'\0'}, part[MEDIUM_STRING] = {'\0'};
   int result, index, i;
+
+  i = 0;
 
   if (argc < 2)
   {
