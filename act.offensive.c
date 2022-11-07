@@ -3033,13 +3033,14 @@ ACMD(do_order)
       char buf[MAX_STRING_LENGTH];
       struct list_data *room_list = NULL;
 
-      snprintf(buf, sizeof(buf), "$n issues the order '%s'.", message);
+      snprintf(buf, sizeof(buf), "$n commands, '%s'.", message);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
       /* When using a list, we have to make sure to allocate the list as it
        * uses dynamic memory */
       room_list = create_list();
 
+      /* first build our list using a lot of silly checks due to crash issues */
       for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
       {
         next_vict = vict->next_in_room;
@@ -3059,7 +3060,7 @@ ACMD(do_order)
         return;
       }
 
-      /* resetting the variable */
+      /* resetting the variable, really isn't actually necessary :) */
       vict = NULL;
 
       /* SHOULD have a clean nice list, now lets loop through it with redundancy
@@ -3069,24 +3070,31 @@ ACMD(do_order)
         if (pet_order_check(ch, vict))
         {
           found = TRUE;
+          /* here is what we came here to accomplish... */
           command_interpreter(vict, message);
         }
       }
 
+      /* made it! */
       if (found)
       {
         USE_FULL_ROUND_ACTION(ch);
         send_to_char(ch, "%s", CONFIG_OK);
       }
       else
+      {
+        /* it shouldn't be possible to get here, but regardless... */
         send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
+      }
 
       /* Now that our order is done, let's free out list */
       if (room_list)
         free_list(room_list);
-    }
-  }
-  /* all done */
+    } /* end order all followers */
+
+  } /* end order */
+
+  /* all done! */
 }
 
 ACMD(do_flee)

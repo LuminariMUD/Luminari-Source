@@ -1448,7 +1448,7 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT && !IS_NPC(ch))
   {
     // imms can cast any spell
     return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
@@ -3883,7 +3883,7 @@ void mag_assign_spells(void)
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_DRAGONBORN_ANCESTRY_BREATH, "dragonborn breath weapon", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+         TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
