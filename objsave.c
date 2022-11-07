@@ -728,7 +728,7 @@ void update_obj_file(void)
 void Crash_listrent(struct char_data *ch, char *name)
 {
   FILE *fl;
-  char filename[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH], line[READ_SIZE];
+  char filename[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'}, line[READ_SIZE];
   obj_save_data *loaded, *current;
   int rentcode, timed, netcost, gold, account, nitems, numread, len;
   // bool using_db = FALSE;
@@ -1266,7 +1266,7 @@ static void Crash_rent_deadline(struct char_data *ch, struct char_data *recep,
                                 long cost)
 {
   long rent_deadline;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!cost)
     return;
@@ -2177,9 +2177,9 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
 static int Crash_load_objs(struct char_data *ch)
 {
   FILE *fl = NULL;
-  char filename[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
   char line[READ_SIZE];
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char str[64];
   int i, num_of_days, orig_rent_code, num_objs = 0;
   unsigned long cost;

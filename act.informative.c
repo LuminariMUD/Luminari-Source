@@ -1185,7 +1185,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   room_vnum target_room;
   int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char *generated_desc = NULL;
 
   if (!ch->desc)
@@ -1475,7 +1475,7 @@ static void look_in_obj(struct char_data *ch, char *arg)
       {
         if (GET_OBJ_VAL(obj, 0) < 0)
         {
-          char buf2[MAX_STRING_LENGTH];
+          char buf2[MAX_STRING_LENGTH] = {'\0'};
           sprinttype(GET_OBJ_VAL(obj, 2), color_liquid, buf2, sizeof(buf2));
           send_to_char(ch, "It's full of a %s liquid.\r\n", buf2);
         }
@@ -1483,7 +1483,7 @@ static void look_in_obj(struct char_data *ch, char *arg)
           send_to_char(ch, "Its contents seem somewhat murky.\r\n"); /* BUG */
         else
         {
-          char buf2[MAX_STRING_LENGTH];
+          char buf2[MAX_STRING_LENGTH] = {'\0'};
           amt = (GET_OBJ_VAL(obj, 1) * 3) / GET_OBJ_VAL(obj, 0);
           sprinttype(GET_OBJ_VAL(obj, 2), color_liquid, buf2, sizeof(buf2));
           send_to_char(ch, "It's %sfull of a %s liquid.\r\n", fullness[amt], buf2);
@@ -2271,7 +2271,7 @@ void free_history(struct char_data *ch, int type)
 void add_history(struct char_data *ch, const char *str, int type)
 {
   int i = 0;
-  char time_str[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char time_str[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   struct txt_block *tmp;
   time_t ct;
 
@@ -2315,7 +2315,7 @@ void add_history(struct char_data *ch, const char *str, int type)
 
 void list_scanned_chars(struct char_data *list, struct char_data *ch, int distance, int door)
 {
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
   const char *const how_far[] = {
       "close by",
@@ -2593,7 +2593,7 @@ ACMD(do_gold)
  */
 void perform_abilities(struct char_data *ch, struct char_data *k)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80;
   int i = 0, remaining = 0, total = 0;
 
@@ -4133,7 +4133,7 @@ ACMD(do_where)
 
 ACMD(do_levels)
 {
-  char buf[MAX_STRING_LENGTH], arg[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, arg[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0, nlen;
   int i, ret, min_lev = 1, max_lev = LVL_IMMORT, val;
 
@@ -5043,7 +5043,7 @@ ACMD(do_whois)
   struct char_data *victim = 0;
   int hours;
   int got_from_file = 0, c_r;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   clan_rnum c_n;
 
   one_argument(argument, buf, sizeof(buf));
@@ -5215,7 +5215,7 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 ACMD(do_areas)
 {
   int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
-  char arg[MAX_INPUT_LENGTH], *second, lev_str[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
+  char arg[MAX_INPUT_LENGTH], *second, lev_str[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH];
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
   //  float pop;
@@ -6155,7 +6155,7 @@ ACMD(do_weaponinfo)
   }
 
   int type = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[100];
   char buf3[100];
   char buf4[100];
@@ -6255,7 +6255,7 @@ ACMD(do_armorinfo)
   }
 
   int type = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[800];
   size_t len = 0;
   sbyte found = false;

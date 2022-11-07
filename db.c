@@ -283,7 +283,7 @@ void boot_social_messages(void)
 {
   FILE *fl;
   int nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1, i;
-  char next_soc[MAX_STRING_LENGTH], sorted[MAX_INPUT_LENGTH], *buf;
+  char next_soc[MAX_STRING_LENGTH] = {'\0'}, sorted[MAX_INPUT_LENGTH], *buf;
 
   if (CONFIG_NEW_SOCIALS == TRUE)
   {
@@ -2416,7 +2416,7 @@ void parse_mobile(FILE *mob_f, int nr)
   int j, t[10], retval, counter;
   char line[READ_SIZE], *tmpptr, letter;
   char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
-  //  char walk[MAX_STRING_LENGTH];
+  //  char walk[MAX_STRING_LENGTH] = {'\0'};
   //  char *message;
 
   mob_index[i].vnum = nr;
@@ -3067,11 +3067,11 @@ static void load_zones(FILE *fl, char *zonename)
 {
   static zone_rnum zone = 0;
   int i, cmd_no, num_of_cmds = 0, line_num = 0, tmp, error, arg_count = 0;
-  char *ptr, buf[READ_SIZE], zname[READ_SIZE], buf2[MAX_STRING_LENGTH];
+  char *ptr, buf[READ_SIZE], zname[READ_SIZE], buf2[MAX_STRING_LENGTH] = {'\0'};
   int zone_fix = FALSE;
   char t1[80], t2[80];
-  char zbuf1[MAX_STRING_LENGTH], zbuf2[MAX_STRING_LENGTH];
-  char zbuf3[MAX_STRING_LENGTH], zbuf4[MAX_STRING_LENGTH];
+  char zbuf1[MAX_STRING_LENGTH] = {'\0'}, zbuf2[MAX_STRING_LENGTH] = {'\0'};
+  char zbuf3[MAX_STRING_LENGTH] = {'\0'}, zbuf4[MAX_STRING_LENGTH] = {'\0'};
 
   strlcpy(zname, zonename, sizeof(zname));
 
@@ -3809,7 +3809,7 @@ void zone_update(void)
 int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
 {
   struct char_data *temp_mob = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int count = 0;
 
   *buf = '\0';
@@ -4591,7 +4591,7 @@ int fread_number(FILE *fp)
 /* Read to end of line from a given file into a static buffer */
 char *fread_line(FILE *fp)
 {
-  static char line[MAX_STRING_LENGTH];
+  static char line[MAX_STRING_LENGTH] = {'\0'};
   char *pline;
   char c;
   int ln;
@@ -4653,7 +4653,7 @@ char *fread_line(FILE *fp)
 /* Read to end of line from a given file and convert to flag values, then return number of ints */
 int fread_flags(FILE *fp, int *fg, int fg_size)
 {
-  char line[MAX_STRING_LENGTH];
+  char line[MAX_STRING_LENGTH] = {'\0'};
   char *pline, val_txt[MAX_INPUT_LENGTH];
   const char *tmp_txt;
   char c;
@@ -4723,7 +4723,7 @@ int fread_flags(FILE *fp, int *fg, int fg_size)
 /* Read one word from a given file (into static buffer). */
 char *fread_word(FILE *fp)
 {
-  static char word[MAX_STRING_LENGTH];
+  static char word[MAX_STRING_LENGTH] = {'\0'};
   char *pword;
   char cEnd;
 
@@ -5001,7 +5001,7 @@ void free_obj(struct obj_data *obj)
 static int file_to_string_alloc(const char *name, char **buf)
 {
   int temppage;
-  char temp[MAX_STRING_LENGTH];
+  char temp[MAX_STRING_LENGTH] = {'\0'};
   struct descriptor_data *in_use;
 
   for (in_use = descriptor_list; in_use; in_use = in_use->next)

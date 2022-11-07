@@ -180,7 +180,7 @@ void parse_quest(FILE *quest_f, int nr)
   static char line[MEDIUM_STRING] = {'\0'};
   static int i = 0, j;
   int retval = 0, t[7];
-  char f1[128], buf2[MAX_STRING_LENGTH];
+  char f1[128], buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /* init some vars */
   aquest_table[i].vnum = nr;

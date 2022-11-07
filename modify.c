@@ -415,7 +415,7 @@ ACMDU(do_skillset)
 {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
+  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH] = {'\0'};
   int skill, value, i, qend, pc, pl;
 
   argument = one_argument_u(argument, name);
@@ -521,7 +521,7 @@ ACMDU(do_abilityset)
 {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
+  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH] = {'\0'};
   int skill, value, i, qend, pc, pl;
 
   argument = one_argument_u(argument, name);
@@ -615,7 +615,7 @@ ACMDU(do_featset)
 {
   struct char_data *vict;
   char name[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH];
+  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH] = {'\0'};
   int feat_num, value, qend;
 
   argument = one_argument_u(argument, name);
@@ -808,7 +808,7 @@ void page_string(struct descriptor_data *d, char *str, int keep_internal)
 /* The call that displays the next page. */
 void show_string(struct descriptor_data *d, char *input)
 {
-  char buffer[MAX_STRING_LENGTH], buf[MAX_INPUT_LENGTH];
+  char buffer[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH];
   int diff;
 
   any_one_arg(input, buf);
@@ -922,7 +922,7 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
       MYSQL_RES *res = NULL;
       MYSQL_ROW row = NULL;
 
-      char query[MAX_STRING_LENGTH];
+      char query[MAX_STRING_LENGTH] = {'\0'};
 
       struct char_data *ch = d->character;
 
@@ -999,7 +999,7 @@ void new_mail_string_cleanup(struct descriptor_data *d, int action)
         mysql_ping(conn);
       }
 
-      char query[MAX_STRING_LENGTH];
+      char query[MAX_STRING_LENGTH] = {'\0'};
 
       struct char_data *ch = d->character;
 

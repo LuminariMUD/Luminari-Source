@@ -2499,7 +2499,7 @@ int touch(const char *path)
  * @param ... The comma delimited, variable substitutions to make in str. */
 void mudlog(int type, int level, int file, const char *str, ...)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct descriptor_data *i;
   va_list args;
 
@@ -3504,7 +3504,7 @@ void char_from_furniture(struct char_data *ch)
 void column_list(struct char_data *ch, int num_cols, const char **list, int list_length, bool show_nums)
 {
   int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len, max_len = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* Work out the longest list item */
   for (i = 0; i < list_length; i++)
@@ -4738,7 +4738,7 @@ int daily_item_specab_uses_remaining(struct obj_data *obj, int specab)
  */
 char *line_string(int length, char first, char second)
 {
-  static char buf[MAX_STRING_LENGTH]; /* Note - static! */
+  static char buf[MAX_STRING_LENGTH] = {'\0'}; /* Note - static! */
   int i = 0;
   while (i < length)
     if ((i % 2) == 0)
@@ -4765,7 +4765,7 @@ const char *text_line_string(const char *text, int length, char first, char seco
 {
   int text_length, text_print_length, pre_length;
   int i = 0, j = 0;
-  static char buf[MAX_STRING_LENGTH]; /* Note - static! */
+  static char buf[MAX_STRING_LENGTH] = {'\0'}; /* Note - static! */
 
   text_length = strlen(text);
   text_print_length = count_non_protocol_chars(text);

@@ -2277,7 +2277,7 @@ static const int flags_door[] = {
 
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len;
   room_rnum other_room = NOWHERE;
   struct room_direction_data *back = NULL;
@@ -3001,7 +3001,7 @@ ACMD(do_stand)
 
 ACMD(do_sit)
 {
-  char arg[MAX_STRING_LENGTH];
+  char arg[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *furniture;
   struct char_data *tempch;
   int found;

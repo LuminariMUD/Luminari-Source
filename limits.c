@@ -176,7 +176,8 @@ void affliction_tick(struct char_data *ch)
   else if (INCENDIARY(ch))
   {
     call_magic(ch, NULL, NULL, SPELL_INCENDIARY, 0, MAGIC_LEVEL(ch), CAST_SPELL);
-    INCENDIARY(ch)--;
+    INCENDIARY(ch)
+    --;
     if (INCENDIARY(ch) <= 0)
     {
       send_to_char(ch, "Your incendiary cloud dissipates!\r\n");
@@ -959,7 +960,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
       gain += (int)((float)gain * ((float)NEWBIE_EXP / (float)(100)));
 
     if (HAS_FEAT(ch, FEAT_ADAPTABILITY))
-      gain += (int) ((float) gain * .05);
+      gain += (int)((float)gain * .05);
 
     /* flat rate for now! (halfed the rate for testing purposes) */
     if (rand_number(0, 1) && ch && ch->desc && ch->desc->account)
@@ -1854,7 +1855,7 @@ void update_damage_and_effects_over_time(void)
   int dam = 0;
   struct affected_type *affects = NULL;
   struct char_data *ch = NULL, *next_char = NULL, *vict = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   for (ch = character_list; ch; ch = next_char)
   {
@@ -1920,7 +1921,8 @@ void update_damage_and_effects_over_time(void)
 
     if (IS_VAMPIRE(ch) && TIME_SINCE_LAST_FEEDING(ch) <= 100)
     {
-      TIME_SINCE_LAST_FEEDING(ch)++;
+      TIME_SINCE_LAST_FEEDING(ch)
+      ++;
     }
 
     if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
@@ -2118,9 +2120,15 @@ void self_buffing(void)
   for (d = descriptor_list; d; d = d->next)
   {
     ch = d->character;
-    if (!ch) continue;
-    if (!IS_BUFFING(ch)) continue;
-    while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 && GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1)) { GET_CURRENT_BUFF_SLOT(ch)++; }
+    if (!ch)
+      continue;
+    if (!IS_BUFFING(ch))
+      continue;
+    while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 && GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
+    {
+      GET_CURRENT_BUFF_SLOT(ch)
+      ++;
+    }
     if (GET_CURRENT_BUFF_SLOT(ch) >= MAX_BUFFS)
     {
       send_to_char(ch, "You finish buffing yourself.\r\n");
@@ -2140,14 +2148,15 @@ void self_buffing(void)
         if (is_spell)
         {
           snprintf(spellname, sizeof(spellname), " '%s'", spell_info[spellnum].name);
-          do_gen_cast(ch, (const char *) spellname, 0, SCMD_CAST_SPELL);
+          do_gen_cast(ch, (const char *)spellname, 0, SCMD_CAST_SPELL);
         }
         else
         {
           snprintf(spellname, sizeof(spellname), " %d '%s'", GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 1), spell_info[spellnum].name);
-          do_manifest(ch, (const char *) spellname, 0, SCMD_CAST_PSIONIC);
+          do_manifest(ch, (const char *)spellname, 0, SCMD_CAST_PSIONIC);
         }
-        GET_CURRENT_BUFF_SLOT(ch)++;
+        GET_CURRENT_BUFF_SLOT(ch)
+        ++;
       }
     }
     else

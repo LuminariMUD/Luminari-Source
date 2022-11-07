@@ -39,7 +39,7 @@ void save_clans(void)
 {
   FILE *fl;
   int i, j;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!(fl = fopen(CLAN_FILE, "w")))
   {
@@ -115,7 +115,7 @@ void load_clans(void)
 {
   FILE *fl;
   int j, gl = 0, priv, lev;
-  char tag[6], line[MAX_INPUT_LENGTH + 1], buf[MAX_STRING_LENGTH];
+  char tag[6], line[MAX_INPUT_LENGTH + 1], buf[MAX_STRING_LENGTH] = {'\0'};
   struct clan_data c;
 
   c.vnum = 0;
@@ -182,7 +182,7 @@ void load_clans(void)
               free(c.description);
             }
             c.description = fread_string(fl, buf);
-            //c.description = strdup(buf);
+            // c.description = strdup(buf);
           }
           else
             log("SYSERR: Unknown tag %s in clan file %s", tag, CLAN_FILE);
@@ -1523,8 +1523,8 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
     /*-------------------------------------------------------------------*/
   case CLANEDIT_DESC:
     /*
-       * We should never get here.
-       */
+     * We should never get here.
+     */
     clanedit_save(d);
     write_to_output(d, "Clan saved.\r\n");
     cleanup_olc(d, CLEANUP_ALL);
@@ -1980,7 +1980,7 @@ void clanedit_string_cleanup(struct descriptor_data *d, int terminator)
   }
 }
 
-/* Copies a clan's information.  
+/* Copies a clan's information.
  * NOTE: Allocates memory for DUPLICATED strings */
 void duplicate_clan_data(struct clan_data *to_clan,
                          struct clan_data *from_clan)

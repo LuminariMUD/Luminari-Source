@@ -1292,8 +1292,8 @@ ACMD(do_oasis_prefedit)
   struct descriptor_data *d;
   struct char_data *vict;
   const char *buf3;
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /****************************************************************************/
   /** Parse any arguments.                                                   **/

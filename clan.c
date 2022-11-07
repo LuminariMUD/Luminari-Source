@@ -30,7 +30,7 @@ struct claim_data *claim_list = NULL;
 int num_of_clans = 0;
 
 /* Clan privileges.  Each of these is assigned a minimum rank */
-const char * const clan_priv_names[] = {
+const char *const clan_priv_names[] = {
     "Award",      /**< 'clan award' command    */
     "Claim",      /**< 'clan claim' command    */
     "Balance",    /**< 'clans bank balance     */
@@ -145,7 +145,7 @@ clan_rnum real_clan(clan_vnum c)
 clan_rnum get_clan_by_name(const char *c_n)
 {
   int i, v;
-  //  char buf[MAX_STRING_LENGTH];
+  //  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* Look for exact match */
   for (i = 0; i < num_of_clans; i++)
@@ -1911,7 +1911,7 @@ ACMD(do_clanowner)
 {
   clan_rnum c_n;
   struct char_data *new_l;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   const char *buf2;
   bool immcom = FALSE;
 
@@ -2760,7 +2760,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
     for (j = 0; j < MAX_CLANS; j++)
       new_val += vals[j];
 
-    /* Any spare 'points', add then to random popularity values, but 
+    /* Any spare 'points', add then to random popularity values, but
      * do not exceed the original value - give up after 50 passes*/
     if ((val_diff = MAX_POPULARITY -
                     (found_claim->popularity[c_r] + new_val)) > 0)
@@ -2947,7 +2947,7 @@ void check_diplomacy(void)
       if (d->character && !IS_NPC(d->character))
         if (GET_DIPTIMER(d->character))
           GET_DIPTIMER(d->character)
-          --;
+  --;
 }
 
 /***********************************************************************
@@ -2963,7 +2963,7 @@ ACMD(do_clanset)
   char field[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
   char val_arg[MAX_INPUT_LENGTH], rankname[MAX_INPUT_LENGTH],
       rankbuf[MAX_INPUT_LENGTH];
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char spellname[MAX_INPUT_LENGTH], spellbuf[MAX_INPUT_LENGTH];
   int value = 0, rankid, i, l;
   int clannum = -1; /* The 'real' number of the clan */
@@ -3083,7 +3083,7 @@ ACMD(do_clanset)
       free(CLAN_NAME(clannum));
     CLAN_NAME(clannum) = strdup(val_arg);
     snprintf(buf, sizeof(buf), "Clan ID %d: Name is now: %s%s", clan_list[clannum].vnum,
-            CLAN_NAME(clannum), QNRM);
+             CLAN_NAME(clannum), QNRM);
     break;
 
   case 1: /* clanset <clannum> numranks <value>*/
@@ -3104,7 +3104,7 @@ ACMD(do_clanset)
       }
     }
     snprintf(buf, sizeof(buf), "Clan ID %d: Number of ranks set to %d%s",
-            clan_list[clannum].vnum, clan_list[clannum].ranks, QNRM);
+             clan_list[clannum].vnum, clan_list[clannum].ranks, QNRM);
     break;
 
     /* clanset <clannum> rankname <rank id> <val_arg>*/
@@ -3128,7 +3128,7 @@ ACMD(do_clanset)
     clan_list[clannum].rank_name[rankid - 1] = strdup(rankname);
 
     snprintf(buf, sizeof(buf), "Clan ID %d: Rank %d changed to \"%s%s\"",
-            clan_list[clannum].vnum, rankid, rankname, QNRM);
+             clan_list[clannum].vnum, rankid, rankname, QNRM);
     break;
   case 3: /* clanset clannum treasure <value>*/
     if ((value < 0) || (value > MAX_GOLD))
@@ -3139,7 +3139,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].treasure = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: Treasure (clan bank) set to %s\r\n",
-            clan_list[clannum].vnum, add_commas(value));
+             clan_list[clannum].vnum, add_commas(value));
     break;
   case 4: /* clanset clannum clannhall <value>*/
     if ((value < 0) || (value > 655))
@@ -3154,7 +3154,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].hall = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: Clanhall zone set to %d\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
   case 5: /* clanset clannum applev <value>*/
     if ((value < 1) || (value >= LVL_IMMORT))
@@ -3165,7 +3165,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].applev = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: Application Level set to %d\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
   case 6: /* clanset clannum appfee <value>*/
     if ((value < 1) || (value > MAX_GOLD))
@@ -3176,7 +3176,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].appfee = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: Application Fee set to %s\r\n",
-            clan_list[clannum].vnum, add_commas(value));
+             clan_list[clannum].vnum, add_commas(value));
     break;
   case 7: /* clanset clannum tax <value>*/
     if ((value < 0) || (value > 40))
@@ -3186,7 +3186,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].taxrate = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: Tax set to %d%%\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
   case 8: /* clanset clannum skills <id> <value>*/
     /* Val arg would be the spell ID, and the spell name - seperate them */
@@ -3209,7 +3209,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].spells[spellid - 1] = spellnum;
     snprintf(buf, sizeof(buf), "Clan ID %d: Skill %d set to %s\r\n", clan_list[clannum].vnum,
-            spellid, skill_name(spellnum));
+             spellid, skill_name(spellnum));
     break;
   case 9: /* clanset clannum desc <val_arg>*/
     if (strlen(val_arg) >= MAX_CLAN_DESC)
@@ -3222,7 +3222,7 @@ ACMD(do_clanset)
       free(clan_list[clannum].description);
     clan_list[clannum].description = strdup(val_arg);
     snprintf(buf, sizeof(buf), "Clan ID %d: Clan plan is now: \r\n%s\tn",
-            clan_list[clannum].vnum, clan_list[clannum].description);
+             clan_list[clannum].vnum, clan_list[clannum].description);
     break;
   case 10: /* clanset clannum atwar <clan id>*/
     if ((value < 0) || (value > num_of_clans))
@@ -3245,8 +3245,8 @@ ACMD(do_clanset)
                    clan_list[real_clan(clan_list[clannum].at_war)].clan_name, QNRM);
 
       snprintf(buf, sizeof(buf), "Clan ID %d: Enemy Clan set to %s\r\n",
-              clan_list[clannum].vnum,
-              clan_list[real_clan(clan_list[clannum].at_war)].clan_name);
+               clan_list[clannum].vnum,
+               clan_list[real_clan(clan_list[clannum].at_war)].clan_name);
     }
     break;
   case 11: /* clanset clannum allied <clan id>*/
@@ -3270,8 +3270,8 @@ ACMD(do_clanset)
                    clan_list[clannum].clan_name, QNRM,
                    clan_list[real_clan(clan_list[clannum].allied)].clan_name, QNRM);
       snprintf(buf, sizeof(buf), "Clan ID %d: Ally Clan set to %s\r\n",
-              clan_list[clannum].vnum,
-              clan_list[real_clan(clan_list[clannum].allied)].clan_name);
+               clan_list[clannum].vnum,
+               clan_list[real_clan(clan_list[clannum].allied)].clan_name);
     }
     break;
   case 12: /* clanset clannum wartimer <value>*/
@@ -3282,7 +3282,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].war_timer = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: War Timer set to %d ticks.\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
   case 13: /* clanset clannum pkwin <value>*/
     if ((value < 0) || (value > 30000))
@@ -3292,7 +3292,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].pk_win = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: PK Wins set to %d.\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
   case 14: /* clanset clannum pklose <value>*/
     if ((value < 0) || (value > 30000))
@@ -3302,7 +3302,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].pk_lose = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: PK Losses set to %d.\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
   case 15: /* clanset clannum pklose <value>*/
     if ((value < 0) || (value > 30000))
@@ -3312,7 +3312,7 @@ ACMD(do_clanset)
     }
     clan_list[clannum].raided = value;
     snprintf(buf, sizeof(buf), "Clan ID %d: PK Raided set to %d.\r\n",
-            clan_list[clannum].vnum, value);
+             clan_list[clannum].vnum, value);
     break;
 
   case 16: /* clanset <clannum> abbrev <val_arg>*/
@@ -3326,7 +3326,7 @@ ACMD(do_clanset)
       free(clan_list[clannum].abrev);
     clan_list[clannum].abrev = strdup(val_arg);
     snprintf(buf, sizeof(buf), "Clan ID %d: ABREV is now: %s%s", clan_list[clannum].vnum,
-            CLAN_ABREV(clannum), QNRM);
+             CLAN_ABREV(clannum), QNRM);
     break;
 
   default:
@@ -3343,8 +3343,8 @@ ACMD(do_clanset)
  **************************************************************************/
 ACMD(do_clantalk)
 {
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH],
-      arg[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'},
+       arg[MAX_INPUT_LENGTH];
   const char *arg2;
   const char *msg = NULL;
   clan_vnum c_id;
@@ -3382,7 +3382,7 @@ ACMD(do_clantalk)
       if (real_clan(c_arg) != NO_CLAN)
       {
         c_id = (clan_vnum)c_arg;
-        argument = arg2;        /* Skip the arg */
+        argument = arg2;          /* Skip the arg */
         skip_spaces_c(&argument); /* Strip spaces. */
       }
       else

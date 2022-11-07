@@ -1102,7 +1102,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
 void display_imm_classlist(struct char_data *ch)
 {
   int i = 0, j = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0;
 
   send_to_char(ch, "# Name Abrv ClrAbrv | Menu | MaxLvl Lock Prestige BAB HPs Mvs Train InGame UnlockCost EFeatProg");
@@ -2420,9 +2420,9 @@ void init_start_char(struct char_data *ch)
   // this is here so that new characters can't get extra stat points from racefix command.
   ch->player_specials->saved.new_race_stats = true;
 
-      /* clear immortal flags */
-      if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
-          i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
+  /* clear immortal flags */
+  if (PRF_FLAGGED(ch, PRF_HOLYLIGHT))
+    i = PRF_TOG_CHK(ch, PRF_HOLYLIGHT);
   if (PRF_FLAGGED(ch, PRF_NOHASSLE))
     i = PRF_TOG_CHK(ch, PRF_NOHASSLE);
   if (PRF_FLAGGED(ch, PRF_SHOWVNUMS))
@@ -2625,7 +2625,8 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
+    ++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -3000,8 +3001,8 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
 
 void process_level_feats(struct char_data *ch, int class)
 {
-  char featbuf[MAX_STRING_LENGTH];
-  char tmp_buf[MAX_STRING_LENGTH];
+  char featbuf[MAX_STRING_LENGTH] = {'\0'};
+  char tmp_buf[MAX_STRING_LENGTH] = {'\0'};
   int i = 0;
 
   snprintf(featbuf, sizeof(featbuf), "\tM");
@@ -3201,7 +3202,8 @@ void advance_level(struct char_data *ch, int class)
   }
   if (!(GET_LEVEL(ch) % 4))
   {
-    GET_BOOSTS(ch)++;
+    GET_BOOSTS(ch)
+    ++;
     if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
@@ -7659,7 +7661,6 @@ bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy)
   return false;
 }
 
-
 ACMD(do_racefix)
 {
   int i = 0;
@@ -7784,7 +7785,6 @@ ACMD(do_racefix)
     // Just in case we make changes down the line.
     ch->player_specials->saved.new_race_stats = true;
   }
-    
 }
 
 /** LOCAL UNDEFINES **/

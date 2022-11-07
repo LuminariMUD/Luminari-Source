@@ -2330,7 +2330,7 @@ void tag_argument(char *argument, char *tag)
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
 void remove_player(int pfilepos)
 {
-  char filename[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
   int i;
 
   if (!*player_table[pfilepos].name)

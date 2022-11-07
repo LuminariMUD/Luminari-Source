@@ -1,11 +1,11 @@
 /**************************************************************************
-*  File: dg_wldcmd.c                                  Part of LuminariMUD *
-*  Usage: Contains the command_interpreter for rooms, room commands.      *
-*                                                                         *
-*  $Author: galion/Mark A. Heilpern/egreen/Welcor $                       *
-*  $Date: 2004/10/11 12:07:00$                                            *
-*  $Revision: 1.0.14 $                                                    *
-**************************************************************************/
+ *  File: dg_wldcmd.c                                  Part of LuminariMUD *
+ *  Usage: Contains the command_interpreter for rooms, room commands.      *
+ *                                                                         *
+ *  $Author: galion/Mark A. Heilpern/egreen/Welcor $                       *
+ *  $Date: 2004/10/11 12:07:00$                                            *
+ *  $Revision: 1.0.14 $                                                    *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -58,7 +58,7 @@ WCMD(do_wmove);
 void wld_log(room_data *room, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH];
+  char output[MAX_STRING_LENGTH] = {'\0'};
 
   snprintf(output, sizeof(output), "Room %d :: %s", room->number, format);
 
@@ -75,8 +75,8 @@ void act_to_room(char *str, room_data *room)
     return;
 
   /* Since you can't use act(..., TO_ROOM) for an room, send it TO_ROOM and
-     * TO_CHAR for some char in the room. (just dont use $n or you might get
-     * strange results). */
+   * TO_CHAR for some char in the room. (just dont use $n or you might get
+   * strange results). */
   act(str, FALSE, room->people, 0, 0, TO_ROOM);
   act(str, FALSE, room->people, 0, 0, TO_CHAR);
 }
@@ -443,7 +443,7 @@ WCMD(do_wpurge)
 
   if (!ch)
   {
-    //if (obj && *arg == UID_CHAR)
+    // if (obj && *arg == UID_CHAR)
     if (*arg == UID_CHAR)
       obj = get_obj(arg);
     else

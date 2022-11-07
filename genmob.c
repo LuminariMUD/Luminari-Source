@@ -218,7 +218,7 @@ int delete_mobile(mob_rnum refpt)
 
 int copy_mobile_strings(struct char_data *t, struct char_data *f)
 {
-  //int i = 0;
+  // int i = 0;
 
   if (f->player.name)
     t->player.name = strdup(f->player.name);
@@ -237,7 +237,7 @@ int copy_mobile_strings(struct char_data *t, struct char_data *f)
   /*if (ECHO_COUNT(f) > 0) {
     if (ECHO_ENTRIES(t) == NULL)
       CREATE(ECHO_ENTRIES(t), char *, 1);
-    
+
     for (i = 0; i < ECHO_COUNT(f); i++)
       if (ECHO_ENTRIES(f)[i])
         ECHO_ENTRIES(t)[i] = strdup(ECHO_ENTRIES(f)[i]);
@@ -248,7 +248,7 @@ int copy_mobile_strings(struct char_data *t, struct char_data *f)
 
 int update_mobile_strings(struct char_data *t, struct char_data *f)
 {
-  //int i = 0;
+  // int i = 0;
 
   if (f->player.name)
     t->player.name = f->player.name;
@@ -495,7 +495,7 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     /* storing the echo count is probably unnecessary, we can probably just
      * give all mobiles an echo_entries array, just don't populate unless
      * needed.. for now, the echo_entries array isn't CREATEd unless an
-     * EchoCount value is found, although the value has no effect on the 
+     * EchoCount value is found, although the value has no effect on the
      * amount of memory allocated -Nashak */
     fprintf(fd, "EchoCount: %d\n", ECHO_COUNT(mob));
     for (i = 0; i < ECHO_COUNT(mob); i++)
@@ -527,9 +527,9 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
   int pos = GET_DEFAULT_POS(mob);
 
-  char ldesc[MAX_STRING_LENGTH];
-  char ddesc[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH];
+  char ldesc[MAX_STRING_LENGTH] = {'\0'};
+  char ddesc[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   ldesc[MAX_STRING_LENGTH - 1] = '\0';
   ddesc[MAX_STRING_LENGTH - 1] = '\0';
@@ -537,15 +537,15 @@ int write_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   strip_cr(strncpy(ddesc, GET_DDESC(mob), MAX_STRING_LENGTH - 1));
 
   snprintf(buf, sizeof(buf), "#%d\n"
-               "%s%c\n"
-               "%s%c\n"
-               "%s%c\n"
-               "%s%c\n",
-          mvnum,
-          GET_ALIAS(mob), STRING_TERMINATOR,
-          GET_SDESC(mob), STRING_TERMINATOR,
-          ldesc, STRING_TERMINATOR,
-          ddesc, STRING_TERMINATOR);
+                             "%s%c\n"
+                             "%s%c\n"
+                             "%s%c\n"
+                             "%s%c\n",
+           mvnum,
+           GET_ALIAS(mob), STRING_TERMINATOR,
+           GET_SDESC(mob), STRING_TERMINATOR,
+           ldesc, STRING_TERMINATOR,
+           ddesc, STRING_TERMINATOR);
 
   fprintf(fd, convert_from_tabs(buf), 0);
 
@@ -596,8 +596,8 @@ void check_mobile_strings(struct char_data *mob)
   check_mobile_string(mvnum, &GET_DDESC(mob), "detailed description");
   check_mobile_string(mvnum, &GET_ALIAS(mob), "alias list");
   check_mobile_string(mvnum, &GET_SDESC(mob), "short description");
-  //check_mobile_string(mvnum, &GET_WALKIN(mob), "walkin");
-  //check_mobile_string(mvnum, &GET_WALKOUT(mob), "walkout");
+  // check_mobile_string(mvnum, &GET_WALKIN(mob), "walkin");
+  // check_mobile_string(mvnum, &GET_WALKOUT(mob), "walkout");
 }
 
 void check_mobile_string(mob_vnum i, char **string, const char *desc)

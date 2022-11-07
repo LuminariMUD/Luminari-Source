@@ -222,7 +222,7 @@ int text_processed(char *field, char *subfield, struct trig_var_data *vd,
                    char *str, size_t slen)
 {
   char *p, *p2;
-  char tmpvar[MAX_STRING_LENGTH];
+  char tmpvar[MAX_STRING_LENGTH] = {'\0'};
 
   if (!str_cmp(field, "strlen"))
   { /* strlen    */

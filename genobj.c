@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: genobj.c                                     Part of LuminariMUD *
-*  Usage: Generic OLC Library - Objects.                                  *
-*                                                                         *
-*  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *
-**************************************************************************/
+ *  File: genobj.c                                     Part of LuminariMUD *
+ *  Usage: Generic OLC Library - Objects.                                  *
+ *                                                                         *
+ *  Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer.            *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -184,13 +184,13 @@ obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)
 
 int save_objects(zone_rnum zone_num)
 {
-  char filename[128], buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
-  char ebuf1[MAX_STRING_LENGTH], ebuf2[MAX_STRING_LENGTH],
-      ebuf3[MAX_STRING_LENGTH], ebuf4[MAX_STRING_LENGTH];
-  char wbuf1[MAX_STRING_LENGTH], wbuf2[MAX_STRING_LENGTH],
-      wbuf3[MAX_STRING_LENGTH], wbuf4[MAX_STRING_LENGTH];
-  char pbuf1[MAX_STRING_LENGTH], pbuf2[MAX_STRING_LENGTH],
-      pbuf3[MAX_STRING_LENGTH], pbuf4[MAX_STRING_LENGTH];
+  char filename[128], buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
+  char ebuf1[MAX_STRING_LENGTH] = {'\0'}, ebuf2[MAX_STRING_LENGTH] = {'\0'},
+       ebuf3[MAX_STRING_LENGTH] = {'\0'}, ebuf4[MAX_STRING_LENGTH] = {'\0'};
+  char wbuf1[MAX_STRING_LENGTH] = {'\0'}, wbuf2[MAX_STRING_LENGTH] = {'\0'},
+       wbuf3[MAX_STRING_LENGTH] = {'\0'}, wbuf4[MAX_STRING_LENGTH] = {'\0'};
+  char pbuf1[MAX_STRING_LENGTH] = {'\0'}, pbuf2[MAX_STRING_LENGTH] = {'\0'},
+       pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
   int counter, counter2, realcounter;
   FILE *fp;
   struct obj_data *obj;
@@ -232,17 +232,17 @@ int save_objects(zone_rnum zone_num)
         *buf = '\0';
 
       snprintf(buf2, sizeof(buf2),
-              "#%d\n"
-              "%s~\n"
-              "%s~\n"
-              "%s~\n"
-              "%s~\n",
+               "#%d\n"
+               "%s~\n"
+               "%s~\n"
+               "%s~\n"
+               "%s~\n",
 
-              GET_OBJ_VNUM(obj),
-              (obj->name && *obj->name) ? obj->name : "undefined",
-              (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
-              (obj->description && *obj->description) ? obj->description : "undefined",
-              buf);
+               GET_OBJ_VNUM(obj),
+               (obj->name && *obj->name) ? obj->name : "undefined",
+               (obj->short_description && *obj->short_description) ? obj->short_description : "undefined",
+               (obj->description && *obj->description) ? obj->description : "undefined",
+               buf);
 
       fprintf(fp, convert_from_tabs(buf2), 0);
 
@@ -348,7 +348,7 @@ int save_objects(zone_rnum zone_num)
       fprintf(fp, "I\n"
                   "%d\n",
               GET_OBJ_SIZE(obj));
-      
+
       // J:  vnum of mob that can receive item
       fprintf(fp, "J\n"
                   "%d\n",

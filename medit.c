@@ -53,8 +53,8 @@ ACMD(do_oasis_medit)
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
   const char *buf3;
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /* No building as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
@@ -497,7 +497,7 @@ static int medit_get_mob_flag_by_number(int num)
 static void medit_disp_mob_flags(struct descriptor_data *d)
 {
   int i, count = 0, columns = 0;
-  char flags[MAX_STRING_LENGTH];
+  char flags[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -518,7 +518,7 @@ static void medit_disp_mob_flags(struct descriptor_data *d)
 /* Display affection flags menu. */
 static void medit_disp_aff_flags(struct descriptor_data *d)
 {
-  char flags[MAX_STRING_LENGTH];
+  char flags[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -762,7 +762,7 @@ static void medit_disp_resistances_menu(struct descriptor_data *d)
 static void medit_disp_stats_menu(struct descriptor_data *d)
 {
   struct char_data *mob;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   mob = OLC_MOB(d);
   get_char_colors(d->character);

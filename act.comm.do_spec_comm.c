@@ -50,7 +50,7 @@ ACMD(do_spec_comm)
     send_to_char(ch, "Your target seems to be deaf!\r\n");
   else
   {
-    char buf1[MAX_STRING_LENGTH];
+    char buf1[MAX_STRING_LENGTH] = {'\0'};
 
     /* homeland-port copying string before parsing */
     buf3 = strdup(buf2);

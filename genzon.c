@@ -52,10 +52,10 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 {
   FILE *fp;
   struct zone_data *zone;
-  //int i, max_zone;
+  // int i, max_zone;
   int i, max_zone = IDXTYPE_MAX / 100;
   zone_rnum rznum;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
 #if CIRCLE_UNSIGNED_INDEX
   if (vzone_num == NOWHERE)
@@ -247,8 +247,8 @@ void create_world_index(int znum, const char *type)
   char new_name[32], old_name[32];
   const char *prefix;
   int num, found = FALSE;
-  char buf[MAX_STRING_LENGTH];
-  char buf1[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   switch (*type)
   {
@@ -373,8 +373,8 @@ int save_zone(zone_rnum zone_num)
   char fname[128], oldname[128];
   const char *comment = NULL;
   FILE *zfile;
-  char zbuf1[MAX_STRING_LENGTH], zbuf2[MAX_STRING_LENGTH];
-  char zbuf3[MAX_STRING_LENGTH], zbuf4[MAX_STRING_LENGTH];
+  char zbuf1[MAX_STRING_LENGTH] = {'\0'}, zbuf2[MAX_STRING_LENGTH] = {'\0'};
+  char zbuf3[MAX_STRING_LENGTH] = {'\0'}, zbuf4[MAX_STRING_LENGTH] = {'\0'};
 
 #if CIRCLE_UNSIGNED_INDEX
   if (zone_num == NOWHERE || zone_num > top_of_zone_table)
@@ -460,7 +460,7 @@ int save_zone(zone_rnum zone_num)
    * T (Trigger) Trig-type  Trig-Vnum Room-Vnum
    * V (Var)     Trig-type  Context   Room-Vnum Varname Value
    * J (Jump)    # of lines to jump over
-   * I (GiveRnd) % Load 
+   * I (GiveRnd) % Load
    * L (RndCont) Target-Obj-Vnum %Load
    * ------------------------------------------------- */
 

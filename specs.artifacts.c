@@ -87,9 +87,9 @@ int OakenDefender(P_obj obj, P_char ch, int cmd, char *arg)
    /* Continual Effects: None.                                              */
    /* Special Id:      Yes                                                  */
    P_char owner = NULL, treant = NULL, target = NULL;
-   char idString[MAX_STRING_LENGTH], word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
+   char idString[MAX_STRING_LENGTH] = {'\0'}, word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0, home = 0;
    struct affected_type af;
 
@@ -381,10 +381,10 @@ int Amaukekel(P_obj obj, P_char ch, int cmd, char *arg)
    /* Special Id:      Yes                                                  */
    P_char victim = NULL, owner = NULL;
    P_obj corpse = NULL;
-   char idString[MAX_STRING_LENGTH], word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
-   char fullword[MAX_STRING_LENGTH];
+   char idString[MAX_STRING_LENGTH] = {'\0'}, word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
+   char fullword[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0;
 
    /* backup the values */
@@ -775,9 +775,9 @@ int Fade2(P_obj obj, P_char ch, int cmd, char *arg)
    /* Continual Effects: None.                                              */
    /* Special Id:      Yes                                                  */
    P_char owner = NULL, target = NULL;
-   char idString[MAX_STRING_LENGTH], word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
+   char idString[MAX_STRING_LENGTH] = {'\0'}, word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0;
 
    /* backup the values */
@@ -1134,9 +1134,9 @@ int NeverLooseItem(P_obj obj, P_char ch, int cmd, char *arg)
 {
    P_char owner = NULL, target = NULL;
    P_obj object = NULL;
-   char word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
+   char word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0, value = 0;
 
    PARSE_ARG(cmd, calltype, cmd);
@@ -1403,9 +1403,9 @@ int NeverLooseItem(P_obj obj, P_char ch, int cmd, char *arg)
 int MinorHealback(P_obj obj, P_char ch, int cmd, char *arg)
 {
    P_char owner = NULL, target = NULL;
-   char word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
+   char word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0;
 
    return 0;
@@ -1583,9 +1583,9 @@ int HornOfHenekar(P_obj obj, P_char ch, int cmd, char *arg)
    /* Continual Effects: None.                                                  */
    /* Special Id:      Yes                                                      */
    P_char owner = NULL, target = NULL;
-   char idString[MAX_STRING_LENGTH], word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
+   char idString[MAX_STRING_LENGTH] = {'\0'}, word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0;
    struct affected_type af;
 
@@ -1922,7 +1922,7 @@ int HornOfHenekar(P_obj obj, P_char ch, int cmd, char *arg)
 
 int New_Avernus(P_obj obj, P_char ch, int cmd, char *arg)
 {
-   char idString[MAX_STRING_LENGTH];
+   char idString[MAX_STRING_LENGTH] = {'\0'};
    P_char vict = NULL;
    int dam = 0, calltype = 0;
 
@@ -2227,9 +2227,9 @@ int Doombringer(P_obj obj, P_char ch, int cmd, char *arg)
    /* Continual Effects: None.                                                  */
    /* Special Id:      Yes                                                      */
    P_char owner = NULL, target = NULL;
-   char idString[MAX_STRING_LENGTH], word[MAX_STRING_LENGTH];
-   char word1[MAX_STRING_LENGTH], word2[MAX_STRING_LENGTH];
-   char word3[MAX_STRING_LENGTH], word4[MAX_STRING_LENGTH];
+   char idString[MAX_STRING_LENGTH] = {'\0'}, word[MAX_STRING_LENGTH] = {'\0'};
+   char word1[MAX_STRING_LENGTH] = {'\0'}, word2[MAX_STRING_LENGTH] = {'\0'};
+   char word3[MAX_STRING_LENGTH] = {'\0'}, word4[MAX_STRING_LENGTH] = {'\0'};
    int calltype = 0, Count = 0;
 
    /* backup the values */
