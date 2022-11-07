@@ -2232,7 +2232,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
-    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (vampire_last_feeding_adjustment(k) > 0)
     send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
@@ -2441,7 +2441,8 @@ ACMD(do_masterlist)
 
   /* strcpy: OK */
   if (len >= sizeof(buf2))
-    strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow);
+    strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, sizeof(buf2 + sizeof(buf2) - strlen(overflow) - 1));
+  // strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow);
 
   page_string(ch->desc, buf2, TRUE);
 }
@@ -2539,7 +2540,8 @@ ACMD(do_examine)
   }
 
   /* look_at_target() eats the number. */
-  look_at_target(ch, strcpy(tempsave, arg)); /* strcpy: OK */
+  look_at_target(ch, strlcpy(tempsave, arg, sizeof(tempsave))); /* strcpy: OK */
+  /* strcpy(tempsave, arg) */
 
   generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
 
