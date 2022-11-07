@@ -9153,7 +9153,7 @@ ACMDU(do_setroomdesc)
     return;
   }
 
-  char buf[LONG_STRING];
+  char buf[LONG_STRING] = {'\0'};
 
   snprintf(buf, sizeof(buf), "%s\n", argument);
 

@@ -1,7 +1,7 @@
 /**************************************************************************
-*  File: bsd-snprintf.c                               Part of LuminariMUD *
-*  Usage: Used if your OS does not provide snprintf() or vsnprintf().     *
-**************************************************************************/
+ *  File: bsd-snprintf.c                               Part of LuminariMUD *
+ *  Usage: Used if your OS does not provide snprintf() or vsnprintf().     *
+ **************************************************************************/
 
 /* This file taken from openbsd-compat of OpenSSH 3.1. It is only used
  * if your operating system does not provide snprintf() or vsnprintf().
@@ -743,8 +743,8 @@ int snprintf(char *str, size_t count, const char *fmt, ...)
 int main(void)
 {
 #define LONG_STRING 1024
-	char buf1[LONG_STRING];
-	char buf2[LONG_STRING];
+	char buf1[LONG_STRING] = {'\0'};
+	char buf2[LONG_STRING] = {'\0'};
 	char *fp_fmt[] = {
 		"%-1.5f",
 		"%1.5f",
