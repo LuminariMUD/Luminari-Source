@@ -1039,21 +1039,34 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     if (HAS_REAL_FEAT(ch, FEAT_MENACING))
       value += 3;
     return value;
+
   case ABILITY_CONCENTRATION: /* not srd */
     if (GET_RACE(ch) == RACE_GNOME)
       value += 2;
+
     value += GET_CON_BONUS(ch);
+
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM)
     {
       value += GET_LEVEL(ch) / 6;
     }
+
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_PIERCING))
       value += get_judgement_bonus(ch, INQ_JUDGEMENT_PIERCING);
+
     if (has_teamwork_feat(ch, FEAT_SHIELDED_CASTER))
     {
       value += 4 + teamwork_using_shield(ch, FEAT_SHIELDED_CASTER);
     }
+
+    /* a bit hackish */
+    if (IS_CASTING(ch) && CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) >= 1)
+    {
+      value += CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) * 3;
+    }
+
     return value;
+
   case ABILITY_SPELLCRAFT:
     value += GET_INT_BONUS(ch);
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM)
