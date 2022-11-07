@@ -1625,6 +1625,77 @@ ACMD(do_quest)
   }
 }
 
+/* with a given object vnum, finds references to quests in game */
+ACMD(do_aqref)
+{
+  int i = 0;
+  bool found = FALSE;
+  obj_vnum vnum = 0;
+  obj_rnum real_num = 0;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, buf, sizeof(buf));
+
+  if (!*buf)
+  {
+    send_to_char(ch, "aqref what object?\r\n");
+    return;
+  }
+
+  vnum = atoi(buf);
+  real_num = real_object(vnum);
+
+  if (real_num == NOTHING)
+  {
+    send_to_char(ch, "\tRNo such object!\tn\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
+    log(buf);
+    return;
+  }
+
+  if (!aquest_table)
+  {
+    send_to_char(ch, "\tRNo aquest_table!\tn\r\n");
+    return;
+  }
+
+  for (i = 0; i < total_quests; i++)
+  {
+    if (QST_OBJ(i) && QST_OBJ(i) == vnum)
+    {
+      found = TRUE;
+      send_to_char(ch, "(%d) \tCREWARD\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
+          vnum, mob_proto[real_mobile(QST_MASTER(i)].player.short_descr, QST_MASTER(i));
+    }
+
+    if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) && QST_TARGET(i) == vnum)
+    {
+      found = TRUE;
+      send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
+          vnum, mob_proto[real_mobile(QST_MASTER(i)].player.short_descr, QST_MASTER(i));
+    }
+
+    if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) && QST_TARGET(i) == vnum)
+    {
+      found = TRUE;
+      send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
+          vnum, mob_proto[real_mobile(QST_MASTER(i)].player.short_descr, QST_MASTER(i));
+    }
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "\tRThat object is not used in any quests!\tn\r\n");
+  }
+
+  return;
+}
+
 /* here is the mobile-spec proc for the quest master */
 SPECIAL(questmaster)
 {
