@@ -174,6 +174,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostand", "autostand", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_STAND, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"aqref", "aqref", POS_DEAD, do_aqref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
