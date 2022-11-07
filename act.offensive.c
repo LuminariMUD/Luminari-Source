@@ -2972,11 +2972,25 @@ ACMD(do_backstab)
   perform_backstab(ch, vict);
 }
 
+/* set this up for lots of redundancy checking due to really annoying crashs issue */
+bool pet_order_check(struct char_data *ch, struct char_data *vict)
+{
+
+  if (ch && vict && IS_NPC(vict) && vict->master && vict->master == ch && AFF_FLAGGED(vict, AFF_CHARM) &&
+      GET_HIT(vict) >= -9 && GET_POS(vict) > POS_MORTALLYW && IN_ROOM(ch) != NOWHERE && IN_ROOM(vict) != NOWHERE)
+  {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* pet order command */
 ACMD(do_order)
 {
   char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
   bool found = FALSE;
-  struct char_data *vict = NULL;
+  struct char_data *vict = NULL, *next_vict = NULL;
   struct follow_type *k = NULL;
 
   half_chop_c(argument, name, sizeof(name), message, sizeof(message));
@@ -3018,26 +3032,46 @@ ACMD(do_order)
     else if (ch) /* This is order "followers" */
     {
       char buf[MAX_STRING_LENGTH];
+      struct list_data *room_list = NULL;
 
       snprintf(buf, sizeof(buf), "$n issues the order '%s'.", message);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
-      for (k = ch->followers; k; k = k->next)
+      /* When using a list, we have to make sure to allocate the list as it
+       * uses dynamic memory */
+      room_list = create_list();
+
+      for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
       {
-        if (!k)
-          continue;
-        if (!ch->followers)
-          continue;
-        if (!k->follower)
-          continue;
-        if (IN_ROOM(ch) == NOWHERE || IN_ROOM(k->follower) == NOWHERE)
-          continue;
-        if (IN_ROOM(ch) == IN_ROOM(k->follower))
-          if (AFF_FLAGGED(k->follower, AFF_CHARM))
-          {
-            found = TRUE;
-            command_interpreter(k->follower, message);
-          }
+        next_vict = vict->next_in_room;
+
+        if (pet_order_chech(ch, vict))
+        {
+          add_to_list(vict, room_list);
+        }
+      }
+
+      /* If our list is empty or has "0" entries, we free it from memory and
+       * bail from this function */
+      if (room_list->iSize == 0)
+      {
+        free_list(room_list);
+        send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
+        return;
+      }
+
+      /* resetting the variable */
+      vict = NULL;
+
+      /* SHOULD have a clean nice list, now lets loop through it with redundancy
+         due to our silly crash issues from earlier */
+      while ((vict = (struct char_data *)simple_list(room_list)) != NULL)
+      {
+        if (pet_order_chech(ch, vict))
+        {
+          found = TRUE;
+          command_interpreter(vict, message);
+        }
       }
 
       if (found)
@@ -3047,6 +3081,10 @@ ACMD(do_order)
       }
       else
         send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
+
+      /* Now that our order is done, let's free out list */
+      if (room_list)
+        free_list(room_list);
     }
   }
   /* all done */
