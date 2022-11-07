@@ -517,6 +517,8 @@ int get_line(FILE *fl, char *buf)
 {
   char temp[MEDIUM_STRING] = {'\0'}, *buf2;
 
+  *buf2 = NULL;
+
   do
   {
     buf2 = fgets(temp, MEDIUM_STRING, fl);
