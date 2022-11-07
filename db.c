@@ -6152,7 +6152,7 @@ void set_db_happy_hour(int status)
   if (CONFIG_DFLT_PORT != 4100)
     return;
 
-  char query[LONG_STRING];
+  char query[LONG_STRING] = {'\0'};
 
   mysql_ping(conn);
 

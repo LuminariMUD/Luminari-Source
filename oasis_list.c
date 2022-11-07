@@ -1368,7 +1368,7 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
   char buf[MAX_STRING_LENGTH];
   int counter = 0, num_found = 0, len = 0, len2 = 0;
   struct obj_data *l = NULL;
-  char wears_text[LONG_STRING];
+  char wears_text[LONG_STRING] = {'\0'};
 
   if (rnum != NOWHERE)
   {
