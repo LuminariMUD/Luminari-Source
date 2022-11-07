@@ -26,7 +26,7 @@ void send_editor_help(struct descriptor_data *d)
 
 int improved_editor_execute(struct descriptor_data *d, char *str)
 {
-  char actions[MAX_INPUT_LENGTH];
+  char actions[MAX_INPUT_LENGTH] = {'\0'};
 
   if (*str != '/')
     return STRINGADD_OK;

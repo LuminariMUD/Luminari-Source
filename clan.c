@@ -616,7 +616,7 @@ ACMD(do_clan)
 {
   clan_rnum clan;
   int rank, i;
-  char clan_cmd[MAX_INPUT_LENGTH];
+  char clan_cmd[MAX_INPUT_LENGTH] = {'\0'};
   const char *args;
 
   clan = real_clan(GET_CLAN(ch));
@@ -759,7 +759,7 @@ ACMD(do_clanapply)
 /* clan award command */
 ACMD(do_clanaward)
 {
-  char plr[MAX_INPUT_LENGTH], ncp[MAX_INPUT_LENGTH];
+  char plr[MAX_INPUT_LENGTH] = {'\0'}, ncp[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *l;
   long num_cp;
   clan_rnum c_r;
@@ -909,7 +909,7 @@ ACMD(do_clanclaim)
 /* clan create (IMP) command */
 ACMD(do_clancreate)
 {
-  char c_n[MAX_INPUT_LENGTH], c_l[MAX_INPUT_LENGTH];
+  char c_n[MAX_INPUT_LENGTH] = {'\0'}, c_l[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *l;
   struct clan_data new_clan;
   int i, v;
@@ -1019,7 +1019,7 @@ ACMD(do_clancreate)
 ACMD(do_clandemote)
 {
   struct char_data *vict;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   bool immcom = FALSE;
   clan_rnum c_n;
   int j, rk_num, p_pos = 0;
@@ -1189,7 +1189,7 @@ ACMD(do_clandemote)
 /* clan balance command - balance of gold in clan's bank */
 ACMD(do_clanbalance)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *buf2;
   bool immcom = FALSE;
   clan_rnum c_n = NO_CLAN;
@@ -1243,7 +1243,7 @@ ACMD(do_clanbalance)
 /* clan deposit command - deposit gold into the clan's bank */
 ACMD(do_clandeposit)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *buf2;
   bool immcom = FALSE;
   clan_rnum c_n = NO_CLAN;
@@ -1345,8 +1345,8 @@ ACMD(do_clandestroy)
   bool immcom = FALSE;
   clan_vnum c_v;
   clan_rnum c_n;
-  char c_name[MAX_INPUT_LENGTH], c_ldr[MAX_NAME_LENGTH],
-      buf[MAX_INPUT_LENGTH];
+  char c_name[MAX_INPUT_LENGTH] = {'\0'}, c_ldr[MAX_NAME_LENGTH],
+       buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *buf2;
   int j, p_pos = 0;
   long c_lid;
@@ -1452,7 +1452,7 @@ ACMD(do_clandestroy)
 
 ACMD(do_clanenrol)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   clan_rnum c_n = NO_CLAN;
   struct char_data *v = NULL;
   bool immcom = FALSE;
@@ -1572,7 +1572,7 @@ ACMD(do_clanenrol)
 
 ACMD(do_clanexpel) /* Expel a member */
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   clan_rnum c_n = NO_CLAN;
   struct char_data *v = NULL;
   long v_id;
@@ -1796,7 +1796,7 @@ ACMD(do_clanlist) /* List of clan members */
   clan_rnum c;
   clan_vnum vc;
   struct char_data *v;
-  char rk_name[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char rk_name[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!GET_CLAN(ch) && (GET_LEVEL(ch) < LVL_IMMORT))
   {
@@ -1973,7 +1973,7 @@ ACMD(do_clanowner)
 ACMD(do_clanpromote)
 {
   struct char_data *vict;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   bool immcom = FALSE;
   clan_rnum c_n;
   int j, rk_num, p_pos = 0;
@@ -2250,7 +2250,7 @@ ACMD(do_clanwhere)
 
 ACMD(do_clanwithdraw)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   const char *buf2;
   bool immcom = FALSE;
   clan_rnum c_n = NO_CLAN;
@@ -2960,11 +2960,11 @@ void check_diplomacy(void)
 
 ACMD(do_clanset)
 {
-  char field[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
-  char val_arg[MAX_INPUT_LENGTH], rankname[MAX_INPUT_LENGTH],
-      rankbuf[MAX_INPUT_LENGTH];
+  char field[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
+  char val_arg[MAX_INPUT_LENGTH] = {'\0'}, rankname[MAX_INPUT_LENGTH] = {'\0'},
+       rankbuf[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char spellname[MAX_INPUT_LENGTH], spellbuf[MAX_INPUT_LENGTH];
+  char spellname[MAX_INPUT_LENGTH] = {'\0'}, spellbuf[MAX_INPUT_LENGTH] = {'\0'};
   int value = 0, rankid, i, l;
   int clannum = -1; /* The 'real' number of the clan */
   int spellid, spellnum;
@@ -3344,7 +3344,7 @@ ACMD(do_clanset)
 ACMD(do_clantalk)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'},
-       arg[MAX_INPUT_LENGTH];
+       arg[MAX_INPUT_LENGTH] = {'\0'};
   const char *arg2;
   const char *msg = NULL;
   clan_vnum c_id;

@@ -125,7 +125,7 @@ static const char *operator_str[] = {
 
 static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_nr)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!CAN_SEE(keeper, ch))
   {
@@ -185,7 +185,7 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
 
 static int is_open(struct char_data *keeper, int shop_nr, int msg)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   *buf = '\0';
   if (SHOP_OPEN1(shop_nr) > time_info.hours)
@@ -396,7 +396,7 @@ static int shop_producing(struct obj_data *item, int shop_nr)
 
 static int transaction_amt(char *arg)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   char *buywhat;
 
   /* If we have two arguments, it means 'buy 5 3', or buy 5 of #3. We don't do
@@ -437,7 +437,7 @@ static struct obj_data *get_slide_obj_vis(struct char_data *ch, char *name, stru
 {
   struct obj_data *i, *last_match = NULL;
   int j, number;
-  char tmpname[MAX_INPUT_LENGTH];
+  char tmpname[MAX_INPUT_LENGTH] = {'\0'};
   char *tmp;
 
   strlcpy(tmpname, name, sizeof(tmpname));
@@ -482,7 +482,7 @@ static struct obj_data *get_hash_obj_vis(struct char_data *ch, char *name, struc
 
 static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct char_data *keeper, int shop_nr, int msg)
 {
-  char name[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
 
   one_argument(arg, name, sizeof(name));
@@ -496,7 +496,7 @@ static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct
     {
       if (msg)
       {
-        char buf[MAX_INPUT_LENGTH];
+        char buf[MAX_INPUT_LENGTH] = {'\0'};
 
         snprintf(buf, sizeof(buf), shop_index[shop_nr].no_such_item1, GET_NAME(ch));
         do_tell(keeper, buf, cmd_tell, 0);
@@ -550,7 +550,7 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
 
 static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char tempstr[MAX_INPUT_LENGTH], tempbuf[MAX_INPUT_LENGTH];
+  char tempstr[MAX_INPUT_LENGTH] = {'\0'}, tempbuf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj, *last_obj = NULL;
   int goldamt = 0, buynum, bought = 0;
 
@@ -562,7 +562,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
   if ((buynum = transaction_amt(arg)) < 0)
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), "%s A negative amount?  Try selling me something.",
              GET_NAME(ch));
@@ -572,7 +572,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
   if (!*arg || !buynum)
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), "%s What do you want to buy??", GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
@@ -587,7 +587,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   {
     if (GET_OBJ_COST(obj) > GET_QUESTPOINTS(ch) && !IS_STAFF(ch))
     {
-      char actbuf[MAX_INPUT_LENGTH];
+      char actbuf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(actbuf, sizeof(actbuf),
                "%s You haven't earned enough quest points for such an item.",
                GET_NAME(ch));
@@ -599,7 +599,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   { /*has the player got enough gold? */
     if (buy_price(obj, shop_nr, keeper, ch) > GET_GOLD(ch) && !IS_STAFF(ch))
     {
-      char actbuf[MAX_INPUT_LENGTH];
+      char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
       snprintf(actbuf, sizeof(actbuf), shop_index[shop_nr].missing_cash2, GET_NAME(ch));
       do_tell(keeper, actbuf, cmd_tell, 0);
@@ -728,7 +728,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
   /* somewhere along the line, we didn't fulfill the full transaction amount */
   if (bought < buynum)
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     if (!obj || !same_obj(last_obj, obj))
       snprintf(buf, sizeof(buf), "%s I only have %d to sell you.", GET_NAME(ch), bought);
@@ -776,7 +776,7 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
 static struct obj_data *get_selling_obj(struct char_data *ch, char *name, struct char_data *keeper, int shop_nr, int msg)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   int result;
 
@@ -784,7 +784,7 @@ static struct obj_data *get_selling_obj(struct char_data *ch, char *name, struct
   {
     if (msg)
     {
-      char tbuf[MAX_INPUT_LENGTH];
+      char tbuf[MAX_INPUT_LENGTH] = {'\0'};
 
       snprintf(tbuf, sizeof(tbuf), shop_index[shop_nr].no_such_item2, GET_NAME(ch));
       do_tell(keeper, tbuf, cmd_tell, 0);
@@ -887,7 +887,7 @@ static void sort_keeper_objs(struct char_data *keeper, int shop_nr)
 
 static void shopping_sell(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char tempstr[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH], tempbuf[MAX_INPUT_LENGTH];
+  char tempstr[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'}, tempbuf[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   int sellnum, sold = 0, goldamt = 0;
 
@@ -896,7 +896,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
 
   if ((sellnum = transaction_amt(arg)) < 0)
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), "%s A negative amount?  Try buying something.", GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
@@ -904,7 +904,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   }
   if (!*arg || !sellnum)
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), "%s What do you want to sell??", GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
@@ -918,7 +918,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
           SHOP_BANK(shop_nr) <
       sell_price(obj, shop_nr, keeper, ch))
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), shop_index[shop_nr].missing_cash1, GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
@@ -943,7 +943,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
 
   if (sold < sellnum)
   {
-    char buf[MAX_INPUT_LENGTH];
+    char buf[MAX_INPUT_LENGTH] = {'\0'};
 
     if (!obj)
       snprintf(buf, sizeof(buf), "%s You only have %d of those.", GET_NAME(ch), sold);
@@ -975,7 +975,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
 
 static void shopping_value(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
 
   if (!is_ok(keeper, ch, shop_nr))
@@ -992,7 +992,7 @@ static void shopping_value(char *arg, struct char_data *ch, struct char_data *ke
     return;
 
   /* let the playe know what kind of cash we got */
-  char buf2[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   /*if (IS_SET(SHOP_BITVECTOR(shop_nr), HAS_UNLIMITED_CASH)) {
     snprintf(buf2, sizeof (buf2), "%s I have plenty of cash if you are willing to sell!", GET_NAME(ch));
@@ -1047,7 +1047,7 @@ static char *list_object(struct obj_data *obj, int cnt, int aindex, int shop_nr,
 
 static void shopping_list(char *arg, struct char_data *ch, struct char_data *keeper, int shop_nr)
 {
-  char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj, *last_obj = NULL;
   int cnt = 0, lindex = 0, found = FALSE, has_quest = FALSE;
   size_t len;
@@ -1151,7 +1151,7 @@ SPECIAL(shop_keeper)
 
   if (CMD_IS("steal"))
   {
-    char argm[MAX_INPUT_LENGTH];
+    char argm[MAX_INPUT_LENGTH] = {'\0'};
 
     snprintf(argm, sizeof(argm), "$N shouts '%s'", MSG_NO_STEAL_HERE);
     act(argm, FALSE, ch, 0, keeper, TO_CHAR);
@@ -1201,7 +1201,7 @@ int ok_damage_shopkeeper(struct char_data *ch, struct char_data *victim)
   for (sindex = 0; sindex <= top_shop; sindex++)
     if (GET_MOB_RNUM(victim) == SHOP_KEEPER(sindex) && !SHOP_KILL_CHARS(sindex))
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
 
       snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_CANT_KILL_KEEPER);
       do_tell(victim, buf, cmd_tell, 0);

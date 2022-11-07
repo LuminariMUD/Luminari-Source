@@ -138,7 +138,7 @@ int has_unlocked_class(struct char_data *ch, int class)
 #define ALIGN_COST 2000
 ACMD(do_accexp)
 {
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0, j = 0;
   int cost = 0;
   int align_change = 100;
@@ -641,7 +641,7 @@ void show_account_menu(struct descriptor_data *d)
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
 
-  char query[MAX_INPUT_LENGTH];
+  char query[MAX_INPUT_LENGTH] = {'\0'};
 
   if (d->account)
   {

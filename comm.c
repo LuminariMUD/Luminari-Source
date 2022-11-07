@@ -447,7 +447,7 @@ void copyover_recover()
   char host[1024], guiopt[1024];
   int desc, i, player_i;
   bool fOld;
-  char name[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'};
   long pref;
 
   log("Copyover recovery initiated");

@@ -31,7 +31,7 @@ static void aedit_save_internally(struct descriptor_data *d);
 /* Utils and exported functions. */
 ACMD(do_oasis_aedit)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
   int i;
 
@@ -828,7 +828,7 @@ void aedit_parse(struct descriptor_data *d, char *arg)
 ACMD(do_astat)
 {
   int i, real = FALSE;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   if (IS_NPC(ch))
     return;

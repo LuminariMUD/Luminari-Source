@@ -2346,7 +2346,7 @@ SPECIAL(hive_death)
 SPECIAL(feybranche)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -2421,7 +2421,7 @@ SPECIAL(abyssal_vortex)
 SPECIAL(agrachdyrr)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -2485,7 +2485,7 @@ SPECIAL(agrachdyrr)
 SPECIAL(shobalar)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -2951,7 +2951,7 @@ SPECIAL(guild)
 
 SPECIAL(mayor)
 {
-  char actbuf[MAX_INPUT_LENGTH];
+  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
   const char open_path[] =
       "W3a3003b33000c111d0d111Oe333333Oe22c222112212111a1S.";
@@ -3240,7 +3240,7 @@ SPECIAL(guild_guard)
 
 SPECIAL(puff)
 {
-  char actbuf[MAX_INPUT_LENGTH];
+  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd)
     return (FALSE);
@@ -4064,7 +4064,7 @@ SPECIAL(practice_dummy)
   int rounddam = 0;
   static int round_count;
   static int max_hit;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd)
     return FALSE;
@@ -4511,7 +4511,7 @@ SPECIAL(lich_mob)
 SPECIAL(harpell)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -5651,7 +5651,7 @@ void move_ship(struct obj_data *ship, int dir)
   int new_room = 0;
   const char *msg = 0;
   int i;
-  char buf2[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   if (dir < 0 || dir >= 6)
     return;
@@ -9154,7 +9154,7 @@ SPECIAL(clanportal)
   struct obj_data *port;
   zone_vnum z;
   room_vnum r;
-  char obj_name[MAX_INPUT_LENGTH];
+  char obj_name[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum was_in = IN_ROOM(ch);
   struct follow_type *k;
 

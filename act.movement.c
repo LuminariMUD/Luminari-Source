@@ -2511,7 +2511,7 @@ ACMD(do_gen_door)
 {
   int door = -1;
   obj_vnum keynum;
-  char type[MAX_INPUT_LENGTH], dir[MAX_INPUT_LENGTH];
+  char type[MAX_INPUT_LENGTH] = {'\0'}, dir[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
   struct char_data *victim = NULL;
 
@@ -3206,7 +3206,7 @@ ACMD(do_sleep)
 
 ACMD(do_wake)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   int self = 0;
 
@@ -3248,7 +3248,7 @@ ACMD(do_wake)
 
 ACMD(do_follow)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *leader = NULL;
 
   one_argument(argument, buf, sizeof(buf));
@@ -3315,7 +3315,7 @@ ACMD(do_follow)
 
 ACMD(do_unlead)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *follower;
 
   one_argument(argument, buf, sizeof(buf));
@@ -3740,7 +3740,7 @@ ACMD(do_pullswitch)
   struct obj_data *obj;
   struct char_data *tmp_ch;
   struct obj_data *dummy = 0;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 

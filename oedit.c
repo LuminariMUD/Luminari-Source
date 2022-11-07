@@ -328,7 +328,7 @@ static void oedit_save_to_disk(int zone_num)
 
 void oedit_disp_weapon_spells(struct descriptor_data *d)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int counter;
   get_char_colors(d->character);
   clear_screen(d);
@@ -3201,7 +3201,7 @@ ACMD(do_iedit)
 {
   struct obj_data *k;
   int found = 0;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 

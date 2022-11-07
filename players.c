@@ -3117,7 +3117,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
    * to avoid the possibility of a * at the start of the line */
   for (i = 0; i < count; i++)
   {
-    char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH];
+    char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH] = {'\0'};
 
     /* Read the aliased command. */
     get_line(file, abuf);

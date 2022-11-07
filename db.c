@@ -283,7 +283,7 @@ void boot_social_messages(void)
 {
   FILE *fl;
   int nr = 0, hide, min_char_pos, min_pos, min_lvl, curr_soc = -1, i;
-  char next_soc[MAX_STRING_LENGTH] = {'\0'}, sorted[MAX_INPUT_LENGTH], *buf;
+  char next_soc[MAX_STRING_LENGTH] = {'\0'}, sorted[MAX_INPUT_LENGTH] = {'\0'}, *buf;
 
   if (CONFIG_NEW_SOCIALS == TRUE)
   {
@@ -449,7 +449,7 @@ void free_text_files(void)
  * string was not replaced. To fix later. */
 ACMD(do_reboot)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -908,7 +908,7 @@ void destroy_db(void)
 void boot_db(void)
 {
   zone_rnum i = 0;
-  char buf1[MAX_INPUT_LENGTH]; /* strip color off zone names */
+  char buf1[MAX_INPUT_LENGTH] = {'\0'}; /* strip color off zone names */
 
   log("Boot db -- BEGIN.");
 
@@ -3993,7 +3993,7 @@ void reset_zone(zone_rnum zone)
       {
         if (ZCMD.if_flag == 0)
         {
-          char error[MAX_INPUT_LENGTH];
+          char error[MAX_INPUT_LENGTH] = {'\0'};
           snprintf(error, sizeof(error), "attempt to give obj #%d to non-existant mob", obj_index[ZCMD.arg1].vnum);
           ZONE_ERROR(error);
           // ZCMD.command = '*';
@@ -4028,7 +4028,7 @@ void reset_zone(zone_rnum zone)
     case 'I': /* random treasure to mobile (with percentage loads) */
       if (!mob)
       {
-        char error[MAX_INPUT_LENGTH];
+        char error[MAX_INPUT_LENGTH] = {'\0'};
         snprintf(error, sizeof(error), "attempt to give random treasure to non-existant mob");
         ZONE_ERROR(error);
         // ZCMD.command = '*';
@@ -4060,7 +4060,7 @@ void reset_zone(zone_rnum zone)
       {
         if (ZCMD.if_flag == 0)
         {
-          char error[MAX_INPUT_LENGTH];
+          char error[MAX_INPUT_LENGTH] = {'\0'};
           snprintf(error, sizeof(error), "trying to equip non-existant mob with "
                                          "obj #%d",
                    obj_index[ZCMD.arg1].vnum);
@@ -4077,7 +4077,7 @@ void reset_zone(zone_rnum zone)
       {
         if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS)
         {
-          char error[MAX_INPUT_LENGTH];
+          char error[MAX_INPUT_LENGTH] = {'\0'};
           snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, "
                                          "obj %d, pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
@@ -4105,7 +4105,7 @@ void reset_zone(zone_rnum zone)
       {
         if (ZCMD.arg3 < 0 || ZCMD.arg3 >= NUM_WEARS)
         {
-          char error[MAX_INPUT_LENGTH];
+          char error[MAX_INPUT_LENGTH] = {'\0'};
           snprintf(error, sizeof(error), "invalid equipment pos number (mob %s, "
                                          "obj %d, pos %d)",
                    GET_NAME(mob), obj_index[ZCMD.arg2].vnum, ZCMD.arg3);
@@ -4146,7 +4146,7 @@ void reset_zone(zone_rnum zone)
       if (ZCMD.arg2 < 0 || ZCMD.arg2 >= DIR_COUNT ||
           (world[ZCMD.arg1].dir_option[ZCMD.arg2] == NULL))
       {
-        char error[MAX_INPUT_LENGTH];
+        char error[MAX_INPUT_LENGTH] = {'\0'};
         snprintf(error, sizeof(error), "door does not exist in room %d - dir %d", world[ZCMD.arg1].number, ZCMD.arg2);
         ZONE_ERROR(error);
         // ZCMD.command = '*';
@@ -4654,7 +4654,7 @@ char *fread_line(FILE *fp)
 int fread_flags(FILE *fp, int *fg, int fg_size)
 {
   char line[MAX_STRING_LENGTH] = {'\0'};
-  char *pline, val_txt[MAX_INPUT_LENGTH];
+  char *pline, val_txt[MAX_INPUT_LENGTH] = {'\0'};
   const char *tmp_txt;
   char c;
   int ln, i;
@@ -5548,7 +5548,7 @@ static int check_object(struct obj_data *obj)
 {
   char objname[MAX_INPUT_LENGTH + 32];
   int error = FALSE, y;
-  char buf1[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
   /* stripping colors for SYSLOG -zusuk */
   strncpy(buf1, obj->short_description, sizeof(buf1));
@@ -5574,7 +5574,7 @@ static int check_object(struct obj_data *obj)
   {
   case ITEM_DRINKCON:
   {
-    char onealias[MAX_INPUT_LENGTH], *space = strrchr(obj->name, ' ');
+    char onealias[MAX_INPUT_LENGTH] = {'\0'}, *space = strrchr(obj->name, ' ');
 
     strlcpy(onealias, space ? space + 1 : obj->name, sizeof(onealias));
 
@@ -5619,7 +5619,7 @@ static int check_object(struct obj_data *obj)
   case ITEM_NOTE:
     if (obj->ex_description)
     {
-      char onealias[MAX_INPUT_LENGTH], *next_name;
+      char onealias[MAX_INPUT_LENGTH] = {'\0'}, *next_name;
       next_name = any_one_arg(obj->name, onealias);
       do
       {

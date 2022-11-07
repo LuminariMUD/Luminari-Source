@@ -40,7 +40,7 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
   struct room_data *caster_room = NULL;
   char *s, *t;
   int spellnum, target = 0;
-  char buf2[MAX_STRING_LENGTH] = {'\0'}, orig_cmd[MAX_INPUT_LENGTH];
+  char buf2[MAX_STRING_LENGTH] = {'\0'}, orig_cmd[MAX_INPUT_LENGTH] = {'\0'};
 
   /* need to get the caster or the room of the temporary caster */
   switch (type)
@@ -173,9 +173,9 @@ void do_dg_affect(void *go, struct script_data *sc, trig_data *trig,
 {
   struct char_data *ch = NULL;
   int value = 0, duration = 0;
-  char junk[MAX_INPUT_LENGTH]; /* will be set to "dg_affect" */
-  char charname[MAX_INPUT_LENGTH], property[MAX_INPUT_LENGTH];
-  char value_p[MAX_INPUT_LENGTH], duration_p[MAX_INPUT_LENGTH];
+  char junk[MAX_INPUT_LENGTH] = {'\0'}; /* will be set to "dg_affect" */
+  char charname[MAX_INPUT_LENGTH] = {'\0'}, property[MAX_INPUT_LENGTH] = {'\0'};
+  char value_p[MAX_INPUT_LENGTH] = {'\0'}, duration_p[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0, type = 0;
   struct affected_type af;
 

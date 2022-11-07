@@ -599,7 +599,7 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
 /* given a character's name, delete their crash-save-file */
 int Crash_delete_file(char *name)
 {
-  char filename[MAX_INPUT_LENGTH];
+  char filename[MAX_INPUT_LENGTH] = {'\0'};
   FILE *fl;
 
   if (!get_filename(filename, sizeof(filename), CRASH_FILE, name))
@@ -624,7 +624,7 @@ int Crash_delete_file(char *name)
 
 int Crash_delete_crashfile(struct char_data *ch)
 {
-  char filename[MAX_INPUT_LENGTH];
+  char filename[MAX_INPUT_LENGTH] = {'\0'};
   int numread;
   FILE *fl;
   int rentcode;
@@ -654,7 +654,7 @@ int Crash_delete_crashfile(struct char_data *ch)
 
 int Crash_clean_file(char *name)
 {
-  char filename[MAX_INPUT_LENGTH], filetype[20];
+  char filename[MAX_INPUT_LENGTH] = {'\0'}, filetype[20];
   int numread;
   FILE *fl;
   int rentcode, timed, netcost, gold, account, nitems;
@@ -728,7 +728,7 @@ void update_obj_file(void)
 void Crash_listrent(struct char_data *ch, char *name)
 {
   FILE *fl;
-  char filename[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'}, line[READ_SIZE];
+  char filename[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'}, line[READ_SIZE];
   obj_save_data *loaded, *current;
   int rentcode, timed, netcost, gold, account, nitems, numread, len;
   // bool using_db = FALSE;
@@ -922,7 +922,7 @@ static void Crash_calculate_rent(struct obj_data *obj, int *cost)
 
 void Crash_crashsave(struct char_data *ch)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int j;
   FILE *fp;
 
@@ -997,7 +997,7 @@ void Crash_crashsave(struct char_data *ch)
 
 void Crash_idlesave(struct char_data *ch)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int j;
   int cost, cost_eq;
   FILE *fp;
@@ -1089,7 +1089,7 @@ void Crash_idlesave(struct char_data *ch)
  * file is closed */
 void Crash_rentsave(struct char_data *ch, int cost)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int j;
   FILE *fp;
 
@@ -1209,7 +1209,7 @@ static int objsave_write_rentcode(FILE *fl, int rentcode, int cost_per_day, stru
 
 static void Crash_cryosave(struct char_data *ch, int cost)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int j;
   FILE *fp;
 
@@ -1323,7 +1323,7 @@ static void Crash_report_rent(struct char_data *ch, struct char_data *recep, str
 static int Crash_offer_rent(struct char_data *ch, struct char_data *recep,
                             int display, int factor)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int i;
   long totalcost = 0, numitems = 0, norent;
 

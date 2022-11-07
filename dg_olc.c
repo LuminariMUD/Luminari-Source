@@ -427,8 +427,8 @@ void trigedit_save(struct descriptor_data *d)
   FILE *trig_file;
   int zone, top;
   char buf[MAX_CMD_LENGTH];
-  char bitBuf[MAX_INPUT_LENGTH];
-  char fname[MAX_INPUT_LENGTH];
+  char bitBuf[MAX_INPUT_LENGTH] = {'\0'};
+  char fname[MAX_INPUT_LENGTH] = {'\0'};
 
   if ((rnum = real_trigger(OLC_NUM(d))) != NOTHING)
   {

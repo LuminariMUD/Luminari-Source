@@ -621,7 +621,7 @@ bool oset_alias(struct obj_data *obj, const char *argument)
 bool oset_apply(struct obj_data *obj, const char *argument)
 {
   int i = 0, apply = -1, location = -1, mod = 0, empty = -1, value;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   argument = one_argument(argument, arg, sizeof(arg));
 

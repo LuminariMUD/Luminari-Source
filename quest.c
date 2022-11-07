@@ -1021,7 +1021,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   qst_vnum vnum = NOTHING;
   qst_rnum rnum = NOWHERE;
   obj_rnum objrnum = NOTHING;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   bool has_quest_object = FALSE, found = FALSE;
   int i = 0, index = 0, sr_index = 0;
 
@@ -1361,7 +1361,7 @@ void quest_show(struct char_data *ch, mob_vnum qm)
 /* allows staff to assign a quest as completed to given target */
 void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim = NULL;
   qst_rnum rnum = NOTHING;
   // qst_vnum vnum = NOTHING;
@@ -1582,7 +1582,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 /*--------------------------------------------------------------------------*/
 ACMD(do_quest)
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int tp;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
@@ -1629,7 +1629,7 @@ ACMD(do_quest)
 SPECIAL(questmaster)
 {
   qst_rnum rnum;
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int tp;
   struct char_data *qm = (struct char_data *)me;
 

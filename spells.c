@@ -1300,7 +1300,7 @@ ASPELL(spell_locate_object)
   }
 
   /*  added a global var to catch 2nd arg. */
-  // char name[MAX_INPUT_LENGTH];
+  // char name[MAX_INPUT_LENGTH] = {'\0'};
   // snprintf(name, sizeof(name), "%s", cast_arg2);
 
   /* # items to show = caster-level + highest mental stat bonus */

@@ -36,7 +36,7 @@ static void hedit_save_internally(struct descriptor_data *);
 
 ACMD(do_oasis_hedit)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
 
   /* No building as a mob or while being forced. */

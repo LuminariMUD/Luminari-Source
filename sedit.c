@@ -50,8 +50,8 @@ ACMD(do_oasis_sedit)
   shop_rnum real_num;
   struct descriptor_data *d;
   const char *buf3;
-  char buf1[MAX_INPUT_LENGTH];
-  char buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   /* No building as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)

@@ -641,7 +641,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
 static void look_at_char(struct char_data *i, struct char_data *ch)
 {
   int j, found, is_disguised = FALSE;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
@@ -1093,8 +1093,8 @@ static void do_auto_exits(struct char_data *ch)
   look in a room, takes on the real room number, NOT vnum (from homeland) */
 void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number)
 {
-  char buf[MAX_INPUT_LENGTH];
-  char buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
@@ -2468,7 +2468,7 @@ ACMD(do_look)
   }
   else
   {
-    char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
 
     half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
@@ -2528,7 +2528,7 @@ ACMD(do_examine)
 {
   struct char_data *tmp_char;
   struct obj_data *tmp_object;
-  char tempsave[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char tempsave[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -2934,7 +2934,7 @@ ACMD(do_affects)
 
 ACMD(do_attacks)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int mode = -1, attack_type = -1;
   int line_length = 80;
 
@@ -3042,7 +3042,7 @@ Gold: 999615                      Gold in Bank : 0
  */
 ACMD(do_score)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct time_info_data playing_time;
   int calc_bab = MIN(MAX_BAB, BAB(ch)), i = 0, counter = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
@@ -3517,7 +3517,7 @@ ACMD(do_who)
   struct descriptor_data *d;
   struct char_data *tch;
   int i, num_can_see = 0, class_len = 0;
-  char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], classes_list[MAX_INPUT_LENGTH];
+  char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
   int showclass = 0, short_list = 0, outlaws = 0;
@@ -3555,7 +3555,7 @@ ACMD(do_who)
   // move along the buf array until '\0'
   while (*buf)
   {
-    char arg[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     // take buf, first delimit in arg, rest in buf1
     half_chop(buf, arg, buf1);
@@ -3908,19 +3908,19 @@ ACMD(do_users)
 {
   char line[200], line2[220], idletime[10], classname[20];
   char state[30], *timeptr, mode;
-  char name_search[MAX_INPUT_LENGTH], host_search[MAX_INPUT_LENGTH];
+  char name_search[MAX_INPUT_LENGTH] = {'\0'}, host_search[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *tch;
   struct descriptor_data *d;
   int low = 0, high = LVL_IMPL, num_can_see = 0;
   int showclass = 0, outlaws = 0, playing = 0, deadweight = 0;
-  char buf[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   host_search[0] = name_search[0] = '\0';
 
   strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   while (*buf)
   {
-    char buf1[MAX_INPUT_LENGTH];
+    char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     half_chop(buf, arg, buf1);
     if (*arg == '-')
@@ -4121,7 +4121,7 @@ ACMD(do_gen_ps)
 
 ACMD(do_where)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -4216,7 +4216,7 @@ ACMD(do_levels)
 
 ACMD(do_consider)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim;
   int diff;
 
@@ -4271,7 +4271,7 @@ ACMD(do_consider)
 
 ACMD(do_diagnose)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   one_argument(argument, buf, sizeof(buf));
@@ -4294,7 +4294,7 @@ ACMD(do_diagnose)
 
 ACMD(do_toggle)
 {
-  char buf2[4], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char buf2[4], arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
   const char *const types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
 
@@ -4910,7 +4910,7 @@ ACMD(do_commands)
   int no, i, cmd_num, can_cmd;
   int wizhelp = 0, socials = 0, maneuvers = 0;
   struct char_data *vict;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   const char *commands[1000];
   int overflow = sizeof(commands) / sizeof(commands[0]);
 
@@ -4999,7 +4999,7 @@ ACMD(do_commands)
 
 ACMD(do_history)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int type;
 
   one_argument(argument, arg, sizeof(arg));
@@ -5215,8 +5215,8 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 ACMD(do_areas)
 {
   int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
-  char arg[MAX_INPUT_LENGTH], *second, lev_str[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'};
-  //  char zvn[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
+  //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
   //  float pop;
   //  clan_rnum ocr;
@@ -5612,7 +5612,7 @@ ACMD(do_track) {
 
   struct event * pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   char creator_race[20]; // The RACE of what created the tracks.
   char creator_name[20]; // The NAME of what created the tracks.

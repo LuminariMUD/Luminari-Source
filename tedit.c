@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: tedit.c                                      Part of LuminariMUD *
-*  Usage: Oasis OLC - Text files.                                         *
-*                                                                         *
-* By Michael Scott [Manx].                                                *
-**************************************************************************/
+ *  File: tedit.c                                      Part of LuminariMUD *
+ *  Usage: Oasis OLC - Text files.                                         *
+ *                                                                         *
+ * By Michael Scott [Manx].                                                *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -66,7 +66,7 @@ void tedit_string_cleanup(struct descriptor_data *d, int terminator)
 ACMD(do_tedit)
 {
   int l, i = 0;
-  char field[MAX_INPUT_LENGTH];
+  char field[MAX_INPUT_LENGTH] = {'\0'};
   char *backstr = NULL;
 
   const struct

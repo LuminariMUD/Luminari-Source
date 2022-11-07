@@ -704,7 +704,7 @@ void list_staff_events(struct char_data *ch)
 /* command to start/end/list staff events */
 ACMD(do_staffevents)
 {
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int event_num = UNDEFINED_EVENT;
   int success = NUM_STAFF_EVENTS; /* this is default success value */
 

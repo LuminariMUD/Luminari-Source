@@ -56,8 +56,8 @@ ACMD(do_oasis_qedit)
   qst_vnum number = NOWHERE;
   struct descriptor_data *d;
   const char *buf3;
-  char buf1[MAX_INPUT_LENGTH];
-  char buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   /****************************************************************************/
   /** Parse any arguments.                                                   **/

@@ -240,7 +240,7 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
 
 void load_ibt_file(int mode)
 {
-  char filename[MAX_INPUT_LENGTH];
+  char filename[MAX_INPUT_LENGTH] = {'\0'};
   FILE *fp;
   IBT_DATA *ibtData, *first_ibt, *last_ibt;
 
