@@ -2539,8 +2539,10 @@ ACMD(do_examine)
     return;
   }
 
+  strlcpy(tempsave, arg, sizeof(tempsave));
+
   /* look_at_target() eats the number. */
-  look_at_target(ch, strlcpy(tempsave, arg, sizeof(tempsave))); /* strcpy: OK */
+  look_at_target(ch, tempsave); /* strcpy: OK */
   /* strcpy(tempsave, arg) */
 
   generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
