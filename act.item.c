@@ -2082,7 +2082,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
 {
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
@@ -2750,7 +2750,7 @@ ACMDU(do_give)
   }
   else
   {
-    char buf1[MAX_INPUT_LENGTH];
+    char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     one_argument(argument, buf1, sizeof(buf1));
     if (!(vict = give_find_vict(ch, buf1)))
@@ -3016,12 +3016,12 @@ ACMDU(do_eat)
 
 ACMD(do_drink_old)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *temp;
   // struct affected_type af;
   int amount, weight;
   int on_ground = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -3221,11 +3221,11 @@ ACMD(do_drink_old)
 
 ACMD(do_eat_old)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *food;
   struct affected_type af;
   int amount;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -3331,7 +3331,7 @@ ACMD(do_eat_old)
 
 ACMD(do_pour)
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *from_obj = NULL, *to_obj = NULL;
   int amount = 0;
 
@@ -3692,7 +3692,7 @@ int is_wielding_type(struct char_data *ch)
 /* the guts of the 'wear' mechanic for equipping gear */
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   /* TAKE is used for objects that don't require special bits, ex. HOLD */
   int wear_bitvectors[] = {
@@ -4204,7 +4204,7 @@ ACMD(do_priceset)
 
 ACMD(do_grab)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
@@ -4326,7 +4326,7 @@ ACMD(do_remove)
 
 ACMD(do_sac)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *j, *jj, *next_thing2;
 
   one_argument(argument, arg, sizeof(arg));
@@ -4814,8 +4814,8 @@ void check_auction(void)
 
 ACMD(do_auction)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   int bid = 0;
 

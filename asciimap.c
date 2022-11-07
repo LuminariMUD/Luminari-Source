@@ -543,8 +543,8 @@ void perform_map(struct char_data *ch, const char *argument, bool worldmap)
 {
   int size = DEFAULT_MAP_SIZE;
   int centre, x, y, min, max;
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'},
-                                                       buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'},
+       buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
   int count = 0;
   int ew_size = 0, ns_size = 0;
   int mapshape = MAP_CIRCLE;

@@ -126,7 +126,7 @@ static void write_ban_list(void)
 #define BAN_LIST_FORMAT "%-25.25s  %-8.8s  %-10.10s  %-16.16s\r\n"
 ACMD(do_ban)
 {
-  char flag[MAX_INPUT_LENGTH], site[MAX_INPUT_LENGTH], *nextchar;
+  char flag[MAX_INPUT_LENGTH] = {'\0'}, site[MAX_INPUT_LENGTH] = {'\0'}, *nextchar;
   char timestr[16];
   int i;
   struct ban_list_element *ban_node;
@@ -209,7 +209,7 @@ ACMD(do_ban)
 
 ACMD(do_unban)
 {
-  char site[MAX_INPUT_LENGTH];
+  char site[MAX_INPUT_LENGTH] = {'\0'};
   struct ban_list_element *ban_node, *temp;
   int found = 0;
 
@@ -247,7 +247,7 @@ int valid_name(char *newname)
 {
   int i, vowels = 0;
   struct descriptor_data *dt;
-  char tempname[MAX_INPUT_LENGTH];
+  char tempname[MAX_INPUT_LENGTH] = {'\0'};
 
   /* Make sure someone isn't trying to create this same name.  We want to do a
    * 'str_cmp' so people can't do 'Bob' and 'BoB'.  The creating login will not

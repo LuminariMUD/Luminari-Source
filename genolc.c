@@ -341,8 +341,8 @@ ACMD(do_export_zone)
 {
   zone_rnum zrnum;
   zone_vnum zvnum;
-  char sysbuf[MAX_INPUT_LENGTH];
-  char zone_name[MAX_INPUT_LENGTH];
+  char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
+  char zone_name[MAX_INPUT_LENGTH] = {'\0'};
   const char *f;
   int success;
   int i;
@@ -1084,7 +1084,7 @@ static int export_save_triggers(zone_rnum zrnum)
   trig_data *trig;
   struct cmdlist_element *cmd;
   FILE *trig_file;
-  char bitBuf[MAX_INPUT_LENGTH];
+  char bitBuf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!(trig_file = fopen("world/export/qq.trg", "w")))
   {

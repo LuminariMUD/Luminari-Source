@@ -486,7 +486,7 @@ void load_claims(void)
 /* The OLC for clan leaders or members with permissions and Imps only */
 ACMD(do_clanedit)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int c_id = 0;
   clan_rnum cr;
   struct descriptor_data *d;
@@ -783,7 +783,7 @@ static void clanedit_ranks_menu(struct descriptor_data *d)
 
 static void clanedit_priv_menu(struct descriptor_data *d)
 {
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);

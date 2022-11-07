@@ -4071,8 +4071,8 @@ char *add_commas(long num)
 {
   int i, j = 0, len;
   int negative = (num < 0);
-  char num_string[MAX_INPUT_LENGTH];
-  static char commastring[MAX_INPUT_LENGTH];
+  char num_string[MAX_INPUT_LENGTH] = {'\0'};
+  static char commastring[MAX_INPUT_LENGTH] = {'\0'};
 
   snprintf(num_string, sizeof(num_string), "%ld", num);
   len = strlen(num_string);

@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: act.social.c                                 Part of LuminariMUD *
-*  Usage: Functions to handle socials.                                    *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: act.social.c                                 Part of LuminariMUD *
+ *  Usage: Functions to handle socials.                                    *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -26,7 +26,7 @@ static int find_action(int cmd);
 
 ACMD(do_action)
 {
-  char arg[MAX_INPUT_LENGTH], part[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, part[MAX_INPUT_LENGTH] = {'\0'};
   int act_nr;
   struct social_messg *action;
   struct char_data *vict;
@@ -254,7 +254,7 @@ static int find_action(int cmd)
 ACMD(do_gmote)
 {
   int act_nr, length;
-  char arg[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   struct social_messg *action;
   struct char_data *vict = NULL;
 

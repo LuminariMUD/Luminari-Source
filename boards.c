@@ -181,7 +181,7 @@ SPECIAL(gen_board)
 int board_write_message(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
   time_t ct;
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_NAME_LENGTH + 3], tmstr[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_NAME_LENGTH + 3], tmstr[MAX_STRING_LENGTH] = {'\0'};
 
   if (GET_LEVEL(ch) < WRITE_LVL(board_type))
   {
@@ -297,7 +297,7 @@ fubar:
 
 int board_display_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
-  char number[MAX_INPUT_LENGTH], buffer[MAX_STRING_LENGTH] = {'\0'};
+  char number[MAX_INPUT_LENGTH] = {'\0'}, buffer[MAX_STRING_LENGTH] = {'\0'};
   int msg, ind;
 
   one_argument(arg, number, sizeof(number));
@@ -359,7 +359,7 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
 int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
   int ind, msg, slot_num;
-  char number[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char number[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
 
   one_argument(arg, number, sizeof(number));

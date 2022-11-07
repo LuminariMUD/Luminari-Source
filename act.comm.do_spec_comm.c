@@ -6,7 +6,7 @@
 
 ACMD(do_spec_comm)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *buf3 = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'}, *buf3 = NULL;
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
   const char *punctuation;

@@ -414,8 +414,8 @@ static void exdesc_string_cleanup(struct descriptor_data *d, int action)
 ACMDU(do_skillset)
 {
   struct char_data *vict;
-  char name[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH] = {'\0'};
+  char name[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, helpbuf[MAX_STRING_LENGTH] = {'\0'};
   int skill, value, i, qend, pc, pl;
 
   argument = one_argument_u(argument, name);
@@ -520,8 +520,8 @@ ACMDU(do_skillset)
 ACMDU(do_abilityset)
 {
   struct char_data *vict;
-  char name[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH] = {'\0'};
+  char name[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, helpbuf[MAX_STRING_LENGTH] = {'\0'};
   int skill, value, i, qend, pc, pl;
 
   argument = one_argument_u(argument, name);
@@ -614,8 +614,8 @@ ACMDU(do_abilityset)
 ACMDU(do_featset)
 {
   struct char_data *vict;
-  char name[MAX_INPUT_LENGTH];
-  char buf[MAX_INPUT_LENGTH], helpbuf[MAX_STRING_LENGTH] = {'\0'};
+  char name[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, helpbuf[MAX_STRING_LENGTH] = {'\0'};
   int feat_num, value, qend;
 
   argument = one_argument_u(argument, name);
@@ -808,7 +808,7 @@ void page_string(struct descriptor_data *d, char *str, int keep_internal)
 /* The call that displays the next page. */
 void show_string(struct descriptor_data *d, char *input)
 {
-  char buffer[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH];
+  char buffer[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   int diff;
 
   any_one_arg(input, buf);

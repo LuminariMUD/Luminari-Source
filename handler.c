@@ -1800,7 +1800,7 @@ int get_number(char **name)
 {
   int i, retval;
   char *ppos, *namebuf;
-  char number[MAX_INPUT_LENGTH];
+  char number[MAX_INPUT_LENGTH] = {'\0'};
 
   *number = '\0';
 
@@ -2690,10 +2690,10 @@ int generic_find(const char *arg_in, bitvector_t bitvector, struct char_data *ch
                  struct char_data **tar_ch, struct obj_data **tar_obj)
 {
   int i, found, number;
-  char name_val[MAX_INPUT_LENGTH];
+  char name_val[MAX_INPUT_LENGTH] = {'\0'};
   char *name = name_val;
 
-  char arg_local[MAX_INPUT_LENGTH];
+  char arg_local[MAX_INPUT_LENGTH] = {'\0'};
   strlcpy(arg_local, arg_in, sizeof(arg_local));
   char *arg = arg_local;
 

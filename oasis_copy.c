@@ -39,8 +39,8 @@ static room_vnum redit_find_new_vnum(zone_rnum zone);
 ACMD(do_oasis_copy)
 {
   int i, src_vnum, src_rnum, dst_vnum, dst_rnum; //, copy_mode = QMODE_QCOPY;
-  char buf1[MAX_INPUT_LENGTH];
-  char buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
 
   struct
@@ -165,7 +165,7 @@ ACMD(do_oasis_copy)
 /* Commands */
 ACMD(do_dig)
 {
-  char sdir[MAX_INPUT_LENGTH], sroom[MAX_INPUT_LENGTH];
+  char sdir[MAX_INPUT_LENGTH] = {'\0'}, sroom[MAX_INPUT_LENGTH] = {'\0'};
   const char *new_room_name;
   room_vnum rvnum = NOWHERE;
   room_rnum rrnum = NOWHERE;
@@ -370,7 +370,7 @@ static room_vnum redit_find_new_vnum(zone_rnum zone)
 int buildwalk(struct char_data *ch, int dir)
 {
   int new_x = 0, new_y = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   room_vnum vnum;
   room_rnum rnum;
 

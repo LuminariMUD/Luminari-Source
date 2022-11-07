@@ -2612,7 +2612,7 @@ ACMD(do_dragonborn_breath_weapon)
 
 ACMD(do_assist)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *helpee = NULL;
 
   PREREQ_CAN_FIGHT();
@@ -2916,7 +2916,7 @@ ACMDCHECK(can_backstab)
 
 ACMD(do_backstab)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
@@ -2988,7 +2988,7 @@ bool pet_order_check(struct char_data *ch, struct char_data *vict)
 /* pet order command */
 ACMD(do_order)
 {
-  char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'}, message[MAX_INPUT_LENGTH] = {'\0'};
   bool found = FALSE;
   struct char_data *vict = NULL, *next_vict = NULL;
 
@@ -3099,7 +3099,7 @@ ACMD(do_order)
 
 ACMD(do_flee)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i;
 
   if (GET_POS(ch) < POS_FIGHTING || GET_HIT(ch) <= 0)
@@ -3267,7 +3267,7 @@ ACMDCHECK(can_taunt)
 
 ACMD(do_taunt)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
@@ -3410,7 +3410,7 @@ ACMDCHECK(can_intimidate)
 
 ACMD(do_intimidate)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
@@ -4395,7 +4395,7 @@ ACMD(do_dragonmagic)
   send_to_char(ch, "You have %d dragon magic uses left.\r\n", DRAGON_MAGIC_USES(ch));
 }
 
-extern char cast_arg2[MAX_INPUT_LENGTH];
+extern char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
 
 ACMDCHECK(can_efreetimagic)
 {
@@ -5525,7 +5525,7 @@ ACMDCHECK(can_treatinjury)
 
 ACMD(do_treatinjury)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
@@ -5602,7 +5602,7 @@ ACMD(do_treatinjury)
 
 ACMD(do_bandage)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
@@ -5689,7 +5689,7 @@ ACMD(do_bandage)
 
 ACMD(do_rescue)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   if (IS_NPC(ch) && !IS_FIGHTER(ch))

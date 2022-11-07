@@ -183,7 +183,7 @@ static int handle_oset(struct obj_data *obj, char *argument)
 {
   int i = 0;
   bool found = FALSE;
-  char value[MAX_INPUT_LENGTH];
+  char value[MAX_INPUT_LENGTH] = {'\0'};
 
   struct oset_handler
   {
@@ -1548,7 +1548,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
         {
           if (!IS_NPC(c) && subfield && *subfield)
           {
-            char skillname[MAX_INPUT_LENGTH], *amount;
+            char skillname[MAX_INPUT_LENGTH] = {'\0'}, *amount;
             amount = one_word(subfield, skillname);
             skip_spaces(&amount);
             if (amount && *amount && is_number(amount))
@@ -2344,10 +2344,10 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
 void var_subst(void *go, struct script_data *sc, trig_data *trig,
                int type, char *line, char *buf)
 {
-  char tmp[MAX_INPUT_LENGTH], repl_str[MAX_INPUT_LENGTH];
+  char tmp[MAX_INPUT_LENGTH] = {'\0'}, repl_str[MAX_INPUT_LENGTH] = {'\0'};
   char *var = NULL, *field = NULL, *p = NULL;
-  char tmp2[MAX_INPUT_LENGTH];
-  char *subfield_p, subfield[MAX_INPUT_LENGTH];
+  char tmp2[MAX_INPUT_LENGTH] = {'\0'};
+  char *subfield_p, subfield[MAX_INPUT_LENGTH] = {'\0'};
   int left, len;
   int paren_count = 0;
   int dots = 0;

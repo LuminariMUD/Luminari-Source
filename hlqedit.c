@@ -28,7 +28,7 @@
 /*. Function prototypes / Globals / Externals. */
 /*---------------------------------------------*/
 
-const char * const hlqedit_command = "CIOMADTXFKUS";
+const char *const hlqedit_command = "CIOMADTXFKUS";
 
 /*****************************************************************************/
 
@@ -67,7 +67,7 @@ void zedit_create_index(int znum)
 
   /*
    * Index contents must be in order: search through the old file for the
-   * right place, insert the new file, then copy the rest over. 
+   * right place, insert the new file, then copy the rest over.
    */
   snprintf(buf1, sizeof(buf1), "%d.%s", znum, "hlq");
   while (get_line(oldfile, buf))
@@ -296,13 +296,13 @@ void hlqedit_save_to_disk(int zone_num)
   }
 
   zone = zone_table[zone_num].number;
-  //zone = zone_table[zone_num].bot;
+  // zone = zone_table[zone_num].bot;
   top = zone_table[zone_num].top;
 
   /*
    * Search the database for mobs with quests in this zone and save them.
    */
-  //for (i = zone; i <= top; i++) {
+  // for (i = zone; i <= top; i++) {
   for (i = zone * 100; i <= top; i++)
   {
     if ((rmob_num = real_mobile(i)) != NOWHERE)
@@ -372,7 +372,7 @@ void hlqedit_save_to_disk(int zone_num)
 /*------------------------------------------------------------------------*/
 
 /**************************************************************************
- Menu functions 
+ Menu functions
  **************************************************************************/
 
 /*
@@ -383,11 +383,11 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d)
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   snprintf(buf, sizeof(buf),
-          "\r\nQuest-Give Menu\r\n"
-          "%sC%s) Give Coins to Mob\r\n"
-          "%sI%s) Give Item to Mob\r\n",
-          grn, nrm,
-          grn, nrm);
+           "\r\nQuest-Give Menu\r\n"
+           "%sC%s) Give Coins to Mob\r\n"
+           "%sI%s) Give Item to Mob\r\n",
+           grn, nrm,
+           grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, buf);
@@ -399,31 +399,31 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   snprintf(buf, sizeof(buf),
-          "\r\nQuest-Out Menu (Quest Rewards)\r\n"
-          "%sC%s) Give coins\r\n"
-          "%sI%s) Give item\r\n"
-          "%sO%s) Load object in a room\r\n"
-          "%sM%s) Load mob in a room\r\n"
-          "%sA%s) Attack questor\r\n"
-          "%sD%s) Disappear\r\n"
-          "%sT%s) Teach spell/skill (not yet implemented)\r\n"
-          "%sX%s) Open door in a room\r\n"
-          "%sF%s) Follow questor\r\n"
-          "%sU%s) Set Church (not yet implemented)\r\n"
-          "%sK%s) Change Kit (not yet implemented)\r\n"
-          "%sS%s) Cast Spell\r\n",
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm);
+           "\r\nQuest-Out Menu (Quest Rewards)\r\n"
+           "%sC%s) Give coins\r\n"
+           "%sI%s) Give item\r\n"
+           "%sO%s) Load object in a room\r\n"
+           "%sM%s) Load mob in a room\r\n"
+           "%sA%s) Attack questor\r\n"
+           "%sD%s) Disappear\r\n"
+           "%sT%s) Teach spell/skill (not yet implemented)\r\n"
+           "%sX%s) Open door in a room\r\n"
+           "%sF%s) Follow questor\r\n"
+           "%sU%s) Set Church (not yet implemented)\r\n"
+           "%sK%s) Change Kit (not yet implemented)\r\n"
+           "%sS%s) Cast Spell\r\n",
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, buf);
@@ -442,7 +442,7 @@ void hlqedit_disp_spells(struct descriptor_data *d)
   for (counter = 0; counter < NUM_SPELLS; counter++)
   {
     snprintf(buf, sizeof(buf), "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
-            spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+             spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     send_to_char(d->character, buf);
   }
   snprintf(buf, sizeof(buf), "\r\n%sEnter spell choice (0 for none):  ", nrm);
@@ -469,7 +469,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
   }
 
   snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
-          GET_MOB_VNUM(OLC_MOB(d)));
+           GET_MOB_VNUM(OLC_MOB(d)));
   send_to_char(d->character, buf);
 
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next)
@@ -484,12 +484,12 @@ void hlqedit_disp_menu(struct descriptor_data *d)
       {
         if (quest->in->type == QUEST_COMMAND_ITEM)
           snprintf(buf, sizeof(buf), "%d) (%s) GIVE %s", num,
-                  quest->approved ? "OK" : "-",
-                  obj_proto[real_object(quest->in->value)].short_description);
+                   quest->approved ? "OK" : "-",
+                   obj_proto[real_object(quest->in->value)].short_description);
         else
           snprintf(buf, sizeof(buf), "%d) (%s) GIVE %d coins", num,
-                  quest->approved ? "OK" : "-",
-                  quest->in->value);
+                   quest->approved ? "OK" : "-",
+                   quest->in->value);
 
         if (quest->in->next)
           strlcat(buf, " etc..", sizeof(buf));
@@ -502,19 +502,19 @@ void hlqedit_disp_menu(struct descriptor_data *d)
   }
 
   snprintf(buf, sizeof(buf),
-          "\r\nMain Menu\r\n"
-          "%sA%s) Approve quest\r\n"
-          "%sN%s) Add new quest for the mob\r\n"
-          "%sD%s) Delete quest\r\n"
-          "%sV%s) View quest details\r\n"
-          "%sQ%s) Quit\r\n"
-          "Enter choice : ",
+           "\r\nMain Menu\r\n"
+           "%sA%s) Approve quest\r\n"
+           "%sN%s) Add new quest for the mob\r\n"
+           "%sD%s) Delete quest\r\n"
+           "%sV%s) View quest details\r\n"
+           "%sQ%s) Quit\r\n"
+           "Enter choice : ",
 
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm,
-          grn, nrm);
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm,
+           grn, nrm);
   send_to_char(d->character, buf);
 
   OLC_MODE(d) = HLQEDIT_MAIN_MENU;
@@ -572,8 +572,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     case 'n':
     case 'N':
       /*
-           * Free everything up, including strings, etc.
-           */
+       * Free everything up, including strings, etc.
+       */
       OLC_MOB(d) = 0;
       cleanup_olc(d, CLEANUP_ALL);
       break;
@@ -625,8 +625,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   case HLQEDIT_REPLYMSG:
     /*
-       * We will NEVER get here, we hope.
-       */
+     * We will NEVER get here, we hope.
+     */
     log("SYSERR: Reached HLQEDIT_REPLYMSG case in parse_hlqedit");
     break;
 
@@ -811,7 +811,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       CREATE(qcom, struct quest_command, 1);
       hlqedit_addtoout(d, qcom);
       qcom->type = QUEST_COMMAND_CAST_SPELL;
-      OLC_MODE(d) = HLQEDIT_OUT_TEACH_SPELL; //same no need for new.
+      OLC_MODE(d) = HLQEDIT_OUT_TEACH_SPELL; // same no need for new.
       hlqedit_disp_spells(d);
       return;
 
@@ -1073,8 +1073,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   default:
     /*
-       * We should never get here.
-       */
+     * We should never get here.
+     */
     log("SYSERR: Reached default case in parse_hlqedit");
     break;
   }
@@ -1097,10 +1097,10 @@ ACMD(do_hlqedit)
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
   const char *buf3;
-  char buf2[MAX_INPUT_LENGTH];
-  char buf1[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
+  char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
-  //No screwing around as a mobile.
+  // No screwing around as a mobile.
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
     return;
 

@@ -165,7 +165,7 @@ int find_first_step(room_rnum src, room_rnum target)
    (that work can be found commented out in act.informative.c do_track) */
 ACMD(do_track)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   int dir, track_dc = 0;
   int ch_in_wild = FALSE, vict_in_wild = FALSE, moves = 0;
@@ -436,7 +436,7 @@ void hunt_victim(struct char_data *ch)
   {
     if ((dir = find_first_step(IN_ROOM(ch), IN_ROOM(vict))) < 0)
     {
-      // char buf[MAX_INPUT_LENGTH];
+      // char buf[MAX_INPUT_LENGTH] = {'\0'};
 
       // snprintf(buf, sizeof(buf), "!?!");
       // do_say(ch, buf, 0, 0);

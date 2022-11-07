@@ -2,7 +2,7 @@
  * @file actionqueues.c
  *
  * Author:  Ornir
- * 
+ *
  * Action Queue system for Luminari MUD
  *
  */
@@ -267,7 +267,7 @@ int pending_attacks(struct char_data *ch)
  * action queue in various ways. */
 ACMD(do_queue)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct queue_type *queue;
   struct queue_element_type *el;
 

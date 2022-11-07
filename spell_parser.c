@@ -985,7 +985,7 @@ similar method added -zusuk */
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                      char *argument)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i, k;
   struct char_data *tch = NULL, *next_tch;
   struct obj_data *tobj = NULL;
@@ -1330,7 +1330,7 @@ EVENTFUNC(event_casting)
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   int x, time_stopped = FALSE;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   // initialize everything and dummy checks
   if (event_obj == NULL)
@@ -2317,7 +2317,7 @@ return;
   /* Find the target */
   if (target_arg != NULL)
   {
-    char arg[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'};
 
     strlcpy(arg, target_arg, sizeof(arg));
     one_argument_u(arg, target_arg);

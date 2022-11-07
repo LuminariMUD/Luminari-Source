@@ -766,9 +766,9 @@ ACMD(do_oasis_list)
   zone_rnum rzone = NOWHERE;
   room_rnum vmin = NOWHERE;
   room_rnum vmax = NOWHERE;
-  char smin[MAX_INPUT_LENGTH];
-  char smax[MAX_INPUT_LENGTH];
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char smin[MAX_INPUT_LENGTH] = {'\0'};
+  char smax[MAX_INPUT_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   bool use_name = FALSE;
   int i;
 
@@ -1070,7 +1070,7 @@ ACMD(do_oasis_links)
   room_rnum nr, to_room;
   room_vnum first, last;
   int j;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   skip_spaces_c(&argument);
   one_argument(argument, arg, sizeof(arg));

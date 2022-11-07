@@ -125,9 +125,9 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
 void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
 {
   char str[MAX_INPUT_LENGTH * 2];
-  char type[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
-  char *tokens[MAX_INPUT_LENGTH], *s, *p;
-  void *otokens[MAX_INPUT_LENGTH];
+  char type[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
+  char *tokens[MAX_INPUT_LENGTH] = {'\0'}, *s, *p;
+  void *otokens[MAX_INPUT_LENGTH] = {'\0'};
   char_data *to;
   obj_data *obj;
   int i, tmp;

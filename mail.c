@@ -299,7 +299,7 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
                                  int cmd, char *arg)
 {
   long recipient = 0;
-  char buf[MAX_INPUT_LENGTH], **mailwrite = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, **mailwrite = NULL;
 
   *buf = '\0';
 

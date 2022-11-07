@@ -138,7 +138,7 @@ struct char_file_u_plrtoascii
 {
   /* char_player_data */
   char name[MAX_NAME_LENGTH + 1];
-  char description[PLR_DESC_LENGTH];
+  char description[PLR_DESC_LENGTH] = {'\0'};
   char title[MAX_TITLE_LENGTH + 1];
   byte sex;
   byte chclass;

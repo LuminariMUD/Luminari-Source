@@ -245,7 +245,7 @@ ACMD(do_tell)
     send_to_char(ch, "Sorry, that is not available in the windows port.\r\n");
 #else  /* all other configurations */
     // int i;
-    char word[MAX_INPUT_LENGTH], *p, *q;
+    char word[MAX_INPUT_LENGTH] = {'\0'}, *p, *q;
 
     if (last_webster_teller != -1L)
     {
@@ -437,7 +437,7 @@ ACMD(do_page)
 {
   struct descriptor_data *d;
   struct char_data *vict;
-  char buf2[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   half_chop_c(argument, arg, sizeof(arg), buf2, sizeof(buf2));
 
@@ -480,9 +480,9 @@ ACMDU(do_gen_comm)
 {
   struct descriptor_data *i;
   char color_on[24];
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   const char *msg = NULL;
-  char buf3[MAX_INPUT_LENGTH];
+  char buf3[MAX_INPUT_LENGTH] = {'\0'};
   bool emoting = FALSE;
 
   /* Array of flags which must _not_ be set in order for comm to be heard. */

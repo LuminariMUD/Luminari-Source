@@ -147,7 +147,7 @@ ACMD(do_echo)
 
 ACMD(do_send)
 {
-  char arg[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   half_chop_c(argument, arg, sizeof(arg), buf, sizeof(buf));
@@ -175,7 +175,7 @@ ACMD(do_send)
 room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 {
   room_rnum location = NOWHERE;
-  char roomstr[MAX_INPUT_LENGTH];
+  char roomstr[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(rawroomstr, roomstr, sizeof(roomstr));
 
@@ -250,7 +250,7 @@ room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 
 ACMD(do_at)
 {
-  char command[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char command[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum location, original_loc;
   int orig_x, orig_y; /* Needed if 'at'ing in the wilderness. */
 
@@ -302,7 +302,7 @@ ACMD(do_at)
 ACMD(do_goto)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum location;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
@@ -358,7 +358,7 @@ ACMD(do_goto)
 
 ACMD(do_trans)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *i;
   struct char_data *victim;
 
@@ -430,7 +430,7 @@ ACMD(do_trans)
 
 ACMD(do_teleport)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim;
   room_rnum target;
 
@@ -468,7 +468,7 @@ ACMD(do_teleport)
 
 ACMD(do_vnum)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   int good_arg = 0;
 
   half_chop_c(argument, buf, sizeof(buf), buf2, sizeof(buf2));
@@ -768,7 +768,7 @@ static void do_stat_scriptvar(struct char_data *ch, struct char_data *k)
     if (k->script && k->script->global_vars)
     {
       struct trig_var_data *tv;
-      char uname[MAX_INPUT_LENGTH];
+      char uname[MAX_INPUT_LENGTH] = {'\0'};
 
       send_to_char(ch, "\tCPC Global Variables:\tn\r\n");
 
@@ -1388,7 +1388,7 @@ ACMD(do_stat)
 
 ACMD(do_shutdown)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   if (subcmd != SCMD_SHUTDOWN)
   {
@@ -1478,7 +1478,7 @@ static void stop_snooping(struct char_data *ch)
 
 ACMD(do_snoop)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim, *tch;
 
   if (!ch->desc)
@@ -1525,7 +1525,7 @@ ACMD(do_snoop)
 
 ACMD(do_switch)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim;
 
   /* temporarily disabled while adapting to wilderness */
@@ -1619,7 +1619,7 @@ ACMD(do_return)
 
 ACMD(do_load)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], buf3[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'}, buf3[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0, n = 1;
 
   one_argument(two_arguments(argument, buf, sizeof(buf), buf2, sizeof(buf2)), buf3, sizeof(buf3));
@@ -1713,7 +1713,7 @@ ACMD(do_load)
 
 ACMD(do_vstat)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *mob;
   struct obj_data *obj;
   int r_num;
@@ -1781,7 +1781,7 @@ ACMD(do_vstat)
 /* clean a room of all mobiles and objects */
 ACMD(do_purge)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   char *t;
   struct char_data *vict;
   struct obj_data *obj;
@@ -1851,7 +1851,7 @@ ACMD(do_purge)
 ACMD(do_advance)
 {
   struct char_data *victim;
-  char name[MAX_INPUT_LENGTH], level[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'}, level[MAX_INPUT_LENGTH] = {'\0'};
   int newlevel, oldlevel, i;
 
   two_arguments(argument, name, sizeof(name), level, sizeof(level));
@@ -1963,7 +1963,7 @@ ACMD(do_advance)
 
 ACMD(do_restore)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   struct descriptor_data *j;
   int i;
@@ -2109,7 +2109,7 @@ static void perform_immort_invis(struct char_data *ch, int level)
 
 ACMD(do_invis)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int level;
 
   if (IS_NPC(ch))
@@ -2164,7 +2164,7 @@ ACMDU(do_gecho)
 
 ACMD(do_dc)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
   int num_to_dc;
 
@@ -2219,7 +2219,7 @@ ACMD(do_dc)
 
 ACMD(do_wizlock)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int value;
   const char *when;
 
@@ -2566,7 +2566,7 @@ void show_full_last_command_unique(struct char_data *ch)
 
 ACMDU(do_last)
 {
-  char arg[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
   // struct char_data *temp;
   int num = 0;
@@ -2697,7 +2697,7 @@ ACMD(do_force)
 {
   struct descriptor_data *i, *next_desc;
   struct char_data *vict, *next_force;
-  char arg[MAX_INPUT_LENGTH], to_force[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH + 32];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, to_force[MAX_INPUT_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH + 32];
 
   half_chop_c(argument, arg, sizeof(arg), to_force, sizeof(to_force));
 
@@ -2886,7 +2886,7 @@ ACMDU(do_wiznet)
 
 ACMD(do_zreset)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   zone_rnum i;
   zone_vnum j;
 
@@ -2934,7 +2934,7 @@ ACMD(do_zreset)
 /*  General fn for wizcommands of the sort: cmd <player> */
 ACMD(do_wizutil)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   int taeller;
   long result;
@@ -4487,7 +4487,7 @@ void show_set_help(struct char_data *ch)
 ACMD(do_set)
 {
   struct char_data *vict = NULL, *cbuf = NULL;
-  char field[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char field[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   int mode, len, player_i = 0, retval;
   char is_file = 0, is_player = 0;
 
@@ -4639,7 +4639,7 @@ ACMD(do_keycheck)
   zone_rnum rzone = NOWHERE;
   room_vnum i = NOWHERE, bottom = NOWHERE, top = NOWHERE;
   int j, len = 0;
-  char zone_num[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH] = {'\0'};
+  char zone_num[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
 
   one_argument(argument, zone_num, sizeof(zone_num));
@@ -4765,7 +4765,7 @@ ACMD(do_links)
   zone_vnum zvnum;
   room_rnum nr, to_room;
   int first, last, j;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   skip_spaces_c(&argument);
   one_argument(argument, arg, sizeof(arg));
@@ -5555,7 +5555,7 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
 
 ACMD(do_checkloadstatus)
 {
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   two_arguments(argument, buf1, sizeof(buf1), buf2, sizeof(buf2));
 
@@ -5834,7 +5834,7 @@ EVENTFUNC(event_copyover)
 ACMD(do_copyover)
 {
   int min_level_to_copyover = LVL_GRSTAFF;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int timer = 0;
   char buf[50] = {'\0'};
   struct descriptor_data *pt = NULL;
@@ -5921,7 +5921,7 @@ ACMD(do_peace)
 ACMD(do_zpurge)
 {
   int vroom, room, vzone = 0, zone = 0;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int purge_all = FALSE;
   one_argument(argument, arg, sizeof(arg));
   if (*arg == '.' || !*arg)
@@ -5985,18 +5985,18 @@ ACMD(do_zpurge)
 ACMD(do_file)
 {
   /* Local variables */
-  int def_lines_to_read = 15;           /* Set the default num lines to be read. */
-  int max_lines_to_read = 300;          /* Maximum number of lines to read. */
-  FILE *req_file;                       /* Pointer to file to be read. */
-  size_t req_file_size = 0;             /* Size of file to be read. */
-  int req_file_lines = 0;               /* Number of total lines in file to be read. */
-  int lines_read = 0;                   /* Counts total number of lines read from the file. */
-  int req_lines = 0;                    /* Number of lines requested to be displayed. */
-  int i, j;                             /* Generic loop counters. */
-  int l;                                /* Marks choice of file in fields array. */
-  char field[MAX_INPUT_LENGTH];         /* Holds users choice of file to be read. */
-  char value[MAX_INPUT_LENGTH];         /* Holds # lines to be read, if requested. */
-  char buf[MAX_STRING_LENGTH] = {'\0'}; /* Display buffer for req_file. */
+  int def_lines_to_read = 15;            /* Set the default num lines to be read. */
+  int max_lines_to_read = 300;           /* Maximum number of lines to read. */
+  FILE *req_file;                        /* Pointer to file to be read. */
+  size_t req_file_size = 0;              /* Size of file to be read. */
+  int req_file_lines = 0;                /* Number of total lines in file to be read. */
+  int lines_read = 0;                    /* Counts total number of lines read from the file. */
+  int req_lines = 0;                     /* Number of lines requested to be displayed. */
+  int i, j;                              /* Generic loop counters. */
+  int l;                                 /* Marks choice of file in fields array. */
+  char field[MAX_INPUT_LENGTH] = {'\0'}; /* Holds users choice of file to be read. */
+  char value[MAX_INPUT_LENGTH] = {'\0'}; /* Holds # lines to be read, if requested. */
+  char buf[MAX_STRING_LENGTH] = {'\0'};  /* Display buffer for req_file. */
 
   /* Defines which files are available to read. */
   const struct file_struct
@@ -6152,8 +6152,8 @@ ACMD(do_file)
 ACMD(do_changelog)
 {
   time_t rawtime;
-  char tmstr[MAX_INPUT_LENGTH], line[READ_SIZE], last_buf[READ_SIZE],
-      buf[READ_SIZE];
+  char tmstr[MAX_INPUT_LENGTH] = {'\0'}, line[READ_SIZE], last_buf[READ_SIZE],
+       buf[READ_SIZE];
   FILE *fl, *new;
 
   skip_spaces_c(&argument);
@@ -6232,7 +6232,7 @@ ACMD(do_plist)
 
   while (*buf)
   {
-    char arg[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     half_chop(buf, arg, buf1);
     if (isdigit(*arg))
@@ -6429,7 +6429,7 @@ ACMD(do_zlock)
 {
   zone_vnum znvnum;
   zone_rnum zn;
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int counter = 0;
   bool fail = FALSE;
 
@@ -6566,7 +6566,7 @@ ACMD(do_zunlock)
 {
   zone_vnum znvnum;
   zone_rnum zn;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int counter = 0;
   bool fail = FALSE;
 
@@ -6762,7 +6762,7 @@ void free_recent_players(void)
 ACMD(do_recent)
 {
   time_t ct;
-  char *tmstr, arg[MAX_INPUT_LENGTH];
+  char *tmstr, arg[MAX_INPUT_LENGTH] = {'\0'};
   int hits = 0, limit = 0, count = 0;
   struct recent_player *this;
   bool loc;
@@ -6850,8 +6850,8 @@ ACMD(do_recent)
 
 ACMD(do_oset)
 {
-  char arg[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   const char usage[] = "Usage: \r\n"
                        "Options: alias, apply, longdesc, shortdesc\r\n"
                        "> oset <object> <option> <value>\r\n";
@@ -6905,7 +6905,7 @@ ACMD(do_objlist)
   bool quest = FALSE;
 
   int i, j, k, l, m;
-  char value[MAX_INPUT_LENGTH];
+  char value[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   char buf[8192];
   char buf2[8192];
@@ -8189,8 +8189,8 @@ ACMD(do_eqrating)
      - used for marking zones on a map and vice versa */
 ACMD(do_coordconvert)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   int tmp_x_value = -1025, tmp_y_value = -1025;
   int x_value = -1025, y_value = -1025;
 
@@ -8244,7 +8244,7 @@ ACMD(do_coordconvert)
 /* Written by Jamdog - 25th February 2007, ported by Zusuk                                             */
 ACMD(do_findmagic)
 {
-  char spellname[MAX_INPUT_LENGTH], objname[MAX_INPUT_LENGTH];
+  char spellname[MAX_INPUT_LENGTH] = {'\0'}, objname[MAX_INPUT_LENGTH] = {'\0'};
   int spellnum, hits = 0, r_num, num;
   struct obj_data *obj;
 
@@ -8365,7 +8365,7 @@ ACMD(do_cmdlev)
 
 ACMD(do_unbind)
 {
-  char obj_name[MAX_INPUT_LENGTH];
+  char obj_name[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
 
   one_argument(argument, obj_name, sizeof(obj_name));
@@ -8402,7 +8402,7 @@ ACMD(do_unbind)
 
 ACMD(do_obind)
 {
-  char char_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
+  char char_name[MAX_INPUT_LENGTH] = {'\0'}, obj_name[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   struct char_data *vict;
 
@@ -8465,7 +8465,7 @@ ACMDU(do_plist) {
   name_search[0] = '\0';
 
   while (*buf) {
-    char arg[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     half_chop(buf, arg, buf1);
     if (isdigit(*arg)) {
@@ -8575,7 +8575,7 @@ ACMD(do_finddoor)
   int d, vnum = NOTHING, num = 0;
   size_t len, nlen;
   room_rnum i;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {0};
   struct char_data *tmp_char;
   struct obj_data *obj;
@@ -8841,7 +8841,7 @@ void check_auto_shutdown(void)
 
 ACMD(do_perfmon)
 {
-  char arg1[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
 
   argument = one_argument(argument, arg1, sizeof(arg1));
 

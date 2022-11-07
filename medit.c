@@ -429,7 +429,7 @@ void medit_disp_class(struct descriptor_data *d)
 void medit_disp_size(struct descriptor_data *d)
 {
   int i, columns = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   clear_screen(d);
   for (i = -1; i < NUM_SIZES; i++)
@@ -1088,7 +1088,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     }
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       if (!ECHO_ENTRIES(OLC_MOB(d)))
         CREATE(ECHO_ENTRIES(OLC_MOB(d)), char *, 1);
       else
@@ -1135,7 +1135,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
       if (ECHO_ENTRIES(OLC_MOB(d)) && ECHO_ENTRIES(OLC_MOB(d)) != NULL &&
           ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1])
@@ -1563,7 +1563,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       free(GET_LDESC(OLC_MOB(d)));
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s\r\n", arg);
       GET_LDESC(OLC_MOB(d)) = strdup(buf);
     }
@@ -1587,7 +1587,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       free(GET_WALKIN(OLC_MOB(d)));
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
       GET_WALKIN(OLC_MOB(d)) = strdup(buf);
     }
@@ -1601,7 +1601,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       free(GET_WALKOUT(OLC_MOB(d)));
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
       GET_WALKOUT(OLC_MOB(d)) = strdup(buf);
     }
