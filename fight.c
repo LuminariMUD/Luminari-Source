@@ -8487,7 +8487,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         !AFF_FLAGGED(victim, AFF_BLIND) && IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
     {
       /* without a bonus to the challenge here, this was completely ineffective -zusuk */
-      if (!mag_savingthrow(ch, victim, SAVING_FORT, 10, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
+      if (!mag_savingthrow(ch, victim, SAVING_FORT, -10, CAST_INNATE, (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch)), ILLUSION))
       {
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
@@ -8495,6 +8495,14 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         else
         {
           send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
+        }
+
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "[\tRSHADOW-BLINDED!\tn] ");
         }
 
         new_affect(&af);
