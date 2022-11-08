@@ -3538,7 +3538,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
      as a temporary solution i'm using the hide_invisible field as
      a field for other extraneous handling not originally built
      into this function until we develop a more elegant handling -zusuk
-   hide_invisible = -1234 : this is for handling to_room condensed combat mode scenarios -zusuk */
+   hide_invisible = ACT_CONDENSE_VALUE : this is for handling to_room condensed combat mode scenarios -zusuk */
 const char *act(const char *str, int hide_invisible, struct char_data *ch,
                 struct obj_data *obj, void *vict_obj, int type)
 {
@@ -3547,9 +3547,9 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
   int hide_invis = FALSE;
   bool handle_condensed = FALSE;
 
-  /* signal -1234 is FALSE for hididing invisible AND used to let us know we are handling
+  /* signal ACT_CONDENSE_VALUE is FALSE for hididing invisible AND used to let us know we are handling
      a condensed-combat potentialy scenario */
-  if (hide_invisible == -1234)
+  if (hide_invisible == ACT_CONDENSE_VALUE)
   {
     hide_invis = FALSE;
     handle_condensed = TRUE;
