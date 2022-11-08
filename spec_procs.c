@@ -5603,7 +5603,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
     act(to_vict, FALSE, ch, obj, vict, TO_VICT);
   }
 
-  act(to_room, -1234, ch, obj, vict, TO_NOTVICT);
+  act(to_room, ACT_CONDENSE_VALUE, ch, obj, vict, TO_NOTVICT);
 
   call_magic(ch, vict, 0, spl, 0, level, CAST_WEAPON_SPELL);
 }
@@ -5861,7 +5861,7 @@ SPECIAL(spikeshield)
 
     act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N\tL.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     damage(ch, vict, 15, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_WEAPON_SPELL);
@@ -5893,7 +5893,7 @@ SPECIAL(spikeshield)
 
     act("$n \tLslams $s \tcshield\tL into $N\tL\tn\r\n"
         "\tLcausing the rows of \trspikes\tL to drive into $S body.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE,
            FALSE); // type -1 = no dam message
@@ -6005,7 +6005,7 @@ SPECIAL(ches)
           "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
           "\tLflows through the weapon into $N \tn\r\n"
           "\tLcausing $S hair to stand on end.\tn\tn\r\n",
-          -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
       damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE); // type -1 = no dam message
 
@@ -6096,7 +6096,7 @@ SPECIAL(courage)
 
     /* should be good! */
 
-    act("$n \tLinvokes $s $p!", -1234, ch, courage, 0, TO_ROOM);
+    act("$n \tLinvokes $s $p!", ACT_CONDENSE_VALUE, ch, courage, 0, TO_ROOM);
     act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
 
     call_magic(ch, ch, NULL, SPELL_MASS_ENHANCE, 0, wpn_level, CAST_WEAPON_SPELL);
@@ -6884,7 +6884,7 @@ SPECIAL(purity)
     act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
         "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
         "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
   }
   else
   {
@@ -6913,7 +6913,7 @@ SPECIAL(purity)
     act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
         "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
         "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
   }

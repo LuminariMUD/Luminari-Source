@@ -3382,6 +3382,9 @@
 #define MAX_COMPLETED_QUESTS 1024 /**< Maximum number of completed quests allowed */
 #define MAX_ANGER 100             /**< Maximum mob anger/frustration as percentage */
 
+/* this is the value we are sending to act when we want it condensed (condensed combat toggle) -zusuk */
+#define ACT_CONDENSE_VALUE -1234
+
 // other MAX_ defines
 #define MAX_WEAPON_SPELLS 3
 #define MAX_WEAPON_CHANNEL_SPELLS 2
