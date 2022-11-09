@@ -1053,7 +1053,7 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
       else if (CAN_INFRA(ch, i) && !AFF_FLAGGED(i, AFF_HIDE))
         send_to_char(ch, "\tnYou see the \trred\tn outline of someone or something.\r\n");
       else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) &&
-               AFF_FLAGGED(i, AFF_INFRAVISION) && INVIS_OK(ch, i))
+               char_has_infra(i) && INVIS_OK(ch, i))
         send_to_char(ch, "You see a pair of glowing red eyes looking your way.\r\n");
       else if ((!IS_DARK(IN_ROOM(ch)) || CAN_SEE_IN_DARK(ch)) &&
                AFF_FLAGGED(ch, AFF_SENSE_LIFE))
@@ -1107,18 +1107,18 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   }
 
   if (ROOM_FLAGGED(room_number, ROOM_MAGICDARK) ||
-      (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION)))
+      (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !char_has_infra(ch)))
   {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     return;
   }
   if (ROOM_FLAGGED(ch->in_room, ROOM_MAGICDARK) ||
-      (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION)))
+      (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !char_has_infra(ch)))
   {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     return;
   }
-  if (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))
+  if (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !char_has_infra(ch))
   {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     list_char_to_char(world[room_number].people, ch);
@@ -1131,7 +1131,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
       list_char_to_char(world[room_number].people, ch);
     return;
   }
-  else if (IS_DARK(room_number) && AFF_FLAGGED(ch, AFF_INFRAVISION))
+  else if (IS_DARK(room_number) && char_has_infra(ch))
   {
     send_to_char(ch, world[room_number].name);
     send_to_char(ch, "\r\n");
@@ -5392,7 +5392,7 @@ ACMD(do_scan)
   }
 
   /*
-  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ultra_blind(ch, ch->in_room)) {
+  if (char_has_ultra(ch) && ultra_blind(ch, ch->in_room)) {
     send_to_char("Its too bright to see.\r\n", ch);
     return;
   }
@@ -5506,7 +5506,7 @@ ACMD(do_survey)
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
   {
     send_to_char(ch, "Its too bright to survey!\r\n");
     return;
@@ -5560,7 +5560,7 @@ ACMD(do_exits)
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
   {
     send_to_char(ch, "Its too bright to see.\r\n");
     return;
