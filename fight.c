@@ -3153,6 +3153,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
       damtype_reduction += 10;
+    
+    if (HAS_FEAT(ch, FEAT_MOUNTAIN_BORN))
+      damtype_reduction += 50;
 
     /* npc vulnerabilities/strengths */
     if (GET_NPC_RACE(ch) == RACE_TYPE_ELEMENTAL &&
@@ -4130,7 +4133,17 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
 
       damage_reduction = compute_damage_reduction(victim, dam_type);
+      
+      if (affected_by_spell(victim, ABILITY_AFFECT_STONES_ENDURANCE))
+      {
+        damage_reduction += dice(1, 12) + GET_CON_BONUS(victim);
+        act("The rocky hardness of your skin deflects some of the damage, then crumbles to dust.", FALSE, victim, 0, 0, TO_CHAR);
+        act("The rocky hardness of $n's skin deflects some of the damage, then crumbles to dust.", FALSE, victim, 0, 0, TO_ROOM);
+        affect_from_char(victim, ABILITY_AFFECT_STONES_ENDURANCE);
+      }
+
       dam -= MIN(dam, damage_reduction);
+      
       if (!dam && (ch != victim))
       {
 
@@ -7644,6 +7657,11 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     }
     calc_bab -= 2;
   }
+
+  // -2 penalty if wielding a large weapon in one hand
+  // through the monkey grip and powerful build feats
+  if (wielded && wielded != GET_EQ(ch, WEAR_WIELD_2H) && hands_needed_full(ch, wielded, FALSE) != 0)
+    calc_bab -= 2;
 
   if (wielded)
   {

@@ -447,6 +447,37 @@ void assign_feats(void)
         "+2 cha and 2 extra ability score points at 1st level",
         "The half elf receive +2 to their charisma score and 2 more points when choosing ability scores at level one.");
 
+  /* Goliath */
+  feato(FEAT_GOLIATH_RACIAL_ADJUSTMENT, "goliath racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 to strength, +1 to constitution",
+    "Goliaths as a racial adjustment have +2 strength, +1 constitution.");
+  feato(FEAT_NATURAL_ATHLETE, "natural athlete", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 to climb, swim and survival skills.",
+    "Goliaths get +2 to climb, swim and survival skills.");
+  feato(FEAT_POWERFUL_BUILD, "powerful build", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Treats weapons as if they were one size smaller when wielding them.  Will impose a -2 penalty to attack rolls if this modification is in effect.",
+    "Goliaths treat weapons as if they were one size smaller when wielding them.  Will impose a -2 penalty to attack rolls if this modification is in effect.");
+  feato(FEAT_MOUNTAIN_BORN, "mountain born", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "50 resistance to cold damage.",
+    "Goliaths get 50 resistance to cold damage.");
+  feato(FEAT_STONES_ENDURANCE, "stone's endurance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Reduce damage of next attack by 1d12 + constitution modifier.",
+    "Goliaths can use the stonesendurance command to reduce damage of next attack by 1d12 + constitution modifier.");
+
+  /* Shade */
+  feato(FEAT_SHADE_RACIAL_ADJUSTMENT, "shade racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 to dexterity, +1 to charisma",
+    "Shades as a racial adjustment have +2 dexterity and +1 charisma.");
+  feato(FEAT_PRACTICED_SNEAK, "practiced sneak", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Stealth is considered a class skill, regardless of class.",
+    "Shades treat stealth as a class skill no matter which class they are levelling at the time.");
+  feato(FEAT_SHADOWFELL_MIND, "shadowfell mind", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 to stealth and spellcraft skills.",
+    "Shades get +2 tp their stealth and spellcraft skills.");
+  feato(FEAT_ONE_WITH_SHADOW, "one with shadow", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "Can hide even during battle in cover or concealment.",
+    "Shades can hide even during battle if he has cover or concealment.  He can also use allies as cover for this purpose.");
+
   // Half drow
   feato(FEAT_HALF_DROW_RACIAL_ADJUSTMENT, "half drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 int and 2 extra ability score points at 1st level",
@@ -878,6 +909,16 @@ void assign_feats(void)
   feato(FEAT_WOOD_ELF_FLEETNESS, "wood elf fleetness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "max movement points increased by +20 per level",
         "The wood elf's maximum movement points increases by +20 per level.");
+
+  feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "high elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 dex +1 int",
+    "High Elven racial adjustment to stats are: +2 dexterity, +1 intelligence.");
+  feato(FEAT_HIGH_ELF_CANTRIP, "high elf cantrip", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  "can choose 1 wizard cantrip",
+  "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen via the study menu.");
+  feato(FEAT_HIGH_ELF_LINGUIST, "high elf linguist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  "can learn an additional language",
+  "Allows the choosing of an extra language.");
 
   /* Shared - Various */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -4145,6 +4186,10 @@ void assign_feats(void)
         "Allows the alchemist to select a single grand discovery upon reaching level 20,"
         "with the 'gdiscovery' command.");
 
+  feato(FEAT_MONKEY_GRIP, "monkey grip", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, 
+    "can wield weapons one size larger than wielder in one hand with -2 to attacks.", 
+    "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
+
   /**************************/
   /* Disabled/Unimplemented */
   /**************************/
@@ -4162,7 +4207,6 @@ void assign_feats(void)
   feato(FEAT_IMPROVED_BULL_RUSH, "improved bull rush", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_IMPROVED_SUNDER, "improved sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_SUNDER, "sunder", FALSE, FALSE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
-  feato(FEAT_MONKEY_GRIP, "monkey grip", FALSE, TRUE, TRUE, FEAT_TYPE_GENERAL, "can wield weapons one size larger than wielder in one hand with -2 to attacks.", "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
   feato(FEAT_IMPROVED_INSTIGATION, "improved instigation", FALSE, TRUE, FALSE, FEAT_TYPE_GENERAL, "ask staff", "ask staff");
   feato(FEAT_DIEHARD, "diehard", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "Gives you a 33% chance to avoid a killing blow.",
@@ -4605,6 +4649,7 @@ void assign_feats(void)
   dailyfeat(FEAT_TINKER, eTINKER);
   dailyfeat(FEAT_DRAGONBORN_BREATH, eDRAGBREATH);
   dailyfeat(FEAT_TABAXI_CATS_CLAWS, eCATSCLAWS);
+  dailyfeat(FEAT_STONES_ENDURANCE, eSTONESENDURANCE);
   /** END **/
 }
 
@@ -5064,12 +5109,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return TRUE;
 
     case FEAT_MONKEY_GRIP:
-      /*    if (!iarg)
-              return TRUE;
-            if (!is_proficient_with_weapon(ch, iarg))
-              return FALSE;
-            return TRUE;
-         */
+      if (!iarg)
+        return TRUE;
+      if (!is_proficient_with_weapon(ch, iarg))
+        return FALSE;
+      return TRUE;
       return false;
 
     case FEAT_LAST_FEAT:
@@ -5872,6 +5916,17 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
           snprintf(buf, sizeof(buf), "%-40s ", buf3);
         }
         strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
+      else if (i == FEAT_HIGH_ELF_CANTRIP) {
+        if (mode == 1) {
+          sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[HIGH_ELF_CANTRIP(ch)].name);
+          sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        } else {
+          sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[HIGH_ELF_CANTRIP(ch)].name);
+          sprintf(buf, "%-40s ", buf3);
+        }
+        strcat(buf2, buf);
         none_shown = FALSE;
       }
       else if (i == FEAT_DRAGONBORN_ANCESTRY)

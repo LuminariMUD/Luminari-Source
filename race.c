@@ -1567,8 +1567,6 @@ void assign_races(void)
   feat_race_assignment(RACE_MOON_ELF, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, 1, N);
   feat_race_assignment(RACE_MOON_ELF, FEAT_MOON_ELF_LUNAR_MAGIC, 1, N);
 
-#ifdef TEMP_COMMENTED
-
   add_race(RACE_HIGH_ELF, "high elf", "High Elf", "\tGHigh Elf\tn", "HiEl", "\tGHiEl\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
@@ -2516,8 +2514,6 @@ void assign_races(void)
   feat_race_assignment(RACE_TRELUX, FEAT_TRELUX_PINCERS, 1, N);
   feat_race_assignment(RACE_TRELUX, FEAT_INSECTBEING, 1, N);
 
-#ifdef TEMP_COMMENTED
-
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -2604,10 +2600,8 @@ void assign_races(void)
   race_list[RACE_GOLIATH].racial_language = LANG_GIANT;
   /* affect assignment */
   /*                  race-num  affect            lvl */
-#endif
 
 // end luminari race info
-#endif
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -3497,6 +3491,12 @@ int parse_race_long(const char *arg_in)
     return RACE_ELF;
   if (is_abbrev(arg, "moon elf"))
     return RACE_ELF;
+    if (is_abbrev(arg, "high-elf"))
+    return RACE_HIGH_ELF;
+  if (is_abbrev(arg, "highelf"))
+    return RACE_HIGH_ELF;
+  if (is_abbrev(arg, "high elf"))
+    return RACE_HIGH_ELF;
   if (is_abbrev(arg, "darkelf"))
     return RACE_DROW;
   if (is_abbrev(arg, "dark-elf"))
@@ -3627,6 +3627,10 @@ int parse_race_long(const char *arg_in)
     return RACE_AASIMAR;
   if (is_abbrev(arg, "tabaxi"))
     return RACE_TABAXI;
+  if (is_abbrev(arg, "shade"))
+    return RACE_SHADE;
+  if (is_abbrev(arg, "goliath"))
+    return RACE_GOLIATH;
 
   return RACE_UNDEFINED;
 }

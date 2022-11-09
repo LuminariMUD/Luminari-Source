@@ -971,6 +971,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       if (weather_info.sunlight == SUN_DARK || weather_info.sunlight == SUN_SET)
         value += 6;
     }
+    if (HAS_REAL_FEAT(ch, FEAT_SHADOWFELL_MIND))
+      value += 2;
       if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
       value += 2;
     value += compute_gear_armor_penalty(ch);
@@ -1082,6 +1084,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_REAL_FEAT(ch, FEAT_SHADOWFELL_MIND))
+      value += 2;
     return value;
   case ABILITY_APPRAISE:
     value += GET_INT_BONUS(ch);
@@ -1130,6 +1134,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_CLIMB:
     value += GET_STR_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_ATHLETIC))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
+    if (HAS_FEAT(ch, FEAT_NATURAL_ATHLETE))
     {
       /* Unnamed bonus */
       value += 2;
@@ -1232,11 +1241,21 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_NATURAL_ATHLETE))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
     return value;
   case ABILITY_SWIM:
     value += GET_STR_BONUS(ch);
     value += (2 * compute_gear_armor_penalty(ch));
     if (HAS_FEAT(ch, FEAT_ATHLETIC))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
+    if (HAS_FEAT(ch, FEAT_NATURAL_ATHLETE))
     {
       /* Unnamed bonus */
       value += 2;
@@ -2854,7 +2873,9 @@ SPECIAL(guild)
 
     if (GET_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3))
       send_to_char(ch, "You are now trained in that area.\r\n");
-    if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
+    if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
+      ;
+    else if (GET_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
       send_to_char(ch, "You are already trained in that area.\r\n");
 
     return (TRUE);

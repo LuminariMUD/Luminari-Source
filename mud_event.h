@@ -179,6 +179,7 @@ typedef enum
   eMOONBEAM,                        // moon beam spell lingering effect
   eDRAGBREATH,                      // Dragonborn breath weapon
   eCATSCLAWS,                       // tabaxi Cats Claws ability
+  eSTONESENDURANCE,                 // goliath stones endurance ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

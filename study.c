@@ -450,6 +450,10 @@ void finalize_study(struct descriptor_data *d)
   if (LEVELUP(ch)->sorcerer_bloodline_subtype > 0)
     ch->player_specials->saved.sorcerer_bloodline_subtype = LEVELUP(ch)->sorcerer_bloodline_subtype;
 
+  // Assign high elf cantrip if necessary
+  if (LEVELUP(ch)->high_elf_cantrip > 0)
+    ch->player_specials->saved.high_elf_cantrip = LEVELUP(ch)->high_elf_cantrip;
+
   // Assign dragonborn ancestry if necessary
   if (LEVELUP(ch)->dragonborn_draconic_ancestry > 0)
     ch->player_specials->saved.dragonborn_draconic_ancestry = LEVELUP(ch)->dragonborn_draconic_ancestry;
@@ -1714,6 +1718,20 @@ static void select_blackguard_cruelties(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SELECT_BG_CRUELTY;
 }
 
+static void select_high_elf_cantrip(struct descriptor_data *d)
+{
+  int i = 1;
+
+  send_to_char(d->character, "Available Cantrips:\r\n");
+  for (i = 1; i < NUM_SPELLS; i++)
+  {
+    if (i == SPELL_ENCHANT_ITEM)
+      continue;
+    if (spell_info[i].min_level[CLASS_WIZARD] == 1)
+      send_to_char(d->character, "%3d) %s\r\n", i, spell_info[i].name);
+  }
+}
+
 static void set_dragonborn_draconic_ancestry(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -2851,7 +2869,9 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3))
       send_to_char(ch, "You are now fully trained for your level in that area.\r\n");
-    if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
+    if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
+      ;
+    else if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && CLSLIST_ABIL(GET_CLASS(ch), skill_num) == 1)
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
 
     main_skills_disp_menu(d);
@@ -3978,15 +3998,15 @@ void study_parse(struct descriptor_data *d, char *arg)
       number = atoi(arg);
       switch (number)
       {
-      // case 0:
-      //   if (CAN_CHOOSE_HIGH_ELF_CANTRIP(ch))
-      //   {
-      //     write_to_output(d, "You are not able to select that racial ability.\r\n");
-      //     break;
-      //   }
-      //   select_high_elf_cantrip(d);
-      //   OLC_MODE(d) = SET_HIGH_ELF_CANTRIP;
-      //   return;
+      case 0:
+        if (CAN_CHOOSE_HIGH_ELF_CANTRIP(ch))
+        {
+          write_to_output(d, "You are not able to select that racial ability.\r\n");
+          break;
+        }
+        select_high_elf_cantrip(d);
+        OLC_MODE(d) = SET_HIGH_ELF_CANTRIP;
+        return;
       case 1:
         if (CAN_CHOOSE_DRAGONBORN_ANCESTRY(ch))
         {
@@ -4006,6 +4026,58 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
 
     /*****/
+
+  case SET_HIGH_ELF_CANTRIP:
+    number = atoi(arg);
+    for (i = 1; i < NUM_SPELLS; i++)
+    {
+      if (i == SPELL_ENCHANT_ITEM)
+        continue;
+      if (spell_info[i].min_level[CLASS_WIZARD] == 1 && number == i)
+        break;
+    }
+    if (i >= NUM_SPELLS)
+    {
+      write_to_output(d, "That is not a valid spell for your high elf cantrip.\r\n");
+    }
+    else
+    {
+      LEVELUP(ch)->tempFeat = FEAT_HIGH_ELF_CANTRIP;
+      LEVELUP(ch)->high_elf_cantrip = number;
+      OLC_MODE(d) = STUDY_CONFIRM_HIGH_ELF_CANTRIP;
+      /* Display the spell chosen, and give the player an option. */
+      write_to_output(d, "%s%s%s: %s\r\nHigh Elf Cantrip: %s\r\n"
+                         "Choose this spell as your high elf cantrip? (y/n) : ",
+                      nrm, feat_list[LEVELUP(ch)->tempFeat].name, nrm, feat_list[LEVELUP(ch)->tempFeat].description, spell_info[number].name);
+      /* Store the feat number in the work area in the data structure. */
+      break;
+    }
+    break;
+
+  case STUDY_CONFIRM_HIGH_ELF_CANTRIP:
+    switch (*arg)
+    {
+    case 'y':
+    case 'Y':
+      if (add_levelup_feat(d, LEVELUP(ch)->tempFeat))
+      {
+        write_to_output(d, "%s chosen!\r\n", feat_list[LEVELUP(ch)->tempFeat].name);
+        if (LEVELUP(ch)->high_elf_cantrip > 0)
+        {
+          if (LEVELUP(ch)->tempFeat == FEAT_HIGH_ELF_CANTRIP)
+          {
+            write_to_output(d, "You've selected the %s spell for your high elf cantrip.\r\n", spell_info[LEVELUP(ch)->high_elf_cantrip].name);
+          }
+        }
+      }
+      display_main_menu(d);
+      break;
+    default:
+      select_high_elf_cantrip(d);
+      OLC_MODE(d) = SET_HIGH_ELF_CANTRIP;
+      break;
+    }
+    break;
 
   case SET_DRAGONBORN_ANCESTRY:
     number = atoi(arg);
@@ -4622,8 +4694,8 @@ sbyte isRacialFeat(int feat)
 {
   switch (feat)
   {
-  // case FEAT_HIGH_ELF_CANTRIP:
-  //   return true;
+  case FEAT_HIGH_ELF_CANTRIP:
+    return true;
   case FEAT_DRAGONBORN_ANCESTRY:
     return true;
   }
