@@ -1785,7 +1785,6 @@ void assign_races(void)
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
-<<<<<<< HEAD
     /****************************************************************************/
     /****************************************************************************/
     /****************************************************************************/
@@ -1830,63 +1829,11 @@ void assign_races(void)
     feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_RACIAL_ADJUSTMENT,  1,  N);
     feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_MAGIC            ,  1,  N);
     race_list[RACE_TIEFLING].racial_language = LANG_ABYSSAL;
-
-    /****************************************************************************/
-=======
-#ifdef TEMP_COMMENTED
-  /****************************************************************************/
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_TIEFLING, "tielfing", "Tiefling", "\tATiefling\tn", "Tief", "\tATief\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_TIEFLING,
-                   /*descrip*/
-                   "Tieflings were human-based planetouched, native outsiders that were infused "
-                   "with the touch of the fiendish planes, most often through descent from fiends-"
-                   "demons, Yugoloths, devils, evil deities, and others who had bred with humans. "
-                   "Tieflings were known for their cunning and personal allure, which made them  "
-                   "excellent deceivers as well as inspiring leaders when prejudices were laid  "
-                   "aside. Although their evil ancestors could be many generations removed, the "
-                   "taint lingered. Unlike half-fiends, tieflings were not predisposed to evil "
-                   "alignments and varied in alignment nearly as widely as full humans, though "
-                   "tieflings were certainly devious. Tieflings tended to have an unsettling air "
-                   "about them, and most people were uncomfortable around them, whether they were "
-                   "aware of the tiefling's unsavory ancestry or not. While some looked like normal "
-                   "humans, most retained physical characteristics derived from their ancestor, "
-                   "with the most common such features being horns, prehensile tails, and pointed "
-                   "teeth. Some tieflings also had eyes that were solid orbs of black, red, white, "
-                   "silver, or gold, while others had eyes more similar to those of humans. Other, "
-                   "more unusual characteristics included a sulfurous odor, cloven feet, or a "
-                   "general aura of discomfort they left on others. ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Tiefling.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Tiefling.");
-  set_race_genders(RACE_TIEFLING, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_TIEFLING, 0, 0, 1, 0, 0, 2);           /* str con int wis dex cha */
-  set_race_alignments(RACE_TIEFLING, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_TIEFLING,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_TIEFLING, FEAT_INFRAVISION, 1, N);
-  feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_HELLISH_RESISTANCE, 1, N);
-  feat_race_assignment(RACE_TIEFLING, FEAT_BLOODHUNT, 1, N);
-  feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_MAGIC, 1, N);
-  race_list[RACE_TIEFLING].racial_language = LANG_ABYSSAL;
-
-  /****************************************************************************/
->>>>>>> 03ae858c0362b5945e8a5d08a75350595e92ae1e
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_AASIMAR, "aasimar", "Aasimar", "\tWAasimar\tn", "Asmr", "\tWAsmr\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-<<<<<<< HEAD
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_AASIMAR,
       /*descrip*/
@@ -1953,75 +1900,6 @@ void assign_races(void)
     feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_CATS_CLAWS,  1,  N);
     feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_CATS_TALENT,  1,  N);
     feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_FELINE_AGILITY,  1,  N);
-=======
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_AASIMAR,
-                   /*descrip*/
-                   "Aasimar were human-based planetouched, native outsiders that had in their blood "
-                   "some good, otherworldly characteristics. They were often, but not always, descended "
-                   "from celestials and other creatures of pure good alignment, but while predisposed to "
-                   "good alignments, aasimar were by no means always good. Aasimar bore the mark of their "
-                   "celestial touch through many different physical features that often varied from "
-                   "individual to individual. Most commonly, aasimar were very similar to humans, like "
-                   "tieflings and other planetouched. Nearly all aasimar were uncommonly beautiful and "
-                   "still, and they were often significantly taller than humans as well.",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes an Aasimar.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes an Aasimar.");
-  set_race_genders(RACE_AASIMAR, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_AASIMAR, 0, 0, 0, 1, 0, 2);           /* str con int wis dex cha */
-  set_race_alignments(RACE_AASIMAR, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_AASIMAR,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_AASIMAR, FEAT_ULTRAVISION, 1, N);
-  feat_race_assignment(RACE_AASIMAR, FEAT_ASTRAL_MAJESTY, 1, N);
-  feat_race_assignment(RACE_AASIMAR, FEAT_CELESTIAL_RESISTANCE, 1, N);
-  feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_HEALING_HANDS, 1, N);
-  feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_LIGHT_BEARER, 1, N);
-  race_list[RACE_AASIMAR].racial_language = LANG_CELESTIAL;
-
-  /****************************************************************************/
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_TABAXI, "tabaxi", "Tabaxi", "\tyTabaxi\tn", "Tbxi", "\tyTbxi\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_TABAXI,
-                   /*descrip*/
-                   "Tabaxi are taller than most humans at six to seven feet. Their bodies are slender "
-                   "and covered in spotted or striped fur. Like most felines, Tabaxi had long tails and "
-                   "retractable claws. Tabaxi fur color ranged from light yellow to brownish red. Tabaxi "
-                   "eyes are slit-pupilled and usually green or yellow. Tabaxi are competent swimmers and "
-                   "climbers as well as speedy runners. They had a good sense of balance and an acute sense "
-                   "of smell. Depending on their region and fur coloration, tabaxi are known by different "
-                   "names. Tabaxi with solid spots are sometimes called leopard men and tabaxi with rosette "
-                   "spots are called jaguar men. The way the tabaxi pronounced their own name also varied; "
-                   "the 'leopard men' pronounced it ta-BÆK-see, and the jaguar men tah-BAHSH-ee. ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Tabaxi.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Tabaxi.");
-  set_race_genders(RACE_TABAXI, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_TABAXI, 1, 0, 0, 0, 2, 0);           /* str con int wis dex cha */
-  set_race_alignments(RACE_TABAXI, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_TABAXI,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, Y, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, Y, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_TABAXI, FEAT_INFRAVISION, 1, N);
-  feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_CATS_CLAWS, 1, N);
-  feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_CATS_TALENT, 1, N);
-  feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_FELINE_AGILITY, 1, N);
-#endif
->>>>>>> 03ae858c0362b5945e8a5d08a75350595e92ae1e
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -2069,17 +1947,11 @@ void assign_races(void)
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
 
-<<<<<<< HEAD
     /****************************************************************************/
-=======
-#ifdef TEMP_COMMENTED
-  /****************************************************************************/
->>>>>>> 03ae858c0362b5945e8a5d08a75350595e92ae1e
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_GOLD_DWARF, "gold dwarf", "Gold Dwarf", "\tLGold Dwarf\tn", "GdDw", "\tLGdDw\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-<<<<<<< HEAD
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_GOLD_DWARF,
       // desc
@@ -2127,56 +1999,6 @@ void assign_races(void)
     feat_race_assignment(RACE_GOLD_DWARF, FEAT_GOLD_DWARF_TOUGHNESS,   1,  N);
     feat_race_assignment(RACE_GOLD_DWARF, FEAT_ENCUMBERED_RESILIENCE,   1,  N);
     feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY,  1,  N);
-=======
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_GOLD_DWARF,
-                   // desc
-                   "Gold dwarves, also known as hill dwarves, are the aloof, confident and "
-                   "sometimes proud subrace of dwarves that predominantly come from the Great "
-                   "Rift. They are known to be particularly stalwart warriors and shrewd traders. "
-                   "Gold dwarves are often trained specifically to battle the horrendous "
-                   "aberrations that are known to come from the Underdark. Gold dwarves are stout, "
-                   "tough individuals like their shield dwarven brethren but are less off-putting "
-                   "and gruff in nature. Conversely, gold dwarves are often less agile than other "
-                   "dwarves. The average gold dwarf is about four feet tall (1.2 meters) and as "
-                   "heavy as a full-grown human, making them somewhat squatter than the more common "
-                   "shield dwarves. Gold dwarves are also distinguishable by their light brown or "
-                   "tanned skin, significantly darker than that of most dwarves, and their brown or "
-                   "hazel eyes. Gold dwarves have black, gray, or brown hair, which fade to light "
-                   "gray over time. Gold dwarf males and some females can grow beards, which are "
-                   "carefully groomed and grown to great lengths. Humans who wander into the gold "
-                   "dwarven strongholds may be surprised to find a people far more confident and "
-                   "secure in their future than most dwarves. Whereas the shield dwarves suffered "
-                   "serious setbacks during their history, the gold dwarves have stood firm against "
-                   "the challenges thrown against them and so have few doubts about their place in "
-                   "the world. As a result, gold dwarves can come off as haughty and almost  "
-                   "eladrin-like in their pride,believing themselves culturally superior to "
-                   "all other races and lacking the fatalistic pessimism of their shield dwarven "
-                   "cousins. ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Gold Dwarf.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Gold Dwarf.");
-  set_race_genders(RACE_GOLD_DWARF, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_GOLD_DWARF, 0, 2, 0, 1, 0, 0);           /* str con int wis dex cha */
-  set_race_alignments(RACE_GOLD_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_GOLD_DWARF,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_ULTRAVISION, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_POISON_RESIST, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_STABILITY, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_SPELL_HARDINESS, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARF_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_GOLD_DWARF_TOUGHNESS, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
-  feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-#endif
->>>>>>> 03ae858c0362b5945e8a5d08a75350595e92ae1e
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -2268,7 +2090,6 @@ void assign_races(void)
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_STOUT_HALFLING, "stout halfling", "Stout Halfling", "\tTStout Halfling\tn", "StHf", "\tTStHf\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-<<<<<<< HEAD
            RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_STOUT_HALFLING,
       // description
@@ -2381,121 +2202,6 @@ void assign_races(void)
     feat_race_assignment(RACE_FOREST_GNOME, FEAT_SPEAK_WITH_BEASTS,         1,  N);
     feat_race_assignment(RACE_FOREST_GNOME, FEAT_NATURAL_ILLUSIONIST,       1,  N);
     race_list[RACE_FOREST_GNOME].racial_language = LANG_GNOMISH;
-=======
-           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_STOUT_HALFLING,
-                   // description
-                   "Creatures of the earth who love a warm hearth and "
-                   "pleasant company, s trongheart halflings are folks of few "
-                   "enemies and many friends. Stronghearts a re sometimes "
-                   "referred to fondly by members of other races as \"the "
-                   "good folk,\" for little upsets stronghearts or corrupts "
-                   "their spirit. To many of them, the greatest fear is to live "
-                   "in a world of poor company and mean intent, where one "
-                   "lacks freedom and the comfort of friendship. "
-                   "When strongheart halflings settle into a place, they "
-                   "intend to stay. It's not unusual for a dynasty of stronghearts "
-                   "to live in the same place for a few centuries. "
-                   "Strongheart halflings don't develop these homes in "
-                   "seclusion. On the contrary, they do their best to fit into "
-                   "the local community and become an essential part of "
-                   "it. Their viewpoint stresses cooperation above all other "
-                   "traits, and the ability to work well with others is the "
-                   "most valued behavior in their lands. "
-                   "Pushed from their nests, strongheart haflings typically "
-                   "try to have as many comforts of home with them as "
-                   "possible. Non-stronghearts with a more practical bent "
-                   "can find strongheart travel habits maddening, but their "
-                   "lightfoot cousins typically enjoy the novelty of it- so long "
-                   "as the lightfoots don't have to carry any of the baggage. "
-                   "While often stereotyped as fat and lazy due to their "
-                   "homebound mindset and obsession with fine food, "
-                   "strongheart halfings are typically quite industrious. "
-                   "Nimble hands, their patient mindset, and their emphasis "
-                   "on quality makes them excellent weavers, potters, wood "
-                   "carvers, basket makers, painters, and farmers. "
-                   "Strongheart halflings "
-                   "are shorter on average than their lightfoot kin, and tend "
-                   "to have rounder faces. They have the skin tones and hair "
-                   "colors of humans, with most having brown hair. Unlike "
-                   "their lightfoot cousins, strongheart halflings often have "
-                   "blond or black hair and blue or green eyes. Ma les don't "
-                   "grow beards or mustaches, but both males and females "
-                   "can grow sideburns down to mid-cheek, and both genders "
-                   "plait them into long braids. ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Stout Halfling.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Stout Halfling.");
-  set_race_genders(RACE_STOUT_HALFLING, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_STOUT_HALFLING, 0, 1, 0, 0, 2, 0);           /* str con int wis dex cha */
-  set_race_alignments(RACE_STOUT_HALFLING, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_STOUT_HALFLING,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_INFRAVISION, 1, N);
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_SHADOW_HOPPER, 1, N);
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_LUCKY, 1, N);
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_STOUT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_STOUT_HALFLING, FEAT_STOUT_RESILIENCE, 1, N);
-  race_list[RACE_STOUT_HALFLING].racial_language = LANG_HALFLING;
-  /* affect assignment */
-  /*                  race-num  affect            lvl */
-
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_FOREST_GNOME, "forest gnome", "Forest Gnome", "\tVForest Gnome\tn", "FrGn", "\tVFrGn\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_FOREST_GNOME,
-                   // Description
-                   "Forest gnomes are among the least commonly seen gnomes on Toril, far shier than "
-                   "even their deep gnome cousins. Small and reclusive, forest gnomes are so "
-                   "unknown to most non-gnomes that they have repeatedly been \"discovered\" by "
-                   "wandering outsiders who happen into their villages. Timid to an extreme, "
-                   "forest gnomes almost never leave their hidden homes. Compared with other "
-                   "gnomes, forest gnomes are even more diminutive than is typical of the stunted "
-                   "race, rarely growing taller than 2½ feet in height or weighing in over 30 lbs. "
-                   "Typically, males are slightly larger than females, at the most by four inches "
-                   "or five pounds. Unlike other gnomes, forest gnomes generally grow their hair "
-                   "long and free, feeling neither the need nor desire to shave or trim their hair "
-                   "substantially, though males often do take careful care of their beards, "
-                   "trimming them to a fine point or curling them into hornlike spikes. Forest "
-                   "gnome skin is an earthy color and looks, in many ways, like wood, although it "
-                   "is not particularly tough. Forest gnome hair is brown or black, though it grays "
-                   "with age, sometimes to a pure white. Like other gnomes, forest gnomes generally "
-                   "live for centuries, although their life expectancy is a bit longer than is the "
-                   "case for either rock or deep gnomes; 400 is the average life expectancy of a "
-                   "forest gnome. ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Forest Gnome.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Forest Gnome.");
-  set_race_genders(RACE_FOREST_GNOME, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_FOREST_GNOME, 0, 0, 2, 0, 1, 0);           /* str con int wis dex cha */
-  set_race_alignments(RACE_FOREST_GNOME, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_FOREST_GNOME,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_INFRAVISION, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_RESISTANCE_TO_ILLUSIONS, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_ILLUSION_AFFINITY, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_TINKER_FOCUS, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_GNOME_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_FOREST_GNOME_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_SPEAK_WITH_BEASTS, 1, N);
-  feat_race_assignment(RACE_FOREST_GNOME, FEAT_NATURAL_ILLUSIONIST, 1, N);
-  race_list[RACE_FOREST_GNOME].racial_language = LANG_GNOMISH;
-#endif
->>>>>>> 03ae858c0362b5945e8a5d08a75350595e92ae1e
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
