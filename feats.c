@@ -508,7 +508,11 @@ void assign_feats(void)
         "+2 to lore and appraise based skill and ability checks.");
   feato(FEAT_TINKER, "tinker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "chance to improve an item",
-        "20% chance to increase damage of weapon by +1, or improve an armor/shield's ac bonus by 1 for shield and 0.25 for separate armor pieces using the tinker command.  20% chance that the failure will end up destroying the item. Uses the tinker command.");
+        "20% chance to increase damage of weapon by +1, or improve an "
+        "armor/shield's ac bonus by 1 for shield and 0.25 for separate "
+        "armor pieces using the tinker command.  20% chance that the "
+        "failure will end up destroying the item. Uses the tinker "
+        "command.  Usable 1x/day.");
   feato(FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, "rock gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 Int +1 con",
         "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");

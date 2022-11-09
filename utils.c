@@ -4532,6 +4532,14 @@ int get_daily_uses(struct char_data *ch, int featnum)
     else
       daily_uses = -1;
     break;
+  case FEAT_TINKER:
+    daily_uses += HAS_FEAT(ch, FEAT_TINKER);
+    break;
+
+    /* having this be the default behavior - zusuk */
+  default:
+    daily_uses += HAS_FEAT(ch, featnum);
+    break;
   }
 
   return daily_uses;
