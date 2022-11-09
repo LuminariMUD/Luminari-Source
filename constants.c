@@ -437,7 +437,7 @@ const char *paladin_mercy_descriptions[] = {
     "removes fear status",
     "gives regeneration of 3 hp/round for duration of 1/2 paladin levels",
     "removes nauseated status",
-    "removes posion status",
+    "removes poison status",
     "removes blindess",
     "removes deafness",
     "removes 1 random negative effect",
