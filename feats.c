@@ -473,6 +473,77 @@ void assign_feats(void)
   feato(FEAT_DRAGONBORN_FURY, "dragonborn fury", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "If below 50 percent HP, +1 to attacks and +2 to damage rolls.",
         "If the dragonborn is below 50 percent of their maximum hit points, they receive a +1 morale bonus to attack rolls and +2 morale bonus to damage rolls.");
+  
+  // Tiefling
+  feato(FEAT_TIEFLING_RACIAL_ADJUSTMENT, "tiefling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 cha and +1 int",
+    "Tieflings receive +2 to charisma and +1 to intelligence.");
+  feato(FEAT_TIEFLING_MAGIC, "tiefling innate magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "can cast burning hands, hellish rebuke and darkness",
+    "Tieflings are able to cast burning hands (lvl 1), hellish rebuke (lvl 3) and darkness (lvl 5) as innate ability.");
+  feato(FEAT_TIEFLING_HELLISH_RESISTANCE, "hellish resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "10/- DR against fire damage.",
+    "The tiefling has 10/- damage resistance against any kind of fire damage.");
+  feato(FEAT_BLOODHUNT, "bloodhunt", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 to attack rolls and damage against enemies with less than half their maximum hit points.",
+    "+1 to attack rolls and damage against enemies with less than half their maximum hit points.");
+
+  // stout halfling
+  feato(FEAT_STOUT_HALFLING_RACIAL_ADJUSTMENT, "strongheart halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+          "+2 dexterity and +1 to constitution.",
+          "+2 to dexterity and +1 to constitution.");
+  feato(FEAT_STOUT_RESILIENCE, "strongheart resilience", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+          "+4 to saves vs poison and 50 percent resistance against poison damage.",
+          "+4 to saves vs poison and 50 percent resistance against poison damage.");
+
+  feato(FEAT_FOREST_GNOME_RACIAL_ADJUSTMENT, "forest gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+          "+2 int +1 dex ",
+          "Forest Gnomes as a racial adjustment have +1 dexterity and +2 intelligence.");
+  feato(FEAT_SPEAK_WITH_BEASTS, "speak with beasts", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "can charm animals and not trigger aggro from animals",
+    "Can cast charm animal 3 times per day upon reaching level 3.  Animals 3 levels higher than the gnome, or less, will not trigger aggro on the gnome or his party.");
+  feato(FEAT_NATURAL_ILLUSIONIST, "natural illusionist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+          "Can cast minor illusion at will.",
+          "Can cast minor illusion at will. At level 20 can cast mirror image at will.");
+  // gold dwarves
+  feato(FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, "gold dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 wis",
+    "+1 racial bonus to wisdom ability score.");
+  feato(FEAT_GOLD_DWARF_TOUGHNESS, "gold dwarf toughness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 hit point per level",
+    "Gold dwarves receive an extra hit point at level 1 and +1 for each level they gain thereafter.");
+
+  // Aasimar
+  feato(FEAT_AASIMAR_RACIAL_ADJUSTMENT, "aasimar racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  "+2 cha and +1 wis",
+  "Aasimar receive +2 to charisma and +1 to wisdom.");
+  feato(FEAT_AASIMAR_HEALING_HANDS, "healing hands", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "can cast regeneration as an innate ability.",
+    "Aasimar can cast regeneration as an innate ability.");
+  feato(FEAT_AASIMAR_LIGHT_BEARER, "light bearer", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "can cast daylight as an innate ability.",
+    "Aasimar can cast daylight as an innate ability when they reach level 3.");
+  feato(FEAT_CELESTIAL_RESISTANCE, "celestial resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "5/- DR against cold, acid, holy and electric damage.",
+    "The aasimar has 5/- DR against cold, acid, holy and electric damage.");  
+  feato(FEAT_ASTRAL_MAJESTY, "astral majesty", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 dodge bonus to ac and +1 to all saving throws when combat target is less than 50 percent of their max hp.",
+    "The aasimar has +1 dodge bonus to ac and +1 to all saving throws when combat target is less than 50 percent of their max hp."); 
+
+  // tabaxi
+  feato(FEAT_TABAXI_RACIAL_ADJUSTMENT, "tabaxi racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 dex and +1 str",
+    "tabaxi receive +2 to dexterity and +1 to strength.");
+  feato(FEAT_TABAXI_FELINE_AGILITY, "feline agility", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+1 to dodge ac",
+    "tabaxi receive +1 bonus to dodge ac.");
+  feato(FEAT_TABAXI_CATS_TALENT, "cats talent", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "+2 to stealth and perception skill checks.",
+    "tabaxi receive +2 to stealth and perception skill checks.");
+  feato(FEAT_TABAXI_CATS_CLAWS, "cats claws", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+    "make 2 claw attacks as a swift action dealing 1d4 + strength mod damage.",
+    "tabaxi can make 2 claw attacks as a swift action dealing 1d4 + strength mod damage. "
+    "Useable once per three character levels, with the catsclaws command.");
 
   /* Half-Orc */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -4531,6 +4602,7 @@ void assign_feats(void)
   dailyfeat(FEAT_MASTER_OF_THE_MIND, eMASTERMIND);
   dailyfeat(FEAT_TINKER, eTINKER);
   dailyfeat(FEAT_DRAGONBORN_BREATH, eDRAGBREATH);
+  dailyfeat(FEAT_TABAXI_CATS_CLAWS, eCATSCLAWS);
   /** END **/
 }
 

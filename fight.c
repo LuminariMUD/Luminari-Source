@@ -920,7 +920,17 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
 
+    if (attacker && (GET_HIT(attacker) * 2) < GET_MAX_HIT(attacker) && !IS_NPC(ch) && HAS_FEAT(ch, FEAT_ASTRAL_MAJESTY))
+    {
+      bonuses[BONUS_TYPE_DODGE] += 1;
+    }
+
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DODGE))
+    {
+      bonuses[BONUS_TYPE_DODGE] += 1;
+    }
+
+    if (HAS_FEAT(ch, FEAT_TABAXI_FELINE_AGILITY))
     {
       bonuses[BONUS_TYPE_DODGE] += 1;
     }
@@ -2939,6 +2949,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
+    if (HAS_FEAT(ch, FEAT_TIEFLING_HELLISH_RESISTANCE))
+      dam_reduction += 10;
     break;
   case DAM_COLD:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -2947,6 +2959,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE) && CAN_USE_VAMPIRE_ABILITY(ch))
       dam_reduction += 10;
+    if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
+      dam_reduction += 5;
     break;
   case DAM_AIR:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -2965,8 +2979,12 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 3;
     if (affected_by_spell(ch, SPELL_PROTECTION_FROM_ENERGY))
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
+    if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
+      dam_reduction += 5;
     break;
   case DAM_HOLY:
+    if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
+      dam_reduction += 5;
     break;
   case DAM_ELECTRIC:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -2975,6 +2993,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     if (HAS_FEAT(ch, FEAT_VAMPIRE_ENERGY_RESISTANCE) && CAN_USE_VAMPIRE_ABILITY(ch))
       dam_reduction += 10;
+    if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
+      dam_reduction += 5;
     break;
   case DAM_UNHOLY:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
@@ -3077,6 +3097,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 50;
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
       damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
+    if (HAS_FEAT(ch, FEAT_TIEFLING_HELLISH_RESISTANCE))
+      damtype_reduction += 10;
 
     if (HAS_FEAT(ch, FEAT_DOMAIN_FIRE_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 20)
       damtype_reduction += 50;
@@ -3346,6 +3368,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 10;
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_HALF_TROLL)
       damtype_reduction += 25;
+    if (HAS_FEAT(ch, FEAT_STOUT_RESILIENCE))
+      damtype_reduction += 50;
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -4932,6 +4956,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus += 2;
     if (display_mode)
       send_to_char(ch, "Dragonborn Fury: \tR2\tn\r\n");
+  }
+
+  if (ch && vict && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(vict) * 2) < GET_MAX_HIT(vict))
+  {
+    dambonus += 1;
+    if (display_mode)
+      send_to_char(ch, "Bloodhunt: \tR1\tn\r\n");
   }
 
   if (affected_by_aura_of_sin(ch))
@@ -7405,6 +7436,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   }
 
   if (HAS_REAL_FEAT(ch, FEAT_DRAGONBORN_FURY) && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch))
+    bonuses[BONUS_TYPE_MORALE] += 1;
+
+  if (ch && victim && HAS_REAL_FEAT(ch, FEAT_BLOODHUNT) && (GET_HIT(victim) * 2) < GET_MAX_HIT(victim))
     bonuses[BONUS_TYPE_MORALE] += 1;
 
   if (AFF_FLAGGED(ch, AFF_SICKENED))

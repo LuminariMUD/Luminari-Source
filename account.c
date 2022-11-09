@@ -73,12 +73,12 @@ const bool locked_races[NUM_RACES] = {
     N, // wild elf
     N, // half drow
     N, // dragonborn
-    Y, // tiefling
-    Y, // stout halfling
-    Y, // forest gnome
-    Y, // gold dwarf
-    Y, // aasimar
-    Y, // tabaxi
+    N, // tiefling
+    N, // stout halfling
+    N, // forest gnome
+    N, // gold dwarf
+    N, // aasimar
+    N, // tabaxi
     Y, // goliath
     Y, // shade
 

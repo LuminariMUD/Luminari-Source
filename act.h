@@ -586,6 +586,8 @@ ACMDCHECK(can_sorcerer_claw_attack);
 ACMD_DECL(do_sorcerer_draconic_wings);
 ACMD_DECL(do_dragonborn_breath_weapon);
 ACMDCHECK(can_dragonborn_breath_weapon);
+ACMD_DECL(do_tabaxi_claw_attack);
+ACMDCHECK(can_tabaxi_claw_attack);
 ACMD_DECL(do_impromptu);
 ACMDCHECK(can_impromptu);
 ACMD_DECL(do_favoredenemies);

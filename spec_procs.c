@@ -971,6 +971,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       if (weather_info.sunlight == SUN_DARK || weather_info.sunlight == SUN_SET)
         value += 6;
     }
+      if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
+      value += 2;
     value += compute_gear_armor_penalty(ch);
     return value;
 
@@ -1007,6 +1009,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
+      value += 2;
     if (AFF_FLAGGED(ch, AFF_DAZZLED))
       value--;
     if (AFF_FLAGGED(ch, AFF_DEAF))

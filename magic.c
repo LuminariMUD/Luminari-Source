@@ -373,7 +373,9 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow -= 2;
   if (ch && IS_UNDEAD(ch) && affected_by_spell(vict, SPELL_VEIL_OF_POSITIVE_ENERGY))
     savethrow += 2;
-
+  if (ch && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch) && !IS_NPC(vict) && HAS_FEAT(vict, FEAT_ASTRAL_MAJESTY))
+    savethrow += 1;
+    
   // vampire bonuses / penalties for feeding
   challenge += vampire_last_feeding_adjustment(ch);
 
