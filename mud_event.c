@@ -195,10 +195,11 @@ struct mud_event_list mud_event_index[] = {
     {"Master of the Mind", event_daily_use_cooldown, EVENT_CHAR},                  // eMASTERMIND
     {"Insect Being", event_daily_use_cooldown, EVENT_CHAR},                        // eINSECTBEING
     /*145*/
-    {"Blur attack delay", event_countdown, EVENT_CHAR},                                 // eBLUR_ATTACK_DELAY
-    {"Tinker ability delay", event_countdown, EVENT_CHAR},                              // eTINKER
-    {"Moonbeam", event_moonbeam, EVENT_CHAR},                                           // eMOONBEAM
+    {"Blur attack delay", event_countdown, EVENT_CHAR},                          // eBLUR_ATTACK_DELAY
+    {"Tinker ability delay", event_countdown, EVENT_CHAR},                       // eTINKER
+    {"Moonbeam", event_moonbeam, EVENT_CHAR},                                    // eMOONBEAM
     {"Dragonborn Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRAGBREATH
+    {"Tabaxi Cats Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCATSCLAWS
 
 };
 
@@ -918,6 +919,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eDRAGBREATH:
     featnum = FEAT_DRAGONBORN_BREATH;
     send_to_char(ch, "One of your dragonborn ancestry breath weapon uses has recovered.\r\n");
+    break;
+  case eCATSCLAWS:
+    featnum = FEAT_TABAXI_CATS_CLAWS;
+    send_to_char(ch, "One of your tabaxi cat's claws uses has recovered.\r\n");
     break;
   case ePIXIEDUST:
     featnum = FEAT_PIXIE_DUST;

@@ -4526,7 +4526,7 @@ sbyte isDuergarMagic(struct char_data *ch, int spellnum)
 sbyte isNaturalIllusion(struct char_data *ch, int spellnum)
 {
   return false;
-  // if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
+  if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
   if (SPELL_MINOR_ILLUSION == spellnum)
     return true;
   if (GET_LEVEL(ch) >= 20 && SPELL_MIRROR_IMAGE == spellnum)
@@ -4592,7 +4592,7 @@ sbyte isLunarMagic(struct char_data *ch, int spellnum)
 sbyte isTieflingMagic(struct char_data *ch, int spellnum)
 {
   return false;
-  //	if (!HAS_FEAT(ch, FEAT_TIEFLING_MAGIC)) return false;
+  if (!HAS_FEAT(ch, FEAT_TIEFLING_MAGIC)) return false;
   switch (spellnum)
   {
   case SPELL_BURNING_HANDS:
@@ -4637,18 +4637,18 @@ sbyte isForestGnomeMagic(struct char_data *ch, int spellnum)
 {
   switch (spellnum)
   {
-    // case SPELL_MINOR_ILLUSION:
-    //   if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
-    //   if (GET_LEVEL(ch) < 1) return false;
-    //               if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
-    //   if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-    //   return true;
-    // case SPELL_CHARM_ANIMAL:
-    //   if (!HAS_FEAT(ch, FEAT_SPEAK_WITH_BEASTS)) return false;
-    //   if (GET_LEVEL(ch) < 3) return false;
-    //               if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
-    //   if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-    //   return true;
+    case SPELL_MINOR_ILLUSION:
+      if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
+      if (GET_LEVEL(ch) < 1) return false;
+                  if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+      if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+      return true;
+    case SPELL_CHARM_ANIMAL:
+      if (!HAS_FEAT(ch, FEAT_SPEAK_WITH_BEASTS)) return false;
+      if (GET_LEVEL(ch) < 3) return false;
+                  if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
+      if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+      return true;
   }
   return false;
 }
@@ -4657,18 +4657,18 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum)
 {
   switch (spellnum)
   {
-    // case SPELL_REGENERATION:
-    //   if (!HAS_FEAT(ch, FEAT_AASIMAR_HEALING_HANDS)) return false;
-    //   if (GET_LEVEL(ch) < 1) return false;
-    //               if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
-    //   if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-    //   return true;
-    // case SPELL_DAYLIGHT:
-    //   if (!HAS_FEAT(ch, FEAT_AASIMAR_LIGHT_BEARER)) return false;
-    //   if (GET_LEVEL(ch) < 3) return false;
-    //               if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
-    //   if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-    //   return true;
+    case SPELL_REGENERATION:
+      if (!HAS_FEAT(ch, FEAT_AASIMAR_HEALING_HANDS)) return false;
+      if (GET_LEVEL(ch) < 1) return false;
+                  if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+      if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+      return true;
+    case SPELL_DAYLIGHT:
+      if (!HAS_FEAT(ch, FEAT_AASIMAR_LIGHT_BEARER)) return false;
+      if (GET_LEVEL(ch) < 3) return false;
+                  if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
+      if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+      return true;
   }
   return false;
 }

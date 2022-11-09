@@ -178,6 +178,7 @@ typedef enum
   eTINKER, // use the rock gnome tinker ability
   eMOONBEAM,                        // moon beam spell lingering effect
   eDRAGBREATH,                      // Dragonborn breath weapon
+  eCATSCLAWS,                       // tabaxi Cats Claws ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -204,6 +204,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"cast", "c", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SPELL, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"carriage", "car", POS_RECLINING, do_carriage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"catsclaws", "catsclaws", POS_FIGHTING, do_tabaxi_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_tabaxi_claw_attack},
     {"cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"changelog", "cha", POS_DEAD, do_changelog, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2706,7 +2707,7 @@ void nanny(struct descriptor_data *d, char *arg)
       perform_help(d, "race-dragonborn");
       break;
     case RACE_TIEFLING:
-      perform_help(d, "race-tielfing");
+      perform_help(d, "race-tiefling");
       break;
     case RACE_STOUT_HALFLING:
       perform_help(d, "race-stout-halfling");

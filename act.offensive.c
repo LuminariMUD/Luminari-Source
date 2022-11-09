@@ -3411,6 +3411,39 @@ ACMD(do_intimidate)
   perform_intimidate(ch, vict);
 }
 
+
+ACMDCHECK(can_tabaxi_claw_attack)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_TABAXI_CATS_CLAWS, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_tabaxi_claw_attack)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_tabaxi_claw_attack);
+  PREREQ_HAS_USES(FEAT_TABAXI_CATS_CLAWS, "You must wait to recover your tabaxi cats claw attacks.\r\n");
+
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You can only use this ability in combat.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    return;
+  }
+
+  send_to_char(ch, "Your bring to bear your long, feline claws on your opponent.\r\n");
+  hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_SLICE, 0, ATTACK_TYPE_PRIMARY);
+  hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_SLICE, 0, ATTACK_TYPE_PRIMARY);
+
+  USE_SWIFT_ACTION(ch);
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_TABAXI_CATS_CLAWS);
+}
+
 /* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.
  * Currently this is limited to dragons, but really it should be doable by any fear-inspiring
  * creature.  Don't tell me the tarrasque isn't scary! :)

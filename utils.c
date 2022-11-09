@@ -3971,6 +3971,9 @@ int get_daily_uses(struct char_data *ch, int featnum) {
     case FEAT_DRAGON_MAGIC:
       daily_uses = 10;
       break;
+    case FEAT_TABAXI_CATS_CLAWS:
+      daily_uses += MAX(1, GET_LEVEL(ch) / 3);
+      break;
     case FEAT_DRACONIC_HERITAGE_CLAWS:
       daily_uses += 3 + GET_CHA_BONUS(ch);
       break;

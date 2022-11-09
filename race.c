@@ -1789,7 +1789,6 @@ void assign_races(void)
     /* affect assignment */
     /*                  race-num  affect            lvl */
 
-#ifdef TEMP_COMMENTED
     /****************************************************************************/
     /****************************************************************************/
     /****************************************************************************/
@@ -1872,13 +1871,13 @@ void assign_races(void)
     feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_LIGHT_BEARER,  1,  N);
     race_list[RACE_AASIMAR].racial_language = LANG_CELESTIAL;
 
-      /****************************************************************************/
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_TABAXI, "tabaxi", "Tabaxi", "\tyTabaxi\tn", "Tbxi", "\tyTbxi\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0,    0,      IS_NORMAL);
+    /****************************************************************************/
+    /****************************************************************************/
+    /****************************************************************************/
+    /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+    add_race(RACE_TABAXI, "tabaxi", "Tabaxi", "\tyTabaxi\tn", "Tbxi", "\tyTbxi\tn",
+             /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+             RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
     set_race_details(RACE_TABAXI,
       /*descrip*/
        "Tabaxi are taller than most humans at six to seven feet. Their bodies are slender "
@@ -1907,7 +1906,6 @@ void assign_races(void)
     feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_CATS_CLAWS,  1,  N);
     feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_CATS_TALENT,  1,  N);
     feat_race_assignment(RACE_TABAXI, FEAT_TABAXI_FELINE_AGILITY,  1,  N);
-#endif
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -1955,7 +1953,6 @@ void assign_races(void)
     feat_race_assignment(RACE_SHIELD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
     feat_race_assignment(RACE_SHIELD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
 
-#ifdef TEMP_COMMENTED
     /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -2008,7 +2005,6 @@ void assign_races(void)
     feat_race_assignment(RACE_GOLD_DWARF, FEAT_GOLD_DWARF_TOUGHNESS,   1,  N);
     feat_race_assignment(RACE_GOLD_DWARF, FEAT_ENCUMBERED_RESILIENCE,   1,  N);
     feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY,  1,  N);
-#endif
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -2095,26 +2091,24 @@ void assign_races(void)
     feat_race_assignment(RACE_ROCK_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
     feat_race_assignment(RACE_ROCK_GNOME, FEAT_TINKER, 1, N);
 
-#ifdef TEMP_COMMENTED
-
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_STOUT_HALFLING, "strongheart halfling", "Strongheart Halfling", "\tTStrongheart Halfling\tn", "StHf", "\tTStHf\tn",
+  add_race(RACE_STOUT_HALFLING, "stout halfling", "Stout Halfling", "\tTStout Halfling\tn", "StHf", "\tTStHf\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0,    0,      IS_NORMAL);
     set_race_details(RACE_STOUT_HALFLING,
       // description
        "Creatures of the earth who love a warm hearth and "
        "pleasant company, s trongheart halflings are folks of few "
-       "enemies and many friends. Stronghearts a re sometimes "
+       "enemies and many friends. Stouts are sometimes "
        "referred to fondly by members of other races as \"the "
-       "good folk,\" for little upsets stronghearts or corrupts "
+       "good folk,\" for little upsets stouts or corrupts "
        "their spirit. To many of them, the greatest fear is to live "
        "in a world of poor company and mean intent, where one "
        "lacks freedom and the comfort of friendship. "
-       "When strongheart halflings settle into a place, they "
-       "intend to stay. It's not unusual for a dynasty of stronghearts "
+       "When stout halflings settle into a place, they "
+       "intend to stay. It's not unusual for a dynasty of stouts "
        "to live in the same place for a few centuries. "
        "Strongheart halflings don't develop these homes in "
        "seclusion. On the contrary, they do their best to fit into "
@@ -2122,15 +2116,15 @@ void assign_races(void)
        "it. Their viewpoint stresses cooperation above all other "
        "traits, and the ability to work well with others is the "
        "most valued behavior in their lands. "
-       "Pushed from their nests, strongheart haflings typically "
+       "Pushed from their nests, stout haflings typically "
        "try to have as many comforts of home with them as "
-       "possible. Non-stronghearts with a more practical bent "
-       "can find strongheart travel habits maddening, but their "
+       "possible. Non-stouts with a more practical bent "
+       "can find stout travel habits maddening, but their "
        "lightfoot cousins typically enjoy the novelty of it- so long "
        "as the lightfoots don't have to carry any of the baggage. "
        "While often stereotyped as fat and lazy due to their "
        "homebound mindset and obsession with fine food, "
-       "strongheart halfings are typically quite industrious. "
+       "stout halfings are typically quite industrious. "
        "Nimble hands, their patient mindset, and their emphasis "
        "on quality makes them excellent weavers, potters, wood "
        "carvers, basket makers, painters, and farmers. "
@@ -2138,7 +2132,7 @@ void assign_races(void)
        "are shorter on average than their lightfoot kin, and tend "
        "to have rounder faces. They have the skin tones and hair "
        "colors of humans, with most having brown hair. Unlike "
-       "their lightfoot cousins, strongheart halflings often have "
+       "their lightfoot cousins, stout halflings often have "
        "blond or black hair and blue or green eyes. Ma les don't "
        "grow beards or mustaches, but both males and females "
        "can grow sideburns down to mid-cheek, and both genders "
@@ -2166,12 +2160,12 @@ void assign_races(void)
     /* affect assignment */
     /*                  race-num  affect            lvl */
 
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_FOREST_GNOME, "forest gnome", "Forest Gnome", "\tVForest Gnome\tn", "FrGn", "\tVFrGn\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0,    0,      IS_NORMAL);
+    /****************************************************************************/
+    /****************************************************************************/
+    /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+    add_race(RACE_FOREST_GNOME, "forest gnome", "Forest Gnome", "\tVForest Gnome\tn", "FrGn", "\tVFrGn\tn",
+             /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+             RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
     set_race_details(RACE_FOREST_GNOME,
       // Description
        "Forest gnomes are among the least commonly seen gnomes on Toril, far shier than "
@@ -2214,7 +2208,6 @@ void assign_races(void)
     feat_race_assignment(RACE_FOREST_GNOME, FEAT_SPEAK_WITH_BEASTS,         1,  N);
     feat_race_assignment(RACE_FOREST_GNOME, FEAT_NATURAL_ILLUSIONIST,       1,  N);
     race_list[RACE_FOREST_GNOME].racial_language = LANG_GNOMISH;
-#endif
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -3528,6 +3521,12 @@ int parse_race_long(const char *arg_in)
     return RACE_DWARF;
   if (is_abbrev(arg, "mountain dwarf"))
     return RACE_DWARF;
+  if (is_abbrev(arg, "gold dwarf"))
+    return RACE_GOLD_DWARF;
+  if (is_abbrev(arg, "gold-dwarf"))
+    return RACE_GOLD_DWARF;
+  if (is_abbrev(arg, "golddwarf"))
+    return RACE_GOLD_DWARF;
   if (is_abbrev(arg, "duergar"))
     return RACE_DUERGAR;
   if (is_abbrev(arg, "graydwarf"))
@@ -3614,6 +3613,26 @@ int parse_race_long(const char *arg_in)
     return RACE_HALF_DROW;
   if (is_abbrev(arg, "half drow"))
     return RACE_HALF_DROW;
+  if (is_abbrev(arg, "tiefling"))
+    return RACE_TIEFLING;
+  if (is_abbrev(arg, "teifling"))
+    return RACE_TIEFLING;
+  if (is_abbrev(arg, "forestgnome"))
+    return RACE_FOREST_GNOME;
+  if (is_abbrev(arg, "forest-gnome"))
+    return RACE_FOREST_GNOME;
+  if (is_abbrev(arg, "forest gnome"))
+    return RACE_FOREST_GNOME;
+  if (is_abbrev(arg, "stouthalfling"))
+    return RACE_STOUT_HALFLING;
+  if (is_abbrev(arg, "stout-halfling"))
+    return RACE_STOUT_HALFLING;
+  if (is_abbrev(arg, "stout halfling"))
+    return RACE_STOUT_HALFLING;
+  if (is_abbrev(arg, "aasimar"))
+    return RACE_AASIMAR;
+  if (is_abbrev(arg, "tabaxi"))
+    return RACE_TABAXI;
 
   return RACE_UNDEFINED;
 }
