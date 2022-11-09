@@ -3459,7 +3459,6 @@ ACMD(do_intimidate)
   perform_intimidate(ch, vict);
 }
 
-
 ACMDCHECK(can_tabaxi_claw_attack)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_TABAXI_CATS_CLAWS, "You have no idea how.\r\n");
@@ -3530,6 +3529,9 @@ ACMD(do_frightful)
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
     next_vict = vict->next_in_room;
+
+    if (is_immune_fear(ch, vict, TRUE))
+      continue;
 
     /* Check to see if the victim is affected by an AURA OF COURAGE */
     if (GROUP(ch) != NULL)
@@ -5165,7 +5167,7 @@ void perform_stones_endurance(struct char_data *ch)
 ACMDCHECK(can_stones_endurance)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_STONES_ENDURANCE, "You have no idea how.\r\n");
-  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, ABILITY_AFFECT_STONES_ENDURANCE),  "You have already triggered stone's endurance.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, ABILITY_AFFECT_STONES_ENDURANCE), "You have already triggered stone's endurance.\r\n");
   return CAN_CMD;
 }
 
