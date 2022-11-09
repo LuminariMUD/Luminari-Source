@@ -5145,6 +5145,39 @@ int perform_tailsweep(struct char_data *ch)
   return vict_count;
 }
 
+void perform_stones_endurance(struct char_data *ch)
+{
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = ABILITY_AFFECT_STONES_ENDURANCE;
+  af.duration = 5;
+
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_STONES_ENDURANCE);
+
+  act("You summon the fortitude and hardiness of the mountains!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n flexes and $s skin turns grey and hard as a mountainside.", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMDCHECK(can_stones_endurance)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_STONES_ENDURANCE, "You have no idea how.\r\n");
+  ACMDCHECK_TEMPFAIL_IF(affected_by_spell(ch, ABILITY_AFFECT_STONES_ENDURANCE),  "You have already triggered stone's endurance.\r\n");
+  return CAN_CMD;
+}
+
+ACMDU(do_stones_endurance)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_stones_endurance);
+  PREREQ_HAS_USES(FEAT_STONES_ENDURANCE, "You must recover before you can trigger stone's endurance again.\r\n");
+
+  perform_stones_endurance(ch);
+}
+
 ACMDCHECK(can_tailsweep)
 {
   ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");

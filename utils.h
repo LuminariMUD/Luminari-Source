@@ -295,6 +295,7 @@ void remove_locked_door_flags(room_rnum room, int door);
 int is_spell_or_power(int spellnum);
 sbyte isSpecialFeat(int feat);
 sbyte isRacialFeat(int feat);
+int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

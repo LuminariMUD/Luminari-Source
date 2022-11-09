@@ -655,6 +655,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define SET_DRAGONBORN_ANCESTRY 57
 #define STUDY_CONFIRM_DRAGONBORN_ANCESTRY 58
 #define STUDY_SELECT_RACIAL_ABILITY 59
+#define SET_HIGH_ELF_CANTRIP 60
+#define STUDY_CONFIRM_HIGH_ELF_CANTRIP 61
 
 int save_config(IDXTYPE nowhere);
 

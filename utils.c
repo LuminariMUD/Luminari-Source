@@ -4382,6 +4382,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
       break;
+    case FEAT_STONES_ENDURANCE:
+      daily_uses += 2 + GET_LEVEL(ch) / 6;
+      break;
     case FEAT_VAMPIRE_ENERGY_DRAIN:
       daily_uses = 1 + (GET_LEVEL(ch) / 3);
       break;
@@ -7012,12 +7015,10 @@ bool has_cover(struct char_data *ch, struct char_data *t)
 bool can_one_with_shadows(struct char_data *ch)
 {
 
-  return false; // remove this when shade race is added
-
   if (!ch)
     return false;
 
-  // if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW)) return false;
+  if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW)) return false;
 
   if (compute_concealment(ch) > 0)
     return true;

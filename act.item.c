@@ -3651,12 +3651,17 @@ int hands_available(struct char_data *ch)
   return (hands_have(ch) - hands_used(ch));
 }
 
+int hands_needed(struct char_data *ch, struct obj_data *obj)
+{
+  return hands_needed_full(ch, obj, TRUE);
+}
+
 /* when handling wielding, holding, wearing of shields, we have to know
    how may hands you have available to equipping these items.  Also some
    held and wielded items will take two hands based on their size.  */
 //  should only return 1 or 2, -1 if problematic
 
-static int hands_needed(struct char_data *ch, struct obj_data *obj)
+int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats)
 {
   /* example:  huge sword,   medium human, size =  2
    *           large sword,  medium human, size =  1
@@ -3664,6 +3669,17 @@ static int hands_needed(struct char_data *ch, struct obj_data *obj)
    *           small sword,  medium human, size = -1
    *           tiny dagger,  medium human, size = -2 */
   int size = GET_OBJ_SIZE(obj) - GET_SIZE(ch);
+
+  // if this is turned on it will use any feats that reduce or otherwise
+  // affect what size weapons can be wielded.  We have this option so
+  // that we can calculate penalties associated with such feat uses
+  if (use_feats)
+  {
+    if (HAS_FEAT(ch, FEAT_MONKEY_GRIP))
+      size--;
+    else if (HAS_FEAT(ch, FEAT_POWERFUL_BUILD))
+      size--;
+  }
 
   // size check
   if (size == 1) // two handed

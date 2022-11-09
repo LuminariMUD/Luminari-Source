@@ -4076,6 +4076,10 @@ void mag_assign_spells(void)
   spello(SPELL_AFFECT_DEATH_ATTACK, "death attack paralyzation", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
+  
+  spello(ABILITY_AFFECT_STONES_ENDURANCE, "stone's endurance", 0, 0, 0, POS_FIGHTING,
+          TAR_IGNORE, FALSE, MAG_AFFECTS,
+          "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
@@ -4525,7 +4529,6 @@ sbyte isDuergarMagic(struct char_data *ch, int spellnum)
 
 sbyte isNaturalIllusion(struct char_data *ch, int spellnum)
 {
-  return false;
   if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
   if (SPELL_MINOR_ILLUSION == spellnum)
     return true;
@@ -4536,8 +4539,7 @@ sbyte isNaturalIllusion(struct char_data *ch, int spellnum)
 
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum)
 {
-  return false;
-  // if (!HAS_FEAT(ch, FEAT_HIGH_ELF_CANTRIP)) return false;
+  if (!HAS_FEAT(ch, FEAT_HIGH_ELF_CANTRIP)) return false;
   if (HIGH_ELF_CANTRIP(ch) != spellnum)
     return false;
   if (spellnum == SPELL_ENCHANT_ITEM)
@@ -4591,7 +4593,6 @@ sbyte isLunarMagic(struct char_data *ch, int spellnum)
 }
 sbyte isTieflingMagic(struct char_data *ch, int spellnum)
 {
-  return false;
   if (!HAS_FEAT(ch, FEAT_TIEFLING_MAGIC)) return false;
   switch (spellnum)
   {

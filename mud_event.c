@@ -200,6 +200,8 @@ struct mud_event_list mud_event_index[] = {
     {"Moonbeam", event_moonbeam, EVENT_CHAR},                                    // eMOONBEAM
     {"Dragonborn Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRAGBREATH
     {"Tabaxi Cats Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCATSCLAWS
+    // 150
+    {"Goliath Stone's Endurance Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eSTONESENDURANCE
 
 };
 
@@ -338,6 +340,9 @@ EVENTFUNC(event_countdown)
     break;
   case eCHANNELENERGY:
     send_to_char(ch, "You are now able to channel energy again.\r\n");
+    break;
+  case eSTONESENDURANCE:
+    send_to_char(ch, "You are now able to ujse stones endurance again.\r\n");
     break;
   case eJUDGEMENT:
     send_to_char(ch, "You are now able to use your judgement ability again.\r\n");
@@ -751,6 +756,10 @@ EVENTFUNC(event_daily_use_cooldown)
   case eCHANNELENERGY:
     featnum = FEAT_CHANNEL_ENERGY;
     send_to_char(ch, "One of your channel energy uses has recovered.\r\n");
+    break;
+  case eSTONESENDURANCE:
+    featnum = FEAT_STONES_ENDURANCE;
+    send_to_char(ch, "One of your stonesendurance ability uses has recovered.\r\n");
     break;
   case ePURIFY:
     featnum = FEAT_REMOVE_DISEASE;

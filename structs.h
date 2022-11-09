@@ -2224,12 +2224,27 @@
 #define FEAT_TABAXI_CATS_CLAWS 939
 #define FEAT_TABAXI_FELINE_AGILITY 940
 #define FEAT_TABAXI_CATS_TALENT 941
+// goliath
+#define FEAT_GOLIATH_RACIAL_ADJUSTMENT 942
+#define FEAT_NATURAL_ATHLETE 943
+#define FEAT_STONES_ENDURANCE 944
+#define FEAT_POWERFUL_BUILD 945
+#define FEAT_MOUNTAIN_BORN 946
+// shade
+#define FEAT_SHADE_RACIAL_ADJUSTMENT 947
+#define FEAT_SHADOWFELL_MIND 948
+#define FEAT_ONE_WITH_SHADOW 949
+#define FEAT_PRACTICED_SNEAK 950
+// high elf
+#define FEAT_HIGH_ELF_RACIAL_ADJUSTMENT 951
+#define FEAT_HIGH_ELF_CANTRIP 952
+#define FEAT_HIGH_ELF_LINGUIST 953
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 942
+#define FEAT_LAST_FEAT 954
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 943
+#define NUM_FEATS 955
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4442,6 +4457,7 @@ struct level_data
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES];
     int tempCruelty;
     int dragonborn_draconic_ancestry;
+    int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
 };
 
 /** The list element that makes up a list of characters following this

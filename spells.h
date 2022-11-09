@@ -567,6 +567,7 @@
 #define PSIONIC_ABILITY_MASTERMIND 1235
 #define RACIAL_ABILITY_INSECTBEING 1236
 #define ABILITY_VAMPIRIC_DOMINATION 1237
+#define ABILITY_AFFECT_STONES_ENDURANCE 1238
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
