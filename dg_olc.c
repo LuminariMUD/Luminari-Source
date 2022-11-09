@@ -187,7 +187,7 @@ static void trigedit_disp_menu(struct descriptor_data *d)
 {
   struct trig_data *trig = OLC_TRIG(d);
   const char *attach_type;
-  char trgtypes[MEDIUM_STRING];
+  char trgtypes[MEDIUM_STRING] = {'\0'};
 
   get_char_colors(d->character);
 
@@ -237,7 +237,7 @@ static void trigedit_disp_types(struct descriptor_data *d)
 {
   int i, columns = 0;
   const char **types;
-  char bitbuf[MAX_STRING_LENGTH];
+  char bitbuf[MAX_STRING_LENGTH] = {'\0'};
 
   switch (OLC_TRIG(d)->attach_type)
   {
@@ -427,8 +427,8 @@ void trigedit_save(struct descriptor_data *d)
   FILE *trig_file;
   int zone, top;
   char buf[MAX_CMD_LENGTH];
-  char bitBuf[MAX_INPUT_LENGTH];
-  char fname[MAX_INPUT_LENGTH];
+  char bitBuf[MAX_INPUT_LENGTH] = {'\0'};
+  char fname[MAX_INPUT_LENGTH] = {'\0'};
 
   if ((rnum = real_trigger(OLC_NUM(d))) != NOTHING)
   {
@@ -654,7 +654,7 @@ void trigedit_save(struct descriptor_data *d)
               GET_TRIG_ARG(trig) ? GET_TRIG_ARG(trig) : "", STRING_TERMINATOR);
 
       /* Build the text for the script */
-      strlcpy(buf, "", sizeof(buf)); /* strcpy OK for MAX_CMD_LENGTH > 0*/
+      strlcpy(buf, "", sizeof(buf));
       for (cmd = trig->cmdlist; cmd; cmd = cmd->next)
       {
         strlcat(buf, cmd->cmd, sizeof(buf));
@@ -690,7 +690,7 @@ static void trigedit_create_index(int znum, const char *type)
   FILE *newfile, *oldfile;
   char new_name[128], old_name[128];
   const char *prefix;
-  char buf[MAX_STRING_LENGTH], buf1[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf1[MAX_STRING_LENGTH] = {'\0'};
   int num, found = FALSE;
 
   prefix = TRG_PREFIX;

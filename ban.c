@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: ban.c                                        Part of LuminariMUD *
-*  Usage: Banning/unbanning/checking sites and player names.              *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: ban.c                                        Part of LuminariMUD *
+ *  Usage: Banning/unbanning/checking sites and player names.              *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #define __BAN_C__
 
@@ -126,7 +126,7 @@ static void write_ban_list(void)
 #define BAN_LIST_FORMAT "%-25.25s  %-8.8s  %-10.10s  %-16.16s\r\n"
 ACMD(do_ban)
 {
-  char flag[MAX_INPUT_LENGTH], site[MAX_INPUT_LENGTH], *nextchar;
+  char flag[MAX_INPUT_LENGTH] = {'\0'}, site[MAX_INPUT_LENGTH] = {'\0'}, *nextchar;
   char timestr[16];
   int i;
   struct ban_list_element *ban_node;
@@ -209,7 +209,7 @@ ACMD(do_ban)
 
 ACMD(do_unban)
 {
-  char site[MAX_INPUT_LENGTH];
+  char site[MAX_INPUT_LENGTH] = {'\0'};
   struct ban_list_element *ban_node, *temp;
   int found = 0;
 
@@ -247,14 +247,14 @@ int valid_name(char *newname)
 {
   int i, vowels = 0;
   struct descriptor_data *dt;
-  char tempname[MAX_INPUT_LENGTH];
+  char tempname[MAX_INPUT_LENGTH] = {'\0'};
 
-  /* Make sure someone isn't trying to create this same name.  We want to do a 
+  /* Make sure someone isn't trying to create this same name.  We want to do a
    * 'str_cmp' so people can't do 'Bob' and 'BoB'.  The creating login will not
-   * have a character name yet and other people sitting at the prompt won't 
-   * have characters yet. New, unindexed characters (i.e., characters who are 
-   * in the process of creating) will have an idnum of -1, set by clear_char() 
-   * in db.c.  If someone is creating a character by the same name as the one 
+   * have a character name yet and other people sitting at the prompt won't
+   * have characters yet. New, unindexed characters (i.e., characters who are
+   * in the process of creating) will have an idnum of -1, set by clear_char()
+   * in db.c.  If someone is creating a character by the same name as the one
    * we are checking, then the name is invalid, to prevent character duping.
    * THIS SHOULD FIX THE 'invalid name' if disconnected from OLC-bug - Welcor */
   for (dt = descriptor_list; dt; dt = dt->next)
@@ -307,7 +307,7 @@ void free_invalid_list(void)
 void read_invalid_list(void)
 {
   FILE *fp;
-  char temp[MEDIUM_STRING];
+  char temp[MEDIUM_STRING] = {'\0'};
 
   if (!(fp = fopen(XNAME_FILE, "r")))
   {

@@ -174,6 +174,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"arrowswarm", "arrowswarm", POS_FIGHTING, do_arrowswarm, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_arrowswarm},
     {"award", "award", POS_DEAD, do_award, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autostand", "autostand", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_STAND, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"aqref", "aqref", POS_DEAD, do_aqref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
@@ -855,7 +856,7 @@ int script_command_interpreter(struct char_data *ch, char *arg)
   /* DG trigger commands */
 
   int i;
-  char first_arg[MAX_INPUT_LENGTH];
+  char first_arg[MAX_INPUT_LENGTH] = {'\0'};
   char *line;
 
   skip_spaces(&arg);
@@ -1246,7 +1247,7 @@ void free_alias(struct alias_data *a)
 /* The interface to the outside world: do_alias */
 ACMDU(do_alias)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   char *repl;
   struct alias_data *a, *temp;
 
@@ -1318,7 +1319,7 @@ static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alia
 {
   struct txt_q temp_queue;
   char *tokens[NUM_TOKENS], *temp, *write_point;
-  char buf2[MAX_RAW_INPUT_LENGTH], buf[MAX_RAW_INPUT_LENGTH]; /* raw? */
+  char buf2[MAX_RAW_INPUT_LENGTH] = {'\0'}, buf[MAX_RAW_INPUT_LENGTH] = {'\0'}; /* raw? */
   int num_of_tokens = 0, num;
 
   /* First, parse the original string */
@@ -1385,7 +1386,7 @@ static void perform_complex_alias(struct txt_q *input_q, char *orig, struct alia
  *      have been placed at the front of the character's input queue. */
 int perform_alias(struct descriptor_data *d, char *orig, size_t maxlen)
 {
-  char first_arg[MAX_INPUT_LENGTH], *ptr;
+  char first_arg[MAX_INPUT_LENGTH] = {'\0'}, *ptr;
   struct alias_data *a, *tmp;
 
   /* Mobs don't have alaises. */
@@ -1932,7 +1933,7 @@ EVENTFUNC(get_protocols)
 {
   struct descriptor_data *d;
   struct mud_event_data *pMudEvent;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int len;
 
   if (event_obj == NULL)
@@ -2031,7 +2032,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CLOSE;
     else
     {
-      char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
 
       if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
           strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
@@ -2233,7 +2234,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CLOSE;
     else
     {
-      char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
       if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
           strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
           fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
@@ -2298,7 +2299,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_CLOSE;
     else
     {
-      char buf[MAX_INPUT_LENGTH], tmp_name[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
 
       if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
           strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||

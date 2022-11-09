@@ -1,16 +1,16 @@
 /**************************************************************************
-*  File: dg_comm.c                                    Part of LuminariMUD *
-*  Usage: Contains routines to handle mud to player communication.        *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Death's Gate MUD is based on CircleMUD, Copyright (C) 1993, 94.        *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-*                                                                         *
-*  $Author: Mark A. Heilpern/egreen/Welcor $                              *
-*  $Date: 2004/10/11 12:07:00$                                            *
-*  $Revision: 1.0.14 $                                                    *
-**************************************************************************/
+ *  File: dg_comm.c                                    Part of LuminariMUD *
+ *  Usage: Contains routines to handle mud to player communication.        *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Death's Gate MUD is based on CircleMUD, Copyright (C) 1993, 94.        *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ *                                                                         *
+ *  $Author: Mark A. Heilpern/egreen/Welcor $                              *
+ *  $Date: 2004/10/11 12:07:00$                                            *
+ *  $Revision: 1.0.14 $                                                    *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -46,7 +46,7 @@ char *any_one_name(char *argument, char *first_arg)
 
 static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], char type[])
 {
-  char sb[MAX_STRING_LENGTH];
+  char sb[MAX_STRING_LENGTH] = {'\0'};
   int i;
 
   strlcpy(sb, "", sizeof(sb));
@@ -118,21 +118,21 @@ static void sub_write_to_char(char_data *ch, char *tokens[], void *otokens[], ch
   strlcat(sb, "\n\r", sizeof(sb));
   // Removed following line to prevent DG Scripts from capitalizing EVERY LINE.
   // Ornir 02/21/18
-  //sb[0] = toupper(sb[0]);
+  // sb[0] = toupper(sb[0]);
   send_to_char(ch, "%s", sb);
 }
 
 void sub_write(char *arg, char_data *ch, byte find_invis, int targets)
 {
   char str[MAX_INPUT_LENGTH * 2];
-  char type[MAX_INPUT_LENGTH], name[MAX_INPUT_LENGTH];
-  char *tokens[MAX_INPUT_LENGTH], *s, *p;
-  void *otokens[MAX_INPUT_LENGTH];
+  char type[MAX_INPUT_LENGTH] = {'\0'}, name[MAX_INPUT_LENGTH] = {'\0'};
+  char *tokens[MAX_INPUT_LENGTH] = {'\0'}, *s, *p;
+  void *otokens[MAX_INPUT_LENGTH] = {'\0'};
   char_data *to;
   obj_data *obj;
   int i, tmp;
   /* mainly for windows compiles */
-  //int to_sleeping = 1;
+  // int to_sleeping = 1;
 
   if (!arg)
     return;

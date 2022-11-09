@@ -2307,7 +2307,7 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
 static char *replace_string(const char *str, const char *weapon_singular,
                             const char *weapon_plural)
 {
-  static char buf[MEDIUM_STRING];
+  static char buf[MEDIUM_STRING] = {'\0'};
   char *cp = buf;
 
   for (; *str; str++)
@@ -2492,9 +2492,9 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
   {
 
     /* damage message to room */
-    /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+    /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
          for condensed combat mode handling -zusuk */
-    act(dam_ranged[msgnum].to_room, -1234, ch, last_missile, victim, TO_NOTVICT);
+    act(dam_ranged[msgnum].to_room, ACT_CONDENSE_VALUE, ch, last_missile, victim, TO_NOTVICT);
 
     /* damage message to damager */
     if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED) && CNDNSD(ch))
@@ -2532,9 +2532,9 @@ static void dam_message(int dam, struct char_data *ch, struct char_data *victim,
                          attack_hit_text[w_type].singular, attack_hit_text[w_type].plural),
     dam;
     GUI_CMBT_NOTVICT_OPEN(ch, victim);
-    /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+    /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
          for condensed combat mode handling -zusuk */
-    act(buf, -1234, ch, NULL, victim, TO_NOTVICT);
+    act(buf, ACT_CONDENSE_VALUE, ch, NULL, victim, TO_NOTVICT);
     GUI_CMBT_NOTVICT_CLOSE(ch, victim);
 
     /* damage message to damager (to_ch) */
@@ -2735,9 +2735,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(vict, CCNRM(vict, C_CMP));
           }
 
-          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
                for condensed combat mode handling -zusuk */
-          act(msg->hit_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
+          act(msg->hit_msg.room_msg, ACT_CONDENSE_VALUE, ch, weap, vict, TO_NOTVICT);
 
           return SKILL_MESSAGE_GENERIC_HIT;
         } /* end 'did some damage but not dead' section */
@@ -2789,9 +2789,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(vict, CCNRM(vict, C_CMP));
           }
 
-          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
                for condensed combat mode handling -zusuk */
-          act("$N blocks $n's attack with $p!", -1234, ch, shield, vict, TO_NOTVICT);
+          act("$N blocks $n's attack with $p!", ACT_CONDENSE_VALUE, ch, shield, vict, TO_NOTVICT);
 
           /* fire any shieldblock specs we might have */
           name = obj_index[GET_OBJ_RNUM(shield)].func;
@@ -2827,9 +2827,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(vict, CCNRM(vict, C_CMP));
           }
 
-          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
                for condensed combat mode handling -zusuk */
-          act("$N parries $n's attack with $p!", -1234, ch, opponent_weapon, vict, TO_NOTVICT);
+          act("$N parries $n's attack with $p!", ACT_CONDENSE_VALUE, ch, opponent_weapon, vict, TO_NOTVICT);
 
           /* fire any parry specs we might have */
           name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
@@ -2866,9 +2866,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(vict, CCNRM(vict, C_CMP));
           }
 
-          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
                for condensed combat mode handling -zusuk */
-          act("$n's attack glances off $p, protecting $N!", -1234, ch, armor, vict, TO_NOTVICT);
+          act("$n's attack glances off $p, protecting $N!", ACT_CONDENSE_VALUE, ch, armor, vict, TO_NOTVICT);
 
           /* fire any glance specs we might have */
           name = obj_index[GET_OBJ_RNUM(armor)].func;
@@ -2908,9 +2908,9 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict,
             send_to_char(vict, CCNRM(vict, C_CMP));
           }
 
-          /* as a temporary solution we are sending a funky signal (-1234) via the hide_invisible field
+          /* as a temporary solution we are sending a funky signal (ACT_CONDENSE_VALUE) via the hide_invisible field
                for condensed combat mode handling -zusuk */
-          act(msg->miss_msg.room_msg, -1234, ch, weap, vict, TO_NOTVICT);
+          act(msg->miss_msg.room_msg, ACT_CONDENSE_VALUE, ch, weap, vict, TO_NOTVICT);
 
           /* fire any dodge specs we might have, right now its only on weapons */
           if (opponent_weapon)
@@ -3077,9 +3077,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
     damtype_reduction += CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 10 : 5;
   }
 
-  if (HAS_FEAT(ch, FEAT_DRAGONBORN_RESISTANCE) && draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)] == dam_type) {
+  if (HAS_FEAT(ch, FEAT_DRAGONBORN_RESISTANCE) && draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)] == dam_type)
+  {
     damtype_reduction += GET_LEVEL(ch) >= 9 ? 10 : 5;
-  }  
+  }
 
   switch (dam_type)
   {
@@ -3798,7 +3799,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                      GET_NAME(victim));
       }
 
-      act("$n fails to harm $N as $S leaps away!", -1234, ch, 0, victim,
+      act("$n fails to harm $N as $S leaps away!", ACT_CONDENSE_VALUE, ch, 0, victim,
           TO_NOTVICT);
       return -1;
     }
@@ -3823,7 +3824,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                      GET_NAME(victim));
       }
 
-      act("$n fails to harm $N as the defensive stance holds firm!", -1234, ch, 0, victim,
+      act("$n fails to harm $N as the defensive stance holds firm!", ACT_CONDENSE_VALUE, ch, 0, victim,
           TO_NOTVICT);
 
       return -1;
@@ -3851,7 +3852,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                      GET_NAME(victim), GET_OBJ_SHORT(GET_EQ(victim, WEAR_SHIELD)));
       }
 
-      act("$N blocks the attack from $n with $p!", -1234, ch, GET_EQ(victim, WEAR_SHIELD), victim,
+      act("$N blocks the attack from $n with $p!", ACT_CONDENSE_VALUE, ch, GET_EQ(victim, WEAR_SHIELD), victim,
           TO_NOTVICT);
 
       return -1;
@@ -3884,7 +3885,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                          GET_NAME(victim));
           }
 
-          act("$n struck an illusionary image of $N!", -1234, ch, 0, victim,
+          act("$n struck an illusionary image of $N!", ACT_CONDENSE_VALUE, ch, 0, victim,
               TO_NOTVICT);
 
           GET_IMAGES(victim)
@@ -3988,7 +3989,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                      GET_NAME(victim), damage_reduction);
       }
 
-      act("$n fails to do any harm to $N!", -1234, ch, 0, victim,
+      act("$n fails to do any harm to $N!", ACT_CONDENSE_VALUE, ch, 0, victim,
           TO_NOTVICT);
 
       return -1;
@@ -4046,7 +4047,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                      GET_NAME(victim), (int)damtype_reduction);
       }
 
-      act("$n fails to do any harm to $N!", -1234, ch, 0, victim,
+      act("$n fails to do any harm to $N!", ACT_CONDENSE_VALUE, ch, 0, victim,
           TO_NOTVICT);
 
       return -1;
@@ -4150,7 +4151,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
                        GET_NAME(victim), damage_reduction);
         }
 
-        act("$n fails to do any harm to $N!", -1234, ch, 0, victim,
+        act("$n fails to do any harm to $N!", ACT_CONDENSE_VALUE, ch, 0, victim,
             TO_NOTVICT);
 
         return -1;
@@ -4950,7 +4951,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   dambonus += GET_DAMROLL(ch);
   if (display_mode)
     send_to_char(ch, "Damroll: \tR%d\tn\r\n", GET_DAMROLL(ch));
-  
+
   if (HAS_REAL_FEAT(ch, FEAT_DRAGONBORN_FURY) && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch))
   {
     dambonus += 2;
@@ -6227,7 +6228,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
       if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
         dam += 2;
-      
+
       if (HAS_REAL_FEAT(ch, FEAT_SAVAGE_ATTACKS))
         dam += dice(1, 6);
 
@@ -6311,7 +6312,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
             act("\tr$n strikes you with a crippling critical!\tn", FALSE, ch, NULL, victim, TO_VICT);
           }
 
-          act("\tr$n strikes $N with a crippling critical!\tn", -1234, ch, NULL, victim, TO_NOTVICT);
+          act("\tr$n strikes $N with a crippling critical!\tn", ACT_CONDENSE_VALUE, ch, NULL, victim, TO_NOTVICT);
 
           switch (atoi((char *)pMudEvent->sVariables))
           {
@@ -6584,15 +6585,15 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
   return MAX(1, dam); // min damage of 1
 }
 
+#define STONESKIN_ABSORB 15
+#define IRONSKIN_ABSORB 50
+#define EPIC_WARDING_ABSORB 75
+
 /* this function takes ch (attacker) against victim (defender) who has
    inflicted dam damage and will reduce damage by X depending on the type
    of 'ward' the defender has (such as stoneskin)
    this will return the modified damage
  * -note- melee only */
-#define STONESKIN_ABSORB 16
-#define IRONSKIN_ABSORB 36
-#define EPIC_WARDING_ABSORB 76
-
 int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 {
   int warding = 0;
@@ -6631,7 +6632,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
     }
     else
     {
-      send_to_char(victim, "\tW<stone:%d>\tn", warding);
+      send_to_char(victim, "\tW<stone:%d/%d>\tn", warding, GET_STONESKIN(victim));
       send_to_char(ch, "\tR<oStone:%d>\tn", warding);
     }
   }
@@ -6644,7 +6645,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
       GET_STONESKIN(victim) = 0;
       return dam;
     }
-    warding = MIN(IRONSKIN_ABSORB, GET_STONESKIN(victim));
+    warding = MIN(MIN(IRONSKIN_ABSORB, GET_STONESKIN(victim)), dam);
 
     GET_STONESKIN(victim) -= warding;
     dam -= warding;
@@ -6666,7 +6667,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
     }
     else
     {
-      send_to_char(victim, "\tW<ironskin:%d>\tn", warding);
+      send_to_char(victim, "\tW<ironskin:%d/%d>\tn", warding, GET_STONESKIN(victim));
       send_to_char(ch, "\tR<oIronskin:%d>\tn", warding);
     }
   }
@@ -6679,7 +6680,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
       GET_STONESKIN(victim) = 0;
       return dam;
     }
-    warding = MIN(EPIC_WARDING_ABSORB, GET_STONESKIN(victim));
+    warding = MIN(MIN(EPIC_WARDING_ABSORB, GET_STONESKIN(victim)), dam);
 
     GET_STONESKIN(victim) -= warding;
     dam -= warding;
@@ -6701,7 +6702,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
     }
     else
     {
-      send_to_char(victim, "\tW<ward:%d>\tn", warding);
+      send_to_char(victim, "\tW<ward:%d/%d>\tn", warding, GET_STONESKIN(victim));
       send_to_char(ch, "\tR<oWard:%d>\tn", warding);
     }
   }
@@ -6716,6 +6717,7 @@ int handle_warding(struct char_data *ch, struct char_data *victim, int dam)
 #undef EPIC_WARDING_ABSORB
 #undef IRONSKIN_ABSORB
 
+/* for weapon bypassing damage resistance handling */
 bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *dr, struct char_data *ch)
 {
   bool passed = FALSE;
@@ -6766,12 +6768,10 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
   victim -> person being damaged with possible DR
   wielded -> which weapon is producing this damage
   dam -> how much damage is coming in
-
   return value for non display is the modified damage reduction */
 int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struct obj_data *wielded, int dam, bool display)
 {
-  struct damage_reduction_type *dr, *cur;
-  // struct damage_reduction_type *temp;
+  struct damage_reduction_type *dr = NULL, *cur = NULL;
   int reduction = 0;
 
   /* No DR, just return dam.*/
@@ -6822,12 +6822,12 @@ int apply_damage_reduction(struct char_data *ch, struct char_data *victim, struc
   return MAX(-1, dam - reduction);
 }
 
+#define MAX_PSN_LVL LVL_IMPL /* maximum level a poison can be */
+#define MAX_PSN_HIT 15       /* maximum times a poison can hit before wearing off */
 /* all weapon poison system is right now is just firing spells off our weapon
    if the weapon has that given spell-num applied to it as a poison
    i have ambitious plans in the future to completely re-work poison in our
    system, and at that time i will re-work this -zusuk */
-#define MAX_PSN_LVL LVL_IMPL /* maximum level a poison can be */
-#define MAX_PSN_HIT 15       /* maximum times a poison can hit before wearing off */
 void weapon_poison(struct char_data *ch, struct char_data *victim,
                    struct obj_data *wielded, struct obj_data *missile)
 {
@@ -6994,7 +6994,7 @@ void weapon_spells(struct char_data *ch, struct char_data *vict,
           {
             act(buf, TRUE, ch, wpn, 0, TO_CHAR);
           }
-          act(buf, -1234, ch, wpn, 0, TO_ROOM);
+          act(buf, ACT_CONDENSE_VALUE, ch, wpn, 0, TO_ROOM);
 
           if (call_magic(ch, vict, wpn, GET_WEAPON_SPELL(wpn, i), 0, GET_WEAPON_SPELL_LVL(wpn, i), CAST_WEAPON_SPELL) < 0)
             return;
@@ -7143,7 +7143,7 @@ void idle_weapon_spells(struct char_data *ch)
                 act(buf, TRUE, ch, gear, 0, TO_CHAR);
               }
 
-              act(buf, -1234, ch, gear, 0, TO_ROOM);
+              act(buf, ACT_CONDENSE_VALUE, ch, gear, 0, TO_ROOM);
 
               call_magic(ch, ch, NULL, spellnum, 0, GET_WEAPON_SPELL_LVL(gear, j), CAST_WEAPON_SPELL);
 
@@ -8509,7 +8509,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         act("$n has exploited YOUR weaknesses", TRUE, ch, 0, victim, TO_VICT);
       }
 
-      act("$n has exploited $N's weaknesses", -1234, ch, 0, victim, TO_NOTVICT);
+      act("$n has exploited $N's weaknesses", ACT_CONDENSE_VALUE, ch, 0, victim, TO_NOTVICT);
     }
     if (HAS_REAL_FEAT(ch, FEAT_SPELL_CRITICAL) && !HAS_ELDRITCH_SPELL_CRIT(ch))
     {
@@ -8520,7 +8520,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         !AFF_FLAGGED(victim, AFF_BLIND) && IS_SHADOW_CONDITIONS(ch) && IS_SHADOW_CONDITIONS(victim))
     {
       /* without a bonus to the challenge here, this was completely ineffective -zusuk */
-      if (!mag_savingthrow(ch, victim, SAVING_FORT, 10, CAST_INNATE, CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch), ILLUSION))
+      if (!mag_savingthrow(ch, victim, SAVING_FORT, -10, CAST_INNATE, (CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) + ARCANE_LEVEL(ch)), ILLUSION))
       {
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
@@ -8528,6 +8528,14 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         else
         {
           send_to_char(ch, "[\tWSHADOW-BLIND SUCCESS!\tn] ");
+        }
+
+        if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_CONDENSED))
+        {
+        }
+        else
+        {
+          send_to_char(victim, "[\tRSHADOW-BLINDED!\tn] ");
         }
 
         new_affect(&af);
@@ -8626,7 +8634,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       act("$n performs a \tYsmiting\tn attack on $N!",
-          -1234, ch, wielded, victim, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
     }
     if (affected_by_spell(ch, SPELL_FIRE_OF_ENTANGLEMENT) && dice(1, 5) == 1)
     {
@@ -8649,7 +8657,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           send_to_char(victim, "[\tRENTANGLING-FLAMES\tn] ");
         }
 
-        act("$n entangles $N in chains of flickering flame!", -1234, ch, wielded, victim, TO_NOTVICT);
+        act("$n entangles $N in chains of flickering flame!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
         new_affect(&af);
         af.spell = AFFECT_ENTANGLING_FLAMES;
@@ -8682,7 +8690,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       act("$n performs a \tYsmiting\tn attack on $N!",
-          -1234, ch, wielded, victim, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
     }
   }
   if (affected_by_spell(ch, SKILL_SMITE_DESTRUCTION))
@@ -8706,7 +8714,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       act("$n performs a \tYsmiting\tn attack on $N!",
-          -1234, ch, wielded, victim, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
     }
   }
   if (affected_by_spell(ch, SKILL_STUNNING_FIST))
@@ -8735,7 +8743,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         }
 
         act("$n performs a \tYstunning fist\tn attack on $N!",
-            -1234, ch, wielded, victim, TO_NOTVICT);
+            ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
         if (!char_has_mud_event(victim, eSTUNNED))
         {
@@ -8788,7 +8796,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       act("$n performs a \tYquivering palm\tn attack on $N!",
-          -1234, ch, wielded, victim, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
       /* apply quivering palm affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
@@ -8836,7 +8844,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         send_to_char(victim, "[\tRTRUE-JUDGEMENT\tn] ");
       }
 
-      act("$n performs a \tYtrue judgement\tn attack on $N!", -1234, ch, wielded, victim, TO_NOTVICT);
+      act("$n performs a \tYtrue judgement\tn attack on $N!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
       if (!is_immune_death_magic(ch, victim, false) && !savingthrow(victim, SAVING_FORT, 0, true_judgement_dc))
       {
@@ -8881,7 +8889,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       act("$n performs an \tDarrow of death\tn attack on $N!",
-          -1234, ch, wielded, victim, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
       /* apply death arrow affect, muahahahah */
       if (GET_LEVEL(ch) >= GET_LEVEL(victim) &&
@@ -9156,7 +9164,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
 
       act("A well placed attack from $n \tTcripples\tn $N!",
-          -1234, ch, wielded, victim, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
     }
   }
 
@@ -9187,7 +9195,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         act("Your stunning barrier stuns $N!", FALSE, ch, wielded, victim, TO_VICT);
       }
 
-      act("$n's stunning barrier stuns $N!", -1234, ch, wielded, victim, TO_NOTVICT);
+      act("$n's stunning barrier stuns $N!", ACT_CONDENSE_VALUE, ch, wielded, victim, TO_NOTVICT);
 
       affect_from_char(victim, SPELL_STUNNING_BARRIER);
     }

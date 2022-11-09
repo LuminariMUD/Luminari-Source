@@ -153,7 +153,7 @@ void load_messages(void)
 static void show_messages(struct char_data *ch)
 {
   int i, half = MAX_MESSAGES / 2, count = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int len;
 
   len = snprintf(buf, sizeof(buf), "\t1Message List:\tn \r\n");

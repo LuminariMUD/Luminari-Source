@@ -1,12 +1,12 @@
 /**************************************************************************
-*  File: boards.c                                     Part of LuminariMUD *
-*  Usage: Handling of multiple bulletin boards.                           *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-**************************************************************************/
+ *  File: boards.c                                     Part of LuminariMUD *
+ *  Usage: Handling of multiple bulletin boards.                           *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ **************************************************************************/
 
 #define __BOARDS_C__
 
@@ -45,7 +45,7 @@
 /* Board appearance order. */
 #define NEWEST_AT_TOP FALSE
 
-/* Format: vnum, read lvl, write lvl, remove lvl, filename, 0 at end. Be sure 
+/* Format: vnum, read lvl, write lvl, remove lvl, filename, 0 at end. Be sure
  * to also change NUM_OF_BOARDS in board.h*/
 struct board_info_type board_info[NUM_OF_BOARDS] = {
     {3099, 0, 0, LVL_STAFF, LIB_ETC "board.mortal", 0},
@@ -181,7 +181,7 @@ SPECIAL(gen_board)
 int board_write_message(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
   time_t ct;
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_NAME_LENGTH + 3], tmstr[MAX_STRING_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_NAME_LENGTH + 3], tmstr[MAX_STRING_LENGTH] = {'\0'};
 
   if (GET_LEVEL(ch) < WRITE_LVL(board_type))
   {
@@ -233,7 +233,7 @@ int board_write_message(int board_type, struct char_data *ch, char *arg, struct 
 int board_show_board(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
   int i;
-  char tmp[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char tmp[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return (0);
@@ -297,7 +297,7 @@ fubar:
 
 int board_display_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
-  char number[MAX_INPUT_LENGTH], buffer[MAX_STRING_LENGTH];
+  char number[MAX_INPUT_LENGTH] = {'\0'}, buffer[MAX_STRING_LENGTH] = {'\0'};
   int msg, ind;
 
   one_argument(arg, number, sizeof(number));
@@ -359,7 +359,7 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
 int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
 {
   int ind, msg, slot_num;
-  char number[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+  char number[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
 
   one_argument(arg, number, sizeof(number));

@@ -1001,7 +1001,7 @@ int convert(struct obj_data *kit, struct char_data *ch)
                cost);
   GET_GOLD(ch) -= cost;
   // new name
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   snprintf(buf, sizeof(buf), "\tca portion of %s material\tn",
            material_name[num_mats]);
   new_mat->name = strdup(buf);
@@ -1041,7 +1041,7 @@ int restring(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
 
   /* Cycle through contents */
@@ -2057,8 +2057,8 @@ SPECIAL(crafting_kit)
 /* here is our room-spec for crafting quest */
 SPECIAL(crafting_quest)
 {
-  char desc[MAX_INPUT_LENGTH];
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char desc[MAX_INPUT_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int roll = 0;
 
   if (!CMD_IS("supplyorder"))
@@ -2204,7 +2204,7 @@ EVENTFUNC(event_crafting)
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   struct obj_data *obj2 = NULL;
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   int exp = 0;
   int skill = -1, roll = -1;
 

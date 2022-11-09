@@ -1,14 +1,14 @@
 /* \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
 \  Part of LuminariMUD
-/                                                            
-\  @File:     act.comm.c 
-/  @Header:   act.h                                                         
+/
+\  @File:     act.comm.c
+/  @Header:   act.h
 \  @Created:  Unknown
-/  @Usage:    Player-level communication commands.                                                          
-\  @Author:   CircleMUD                                                           
-/  @Credits:  All rights reserved.  See license for complete information.                                                           
-\  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University                                                           
-/  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.                                                                                                                                                                                     
+/  @Usage:    Player-level communication commands.
+\  @Author:   CircleMUD
+/  @Credits:  All rights reserved.  See license for complete information.
+\  Copyright (C) 1993, 94 by the Trustees of the Johns Hopkins University
+/  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ */
 
 #include "conf.h"
@@ -106,7 +106,7 @@ ACMDU(do_say)
   }
 
   /* DEBUG */
-  //send_to_char(ch, "ARG2|%s|\r\n", arg2);
+  // send_to_char(ch, "ARG2|%s|\r\n", arg2);
   /* end DEBUG */
 
   /* Trigger check. */
@@ -145,14 +145,17 @@ ACMDU(do_gsay)
                   GET_NAME(ch), argument, CCNRM(ch, C_NRM));
 
     struct descriptor_data *d = NULL;
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
     snprintf(buf, sizeof(buf), "%s%s%s says, '%s'%s\r\n", CCGRN(ch, C_NRM), CCGRN(ch, C_NRM),
-                  GET_NAME(ch), argument, CCNRM(ch, C_NRM));
+             GET_NAME(ch), argument, CCNRM(ch, C_NRM));
     for (d = descriptor_list; d; d = d->next)
     {
-      if (STATE(d) != CON_PLAYING) continue;
-      if (!d->character) continue;
-      if (!is_player_grouped(ch, d->character)) continue;
+      if (STATE(d) != CON_PLAYING)
+        continue;
+      if (!d->character)
+        continue;
+      if (!is_player_grouped(ch, d->character))
+        continue;
       add_history(d->character, buf, HIST_GSAY);
     }
 
@@ -167,7 +170,7 @@ ACMDU(do_gsay)
 
 static void perform_tell(struct char_data *ch, struct char_data *vict, char *arg)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   const char *msg = NULL;
 
   sentence_case(arg);
@@ -241,8 +244,8 @@ ACMD(do_tell)
     /* getpid() is not portable */
     send_to_char(ch, "Sorry, that is not available in the windows port.\r\n");
 #else  /* all other configurations */
-    //int i;
-    char word[MAX_INPUT_LENGTH], *p, *q;
+    // int i;
+    char word[MAX_INPUT_LENGTH] = {'\0'}, *p, *q;
 
     if (last_webster_teller != -1L)
     {
@@ -294,7 +297,7 @@ ACMD(do_tell)
 
     char buf3[MAX_INPUT_LENGTH] = {'\0'};
     snprintf(buf3, sizeof(buf3), "%s%s told you, '%s'%s\r\n", CBCYN(vict, C_NRM), GET_NAME(ch), buf2, CCNRM(vict, C_NRM));
-    //msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
+    // msg = act(buf3, FALSE, ch, 0, vict, TO_VICT | TO_SLEEP);
     add_history(vict, buf3, HIST_TELL);
 
     char buf4[MAX_INPUT_LENGTH] = {'\0'};
@@ -343,7 +346,7 @@ ACMDU(do_reply)
 ACMD(do_write)
 {
   struct obj_data *paper, *pen = NULL;
-  char papername[MAX_STRING_LENGTH], penname[MAX_STRING_LENGTH];
+  char papername[MAX_STRING_LENGTH] = {'\0'}, penname[MAX_STRING_LENGTH] = {'\0'};
 
   two_arguments(argument, papername, sizeof(papername), penname, sizeof(penname));
 
@@ -434,7 +437,7 @@ ACMD(do_page)
 {
   struct descriptor_data *d;
   struct char_data *vict;
-  char buf2[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   half_chop_c(argument, arg, sizeof(arg), buf2, sizeof(buf2));
 
@@ -444,7 +447,7 @@ ACMD(do_page)
     send_to_char(ch, "Whom do you wish to page?\r\n");
   else
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), "\007\007*$n* %s", buf2);
     if (!str_cmp(arg, "all"))
@@ -477,9 +480,9 @@ ACMDU(do_gen_comm)
 {
   struct descriptor_data *i;
   char color_on[24];
-  char buf1[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
+  char buf1[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   const char *msg = NULL;
-  char buf3[MAX_INPUT_LENGTH];
+  char buf3[MAX_INPUT_LENGTH] = {'\0'};
   bool emoting = FALSE;
 
   /* Array of flags which must _not_ be set in order for comm to be heard. */
@@ -502,7 +505,7 @@ ACMDU(do_gen_comm)
    *           [1] name of the action
    *           [2] message if you're not on the channel
    *           [3] a color string. */
-  const char * const com_msgs[][4] = {
+  const char *const com_msgs[][4] = {
       {"You cannot holler!!\r\n",
        "holler",
        "",
@@ -656,8 +659,10 @@ ACMDU(do_gen_comm)
     if (!IS_NPC(ch) && (PRF_FLAGGED(i->character, channels[subcmd])))
       continue;
 
-    if (IN_ROOM(ch) == NOWHERE) continue;
-    if (IN_ROOM(i->character) == NOWHERE) continue;
+    if (IN_ROOM(ch) == NOWHERE)
+      continue;
+    if (IN_ROOM(i->character) == NOWHERE)
+      continue;
 
     /* we want history for the rest of the conditions */
     add_history(i->character, buf3, hist_type[subcmd]);
@@ -722,7 +727,7 @@ ACMDU(do_qcomm)
     send_to_char(ch, "%c%s?  Yes, fine, %s we must, but WHAT??\r\n", UPPER(*CMD_NAME), CMD_NAME + 1, CMD_NAME);
   else
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
     struct descriptor_data *i;
 
     if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))

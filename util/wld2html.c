@@ -1,11 +1,11 @@
 /* ************************************************************************
-*  File: wld2html.c                                   Part of LuminariMUD *
-*  Usage: Convert a DikuMUD .wld file into a series of .html files        *
-*                                                                         *
-*  This program is in the public domain.                                  *
-*  Written (QUICKLY AND DIRTILY) by Jeremy Elson                          *
-*  Based on the Circle 3.0 syntax checker program                         *
-************************************************************************ */
+ *  File: wld2html.c                                   Part of LuminariMUD *
+ *  Usage: Convert a DikuMUD .wld file into a series of .html files        *
+ *                                                                         *
+ *  This program is in the public domain.                                  *
+ *  Written (QUICKLY AND DIRTILY) by Jeremy Elson                          *
+ *  Based on the Circle 3.0 syntax checker program                         *
+ ************************************************************************ */
 
 #define log(msg) fprintf(stderr, "%s\n", msg)
 
@@ -53,10 +53,10 @@ typedef char byte;
 typedef sh_int room_num;
 typedef sh_int obj_num;
 
-char buf[MAX_STRING_LENGTH];
-char buf1[MAX_STRING_LENGTH];
-char buf2[MAX_STRING_LENGTH];
-char arg[MAX_STRING_LENGTH];
+char buf[MAX_STRING_LENGTH] = {'\0'};
+char buf1[MAX_STRING_LENGTH] = {'\0'};
+char buf2[MAX_STRING_LENGTH] = {'\0'};
+char arg[MAX_STRING_LENGTH] = {'\0'};
 
 int get_line(FILE *fl, char *buf);
 int real_room(int virtual, int reference);
@@ -133,8 +133,8 @@ struct room_data
 /* ====================================================================== */
 
 /**************************************************************************
-*  declarations of most of the 'global' variables                         *
-************************************************************************ */
+ *  declarations of most of the 'global' variables                         *
+ ************************************************************************ */
 
 struct room_data *world = NULL; /* array of rooms                */
 int top_of_world = 0;           /* ref to top element of world   */
@@ -155,8 +155,8 @@ char *dir_names[] =
     {"North", "East", "South", "West", "Up", "Down"};
 
 /*************************************************************************
-*  routines for booting the system                                       *
-*********************************************************************** */
+ *  routines for booting the system                                       *
+ *********************************************************************** */
 
 /* body of the booting system */
 int main(int argc, char **argv)
@@ -252,7 +252,7 @@ void index_boot(char *name)
 void discrete_load(FILE *fl)
 {
   int nr = -1, last = 0;
-  char line[MEDIUM_STRING];
+  char line[MEDIUM_STRING] = {'\0'};
 
   for (;;)
   {
@@ -314,7 +314,7 @@ void parse_room(FILE *fl, int virtual_nr)
 {
   static int room_nr = 0, zone = 0;
   int t[10], i;
-  char line[MEDIUM_STRING], flags[128];
+  char line[MEDIUM_STRING] = {'\0'}, flags[128];
   struct extra_descr_data *new_descr;
 
   sprintf(buf2, "room #%d", virtual_nr);
@@ -377,7 +377,7 @@ void parse_room(FILE *fl, int virtual_nr)
 void setup_dir(FILE *fl, int room, int dir)
 {
   int t[5];
-  char line[MEDIUM_STRING];
+  char line[MEDIUM_STRING] = {'\0'};
 
   sprintf(buf2, "room #%d, direction D%d", world[room].number, dir);
 
@@ -421,13 +421,13 @@ void renum_world(void)
 }
 
 /*************************************************************************
-*  procedures for resetting, both play-time and boot-time	 	 *
-*********************************************************************** */
+ *  procedures for resetting, both play-time and boot-time	 	 *
+ *********************************************************************** */
 
 /* read and allocate space for a '~'-terminated string from a given file */
 char *fread_string(FILE *fl, char *error)
 {
-  char buf[MAX_STRING_LENGTH], tmp[512], *rslt;
+  char buf[MAX_STRING_LENGTH] = {'\0'}, tmp[512], *rslt;
   register char *point;
   int done = 0, length = 0, templength = 0;
 
@@ -515,11 +515,11 @@ int real_room(int virtual, int reference)
  */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING], *buf2;
+  char temp[MEDIUM_STRING] = {'\0'};
 
   do
   {
-    buf2 = fgets(temp, MEDIUM_STRING, fl);
+    fgets(temp, MEDIUM_STRING, fl);
     if (*temp)
       temp[strlen(temp) - 1] = '\0';
   } while (!feof(fl) && (*temp == '*' || !*temp));

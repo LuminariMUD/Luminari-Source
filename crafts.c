@@ -887,7 +887,7 @@ static void craftedit_disp_skill_menu(struct descriptor_data *d)
 static void craftedit_disp_req_flags(struct descriptor_data *d)
 {
   int i, count = 0, columns = 0;
-  char flags[MAX_STRING_LENGTH];
+  char flags[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -906,7 +906,7 @@ static void craftedit_disp_req_flags(struct descriptor_data *d)
 static void craftedit_disp_craft_flags(struct descriptor_data *d)
 {
   int i, count = 0, columns = 0;
-  char flags[MAX_STRING_LENGTH];
+  char flags[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -926,7 +926,7 @@ static void craftedit_requirement_menu(struct descriptor_data *d)
 {
   struct craft_data *c = OLC_CRAFT(d);
   struct requirement_data *r;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   obj_vnum vnum;
 
   write_to_output(d, "\t1Craft Requirements:\tn\r\n");
@@ -952,7 +952,7 @@ static void craftedit_disp_menu(struct descriptor_data *d)
   struct craft_data *c = OLC_CRAFT(d);
   struct requirement_data *r;
   obj_vnum vnum;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   write_to_output(d, "\t1-- Craftedit Menu\t1 : \t2[\t3%d\t2]\tn\r\n"
                      "\t21\t3) Craft Name     : \t1%s\tn\r\n"

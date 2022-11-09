@@ -19,10 +19,13 @@
 #define MAX_TITLE_LENGTH 80 /* Used in char_file_u *DO*NOT*CHANGE* */
 #define HOST_LENGTH 40      /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_TONGUE 3        /* Used in char_file_u *DO*NOT*CHANGE* */
-#define MAX_SKILLS 3000     /* Used in char_file_u *DO*NOT*CHANGE* */
-#define MAX_ABILITIES 200   /* Used in char_file_u *DO*NOT*CHANGE* */
-#define MAX_AFFECT 32       /* Used in char_file_u *DO*NOT*CHANGE* */
-#define MAX_TYPES 800       /* Used in char_file_u *DO*NOT*CHANGE* */
+
+/* already defined */
+/*#define MAX_SKILLS 3000*/
+
+#define MAX_ABILITIES 200 /* Used in char_file_u *DO*NOT*CHANGE* */
+#define MAX_AFFECT 32     /* Used in char_file_u *DO*NOT*CHANGE* */
+#define MAX_TYPES 800     /* Used in char_file_u *DO*NOT*CHANGE* */
 #define MAX_CLASSES 30
 #define MAX_WARDING 10
 // Memorization

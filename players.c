@@ -101,7 +101,7 @@ void build_player_index(void)
 {
   int rec_count = 0, i, nr;
   FILE *plr_index;
-  char index_name[40], line[MEDIUM_STRING], bits[64];
+  char index_name[40], line[MEDIUM_STRING] = {'\0'}, bits[64];
   char arg2[80];
 
   snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
@@ -2332,7 +2332,7 @@ void tag_argument(char *argument, char *tag)
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
 void remove_player(int pfilepos)
 {
-  char filename[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
   int i;
 
   if (!*player_table[pfilepos].name)
@@ -3119,7 +3119,7 @@ static void read_aliases_ascii(FILE *file, struct char_data *ch, int count)
    * to avoid the possibility of a * at the start of the line */
   for (i = 0; i < count; i++)
   {
-    char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH];
+    char abuf[MAX_INPUT_LENGTH + 1], rbuf[MAX_INPUT_LENGTH + 1], tbuf[MAX_INPUT_LENGTH] = {'\0'};
 
     /* Read the aliased command. */
     get_line(file, abuf);
@@ -3175,9 +3175,9 @@ void save_char_pets(struct char_data *ch)
 
   struct follow_type *f = NULL;
   struct char_data *tch = NULL;
-  char query[MEDIUM_STRING];
-  char query2[MEDIUM_STRING];
-  char query3[MEDIUM_STRING];
+  char query[MEDIUM_STRING] = {'\0'};
+  char query2[MEDIUM_STRING] = {'\0'};
+  char query3[MEDIUM_STRING] = {'\0'};
   char finalQuery[MEDIUM_STRING * 2];
   char *end = NULL, *end2 = NULL;
 

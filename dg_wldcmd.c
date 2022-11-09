@@ -1,11 +1,11 @@
 /**************************************************************************
-*  File: dg_wldcmd.c                                  Part of LuminariMUD *
-*  Usage: Contains the command_interpreter for rooms, room commands.      *
-*                                                                         *
-*  $Author: galion/Mark A. Heilpern/egreen/Welcor $                       *
-*  $Date: 2004/10/11 12:07:00$                                            *
-*  $Revision: 1.0.14 $                                                    *
-**************************************************************************/
+ *  File: dg_wldcmd.c                                  Part of LuminariMUD *
+ *  Usage: Contains the command_interpreter for rooms, room commands.      *
+ *                                                                         *
+ *  $Author: galion/Mark A. Heilpern/egreen/Welcor $                       *
+ *  $Date: 2004/10/11 12:07:00$                                            *
+ *  $Revision: 1.0.14 $                                                    *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -58,7 +58,7 @@ WCMD(do_wmove);
 void wld_log(room_data *room, const char *format, ...)
 {
   va_list args;
-  char output[MAX_STRING_LENGTH];
+  char output[MAX_STRING_LENGTH] = {'\0'};
 
   snprintf(output, sizeof(output), "Room %d :: %s", room->number, format);
 
@@ -75,8 +75,8 @@ void act_to_room(char *str, room_data *room)
     return;
 
   /* Since you can't use act(..., TO_ROOM) for an room, send it TO_ROOM and
-     * TO_CHAR for some char in the room. (just dont use $n or you might get
-     * strange results). */
+   * TO_CHAR for some char in the room. (just dont use $n or you might get
+   * strange results). */
   act(str, FALSE, room->people, 0, 0, TO_ROOM);
   act(str, FALSE, room->people, 0, 0, TO_CHAR);
 }
@@ -129,7 +129,7 @@ WCMD(do_wgecho)
 
 WCMD(do_wsend)
 {
-  char buf[MAX_INPUT_LENGTH], *msg;
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
   char_data *ch;
 
   msg = any_one_arg(argument, buf);
@@ -163,7 +163,7 @@ WCMD(do_wsend)
 WCMD(do_wzoneecho)
 {
   zone_rnum zone;
-  char room_num[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], *msg;
+  char room_num[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
 
   msg = any_one_arg(argument, room_num);
   skip_spaces(&msg);
@@ -185,7 +185,7 @@ WCMD(do_wzoneecho)
 /* Thx to Jamie Nelson of 4D for this contribution */
 WCMD(do_wrecho)
 {
-  char start[MAX_INPUT_LENGTH], finish[MAX_INPUT_LENGTH], *msg;
+  char start[MAX_INPUT_LENGTH] = {'\0'}, finish[MAX_INPUT_LENGTH] = {'\0'}, *msg;
 
   msg = two_arguments_u(argument, start, finish);
 
@@ -199,8 +199,8 @@ WCMD(do_wrecho)
 
 WCMD(do_wdoor)
 {
-  char target[MAX_INPUT_LENGTH], direction[MAX_INPUT_LENGTH];
-  char field[MAX_INPUT_LENGTH], *value;
+  char target[MAX_INPUT_LENGTH] = {'\0'}, direction[MAX_INPUT_LENGTH] = {'\0'};
+  char field[MAX_INPUT_LENGTH] = {'\0'}, *value;
   room_data *rm;
   struct room_direction_data *newexit;
   int dir, fd, to_room;
@@ -301,7 +301,7 @@ WCMD(do_wteleport)
 {
   char_data *ch, *next_ch;
   room_rnum target, nr;
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -370,7 +370,7 @@ WCMD(do_wteleport)
 WCMD(do_wforce)
 {
   char_data *ch, *next_ch;
-  char arg1[MAX_INPUT_LENGTH], *line;
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, *line;
 
   line = one_argument_u(argument, arg1);
 
@@ -411,7 +411,7 @@ WCMD(do_wforce)
 /* purge all objects an npcs in room, or specified object or mob */
 WCMD(do_wpurge)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   char_data *ch, *next_ch;
   obj_data *obj = NULL, *next_obj;
 
@@ -443,7 +443,7 @@ WCMD(do_wpurge)
 
   if (!ch)
   {
-    //if (obj && *arg == UID_CHAR)
+    // if (obj && *arg == UID_CHAR)
     if (*arg == UID_CHAR)
       obj = get_obj(arg);
     else
@@ -471,7 +471,7 @@ WCMD(do_wpurge)
 /* loads a mobile or object into the room */
 WCMD(do_wload)
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int number = 0;
   char_data *mob;
   obj_data *object;
@@ -519,7 +519,7 @@ WCMD(do_wload)
     char_to_room(mob, rnum);
     if (SCRIPT(room))
     { /* It _should_ have, but it might be detached. */
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(mob));
       add_var(&(SCRIPT(room)->global_vars), "lastloaded", buf, 0);
     }
@@ -539,7 +539,7 @@ WCMD(do_wload)
       obj_to_room(object, real_room(room->number));
       if (SCRIPT(room))
       { /* It _should_ have, but it might be detached. */
-        char buf[MAX_INPUT_LENGTH];
+        char buf[MAX_INPUT_LENGTH] = {'\0'};
         snprintf(buf, sizeof(buf), "%c%ld", UID_CHAR, GET_ID(object));
         add_var(&(SCRIPT(room)->global_vars), "lastloaded", buf, 0);
       }
@@ -582,7 +582,7 @@ WCMD(do_wload)
 
 WCMD(do_wdamage)
 {
-  char name[MAX_INPUT_LENGTH], amount[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'}, amount[MAX_INPUT_LENGTH] = {'\0'};
   int dam = 0;
   char_data *ch;
 
@@ -611,7 +611,7 @@ WCMD(do_wat)
 {
   room_rnum loc = NOWHERE;
   struct char_data *ch;
-  char arg[MAX_INPUT_LENGTH], *command;
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, *command;
 
   command = any_one_arg(argument, arg);
 
@@ -646,7 +646,7 @@ WCMD(do_wmove)
 {
   obj_data *obj, *next_obj;
   room_rnum target, nr;
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -716,7 +716,7 @@ const struct wld_command_info wld_cmd_info[] = {
 void wld_command_interpreter(room_data *room, char *argument)
 {
   int cmd, length;
-  char *line, arg[MAX_INPUT_LENGTH];
+  char *line, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   skip_spaces(&argument);
 

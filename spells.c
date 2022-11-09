@@ -311,7 +311,7 @@ int isname_obj(char *search, char *list)
 {
   char *found_in_list; /* But could be something like 'ring' in 'shimmering.' */
   char searchname[128];
-  char namelist[MAX_STRING_LENGTH];
+  char namelist[MAX_STRING_LENGTH] = {'\0'};
   int found_pos = -1;
   int found_name = 0; /* found the name we're looking for */
   int match = 1;
@@ -1300,7 +1300,7 @@ ASPELL(spell_locate_object)
   }
 
   /*  added a global var to catch 2nd arg. */
-  // char name[MAX_INPUT_LENGTH];
+  // char name[MAX_INPUT_LENGTH] = {'\0'};
   // snprintf(name, sizeof(name), "%s", cast_arg2);
 
   /* # items to show = caster-level + highest mental stat bonus */
@@ -1674,11 +1674,11 @@ ASPELL(spell_salvation) // divination
   }
 }
 
-
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
-EVENTFUNC(event_moonbeam) {
+EVENTFUNC(event_moonbeam)
+{
   struct char_data *ch, *victim = NULL;
   struct mud_event_data *pMudEvent;
   int casttype = CAST_SPELL;
@@ -1690,16 +1690,17 @@ EVENTFUNC(event_moonbeam) {
 
   /* For the sake of simplicity, we will place the event data in easily
    * referenced pointers */
-  pMudEvent = (struct mud_event_data *) event_obj;
-  ch = (struct char_data *) pMudEvent->pStruct;
-  if (ch && FIGHTING(ch)) //assign victim, if none escape
+  pMudEvent = (struct mud_event_data *)event_obj;
+  ch = (struct char_data *)pMudEvent->pStruct;
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
     victim = FIGHTING(ch);
   else
     return 0;
 
   if (ch == NULL || victim == NULL)
     return 0;
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return 0;
   }
@@ -1721,12 +1722,14 @@ EVENTFUNC(event_moonbeam) {
   return 0;
 }
 
-ASPELL(spell_moonbeam) {
+ASPELL(spell_moonbeam)
+{
   int x = 0;
 
   if (ch == NULL || victim == NULL)
     return;
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL)) {
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
     send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
     return;
   }
@@ -1734,7 +1737,8 @@ ASPELL(spell_moonbeam) {
   send_to_char(ch, "You call forth a searing beam of moonlight upon your opponent!\r\n");
   act("$n calls forth a searing beam of moonlight!", FALSE, ch, 0, 0, TO_ROOM);
 
-  for (x = 0; x < 5; x++) {
+  for (x = 0; x < 5; x++)
+  {
     NEW_EVENT(eMOONBEAM, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
 }

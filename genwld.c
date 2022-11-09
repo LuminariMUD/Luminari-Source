@@ -1,9 +1,9 @@
 /**************************************************************************
-*  File: genwld.c                                     Part of LuminariMUD *
-*  Usage: Generic OLC Library - Rooms.                                    *
-*                                                                         *
-*  By Levork. Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer. *
-**************************************************************************/
+ *  File: genwld.c                                     Part of LuminariMUD *
+ *  Usage: Generic OLC Library - Rooms.                                    *
+ *                                                                         *
+ *  By Levork. Copyright 1996 by Harvey Gilpin, 1997-2001 by George Greer. *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -20,7 +20,7 @@
 #include "mud_event.h"
 #include "wilderness.h"
 
-/* This function will copy the strings so be sure you free your own copies of 
+/* This function will copy the strings so be sure you free your own copies of
  * the description, title, and such. */
 room_rnum add_room(struct room_data *room)
 {
@@ -176,7 +176,7 @@ int delete_room(room_rnum rnum)
     r_frozen_start_room = 0; /* The Void */
   }
 
-  /* Dump the contents of this room into the Void.  We could also just extract 
+  /* Dump the contents of this room into the Void.  We could also just extract
    * the people, mobs, and objects here. */
   for (obj = world[rnum].contents; obj; obj = next_obj)
   {
@@ -198,7 +198,7 @@ int delete_room(room_rnum rnum)
 
   clear_room_event_list(room);
 
-  /* Change any exit going to this room to go the void. Also fix all the exits 
+  /* Change any exit going to this room to go the void. Also fix all the exits
    * pointing to rooms above this. */
   i = top_of_world + 1;
   do
@@ -303,9 +303,9 @@ int save_rooms(zone_rnum rzone)
   struct room_data *room;
   FILE *sf;
   char filename[128];
-  char buf[MAX_STRING_LENGTH];
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   bool occupied = FALSE;
 
 #if CIRCLE_UNSIGNED_INDEX
@@ -352,14 +352,14 @@ int save_rooms(zone_rnum rzone)
 
       /* Save the numeric and string section of the file. */
       snprintf(buf2, sizeof(buf2), "#%d\n"
-                    "%s%c\n"
-                    "%s%c\n"
-                    "%d %d %d %d %d %d\n",
-              room->number,
-              room->name ? room->name : "Untitled", STRING_TERMINATOR,
-              buf, STRING_TERMINATOR,
-              zone_table[room->zone].number, room->room_flags[0], room->room_flags[1], room->room_flags[2],
-              room->room_flags[3], room->sector_type);
+                                   "%s%c\n"
+                                   "%s%c\n"
+                                   "%d %d %d %d %d %d\n",
+               room->number,
+               room->name ? room->name : "Untitled", STRING_TERMINATOR,
+               buf, STRING_TERMINATOR,
+               zone_table[room->zone].number, room->room_flags[0], room->room_flags[1], room->room_flags[2],
+               room->room_flags[3], room->sector_type);
 
       /* Done saving, reset the flag. */
       if (occupied)
@@ -476,8 +476,8 @@ int copy_room(struct room_data *to, struct room_data *from)
   return TRUE;
 }
 
-/* Copy strings over so bad things don't happen.  We do not free the existing 
- * strings here because copy_room() did a shallow copy previously and we'd be 
+/* Copy strings over so bad things don't happen.  We do not free the existing
+ * strings here because copy_room() did a shallow copy previously and we'd be
  * freeing the very strings we're copying.  If this function is used elsewhere,
  * be sure to free_room_strings() the 'dest' room first. */
 int copy_room_strings(struct room_data *dest, struct room_data *source)

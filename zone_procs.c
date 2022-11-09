@@ -613,7 +613,7 @@ static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum
 
   if ((king = find_npc_by_name(ch, "King Welmar", 11)) != NULL)
   {
-    char actbuf[MAX_INPUT_LENGTH];
+    char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
     if (!ch->master)
       do_follow(ch, strcpy(actbuf, "King Welmar"), 0, 0); /* strcpy: OK */

@@ -1903,14 +1903,14 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 6;
     break;
 
-    case SPELL_DRAGONBORN_ANCESTRY_BREATH:
-      //AoE
-      save = SAVING_REFL;
-      mag_resist = FALSE;
-      element = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
-      num_dice = GET_LEVEL(ch);
-      size_dice = 6;
-      break;
+  case SPELL_DRAGONBORN_ANCESTRY_BREATH:
+    // AoE
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = draconic_heritage_energy_types[GET_DRAGONBORN_ANCESTRY(ch)];
+    num_dice = GET_LEVEL(ch);
+    size_dice = 6;
+    break;
 
   case SPELL_ACID: // acid fog (conjuration)
     // AoE
@@ -2428,10 +2428,13 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   return (damage(ch, victim, dam, spellnum, element, FALSE));
 }
 
-// converted affects to rounds
-// 20 rounds = 1 real minute
-// 1200 rounds = 1 real hour
-// old tick = 75 seconds, or 1.25 minutes or 25 rounds
+/* this variable is used for the system for 'spamming' ironskin -zusuk */
+#define WARD_THRESHOLD 151
+
+/* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
+   old tick = 75 seconds, or 1.25 minutes or 25 rounds */
+
+/* all spells, spell-like affects, alchemy, psionics, etc that puts on an affect should be going through here */
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic)
 {
@@ -4743,18 +4746,18 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are suddenly empowered by magic fang.";
     break;
 
-    case SPELL_MINOR_ILLUSION: //illusion
-      if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
-      {
-        send_to_char(ch, "You already have an illusory double.\r\n");
-        return;
-      }
-      af[0].duration = 300;
-      SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
-      to_room = "$n grins as a duplicate image pops up and smiles!";
-      to_vict = "You watch as a duplicate image pops up and smiles at you!";
-      GET_IMAGES(victim) = 1;
-      break;
+  case SPELL_MINOR_ILLUSION: // illusion
+    if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
+    {
+      send_to_char(ch, "You already have an illusory double.\r\n");
+      return;
+    }
+    af[0].duration = 300;
+    SET_BIT_AR(af[0].bitvector, AFF_MIRROR_IMAGED);
+    to_room = "$n grins as a duplicate image pops up and smiles!";
+    to_vict = "You watch as a duplicate image pops up and smiles at you!";
+    GET_IMAGES(victim) = 1;
+    break;
 
   case SPELL_GREATER_MIRROR_IMAGE: // illusion
     if (affected_by_spell(victim, SPELL_MINOR_ILLUSION))
@@ -5021,7 +5024,16 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_IRONSKIN: // transmutation
     if (affected_by_spell(victim, SPELL_EPIC_WARDING))
     {
-      send_to_char(ch, "A magical ward is already in effect on the target.\r\n");
+      send_to_char(ch, "A more powerful magical ward is already in effect on the target.\r\n");
+      return;
+    }
+    /* i made this so you can spam iron skin theoretically -zusuk */
+    if (affected_by_spell(victim, SPELL_IRONSKIN) && level >= 20 &&
+        GET_STONESKIN(victim) >= WARD_THRESHOLD)
+    {
+      send_to_char(ch, "The ironskin on %s is still holding strong (%d damage left, %d is the "
+                       "configured threshold)!\r\n",
+                   GET_NAME(victim), GET_STONESKIN(victim), WARD_THRESHOLD);
       return;
     }
     if (affected_by_spell(victim, SPELL_STONESKIN))
@@ -6359,7 +6371,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   if (to_vict != NULL)
     act(to_vict, FALSE, victim, 0, ch, TO_CHAR);
   if (to_room != NULL)
-    act(to_room, -1234, victim, 0, ch, TO_ROOM);
+    act(to_room, ACT_CONDENSE_VALUE, victim, 0, ch, TO_ROOM);
 
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
@@ -6374,6 +6386,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
   }
 }
+
+#undef WARD_THRESHOLD
 
 /* This function is used to provide services to mag_groups.  This function is
  * the one you should change to add new group spells. */
@@ -8683,7 +8697,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool gate_process = FALSE;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum gate_dest = NOWHERE;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
   int loop_count = 0;
 
   if (ch == NULL)

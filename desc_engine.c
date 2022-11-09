@@ -19,23 +19,23 @@
 #include "desc_engine.h"
 #include "wilderness.h"
 
-/* 
+/*
  * Luminari Description Engine
  * ---------------------------
- * 
- * It is very useful to have a way to generate descriptions automatically for 
+ *
+ * It is very useful to have a way to generate descriptions automatically for
  * rooms, especially in wilderness areas.  That is the goal of the code in this
  * file.
- * 
- * The first iteration will focus entirely on generating room descriptions for 
- * wilderness rooms. 
- * 
+ *
+ * The first iteration will focus entirely on generating room descriptions for
+ * wilderness rooms.
+ *
  * It is important to determine what the descriptions will look like, how
- * they will be constructed, how to translate from the data in the room to 
- * a text description, how to determine what details to include (eg. Detect 
+ * they will be constructed, how to translate from the data in the room to
+ * a text description, how to determine what details to include (eg. Detect
  * Magic), etc.  This also includes things like tracks, weather conditions,
  * player-generated changes to room details, etc.
- * 
+ *
  */
 
 /*
@@ -47,22 +47,22 @@
 char *gen_room_description(struct char_data *ch, room_rnum room)
 {
 	/* Buffers to hold the description*/
-	char buf[MAX_STRING_LENGTH];
-	char weather_buf[MAX_STRING_LENGTH];
-	char rdesc[MAX_STRING_LENGTH];
+	char buf[MAX_STRING_LENGTH] = {'\0'};
+	char weather_buf[MAX_STRING_LENGTH] = {'\0'};
+	char rdesc[MAX_STRING_LENGTH] = {'\0'};
 
 	int weather;
 
-	//static char *wilderness_desc = "The wilderness extends in all directions.";
+	// static char *wilderness_desc = "The wilderness extends in all directions.";
 
 	/* Position, season, terrain */
-	//char sect1[MAX_STRING_LENGTH];
+	// char sect1[MAX_STRING_LENGTH] = {'\0'};
 	/* Weather and terrain */
-	//char sect2[MAX_STRING_LENGTH];
+	// char sect2[MAX_STRING_LENGTH] = {'\0'};
 	/* Hand-written, optional. */
-	//char sect3[MAX_STRING_LENGTH];
+	// char sect3[MAX_STRING_LENGTH] = {'\0'};
 	/* Nearby landmarks. */
-	//char sect4[MAX_STRING_LENGTH];
+	// char sect4[MAX_STRING_LENGTH] = {'\0'};
 
 	/* Variables for calculating which directions the nearby regions are located. */
 	double max_area = 0.0;
@@ -71,7 +71,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	bool surrounded = FALSE;
 	bool first_region = TRUE;
 
-	const char * const direction_strings[9] = {
+	const char *const direction_strings[9] = {
 		"UNDEFINED",
 		"north",
 		"northeast",
@@ -89,16 +89,16 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 
 	/*
   char *position_strings[NUM_POSITIONS] = {
-    "dead", // Dead
-    "mortally wounded", // Mortally Wounded
-    "incapacitated", // Incap
-    "stunned", // Stunned
-    "sleeping", // Sleeping
-    "reclining",  
-    "resting",
-    "sitting",
-    "fighting",
-    "standing"
+	"dead", // Dead
+	"mortally wounded", // Mortally Wounded
+	"incapacitated", // Incap
+	"stunned", // Stunned
+	"sleeping", // Sleeping
+	"reclining",
+	"resting",
+	"sitting",
+	"fighting",
+	"standing"
   }; // Need to add pos_swimming.
   */
 
@@ -106,29 +106,29 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	// the burning wastes of||the scorching sands of||the shifting dunes of||the rolling hills of||
 	// the craggy peaks of||etc.||on||over||on the edge of||among the trees of||deep within, region name
 
-	/* Build the description in pieces, then combine at the end. 
-   *  
-   * Section 1: Viewer's position (standing, walking, flying, etc), season and terrain.
-   * Section 2: Time and terrain.
-   * Section 3: Weather and terrain. 
-   * Section 4: Optional hand-written area description (season and day/night specific). 
-   *
-   * Each of the above usually consists of a single sentence, but can consist of more, 
-   * and sometimes result in fairly lengthy descriptions such as: 
-   *
-   * (You are walking through Whispering Wood, the leaves on the trees a mottled brown from the onset of autumn.  
-   * Many leaves have already fallen to the ground, and they crunch beneath your boots with every step.)  (The 
-   * sun is beginning to rise on the eastern horizon, its red glow barely visible through the tall trees.)  
-   * (Flashes of lightning and the rumble of thunder fill the night air, framed against the backdrop of 
-   * incessant rain which falls through the tree branches overhead before pattering on the ground.  Your cloak 
-   * flaps wildly in the wind, providing little protection against the pouring rain.)  (The trees in this part 
-   * of the forest are tall and sturdy, their great trunks towering high above you. )
-   *
-   * (Above is from Kavir, from Godwars 2.)
-   */
+	/* Build the description in pieces, then combine at the end.
+	 *
+	 * Section 1: Viewer's position (standing, walking, flying, etc), season and terrain.
+	 * Section 2: Time and terrain.
+	 * Section 3: Weather and terrain.
+	 * Section 4: Optional hand-written area description (season and day/night specific).
+	 *
+	 * Each of the above usually consists of a single sentence, but can consist of more,
+	 * and sometimes result in fairly lengthy descriptions such as:
+	 *
+	 * (You are walking through Whispering Wood, the leaves on the trees a mottled brown from the onset of autumn.
+	 * Many leaves have already fallen to the ground, and they crunch beneath your boots with every step.)  (The
+	 * sun is beginning to rise on the eastern horizon, its red glow barely visible through the tall trees.)
+	 * (Flashes of lightning and the rumble of thunder fill the night air, framed against the backdrop of
+	 * incessant rain which falls through the tree branches overhead before pattering on the ground.  Your cloak
+	 * flaps wildly in the wind, providing little protection against the pouring rain.)  (The trees in this part
+	 * of the forest are tall and sturdy, their great trunks towering high above you. )
+	 *
+	 * (Above is from Kavir, from Godwars 2.)
+	 */
 
-	/* For the first iteration, we are skipping everything to do with the player, 
-    * as we are setting a description on the room itself. */
+	/* For the first iteration, we are skipping everything to do with the player,
+	 * as we are setting a description on the room itself. */
 
 	/* Get the enclosing regions. */
 	regions = get_enclosing_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1]);
@@ -168,7 +168,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		else if (time_info.hours == 5)
 		{
 			snprintf(weather_buf, sizeof(weather_buf), "The first rays of dawn are breaking over the eastern horizon, "
-								 "casting the world around you in a warm glow and banishing the shadows of the night.  ");
+													   "casting the world around you in a warm glow and banishing the shadows of the night.  ");
 		}
 		else if (time_info.hours == 6)
 		{
@@ -181,7 +181,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		else if (time_info.hours == 17)
 		{
 			snprintf(weather_buf, sizeof(weather_buf), "The sun dips below the western horizon, the rich colors "
-								 "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
+													   "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
 		}
 	}
 	else if (weather > 225)
@@ -190,17 +190,17 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		if (time_info.hours < 5 || time_info.hours > 17)
 		{
 			snprintf(weather_buf, sizeof(weather_buf), "Bright flashes of lightning and crashing thunder illuminate the night sky as a thunderstorm sweeps across the area.  "
-								 "Rain pours down in sheets and whips about in the howling winds. ");
+													   "Rain pours down in sheets and whips about in the howling winds. ");
 		}
 		else if (time_info.hours == 5)
 		{
 			snprintf(weather_buf, sizeof(weather_buf), "The weak light of the dawn struggles to break through the violent thunderclouds, overcome by crashing thunder and violent strokes of lightning.  "
-								 "Rain pours down in sheets and whips about in the howling winds. ");
+													   "Rain pours down in sheets and whips about in the howling winds. ");
 		}
 		else if (time_info.hours == 6)
 		{
 			snprintf(weather_buf, sizeof(weather_buf), "The sun barely illuminates the landscape as it weakly rises over the eastern horizon.  "
-								 "Crashes of thunder and violent lightning overshadow any signs of the new day.  Rain pours down in sheets, blowing sideways in the howling winds.  ");
+													   "Crashes of thunder and violent lightning overshadow any signs of the new day.  Rain pours down in sheets, blowing sideways in the howling winds.  ");
 		}
 		else if (time_info.hours > 6 && time_info.hours < 17)
 		{
@@ -209,7 +209,7 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 		else if (time_info.hours == 17)
 		{
 			snprintf(weather_buf, sizeof(weather_buf), "The sun dips below the western horizon, the rich colors "
-								 "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
+													   "of the sunset signaling the end of the day and the onset of the deep shadows of night.  ");
 		}
 	}
 	else if (weather > 200)
@@ -262,14 +262,14 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 	}
 
 	/* Retrieve and process nearby regions ---------------------------------------
-   * For the dynamic description engine it is necessary to gather as much 
-   * information about the game world as we need to build a coherent description
-   * that can augment the visual (or screenreader-compatible) map.
-   * Since regions by definition define 'regions of interest' then it makes sense
-   * to include them in the description.  First we need to determine what regions
-   * are near (and visible to) the player's location and determine WHERE in space 
-   * they are located.  
-   */
+	 * For the dynamic description engine it is necessary to gather as much
+	 * information about the game world as we need to build a coherent description
+	 * that can augment the visual (or screenreader-compatible) map.
+	 * Since regions by definition define 'regions of interest' then it makes sense
+	 * to include them in the description.  First we need to determine what regions
+	 * are near (and visible to) the player's location and determine WHERE in space
+	 * they are located.
+	 */
 
 	nearby_regions = get_nearby_regions(GET_ROOM_ZONE(room), world[room].coords[0], world[room].coords[1], 5);
 	rdesc[0] = '\0';
@@ -317,12 +317,12 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 			if (first_region == TRUE)
 			{
 				snprintf(buf, sizeof(buf), "You are %s.  %s lies %sto the %s.\r\n", sector_types_readable[world[room].sector_type], region_table[curr_nearby_region->rnum].name,
-						(curr_nearby_region->dist <= 1 ? "very near " : (curr_nearby_region->dist <= 2 ? "near " : (curr_nearby_region->dist <= 3 ? "" : (curr_nearby_region->dist <= 4 ? "far " : (curr_nearby_region->dist > 4 ? "very far " : ""))))), direction_strings[region_dir]);
+						 (curr_nearby_region->dist <= 1 ? "very near " : (curr_nearby_region->dist <= 2 ? "near " : (curr_nearby_region->dist <= 3 ? "" : (curr_nearby_region->dist <= 4 ? "far " : (curr_nearby_region->dist > 4 ? "very far " : ""))))), direction_strings[region_dir]);
 			}
 			else
 			{
 				snprintf(buf, sizeof(buf), "%s lies %sto the %s.\r\n", region_table[curr_nearby_region->rnum].name,
-						(curr_nearby_region->dist <= 1 ? "very near " : (curr_nearby_region->dist <= 2 ? "near " : (curr_nearby_region->dist <= 3 ? "" : (curr_nearby_region->dist <= 4 ? "far " : (curr_nearby_region->dist > 4 ? "very far " : ""))))), direction_strings[region_dir]);
+						 (curr_nearby_region->dist <= 1 ? "very near " : (curr_nearby_region->dist <= 2 ? "near " : (curr_nearby_region->dist <= 3 ? "" : (curr_nearby_region->dist <= 4 ? "far " : (curr_nearby_region->dist > 4 ? "very far " : ""))))), direction_strings[region_dir]);
 			}
 		}
 		strcat(buf, weather_buf);
@@ -351,31 +351,31 @@ char *gen_room_description(struct char_data *ch, room_rnum room)
 /* Generate a room description for ch based on various aspects
  * of the room including trails, weather, character's race, time of day,
  * etc. Finally, strip line breaks and add them again at their correct
- * places. -- Scion 
- * 
- * A great deal of this function relies on SMAUG/CalareyMUD specific 
- * functionality.  Most of this needs to be adapted to Luminari. 
+ * places. -- Scion
+ *
+ * A great deal of this function relies on SMAUG/CalareyMUD specific
+ * functionality.  Most of this needs to be adapted to Luminari.
  * - Ornir */
 char *gen_room_description(struct char_data *ch, char *desc)
 {
-	char message[MAX_STRING_LENGTH];
-	char buf[MAX_STRING_LENGTH];
-	char temp[MAX_STRING_LENGTH];
+	char message[MAX_STRING_LENGTH] = {'\0'};
+	char buf[MAX_STRING_LENGTH] = {'\0'};
+	char temp[MAX_STRING_LENGTH] = {'\0'};
 	char rdesc[MAX_STRING_LENGTH] - ;
 	int i, letters, space, newspace, line;
 
-	//int lights = get_light_room(ch->in_room);
-	//TRAIL_DATA *trail;
-	//EXIT_DATA *pexit;
+	// int lights = get_light_room(ch->in_room);
+	// TRAIL_DATA *trail;
+	// EXIT_DATA *pexit;
 
 	/* Get a separate buffer for each type of trail info and then tack them
 	together at the end. This will use more memory, but will put all the
 	different types of trail info together, plus it will only use one for
 	loop instead of several. -- Scion */
-	char graffiti[MAX_STRING_LENGTH];
-	char blood[MAX_STRING_LENGTH];
-	char snow[MAX_STRING_LENGTH];
-	char trails[MAX_STRING_LENGTH];
+	char graffiti[MAX_STRING_LENGTH] = {'\0'};
+	char blood[MAX_STRING_LENGTH] = {'\0'};
+	char snow[MAX_STRING_LENGTH] = {'\0'};
+	char trails[MAX_STRING_LENGTH] = {'\0'};
 
 	/* Count the number of each type of message, and abbreviate in case of
 	very long strings */
@@ -759,8 +759,8 @@ char *gen_room_description(struct char_data *ch, char *desc)
 	/*	for (obj = ch->in_room->first_content; obj; obj = obj->next_content) {
 		extern char *munch_colors(char *word);
 
-		char sentence[MAX_STRING_LENGTH];
-		char temp[MAX_STRING_LENGTH];
+		char sentence[MAX_STRING_LENGTH] = {'\0'};
+		char temp[MAX_STRING_LENGTH] = {'\0'};
 
 		if (!can_see_obj(ch, obj))
 			continue;
@@ -895,8 +895,8 @@ char *gen_room_description(struct char_data *ch, char *desc)
 				strlcpy(message, "A flake of dried blood catches your eye. ", sizeof(message));
 
 			snprintf(temp, sizeof(temp), message,
-					(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
-					(trail->to > -1 ? dir_name[trail->to] : "right here"));
+					 (trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
+					 (trail->to > -1 ? dir_name[trail->to] : "right here"));
 			strcat(temp, " ");
 			strcat(blood, temp);
 			num_blood++;
@@ -908,8 +908,8 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		{
 			strlcpy(message, "Footprints in the snow seem to lead from %s to %s. ", sizeof(message));
 			snprintf(temp, sizeof(temp), message,
-					(trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
-					(trail->to > -1 ? dir_name[trail->to] : "right here"));
+					 (trail->from > -1 ? rev_dir_name[trail->from] : "the center of the room"),
+					 (trail->to > -1 ? dir_name[trail->to] : "right here"));
 			strcat(temp, " ");
 			strcat(snow, temp);
 			num_snow++;
@@ -932,10 +932,10 @@ char *gen_room_description(struct char_data *ch, char *desc)
 					strlcpy(message, "You notice a footprint on the ground", sizeof(message));
 				learn_from_success(ch, gsn_track);
 				snprintf(temp, sizeof(temp), message,
-						(trail->from > -1 ? rev_dir_name[trail->from] : "right here"),
-						(trail->to > -1 ? dir_name[trail->to] : "right here"),
-						trail->race ? (aoran(trail->race->name))
-									: "some unknown creature");
+						 (trail->from > -1 ? rev_dir_name[trail->from] : "right here"),
+						 (trail->to > -1 ? dir_name[trail->to] : "right here"),
+						 trail->race ? (aoran(trail->race->name))
+									 : "some unknown creature");
 				strcat(temp, ". ");
 				strcat(trails, temp);
 				num_trails++;
@@ -1014,7 +1014,7 @@ char *gen_room_description(struct char_data *ch, char *desc)
 		{
 			rdesc[letters] = buf[i];
 			letters++; /* Index for rdesc; i is the index for buf */
-			line++;	/* Counts number of characters on this line */
+			line++;	   /* Counts number of characters on this line */
 		}
 		rdesc[letters + 1] = '\0';
 	}

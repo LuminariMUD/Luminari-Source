@@ -265,13 +265,13 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
   {
     switch (weapon)
     {
-      case WEAPON_TYPE_BATTLE_AXE:
-      case WEAPON_TYPE_HEAVY_PICK:
-      case WEAPON_TYPE_LIGHT_PICK:
-      case WEAPON_TYPE_WARHAMMER:
-      case WEAPON_TYPE_LIGHT_HAMMER:
-      case WEAPON_TYPE_DWARVEN_WAR_AXE:
-      case WEAPON_TYPE_DWARVEN_URGOSH:
+    case WEAPON_TYPE_BATTLE_AXE:
+    case WEAPON_TYPE_HEAVY_PICK:
+    case WEAPON_TYPE_LIGHT_PICK:
+    case WEAPON_TYPE_WARHAMMER:
+    case WEAPON_TYPE_LIGHT_HAMMER:
+    case WEAPON_TYPE_DWARVEN_WAR_AXE:
+    case WEAPON_TYPE_DWARVEN_URGOSH:
       return TRUE;
     }
   }
@@ -2066,7 +2066,7 @@ bool monk_gear_ok(struct char_data *ch)
 ACMD(do_weaponlist_old)
 {
   int type = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[100];
   char buf3[100];
   size_t len = 0;
@@ -2116,7 +2116,7 @@ ACMD(do_weaponlist_old)
 ACMD(do_armorlist_old)
 {
   int i = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0;
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)

@@ -93,7 +93,7 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
 {
   int num, mob_flag, found = 0, len;
   struct char_data *mob;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   mob_flag = atoi(arg);
 
@@ -133,7 +133,7 @@ void perform_mob_level_list(struct char_data *ch, char *arg)
 {
   int num, mob_level, found = 0, len;
   struct char_data *mob;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   mob_level = atoi(arg);
 
@@ -197,7 +197,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
                          len = 0, tmp_len = 0;
   obj_vnum ov;
   obj_rnum r_num, target_obj = NOTHING;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[256];
 
   *buf2 = '\0';
@@ -515,7 +515,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
 {
   int num, wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
   obj_vnum ov;
-  char buf[MAX_STRING_LENGTH], bitbuf[MEDIUM_STRING];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, bitbuf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
 
   wearloc = atoi(arg);
@@ -598,7 +598,7 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
   struct obj_list_item lst[MAX_OBJ_LIST];
   obj_rnum r_num;
   obj_vnum ov;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   for (i = 0; i < MAX_OBJ_LIST; i++)
   {
@@ -696,7 +696,7 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
   int num = 0, found = 0, len = 0, tmp_len = 0;
   int flag_num = atoi(arg);
   obj_vnum ov = NOTHING;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
 
   if (flag_num < 1 || flag_num >= NUM_AFF_FLAGS)
@@ -735,7 +735,7 @@ void perform_obj_name_list(struct char_data *ch, char *arg)
 {
   int num, found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   len = snprintf(buf, sizeof(buf), "Objects with the name '%s'\r\n"
                                    "Index VNum    Num   Object Name                                Object Type\r\n"
@@ -766,9 +766,9 @@ ACMD(do_oasis_list)
   zone_rnum rzone = NOWHERE;
   room_rnum vmin = NOWHERE;
   room_rnum vmax = NOWHERE;
-  char smin[MAX_INPUT_LENGTH];
-  char smax[MAX_INPUT_LENGTH];
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char smin[MAX_INPUT_LENGTH] = {'\0'};
+  char smax[MAX_INPUT_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   bool use_name = FALSE;
   int i;
 
@@ -1070,7 +1070,7 @@ ACMD(do_oasis_links)
   room_rnum nr, to_room;
   room_vnum first, last;
   int j;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   skip_spaces_c(&argument);
   one_argument(argument, arg, sizeof(arg));
@@ -1130,7 +1130,7 @@ static void list_regions(struct char_data *ch)
 {
   int i;
   int counter = 0, len;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   len = strlcpy(buf,
                 "Ind|VNum   | Name                                |Type        |Properties\r\n"
@@ -1166,7 +1166,7 @@ static void list_paths(struct char_data *ch)
 {
   int i;
   int counter = 0, len;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   len = strlcpy(buf,
                 "Ind|VNum   | Name                                |Type        |Glyphs\r\n"
@@ -1203,7 +1203,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
   room_rnum i;
   room_vnum bottom, top;
   int j, counter = 0, len, temp_num = 0, subcmd = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   bool *has_zcmds = NULL;
 
   /* Expect a minimum / maximum number if the rnum for the zone is NOWHERE. */
@@ -1300,7 +1300,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
   mob_rnum i;
   mob_vnum bottom, top;
   int counter = 0, len;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (rnum != NOWHERE)
   {
@@ -1365,10 +1365,10 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
 {
   obj_rnum i = 0, j = 0;
   obj_vnum bottom = 0, top = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int counter = 0, num_found = 0, len = 0, len2 = 0;
   struct obj_data *l = NULL;
-  char wears_text[LONG_STRING];
+  char wears_text[LONG_STRING] = {'\0'};
 
   if (rnum != NOWHERE)
   {
@@ -1518,7 +1518,7 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
   int counter = 0, len = 0, tmp_len = 0;
   zone_rnum i;
   zone_vnum bottom, top;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char *buf2;
   bool use_name = FALSE;
 
@@ -1586,7 +1586,7 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
   zone_rnum rnum;
   int size_rooms, size_objects, size_mobiles, size_quests, size_shops, size_trigs, i, largest_table;
   room_vnum top, bottom;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if ((rnum = real_zone(vnum)) == NOWHERE)
   {
@@ -1683,7 +1683,7 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
 static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, trig_vnum vmax)
 {
   int i, bottom, top, counter = 0;
-  char trgtypes[MEDIUM_STRING];
+  char trgtypes[MEDIUM_STRING] = {'\0'};
 
   /* Expect a minimum / maximum number if the rnum for the zone is NOWHERE. */
   if (rnum != NOWHERE)

@@ -36,6 +36,9 @@
 #include "constants.h"
 #include "spec_procs.h" /* for is_wearing() */
 
+/* externs */
+extern char cast_arg2[MAX_INPUT_LENGTH];
+
 /* defines */
 #define RAGE_AFFECTS 7
 #define SACRED_FLAMES_AFFECTS 1
@@ -2612,7 +2615,7 @@ ACMD(do_dragonborn_breath_weapon)
 
 ACMD(do_assist)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *helpee = NULL;
 
   PREREQ_CAN_FIGHT();
@@ -2916,7 +2919,7 @@ ACMDCHECK(can_backstab)
 
 ACMD(do_backstab)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
@@ -2972,12 +2975,25 @@ ACMD(do_backstab)
   perform_backstab(ch, vict);
 }
 
+/* set this up for lots of redundancy checking due to really annoying crashs issue */
+bool pet_order_check(struct char_data *ch, struct char_data *vict)
+{
+
+  if (ch && vict && IS_NPC(vict) && vict->master && vict->master == ch && AFF_FLAGGED(vict, AFF_CHARM) &&
+      GET_HIT(vict) >= -9 && GET_POS(vict) > POS_MORTALLYW && IN_ROOM(ch) != NOWHERE && IN_ROOM(vict) != NOWHERE)
+  {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* pet order command */
 ACMD(do_order)
 {
-  char name[MAX_INPUT_LENGTH], message[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'}, message[MAX_INPUT_LENGTH] = {'\0'};
   bool found = FALSE;
-  struct char_data *vict = NULL;
-  struct follow_type *k = NULL;
+  struct char_data *vict = NULL, *next_vict = NULL;
 
   half_chop_c(argument, name, sizeof(name), message, sizeof(message));
 
@@ -2997,7 +3013,7 @@ ACMD(do_order)
     }
     if (vict && ch)
     {
-      char buf[MAX_STRING_LENGTH];
+      char buf[MAX_STRING_LENGTH] = {'\0'};
 
       snprintf(buf, sizeof(buf), "$N orders you to '%s'", message);
       act(buf, FALSE, vict, 0, ch, TO_CHAR);
@@ -3017,44 +3033,76 @@ ACMD(do_order)
 
     else if (ch) /* This is order "followers" */
     {
-      char buf[MAX_STRING_LENGTH];
+      char buf[MAX_STRING_LENGTH] = {'\0'};
+      struct list_data *room_list = NULL;
 
-      snprintf(buf, sizeof(buf), "$n issues the order '%s'.", message);
+      snprintf(buf, sizeof(buf), "$n commands, '%s'.", message);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
 
-      for (k = ch->followers; k; k = k->next)
+      /* When using a list, we have to make sure to allocate the list as it
+       * uses dynamic memory */
+      room_list = create_list();
+
+      /* first build our list using a lot of silly checks due to crash issues */
+      for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
       {
-        if (!k)
-          continue;
-        if (!ch->followers)
-          continue;
-        if (!k->follower)
-          continue;
-        if (IN_ROOM(ch) == NOWHERE || IN_ROOM(k->follower) == NOWHERE)
-          continue;
-        if (IN_ROOM(ch) == IN_ROOM(k->follower))
-          if (AFF_FLAGGED(k->follower, AFF_CHARM))
-          {
-            found = TRUE;
-            command_interpreter(k->follower, message);
-          }
+        next_vict = vict->next_in_room;
+
+        if (pet_order_check(ch, vict))
+        {
+          add_to_list(vict, room_list);
+        }
       }
 
+      /* If our list is empty or has "0" entries, we free it from memory and
+       * bail from this function */
+      if (room_list->iSize == 0)
+      {
+        free_list(room_list);
+        send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
+        return;
+      }
+
+      /* resetting the variable, really isn't actually necessary :) */
+      vict = NULL;
+
+      /* SHOULD have a clean nice list, now lets loop through it with redundancy
+         due to our silly crash issues from earlier */
+      while ((vict = (struct char_data *)simple_list(room_list)) != NULL)
+      {
+        if (pet_order_check(ch, vict))
+        {
+          found = TRUE;
+          /* here is what we came here to accomplish... */
+          command_interpreter(vict, message);
+        }
+      }
+
+      /* made it! */
       if (found)
       {
         USE_FULL_ROUND_ACTION(ch);
         send_to_char(ch, "%s", CONFIG_OK);
       }
       else
+      {
+        /* it shouldn't be possible to get here, but regardless... */
         send_to_char(ch, "Nobody here is a loyal subject of yours!\r\n");
-    }
-  }
-  /* all done */
+      }
+
+      /* Now that our order is done, let's free out list */
+      if (room_list)
+        free_list(room_list);
+    } /* end order all followers */
+
+  } /* end order */
+
+  /* all done! */
 }
 
 ACMD(do_flee)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i;
 
   if (GET_POS(ch) < POS_FIGHTING || GET_HIT(ch) <= 0)
@@ -3222,7 +3270,7 @@ ACMDCHECK(can_taunt)
 
 ACMD(do_taunt)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
@@ -3365,7 +3413,7 @@ ACMDCHECK(can_intimidate)
 
 ACMD(do_intimidate)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_CAN_FIGHT();
@@ -3795,7 +3843,7 @@ ACMD(do_pixiedust)
   }
 
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -3872,7 +3920,7 @@ ACMD(do_pixiedust)
 void perform_red_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -3964,7 +4012,7 @@ void perform_red_dragon_magic(struct char_data *ch, const char *argument)
 void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4056,7 +4104,7 @@ void perform_blue_dragon_magic(struct char_data *ch, const char *argument)
 void perform_green_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4148,7 +4196,7 @@ void perform_green_dragon_magic(struct char_data *ch, const char *argument)
 void perform_black_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4240,7 +4288,7 @@ void perform_black_dragon_magic(struct char_data *ch, const char *argument)
 void perform_white_dragon_magic(struct char_data *ch, const char *argument)
 {
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -4383,8 +4431,6 @@ ACMD(do_dragonmagic)
   send_to_char(ch, "You have %d dragon magic uses left.\r\n", DRAGON_MAGIC_USES(ch));
 }
 
-extern char cast_arg2[MAX_INPUT_LENGTH];
-
 ACMDCHECK(can_efreetimagic)
 {
   ACMDCHECK_PERMFAIL_IF(!IS_EFREETI(ch), "You have no idea how.\r\n");
@@ -4416,7 +4462,7 @@ ACMD(do_efreetimagic)
   }
 
   struct char_data *vict = NULL;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   int i = 0;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
@@ -5513,7 +5559,7 @@ ACMDCHECK(can_treatinjury)
 
 ACMD(do_treatinjury)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
@@ -5590,7 +5636,7 @@ ACMD(do_treatinjury)
 
 ACMD(do_bandage)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   PREREQ_NOT_NPC();
@@ -5677,7 +5723,7 @@ ACMD(do_bandage)
 
 ACMD(do_rescue)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   if (IS_NPC(ch) && !IS_FIGHTER(ch))

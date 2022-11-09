@@ -53,8 +53,8 @@ ACMD(do_oasis_medit)
   int number = NOBODY, save = 0, real_num;
   struct descriptor_data *d;
   const char *buf3;
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /* No building as a mob or while being forced. */
   if (IS_NPC(ch) || !ch->desc || STATE(ch->desc) != CON_PLAYING)
@@ -429,7 +429,7 @@ void medit_disp_class(struct descriptor_data *d)
 void medit_disp_size(struct descriptor_data *d)
 {
   int i, columns = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   clear_screen(d);
   for (i = -1; i < NUM_SIZES; i++)
@@ -497,7 +497,7 @@ static int medit_get_mob_flag_by_number(int num)
 static void medit_disp_mob_flags(struct descriptor_data *d)
 {
   int i, count = 0, columns = 0;
-  char flags[MAX_STRING_LENGTH];
+  char flags[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -518,7 +518,7 @@ static void medit_disp_mob_flags(struct descriptor_data *d)
 /* Display affection flags menu. */
 static void medit_disp_aff_flags(struct descriptor_data *d)
 {
-  char flags[MAX_STRING_LENGTH];
+  char flags[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -762,7 +762,7 @@ static void medit_disp_resistances_menu(struct descriptor_data *d)
 static void medit_disp_stats_menu(struct descriptor_data *d)
 {
   struct char_data *mob;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   mob = OLC_MOB(d);
   get_char_colors(d->character);
@@ -1088,7 +1088,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     }
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       if (!ECHO_ENTRIES(OLC_MOB(d)))
         CREATE(ECHO_ENTRIES(OLC_MOB(d)), char *, 1);
       else
@@ -1135,7 +1135,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
 
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
       if (ECHO_ENTRIES(OLC_MOB(d)) && ECHO_ENTRIES(OLC_MOB(d)) != NULL &&
           ECHO_ENTRIES(OLC_MOB(d))[OLC_VAL(d) - 1])
@@ -1563,7 +1563,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       free(GET_LDESC(OLC_MOB(d)));
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s\r\n", arg);
       GET_LDESC(OLC_MOB(d)) = strdup(buf);
     }
@@ -1587,7 +1587,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       free(GET_WALKIN(OLC_MOB(d)));
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
       GET_WALKIN(OLC_MOB(d)) = strdup(buf);
     }
@@ -1601,7 +1601,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
       free(GET_WALKOUT(OLC_MOB(d)));
     if (arg && *arg)
     {
-      char buf[MAX_INPUT_LENGTH];
+      char buf[MAX_INPUT_LENGTH] = {'\0'};
       snprintf(buf, sizeof(buf), "%s", delete_doubledollar(arg));
       GET_WALKOUT(OLC_MOB(d)) = strdup(buf);
     }

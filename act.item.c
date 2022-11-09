@@ -92,10 +92,10 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   struct char_data *tempch = NULL, *pet = NULL;
   struct obj_special_ability *specab;
   obj_rnum target_obj = NOTHING;
-  char buf[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80, i = 0;
-  char actmtds[MAX_STRING_LENGTH];
+  char actmtds[MAX_STRING_LENGTH] = {'\0'};
   int (*name)(struct char_data * ch, void *me, int cmd, const char *argument);
   bool found = FALSE;
 
@@ -1310,7 +1310,7 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
   obj_vnum vnum = GET_OBJ_VNUM(j);
   struct obj_data *j2;
   struct extra_descr_data *desc;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80;
 
   if (mode == ITEM_STAT_MODE_G_LORE)
@@ -2082,7 +2082,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
 {
   bool is_corpse = FALSE, is_clan = FALSE;
   int ct = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
@@ -2156,7 +2156,7 @@ void get_from_container(struct char_data *ch, struct obj_data *cont,
   {
     if (!(obj = get_obj_in_list_vis(ch, arg, NULL, cont->contains)))
     {
-      char buf[MAX_STRING_LENGTH];
+      char buf[MAX_STRING_LENGTH] = {'\0'};
 
       snprintf(buf, sizeof(buf), "There doesn't seem to be %s %s in $p.", AN(arg), arg);
       act(buf, FALSE, ch, cont, 0, TO_CHAR);
@@ -2195,7 +2195,7 @@ void get_from_container(struct char_data *ch, struct obj_data *cont,
         act("$p seems to be empty.", FALSE, ch, cont, 0, TO_CHAR);
       else
       {
-        char buf[MAX_STRING_LENGTH];
+        char buf[MAX_STRING_LENGTH] = {'\0'};
 
         snprintf(buf, sizeof(buf), "You can't seem to find any %ss in $p.", arg);
         act(buf, FALSE, ch, cont, 0, TO_CHAR);
@@ -2393,7 +2393,7 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
       }
       else
       {
-        char buf[MAX_STRING_LENGTH];
+        char buf[MAX_STRING_LENGTH] = {'\0'};
 
         if (!drop_wtrigger(obj, ch))
         {
@@ -2410,7 +2410,7 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
     }
     else
     {
-      char buf[MAX_STRING_LENGTH];
+      char buf[MAX_STRING_LENGTH] = {'\0'};
 
       snprintf(buf, sizeof(buf), "$n drops %s which disappears in a puff of smoke!", money_desc(amount));
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
@@ -2426,7 +2426,7 @@ static void perform_drop_gold(struct char_data *ch, int amount, byte mode, room_
 static int perform_drop(struct char_data *ch, struct obj_data *obj,
                         byte mode, const char *sname, room_rnum RDR)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int value;
 
   if (!drop_otrigger(obj, ch))
@@ -2672,7 +2672,7 @@ static struct char_data *give_find_vict(struct char_data *ch, char *arg)
 static void perform_give_gold(struct char_data *ch, struct char_data *vict,
                               int amount)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   if (amount <= 0)
   {
@@ -2750,7 +2750,7 @@ ACMDU(do_give)
   }
   else
   {
-    char buf1[MAX_INPUT_LENGTH];
+    char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     one_argument(argument, buf1, sizeof(buf1));
     if (!(vict = give_find_vict(ch, buf1)))
@@ -3016,12 +3016,12 @@ ACMDU(do_eat)
 
 ACMD(do_drink_old)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *temp;
   // struct affected_type af;
   int amount, weight;
   int on_ground = 0;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -3030,7 +3030,7 @@ ACMD(do_drink_old)
 
   if (!*arg)
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
     switch (SECT(IN_ROOM(ch)))
     {
     case SECT_WATER_SWIM:
@@ -3135,7 +3135,7 @@ ACMD(do_drink_old)
 
   if (subcmd == SCMD_DRINK)
   {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     snprintf(buf, sizeof(buf), "$n drinks %s from $p.", drinks[GET_OBJ_VAL(temp, 2)]);
     act(buf, TRUE, ch, temp, 0, TO_ROOM);
@@ -3221,11 +3221,11 @@ ACMD(do_drink_old)
 
 ACMD(do_eat_old)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *food;
   struct affected_type af;
   int amount;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -3331,7 +3331,7 @@ ACMD(do_eat_old)
 
 ACMD(do_pour)
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *from_obj = NULL, *to_obj = NULL;
   int amount = 0;
 
@@ -3692,7 +3692,7 @@ int is_wielding_type(struct char_data *ch)
 /* the guts of the 'wear' mechanic for equipping gear */
 void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   /* TAKE is used for objects that don't require special bits, ex. HOLD */
   int wear_bitvectors[] = {
@@ -4204,7 +4204,7 @@ ACMD(do_priceset)
 
 ACMD(do_grab)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
@@ -4326,7 +4326,7 @@ ACMD(do_remove)
 
 ACMD(do_sac)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *j, *jj, *next_thing2;
 
   one_argument(argument, arg, sizeof(arg));
@@ -4703,7 +4703,7 @@ static const char *const auctioneer[AUC_BID + 1] = {
 
 void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
 {
-  char auction_buf[MAX_STRING_LENGTH];
+  char auction_buf[MAX_STRING_LENGTH] = {'\0'};
   /* Take object from character and set variables */
 
   obj_from_char(obj);
@@ -4727,7 +4727,7 @@ void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
 
 void check_auction(void)
 {
-  char auction_buf[MAX_STRING_LENGTH];
+  char auction_buf[MAX_STRING_LENGTH] = {'\0'};
 
   switch (aucstat)
   {
@@ -4814,8 +4814,8 @@ void check_auction(void)
 
 ACMD(do_auction)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   int bid = 0;
 
@@ -4850,7 +4850,7 @@ ACMD(do_auction)
   }
   else if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
   {
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     sprintf(auction_buf, "You don't seem to have %s %s.\r\n", AN(arg1), arg1);
     send_to_char(ch, "%s", auction_buf);
     send_to_char(ch, "Type auctalk to speak on the auction channel.\r\n");
@@ -4865,7 +4865,7 @@ ACMD(do_auction)
   */
   else if (!*arg2 && (bid = GET_OBJ_COST(obj)) <= 0)
   {
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     sprintf(auction_buf, "What should be the minimum bid?\r\n");
     send_to_char(ch, "%s", auction_buf);
     return;
@@ -4877,7 +4877,7 @@ ACMD(do_auction)
   }
   else if (aucstat != AUC_NULL_STATE)
   {
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     sprintf(auction_buf, "Sorry, but %s is already auctioning %s at %d gold coins!\r\n",
             GET_NAME(ch_selling), obj_selling->short_description, bid);
     send_to_char(ch, "%s", auction_buf);
@@ -4927,7 +4927,7 @@ ACMD(do_bid)
   }
   else if ((bid = atoi(arg)) < ((int)curbid * 1.1 - 1) && ch_buying != NULL)
   {
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     sprintf(
         auction_buf,
         "You must bid at least 10 percent more than the current bid. (%d)\r\n",
@@ -4937,7 +4937,7 @@ ACMD(do_bid)
   }
   else if (ch_buying == NULL && bid < curbid)
   {
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     sprintf(auction_buf, "You must at least bid the minimum!\r\n");
     send_to_char(ch, "%s", auction_buf);
     return;
@@ -4962,7 +4962,7 @@ ACMD(do_bid)
     curbid = bid;
     ch_buying = ch;
 
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     sprintf(auction_buf, auctioneer[AUC_BID], bid);
     auc_send_to_all(auction_buf, true);
 
@@ -4973,7 +4973,7 @@ ACMD(do_bid)
 
 void stop_auction(int type, struct char_data *ch)
 {
-  char auction_buf[MAX_STRING_LENGTH];
+  char auction_buf[MAX_STRING_LENGTH] = {'\0'};
 
   switch (type)
   {
@@ -5046,7 +5046,7 @@ void auc_stat(struct char_data *ch, struct obj_data *obj)
   }
   else
   {
-    char auction_buf[MAX_STRING_LENGTH];
+    char auction_buf[MAX_STRING_LENGTH] = {'\0'};
     /* auctioneer tells the character the auction details */
     sprintf(auction_buf, auctioneer[AUC_STAT], curbid);
     act(auction_buf, true, ch_selling, obj, ch, TO_VICT | TO_SLEEP);
@@ -5569,7 +5569,7 @@ ACMD(do_store)
   struct obj_data *obj = NULL;
   int i = 0;
   bool found = false;
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -5690,10 +5690,10 @@ ACMD(do_store)
 
 ACMDU(do_unstore)
 {
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
   int spellnum = 0, spell_level = 99, i = 0, charges = 0;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
 
   half_chop(argument, arg1, arg2);
 
@@ -5990,7 +5990,7 @@ ACMDU(do_unstore)
 void quaff_potion(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
 
   skip_spaces(&argument);
 
@@ -6050,7 +6050,7 @@ void quaff_potion(struct char_data *ch, char *argument)
 void recite_scroll(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
 
@@ -6132,7 +6132,7 @@ void recite_scroll(struct char_data *ch, char *argument)
 void use_wand(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING], arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'}, arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   struct char_data *vict = NULL;
   struct obj_data *obj = NULL;
 
@@ -6223,7 +6223,7 @@ void use_wand(struct char_data *ch, char *argument)
 void invoke_staff(struct char_data *ch, char *argument)
 {
   int spellnum = 0, i = 0, spell_level = 99;
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
   struct char_data *tch = NULL;
 
   skip_spaces(&argument);
@@ -6635,7 +6635,7 @@ ACMDU(do_outfit)
     return;
   }
 
-  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING];
+  char arg1[MEDIUM_STRING] = {'\0'}, arg2[MEDIUM_STRING] = {'\0'};
   int i = 0;
   struct obj_data *obj = NULL;
 

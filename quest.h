@@ -143,6 +143,7 @@ void quest_timeout(struct char_data *ch, int index);
 void check_timed_quests(void);
 SPECIAL_DECL(questmaster);
 ACMD_DECL(do_quest);
+ACMD_DECL(do_aqref);
 
 /* Implemented in qedit.c  */
 void qedit_parse(struct descriptor_data *d, char *arg);

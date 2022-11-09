@@ -1,11 +1,11 @@
 /*/ \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \
-\                                                             
-/  Luminari Mail System                                                           
-/  Created By: Gicker                                                           
-\                                                             
-/  using new_mail.h as the header file currently                                                           
-\         todo:                                                    
-/                                                                                                                                                                                       
+\
+/  Luminari Mail System
+/  Created By: Gicker
+\
+/  using new_mail.h as the header file currently
+\         todo:
+/
 \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ / \ /*/
 
 #include "conf.h"
@@ -165,9 +165,9 @@ ACMD(do_new_mail)
       /* Check the connection, reconnect if necessary. */
       mysql_ping(conn);
 
-      //snprintf(arg5, sizeof(arg5), "%s", CAP(arg5));
+      // snprintf(arg5, sizeof(arg5), "%s", CAP(arg5));
 
-      char query[MAX_INPUT_LENGTH];
+      char query[MAX_INPUT_LENGTH] = {'\0'};
       char *end;
       end = stpcpy(query, "SELECT name FROM player_data WHERE name=");
       *end++ = '\'';
@@ -261,7 +261,7 @@ void perform_mail_list(struct char_data *ch, int type)
 
   send_to_char(ch, "    %-7s %-20s %s\r\n", "MAIL ID", type != 1 ? "RECIPIENT" : "SENDER", "SUBJECT");
   send_to_char(ch, "    %-7s %-20s %s\r\n", "-------", "--------------------", "-----------------------------------");
-  char query[MAX_INPUT_LENGTH];
+  char query[MAX_INPUT_LENGTH] = {'\0'};
   char days[200];
   if (ch->player_specials->saved.mail_days <= 0)
   {
@@ -338,7 +338,7 @@ void perform_mail_read(struct char_data *ch, int mnum)
 
   byte found = FALSE;
 
-  char query[MAX_INPUT_LENGTH];
+  char query[MAX_INPUT_LENGTH] = {'\0'};
   snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (sender='%s' OR receiver='%s' OR receiver='All') AND mail_id='%d'", GET_NAME(ch), GET_NAME(ch), mnum);
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -421,7 +421,7 @@ void perform_mail_delete(struct char_data *ch, int mnum)
 
   sbyte found = FALSE;
 
-  char query[MAX_INPUT_LENGTH];
+  char query[MAX_INPUT_LENGTH] = {'\0'};
   snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE sender='%s' OR receiver='%s' OR (receiver='All')", GET_NAME(ch), GET_NAME(ch));
   mysql_query(conn, query);
   res = mysql_use_result(conn);
@@ -505,7 +505,7 @@ int new_mail_alert(struct char_data *ch, bool silent)
     snprintf(days, sizeof(days), " ");
   }
 
-  char query[MAX_INPUT_LENGTH];
+  char query[MAX_INPUT_LENGTH] = {'\0'};
   snprintf(query, sizeof(query), "SELECT mail_id,sender,receiver,subject FROM player_mail WHERE (receiver='%s' OR %s='All') %s ORDER BY mail_id DESC", GET_NAME(ch), "receiver", days);
   mysql_query(conn, query);
   res = mysql_use_result(conn);

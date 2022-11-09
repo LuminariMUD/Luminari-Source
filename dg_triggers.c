@@ -93,7 +93,7 @@ int is_substring(char *sub, char *string)
  * return 0. */
 int word_check(char *str, char *wordlist)
 {
-  char words[MAX_INPUT_LENGTH], phrase[MAX_INPUT_LENGTH], *s;
+  char words[MAX_INPUT_LENGTH] = {'\0'}, phrase[MAX_INPUT_LENGTH] = {'\0'}, *s;
 
   if (*wordlist == '*')
     return 1;
@@ -130,7 +130,7 @@ void random_mtrigger(char_data *ch)
 void bribe_mtrigger(char_data *ch, char_data *actor, int amount)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(ch, MTRIG_BRIBE) || AFF_FLAGGED(ch, AFF_CHARM))
     return;
@@ -153,7 +153,7 @@ void greet_memory_mtrigger(char_data *actor)
   trig_data *t;
   char_data *ch;
   struct script_memory *mem;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int command_performed = 0;
 
   if (!valid_dg_target(actor, DG_ALLOW_STAFFS))
@@ -331,7 +331,7 @@ int command_mtrigger(char_data *actor, char *cmd, char *argument)
 {
   char_data *ch, *ch_next;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   /* prevent people we like from becoming trapped :P */
   if (!valid_dg_target(actor, 0))
@@ -385,7 +385,7 @@ void speech_mtrigger(char_data *actor, char *str)
 {
   char_data *ch, *ch_next;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch_next)
   {
@@ -422,7 +422,7 @@ void act_mtrigger(const char_data *ch, char *str, char_data *actor,
                   obj_data *target, char *arg)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   /* Strip color codes. - Ornir */
   if (str)
@@ -431,8 +431,8 @@ void act_mtrigger(const char_data *ch, char *str, char_data *actor,
     strip_colors(arg);
 
   /*   send_to_char(actor, "str : %s\r\n", str);
- *   send_to_char(actor, "arg : %s\r\n", arg);
- */
+   *   send_to_char(actor, "arg : %s\r\n", arg);
+   */
 
   if (SCRIPT_CHECK(ch, MTRIG_ACT) && !AFF_FLAGGED(ch, AFF_CHARM) &&
       (actor != ch))
@@ -478,7 +478,7 @@ void fight_mtrigger(char_data *ch)
 {
   struct char_data *actor;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(ch, MTRIG_FIGHT) || !FIGHTING(ch) ||
       AFF_FLAGGED(ch, AFF_CHARM))
@@ -505,7 +505,7 @@ void hitprcnt_mtrigger(char_data *ch)
 {
   struct char_data *actor;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(ch, MTRIG_HITPRCNT) || !FIGHTING(ch) ||
       AFF_FLAGGED(ch, AFF_CHARM))
@@ -528,7 +528,7 @@ void hitprcnt_mtrigger(char_data *ch)
 int receive_mtrigger(char_data *ch, char_data *actor, obj_data *obj)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
 
   if (!SCRIPT_CHECK(ch, MTRIG_RECEIVE) || AFF_FLAGGED(ch, AFF_CHARM))
@@ -556,7 +556,7 @@ int receive_mtrigger(char_data *ch, char_data *actor, obj_data *obj)
 int death_mtrigger(char_data *ch, char_data *actor)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(ch, MTRIG_DEATH) || AFF_FLAGGED(ch, AFF_CHARM))
     return 1;
@@ -606,7 +606,7 @@ void load_mtrigger(char_data *ch)
 int cast_mtrigger(char_data *actor, char_data *ch, int spellnum)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (ch == NULL)
     return 1;
@@ -634,7 +634,7 @@ int leave_mtrigger(char_data *actor, int dir)
 {
   trig_data *t;
   char_data *ch;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!valid_dg_target(actor, DG_ALLOW_STAFFS))
     return 1;
@@ -667,7 +667,7 @@ int door_mtrigger(char_data *actor, int subcmd, int dir)
 {
   trig_data *t;
   char_data *ch;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   for (ch = world[IN_ROOM(actor)].people; ch; ch = ch->next_in_room)
   {
@@ -697,7 +697,7 @@ int door_mtrigger(char_data *actor, int subcmd, int dir)
 void time_mtrigger(char_data *ch)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   /* This trigger is called if the hour is the same as specified in Narg. */
   if (!SCRIPT_CHECK(ch, MTRIG_TIME) || AFF_FLAGGED(ch, AFF_CHARM))
@@ -759,7 +759,7 @@ void timer_otrigger(struct obj_data *obj)
 int get_otrigger(obj_data *obj, char_data *actor)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
   if (!SCRIPT_CHECK(obj, OTRIG_GET))
     return 1;
@@ -787,7 +787,7 @@ int cmd_otrig(obj_data *obj, char_data *actor, char *cmd,
               char *argument, int type)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (obj && SCRIPT_CHECK(obj, OTRIG_COMMAND))
     for (t = TRIGGERS(SCRIPT(obj)); t; t = t->next)
@@ -884,7 +884,7 @@ int wear_otrigger(obj_data *obj, char_data *actor, int where)
 int remove_otrigger(obj_data *obj, char_data *actor)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
 
   if (!SCRIPT_CHECK(obj, OTRIG_REMOVE))
@@ -913,7 +913,7 @@ int remove_otrigger(obj_data *obj, char_data *actor)
 int drop_otrigger(obj_data *obj, char_data *actor)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
 
   if (!SCRIPT_CHECK(obj, OTRIG_DROP))
@@ -939,7 +939,7 @@ int drop_otrigger(obj_data *obj, char_data *actor)
 int give_otrigger(obj_data *obj, char_data *actor, char_data *victim)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
 
   if (!SCRIPT_CHECK(obj, OTRIG_GIVE))
@@ -995,7 +995,7 @@ void load_otrigger(obj_data *obj)
 int cast_otrigger(char_data *actor, obj_data *obj, int spellnum)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (obj == NULL)
     return 1;
@@ -1022,7 +1022,7 @@ int cast_otrigger(char_data *actor, obj_data *obj, int spellnum)
 int leave_otrigger(room_data *room, char_data *actor, int dir)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int temp, final = 1;
   obj_data *obj, *obj_next;
 
@@ -1058,7 +1058,7 @@ int leave_otrigger(room_data *room, char_data *actor, int dir)
 int consume_otrigger(obj_data *obj, char_data *actor, int cmd)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
 
   if (!SCRIPT_CHECK(obj, OTRIG_CONSUME))
@@ -1096,7 +1096,7 @@ int consume_otrigger(obj_data *obj, char_data *actor, int cmd)
 void time_otrigger(obj_data *obj)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(obj, OTRIG_TIME))
     return;
@@ -1154,7 +1154,7 @@ void random_wtrigger(struct room_data *room)
 int enter_wtrigger(struct room_data *room, char_data *actor, int dir)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(room, WTRIG_ENTER))
     return 1;
@@ -1225,7 +1225,7 @@ void speech_wtrigger(char_data *actor, char *str)
 {
   struct room_data *room;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!actor || !SCRIPT_CHECK(&world[IN_ROOM(actor)], WTRIG_SPEECH))
     return;
@@ -1259,7 +1259,7 @@ int drop_wtrigger(obj_data *obj, char_data *actor)
 {
   struct room_data *room;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int ret_val;
 
   if (!actor || !SCRIPT_CHECK(&world[IN_ROOM(actor)], WTRIG_DROP))
@@ -1287,7 +1287,7 @@ int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum
 {
   room_data *room;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!actor || !SCRIPT_CHECK(&world[IN_ROOM(actor)], WTRIG_CAST))
     return 1;
@@ -1317,7 +1317,7 @@ int cast_wtrigger(char_data *actor, char_data *vict, obj_data *obj, int spellnum
 int leave_wtrigger(struct room_data *room, char_data *actor, int dir)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!valid_dg_target(actor, DG_ALLOW_STAFFS))
     return 1;
@@ -1346,7 +1346,7 @@ int door_wtrigger(char_data *actor, int subcmd, int dir)
 {
   room_data *room;
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!actor || !SCRIPT_CHECK(&world[IN_ROOM(actor)], WTRIG_DOOR))
     return 1;
@@ -1373,7 +1373,7 @@ int door_wtrigger(char_data *actor, int subcmd, int dir)
 void time_wtrigger(struct room_data *room)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(room, WTRIG_TIME))
     return;
@@ -1394,7 +1394,7 @@ void time_wtrigger(struct room_data *room)
 int login_wtrigger(struct room_data *room, char_data *actor)
 {
   trig_data *t;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!SCRIPT_CHECK(room, WTRIG_LOGIN))
     return 1;

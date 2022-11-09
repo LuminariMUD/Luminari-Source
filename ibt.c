@@ -240,7 +240,7 @@ static IBT_DATA *read_ibt(char *filename, FILE *fp)
 
 void load_ibt_file(int mode)
 {
-  char filename[MAX_INPUT_LENGTH];
+  char filename[MAX_INPUT_LENGTH] = {'\0'};
   FILE *fp;
   IBT_DATA *ibtData, *first_ibt, *last_ibt;
 
@@ -303,7 +303,7 @@ void save_ibt_file(int mode)
 {
   IBT_DATA *ibtData, *first_ibt, *last_ibt;
   FILE *fp;
-  char filename[MEDIUM_STRING];
+  char filename[MEDIUM_STRING] = {'\0'};
 
   switch (mode)
   {
@@ -498,8 +498,8 @@ static bool is_ibt_logger(IBT_DATA *ibtData, struct char_data *ch)
 
 ACMD(do_ibt)
 {
-  char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH], imp[30];
+  char arg[MAX_STRING_LENGTH] = {'\0'}, arg2[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'}, imp[30];
   const char *arg_text;
   int i, num_res, num_unres;
   IBT_DATA *ibtData, *first_ibt, *last_ibt;
@@ -875,15 +875,15 @@ ACMD(do_ibt)
   }
 }
 
-/* IBT Editor OLC 
-   OLC_VAL(d)  - The IBT 'mode' - Idea, Bug or Typo 
-   OLC_NUM(d)  - The IBT number (shown in 'list')   
+/* IBT Editor OLC
+   OLC_VAL(d)  - The IBT 'mode' - Idea, Bug or Typo
+   OLC_NUM(d)  - The IBT number (shown in 'list')
    OLC_ZNUM(d) - Used as 'has changed' flag */
 ACMD(do_oasis_ibtedit)
 {
   int number = NOTHING;
   struct descriptor_data *d;
-  char buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
   const char *buf3;
 
   /* No editing as a mob or while being forced. */
@@ -1092,7 +1092,7 @@ void free_olc_ibt(IBT_DATA *toFree)
 static void ibtedit_disp_main_menu(struct descriptor_data *d)
 {
   struct char_data *ch = d->character;
-  char flg_text[MAX_STRING_LENGTH];
+  char flg_text[MAX_STRING_LENGTH] = {'\0'};
   room_rnum rr;
 
   get_char_colors(ch);
@@ -1125,7 +1125,7 @@ static void ibtedit_disp_main_menu(struct descriptor_data *d)
 /* Display IBT-flags menu. */
 static void ibtedit_disp_flags(struct descriptor_data *d)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);

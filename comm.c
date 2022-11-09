@@ -447,7 +447,7 @@ void copyover_recover()
   char host[1024], guiopt[1024];
   int desc, i, player_i;
   bool fOld;
-  char name[MAX_INPUT_LENGTH];
+  char name[MAX_INPUT_LENGTH] = {'\0'};
   long pref;
 
   log("Copyover recovery initiated");
@@ -873,7 +873,7 @@ void game_loop(socket_t local_mother_desc)
       if (total_usec > perf_high_water_mark)
       {
         perf_high_water_mark = total_usec;
-        char buf[MAX_STRING_LENGTH];
+        char buf[MAX_STRING_LENGTH] = {'\0'};
         PERF_prof_repr_pulse(buf, sizeof(buf));
         log("Pulse usage new high water mark [%.2f%%, %ld usec]. Trace info: \n%s",
             usage_pcnt, total_usec, buf);
@@ -3175,7 +3175,7 @@ void game_info(const char *format, ...)
 {
   struct descriptor_data *i;
   va_list args;
-  char messg[MAX_STRING_LENGTH];
+  char messg[MAX_STRING_LENGTH] = {'\0'};
   if (format == NULL)
     return;
   snprintf(messg, sizeof(messg), "\tcInfo: \ty");
@@ -3538,7 +3538,7 @@ void perform_act(const char *orig, struct char_data *ch, struct obj_data *obj,
      as a temporary solution i'm using the hide_invisible field as
      a field for other extraneous handling not originally built
      into this function until we develop a more elegant handling -zusuk
-   hide_invisible = -1234 : this is for handling to_room condensed combat mode scenarios -zusuk */
+   hide_invisible = ACT_CONDENSE_VALUE : this is for handling to_room condensed combat mode scenarios -zusuk */
 const char *act(const char *str, int hide_invisible, struct char_data *ch,
                 struct obj_data *obj, void *vict_obj, int type)
 {
@@ -3547,9 +3547,9 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
   int hide_invis = FALSE;
   bool handle_condensed = FALSE;
 
-  /* signal -1234 is FALSE for hididing invisible AND used to let us know we are handling
+  /* signal ACT_CONDENSE_VALUE is FALSE for hididing invisible AND used to let us know we are handling
      a condensed-combat potentialy scenario */
-  if (hide_invisible == -1234)
+  if (hide_invisible == ACT_CONDENSE_VALUE)
   {
     hide_invis = FALSE;
     handle_condensed = TRUE;
@@ -3612,7 +3612,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch,
   if (type == TO_GMOTE && !IS_NPC(ch))
   {
     struct descriptor_data *i;
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
 
     for (i = descriptor_list; i; i = i->next)
     {
@@ -3772,7 +3772,7 @@ static void handle_webster_file(void)
 {
   FILE *fl;
   struct char_data *ch = find_char(last_webster_teller);
-  char retval[MAX_STRING_LENGTH], line[READ_SIZE];
+  char retval[MAX_STRING_LENGTH] = {'\0'}, line[READ_SIZE];
   size_t len = 0, nlen = 0;
 
   last_webster_teller = -1L;
@@ -3826,9 +3826,9 @@ void update_msdp_room(struct char_data *ch)
 
   int door;
 
-  char buf2[MAX_STRING_LENGTH];
-  char room_exits[MAX_STRING_LENGTH];
-  char room_doors[MAX_STRING_LENGTH];
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char room_exits[MAX_STRING_LENGTH] = {'\0'};
+  char room_doors[MAX_STRING_LENGTH] = {'\0'};
 
   /* MSDP */
 
@@ -3868,8 +3868,8 @@ void update_msdp_room(struct char_data *ch)
       room_doors[0] = '\0';
       for (door = 0; door < DIR_COUNT; door++)
       {
-        char buf3[MAX_STRING_LENGTH];
-        char buf4[MAX_STRING_LENGTH];
+        char buf3[MAX_STRING_LENGTH] = {'\0'};
+        char buf4[MAX_STRING_LENGTH] = {'\0'};
 
         if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
           continue;
@@ -3958,11 +3958,11 @@ static void msdp_update(void)
 
   for (d = descriptor_list; d; d = d->next)
   {
-    char buf[MAX_STRING_LENGTH];
-    char sectors[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    char sectors[MAX_STRING_LENGTH] = {'\0'};
     char sector_buf[80];
 
-    char room_exits[MAX_STRING_LENGTH];
+    char room_exits[MAX_STRING_LENGTH] = {'\0'};
 
     struct char_data *ch = d->character;
     if (ch && !IS_NPC(ch) && d->connected == CON_PLAYING)
@@ -4060,7 +4060,7 @@ static void msdp_update(void)
         room_exits[0] = '\0';
         for (door = 0; door < DIR_COUNT; door++)
         {
-          char buf3[MAX_STRING_LENGTH];
+          char buf3[MAX_STRING_LENGTH] = {'\0'};
 
           if (!EXIT(ch, door) || EXIT(ch, door)->to_room == NOWHERE)
             continue;
