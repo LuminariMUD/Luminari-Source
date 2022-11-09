@@ -449,34 +449,34 @@ void assign_feats(void)
 
   /* Goliath */
   feato(FEAT_GOLIATH_RACIAL_ADJUSTMENT, "goliath racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to strength, +1 to constitution",
-    "Goliaths as a racial adjustment have +2 strength, +1 constitution.");
+        "+2 to strength, +1 to constitution",
+        "Goliaths as a racial adjustment have +2 strength, +1 constitution.");
   feato(FEAT_NATURAL_ATHLETE, "natural athlete", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to climb, swim and survival skills.",
-    "Goliaths get +2 to climb, swim and survival skills.");
+        "+2 to climb, swim and survival skills.",
+        "Goliaths get +2 to climb, swim and survival skills.");
   feato(FEAT_POWERFUL_BUILD, "powerful build", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Treats weapons as if they were one size smaller when wielding them.  Will impose a -2 penalty to attack rolls if this modification is in effect.",
-    "Goliaths treat weapons as if they were one size smaller when wielding them.  Will impose a -2 penalty to attack rolls if this modification is in effect.");
+        "Treats weapons as if they were one size smaller when wielding them.  Will impose a -2 penalty to attack rolls if this modification is in effect.",
+        "Goliaths treat weapons as if they were one size smaller when wielding them.  Will impose a -2 penalty to attack rolls if this modification is in effect.");
   feato(FEAT_MOUNTAIN_BORN, "mountain born", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "50 resistance to cold damage.",
-    "Goliaths get 50 resistance to cold damage.");
+        "50 resistance to cold damage.",
+        "Goliaths get 50 resistance to cold damage.");
   feato(FEAT_STONES_ENDURANCE, "stone's endurance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Reduce damage of next attack by 1d12 + constitution modifier.",
-    "Goliaths can use the stonesendurance command to reduce damage of next attack by 1d12 + constitution modifier.");
+        "Reduce damage of next attack by 1d12 + constitution modifier.",
+        "Goliaths can use the stonesendurance command to reduce damage of next attack by 1d12 + constitution modifier.");
 
   /* Shade */
   feato(FEAT_SHADE_RACIAL_ADJUSTMENT, "shade racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to dexterity, +1 to charisma",
-    "Shades as a racial adjustment have +2 dexterity and +1 charisma.");
+        "+2 to dexterity, +1 to charisma",
+        "Shades as a racial adjustment have +2 dexterity and +1 charisma.");
   feato(FEAT_PRACTICED_SNEAK, "practiced sneak", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Stealth is considered a class skill, regardless of class.",
-    "Shades treat stealth as a class skill no matter which class they are levelling at the time.");
+        "Stealth is considered a class skill, regardless of class.",
+        "Shades treat stealth as a class skill no matter which class they are levelling at the time.");
   feato(FEAT_SHADOWFELL_MIND, "shadowfell mind", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to stealth and spellcraft skills.",
-    "Shades get +2 tp their stealth and spellcraft skills.");
+        "+2 to stealth and spellcraft skills.",
+        "Shades get +2 tp their stealth and spellcraft skills.");
   feato(FEAT_ONE_WITH_SHADOW, "one with shadow", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Can hide even during battle in cover or concealment.",
-    "Shades can hide even during battle if he has cover or concealment.  He can also use allies as cover for this purpose.");
+        "Can hide even during battle in cover or concealment.",
+        "Shades can hide even during battle if he has cover or concealment.  He can also use allies as cover for this purpose.");
 
   // Half drow
   feato(FEAT_HALF_DROW_RACIAL_ADJUSTMENT, "half drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
@@ -504,77 +504,77 @@ void assign_feats(void)
   feato(FEAT_DRAGONBORN_FURY, "dragonborn fury", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "If below 50 percent HP, +1 to attacks and +2 to damage rolls.",
         "If the dragonborn is below 50 percent of their maximum hit points, they receive a +1 morale bonus to attack rolls and +2 morale bonus to damage rolls.");
-  
+
   // Tiefling
   feato(FEAT_TIEFLING_RACIAL_ADJUSTMENT, "tiefling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 cha and +1 int",
-    "Tieflings receive +2 to charisma and +1 to intelligence.");
+        "+2 cha and +1 int",
+        "Tieflings receive +2 to charisma and +1 to intelligence.");
   feato(FEAT_TIEFLING_MAGIC, "tiefling innate magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "can cast burning hands, hellish rebuke and darkness",
-    "Tieflings are able to cast burning hands (lvl 1), hellish rebuke (lvl 3) and darkness (lvl 5) as innate ability.");
+        "can cast burning hands, hellish rebuke and darkness",
+        "Tieflings are able to cast burning hands (lvl 1), hellish rebuke (lvl 3) and darkness (lvl 5) as innate ability.");
   feato(FEAT_TIEFLING_HELLISH_RESISTANCE, "hellish resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "10/- DR against fire damage.",
-    "The tiefling has 10/- damage resistance against any kind of fire damage.");
+        "10/- DR against fire damage.",
+        "The tiefling has 10/- damage resistance against any kind of fire damage.");
   feato(FEAT_BLOODHUNT, "bloodhunt", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 to attack rolls and damage against enemies with less than half their maximum hit points.",
-    "+1 to attack rolls and damage against enemies with less than half their maximum hit points.");
+        "+1 to attack rolls and damage against enemies with less than half their maximum hit points.",
+        "+1 to attack rolls and damage against enemies with less than half their maximum hit points.");
 
   // stout halfling
   feato(FEAT_STOUT_HALFLING_RACIAL_ADJUSTMENT, "strongheart halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+2 dexterity and +1 to constitution.",
-          "+2 to dexterity and +1 to constitution.");
+        "+2 dexterity and +1 to constitution.",
+        "+2 to dexterity and +1 to constitution.");
   feato(FEAT_STOUT_RESILIENCE, "strongheart resilience", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+4 to saves vs poison and 50 percent resistance against poison damage.",
-          "+4 to saves vs poison and 50 percent resistance against poison damage.");
+        "+4 to saves vs poison and 50 percent resistance against poison damage.",
+        "+4 to saves vs poison and 50 percent resistance against poison damage.");
 
   feato(FEAT_FOREST_GNOME_RACIAL_ADJUSTMENT, "forest gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+2 int +1 dex ",
-          "Forest Gnomes as a racial adjustment have +1 dexterity and +2 intelligence.");
+        "+2 int +1 dex ",
+        "Forest Gnomes as a racial adjustment have +1 dexterity and +2 intelligence.");
   feato(FEAT_SPEAK_WITH_BEASTS, "speak with beasts", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "can charm animals and not trigger aggro from animals",
-    "Can cast charm animal 3 times per day upon reaching level 3.  Animals 3 levels higher than the gnome, or less, will not trigger aggro on the gnome or his party.");
+        "can charm animals and not trigger aggro from animals",
+        "Can cast charm animal 3 times per day upon reaching level 3.  Animals 3 levels higher than the gnome, or less, will not trigger aggro on the gnome or his party.");
   feato(FEAT_NATURAL_ILLUSIONIST, "natural illusionist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "Can cast minor illusion at will.",
-          "Can cast minor illusion at will. At level 20 can cast mirror image at will.");
+        "Can cast minor illusion at will.",
+        "Can cast minor illusion at will. At level 20 can cast mirror image at will.");
   // gold dwarves
   feato(FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, "gold dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 wis",
-    "+1 racial bonus to wisdom ability score.");
+        "+1 wis",
+        "+1 racial bonus to wisdom ability score.");
   feato(FEAT_GOLD_DWARF_TOUGHNESS, "gold dwarf toughness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 hit point per level",
-    "Gold dwarves receive an extra hit point at level 1 and +1 for each level they gain thereafter.");
+        "+1 hit point per level",
+        "Gold dwarves receive an extra hit point at level 1 and +1 for each level they gain thereafter.");
 
   // Aasimar
   feato(FEAT_AASIMAR_RACIAL_ADJUSTMENT, "aasimar racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-  "+2 cha and +1 wis",
-  "Aasimar receive +2 to charisma and +1 to wisdom.");
+        "+2 cha and +1 wis",
+        "Aasimar receive +2 to charisma and +1 to wisdom.");
   feato(FEAT_AASIMAR_HEALING_HANDS, "healing hands", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "can cast regeneration as an innate ability.",
-    "Aasimar can cast regeneration as an innate ability.");
+        "can cast regeneration as an innate ability.",
+        "Aasimar can cast regeneration as an innate ability.");
   feato(FEAT_AASIMAR_LIGHT_BEARER, "light bearer", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "can cast daylight as an innate ability.",
-    "Aasimar can cast daylight as an innate ability when they reach level 3.");
+        "can cast daylight as an innate ability.",
+        "Aasimar can cast daylight as an innate ability when they reach level 3.");
   feato(FEAT_CELESTIAL_RESISTANCE, "celestial resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "5/- DR against cold, acid, holy and electric damage.",
-    "The aasimar has 5/- DR against cold, acid, holy and electric damage.");  
+        "5/- DR against cold, acid, holy and electric damage.",
+        "The aasimar has 5/- DR against cold, acid, holy and electric damage.");
   feato(FEAT_ASTRAL_MAJESTY, "astral majesty", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 dodge bonus to ac and +1 to all saving throws when combat target is less than 50 percent of their max hp.",
-    "The aasimar has +1 dodge bonus to ac and +1 to all saving throws when combat target is less than 50 percent of their max hp."); 
+        "+1 dodge bonus to ac and +1 to all saving throws when combat target is less than 50 percent of their max hp.",
+        "The aasimar has +1 dodge bonus to ac and +1 to all saving throws when combat target is less than 50 percent of their max hp.");
 
   // tabaxi
   feato(FEAT_TABAXI_RACIAL_ADJUSTMENT, "tabaxi racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 dex and +1 str",
-    "tabaxi receive +2 to dexterity and +1 to strength.");
+        "+2 dex and +1 str",
+        "tabaxi receive +2 to dexterity and +1 to strength.");
   feato(FEAT_TABAXI_FELINE_AGILITY, "feline agility", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+1 to dodge ac",
-    "tabaxi receive +1 bonus to dodge ac.");
+        "+1 to dodge ac",
+        "tabaxi receive +1 bonus to dodge ac.");
   feato(FEAT_TABAXI_CATS_TALENT, "cats talent", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to stealth and perception skill checks.",
-    "tabaxi receive +2 to stealth and perception skill checks.");
+        "+2 to stealth and perception skill checks.",
+        "tabaxi receive +2 to stealth and perception skill checks.");
   feato(FEAT_TABAXI_CATS_CLAWS, "cats claws", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "make 2 claw attacks as a swift action dealing 1d4 + strength mod damage.",
-    "tabaxi can make 2 claw attacks as a swift action dealing 1d4 + strength mod damage. "
-    "Useable once per three character levels, with the catsclaws command.");
+        "make 2 claw attacks as a swift action dealing 1d4 + strength mod damage.",
+        "tabaxi can make 2 claw attacks as a swift action dealing 1d4 + strength mod damage. "
+        "Useable once per three character levels, with the catsclaws command.");
 
   /* Half-Orc */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -599,7 +599,14 @@ void assign_feats(void)
   feato(FEAT_ILLUSION_AFFINITY, "illusion affinity", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 DC opponents saves versus their illusions",
         "+2 DC opponents saves versus their illusions");
-  feato(FEAT_TINKER_FOCUS, "tinker focus", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+  feato(FEAT_TINKER, "tinker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "chance to improve an item",
+        "20% chance to increase damage of weapon by +1, or improve an "
+        "armor/shield's ac bonus by 1 for shield and 0.25 for separate "
+        "armor pieces using the tinker command.  20% chance that the "
+        "failure will end up destroying the item. Uses the tinker "
+        "command.  Usable 1x/day.");
+  feato(FEAT_TINKER_FOCUS, "focused tinkering", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 concentration and use magic device",
         "+2 concentration and use magic device");
   feato(FEAT_GNOME_RACIAL_ADJUSTMENT, "gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
@@ -608,13 +615,6 @@ void assign_feats(void)
   feato(FEAT_ARTIFICERS_LORE, "artificer's lore", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 to lore and appraise checks",
         "+2 to lore and appraise based skill and ability checks.");
-  feato(FEAT_TINKER, "tinker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "chance to improve an item",
-        "20% chance to increase damage of weapon by +1, or improve an "
-        "armor/shield's ac bonus by 1 for shield and 0.25 for separate "
-        "armor pieces using the tinker command.  20% chance that the "
-        "failure will end up destroying the item. Uses the tinker "
-        "command.  Usable 1x/day.");
   feato(FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, "rock gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 Int +1 con",
         "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");
@@ -911,14 +911,14 @@ void assign_feats(void)
         "The wood elf's maximum movement points increases by +20 per level.");
 
   feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "high elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 dex +1 int",
-    "High Elven racial adjustment to stats are: +2 dexterity, +1 intelligence.");
+        "+2 dex +1 int",
+        "High Elven racial adjustment to stats are: +2 dexterity, +1 intelligence.");
   feato(FEAT_HIGH_ELF_CANTRIP, "high elf cantrip", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-  "can choose 1 wizard cantrip",
-  "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen via the study menu.");
+        "can choose 1 wizard cantrip",
+        "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen via the study menu.");
   feato(FEAT_HIGH_ELF_LINGUIST, "high elf linguist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-  "can learn an additional language",
-  "Allows the choosing of an extra language.");
+        "can learn an additional language",
+        "Allows the choosing of an extra language.");
 
   /* Shared - Various */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -4186,9 +4186,9 @@ void assign_feats(void)
         "Allows the alchemist to select a single grand discovery upon reaching level 20,"
         "with the 'gdiscovery' command.");
 
-  feato(FEAT_MONKEY_GRIP, "monkey grip", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL, 
-    "can wield weapons one size larger than wielder in one hand with -2 to attacks.", 
-    "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
+  feato(FEAT_MONKEY_GRIP, "monkey grip", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "can wield weapons one size larger than wielder in one hand with -2 to attacks.",
+        "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
 
   /**************************/
   /* Disabled/Unimplemented */
@@ -5918,11 +5918,15 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
-      else if (i == FEAT_HIGH_ELF_CANTRIP) {
-        if (mode == 1) {
+      else if (i == FEAT_HIGH_ELF_CANTRIP)
+      {
+        if (mode == 1)
+        {
           sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[HIGH_ELF_CANTRIP(ch)].name);
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
-        } else {
+        }
+        else
+        {
           sprintf(buf3, "%s (%s)", feat_list[i].name, spell_info[HIGH_ELF_CANTRIP(ch)].name);
           sprintf(buf, "%-40s ", buf3);
         }

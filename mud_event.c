@@ -196,7 +196,7 @@ struct mud_event_list mud_event_index[] = {
     {"Insect Being", event_daily_use_cooldown, EVENT_CHAR},                        // eINSECTBEING
     /*145*/
     {"Blur attack delay", event_countdown, EVENT_CHAR},                          // eBLUR_ATTACK_DELAY
-    {"Tinker ability delay", event_countdown, EVENT_CHAR},                       // eTINKER
+    {"Tinker ability delay", event_daily_use_cooldown, EVENT_CHAR},              // eTINKER
     {"Moonbeam", event_moonbeam, EVENT_CHAR},                                    // eMOONBEAM
     {"Dragonborn Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRAGBREATH
     {"Tabaxi Cats Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCATSCLAWS
