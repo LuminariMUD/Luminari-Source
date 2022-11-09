@@ -36,7 +36,7 @@ static void hedit_save_internally(struct descriptor_data *);
 
 ACMD(do_oasis_hedit)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
 
   /* No building as a mob or while being forced. */
@@ -125,7 +125,7 @@ static void hedit_save_to_disk(struct descriptor_data *d)
 
 static void hedit_save_to_db(struct descriptor_data *d)
 {
-  char buf1[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH]; /* Buffers for DML query. */
+  char buf1[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'}; /* Buffers for DML query. */
   int i = 0;
   struct help_keyword_list *keyword;
 
@@ -138,10 +138,10 @@ static void hedit_save_to_db(struct descriptor_data *d)
   //  mysql_real_escape_string(conn, buf1, OLC_HELP(d)->keywords, strlen(OLC_HELP(d)->keywords));
 
   snprintf(buf, sizeof(buf), "INSERT INTO help_entries (tag, entry, min_level) VALUES (lower('%s'), '%s', %d)"
-               " on duplicate key update"
-               "  min_level = values(min_level),"
-               "  entry = values(entry);",
-          OLC_HELP(d)->tag, buf2, help_table[i].min_level);
+                             " on duplicate key update"
+                             "  min_level = values(min_level),"
+                             "  entry = values(entry);",
+           OLC_HELP(d)->tag, buf2, help_table[i].min_level);
 
   if (mysql_query(conn, buf))
   {
@@ -269,7 +269,7 @@ bool hedit_delete_keyword(struct help_entry_list *entry, int num)
 
 bool hedit_delete_entry(struct help_entry_list *entry)
 {
-  char buf[MAX_STRING_LENGTH]; /* Buffer for DML query. */
+  char buf[MAX_STRING_LENGTH] = {'\0'}; /* Buffer for DML query. */
   bool retval = TRUE;
 
   if (entry == NULL)
@@ -292,7 +292,7 @@ bool hedit_delete_entry(struct help_entry_list *entry)
 
 void hedit_parse(struct descriptor_data *d, char *arg)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char *oldtext = '\0';
   int number;
   struct help_entry_list *tmp;
@@ -565,7 +565,7 @@ void hedit_string_cleanup(struct descriptor_data *d, int terminator)
 ACMD(do_helpcheck)
 {
 
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, count = 0;
   size_t len = 0, nlen;
 
@@ -600,7 +600,7 @@ ACMD(do_helpcheck)
 
 ACMD(do_hindex)
 {
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
   int i = 0, count = 0, count2 = 0, len = 0, len2 = 0;
 
   skip_spaces_c(&argument);

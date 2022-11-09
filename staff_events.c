@@ -174,8 +174,9 @@ void check_event_drops(struct char_data *killer, struct char_data *victim)
           log("SYSERR: check_event_drops() created NULL object for pristine horn");
           return;
         }
+
         obj_to_char(obj, killer); // deliver object
-        buf[MAX_STRING_LENGTH];
+
         if (killer && obj && obj->short_description)
         {
           send_to_char(killer, "\tYYou have found \tn%s\tn\tY!\tn\r\n", obj->short_description);
@@ -703,7 +704,7 @@ void list_staff_events(struct char_data *ch)
 /* command to start/end/list staff events */
 ACMD(do_staffevents)
 {
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int event_num = UNDEFINED_EVENT;
   int success = NUM_STAFF_EVENTS; /* this is default success value */
 

@@ -229,10 +229,10 @@ int delete_quest(qst_rnum rnum)
 int save_quests(zone_rnum zone_num)
 {
   FILE *sf;
-  char filename[128], oldname[128], quest_flags[MAX_STRING_LENGTH];
-  char quest_desc[MAX_STRING_LENGTH], quest_info[MAX_STRING_LENGTH];
-  char quest_done[MAX_STRING_LENGTH], quest_quit[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH];
+  char filename[128], oldname[128], quest_flags[MAX_STRING_LENGTH] = {'\0'};
+  char quest_desc[MAX_STRING_LENGTH] = {'\0'}, quest_info[MAX_STRING_LENGTH] = {'\0'};
+  char quest_done[MAX_STRING_LENGTH] = {'\0'}, quest_quit[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, num_quests = 0;
 
 #if CIRCLE_UNSIGNED_INDEX

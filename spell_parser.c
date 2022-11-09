@@ -220,8 +220,8 @@ int lowest_spell_level(int spellnum)
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start)
 {
-  char lbuf[MEDIUM_STRING], buf[MEDIUM_STRING],
-      buf1[MEDIUM_STRING], buf2[MEDIUM_STRING]; /* FIXME */
+  char lbuf[MEDIUM_STRING] = {'\0'}, buf[MEDIUM_STRING] = {'\0'},
+       buf1[MEDIUM_STRING] = {'\0'}, buf2[MEDIUM_STRING] = {'\0'}; /* FIXME */
   const char *format;
   struct char_data *i;
   int j, ofs = 0, dc_of_id = 0, attempt = 0;
@@ -379,7 +379,7 @@ int find_skill_num(char *name)
 {
   int skindex, ok;
   char *temp, *temp2;
-  char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
+  char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
   for (skindex = 1; skindex <= TOP_SPELL_DEFINE; skindex++)
   {
@@ -412,7 +412,7 @@ int find_ability_num(char *name)
 {
   int skindex, ok;
   char *temp, *temp2;
-  char first[MEDIUM_STRING], first2[MEDIUM_STRING], tempbuf[MEDIUM_STRING];
+  char first[MEDIUM_STRING] = {'\0'}, first2[MEDIUM_STRING] = {'\0'}, tempbuf[MEDIUM_STRING] = {'\0'};
 
   for (skindex = 1; skindex < NUM_ABILITIES; skindex++)
   {
@@ -985,7 +985,7 @@ similar method added -zusuk */
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj,
                      char *argument)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int i, k;
   struct char_data *tch = NULL, *next_tch;
   struct obj_data *tobj = NULL;
@@ -1330,7 +1330,7 @@ EVENTFUNC(event_casting)
   struct char_data *ch;
   struct mud_event_data *pMudEvent;
   int x, time_stopped = FALSE;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   // initialize everything and dummy checks
   if (event_obj == NULL)
@@ -1448,7 +1448,7 @@ EVENTFUNC(event_casting)
 int cast_spell(struct char_data *ch, struct char_data *tch,
                struct obj_data *tobj, int spellnum, int metamagic)
 {
-  if (GET_LEVEL(ch) >= LVL_IMMORT)
+  if (GET_LEVEL(ch) >= LVL_IMMORT && !IS_NPC(ch))
   {
     // imms can cast any spell
     return (call_magic(ch, tch, tobj, spellnum, metamagic, GET_LEVEL(ch), CAST_SPELL));
@@ -2317,7 +2317,7 @@ return;
   /* Find the target */
   if (target_arg != NULL)
   {
-    char arg[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'};
 
     strlcpy(arg, target_arg, sizeof(arg));
     one_argument_u(arg, target_arg);
@@ -2537,7 +2537,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
   spell_info[spl].name = name;
   if (wearoff == 0)
   {
-    char buf[MEDIUM_STRING];
+    char buf[MEDIUM_STRING] = {'\0'};
     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
     spell_info[spl].wear_off_msg = strdup(buf);
   }
@@ -2572,7 +2572,7 @@ void spello(int spl, const char *name, int max_psp, int min_psp,
 //   skill_info[spl].name = name;
 //   if (wearoff == 0)
 //   {
-//     char buf[MEDIUM_STRING];
+//     char buf[MEDIUM_STRING] = {'\0'};
 //     snprintf(buf, sizeof(buf), "Your '%s' effect has expired", name);
 //     skill_info[spl].wear_off_msg = strdup(buf);
 //   }
@@ -3883,7 +3883,7 @@ void mag_assign_spells(void)
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_DRAGONBORN_ANCESTRY_BREATH, "dragonborn breath weapon", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+         TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,

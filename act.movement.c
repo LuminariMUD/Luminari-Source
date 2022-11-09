@@ -1981,7 +1981,7 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
 {
   room_rnum was_in;
   struct follow_type *k, *next;
-  char open_cmd[MEDIUM_STRING];
+  char open_cmd[MEDIUM_STRING] = {'\0'};
 
   if (ch == NULL || dir < 0 || dir >= NUM_OF_DIRS)
     return (0);
@@ -2277,7 +2277,7 @@ static const int flags_door[] = {
 
 static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len;
   room_rnum other_room = NOWHERE;
   struct room_direction_data *back = NULL;
@@ -2511,7 +2511,7 @@ ACMD(do_gen_door)
 {
   int door = -1;
   obj_vnum keynum;
-  char type[MAX_INPUT_LENGTH], dir[MAX_INPUT_LENGTH];
+  char type[MAX_INPUT_LENGTH] = {'\0'}, dir[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj = NULL;
   struct char_data *victim = NULL;
 
@@ -3001,7 +3001,7 @@ ACMD(do_stand)
 
 ACMD(do_sit)
 {
-  char arg[MAX_STRING_LENGTH];
+  char arg[MAX_STRING_LENGTH] = {'\0'};
   struct obj_data *furniture;
   struct char_data *tempch;
   int found;
@@ -3206,7 +3206,7 @@ ACMD(do_sleep)
 
 ACMD(do_wake)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   int self = 0;
 
@@ -3248,7 +3248,7 @@ ACMD(do_wake)
 
 ACMD(do_follow)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *leader = NULL;
 
   one_argument(argument, buf, sizeof(buf));
@@ -3315,7 +3315,7 @@ ACMD(do_follow)
 
 ACMD(do_unlead)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *follower;
 
   one_argument(argument, buf, sizeof(buf));
@@ -3740,7 +3740,7 @@ ACMD(do_pullswitch)
   struct obj_data *obj;
   struct char_data *tmp_ch;
   struct obj_data *dummy = 0;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 

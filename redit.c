@@ -37,8 +37,8 @@ static void redit_disp_menu(struct descriptor_data *d);
 ACMD(do_oasis_redit)
 {
   const char *buf3;
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   int number = NOWHERE, save = 0, real_num;
   struct descriptor_data *d;
 
@@ -473,7 +473,7 @@ static void redit_disp_exit_flag_menu(struct descriptor_data *d)
 /* For room flags. */
 static void redit_disp_flag_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
 
   get_char_colors(d->character);
   clear_screen(d);
@@ -498,8 +498,8 @@ static void redit_disp_sector_menu(struct descriptor_data *d)
 /* The main menu. */
 static void redit_disp_menu(struct descriptor_data *d)
 {
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct room_data *room;
 
   get_char_colors(d->character);

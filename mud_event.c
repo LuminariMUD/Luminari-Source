@@ -316,7 +316,7 @@ EVENTFUNC(event_countdown)
     send_to_char(ch, "You are now able to use your mastermind ability again.\r\n");
     break;
   case eTINKER:
-    send_to_char(ch, "You are now able to use your mastermind ability again.\r\n");
+    send_to_char(ch, "You are now able to use your tinker ability again.\r\n");
     break;
   case eINVISIBLE_ROGUE:
     send_to_char(ch, "You are now able to use your 'invisible rogue' ability again.\r\n");

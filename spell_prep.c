@@ -1769,7 +1769,7 @@ int spell_prep_gen_check(struct char_data *ch, int spellnum, int metamagic)
  * simple */
 void print_prep_queue(struct char_data *ch, int ch_class)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int line_length = 80, total_time = 0;
   struct prep_collection_spell_data *current = SPELL_PREP_QUEUE(ch, ch_class);
   struct prep_collection_spell_data *next;
@@ -1833,7 +1833,7 @@ void print_prep_queue(struct char_data *ch, int ch_class)
  * traverse the innate magic and print out the details */
 void print_innate_magic_queue(struct char_data *ch, int ch_class)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int line_length = 80, total_time = 0;
   struct innate_magic_data *current = INNATE_MAGIC(ch, ch_class);
   struct innate_magic_data *next;
@@ -1891,7 +1891,7 @@ void print_innate_magic_queue(struct char_data *ch, int ch_class)
    of our output will determine how complex this function is ;p */
 void print_collection(struct char_data *ch, int ch_class)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int line_length = 80, high_circle = get_class_highest_circle(ch, ch_class);
   int counter = 0, this_circle = 0;
 
@@ -1970,7 +1970,7 @@ void display_available_slots(struct char_data *ch, int class)
             highest_circle = get_class_highest_circle(ch, class),
             line_length = 80;
   bool printed = FALSE, found_slot = FALSE;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   /* fill our slot_array[] with # available slots */
   for (slot = 0; slot <= highest_circle; slot++)
@@ -2051,7 +2051,7 @@ void print_prep_collection_data(struct char_data *ch, int class)
      and then fires up the event */
 void begin_preparing(struct char_data *ch, int class)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (ready_to_prep_spells(ch, class))
   {
@@ -2335,7 +2335,7 @@ EVENTFUNC(event_preparation)
   int class = 0;
   struct char_data *ch = NULL;
   struct mud_event_data *prepare_event = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   /* initialize everything and dummy checks */
   *buf = '\0';
@@ -2482,7 +2482,7 @@ EVENTFUNC(event_preparation)
 ACMDU(do_consign_to_oblivion)
 {
   int domain_1st = 0, domain_2nd = 0, class = CLASS_UNDEFINED;
-  char *spell_arg, *metamagic_arg, arg[MAX_INPUT_LENGTH];
+  char *spell_arg, *metamagic_arg, arg[MAX_INPUT_LENGTH] = {'\0'};
   int spellnum = 0, metamagic = 0;
   bool consign_all = FALSE;
 

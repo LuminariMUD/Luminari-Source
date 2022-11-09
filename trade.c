@@ -239,8 +239,8 @@ void show_trade_item(struct obj_data *obj, int index, struct char_data *ch) {
 SPECIAL(trade_master) {
   if (cmd) {
     struct char_data *master = (struct char_data *) me;
-    char arg1[MAX_INPUT_LENGTH];
-    char arg2[MAX_INPUT_LENGTH];
+    char arg1[MAX_INPUT_LENGTH] = {'\0'};
+    char arg2[MAX_INPUT_LENGTH] = {'\0'};
 
     if (CMD_IS("list")) {
       int read = 0;
@@ -378,7 +378,7 @@ SPECIAL(trade_master) {
         return TRUE;
       }
       int org_count = count;
-      char profit_info[MAX_INPUT_LENGTH];
+      char profit_info[MAX_INPUT_LENGTH] = {'\0'};
       int total_profit = 0;
       bool found = FALSE;
       while (count) {

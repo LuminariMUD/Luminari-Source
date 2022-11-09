@@ -402,18 +402,18 @@ void assign_feats(void)
         "+2 con",
         "As a racial adjustment you have +2 to constitution.");
   feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "shield dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 str +2 Con",
-    "+2 racial bonus to strength and constituion ability scores.");
+        "+2 str +2 Con",
+        "+2 racial bonus to strength and constituion ability scores.");
   feato(FEAT_SHIELD_DWARF_ARMOR_TRAINING, "dwarven armor training", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "proficiency and bonuses in light and medium armor",
-    "All shield dwarves are proficient in light and medium armor, and reduce their armor check penalty in all armor by 1.");
-  
+        "proficiency and bonuses in light and medium armor",
+        "All shield dwarves are proficient in light and medium armor, and reduce their armor check penalty in all armor by 1.");
+
   feato(FEAT_ENCUMBERED_RESILIENCE, "encumbered resilience", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Strength is treated as 2 points higher in determining maximum carry weight.",
-    "Strength is treated as 2 points higher in determining maximum carry weight.");
+        "Strength is treated as 2 points higher in determining maximum carry weight.",
+        "Strength is treated as 2 points higher in determining maximum carry weight.");
   feato(FEAT_DWARVEN_WEAPON_PROFICIENCY, "weapon proficiency - dwarf", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Proficient in the dwarven war axe, war hammer, light hammer, battle axe, heavy pick, light pick and dwarven urgosh.",
-    "All dwarves are proficient in the dwarven war axe, war hammer, light hammer, battle axe, heavy pick, light pick and dwarven urgosh.");
+        "Proficient in the dwarven war axe, war hammer, light hammer, battle axe, heavy pick, light pick and dwarven urgosh.",
+        "All dwarves are proficient in the dwarven war axe, war hammer, light hammer, battle axe, heavy pick, light pick and dwarven urgosh.");
 
   /* Halfling */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -426,26 +426,26 @@ void assign_feats(void)
   feato(FEAT_HALFLING_RACIAL_ADJUSTMENT, "halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 dex -2 str",
         "You gain +2 to dexterity and -2 strength as racial stat adjustments.");
-  
+
   // Lightfoot Halflings
   feato(FEAT_LIGHTFOOT_HALFLING_RACIAL_ADJUSTMENT, "halfling racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+2 dex +1 cha",
-          "You gain +2 to dexterity ad +1 to charisma as racial stat adjustments.");
+        "+2 dex +1 cha",
+        "You gain +2 to dexterity ad +1 to charisma as racial stat adjustments.");
   feato(FEAT_NATURALLY_STEALTHY, "naturally stealthy", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-   "Can hide, even in battle, if there are larger creatures present.",
-   "Can hide, even in battle, as long as there is a medium (or larger) creature in the room that is not currently targetting you.");
+        "Can hide, even in battle, if there are larger creatures present.",
+        "Can hide, even in battle, as long as there is a medium (or larger) creature in the room that is not currently targetting you.");
 
   /* Half-Elf */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   feato(FEAT_HALF_BLOOD, "half blood", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+2 discipline and lore",
-          "+2 discipline and lore");
+        "+2 discipline and lore",
+        "+2 discipline and lore");
   feato(FEAT_ADAPTABILITY, "adaptability", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "20 percent chance on any skill check for a +3 bonus, plus 5 percent bonus on all experience gains.",
-          "20 percent chance on any skill check for a +3 bonus, plus 5 percent bonus on all experience gains.");
+        "20 percent chance on any skill check for a +3 bonus, plus 5 percent bonus on all experience gains.",
+        "20 percent chance on any skill check for a +3 bonus, plus 5 percent bonus on all experience gains.");
   feato(FEAT_HALF_ELF_RACIAL_ADJUSTMENT, "half elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-  "+2 cha and 2 extra ability score points at 1st level",
-  "The half elf receive +2 to their charisma score and 2 more points when choosing ability scores at level one.");
+        "+2 cha and 2 extra ability score points at 1st level",
+        "The half elf receive +2 to their charisma score and 2 more points when choosing ability scores at level one.");
 
   // Half drow
   feato(FEAT_HALF_DROW_RACIAL_ADJUSTMENT, "half drow racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
@@ -551,14 +551,14 @@ void assign_feats(void)
         "+2 str +1 Con",
         "Half-Orcs as a racial adjustment have +2 strength and +1 to Constitution.");
   feato(FEAT_MENACING, "menacing", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+3 to intimidation skill checks",
-    "The Half Orc gaings +3 to intimidation based skill and ability checks.");
+        "+3 to intimidation skill checks",
+        "The Half Orc gaings +3 to intimidation based skill and ability checks.");
   feato(FEAT_RELENTLESS_ENDURANCE, "relentless endurance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "Gives you a 25% chance to avoid a killing blow.",
-    "Half-orcs receive a 25% chance to avoid a killing blow.");
+        "Gives you a 25% chance to avoid a killing blow.",
+        "Half-orcs receive a 25% chance to avoid a killing blow.");
   feato(FEAT_SAVAGE_ATTACKS, "savage attacks", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "critical hits add an extra 1d6 damage.",
-    "Critical hits add an extra 1d6 damage.");
+        "critical hits add an extra 1d6 damage.",
+        "Critical hits add an extra 1d6 damage.");
 
   /* Gnome */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -575,14 +575,18 @@ void assign_feats(void)
         "+2 con -2 str",
         "Gnomes as a racial adjustment have +2 constitution and -2 strength.");
   feato(FEAT_ARTIFICERS_LORE, "artificer's lore", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 to lore and appraise checks",
-    "+2 to lore and appraise based skill and ability checks.");
+        "+2 to lore and appraise checks",
+        "+2 to lore and appraise based skill and ability checks.");
   feato(FEAT_TINKER, "tinker", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "chance to improve an item",
-    "20% chance to increase damage of weapon by +1, or improve an armor/shield's ac bonus by 1 for shield and 0.25 for separate armor pieces using the tinker command.  20% chance that the failure will end up destroying the item. Uses the tinker command.");
+        "chance to improve an item",
+        "20% chance to increase damage of weapon by +1, or improve an "
+        "armor/shield's ac bonus by 1 for shield and 0.25 for separate "
+        "armor pieces using the tinker command.  20% chance that the "
+        "failure will end up destroying the item. Uses the tinker "
+        "command.  Usable 1x/day.");
   feato(FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, "rock gnome racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+2 Int +1 con",
-          "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");
+        "+2 Int +1 con",
+        "Rock Gnomes as a racial adjustment have +1 constitution and +2 to intelligence.");
 
   /* Elf */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -593,14 +597,14 @@ void assign_feats(void)
         "+2 dex",
         "Elven racial adjustment to stats are: +2 dexterity.");
   feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-          "+2 dex +1 wis",
-          "Moon Elven racial adjustment to stats are: +2 dexterity, +1 wisdom.");
+        "+2 dex +1 wis",
+        "Moon Elven racial adjustment to stats are: +2 dexterity, +1 wisdom.");
   feato(FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, "bathed in moonlight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+6 to stealth checks when outside at night",
-    "+6 to stealth and ability checks when outside at night time.");
+        "+6 to stealth checks when outside at night",
+        "+6 to stealth and ability checks when outside at night time.");
   feato(FEAT_MOON_ELF_LUNAR_MAGIC, "lunar magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "learns some spells as innate abilities",
-    "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  Castable 1/day each.");
+        "learns some spells as innate abilities",
+        "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  Castable 1/day each.");
 
   /* Half-Troll */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -710,8 +714,8 @@ void assign_feats(void)
         "A strong hardiness in resisting paralysis, +4 bonus to saves - will also allow saves versus some spells/abilities "
         "that normally don't allow saves");
   feato(FEAT_DUERGAR_MAGIC, "duergar magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "gains enlarge person and invisibility magic",
-    "Duergar dwarves are able to innately cast enlarge person at level 3 and invisibility at level 5, 1/day each");
+        "gains enlarge person and invisibility magic",
+        "Duergar dwarves are able to innately cast enlarge person at level 3 and invisibility at level 5, 1/day each");
 
   /* Drow */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -866,16 +870,14 @@ void assign_feats(void)
 
   // Wild Elves
   feato(FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, "wood elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+2 Dex, +1 Str ",
-    "Wood Elven racial adjustment to stats are: +2 dexterity, +1 strength.");
+        "+2 Dex, +1 Str ",
+        "Wood Elven racial adjustment to stats are: +2 dexterity, +1 strength.");
   feato(FEAT_WOOD_ELF_MASK_OF_THE_WILD, "mask of the wild", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "+3 to stealth checks",
-    "+3 to stealth based skill and ability checks.");
+        "+3 to stealth checks",
+        "+3 to stealth based skill and ability checks.");
   feato(FEAT_WOOD_ELF_FLEETNESS, "wood elf fleetness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-    "max movement points increased by +20 per level",
-    "The wood elf's maximum movement points increases by +20 per level.");  
-
-  
+        "max movement points increased by +20 per level",
+        "The wood elf's maximum movement points increases by +20 per level.");
 
   /* Shared - Various */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -5874,10 +5876,13 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
       }
       else if (i == FEAT_DRAGONBORN_ANCESTRY)
       {
-        if (mode == 1) {
+        if (mode == 1)
+        {
           sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_DRAGONBORN_ANCESTRY(ch)));
           sprintf(buf, "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
-        } else {
+        }
+        else
+        {
           sprintf(buf3, "%s (%s dragon)", feat_list[i].name, DRCHRTLIST_NAME(GET_DRAGONBORN_ANCESTRY(ch)));
           sprintf(buf, "%-40s ", buf3);
         }
@@ -7090,7 +7095,7 @@ int find_feat_num(const char *name)
 bool display_feat_info(struct char_data *ch, const char *featname)
 {
   int feat = -1;
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
   //  static int line_length = 57;
   static int line_length = 80;

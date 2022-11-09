@@ -297,7 +297,7 @@ int sprintascii(char *out, bitvector_t bits)
 /* converts illegal filename chars into appropriate equivalents */
 const char *fix_filename(char *str)
 {
-  static char good_file_name[MAX_STRING_LENGTH];
+  static char good_file_name[MAX_STRING_LENGTH] = {'\0'};
   char *cindex = good_file_name;
 
   while (*str)
@@ -341,8 +341,8 @@ ACMD(do_export_zone)
 {
   zone_rnum zrnum;
   zone_vnum zvnum;
-  char sysbuf[MAX_INPUT_LENGTH];
-  char zone_name[MAX_INPUT_LENGTH];
+  char sysbuf[MAX_INPUT_LENGTH] = {'\0'};
+  char zone_name[MAX_INPUT_LENGTH] = {'\0'};
   const char *f;
   int success;
   int i;
@@ -623,8 +623,8 @@ static int export_save_mobiles(zone_rnum rznum)
 static int export_mobile_record(mob_vnum mvnum, struct char_data *mob, FILE *fd)
 {
   int pos = GET_DEFAULT_POS(mob);
-  char ldesc[MAX_STRING_LENGTH];
-  char ddesc[MAX_STRING_LENGTH];
+  char ldesc[MAX_STRING_LENGTH] = {'\0'};
+  char ddesc[MAX_STRING_LENGTH] = {'\0'};
 
   ldesc[MAX_STRING_LENGTH - 1] = '\0';
   ddesc[MAX_STRING_LENGTH - 1] = '\0';
@@ -803,10 +803,10 @@ static int export_save_zone(zone_rnum zrnum)
 
 static int export_save_objects(zone_rnum zrnum)
 {
-  char buf[MAX_STRING_LENGTH];
-  char ebuf1[MAX_STRING_LENGTH], ebuf2[MAX_STRING_LENGTH], ebuf3[MAX_STRING_LENGTH], ebuf4[MAX_STRING_LENGTH];
-  char wbuf1[MAX_STRING_LENGTH], wbuf2[MAX_STRING_LENGTH], wbuf3[MAX_STRING_LENGTH], wbuf4[MAX_STRING_LENGTH];
-  char pbuf1[MAX_STRING_LENGTH], pbuf2[MAX_STRING_LENGTH], pbuf3[MAX_STRING_LENGTH], pbuf4[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char ebuf1[MAX_STRING_LENGTH] = {'\0'}, ebuf2[MAX_STRING_LENGTH] = {'\0'}, ebuf3[MAX_STRING_LENGTH] = {'\0'}, ebuf4[MAX_STRING_LENGTH] = {'\0'};
+  char wbuf1[MAX_STRING_LENGTH] = {'\0'}, wbuf2[MAX_STRING_LENGTH] = {'\0'}, wbuf3[MAX_STRING_LENGTH] = {'\0'}, wbuf4[MAX_STRING_LENGTH] = {'\0'};
+  char pbuf1[MAX_STRING_LENGTH] = {'\0'}, pbuf2[MAX_STRING_LENGTH] = {'\0'}, pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
   obj_rnum ornum;
   obj_vnum ovnum;
   int i;
@@ -932,8 +932,8 @@ static int export_save_rooms(zone_rnum zrnum)
   int i;
   struct room_data *room;
   FILE *room_file;
-  char buf[MAX_STRING_LENGTH];
-  char buf1[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   if (!(room_file = fopen("world/export/qq.wld", "w")))
   {
@@ -1084,7 +1084,7 @@ static int export_save_triggers(zone_rnum zrnum)
   trig_data *trig;
   struct cmdlist_element *cmd;
   FILE *trig_file;
-  char bitBuf[MAX_INPUT_LENGTH];
+  char bitBuf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!(trig_file = fopen("world/export/qq.trg", "w")))
   {

@@ -190,7 +190,6 @@ void assign_psionic_powers(void)
     epic_psionic_power(PSIONIC_RAZOR_STORM);
     epic_psionic_power(PSIONIC_PSYCHOKINETIC_THRASHING);
     epic_psionic_power(PSIONIC_EPIC_PSIONIC_WARD);
-
 }
 
 #define MANIFEST_NO_ARG "You must specify the number of power points to augment your power with, or 0.\r\n"                                            \
@@ -354,7 +353,7 @@ ACMDU(do_discharge)
 {
     int dam_type;
     struct char_data *victim = NULL;
-    char buf[MEDIUM_STRING];
+    char buf[MEDIUM_STRING] = {'\0'};
     skip_spaces(&argument);
 
     if (!affected_by_spell(ch, PSIONIC_ENERGY_CONVERSION))

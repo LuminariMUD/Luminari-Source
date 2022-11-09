@@ -43,9 +43,9 @@ ACMD(do_oasis_zedit)
   int number = NOWHERE, save = 0, real_num;
   struct descriptor_data *d;
   const char *stop;
-  char sbot[MAX_STRING_LENGTH];
-  char buf1[MAX_STRING_LENGTH];
-  char buf2[MAX_STRING_LENGTH];
+  char sbot[MAX_STRING_LENGTH] = {'\0'};
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
   room_vnum bottom, top;
 
   /* No building as a mob or while being forced. */
@@ -448,7 +448,7 @@ static int start_change_command(struct descriptor_data *d, int pos)
 /*------------------------------------------------------------------*/
 void zedit_disp_flag_menu(struct descriptor_data *d)
 {
-  char bits[MAX_STRING_LENGTH];
+  char bits[MAX_STRING_LENGTH] = {'\0'};
 
   clear_screen(d);
   column_list(d->character, 0, zone_bits, NUM_ZONE_FLAGS, TRUE);
@@ -493,7 +493,7 @@ bool zedit_get_levels(struct descriptor_data *d, char *buf)
 static void zedit_disp_menu(struct descriptor_data *d)
 {
   int subcmd = 0, room, counter = 0, maxcount;
-  char buf1[MAX_STRING_LENGTH], lev_string[50], door_reset_string[50];
+  char buf1[MAX_STRING_LENGTH] = {'\0'}, lev_string[50], door_reset_string[50];
   bool levels_set = FALSE;
 
   get_char_colors(d->character);

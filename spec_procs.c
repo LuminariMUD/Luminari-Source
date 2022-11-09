@@ -1043,21 +1043,34 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     if (HAS_REAL_FEAT(ch, FEAT_MENACING))
       value += 3;
     return value;
+
   case ABILITY_CONCENTRATION: /* not srd */
     if (GET_RACE(ch) == RACE_GNOME)
       value += 2;
+
     value += GET_CON_BONUS(ch);
+
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM)
     {
       value += GET_LEVEL(ch) / 6;
     }
+
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_PIERCING))
       value += get_judgement_bonus(ch, INQ_JUDGEMENT_PIERCING);
+
     if (has_teamwork_feat(ch, FEAT_SHIELDED_CASTER))
     {
       value += 4 + teamwork_using_shield(ch, FEAT_SHIELDED_CASTER);
     }
+
+    /* a bit hackish */
+    if (IS_CASTING(ch) && CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) >= 1)
+    {
+      value += CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) * 3;
+    }
+
     return value;
+
   case ABILITY_SPELLCRAFT:
     value += GET_INT_BONUS(ch);
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM)
@@ -1495,7 +1508,7 @@ SPECIAL(player_owned_shops)
   room_vnum house_vnum;
   struct obj_data *i, *j;
   int num = 1, hse;
-  char *temp, shop_owner[32], buf[MAX_STRING_LENGTH];
+  char *temp, shop_owner[32], buf[MAX_STRING_LENGTH] = {'\0'};
   bool found = FALSE;
 
   if (!cmd)
@@ -2337,7 +2350,7 @@ SPECIAL(hive_death)
 SPECIAL(feybranche)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -2412,7 +2425,7 @@ SPECIAL(abyssal_vortex)
 SPECIAL(agrachdyrr)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -2476,7 +2489,7 @@ SPECIAL(agrachdyrr)
 SPECIAL(shobalar)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -2657,7 +2670,7 @@ SPECIAL(chan)
 SPECIAL(guild)
 {
   int skill_num, percent;
-  char arg[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char arg[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   char *ability_name = NULL;
 
   if (IS_NPC(ch) || (!CMD_IS("practice") && !CMD_IS("train") && !CMD_IS("boosts")))
@@ -2942,7 +2955,7 @@ SPECIAL(guild)
 
 SPECIAL(mayor)
 {
-  char actbuf[MAX_INPUT_LENGTH];
+  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
   const char open_path[] =
       "W3a3003b33000c111d0d111Oe333333Oe22c222112212111a1S.";
@@ -3231,7 +3244,7 @@ SPECIAL(guild_guard)
 
 SPECIAL(puff)
 {
-  char actbuf[MAX_INPUT_LENGTH];
+  char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd)
     return (FALSE);
@@ -3619,7 +3632,7 @@ SPECIAL(cityguard)
 SPECIAL(clan_cleric)
 {
   int i;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   zone_vnum clanhall;
   clan_vnum clan;
   struct char_data *this_mob = (struct char_data *)me;
@@ -4055,7 +4068,7 @@ SPECIAL(practice_dummy)
   int rounddam = 0;
   static int round_count;
   static int max_hit;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd)
     return FALSE;
@@ -4502,7 +4515,7 @@ SPECIAL(lich_mob)
 SPECIAL(harpell)
 {
   struct char_data *i = NULL;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (cmd || GET_POS(ch) == POS_DEAD)
     return FALSE;
@@ -5410,7 +5423,7 @@ SPECIAL(dump)
 
 SPECIAL(pet_shops)
 {
-  char buf[MAX_STRING_LENGTH], pet_name[MEDIUM_STRING];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, pet_name[MEDIUM_STRING] = {'\0'};
   room_rnum pet_room;
   struct char_data *pet;
 
@@ -5594,7 +5607,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
     act(to_vict, FALSE, ch, obj, vict, TO_VICT);
   }
 
-  act(to_room, -1234, ch, obj, vict, TO_NOTVICT);
+  act(to_room, ACT_CONDENSE_VALUE, ch, obj, vict, TO_NOTVICT);
 
   call_magic(ch, vict, 0, spl, 0, level, CAST_WEAPON_SPELL);
 }
@@ -5642,7 +5655,7 @@ void move_ship(struct obj_data *ship, int dir)
   int new_room = 0;
   const char *msg = 0;
   int i;
-  char buf2[MAX_INPUT_LENGTH];
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   if (dir < 0 || dir >= 6)
     return;
@@ -5852,7 +5865,7 @@ SPECIAL(spikeshield)
 
     act("$n's \tcshield \tCglows brightly\tL as it steals some \trlifeforce\tn "
         "\tLfrom $N\tL.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     damage(ch, vict, 15, -1, DAM_ENERGY, FALSE); // type -1 = no dam message
     call_magic(ch, ch, 0, SPELL_CURE_LIGHT, 0, 1, CAST_WEAPON_SPELL);
@@ -5884,7 +5897,7 @@ SPECIAL(spikeshield)
 
     act("$n \tLslams $s \tcshield\tL into $N\tL\tn\r\n"
         "\tLcausing the rows of \trspikes\tL to drive into $S body.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     damage(ch, vict, (dice(3, 8) + 4), -1, DAM_PUNCTURE,
            FALSE); // type -1 = no dam message
@@ -5996,7 +6009,7 @@ SPECIAL(ches)
           "\tLwith the \tChilt\tL of the \tcstiletto\tL.  The enormous voltage\tn\r\n"
           "\tLflows through the weapon into $N \tn\r\n"
           "\tLcausing $S hair to stand on end.\tn\tn\r\n",
-          -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+          ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
       damage(ch, vict, 20 + dice(2, 8), -1, DAM_ELECTRIC, FALSE); // type -1 = no dam message
 
@@ -6087,7 +6100,7 @@ SPECIAL(courage)
 
     /* should be good! */
 
-    act("$n \tLinvokes $s $p!", -1234, ch, courage, 0, TO_ROOM);
+    act("$n \tLinvokes $s $p!", ACT_CONDENSE_VALUE, ch, courage, 0, TO_ROOM);
     act("\tLYou invoke your $p!", FALSE, ch, courage, 0, TO_CHAR);
 
     call_magic(ch, ch, NULL, SPELL_MASS_ENHANCE, 0, wpn_level, CAST_WEAPON_SPELL);
@@ -6875,7 +6888,7 @@ SPECIAL(purity)
     act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
         "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
         "The \tWlightbeam \twsurrounds $N who howls in pain and fear.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
   }
   else
   {
@@ -6904,7 +6917,7 @@ SPECIAL(purity)
     act("$n's $p \twstarts to \tYglow \twwith a \tWbright white light\tw.\r\n"
         "A beam of concentrated \tWholiness \twshoots towards $N.\r\n"
         "The \tWlightbeam \twburns a hole right through $N who falls lifeless to the ground.\tn",
-        -1234, ch, (struct obj_data *)me, vict, TO_NOTVICT);
+        ACT_CONDENSE_VALUE, ch, (struct obj_data *)me, vict, TO_NOTVICT);
 
     call_magic(ch, vict, 0, SPELL_BLINDNESS, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
   }
@@ -9145,7 +9158,7 @@ SPECIAL(clanportal)
   struct obj_data *port;
   zone_vnum z;
   room_vnum r;
-  char obj_name[MAX_INPUT_LENGTH];
+  char obj_name[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum was_in = IN_ROOM(ch);
   struct follow_type *k;
 

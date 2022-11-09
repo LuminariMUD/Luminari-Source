@@ -1,10 +1,10 @@
 /* ************************************************************************
-*  file:  autowiz.c                                   Part of LuminariMUD *
-*  Usage: self-updating wizlists                                          *
-*  Written by Jeremy Elson                                                *
-*  All Rights Reserved                                                    *
-*  Copyright (C) 1993 The Trustees of The Johns Hopkins University        *
-************************************************************************* */
+ *  file:  autowiz.c                                   Part of LuminariMUD *
+ *  Usage: self-updating wizlists                                          *
+ *  Written by Jeremy Elson                                                *
+ *  All Rights Reserved                                                    *
+ *  Copyright (C) 1993 The Trustees of The Johns Hopkins University        *
+ ************************************************************************* */
 
 #include "conf.h"
 #include "sysdep.h"
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
   write_wizlist(fl, immlevel, wizlevel - 1);
   fclose(fl);
 
-  //CIRCLE_UNIX is NOT tested, just letting it slide for now -zusuk
+  // CIRCLE_UNIX is NOT tested, just letting it slide for now -zusuk
 
   return (0);
 }
@@ -273,13 +273,13 @@ char *CAP(char *txt)
   return (txt);
 }
 
-/* get_line reads the next non-blank line off of the input stream. The newline 
- * character is removed from the input.  Lines which begin with '*' are 
- * considered to be comments. Returns the number of lines advanced in the 
+/* get_line reads the next non-blank line off of the input stream. The newline
+ * character is removed from the input.  Lines which begin with '*' are
+ * considered to be comments. Returns the number of lines advanced in the
  * file. */
 int get_line(FILE *fl, char *buf)
 {
-  char temp[MEDIUM_STRING];//, *buf2 = NULL;
+  char temp[MEDIUM_STRING] = {'\0'}; //, *buf2 = NULL;
   int lines = 0;
 
   do
@@ -300,7 +300,7 @@ bitvector_t asciiflag_conv(const char *flag)
   bitvector_t flags = 0;
   int is_number = 1;
   const char *p;
-  //register char *p;
+  // register char *p;
 
   for (p = flag; *p; p++)
   {

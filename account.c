@@ -39,51 +39,59 @@ void load_account_unlocks(struct account_data *account);
 /**/
 
 static const int locked_races_cost[NUM_RACES] = {
-    0,     /*Human*/
-    0,     /*Elf*/
-    0,     /*Dwarf*/
-    1000,  /*Half Troll (advanced)*/
-    30000, /*crystal dwarf (epic)*/
-    0,     /*halfling*/
-    0,     /*half elf*/
-    0,     /*half orc*/
-    0,     /*gnome*/
-    30000, /*trelux (epic)*/
-    1000,  /*arcana golem (advanced)*/
-    1000,  /*drow (advanced)*/
-    1000,  /*duergar (advanced)*/
-           // 999999999999, /*lich*/
+    0,     /*0 Human*/
+    0,     /*1 Elf*/
+    0,     /*2 Dwarf*/
+    1000,  /*3 Half Troll (advanced)*/
+    30000, /*4 crystal dwarf (epic)*/
+    0,     /*5 halfling*/
+    0,     /*6 half elf*/
+    0,     /*7 half orc*/
+    0,     /*8 gnome*/
+    30000, /*9 trelux (epic)*/
+    1000,  /*10 arcana golem (advanced)*/
+    1000,  /*11 drow (advanced)*/
+    0,     /*12  duergar */
+    0,     /*13 high elf*/
+    0,     /*14 wood elf*/
+    0,     /*15 half drow*/
+    0,     /*16 dragonborn*/
+    0,     /*17 tiefling*/
+    0,     /*18 stout halfling*/
+    0,     /*19 forest gnome*/
+    0,     /*20 gold dwarf*/
+    0,     /*21 aasimar*/
+    0,     /*22 tabaxi*/
+    0,     /*23 goliath*/
+    0,     /*24 shade*/
 };
 
 const bool locked_races[NUM_RACES] = {
-    N, /*Human*/
-    N, /*Elf*/
-    N, /*Dwarf*/
-    Y, /*Half Troll (advanced)*/
-    Y, /*crystal dwarf (epic)*/
-    N, /*halfling*/
-    N, /*half elf*/
-    N, /*half orc*/
-    N, /*gnome*/
-    Y, /*trelux (epic)*/
-    Y, /*arcana golem (advanced)*/
-    Y, /*drow (advanced)*/
-    Y, /*duergar (advanced)*/
-    Y, // high elf
-    N, // wild elf
-    N, // half drow
-    N, // dragonborn
-    N, // tiefling
-    N, // stout halfling
-    N, // forest gnome
-    N, // gold dwarf
-    N, // aasimar
-    N, // tabaxi
-    Y, // goliath
-    Y, // shade
-
-    // Y, /*lich*/
-    // Y, /*vampire*/
+    N, /*0 Human*/
+    N, /*1 Elf*/
+    N, /*2 Dwarf*/
+    Y, /*3 Half Troll (advanced)*/
+    Y, /*4 crystal dwarf (epic)*/
+    N, /*5 halfling*/
+    N, /*6 half elf*/
+    N, /*7 half orc*/
+    N, /*8 gnome*/
+    Y, /*9 trelux (epic)*/
+    Y, /*10 arcana golem (advanced)*/
+    Y, /*11 drow (advanced)*/
+    Y, /*12 duergar (advanced)*/
+    Y, // 13 high elf
+    N, // 14 wild elf
+    N, // 15 half drow
+    N, // 16 dragonborn
+    N, // 17 tiefling
+    N, // 18 stout halfling
+    N, // 19 forest gnome
+    N, // 20 gold dwarf
+    N, // 21 aasimar
+    N, // 22 tabaxi
+    N, // 23 goliath
+    N, // 24 shade
 };
 
 int change_account_xp(struct char_data *ch, int change_val)
@@ -138,7 +146,7 @@ int has_unlocked_class(struct char_data *ch, int class)
 #define ALIGN_COST 2000
 ACMD(do_accexp)
 {
-  char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int i = 0, j = 0;
   int cost = 0;
   int align_change = 100;
@@ -628,7 +636,7 @@ void show_account_menu(struct descriptor_data *d)
 {
   int i = 0;
   struct char_data *tch = NULL, *xtch = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0;
 
   write_to_output(d, "\tC%s\tn", text_line_string("", 80, '-', '-'));
@@ -641,7 +649,7 @@ void show_account_menu(struct descriptor_data *d)
   MYSQL_RES *res = NULL;
   MYSQL_ROW row = NULL;
 
-  char query[MAX_INPUT_LENGTH];
+  char query[MAX_INPUT_LENGTH] = {'\0'};
 
   if (d->account)
   {

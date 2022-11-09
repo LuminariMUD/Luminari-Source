@@ -1,16 +1,16 @@
 /**************************************************************************
-*  File: dg_db_scripts.c                              Part of LuminariMUD *
-*  Usage: Contains routines to handle db functions for scripts and trigs. *
-*                                                                         *
-*  All rights reserved.  See license for complete information.            *
-*                                                                         *
-*  Death's Gate MUD is based on CircleMUD, Copyright (C) 1993, 94.        *
-*  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
-*                                                                         *
-*  $Author: Mark A. Heilpern/egreen/Welcor $                              *
-*  $Date: 2004/10/11 12:07:00$                                            *
-*  $Revision: 1.0.14 $                                                    *
-**************************************************************************/
+ *  File: dg_db_scripts.c                              Part of LuminariMUD *
+ *  Usage: Contains routines to handle db functions for scripts and trigs. *
+ *                                                                         *
+ *  All rights reserved.  See license for complete information.            *
+ *                                                                         *
+ *  Death's Gate MUD is based on CircleMUD, Copyright (C) 1993, 94.        *
+ *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
+ *                                                                         *
+ *  $Author: Mark A. Heilpern/egreen/Welcor $                              *
+ *  $Date: 2004/10/11 12:07:00$                                            *
+ *  $Revision: 1.0.14 $                                                    *
+ **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
@@ -30,8 +30,8 @@ static void trig_data_init(trig_data *this_data);
 void parse_trigger(FILE *trig_f, int nr)
 {
   int t[2], k, attach_type;
-  char line[MEDIUM_STRING], *cmds, *s, flags[MEDIUM_STRING],
-      errors[MAX_INPUT_LENGTH];
+  char line[MEDIUM_STRING] = {'\0'}, *cmds, *s, flags[MEDIUM_STRING] = {'\0'},
+       errors[MAX_INPUT_LENGTH] = {'\0'};
   struct cmdlist_element *cle;
   struct index_data *t_index;
   struct trig_data *trig;

@@ -156,7 +156,7 @@ static int House_load(room_vnum vnum)
   FILE *fl;
   int i = 0;
   // int num_objs = 0;
-  char filename[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
   obj_save_data *loaded, *current;
   struct obj_data *cont_row[MAX_BAG_ROWS];
   room_rnum rnum;
@@ -243,7 +243,7 @@ static void House_restore_weight(struct obj_data *obj)
 void House_crashsave(room_vnum vnum)
 {
   int rnum;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   FILE *fp;
   char del_buf[2048];
 
@@ -294,7 +294,7 @@ void House_crashsave(room_vnum vnum)
 /* Delete a house save file */
 void House_delete_file(room_vnum vnum)
 {
-  char filename[MAX_INPUT_LENGTH];
+  char filename[MAX_INPUT_LENGTH] = {'\0'};
   FILE *fl;
 
   if (!House_get_filename(vnum, filename, sizeof(filename)))
@@ -317,8 +317,8 @@ void House_delete_file(room_vnum vnum)
 static void House_listrent(struct char_data *ch, room_vnum vnum)
 {
   FILE *fl;
-  char filename[MAX_STRING_LENGTH];
-  char buf[MAX_STRING_LENGTH];
+  char filename[MAX_STRING_LENGTH] = {'\0'};
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   obj_save_data *loaded, *current;
   int len = 0;
 
@@ -524,7 +524,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
 /* building a house */
 static void hcontrol_build_house(struct char_data *ch, char *arg)
 {
-  char arg1[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
   struct house_control_rec temp_house;
   room_vnum virt_house, virt_atrium;
   room_rnum real_house, real_atrium;
@@ -810,7 +810,7 @@ bool is_house_owner(struct char_data *ch, int room_vnum)
 /* The hcontrol command itself, used by imms to create/destroy houses */
 ACMD(do_hcontrol)
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
 
   half_chop_c(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -833,7 +833,7 @@ ACMD(do_hcontrol)
 /* The house command, used by mortal house owners to assign guests */
 ACMD(do_house)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   house_rnum i;
   int j, id;
 
@@ -1304,7 +1304,7 @@ static void hcontrol_convert_houses(struct char_data *ch)
 static int ascii_convert_house(struct char_data *ch, obj_vnum vnum)
 {
   FILE *in, *out;
-  char infile[MAX_INPUT_LENGTH], *outfile;
+  char infile[MAX_INPUT_LENGTH] = {'\0'}, *outfile;
   struct obj_data *tmp;
   int i, j = 0;
 

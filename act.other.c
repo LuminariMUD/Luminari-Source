@@ -1042,8 +1042,8 @@ ACMDU(do_ethshift)
 /* imbue an arrow with one of your spells -zusuk */
 ACMD(do_imbuearrow)
 {
-  char arg1[MAX_INPUT_LENGTH];
-  char arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *arrow = NULL;
   int spell_num = 0, class = -1;
   int uses_remaining = 0;
@@ -1465,7 +1465,7 @@ ACMD(do_applypoison)
 
 ACMD(do_sorcerer_arcane_apotheosis)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int circle = -1, prep_time = 99;
 
   if (!HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
@@ -2186,7 +2186,7 @@ ACMD(do_recharge)
 
 ACMD(do_mount)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   one_argument(argument, arg, sizeof(arg));
@@ -2308,7 +2308,7 @@ ACMD(do_buck)
 
 ACMD(do_tame)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct affected_type af;
   struct char_data *vict;
 
@@ -5122,7 +5122,7 @@ ACMD(do_steal)
 {
   struct char_data *vict;
   struct obj_data *obj;
-  char vict_name[MAX_INPUT_LENGTH], obj_name[MAX_INPUT_LENGTH];
+  char vict_name[MAX_INPUT_LENGTH] = {'\0'}, obj_name[MAX_INPUT_LENGTH] = {'\0'};
   int percent, gold, eq_pos, pcsteal = 0, ohoh = 0;
 
   if (IS_NPC(ch) || !GET_ABILITY(ch, ABILITY_SLEIGHT_OF_HAND))
@@ -5296,7 +5296,7 @@ ACMD(do_steal)
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spells)
 {
-  char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg1[MAX_INPUT_LENGTH] = {'\0'};
   int class = -1, circle = -1;
 
   if (IS_NPC(ch))
@@ -5358,7 +5358,7 @@ ACMD(do_spells)
 /* Ornir:  17.03.16 - Add 'circle' parameter to the command */
 ACMD(do_spelllist)
 {
-  char arg[MAX_INPUT_LENGTH], arg1[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg1[MAX_INPUT_LENGTH] = {'\0'};
   int class = -1, circle = -1;
 
   if (IS_NPC(ch))
@@ -5441,7 +5441,7 @@ ACMD(do_boosts)
 
   // let's keep the old code just in case -- Gicker
 
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   if (IS_NPC(ch))
     return;
@@ -5474,7 +5474,7 @@ ACMD(do_boosts)
  * code is in spec_procs.c guild code */
 ACMD(do_practice)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   if (IS_NPC(ch))
     return;
@@ -5499,7 +5499,7 @@ ACMD(do_practice)
  * code is in spec_procs.c guild code */
 ACMD(do_train)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   // if (IS_NPC(ch))
   // return;
@@ -5655,7 +5655,7 @@ static void print_group(struct char_data *ch)
 /* Putting this here - no better place to put it really. */
 void update_msdp_group(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH];
+  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *k;
 
   /* MSDP */
@@ -5699,7 +5699,7 @@ void update_msdp_group(struct char_data *ch)
 
 void update_msdp_inventory(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH];
+  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
   obj_data *obj;
   int i = 0;
 
@@ -5796,7 +5796,7 @@ static void display_group_list(struct char_data *ch)
 
 ACMDU(do_group)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *vict;
   argument = one_argument_u(argument, buf);
 
@@ -6108,7 +6108,7 @@ ACMD(do_report)
 
 ACMD(do_split)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   int amount, num = 0, share, rest;
   size_t len;
   struct char_data *k;
@@ -6735,7 +6735,7 @@ ACMD(do_gen_tog)
 {
   long result;
   int i;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct follow_type *j = NULL, *k = NULL;
 
   const char *const tog_messages[][2] = {
@@ -7166,7 +7166,7 @@ void invoke_happyhour(struct char_data *ch)
 
 ACMD(do_happyhour)
 {
-  char arg[MAX_INPUT_LENGTH], val[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, val[MAX_INPUT_LENGTH] = {'\0'};
   int num;
 
   if (GET_LEVEL(ch) < LVL_STAFF)
@@ -7753,8 +7753,8 @@ ACMD(do_todo)
 
 ACMD(do_dice)
 {
-  char Gbuf1[MAX_STRING_LENGTH];
-  char Gbuf2[MAX_STRING_LENGTH];
+  char Gbuf1[MAX_STRING_LENGTH] = {'\0'};
+  char Gbuf2[MAX_STRING_LENGTH] = {'\0'};
   int rolls, size, result;
 
   if (!*argument)

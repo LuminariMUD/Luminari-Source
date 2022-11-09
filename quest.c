@@ -177,10 +177,10 @@ int count_quests(qst_vnum low, qst_vnum high)
 /* read quest from file and load it into memory */
 void parse_quest(FILE *quest_f, int nr)
 {
-  static char line[MEDIUM_STRING];
+  static char line[MEDIUM_STRING] = {'\0'};
   static int i = 0, j;
   int retval = 0, t[7];
-  char f1[128], buf2[MAX_STRING_LENGTH];
+  char f1[128], buf2[MAX_STRING_LENGTH] = {'\0'};
 
   /* init some vars */
   aquest_table[i].vnum = nr;
@@ -1021,7 +1021,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   qst_vnum vnum = NOTHING;
   qst_rnum rnum = NOWHERE;
   obj_rnum objrnum = NOTHING;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   bool has_quest_object = FALSE, found = FALSE;
   int i = 0, index = 0, sr_index = 0;
 
@@ -1361,7 +1361,7 @@ void quest_show(struct char_data *ch, mob_vnum qm)
 /* allows staff to assign a quest as completed to given target */
 void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim = NULL;
   qst_rnum rnum = NOTHING;
   // qst_vnum vnum = NOTHING;
@@ -1582,7 +1582,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
 /*--------------------------------------------------------------------------*/
 ACMD(do_quest)
 {
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int tp;
 
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
@@ -1625,11 +1625,82 @@ ACMD(do_quest)
   }
 }
 
+/* with a given object vnum, finds references to quests in game */
+ACMD(do_aqref)
+{
+  int i = 0;
+  bool found = FALSE;
+  obj_vnum vnum = 0;
+  obj_rnum real_num = 0;
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+
+  one_argument(argument, buf, sizeof(buf));
+
+  if (!*buf)
+  {
+    send_to_char(ch, "aqref what object?\r\n");
+    return;
+  }
+
+  vnum = atoi(buf);
+  real_num = real_object(vnum);
+
+  if (real_num == NOTHING)
+  {
+    send_to_char(ch, "\tRNo such object!\tn\r\n");
+    return;
+  }
+
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
+    log(buf);
+    return;
+  }
+
+  if (!aquest_table)
+  {
+    send_to_char(ch, "\tRNo aquest_table!\tn\r\n");
+    return;
+  }
+
+  for (i = 0; i < total_quests; i++)
+  {
+    if (QST_OBJ(i) && QST_OBJ(i) == vnum)
+    {
+      found = TRUE;
+      send_to_char(ch, "(%d) \tCREWARD\tn %s (\tW%d\tn) from %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
+                   vnum, mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+    }
+
+    if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) && QST_TARGET(i) == vnum)
+    {
+      found = TRUE;
+      send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) for %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
+                   vnum, mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+    }
+
+    if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) && QST_TARGET(i) == vnum)
+    {
+      found = TRUE;
+      send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) to %s (\tW%d\tn)\r\n", QST_NUM(i), obj_proto[real_num].short_description,
+                   vnum, mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
+    }
+  }
+
+  if (!found)
+  {
+    send_to_char(ch, "\tRThat object is not used in any quests!\tn\r\n");
+  }
+
+  return;
+}
+
 /* here is the mobile-spec proc for the quest master */
 SPECIAL(questmaster)
 {
   qst_rnum rnum;
-  char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int tp;
   struct char_data *qm = (struct char_data *)me;
 

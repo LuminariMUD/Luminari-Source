@@ -6,7 +6,7 @@
 
 ACMD(do_spec_comm)
 {
-  char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH], *buf3 = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'}, *buf3 = NULL;
   struct char_data *vict;
   const char *action_sing, *action_plur, *action_others;
   const char *punctuation;
@@ -50,7 +50,7 @@ ACMD(do_spec_comm)
     send_to_char(ch, "Your target seems to be deaf!\r\n");
   else
   {
-    char buf1[MAX_STRING_LENGTH];
+    char buf1[MAX_STRING_LENGTH] = {'\0'};
 
     /* homeland-port copying string before parsing */
     buf3 = strdup(buf2);

@@ -193,7 +193,7 @@ char *read_delete(long recipient)
 {
   FILE *mail_file, *new_file;
   struct mail_t *record = NULL, *record_to_keep = NULL;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
 
   *buf = '\0';
 
@@ -299,7 +299,7 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
                                  int cmd, char *arg)
 {
   long recipient = 0;
-  char buf[MAX_INPUT_LENGTH], **mailwrite = NULL;
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, **mailwrite = NULL;
 
   *buf = '\0';
 
@@ -361,7 +361,7 @@ static void postmaster_check_mail(struct char_data *ch, struct char_data *mailma
 static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman,
                                     int cmd, char *arg)
 {
-  char buf[MEDIUM_STRING];
+  char buf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
   int y = 0;
 

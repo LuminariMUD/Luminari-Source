@@ -404,7 +404,7 @@ long get_level_id_by_level_num(int level_num, char *chname)
     if (!*chname)
         return 0;
 
-    char query[MAX_INPUT_LENGTH];
+    char query[MAX_INPUT_LENGTH] = {'\0'};
 
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;
@@ -752,7 +752,7 @@ void display_levelinfo_ability_scores(struct char_data *ch, int ability_score)
 
 void levelinfo_search(struct char_data *ch, int type, char *searchString)
 {
-    char query[MAX_INPUT_LENGTH];
+    char query[MAX_INPUT_LENGTH] = {'\0'};
 
     int i = 0;
 
@@ -943,7 +943,7 @@ void erase_levelup_info(struct char_data *ch)
     if (!ch)
         return;
 
-    char query[MAX_INPUT_LENGTH];
+    char query[MAX_INPUT_LENGTH] = {'\0'};
 
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;

@@ -571,18 +571,18 @@
 #define RACE_HUMAN 0        /* Race Human */
 #define RACE_ELF 1          /* Race Elf   */
 #define RACE_MOON_ELF RACE_ELF
-#define RACE_DWARF 2        /* Race Dwarf */
+#define RACE_DWARF 2 /* Race Dwarf */
 #define RACE_SHIELD_DWARF RACE_DWARF
-#define RACE_H_TROLL 3      /* Race Troll (advanced) */
+#define RACE_H_TROLL 3 /* Race Troll (advanced) */
 #define RACE_HALF_TROLL RACE_H_TROLL
 #define RACE_CRYSTAL_DWARF 4 /* crystal dwarf (epic) */
 #define RACE_HALFLING 5      // halfling
 #define RACE_LIGHTFOOT_HALFLING RACE_HALFLING
-#define RACE_H_ELF 6         // half elf
+#define RACE_H_ELF 6 // half elf
 #define RACE_HALF_ELF RACE_H_ELF
 #define RACE_H_ORC 7 // half orc
 #define RACE_HALF_ORC RACE_H_ORC
-#define RACE_GNOME 8         // gnome
+#define RACE_GNOME 8 // gnome
 #define RACE_ROCK_GNOME RACE_GNOME
 #define RACE_TRELUX 9        // trelux (epic)
 #define RACE_ARCANA_GOLEM 10 // arcana golem (advanced)
@@ -3390,23 +3390,28 @@
 #define MAX_STRING_LENGTH 49152          /**< Max length of string, as defined */
 #define MAX_INPUT_LENGTH 512             /**< Max length per *line* of input */
 #define MAX_RAW_INPUT_LENGTH (12 * 1024) /**< Max size of *raw* input */
-#define MAX_MESSAGES 200                 /**< Max Different attack message types */
-#define MAX_NAME_LENGTH 20               /**< Max PC/NPC name length */
-#define MAX_PWD_LENGTH 30                /**< Max PC password length */
-#define MAX_TITLE_LENGTH 80              /**< Max PC title length */
-#define HOST_LENGTH 40                   /**< Max hostname resolution length */
 #define PLR_DESC_LENGTH 4096             /**< Max length for PC description */
-#define MAX_SKILLS 2500                  /**< Max number of skills */
-#define MAX_SPELLS 2000                  /**< Max number of spells */
-#define MAX_ABILITIES 200                /**< Max number of abilities */
-#define MAX_AFFECT 32                    /**< Max number of player affections */
-#define MAX_OBJ_AFFECT 6                 /**< Max object affects */
-#define MAX_NOTE_LENGTH 4000             /**< Max length of text on a note obj */
-#define MAX_LAST_ENTRIES 6000            /**< Max log entries?? */
-#define MAX_HELP_KEYWORDS 256            /**< Max length of help keyword string */
 #define MAX_HELP_ENTRY MAX_STRING_LENGTH /**< Max size of help entry */
-#define MAX_COMPLETED_QUESTS 1024        /**< Maximum number of completed quests allowed */
-#define MAX_ANGER 100                    /**< Maximum mob anger/frustration as percentage */
+
+#define MAX_MESSAGES 200      /**< Max Different attack message types */
+#define MAX_NAME_LENGTH 20    /**< Max PC/NPC name length */
+#define MAX_PWD_LENGTH 30     /**< Max PC password length */
+#define MAX_TITLE_LENGTH 80   /**< Max PC title length */
+#define HOST_LENGTH 40        /**< Max hostname resolution length */
+#define MAX_NOTE_LENGTH 4000  /**< Max length of text on a note obj */
+#define MAX_LAST_ENTRIES 6000 /**< Max log entries?? */
+
+#define MAX_SKILLS 2500           /**< Max number of skills */
+#define MAX_SPELLS 2000           /**< Max number of spells */
+#define MAX_ABILITIES 200         /**< Max number of abilities */
+#define MAX_AFFECT 32             /**< Max number of player affections */
+#define MAX_OBJ_AFFECT 6          /**< Max object affects */
+#define MAX_HELP_KEYWORDS 256     /**< Max length of help keyword string */
+#define MAX_COMPLETED_QUESTS 1024 /**< Maximum number of completed quests allowed */
+#define MAX_ANGER 100             /**< Maximum mob anger/frustration as percentage */
+
+/* this is the value we are sending to act when we want it condensed (condensed combat toggle) -zusuk */
+#define ACT_CONDENSE_VALUE -1234
 
 // other MAX_ defines
 #define MAX_WEAPON_SPELLS 3
@@ -4187,10 +4192,10 @@ struct player_special_data_saved
     int blackguard_cruelties[NUM_BLACKGUARD_CRUELTIES]; // stores a blackguard's mercies known
     int fiendish_boons;                                 // active fiendish boons by blackguard
     int channel_energy_type;                            // neutral clerics must decide either positive or negative
-    int deity;                      // what deity does the person follow?
-    //int languages_known[NUM_LANGUAGES]; // languages known by the character
-    int speaking;                   // language currently being spoken, defaults to common
-    int region;               // the region in which a human hails from.  Used for languages
+    int deity;                                          // what deity does the person follow?
+    // int languages_known[NUM_LANGUAGES]; // languages known by the character
+    int speaking; // language currently being spoken, defaults to common
+    int region;   // the region in which a human hails from.  Used for languages
 
     byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target
@@ -4255,8 +4260,8 @@ struct player_special_data
     bool cosmic_awareness;                // cosmic awareness psionic power and command
     int energy_conversion[NUM_DAM_TYPES]; // energy conversion ability
 
-    int casting_class; // The class number that is currently casting a spell
-    sbyte canCastInnate;        // for innate racial skills and other innate powers
+    int casting_class;   // The class number that is currently casting a spell
+    sbyte canCastInnate; // for innate racial skills and other innate powers
 
     int concussive_onslaught_duration;
     bool has_banishment_been_attempted; // for use with holy/unholy champion banishment attempt

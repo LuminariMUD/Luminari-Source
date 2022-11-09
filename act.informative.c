@@ -129,7 +129,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   size_t len = 0;
   int count = 0;
   bool has_subrace = false;
-  char subraces[MEDIUM_STRING];
+  char subraces[MEDIUM_STRING] = {'\0'};
 
   count = snprintf(subraces + len, sizeof(subraces) - len, ", Subrace(s): ");
   if (count > 0)
@@ -641,7 +641,7 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
 static void look_at_char(struct char_data *i, struct char_data *ch)
 {
   int j, found, is_disguised = FALSE;
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
@@ -1053,7 +1053,7 @@ static void list_char_to_char(struct char_data *list, struct char_data *ch)
       else if (CAN_INFRA(ch, i) && !AFF_FLAGGED(i, AFF_HIDE))
         send_to_char(ch, "\tnYou see the \trred\tn outline of someone or something.\r\n");
       else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) &&
-               AFF_FLAGGED(i, AFF_INFRAVISION) && INVIS_OK(ch, i))
+               char_has_infra(i) && INVIS_OK(ch, i))
         send_to_char(ch, "You see a pair of glowing red eyes looking your way.\r\n");
       else if ((!IS_DARK(IN_ROOM(ch)) || CAN_SEE_IN_DARK(ch)) &&
                AFF_FLAGGED(ch, AFF_SENSE_LIFE))
@@ -1093,8 +1093,8 @@ static void do_auto_exits(struct char_data *ch)
   look in a room, takes on the real room number, NOT vnum (from homeland) */
 void look_at_room_number(struct char_data *ch, int ignore_brief, long room_number)
 {
-  char buf[MAX_INPUT_LENGTH];
-  char buf2[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
   if (!ch->desc)
     return;
@@ -1107,18 +1107,18 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   }
 
   if (ROOM_FLAGGED(room_number, ROOM_MAGICDARK) ||
-      (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION)))
+      (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !char_has_infra(ch)))
   {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     return;
   }
   if (ROOM_FLAGGED(ch->in_room, ROOM_MAGICDARK) ||
-      (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION)))
+      (IS_DARK(ch->in_room) && !CAN_SEE_IN_DARK(ch) && !char_has_infra(ch)))
   {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     return;
   }
-  if (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !AFF_FLAGGED(ch, AFF_INFRAVISION))
+  if (IS_DARK(room_number) && !CAN_SEE_IN_DARK(ch) && !char_has_infra(ch))
   {
     send_to_char(ch, "\tLIt is pitch black...\tn\r\n");
     list_char_to_char(world[room_number].people, ch);
@@ -1131,7 +1131,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
       list_char_to_char(world[room_number].people, ch);
     return;
   }
-  else if (IS_DARK(room_number) && AFF_FLAGGED(ch, AFF_INFRAVISION))
+  else if (IS_DARK(room_number) && char_has_infra(ch))
   {
     send_to_char(ch, world[room_number].name);
     send_to_char(ch, "\r\n");
@@ -1185,7 +1185,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   room_vnum target_room;
   int can_infra_in_dark = FALSE, world_map = FALSE, room_dark = FALSE;
   zone_rnum zn;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char *generated_desc = NULL;
 
   if (!ch->desc)
@@ -1475,7 +1475,7 @@ static void look_in_obj(struct char_data *ch, char *arg)
       {
         if (GET_OBJ_VAL(obj, 0) < 0)
         {
-          char buf2[MAX_STRING_LENGTH];
+          char buf2[MAX_STRING_LENGTH] = {'\0'};
           sprinttype(GET_OBJ_VAL(obj, 2), color_liquid, buf2, sizeof(buf2));
           send_to_char(ch, "It's full of a %s liquid.\r\n", buf2);
         }
@@ -1483,7 +1483,7 @@ static void look_in_obj(struct char_data *ch, char *arg)
           send_to_char(ch, "Its contents seem somewhat murky.\r\n"); /* BUG */
         else
         {
-          char buf2[MAX_STRING_LENGTH];
+          char buf2[MAX_STRING_LENGTH] = {'\0'};
           amt = (GET_OBJ_VAL(obj, 1) * 3) / GET_OBJ_VAL(obj, 0);
           sprinttype(GET_OBJ_VAL(obj, 2), color_liquid, buf2, sizeof(buf2));
           send_to_char(ch, "It's %sfull of a %s liquid.\r\n", fullness[amt], buf2);
@@ -2234,7 +2234,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(k, eCONCUSSIVEONSLAUGHT)))
     send_to_char(ch, "\tRConcussive Onslaught!\tn - Duration: %d rounds\r\n", ch->player_specials->concussive_onslaught_duration);
   if ((pMudEvent = char_has_mud_event(k, eMOONBEAM)))
-    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int) (event_time(pMudEvent->pEvent) / 10));
+    send_to_char(ch, "\tRMoonbeam!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (vampire_last_feeding_adjustment(k) > 0)
     send_to_char(ch, "You have recently fed and receive special bonuses. See HELP RECENTLY FED.\r\n");
@@ -2273,7 +2273,7 @@ void free_history(struct char_data *ch, int type)
 void add_history(struct char_data *ch, const char *str, int type)
 {
   int i = 0;
-  char time_str[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  char time_str[MAX_STRING_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   struct txt_block *tmp;
   time_t ct;
 
@@ -2317,7 +2317,7 @@ void add_history(struct char_data *ch, const char *str, int type)
 
 void list_scanned_chars(struct char_data *list, struct char_data *ch, int distance, int door)
 {
-  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
 
   const char *const how_far[] = {
       "close by",
@@ -2443,7 +2443,7 @@ ACMD(do_masterlist)
 
   /* strcpy: OK */
   if (len >= sizeof(buf2))
-    strcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow);
+    strlcpy(buf2 + sizeof(buf2) - strlen(overflow) - 1, overflow, sizeof(buf2 + sizeof(buf2) - strlen(overflow) - 1));
 
   page_string(ch->desc, buf2, TRUE);
 }
@@ -2470,7 +2470,7 @@ ACMD(do_look)
   }
   else
   {
-    char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
 
     half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
@@ -2530,7 +2530,7 @@ ACMD(do_examine)
 {
   struct char_data *tmp_char;
   struct obj_data *tmp_object;
-  char tempsave[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char tempsave[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -2540,8 +2540,10 @@ ACMD(do_examine)
     return;
   }
 
+  strlcpy(tempsave, arg, sizeof(tempsave));
+
   /* look_at_target() eats the number. */
-  look_at_target(ch, strcpy(tempsave, arg)); /* strcpy: OK */
+  look_at_target(ch, tempsave);
 
   generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_CHAR_ROOM | FIND_OBJ_EQUIP, ch, &tmp_char, &tmp_object);
 
@@ -2593,7 +2595,7 @@ ACMD(do_gold)
  */
 void perform_abilities(struct char_data *ch, struct char_data *k)
 {
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80;
   int i = 0, remaining = 0, total = 0;
 
@@ -2934,7 +2936,7 @@ ACMD(do_affects)
 
 ACMD(do_attacks)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int mode = -1, attack_type = -1;
   int line_length = 80;
 
@@ -3042,14 +3044,14 @@ Gold: 999615                      Gold in Bank : 0
  */
 ACMD(do_score)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct time_info_data playing_time;
   int calc_bab = MIN(MAX_BAB, BAB(ch)), i = 0, counter = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   float height = GET_HEIGHT(ch);
   int w_type = 0;
   int line_length = 80;
-  char dname[SMALL_STRING];
+  char dname[SMALL_STRING] = {'\0'};
 
   // get some initial info before score display
   if (wielded && GET_OBJ_TYPE(wielded) == ITEM_WEAPON)
@@ -3517,7 +3519,7 @@ ACMD(do_who)
   struct descriptor_data *d;
   struct char_data *tch;
   int i, num_can_see = 0, class_len = 0;
-  char name_search[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH], classes_list[MAX_INPUT_LENGTH];
+  char name_search[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, classes_list[MAX_INPUT_LENGTH] = {'\0'};
   char mode;
   int low = 0, high = LVL_IMPL, localwho = 0, questwho = 0;
   int showclass = 0, short_list = 0, outlaws = 0;
@@ -3555,7 +3557,7 @@ ACMD(do_who)
   // move along the buf array until '\0'
   while (*buf)
   {
-    char arg[MAX_INPUT_LENGTH], buf1[MAX_INPUT_LENGTH];
+    char arg[MAX_INPUT_LENGTH] = {'\0'}, buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     // take buf, first delimit in arg, rest in buf1
     half_chop(buf, arg, buf1);
@@ -3908,19 +3910,19 @@ ACMD(do_users)
 {
   char line[200], line2[220], idletime[10], classname[20];
   char state[30], *timeptr, mode;
-  char name_search[MAX_INPUT_LENGTH], host_search[MAX_INPUT_LENGTH];
+  char name_search[MAX_INPUT_LENGTH] = {'\0'}, host_search[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *tch;
   struct descriptor_data *d;
   int low = 0, high = LVL_IMPL, num_can_see = 0;
   int showclass = 0, outlaws = 0, playing = 0, deadweight = 0;
-  char buf[MAX_INPUT_LENGTH], arg[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
 
   host_search[0] = name_search[0] = '\0';
 
   strlcpy(buf, argument, sizeof(buf)); /* strcpy: OK (sizeof: argument == buf) */
   while (*buf)
   {
-    char buf1[MAX_INPUT_LENGTH];
+    char buf1[MAX_INPUT_LENGTH] = {'\0'};
 
     half_chop(buf, arg, buf1);
     if (*arg == '-')
@@ -4121,7 +4123,7 @@ ACMD(do_gen_ps)
 
 ACMD(do_where)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -4133,7 +4135,7 @@ ACMD(do_where)
 
 ACMD(do_levels)
 {
-  char buf[MAX_STRING_LENGTH], arg[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'}, arg[MAX_STRING_LENGTH] = {'\0'};
   size_t len = 0, nlen;
   int i, ret, min_lev = 1, max_lev = LVL_IMMORT, val;
 
@@ -4216,7 +4218,7 @@ ACMD(do_levels)
 
 ACMD(do_consider)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *victim;
   int diff;
 
@@ -4271,7 +4273,7 @@ ACMD(do_consider)
 
 ACMD(do_diagnose)
 {
-  char buf[MAX_INPUT_LENGTH];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
 
   one_argument(argument, buf, sizeof(buf));
@@ -4294,7 +4296,7 @@ ACMD(do_diagnose)
 
 ACMD(do_toggle)
 {
-  char buf2[4], arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
+  char buf2[4], arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int toggle, tp, wimp_lev, result = 0, len = 0, i;
   const char *const types[] = {"OFF", "Brief", "Normal", "ON", "\n"};
 
@@ -4910,7 +4912,7 @@ ACMD(do_commands)
   int no, i, cmd_num, can_cmd;
   int wizhelp = 0, socials = 0, maneuvers = 0;
   struct char_data *vict;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   const char *commands[1000];
   int overflow = sizeof(commands) / sizeof(commands[0]);
 
@@ -4999,7 +5001,7 @@ ACMD(do_commands)
 
 ACMD(do_history)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int type;
 
   one_argument(argument, arg, sizeof(arg));
@@ -5043,7 +5045,7 @@ ACMD(do_whois)
   struct char_data *victim = 0;
   int hours;
   int got_from_file = 0, c_r;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   clan_rnum c_n;
 
   one_argument(argument, buf, sizeof(buf));
@@ -5215,8 +5217,8 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 ACMD(do_areas)
 {
   int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
-  char arg[MAX_INPUT_LENGTH], *second, lev_str[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
-  //  char zvn[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
+  //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
   //  float pop;
   //  clan_rnum ocr;
@@ -5392,7 +5394,7 @@ ACMD(do_scan)
   }
 
   /*
-  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ultra_blind(ch, ch->in_room)) {
+  if (char_has_ultra(ch) && ultra_blind(ch, ch->in_room)) {
     send_to_char("Its too bright to see.\r\n", ch);
     return;
   }
@@ -5506,7 +5508,7 @@ ACMD(do_survey)
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
   {
     send_to_char(ch, "Its too bright to survey!\r\n");
     return;
@@ -5560,7 +5562,7 @@ ACMD(do_exits)
     return;
   }
 
-  if (AFF_FLAGGED(ch, AFF_ULTRAVISION) && ULTRA_BLIND(ch, IN_ROOM(ch)))
+  if (char_has_ultra(ch) && ULTRA_BLIND(ch, IN_ROOM(ch)))
   {
     send_to_char(ch, "Its too bright to see.\r\n");
     return;
@@ -5612,7 +5614,7 @@ ACMD(do_track) {
 
   struct event * pEvent = NULL;
   struct mud_event_data *pMudEvent = NULL;
-  char arg[MAX_INPUT_LENGTH];
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   char creator_race[20]; // The RACE of what created the tracks.
   char creator_name[20]; // The NAME of what created the tracks.
@@ -6155,7 +6157,7 @@ ACMD(do_weaponinfo)
   }
 
   int type = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[100];
   char buf3[100];
   char buf4[100];
@@ -6255,7 +6257,7 @@ ACMD(do_armorinfo)
   }
 
   int type = 0;
-  char buf[MAX_STRING_LENGTH];
+  char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[800];
   size_t len = 0;
   sbyte found = false;
