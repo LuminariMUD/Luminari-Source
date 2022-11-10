@@ -2362,7 +2362,7 @@ void newbieEquipment(struct char_data *ch)
     obj_to_char(obj, ch); // dagger
 
     obj = read_object(NOOB_DAGGER, VIRTUAL);
-    obj_to_char(obj, ch); // dagger 
+    obj_to_char(obj, ch); // dagger
 
     break;
 
@@ -2644,7 +2644,7 @@ void init_start_char(struct char_data *ch)
   GET_COND(ch, THIRST) = -1;
 
   /* stat modifications */
-  /* temp removed gicker june 8 2020 */
+  /* removed by gicker june 8 2020 for alternate system */
   /*
   GET_REAL_CON(ch) += get_race_stat(GET_RACE(ch), R_CON_MOD);
   GET_REAL_STR(ch) += get_race_stat(GET_RACE(ch), R_STR_MOD);
@@ -2654,45 +2654,21 @@ void init_start_char(struct char_data *ch)
   GET_REAL_CHA(ch) += get_race_stat(GET_RACE(ch), R_CHA_MOD);
   */
 
-  /* some racial modifications, size, etc */
+  /* setting racial size here */
+  GET_REAL_SIZE(ch) = race_list[GET_RACE(ch)].size;
+
+  /* some racial related modifications */
   switch (GET_RACE(ch))
   {
   case RACE_HUMAN:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     GET_FEAT_POINTS(ch)
     ++;
     trains += 3;
     break;
-  case RACE_ELF:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
-  case RACE_DUERGAR:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
-  case RACE_DWARF:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
-  case RACE_HALFLING:
-    GET_REAL_SIZE(ch) = SIZE_SMALL;
-    break;
-  case RACE_H_ELF:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
-  case RACE_H_ORC:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
-  case RACE_GNOME:
-    GET_REAL_SIZE(ch) = SIZE_SMALL;
-    break;
-  case RACE_HALF_TROLL:
-    GET_REAL_SIZE(ch) = SIZE_LARGE;
-    break;
   case RACE_CRYSTAL_DWARF:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     GET_MAX_HIT(ch) += 10; /* vital */
     break;
   case RACE_TRELUX:
-    GET_REAL_SIZE(ch) = SIZE_SMALL;
     GET_MAX_HIT(ch) += 10; /* vital */
     break;
   case RACE_LICH:
@@ -2701,21 +2677,24 @@ void init_start_char(struct char_data *ch)
   case RACE_VAMPIRE:
     GET_MAX_HIT(ch) += 10; /* vital */
     break;
+  case RACE_HALF_TROLL:
   case RACE_ARCANA_GOLEM:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
   case RACE_DROW:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
-    break;
+  case RACE_ELF:
+  case RACE_DUERGAR:
+  case RACE_DWARF:
+  case RACE_HALFLING:
+  case RACE_H_ELF:
+  case RACE_H_ORC:
+  case RACE_GNOME:
   default:
-    GET_REAL_SIZE(ch) = SIZE_MEDIUM;
     break;
   }
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
     GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-    ++; /* Bonus Feat */
+  ++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
