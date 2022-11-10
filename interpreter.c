@@ -2696,6 +2696,9 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_TRELUX:
       perform_help(d, "race-trelux");
       break;
+    case RACE_FAE:
+      perform_help(d, "race-fae");
+      break;
     case RACE_HIGH_ELF:
       perform_help(d, "race-high-elf");
       break;
