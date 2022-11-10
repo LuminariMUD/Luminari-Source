@@ -2999,7 +2999,7 @@ void nanny(struct descriptor_data *d, char *arg)
 #endif
     /* start initial alignment selection code */
     write_to_output(d, "\r\nSelect Alignment\r\n"
-                       "Note: you may be restricted by your class\r\n"
+                       "Note: you may be restricted by your race/class\r\n"
                        "Note: If you don't know which to select, select 'true neutral'\r\n"
                        "\r\nGood characters and creatures protect innocent life. Evil characters "
                        "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
@@ -3009,7 +3009,8 @@ void nanny(struct descriptor_data *d, char *arg)
                        "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
     for (i = 0; i < NUM_ALIGNMENTS; i++)
     {
-      if (valid_align_by_class(i, GET_CLASS(d->character)))
+      if (valid_align_by_class(i, GET_CLASS(d->character)) &&
+          valid_align_by_race(i, GET_REAL_RACE(d->character)))
         write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
     }
     write_to_output(d, "\r\n");
