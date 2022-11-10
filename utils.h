@@ -1455,7 +1455,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
 
 /** Return how much weight ch can carry. */
-#define CAN_CARRY_W(ch) (str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
+#define CAN_CARRY_W(ch) (GET_SIZE(ch) < SIZE_SMALL ? str_app[STRENGTH_APPLY_INDEX(ch)].carry_w / 2 : str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
 
 /** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */

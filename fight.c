@@ -3596,7 +3596,7 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
   if (IS_IRON_GOLEM(ch))
     damage_reduction += 10;
-  if (IS_PIXIE(ch))
+  if (IS_PIXIE(ch) || HAS_FEAT(ch, FEAT_FAE_RESISTANCE))
     damage_reduction += 10;
   if (IS_DRAGON(ch))
     damage_reduction += 5;
@@ -5224,11 +5224,6 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   }
 
   /* end penalties */
-
-  /* size */
-  dambonus += size_modifiers[GET_SIZE(ch)];
-  if (display_mode)
-    send_to_char(ch, "Size modifier: \tR%d\tn\r\n", size_modifiers[GET_SIZE(ch)]);
 
   if (IN_ROOM(ch) != NOWHERE && ROOM_AFFECTED(IN_ROOM(ch), RAFF_SACRED_SPACE) && IS_EVIL(ch))
   {
@@ -7474,7 +7469,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     bonuses[BONUS_TYPE_RACIAL] -= 1;
 
   /* Size bonus */
-  bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers[GET_SIZE(ch)]);
+  bonuses[BONUS_TYPE_SIZE] = MAX(bonuses[BONUS_TYPE_SIZE], size_modifiers_inverse[GET_SIZE(ch)]);
 
   /* Unnamed / Undefined (stacks) */
 

@@ -69,6 +69,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     {
     case WEAPON_TYPE_CLUB:
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_QUARTERSTAFF:
     case WEAPON_TYPE_SCIMITAR:
     case WEAPON_TYPE_SCYTHE:
@@ -128,6 +129,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_DART:
     case WEAPON_TYPE_RAPIER:
     case WEAPON_TYPE_SHORT_BOW:
@@ -161,6 +163,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     switch (weapon)
     {
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_QUARTERSTAFF:
     case WEAPON_TYPE_CLUB:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
@@ -175,6 +178,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     switch (weapon)
     {
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_QUARTERSTAFF:
     case WEAPON_TYPE_CLUB:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
@@ -194,6 +198,7 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_KUKRI:
     case WEAPON_TYPE_DART:
     case WEAPON_TYPE_LIGHT_MACE:
@@ -968,6 +973,9 @@ void load_weapons(void)
             HANDLE_TYPE_GLOVE, HEAD_TYPE_FIST,
             "A knuckle can be any type of unarmed weapon, such as a spiked gauntlet, brass knuckles, hand wraps, cesti, and so forth.");
   setweapon(WEAPON_TYPE_DAGGER, "dagger", 1, 4, 1, 2, WEAPON_FLAG_THROWN | WEAPON_FLAG_SIMPLE, 2, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_SMALL_BLADE, SIZE_TINY,
+            MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
+            "A dagger has a blade that is about 1 foot in length.");
+  setweapon(WEAPON_TYPE_KNIFE, "knife", 1, 3, 1, 2, WEAPON_FLAG_THROWN | WEAPON_FLAG_SIMPLE, 2, DAMAGE_TYPE_PIERCING, 1, 10, WEAPON_FAMILY_SMALL_BLADE, SIZE_DIMINUTIVE,
             MATERIAL_STEEL, HANDLE_TYPE_HILT, HEAD_TYPE_BLADE,
             "A dagger has a blade that is about 1 foot in length.");
   setweapon(WEAPON_TYPE_LIGHT_MACE, "light mace", 1, 6, 0, 2, WEAPON_FLAG_SIMPLE, 5,

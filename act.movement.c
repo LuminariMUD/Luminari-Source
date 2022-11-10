@@ -3853,7 +3853,12 @@ int get_speed(struct char_data *ch, sbyte to_display)
     speed = 50;
 
   if (is_flying(ch))
-    speed = 50;
+  {
+    if (HAS_FEAT(ch, FEAT_FAE_FLIGHT))
+      speed = 60;
+    else
+      speed = 50;
+  }
 
   // yes, 400 is intentional :)
   if (affected_by_spell(ch, SPELL_SHADOW_WALK))

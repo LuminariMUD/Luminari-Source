@@ -961,6 +961,23 @@ void assign_feats(void)
         "+4 resist to bash and trip skill",
         "+4 resist to bash and trip skill");
 
+  feato(FEAT_FAE_RACIAL_ADJUSTMENT, "fae racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "-4 Str +10 Dex +6 Cha",
+        "Fae racial adjustment to stats are: -4 strength, +10 dexterity, +6 charisma");
+  feato(FEAT_FAE_SENSES, "fae senses", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Fae get +3 to stealth and perception checks.",
+        "Fae get +3 to stealth and perception checks.");
+  feato(FEAT_FAE_RESISTANCE, "fae resistance", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Fae get 10 points of damage reduction and spell resistance of 15 + level.",
+        "Fae get 10 points of damage reduction and spell resistance of 15 + level.");
+  feato(FEAT_FAE_MAGIC, "fae magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Fae can cast a number of spells at will.",
+        "Fae can cast the following spells at-will: dispel magic, hideous laughter, confusion, mirror image, telekineses, detect magic, and greater invis.");
+  feato(FEAT_FAE_FLIGHT, "fae flight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Fae can fly at a speed of 60 ft / round.",
+        "Fae can fly at a speed of 60 ft / round. Uses the fly and land commands.");
+  
+
   /* End Racial ability feats */
 
   /***/

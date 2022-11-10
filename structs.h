@@ -608,14 +608,15 @@
 #define RACE_TABAXI 22
 #define RACE_GOLIATH 23
 #define RACE_SHADE 24
+#define RACE_FAE 25
 
 /* last playable race above +1 */
-#define NUM_RACES 25
+#define NUM_RACES 26
 
-#define RACE_DEEP_GNOME 25
+#define RACE_DEEP_GNOME 26
 #define RACE_SVIRFNEBLIN RACE_DEEP_GNOME
-#define RACE_ORC 26
-#define RACE_H_OGRE 27 // not yet implemented
+#define RACE_ORC 27
+#define RACE_H_OGRE 28 // not yet implemented
 #define RACE_HALF_OGRE RACE_H_OGRE
 // space for new races up to 44
 
@@ -2239,12 +2240,19 @@
 #define FEAT_HIGH_ELF_RACIAL_ADJUSTMENT 951
 #define FEAT_HIGH_ELF_CANTRIP 952
 #define FEAT_HIGH_ELF_LINGUIST 953
+// fae
+#define FEAT_FAE_RACIAL_ADJUSTMENT 951
+#define FEAT_FAE_FLIGHT 952
+#define FEAT_FAE_SENSES 953
+#define FEAT_FAE_MAGIC 954
+#define FEAT_FAE_RESISTANCE 955
+
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 954
+#define FEAT_LAST_FEAT 956
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 955
+#define NUM_FEATS 957
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3122,8 +3130,9 @@
 #define WEAPON_TYPE_COMPOSITE_SHORTBOW_5 73
 #define WEAPON_TYPE_WARMAUL 74
 #define WEAPON_TYPE_KHOPESH 75
+#define WEAPON_TYPE_KNIFE 76
 // One higher than last above
-#define NUM_WEAPON_TYPES 76
+#define NUM_WEAPON_TYPES 77
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
@@ -3247,6 +3256,7 @@
 #define LANG_COMMON 0
 #define LANG_DWARVISH 1
 #define LANG_ELVISH 2
+#define LANG_ELVEN LANG_ELVISH
 #define LANG_GIANT 3
 #define LANG_GNOMISH 4
 #define LANG_GOBLIN 5

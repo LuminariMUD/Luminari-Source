@@ -5857,6 +5857,7 @@ int is_weapon_proficient(int weapon, int type)
     {
     case WEAPON_TYPE_CLUB:
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_QUARTERSTAFF:
     case WEAPON_TYPE_SCIMITAR:
     case WEAPON_TYPE_SCYTHE:
@@ -5897,6 +5898,7 @@ int is_weapon_proficient(int weapon, int type)
     switch (weapon)
     {
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_QUARTERSTAFF:
     case WEAPON_TYPE_CLUB:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
@@ -5909,6 +5911,7 @@ int is_weapon_proficient(int weapon, int type)
     switch (weapon)
     {
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_QUARTERSTAFF:
     case WEAPON_TYPE_CLUB:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
@@ -5926,6 +5929,7 @@ int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_HAND_CROSSBOW:
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_KUKRI:
     case WEAPON_TYPE_DART:
     case WEAPON_TYPE_LIGHT_MACE:
@@ -6007,6 +6011,7 @@ int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_LIGHT_CROSSBOW:
     case WEAPON_TYPE_HEAVY_CROSSBOW:
     case WEAPON_TYPE_DAGGER:
+    case WEAPON_TYPE_KNIFE:
     case WEAPON_TYPE_DART:
     case WEAPON_TYPE_RAPIER:
     case WEAPON_TYPE_SHORT_BOW:
