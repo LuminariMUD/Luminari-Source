@@ -377,7 +377,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (ch && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch) && !IS_NPC(vict) && HAS_FEAT(vict, FEAT_ASTRAL_MAJESTY))
     savethrow += 1;
-    
+
   // vampire bonuses / penalties for feeding
   challenge += vampire_last_feeding_adjustment(ch);
 
@@ -3046,22 +3046,27 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_STR;
     af[0].modifier = 2 + (GET_AUGMENT_PSP(ch) >= 6 ? 2 : 0);
     af[0].bonus_type = BONUS_TYPE_MORALE;
+    af[0].duration = 10 + GET_CON_BONUS(ch);
 
     af[1].location = APPLY_CON;
     af[1].modifier = 2 + (GET_AUGMENT_PSP(ch) >= 6 ? 2 : 0);
     af[1].bonus_type = BONUS_TYPE_MORALE;
+    af[1].duration = 10 + GET_CON_BONUS(ch);
 
     af[2].location = APPLY_SAVING_WILL;
     af[2].modifier = 1 + (GET_AUGMENT_PSP(ch) >= 6 ? 1 : 0);
     af[2].bonus_type = BONUS_TYPE_MORALE;
+    af[2].duration = 10 + GET_CON_BONUS(ch);
 
     // this is a penalty
     af[3].location = APPLY_AC_NEW;
     af[3].modifier = -2;
+    af[3].duration = 10 + GET_CON_BONUS(ch);
 
     af[4].location = APPLY_HIT;
     af[4].modifier = (2 + (GET_AUGMENT_PSP(ch) >= 6 ? 2 : 0)) * 2;
     af[4].bonus_type = BONUS_TYPE_MORALE;
+    af[4].duration = 10 + GET_CON_BONUS(ch);
     to_vict = "You go into a \tRR\trA\tRG\trE\tn!";
     to_room = "$n goes into a \tRR\trA\tRG\trE\tn!";
 
