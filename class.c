@@ -1279,7 +1279,6 @@ ACMD(do_class)
 /* TODO: phase this out using classo prereqs */
 /* does the ch have a valid alignment for proposed class?  currently only used
  in interpreter.c for starting chars */
-
 /* returns 1 for valid alignment, returns 0 for problem with alignment */
 int valid_align_by_class(int alignment, int class)
 {

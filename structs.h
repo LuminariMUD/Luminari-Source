@@ -2241,18 +2241,17 @@
 #define FEAT_HIGH_ELF_CANTRIP 952
 #define FEAT_HIGH_ELF_LINGUIST 953
 // fae
-#define FEAT_FAE_RACIAL_ADJUSTMENT 951
-#define FEAT_FAE_FLIGHT 952
-#define FEAT_FAE_SENSES 953
-#define FEAT_FAE_MAGIC 954
-#define FEAT_FAE_RESISTANCE 955
-
+#define FEAT_FAE_RACIAL_ADJUSTMENT 954
+#define FEAT_FAE_FLIGHT 955
+#define FEAT_FAE_SENSES 956
+#define FEAT_FAE_MAGIC 957
+#define FEAT_FAE_RESISTANCE 958
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 956
+#define FEAT_LAST_FEAT 959
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 957
+#define NUM_FEATS 960
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
