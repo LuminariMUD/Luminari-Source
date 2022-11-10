@@ -1857,6 +1857,15 @@ static int level_feats[][LEVEL_FEATS] = {
     {CLASS_UNDEFINED, RACE_TABAXI, FALSE, 1, FEAT_TABAXI_CATS_CLAWS},
     {CLASS_UNDEFINED, RACE_TABAXI, FALSE, 1, FEAT_TABAXI_CATS_TALENT},
 
+    // Fae
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_ULTRAVISION},
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_DODGE},
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_FAE_RACIAL_ADJUSTMENT},
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_FAE_RESISTANCE},
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_FAE_MAGIC},
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_FAE_FLIGHT},
+    {CLASS_UNDEFINED, RACE_FAE, FALSE, 1, FEAT_FAE_SENSES},
+
     // Goliath
     {CLASS_UNDEFINED, RACE_GOLIATH, FALSE, 1, FEAT_NATURAL_ATHLETE},
     {CLASS_UNDEFINED, RACE_GOLIATH, FALSE, 1, FEAT_GOLIATH_RACIAL_ADJUSTMENT},
@@ -2353,7 +2362,7 @@ void newbieEquipment(struct char_data *ch)
     obj_to_char(obj, ch); // dagger
 
     obj = read_object(NOOB_DAGGER, VIRTUAL);
-    obj_to_char(obj, ch); // dagger
+    obj_to_char(obj, ch); // dagger 
 
     break;
 
@@ -3501,6 +3510,10 @@ int level_exp(struct char_data *ch, int level)
 
     /* epic races */
   case RACE_CRYSTAL_DWARF:
+    exp *= 7;
+    break;
+
+  case RACE_FAE:
     exp *= 7;
     break;
 

@@ -4445,6 +4445,9 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isNaturalIllusion(ch, spellnum))
     return true;
+  if (isFaeMagic(ch, spellnum))
+    return true;
+    
 
   return false;
 }
@@ -4669,6 +4672,27 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum)
       if (GET_LEVEL(ch) < 3) return false;
                   if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
       if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
+      return true;
+  }
+  return false;
+}
+
+sbyte isFaeMagic(struct char_data *ch, int spellnum)
+{
+  switch (spellnum)
+  {
+    // dancing lights, dispel magic, ghost sound, hideous laughter, lesser confusion, major image, telekinesis detect magic
+    case SPELL_DISPEL_MAGIC:
+    case SPELL_HIDEOUS_LAUGHTER:
+    case SPELL_CONFUSION:
+    case SPELL_MIRROR_IMAGE:
+    case SPELL_TELEKINESIS:
+    case SPELL_DETECT_MAGIC:
+    case SPELL_GREATER_INVIS:
+      if (!HAS_FEAT(ch, FEAT_FAE_MAGIC)) return false;
+      if (GET_LEVEL(ch) < 1) return false;
+      if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
+      if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
       return true;
   }
   return false;

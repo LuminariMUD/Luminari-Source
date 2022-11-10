@@ -64,6 +64,7 @@ static const int locked_races_cost[NUM_RACES] = {
     0,     /*22 tabaxi*/
     0,     /*23 goliath*/
     0,     /*24 shade*/
+    30000, // 25 Fae
 };
 
 const bool locked_races[NUM_RACES] = {
@@ -92,6 +93,7 @@ const bool locked_races[NUM_RACES] = {
     N, // 22 tabaxi
     N, // 23 goliath
     N, // 24 shade
+    Y, // 25 fae
 };
 
 int change_account_xp(struct char_data *ch, int change_val)

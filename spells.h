@@ -1464,6 +1464,7 @@ sbyte isForestGnomeMagic(struct char_data *ch, int spellnum);
 sbyte isAasimarMagic(struct char_data *ch, int spellnum);
 sbyte isNaturalIllusion(struct char_data *ch, int spellnum);
 sbyte isPrimordialMagic(struct char_data *ch, int spellnum);
+sbyte isFaeMagic(struct char_data *ch, int spellnum);
 
 /**/
 

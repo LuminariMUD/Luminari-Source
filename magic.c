@@ -93,7 +93,9 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
       HAS_FEAT(vict, FEAT_ARMOR_MASTERY_2))
     resist += 25;
 
-  if (IS_PIXIE(vict))
+  if (HAS_FEAT(vict, FEAT_FAE_RESISTANCE))
+    resist += 15 + GET_LEVEL(vict);
+  else if (IS_PIXIE(vict))
     resist += 15;
 
   if (IS_DRAGON(vict))

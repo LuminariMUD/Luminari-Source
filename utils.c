@@ -4523,6 +4523,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_MUTAGEN:
       daily_uses = 1;
       break;
+    case FEAT_TINKER:
+      daily_uses = 1;
+      break;
     case FEAT_PSYCHOKINETIC:
       daily_uses = 1;
       break;
@@ -5473,6 +5476,9 @@ bool can_fly(struct char_data *ch)
     return FALSE;
 
   if (HAS_FEAT(ch, FEAT_WINGS))
+    return TRUE;
+
+  if (HAS_FEAT(ch, FEAT_FAE_FLIGHT))
     return TRUE;
 
   if (KNOWS_DISCOVERY(ch, ALC_DISC_WINGS))

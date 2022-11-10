@@ -975,6 +975,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 2;
       if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
       value += 2;
+    if (HAS_FEAT(ch, FEAT_FAE_SENSES))
+      value += 3;
+    value += (size_modifiers_inverse[GET_SIZE(ch)] * 4);
     value += compute_gear_armor_penalty(ch);
     return value;
 
@@ -1011,6 +1014,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_FAE_SENSES))
+      value += 3;
     if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
       value += 2;
     if (AFF_FLAGGED(ch, AFF_DAZZLED))

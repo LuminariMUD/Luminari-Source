@@ -1613,6 +1613,49 @@ void assign_races(void)
   /*                  race-num  affect            lvl */
 #endif
 
+/****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_FAE, "fae", "Fae", "\tMFae \tn", "Fae ", "\tMFae \tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_TINY, TRUE, 10, 30000, IS_EPIC_R);
+  set_race_details(RACE_FAE,
+                   // Description
+                   "Fae are relatively reclusive. They would rather spend their time frolicking in woodland glades than "
+                   "cavorting with other races. They are the consummate trickster, often devising elaborate ruses to lead "
+                   "strangers away from their glades. They do love visitors though, even if it is just to have a target for "
+                   "their tricks. They also have a love of stories and magic... Bards are therefore almost always welcome in "
+                   "a glade. Monks are greatly cherished as visitors as well, due to their ingrained resilience to faerie glamor. "
+                   "Competitions are held to see who can trick the monk, with the winner crowned prince of glamor for the day. It "
+                   "should be noted though, then monks are generally not harmed in order to encourage their return.\r\n\r\n"
+                   "They also posses an utterly alien sense of morals. They would completely erase a mortals memory, or put one to "
+                   "sleep for a year without thought to the consequences. Their chaotic behavior often stems from this lack of "
+                   "concern for consequences as Fae tend to understand the term in a different light than mortals. Likewise, harm "
+                   "to a mortal is often disregarded in the same manner. The saying \"It's all fun and games until someone losses an "
+                   "arm... then its just hilarious \" is very applicable here.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes that of a Fae.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes that of a Fae.");
+  set_race_genders(RACE_FAE, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_FAE, -4, 0, 0, 0, 10, 6);           /* str con int wis dex cha */
+  set_race_alignments(RACE_FAE, N, Y, Y, N, Y, Y, N, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_FAE,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_FAE, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_DODGE, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_MAGIC, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_SENSES, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_FLIGHT, 1, N);
+  race_list[RACE_FAE].racial_language = LANG_ELVEN;
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -3631,6 +3674,8 @@ int parse_race_long(const char *arg_in)
     return RACE_SHADE;
   if (is_abbrev(arg, "goliath"))
     return RACE_GOLIATH;
+  if (is_abbrev(arg, "fae"))
+    return RACE_FAE;
 
   return RACE_UNDEFINED;
 }
