@@ -60,6 +60,8 @@ void epic_psionic_power(int pwr)
     psionic_powers[pwr].is_epic = true;
 }
 
+/* -important- note, you must use aliases (names) for powers that are completely unique to the spellcasting system
+     or it will process a spell instead of a psionic power */
 void assign_psionic_powers(void)
 {
     int i = 0;
@@ -85,7 +87,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_OFFENSIVE_PRECOGNITION, "offensive precognition", 1, true, 3, 100, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your offensive precognition expires.", 1);
     psiono(PSIONIC_OFFENSIVE_PRESCIENCE, "offensive prescience", 1, true, 3, 100, CLAIRSENTIENCE, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your offensive prescience expires.", 1);
     psiono(PSIONIC_SLUMBER, "slumber", 1, true, 1, 100, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AFFECTS, "You are no longer compelled to slumber.", 1);
-    psiono(PSIONIC_VIGOR, "vigor", 1, true, 3, 100, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic vigor subsides.", 1);
+    psiono(PSIONIC_VIGOR, "psionic vigor", 1, true, 3, 100, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic vigor subsides.", 1);
 
     // level 2 psionic powers
     psiono(PSIONIC_BESTOW_POWER, "bestow power", 3, true, 3, 100, TELEPATHY, TAR_CHAR_ROOM | TAR_NOT_SELF, false, MAG_POINTS, NULL, 2);
