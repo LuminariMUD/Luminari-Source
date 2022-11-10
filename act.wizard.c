@@ -5624,10 +5624,10 @@ void perform_do_copyover()
                                          " .    *        .   ###     .      .        .            *\r\n"
                                          "    *.   *        #####   .     *      *        *    .\r\n"
                                          "  ____       *  ######### *    .  *      .        .  *   .\r\n"
-                                         " /   /\\  .   ###\\#|#//###   ..    *    .      *  .  ..  *\r\n"
-                                         "/___/  ^8/     ###\\|//###  *    *            .      *   *\r\n"
+                                         " /   /\\  .     ###\\#|#/###   ..    *    .      *  .  ..  *\r\n"
+                                         "/___/  ^8/      ###\\|/###  *    *            .      *   *\r\n"
                                          "|   ||%%(        # }|{  #\r\n"
-                                         "|___|,  ||  ejm    }|{\r\n");
+                                         "|___|,  ||         }|{                                 ejm\r\n");
       write_to_descriptor(d->descriptor,
                           "[The game will pause for about 30 seconds while new code is being imported, \r\n"
                           "you will need to reform if you were grouped.  There is no need to disconnect, \r\n"
