@@ -5621,7 +5621,7 @@ void perform_do_copyover()
 
       write_to_descriptor(d->descriptor, "\n\r *** Time stops for a moment as space and time folds upon itself! ***\n\r");
 
-      switch (rand_number(1, 2999))
+      switch (rand_number(1, 3999))
       {
 
       case 1:
@@ -5634,7 +5634,7 @@ void perform_do_copyover()
                                            "|   ||%%(        # }|{  #\r\n"
                                            "|___|,  ||         }|{                                 ejm\r\n");
         break;
-      default:
+      case 2:
         write_to_descriptor(d->descriptor, 
 "Art by Joan Stark \r\n"
 "     ,%&& %&& % \r\n"
@@ -5659,6 +5659,38 @@ void perform_do_copyover()
 );
 
         break;
+default:
+        write_to_descriptor(d->descriptor, 
+"Art by Michal 'Goldmoon' Kwasniewski \r\n"
+"                                        ___    ,'\"\"\"\"'. \r\n"
+"                                    ,\"\"\"   \"\"\"\"'      `. \r\n"
+"                                   ,'        _.         `._ \r\n"
+"                                  ,'       ,'              `\"\"\"'. \r\n"
+"                                 ,'    .-\"\"`.    ,-'            `. \r\n"
+"                                ,'    (        ,'                : \r\n"
+"                              ,'     ,'           __,            `. \r\n"
+"                        ,\"\"\"\"'     .' ;-.    ,  ,'  \             `\"\"\"\". \r\n"
+"                      ,'           `-(   `._(_,'     )_                `. \r\n"
+"                     ,'         ,---. \ @ ;   \ @ _,'                   `. \r\n"
+"                ,-\"\"'         ,'      ,--'-    `;'                       `. \r\n"
+"               ,'            ,'      (      `. ,'                          `. \r\n"
+"               ;            ,'        \    _,','                            `. \r\n"
+"              ,'            ;          `--'  ,'                              `. \r\n"
+"             ,'             ;          __    (                    ,           `. \r\n"
+"             ;              `____...  `78b   `.                  ,'           ,' \r\n"
+"             ;    ...----'''' )  _.-  .d8P    `.                ,'    ,'    ,' \r\n"
+"_....----''' '.        _..--\"_.-:.-' .'        `.             ,''.   ,' `--' \r\n"
+"              `\" mGk \"\" _.-'' .-'`-.:..___...--' `-._      ,-\"'   `-' \r\n"
+"        _.--'       _.-'    .'   .' .'               `\"\"\"\"\" \r\n"
+"  __.-''        _.-'     .-'   .'  / \r\n"
+" '          _.-' .-'  .-'        .' \r\n"
+"        _.-'  .-'  .-' .'  .'   / \r\n"
+"    _.-'      .-'   .-'  .'   .' \r\n"
+"_.-'       .-'    .'   .'    / \r\n"
+"       _.-'    .-'   .'    .' \r\n"
+"    .-'            .' \r\n"
+        );
+break;
       }
 
       write_to_descriptor(d->descriptor,
