@@ -1971,8 +1971,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0, j = 0; /* incrementors */
-  bool bool_variable = FALSE;
+  int i = 0; /* incrementor */
 
   /* OasisOLC states */
   struct
