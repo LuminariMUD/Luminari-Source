@@ -1619,7 +1619,7 @@ void assign_races(void)
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_FAE, "fae", "Fae", "\tMFae \tn", "Fae ", "\tMFae \tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_TINY, TRUE, 10, 30000, IS_EPIC_R);
+           RACE_TYPE_HUMANOID, SIZE_TINY, TRUE, 10, 50000, IS_EPIC_R);
   set_race_details(RACE_FAE,
                    // Description
                    "Fae are relatively reclusive. They would rather spend their time frolicking in woodland glades than "
