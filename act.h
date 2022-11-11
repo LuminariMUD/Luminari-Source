@@ -27,7 +27,6 @@
 
 /* from accounts.c */
 ACMD_DECL(do_accexp);
-extern const bool locked_races[NUM_RACES];
 int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
 int hands_available(struct char_data *ch);
