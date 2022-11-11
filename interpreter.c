@@ -1971,7 +1971,8 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0; // incrementor
+  int i = 0, j = 0; /* incrementors */
+  bool bool_variable = FALSE;
 
   /* OasisOLC states */
   struct
@@ -2770,16 +2771,26 @@ void nanny(struct descriptor_data *d, char *arg)
 
     /* display class menu */
     write_to_output(d, "Classes of Luminari\r\n\r\n");
+
     for (i = 0; i < NUM_CLASSES; i++)
     {
       if (class_list[i].prestige_class)
         continue;
-      if (!CLSLIST_LOCK(i) || has_unlocked_class(d->character, i))
-        write_to_output(d, "%-10s - %s\r\n", CLSLIST_NAME(i), class_short_descriptions[i]);
+
+      if (CLSLIST_LOCK(i) && !has_unlocked_class(d->character, i))
+        continue;
+
+      if (!valid_class_race_alignment(i, GET_REAL_RACE(d->character)))
+        continue;
+
+      write_to_output(d, "%-10s - %s\r\n", CLSLIST_NAME(i), class_short_descriptions[i]);
     }
+
     write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
                        "what to pick): ");
+
     STATE(d) = CON_QCLASS;
+
     break;
 
   case CON_QCLASS:
@@ -2899,15 +2910,29 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
+
+      /* display class menu */
       write_to_output(d, "Classes of Luminari\r\n\r\n");
+
       for (i = 0; i < NUM_CLASSES; i++)
       {
-        if (!CLSLIST_LOCK(i))
-          write_to_output(d, "%-10s - %s\r\n", CLSLIST_NAME(i), class_short_descriptions[i]);
+        if (class_list[i].prestige_class)
+          continue;
+
+        if (CLSLIST_LOCK(i) && !has_unlocked_class(d->character, i))
+          continue;
+
+        if (!valid_class_race_alignment(i, GET_REAL_RACE(d->character)))
+          continue;
+
+        write_to_output(d, "%-10s - %s\r\n", CLSLIST_NAME(i), class_short_descriptions[i]);
       }
-      write_to_output(d, "\r\nClass Selection (type 'warrior' if you do not know "
-                         "what to pick): ");
+
+      write_to_output(d, "\r\n *Note the class list may be restricted due to racial alignment restrictions.\r\n"
+                         "(Type 'warrior' if you do not know what to pick)  Choice: ");
+
       STATE(d) = CON_QCLASS;
+
       return;
     }
 
@@ -2931,11 +2956,11 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else if (is_abbrev(arg, "custom"))
     {
-      write_to_output(d, "\r\nCustom Build  Confirmed!\r\n");
+      write_to_output(d, "\r\nCustom Build Confirmed!\r\n");
     }
     else
     {
-      write_to_output(d, "\r\nPlease specify either premade or custom : ");
+      write_to_output(d, "\r\nPlease specify either premade or custom: ");
       return;
     }
 
@@ -2999,11 +3024,10 @@ void nanny(struct descriptor_data *d, char *arg)
 #endif
     /* start initial alignment selection code */
     write_to_output(d, "\r\nSelect Alignment\r\n"
-                       "Note: you may be restricted by your race/class\r\n"
-                       "Note: If you don't know which to select, select 'true neutral'\r\n"
-                       "\r\nGood characters and creatures protect innocent life. Evil characters "
+                       "*Note: you may be restricted by your race/class.  If you don't know which to select, select 'true neutral'\r\n"
+                       "\r\n- Good characters and creatures protect innocent life. Evil characters "
                        "and creatures debase or destroy innocent life, whether for fun or profit.\r\n"
-                       "\r\nLawful characters tell the truth, keep their word, respect authority, "
+                       "\r\n- Lawful characters tell the truth, keep their word, respect authority, "
                        "honor tradition, and judge those who fall short of their duties. Chaotic "
                        "characters follow their consciences, resent being told what to do, favor "
                        "new ideas over tradition, and do what they promise if they feel like it.\r\n\r\n");
@@ -3029,12 +3053,14 @@ void nanny(struct descriptor_data *d, char *arg)
 
     i = atoi(arg);
     if (i < 0 || i > (NUM_ALIGNMENTS - 1) ||
-        !valid_align_by_class(i, GET_CLASS(d->character)))
+        !valid_align_by_class(i, GET_CLASS(d->character)) ||
+        !valid_align_by_race(i, GET_REAL_RACE(d->character)))
     {
       write_to_output(d, "\r\nInvalid Choice!  Please Select Alignment\r\n");
       for (i = 0; i < NUM_ALIGNMENTS; i++)
       {
-        if (valid_align_by_class(i, GET_CLASS(d->character)))
+        if (valid_align_by_class(i, GET_CLASS(d->character)) &&
+            valid_align_by_race(i, GET_REAL_RACE(d->character)))
           write_to_output(d, "%d) %s\r\n", i, alignment_names[i]);
       }
       write_to_output(d, "\r\n");

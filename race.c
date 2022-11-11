@@ -3753,6 +3753,22 @@ int get_random_basic_pc_race(void)
   return num;
 }
 
+/* can a class be this race because of potential alignment issues? (character creation) */
+int valid_class_race_alignment(int class, int race)
+{
+  int i = 0;
+
+  for (i = 0; i < NUM_ALIGNMENTS; i++)
+  {
+    if (valid_align_by_class(i, class) &&
+        valid_align_by_race(i, race))
+      return 1;
+  }
+
+  /*nothing!*/
+  return 0;
+}
+
 /* returns 1 for valid alignment, returns 0 for problem with alignment */
 int valid_align_by_race(int alignment, int race)
 {
