@@ -1,10 +1,10 @@
 /**
-* @file race.h
-* Header file for race specific functions and variables.
-*
-* Authors:  Nashak & Zusuk
-*
-*/
+ * @file race.h
+ * Header file for race specific functions and variables.
+ *
+ * Authors:  Nashak & Zusuk
+ *
+ */
 
 #ifndef _RACE_H_
 #define _RACE_H_
@@ -39,7 +39,7 @@ struct affect_assign
 };
 
 /* race_data struct use to be here, move to structs.h */
-//extern struct race_data race_list[];
+// extern struct race_data race_list[];
 
 /* functions */
 int parse_race(char arg);
@@ -51,6 +51,10 @@ bool display_race_info(struct char_data *ch, const char *racename);
 int get_race_stat(int race, int stat);
 int get_random_basic_pc_race(void);
 sbyte has_racial_abils_unchosen(struct char_data *ch);
+/* can a class be this race because of potential alignment issues? (character creation) */
+int valid_class_race_alignment(int class, int race);
+/* returns 1 for valid alignment, returns 0 for problem with alignment */
+int valid_align_by_race(int alignment, int race);
 
 /* ACMD */
 ACMD_DECL(do_race);

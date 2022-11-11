@@ -51,7 +51,7 @@ static const int locked_races_cost[NUM_RACES] = {
     30000, /*9 trelux (epic)*/
     1000,  /*10 arcana golem (advanced)*/
     1000,  /*11 drow (advanced)*/
-    1000,  /*12  duergar (advanced) */
+    1000,  /*12 duergar (advanced)*/
     0,     /*13 high elf*/
     0,     /*14 wood elf*/
     0,     /*15 half drow*/
@@ -64,7 +64,7 @@ static const int locked_races_cost[NUM_RACES] = {
     0,     /*22 tabaxi*/
     0,     /*23 goliath*/
     0,     /*24 shade*/
-    30000, // 25 Fae
+    50000, /*25 Fae (epic)*/
 };
 
 const bool locked_races[NUM_RACES] = {
@@ -81,19 +81,19 @@ const bool locked_races[NUM_RACES] = {
     Y, /*10 arcana golem (advanced)*/
     Y, /*11 drow (advanced)*/
     Y, /*12 duergar (advanced)*/
-    N, // 13 high elf
-    N, // 14 wild elf
-    N, // 15 half drow
-    N, // 16 dragonborn
-    N, // 17 tiefling
-    N, // 18 stout halfling
-    N, // 19 forest gnome
-    N, // 20 gold dwarf
-    N, // 21 aasimar
-    N, // 22 tabaxi
-    N, // 23 goliath
-    N, // 24 shade
-    Y, // 25 fae
+    N, /*13 high elf*/
+    N, /*14 wood elf*/
+    N, /*15 half drow*/
+    N, /*16 dragonborn*/
+    N, /*17 tiefling*/
+    N, /*18 stout halfling*/
+    N, /*19 forest gnome*/
+    N, /*20 gold dwarf*/
+    N, /*21 aasimar*/
+    N, /*22 tabaxi*/
+    N, /*23 goliath*/
+    N, /*24 shade*/
+    Y, /*25 Fae (epic)*/
 };
 
 int change_account_xp(struct char_data *ch, int change_val)
