@@ -2793,19 +2793,33 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_QCLASS:
+
     load_result = parse_class_long(arg);
+
     if (load_result == CLASS_UNDEFINED)
     {
       write_to_output(d, "\r\nThat's not a class.\r\nClass: ");
       return;
     }
-    else if (CLSLIST_LOCK(load_result))
+    else if (CLSLIST_LOCK(load_result) && !has_unlocked_class(d->character, load_result))
     {
-      write_to_output(d, "\r\nPrestige classes cannot be taken at 1st level.\r\nClass: ");
+      write_to_output(d, "\r\nLocked/prestige classes cannot be taken at 1st level.\r\nClass: ");
+      return;
+    }
+    else if (class_list[load_result].prestige_class)
+    {
+      write_to_output(d, "\r\nPrestige/locked classes cannot be taken at 1st level.\r\nClass: ");
+      return;
+    }
+    else if (!valid_class_race_alignment(load_result, GET_REAL_RACE(d->character)))
+    {
+      write_to_output(d, "\r\nDue to your race choice, that class isn't available as a choice (alignment restrictions).\r\nClass: ");
       return;
     }
     else
+    {
       GET_CLASS(d->character) = load_result;
+    }
 
     /* display class help files */
     switch (load_result)
@@ -2888,12 +2902,16 @@ void nanny(struct descriptor_data *d, char *arg)
     case CLASS_INQUISITOR:
       perform_help(d, "class-inquisitor");
       break;
+
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;
     }
+
     write_to_output(d, "Do you want to select this class? (y/n) : ");
+
     STATE(d) = CON_QCLASS_HELP;
+
     break;
 
   case CON_QCLASS_HELP:
