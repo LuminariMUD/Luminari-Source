@@ -31,6 +31,7 @@ int has_unlocked_race(struct char_data *ch, int race);
 int has_unlocked_class(struct char_data *ch, int class);
 int hands_available(struct char_data *ch);
 int get_speed(struct char_data *ch, sbyte to_display);
+bool is_locked_race(int race);
 
 /*****************************************************************************
  * Begin general helper defines for all act files
