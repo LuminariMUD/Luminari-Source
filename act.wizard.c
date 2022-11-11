@@ -5620,14 +5620,47 @@ void perform_do_copyover()
     {
 
       write_to_descriptor(d->descriptor, "\n\r *** Time stops for a moment as space and time folds upon itself! ***\n\r");
-      write_to_descriptor(d->descriptor, "   *  .  . *       *    .        .        .   *    ..\r\n"
-                                         " .    *        .   ###     .      .        .            *\r\n"
-                                         "    *.   *        #####   .     *      *        *    .\r\n"
-                                         "  ____       *  ######### *    .  *      .        .  *   .\r\n"
-                                         " /   /\\  .     ###\\#|#/###   ..    *    .      *  .  ..  *\r\n"
-                                         "/___/  ^8/      ###\\|/###  *    *            .      *   *\r\n"
-                                         "|   ||%%(        # }|{  #\r\n"
-                                         "|___|,  ||         }|{                                 ejm\r\n");
+
+      switch (rand_number(1, 2))
+      {
+
+      case 1:
+        write_to_descriptor(d->descriptor, "   *  .  . *       *    .        .        .   *    ..\r\n"
+                                           " .    *        .   ###     .      .        .            *\r\n"
+                                           "    *.   *        #####   .     *      *        *    .\r\n"
+                                           "  ____       *  ######### *    .  *      .        .  *   .\r\n"
+                                           " /   /\\  .     ###\\#|#/###   ..    *    .      *  .  ..  *\r\n"
+                                           "/___/  ^8/      ###\\|/###  *    *            .      *   *\r\n"
+                                           "|   ||%%(        # }|{  #\r\n"
+                                           "|___|,  ||         }|{                                 ejm\r\n");
+        break;
+      default:
+        write_to_descriptor(d->descriptor, 
+"Art by Joan Stark \r\n"
+"     ,%&& %&& % \r\n"
+"   ,%&%& %&%& %& \r\n"
+"  %& %&% &%&% % &% \r\n"
+" % &%% %&% &% %&%&, \r\n"
+" &%&% %&%& %& &%& % \r\n"
+"%%& %&%& %&%&% %&%%& \r\n"
+"&%&% %&% % %& &% %%& \r\n"
+"&& %&% %&%& %&% %&%' \r\n"
+" '%&% %&% %&&%&%%'% \r\n"
+"  % %& %& %&% &%% \r\n"
+"    `\\%%.'  /`%&' \r\n"
+"      |    |            /`-._           _\\\\/ \r\n"
+"      |,   |_          /     `-._ ..--~`_ \r\n"
+"      |;   |_`\\_      /  ,\\\\.~`  `-._ -  ^ \r\n"
+"      |;:  |\/^}__..-,@   .~`    ~    `o ~ \r\n"
+"      |;:  |(____.-'     '.   ~   -    `    ~ \r\n"
+"      |;:  |  \\ / `\\       //.  -    ^   ~ \r\n"
+"      |;:  |\\ /' /\\_\\_        ~. _ ~   -   //- \r\n"
+" jgs\\\\/;:   \\'--' `---`           `\\\\//-\\\\///  \r\n"
+);
+
+        break;
+      }
+
       write_to_descriptor(d->descriptor,
                           "[The game will pause for about 30 seconds while new code is being imported, \r\n"
                           "you will need to reform if you were grouped.  There is no need to disconnect, \r\n"
