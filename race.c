@@ -20,6 +20,7 @@
 #include "comm.h"
 #include "race.h"
 #include "feats.h"
+#include "class.h"
 
 /* defines */
 #define Y TRUE
