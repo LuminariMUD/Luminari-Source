@@ -5621,7 +5621,7 @@ void perform_do_copyover()
 
       write_to_descriptor(d->descriptor, "\n\r *** Time stops for a moment as space and time folds upon itself! ***\n\r");
 
-      switch (rand_number(1, 3999))
+      switch (rand_number(1, 3))
       {
 
       case 1:
