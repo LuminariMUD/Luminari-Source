@@ -1038,6 +1038,9 @@ void npc_spellup(struct char_data *ch)
     {
       if (!IS_CORPSE(obj))
         continue;
+      if (GET_OBJ_VAL(obj, 4)) /* pcorpse */
+        continue;
+
       if (level >= spell_info[SPELL_GREATER_ANIMATION].min_level[GET_CLASS(ch)])
       {
         if (!GROUP(ch))
