@@ -1,6 +1,7 @@
 /* ************************************************************************
  *    File:   transport.c                            Part of LuminariMUD  *
  * Purpose:   To provide auto travel functionality                        *
+ *  Header:   transport.h                                                 *
  *  Author:   Gicker                                                      *
  ************************************************************************ */
 
@@ -33,16 +34,17 @@
 extern struct room_data *world;
 extern struct char_data *character_list;
 
-// External Functions
+/* External Functions */
 room_rnum find_target_room(struct char_data *ch, char *rawroomstr);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 int find_first_step(room_rnum src, room_rnum target);
 
-// To get the map coords, use the coords found in the wilderness area where the zone connects.
-// Same applies to the sailing map points below. Map point will be the spot where the sailing tower is.
+/* To get the map coords, use the coords found in the wilderness area where the zone connects.
+   Same applies to the sailing map points below. Map point will be the spot where the sailing tower is. */
 
-// location name, carriage stop room vnum, cost to travel here, continent name (matched below), zone description, mapp coord x, map coord y
-const char *carriage_locales[][7] = {
+/* location name, carriage stop room vnum, cost to travel here, continent name (matched below),
+zone description, mapp coord x, map coord y */
+const char *carriage_locales[][CARRIAGE_LOCALES_FIELDS] = {
     {"ashenport", "103000", "10", "Ondius", "central city for low to mid levels and main quest line", "-59", "92"},
     {"mosswood village", "145387", "10", "Ondius", "starting area, levels 1-5", "-51", "99"},
     {"ardeep forest", "144062", "45", "Ondius", "level 3-12 mobs", "-40", "82"},
@@ -86,10 +88,12 @@ const char *carriage_locales[][7] = {
     {"wizard training mansion", "5900", "10", "Ondius", "level 3-6 mobs, questline", "-20", "99"},
     {"zhentil keep", "119100", "70", "Continent8", "level 1-30 mobs", "-563", "-583"},
 
-    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"}};
+    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
+};
 
-// continent name, airshop dock room vnum, Cost in gold to travel here, faction name, contintent description, map coord x, map coord y
-const char *sailing_locales[][7] = {
+/* continent name, ship dock room vnum, Cost in gold, faction name,
+     contintent description, map coord x, map coord y */
+const char *sailing_locales[][SAILING_LOCALES_FIELDS] = {
     {"ondius - ashenport", "34801", "100", "Any", "Ashenport is the main city hub for the main questline and many shops & services.", "-63", "89"},
     {"ondius - northwest seaport", "1000280", "100", "Any", "Nearby zones: Quagmire", "-25", "198"},
     {"ondius - southeast seaport", "1000281", "100", "Any", "Nearby zones: Neverwinter Catacombs", "104", "39"},
@@ -145,10 +149,12 @@ const char *sailing_locales[][7] = {
     {"west ubdina - south seaport", "1000343", "100", "Any", "Nearby zones: Llawryn Keep Graveyard", "-566", "-677"},
     {"west ubdina - southeast seaport", "1000344", "100", "Any", "Nearby zones: Hulburg Trail", "-371", "-789"},
 
-    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"}};
+    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
+};
 
-const char *walkto_landmarks[][4] = {
-    // Ashenport
+/* zone, destination vnum, title, details */
+const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
+    /* Ashenport */
     {"1030", "103009", "jade jug inn", "Alerion, Henchmen, Huntsmaster, Missions"},
     {"1030", "103006", "bazaar", "Purchase gear with quest points"},
     {"1030", "103000", "north gate", "north gate of ashenport, fast travel carriages"},
@@ -168,7 +174,10 @@ const char *walkto_landmarks[][4] = {
     {"1030", "103053", "grocer", "food and drink"},
     {"1030", "103052", "baker", "bread & pastries"},
     {"1030", "103070", "elfstone tavern", "specialty drinks"},
-    {"0", "", "always last item", ""}};
+
+    /* always last! */
+    {"0", "", "always last item", ""},
+};
 
 ACMDU(do_carriage)
 {
@@ -177,6 +186,7 @@ ACMDU(do_carriage)
 
   int i = 0;
   bool found = false;
+
   while (atoi(carriage_locales[i][1]) != 0)
   {
     if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(carriage_locales[i][1]))
@@ -520,8 +530,15 @@ void travel_tickdown(void)
       ch->player_specials->travel_timer--;
       if (ch->player_specials->travel_timer < 1)
       {
-        snprintf(car, sizeof(car), "%s", carriage_locales[ch->player_specials->travel_locale][1]);
-        snprintf(sail, sizeof(sail), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
+        if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
+        {
+          snprintf(car, sizeof(car), "%s", carriage_locales[ch->player_specials->travel_locale][1]);
+        }
+        else if (ch->player_specials->travel_type == TRAVEL_SAILING)
+        {
+          snprintf(sail, sizeof(sail), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
+        }
+
         if (ch->player_specials->travel_type == TRAVEL_SAILING)
         {
           if (atoi(sail) < 1000000)
