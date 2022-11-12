@@ -389,13 +389,22 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
   }
 
   room_rnum to_room = NOWHERE;
-  snprintf(air, sizeof(air), "%s", sailing_locales[locale][1]);
-  snprintf(car, sizeof(car), "%s", carriage_locales[locale][1]);
+
+  if (type == TRAVEL_CARRIAGE)
+  {
+    snprintf(car, sizeof(car), "%s", carriage_locales[locale][1]);
+  }
+  else if (type == TRAVEL_SAILING)
+  {
+    snprintf(air, sizeof(air), "%s", sailing_locales[locale][1]);
+  }
+
   if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? strdup(air) : strdup(car))) == NOWHERE)
   {
     send_to_char(ch, "There is an error with that destination.  Please report on the to a staff member. ERRENTCAR001\r\n");
     return;
   }
+
   room_rnum taxi = cnt;
 
   if (taxi == NOWHERE)
@@ -408,7 +417,6 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
   }
 
   struct follow_type *f = NULL;
-  ;
   struct char_data *tch = NULL;
 
   for (f = ch->followers; f; f = f->next)
