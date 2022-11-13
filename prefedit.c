@@ -381,7 +381,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
   /* The bottom section of the toggles menu */
   send_to_char(d->character, "\r\n"
                              "%sProtocol Settings:\r\n"
-                             "%sJ%s) Xterm 256    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
+                             "%sJ%s) 256 Color    %s[%s%3s%s]      %sM%s) MXP      %s[%s%3s%s]\r\n"
                              "%sK%s) ANSI         %s[%s%3s%s]      %sN%s) MSDP     %s[%s%3s%s]\r\n"
                              "%sL%s) Charset      %s[%s%3s%s]      %sO%s) GMCP     %s[%s%3s%s]\r\n"
                              "%sP%s) UTF-8        %s[%s%3s%s]      %sR%s) MSP      %s[%s%3s%s]\r\n"
@@ -389,7 +389,7 @@ static void prefedit_disp_toggles_menu(struct descriptor_data *d)
                CBWHT(d->character, C_NRM),
                /* Line 12 - 256 and mxp */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
-               ONOFF(d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
+               ONOFF(d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt), CCCYN(d->character, C_NRM), CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM),
                CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM), ONOFF(d->pProtocol->pVariables[eMSDP_MXP]->ValueInt), CCCYN(d->character, C_NRM),
                /* Line 13 - ansi and msdp */
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM), CCYEL(d->character, C_NRM),
@@ -826,7 +826,7 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case 'j':
     case 'J':
-      TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt);
+      TOGGLE_VAR(d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
       break;
 
     case 'k':

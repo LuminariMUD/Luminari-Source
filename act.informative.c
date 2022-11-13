@@ -5177,7 +5177,7 @@ ACMD(do_whois)
     send_to_char(ch, "Client:  %s [%s]\r\n",
                  prot->pVariables[eMSDP_CLIENT_ID]->pValueString,
                  prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString ? prot->pVariables[eMSDP_CLIENT_VERSION]->pValueString : "Unknown");
-    send_to_char(ch, "Color:   %s\r\n", prot->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt ? "Xterm" : (prot->pVariables[eMSDP_ANSI_COLORS]->ValueInt ? "Ansi" : "None"));
+    send_to_char(ch, "Color:   %s\r\n", prot->pVariables[eMSDP_256_COLORS]->ValueInt ? "256 Color" : (prot->pVariables[eMSDP_ANSI_COLORS]->ValueInt ? "Ansi" : "None"));
     send_to_char(ch, "MXP:     %s\r\n", prot->bMXP ? "Yes" : "No");
     send_to_char(ch, "Charset: %s\r\n", prot->bCHARSET ? "Yes" : "No");
     send_to_char(ch, "MSP:     %s\r\n", prot->bMSP ? "Yes" : "No");
