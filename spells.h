@@ -26,6 +26,9 @@
 #define METAMAGIC_HEIGHTEN (1 << 2)
 #define METAMAGIC_ARCANE_ADEPT (1 << 3)
 
+/* this variable is used for the system for 'spamming' ironskin -zusuk */
+#define WARD_THRESHOLD 171
+
 /* renamed 0-values to help clarify context in code */
 #define NO_DICEROLL 0
 #define NO_MOD 0
