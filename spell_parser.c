@@ -1604,7 +1604,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
 
     /* i made this so you can spam iron skin theoretically -zusuk */
-    if (affected_by_spell(tch, SPELL_IRONSKIN) && level >= 20 &&
+    if (affected_by_spell(tch, SPELL_IRONSKIN) &&
         GET_STONESKIN(tch) >= WARD_THRESHOLD)
     {
       send_to_char(ch, "The ironskin on %s is still holding strong (%d damage left, %d is the "
