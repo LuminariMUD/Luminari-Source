@@ -1600,7 +1600,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     if (affected_by_spell(tch, SPELL_EPIC_WARDING))
     {
       send_to_char(ch, "A more powerful magical ward is already in effect on the target.\r\n");
-      return;
+      return 0;
     }
 
     /* i made this so you can spam iron skin theoretically -zusuk */
@@ -1610,7 +1610,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       send_to_char(ch, "The ironskin on %s is still holding strong (%d damage left, %d is the "
                        "configured threshold)!\r\n",
                    GET_NAME(tch), GET_STONESKIN(tch), WARD_THRESHOLD);
-      return;
+      return 0;
     }
     break;
   default:
