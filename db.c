@@ -5303,7 +5303,7 @@ void init_char(struct char_data *ch)
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOEXIT);
   if (ch->desc)
     if (ch->desc->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
-        ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])
+        ch->desc->pProtocol->pVariables[eMSDP_256_COLORS])
     {
       SET_BIT_AR(PRF_FLAGS(ch), PRF_COLOR_1);
       SET_BIT_AR(PRF_FLAGS(ch), PRF_COLOR_2);

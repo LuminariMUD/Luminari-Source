@@ -1948,7 +1948,7 @@ EVENTFUNC(get_protocols)
 
   len = snprintf(buf, MAX_STRING_LENGTH, "\tO[\toClient\tO] \tw%s\tn | ", d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
 
-  if (d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt)
+  if (d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt)
     len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toColors\tO] \tw256\tn | ");
   else if (d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt)
     len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toColors\tO] \twAnsi\tn | ");
@@ -2348,7 +2348,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
           /*
             if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
-                 d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
+                 d->pProtocol->pVariables[eMSDP_256_COLORS])) {
               SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
               SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
             }
@@ -2378,7 +2378,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
         /*
           if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
-               d->pProtocol->pVariables[eMSDP_XTERM_256_COLORS])) {
+               d->pProtocol->pVariables[eMSDP_256_COLORS])) {
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_1);
             SET_BIT_AR(PRF_FLAGS(d->character), PRF_COLOR_2);
           }

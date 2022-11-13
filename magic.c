@@ -3095,6 +3095,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (1 + GET_AUGMENT_PSP(ch)) * 10;
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 4 + (GET_AUGMENT_PSP(ch) / 4);
+    af[0].bonus_type = BONUS_TYPE_DEFLECTION;
     accum_duration = FALSE;
     to_vict = "You create a psychic barrier of deflective force around you.";
 

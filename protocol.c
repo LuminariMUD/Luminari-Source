@@ -186,7 +186,7 @@ static variable_name_t VariableNameTable[eMSDP_MAX + 1] = {
     {eMSDP_CLIENT_VERSION, "CLIENT_VERSION", STRING_WRITE_ONCE(1, 40)},
     {eMSDP_PLUGIN_ID, "PLUGIN_ID", STRING_WITH_LENGTH_OF(1, 40)},
     {eMSDP_ANSI_COLORS, "ANSI_COLORS", BOOLEAN_SET_TO(1)},
-    {eMSDP_XTERM_256_COLORS, "XTERM_256_COLORS", BOOLEAN_SET_TO(0)},
+    {eMSDP_256_COLORS, "256_COLORS", BOOLEAN_SET_TO(0)},
     {eMSDP_UTF_8, "UTF_8", BOOLEAN_SET_TO(0)},
     {eMSDP_SOUND, "SOUND", BOOLEAN_SET_TO(0)},
     {eMSDP_MXP, "MXP", BOOLEAN_SET_TO(0)},
@@ -450,7 +450,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
           /* MUSHclient 4.02 and later supports 256 colours. */
           if (strcmp(pMXPTag, "4.02") >= 0)
           {
-            pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
             pProtocol->b256Support = eYES;
           }
           else /* We know for sure that 256 colours are not supported */
@@ -461,7 +461,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
           /* CMUD 3.04 and later supports 256 colours. */
           if (strcmp(pMXPTag, "3.04") >= 0)
           {
-            pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
             pProtocol->b256Support = eYES;
           }
           else /* We know for sure that 256 colours are not supported */
@@ -473,7 +473,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
            * yet have MXP.  However MXP is planned, so once it responds
            * to a <VERSION> tag we'll know we can use 256 colours.
            */
-          pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
           pProtocol->b256Support = eYES;
         }
       }
@@ -599,7 +599,7 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
                                    between pre-ProtocolOutput() muds and post ProtocolOutput() muds.*/
         break;
         /* 1,2,3 to be used a MUD's base colour palette. Just to maintain
-           * some sort of common colouring scheme amongst coders/builders */
+         * some sort of common colouring scheme amongst coders/builders */
       case '1':
         pCopyFrom = ColourRGB(apDescriptor, RGBone);
         break;
@@ -1115,7 +1115,7 @@ const char *CopyoverGet(descriptor_t *apDescriptor)
       *pBuffer++ = 'c';
       CompressEnd(apDescriptor);
     }
-    if (pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt)
+    if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt)
       *pBuffer++ = 'C';
     if (pProtocol->bCHARSET)
       *pBuffer++ = 'H';
@@ -1167,7 +1167,7 @@ void CopyoverSet(descriptor_t *apDescriptor, const char *apData)
         CompressStart(apDescriptor);
         break;
       case 'C':
-        pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+        pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
         break;
       case 'H':
         pProtocol->bCHARSET = true;
@@ -1674,7 +1674,7 @@ const char *ColourRGB(descriptor_t *apDescriptor, const char *apRGB)
       int Green = apRGB[2] - '0';
       int Blue = apRGB[3] - '0';
 
-      if (pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt)
+      if (pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt)
         return GetRGBColour(bBackground, Red, Green, Blue);
       else /* Use regular ANSI colour */
         return GetAnsiColour(bBackground, Red, Green, Blue);
@@ -1708,7 +1708,7 @@ const char *ColourRGB( descriptor_t *apDescriptor, const char *apRGB )
          int Green = apRGB[2] - '0';
          int Blue = apRGB[3] - '0';
 
-         if ( pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt )
+         if ( pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt )
             return GetRGBColour( bBackground, Red, Green, Blue );
          else // Use regular ANSI colour
             return GetAnsiColour( bBackground, Red, Green, Blue );
@@ -1874,9 +1874,9 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
       if (!pProtocol->bNegotiated)
       {
         /* Still negotiate, as this client obviously knows how to
-           * correctly respond to negotiation attempts - but we don't
-           * ask for TTYPE, as it doesn't support it.
-           */
+         * correctly respond to negotiation attempts - but we don't
+         * ask for TTYPE, as it doesn't support it.
+         */
         pProtocol->bNegotiated = true;
         Negotiate(apDescriptor);
 
@@ -2080,12 +2080,12 @@ static void PerformHandshake(descriptor_t *apDescriptor, char aCmd, char aProtoc
       if (!pProtocol->bMXP)
       {
         /* The MXP standard doesn't actually specify whether you should
-           * negotiate with IAC DO MXP or IAC WILL MXP.  As a result, some
-           * clients support one, some the other, and some support both.
-           *
-           * Therefore we first try IAC DO MXP, and if the client replies
-           * with WONT, we try again (here) with IAC WILL MXP.
-           */
+         * negotiate with IAC DO MXP or IAC WILL MXP.  As a result, some
+         * clients support one, some the other, and some support both.
+         *
+         * Therefore we first try IAC DO MXP, and if the client replies
+         * with WONT, we try again (here) with IAC WILL MXP.
+         */
         ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP2, true, true);
       }
       else /* The client is actually asking us to switch MXP off. */
@@ -2353,31 +2353,31 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
         pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = AllocString(pClientName);
 
         /* This is a bit nasty, but using cyclic TTYPE on windows telnet
-           * causes it to lock up.  None of the clients we need to cycle
-           * with send ANSI to start with anyway, so we shouldn't have any
-           * conflicts.
-           *
-           * An alternative solution is to use escape sequences to check
-           * for windows telnet prior to negotiation, and this also avoids
-           * the player losing echo, but it has other issues.  Because the
-           * escape codes are technically in-band, even though they'll be
-           * stripped from the display, the newlines will still cause some
-           * scrolling.  Therefore you need to either pause the session
-           * for a few seconds before displaying the login screen, or wait
-           * until the player has entered their name before negotiating.
-           */
+         * causes it to lock up.  None of the clients we need to cycle
+         * with send ANSI to start with anyway, so we shouldn't have any
+         * conflicts.
+         *
+         * An alternative solution is to use escape sequences to check
+         * for windows telnet prior to negotiation, and this also avoids
+         * the player losing echo, but it has other issues.  Because the
+         * escape codes are technically in-band, even though they'll be
+         * stripped from the display, the newlines will still cause some
+         * scrolling.  Therefore you need to either pause the session
+         * for a few seconds before displaying the login screen, or wait
+         * until the player has entered their name before negotiating.
+         */
         if (!strcmp(pClientName, "ANSI"))
           bStopCyclicTTYPE = true;
       }
 
       /* Cycle through the TTYPEs until we get the same result twice, or
-         * find ourselves back at the start.
-         *
-         * If the client follows RFC1091 properly then it will indicate the
-         * end of the list by repeating the last response, and then return
-         * to the top of the list.  If you're the trusting type, then feel
-         * free to remove the second strcmp ;)
-         */
+       * find ourselves back at the start.
+       *
+       * If the client follows RFC1091 properly then it will indicate the
+       * end of the list by repeating the last response, and then return
+       * to the top of the list.  If you're the trusting type, then feel
+       * free to remove the second strcmp ;)
+       */
       if (pProtocol->pLastTTYPE == NULL ||
           (strcmp(pProtocol->pLastTTYPE, pClientName) &&
            strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, pClientName)))
@@ -2395,9 +2395,9 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
             MatchString(pClientName, "xterm"))
         {
           /* This is currently the only way to detect support for 256
-             * colours in TinTin++, WinTin++ and BlowTorch.
-             */
-          pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+           * colours in TinTin++, WinTin++ and BlowTorch.
+           */
+          pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
           pProtocol->b256Support = eYES;
         }
 
@@ -2409,9 +2409,9 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       if (PrefixString("Mudlet", pClientName))
       {
         /* Mudlet beta 15 and later supports 256 colours, but we can't
-           * identify it from the mud - everything prior to 1.1 claims
-           * to be version 1.0, so we just don't know.
-           */
+         * identify it from the mud - everything prior to 1.1 claims
+         * to be version 1.0, so we just don't know.
+         */
         pProtocol->b256Support = eSOMETIMES;
 
         if (strlen(pClientName) > 7)
@@ -2425,7 +2425,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
           /* Mudlet 1.1 and later supports 256 colours. */
           if (strcmp(pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString, "1.1") >= 0)
           {
-            pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+            pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
             pProtocol->b256Support = eYES;
           }
         }
@@ -2433,13 +2433,13 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       else if (MatchString(pClientName, "EMACS-RINZAI"))
       {
         /* We know for certain that this client has support */
-        pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+        pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
         pProtocol->b256Support = eYES;
       }
       else if (PrefixString("DecafMUD", pClientName))
       {
         /* We know for certain that this client has support */
-        pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = 1;
+        pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = 1;
         pProtocol->b256Support = eYES;
 
         if (strlen(pClientName) > 9)
@@ -2488,11 +2488,11 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
     if (pProtocol->bCHARSET)
     {
       /* Because we're only asking about UTF-8, we can just check the
-         * first character.  If you ask for more than one CHARSET you'll
-         * need to read through the results to see which are accepted.
-         *
-         * Note that the user must also use a unicode font!
-         */
+       * first character.  If you ask for more than one CHARSET you'll
+       * need to read through the results to see which are accepted.
+       *
+       * Note that the user must also use a unicode font!
+       */
       if (apData[0] == ACCEPTED)
         pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = 1;
     }
@@ -2974,7 +2974,7 @@ static void SendMSSP(descriptor_t *apDescriptor)
       {"HOSTNAME", "LuminariMUD.com"},
       {"PORT", "4100"},
       {"CODEBASE", "LuminariMUD"},
-      {"CONTACT", "zusuk<at>luminarimud.com"},
+      {"CONTACT", "moshehwebservices<at>live.com"},
       {"CREATED", "2012"},
       {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
       {"IP", "66.85.147.90"},
@@ -2984,28 +2984,28 @@ static void SendMSSP(descriptor_t *apDescriptor)
       {"WEBSITE", "http://www.LuminariMUD.com/"},
 
       /* Categorisation */
-      {"FAMILY", "DikuMUD"},
+      {"FAMILY", "tbaMUD"},
       {"GENRE", "Fantasy"},
       {"GAMEPLAY", "Hack and Slash"},
       {"STATUS", "Beta"},
       {"GAMESYSTEM", "Pathfinder"},
       {"INTERMUD", ""},
-      {"SUBGENRE", "None"},
+      {"SUBGENRE", "Forgotten Realms DragonLance"},
 
       /* World */
-      {"AREAS", "209"},
+      {"AREAS", "514"},
       {"HELPFILES", "0"},
-      {"MOBILES", "8330"},
-      {"OBJECTS", "8591"},
-      {"ROOMS", "13952"},
-      {"CLASSES", "6"},
+      {"MOBILES", "14556"},
+      {"OBJECTS", "25114"},
+      {"ROOMS", "50166"},
+      {"CLASSES", "27"},
       {"LEVELS", "30"},
-      {"RACES", "4"},
-      {"SKILLS", "70"},
+      {"RACES", "27"},
+      {"SKILLS", "999"},
 
       /* Protocols */
       {"ANSI", "1"},
-      {"GMCP", "0"},
+      {"GMCP", "1"},
 #ifdef USING_MCCP
       {"MCCP", "1"},
 #else
@@ -3018,50 +3018,47 @@ static void SendMSSP(descriptor_t *apDescriptor)
       {"PUEBLO", "0"},
       {"UTF-8", "1"},
       {"VT100", "0"},
-      {"XTERM 256 COLORS", "1"},
+      {"256 COLORS & XTERM", "1"},
 
       /* Commercial */
       {"PAY TO PLAY", "0"},
       {"PAY FOR PERKS", "0"},
 
       /* Hiring */
-      {"HIRING BUILDERS", "0"},
-      {"HIRING CODERS", "0"},
+      {"HIRING BUILDERS", "1"},
+      {"HIRING CODERS", "1"},
 
-      /* Extended variables */
+      /* Game */
+      {"ADULT MATERIAL", "0"},
+      {"MULTICLASSING", "1"},
+      {"NEWBIE FRIENDLY", "1"},
+      {"PLAYER CITIES", "0"},
+      {"PLAYER CLANS", "1"},
+      {"PLAYER CRAFTING", "1"},
+      {"PLAYER GUILDS", "1"},
+      {"EQUIPMENT SYSTEM", "1"},
+      {"MULTIPLAYING", "1"},
+      {"PLAYERKILLING", "1"},
+      {"QUEST SYSTEM", "1"},
+      {"ROLEPLAYING", "1"},
+      {"TRAINING SYSTEM", "1"},
+      {"WORLD ORIGINALITY", "1"},
 
       /* World */
-      /*
-          { "DBSIZE",             "0" },
-          { "EXITS",              "0" },
-          { "EXTRA DESCRIPTIONS", "0" },
-          { "MUDPROGS",           "0" },
-          { "MUDTRIGS",           "0" },
-          { "RESETS",             "0" },
-     */
-      /* Game */
-      /*
-          { "ADULT MATERIAL",     "0" },
-          { "MULTICLASSING",      "0" },
-          { "NEWBIE FRIENDLY",    "0" },
-          { "PLAYER CITIES",      "0" },
-          { "PLAYER CLANS",       "0" },
-          { "PLAYER CRAFTING",    "0" },
-          { "PLAYER GUILDS",      "0" },
-          { "EQUIPMENT SYSTEM",   "" },
-          { "MULTIPLAYING",       "" },
-          { "PLAYERKILLING",      "" },
-          { "QUEST SYSTEM",       "" },
-          { "ROLEPLAYING",        "" },
-          { "TRAINING SYSTEM",    "" },
-          { "WORLD ORIGINALITY",  "" },
-     */
+      {"EXITS", "8"},
+      {"EXTRA DESCRIPTIONS", "99999"},
+      {"MUDPROGS", "3652"},
+      {"MUDTRIGS", "1956"},
+
+      /* Extended variables */
       /* Protocols */
       /*
-          { "GMCP",               "1" },
+      {"RESETS", "0"},
+      {"DBSIZE", "0"},
           { "SSL",                "0" },
           { "ZMP",                "0" },
      */
+
       {NULL, NULL} /* This must always be last. */
   };
 
@@ -3143,21 +3140,29 @@ static char *GetMxpTag(const char *apTag, const char *apText)
 static const char *GetAnsiColour(bool_t abBackground, int aRed, int aGreen, int aBlue)
 {
   if (aRed == aGreen && aRed == aBlue && aRed < 2)
-    return abBackground ? s_BackBlack : aRed >= 1 ? s_BoldBlack : s_DarkBlack;
+    return abBackground ? s_BackBlack : aRed >= 1 ? s_BoldBlack
+                                                  : s_DarkBlack;
   else if (aRed == aGreen && aRed == aBlue)
-    return abBackground ? s_BackWhite : aRed >= 4 ? s_BoldWhite : s_DarkWhite;
+    return abBackground ? s_BackWhite : aRed >= 4 ? s_BoldWhite
+                                                  : s_DarkWhite;
   else if (aRed > aGreen && aRed > aBlue)
-    return abBackground ? s_BackRed : aRed >= 3 ? s_BoldRed : s_DarkRed;
+    return abBackground ? s_BackRed : aRed >= 3 ? s_BoldRed
+                                                : s_DarkRed;
   else if (aRed == aGreen && aRed > aBlue)
-    return abBackground ? s_BackYellow : aRed >= 3 ? s_BoldYellow : s_DarkYellow;
+    return abBackground ? s_BackYellow : aRed >= 3 ? s_BoldYellow
+                                                   : s_DarkYellow;
   else if (aRed == aBlue && aRed > aGreen)
-    return abBackground ? s_BackMagenta : aRed >= 3 ? s_BoldMagenta : s_DarkMagenta;
+    return abBackground ? s_BackMagenta : aRed >= 3 ? s_BoldMagenta
+                                                    : s_DarkMagenta;
   else if (aGreen > aBlue)
-    return abBackground ? s_BackGreen : aGreen >= 3 ? s_BoldGreen : s_DarkGreen;
+    return abBackground ? s_BackGreen : aGreen >= 3 ? s_BoldGreen
+                                                    : s_DarkGreen;
   else if (aGreen == aBlue)
-    return abBackground ? s_BackCyan : aGreen >= 3 ? s_BoldCyan : s_DarkCyan;
+    return abBackground ? s_BackCyan : aGreen >= 3 ? s_BoldCyan
+                                                   : s_DarkCyan;
   else /* aBlue is the highest */
-    return abBackground ? s_BackBlue : aBlue >= 3 ? s_BoldBlue : s_DarkBlue;
+    return abBackground ? s_BackBlue : aBlue >= 3 ? s_BoldBlue
+                                                  : s_DarkBlue;
 }
 
 static const char *GetRGBColour(bool_t abBackground, int aRed, int aGreen, int aBlue)
