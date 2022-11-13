@@ -2429,10 +2429,6 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   return (damage(ch, victim, dam, spellnum, element, FALSE));
 }
-
-/* this variable is used for the system for 'spamming' ironskin -zusuk */
-#define WARD_THRESHOLD 151
-
 /* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
    old tick = 75 seconds, or 1.25 minutes or 25 rounds */
 
@@ -5030,20 +5026,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_IRONSKIN: // transmutation
-    if (affected_by_spell(victim, SPELL_EPIC_WARDING))
-    {
-      send_to_char(ch, "A more powerful magical ward is already in effect on the target.\r\n");
-      return;
-    }
-    /* i made this so you can spam iron skin theoretically -zusuk */
-    if (affected_by_spell(victim, SPELL_IRONSKIN) && level >= 20 &&
-        GET_STONESKIN(victim) >= WARD_THRESHOLD)
-    {
-      send_to_char(ch, "The ironskin on %s is still holding strong (%d damage left, %d is the "
-                       "configured threshold)!\r\n",
-                   GET_NAME(victim), GET_STONESKIN(victim), WARD_THRESHOLD);
-      return;
-    }
     if (affected_by_spell(victim, SPELL_STONESKIN))
     {
       affect_from_char(victim, SPELL_STONESKIN);
