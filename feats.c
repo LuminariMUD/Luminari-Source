@@ -976,7 +976,6 @@ void assign_feats(void)
   feato(FEAT_FAE_FLIGHT, "fae flight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Fae can fly at a speed of 60 ft / round.",
         "Fae can fly at a speed of 60 ft / round. Uses the fly and land commands.");
-  
 
   /* End Racial ability feats */
 
@@ -1231,8 +1230,8 @@ void assign_feats(void)
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* uncategorized combat feats */
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
-        "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.",
-        "when fighting blind, retain dex bonus to AC and deny enemy +2 attack bonus for invisibility or other concealment.");
+        "when fighting blind, retain dex bonus to AC and deny enemy +4 attack bonus for invisibility.",
+        "when fighting blind, retain dex bonus to AC and deny enemy +4 attack bonus for invisibility.");
 
   feato(FEAT_COMBAT_REFLEXES, "combat reflexes", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "can make a number of attacks of opportunity equal to dex bonus",
