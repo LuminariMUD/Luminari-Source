@@ -161,6 +161,7 @@ extern const char *inquisitor_judgement_descriptions[];
 extern const char *class_short_descriptions[];
 extern const int armor_suit_ac_bonus[];
 extern const int armor_suit_weight[];
+extern const char *armor_suit_types[NUM_SPEC_ARMOR_SUIT_TYPES + 1];
 extern const char *goto_zones[NUM_GOTO_ZONES + 1][2];
 extern const char *goto_zones_display[NUM_GOTO_ZONES + 1][2];
 extern const char *asciimap_points[NUM_MAP_POINTS + 1][2];
