@@ -1,15 +1,12 @@
-# LuminariMUD
 # Generated automatically from Makefile.in by configure.
-# tbaMUD Makefile.in - Makefile template used by 'configure'
+# FaerunMUD Makefile.in - Makefile template used by 'configure'
 # Clean-up provided by seqwith.
 
 # C compiler to use
 CC = gcc
 
 # Any special flags you want to pass to the compiler
-#MYFLAGS = -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000
-MYFLAGS = -Werror -Wall -Wwrite-strings -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-unused-value --param=max-vartrack-size=60000000
-#MYFLAGS = -Wall
+MYFLAGS = -Wall
 
 #flags for profiling (see hacker.doc for more information)
 PROFILE = 
@@ -17,13 +14,15 @@ PROFILE =
 ##############################################################################
 # Do Not Modify Anything Below This Line (unless you know what you're doing) #
 ##############################################################################
-MKTIME	:= \""$(shell date)"\"
-MKUSER  := \""$(USER)"\"
-MKHOST  := \""$(HOSTNAME)"\"
-BRANCH	:= \""$(shell git branch)"\"
-PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = ../bin
+
+#CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
+
+#LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient
+
+SRCFILES := $(wildcard *.c)
+OBJFILES := $(patsubst %.c,%.o,$(SRCFILES))  
 
 CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE)
 CXXFLAGS = $(CFLAGS) -std=c++11
@@ -34,13 +33,17 @@ SRCFILES := $(wildcard *.c)
 CPPFILES := $(wildcard *.cpp)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
 
-default: all
 
-all:
+default: circle
+
+all: .accepted
 	$(MAKE) $(BINDIR)/circle
 	$(MAKE) utils
 
-utils:
+.accepted:
+	@./licheck less
+
+utils: .accepted
 	(cd util; $(MAKE) all)
 
 circle:
@@ -49,23 +52,8 @@ circle:
 $(BINDIR)/circle : $(OBJFILES)
 	$(CC) -o $(BINDIR)/circle $(PROFILE) $(OBJFILES) $(LIBS)
 
-# Always rebuild constants.c with other files so that luminari_build is updated
-constants.c: $(filter-out constants.c,$(SRCFILES))
-	touch constants.c
-
-constants.o: CFLAGS += -DMKTIME=$(MKTIME) -DMKUSER=$(MKUSER) -DMKHOST=$(MKHOST) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-
-SRCSCUTEST := $(filter-out unittests/CuTest/AllTests.c,$(wildcard unittests/CuTest/*.c)) unittests/CuTest/CuTest.c
-OBJSCUTEST := $(SRCSCUTEST:%.c=%.o) $(OBJFILES)
-
-unittests/CuTest/AllTests.c: $(SRCSCUTEST)
-	unittests/CuTest/make-tests.sh unittests/CuTest/*.c > $@
-
-.PHONY: cutest
-cutest: $(BINDIR)/cutest
-$(BINDIR)/cutest: CFLAGS += -DLUMINARI_CUTEST
-$(BINDIR)/cutest: $(OBJSCUTEST) unittests/CuTest/AllTests.o
-	$(CC) -o $@ $(PROFILE) $^ $(LIBS) && $@
+$%.o: %.c
+	$(CC) $< $(CFLAGS) -c -o $@ 
 
 clean:
 	rm -f *.o depend
