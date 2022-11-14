@@ -341,7 +341,7 @@ void oedit_disp_weapon_spells(struct descriptor_data *d)
              cyn, OLC_OBJ(d)->wpn_spells[counter].level, nrm,
              cyn, OLC_OBJ(d)->wpn_spells[counter].percent, nrm,
              cyn, OLC_OBJ(d)->wpn_spells[counter].inCombat, nrm);
-    send_to_char(d->character, buf);
+    send_to_char(d->character, "%s", buf);
   }
   send_to_char(d->character, "Enter spell to edit : ");
 }

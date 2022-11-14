@@ -1,4 +1,3 @@
-
 /* src/conf.h.  Generated automatically by configure.  */
 /* src/conf.h.in.  Generated automatically from configure.in by autoheader.  */
 
@@ -32,7 +31,7 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #define TIME_WITH_SYS_TIME 1
 
-/* Define if we're compiling LuminariMUD under any type of UNIX system.  */
+/* Define if we're compiling CircleMUD under any type of UNIX system.  */
 #define CIRCLE_UNIX 1
 
 /* Define if the system is capable of using crypt() to encrypt.  */
@@ -309,16 +308,16 @@
 /* #undef NEED_STRERROR_PROTO */
 
 /* Check for a prototype to stricmp. */
-#define NEED_STRICMP_PROTO
+#define NEED_STRICMP_PROTO 
 
 /* Check for a prototype to strlcpy. */
-#define NEED_STRLCPY_PROTO
+#define NEED_STRLCPY_PROTO 
 
 /* Check for a prototype to strncasecmp. */
 /* #undef NEED_STRNCASECMP_PROTO */
 
 /* Check for a prototype to strnicmp. */
-#define NEED_STRNICMP_PROTO
+#define NEED_STRNICMP_PROTO 
 
 /* Check for a prototype to system. */
 /* #undef NEED_SYSTEM_PROTO */
@@ -335,6 +334,5 @@
 /* Check for a prototype to write. */
 /* #undef NEED_WRITE_PROTO */
 
-#endif /* _CONF_H_ */
 
-/*eof*/
+#endif /* _CONF_H_ */

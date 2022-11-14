@@ -2173,7 +2173,7 @@ ACMD(do_recharge)
     GET_GOLD(ch) -= 5000;
     send_to_char(ch, "The %s glows blue for a moment.\r\n", (GET_OBJ_TYPE(obj) == ITEM_STAFF ? "staff" : "wand"));
     snprintf(buf, sizeof(buf), "The item now has %d charges remaining.\r\n", maxcharge);
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     act("$p glows with a subtle blue light as $n recharges it.",
         FALSE, ch, obj, 0, TO_ROOM);
   }
@@ -4032,7 +4032,7 @@ ACMD(do_shapechange)
     send_to_char(ch, "Available Forms:\r\n\r\n");
     for (i = 1; i <= form_num; i++)
     {
-      send_to_char(ch, shape_types[i]);
+      send_to_char(ch, "%s", shape_types[i]);
       send_to_char(ch, "\r\n");
     }
     send_to_char(ch, "\r\nYou can return to your normal form by typing:  "
@@ -7659,7 +7659,7 @@ void show_hints(void)
     if (PLR_FLAGGED(ch, PLR_WRITING))
       continue;
 
-    send_to_char(ch, hints[roll]);
+    send_to_char(ch, "%s", hints[roll]);
   }
 }
 
@@ -7806,10 +7806,10 @@ ACMD(do_dice)
   result = dice(rolls, size);
 
   sprintf(Gbuf1, "You roll a %d sided dice %d times, the total result is: \tB%d\tn\r\n", size, rolls, result);
-  send_to_char(ch, Gbuf1);
+  send_to_char(ch, "%s", Gbuf1);
 
   sprintf(Gbuf1, "A %d sided dice is rolled by %s %d times, the total result is: \tB%d\tn\r\n", size, GET_NAME(ch), rolls, result);
-  send_to_room(ch->in_room, Gbuf1);
+  send_to_room(ch->in_room, "%s", Gbuf1);
 
   return;
 }

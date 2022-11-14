@@ -1292,7 +1292,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           else
           {
-            snprintf(str, slen, race_list[GET_RACE(c)].type);
+            snprintf(str, slen, "%s", race_list[GET_RACE(c)].type);
             // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
@@ -1610,7 +1610,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           else
           {
-            snprintf(str, slen, race_list[GET_RACE(c)].type);
+            snprintf(str, slen, "%s", race_list[GET_RACE(c)].type);
             // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
@@ -1631,7 +1631,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           else
           {
-            snprintf(str, slen, race_list[GET_RACE(c)].type);
+            snprintf(str, slen, "%s", race_list[GET_RACE(c)].type);
             // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }
@@ -1652,7 +1652,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig,
           }
           else
           {
-            snprintf(str, slen, race_list[GET_RACE(c)].type);
+            snprintf(str, slen, "%s", race_list[GET_RACE(c)].type);
             // sprinttype(GET_RACE(c), pc_race_types, str, slen);
           }
         }

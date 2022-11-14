@@ -3821,7 +3821,7 @@ ACMD(do_pullswitch)
   }
 
   if (obj->action_description != NULL)
-    send_to_room(ch->in_room, obj->action_description);
+    send_to_room(ch->in_room, "%s", obj->action_description);
   else
     send_to_room(ch->in_room, "*ka-ching*\r\n");
 }

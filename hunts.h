@@ -115,3 +115,4 @@ bool weapon_specab_desc_position(int specab);
 bool is_weapon_specab_compatible(struct char_data *ch, int weapon_type, int specab, bool output);
 int obj_vnum_to_hunt_type(int vnum);
 bool is_specab_upgradeable(int specab_source, int specab_apply);
+int get_hunt_room(int start, int x, int y);

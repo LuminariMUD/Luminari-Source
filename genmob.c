@@ -512,7 +512,7 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
       strlcat(buf, buf2, sizeof(buf));
     }
     strlcat(buf, "\n", sizeof(buf));
-    fprintf(fd, buf);
+    fprintf(fd, "%s", buf);
   }
   for (i = 0; i < NUM_FEATS; i++)
     if (HAS_FEAT(mob, i))

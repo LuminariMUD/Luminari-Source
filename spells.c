@@ -258,7 +258,7 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
   /* all done!  drop the object in the room and let it wreak havoc! */
   obj_to_room(wall, room);
   snprintf(buf, sizeof(buf), "%s appears to the %s.\r\n", wallinfo[type].shortname, dirs[dir]);
-  send_to_room(room, buf);
+  send_to_room(room, "%s", buf);
 }
 
 /* this function takes a real number for a room and returns:

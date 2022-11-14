@@ -1654,7 +1654,7 @@ ACMD(do_aqref)
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
     snprintf(buf, sizeof(buf), "(GC) %s did a reference check for (%d).", GET_NAME(ch), vnum);
-    log(buf);
+    log("%s", buf);
     return;
   }
 

@@ -4938,7 +4938,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   int dambonus = mod;
   bool display_mode = FALSE;
   int str_bonus = GET_STR_BONUS(ch);
-  char strength[20];
+  char strength[200];
 
   if (w_type == -1)
     display_mode = TRUE;
