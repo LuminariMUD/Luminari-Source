@@ -49,7 +49,6 @@ cpp_extern const char *const luminari_build =
 #if defined(PARENT)
     "Parent: " PARENT "\r\n"
 #endif
-    ;
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
