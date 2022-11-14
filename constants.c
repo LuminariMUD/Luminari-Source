@@ -50,6 +50,8 @@ cpp_extern const char *const luminari_build =
     "Parent: " PARENT "\r\n"
 #endif
 
+;
+
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
 // armor suit types
