@@ -1589,7 +1589,7 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
 
   if (IS_LICH(ch))
   {
-    if (ability == ABILITY_PERCEPTION || ability == ABILITY_STEALTH || ability == ABILITY_ACROBATICS)
+    if (ability == ABILITY_ACROBATICS)
       ability_value = CA;
   }
 

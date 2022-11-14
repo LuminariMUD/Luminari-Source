@@ -1593,6 +1593,30 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     return (0);
   }
 
+  /* system to prevent casting an affection if it doesn't benefit the player -zusuk */
+  switch (spellnum)
+  {
+  case SPELL_IRONSKIN:
+    if (affected_by_spell(tch, SPELL_EPIC_WARDING))
+    {
+      send_to_char(ch, "A more powerful magical ward is already in effect on the target.\r\n");
+      return 0;
+    }
+
+    /* i made this so you can spam iron skin theoretically -zusuk */
+    if (affected_by_spell(tch, SPELL_IRONSKIN) &&
+        GET_STONESKIN(tch) >= WARD_THRESHOLD)
+    {
+      send_to_char(ch, "The ironskin on %s is still holding strong (%d damage left, %d is the "
+                       "configured threshold)!\r\n",
+                   GET_NAME(tch), GET_STONESKIN(tch), WARD_THRESHOLD);
+      return 0;
+    }
+    break;
+  default:
+    break;
+  }
+
   /* establish base casting time for spell */
   casting_time = SINFO.time;
 
@@ -1910,6 +1934,8 @@ ACMDU(do_gen_cast)
     }
   }
 
+  /* meta magic should be settled if applicable by now */
+
   spellnum = find_skill_num(spell_arg);
 
   if ((spellnum < 1) || (spellnum > MAX_SPELLS) || !*spell_arg)
@@ -1917,6 +1943,10 @@ ACMDU(do_gen_cast)
     send_to_char(ch, "%s what?!?\r\n", do_cast_types[subcmd][0]);
     return;
   }
+
+  /* we have our spellnum now */
+
+  /* looking for 'easy outs' */
 
   if (IS_AFFECTED(ch, AFF_TFORM) ||
       IS_AFFECTED(ch, AFF_BATTLETIDE) ||
@@ -1942,6 +1972,9 @@ ACMDU(do_gen_cast)
       return;
     }
   }
+
+  /* this is the shadowcast system for shadow dancers */
+
   else if (subcmd == SCMD_CAST_SHADOW)
   {
     PREREQ_NOT_NPC();
@@ -2012,6 +2045,9 @@ ACMDU(do_gen_cast)
       }
     }
   }
+
+  /* this is our 'at will' system for casting */
+
   else if (!canCastAtWill(ch, spellnum))
   {
 
@@ -2051,7 +2087,7 @@ send_to_char(ch, "You are unable to cast spells from this school of magic.\r\n")
 return;
 }*/
 
-  /* this is the block to make sure they meet the min-level reqs */
+  /* this is the block to make sure they meet the min-level reqs for epic spells */
   if (isEpicSpell(spellnum))
   {
     switch (spellnum)
@@ -2154,6 +2190,7 @@ return;
     return;
   }
 
+  /* psionic manifest system */
   if (subcmd == SCMD_CAST_PSIONIC)
   {
     // has the character added the power via study menu?
@@ -2189,6 +2226,9 @@ return;
     if (psionic_powers[spellnum].augment_amount > 1)
       GET_PSP(ch) += (GET_AUGMENT_PSP(ch) % psionic_powers[spellnum].augment_amount);
   }
+
+  /* we have reached the spell prep system hook */
+
   else
   {
     /* SPELL PREPARATION HOOK */
@@ -4076,10 +4116,10 @@ void mag_assign_spells(void)
   spello(SPELL_AFFECT_DEATH_ATTACK, "death attack paralyzation", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You are no longer paralyzed from a death attack.", 1, 1, EVOCATION, FALSE);
-  
+
   spello(ABILITY_AFFECT_STONES_ENDURANCE, "stone's endurance", 0, 0, 0, POS_FIGHTING,
-          TAR_IGNORE, FALSE, MAG_AFFECTS,
-          "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);
+         TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
@@ -4447,7 +4487,6 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isFaeMagic(ch, spellnum))
     return true;
-    
 
   return false;
 }
@@ -4532,7 +4571,8 @@ sbyte isDuergarMagic(struct char_data *ch, int spellnum)
 
 sbyte isNaturalIllusion(struct char_data *ch, int spellnum)
 {
-  if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
+  if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST))
+    return false;
   if (SPELL_MINOR_ILLUSION == spellnum)
     return true;
   if (GET_LEVEL(ch) >= 20 && SPELL_MIRROR_IMAGE == spellnum)
@@ -4542,7 +4582,8 @@ sbyte isNaturalIllusion(struct char_data *ch, int spellnum)
 
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum)
 {
-  if (!HAS_FEAT(ch, FEAT_HIGH_ELF_CANTRIP)) return false;
+  if (!HAS_FEAT(ch, FEAT_HIGH_ELF_CANTRIP))
+    return false;
   if (HIGH_ELF_CANTRIP(ch) != spellnum)
     return false;
   if (spellnum == SPELL_ENCHANT_ITEM)
@@ -4596,7 +4637,8 @@ sbyte isLunarMagic(struct char_data *ch, int spellnum)
 }
 sbyte isTieflingMagic(struct char_data *ch, int spellnum)
 {
-  if (!HAS_FEAT(ch, FEAT_TIEFLING_MAGIC)) return false;
+  if (!HAS_FEAT(ch, FEAT_TIEFLING_MAGIC))
+    return false;
   switch (spellnum)
   {
   case SPELL_BURNING_HANDS:
@@ -4641,18 +4683,32 @@ sbyte isForestGnomeMagic(struct char_data *ch, int spellnum)
 {
   switch (spellnum)
   {
-    case SPELL_MINOR_ILLUSION:
-      if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST)) return false;
-      if (GET_LEVEL(ch) < 1) return false;
-                  if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
-      if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-      return true;
-    case SPELL_CHARM_ANIMAL:
-      if (!HAS_FEAT(ch, FEAT_SPEAK_WITH_BEASTS)) return false;
-      if (GET_LEVEL(ch) < 3) return false;
-                  if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
-      if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-      return true;
+  case SPELL_MINOR_ILLUSION:
+    if (!HAS_FEAT(ch, FEAT_NATURAL_ILLUSIONIST))
+      return false;
+    if (GET_LEVEL(ch) < 1)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0)
+      GET_RACIAL_MAGIC(ch, 0) = 3;
+    if (GET_RACIAL_MAGIC(ch, 0) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+  case SPELL_CHARM_ANIMAL:
+    if (!HAS_FEAT(ch, FEAT_SPEAK_WITH_BEASTS))
+      return false;
+    if (GET_LEVEL(ch) < 3)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0)
+      GET_RACIAL_MAGIC(ch, 1) = 3;
+    if (GET_RACIAL_MAGIC(ch, 1) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
   }
   return false;
 }
@@ -4661,18 +4717,32 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum)
 {
   switch (spellnum)
   {
-    case SPELL_REGENERATION:
-      if (!HAS_FEAT(ch, FEAT_AASIMAR_HEALING_HANDS)) return false;
-      if (GET_LEVEL(ch) < 1) return false;
-                  if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
-      if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-      return true;
-    case SPELL_DAYLIGHT:
-      if (!HAS_FEAT(ch, FEAT_AASIMAR_LIGHT_BEARER)) return false;
-      if (GET_LEVEL(ch) < 3) return false;
-                  if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0) GET_RACIAL_MAGIC(ch, 1) = 3;
-      if (GET_RACIAL_MAGIC(ch, 1) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-      return true;
+  case SPELL_REGENERATION:
+    if (!HAS_FEAT(ch, FEAT_AASIMAR_HEALING_HANDS))
+      return false;
+    if (GET_LEVEL(ch) < 1)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0)
+      GET_RACIAL_MAGIC(ch, 0) = 3;
+    if (GET_RACIAL_MAGIC(ch, 0) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
+  case SPELL_DAYLIGHT:
+    if (!HAS_FEAT(ch, FEAT_AASIMAR_LIGHT_BEARER))
+      return false;
+    if (GET_LEVEL(ch) < 3)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0)
+      GET_RACIAL_MAGIC(ch, 1) = 3;
+    if (GET_RACIAL_MAGIC(ch, 1) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
   }
   return false;
 }
@@ -4681,19 +4751,26 @@ sbyte isFaeMagic(struct char_data *ch, int spellnum)
 {
   switch (spellnum)
   {
-    // dancing lights, dispel magic, ghost sound, hideous laughter, lesser confusion, major image, telekinesis detect magic
-    case SPELL_DISPEL_MAGIC:
-    case SPELL_HIDEOUS_LAUGHTER:
-    case SPELL_CONFUSION:
-    case SPELL_MIRROR_IMAGE:
-    case SPELL_TELEKINESIS:
-    case SPELL_DETECT_MAGIC:
-    case SPELL_GREATER_INVIS:
-      if (!HAS_FEAT(ch, FEAT_FAE_MAGIC)) return false;
-      if (GET_LEVEL(ch) < 1) return false;
-      if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0) GET_RACIAL_MAGIC(ch, 0) = 3;
-      if (GET_RACIAL_MAGIC(ch, 0) <= 0) { send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n"); return false; }
-      return true;
+  // dancing lights, dispel magic, ghost sound, hideous laughter, lesser confusion, major image, telekinesis detect magic
+  case SPELL_DISPEL_MAGIC:
+  case SPELL_HIDEOUS_LAUGHTER:
+  case SPELL_CONFUSION:
+  case SPELL_MIRROR_IMAGE:
+  case SPELL_TELEKINESIS:
+  case SPELL_DETECT_MAGIC:
+  case SPELL_GREATER_INVIS:
+    if (!HAS_FEAT(ch, FEAT_FAE_MAGIC))
+      return false;
+    if (GET_LEVEL(ch) < 1)
+      return false;
+    if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0)
+      GET_RACIAL_MAGIC(ch, 0) = 3;
+    if (GET_RACIAL_MAGIC(ch, 0) <= 0)
+    {
+      send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
+      return false;
+    }
+    return true;
   }
   return false;
 }

@@ -1284,7 +1284,7 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
       else
         send_to_char(ch, "(Index: %d) - %s\r\n", index, QST_NAME(rnum));
     }
-    send_to_char(ch, "You can provide the quest index from your queue to check specific progress details.\r\n");
+    send_to_char(ch, "You can provide the quest index from your queue to check specific progress details (ex. quest progress <index # above>).\r\n");
     return;
   }
 

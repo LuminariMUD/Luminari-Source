@@ -3153,7 +3153,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 20;
     else if (HAS_FEAT(ch, FEAT_DOMAIN_COLD_RESIST) && CLASS_LEVEL(ch, CLASS_CLERIC) >= 6)
       damtype_reduction += 10;
-    
+
     if (HAS_FEAT(ch, FEAT_MOUNTAIN_BORN))
       damtype_reduction += 50;
 
@@ -4133,7 +4133,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
 
       damage_reduction = compute_damage_reduction(victim, dam_type);
-      
+
       if (affected_by_spell(victim, ABILITY_AFFECT_STONES_ENDURANCE))
       {
         damage_reduction += dice(1, 12) + GET_CON_BONUS(victim);
@@ -4143,7 +4143,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       }
 
       dam -= MIN(dam, damage_reduction);
-      
+
       if (!dam && (ch != victim))
       {
 
@@ -11193,7 +11193,7 @@ void perform_violence(struct char_data *ch, int phase)
            (!is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_1)) ||
             !is_using_light_weapon(ch, GET_EQ(ch, WEAR_WIELD_OFFHAND)) ||
             GET_EQ(ch, WEAR_WIELD_2H)))
-    send_to_char(ch, "You need to fight unarmed or with light weapons (both hands) while grappling or being grappled!\r\n");
+    send_to_char(ch, "You need to fight unarmed or with light weapons (both hands possible) while grappling or being grappled! (options: remove weapon<s>, grapple <target>, 'freegrapple' to release or 'struggle' to try to escape)\r\n");
 
   else
   {
