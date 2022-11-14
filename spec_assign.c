@@ -26,6 +26,7 @@ SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(buyweapons);
 SPECIAL_DECL(buyarmor);
+SPECIAL_DECL(buymolds);
 SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
 SPECIAL_DECL(vampire_cloak);
@@ -72,6 +73,46 @@ static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname))
  * puff, fido, janitor, and cityguards are now implemented via triggers. */
 void assign_mobiles(void)
 {
+#ifdef CAMPAIGN_FR
+
+
+  // Luskan Market
+  ASSIGNMOB(3276, buyweapons);
+  ASSIGNMOB(3275, buyarmor);
+
+  // Luskan Host Tower
+  ASSIGNMOB(3278, buyweapons);
+  ASSIGNMOB(3277, buyarmor);
+  ASSIGNMOB(3076, eqstats);
+
+  // Luskan Misc.
+  ASSIGNMOB(3077, huntsmaster);
+  ASSIGNMOB(3286, buymolds);
+  ASSIGNMOB(3287, buymolds);
+  ASSIGNMOB(3288, buymolds);
+  ASSIGNMOB(3044, crafting_quest);
+
+  // Silverymoon
+  ASSIGNMOB(6000, buyweapons);
+  ASSIGNMOB(6002, buyweapons);
+  ASSIGNMOB(6006, buyweapons);
+  ASSIGNMOB(6003, buyarmor);  
+
+  // Mirabar
+  ASSIGNMOB(4825, buyweapons);
+  ASSIGNMOB(4824, buyarmor);
+
+  // Longsaddle
+  ASSIGNMOB(305, buyweapons);
+  ASSIGNMOB(304, buyarmor);
+  ASSIGNMOB(303, pet_shops);
+
+  // Triboar
+  ASSIGNMOB(7021, buymolds);
+  ASSIGNMOB(7022, faction_mission);
+  ASSIGNMOB(7023, huntsmaster);
+
+#else
 
   /* vampire mobs (spec to do vampire-like abilities) */
   ASSIGNMOB(29906, vampire_mob);  /* erich - master vampire */
@@ -694,11 +735,29 @@ void assign_mobiles(void)
   ASSIGNMOB(136105, chan);
 
   ASSIGNMOB(100581, fzoul);
+#endif
 }
 
 /* assign special procedures to objects */
 void assign_objects(void)
 {
+
+#ifdef CAMPAIGN_FR
+
+  ASSIGNOBJ(6117, gen_board);
+
+  ASSIGNOBJ(3289, gen_board);
+  ASSIGNOBJ(3281, gen_board);
+  ASSIGNOBJ(3282, gen_board);
+  ASSIGNOBJ(3283, gen_board);
+
+  ASSIGNOBJ(115, bank);
+
+  ASSIGNOBJ(3118, crafting_kit);
+  ASSIGNOBJ(3322, crafting_kit);
+
+#else
+
   ASSIGNOBJ(1226, gen_board);   /* builder's board */
   ASSIGNOBJ(1227, gen_board);   /* staff board */
   ASSIGNOBJ(1228, gen_board);   /* advertising board */
@@ -906,12 +965,48 @@ void assign_objects(void)
 
   /* clouds realm */
   ASSIGNOBJ(144669, dragon_robes);
+
+#endif
 }
 
 /* assign special procedures to rooms */
 void assign_rooms(void)
 {
   room_rnum i;
+
+#ifdef CAMPAIGN_FR
+
+  // Luskan
+  ASSIGNROOM(3226, wizard_library);
+  ASSIGNROOM(3254, pet_shops);
+  ASSIGNROOM(3273, pet_shops);
+
+  // Longsaddle
+  ASSIGNROOM(337, wizard_library);
+  ASSIGNROOM(338, wizard_library);
+  ASSIGNROOM(339, wizard_library);
+  ASSIGNROOM(340, wizard_library);
+
+  // Silverymoon
+  ASSIGNROOM(6120, pet_shops);
+  ASSIGNROOM(6100, wizard_library);
+
+  // Triboar
+  ASSIGNROOM(7002, buyweapons);
+  ASSIGNROOM(7001, buyarmor);
+  ASSIGNROOM(7007, bazaar);
+  ASSIGNROOM(7058, pet_shops);
+  ASSIGNROOM(7060, pet_shops);
+  ASSIGNROOM(7045, wizard_library);
+  ASSIGNROOM(7048, bank);
+
+  // ASSIGNROOM(103006, bazaar);
+
+  // ASSIGNROOM(370, crafting_quest);
+
+  // ASSIGNROOM(3031, pet_shops);
+
+#else
 
   /* bazaar - spend quest points on magic gear */
   ASSIGNROOM(103006, bazaar);
@@ -1016,6 +1111,8 @@ void assign_rooms(void)
   ASSIGNROOM(126788, quicksand);
   ASSIGNROOM(126793, quicksand);
   ASSIGNROOM(126800, quicksand);
+
+#endif
 
   /* death traps are dumps, i.e. will destroy all gear that hits the ground */
   if (CONFIG_DTS_ARE_DUMPS)
