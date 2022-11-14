@@ -688,8 +688,7 @@ void regen_psp(void)
       continue;
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
-      GET_PSP(d->character)
-    ++;
+      GET_PSP(d->character)++;
 
     if (!FIGHTING(d->character))
       GET_PSP(d->character) += GET_PSP_REGEN(d->character);

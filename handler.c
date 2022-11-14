@@ -311,10 +311,13 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_SPECIAL:
     break;
   case APPLY_HP_REGEN:
+    GET_HP_REGEN(ch) += mod;
     break;
   case APPLY_MV_REGEN:
+    GET_MV_REGEN(ch) += mod;
     break;
   case APPLY_PSP_REGEN:
+    GET_PSP_REGEN(ch) += mod;
     break;
 
     /* end Do Not Use */
