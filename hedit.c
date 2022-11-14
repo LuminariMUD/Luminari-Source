@@ -280,7 +280,7 @@ bool hedit_delete_entry(struct help_entry_list *entry)
     ;
 
   snprintf(buf, sizeof(buf), "delete from help_entries where lower(tag) = lower('%s')", entry->tag);
-  mudlog(NRM, LVL_STAFF, TRUE, buf);
+  mudlog(NRM, LVL_STAFF, TRUE, "%s", buf);
 
   if (mysql_query(conn, buf))
   {

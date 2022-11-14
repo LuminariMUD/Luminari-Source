@@ -638,7 +638,7 @@ void staff_event_info(struct char_data *ch, int event_num)
 
     case EVENT_DETAIL:
       send_to_char(ch, "Event info:\r\n\tn");
-      send_to_char(ch, staff_events_list[event_num][EVENT_DETAIL]);
+      send_to_char(ch, "%s", staff_events_list[event_num][EVENT_DETAIL]);
       send_to_char(ch, "\tn");
       break;
 

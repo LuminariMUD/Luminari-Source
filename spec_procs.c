@@ -1744,7 +1744,7 @@ static void zone_yell(struct char_data *ch, const char *buf)
 
       if (PROC_FIRED(ch) == FALSE)
       {
-        send_to_char(i, buf);
+        send_to_char(i, "%s", buf);
       }
 
       if (i == ch || !IS_NPC(i))
@@ -2409,7 +2409,7 @@ SPECIAL(feybranche)
       }
 
       if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
-        send_to_char(i, buf);
+        send_to_char(i, "%s", buf);
     }
     PROC_FIRED(ch) = TRUE;
     return TRUE;
@@ -2501,7 +2501,7 @@ SPECIAL(agrachdyrr)
       }
 
       if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
-        send_to_char(i, buf);
+        send_to_char(i, "%s", buf);
     }
     PROC_FIRED(ch) = TRUE;
     return TRUE;
@@ -2548,7 +2548,7 @@ SPECIAL(shobalar)
       }
 
       if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
-        send_to_char(i, buf);
+        send_to_char(i, "%s", buf);
     }
     PROC_FIRED(ch) = TRUE;
     return TRUE;
@@ -2902,15 +2902,15 @@ SPECIAL(guild)
       send_to_char(ch, "You have no ability training sessions.\r\n");
     else if (!strncasecmp("strength", argument, strlen(argument)))
     {
-      send_to_char(ch, CONFIG_OK);
-      send_to_char(ch, "\tMYour strength increases!\tn\r\n");
+      send_to_char(ch, "%s", CONFIG_OK);
+      send_to_char(ch, "%s", "\tMYour strength increases!\tn\r\n");
       GET_REAL_STR(ch) += 1;
       GET_BOOSTS(ch) -= 1;
     }
     else if (!strncasecmp("constitution", argument, strlen(argument)))
     {
-      send_to_char(ch, CONFIG_OK);
-      send_to_char(ch, "\tMYour constitution increases!\tn\r\n");
+      send_to_char(ch, "%s", CONFIG_OK);
+      send_to_char(ch, "%s", "\tMYour constitution increases!\tn\r\n");
       GET_REAL_CON(ch) += 1;
       /* Give them retroactive hit points for constitution */
       if (!(GET_REAL_CON(ch) % 2))
@@ -2922,34 +2922,35 @@ SPECIAL(guild)
     }
     else if (!strncasecmp("dexterity", argument, strlen(argument)))
     {
-      send_to_char(ch, CONFIG_OK);
-      send_to_char(ch, "\tMYour dexterity increases!\tn\r\n");
+      send_to_char(ch, "%s", CONFIG_OK);
+      send_to_char(ch, "%s", "\tMYour dexterity increases!\tn\r\n");
       GET_REAL_DEX(ch) += 1;
       GET_BOOSTS(ch) -= 1;
     }
     else if (!strncasecmp("intelligence", argument, strlen(argument)))
     {
-      send_to_char(ch, CONFIG_OK);
-      send_to_char(ch, "\tMYour intelligence increases!\tn\r\n");
+      send_to_char(ch, "%s", CONFIG_OK);
+      send_to_char(ch, "%s", "\tMYour intelligence increases!\tn\r\n");
       GET_REAL_INT(ch) += 1;
       GET_BOOSTS(ch) -= 1;
       /* Give them retroactive trains */
       if (!(GET_REAL_INT(ch) % 2))
       {
         GET_TRAINS(ch) += GET_LEVEL(ch);
+        send_to_char(ch, "\tMYour intelligence increases!\tn\r\n");
         send_to_char(ch, "\tMYou gain %d trains!\tn\r\n", GET_LEVEL(ch));
       }
     }
     else if (!strncasecmp("wisdom", argument, strlen(argument)))
     {
-      send_to_char(ch, CONFIG_OK);
+      send_to_char(ch, "%s", CONFIG_OK);
       send_to_char(ch, "\tMYour wisdom increases!\tn\r\n");
       GET_REAL_WIS(ch) += 1;
       GET_BOOSTS(ch) -= 1;
     }
     else if (!strncasecmp("charisma", argument, strlen(argument)))
     {
-      send_to_char(ch, CONFIG_OK);
+      send_to_char(ch, "%s", CONFIG_OK);
       send_to_char(ch, "\tMYour charisma increases!\tn\r\n");
       GET_REAL_CHA(ch) += 1;
       GET_BOOSTS(ch) -= 1;
@@ -4005,7 +4006,7 @@ SPECIAL(secomber_guard)
 
   if (cmd == SCMD_EAST)
   {
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     act(buf2, FALSE, ch, 0, 0, TO_ROOM);
     return TRUE;
   }
@@ -4114,7 +4115,7 @@ SPECIAL(practice_dummy)
 
     snprintf(buf, sizeof(buf), "\tP%d damage last round!\tn  \tc(total: %d rounds: %d)\tn\r\n",
              rounddam, max_hit, round_count);
-    send_to_room(ch->in_room, buf);
+    send_to_room(ch->in_room, "%s", buf);
     GET_HIT(ch) = GET_MAX_HIT(ch);
     return TRUE;
   }
@@ -4582,7 +4583,7 @@ SPECIAL(harpell)
       }
 
       if (world[ch->in_room].zone == world[i->in_room].zone && !PROC_FIRED(ch))
-        send_to_char(i, buf);
+        send_to_char(i, "%s", buf);
     }
     PROC_FIRED(ch) = TRUE;
     return TRUE;
@@ -5709,9 +5710,9 @@ void move_ship(struct obj_data *ship, int dir)
   {
     if (GET_OBJ_VNUM(ship) == ship_info[i][1])
     {
-      send_to_room(real_room(ship_info[i][0]), buf2);
+      send_to_room(real_room(ship_info[i][0]), "%s", buf2);
       if (msg)
-        send_to_room(real_room(ship_info[i][0]), msg);
+        send_to_room(real_room(ship_info[i][0]), "%s", msg);
     }
   }
 

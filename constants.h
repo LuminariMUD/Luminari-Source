@@ -159,6 +159,14 @@ extern const int blackguard_cruelty_affect_types[];
 extern const char *inquisitor_judgements[];
 extern const char *inquisitor_judgement_descriptions[];
 extern const char *class_short_descriptions[];
+extern const int armor_suit_ac_bonus[];
+extern const int armor_suit_weight[];
+extern const char *goto_zones[NUM_GOTO_ZONES + 1][2];
+extern const char *goto_zones_display[NUM_GOTO_ZONES + 1][2];
+extern const char *asciimap_points[NUM_MAP_POINTS + 1][2];
+extern const char *ascii_webmap_colors[NUM_ROOM_SECTORS + 1];
+extern const char *sector_map_letters[NUM_ROOM_SECTORS + 1];
+extern const bool sector_show_worldmap[NUM_ROOM_SECTORS + 1];
 
 /* NewCraft */
 extern const char *craft_flags[];

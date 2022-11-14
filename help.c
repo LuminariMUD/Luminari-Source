@@ -222,7 +222,7 @@ void perform_help(struct descriptor_data *d, const char *argument)
   /* Disable paging for character creation. */
   if ((STATE(d) == CON_QRACE) ||
       (STATE(d) == CON_QCLASS))
-    send_to_char(d->character, entry->entry);
+    send_to_char(d->character, "%s", entry->entry);
   else
     page_string(d, entry->entry, 1);
 

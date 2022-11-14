@@ -173,7 +173,7 @@ void do_slug_rank(struct char_data *ch, const char *arg)
     }
     strlcat(buffer, "\n\r", sizeof(buffer));
     strlcat(buffer, "Usage: rank <key> [+-][max]\n\r", sizeof(buffer));
-    send_to_char(ch, buffer);
+    send_to_char(ch, "%s", buffer);
   }
   else
   {

@@ -1133,7 +1133,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
   }
   else if (IS_DARK(room_number) && char_has_infra(ch))
   {
-    send_to_char(ch, world[room_number].name);
+    send_to_char(ch, "%s", world[room_number].name);
     send_to_char(ch, "\r\n");
     // do_auto_exits(ch, room_number);
     list_char_to_char(world[room_number].people, ch);
@@ -1152,10 +1152,10 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
              GET_ROOM_VNUM(room_number),
              world[room_number].name, buf,
              sector_types[(world[room_number].sector_type)]);
-    send_to_char(ch, buf2);
+    send_to_char(ch, "%s", buf2);
   }
   else
-    send_to_char(ch, world[room_number].name);
+    send_to_char(ch, "%s", world[room_number].name);
   // if (is_water_room(room_number))
   // send_to_char(" \tw(\tBWater\tw)\tn", ch);
 
@@ -1165,7 +1165,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
 
   if ((!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_BRIEF)) || ignore_brief ||
       ROOM_FLAGGED(room_number, ROOM_DEATH))
-    send_to_char(ch, world[room_number].description);
+    send_to_char(ch, "%s", world[room_number].description);
 
   /* autoexits */
   // if (!IS_NPC(ch) && !IS_SET(ROOM_FLAGS(room_number), ROOM_FOG))
@@ -2608,7 +2608,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
   {
     if (HAS_FEAT(k, i) && is_daily_feat(i))
     {
-      snprintf(buf, sizeof(buf), feat_types[feat_list[i].feat_type]);
+      snprintf(buf, sizeof(buf), "%s", feat_types[feat_list[i].feat_type]);
       remaining = daily_uses_remaining(k, i);
       total = get_daily_uses(k, i);
       send_to_char(ch,

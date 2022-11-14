@@ -171,6 +171,94 @@ ACMD(do_send)
     send_to_char(ch, "You send '%s' to %s.\r\n", buf, GET_NAME(vict));
 }
 
+#ifdef CAMPAIGN_FR
+
+/* take a string, and return an rnum.. used for goto, at, etc.  -je 4/6/93 */
+room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
+{
+  room_rnum location = NOWHERE;
+  char roomstr[MAX_INPUT_LENGTH];
+
+  one_argument(rawroomstr, roomstr, sizeof(roomstr));
+
+  if (!*roomstr)
+  {
+    send_to_char(ch, "You must supply a room number or name.\r\n");
+    return (NOWHERE);
+  }
+
+  if (isdigit(*roomstr) && !strchr(roomstr, '.'))
+  {
+    if ((location = real_room((room_vnum)atoi(roomstr))) == NOWHERE)
+    {
+      send_to_char(ch, "No room exists with that number.\r\n");
+      return (NOWHERE);
+    }
+  }
+  else
+  {
+    struct char_data *target_mob;
+    struct obj_data *target_obj;
+    char *mobobjstr = roomstr;
+    int num;
+
+    int i = 0;
+    for (i = 0; i < NUM_GOTO_ZONES; i++) {
+      if (!strcmp(goto_zones[i][0], roomstr))
+      if ((location = real_room((room_vnum) atol(goto_zones[i][1]))) != NOWHERE)
+        return location;
+    }
+
+    num = get_number(&mobobjstr);
+    if ((target_mob = get_char_vis(ch, mobobjstr, &num, FIND_CHAR_WORLD)) != NULL)
+    {
+      if ((location = IN_ROOM(target_mob)) == NOWHERE)
+      {
+        send_to_char(ch, "That character is currently lost.\r\n");
+        return (NOWHERE);
+      }
+    }
+    else if ((target_obj = get_obj_vis(ch, mobobjstr, &num)) != NULL)
+    {
+      if (IN_ROOM(target_obj) != NOWHERE)
+        location = IN_ROOM(target_obj);
+      else if (target_obj->carried_by && IN_ROOM(target_obj->carried_by) != NOWHERE)
+        location = IN_ROOM(target_obj->carried_by);
+      else if (target_obj->worn_by && IN_ROOM(target_obj->worn_by) != NOWHERE)
+        location = IN_ROOM(target_obj->worn_by);
+
+      if (location == NOWHERE)
+      {
+        send_to_char(ch, "That object is currently not in a room.\r\n");
+        return (NOWHERE);
+      }
+    }
+
+    if (location == NOWHERE)
+    {
+      send_to_char(ch, "Nothing exists by that name.\r\n");
+      return (NOWHERE);
+    }
+  }
+
+  /* A location has been found -- if you're >= GRSTAFF, no restrictions. */
+  if (GET_LEVEL(ch) >= LVL_GRSTAFF)
+    return (location);
+
+  if (ROOM_FLAGGED(location, ROOM_STAFFROOM))
+    send_to_char(ch, "You are not godly enough to use that room!\r\n");
+  else if (ROOM_FLAGGED(location, ROOM_PRIVATE) && world[location].people && world[location].people->next_in_room)
+    send_to_char(ch, "There's a private conversation going on in that room.\r\n");
+  else if (ROOM_FLAGGED(location, ROOM_HOUSE) && !House_can_enter(ch, GET_ROOM_VNUM(location)))
+    send_to_char(ch, "That's private property -- no trespassing!\r\n");
+  else
+    return (location);
+
+  return (NOWHERE);
+}
+
+#else
+
 /* take a string, and return an rnum.. used for goto, at, etc.  -je 4/6/93 */
 room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 {
@@ -247,6 +335,8 @@ room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
 
   return (NOWHERE);
 }
+
+#endif
 
 ACMD(do_at)
 {
@@ -3491,7 +3581,7 @@ ACMD(do_show)
     if (real_zone(j) <= 0)
     {
       snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
-      send_to_char(ch, buf);
+      send_to_char(ch, "%s", buf);
       return;
     }
     k = real_zone(j);
@@ -3521,7 +3611,7 @@ ACMD(do_show)
     if (real_zone(j) <= 0)
     {
       snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
-      send_to_char(ch, buf);
+      send_to_char(ch, "%s", buf);
       return;
     }
     k = real_zone(j);
@@ -6999,7 +7089,7 @@ ACMD(do_objlist)
   if (real_zone(j) == NOWHERE)
   {
     snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
-    send_to_char(ch, buf);
+    send_to_char(ch, "%s", buf);
     return;
   }
   k = real_zone(j);
@@ -7207,7 +7297,7 @@ ACMD(do_singlefile)
                world[room].name,
                num_exits == 0 ? "NONE" : exits, num_exits != 2 ? "\tRERROR!\tn" : "");
 
-      send_to_char(ch, buf);
+      send_to_char(ch, "%s", buf);
     }
   }
 }

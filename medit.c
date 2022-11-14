@@ -437,7 +437,7 @@ void medit_disp_size(struct descriptor_data *d)
     snprintf(buf, sizeof(buf), "%2d) %-20.20s  %s", i,
              (i == SIZE_UNDEFINED) ? "DEFAULT" : size_names[i],
              !(++columns % 2) ? "\r\n" : "");
-    write_to_output(d, buf);
+    write_to_output(d, "%s", buf);
   }
   write_to_output(d, "\r\nEnter size number (-1 for default): ");
 }

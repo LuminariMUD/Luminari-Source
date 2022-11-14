@@ -272,7 +272,7 @@ void hsedit_owner_menu(struct descriptor_data *d)
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), get_name_by_id(house->owner), CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBYEL(d->character, C_NRM), house->owner, CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HSEDIT_OWNER_MENU;
 }
@@ -325,7 +325,7 @@ void hsedit_dir_menu(struct descriptor_data *d)
              CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
     OLC_MODE(d) = HSEDIT_DIR_MENU;
   }
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 }
 
 void hsedit_disp_type_menu(struct descriptor_data *d)
@@ -385,7 +385,7 @@ void hsedit_disp_guest_menu(struct descriptor_data *d)
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HSEDIT_GUEST_MENU;
 }
@@ -530,7 +530,7 @@ void hsedit_disp_menu(struct descriptor_data *d)
            //	CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM), CBGRN(d->character, C_NRM), buf2, CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM),
            CBCYN(d->character, C_NRM), CCNRM(d->character, C_NRM));
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HSEDIT_MAIN_MENU;
 }

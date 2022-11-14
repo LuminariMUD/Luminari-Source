@@ -975,7 +975,7 @@ SPECIAL(abyss_randomizer)
 
   for (i = character_list; i; i = i->next)
     if (world[ch->in_room].zone == world[i->in_room].zone)
-      send_to_char(i, buf);
+      send_to_char(i, "%s", buf);
 
   return 0;
 }
@@ -4246,7 +4246,7 @@ static void send_to_cube(const char *echo)
 
     if (!AWAKE(d->character))
       continue;
-    send_to_char(d->character, echo);
+    send_to_char(d->character, "%s", echo);
   }
 }
 

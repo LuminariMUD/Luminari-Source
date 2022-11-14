@@ -55,13 +55,13 @@ void zedit_create_index(int znum)
   if (!(oldfile = fopen(old_name, "r")))
   {
     snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", old_name);
-    log(buf);
+    log("%s", buf);
     return;
   }
   else if (!(newfile = fopen(new_name, "w")))
   {
     snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", new_name);
-    log(buf);
+    log("%s", buf);
     return;
   }
 
@@ -110,7 +110,7 @@ void hlqedit_show_classes(struct descriptor_data *d)
   for (i = 0; i < NUM_CLASSES; i++)
   {
     snprintf(buf, sizeof(buf), "%d) %s\r\n", i, CLSLIST_NAME(i));
-    send_to_char(d->character, buf);
+    send_to_char(d->character, "%s", buf);
   }
 }
 
@@ -390,7 +390,7 @@ void hlqedit_disp_incommand_menu(struct descriptor_data *d)
            grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
   OLC_MODE(d) = HLQEDIT_INCOMMAND;
 }
 
@@ -426,7 +426,7 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
            grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
   OLC_MODE(d) = HLQEDIT_OUTCOMMANDMENU;
 }
 
@@ -443,10 +443,10 @@ void hlqedit_disp_spells(struct descriptor_data *d)
   {
     snprintf(buf, sizeof(buf), "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
              spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
-    send_to_char(d->character, buf);
+    send_to_char(d->character, "%s", buf);
   }
   snprintf(buf, sizeof(buf), "\r\n%sEnter spell choice (0 for none):  ", nrm);
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 }
 
 /*
@@ -470,7 +470,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
 
   snprintf(buf, sizeof(buf), "\r\n---- Quests for %s (vnum: %d)\r\n", GET_NAME(OLC_MOB(d)),
            GET_MOB_VNUM(OLC_MOB(d)));
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 
   for (quest = OLC_HLQUEST(d); quest; quest = quest->next)
   {
@@ -496,7 +496,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
       }
     }
     strlcat(buf, "\r\n", sizeof(buf));
-    send_to_char(d->character, buf);
+    send_to_char(d->character, "%s", buf);
 
     num++;
   }
@@ -515,7 +515,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
            grn, nrm,
            grn, nrm,
            grn, nrm);
-  send_to_char(d->character, buf);
+  send_to_char(d->character, "%s", buf);
 
   OLC_MODE(d) = HLQEDIT_MAIN_MENU;
 }
@@ -564,7 +564,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       hlqedit_save_internally(d);
       hlqedit_save_to_disk(real_zone_by_thing(OLC_NUM(d)));
       snprintf(buf, sizeof(buf), "OLC: %s edits hl quest %d.", GET_NAME(d->character), OLC_NUM(d));
-      log(buf);
+      log("%s", buf);
       OLC_MOB(d) = 0;
       cleanup_olc(d, CLEANUP_STRUCTS);
       send_to_char(d->character, "HL Quest saved to memory and disk.\r\n");
@@ -802,7 +802,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
       for (i = 0; i < NUM_CHURCHES; i++)
       {
         snprintf(buf, sizeof(buf), "%3d)%20s \r\n", i, church_types[i]);
-        send_to_char(d->character, buf);
+        send_to_char(d->character, "%s", buf);
       }
       send_to_char(d->character, "Select church:  ");
       return;

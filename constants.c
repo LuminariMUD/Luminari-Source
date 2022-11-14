@@ -4807,6 +4807,110 @@ const char *class_short_descriptions[] = {
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
+const char *goto_zones[NUM_GOTO_ZONES + 1][2] = {
+    {"tentowns", "602093"},
+    {"luskan", "607713"},
+    {"portllast", "609796"},
+    {"neverwinter", "610929"},
+    {"waterdeep", "616237"},
+    {"mirabar", "603108"},
+    {"silverymoon", "604130"},
+    {"triboar", "611763"},
+    {"longsaddle", "607751"},
+    {"nesme", "605533"},
+    {"", "-1"} // always last
+};
+
+const char *goto_zones_display[NUM_GOTO_ZONES + 1][2] = {
+    {"Ten Towns", "602093"},
+    {"Luskan", "607713"},
+    {"Port Llast", "609796"},
+    {"Neverwinter", "610929"},
+    {"Waterdeep", "616237"},
+    {"Mirabar", "603108"},
+    {"Silverymoon", "604130"},
+    {"Triboar", "611763"},
+    {"Longsaddle", "607751"},
+    {"Nesme", "605533"},
+    {"", "-1"} // always last
+};
+
+const char *asciimap_points[NUM_MAP_POINTS + 1][2] = {
+    {"Ten Towns (Closed)", "602093"},
+    {"Luskan South Gate (1-6, starter zone)", "607713"},
+    {"Luskan East Gate (1-6), starter zone", "607233"},
+    {"Luskan North Gate (1-6), starter zone", "607071"},
+    {"Port Llast (Closed)", "609796"},
+    {"Neverwinter (Closed)", "610929"},
+    {"Waterdeep (Closed)", "616237"},
+    {"Mirabar (11-13)", "603108"},
+    {"Silverymoon (Closed)", "604130"},
+    {"Goblin Encampment (1-5)", "611288"},
+    {"Triboar", "611763"},
+    {"Ice Fortress (Closed)", "603043"},
+    {"Orcish Fort (13-16)", "605137"},
+    {"Fireshear (Closed)", "606884"},
+    {"Longsaddle (13-16)", "607751"},
+    {"Hunter's Forest (7-10)", "608199"},
+    {"Crypt of Shadow (7-10)", "605650"},
+    {"Nesme (Closed)", "605533"},
+    {"Earth Cult Camp (16-19)", "605998"},
+    {"Fireside Tavern (19-22)", "608264"},
+    {"Gnoll Cave (19-22)", "602476"},
+    {"Flaming Fist Mercenary Camp (22-25)", "612721"},
+    {"The Evermoors (25-28)", "605859"},
+    {"Boat to Chult (28-30)", "616076"},
+    {"Fire Giant Keep (28-30)", "613082"},
+    {"", "-1"} // always last
+};
+
+const char *ascii_webmap_colors[NUM_ROOM_SECTORS + 1] = {
+    "black",
+    "grey",
+    "lightgreen",
+    "green",
+    "brown",
+    "darkred",
+    "blue",
+    "blue",
+    "pink",
+    "blue",
+    "red",
+    "#FFC300",
+    "#FFC300",
+    "#FFC300",
+    "yellow",
+    "blue",
+    "violet",
+    "crimson",
+    "pink",
+    "pink",
+    "pink",
+    "pink",
+    "pink",
+    "pink",
+    "pink",
+    "crimson",
+    "#FFC300",
+    "#FFC300",
+    "#FFC300",
+    "grey",
+    "lightgreen",
+    "lightgrey",
+    "olive",
+    "orange",
+    "red",
+    "yellow",
+    "cyan",
+    "\n"};
+
+const char *sector_map_letters[NUM_ROOM_SECTORS + 1] = {
+    "i", "C", ",", "Y", "^", "m", "~", "=", "^", "U", "X",
+    "|", "-", "+", ".", "o", "`", "M", ".", "Y", "C", "i",
+    "~", "=", "^", "]", "|", "-", "+", "C", "&", ".", "A",
+    ":", "*", "?", "~",
+    "\n"};
+
 /* --- End of constants arrays. --- */
 
 /* Various arrays we count so we can check the world files.  These

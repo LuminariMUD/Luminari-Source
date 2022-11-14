@@ -61,5 +61,6 @@ void apply_mission_rewards(struct char_data *ch);
 void clear_mission(struct char_data *ch);
 bool is_mission_mob(struct char_data *ch, struct char_data *mob);
 void create_mission_on_entry(struct char_data *ch);
+int select_mission_coords(int start);
 
 #endif

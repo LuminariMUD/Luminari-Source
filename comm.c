@@ -3231,7 +3231,7 @@ void send_to_mud(struct char_data *broadcaster, char *message)
     if (broadcaster && !CAN_SEE(i->character, broadcaster))
       continue;
 
-    send_to_char(i->character, message);
+    send_to_char(i->character, "%s", message);
   }
 }
 

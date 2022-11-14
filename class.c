@@ -3511,6 +3511,12 @@ int level_exp(struct char_data *ch, int level)
     break;
   }
 
+#ifdef CAMPAIGN_FR
+  // This is the final multiplier.  This will change all exp requirements across the board.
+  // To keep it at the original -LuminariMUD based levels, comment out this line entirely
+  exp *= 2;
+#endif
+
   return exp;
 }
 

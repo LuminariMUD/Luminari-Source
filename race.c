@@ -362,7 +362,7 @@ bool display_race_info(struct char_data *ch, const char *racename)
 
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   snprintf(buf, sizeof(buf), "\tcDescription : \tn%s\r\n", race_list[race].descrip);
-  send_to_char(ch, strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -514,7 +514,6 @@ void assign_races(void)
   /*                   race-num    feat                  lvl stack */
   feat_race_assignment(RACE_HUMAN, FEAT_QUICK_TO_MASTER, 1, N);
   feat_race_assignment(RACE_HUMAN, FEAT_SKILLED, 1, N);
-  feat_race_assignment(RACE_HUMAN, FEAT_HUMAN_RACIAL_ADJUSTMENT, 1, N);
   race_list[RACE_HUMAN].racial_language = LANG_COMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -1023,56 +1022,6 @@ void assign_races(void)
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
   race_list[RACE_GOLD_DWARF].racial_language = LANG_DWARVISH;
-  /* affect assignment */
-  /*                  race-num  affect            lvl */
-
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_DUERGAR_DWARF, "duergar dwarf", "Duergar Dwarf", "\tODuergar Dwarf\tn", "DuDw", "\tODuDw\tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 1, 5000, IS_NORMAL);
-  set_race_details(RACE_DUERGAR_DWARF,
-                   // desc
-                   "Duergar (pronounced: DEW-ur-gar), also known as gray dwarves, were a "
-                   "subterranean subrace of dwarves. They carved out an existence in the Underdark, "
-                   "often near volcanoes. Their kinship to other dwarven subraces could be compared "
-                   "to that of the drow to surface elves. Like their other dwarves, duergar were "
-                   "typically stocky figures, though beyond this there were many differences. Both "
-                   "male and female duergar were typically bald, with females also lacking the "
-                   "capacity to grow facial hair. Many were also thinner than their dwarven "
-                   "brethren. Most obvious, however, was their dull gray skin and hair, often "
-                   "matched with an equally stolid expression. Because many duergar found on the "
-                   "surface world were criminal exiles, a surface dweller who encountered one of "
-                   "the gray dwarves was likely to notice facial and arm tattoos that marked the "
-                   "duergar as a traitor to his or her people.  ",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Duergar Dwarf.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Duergar Dwarf.");
-  set_race_genders(RACE_DUERGAR_DWARF, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_DUERGAR_DWARF, 0, 2, 0, 2, 0, -4);          /* str con int wis dex cha */
-  set_race_alignments(RACE_DUERGAR_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_DUERGAR_DWARF,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_ULTRAVISION, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_POISON_RESIST, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_DUERGAR_IMMUNITY, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_BLOOD_ENMITY, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_DEEP_MAGIC, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_STABILITY, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_SPELL_HARDINESS, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_DWARF_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_DUERGAR_DWARF_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_DUERGAR_MAGIC, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_LIGHT_BLINDNESS, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
-  feat_race_assignment(RACE_DUERGAR_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[RACE_DUERGAR_DWARF].racial_language = LANG_UNDERCOMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 

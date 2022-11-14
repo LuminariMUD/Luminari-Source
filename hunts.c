@@ -431,6 +431,61 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   send_to_room(room, "\tYYou've come across a hunt target: %s!\tn\r\n", mob->player.short_descr);
 }
 
+int get_hunt_room(int start, int x, int y)
+{
+  int x2 = MIN(159, MAX(0, ((start - 600161) % 160) + x));
+  int y2 = MIN(159, MAX(0, ((start - 600161) / 160) + y));
+
+  int room = 600161 + (160 * y2) + x2;
+
+  return room;
+}
+
+#ifdef CAMPAIGN_FR
+
+void select_hunt_coords(int which_hunt)
+{
+
+  if (which_hunt >= 5)
+    which_hunt = 4;
+  else if (which_hunt < 0)
+    which_hunt = 0;
+
+  int x = 0, y = 0, start = 0;
+  int terrain = 0;
+  room_rnum room = NOWHERE;
+  int room_vnum = 0;
+
+  start = dice(1, NUM_GOTO_ZONES) - 1;
+
+  y = dice(1, 21) - 10;
+  x = dice(1, 21) - 10;
+
+  room_vnum = get_hunt_room(atoi(goto_zones[start][1]), x, y);
+  room = real_room(room_vnum);
+
+  terrain = world[room].sector_type;
+
+  switch (terrain)
+  {
+  case SECT_OCEAN:
+  case SECT_UD_NOSWIM:
+  case SECT_UD_WATER:
+  case SECT_UNDERWATER:
+  case SECT_WATER_NOSWIM:
+  case SECT_WATER_SWIM:
+  case SECT_INSIDE:
+  case SECT_INSIDE_ROOM:
+  case SECT_RIVER:
+    select_hunt_coords(which_hunt);
+    return;
+  }
+
+  active_hunts[which_hunt][1] = room_vnum;
+  active_hunts[which_hunt][2] = start;
+}
+#else
+
 void select_hunt_coords(int which_hunt)
 {
   int x = 0, y = 0;
@@ -468,6 +523,8 @@ void select_hunt_coords(int which_hunt)
 
   select_reported_hunt_coords(which_hunt, 0);
 }
+
+#endif
 
 void select_reported_hunt_coords(int which_hunt, int times_called)
 {

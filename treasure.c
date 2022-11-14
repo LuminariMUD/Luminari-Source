@@ -1005,7 +1005,7 @@ void award_random_crystal(struct char_data *ch, int grade)
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(buf2, 20, label_rare_grade(rare_grade));
+  snprintf(buf2, sizeof(buf2), "%s", label_rare_grade(rare_grade));
 
   /* this is just to make sure the item is set correctly */
   GET_OBJ_TYPE(obj) = ITEM_CRYSTAL;
@@ -1997,7 +1997,7 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(desc, sizeof(desc), "%s", label_rare_grade(rare_grade));
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY))
@@ -2173,10 +2173,10 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(descb, MEDIUM_STRING, label_rare_grade(rare_grade));
-  snprintf(desch, MEDIUM_STRING, label_rare_grade(rare_grade));
-  snprintf(desca, MEDIUM_STRING, label_rare_grade(rare_grade));
-  snprintf(descl, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(descb, sizeof(descb), "%s", label_rare_grade(rare_grade));
+  snprintf(desch, sizeof(desch), "%s", label_rare_grade(rare_grade));
+  snprintf(desca, sizeof(desca), "%s", label_rare_grade(rare_grade));
+  snprintf(descl, sizeof(descl), "%s", label_rare_grade(rare_grade));
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
 
@@ -2721,7 +2721,7 @@ void award_magic_weapon(struct char_data *ch, int grade)
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(desc, MEDIUM_STRING, "%s", label_rare_grade(rare_grade));
 
   /* ok assigning final material here, check for upgrade */
   GET_OBJ_MATERIAL(obj) =
@@ -3204,61 +3204,61 @@ void give_misc_magic_item(struct char_data *ch, int category, int enchantment, b
   case 1: /*finger*/
     vnum = RING_MOLD;
     material = MATERIAL_COPPER;
-    snprintf(armor_name, MEDIUM_STRING, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   case 2: /*neck*/
     vnum = NECKLACE_MOLD;
     material = MATERIAL_COPPER;
-    snprintf(armor_name, MEDIUM_STRING, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   case 3: /*feet*/
     vnum = BOOTS_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 4: /*hands*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 5: /*about*/
     vnum = CLOAK_MOLD;
     material = MATERIAL_COTTON;
-    snprintf(armor_name, MEDIUM_STRING, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 6: /*waist*/
     vnum = BELT_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 7: /*wrist*/
     vnum = WRIST_MOLD;
     material = MATERIAL_COPPER;
-    snprintf(armor_name, MEDIUM_STRING, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   case 8: /*held*/
     vnum = HELD_MOLD;
     material = MATERIAL_ONYX;
-    snprintf(armor_name, MEDIUM_STRING, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 9: /*monk gloves*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   }
 
@@ -3491,7 +3491,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
 
   /* determine if rare or not, start building string */
   rare_grade = determine_rare_grade();
-  snprintf(desc, MEDIUM_STRING, label_rare_grade(rare_grade));
+  snprintf(desc, MEDIUM_STRING, "%s", label_rare_grade(rare_grade));
 
   /* assign base material
    * and last but not least, give appropriate start of description
@@ -3501,61 +3501,61 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
   case 1: /*finger*/
     vnum = RING_MOLD;
     material = MATERIAL_COPPER;
-    snprintf(armor_name, MEDIUM_STRING, ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", ring_descs[rand_number(0, NUM_A_RING_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   case 2: /*neck*/
     vnum = NECKLACE_MOLD;
     material = MATERIAL_COPPER;
-    snprintf(armor_name, MEDIUM_STRING, neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", neck_descs[rand_number(0, NUM_A_NECK_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   case 3: /*feet*/
     vnum = BOOTS_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", boot_descs[rand_number(0, NUM_A_BOOT_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 4: /*hands*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", hands_descs[rand_number(0, NUM_A_HAND_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 5: /*about*/
     vnum = CLOAK_MOLD;
     material = MATERIAL_COTTON;
-    snprintf(armor_name, MEDIUM_STRING, cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", cloak_descs[rand_number(0, NUM_A_CLOAK_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_crests[rand_number(0, NUM_A_ARMOR_CRESTS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 6: /*waist*/
     vnum = BELT_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", waist_descs[rand_number(0, NUM_A_WAIST_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 7: /*wrist*/
     vnum = WRIST_MOLD;
     material = MATERIAL_COPPER;
-    snprintf(armor_name, MEDIUM_STRING, wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", wrist_descs[rand_number(0, NUM_A_WRIST_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", gemstones[rand_number(0, NUM_A_GEMSTONES - 1)]);
     break;
   case 8: /*held*/
     vnum = HELD_MOLD;
     material = MATERIAL_ONYX;
-    snprintf(armor_name, MEDIUM_STRING, crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", crystal_descs[rand_number(0, NUM_A_CRYSTAL_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   case 9: /*monk gloves*/
     vnum = GLOVES_MOLD;
     material = MATERIAL_LEATHER;
-    snprintf(armor_name, MEDIUM_STRING, monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
-    snprintf(desc2, SHORT_STRING, armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
-    snprintf(desc3, SHORT_STRING, colors[rand_number(0, NUM_A_COLORS - 1)]);
+    snprintf(armor_name, MEDIUM_STRING, "%s", monk_glove_descs[rand_number(0, NUM_A_MONK_GLOVE_DESCS - 1)]);
+    snprintf(desc2, SHORT_STRING, "%s", armor_special_descs[rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1)]);
+    snprintf(desc3, SHORT_STRING, "%s", colors[rand_number(0, NUM_A_COLORS - 1)]);
     break;
   }
 

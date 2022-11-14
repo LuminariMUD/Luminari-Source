@@ -229,6 +229,14 @@
 /** The total number of Zone Flags */
 #define NUM_ZONE_FLAGS 12
 
+/* Goto Zones: Used by the goto command to quickly go to specific zones on the worldmap */
+#define NUM_GOTO_ZONES 10
+
+/* Map points refer to locations shown on the asciimap, with the purpose of
+** displaying the asciimap on a web site.  Hovering over these points will
+** display the name of the location */
+#define NUM_MAP_POINTS 26
+
 #define NUM_FEMALE_NAMES 110
 #define NUM_MALE_NAMES 110
 #define NUM_SURNAMES 210

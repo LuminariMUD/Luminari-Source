@@ -676,6 +676,7 @@ void boot_world(void)
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   init_perlin(NOISE_WEATHER, NOISE_WEATHER_SEED);
 
+#ifndef CAMPAIGN_FR
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
 
@@ -684,6 +685,7 @@ void boot_world(void)
 
   // save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 0);
   // save_noise_to_file(NOISE_MATERIAL_PLANE_ELEV, "luminari_wild_noise_elev_zoom.png", WILD_X_SIZE, WILD_Y_SIZE, 1);
+#endif
 }
 
 static void free_extra_descriptions(struct extra_descr_data *edesc)
