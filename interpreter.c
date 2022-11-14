@@ -1551,6 +1551,9 @@ int special(struct char_data *ch, int cmd, char *arg)
   struct char_data *k;
   int j;
 
+
+  if (IN_ROOM(ch) == NOWHERE) return 0;
+
   /* special in room? */
   if (GET_ROOM_SPEC(IN_ROOM(ch)) != NULL)
     if (GET_ROOM_SPEC(IN_ROOM(ch))(ch, world + IN_ROOM(ch), cmd, arg))
