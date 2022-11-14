@@ -4807,6 +4807,18 @@ const char *class_short_descriptions[] = {
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 
+
+const char *mold_accessories[] = {
+    "ring",
+    "bracer",
+    "belt",
+    "boots",
+    "gloves",
+    "necklace",
+    "cloak",
+    "\n"
+};
+
 const char *goto_zones[NUM_GOTO_ZONES + 1][2] = {
     {"tentowns", "602093"},
     {"luskan", "607713"},
