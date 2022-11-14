@@ -6269,6 +6269,8 @@ bool can_spell_be_revoked(int spellnum)
   case RACIAL_ABILITY_CRYSTAL_BODY:
   case RACIAL_ABILITY_CRYSTAL_FIST:
   case RACIAL_ABILITY_INSECTBEING:
+  case AFFECT_FOOD:
+  case AFFECT_DRINK:
 
     return true;
   }
