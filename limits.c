@@ -2119,10 +2119,13 @@ void self_buffing(void)
   for (d = descriptor_list; d; d = d->next)
   {
     ch = d->character;
+
     if (!ch)
       continue;
+
     if (!IS_BUFFING(ch))
       continue;
+
     while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 && GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
     {
       GET_CURRENT_BUFF_SLOT(ch)
@@ -2135,6 +2138,7 @@ void self_buffing(void)
       GET_BUFF_TIMER(ch) = 0;
       IS_BUFFING(ch) = false;
     }
+
     if (GET_BUFF_TIMER(ch) > 0)
     {
       if (--GET_BUFF_TIMER(ch) == 0)
@@ -2143,7 +2147,12 @@ void self_buffing(void)
         is_spell = is_spell_or_power(spellnum);
         is_spell--;
         send_to_char(ch, "You continue buffing... (buff cancel to stop)\r\n");
-        GET_BUFF_TIMER(ch) = spell_info[spellnum].time + 1;
+
+        if (IS_AFFECTED(ch, AFF_TIME_STOPPED))
+          GET_BUFF_TIMER(ch) = 1;
+        else
+          GET_BUFF_TIMER(ch) = spell_info[spellnum].time + 1;
+
         if (is_spell)
         {
           snprintf(spellname, sizeof(spellname), " '%s'", spell_info[spellnum].name);
@@ -2154,6 +2163,7 @@ void self_buffing(void)
           snprintf(spellname, sizeof(spellname), " %d '%s'", GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 1), spell_info[spellnum].name);
           do_manifest(ch, (const char *)spellname, 0, SCMD_CAST_PSIONIC);
         }
+
         GET_CURRENT_BUFF_SLOT(ch)
         ++;
       }

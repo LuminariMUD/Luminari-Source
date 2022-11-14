@@ -1170,7 +1170,7 @@ int load_char(const char *name, struct char_data *ch)
 
       case 'X':
         if (!strcmp(tag, "XTrm") && ch->desc)
-          ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt = atoi(line);
+          ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = atoi(line);
         break;
 
       default:
@@ -1724,7 +1724,7 @@ void save_char(struct char_data *ch, int mode)
   if (ch->desc)
   {
     fprintf(fl, "GMCP: %d\n", ch->desc->pProtocol->bGMCP);
-    fprintf(fl, "XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_XTERM_256_COLORS]->ValueInt);
+    fprintf(fl, "XTrm: %d\n", ch->desc->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt);
     fprintf(fl, "UTF8: %d\n", ch->desc->pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
   }
 
