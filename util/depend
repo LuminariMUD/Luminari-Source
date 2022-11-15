@@ -1,15 +1,22 @@
-#LuminariMUD
-#Zusuk
-asciipasswd.o: asciipasswd.c ../conf.h ../sysdep.h ../structs.h \
- ../protocol.h ../lists.h ../utils.h
-autowiz.o: autowiz.c ../conf.h ../sysdep.h ../structs.h ../protocol.h \
- ../lists.h ../utils.h ../db.h
-plrtoascii.o: plrtoascii.c ../conf.h ../sysdep.h ../structs.h \
- ../protocol.h ../lists.h ../utils.h ../db.h ../pfdefaults.h
+asciipasswd.o: asciipasswd.c ../conf.h ../sysdep.h ../structs.h ../bool.h \
+ ../protocol.h ../conf.h ../sysdep.h ../lists.h ../campaign.h ../utils.h \
+ ../db.h ../structs.h ../utils.h ../helpers.h ../perfmon.h
+autowiz.o: autowiz.c ../conf.h ../sysdep.h ../structs.h ../bool.h \
+ ../protocol.h ../conf.h ../sysdep.h ../lists.h ../campaign.h ../utils.h \
+ ../db.h ../structs.h ../utils.h ../helpers.h ../perfmon.h ../db.h
+hl_events.o: hl_events.c ../conf.h ../sysdep.h ../structs.h ../bool.h \
+ ../protocol.h ../conf.h ../sysdep.h ../lists.h ../campaign.h ../utils.h \
+ ../db.h ../structs.h ../utils.h ../helpers.h ../perfmon.h hl_events.h
+plrtoascii.o: plrtoascii.c ../conf.h ../sysdep.h ../structs.h ../bool.h \
+ ../protocol.h ../conf.h ../sysdep.h ../lists.h ../campaign.h ../utils.h \
+ ../db.h ../structs.h ../utils.h ../helpers.h ../perfmon.h ../db.h \
+ ../pfdefaults.h
 rebuildAsciiIndex.o: rebuildAsciiIndex.c
 rebuildMailIndex.o: rebuildMailIndex.c
-shopconv.o: shopconv.c ../conf.h ../sysdep.h ../structs.h ../protocol.h \
- ../lists.h ../utils.h ../db.h ../shop.h
+shopconv.o: shopconv.c ../conf.h ../sysdep.h ../structs.h ../bool.h \
+ ../protocol.h ../conf.h ../sysdep.h ../lists.h ../campaign.h ../utils.h \
+ ../db.h ../structs.h ../utils.h ../helpers.h ../perfmon.h ../db.h \
+ ../shop.h
 sign.o: sign.c ../conf.h ../sysdep.h
 split.o: split.c ../conf.h ../sysdep.h
 webster.o: webster.c ../conf.h ../sysdep.h
