@@ -3,7 +3,6 @@
 # Checked by Zusuk
 
 # Special Files
-depend
 campaign.h
 copybinarytodev.sh
 copybinarytolive.sh
@@ -69,9 +68,7 @@ dkms.conf
 *.smod
 
 /unittests/obj
-/depend
 .vscode/settings.json
 # generated source file
 /unittests/CuTest/AllTests.c
-util/depend
 .vscode/c_cpp_properties.json

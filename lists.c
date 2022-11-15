@@ -72,6 +72,13 @@ struct iterator_data *create_iterator(void)
 
 void free_list(struct list_data *pList)
 {
+#ifdef CAMPAIGN_FR
+  // This is not a good solution.  It will cause memory leaks galore.
+  // But need to fix the crashes until I can get help to fix it.
+  // Gicker - Nov 15, 2022
+  pList = NULL;
+  return;
+#endif
   void *pContent = NULL;
 
   simple_list(NULL);
