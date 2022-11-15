@@ -1790,7 +1790,11 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                           !IS_SET(EXIT(ch, door)->exit_info, EX_CLOSED))
 
 /** True total number of directions available to move in. */
+#ifdef CAMPAIGN_FR
+#define DIR_COUNT ((CONFIG_DIAGONAL_DIRS) ? 12 : 6)
+#else
 #define DIR_COUNT ((CONFIG_DIAGONAL_DIRS) ? 10 : 6)
+#endif
 
 /* Returns TRUE if the direction is a diagonal one */
 #define IS_DIAGONAL(dir) (((dir) == NORTHWEST) || ((dir) == NORTHEAST) || \

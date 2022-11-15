@@ -3127,6 +3127,8 @@ SPECIAL(vaprak_claws)
   int duration = 0, i = 0;
   struct obj_data *obj = (struct obj_data *)me;
 
+  skip_spaces(&argument);
+
   if (!ch)
     return 0;
 

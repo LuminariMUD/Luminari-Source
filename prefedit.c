@@ -108,7 +108,7 @@ static void prefedit_save_to_char(struct descriptor_data *d)
 static void prefedit_disp_main_menu(struct descriptor_data *d)
 {
   struct char_data *vict;
-  char prompt_string[20], color_string[10], syslog_string[10];
+  char prompt_string[400], color_string[300], syslog_string[300];
   const char *multi_types[] = {"Off", "Brief", "Normal", "Complete", "\n"};
 
   /* Set up the required variables and strings */

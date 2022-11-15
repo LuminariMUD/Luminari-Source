@@ -2212,7 +2212,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       dam += num_dice * 3;
     // each rank of epic psionics increases psi power damage by 10%, or 20% if under psionic focus affect
     if (HAS_FEAT(ch, FEAT_EPIC_PSIONICS))
-      dam = dam * (100 + (HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 20 : 10)) / 100;
+      dam = dam * (100 + (HAS_FEAT(ch, FEAT_EPIC_PSIONICS) * (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) ? 20 : 10))) / 100;
   }
 
   // vampire bonuses / penalties for feeding

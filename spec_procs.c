@@ -973,7 +973,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     if (HAS_REAL_FEAT(ch, FEAT_SHADOWFELL_MIND))
       value += 2;
-      if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
+    if (HAS_REAL_FEAT(ch, FEAT_TABAXI_CATS_TALENT))
       value += 2;
     if (HAS_FEAT(ch, FEAT_FAE_SENSES))
       value += 3;
@@ -7979,6 +7979,8 @@ SPECIAL(floating_teleport)
   struct obj_data *obj = (struct obj_data *)me;
   room_rnum roomnum;
 
+  skip_spaces(&argument);
+
   if (cmd)
     return FALSE;
 
@@ -8059,6 +8061,8 @@ SPECIAL(neverwinter_button_control)
   struct char_data *i = NULL;
   bool change = FALSE;
 
+  skip_spaces(&argument);
+
   if (cmd)
     return FALSE;
 
@@ -8101,6 +8105,8 @@ SPECIAL(neverwinter_valve_control)
   struct obj_data *dummy = 0;
   struct obj_data *obj = (struct obj_data *)me;
   bool avalve = FALSE, bvalve = FALSE, cvalve = FALSE, dvalve = FALSE, change = FALSE;
+
+  skip_spaces(&argument);
 
   if (cmd)
     return FALSE;
@@ -9283,6 +9289,8 @@ SPECIAL(stability_boots)
 {
   int timer = 0;
 
+  skip_spaces(&argument);
+
   if (!ch)
     return FALSE;
 
@@ -9337,6 +9345,8 @@ SPECIAL(hellfire)
 {
   int timer = 0;
 
+  skip_spaces(&argument);
+
   if (!ch)
     return FALSE;
 
@@ -9388,6 +9398,8 @@ SPECIAL(angel_leggings)
 
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 1\r\n");
+
+  skip_spaces(&argument);
 
   if (!ch)
     return FALSE;
@@ -9460,6 +9472,8 @@ SPECIAL(dragon_robes)
 
   if (DEBUGMODE)
     send_to_char(ch, "Debug - Mark 1\r\n");
+
+  skip_spaces(&argument);
 
   if (!ch)
     return FALSE;

@@ -77,4 +77,3 @@ depend:
 	$(CC) -MM *.c > depend
 
 -include depend
-

@@ -49,6 +49,7 @@ cpp_extern const char *const luminari_build =
 #if defined(PARENT)
     "Parent: " PARENT "\r\n"
 #endif
+;
 
 ;
 
@@ -1082,6 +1083,8 @@ const char *dirs[] = {
     "northeast",
     "southeast",
     "southwest",
+    "inside",
+    "outside",
     "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
@@ -1096,6 +1099,8 @@ const char *autoexits[] = {
     "ne",
     "se",
     "sw",
+    "inside",
+    "out",
     "\n"};
 CHECK_TABLE_SIZE(autoexits, NUM_OF_DIRS + 1);
 

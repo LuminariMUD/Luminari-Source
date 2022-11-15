@@ -412,7 +412,8 @@ void load_account_characters(struct account_data *account)
     i++;
   }
 
-  mysql_free_result(result);
+  if (result)
+    mysql_free_result(result);
   return;
 }
 
