@@ -1083,8 +1083,10 @@ const char *dirs[] = {
     "northeast",
     "southeast",
     "southwest",
+#ifdef CAMPAIGN_FR    
     "inside",
     "outside",
+#endif
     "\n"};
 CHECK_TABLE_SIZE(dirs, NUM_OF_DIRS + 1);
 
@@ -1099,8 +1101,10 @@ const char *autoexits[] = {
     "ne",
     "se",
     "sw",
+#ifdef CAMPAIGN_FR
     "inside",
     "out",
+#endif
     "\n"};
 CHECK_TABLE_SIZE(autoexits, NUM_OF_DIRS + 1);
 
