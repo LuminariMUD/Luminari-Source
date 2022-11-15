@@ -34,7 +34,7 @@ SRCFILES := $(wildcard *.c)
 CPPFILES := $(wildcard *.cpp)
 OBJFILES := $(patsubst %.c,%.o,$(SRCFILES)) $(CPPFILES:%.cpp=%.o)
 
-default: all
+default: circle
 
 all:
 	$(MAKE) $(BINDIR)/circle
