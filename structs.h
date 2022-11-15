@@ -103,8 +103,20 @@
 /** Total number of directions available to move in. BEFORE CHANGING THIS, make
  * sure you change every other direction and movement based item that this will
  * impact. */
+#ifdef CAMPAIGN_FR
+
+#define IN 10
+#define OUT 11
+
+#define NUM_OF_DIRS 12
+#define NUM_OF_INGAME_DIRS 12
+
+#else
+
 #define NUM_OF_DIRS 10
 #define NUM_OF_INGAME_DIRS 6
+
+#endif
 
 /* TRAPS */
 /* trap types */

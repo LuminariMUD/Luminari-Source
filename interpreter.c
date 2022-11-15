@@ -114,7 +114,12 @@ cpp_extern const struct command_info cmd_info[] = {
     {"se", "se", POS_RECLINING, do_move, 0, SCMD_SE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"southwest", "southw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sw", "sw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
-
+#ifdef CAMPAIGN_FR
+    // we want i to default to inventory, that's why it's up here.
+    {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"inside", "ins", POS_RECLINING, do_move, 0, SCMD_IN, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"outside", "out", POS_RECLINING, do_move, 0, SCMD_OUT, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     /* now, the main list */
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -424,7 +429,9 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+#ifndef CAMPAIGN_FR
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"idea", "ide", POS_DEAD, do_ibt, 0, SCMD_IDEA, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"iedit", "iedit", POS_DEAD, do_iedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1550,6 +1557,9 @@ int special(struct char_data *ch, int cmd, char *arg)
   struct obj_data *i;
   struct char_data *k;
   int j;
+
+
+  if (IN_ROOM(ch) == NOWHERE) return 0;
 
   /* special in room? */
   if (GET_ROOM_SPEC(IN_ROOM(ch)) != NULL)

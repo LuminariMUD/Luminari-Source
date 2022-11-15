@@ -3,6 +3,7 @@
 # Checked by Zusuk
 
 # Special Files
+depend
 campaign.h
 copybinarytodev.sh
 copybinarytolive.sh

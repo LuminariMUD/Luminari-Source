@@ -125,6 +125,12 @@ struct alias_data
 #define SCMD_SE SOUTHEAST
 #define SCMD_SW SOUTHWEST
 
+#ifdef CAMPAIGN_FR
+
+#define SCMD_IN IN
+#define SCMD_OUT OUT
+
+#endif
 /** @deprecated all old do_poof stuff is deprecated and unused. */
 #define SCMD_POOFIN 0
 /** @deprecated all old do_poof stuff is deprecated and unused. */
