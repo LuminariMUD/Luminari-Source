@@ -73,3 +73,5 @@ dkms.conf
 .vscode/settings.json
 # generated source file
 /unittests/CuTest/AllTests.c
+util/depend
+.vscode/c_cpp_properties.json
