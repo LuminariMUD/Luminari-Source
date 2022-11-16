@@ -2233,6 +2233,12 @@ void newbieEquipment(struct char_data *ch)
         obj_to_obj(obj, pouch);
     }
     break;
+#ifdef CAMPAIGN_FR    
+  case RACE_VAMPIRE:
+    obj = read_object(VAMPIRE_CLOAK_OBJ_VNUM, VIRTUAL);
+    obj_to_char(obj, ch); // vampire cloak
+    break;
+#endif
   default:
     break;
   } /*  end of race specific gear */
