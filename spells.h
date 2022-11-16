@@ -953,7 +953,11 @@
 #define NUM_RANGED_TYPES 1
 
 // Vampire cloak
-#define VAMPIRE_CLOAK_OBJ_VNUM 34700
+#ifdef CAMPAIGN_FR
+  #define VAMPIRE_CLOAK_OBJ_VNUM 299
+#else
+  #define VAMPIRE_CLOAK_OBJ_VNUM 34700
+#endif
 
 /* not hard coded, but up to 2375 */
 
