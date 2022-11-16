@@ -645,6 +645,8 @@
 
 // space for new quest only races up to 59
 
+#define NUM_EXTENDED_PC_RACES 47
+
 #define RACE_HORSE 60
 #define RACE_IRON_GOLEM 61
 #define RACE_DRAGON_CLOUD 62

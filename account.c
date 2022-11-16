@@ -68,7 +68,11 @@ int change_account_xp(struct char_data *ch, int change_val)
 
 int has_unlocked_race(struct char_data *ch, int race)
 {
+#ifdef CAMPAIGN_FR
+  if (!ch || !ch->desc || !ch->desc->account)
+#else
   if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
+#endif
     return FALSE;
 
   if (!is_locked_race(race))
@@ -191,7 +195,11 @@ ACMD(do_accexp)
     if (!*arg2)
     {
       send_to_char(ch, "Please choose from the following races:\r\n");
+#ifdef CAMPAIGN_FR
+      for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+#else
       for (i = 0; i < NUM_RACES; i++)
+#endif
       {
         if (!is_locked_race(i) || has_unlocked_race(ch, i))
           continue;
