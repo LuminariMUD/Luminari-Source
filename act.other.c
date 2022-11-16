@@ -2368,12 +2368,16 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
 
   GET_CLASS(ch) = class;
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
-
+#ifdef CAMPAIGN_FR
+  if (*arg && is_abbrev(arg, "premade"))
+    GET_PREMADE_BUILD_CLASS(ch) = class;
+#else
   if (GET_REAL_RACE(ch) != RACE_LICH && GET_REAL_RACE(ch) != RACE_VAMPIRE)
   {
     if (*arg && is_abbrev(arg, "premade"))
       GET_PREMADE_BUILD_CLASS(ch) = class;
   }
+#endif
 
   /* Make sure that players can't make wildshaped forms permanent.*/
   SUBRACE(ch) = 0;

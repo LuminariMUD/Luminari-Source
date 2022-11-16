@@ -3472,6 +3472,26 @@ int level_exp(struct char_data *ch, int level)
   {
     /* funny bug: used to use disguised/wildshape race */
 
+#ifdef CAMPAIGN_FR
+  case RACE_DROW:
+    exp *= 2;
+    break;
+  case RACE_DUERGAR:
+    exp *= 2;
+    break;
+
+  case RACE_FAE:
+    exp *= 5;
+    break;
+
+  case RACE_LICH:
+    exp *= 10;
+    break;
+
+  case RACE_VAMPIRE:
+    exp *= 10;
+    break;
+#else
     // advanced races
   case RACE_HALF_TROLL:
     exp *= 2;
@@ -3506,7 +3526,7 @@ int level_exp(struct char_data *ch, int level)
   case RACE_VAMPIRE:
     exp *= 10;
     break;
-
+#endif
   default:
     break;
   }

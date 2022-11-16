@@ -156,7 +156,7 @@ void initialize_races(void)
     race_list[i].size = SIZE_MEDIUM;
     race_list[i].is_pc = FALSE;
     race_list[i].level_adjustment = 0;
-    race_list[i].unlock_cost = 99999;
+    race_list[i].unlock_cost = 0;
     race_list[i].epic_adv = IS_NORMAL;
 
     /* handle outside add_race() */
@@ -1429,6 +1429,50 @@ void assign_races(void)
   race_list[RACE_DROW_ELF].racial_language = LANG_UNDERCOMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
+
+  add_race(RACE_DUERGAR, "duergar", "Duergar", "\t[F333]Duergar\tn", "Drgr", "\t[F333]Drgr\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 2, 5000, IS_ADVANCE);
+  set_race_details(RACE_DUERGAR,
+                   /*descrip*/ "Duergar dwell in subterranean caverns far from the touch of light. They detest all races "
+                               "living beneath the sun, but that hatred pales beside their loathing of their surface-dwarf "
+                               "cousins. Dwarves and Duergar once were one race, but the dwarves left the deeps for their "
+                               "mountain strongholds. Duergar still consider themselves the only true Dwarves, and the "
+                               "rightful heirs of all beneath the world’s surface. In appearance, Duergar resemble gray-"
+                               "skinned Dwarves, bearded but bald, with cold, lightless eyes. They favor taking captives "
+                               "in battle over wanton slaughter, save for surface dwarves, who are slain without hesitation. "
+                               "Duergar view life as ceaseless toil ended only by death. Though few can be described as "
+                               "anything other than vile and cruel, Duergar still value honor and rarely break their word.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Duergar.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Duergar.");
+  set_race_genders(RACE_DUERGAR, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_DUERGAR, 2, 4, 0, 0, 0, 0);           /* str con int wis dex cha */
+  set_race_alignments(RACE_DUERGAR, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_DUERGAR,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_DUERGAR, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_LIGHT_BLINDNESS, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_DUERGAR_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_DUERGAR_MAGIC, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_PARALYSIS_RESIST, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_PHANTASM_RESIST, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_STRONG_SPELL_HARDINESS, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_SLA_ENLARGE, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_SLA_STRENGTH, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_SLA_INVIS, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_AFFINITY_SPOT, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_AFFINITY_LISTEN, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_AFFINITY_MOVE_SILENT, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_POISON_RESIST, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_STABILITY, 1, N);
+  feat_race_assignment(RACE_DUERGAR, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
   /****************************************************************************/
 // End Faerun races, start luminarimud races
 #else
@@ -1559,50 +1603,6 @@ void assign_races(void)
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_LINGUIST, 1, N);
   race_list[RACE_HIGH_ELF].racial_language = LANG_ELVISH;
 
-  /* affect assignment */
-  /*                  race-num  affect            lvl */
-#endif
-
-  /****************************************************************************/
-  /****************************************************************************/
-  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_FAE, "fae", "Fae", "\tMFae \tn", "Fae ", "\tMFae \tn",
-           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
-           RACE_TYPE_HUMANOID, SIZE_TINY, TRUE, 10, 50000, IS_EPIC_R);
-  set_race_details(RACE_FAE,
-                   // Description
-                   "Fae are relatively reclusive. They would rather spend their time frolicking in woodland glades than "
-                   "cavorting with other races. They are the consummate trickster, often devising elaborate ruses to lead "
-                   "strangers away from their glades. They do love visitors though, even if it is just to have a target for "
-                   "their tricks. They also have a love of stories and magic... Bards are therefore almost always welcome in "
-                   "a glade. Monks are greatly cherished as visitors as well, due to their ingrained resilience to faerie glamor. "
-                   "Competitions are held to see who can trick the monk, with the winner crowned prince of glamor for the day. It "
-                   "should be noted though, then monks are generally not harmed in order to encourage their return.\r\n\r\n"
-                   "They also posses an utterly alien sense of morals. They would completely erase a mortals memory, or put one to "
-                   "sleep for a year without thought to the consequences. Their chaotic behavior often stems from this lack of "
-                   "concern for consequences as Fae tend to understand the term in a different light than mortals. Likewise, harm "
-                   "to a mortal is often disregarded in the same manner. The saying \"It's all fun and games until someone losses an "
-                   "arm... then its just hilarious \" is very applicable here.",
-                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes that of a Fae.",
-                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes that of a Fae.");
-  set_race_genders(RACE_FAE, N, Y, Y);                      /* n m f */
-  set_race_abilities(RACE_FAE, -4, 0, 0, 0, 10, 6);         /* str con int wis dex cha */
-  set_race_alignments(RACE_FAE, N, Y, Y, N, Y, Y, N, Y, Y); /* law-good -> cha-evil */
-  set_race_attack_types(RACE_FAE,
-                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
-                        Y, N, N, N, N, N, N, N, N, N, N, N,
-                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
-                        N, Y, N, N, N, N, N, N, N, N, N, N);
-  /* feat assignment */
-  /*                   race-num    feat                  lvl stack */
-  feat_race_assignment(RACE_FAE, FEAT_ULTRAVISION, 1, N);
-  feat_race_assignment(RACE_FAE, FEAT_DODGE, 1, N);
-  feat_race_assignment(RACE_FAE, FEAT_FAE_RACIAL_ADJUSTMENT, 1, N);
-  feat_race_assignment(RACE_FAE, FEAT_FAE_MAGIC, 1, N);
-  feat_race_assignment(RACE_FAE, FEAT_FAE_RESISTANCE, 1, N);
-  feat_race_assignment(RACE_FAE, FEAT_FAE_SENSES, 1, N);
-  feat_race_assignment(RACE_FAE, FEAT_FAE_FLIGHT, 1, N);
-  race_list[RACE_FAE].racial_language = LANG_ELVEN;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -2595,7 +2595,7 @@ void assign_races(void)
   /*                  race-num  affect            lvl */
 
   // end luminari race info
-
+#endif
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
@@ -2604,7 +2604,11 @@ void assign_races(void)
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_LICH, "lich", "Lich", "\tLLich\tn", "Lich", "\tLLich\tn",
            /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+#ifdef CAMPAIGN_FR
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 60000, IS_EPIC_R);
+#else
            RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+#endif
   set_race_details(RACE_LICH,
                    /*descrip*/ "Few creatures are more feared than the lich. The pinnacle of necromantic art, who "
                                "has chosen to shed his life as a method to cheat death by becoming undead. While many who reach "
@@ -2662,7 +2666,11 @@ void assign_races(void)
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_VAMPIRE, "vampire", "Vampire", "\tLVampire\tn", "Vamp", "\tLVamp\tn",
            /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+#ifdef CAMPAIGN_FR
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 60000, IS_EPIC_R);
+#else
            RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 999999999, IS_EPIC_R);
+#endif
   set_race_details(RACE_VAMPIRE,
                    /*descrip*/ "Vampires are one of the most fearsome of the Undead creatures in Lumia. With unnatural strength, "
                                " agility and cunning, they can easily overpower most other creatures with their physical "
@@ -2728,6 +2736,54 @@ void assign_races(void)
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /****************************************************************************/
+
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_FAE, "fae", "Fae", "\tMFae \tn", "Fae ", "\tMFae \tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+#ifdef CAMPAIGN_FR
+           RACE_TYPE_HUMANOID, SIZE_TINY, TRUE, 10, 35000, IS_EPIC_R);
+#else
+           RACE_TYPE_HUMANOID, SIZE_TINY, TRUE, 10, 50000, IS_EPIC_R);
+#endif
+  set_race_details(RACE_FAE,
+                   // Description
+                   "Fae are relatively reclusive. They would rather spend their time frolicking in woodland glades than "
+                   "cavorting with other races. They are the consummate trickster, often devising elaborate ruses to lead "
+                   "strangers away from their glades. They do love visitors though, even if it is just to have a target for "
+                   "their tricks. They also have a love of stories and magic... Bards are therefore almost always welcome in "
+                   "a glade. Monks are greatly cherished as visitors as well, due to their ingrained resilience to faerie glamor. "
+                   "Competitions are held to see who can trick the monk, with the winner crowned prince of glamor for the day. It "
+                   "should be noted though, then monks are generally not harmed in order to encourage their return.\r\n\r\n"
+                   "They also posses an utterly alien sense of morals. They would completely erase a mortals memory, or put one to "
+                   "sleep for a year without thought to the consequences. Their chaotic behavior often stems from this lack of "
+                   "concern for consequences as Fae tend to understand the term in a different light than mortals. Likewise, harm "
+                   "to a mortal is often disregarded in the same manner. The saying \"It's all fun and games until someone losses an "
+                   "arm... then its just hilarious \" is very applicable here.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes that of a Fae.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes that of a Fae.");
+  set_race_genders(RACE_FAE, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_FAE, -4, 0, 0, 0, 10, 6);         /* str con int wis dex cha */
+  set_race_alignments(RACE_FAE, N, Y, Y, N, Y, Y, N, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_FAE,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_FAE, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_DODGE, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_MAGIC, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_SENSES, 1, N);
+  feat_race_assignment(RACE_FAE, FEAT_FAE_FLIGHT, 1, N);
+  race_list[RACE_FAE].racial_language = LANG_ELVEN;
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
 
   /**********/
   /* Animal */
@@ -3508,6 +3564,12 @@ int parse_race_long(const char *arg_in)
     return RACE_DWARF;
   if (is_abbrev(arg, "mountain dwarf"))
     return RACE_DWARF;
+  if (is_abbrev(arg, "shield-dwarf"))
+    return RACE_DWARF;
+  if (is_abbrev(arg, "shielddwarf"))
+    return RACE_DWARF;
+  if (is_abbrev(arg, "shield dwarf"))
+    return RACE_DWARF;
   if (is_abbrev(arg, "gold dwarf"))
     return RACE_GOLD_DWARF;
   if (is_abbrev(arg, "gold-dwarf"))
@@ -3515,6 +3577,10 @@ int parse_race_long(const char *arg_in)
   if (is_abbrev(arg, "golddwarf"))
     return RACE_GOLD_DWARF;
   if (is_abbrev(arg, "duergar"))
+    return RACE_DUERGAR;
+  if (is_abbrev(arg, "duergardwarf"))
+    return RACE_DUERGAR;
+  if (is_abbrev(arg, "duergar-dwarf"))
     return RACE_DUERGAR;
   if (is_abbrev(arg, "graydwarf"))
     return RACE_DUERGAR;
@@ -3528,12 +3594,6 @@ int parse_race_long(const char *arg_in)
     return RACE_DUERGAR;
   if (is_abbrev(arg, "dark dwarf"))
     return RACE_DUERGAR;
-  if (is_abbrev(arg, "half-troll"))
-    return RACE_HALF_TROLL;
-  if (is_abbrev(arg, "halftroll"))
-    return RACE_HALF_TROLL;
-  if (is_abbrev(arg, "half troll"))
-    return RACE_HALF_TROLL;
   if (is_abbrev(arg, "lightfoot-halfling"))
     return RACE_HALFLING;
   if (is_abbrev(arg, "lightfoothalfling"))
@@ -3558,6 +3618,13 @@ int parse_race_long(const char *arg_in)
     return RACE_GNOME;
   if (is_abbrev(arg, "rock gnome"))
     return RACE_GNOME;
+#ifndef CAMPAIGN_FR
+  if (is_abbrev(arg, "half-troll"))
+    return RACE_HALF_TROLL;
+  if (is_abbrev(arg, "halftroll"))
+    return RACE_HALF_TROLL;
+  if (is_abbrev(arg, "half troll"))
+    return RACE_HALF_TROLL;
   if (is_abbrev(arg, "arcanagolem"))
     return RACE_ARCANA_GOLEM;
   if (is_abbrev(arg, "arcana-golem"))
@@ -3566,16 +3633,13 @@ int parse_race_long(const char *arg_in)
     return RACE_ARCANA_GOLEM;
   if (is_abbrev(arg, "trelux"))
     return RACE_TRELUX;
-  if (is_abbrev(arg, "lich"))
-    return RACE_LICH;
-  if (is_abbrev(arg, "vampire"))
-    return RACE_VAMPIRE;
   if (is_abbrev(arg, "crystaldwarf"))
     return RACE_CRYSTAL_DWARF;
   if (is_abbrev(arg, "crystal-dwarf"))
     return RACE_CRYSTAL_DWARF;
   if (is_abbrev(arg, "crystal dwarf"))
     return RACE_CRYSTAL_DWARF;
+#endif
   if (is_abbrev(arg, "wood-elf"))
     return RACE_WOOD_ELF;
   if (is_abbrev(arg, "wild-elf"))
@@ -3616,6 +3680,12 @@ int parse_race_long(const char *arg_in)
     return RACE_STOUT_HALFLING;
   if (is_abbrev(arg, "stout halfling"))
     return RACE_STOUT_HALFLING;
+  if (is_abbrev(arg, "stronghearthalfling"))
+    return RACE_STOUT_HALFLING;
+  if (is_abbrev(arg, "strongheart-halfling"))
+    return RACE_STOUT_HALFLING;
+  if (is_abbrev(arg, "strongheart halfling"))
+    return RACE_STOUT_HALFLING;
   if (is_abbrev(arg, "aasimar"))
     return RACE_AASIMAR;
   if (is_abbrev(arg, "tabaxi"))
@@ -3624,6 +3694,10 @@ int parse_race_long(const char *arg_in)
     return RACE_SHADE;
   if (is_abbrev(arg, "goliath"))
     return RACE_GOLIATH;
+  if (is_abbrev(arg, "lich"))
+    return RACE_LICH;
+  if (is_abbrev(arg, "vampire"))
+    return RACE_VAMPIRE;
   if (is_abbrev(arg, "fae"))
     return RACE_FAE;
 
