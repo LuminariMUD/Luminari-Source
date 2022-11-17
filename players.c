@@ -557,6 +557,16 @@ int load_char(const char *name, struct char_data *ch)
     ch->player_specials->saved.fiendish_boons = 0;
     ch->player_specials->saved.channel_energy_type = 0;
 
+    for (i = 0; i < NUM_LANGUAGES; i++)
+      ch->player_specials->saved.languages_known[i] = 0;
+    SPEAKING(ch) = LANG_COMMON;
+    GET_REGION(ch) = REGION_NONE;
+
+    GET_PC_DESCRIPTOR_1(ch) = 0;
+    GET_PC_ADJECTIVE_1(ch) = 0;
+    GET_PC_DESCRIPTOR_2(ch) = 0;
+    GET_PC_ADJECTIVE_2(ch) = 0;
+
     ch->sticky_bomb[0] = 0;
     ch->sticky_bomb[1] = 0;
     ch->sticky_bomb[2] = 0;
@@ -644,6 +654,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_BAD_PWS(ch) = atoi(line);
         else if (!strcmp(tag, "Bane"))
           GET_BANE_TARGET_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "BGrd"))
+          ch->player.background = fread_string(fl, buf2);
         else if (!strcmp(tag, "Bomb"))
           load_bombs(fl, ch);
         else if (!strcmp(tag, "Bost"))
@@ -720,6 +732,14 @@ int load_char(const char *name, struct char_data *ch)
           ch->player.description = fread_string(fl, buf2);
         else if (!strcmp(tag, "DrgB"))
           GET_DRAGONBORN_ANCESTRY(ch) = atoi(line);
+        else if (!strcmp(tag, "DAd1"))
+          GET_PC_ADJECTIVE_1(ch) = atoi(line);
+        else if (!strcmp(tag, "DAd2"))
+          GET_PC_ADJECTIVE_2(ch) = atoi(line);
+        else if (!strcmp(tag, "DDs1"))
+          GET_PC_DESCRIPTOR_1(ch) = atoi(line);
+        else if (!strcmp(tag, "DDs2"))
+          GET_PC_DESCRIPTOR_2(ch) = atoi(line);
         else if (!strcmp(tag, "Dex "))
           GET_REAL_DEX(ch) = atoi(line);
         else if (!strcmp(tag, "Drnk"))
@@ -817,6 +837,8 @@ int load_char(const char *name, struct char_data *ch)
           HIGH_ELF_CANTRIP(ch) = atoi(line);
         else if (!strcmp(tag, "HlyW"))
           GET_HOLY_WEAPON_TYPE(ch) = atoi(line);
+        else if (!strcmp(tag, "Home"))
+          GET_REGION(ch) = atoi(line);
         else if (!strcmp(tag, "Host"))
         {
           if (GET_HOST(ch))
@@ -1080,6 +1102,8 @@ int load_char(const char *name, struct char_data *ch)
           load_skill_focus(fl, ch);
         else if (!strcmp(tag, "SpAb"))
           load_spec_abil(fl, ch);
+        else if (!strcmp(tag, "Spek"))
+          SPEAKING(ch) = atoi(line);
         else if (!strcmp(tag, "SpRs"))
           GET_REAL_SPELL_RES(ch) = atoi(line);
         else if (!strcmp(tag, "Size"))
@@ -1354,6 +1378,12 @@ void save_char(struct char_data *ch, int mode)
     strip_cr(buf);
     fprintf(fl, "Desc:\n%s~\n", buf);
   }
+  if (ch->player.background && *ch->player.background)
+  {
+    strlcpy(buf, ch->player.background, sizeof(buf));
+    strip_cr(buf);
+    fprintf(fl, "BGrd:\n%s~\n", buf);
+  }
   if (POOFIN(ch))
     fprintf(fl, "PfIn: %s\n", POOFIN(ch));
   if (POOFOUT(ch))
@@ -1401,6 +1431,13 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "Lnew: %d\n", (int)GET_LAST_NEWS(ch));
 
   fprintf(fl, "DrgB: %d\n", GET_DRAGONBORN_ANCESTRY(ch));
+
+  fprintf(fl, "Spek: %d\n", SPEAKING(ch));
+  fprintf(fl, "Home: %d\n", GET_REGION(ch));
+  fprintf(fl, "DAd1: %d\n", GET_PC_ADJECTIVE_1(ch));
+  fprintf(fl, "DAd2: %d\n", GET_PC_ADJECTIVE_2(ch));
+  fprintf(fl, "DDs1: %d\n", GET_PC_DESCRIPTOR_1(ch));
+  fprintf(fl, "DDs2: %d\n", GET_PC_DESCRIPTOR_2(ch));
 
   if (ch->player_specials->saved.new_race_stats)
     fprintf(fl, "RacR: %d\n", ch->player_specials->saved.new_race_stats);

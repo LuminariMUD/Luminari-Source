@@ -4999,6 +4999,71 @@ ACMD(do_commands)
     column_list(ch, 0, commands, no, FALSE);
 }
 
+ACMDU(do_homelands)
+{
+
+  int i = 0;
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "\tcRegions of Faerun\tn\r\n\r\n");
+    for (i = 1; i < NUM_REGIONS; i++)
+    {
+      send_to_char(ch, "%-20s ", regions[i]);
+      if (((i - 1) % 3) == 2)
+        send_to_char(ch, "\r\n");
+    }
+    if (((i - 1) % 3) != 2)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\nTo view information on a specific region, type: 'homelands (region name)'.\r\n");
+    return;
+  }
+
+  // capitalize first character of words
+  for (i = 0; argument[i] != '\0'; i++)
+  {
+    // check first character is lowercase alphabet
+    if (i == 0)
+    {
+      if ((argument[i] >= 'a' && argument[i] <= 'z'))
+        argument[i] = argument[i] - 32; // subtract 32 to make it capital
+      continue;                         // continue to the loop
+    }
+    if (argument[i] == ' ') // check space
+    {
+      // if space is found, check next character
+      ++i;
+      // check next character is lowercase alphabet
+      if (argument[i] >= 'a' && argument[i] <= 'z')
+      {
+        argument[i] = argument[i] - 32; // subtract 32 to make it capital
+        continue;                       // continue to the loop
+      }
+    }
+    else
+    {
+      // all other uppercase characters should be in lowercase
+      if (argument[i] >= 'A' && argument[i] <= 'Z')
+        argument[i] = argument[i] + 32; // subtract 32 to make it small/lowercase
+    }
+  }
+
+  for (i = 1; i < NUM_REGIONS; i++)
+  {
+    if (is_abbrev(argument, regions[i]))
+    {
+      display_region_info(ch, i);
+      return;
+    }
+  }
+
+  if (i >= NUM_REGIONS)
+  {
+    send_to_char(ch, "That is not a valid region.  Type 'homelands' to see a list.\r\n");
+  }
+}
+
 ACMD(do_history)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -5167,6 +5232,13 @@ ACMD(do_whois)
     send_to_char(ch, "They have mail waiting.\r\n");
   else
     send_to_char(ch, "They have no mail waiting.\r\n");
+
+  if (!IS_NPC(victim) && victim->player.background)
+  {
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "%s", victim->player.background);
+    send_to_char(ch, "\r\n");
+  }
 
   if (PLR_FLAGGED(victim, PLR_DELETED))
     send_to_char(ch, "***DELETED***\r\n");

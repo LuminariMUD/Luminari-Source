@@ -797,6 +797,45 @@
 #define NUM_GENDERS 3
 #define NUM_SEX NUM_GENDERS
 
+#define REGION_NONE                 0
+#define REGION_AGLAROND             1
+#define REGION_AMN                  2
+#define REGION_ANAUROCH_DESERT      3
+#define REGION_CALIMSHAN            4
+#define REGION_CHESSENTA            5
+#define REGION_CHULT                6
+#define REGION_CORMYR               7
+#define REGION_DAMBRATH             8
+#define REGION_ELFHARROW            9
+#define REGION_EVERMEET             10
+#define REGION_HALRUAA              11
+#define REGION_ICEWIND_DALE         12
+#define REGION_IMPILTUR             13
+#define REGION_KARA_TUR             14
+#define REGION_LUIREN               15
+#define REGION_LURUAR               16
+#define REGION_MULHORAND            17
+#define REGION_RASHEMEN             18
+#define REGION_SEMBIA               19
+#define REGION_TETHYR               20
+#define REGION_THAY                 21
+#define REGION_THESK                22
+#define REGION_THE_COLD_LANDS       23
+#define REGION_THE_DALELANDS        24
+#define REGION_THE_HORDELANDS       25
+#define REGION_THE_LAKE_OF_STEAM    26
+#define REGION_THE_MOONSEA          27
+#define REGION_THE_SAVAGE_FRONTIER  28
+#define REGION_THE_SWORD_COAST      29
+#define REGION_THE_UNDERDARK        30
+#define REGION_TURMISH              31
+#define REGION_TYMANTHER            32
+#define REGION_UNTHER               33
+#define REGION_WESTGATE             34
+#define REGION_ZAKHARA              35
+
+#define NUM_REGIONS                 36
+
 /* Positions */
 #define POS_DEAD 0      /**< Position = dead */
 #define POS_MORTALLYW 1 /**< Position = mortally wounded */
@@ -1229,12 +1268,26 @@
 #define CON_HSEDIT 47          /* OLC mode - house edit      .*/
 #define CON_NEWMAIL 48         // new mail system mail composition
 #define CON_CONFIRM_PREMADE 49 // premade build selection
+#define CON_IEDIT 50
+#define CON_QREGION 51
+#define CON_QREGION_HELP 52
+
+// character description system
+#define CON_GEN_DESCS_INTRO 53          /* Introduction text for generic short descs */
+#define CON_GEN_DESCS_DESCRIPTORS_1 54 /* Set descriptor 1 for generic short descs */
+#define CON_GEN_DESCS_DESCRIPTORS_2 55 /* Set descriptor 2 for generic short descs */
+#define CON_GEN_DESCS_ADJECTIVES_1 56  /* Set adjective 1 for generic short descs */
+#define CON_GEN_DESCS_ADJECTIVES_2 57  /* Set adjective 2 for generic short descs */
+#define CON_GEN_DESCS_MENU 58          /* Generic short desc menu */
+#define CON_GEN_DESCS_MENU_PARSE 59    /* Decide what to do from generic short desc menu choice */
+
+#define CON_PLR_BG  60
 
 /* OLC States range - used by IS_IN_OLC and IS_PLAYING */
 #define FIRST_OLC_STATE CON_OEDIT    /**< The first CON_ state that is an OLC */
 #define LAST_OLC_STATE CON_CRAFTEDIT /**< The last CON_ state that is an OLC  */
-#define CON_IEDIT 50
-#define NUM_CON_STATES 51
+
+#define NUM_CON_STATES 61
 
 /* Character equipment positions: used as index for char_data.equipment[] */
 /* NOTE: Don't confuse these constants with the ITEM_ bitvectors
@@ -3455,6 +3508,7 @@
 #define MAX_HELP_KEYWORDS 256     /**< Max length of help keyword string */
 #define MAX_COMPLETED_QUESTS 1024 /**< Maximum number of completed quests allowed */
 #define MAX_ANGER 100             /**< Maximum mob anger/frustration as percentage */
+#define PLR_BG_LENGTH MAX_STRING_LENGTH /**< Max length for PC background story */
 
 /* this is the value we are sending to act when we want it condensed (condensed combat toggle) -zusuk */
 #define ACT_CONDENSE_VALUE -1234
@@ -3847,6 +3901,7 @@ struct char_player_data
     byte pc_subrace;                 // SubRace
     char *walkin;                    // NPC (for now) walkin message
     char *walkout;                   // NPC (for now) walkout message
+    char *background;                // Character Backgrounds
     byte exploit_weaknesses;         // has exploit weaknesses taken effect?
 };
 
@@ -4239,9 +4294,15 @@ struct player_special_data_saved
     int fiendish_boons;                                 // active fiendish boons by blackguard
     int channel_energy_type;                            // neutral clerics must decide either positive or negative
     int deity;                                          // what deity does the person follow?
-    // int languages_known[NUM_LANGUAGES]; // languages known by the character
+    int languages_known[NUM_LANGUAGES]; // languages known by the character
     int speaking; // language currently being spoken, defaults to common
     int region;   // the region in which a human hails from.  Used for languages
+
+    // used for the character short description system
+    int sdesc_descriptor_1;
+    int sdesc_descriptor_2;
+    int sdesc_adjective_1;
+    int sdesc_adjective_2;
 
     byte judgement_enabled[NUM_INQ_JUDGEMENTS]; // which inquisitor judgements are active
     int bane_enemy_type;                        // which type of enemy the inquisitor's bane effect with target

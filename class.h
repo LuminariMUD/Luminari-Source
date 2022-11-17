@@ -126,6 +126,8 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
 bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output);
 bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output);
 
+bool display_region_info(struct char_data *ch, int region);
+
 /* ACMD */
 ACMD_DECL(do_class);
 

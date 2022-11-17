@@ -113,6 +113,8 @@ void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
 bool valid_vampire_cloak_apply(int type);
+int get_region_language(int region);
+const char *get_region_info(int region);
 int get_vampire_cloak_bonus(int level, int type);
 bool can_silence(struct char_data *ch);
 int get_default_spell_weapon(struct char_data *ch);
@@ -732,6 +734,12 @@ void char_from_furniture(struct char_data *ch);
 
 /** Checks to see if a PC or NPC is dead. */
 #define DEAD(ch) (PLR_FLAGGED((ch), PLR_NOTDEADYET) || MOB_FLAGGED((ch), MOB_NOTDEADYET))
+
+// used for the character short description system
+#define GET_PC_DESCRIPTOR_1(ch) (ch->player_specials->saved.sdesc_descriptor_1)
+#define GET_PC_DESCRIPTOR_2(ch) (ch->player_specials->saved.sdesc_descriptor_2)
+#define GET_PC_ADJECTIVE_1(ch) (ch->player_specials->saved.sdesc_adjective_1)
+#define GET_PC_ADJECTIVE_2(ch) (ch->player_specials->saved.sdesc_adjective_2)
 
 /* room utils */
 
@@ -1949,6 +1957,13 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_DARK_DWARF(ch) (!IS_NPC(ch) && \
                            (GET_RACE(ch) == RACE_DUERGAR))
 
+// backwards compatibility for old circlemud code snippets
+#define SEND_TO_Q(buf, desc) (write_to_output(desc, "%s", buf))
+
+// language stuff
+#define SPEAKING(ch) (ch->player_specials->saved.speaking)
+#define CAN_SPEAK(ch, i) (can_speak_language(ch, i))
+#define GET_REGION(ch) (ch->player_specials->saved.region)
 #define GET_LANG(ch)     ((ch)->player_specials->saved.speaking)
 
 #define HIGH_ELF_CANTRIP(ch)	(ch->player_specials->saved.high_elf_cantrip)

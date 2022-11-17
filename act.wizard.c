@@ -3805,6 +3805,9 @@ const struct set_struct
     {"blackguard", LVL_IMPL, PC, NUMBER},       /* 99 */
     {"assassin", LVL_IMPL, PC, NUMBER},         /* 100 */
     {"inquisitor", LVL_IMPL, PC, NUMBER},       /* 101 */
+    {"homeland", LVL_STAFF, PC, NUMBER},         /* 102 */
+    {"region", LVL_STAFF, PC, NUMBER},           /* 103 */
+    {"shortdesc", LVL_STAFF, PC, MISC},          /* 104 */
 
     {"\n", 0, BOTH, MISC},
 };
@@ -3848,6 +3851,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   room_vnum rvnum;
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int class = CLASS_UNDEFINED;
+  char buf1[LONG_STRING];
 
   /* Check to make sure all the levels are correct */
   if (GET_LEVEL(ch) != LVL_IMPL)
@@ -4526,6 +4530,64 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
   case 101: // inquisitor
     CLASS_LEVEL(vict, CLASS_INQUISITOR) = RANGE(0, LVL_IMMORT - 1);
     affect_total(vict);
+    break;
+
+  case 102:
+  case 103:
+    if (!*val_arg)
+    {
+      send_to_char(ch, "\tcRegions of Faerun\tn\r\n\r\n");
+      for (i = 1; i < NUM_REGIONS; i++)
+      {
+        send_to_char(ch, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(ch, "\r\n");
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(ch, "\r\n");
+      send_to_char(ch, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                       "may be integrated into future game systems.\r\n");
+      send_to_char(ch, "Type 'quit' to exit out of region selection.\r\n");
+      send_to_char(ch, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+    }
+    else
+    {
+      if (value <= 0 || value >= NUM_REGIONS)
+      {
+        send_to_char(ch, "That is not a valid homeland region.  For a list, type 'homelands'.\r\n");
+        return 0;
+      }
+      GET_REGION(vict) = value;
+      snprintf(buf1, sizeof(buf1), "You set $N's homeland to %s.\r\n", regions[value]);
+      act(buf1, FALSE, ch, 0, vict, TO_CHAR);
+      snprintf(buf1, sizeof(buf1), "$n sets your homeland to %s.\r\n", regions[value]);
+      act(buf1, FALSE, ch, 0, vict, TO_VICT);
+      save_char(vict, 0);
+    }
+    break;
+
+  case 104:
+    if (!*val_arg)
+    {
+      send_to_char(ch, "Please specify 'reset' to reset a player's short description.\r\n");
+      return (0);
+    }
+    if (is_abbrev(val_arg, "reset"))
+    {
+      GET_PC_DESCRIPTOR_1(vict) = 0;
+      GET_PC_ADJECTIVE_1(vict) = 0;
+      GET_PC_DESCRIPTOR_2(vict) = 0;
+      GET_PC_ADJECTIVE_2(vict) = 0;
+      act("You reset $N's short description.", FALSE, ch, 0, vict, TO_CHAR);
+      act("$n resets your short description. Type 'quit' and select the menu item corresponding to short description selection.", FALSE, ch, 0, vict, TO_VICT);
+      save_char(vict, 0);
+      break;
+    }
+    else
+    {
+      send_to_char(ch, "Please specify 'reset' to reset a player's short description.\r\n");
+      return (0);
+    }
     break;
 
   default:

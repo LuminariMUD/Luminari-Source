@@ -55,6 +55,10 @@ sbyte has_racial_abils_unchosen(struct char_data *ch);
 int valid_class_race_alignment(int class, int race);
 /* returns 1 for valid alignment, returns 0 for problem with alignment */
 int valid_align_by_race(int alignment, int race);
+bool has_scales(int race);
+bool has_horns(int race);
+bool is_furry(int race);
+bool race_has_no_hair(int race);
 
 /* ACMD */
 ACMD_DECL(do_race);

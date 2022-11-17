@@ -648,6 +648,7 @@ ACMDU(do_gen_comm)
     case CON_QCLASS_HELP:
     case CON_QALIGN:
     case CON_QRACE_HELP:
+    case CON_PLR_BG:
       continue;
     }
 
