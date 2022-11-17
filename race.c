@@ -3799,6 +3799,220 @@ int valid_align_by_race(int alignment, int race)
   return (race_list[race].alignments[alignment]);
 }
 
+const char *get_region_info(int region)
+{
+  switch (region)
+  {
+  case REGION_AMN:
+    return "A nation led by the representatives of five noble families, Amn is a place where the wealthy rule, openly and without pretense. Shrewd traders and ruthless in business, Amnians believe that the end of a successful transaction is justified by any means, ethical or otherwise. Although the nation is richer by far than even the northern metropolises of Baldur's Gate and Waterdeep, its influence is curtailed by the unwillingness of its rulers to work together in the nation's best interest. The members of the Council of Five are fairly unified and tight-fisted in their control of Amn, but their ability to affect events outside their own borders is limited because they can't agree enough on major matters of foreign policy. The oligarchs utterly control their nation, but beyond the areas that each rules, their families and businesses compete with one another and with the locals of far-flung places.\r\n\r\n"
+           "The use of arcane magic is illegal in Amn, meaning that the only authorized spellcasters in the nation are wielders of divine magic who enjoy the support and patronage of a temple, and users of arcane magic who have been given special dispensation by one of the oligarchs. So pervasive is the sway of Amn's oligarchy that few crimes merit physical punishment but those that involve the use of arcane magic or an offense against one of the council's merchant houses. Other infractions are forgiven after the miscreant makes payment of an appropriate fine.";
+  case REGION_CALIMSHAN:
+    return "This southern land has long been the battleground for warring genies. After years of struggling beneath their genasi masters, human slaves arose to follow a Chosen of Ilmater, at first using nonviolent resistance, and then erupting in full rebellion following his disappearance. They overthrew the genie lords of Calimport and Memnon, casting the remaining genies out of the cities and back to their elemental homes or into the depths of the deserts.\r\n\r\n"
+           "Much of Calimshan is a chaotic place dominated by wealth, political influence, and personal power. Many pray for the return of the Chosen and the completion of his work. Others are learning to live together without genie masters, and to grudgingly accept the remaining genasi among them.";
+  case REGION_CHULT:
+    return "The vast, choking jungles of Chult hide what many believe to be great mineral wealth, including large gemstones and veins of ore. Poisonous flora and fauna riddle the jungles, but some still brave the dangers to seek their fortunes. Some of the exotic plants that grow only in Chult fetch high prices in mainland markets. Ruined Mezro stands across the sea from Calimshan, waiting for explorers and its displaced people to cleanse the city of its undead inhabitants and uncover the treasures that lie hidden there.\r\n\r\n"
+           "Eastward along the Chultan peninsula lie the remains of Thindol and Samarach. Despite the apparent fall of both civilizations, Thindol remains infested with yuan-ti, while the illusions cloaking Samarach's mountain passes conceal the activities in that nation.";
+  case REGION_DAMBRATH:
+    return "Situated on a warm plain on the shore of the Great Sea, Dambrath is ruled by nomadic clans of human horse riders who revere Silvanus, Malar, and occasionally Selune. Given the Dambrathans' history of domination by the Crinti, a ruling caste of half-drow, it is no surprise that they reserve their greatest hatred for the drow.\r\n\r\n"
+           "The clans meet twice a year at a sacred site known as the Hills of the Kings, where dozens of totem sculptures are preserved. At these gatherings, each clan updates its totem with an account of its exploits over the previous seasons. Many Dambrathans seek out lycanthropy as a means of showing reverence for their favored deity and honoring their heritage.";
+  case REGION_ELFHARROW:
+    return "A blasted near-desert north and east of the North Wall mountains bordering Halruaa, Elfharrow isn't a name bestowed by its residents, but rather the sobriquet that travelers use for this violent region. The tribes of xenophobic elves that claim this area don't hesitate to discourage uninvited guests by any means necessary. A simple group of pilgrims might be scared off with some arrows, while a band of hunters or explorers is likely to be killed outright.\r\n\r\n"
+           "Food is sparse in this region, with the forests long since vanished, and as a result the elves of Elfharrow fiercely protect the herds of animals they have cultivated. The elves have no interest in looting the cities of fallen Lapaliiya, but neither are they willing to allow 'adventurers' free access to those lands through their territory.";
+  case REGION_HALRUAA:
+    return "Once believed destroyed in the conflagration of the Spellplague, Halruaa has largely been restored to the insular, magic-mighty nation it once was. Because of the foresight of their divinations, Halruaan wizards were able to use the raging blue fire that followed Mystra's death to propel their nation safely into the realm of Toril's twin, Abeir (displacing part of that world into the Plane of Shadow).\r\n\r\n"
+           "Now that the events of those times have mostly been undone, the famed Halruaan skyships and waterborne vessels have spread out from their home once again, seeking to establish trading routes and political connections, as well as to learn what has changed of the world in their century of absence.";
+  case REGION_THE_LAKE_OF_STEAM:
+    return "Far to the south and east of the Sword Coast, the Lake of Steam is more accurately an inland sea, its waters tainted by volcanism and undrinkable. Around its perimeter is a conglomeration of city-states and minor baronies typified by the shifting domains known as the Border Kingdoms. Here, along the southern shore of the lake, explorers and fortune seekers squander their amassed wealth building castles, founding communities, and drawing loyal vassals to them - only to have all those good works disappear within a generation or two. In some cases, one of these realms is fortunate to be saved from its inevitable decline by another group of successful adventurers, who inject enough wealth and wisdom to keep the enterprise going a few more decades.";
+  case REGION_LUIREN:
+    return "Long the homeland of halflings and thought to be the place where their race had its genesis, Luiren was lost during the Spellplague to a great inundation of the sea. In the century since that great disaster, the waters receded, and now stories told by travelers from the south tell of halfling communities that survived as island redoubts.";
+  case REGION_TETHYR:
+    return "Tethyr is a feudal realm ruled by Queen Anais from its capital of Darromar. The queen commands her dukes, who in turn receive homage from the counts and countesses of the realm, appoint sheriffs over their counties, and generally maintain order. The farmlands of Tethyr are abundant, and its markets flow freely with trade from the Western Heartlands.\r\n\r\n"
+           "Tethyr has seen more than its share of noble intrigue and royal murder, and adventurers who are native to Tethyr or merely passing through that land are often drawn into such plots, either as unwitting accomplices or as easy scapegoats.";
+  case REGION_AGLAROND:
+    return "The great peninsula of Aglarond juts out into the Inner Sea, and that body of water and the forests of the Yuirwood define much of the nation's character. A realm of humans living in harmony with their elf and half-elf neighbors, Aglarond has been a foe of Thay for centuries, in part due to the temperament of its former ruler, the Simbul. The nation is now ruled by a Simbarch Council, which has backed away from open hostilities with Thay. With the restoration of the Weave, the ongoing changes to the political landscape, and calls for elven independence within the nation, it is unclear what sort of place Aglarond will be in a generation's time, except that its potential for great change will be realized.";
+  case REGION_CHESSENTA:
+    return "A collection of city-states bound by common culture and mutual defense, Chessenta isn't truly a nation. Each city boasts its own heroes, worships its own gladiatorial champions, and spends as much time insulting and competing with the other cities as it does on any other activity. The city of Luthcheq is dominated by worship of the bizarre deity known as Entropy, while Erebos is ruled by the latest incarnation of the red dragon known as Tchazzar the Undying. Heptios contains the largest library in Chessenta, a center of learning where all nobles aspire to send their children for tutoring. That city is looked on with disdain by the people of Akanax, whose militant contempt for the 'fat philosophers' of Heptios is widely known. Toreus welcomes all visitors, even those from lands that are despised or mistrusted, and foreign coin can buy nearly anything there. The floating city of Airspur still flies somehow, its earthmotes unaffected by the fall of its fellows when the Sundering came to a close.";
+  case REGION_CORMYR:
+    return "For most folk in central Faerun, the notion of a human kingdom is inextricably linked to Cormyr. A strong realm bolstered by its loyal army (the Purple Dragons), a cadre of magical defenders and investigators (the War Wizards), and numerous wealthy and influential nobles, Cormyr is recovering from its war with Sembia and Netheril - a conflict that cost the nation much, but left the kingdom standing, and which, in the end, Netheril didn't survive. The pride of that victory remains strong in Cormyr's collective consciousness, even as Queen Raedra draws back from plans to permanently welcome into the realm towns that lie beyond Cormyr's traditional borders.\r\n"
+           "Cormyreans are justly proud of their homeland, and go to great lengths to guard it and its honor. Still, there is no shortage of danger in the Forest Kingdom, whether from scheming, treacherous nobles, monsters out of the Hullack Forest or the Stonelands, or some ancient, hidden magic. Cormyr is many things, but dull isn't one of them.";
+  case REGION_THE_COLD_LANDS:
+    return "The nations of Damara, Narfell, Sossal, and Vaasa, known collectively to most Faerunians as the Cold Lands, rest near the Great Glacier in the cold, dry environs of the northeast. Few outside the region have much interest in what goes on here, except for those in the immediately surrounding lands, who fear a resurgence of the ancient evils of the region - though they aren't fearful enough to do more than send an adventuring party or two into the area to investigate.\r\n\r\n"
+           "In Damara, the usurper King Yarin Frostmantle sits on the throne of the Dragonbane dynasty, while his people complain about his tyranny and the growing threat from demons across the country. In Narfell, skilled riders and archers hunt, raid, and are gradually reclaiming their heritage as a great nation of mages who treated with devils. The Warlock Knights of Vaasa threaten to break the bounds of their nation and invade Damara, the Moonsea, or both, while some of its members suspiciously eye the ominously silent Castle Perilous, perhaps planning another excursion to the place. The tiny nation of Sossal trades with its neighbors, but shares little of itself with the wider world.";
+  case REGION_THE_DALELANDS:
+    return "The humans who call the Dalelands home want nothing more than lives untroubled by the concerns of larger nations. They take great pride in their peaceful coexistence with the elves of Cormanthor, and in their ability to remain largely self-sufficient and autonomous even when their homeland was used as a battlefield by Cormyr, Netheril, Sembia, and Myth Drannor in the recent conflicts. Featherdale and Tasseldale have reasserted their independence since the end of the war, and rejoined Archendale, Battledale, Daggerdale, Deepingdale, Harrowdale, Mistledale, Scardale, and Shadowdale on the Dales Council. The High Dale did the same shortly afterward.\r\n\r\n"
+           "Dalesfolk are mistrustful of anyone unwilling to sacrifice for the common good, but those who put in good work - whether in defense or labor - are accepted as equals, entitled to share in the rewards from their toil.";
+  case REGION_THE_HORDELANDS:
+    return "Formerly known as the Endless Wastes, this land has gained a new name among Faerunians, styled after the vast Tuigan horde that roared out of the east and rode against Faerun more than a century ago. After these tribesfolk were defeated, some of the fierce, mounted warriors who survived the conflict gathered to form the small nation of Yaïmunnahar. Some others cling to the old ways, mastering the sword and the bow and riding across the steppes on their short-legged horses. Brave merchants still traverse the Golden Way to and from Kara-Tur, but those who return from such a voyage are fewer than they once were.";
+  case REGION_IMPILTUR:
+    return "With the rising of the waters of the Sea of Fallen Stars, some of Impiltur's wealth and influence is returning, leading to whispers among the populace that a lost king of the line of old will rise up to lift Impiltur out of its woes and back to the great nation it once was.\r\n\r\n"
+           "Impiltur is a nation of humans with pockets of dwarves and halflings among its populace. Where once a long royal line sat its throne and ruled over a unified kingdom, now a Grand Council sits around a table and struggles to combat the presence of demons, and demon worship, within the nation's borders.";
+  case REGION_THE_MOONSEA:
+    return "The shores of the Moonsea have long been home to cities that rise swiftly, relying on vigorous trade and gathering powerful mercenaries to their banners, only to overextend themselves and fall - sometimes crumbling over time, and sometimes dropping like stones from the sky.\r\n\r\n"
+           "Now that Netheril and Myth Drannor have fallen, those two great powers can no longer exert their influence over the Moonsea, allowing the city of Hillsfar to spread its wings and eye southward expansion, and Mulmaster to once again further the worship of Bane. Phlan, Teshwave, Thentia, and Voonlar - all Moonsea cities where greater powers jockeyed for influence - now work to find their own identities before an unchecked or malevolent realm swallows them, one by one.\r\n\r\n"
+           "This region is also home to the ruins of the Citadel of the Raven and Zhentil Keep, former strongholds of the Zhentarim, which the Black Network shows occasional interest in restoring.";
+  case REGION_MULHORAND:
+    return "Since the Chosen of the gods began to appear in the last few years, Mulhorand has become a land transformed. Its deities manifested fully in the forms of some of their descendants, and swiftly rallied the Mulan to overthrow the Imaskari. Aided by the mighty wizard Nezram, known as the World-Walker, the Mulhorandi overthrew the rulers of High Imaskar, who fled into the Plains of Purple Dust or to extraplanar safeholds.\r\n\r\n"
+           "When the upheaval ended and the Chosen began to disappear, the gods of Mulhorand remained to rule their people, focusing their attention on defending their restored homeland to keep the war in Unther and Tymanther from spilling over its borders. For the first time in centuries, the people in Mulhorand are free, with the gods declaring that slavery shall no longer be practiced among the Mulan since their return.";
+  case REGION_RASHEMEN:
+    return "A harsh, cold land filled with hardy folk, Rashemen is a fiercely traditional nation. It is ruled by its Iron Lord, Mangan Uruk, who speaks for the power behind the throne: the Wychlaran, the society of masked witches that determine Rashemen's course. These witches wield great powers tied to the land and its magic and guard against evil fey and vengeful spirits. A small number of male spellcasters, known as the Old Ones, create magic items and weave arcane rituals for the witches. Rashemi witches revere the Three, a triumvirate of goddesses they call Bhalla (the Den Mother), Khelliara (the Forest Maiden), and the Hidden One. Over the centuries, scholars in other lands have speculated that these deities might be faces of Chauntea, Mielikki, and Mystra, respectively.\r\n\r\n"
+           "The nation's warriors are a fierce, stoic lot, famed for their strength, endurance, and stubbornness in battle. Rashemen is a long-standing enemy of Thay, and has often thwarted that nation's ambitions to rule Faerun. Little pleases a Rashemi warrior more than the chance to strike down a Red Wizard in battle.";
+  case REGION_SEMBIA:
+    return "Following a period of subjugation at the hands of Netheril, Sembia is already on its way to becoming the economic power it was in prior years. Although relations are cool with the Dales and Cormyr following the most recent war, Sembian merchants are quick to dismiss previous conflicts as the work of the Netherese, and remind their former trading partners of the long and mutually profitable relationships they previously enjoyed. To prove its good intentions, Sembia has 'allowed' Featherdale and Tasseldale to regain their independence, even though Sembian investors had owned much of Featherdale for nearly seventy years when the war came to an end.\r\n\r\n"
+           "Before Netheril claimed Sembia as a vassal state, mercenary work and adventuring were popular livelihoods among Sembians who didn't have local families to feed. Those endeavors are even more popular now among veterans of the war, who are better trained than their predecessors were. A few of Sembia's less scrupulous former soldiers have taken to banditry, which offers other Sembians more opportunities for guard work.";
+  case REGION_THAY:
+    return "For centuries one of the greatest concentrations of magical might in Faerun, Thay is ruled by the ancient lich, Szass Tam, and the nation's Council of Zulkirs in a ruthless magocracy. The council's will is enacted by regional tharchions and bureaucrats, leaving the ruling Red Wizards to focus on magical study and more important arcane matters.\r\n\r\n"
+           "For a time, living mages couldn't hope to advance to prominence in Thay: Szass Tam promoted undeath as a means of existence with boundless possibilities, and held back those who didn't agree with this philosophy. The recent battles with the demon Eltab, however, have prompted Szass Tam to loosen this stricture - the living now have hope of ascending within the Red Wizards, even if that hope is merely to advance to a high station within the cadre of Tam's servants.";
+  case REGION_THESK:
+    return "Reminders of the century-old war with the Tuigan horde remain throughout Thesk, in the many and varied features of its present-day inhabitants, particularly the half-orc descendants of the mercenaries who fought in that great conflict.\r\n\r\n"
+           "Thesk is known to many as the Gateway to the East because it is the western terminus of the Golden Way, which runs through the Hordelands and into Kara-Tur. Because their city is a crossroads of sorts between Faerun and the east, it should come as no surprise that Theskians don't judge outsiders quickly, and don't bristle at visitors who demonstrate strange quirks in speech or behavior. The people of Thesk trade readily with any folk, even nearby orcs and goblins that are willing to treat with them peacefully. They aren't fools, however, and have no patience for violent or raiding humanoids of all sorts.";
+  case REGION_TURMISH:
+    return "On the southern shore of the Sea of Fallen Stars, Turmish is a nation of mercantile cities ruled by its Assembly of Stars, representatives of each of its cities in a parliamentary democracy. After being much diminished by the devastation wrought in this area a century ago, Turmish is currently enjoying a revival of its fortunes, as the rising of the waters of the Inner Sea has returned some of the trade that was lost in the cataclysm. Turmish is the birthplace of the Emerald Enclave, which has proudly taken credit for the rebirth of Turmishan agriculture, the cessation of the great rains that plagued the region a few years ago, and the restoration of the god Lathander.";
+  case REGION_TYMANTHER:
+    return "In decades past, the land of the dragonborn claimed as its territory part of what had been the vanished nation of Unther. Then Unther suddenly returned to Faerun a few years ago and promptly went to war against Tymanther. The realm has since been reduced to small tracts mainly along the coast of the Alamber Sea and Ash Lake. The dragonborn that have withdrawn to those areas have lost none of their military tradition, and their ability to hold this smaller amount of territory makes it unlikely that Unther will push farther any time soon - particularly since the Untherite navy has been unable to overcome the great beast that guards the harbor of Djerad Kethendi and the nearby waters of the Alamber.\r\n\r\n"
+           "Some of Tymanther's dragonborn have spread across Faerun and gained reputations as competent, highly sought-after mercenaries.";
+  case REGION_UNTHER:
+    return "Trapped in another world, the people of Unther had succumbed to domination by others. Then among them arose one who called himself Gilgeam, and he reminded them of their former greatness. Under the leadership of this reincarnated god, the people of Unther rose up as an army to face their masters. On the eve of a great battle, the people of Unther were miraculously returned to their home, and Gilgeam wasted no time in leading them against the dragonborn occupying their ancestral lands. The Untherites have retaken much of the land they formerly held, while seeking to wipe out the 'godless lizards' they blame for their time of oppression in Abeir.\r\n\r\n"
+           "Gilgeam wants nothing short of a complete return to Unther's former glory. This achievement will require utterly destroying Tymanther, of course, and eventual war with Mulhorand to reclaim lands lost centuries ago, but as every Untherite knows, the great God-King is patient, for he is eternal.";
+  case REGION_WESTGATE:
+    return "The dismal city of Westgate isn't a romantic place, but someone seeking employment for shady work, or looking to hire someone for the same, will find few places better suited in all of Faerun.\r\n\r\n"
+           "Westgate is considered by some Faerunians as a harbinger of the eventual fate of places like Amn and Sembia, where coin rules over all other considerations. As in many such places, one's moral outlook is less important in Westgate than one's attitude toward bribery. The city's proximity to Cormyr makes it a breeding ground for that nation's enemies, including the Fire Knives, a guild of thieves and assassins that the naive pretend doesn't exist.";
+  case REGION_KARA_TUR:
+    return "Far to the east, past the wastes of the Hordelands, lie the empires of Shou Lung, Kozakura, Wa, and the other lands of the vast continent of Kara-Tur. To most people of Faerun, Kara-Tur is like another world, and the tales told by travelers from its nations seem to confirm it. The gods that humans worship in Faerun are unknown there, as are common peoples such as gnomes and orcs. Other dragons, neither chromatic nor metallic, dwell in its lands and fly its skies. And its mages practice forms of magic mysterious even to archwizards of Faerun.\r\n\r\n"
+           "Stories of Kara-Tur tell of gold and jade in great abundance, rich spices, silks, and other goods rare or unknown in western lands - alongside tales of shapechanging spirit-people, horned giants, and nightmare monsters absent in Faerun.";
+  case REGION_ZAKHARA:
+    return "Far to the south of Faerun, beyond Calimshan and even the jungles of Chult, are the Lands of Fate. Surrounded by waters thick with pirates and corsairs, Zakhara is a place less hospitable than most, but still braved by travelers who hope to profit from its exotic goods and strange magics. Like Kara-Tur, Zakhara seems a world away to Faerunians. It is thought of as a vast desert, sprinkled with glittering cities like scattered gems. Romantic tales abound of scimitar-wielding rogues riding flying carpets and of genies bound in service to humans. Their mages, called sha'ir, practice their magic with the aid of genies and, it is said, might carry the lineage of these elemental beings in their blood.\r\n";
+  case REGION_ICEWIND_DALE:
+    return "Icewind Dale is an arctic tundra located in the Frozenfar region of the North, known for being the northernmost explored region in all of Faerun. It earned its name from the harsh winds and icy storms that destroyed buildings and scoured the landscape.\r\n\r\n"
+           "The dale is a harsh, near-uninhabitable land that regularly plunges below freezing temperatures, and receives little sunlight, particularly during the severe winter months. It is home to only the most hardened of frontiersmen, pioneers, and barbarians. Beyond the sporadic dots of civilization dwelled terrifying beasts and deadly monsters of the North.";
+  case REGION_THE_SWORD_COAST:
+    return "The Sword Coast is a region on the northwestern coast of Faerun. While it comprises a rough landscape of rugged hills, precarious mountain ranges and dense forests, it is home to several like-minded towns and cities. The most prominent of these cities banded together with nearby allies to form the Lords' Alliance, which unites much of the region.\r\n\r\n"
+           "This vast region of the North stretches all the way from the Spine of the World in the north, south to the great metropolis of Waterdeep. It is bordered on the west by the coastland of the Sea of Swords and along the east by the Long Road.";
+  case REGION_LURUAR:
+    return "Luruar, also commonly known as the Silver Marches, is a confederation of cities in the north of Faerun, under the leadership of Alustriel Silverhand, former ruler of Silverymoon. It consists of Silverymoon, Citadel Adbar, Deadsnows, Jalanthar, Quaervarr, Citadel Felbarr, Everlund, Mithral Hall, and Sundabar, and its goal is to protect the North against the growing horde of orcs in the mountains. The nation is also a member of the Lords' Alliance.\r\n"
+           "It was bordered by the Anauroch desert to the east, the High Forest to the south, the Savage Frontier to the west and the Spine of the World mountain range to the north. It also shares a border with the kingdom of Many-Arrows.";
+  case REGION_EVERMEET:
+    return "The island nation Evermeet, occasionally known as the Green Isle, is the last true kingdom of, and the final destination for all non-drow Tel'Quessir ('elves') on Faerun. Very few non-elves have ever been permitted to visit.\r\n"
+           "Much of Evermeet's architecture is created by magical means, most notably by the use of the spell construction.\r\n\r\n"
+           "The north of the island is made up of rugged terrain with steep headlands and covered in dark pine forest.\r\n\r\n"
+           "The eastern shore is heavily forested with oaks and evergreen right up to the calm, deep blue waters of the sea.";
+  case REGION_THE_SAVAGE_FRONTIER:
+    return "The Savage Frontier is the region of northwest Faerun north of the Delimbiyr River, excluding the Sword Coast North, the High Forest and the nation of Luruar, also known as the Silver Marches. In contrast to the civilized cities found to the south and west, the Savage Frontier comprises rural farmsteads and rough settlements of miners and loggers.\r\n\r\n"
+           "It is a temperate land, with rugged landscape that is rich with natural resources.";
+  case REGION_ANAUROCH_DESERT:
+    return "Anauroch, or The Great Sand Sea, is a magical desert in northern Faerun. It holds the remnants of the once-powerful Netherese Empire, their flying enclaves having crashed to the ground when their greatest mage Karsus, in a desperate bid to end the war against the phaerimm, challenged the goddess Mystryl for her divine mantle, causing the Weave to falter and all magic to fail. For generations since, Anauroch, the greatest desert in Faerun, encroached relentlessly on border nations, burying them beneath the sands.\r\n\r\n"
+           "The returned masters of Anauroch, the ancient Netherese wizards of Thultanthar, warped and twisted by their long exile in the Plane of Shadow, were determined to retake what they considered their birthright, longing to restore the barren wasteland that was Anauroch to the once-fertile land of Netheril. The Shadovar had a regimented society, ruled by Telamont Tanthul and his Princes of Shade, all working in unison, toughened by centuries of hardship in the Plane of Shadow, to accomplish their common goal. They all but ignored the Bedine and Zhentarim, considering them beneath their notice.";
+  case REGION_THE_UNDERDARK:
+    return "The Underdark is the vast network of underground caverns and tunnels underneath the surface of Toril. It is home to a host of evil beings driven deep into the caverns at the end of the age of demons.\r\n\r\n"
+           "The Underdark is not one giant cavern under Faerun, but rather, many huge networks of caverns and caves. As a result, it is not always possible to travel from one end of the Underdark to the other. The Underdark is divided into several domains that were similar to continents of the world above. While it is possible to travel from one place to another within a domain, separate domains tend to have very few passages linking them. The major domains of the Underdark are the Buried Realms, the Darklands, the Deep Wastes, the Earthroot, the Glimmersea, Great Bhaerynden, the Northdark, and Old Shanatar.";
+  }
+  return "Undefined";
+}
+
+int get_region_language(int region)
+{
+  switch (region)
+  {
+  case REGION_AGLAROND:
+  case REGION_WESTGATE:
+    return LANG_AGLARONDAN;
+
+  case REGION_AMN:
+    return LANG_THORASS;
+
+  case REGION_ANAUROCH_DESERT:
+    return LANG_NETHERESE;
+
+  case REGION_CALIMSHAN:
+  case REGION_TETHYR:
+    return LANG_ALZHEDO;
+
+  case REGION_CHESSENTA:
+  case REGION_THAY:
+  case REGION_MULHORAND:
+    return LANG_MULAN;
+
+  case REGION_CHULT:
+    return LANG_CHULTAN;
+
+  case REGION_CORMYR:
+  case REGION_LURUAR:
+  case REGION_SEMBIA:
+  case REGION_THE_DALELANDS:
+    return LANG_CHONDATHAN;
+
+  case REGION_DAMBRATH:
+    return LANG_DAMBRATHAN;
+
+  case REGION_ELFHARROW:
+  case REGION_EVERMEET:
+    return LANG_ELVISH;
+
+  case REGION_HALRUAA:
+    return LANG_HALRUAAN;
+
+  case REGION_ICEWIND_DALE:
+  case REGION_THE_SWORD_COAST:
+  case REGION_THE_SAVAGE_FRONTIER:
+    return LANG_ILLUSKAN;
+
+  case REGION_IMPILTUR:
+  case REGION_THESK:
+  case REGION_THE_COLD_LANDS:
+  case REGION_THE_MOONSEA:
+    return LANG_DAMARAN;
+
+  case REGION_KARA_TUR:
+    return LANG_SHOU;
+
+  case REGION_LUIREN:
+    return LANG_HALFLING;
+
+  case REGION_RASHEMEN:
+    return LANG_RASHEMI;
+
+  case REGION_THE_UNDERDARK:
+    return LANG_UNDERCOMMON;
+
+  case REGION_THE_HORDELANDS:
+    return LANG_GURAN;
+
+  case REGION_THE_LAKE_OF_STEAM:
+  case REGION_TURMISH:
+  case REGION_UNTHER:
+    return LANG_SHAARAN;
+
+  case REGION_TYMANTHER:
+    return LANG_DRACONIC;
+
+  case REGION_ZAKHARA:
+    return LANG_MIDANI;
+
+  default:
+    return LANG_COMMON;
+  }
+  return LANG_COMMON;
+}
+
+bool is_furry(int race)
+{
+  return (race == RACE_TABAXI);
+}
+
+bool has_horns(int race)
+{
+  return (race == RACE_TIEFLING);
+}
+
+bool has_scales(int race)
+{
+  return (race == RACE_DRAGONBORN);
+}
+
+bool race_has_no_hair(int race)
+{
+  return (race == RACE_DRAGONBORN);
+}
+
 /*
 int get_size(struct char_data *ch) {
   int racenum;

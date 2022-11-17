@@ -1886,6 +1886,16 @@ const char *connected_types[] = {
     "Composing Mail Message",
     "Confirm Premade",
     "Iedit Menu",
+    "Select Region",
+    "Select Region Help",
+    "Select Descriptions Intro",
+    "Select Descriptors 1",
+    "Select Descriptors 2",
+    "Select Adjectives 1",
+    "Select Adjectives 2",
+    "Select Descriptions Menu",
+    "Select Descriptions Menu Parse",
+    "Enter Background Story",
     "\n" /* make sure this matches NUM_CON_STATES */
 };
 CHECK_TABLE_SIZE(connected_types, NUM_CON_STATES + 1);
@@ -3659,6 +3669,51 @@ const char *ability_names[] = {
     "planes",
     "\n"};
 
+const char *languages[] =
+    {
+        "common",
+        "dwarfish",
+        "elvish",
+        "giant",
+        "gnomish",
+        "goblin",
+        "halfling",
+        "orc",
+        "abyssal",
+        "celestial",
+        "deep-speech",
+        "draconic",
+        "infernal",
+        "primordial",
+        "sylvan",
+        "undercommon",
+        "aglarondan",
+        "alzhedo",
+        "chondathan",
+        "chultan",
+        "damaran",
+        "dambrathan",
+        "guran",
+        "halruaan",
+        "illuskan",
+        "midani",
+        "mulan",
+        "nar",
+        "netherese",
+        "rashemi",
+        "roushoum",
+        "shaaran",
+        "shou",
+        "thorass",
+        "tuigan",
+        "turmic",
+        "uluik",
+        "waelan",
+        "druidic",
+        "thieves-cant",
+        "\n"};
+CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
+
 const char *draconic_heritage_names[] = {
     "none",
     "black",
@@ -4932,6 +4987,47 @@ const char *sector_map_letters[NUM_ROOM_SECTORS + 1] = {
     "~", "=", "^", "]", "|", "-", "+", "C", "&", ".", "A",
     ":", "*", "?", "~",
     "\n"};
+
+// region names
+const char *regions[] = {
+    "none",
+    "Aglarond",
+    "Amn",
+    "Anauroch Desert",
+    "Calimshan",
+    "Chessenta",
+    "Chult",
+    "Cormyr",
+    "Dambrath",
+    "Elfharrow",
+    "Evermeet",
+    "Halruaa",
+    "Icewind Dale",
+    "Impilitur",
+    "Kara-Tur",
+    "Luiren",
+    "Luruar",
+    "Mulhorand",
+    "Rashemen",
+    "Sembia",
+    "Tethyr",
+    "Thay",
+    "Thesk",
+    "The Cold Lands",
+    "The Dalelands",
+    "The Hordelands",
+    "The Lake of Steam",
+    "The Moonsea",
+    "The Savage Frontier",
+    "The Sword Coast",
+    "The Underdark",
+    "Turmish",
+    "Tymanther",
+    "Unther",
+    "Westgate",
+    "Zakhara",
+    "\n"};
+CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
 
 /* --- End of constants arrays. --- */
 

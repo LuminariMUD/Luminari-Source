@@ -20,6 +20,7 @@
 #include "class.h"
 #include "race.h"
 #include "alchemy.h"
+#include "constants.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
@@ -247,6 +248,7 @@ ACMDU(do_help)
     return;
 
   skip_spaces(&argument);
+  char *home_arg = strdup(argument);
 
   if (!*argument)
   {
@@ -258,6 +260,46 @@ ACMDU(do_help)
   }
   raw_argument = strdup(argument);
   space_to_minus(argument);
+
+  // help regions
+  int i = 0;
+  for (i = 0; home_arg[i] != '\0'; i++)
+  {
+    // check first character is lowercase alphabet
+    if (i == 0)
+    {
+      if ((home_arg[i] >= 'a' && home_arg[i] <= 'z'))
+        home_arg[i] = home_arg[i] - 32; // subtract 32 to make it capital
+      continue;                         // continue to the loop
+    }
+    if (home_arg[i] == ' ') // check space
+    {
+      // if space is found, check next character
+      ++i;
+      // check next character is lowercase alphabet
+      if (home_arg[i] >= 'a' && home_arg[i] <= 'z')
+      {
+        home_arg[i] = home_arg[i] - 32; // subtract 32 to make it capital
+        continue;                       // continue to the loop
+      }
+    }
+    else
+    {
+      // all other uppercase characters should be in lowercase
+      if (home_arg[i] >= 'A' && home_arg[i] <= 'Z')
+        home_arg[i] = home_arg[i] + 32; // subtract 32 to make it small/lowercase
+    }
+  }
+
+  for (i = 1; i < NUM_REGIONS; i++)
+  {
+    if (is_abbrev(home_arg, regions[i]))
+    {
+      display_region_info(ch, i);
+      free(raw_argument);
+      return;
+    }
+  }
 
   if ((entries = search_help(argument, GET_LEVEL(ch))) == NULL)
   {

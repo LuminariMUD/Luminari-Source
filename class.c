@@ -930,6 +930,26 @@ bool display_weapon_info(struct char_data *ch, const char *weapon)
   return TRUE;
 }
 
+/* display specific region details */
+bool display_region_info(struct char_data *ch, int region)
+{
+  if (!ch || region <= REGION_NONE || region > NUM_REGIONS)
+  {
+    return FALSE;
+  }
+
+  char buf[MAX_STRING_LENGTH];
+
+  /* This we will need to buffer and wrap so that it will fit in the space provided. */
+  send_to_char(ch, "\tc%s\r\n", regions[region]);
+  send_to_char(ch, "\tcLanguage: \tn%s\r\n", languages[get_region_language(region)]);
+  send_to_char(ch, "\tcDescription: \tn\r\n");
+  snprintf(buf, sizeof(buf), "%s", get_region_info(region));
+  send_to_char(ch, "%s", strfrmt(buf, 80, 1, FALSE, FALSE, FALSE));
+
+  return TRUE;
+}
+
 /* display a specific armor type details */
 bool display_armor_info(struct char_data *ch, const char *armor)
 {
@@ -2150,20 +2170,22 @@ void newbieEquipment(struct char_data *ch)
 {
   int objNums[] = {
       NOOB_BP, /* HAS to be first */
-      NOOB_TELEPORTER,
+      NOOB_BOW,
       NOOB_TORCH,
       NOOB_RATIONS,
       NOOB_RATIONS,
       NOOB_RATIONS,
       NOOB_RATIONS,
       NOOB_WATERSKIN,
+#ifndef CAMPAIGN_FR
+      NOOB_TELEPORTER,
       NOOB_CRAFTING_KIT,
-      NOOB_BOW,
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MAT,
       NOOB_CRAFT_MOLD,
+#endif
       -1 // had to end with -1
   };
   int x;

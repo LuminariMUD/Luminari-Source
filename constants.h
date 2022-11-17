@@ -36,6 +36,8 @@ extern const char *random_male_names[NUM_MALE_NAMES + 1];
 extern const char *random_female_names[NUM_FEMALE_NAMES + 1];
 extern const char * random_surnames[NUM_SURNAMES+1];
 extern const char *armor_suit_types[NUM_SPEC_ARMOR_SUIT_TYPES + 1];
+extern const char *regions[];
+extern const char *languages[];
 // extern const char *spec_armor_type[NUM_SPEC_ARMOR_TYPES + 1];
 extern const char *ammo_types[NUM_AMMO_TYPES + 1];
 extern const char *weapon_head_types[NUM_WEAPON_HEAD_TYPES + 1];

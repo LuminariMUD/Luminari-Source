@@ -35,6 +35,8 @@ static char *next_page(char *str, struct char_data *ch);
 static int count_pages(char *str, struct char_data *ch);
 static void playing_string_cleanup(struct descriptor_data *d, int action);
 static void exdesc_string_cleanup(struct descriptor_data *d, int action);
+static void bg_string_cleanup(struct descriptor_data *d, int action);
+
 void new_mail_string_cleanup(struct descriptor_data *d, int action);
 
 /* Local (file scope) global variables */
@@ -229,6 +231,7 @@ void string_add(struct descriptor_data *d, char *str)
     case CON_STUDY:
     case CON_IBTEDIT:
     case CON_NEWMAIL:
+    case CON_PLR_BG:
       free(*d->str);
       *d->str = d->backstr;
       d->backstr = NULL;
@@ -270,6 +273,7 @@ void string_add(struct descriptor_data *d, char *str)
         {CON_TEDIT, tedit_string_cleanup},
         {CON_TRIGEDIT, trigedit_string_cleanup},
         {CON_PLR_DESC, exdesc_string_cleanup},
+        {CON_PLR_BG, bg_string_cleanup},
         {CON_PLAYING, playing_string_cleanup},
         {CON_HEDIT, hedit_string_cleanup},
         {CON_QEDIT, qedit_string_cleanup},
@@ -405,6 +409,15 @@ static void exdesc_string_cleanup(struct descriptor_data *d, int action)
 {
   if (action == STRINGADD_ABORT)
     write_to_output(d, "Description aborted.\r\n");
+
+  write_to_output(d, "%s", CONFIG_MENU);
+  STATE(d) = CON_MENU;
+}
+
+static void bg_string_cleanup(struct descriptor_data *d, int action)
+{
+  if (action == STRINGADD_ABORT)
+    write_to_output(d, "Background aborted.\r\n");
 
   write_to_output(d, "%s", CONFIG_MENU);
   STATE(d) = CON_MENU;

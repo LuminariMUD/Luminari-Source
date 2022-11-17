@@ -64,6 +64,7 @@
 #include "transport.h"
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
+#include "char_descs.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -2637,13 +2638,21 @@ void nanny(struct descriptor_data *d, char *arg)
                          "What IS your sex? ");
       return;
     }
-
+#ifdef CAMPAIGN_FR
+    write_to_output(d, "Races of Faerun\r\n\r\n");
+    for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+    {
+      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
+        write_to_output(d, "%s\r\n", race_list[i].type);
+    }
+#else
     write_to_output(d, "Races of Luminari\r\n\r\n");
     for (i = 0; i < NUM_RACES; i++)
     {
       if (!is_locked_race(i) || has_unlocked_race(d->character, i))
         write_to_output(d, "%s\r\n", race_list[i].type);
     }
+#endif
     write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
                        "what to pick): ");
     STATE(d) = CON_QRACE;
@@ -2800,6 +2809,67 @@ void nanny(struct descriptor_data *d, char *arg)
 
     STATE(d) = CON_QCLASS;
 
+    break;
+
+  case CON_QREGION:
+
+    if (is_abbrev(arg, "quit") || is_abbrev(arg, "Quit"))
+    {
+      write_to_output(d, "Homeland region selection aborted.\r\n");
+      STATE(d) = CON_MENU;
+      write_to_output(d, "%s", CONFIG_MENU);
+      return;
+    }
+
+    load_result = atoi(arg);
+    if (load_result <= REGION_NONE || load_result >= NUM_REGIONS)
+    {
+      write_to_output(d, "\r\nThat's not a region.\r\nRegion: ");
+      return;
+    }
+    else
+      GET_REGION(d->character) = load_result;
+
+    display_region_info(d->character, load_result);
+
+    write_to_output(d, "Do you want to select this region? (y/n) : ");
+    STATE(d) = CON_QREGION_HELP;
+
+    break;
+
+  case CON_QREGION_HELP:
+
+    if (UPPER(*arg) == 'Y')
+      write_to_output(d, "\r\nRegion Confirmed! Press Enter to Continue.\r\n");
+    else if (UPPER(*arg) != 'N')
+    {
+      write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
+      write_to_output(d, "Do you want to select this region? (y/n) : ");
+      STATE(d) = CON_QREGION_HELP;
+      return;
+    }
+    else
+    {
+      write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
+      for (i = 1; i < NUM_REGIONS; i++)
+      {
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+      STATE(d) = CON_QREGION;
+      return;
+    }
+
+    write_to_output(d, "%s", CONFIG_MENU);
+
+    STATE(d) = CON_MENU;
     break;
 
   case CON_QCLASS:
@@ -3158,6 +3228,34 @@ void nanny(struct descriptor_data *d, char *arg)
 
     break;
 
+  case CON_GEN_DESCS_INTRO:
+    HandleStateGenericsDescsIntro(d, arg);
+    break;
+
+  case CON_GEN_DESCS_DESCRIPTORS_1:
+    HandleStateGenericDescsDescriptors1(d, arg);
+    break;
+
+  case CON_GEN_DESCS_ADJECTIVES_1:
+    HandleStateGenericDescsAdjectives1(d, arg);
+    break;
+
+  case CON_GEN_DESCS_DESCRIPTORS_2:
+    HandleStateGenericDescsDescriptors2(d, arg);
+    break;
+
+  case CON_GEN_DESCS_ADJECTIVES_2:
+    HandleStateGenericDescsAdjectives2(d, arg);
+    break;
+
+  case CON_GEN_DESCS_MENU:
+    HandleStateGenericDescsMenu(d, arg);
+    break;
+
+  case CON_GEN_DESCS_MENU_PARSE:
+    HandleStateGenericDescsParseMenuChoice(d, arg);
+    break;
+
   case CON_MENU:
   { /* get selection from main menu  */
 
@@ -3228,6 +3326,81 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_PLR_DESC;
       break;
 
+#ifdef CAMPAIGN_FR
+    case '3':
+      if (d->character->player.background)
+      {
+        write_to_output(d, "Current Character Background:\r\n%s", d->character->player.background);
+        /* Don't free this now... so that the old background gets loaded as the
+         * current buffer in the editor.  Do setup the ABORT buffer here, however. */
+        d->backstr = strdup(d->character->player.background);
+      }
+      write_to_output(d, "Enter your character background story.\r\n");
+      send_editor_help(d);
+      d->str = &d->character->player.background;
+      d->max_str = PLR_BG_LENGTH;
+      STATE(d) = CON_PLR_BG;
+      break;
+
+    case '4':
+
+      if (GET_REGION(d->character))
+      {
+        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
+        return;
+      }
+
+      write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
+      for (i = 1; i < NUM_REGIONS; i++)
+      {
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+
+      STATE(d) = CON_QREGION;
+      break;
+
+    case '5':
+      if (GET_PC_DESCRIPTOR_1(d->character) > 0 && GET_PC_ADJECTIVE_1(d->character) > 0)
+      {
+        send_to_char(d->character, "\r\n");
+        send_to_char(d->character, "You have already chosen your description.  To change it you'll need to request a description reset from a staff member.\r\n");
+        send_to_char(d->character, "\r\n");
+        break;
+      }
+      send_to_char(d->character, "\r\n");
+      send_to_char(d->character, "SET CHARACTER SHORT DESCRIPTION: PRESS ENTER\r\n");
+      send_to_char(d->character, "\r\n");
+      STATE(d) = CON_GEN_DESCS_INTRO;
+      break;
+
+    case '6':
+      page_string(d, background, 0);
+      STATE(d) = CON_RMOTD;
+      break;
+
+    case '7':
+      write_to_output(d, "\r\nEnter your old password: ");
+      // echo_off(d);
+      ProtocolNoEcho(d, true);
+      STATE(d) = CON_CHPWD_GETOLD;
+      break;
+
+    case '8':
+      write_to_output(d, "\r\nEnter your password for verification: ");
+      // echo_off(d);
+      ProtocolNoEcho(d, true);
+      STATE(d) = CON_DELCNF1;
+      break;
+#else
+
     case '3':
       page_string(d, background, 0);
       STATE(d) = CON_RMOTD;
@@ -3246,7 +3419,7 @@ void nanny(struct descriptor_data *d, char *arg)
       ProtocolNoEcho(d, true);
       STATE(d) = CON_DELCNF1;
       break;
-
+#endif
     default:
       write_to_output(d, "\r\nThat's not a menu choice!\r\n%s", CONFIG_MENU);
       break;
