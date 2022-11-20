@@ -1551,6 +1551,118 @@ ASPELL(spell_recall)
   greet_memory_mtrigger(victim);
 }
 
+ASPELL(spell_luskan_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(3088));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_triboar_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(7000));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_silverymoon_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(6118));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_mirabar_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(4923));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
 ASPELL(spell_refuge) // illusion (also divine)
 {
   struct char_data *tch, *next_tch;

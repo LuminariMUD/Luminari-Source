@@ -951,6 +951,15 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   else if (class == CLASS_PSIONICIST && (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
     return (NUM_CIRCLES + 1);
 
+  switch (spellnum)
+  {
+  case SPELL_LUSKAN_RECALL:
+  case SPELL_MIRABAR_RECALL:
+  case SPELL_TRIBOAR_RECALL:
+  case SPELL_SILVERYMOON_RECALL:
+    return 5;
+  }
+
   /* Here we add the circle changes resulting from metamagic use: */
   if (IS_SET(metamagic, METAMAGIC_QUICKEN))
     metamagic_mod += 4;

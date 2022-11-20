@@ -50,6 +50,7 @@
 #include "premadebuilds.h"
 #include "staff_events.h"
 #include "account.h"
+#include "deities.h"
 
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
@@ -8233,6 +8234,160 @@ ACMD(do_buffself)
   {
     send_to_char(ch, "Please choose one of the following options:\r\n%s", NOBUFF_MSG);
     return;
+  }
+}
+
+ACMDU(do_devote)
+{
+  char arg1[MEDIUM_STRING], arg2[MEDIUM_STRING], dname[SMALL_STRING];
+
+  half_chop(argument, arg1, arg2);
+  int listtype = DEITY_LIST_ALL;
+  int i = 0;
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify whether you wish to 'choose' a deity, get 'info' on one, or 'list' them.\r\n");
+    return;
+  }
+  if (is_abbrev(arg1, "list"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify whether you wish to list 'all' deities or ones with the following keywords:\r\n");
+      send_to_char(ch, "options: all|good|neutral|evil|lawful|chaotic|faerun|dwarven|drow|elven|gnome|halfling|orc\r\n");
+      return;
+    }
+    if (is_abbrev(arg2, "all"))
+      listtype = DEITY_LIST_ALL;
+    else if (is_abbrev(arg2, "good"))
+      listtype = DEITY_LIST_GOOD;
+    else if (is_abbrev(arg2, "neutral"))
+      listtype = DEITY_LIST_NEUTRAL;
+    else if (is_abbrev(arg2, "evil"))
+      listtype = DEITY_LIST_EVIL;
+    else if (is_abbrev(arg2, "lawful"))
+      listtype = DEITY_LIST_LAWFUL;
+    else if (is_abbrev(arg2, "chaotic"))
+      listtype = DEITY_LIST_CHAOTIC;
+    else if (is_abbrev(arg2, "faerun"))
+      listtype = DEITY_LIST_FAERUN;
+    else if (is_abbrev(arg2, "dwarven"))
+      listtype = DEITY_LIST_DWARVEN;
+    else if (is_abbrev(arg2, "drow"))
+      listtype = DEITY_LIST_DROW;
+    else if (is_abbrev(arg2, "elven"))
+      listtype = DEITY_LIST_ELVEN;
+    else if (is_abbrev(arg2, "gnome"))
+      listtype = DEITY_LIST_GNOME;
+    else if (is_abbrev(arg2, "halfling"))
+      listtype = DEITY_LIST_HALFLING;
+    else if (is_abbrev(arg2, "orc"))
+      listtype = DEITY_LIST_ORC;
+    else
+    {
+      send_to_char(ch, "Please specify whether you wish to list 'all' deities or ones with the following keywords:\r\n");
+      send_to_char(ch, "options: all|good|neutral|evil|lawful|chaotic|faerun|dwarven|drow|elven|gnome|halfling|orc\r\n");
+      return;
+    }
+
+    send_to_char(ch, "%-30s - %-15s %s\r\n", "Deities of Faerun", "Alignment", "Portfolio");
+    for (i = 0; i < 80; i++)
+      send_to_char(ch, "-");
+    send_to_char(ch, "\r\n");
+
+    for (i = 0; i < NUM_DEITIES; i++)
+    {
+      if (deity_list[i].pantheon == DEITY_PANTHEON_NONE)
+        continue;
+      if (listtype == DEITY_LIST_GOOD && deity_list[i].alignment != ALIGNMENT_GOOD)
+        continue;
+      else if (listtype == DEITY_LIST_NEUTRAL && !(deity_list[i].alignment == ALIGNMENT_NEUTRAL || deity_list[i].ethos == ETHOS_NEUTRAL))
+        continue;
+      else if (listtype == DEITY_LIST_EVIL && deity_list[i].alignment != ALIGNMENT_EVIL)
+        continue;
+      else if (listtype == DEITY_LIST_LAWFUL && deity_list[i].ethos != ETHOS_LAWFUL)
+        continue;
+      else if (listtype == DEITY_LIST_CHAOTIC && deity_list[i].ethos != ETHOS_CHAOTIC)
+        continue;
+      else if (listtype == DEITY_LIST_FAERUN && deity_list[i].pantheon != DEITY_PANTHEON_FAERUNIAN)
+        continue;
+      else if (listtype == DEITY_LIST_DWARVEN && deity_list[i].pantheon != DEITY_PANTHEON_FR_DWARVEN)
+        continue;
+      else if (listtype == DEITY_LIST_DROW && deity_list[i].pantheon != DEITY_PANTHEON_FR_DROW)
+        continue;
+      else if (listtype == DEITY_LIST_ELVEN && deity_list[i].pantheon != DEITY_PANTHEON_FR_ELVEN)
+        continue;
+      else if (listtype == DEITY_LIST_GNOME && deity_list[i].pantheon != DEITY_PANTHEON_FR_GNOME)
+        continue;
+      else if (listtype == DEITY_LIST_HALFLING && deity_list[i].pantheon != DEITY_PANTHEON_FR_HALFLING)
+        continue;
+      else if (listtype == DEITY_LIST_ORC && deity_list[i].pantheon != DEITY_PANTHEON_FR_ORC)
+        continue;
+      
+      snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
+      send_to_char(ch, "%-30s - %-15s - %s\r\n", CAP(dname), GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].portfolio);
+    }
+  }
+  else if (is_abbrev(arg1, "info"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify a deity to get info on.  Use 'devote list' to see the deity options.\r\n");
+      return;
+    }
+    for (i = 0; i < NUM_DEITIES; i++)
+    {
+      if (deity_list[i].pantheon == DEITY_PANTHEON_NONE)
+        continue;
+      if (is_abbrev(arg2, deity_list[i].name))
+      {
+        break;
+      }
+    }
+    if (i < 0 || i >= NUM_DEITIES)
+    {
+      send_to_char(ch, "There is no deity by that name.\r\n");
+      return;
+    }
+    snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
+    send_to_char(ch, "\tA%s\r\n\tn", CAP(dname));
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tAAlignment:\tn %s\r\n", GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment));
+    send_to_char(ch, "\tAPortfolio:\tn %s\r\n", deity_list[i].portfolio);
+    send_to_char(ch, "\tADescription:\tn\r\n%s\r\n", deity_list[i].description);
+    return;
+  }
+  else if (is_abbrev(arg1, "choose"))
+  {
+    if (GET_DEITY(ch) != DEITY_NONE)
+    {
+      send_to_char(ch, "You have already chosen your deity.  If you wish to change your deity selection, please ask a staff member.\r\n");
+      return;
+    }
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify the deity you want to worship.  Use 'devote list' to see the deity options.\r\n");
+      return;
+    }
+    for (i = 0; i < NUM_DEITIES; i++)
+    {
+      if (deity_list[i].pantheon == DEITY_PANTHEON_NONE)
+        continue;
+      if (is_abbrev(arg2, deity_list[i].name))
+      {
+        break;
+      }
+    }
+    if (i < 0 || i >= NUM_DEITIES)
+    {
+      send_to_char(ch, "There is no deity by that name.\r\n");
+      return;
+    }
+    GET_DEITY(ch) = i;
+    snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
+    send_to_char(ch, "You are now a worshipper of %s!\r\n", CAP(dname));
+    save_char(ch, 0);
   }
 }
 

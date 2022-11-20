@@ -515,9 +515,12 @@
 #define SPELL_MINOR_ILLUSION 442
 #define SPELL_MOONBEAM 443
 #define SPELL_HELLISH_REBUKE 444
+#define SPELL_TRIBOAR_RECALL 445
+#define SPELL_LUSKAN_RECALL 446
+#define SPELL_MIRABAR_RECALL 447
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 445
+#define NUM_SPELLS 448
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1354,6 +1357,10 @@ ASPELL(spell_spiritual_weapon);
 ASPELL(spell_dancing_weapon);
 ASPELL(spell_holy_javelin);
 ASPELL(spell_moonbeam);
+ASPELL(spell_luskan_recall);
+ASPELL(spell_triboar_recall);
+ASPELL(spell_silverymoon_recall);
+ASPELL(spell_mirabar_recall);
 // psionics
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);

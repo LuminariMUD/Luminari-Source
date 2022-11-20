@@ -209,21 +209,28 @@ ACMD(do_accexp)
       }
       return;
     }
+#ifdef CAMPAIGN_FR
+    for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+#else
     for (i = 0; i < NUM_RACES; i++)
+#endif
     {
-      if (is_abbrev(arg2, race_list[i].type) && is_locked_race(i) &&
-          !has_unlocked_race(ch, i))
+      if (race_list[i].is_pc && is_abbrev(arg2, race_list[i].type) && is_locked_race(i) && !has_unlocked_race(ch, i))
       {
         cost = locked_race_cost(i);
         break;
       }
     }
+#ifdef CAMPAIGN_FR
+    if (i >= NUM_EXTENDED_PC_RACES)
+#else
     if (i >= NUM_RACES)
-    {
-      send_to_char(ch, "Either that race does not exist, is not an advanced race, "
-                       "is not available for players, or you've already unlocked it.\r\n");
-      return;
-    }
+#endif
+      {
+        send_to_char(ch, "Either that race does not exist, is not an advanced race, "
+                         "is not available for players, or you've already unlocked it.\r\n");
+        return;
+      }
     if (ch->desc && ch->desc->account)
     {
       for (j = 0; j < MAX_UNLOCKED_RACES; j++)

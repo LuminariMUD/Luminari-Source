@@ -21,6 +21,8 @@
 #include "race.h"
 #include "alchemy.h"
 #include "constants.h"
+#include "deities.h"
+#include "act.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
@@ -239,10 +241,11 @@ ACMDU(do_help)
 {
   struct help_entry_list *entries = NULL, *tmp = NULL;
   struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;
-
+  int i = 0;
   char help_entry_buffer[MAX_STRING_LENGTH] = {'\0'};
   char immo_data_buffer[1024];
   char *raw_argument;
+  char spell_argument[200];
 
   if (!ch->desc)
     return;
@@ -258,11 +261,21 @@ ACMDU(do_help)
       page_string(ch->desc, ihelp, 0);
     return;
   }
+
+  for (i = 0; i < NUM_DEITIES; i++)
+  {
+    if (is_abbrev(argument, deity_list[i].name))
+    {
+      snprintf(spell_argument, sizeof(spell_argument), "info %s", argument);
+      do_devote(ch, spell_argument, 0, 0);
+      return;
+    }
+  }
+
   raw_argument = strdup(argument);
   space_to_minus(argument);
 
   // help regions
-  int i = 0;
   for (i = 0; home_arg[i] != '\0'; i++)
   {
     // check first character is lowercase alphabet
