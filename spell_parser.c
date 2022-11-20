@@ -934,6 +934,18 @@ SAVING_WILL here...  */
     case SPELL_WORD_OF_RECALL:
       MANUAL_SPELL(spell_recall);
       break;
+    case SPELL_LUSKAN_RECALL:
+      MANUAL_SPELL(spell_luskan_recall);
+      break;
+    case SPELL_TRIBOAR_RECALL:
+      MANUAL_SPELL(spell_triboar_recall);
+      break;
+    case SPELL_SILVERYMOON_RECALL:
+      MANUAL_SPELL(spell_silverymoon_recall);
+      break;
+    case SPELL_MIRABAR_RECALL:
+      MANUAL_SPELL(spell_mirabar_recall);
+      break;
     // psionics
     case PSIONIC_CONCUSSIVE_ONSLAUGHT:
       MANUAL_SPELL(psionic_concussive_onslaught);
@@ -3808,6 +3820,18 @@ void mag_assign_spells(void)
          TAR_CHAR_WORLD | TAR_NOT_SELF, FALSE, MAG_MANUAL,
          NULL, 10, 20, NOSCHOOL, FALSE);
   spello(SPELL_WORD_OF_RECALL, "word of recall", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  spello(SPELL_LUSKAN_RECALL, "recall to luskan", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  spello(SPELL_TRIBOAR_RECALL, "recall to triboar", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  spello(SPELL_SILVERYMOON_RECALL, "recall to silverymoon", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  spello(SPELL_MIRABAR_RECALL, "recall to mirabar", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,

@@ -277,7 +277,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    //{"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#ifdef CAMPAIGN_FR
+    {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"discard", "discard", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_DISCARD, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -1933,6 +1936,11 @@ int enter_player_game(struct descriptor_data *d)
       init_class(d->character, i, CLASS_LEVEL(d->character, i));
   }
 
+#ifdef CAMPAIGN_FR
+  if (!race_list[GET_REAL_RACE(d->character)].is_pc)
+    GET_REAL_RACE(d->character) = RACE_HUMAN;
+#endif
+
   /* initialize the characters condensed combat data struct */
   init_condensed_combat_data(d->character);
 
@@ -2682,14 +2690,17 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_ELF:
       perform_help(d, "race-moon-elf");
       break;
+#ifdef CAMPAIGN_FR
+    case RACE_DWARF:
+      perform_help(d, "race-shield-dwarf");
+      break;
+#else
     case RACE_DWARF:
       perform_help(d, "race-mountain-dwarf");
       break;
+#endif
     case RACE_DUERGAR:
       perform_help(d, "race-duergar");
-      break;
-    case RACE_HALF_TROLL:
-      perform_help(d, "race-half-troll");
       break;
     case RACE_HALFLING:
       perform_help(d, "race-lightfoot-halfling");
@@ -2703,11 +2714,22 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_GNOME:
       perform_help(d, "race-rock-gnome");
       break;
-    case RACE_ARCANA_GOLEM:
-      perform_help(d, "race-arcana-golem");
-      break;
     case RACE_DROW:
       perform_help(d, "race-drow");
+      break;
+#ifdef CAMPAIGN_FR
+    case RACE_LICH:
+      perform_help(d, "race-lich");
+      break;
+    case RACE_VAMPIRE:
+      perform_help(d, "race-vampire");
+      break;
+#else
+    case RACE_HALF_TROLL:
+      perform_help(d, "race-half-troll");
+      break;
+    case RACE_ARCANA_GOLEM:
+      perform_help(d, "race-arcana-golem");
       break;
     case RACE_CRYSTAL_DWARF:
       perform_help(d, "race-crystal-dwarf");
@@ -2715,15 +2737,22 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_TRELUX:
       perform_help(d, "race-trelux");
       break;
+#endif
     case RACE_FAE:
       perform_help(d, "race-fae");
       break;
     case RACE_HIGH_ELF:
       perform_help(d, "race-high-elf");
       break;
+#ifdef CAMPAIGN_FR
+    case RACE_WOOD_ELF:
+      perform_help(d, "race-wood-elf");
+      break;
+#else
     case RACE_WILD_ELF:
       perform_help(d, "race-wild-elf");
       break;
+#endif
     case RACE_HALF_DROW:
       perform_help(d, "race-half-drow");
       break;

@@ -5328,19 +5328,6 @@ bool is_fear_spell(int spellnum)
   return false;
 }
 
-// returns true if the spell should NOT be listed in spell lists
-bool do_not_list_spell(int spellnum)
-{
-  switch (spellnum)
-  {
-  // no spells here yet
-  //  return true;
-  default:
-    return false;
-  }
-  return false;
-}
-
 void remove_fear_affects(struct char_data *ch, sbyte display)
 {
   // aura of cowardice nullifies any fear immunity
@@ -7557,6 +7544,20 @@ bool is_immaterial(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_IMMATERIAL))
     return true;
 
+  return false;
+}
+
+// returns true if the spell should NOT be listed in spell lists
+bool do_not_list_spell(int spellnum)
+{
+  switch (spellnum)
+  {
+  case SPELL_LUSKAN_RECALL:
+  case SPELL_TRIBOAR_RECALL:
+  case SPELL_MIRABAR_RECALL:
+  case SPELL_SILVERYMOON_RECALL:
+    return true;
+  }
   return false;
 }
 

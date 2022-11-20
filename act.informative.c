@@ -5540,6 +5540,50 @@ ACMD(do_moves)
   send_to_char(ch, "You have %d movement points left.\r\n", GET_MOVE(ch));
 }
 
+#ifdef CAMPAIGN_FR
+
+void set_x_y_coords(int start, int *x, int *y, int *room)
+{
+  *x = MIN(159, MAX(0, ((start - 600161) % 160)));
+  *y = MIN(159, MAX(0, ((start - 600161) / 160)));
+
+  *room = 600161 + (160 * *y) + *x;
+}
+
+ACMD(do_survey)
+{
+
+  int x, y, room, i = 0;
+
+  if (!ch || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_WORLDMAP))
+  {
+    send_to_char(ch, "This command can only be used on the worldmap.\r\n");
+    return;
+  }
+
+  set_x_y_coords(world[IN_ROOM(ch)].number, &x, &y, &room);
+
+  send_to_char(ch, "\tAYou are in room x=%d, y=%d\r\n", x, y);
+  for (i = 0; i < 80; i++)
+    send_to_char(ch, "-");
+  send_to_char(ch, "\tn\r\n");
+
+  for (i = 0; i < NUM_MAP_POINTS; i++)
+  {
+    set_x_y_coords(atoi(asciimap_points[i][1]), &x, &y, &room);
+    send_to_char(ch, "-- %-40s (%d,%d)\r\n", asciimap_points[i][0], x, y);
+  }
+
+  for (i = 0; i < 80; i++)
+    send_to_char(ch, "-");
+  send_to_char(ch, "\tn\r\n\r\n");
+}
+
+#else
+
 /* survey - get information on zone locations and current position, a ?temporary?
             solution for screen readers, etc
             ToDo:  limit to a certain distance based on perception maybe?
@@ -5615,6 +5659,8 @@ ACMD(do_survey)
 
   send_to_char(ch, "\r\nYour Current Location : (\tC%d\tn, \tC%d\tn)\r\n", ch->coords[0], ch->coords[1]);
 }
+
+#endif
 
 /* see exits */
 ACMD(do_exits)
