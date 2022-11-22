@@ -4,8 +4,6 @@
 
 # Special Files
 campaign.h
-copybinarytodev.sh
-copybinarytolive.sh
 
 # Prerequisites
 *.d
