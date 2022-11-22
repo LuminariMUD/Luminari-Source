@@ -165,6 +165,9 @@ void event_free_all(void)
  * queued. */
 int event_is_queued(struct event *event)
 {
+  if (!event)
+    return 0;
+
   if (event->q_el)
     return 1;
   else
