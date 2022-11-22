@@ -5,7 +5,7 @@
 #include "db.h"
 #include "dg_event.h"
 
-#ifdef CAMPAIGN_FR
+#ifdef LEAVE_THIS_COMMENTED_OUT
 /**************************************************************************
 *  File: lists.c                                           Part of tbaMUD *
 *  Usage: Handling of in-game lists                                       *
