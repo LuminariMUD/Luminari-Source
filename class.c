@@ -5325,7 +5325,7 @@ void load_class_list(void)
   assign_class_titles(CLASS_BLACKGUARD,          /* class number */
                       "",                        /* <= 4  */
                       "the Novice Blackguard",   /* <= 9  */
-                      "the Adaept Blackguard",   /* <= 14 */
+                      "the Adept Blackguard",   /* <= 14 */
                       "the Veteran Blackguard",  /* <= 19 */
                       "the Master Blackguard",   /* <= 24 */
                       "the Champion Blackguard", /* <= 29 */

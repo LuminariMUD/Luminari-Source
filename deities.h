@@ -159,6 +159,8 @@
 #define DEITY_PANTHEON_FR_HALFLING      7
 #define DEITY_PANTHEON_FR_ORC 	        8
 
+#define NUM_PANTHEONS 9
+
 #define DEITY_LIST_ALL 1
 #define DEITY_LIST_GOOD 2
 #define DEITY_LIST_NEUTRAL 3

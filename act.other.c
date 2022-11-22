@@ -8291,7 +8291,7 @@ ACMDU(do_devote)
       return;
     }
 
-    send_to_char(ch, "%-30s - %-15s %s\r\n", "Deities of Faerun", "Alignment", "Portfolio");
+    send_to_char(ch, "%-25s - %-12s %-15s %s\r\n", "Deities of Faerun", "Pantheon", "Alignment", "Portfolio");
     for (i = 0; i < 80; i++)
       send_to_char(ch, "-");
     send_to_char(ch, "\r\n");
@@ -8326,7 +8326,7 @@ ACMDU(do_devote)
         continue;
       
       snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
-      send_to_char(ch, "%-30s - %-15s - %s\r\n", CAP(dname), GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].portfolio);
+      send_to_char(ch, "%-25s - %-12s %-15s - %s\r\n", CAP(dname), pantheons[deity_list[i].pantheon], GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].portfolio);
     }
   }
   else if (is_abbrev(arg1, "info"))
@@ -8353,6 +8353,7 @@ ACMDU(do_devote)
     snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
     send_to_char(ch, "\tA%s\r\n\tn", CAP(dname));
     send_to_char(ch, "\r\n");
+    send_to_char(ch, "\tAPantheon:\tn %s\r\n", pantheons[deity_list[i].pantheon]);
     send_to_char(ch, "\tAAlignment:\tn %s\r\n", GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment));
     send_to_char(ch, "\tAPortfolio:\tn %s\r\n", deity_list[i].portfolio);
     send_to_char(ch, "\tADescription:\tn\r\n%s\r\n", deity_list[i].description);

@@ -23,6 +23,7 @@
 #include "feats.h"
 #include "domains_schools.h"
 #include "handler.h"
+#include "deities.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz) \
     _Static_assert(sizeof((tbl)) / sizeof((tbl)[0]) == (exp_sz), #tbl " wrong number entries")
@@ -3713,6 +3714,20 @@ const char *languages[] =
         "thieves-cant",
         "\n"};
 CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
+
+const char *pantheons[] = {
+    "",
+    "All",
+    "Faerun",
+    "Dwarven",
+    "Drow",
+    "Elven",
+    "Gnome",
+    "Halfling",
+    "Orc",
+    "\n"
+};
+CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
 
 const char *draconic_heritage_names[] = {
     "none",
