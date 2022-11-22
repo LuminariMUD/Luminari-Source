@@ -122,7 +122,7 @@ config.o: config.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  asciimap.h
 constants.o: constants.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h interpreter.h \
- spells.h craft.h feats.h domains_schools.h handler.h
+ spells.h craft.h feats.h domains_schools.h handler.h deities.h
 craft.o: craft.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
  interpreter.h constants.h handler.h craft.h mud_event.h dg_event.h \
@@ -263,7 +263,7 @@ hedit.o: hedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
 help.o: help.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h modify.h comm.h \
  interpreter.h mysql.h help.h feats.h spells.h class.h race.h alchemy.h \
- constants.h
+ constants.h deities.h act.h
 helpers.o: helpers.c helpers.h
 hlqedit.o: hlqedit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h comm.h utils.h db.h helpers.h perfmon.h boards.h handler.h \
