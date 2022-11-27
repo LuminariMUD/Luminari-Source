@@ -29,6 +29,10 @@ void init_deities(void)
     deity_list[i].favored_weapon = WEAPON_TYPE_UNARMED;
     deity_list[i].pantheon = DEITY_PANTHEON_NONE;
     deity_list[i].portfolio = "Nothing";
+    deity_list[i].alias = "None";
+    deity_list[i].symbol = "None";
+    deity_list[i].worshipper_alignments = "None";
+    deity_list[i].follower_names = "None";
     deity_list[i].description = "You do not worship a deity at all for reasons of your own.";
   }
 
@@ -49,6 +53,23 @@ void add_deity(int deity, const char *name, int ethos, int alignment, int d1, in
   deity_list[deity].favored_weapon = weapon;
   deity_list[deity].pantheon = pantheon;
   deity_list[deity].portfolio = portfolio;
+  deity_list[deity].description = description;
+
+}
+
+void add_deity_new(int deity, const char *name, int ethos, int alignment, int pantheon,
+                   const char *alias, const char *portfolio, const char *symbol, const char *worshipper_alignments, 
+                   const char *follower_names, const char *description)
+{
+  deity_list[deity].name = name;
+  deity_list[deity].ethos = ethos;
+  deity_list[deity].alignment = alignment;
+  deity_list[deity].pantheon = pantheon;
+  deity_list[deity].alias = alias;
+  deity_list[deity].portfolio = portfolio;
+  deity_list[deity].symbol = symbol;
+  deity_list[deity].worshipper_alignments = worshipper_alignments;
+  deity_list[deity].follower_names = follower_names;
   deity_list[deity].description = description;
 
 }
@@ -660,35 +681,150 @@ void assign_deities(void) {
             "and in the lesser power Azuth, thus planned by Ao so Mystra does not rule all \r\n"
             "Realmspace.\r\n");
 
-  add_deity(DEITY_AKADI, "Akadi", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_AIR, DOMAIN_ILLUSION, DOMAIN_TRAVEL,
-          DOMAIN_TRICKERY, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, WEAPON_TYPE_HEAVY_FLAIL, DEITY_PANTHEON_FAERUNIAN,
-          "Elemental Air, Movement, Speed, Flying Creatures",
-          "Akadi (Description not done yet.  If you wish to write it, let Gicker know.)\r\n"
-          );
+  add_deity_new(DEITY_AKADI, "Akadi", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DEITY_PANTHEON_FAERUNIAN, 
+		"Lady of the Winds, The Lady of Air, Queen of Air", "Elemental Air, Movement, Speed, Flying Creatures", 
+            "a white cloud on a blue background", "True Neutral, Lawful Neutral, Chaonic Neutral, Neutral Evil", "Akadian(s)", 
+		"Akadi is the goddess of air, wind, and creatures of elemental air. The Queen of\r\n"
+		"Air is powerful and capricious, changeable and unpredictable, the embodiment of\r\n"
+		"whim and freedom.\r\n"
+            "\r\n"
+            "As an immortal being of freedom and travel, she instructs\r\n"
+		"her followers to move as much as possible from place to place, from activity to\r\n"
+		"activity. Akadi is considered one of the four elemental deities, a god who\r\n"
+		"remained unchanged by history and the passage of time. Like all the elemental\r\n"
+		"lords, Akadi is relatively uncaring of her followers. While appeals to Akadi may\r\n"
+		"change or still the winds, provide good flying currents, or bring rains, she\r\n"
+		"grants no prayers to raise or quell harsh storms, for such lies within the\r\n"
+		"purview of Talos and Umberlee. She has ties to other gods concerned with the\r\n"
+		"element of air, including Aerdrie Faenya and Shaundakul, but no strong\r\n"
+		"relationships. She opposes obstinate, unmoving Grumbar at every\r\n"
+		"opportunity.\r\n"
+            "\r\n"
+            "Members of Akadi’s clergy emulate their god’s nature,\r\n"
+		"seeking freedom and travel, going where and when their whims take them. They\r\n"
+		"chafe at restrictions, seeking to escape the confinement of any boundaries,\r\n"
+		"borders or externally imposed limitations.\r\n");
 
-  add_deity(DEITY_AURIL, "Auril", ETHOS_NEUTRAL, ALIGNMENT_EVIL, DOMAIN_AIR, DOMAIN_EVIL, DOMAIN_STORM,
-          DOMAIN_WATER, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, WEAPON_TYPE_BATTLE_AXE, DEITY_PANTHEON_FAERUNIAN,
-          "Cold, Winter",
-          "Auril (Description not done yet.  If you wish to write it, let Gicker know.)\r\n"
-          );
+  add_deity_new(DEITY_AURIL, "Auril", ETHOS_NEUTRAL, ALIGNMENT_EVIL, DEITY_PANTHEON_FAERUNIAN, 
+		"Frostmaiden, Icedawn, the Cold Goddess, Lady Frostkiss, Frost Sprite Queen", "Cold, Winter", 
+            "a six-pointed snowflake in a diamond", "Lawful Evil, Neutral Evil, Chaotic Evil", "Aurilian(s), Aurilite(s)", 
+		"Most people who live in areas with harsh winters worship Auril, the ruthless\r\n"
+		"goddess of cold and winter. Her priests often issue warnings to the public to\r\n"
+		"get ready for winter and to stock up on extra food so that they will have enough\r\n"
+		"to offer to the goddess in exchange for mercy.\r\n"
+            "\r\n"
+            "Except for individuals who\r\n"
+		"depend on winter for their livelihood or who genuinely adore it, few people\r\n"
+		"favor Auril. Her unusual priests typically are those who would be shunned by\r\n"
+		"their community if not for their status. When not in their official function,\r\n"
+		"they practice celibacy and maintain their distance from others.\r\n"
+ 
+            "Thewhitespired Winter Palace located in Luskan is a temple dedicated to Auril. The\r\n"
+		"building is a collection of pillars and arches made of white stone without a\r\n"
+		"roof. Outsiders frequently find the devotion of Auril's rites to be cruel.\r\n"
+		"Visitors congregate in Luskan to see the frequent \"wet parades,\" a ritual in\r\n"
+		"which supplicants dress in ice-filled clothing. They then travel across the city\r\n"
+		"between six white pillars, known as the Kisses of Auril, while chanting prayers\r\n"
+		"to the goddess. The supplicants must reach a pillar, climb it, and then \"kiss\r\n"
+		"the lady\" by placing their lips on a rusted iron plate at the top. These\r\n"
+		"activities resemble frantic foot races in the winter, with the added danger of\r\n"
+		"frostbite and injury by falling from the slick pillars. Patrons of the local\r\n"
+		"taverns bet on the endurance of the contestants and cheer them on. Those who\r\n"
+		"finish the race are thought to have helped make the winter easier, and they\r\n"
+		"rarely have to pay for food or ale all winter long.");
 
-  add_deity(DEITY_AZUTH, "Azuth", ETHOS_LAWFUL, ALIGNMENT_NEUTRAL, DOMAIN_ILLUSION, DOMAIN_MAGIC, DOMAIN_KNOWLEDGE,
-          DOMAIN_LAW, DOMAIN_SPELL, DOMAIN_UNDEFINED, WEAPON_TYPE_HEAVY_FLAIL, DEITY_PANTHEON_FAERUNIAN,
-          "Wizards, Mages, Spellcasters in General",
-          "Azuth (Description not done yet.  If you wish to write it, let Gicker know.)\r\n"
-          );
+  add_deity_new(DEITY_AZUTH, "Azuth", ETHOS_LAWFUL, ALIGNMENT_NEUTRAL, DEITY_PANTHEON_FAERUNIAN, 
+		"The High One, Patron of Mages, Lord of Spells, Hand of Sorcery, The First Magister", 
+            "Wizards, Mages, Spellcasters, Monks", "a left hand pointing skyward, wreathed in blue flame", 
+            "Lawful Good, Lawful Neutral, Lawful Evil, True Neutral", "Azuthan(s)", 
+		"Few pay homage to Azuth aside from wizards. For them, the High One is the\r\n"
+		"ultimate embodiment of all that they hold dear. Mystra serves as goddess of\r\n"
+		"magic; Oghma is god of knowledge; and Deneir is god of writing and language.\r\n"
+		"Azuth takes aspects of these general fields and applies them to the specific\r\n"
+		"practices of wizards. For instance, while Mystra is the deity who represents the\r\n"
+		"soul, art, and wonder of magic, Azuth is god of a wizard’s long hours of\r\n"
+		"study, exacting standards of movement and speech, and cramped, ink-stained\r\n"
+		"fingers. Wizards invoke Azuth when they scribe scrolls, inscribe magic circles,\r\n"
+		"attempt to memorize spells, and even when they cast spells. Often this\r\n"
+		"acknowledgment comes in the form of silently forming Azuth’s holy symbol,\r\n"
+		"pointing the index finger of the left hand to the sky. For many wizards, the\r\n"
+		"gesture is so commonplace in their lives that it becomes an unconscious habit.\r\n"
+		"Temples dedicated to Azuth are scarce, and clerics of the deity are extremely\r\n"
+		"rare. Even in magic-saturated Halruaa, only a handful of holy places are\r\n"
+		"dedicated to Azuth. Sometimes a statue or a shrine dedicated to him stands in a\r\n"
+		"corner of a temple to Mystra or another deity. More often, a wizard has a\r\n"
+		"personal shrine at home. Azuth is represented at such sites as a hooded and\r\n"
+		"bearded figure with left hand held high, finger pointed up. Sometimes he is\r\n"
+		"represented by merely the hand. In either case, the finger often serves as a\r\n"
+		"candleholder or as the point of origin for a light spell.");
 
-    add_deity(DEITY_BANE, "Bane", ETHOS_LAWFUL, ALIGNMENT_EVIL, DOMAIN_DESTRUCTION, DOMAIN_EVIL, DOMAIN_HATRED,
-          DOMAIN_LAW, DOMAIN_TYRANNY, DOMAIN_UNDEFINED, WEAPON_TYPE_MORNINGSTAR, DEITY_PANTHEON_FAERUNIAN,
-          "Hatred, Tyranny, Fear",
-          "Bane (Description not done yet.  If you wish to write it, let Gicker know.)\r\n"
-          );
+  add_deity_new(DEITY_BANE, "Bane", ETHOS_LAWFUL, ALIGNMENT_EVIL, DEITY_PANTHEON_FAERUNIAN, 
+		"God of Tyranny, The Black Lord, The Black Hand, Lord of Darkness", "Strife, Hatred, Tyranny, Fear", 
+            "an upright black right hand, thumb and fingers together", "Lawful Neutral, Lawful Evil, Neutral Evil", "Banite(s)", 
+		"Bane has a simple ethos- the strong have not just the right but the duty to rule\r\n"
+		"over the weak. A tyrant who is able to seize power must do so, for not only does\r\n"
+		"the tyrant benefit, but so do those under the tyrant’s rule. When a ruler\r\n"
+		"succumbs to decadence, corruption, or decrepitude, a stronger and more suitable\r\n"
+		"ruler will rise.\r\n"
+            "\r\n"
+            "Bane is vilified in many legends. Throughout history, those\r\n"
+		"who favor him have committed dark deeds in his name, but most people don’t\r\n"
+		"worship Bane out of malice. Bane represents ambition and control, and those who\r\n"
+		"have the former but lack the latter pray to him to give them strength. It is\r\n"
+		"said that Bane favors those who exhibit drive and courage, and that he aids\r\n"
+		"those who seek to become conquerors, carving kingdoms from the wilderness, and\r\n"
+		"bringing order to the lawless.\r\n"
+            "\r\n"
+            "At many times and in many places in Faerun,\r\n"
+		"the faithful of Bane have been seen as saviors for their efforts in slaughtering\r\n"
+		"raiders, throwing down corrupt rulers, or saving armies on the brink of defeat.\r\n"
+		"But in just as many other places, the worship of Bane has created or supported\r\n"
+		"cruel dictatorships, aided mercantile monopolies, or brought about the practice\r\n"
+		"of slavery where before it didn’t exist.");
 
-    add_deity(DEITY_BESHABA, "Beshaba", ETHOS_CHAOTIC, ALIGNMENT_EVIL, DOMAIN_CHAOS, DOMAIN_EVIL, DOMAIN_FATE,
-          DOMAIN_LUCK, DOMAIN_TRICKERY, DOMAIN_UNDEFINED, WEAPON_TYPE_SPIKED_CHAIN, DEITY_PANTHEON_FAERUNIAN,
-          "Random Mischief, Misfortune, Bad Luck, Accidents",
-          "Beshaba (Description not done yet.  If you wish to write it, let Gicker know.)\r\n"
-          );
+  add_deity_new(DEITY_BESHABA, "Beshaba", ETHOS_CHAOTIC, ALIGNMENT_EVIL, DEITY_PANTHEON_FAERUNIAN, 
+		"The Maid of Misfortune, Lady Doom, Black Bess", "Random Mischief, Misfortune, Bad Luck, Accidents", 
+            "some black antlers on a red field", "Neutral Evil, Chaotic Evil, Chaotic Neutral", "Beshaban(s)", 
+		"Beshaba is Tymora's opposite and is just as widely acknowledged in daily life as\r\n"
+		"her more kindhearted \"sister.\" She is viewed as a vengeful and arbitrary deity\r\n"
+		"who must be appeased to keep from arousing her unfavorable interest. When\r\n"
+		"someone experiences bad luck, whether it be something simple like breaking a\r\n"
+		"wagon wheel or something catastrophic like slipping and tumbling off a cliff,\r\n"
+		"Beshaba's name is invoked. It is also used to deflect her attention when someone\r\n"
+		"is engaging in behavior where good fortune wouldn't matter but bad luck may.\r\n"
+		"Someone rolling the dice, for instance, might call Tymora to have luck on their\r\n"
+		"side, whereas someone about to cross a shaky bridge would implore Beshaba to\r\n"
+		"preserve the structure. To fend against bad luck, people make the Beshaba\r\n"
+		"symbol by extending their fingers on one or both hands while folding in their\r\n"
+		"thumbs to resemble the horns of her sacred symbol. A salutation is made with the\r\n"
+		"same motion of raising one's head - when aimed against someone, the \"horns\"\r\n"
+		"signify disfavor. Beshaba is revered by many druids as a member of the First\r\n"
+		"Circle. They dance in her honor while sporting blood-drenched antlers that have\r\n"
+		"been burned black. These druids claim that Beshaba's holy emblem is a stag's\r\n"
+		"horns because at the time of her original worship, humans were still merely\r\n"
+		"hunter-gatherers and Beshaba was thought to bring bad luck to hunters, such as\r\n"
+		"being gored by a stag. Although most people tremble in fear at the prospect\r\n"
+		"of Beshaba's attendance at any event (even in spirit), Beshaba is almost always\r\n"
+		"invoked and welcomed formally in the opening speeches or ceremonies of formal\r\n"
+		"functions such as marriages and coronations, contests of sport or martial\r\n"
+		"prowess, and at the naming ceremonies of children. If she isn't invited to such\r\n"
+		"an event, she might take offense and wreak misfortune on those involved.\r\n"
+		"Temples of Beshaba are almost unheard of. However, it's customary for rural\r\n"
+		"folk to create a post and mount antlers on it at the scene of any roadside\r\n"
+		"accident or murder. In cities, where it is more difficult to find antlers and\r\n"
+		"there are more murders and accidents, it is fashionable to draw the black\r\n"
+		"antlers of Beshaba with charcoal on a neighboring wall and to leave the emblem\r\n"
+		"there until the weather wears it away. In either case, these \"shrines\" act as\r\n"
+		"alerts to nearby locations of bad luck. In locations where people routinely\r\n"
+		"pray to stave off bad luck, more formal shrines to Beshaba exist. Typically,\r\n"
+		"these locations are red-painted posts or stones with antlers affixed, or a red,\r\n"
+		"triangular plaque set on a wall with antlers. For tossing coins or making\r\n"
+		"burning offerings, both variants contain a stone or bronze basin. In order to\r\n"
+		"prevent unfavorable mistakes, the Red Wizards of Thay frequently create such\r\n"
+		"shrines outside of their ritual rooms. Few are willing to patronize Beshaba.\r\n"
+		"The rare clergy of the Maid of Misfortune are individuals who have been\r\n"
+		"profoundly impacted by significant misfortunes and who wish to inform others of\r\n"
+		"the fundamental unfairness of life- or to inflict it upon them.");
 
     add_deity(DEITY_CHAUNTEA, "Chauntea", ETHOS_NEUTRAL, ALIGNMENT_GOOD, DOMAIN_ANIMAL, DOMAIN_EARTH, DOMAIN_GOOD,
           DOMAIN_PLANT, DOMAIN_PROTECTION, DOMAIN_RENEWAL, WEAPON_TYPE_SCYTHE, DEITY_PANTHEON_FAERUNIAN,
@@ -1430,6 +1566,4 @@ void assign_deities(void) {
             "humm when danger is near also with their semi-sentience they can be mentally \r\n"
             "ordered to be quiet.\r\n"
             "\r\n");
-
-
 };

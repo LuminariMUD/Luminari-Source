@@ -393,7 +393,7 @@ ACMD(do_goto)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-  room_rnum location;
+  room_rnum location = NOWHERE;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 

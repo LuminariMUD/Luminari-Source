@@ -4437,6 +4437,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's begins to grow much larger!";
     break;
 
+  case SPELL_ANT_HAUL: // transmutation
+    af[0].location = APPLY_ENCUMBRANCE;
+    af[0].duration = level * 2 * 100;
+    af[0].modifier = 6;
+    af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+    to_vict = "You feel your carrying capacity improve!";
+    to_room = "$n looks much more able!";
+    break;
+
   case SPELL_EPIC_MAGE_ARMOR: // epic
     if (affected_by_spell(victim, SPELL_MAGE_ARMOR))
     {
@@ -6401,6 +6410,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_GROUP_SHIELD_OF_FAITH:
     mag_affects(level, ch, tch, obj, SPELL_SHIELD_OF_FAITH, savetype, casttype, 0);
+    break;
+  case SPELL_MASS_ANT_HAUL:
+    mag_affects(level, ch, tch, obj, SPELL_ANT_HAUL, savetype, casttype, 0);
     break;
   case SPELL_COMMUNAL_PROTECTION_FROM_ENERGY:
     mag_affects(level, ch, tch, obj, SPELL_PROTECTION_FROM_ENERGY, savetype, casttype, 0);
@@ -8685,10 +8697,12 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool obj_to_floor = FALSE;
   bool portal_process = FALSE;
   bool gate_process = FALSE;
-  char arg[MAX_INPUT_LENGTH] = {'\0'};
   room_rnum gate_dest = NOWHERE;
   char buf[MEDIUM_STRING] = {'\0'};
+#ifndef CAMPAIGN_FR
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
   int loop_count = 0;
+#endif
 
   if (ch == NULL)
     return;
@@ -8714,6 +8728,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     else
       object_vnum = 9405;
     break;
+#ifndef CAMPAIGN_FR
   case SPELL_GATE:
   case PSIONIC_PLANAR_TRAVEL:
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
@@ -8829,6 +8844,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
       send_to_char(ch, "Your %s is being blocked at the destination!\r\n", spellnum == SPELL_GATE ? "magic" : "power");
       return;
     }
+    #endif
 
     break;
   case SPELL_GOODBERRY:

@@ -404,6 +404,7 @@
 #define CLASS_BLACKGUARD 24
 #define CLASS_ASSASSIN 25
 #define CLASS_INQUISITOR 26
+#define CLASS_SUMMONER 27
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -412,7 +413,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 27
+#define NUM_CLASSES 28
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -2834,9 +2835,10 @@
 #define APPLY_HP_REGEN 53
 #define APPLY_MV_REGEN 54
 #define APPLY_PSP_REGEN 55
+#define APPLY_ENCUMBRANCE 56
 
 /** Total number of applies */
-#define NUM_APPLIES 56
+#define NUM_APPLIES 57
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 20
@@ -3982,6 +3984,7 @@ struct char_special_data_saved
     int hp_regen;
     int mv_regen;
     int psp_regen;
+    int encumbrance_mod;                        // This is added to strength only for purposes of calculating encumbrance limits.
 };
 
 /* not saved player data used for condensed combat */

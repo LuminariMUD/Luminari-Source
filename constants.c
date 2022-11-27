@@ -660,6 +660,7 @@ const char *class_names[] = {
     "Blackguard",
     "Assassin",
     "Inquisitor",
+    "Summoner",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -2400,6 +2401,7 @@ const char *apply_types[] = {
     "HP-Regen",
     "MV-Regen",
     "PSP-Regen",
+    "Encumbrance",
     "\n" /*51*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
@@ -4289,6 +4291,7 @@ const char *spell_prep_dict[][4] = {
     {"condemn", "condemning", "condemned", "condemnations"}, /* blackguard 24 */
     {"", "", "", ""},                                        /* assassin */
     {"compel", "compelling", "compelled", "compellings"},    /* inquisitor */
+    {"conjure", "conjuring", "conjured", "conjurings"},      // summoner
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4327,6 +4330,7 @@ const char *spell_consign_dict[][4] = {
     {"uncondemn", "uncondemned", "uncondemning", "uncondemned"}, /* blackguard 24 */
     {"", "", "", ""},                                            /* assassin 25 */
     {"exempt", "exempted", "exempting", "exempt"},               /* inquisitor 26 */
+    {"unconjure", "unconjured", "unconjuring", "unconjure"},     // summoner
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -4884,6 +4888,7 @@ const char *class_short_descriptions[] = {
     "An agent of evil who stamps out the righteous, and all who stand in his way, with blade and divine magic.",   // blackguard
     "A hired killed whose ability to observe and plan spell doom for his enemies without ever showing his face.",  // assassin
     "An agent of the divine who tracks down his deity's enemies and judges them with weapons and spells.",         // inquisitor
+    "An arcane spellcaster who has mastered the art of conjuring and who controls a powerful eidolon follower.",   // summoner
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

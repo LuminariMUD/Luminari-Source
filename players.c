@@ -446,6 +446,11 @@ int load_char(const char *name, struct char_data *ch)
       GET_QUEST(ch, i) = PFDEF_CURRQUEST;
     }
 
+    GET_HP_REGEN(ch) = 0;
+    GET_MV_REGEN(ch) = 0;
+    GET_PSP_REGEN(ch) = 0;
+    GET_ENCUMBRANCE_MOD(ch) = 0;
+
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
     GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
@@ -783,6 +788,8 @@ int load_char(const char *name, struct char_data *ch)
           EFREETI_MAGIC_USES(ch) = atoi(line);
         else if (!strcmp(tag, "EfMT"))
           EFREETI_MAGIC_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "EncM"))
+          GET_ENCUMBRANCE_MOD(ch) = atoi(line);
         break;
 
       case 'F':
@@ -1670,6 +1677,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "EfMU: %d\n", EFREETI_MAGIC_USES(ch));
   if (EFREETI_MAGIC_TIMER(ch) != PFDEF_EFREETI_MAGIC_TIMER)
     fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
+  if (GET_ENCUMBRANCE_MOD(ch) != 0)
+    fprintf(fl, "EncM: %d\n", GET_ENCUMBRANCE_MOD(ch));
 
   if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
     fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
@@ -1796,7 +1805,7 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "Buff:\n");
   for (i = 0; i < MAX_BUFFS; i++)
     fprintf(fl, "%d %d %d\n", i, GET_BUFF(ch, i, 0), GET_BUFF(ch, i, 1));
-  fprintf(fl, "-1\n");
+  fprintf(fl, "-1 -1 -1\n");
 
   /* Save Bombs */
   fprintf(fl, "Bomb:\n");

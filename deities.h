@@ -186,6 +186,10 @@ struct deity_info
     sbyte pantheon;
     const char *portfolio;
     const char *description;
+    const char *alias;
+    const char *symbol;
+    const char *worshipper_alignments;
+    const char *follower_names;
 };
 
 extern struct deity_info deity_list[NUM_DEITIES];
