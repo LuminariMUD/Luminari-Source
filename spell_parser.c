@@ -3016,8 +3016,14 @@ void mag_assign_spells(void)
   spello(SPELL_SHIELD, "mage shield", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your magical shield fades away.", 3, 7, TRANSMUTATION, FALSE);
-
+  spello(SPELL_ANT_HAUL, "ant haul", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your enhanced carrying capacity has faded.", 3, 7, TRANSMUTATION, FALSE);
   /* = =  2nd circle  = = */
+  // transmutation
+  spello(SPELL_MASS_ANT_HAUL, "mass ant haul", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_GROUPS,
+         NULL, 5, 16, TRANSMUTATION, FALSE);
   /* evocation */
   spello(SPELL_ACID_ARROW, "acid arrow", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_MANUAL,

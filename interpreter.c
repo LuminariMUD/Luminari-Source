@@ -2817,11 +2817,18 @@ void nanny(struct descriptor_data *d, char *arg)
     }
 
     /* display class menu */
+    #ifdef CAMPAIGN_FR
+    write_to_output(d, "Classes of Faerun\r\n\r\n");
+    #else
     write_to_output(d, "Classes of Luminari\r\n\r\n");
+#endif
 
     for (i = 0; i < NUM_CLASSES; i++)
     {
       if (class_list[i].prestige_class)
+        continue;
+
+      if (!class_list[i].in_game)
         continue;
 
       if (CLSLIST_LOCK(i) && !has_unlocked_class(d->character, i))

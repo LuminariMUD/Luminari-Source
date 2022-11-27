@@ -610,8 +610,13 @@ void assign_domains(void)
                     SPELL_PHANTOM_STEED, SPELL_RESERVED_DBC, SPELL_MASS_FLY,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_TELEPORT, SPELL_RESERVED_DBC, SPELL_PORTAL,
+#ifdef CAMPAIGN_FR
+                    /* 9th circle */
+                    SPELL_TIMESTOP);
+#else
                     /* 9th circle */
                     SPELL_GATE);
+#endif
 
   /* War Domain */
   add_domain(DOMAIN_WAR, "War", WEAPON_TYPE_LONG_SWORD,

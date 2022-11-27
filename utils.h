@@ -936,6 +936,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_HP_REGEN(ch) (ch->char_specials.saved.hp_regen)
 #define GET_MV_REGEN(ch) (ch->char_specials.saved.mv_regen)
 #define GET_PSP_REGEN(ch) (ch->char_specials.saved.psp_regen)
+#define GET_ENCUMBRANCE_MOD(ch) (ch->char_specials.saved.encumbrance_mod)
 /** Gold on ch. */
 #define GET_GOLD(ch) ((ch)->points.gold)
 /** Gold in bank of ch. */
@@ -1460,10 +1461,10 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                                                                                    : ((GET_ADD(ch) <= 75) ? 27 : ((GET_ADD(ch) <= 90) ? 28 : ((GET_ADD(ch) <= 99) ? 29 : 30))))
 
 // returns effectve strength score for determining max carry weight
-#define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
+#define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + GET_ENCUMBRANCE_MOD(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
 
 /** Return how much weight ch can carry. */
-#define CAN_CARRY_W(ch) (GET_SIZE(ch) < SIZE_SMALL ? str_app[STRENGTH_APPLY_INDEX(ch)].carry_w / 2 : str_app[STRENGTH_APPLY_INDEX(ch)].carry_w)
+#define CAN_CARRY_W(ch) (GET_SIZE(ch) < SIZE_SMALL ? str_app[GET_CARRY_STRENGTH(ch)].carry_w / 2 : str_app[GET_CARRY_STRENGTH(ch)].carry_w)
 
 /** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */

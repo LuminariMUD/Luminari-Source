@@ -518,9 +518,11 @@
 #define SPELL_TRIBOAR_RECALL 445
 #define SPELL_LUSKAN_RECALL 446
 #define SPELL_MIRABAR_RECALL 447
+#define SPELL_ANT_HAUL 448
+#define SPELL_MASS_ANT_HAUL 449
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 448
+#define NUM_SPELLS 450
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

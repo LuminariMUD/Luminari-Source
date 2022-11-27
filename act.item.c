@@ -5510,10 +5510,10 @@ void list_consumables(struct char_data *ch, int type)
   switch (type)
   {
   case ITEM_POTION:
-    for (i = 0; i < MAX_SPELLS; i++)
+    for (i = 0; i < NUM_SPELLS; i++)
     {
 
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (spell_info[i].min_position == POS_DEAD)
         continue;
       if (STORED_POTIONS(ch, i) > 0)
       {
@@ -5528,9 +5528,9 @@ void list_consumables(struct char_data *ch, int type)
     break;
 
   case ITEM_SCROLL:
-    for (i = 0; i < MAX_SPELLS; i++)
+    for (i = 0; i < NUM_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (spell_info[i].min_position == POS_DEAD)
         continue;
       if (STORED_SCROLLS(ch, i) > 0)
       {
@@ -5545,9 +5545,9 @@ void list_consumables(struct char_data *ch, int type)
     break;
 
   case ITEM_WAND:
-    for (i = 0; i < MAX_SPELLS; i++)
+    for (i = 0; i < NUM_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (spell_info[i].min_position == POS_DEAD)
         continue;
       if (STORED_WANDS(ch, i) > 0)
       {
@@ -5562,9 +5562,9 @@ void list_consumables(struct char_data *ch, int type)
     break;
 
   case ITEM_STAFF:
-    for (i = 0; i < MAX_SPELLS; i++)
+    for (i = 0; i < NUM_SPELLS; i++)
     {
-      if (!strcmp(spell_info[i].name, "!UNUSED!"))
+      if (spell_info[i].min_position == POS_DEAD)
         continue;
       if (STORED_STAVES(ch, i) > 0)
       {

@@ -319,6 +319,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_PSP_REGEN:
     GET_PSP_REGEN(ch) += mod;
     break;
+  case APPLY_ENCUMBRANCE:
+    GET_ENCUMBRANCE_MOD(ch) += mod;
+    break;
 
     /* end Do Not Use */
 
