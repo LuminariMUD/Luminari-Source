@@ -2804,8 +2804,13 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
+#ifdef CAMPAIGN_FR
+      write_to_output(d, "Races of Faerun\r\n\r\n");
+      for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+#else
       write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++)
+#endif
       {
         if (!is_locked_race(i) || has_unlocked_race(d->character, i))
           write_to_output(d, "%s\r\n", race_list[i].type);
@@ -2817,9 +2822,9 @@ void nanny(struct descriptor_data *d, char *arg)
     }
 
     /* display class menu */
-    #ifdef CAMPAIGN_FR
+#ifdef CAMPAIGN_FR
     write_to_output(d, "Classes of Faerun\r\n\r\n");
-    #else
+#else
     write_to_output(d, "Classes of Luminari\r\n\r\n");
 #endif
 

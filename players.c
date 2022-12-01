@@ -450,6 +450,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_MV_REGEN(ch) = 0;
     GET_PSP_REGEN(ch) = 0;
     GET_ENCUMBRANCE_MOD(ch) = 0;
+    GET_FAST_HEALING_MOD(ch) = 0;
 
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
@@ -813,6 +814,8 @@ int load_char(const char *name, struct char_data *ch)
           FEY_SHADOW_WALK_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "FSWU"))
           FEY_SHADOW_WALK_USES(ch) = atoi(line);
+        else if (!strcmp(tag, "FstH"))
+          GET_FAST_HEALING_MOD(ch) = atoi(line);
 
         break;
 
@@ -1704,6 +1707,8 @@ void save_char(struct char_data *ch, int mode)
   if (FEY_SHADOW_WALK_TIMER(ch) != PFDEF_FEY_SHADOW_WALK_TIMER)
     fprintf(fl, "FSWT: %d\n", FEY_SHADOW_WALK_TIMER(ch));
 
+  if (GET_FAST_HEALING_MOD(ch) != 0)
+    fprintf(fl, "FstH: %d\n", GET_FAST_HEALING_MOD(ch));
   if (GRAVE_TOUCH_USES(ch) != PFDEF_GRAVE_TOUCH_USES)
     fprintf(fl, "GTCU: %d\n", GRAVE_TOUCH_USES(ch));
   if (GRAVE_TOUCH_TIMER(ch) != PFDEF_GRAVE_TOUCH_TIMER)

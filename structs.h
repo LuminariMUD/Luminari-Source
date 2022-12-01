@@ -1181,8 +1181,9 @@
 #define AFF_SILENCED 110           // silenced, can't speak or cast spells
 #define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
 #define AFF_WIND_WALL 112          // surrounded by a wall of wind
+#define AFF_FEAR_AURA 113
 /*---*/
-#define NUM_AFF_FLAGS 113
+#define NUM_AFF_FLAGS 114
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2836,9 +2837,10 @@
 #define APPLY_MV_REGEN 54
 #define APPLY_PSP_REGEN 55
 #define APPLY_ENCUMBRANCE 56
+#define APPLY_FAST_HEALING 57
 
 /** Total number of applies */
-#define NUM_APPLIES 57
+#define NUM_APPLIES 58
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 20
@@ -3985,6 +3987,7 @@ struct char_special_data_saved
     int mv_regen;
     int psp_regen;
     int encumbrance_mod;                        // This is added to strength only for purposes of calculating encumbrance limits.
+    int fast_healing_mod;                       // This is like hp regen, except it will heal in combat.
 };
 
 /* not saved player data used for condensed combat */

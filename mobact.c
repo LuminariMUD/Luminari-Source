@@ -267,8 +267,7 @@ bool npc_switch_opponents(struct char_data *ch, struct char_data *vict)
 
   if (FIGHTING(ch) == vict)
   {
-    send_to_char(ch, "You can't switch opponents to an opponent you are "
-                     "already fighting!\r\n");
+    send_to_char(ch, "You can't switch opponents to an opponent you are already fighting!\r\n");
     return FALSE;
   }
 
@@ -668,6 +667,12 @@ void npc_racial_behave(struct char_data *ch)
   /* retrieve random valid target and number of targets */
   if (!(vict = npc_find_target(ch, &num_targets)))
     return;
+
+  if (AFF_FLAGGED(ch, AFF_FEAR_AURA) && dice(1, 4) == 1)
+  {
+    send_to_char(ch, "You're trying to perform your fear aura.\r\n");
+    do_fear_aura(ch, NULL, 0, 0);
+  }
 
   // first figure out which race we are dealing with
   switch (GET_RACE(ch))
@@ -1510,7 +1515,8 @@ void mobile_activity(void)
       continue;
 
     /* hunt a victim, if applicable */
-    hunt_victim(ch);
+    if (MOB_FLAGGED(ch, MOB_HUNTER))
+      hunt_victim(ch);
 
     /* (mob-listen) is mob interested in fights nearby*/
     if (MOB_FLAGGED(ch, MOB_LISTEN) && !ch->master)
@@ -1553,12 +1559,12 @@ void mobile_activity(void)
             GET_MOB_LOADROOM(ch) != IN_ROOM(ch))
       hunt_loadroom(ch);
 */
-    /* pets return to their master */
-    if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && IN_ROOM(ch->master) != IN_ROOM(ch) && !HUNTING(ch))
-    {
-      HUNTING(ch) = ch->master;
-      hunt_victim(ch);
-    }
+    // /* pets return to their master */
+    // if (GET_POS(ch) == POS_STANDING && IS_PET(ch) && IN_ROOM(ch->master) != IN_ROOM(ch) && !HUNTING(ch))
+    // {
+    //   HUNTING(ch) = ch->master;
+    //   hunt_victim(ch);
+    // }
 
     /* return mobile to preferred (default) position if necessary */
     if (GET_POS(ch) != GET_DEFAULT_POS(ch) && MOB_FLAGGED(ch, MOB_SENTINEL) &&

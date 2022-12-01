@@ -920,6 +920,8 @@ ACMDCHECK(can_pixiedust);
 ACMDCHECK(can_pixieinvis);
 ACMD_DECL(do_dragonfear);
 ACMDCHECK(can_dragonfear);
+ACMD_DECL(do_fear_aura);
+ACMDCHECK(can_fear_aura);
 ACMDCHECK(can_efreetimagic);
 ACMD_DECL(do_efreetimagic);
 ACMDCHECK(can_dragonmagic);

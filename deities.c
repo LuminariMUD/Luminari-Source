@@ -34,6 +34,7 @@ void init_deities(void)
     deity_list[i].worshipper_alignments = "None";
     deity_list[i].follower_names = "None";
     deity_list[i].description = "You do not worship a deity at all for reasons of your own.";
+    deity_list[i].new_deity_system = false;
   }
 
 }
@@ -71,7 +72,7 @@ void add_deity_new(int deity, const char *name, int ethos, int alignment, int pa
   deity_list[deity].worshipper_alignments = worshipper_alignments;
   deity_list[deity].follower_names = follower_names;
   deity_list[deity].description = description;
-
+  deity_list[deity].new_deity_system = true;
 }
 
 void assign_deities(void) {
@@ -127,16 +128,16 @@ void assign_deities(void) {
 	"\r\n"
 	"The church of Tempus welcomes worshippers of all alignments (though its clerics\r\n"
 	"abide by the normal rules), and its temples are more like walled military \r\n"
-	"compounds.  Tempus`s clerics are charged to keep warfare a thing of rules and \r\n"
+	"compounds.  Tempus's clerics are charged to keep warfare a thing of rules and \r\n"
 	"respected reputation, minimizing uncontrolled bloodshed and working to end \r\n"
 	"pointless extended fueding.  They train themselves and others in battle \r\n"
 	"readiness in order to protect civilization from monsters, and they punish those\r\n"
 	"who fight dishonorably or with cowardice.  Collecting and venerating the weapons\r\n"
-	"of famous and respected warriors is a common practice in Tempus`s church.  \r\n"
+	"of famous and respected warriors is a common practice in Tempus's church.  \r\n"
 	"Clerics are expected to spill a few drops of blood (preferably their own a of a\r\n"
-	"worthy foe`s) every tenday.\r\n"
+	"worthy foe's) every tenday.\r\n"
 	"\r\n"
-	"Tempus`s clerics pray for spells just before highsun.  Most of his clerics tend\r\n"
+	"Tempus's clerics pray for spells just before highsun.  Most of his clerics tend\r\n"
 	"to be battle-minded male humans, although others are welco. Eves and \r\n"
 	"anniversaries of great battles important to a local temple are holidays.  The \r\n"
 	"Feast of the Moon is the annual day to honor the dead.  Each temple holds a \r\n"
@@ -683,7 +684,7 @@ void assign_deities(void) {
 
   add_deity_new(DEITY_AKADI, "Akadi", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DEITY_PANTHEON_FAERUNIAN, 
 		"Lady of the Winds, The Lady of Air, Queen of Air", "Elemental Air, Movement, Speed, Flying Creatures", 
-            "a white cloud on a blue background", "True Neutral, Lawful Neutral, Chaonic Neutral, Neutral Evil", "Akadian(s)", 
+            "a white cloud on a blue background", "True Neutral, Lawful Neutral, Chaotic Neutral, Neutral Evil", "Akadian(s)", 
 		"Akadi is the goddess of air, wind, and creatures of elemental air. The Queen of\r\n"
 		"Air is powerful and capricious, changeable and unpredictable, the embodiment of\r\n"
 		"whim and freedom.\r\n"

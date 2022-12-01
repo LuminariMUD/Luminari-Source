@@ -520,9 +520,13 @@
 #define SPELL_MIRABAR_RECALL 447
 #define SPELL_ANT_HAUL 448
 #define SPELL_MASS_ANT_HAUL 449
+#define SPELL_CORROSIVE_TOUCH 450
+#define SPELL_PLANAR_HEALING 451
+#define SPELL_CUSHIONING_BANDS 452
+#define SPELL_GHOST_WOLF 453
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 450
+#define NUM_SPELLS 454
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

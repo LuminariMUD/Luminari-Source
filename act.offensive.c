@@ -3693,6 +3693,77 @@ ACMD(do_dragonfear)
   USE_SWIFT_ACTION(ch);
 }
 
+
+ACMDCHECK(can_fear_aura)
+{
+  ACMDCHECK_PERMFAIL_IF(!AFF_FLAGGED(ch, AFF_FEAR_AURA), "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+/* the engine for dragon fear mechanic */
+int perform_fear_aura(struct char_data *ch)
+{
+
+  if (!ch)
+    return 0;
+
+  struct affected_type af;
+  bool got_em = FALSE;
+  struct char_data *vict = NULL, *next_vict = NULL;
+
+  act("You raise your head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n raises $s head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  {
+    next_vict = vict->next_in_room;
+
+    if (aoeOK(ch, vict, SPELL_FEAR))
+    {
+      if (is_immune_fear(ch, vict, TRUE))
+        continue;
+      if (is_immune_mind_affecting(ch, vict, TRUE))
+        continue;
+      if (mag_resistance(ch, vict, 0))
+        continue;
+      if (mag_savingthrow(ch, vict, SAVING_WILL, affected_by_aura_of_cowardice(vict) ? -4 : 0, CAST_INNATE, CLASS_LEVEL(ch, CLASS_DRUID) + GET_SHIFTER_ABILITY_CAST_LEVEL(ch), ENCHANTMENT))
+        continue;
+
+      /* success */
+      act("You have been shaken by $n's might.", FALSE, ch, 0, vict, TO_VICT);
+      act("$N has been shaken by $n's might.", FALSE, ch, 0, vict, TO_ROOM);
+      new_affect(&af);
+      af.spell = SPELL_FEAR;
+      af.duration = dice(1, 4);
+      SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+      affect_join(vict, &af, FALSE, FALSE, FALSE, FALSE);
+
+      got_em = TRUE;
+    }
+  }
+
+  return got_em;
+}
+
+/* this is another version of dragon fear (frightful above is another version) */
+ACMD(do_fear_aura)
+{
+  PREREQ_CAN_FIGHT();
+  PREREQ_CHECK(can_fear_aura);
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!is_action_available(ch, atSWIFT, FALSE))
+  {
+    send_to_char(ch, "You have already used your swift action this round.\r\n");
+    return;
+  }
+
+  /* engine */
+  perform_fear_aura(ch);
+
+  USE_SWIFT_ACTION(ch);
+}
+
 ACMDCHECK(can_breathe)
 {
   ACMDCHECK_PERMFAIL_IF(!IS_DRAGON(ch), "You have no idea how.\r\n");
