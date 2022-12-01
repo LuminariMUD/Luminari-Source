@@ -8350,13 +8350,29 @@ ACMDU(do_devote)
       send_to_char(ch, "There is no deity by that name.\r\n");
       return;
     }
-    snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
-    send_to_char(ch, "\tA%s\r\n\tn", CAP(dname));
-    send_to_char(ch, "\r\n");
-    send_to_char(ch, "\tAPantheon:\tn %s\r\n", pantheons[deity_list[i].pantheon]);
-    send_to_char(ch, "\tAAlignment:\tn %s\r\n", GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment));
-    send_to_char(ch, "\tAPortfolio:\tn %s\r\n", deity_list[i].portfolio);
-    send_to_char(ch, "\tADescription:\tn\r\n%s\r\n", deity_list[i].description);
+    if (deity_list[i].new_deity_system)
+    {
+      snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
+      send_to_char(ch, "\tADeity: \tn%s\r\n\tn", CAP(dname));
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "\tAPantheon:\tn %s\r\n", pantheons[deity_list[i].pantheon]);
+      send_to_char(ch, "\tAAlias:\tn %s\r\n", deity_list[i].alias);
+      send_to_char(ch, "\tASymbol:\tn %s\r\n", deity_list[i].symbol);
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "\tAAlignment:\tn %-20s \tAWorshipper Alignments:\tn %s\r\n", GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].worshipper_alignments);
+      send_to_char(ch, "\tAFollowers:\tn %s\r\n", deity_list[i].follower_names);
+      send_to_char(ch, "\tADescription:\tn\r\n%s\r\n", deity_list[i].description);
+    }
+    else
+    {
+      snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
+      send_to_char(ch, "\tA%s\r\n\tn", CAP(dname));
+      send_to_char(ch, "\r\n");
+      send_to_char(ch, "\tAPantheon:\tn %s\r\n", pantheons[deity_list[i].pantheon]);
+      send_to_char(ch, "\tAAlignment:\tn %s\r\n", GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment));
+      send_to_char(ch, "\tAPortfolio:\tn %s\r\n", deity_list[i].portfolio);
+      send_to_char(ch, "\tADescription:\tn\r\n%s\r\n", deity_list[i].description);
+    }
     return;
   }
   else if (is_abbrev(arg1, "choose"))

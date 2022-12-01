@@ -5255,7 +5255,11 @@ void init_char(struct char_data *ch)
 
   GET_REAL_SIZE(ch) = SIZE_MEDIUM;
 
+#ifdef CAMPAIGN_FR
+    if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_EXTENDED_PC_RACES)
+#else
   if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_RACES)
+#endif
     GET_REAL_RACE(ch) = RACE_UNDEFINED;
 
   if ((i = get_ptable_by_name(GET_NAME(ch))) != -1)

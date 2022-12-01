@@ -756,6 +756,8 @@ void assign_objects(void)
   ASSIGNOBJ(3118, crafting_kit);
   ASSIGNOBJ(3322, crafting_kit);
 
+  ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
+
 #else
 
   ASSIGNOBJ(1226, gen_board);   /* builder's board */

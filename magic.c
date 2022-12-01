@@ -203,12 +203,14 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_SHADOW_MASTER) && IS_SHADOW_CONDITIONS(vict))
     saves += 2;
   saves -= get_char_affect_modifier(vict, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
+  if (AFF_FLAGGED(vict, AFF_SHAKEN))
+    saves -= 2;
 
-  /* determine base, add/minus bonus/penalty and return */
-  if (IS_NPC(vict))
-    saves += (GET_LEVEL(vict) / 3) + 1;
-  else
-    saves += saving_throws(vict, type);
+    /* determine base, add/minus bonus/penalty and return */
+    if (IS_NPC(vict))
+      saves += (GET_LEVEL(vict) / 3) + 1;
+    else
+      saves += saving_throws(vict, type);
 
   /* display mode (used in handler for stat caps) */
   if (modifier == MAX_GOLD)
@@ -1299,6 +1301,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_FIRE;
     num_dice = MIN(8, level);
     size_dice = 6;
+    bonus = 0;
+    break;
+
+  case SPELL_CORROSIVE_TOUCH: // conjuration
+    save = -1; // no save
+    mag_resist = TRUE;
+    element = DAM_ACID;
+    num_dice = MIN(8, level);
+    size_dice = 4;
     bonus = 0;
     break;
 
@@ -5774,6 +5785,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's begins to shrink to being much smaller!";
     break;
 
+  case SPELL_PLANAR_HEALING: // conjuration
+    af[0].location = APPLY_FAST_HEALING;
+    af[0].duration = 10 + MAX(1, level / 2);
+    af[0].modifier = 1;
+    to_vict = "You feel an outside power offer you enhanced healing.";
+    break;
+
   case SPELL_SLEEP: // enchantment
     if (GET_LEVEL(victim) >= 7 || is_immune_sleep)
     {
@@ -5924,6 +5942,33 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     new_dr->amount = 10;
     new_dr->max_damage = MAX(MIN(150, level * 10), 60);
     new_dr->spell = SPELL_STONESKIN;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(victim);
+    GET_DR(victim) = new_dr;
+
+    break;
+
+  case SPELL_CUSHIONING_BANDS:
+    af[0].location = APPLY_DR;
+    af[0].modifier = 0;
+    af[0].duration = 600;
+    to_room = "$n's outer form ripples as unseen bands form a guard around $m.";
+    to_vict = "The space around your body ripples as unseen bands of force form a guard around you.";
+
+    CREATE(new_dr, struct damage_reduction_type, 1);
+
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_DAMTYPE;
+    new_dr->bypass_val[0] = DAM_SLICE;
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_DAMTYPE;
+    new_dr->bypass_val[1] = DAM_PUNCTURE;
+
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0; /* Unused. */
+
+    new_dr->amount = 2;
+    new_dr->max_damage = MAX(MIN(120, level * 10), 60);
+    new_dr->spell = SPELL_CUSHIONING_BANDS;
     new_dr->feat = FEAT_UNDEFINED;
     new_dr->next = GET_DR(victim);
     GET_DR(victim) = new_dr;
@@ -7297,6 +7342,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420   // Potential mob for children of the night vampire ability.
 #define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421   // Potential mob for children of the night vampire ability.
 #define MOB_CREATE_VAMPIRE_SPAWN 9422         // Mob to use for create vampire spawn
+#define MOB_GHOST_WOLF 801                    // Mob to use for ghost wolf spell
 
 bool isSummonMob(int vnum)
 {
@@ -7337,6 +7383,7 @@ bool isSummonMob(int vnum)
   case MOB_CHILDREN_OF_THE_NIGHT_RATS:
   case MOB_CHILDREN_OF_THE_NIGHT_BATS:
   case MOB_CREATE_VAMPIRE_SPAWN:
+  case MOB_GHOST_WOLF:
     return true;
   }
   return false;
@@ -7529,6 +7576,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     msg = 19;
     fmsg = rand_number(2, 6); /* Random fail message. */
     mob_num = MOB_PHANTOM_STEED;
+    pfail = 0;
+    break;
+
+  case SPELL_GHOST_WOLF: // conjuration
+    handle_corpse = FALSE;
+    msg = 19;
+    fmsg = rand_number(2, 6); /* Random fail message. */
+    mob_num = MOB_GHOST_WOLF;
     pfail = 0;
     break;
 
@@ -7902,6 +7957,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_DRAGON_KNIGHT:
     case SPELL_ELEMENTAL_SWARM:
     case SPELL_SHAMBLER:
+    case SPELL_PHANTOM_STEED:
+    case SPELL_GHOST_WOLF:
     case SPELL_SUMMON_CREATURE_1:
     case SPELL_SUMMON_CREATURE_2:
     case SPELL_SUMMON_CREATURE_3:
@@ -7924,6 +7981,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += ((spell_focus_bonus)*GET_LEVEL(mob)); /* con bonus */
       GET_HIT(mob) = GET_MAX_HIT(mob);
       break;
+    }
+
+    if (spellnum == SPELL_GHOST_WOLF)
+    {
+      if (CASTER_LEVEL(ch) >= 12)
+        SET_BIT_AR(AFF_FLAGS(ch), AFF_WATERWALK);
+      if (CASTER_LEVEL(ch) >= 15)
+        SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
     }
 
     if (IS_SPECIALTY_SCHOOL(ch, spellnum))

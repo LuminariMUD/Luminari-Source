@@ -2925,6 +2925,9 @@ void mag_assign_spells(void)
   spello(SPELL_BURNING_HANDS, "burning hands", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 1, 7, EVOCATION, FALSE);
+  spello(SPELL_CORROSIVE_TOUCH, "corrosive touch", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
+         NULL, 1, 7, CONJURATION, FALSE);
   spello(SPELL_HELLISH_REBUKE, "hellish rebuke", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 7, EVOCATION, FALSE);
@@ -2938,6 +2941,9 @@ void mag_assign_spells(void)
   spello(SPELL_ICE_DAGGER, "ice dagger", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 1, 7, CONJURATION, FALSE);
+  spello(SPELL_PLANAR_HEALING, "planar healing", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your planar healing has expired.", 1, 7, CONJURATION, FALSE);
   spello(SPELL_MAGE_ARMOR, "mage armor", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 7,
          CONJURATION, FALSE);
@@ -3055,6 +3061,10 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
          "You feel the sticky strands of the magical web dissolve.", 2, 9,
          CONJURATION, FALSE);
+  spello(SPELL_CUSHIONING_BANDS, "cushioning bands", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "You feel unseen bands of force strengthen your durability.", 2, 9,
+         CONJURATION, FALSE);
   /* necromancy */
   // blindness - shared
   spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,
@@ -3137,6 +3147,9 @@ void mag_assign_spells(void)
   spello(SPELL_PHANTOM_STEED, "phantom steed", 95, 80, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS,
          NULL, 7, 11, CONJURATION, FALSE);
+  spello(SPELL_GHOST_WOLF, "ghost wolf", 95, 80, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_SUMMONS,
+         NULL, 9, 11, CONJURATION, FALSE);
   spello(SPELL_STINKING_CLOUD, "stinking cloud", 65, 50, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_ROOM,
          "You watch as the noxious gasses fade away.", 4, 11,

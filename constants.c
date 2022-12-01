@@ -1706,6 +1706,7 @@ const char *affected_bits[] = {
     "Silenced",
     "Hidden-Alignment",
     "Wind-Wall",
+    "Fear-Aura",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1830,6 +1831,7 @@ const char *affected_bit_descs[] = {
     "You are unable to make a sound.",
     "Your alignment is hidden from others.",
     "You are surrounded by a wall of wind",
+    "You radiate fear to your opponents.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
@@ -2402,6 +2404,7 @@ const char *apply_types[] = {
     "MV-Regen",
     "PSP-Regen",
     "Encumbrance",
+    "Fast-Healing",
     "\n" /*51*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);

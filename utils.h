@@ -937,6 +937,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_MV_REGEN(ch) (ch->char_specials.saved.mv_regen)
 #define GET_PSP_REGEN(ch) (ch->char_specials.saved.psp_regen)
 #define GET_ENCUMBRANCE_MOD(ch) (ch->char_specials.saved.encumbrance_mod)
+#define GET_FAST_HEALING_MOD(ch) (ch->char_specials.saved.fast_healing_mod)
 /** Gold on ch. */
 #define GET_GOLD(ch) ((ch)->points.gold)
 /** Gold in bank of ch. */
@@ -2001,7 +2002,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                           (IS_IRON_GOLEM(ch)))
 #define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
                          IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||                 \
-                         (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER))
+                         (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER) || \
+                         affected_by_spell(ch, SPELL_PLANAR_HEALING))
 #define IS_HUMANOID(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||    \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
                          (!IS_NPC(ch) && !IS_MORPHED(ch)))

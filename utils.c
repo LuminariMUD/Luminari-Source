@@ -4966,8 +4966,8 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
   {
     if (display)
     {
-      send_to_char(ch, "%s is undead and thus immune to mind affecting spells and abilities!", GET_NAME(victim));
-      send_to_char(victim, "You are undead and thus are immune to %s's mind-affecting spells and abilities!", GET_NAME(ch));
+      send_to_char(ch, "%s is undead and thus immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are undead and thus are immune to %s's mind-affecting spells and abilities!\r\n", GET_NAME(ch));
     }
     return TRUE;
   }
@@ -4976,8 +4976,8 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
   {
     if (display)
     {
-      send_to_char(ch, "%s is a construct and thus immune to mind affecting spells and abilities!", GET_NAME(victim));
-      send_to_char(victim, "You are a construct and thus are immune to %s's mind-affecting spells and abilities!", GET_NAME(ch));
+      send_to_char(ch, "%s is a construct and thus immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are a construct and thus are immune to %s's mind-affecting spells and abilities!\r\n", GET_NAME(ch));
     }
     return TRUE;
   }
@@ -4986,8 +4986,8 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
   {
     if (display)
     {
-      send_to_char(ch, "%s is of racial type 'ooze' and thus immune to mind affecting spells and abilities!", GET_NAME(victim));
-      send_to_char(victim, "You are of racial type 'ooze' and thus are immune to %s's mind-affecting spells and abilities!", GET_NAME(ch));
+      send_to_char(ch, "%s is of racial type 'ooze' and thus immune to mind affecting spells and abilities!\r\n", GET_NAME(victim));
+      send_to_char(victim, "You are of racial type 'ooze' and thus are immune to %s's mind-affecting spells and abilities!\r\n", GET_NAME(ch));
     }
     return TRUE;
   }
@@ -4996,9 +4996,8 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
   {
     if (display)
     {
-      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-      send_to_char(victim, "Mind blank protects you from %s!",
-                   GET_NAME(ch));
+      send_to_char(ch, "Mind blank protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!\r\n", GET_NAME(ch));
     }
     return TRUE;
   }
@@ -5011,8 +5010,8 @@ sbyte is_immune_mind_affecting(struct char_data *ch, struct char_data *victim, s
     {
       if (display)
       {
-        send_to_char(ch, "Thought shield protects %s!", GET_NAME(victim));
-        send_to_char(victim, "Thought shield protects you from %s!", GET_NAME(ch));
+        send_to_char(ch, "Thought shield protects %s!\r\n", GET_NAME(victim));
+        send_to_char(victim, "Thought shield protects you from %s!\r\n", GET_NAME(ch));
       }
       return TRUE;
     }
@@ -5027,9 +5026,8 @@ sbyte is_immune_charm(struct char_data *ch, struct char_data *victim, sbyte disp
   {
     if (display)
     {
-      send_to_char(ch, "Mind blank protects %s!", GET_NAME(victim));
-      send_to_char(victim, "Mind blank protects you from %s!",
-                   GET_NAME(ch));
+      send_to_char(ch, "Mind blank protects %s!\r\n", GET_NAME(victim));
+      send_to_char(victim, "Mind blank protects you from %s!\r\n", GET_NAME(ch));
     }
     return TRUE;
   }

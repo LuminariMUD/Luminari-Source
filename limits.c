@@ -441,6 +441,8 @@ int regen_hps(struct char_data *ch)
   if (!FIGHTING(ch))
     hp += GET_HP_REGEN(ch);
 
+  hp += GET_FAST_HEALING_MOD(ch);
+
   /* these are last bonuses (outside of exceptions) because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
   {

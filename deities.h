@@ -190,6 +190,7 @@ struct deity_info
     const char *symbol;
     const char *worshipper_alignments;
     const char *follower_names;
+    bool new_deity_system;
 };
 
 extern struct deity_info deity_list[NUM_DEITIES];

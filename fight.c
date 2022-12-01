@@ -7380,6 +7380,8 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
   if (AFF_FLAGGED(ch, AFF_FATIGUED))
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
+  if (AFF_FLAGGED(ch, AFF_SHAKEN))
+    bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 2;
   if (AFF_FLAGGED(ch, AFF_DAZZLED))
     bonuses[BONUS_TYPE_CIRCUMSTANCE] -= 1;
   if (IS_FRIGHTENED(ch))
