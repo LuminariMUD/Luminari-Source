@@ -668,7 +668,7 @@ void npc_racial_behave(struct char_data *ch)
   if (!(vict = npc_find_target(ch, &num_targets)))
     return;
 
-  if (AFF_FLAGGED(ch, AFF_FEAR_AURA) && dice(1, 4) == 1)
+  if (AFF_FLAGGED(ch, AFF_FEAR_AURA) && dice(1, 2) == 1)
   {
     send_to_char(ch, "You're trying to perform your fear aura.\r\n");
     do_fear_aura(ch, NULL, 0, 0);

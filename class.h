@@ -125,7 +125,8 @@ void feat_assignment(int class_num, int feat_num, bool is_classfeat,
                      int level_received, bool stacks);
 bool is_class_req_object(struct char_data *ch, struct obj_data *obj, bool output);
 bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool output);
-
+int num_languages_learned(struct char_data *ch);
+bool has_unchosen_languages(struct char_data *ch);
 bool display_region_info(struct char_data *ch, int region);
 
 /* ACMD */

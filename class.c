@@ -432,6 +432,7 @@ void assign_class_abils(int class_num,
   class_list[class_num].class_abil[ABILITY_SWIM] = swim;
   class_list[class_num].class_abil[ABILITY_USE_MAGIC_DEVICE] = use_magic_device;
   class_list[class_num].class_abil[ABILITY_PERFORM] = perform;
+  class_list[class_num].class_abil[ABILITY_LINGUISTICS] = CA;
 }
 
 /* function to give default values for a class before assignment */
@@ -2531,6 +2532,8 @@ void init_start_char(struct char_data *ch)
     KNOWS_MERCY(ch, i) = 0;
   for (i = 0; i < NUM_BLACKGUARD_CRUELTIES; i++)
     KNOWS_CRUELTY(ch, i) = 0;
+  for (i = 0; i < NUM_LANGUAGES; i++)
+    ch->player_specials->saved.languages_known[i] = FALSE;
   ch->player_specials->saved.fiendish_boons = 0;
   ch->player_specials->saved.channel_energy_type = 0;
   // this is here so that new characters can't get extra stat points from racefix command.
@@ -7832,6 +7835,40 @@ bool can_learn_paladin_mercy(struct char_data *ch, int mercy)
   }
 
   return false;
+}
+
+int num_languages_learned(struct char_data *ch)
+{
+  int i = 0, num = 0;
+
+  for (i = 0; i < NUM_LANGUAGES; i++)
+  {
+    if (ch->player_specials->saved.languages_known[i] > 0)
+      num++;
+  }
+  return num;
+}
+
+bool has_unchosen_languages(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  int num_avail = MAX(0, GET_REAL_INT_BONUS(ch)) + MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS));
+  int num_chosen = num_languages_learned(ch);
+  /*
+  send_to_char(ch, "\r\nAVAIL: %d, KNOWN: %d\r\n", num_avail, num_chosen);
+  send_to_char(ch, "Int: %d\r\n", MAX(0, GET_REAL_INT_BONUS(ch)));
+  send_to_char(ch, "Skill: %d\r\n", MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)));
+  */
+
+  if ((num_avail - num_chosen) > 0)
+    return TRUE;
+
+  return FALSE;
 }
 
 int num_blackguard_cruelties_known(struct char_data *ch)

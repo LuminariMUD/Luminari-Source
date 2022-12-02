@@ -549,6 +549,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"omit", "omit", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_OMIT, FALSE, ACTION_NONE, {0, 0}, NULL},
     //{ "objlist", "objlist", POS_DEAD, do_objlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"obind", "obind", POS_DEAD, do_obind, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"osay", "osay", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"ooc", "ooc", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"outfit", "outfit", POS_RECLINING, do_outfit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -646,11 +648,16 @@ cpp_extern const struct command_info cmd_info[] = {
     {"rank", "rank", POS_DEAD, do_rank, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"rp", "rp", POS_DEAD, do_gen_tog, 0, SCMD_RP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"resetpassword", "resetpassword", POS_DEAD, do_resetpassword, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"rsay", "rs", POS_RECLINING, do_rsay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+#ifdef CAMPAIGN_FR
+    {"say", "s", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#else
     {"say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"sail", "sail", POS_RECLINING, do_sail, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"score", "sc", POS_DEAD, do_score, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"scan", "sca", POS_RECLINING, do_scan, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -688,6 +695,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"speak", "speak", POS_RECLINING, do_speak, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spelllist", "spelllist", POS_RECLINING, do_spelllist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spells", "spells", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"split", "split", POS_SITTING, do_split, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

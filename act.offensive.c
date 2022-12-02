@@ -3711,8 +3711,8 @@ int perform_fear_aura(struct char_data *ch)
   bool got_em = FALSE;
   struct char_data *vict = NULL, *next_vict = NULL;
 
-  act("You raise your head and let out a bone chilling roar.", FALSE, ch, 0, 0, TO_CHAR);
-  act("$n raises $s head and lets out a bone chilling roar", FALSE, ch, 0, 0, TO_ROOM);
+  act("\tCYou raise your head and let out a bone chilling roar.\tn", FALSE, ch, 0, 0, TO_CHAR);
+  act("\tC$n raises $s head and lets out a bone chilling roar.\tn", FALSE, ch, 0, 0, TO_ROOM);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
   {
