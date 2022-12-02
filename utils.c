@@ -5141,6 +5141,22 @@ bool has_aura_of_evil(struct char_data *ch)
   return has_aura;
 }
 
+bool can_speak_language(struct char_data *ch, int language)
+{
+  if (!ch) return false;
+  if (language < LANG_COMMON || language >= NUM_LANGUAGES) return false;
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT) return true;
+  if (language == LANG_COMMON) return true;
+  if (language == race_list[GET_REAL_RACE(ch)].racial_language) return true;
+  if (ch->player_specials->saved.languages_known[language]) return true;
+  if (language == LANG_DRUIDIC && CLASS_LEVEL(ch, CLASS_DRUID)) return true;
+  if (language == LANG_THEIVES_CANT && CLASS_LEVEL(ch, CLASS_ROGUE)) return true;
+  if (language == get_region_language(GET_REGION(ch))) return true;
+
+  return false;
+}
+
 bool group_member_affected_by_spell(struct char_data *ch, int spellnum)
 {
   if (!ch)

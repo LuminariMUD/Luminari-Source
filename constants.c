@@ -3648,7 +3648,7 @@ const char *ability_names[] = {
     "Survival",
     "Swim",
     "Use Magic Device",
-    "Unused8",
+    "Linguistics",
     "Perform",
     /*crafting*/
     "woodworking",

@@ -25,6 +25,106 @@
 #include "act.h"
 #include "modify.h"
 #include "hlquest.h"
+#include "constants.h"
+
+ACMDU(do_rsay)
+{
+  char type[20];
+  char *arg2 = NULL;
+
+  if (IS_ANIMAL(ch) && !IS_WILDSHAPED(ch))
+  {
+    send_to_char(ch, "You can't speak!\r\n");
+    return;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_SILENCED))
+  {
+    send_to_char(ch, "You can't seem to make a sound.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+    send_to_char(ch, "Yes, but WHAT do you want to say?\r\n");
+  else
+  {
+    char buf[MAX_INPUT_LENGTH + 14];
+    const char *msg = NULL;
+    arg2 = strdup(argument); // make a copy to send to triggers b4 parse
+    struct char_data *vict;
+
+    /* TODO (Nashak):
+     *   - Parse and remove any smiley faces? (not for now)
+     *   - Based on smileys parsed, express emotion in message?
+     */
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(argument);
+    sentence_case(argument);
+
+    if (argument[strlen(argument) - 1] == '?')
+    {
+      // the argument ends in a question mark, it's probably a question
+      strlcpy(type, "ask", sizeof(type));
+    }
+    else if (argument[strlen(argument) - 1] == '!')
+    {
+      strlcpy(type, "exclaim", sizeof(type));
+    }
+    else if (argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' &&
+             argument[strlen(argument) - 3] == '.')
+    {
+      strlcpy(type, "mutter", sizeof(type));
+    }
+    else
+    {
+      // the argument ends something else, normal tone
+      // append a period if it isn't already there
+      if (argument[strlen(argument) - 1] != '.')
+        strcat(argument, ".");
+
+      strlcpy(type, "say", sizeof(type));
+    }
+
+    snprintf(buf, sizeof(buf), "\tG$n %ss in %s, '%s'\tn", type, languages[SPEAKING(ch)], argument);
+    // msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+
+    // add message to history for those who heard it
+    for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+      if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
+      {
+        if (CAN_SPEAK(vict, SPEAKING(ch)))
+        {
+          msg = act(buf, FALSE, ch, 0, vict, TO_VICT | DG_NO_TRIG);
+          add_history(vict, msg, HIST_SAY);
+        }
+        else
+        {
+          msg = act("\tG$n says something in an unfamiliar tongue.\tn", FALSE, ch, 0, vict, TO_VICT | DG_NO_TRIG);
+          add_history(vict, msg, HIST_SAY);
+        }
+      }
+
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
+      send_to_char(ch, "%s", CONFIG_OK);
+    else
+    {
+      snprintf(buf, sizeof(buf), "\tGYou %s in %s, '%s'\tn", type, languages[SPEAKING(ch)], argument);
+      msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
+      add_history(ch, msg, HIST_SAY);
+    }
+  }
+
+  /* DEBUG */
+  // send_to_char(ch, "ARG2|%s|\r\n", arg2);
+  /* end DEBUG */
+
+  /* Trigger check. */
+  speech_mtrigger(ch, arg2);
+  speech_wtrigger(ch, arg2);
+}
 
 ACMDU(do_say)
 {
@@ -112,6 +212,136 @@ ACMDU(do_say)
   /* Trigger check. */
   speech_mtrigger(ch, arg2);
   speech_wtrigger(ch, arg2);
+}
+
+ACMDU(do_osay)
+{
+  char type[20];
+  char *arg2 = NULL;
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+    send_to_char(ch, "Yes, but WHAT do you want to say out-of-character?\r\n");
+  else
+  {
+    char buf[MAX_INPUT_LENGTH + 14];
+    const char *msg = NULL;
+    arg2 = strdup(argument); // make a copy to send to triggers b4 parse
+    struct char_data *vict;
+
+    /* TODO (Nashak):
+     *   - Parse and remove any smiley faces? (not for now)
+     *   - Based on smileys parsed, express emotion in message?
+     */
+    if (CONFIG_SPECIAL_IN_COMM && legal_communication(argument))
+      parse_at(argument);
+    sentence_case(argument);
+
+    if (argument[strlen(argument) - 1] == '?')
+    {
+      // the argument ends in a question mark, it's probably a question
+      strlcpy(type, "ask", sizeof(type));
+    }
+    else if (argument[strlen(argument) - 1] == '!')
+    {
+      strlcpy(type, "exclaim", sizeof(type));
+    }
+    else if (argument[strlen(argument) - 1] == '.' &&
+             argument[strlen(argument) - 2] == '.' &&
+             argument[strlen(argument) - 3] == '.')
+    {
+      strlcpy(type, "mutter", sizeof(type));
+    }
+    else
+    {
+      // the argument ends something else, normal tone
+      // append a period if it isn't already there
+      if (argument[strlen(argument) - 1] != '.')
+        strcat(argument, ".");
+
+      strlcpy(type, "say", sizeof(type));
+    }
+
+    snprintf(buf, sizeof(buf), "\tG$n %ss out-of-character, '%s'\tn", type, argument);
+    msg = act(buf, FALSE, ch, 0, 0, TO_ROOM | DG_NO_TRIG);
+
+    // add message to history for those who heard it
+    for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+      if (vict != ch && GET_POS(vict) > POS_SLEEPING && !AFF_FLAGGED(vict, AFF_DEAF))
+        add_history(vict, msg, HIST_OSAY);
+
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOREPEAT))
+      send_to_char(ch, "%s", CONFIG_OK);
+    else
+    {
+      snprintf(buf, sizeof(buf), "\tGYou %s out-of-character, '%s'\tn", type, argument);
+      msg = act(buf, FALSE, ch, 0, 0, TO_CHAR | DG_NO_TRIG);
+      add_history(ch, msg, HIST_OSAY);
+    }
+  }
+
+  /* DEBUG */
+  // send_to_char(ch, "ARG2|%s|\r\n", arg2);
+  /* end DEBUG */
+
+  /* Trigger check. */
+  speech_mtrigger(ch, arg2);
+  speech_wtrigger(ch, arg2);
+}
+
+ACMDU(do_speak)
+{
+
+  skip_spaces(&argument);
+  int i = 0;
+
+  if (!*argument)
+  {
+    send_to_char(ch, "You can select among the following languages to speak:\r\n");
+    for (i = 0; i < NUM_LANGUAGES; i++)
+    {
+      if (CAN_SPEAK(ch, i))
+      {
+        send_to_char(ch, "%s%s%s ", SPEAKING(ch) == i ? "(" : "", languages[i], SPEAKING(ch) == i ? ")" : "");
+      }
+    }
+    send_to_char(ch, "\r\n");
+    return;
+  }
+  if (!strcmp(argument, "all"))
+  {
+    send_to_char(ch, "The following languages are implemented:\r\n");
+    for (i = 0; i < NUM_LANGUAGES; i++)
+    {
+      send_to_char(ch, "%s ", languages[i]);
+    }
+    send_to_char(ch, "\r\n");
+    return;
+  }
+
+  for (i = 0; i < NUM_LANGUAGES; i++)
+  {
+    if (is_abbrev(argument, languages[i]))
+    {
+      if (CAN_SPEAK(ch, i))
+      {
+        SPEAKING(ch) = i;
+        send_to_char(ch, "You begin to speak '%s'.\r\n", languages[i]);
+        break;
+      }
+      else
+      {
+        send_to_char(ch, "You do not know that language.\r\n");
+        break;
+      }
+    }
+  }
+
+  if (i >= NUM_LANGUAGES)
+  {
+    send_to_char(ch, "That is not a valid language.  Type 'speak all' for a full list, or 'speak' by itself to see the languages you know.\r\n");
+  }
 }
 
 ACMDU(do_gsay)

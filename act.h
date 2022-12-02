@@ -149,6 +149,9 @@ ACMD_DECL(do_spec_comm);
 /* functions without subcommands */
 ACMD_DECL(do_say);
 ACMD_DECL(do_gsay);
+ACMD_DECL(do_osay);
+ACMD_DECL(do_rsay);
+ACMD_DECL(do_speak);
 ACMD_DECL(do_page);
 ACMD_DECL(do_reply);
 ACMD_DECL(do_tell);

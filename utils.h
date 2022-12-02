@@ -144,6 +144,7 @@ bool affected_by_aura_of_righteousness(struct char_data *ch);
 bool is_fear_spell(int spellnum);
 char *apply_types_lowercase(int apply_type);
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
+bool can_speak_language(struct char_data *ch, int language);
 int num_blackguard_cruelties_known(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen(struct char_data *ch);
 sbyte has_blackguard_cruelties_unchosen_study(struct char_data *ch);

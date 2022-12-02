@@ -657,6 +657,7 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_SELECT_RACIAL_ABILITY 59
 #define SET_HIGH_ELF_CANTRIP 60
 #define STUDY_CONFIRM_HIGH_ELF_CANTRIP 61
+#define STUDY_CHOOSE_LANGUAGES 62
 
 int save_config(IDXTYPE nowhere);
 

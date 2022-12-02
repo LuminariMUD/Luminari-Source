@@ -479,6 +479,15 @@ void finalize_study(struct descriptor_data *d)
       ch->player_specials->saved.blackguard_cruelties[i] = TRUE;
   }
 
+  // Assign chosen languages
+  for (i = 0; i < NUM_LANGUAGES; i++)
+  {
+    if (LEVELUP(ch)->languages[i] == TRUE)
+    {
+      ch->player_specials->saved.languages_known[i] = TRUE;
+    }
+  }
+
   /* set spells learned for domain */
   assign_domain_spells(ch);
 
@@ -1677,6 +1686,60 @@ static void select_paladin_mercies(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SELECT_PAL_MERCY;
 }
 
+static void choose_languages(struct descriptor_data *d)
+{
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  struct char_data *ch = d->character;
+
+  int i = 0, count = 0;
+  int langs_known = num_languages_learned(ch);
+  int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) + MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) + MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
+
+  for (i = 0; i < NUM_LANGUAGES; i++)
+  {
+    if (LEVELUP(ch)->languages[i])
+      langs_known++;
+  }
+
+  write_to_output(d,
+                  "\r\n-- %sSelect Languages%s\r\n"
+                  "\r\n",
+                  mgn, nrm);
+
+  for (i = 0; i < NUM_LANGUAGES; i++)
+  {
+    if (!CAN_SPEAK(ch, i))
+    {
+      if (LEVELUP(ch)->languages[i])
+        send_to_char(ch, "\tM%-2d) %-35s \tn", i, languages[i]);
+      else
+        send_to_char(ch, "\tn%-2d) %-35s \tn", i, languages[i]);
+      if ((count % 2) == 1)
+      {
+        send_to_char(ch, "\r\n");
+      }
+      count++;
+    }
+  }
+
+  if ((count % 2) != 1)
+  {
+    send_to_char(ch, "\r\n");
+  }
+
+  write_to_output(d, "\r\n"
+                     "%s -1%s) Quit\r\n"
+                     "\r\n"
+                     "%d language(s) can be selected\r\n"
+                     "\r\n"
+                     "Enter Choice : ",
+                  grn, nrm, langs_can_learn - langs_known);
+
+  OLC_MODE(d) = STUDY_CHOOSE_LANGUAGES;
+}
+
 static void select_blackguard_cruelties(struct descriptor_data *d)
 {
   get_char_colors(d->character);
@@ -2099,7 +2162,6 @@ static void main_skills_disp_menu(struct descriptor_data *d)
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
     case ABILITY_UNUSED_7:
-    case ABILITY_UNUSED_8:
       continue;
     default:
       break;
@@ -2226,6 +2288,7 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s D%s) Paladin Mercies%s\r\n"
                   "%s E%s) Blackguard Cruelties%s\r\n"
                   "%s F%s) Racial Abilities Selection%s\r\n"
+                  "%s G%s) Languages%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -2249,7 +2312,8 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", // C
                   MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             // D
                   MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
-                  MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // D
+                  MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // F
+                  MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // G
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
                   grn, nrm,
                   (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
@@ -2359,7 +2423,6 @@ static void skfeat_disp_menu(struct descriptor_data *d)
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
     case ABILITY_UNUSED_7:
-    case ABILITY_UNUSED_8:
       continue;
     }
     write_to_output(d, "%d) %s\r\n", i, ability_names[i]);
@@ -2665,6 +2728,19 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       break;
 
+    case 'g':
+    case 'G':
+      if (has_unchosen_languages(ch))
+      {
+        choose_languages(d);
+      }
+      else
+      {
+        write_to_output(d, "That is an invalid choice!\r\n");
+        generic_main_disp_menu(d);
+      }
+      break;
+
     // reset levelup, level 1 only.
     case 'R':
     case 'r':
@@ -2952,6 +3028,52 @@ void study_parse(struct descriptor_data *d, char *arg)
     OLC_MODE(d) = STUDY_CONFIRM_ADD_MERCY;
     break;
 
+  case STUDY_CHOOSE_LANGUAGES:
+    number = atoi(arg);
+    if (number == -1)
+    {
+      display_main_menu(d);
+      break;
+    }
+
+    /* Check if the language is available. */
+    if ((number < LANG_COMMON) ||
+        (number >= NUM_LANGUAGES) ||
+        (CAN_SPEAK(d->character, number)))
+    {
+      write_to_output(d, "Invalid language, try again.\r\n");
+      break;
+    }
+
+    if (LEVELUP(ch)->languages[number] == TRUE)
+    {
+      LEVELUP(ch)->languages[number] = FALSE;
+      send_to_char(ch, "You de-select language '%s'\r\n", languages[number]);
+    }
+    else
+    {
+      int langs_known = num_languages_learned(ch);
+      int langs_can_learn = MAX(0, GET_REAL_INT_BONUS(ch)) + MAX(0, GET_ABILITY(ch, ABILITY_LINGUISTICS)) + MAX(0, LEVELUP(ch)->skills[ABILITY_LINGUISTICS]);
+      for (i = 0; i < NUM_LANGUAGES; i++)
+      {
+        if (LEVELUP(ch)->languages[i])
+          langs_known++;
+      }
+
+      if ((langs_can_learn - langs_known) <= 0)
+      {
+        send_to_char(ch, "You cannot learn any more languages.\r\n");
+      }
+      else
+      {
+        LEVELUP(ch)->languages[number] = TRUE;
+        send_to_char(ch, "You select language '%s'\r\n", languages[number]);
+      }
+    }
+
+    choose_languages(d);
+    break;
+
   case STUDY_SELECT_BG_CRUELTY:
     number = atoi(arg);
     if (number == -1)
@@ -3205,7 +3327,6 @@ void study_parse(struct descriptor_data *d, char *arg)
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
     case ABILITY_UNUSED_7:
-    case ABILITY_UNUSED_8:
       write_to_output(d, "That is an invalid choice!\r\n");
       skfeat_disp_menu(d);
       break;

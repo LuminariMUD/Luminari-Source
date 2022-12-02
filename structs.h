@@ -328,8 +328,10 @@
 #define HIST_CLANTALK 9 /**< Index to history of all 'clantalk' */
 #define HIST_GSAY 10    /**< Index to history of all 'gsay' */
 #define HIST_GTELL HIST_GSAY
+#define HIST_OSAY 11      /**< Index to history of all 'osay' */
+#define HIST_RSAY 12      /**< Index to history of all 'rsay' */
 /**/
-#define NUM_HIST 11    /**< Total number of history indexes */
+#define NUM_HIST 13    /**< Total number of history indexes */
 #define HISTORY_SIZE 5 /**< Number of last commands kept in each history */
 
 /* Group Defines */
@@ -4556,6 +4558,7 @@ struct level_data
     int tempCruelty;
     int dragonborn_draconic_ancestry;
     int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
+    int languages[NUM_LANGUAGES];
 };
 
 /** The list element that makes up a list of characters following this

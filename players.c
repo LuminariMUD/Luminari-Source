@@ -91,9 +91,10 @@ void save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
 static void load_buffs(FILE *fl, struct char_data *ch);
+static void load_languages(FILE *fl, struct char_data *ch);
 
-// external functions
-void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
+    // external functions
+    void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
 
 /* New version to build player index for ASCII Player Files. Generate index
  * table for the player file. */
@@ -891,6 +892,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'L':
         if (!strcmp(tag, "Last"))
           ch->player.time.logon = atol(line);
+        else if (!strcmp(tag, "Lang"))
+          load_languages(fl, ch);
         else if (!strcmp(tag, "Lern"))
           GET_PRACTICES(ch) = atoi(line);
         else if (!strcmp(tag, "Levl"))
@@ -1865,6 +1868,11 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "%d\n", IS_JUDGEMENT_ACTIVE(ch, i));
   fprintf(fl, "-1\n");
 
+  fprintf(fl, "Lang:\n");
+  for (i = 0; i < NUM_LANGUAGES; i++)
+    fprintf(fl, "%d\n", ch->player_specials->saved.languages_known[i]);
+  fprintf(fl, "-1\n");
+
   /* Save Combat Feats */
   for (i = 0; i < NUM_CFEATS; i++)
   {
@@ -2831,6 +2839,23 @@ static void load_cruelties(FILE *fl, struct char_data *ch)
     if (num != -1)
     {
       KNOWS_CRUELTY(ch, i) = num;
+      i++;
+    }
+  } while (num != -1);
+}
+
+static void load_languages(FILE *fl, struct char_data *ch)
+{
+  int num = 0, i = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d", &num);
+    if (num != -1)
+    {
+      ch->player_specials->saved.languages_known[i] = num;
       i++;
     }
   } while (num != -1);

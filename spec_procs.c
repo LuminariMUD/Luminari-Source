@@ -1374,7 +1374,6 @@ void list_abilities(struct char_data *ch, int ability_type)
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
     case ABILITY_UNUSED_7:
-    case ABILITY_UNUSED_8:
       continue;
     default:
       break;

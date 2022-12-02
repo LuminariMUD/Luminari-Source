@@ -1088,7 +1088,7 @@
 #define ABILITY_SURVIVAL 29         /* survival, matches pfsrd */
 #define ABILITY_SWIM 30             /* swim, matches pfsrd */
 #define ABILITY_USE_MAGIC_DEVICE 31 /* use magic device, matches pfsrd */
-#define ABILITY_UNUSED_8 32         /* UNUSED - use to be use rope */
+#define ABILITY_LINGUISTICS 32      // Number of languages known
 #define ABILITY_PERFORM 33          /* perform, matches pfsrd */
 /**/
 #define END_GENERAL_ABILITIES 33
