@@ -1705,6 +1705,23 @@ void prisoner_gear_loading(struct char_data *ch)
 #undef MITH_ARROW
 #undef ARM_VALOR
 #undef BLACK_FIGURINE
+#undef STABILITY_BOOTS
+#undef DRAGONKIN_HELM
+#undef ASPECT_MASK
+#undef GRANDIDIERITE
+#undef VOYAGER_BOOTS
+#undef WINGED_HELM
+#undef DEMON_EYES
+#undef HOUND_HELM
+#undef PSI_CRYSTAL
+#undef ARTIST_SHAWL
+#undef VERT_HOOP
+#undef PORTABLE_HOLE
+#undef DRAGON_WHIP
+#undef SHOCK_LANCE
+#undef CALAMITY_AXE
+#undef TITAN_PICK
+
 /* base items */
 #undef LAVANDER_VIA
 #undef COINS_GOLD
