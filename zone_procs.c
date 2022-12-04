@@ -1492,7 +1492,22 @@ int prisoner_attacks(struct char_data *ch)
 #define ARM_VALOR 132103        /* 17 */
 #define BLACK_FIGURINE 132114   /* 18 */
 #define STABILITY_BOOTS 132133  /* 19 */
-#define TOP_UNIQUES 19
+#define DRAGONKIN_HELM 132136   /* 20 */
+#define ASPECT_MASK 132138      /* 21 */
+#define GRANDIDIERITE 132141    /* 22 */
+#define VOYAGER_BOOTS 132144    /* 23 */
+#define WINGED_HELM 132145      /* 24 */
+#define DEMON_EYES 132147       /* 25 */
+#define HOUND_HELM 132152       /* 26 */
+#define PSI_CRYSTAL 132153      /* 27 */
+#define ARTIST_SHAWL 132154     /* 28 */
+#define VERT_HOOP 132157        /* 29 */
+#define PORTABLE_HOLE 132158    /* 30 */
+#define DRAGON_WHIP 132161      /* 31 */
+#define SHOCK_LANCE 132164      /* 32 */
+#define CALAMITY_AXE 132165     /* 33 */
+#define TITAN_PICK 132166       /* 34 */
+#define TOP_UNIQUES 34
 /* base items */
 #define WEAPON_OIL 132131
 #define WEAPON_POISON 132132
@@ -1507,7 +1522,7 @@ int prisoner_attacks(struct char_data *ch)
 #define VALID_VNUM_LOW 132100
 #define VALID_VNUM_HiGH 132399
 #define TOP_UNIQUES_OIL 21
-#define NUM_TREASURE 7
+#define NUM_TREASURE 8
 #define LOOP_LIMIT 1000
 /*************************************/
 /*************************************/
@@ -1542,6 +1557,21 @@ void prisoner_gear_loading(struct char_data *ch)
       ARM_VALOR,        /* armplates of valor */
       BLACK_FIGURINE,   /* summons gargoyle */
       STABILITY_BOOTS,  /* stability boots! - index 19 */
+      DRAGONKIN_HELM,   /* resist scale helm 20 */
+      ASPECT_MASK,      /* rogue mask #21 */
+      GRANDIDIERITE,    /* arcane necklace 22 */
+      VOYAGER_BOOTS,    /* sneak move boots 23 */
+      WINGED_HELM,      /* high mental stat caster helm (hood) 24 */
+      DEMON_EYES,       /* vision buffs eyewear 25 */
+      HOUND_HELM,       /* divine helm 26 */
+      PSI_CRYSTAL,      /* psi face 27 */
+      ARTIST_SHAWL,     /* bard about 28 */
+      VERT_HOOP,        /* arcane ring 29 */
+      PORTABLE_HOLE,    /* container 30 */
+      DRAGON_WHIP,      /* whip - entangle, silence 31 */
+      SHOCK_LANCE,      /* paladin lance 32 */
+      CALAMITY_AXE,     /* axe - negatuve energy ray, waves of exhaustion 33 */
+      TITAN_PICK,       /* heavy pick - quake, slow, power word stun 34 */
   };
 
   /* we are giving a random weapon oil, lets have a list of options! */
