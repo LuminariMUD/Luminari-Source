@@ -830,7 +830,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, PSIONIC_OAK_BODY))
       act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-      act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+      act("...$s skin is like a sheet of thick iron.", FALSE, i, 0, ch, TO_VICT);
 
     return;
 
@@ -880,7 +880,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (affected_by_spell(i, PSIONIC_OAK_BODY))
       act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-      act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+      act("...$s skin is like a sheet of thick iron.", FALSE, i, 0, ch, TO_VICT);
 
     return;
   }
@@ -1027,7 +1027,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   if (affected_by_spell(i, PSIONIC_OAK_BODY))
     act("...$s skin is like that of an oak tree.", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, PSIONIC_BODY_OF_IRON))
-    act("...$s skin is like a sheet of think iron.", FALSE, i, 0, ch, TO_VICT);
+    act("...$s skin is like a sheet of thick iron.", FALSE, i, 0, ch, TO_VICT);
 }
 
 /*  The CAN_SEE and CAN_INFRA macros are both going to do a hide-check
@@ -1219,8 +1219,8 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       snprintf(buf, sizeof(buf), "This small carriage is pulled by two brown draft horses, led by a weathered old man smoking a pipe and wearing a long, brown overcoat.\r\n"
                                  "The inside of the carriage is big enough for about 6 people, with benches on either side, and a small table in the middle.  An oil based lantern\r\n"
                                  "hangs overhead, supplying light, and windows are real glass, and able to be opened or closed, with small rain canopies keeping the weather out for the most part.\r\n"
-                                 "Judging by how far you've gone so far, you have about you have \r\n"
-                                 "about %d minutes and %d seconds to go until you get to %s.\r\n",
+                                 "Judging by how far you've gone so far you should arrive in \r\n"
+                                 "about %d minutes and %d seconds to your destination: %s.\r\n",
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, carriage_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
     }
@@ -1970,7 +1970,7 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
     send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
     send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
-    send_to_char(ch, "\tDType 'maxhp' to see hown your maximum hit points are calculated.\tn\r\n");
+    send_to_char(ch, "\tDType 'maxhp' to see how your maximum hit points are calculated.\tn\r\n");
   }
 }
 
@@ -3372,7 +3372,7 @@ ACMD(do_equipment)
 
   if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
   {
-    send_to_char(ch, "Nekked!\r\n");
+    send_to_char(ch, "Naked!\r\n");
     return;
   }
 
@@ -3498,7 +3498,7 @@ ACMD(do_weather)
   if (OUTSIDE(ch))
   {
     send_to_char(ch, "The sky is %s and %s.\r\n", sky_look[weather_info.sky],
-                 weather_info.change >= 0 ? "you feel a warm wind from south" : "your foot tells you bad weather is due");
+                 weather_info.change >= 0 ? "you feel a warm wind from the south" : "your foot tells you bad weather is due");
     if (GET_LEVEL(ch) >= LVL_STAFF)
       send_to_char(ch, "Pressure: %d (change: %d), Sky: %d (%s)\r\n",
                    weather_info.pressure,
@@ -3895,7 +3895,7 @@ ACMD(do_who)
 
   if (IS_HAPPYHOUR > 0)
   {
-    send_to_char(ch, "\tWIt's a Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
+    send_to_char(ch, "\tWIt's Happy Hour! Type \tRhappyhour\tW to see the current bonuses.\tn\r\n");
   }
   if (IS_STAFF_EVENT)
   {
@@ -4481,7 +4481,7 @@ ACMD(do_toggle)
       /* 45 */
       {"storedconsumables", PRF_USE_STORED_CONSUMABLES, 0,
        "You will now use the stored consumables system (HELP CONSUMABLES).\r\n",
-       "You will no use the stock consumables system (HELP USE).\r\n"},
+       "You will no longer use the stored consumables system (HELP USE).\r\n"},
       /* 46 */
       {"autostand", PRF_AUTO_STAND, 0,
        "You will no longer automatically stand if knocked down in combat.\r\n",
