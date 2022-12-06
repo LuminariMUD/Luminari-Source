@@ -128,7 +128,7 @@ ACMD(do_accexp)
 
     if (!*arg2)
     {
-      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
+      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It costs %d account exp for each.\r\n", cost);
       return;
     }
 
@@ -142,7 +142,7 @@ ACMD(do_accexp)
     }
     else
     {
-      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It cost %d account exp for each.\r\n", cost);
+      send_to_char(ch, "Please choose 'good' for good alignment change or 'evil' for evil alignment change.  It costs %d account exp for each.\r\n", cost);
       return;
     }
 
@@ -247,7 +247,7 @@ ACMD(do_accexp)
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
         ch->desc->account->races[j] = i;
-        send_to_char(ch, "You have unlocked the advanced race '%s' for all character "
+        send_to_char(ch, "You have unlocked the advanced race '%s' for all characters "
                          "and future characters on your account!.\r\n",
                      race_list[i].type);
         change_account_xp(ch, -cost); /* this will call save_account() for us */
@@ -309,14 +309,14 @@ ACMD(do_accexp)
       if (j >= MAX_UNLOCKED_CLASSES)
       {
         send_to_char(ch, "All of your prestige class slots are filled.  Please "
-                         "Ask the staff for the limit to be increased.\r\n");
+                         "ask the staff for the limit to be increased.\r\n");
         return;
       }
       if (GET_ACCEXP_DESC(ch) >= cost)
       {
         ch->desc->account->classes[j] = i;
         send_to_char(ch, "You have unlocked the prestige class '%s' for all "
-                         "character and future characters on your account!.\r\n",
+                         "characters and future characters on your account!.\r\n",
                      CLSLIST_NAME(i));
         change_account_xp(ch, -cost); /* this will call save_account() for us */
         return;
