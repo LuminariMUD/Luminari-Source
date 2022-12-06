@@ -307,12 +307,12 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
     }
 
     if (mode == ITEM_STAT_MODE_G_LORE)
-      send_to_group(NULL, GROUP(ch), "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
+      send_to_group(NULL, GROUP(ch), "Weapon Type: %s (%d), Enhancement Bonus: %d\r\n",
                     weapon_list[GET_WEAPON_TYPE(item)].name,
                     GET_WEAPON_TYPE(item),
                     GET_ENHANCEMENT_BONUS(item));
     else
-      send_to_char(ch, "Weapon Type: %s (%d) Enhancement Bonus: %d\r\n",
+      send_to_char(ch, "Weapon Type: %s (%d), Enhancement Bonus: %d\r\n",
                    weapon_list[GET_WEAPON_TYPE(item)].name,
                    GET_WEAPON_TYPE(item),
                    GET_ENHANCEMENT_BONUS(item));
@@ -1134,9 +1134,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     case LOOTBOX_TYPE_CRYSTAL:
       if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+        send_to_group(NULL, GROUP(ch), "Treasure: Crystal, guaranteed arcanite crystal, low chance for other items.\r\n");
       else
-        send_to_char(ch, "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+        send_to_char(ch, "Treasure: Crystal, guaranteed arcanite crystal, low chance for other items.\r\n");
       break;
 
     case LOOTBOX_TYPE_UNDEFINED: /*fallthrough*/
@@ -2321,7 +2321,7 @@ ACMD(do_get)
     {
       if (cont_dotmode == FIND_ALLDOT && !*arg2)
       {
-        send_to_char(ch, "Get from all of what?\r\n");
+        send_to_char(ch, "Get all from what?\r\n");
         return;
       }
       for (cont = ch->carrying; cont; cont = cont->next_content)
@@ -2564,7 +2564,7 @@ ACMD(do_drop)
       if (subcmd == SCMD_JUNK)
         send_to_char(ch, "Go to the dump if you want to junk EVERYTHING!\r\n");
       else
-        send_to_char(ch, "Go do the donation room if you want to donate EVERYTHING!\r\n");
+        send_to_char(ch, "Go to the donation room if you want to donate EVERYTHING!\r\n");
       return;
     }
     if (dotmode == FIND_ALL)
@@ -3094,7 +3094,7 @@ ACMD(do_drink_old)
   if ((GET_COND(ch, DRUNK) > 10) && (GET_COND(ch, THIRST) > 0))
   {
     /* The pig is drunk */
-    send_to_char(ch, "You can't seem to get close enough to your mouth.\r\n");
+    send_to_char(ch, "You can't seem to get it close enough to your mouth.\r\n");
     act("$n tries to drink but misses $s mouth!", TRUE, ch, 0, 0, TO_ROOM);
     return;
   }
@@ -3754,7 +3754,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
   /* we are looking for some quick exits */
   if (IS_ANIMAL(ch))
   {
-    send_to_char(ch, "You are animal, how you going to wear that?\r\n");
+    send_to_char(ch, "You're an animal, how would you wear that?\r\n");
     return;
   }
 
@@ -4475,7 +4475,7 @@ ACMD(do_loot)
       else
       {
         act("$N notices your attempt to pilfer the treasure and attacks!", TRUE, ch, 0, tch, TO_CHAR);
-        act("You notice $n's attempt to pilfer the treasure and attacks!", TRUE, ch, 0, tch, TO_VICT);
+        act("You notice $n's attempt to pilfer the treasure and attack!", TRUE, ch, 0, tch, TO_VICT);
         act("$N notices $n's attempt to pilfer the treasure and attacks!", TRUE, ch, 0, tch, TO_NOTVICT);
         hit(tch, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
@@ -4728,8 +4728,8 @@ void start_auction(struct char_data *ch, struct obj_data *obj, int bid)
   ch_buying = NULL;
   curbid = bid;
 
-  /* Tell th character where his item went */
-  sprintf(auction_buf, "%s magic flies away from your hands to be auctioned!\r\n",
+  /* Tell the character where his item went */
+  sprintf(auction_buf, "%s magically flies away from your hands to be auctioned!\r\n",
           obj_selling->short_description);
   CAP(auction_buf);
   send_to_char(ch_selling, "%s", auction_buf);
@@ -5715,7 +5715,7 @@ ACMDU(do_unstore)
 
   if (!*arg1)
   {
-    send_to_char(ch, "Please specify What you want to unstore: potion, scroll, wand or staff.\r\n");
+    send_to_char(ch, "Please specify what you want to unstore: potion, scroll, wand or staff.\r\n");
     return;
   }
   if (is_abbrev(arg1, "potion"))
@@ -5998,7 +5998,7 @@ ACMDU(do_unstore)
   }
   else
   {
-    send_to_char(ch, "Please specify What you want to unstore: potion, scroll, wand or staff.\r\n");
+    send_to_char(ch, "Please specify what you want to unstore: potion, scroll, wand or staff.\r\n");
     return;
   }
 }
