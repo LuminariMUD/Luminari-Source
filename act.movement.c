@@ -910,7 +910,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (!has_scuba(ch, going_to) && (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)))
     {
       send_to_char(ch,
-                   "You need to be able to breathe under water to go there!\r\n");
+                   "You need to be able to breathe underwater to go there!\r\n");
       return (0);
     }
   }
