@@ -309,7 +309,7 @@ EVENTFUNC(event_falling)
     if (dam <= 0)
     { /* woo! avoided damage */
       send_to_char(ch, "You gracefully land on your feet from your perilous fall!\r\n");
-      act("$n comes falling in from above, but at the last minute, pulls of an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);
+      act("$n comes falling in from above, but at the last minute, pulls off an acrobatic flip and lands gracefully on $s feet!", FALSE, ch, 0, 0, TO_ROOM);
       return 0; // end event
     }
     else
@@ -854,14 +854,12 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* druid spell */
   if (IS_EVIL(ch) && IS_HOLY(going_to))
   {
-    send_to_char(ch, "The sanctity of the area prevents "
-                     "you from entering.\r\n");
+    send_to_char(ch, "The sanctity of the area prevents you from entering.\r\n");
     return 0;
   }
   if (IS_GOOD(ch) && IS_UNHOLY(going_to))
   {
-    send_to_char(ch, "The corruption of the area prevents "
-                     "you from entering.\r\n");
+    send_to_char(ch, "The corruption of the area prevents you from entering.\r\n");
     return 0;
   }
 
@@ -912,7 +910,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (!has_scuba(ch, going_to) && (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)))
     {
       send_to_char(ch,
-                   "You need to be able to breathe water to go there!\r\n");
+                   "You need to be able to breathe under water to go there!\r\n");
       return (0);
     }
   }
@@ -970,8 +968,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   /* Check zone flag restrictions */
   if (ZONE_FLAGGED(GET_ROOM_ZONE(going_to), ZONE_CLOSED))
   {
-    send_to_char(ch, "A mysterious barrier forces you back! That area is "
-                     "off-limits.\r\n");
+    send_to_char(ch, "A mysterious barrier forces you back! That area is off-limits.\r\n");
     return (0);
   }
 
@@ -995,8 +992,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     if (CONFIG_TUNNEL_SIZE > 1)
       send_to_char(ch, "There isn't enough room for you to go there!\r\n");
     else
-      send_to_char(ch, "There isn't enough room there for more than"
-                       " one person!\r\n");
+      send_to_char(ch, "There isn't enough room there for more than one person!\r\n");
     return (0);
   }
 
@@ -1102,8 +1098,8 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
 
   if (block && !PRF_FLAGGED(ch, PRF_NOHASSLE))
   {
-    act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
-    act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
+    act("$N blocks you from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
+    act("$n tries to leave the room, but $N blocks $m from travelling in that direction.", FALSE, ch, 0, mob, TO_ROOM);
     return 0;
   }
 
@@ -2175,8 +2171,8 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key)
   {
     if (GET_OBJ_VNUM(o) == key)
     {
-      act("$n breaks $p unlocking the path!", FALSE, ch, o, 0, TO_ROOM);
-      act("You break $p unlocking the path!", FALSE, ch, o, 0, TO_CHAR);
+      act("$n breaks $p, unlocking the path!", FALSE, ch, o, 0, TO_ROOM);
+      act("You break $p, unlocking the path!", FALSE, ch, o, 0, TO_CHAR);
       extract_obj(o);
       return TRUE;
     }
@@ -2186,8 +2182,8 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key)
   {
     if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_1)) == key)
     {
-      act("$n breaks $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_ROOM);
-      act("You break $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_CHAR);
+      act("$n breaks $p, unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_ROOM);
+      act("You break $p, unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_1), 0, TO_CHAR);
       extract_obj(unequip_char(ch, WEAR_HOLD_1));
       return TRUE;
     }
@@ -2197,8 +2193,8 @@ int is_evaporating_key(struct char_data *ch, obj_vnum key)
   {
     if (GET_OBJ_VNUM(GET_EQ(ch, WEAR_HOLD_2)) == key)
     {
-      act("$n breaks $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_ROOM);
-      act("You break $p unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_CHAR);
+      act("$n breaks $p, unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_ROOM);
+      act("You break $p, unlocking the path!", FALSE, ch, GET_EQ(ch, WEAR_HOLD_2), 0, TO_CHAR);
       extract_obj(unequip_char(ch, WEAR_HOLD_2));
       return TRUE;
     }
@@ -2378,7 +2374,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
       else
       {
         send_to_char(ch, "You fail to pick the lock.\r\n");
-        len = strlcpy(buf, "$n fails picks the lock on ", sizeof(buf));
+        len = strlcpy(buf, "$n fails to pick the lock on ", sizeof(buf));
         send_to_char(ch, "Your next action will be delayed up to 6 seconds.\r\n");
       }
     }
@@ -2620,42 +2616,33 @@ ACMD(do_enter)
       case PORTAL_CHECKFLAGS:
         if (is_class_anti_object(ch, portal, false) && !is_class_req_object(ch, portal, false))
         {
-          act("You try to enter $p, but a mysterious power "
-              "forces you back!  (class restriction)",
+          act("You try to enter $p, but a mysterious power forces you back!  (class restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("\tRA booming voice in your head shouts '\tWNot "
-              "for your class!\tR'\tn",
+          act("\tRA booming voice in your head shouts '\tWNot for your class!\tR'\tn",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("$n tries to enter $p, but a mysterious power "
-              "forces $m back!",
+          act("$n tries to enter $p, but a mysterious power forces $m back!",
               FALSE, ch, portal, 0, TO_ROOM);
           return;
         }
 
         if (IS_EVIL(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_EVIL))
         {
-          act("You try to enter $p, but a mysterious power "
-              "forces you back!  (alignment restriction)",
+          act("You try to enter $p, but a mysterious power forces you back!  (alignment restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("\tRA booming voice in your head shouts '\tWBEGONE "
-              "EVIL-DOER!\tR'\tn",
+          act("\tRA booming voice in your head shouts '\tWBEGONE EVIL-DOER!\tR'\tn",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("$n tries to enter $p, but a mysterious power "
-              "forces $m back!",
+          act("$n tries to enter $p, but a mysterious power forces $m back!",
               FALSE, ch, portal, 0, TO_ROOM);
           return;
         }
 
         if (IS_GOOD(ch) && OBJ_FLAGGED(portal, ITEM_ANTI_GOOD))
         {
-          act("You try to enter $p, but a mysterious power "
-              "forces you back!  (alignment restriction)",
+          act("You try to enter $p, but a mysterious power forces you back!  (alignment restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("\tRA booming voice in your head shouts '\tWBEGONE "
-              "DO-GOODER!\tR'\tn",
+          act("\tRA booming voice in your head shouts '\tWBEGONE DO-GOODER!\tR'\tn",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("$n tries to enter $p, but a mysterious power "
-              "forces $m back!",
+          act("$n tries to enter $p, but a mysterious power forces $m back!",
               FALSE, ch, portal, 0, TO_ROOM);
           return;
         }
@@ -2663,14 +2650,11 @@ ACMD(do_enter)
         if (((!IS_EVIL(ch)) && !(IS_GOOD(ch))) &&
             OBJ_FLAGGED(portal, ITEM_ANTI_NEUTRAL))
         {
-          act("You try to enter $p, but a mysterious power "
-              "forces you back!  (alignment restriction)",
+          act("You try to enter $p, but a mysterious power forces you back!  (alignment restriction)",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("\tRA booming voice in your head shouts '\tWBEGONE!"
-              "\tR'\tn",
+          act("\tRA booming voice in your head shouts '\tWBEGONE!\tR'\tn",
               FALSE, ch, portal, 0, TO_CHAR);
-          act("$n tries to enter $p, but a mysterious power "
-              "forces $m back!",
+          act("$n tries to enter $p, but a mysterious power forces $m back!",
               FALSE, ch, portal, 0, TO_ROOM);
           return;
         }
@@ -2794,7 +2778,7 @@ ACMD(do_enter)
       /* ok NOW we are good to go */
 
       act("$n enters $p, and vanishes!", FALSE, ch, portal, 0, TO_ROOM);
-      act("You enter $p, and you are transported elsewhere.", FALSE, ch, portal, 0, TO_CHAR);
+      act("You enter $p, and are transported elsewhere.", FALSE, ch, portal, 0, TO_CHAR);
       char_from_room(ch);
 
       if (ZONE_FLAGGED(GET_ROOM_ZONE(real_dest), ZONE_WILDERNESS))
