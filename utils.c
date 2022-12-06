@@ -6879,7 +6879,7 @@ int teamwork_best_stealth(struct char_data *ch, int featnum)
       continue;
     if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
     {
-      stealth = MAX(stealth, compute_ability_full(ch, ABILITY_STEALTH, TRUE));
+      stealth = MAX(stealth, compute_ability_full(k, ABILITY_STEALTH, TRUE));
     }
   }
 
