@@ -1901,7 +1901,7 @@ void update_damage_and_effects_over_time(void)
          - If they're a player and blood drain is not enabled, it won't happen
          - NOTE - THIS NEEDS TO BE MADE INTO A FUNCTION -- Gicker
          - additional note - i did a quick hackjob of making it into a function so i can use it for a mobile spec proc! -zusuk */
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN) && (vict = GRAPPLE_TARGET(ch)) && AFF_FLAGGED(vict, AFF_PINNED) &&
+    if (HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN) && ((vict = GRAPPLE_TARGET(ch)) != NULL) && AFF_FLAGGED(vict, AFF_PINNED) &&
         IS_LIVING(vict) && !IS_OOZE(vict) && !IS_ELEMENTAL(vict) && GET_HIT(vict) > -10 &&
         (!IS_GOOD(ch) || (IS_GOOD(ch) && (IS_EVIL(vict) || !IS_SENTIENT(vict)))) &&
         (IS_NPC(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BLOOD_DRAIN))))
