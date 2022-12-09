@@ -524,9 +524,16 @@
 #define SPELL_PLANAR_HEALING 451
 #define SPELL_CUSHIONING_BANDS 452
 #define SPELL_GHOST_WOLF 453
+#define SPELL_GIRD_ALLIES 454
+#define SPELL_GLITTERDUST 455
+#define SPELL_PROTECTION_FROM_ARROWS 456
+#define SPELL_SPIDER_CLIMB 457
+#define SPELL_WARDING_WEAPON 458
+#define SPELL_AQUEOUS_ORB 459
+#define SPELL_MOUNT 460
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 454
+#define NUM_SPELLS 460
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1367,6 +1374,8 @@ ASPELL(spell_luskan_recall);
 ASPELL(spell_triboar_recall);
 ASPELL(spell_silverymoon_recall);
 ASPELL(spell_mirabar_recall);
+ASPELL(spell_gird_allies);
+ASPELL(spell_aqueous_orb);
 // psionics
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);

@@ -2389,9 +2389,6 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate, s
       {
         /* rem item ; fill ; equip again */
         temp = unequip_char(ch, locate - 1);
-        if (temp == NULL)
-          return FALSE;
-        // we're crashing here. Added the above 2 lines -- gicker 2021-apr-3
         temp->contains = NULL; /* should be empty - but who knows */
         for (; cont_row[0]; cont_row[0] = obj1)
         {

@@ -694,6 +694,133 @@ EVENTFUNC(event_acid_arrow)
   return 0;
 }
 
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_aqueous_orb)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
+  bool is_fire = false;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+    return 0;
+
+  if (affected_by_spell(victim, SPELL_FIRE_SHIELD) || AFF_FLAGGED(victim, AFF_FSHIELD))
+  {
+    act("The aqueous orb quenches your fire shield.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's fire shield.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_FIRE_SHIELD);
+    REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_FSHIELD);
+  }
+
+  if (affected_by_spell(victim, SPELL_CONTINUAL_FLAME))
+  {
+    act("The aqueous orb quenches your continual flame.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's continual flame.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_CONTINUAL_FLAME);
+  }
+
+  if (affected_by_spell(victim, SPELL_SUN_METAL))
+  {
+    act("The aqueous orb quenches your sun metal enhancement.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's sun metal enhancement.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_SUN_METAL);
+  }
+
+  if (affected_by_spell(victim, SPELL_FIRE_OF_ENTANGLEMENT))
+  {
+    act("The aqueous orb quenches your fires of entanglement.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's fires of entanglement.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_FIRE_OF_ENTANGLEMENT);
+  }
+
+  if (affected_by_spell(victim, BOMB_AFFECT_FIRE_BRAND))
+  {
+    act("The aqueous orb quenches your fire brand bomb effect.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's fire brand bomb effect.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, BOMB_AFFECT_FIRE_BRAND);
+  }
+
+  if (INCENDIARY(victim) > 0)
+  {
+    act("The aqueous orb quenches your incendiary cloud.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's incendiary cloud.", FALSE, victim, 0, 0, TO_ROOM);
+    INCENDIARY(victim) = 0;
+  }
+
+  if (GET_SIZE(victim) > SIZE_LARGE)
+  {
+    act("The aqueous orb rolls through you, leaving you unaffected.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb rolls through $n, leaving $m unaffected.", FALSE, victim, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  if (!IS_LIVING(victim))
+  {
+    act("Without the need to breathe, being engulfed in the aqueous orb does not harm you at all.", FALSE, victim, 0, 0, TO_CHAR);
+    act("Without the need to breathe, being engulfed in the aqueous orb does not harm $n at all.", FALSE, victim, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_WATER_BREATH))
+  {
+    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm you at all.", FALSE, victim, 0, 0, TO_CHAR);
+    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm $n at all.", FALSE, victim, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  is_fire = (GET_SUBRACE(victim, 0) == SUBRACE_FIRE || 
+            GET_SUBRACE(victim, 1) == SUBRACE_FIRE || 
+            GET_SUBRACE(victim, 2) == SUBRACE_FIRE || 
+            GET_RACE(victim) == RACE_SMALL_FIRE_ELEMENTAL || 
+            GET_RACE(victim) == RACE_MEDIUM_FIRE_ELEMENTAL || 
+            GET_RACE(victim) == RACE_LARGE_FIRE_ELEMENTAL || 
+            GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL);
+
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+
+  if (level < 1)
+    level = 15; /* so lame */
+
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
+    damage(ch, victim, is_fire ? dice(2, 6) : 0, SPELL_AQUEOUS_ORB, DAM_WATER, FALSE);
+  else
+    damage(ch, victim, is_fire ? dice(4, 6) : dice(2, 6), SPELL_AQUEOUS_ORB, DAM_WATER, FALSE);
+
+  update_pos(victim);
+
+  return 0;
+}
+
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
@@ -768,6 +895,50 @@ ASPELL(spell_acid_arrow)
   for (x = 0; x < num_arrows; x++)
   {
     NEW_EVENT(eACIDARROW, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+  }
+}
+
+ASPELL(spell_aqueous_orb)
+{
+  int x = 0, num_rounds = 1;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *wall = NULL;
+
+  one_argument(cast_arg2, arg, sizeof(arg));
+
+  // if there's a wall of fire, quench it.
+  if (*arg)
+  {
+    send_to_char(ch, "You send out a large ball of rolling water!\r\n");
+    act("$n sends out a large ball of rolling water!", FALSE, ch, 0, 0, TO_ROOM);
+
+    for (wall = world[victim->in_room].contents; wall; wall = wall->next_content)
+    {
+      if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_FIRE)
+      {
+        send_to_char(ch, "You quench a wall of fire!\r\n");
+        act("$n quenches a wall of fire!", FALSE, ch, 0, 0, TO_ROOM);
+        obj_from_room(wall);
+      }
+    }
+  }
+
+  // Now inflict a DoT
+
+  if (ch == NULL || victim == NULL)
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  num_rounds += CASTER_LEVEL(ch);
+
+  for (x = 0; x < num_rounds; x++)
+  {
+    NEW_EVENT(eAQUEOUSORB, ch, NULL, ((x * 6) * PASSES_PER_SEC));
   }
 }
 
@@ -2056,6 +2227,35 @@ ASPELL(spell_summon)
   entry_memory_mtrigger(victim);
   greet_mtrigger(victim, -1);
   greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_gird_allies)
+{
+
+  struct char_data *pet = NULL;
+  struct affected_type af;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
+  send_to_char(ch, "You weave a protective shell around your conjured allies.\r\n");
+
+  for (pet = world[IN_ROOM(ch)].people; pet; pet = pet->next_in_room)
+  {
+    if (IS_PET(pet) && GROUP(pet->master) == GROUP(ch))
+    {
+      act("You have been protected by $n's might.", FALSE, ch, 0, pet, TO_VICT);
+      act("$n has been proected by $N's might.", FALSE, pet, 0, ch, TO_ROOM);
+      new_affect(&af);
+      af.spell = SPELL_GIRD_ALLIES;
+      af.duration = 10 * (level / 2);
+      af.location = APPLY_AC_NEW;
+      af.modifier = 1 + (level / 6);
+      af.bonus_type = BONUS_TYPE_DEFLECTION;
+      affect_join(pet, &af, FALSE, FALSE, FALSE, FALSE);
+    }
+  }
+
 }
 
 ASPELL(spell_teleport)

@@ -1707,6 +1707,7 @@ const char *affected_bits[] = {
     "Hidden-Alignment",
     "Wind-Wall",
     "Fear-Aura",
+    "Spider-Climb",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1832,6 +1833,7 @@ const char *affected_bit_descs[] = {
     "Your alignment is hidden from others.",
     "You are surrounded by a wall of wind",
     "You radiate fear to your opponents.",
+    "You can scale surfaces like a spider.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

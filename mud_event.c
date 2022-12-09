@@ -202,6 +202,7 @@ struct mud_event_list mud_event_index[] = {
     {"Tabaxi Cats Claws Attack Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eCATSCLAWS
     // 150
     {"Goliath Stone's Endurance Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eSTONESENDURANCE
+    {"Aqueous Orb", event_aqueous_orb, EVENT_CHAR},           // eAQUEOUSORB
 
 };
 
