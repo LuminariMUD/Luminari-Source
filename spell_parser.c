@@ -3085,6 +3085,8 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You feel unseen bands of force strengthen your durability.", 2, 9,
          CONJURATION, FALSE);
+  spello(SPELL_COMMUNAL_MOUNT, "communal summon mount", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 4, 7, CONJURATION, FALSE);
   /* necromancy */
   // blindness - shared
   spello(SPELL_FALSE_LIFE, "false life", 0, 0, 0, POS_FIGHTING,

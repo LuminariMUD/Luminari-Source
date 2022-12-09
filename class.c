@@ -3742,6 +3742,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_SPIDER_CLIMB, 3);
   spell_assignment(CLASS_WIZARD, SPELL_WARDING_WEAPON, 3);
   spell_assignment(CLASS_WIZARD, SPELL_PROTECTION_FROM_ARROWS, 3);
+  spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_MOUNT, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_WIZARD, SPELL_LIGHTNING_BOLT, 5);
@@ -4992,6 +4993,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_SPIDER_CLIMB, 4);
   spell_assignment(CLASS_SORCERER, SPELL_WARDING_WEAPON, 4);
   spell_assignment(CLASS_SORCERER, SPELL_PROTECTION_FROM_ARROWS, 4);
+  spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_MOUNT, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_SORCERER, SPELL_LIGHTNING_BOLT, 6);
@@ -7362,7 +7364,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_HASTE, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_INVISIBLE, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_LEVITATE, 4);
-  // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_MOUNT, 4);
+  spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_MOUNT, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_WISDOM, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ARROWS, 4);
   // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_GOOD, 4);

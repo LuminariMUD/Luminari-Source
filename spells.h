@@ -531,9 +531,10 @@
 #define SPELL_WARDING_WEAPON 458
 #define SPELL_AQUEOUS_ORB 459
 #define SPELL_MOUNT 460
+#define SPELL_COMMUNAL_MOUNT 461
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 460
+#define NUM_SPELLS 462
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

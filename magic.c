@@ -6501,6 +6501,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
     break;
+  case SPELL_COMMUNAL_MOUNT:
+    mag_summons(level, tch, NULL, SPELL_MOUNT, savetype, casttype);
+    break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
     if (!IS_UNDEAD(tch))
       mag_points(level, ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY, savetype, casttype);
@@ -6667,6 +6670,10 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ANIMAL_SHAPES:
     to_char = "You transform your group!\tn";
     to_room = "$n transforms $s group!\tn";
+    break;
+  case SPELL_COMMUNAL_MOUNT:
+    to_char = "You summon forth mounts for each member of your party.";
+    to_room = "$n summons forth riding horses.";
     break;
   case PSIONIC_INTELLECT_FORTRESS:
     to_char = "You manifest a psychic fortress against psionic attacks!";
