@@ -176,13 +176,11 @@ void affliction_tick(struct char_data *ch)
   else if (INCENDIARY(ch))
   {
     call_magic(ch, NULL, NULL, SPELL_INCENDIARY, 0, MAGIC_LEVEL(ch), CAST_SPELL);
-    INCENDIARY(ch)
-    --;
+    INCENDIARY(ch)--;
     if (INCENDIARY(ch) <= 0)
     {
       send_to_char(ch, "Your incendiary cloud dissipates!\r\n");
-      act("The incendiary cloud following $n dissipates!", TRUE, ch, 0, NULL,
-          TO_ROOM);
+      act("The incendiary cloud following $n dissipates!", TRUE, ch, 0, NULL, TO_ROOM);
     }
   }
   // end incendiary cloud
@@ -1136,7 +1134,9 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
           send_to_char(ch, "You rise a level!\r\n");
         else
           send_to_char(ch, "You rise %d levels!\r\n", num_levels);
+#ifndef CAMPAIGN_FR
         set_title(ch, NULL);
+#endif
       }
     }
   }

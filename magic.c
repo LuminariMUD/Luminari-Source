@@ -3897,6 +3897,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You have been blinded!";
     break;
 
+  case SPELL_GLITTERDUST: // conjuration
+    if (!can_blind(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+      return;
+    }
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
+    {
+      send_to_char(ch, "The blindness is resisted!\r\n");
+      return;
+    }
+
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -4;
+    af[0].duration = level;
+    SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = -4;
+    af[1].duration = level;
+    SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+    to_room = "$n seems to be blinded!";
+    to_vict = "You have been blinded!";
+    break;
+
   case SPELL_BLINDING_RAY: // evocation
     if (!can_blind(victim))
     {
@@ -3988,6 +4014,36 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = level;
     to_vict = "A shield of shimmering force envelops you.";
     to_room = "A shield of shimmering force envelops $n.";
+    break;
+
+  case SPELL_SPIDER_CLIMB:
+    af[0].duration = 10 * 10 * level; // 10 minutes per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_SPIDER_CLIMB);
+    to_vict = "You gain the ability to scale surfaces like a spider.";
+    to_room = "Tiny pinions grow forth from $n's hands and feet.";
+    break;
+
+  case SPELL_WARDING_WEAPON:
+    af[0].duration = 10 + level; // 10 rounds + 1 round per level
+    af[0].location = APPLY_SKILL;
+    af[0].modifier = 6;
+    af[0].specific = ABILITY_CONCENTRATION;
+    af[1].duration = 10 + level; // 10 rounds + 1 round per level
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = 2;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    to_vict = "A shimmering blade of force appears before you to ward off attempts to distract you.";
+    to_room = "A shimmering blade of force appears before $n.";
+    break;
+
+  case SPELL_PROTECTION_FROM_ARROWS:
+    af[0].duration = 10 * level; // 1 minute per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    to_vict = "A shield of shimmering green force envelops you.";
+    to_room = "A shield of shimmering green force envelops $n.";
     break;
 
   case SPELL_KEEN_EDGE:
@@ -4266,7 +4322,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     is_mind_affect = TRUE;
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
-    af[0].duration = dice(2, 4);
+    af[0].duration = dice(1, 3);
     to_room = "$n is dazed by the spell!";
     to_vict = "You are dazed by the spell!";
     break;
@@ -6918,6 +6974,12 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You summon faerie fog!\tn";
     to_room = "$n summons faerie fog!\tn";
     break;
+  case SPELL_GLITTERDUST:
+    is_uneffect = TRUE;
+    isEffect = TRUE;
+    to_char = "You summon a cloud of glittering golden dust!\tn";
+    to_room = "$n summons a cloud of glittering golden dust!\tn";
+    break;
   case SPELL_FIRE_STORM:
     to_char = "You call forth sheets of roaring flame!";
     to_room = "$n calls forth sheets of roaring flame!";
@@ -7321,6 +7383,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_BOAR 42   // " " ii
 #define MOB_DIRE_WOLF 43   // " " iii
 #define MOB_PHANTOM_STEED 44
+#define MOB_MOUNT_SPELL 101320
 // 45    wizard eye
 #define MOB_DIRE_SPIDER 46 // summon creature iv
 // 47    wall of force
@@ -7384,6 +7447,7 @@ bool isSummonMob(int vnum)
   case MOB_CHILDREN_OF_THE_NIGHT_BATS:
   case MOB_CREATE_VAMPIRE_SPAWN:
   case MOB_GHOST_WOLF:
+  case MOB_MOUNT_SPELL:
     return true;
   }
   return false;
@@ -7576,6 +7640,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     msg = 19;
     fmsg = rand_number(2, 6); /* Random fail message. */
     mob_num = MOB_PHANTOM_STEED;
+    pfail = 0;
+    break;
+
+    case SPELL_MOUNT: // conjuration
+    handle_corpse = FALSE;
+    msg = 19;
+    fmsg = rand_number(2, 6); /* Random fail message. */
+    mob_num = MOB_MOUNT_SPELL;
     pfail = 0;
     break;
 
@@ -8444,6 +8516,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_DISPEL_INVIS:
+  case SPELL_GLITTERDUST:
     spell = SPELL_INVISIBLE;
     affect = AFF_INVISIBLE;
     to_char = "You remove the invisibility from $N.";

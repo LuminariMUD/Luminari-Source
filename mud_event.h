@@ -180,6 +180,7 @@ typedef enum
   eDRAGBREATH,                      // Dragonborn breath weapon
   eCATSCLAWS,                       // tabaxi Cats Claws ability
   eSTONESENDURANCE,                 // goliath stones endurance ability
+  eAQUEOUSORB,                      // aqueous orb spell
 } event_id;
 
 /* probably a smart place to mention to not forget to update:
@@ -254,4 +255,5 @@ EVENTFUNC(event_spiritual_weapon);
 EVENTFUNC(event_dancing_weapon);
 EVENTFUNC(event_holy_javelin);
 EVENTFUNC(event_moonbeam);
+EVENTFUNC(event_aqueous_orb);
 #endif /* _MUD_EVENT_H_ */

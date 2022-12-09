@@ -456,7 +456,7 @@ void assign_domains(void)
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_WATER, SPELL_ICE_DAGGER, SPELL_CHILL_TOUCH,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_BLUR, SPELL_STINKING_CLOUD, SPELL_COLD_SHIELD,
+                    SPELL_AQUEOUS_ORB, SPELL_STINKING_CLOUD, SPELL_COLD_SHIELD,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_ICE_STORM, SPELL_CONE_OF_COLD, SPELL_DISPLACEMENT,
                     /* 9th circle */

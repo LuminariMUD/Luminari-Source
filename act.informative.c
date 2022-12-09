@@ -2083,7 +2083,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   struct mud_event_data *pMudEvent = NULL;
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYAffected By\tC", 80, '-', '-');
+  text_line(ch, "\tYAffected By\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
   for (i = 0; i < NUM_AFF_FLAGS; i++)
@@ -2097,7 +2097,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYSpell/Skill-like Affects\tC", 80, '-', '-');
+  text_line(ch, "\tYSpell/Skill-like Affects\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
   buf[0] = '\0'; // Reset the string buffer for later use.
@@ -2155,6 +2155,10 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       { /* Handle DR a bit differently */
         snprintf(buf3, sizeof(buf3), "%s", "(see DR)");
       }
+      else if (aff->location == APPLY_SKILL)
+      {
+        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier, apply_types[(int)aff->location], ability_names[aff->specific]);
+      }
       else
       {
         snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
@@ -2163,12 +2167,12 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       if (aff->bitvector[0] || aff->bitvector[1] ||
           aff->bitvector[2] || aff->bitvector[3])
       {
-        snprintf(buf2, sizeof(buf2), "%s(see affected by)", ((aff->modifier) ? ", " : ""));
+        snprintf(buf2, sizeof(buf2), "%s (see affected by)", ((aff->modifier) ? ", " : ""));
         strlcat(buf3, buf2, sizeof(buf3));
       }
 
       buf2[0] = '\0';
-      snprintf(buf2, sizeof(buf2), "%-25s", buf3);
+      snprintf(buf2, sizeof(buf2), "%-34s", buf3);
       buf3[0] = '\0';
       /* Add the Bonus type. */
       send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
@@ -2176,7 +2180,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYOther Affects\tC", 80, '-', '-');
+  text_line(ch, "\tYOther Affects\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
   /* Check to see if the victim is affected by an AURA OF COURAGE */
@@ -2227,6 +2231,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
     send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eAQUEOUSORB)))
+    send_to_char(ch, "\tRAqueous Orb!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHOLYJAVELIN)))
     send_to_char(ch, "\tRHoly Javelin!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
@@ -2242,7 +2248,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
 
   send_to_char(ch, "\tC");
-  draw_line(ch, 80, '-', '-');
+  draw_line(ch, 90, '-', '-');
   send_to_char(ch, "\tn");
 
   /* leads to other commands */

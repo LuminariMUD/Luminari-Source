@@ -9075,8 +9075,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
       affected_by_spell(victim, SKILL_RAGE))
   {
-    GET_TOTAL_AOO(victim)
-    --; /* free aoo and will be incremented in the function */
+    GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
     attack_of_opportunity(victim, ch, 0);
 
     /* dummy check */
@@ -9535,8 +9534,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     obj_from_obj(missile);
     /* if this was a weapon that was loaded, unload */
     if (wielded && GET_OBJ_VAL(wielded, 5) > 0)
-      GET_OBJ_VAL(wielded, 5)
-    --;
+      GET_OBJ_VAL(wielded, 5)--;
 
     /* we are checking here for spec procs associated with arrows */
 #define WARBOW_VNUM 132115
@@ -9800,8 +9798,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
           FALSE, victim, missile, ch, TO_NOTVICT);
       obj_to_room(missile, IN_ROOM(victim));
     }
-    DEFLECT_ARROWS_LEFT(victim)
-    --;
+    DEFLECT_ARROWS_LEFT(victim)--;
     return (HIT_MISS);
   }
 
@@ -9810,6 +9807,23 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     act("Your wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_CHAR);
     act("$n's wall of wind throws aside Your shot.", FALSE, victim, 0, ch, TO_VICT);
     act("$n's wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_NOTVICT);
+    return (HIT_MISS);
+  }
+
+  if (attack_type == ATTACK_TYPE_RANGED && affected_by_spell(victim, SPELL_PROTECTION_FROM_ARROWS))
+  {
+    struct affected_type *afx = NULL;
+    for (afx = victim->affected; afx; afx = afx->next)
+    {
+      if (afx->spell == SPELL_PROTECTION_FROM_ARROWS)
+        break;
+    }
+
+    if (--afx->modifier <= 0)
+      affect_from_char(victim, SPELL_PROTECTION_FROM_ARROWS);
+
+    act("An invisible barrier forces $n's shot wide.", FALSE, ch, 0, victim, TO_ROOM);
+    act("An invisible barrier forces your shot wide.", FALSE, ch, 0, victim, TO_CHAR);
     return (HIT_MISS);
   }
 

@@ -1184,8 +1184,9 @@
 #define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
 #define AFF_WIND_WALL 112          // surrounded by a wall of wind
 #define AFF_FEAR_AURA 113
+#define AFF_SPIDER_CLIMB 114
 /*---*/
-#define NUM_AFF_FLAGS 114
+#define NUM_AFF_FLAGS 115
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values

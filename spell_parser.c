@@ -799,8 +799,14 @@ SAVING_WILL here...  */
   if (IS_SET(SINFO.routines, MAG_MANUAL))
     switch (spellnum)
     {
+    case SPELL_GIRD_ALLIES:
+      MANUAL_SPELL(spell_gird_allies);
+      break;
     case SPELL_ACID_ARROW:
       MANUAL_SPELL(spell_acid_arrow);
+      break;
+    case SPELL_AQUEOUS_ORB:
+      MANUAL_SPELL(spell_aqueous_orb);
       break;
     case SPELL_BANISH:
       MANUAL_SPELL(spell_banish);
@@ -2914,6 +2920,10 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
 
+  spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+         "You are no longer dazed.", 0, 7, ENCHANTMENT, FALSE);
+
   /* = =  1st circle  = = */
   /* evocation */
   spello(SPELL_MAGIC_MISSILE, "magic missile", 0, 0, 0, POS_FIGHTING,
@@ -2952,6 +2962,8 @@ void mag_assign_spells(void)
          "The obscuring mist begins to dissipate.", 3, 7, CONJURATION, FALSE);
   spello(SPELL_SUMMON_NATURES_ALLY_1, "natures ally i", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 7, CONJURATION, FALSE);
+  spello(SPELL_MOUNT, "summon mount", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_SUMMONS, NULL, 4, 7, CONJURATION, FALSE);
   // summon creature 1 - shared
   /* necromancy */
   spello(SPELL_CHILL_TOUCH, "chill touch", 0, 0, 0, POS_FIGHTING,
@@ -2962,6 +2974,11 @@ void mag_assign_spells(void)
          "You feel your strength return.", 1, 7, NECROMANCY, FALSE);
   // negative energy ray - shared
   /* enchantment */
+
+  spello(SPELL_GIRD_ALLIES, "gird allies", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_MANUAL,
+         "You feel less protected.", 4, 7, ABJURATION, FALSE);
+
   spello(SPELL_CHARM_ANIMAL, "charm animal", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
          "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
@@ -3051,6 +3068,9 @@ void mag_assign_spells(void)
          NULL, 5, 9, EVOCATION, FALSE);
   /* conjuration */
   // summon creature 2 - shared
+  spello(SPELL_GLITTERDUST, "glitterdust", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 5, 9, CONJURATION, FALSE);
   spello(SPELL_SUMMON_NATURES_ALLY_2, "natures ally ii", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_SUMMONS,
          NULL, 4, 9, CONJURATION, FALSE);
@@ -3076,10 +3096,6 @@ void mag_assign_spells(void)
          "You feel your necromantic-life drain away.", 4, 9, NECROMANCY, FALSE);
 
   /* enchantment */
-  spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
-         "You no longer feel dazed.", 2, 9,
-         ENCHANTMENT, FALSE);
   spello(SPELL_HIDEOUS_LAUGHTER, "hideous laughter", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel able to control your laughter again.", 2, 9,
@@ -3967,6 +3983,23 @@ void mag_assign_spells(void)
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_DRAGONBORN_ANCESTRY_BREATH, "dragonborn breath weapon", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS, NULL, 0, 0, NOSCHOOL, FALSE);
+
+  // 2nd level spell
+  spello(SPELL_PROTECTION_FROM_ARROWS, "protection from arrows", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your protection from ranged attacks expires.", 5, 9, ABJURATION, FALSE);
+  // 2nd level spell
+  spello(SPELL_SPIDER_CLIMB, "spider climb", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your ability to scale surfaces like a spider expires.", 5, 9, TRANSMUTATION, FALSE);
+  // 2nd level spell
+  spello(SPELL_WARDING_WEAPON, "warding weapon", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
+         "Your warding weapon blinks out of existence.", 5, 9, ABJURATION, FALSE);
+  // 3rd level spell
+  spello(SPELL_AQUEOUS_ORB, "aqueous orb", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
+         NULL, 6, 11, CONJURATION, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
