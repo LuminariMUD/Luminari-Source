@@ -1802,32 +1802,45 @@ void increase_anger(struct char_data *ch, float amount)
     GET_ANGER(ch) = MIN(MAX(GET_ANGER(ch) + amount, 0), MAX_ANGER);
 }
 
-/* function that performs the "meat" of the vampiric blood drain mechanic!
-     -note in its current form its also used for mobiles, so requirement checks
-      are not made here */
-int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
+// function that performs the "meat" of the vampiric blood drain mechanic!
+void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 {
-  struct affected_type af, af2;
 
-  new_affect(&af2);
-  af2.spell = ABILITY_BLOOD_DRAIN;
-  af2.location = APPLY_SPECIAL;
-  af2.modifier = 0;
-  af2.duration = 10;
-  affect_join(vict, &af2, FALSE, FALSE, FALSE, FALSE);
+  struct affected_type af, *af2;
+
+  for (af2 = ch->affected; af2; af2 = af2->next)
+  {
+    if (af2->spell == ABILITY_BLOOD_DRAIN)
+    {
+      af2->duration--;
+      if (af2->duration <= 0)
+      {
+        affect_from_char(ch, ABILITY_BLOOD_DRAIN);
+        send_to_char(ch, "You finish feasting on the blood of your opponent.\r\n");
+        break;
+      }
+    }
+  }
+
+  if (IN_SUNLIGHT(ch) || IN_MOVING_WATER(ch))
+  {
+    send_to_char(ch, "You cannot drain blood in sunlight or moving water, even if wearing a vampire cloak.\r\n");
+    return;
+  }
 
   act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
-  act("$n leans into your neck and drains the blood from your body.", FALSE, ch, 0, vict, TO_CHAR);
-  act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
+  act("$n leans into your neck and drains the blood from your body.", FALSE, ch, 0, vict, TO_VICT);
+  act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_NOTVICT);
 
-  damage(ch, vict, 5, ABILITY_BLOOD_DRAIN, DAM_BLOOD_DRAIN, FALSE);
+  if (!IS_NPC(ch))
+  {
+    TIME_SINCE_LAST_FEEDING(ch) -= 5;
 
-  TIME_SINCE_LAST_FEEDING(ch) -= 10;
+    if (TIME_SINCE_LAST_FEEDING(ch) < 0)
+      TIME_SINCE_LAST_FEEDING(ch) = 0;
+  }
 
-  if (TIME_SINCE_LAST_FEEDING(ch) < 0)
-    TIME_SINCE_LAST_FEEDING(ch) = 0;
-
-  if (GET_CON(vict) > 0)
+  if (vict && GET_CON(vict) > 0)
   {
     if (!mag_savingthrow(ch, vict, ABILITY_SCORE_DAMAGE, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
     {
@@ -1848,14 +1861,18 @@ int vamp_blood_drain(struct char_data *ch, struct char_data *vict)
   GET_HIT(ch) = MIN(GET_MAX_HIT(ch) * 2, GET_HIT(ch));
   act("The blood bolsters your strength.", FALSE, ch, 0, vict, TO_CHAR);
 
-  return 1;
+  // damage goes last in case it kills the vict, preventing potential
+  // crashes from a now, non-existent vict.
+  damage(ch, vict, 5, ABILITY_BLOOD_DRAIN, DAM_BLOOD_DRAIN, FALSE);
+
+  return;
 }
 
 void update_damage_and_effects_over_time(void)
 {
   int dam = 0;
   struct affected_type *affects = NULL;
-  struct char_data *ch = NULL, *next_char = NULL, *vict = NULL;
+  struct char_data *ch = NULL, *next_char = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
   for (ch = character_list; ch; ch = next_char)
@@ -1892,38 +1909,14 @@ void update_damage_and_effects_over_time(void)
       act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
     }
 
-    /* vampire blood drain conditions:
-         - First they must have the feat
-         - They must be grappling the target and have them pinned
-         - The target has to be living and not an ooze (needs blood)
-         - The target has to have hp above -10
-         - If the character is either not good, or good, and the target is evil or not sentient, we allow it
-         - If they're a player and blood drain is not enabled, it won't happen
-         - NOTE - THIS NEEDS TO BE MADE INTO A FUNCTION -- Gicker
-         - additional note - i did a quick hackjob of making it into a function so i can use it for a mobile spec proc! -zusuk */
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN) && ((vict = GRAPPLE_TARGET(ch)) != NULL) && AFF_FLAGGED(vict, AFF_PINNED) &&
-        IS_LIVING(vict) && !IS_OOZE(vict) && !IS_ELEMENTAL(vict) && GET_HIT(vict) > -10 &&
-        (!IS_GOOD(ch) || (IS_GOOD(ch) && (IS_EVIL(vict) || !IS_SENTIENT(vict)))) &&
-        (IS_NPC(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_BLOOD_DRAIN))))
+    if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
     {
-      if (IN_SUNLIGHT(ch) && !is_covered(ch))
-      {
-        send_to_char(ch, "You cannot summon the strength to drain your victim's blood in sunlight.\r\n");
-      }
-      else if (IN_MOVING_WATER(ch))
-      {
-        send_to_char(ch, "You cannot summon the strength to drain your victim's blood in moving water.\r\n");
-      }
-      else
-      {
-        vamp_blood_drain(ch, vict);
-      }
+      vamp_blood_drain(ch, FIGHTING(ch));
     }
 
     if (IS_VAMPIRE(ch) && TIME_SINCE_LAST_FEEDING(ch) <= 100)
     {
-      TIME_SINCE_LAST_FEEDING(ch)
-      ++;
+      TIME_SINCE_LAST_FEEDING(ch)++;
     }
 
     if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&

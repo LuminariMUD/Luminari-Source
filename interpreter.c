@@ -198,6 +198,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breathe", "breathe", POS_FIGHTING, do_breathe, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathe},
     {"blank", "blank", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_BLANK, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"blooddrain", "blooddrain", POS_RESTING, do_blood_drain, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bombs", "bombs", POS_RESTING, do_bombs, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"boosts", "boost", POS_RECLINING, do_boosts, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -1154,6 +1155,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "disabletrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "cast") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "mark") &&
            !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);

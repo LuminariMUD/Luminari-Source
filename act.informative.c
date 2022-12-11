@@ -2602,7 +2602,7 @@ ACMD(do_gold)
 void perform_abilities(struct char_data *ch, struct char_data *k)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  int line_length = 80;
+  int line_length = 90;
   int i = 0, remaining = 0, total = 0;
 
   /* Set up the output. */
@@ -2618,7 +2618,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
       remaining = daily_uses_remaining(k, i);
       total = get_daily_uses(k, i);
       send_to_char(ch,
-                   "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
+                   "%-30s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
                    feat_list[i].name,
                    buf,
                    (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),

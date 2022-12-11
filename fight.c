@@ -4242,7 +4242,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   {
     for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room)
     {
-      if (FIGHTING(tch) == victim && IS_VAMPIRE(tch) && tch != victim && affected_by_spell(victim, ABILITY_BLOOD_DRAIN))
+      if (FIGHTING(tch) == victim && IS_VAMPIRE(tch) && tch != victim && affected_by_spell(tch, ABILITY_BLOOD_DRAIN))
         victim->char_specials.drainKilled = TRUE;
     }
   }
@@ -4279,6 +4279,13 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   CLOUDKILL(victim) = 0;    // stop any cloudkill bursts
   DOOM(victim) = 0;         // stop any creeping doom
   INCENDIARY(victim) = 0;   // stop any incendiary bursts
+  
+  // Stop the killer's blood drain
+  if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
+  {
+    affect_from_char(ch, ABILITY_BLOOD_DRAIN);
+    send_to_char(ch, "You finish feeding on the blood of your opponent and must seek a new target to continue feeding.\r\n");
+  }
 
   if (!IS_NPC(victim))
   { // forget victim, log

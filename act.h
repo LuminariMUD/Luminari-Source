@@ -531,6 +531,7 @@ ACMD_DECL(do_kick);
 ACMDCHECK(can_kick);
 ACMD_DECL(do_slam);
 ACMDCHECK(can_slam);
+ACMD_DECL(do_blood_drain);
 ACMD_DECL(do_seekerarrow);
 ACMDCHECK(can_seekerarrow);
 ACMD_DECL(do_arrowswarm);

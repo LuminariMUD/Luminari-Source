@@ -203,6 +203,7 @@ struct mud_event_list mud_event_index[] = {
     // 150
     {"Goliath Stone's Endurance Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eSTONESENDURANCE
     {"Aqueous Orb", event_aqueous_orb, EVENT_CHAR},           // eAQUEOUSORB
+    {"Vampiric Blood Drain", event_daily_use_cooldown, EVENT_CHAR},               // eVAMPIREBLOODDRAIN
 
 };
 
@@ -356,6 +357,9 @@ EVENTFUNC(event_countdown)
     break;
   case eVAMPIREENERGYDRAIN:
     send_to_char(ch, "You are now able to perform vampiric energy drain with a slam attack again.\r\n");
+    break;
+  case eVAMPIREBLOODDRAIN:
+    send_to_char(ch, "You are now able to perform vampiric eblood drain again.\r\n");
     break;
   case eBANE:
     send_to_char(ch, "You are now able to use your bane ability again.\r\n");
@@ -738,6 +742,9 @@ EVENTFUNC(event_daily_use_cooldown)
     featnum = FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT;
     send_to_char(ch, "One of your children of the night uses has recovered.\r\n");
     break;
+  case eVAMPIREBLOODDRAIN:
+    featnum = FEAT_VAMPIRE_BLOOD_DRAIN;
+    send_to_char(ch, "One of your vampiric blood drain uses has recovered.\r\n");
   case eVAMPIREENERGYDRAIN:
     featnum = FEAT_VAMPIRE_ENERGY_DRAIN;
     send_to_char(ch, "One of your vampiric energy drain uses has recovered.\r\n");
