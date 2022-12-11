@@ -831,8 +831,8 @@ void assign_feats(void)
         "Vampires sustain 1d6 damage every six second round they are exposed to sunlight. They are also damaged by 1/3 their maximum hp every round they stand in running water (such as a river).",
         "Vampires sustain 1d6 damage every six second round they are exposed to sunlight. They are also damaged by 1/3 their maximum hp every round they stand in running water (such as a river).");
   feato(FEAT_VAMPIRE_BLOOD_DRAIN, "vampiric blood drain", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
-        "A vampire can feed off of a living, grappled opponent. Each round they drain 1d4 constitution damage, do 5 blood drain damage, and heal 5 hp, also gaining 5 temporary hp if currently at maximum hp.",
-        "A vampire can feed off of a living, grappled opponent. Each round they drain 1d4 constitution damage, do 5 blood drain damage, and heal 5 hp, also gaining 5 temporary hp if currently at maximum hp.");
+        "A vampire can feed off of a living opponent. Each round they drain 1d4 constitution damage, do 5 blood drain damage, and heal 5 hp, also gaining 5 temporary hp if currently at maximum hp. Uses the blooddrain command.",
+        "A vampire can feed off of a living opponent. Each round they drain 1d4 constitution damage, do 5 blood drain damage, and heal 5 hp, also gaining 5 temporary hp if currently at maximum hp. Uses the blooddrain command.");
   feato(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, "children of the night", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "Once per day, the vampire can summon forth a pack of wolves, swarm of rats or cloud of vampire bats, using childrenofthenight command.",
         "Once per day, the vampire can summon forth a pack of wolves, swarm of rats or cloud of vampire bats, using childrenofthenight command.");
@@ -4661,6 +4661,7 @@ void assign_feats(void)
   dailyfeat(FEAT_TRUE_JUDGEMENT, eTRUEJUDGEMENT);
   dailyfeat(FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, eCHILDRENOFTHENIGHT);
   dailyfeat(FEAT_VAMPIRE_ENERGY_DRAIN, eVAMPIREENERGYDRAIN);
+  dailyfeat(FEAT_VAMPIRE_BLOOD_DRAIN, eVAMPIREBLOODDRAIN);
   dailyfeat(FEAT_MASTER_OF_THE_MIND, eMASTERMIND);
   dailyfeat(FEAT_TINKER, eTINKER);
   dailyfeat(FEAT_DRAGONBORN_BREATH, eDRAGBREATH);

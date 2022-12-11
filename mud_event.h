@@ -181,6 +181,7 @@ typedef enum
   eCATSCLAWS,                       // tabaxi Cats Claws ability
   eSTONESENDURANCE,                 // goliath stones endurance ability
   eAQUEOUSORB,                      // aqueous orb spell
+  eVAMPIREBLOODDRAIN,               // vampire blood drain ability
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

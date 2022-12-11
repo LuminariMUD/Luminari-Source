@@ -9028,6 +9028,90 @@ ACMD(do_slam)
   perform_slam(ch, vict);
 }
 
+ACMD(do_blood_drain)
+{
+
+  struct char_data *vict = NULL;
+  char arg[200];
+  int uses_remaining;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN))
+  {
+    send_to_char(ch, "You don't have the ability to food on the blood of others.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch))
+    vict = FIGHTING(ch);
+  else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "There's no one there by that description.\r\n");
+    return;
+  }
+
+  if (!IS_LIVING(vict))
+  {
+    send_to_char(ch, "This can only be used on the living.\r\n");
+    return;
+  }
+
+  if (IS_OOZE(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return;
+  }
+
+  if (IS_ELEMENTAL(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return;
+  }
+
+  if (IS_GOOD(ch))
+  {
+    if (!IS_EVIL(vict) && IS_SENTIENT(vict))
+    {
+      send_to_char(ch, "Good aligned vampires can only feed on evil creatures or non-sentient creatures.\r\n");
+      return;
+    }
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN)) == 0)
+  {
+    send_to_char(ch, "You must recover the profane energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    send_to_char(ch, "Blood drain requires a standard action available to use.\r\n");
+    return;
+  }
+
+  act("You prepare to feast on the blood of $N!", FALSE, ch, 0, vict, TO_CHAR);
+
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = ABILITY_BLOOD_DRAIN;
+  af.duration = 5 + GET_LEVEL(ch) / 6;
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_VAMPIRE_BLOOD_DRAIN);
+
+  USE_STANDARD_ACTION(ch);
+
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

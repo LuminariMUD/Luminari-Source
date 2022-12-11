@@ -4382,6 +4382,9 @@ int get_daily_uses(struct char_data *ch, int featnum)
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
       break;
+    case FEAT_VAMPIRE_BLOOD_DRAIN:
+      daily_uses = 2 + (GET_LEVEL(ch) / 3);
+      break;
     case FEAT_STONES_ENDURANCE:
       daily_uses += 2 + GET_LEVEL(ch) / 6;
       break;
