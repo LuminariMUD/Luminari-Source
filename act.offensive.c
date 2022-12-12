@@ -9043,6 +9043,12 @@ ACMD(do_blood_drain)
     return;
   }
 
+  if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
+  {
+    send_to_char(ch, "You are already feasting on your opponent's blood.\r\n");
+    return;
+  }
+
   if (FIGHTING(ch))
     vict = FIGHTING(ch);
   else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
@@ -9097,6 +9103,11 @@ ACMD(do_blood_drain)
   }
 
   act("You prepare to feast on the blood of $N!", FALSE, ch, 0, vict, TO_CHAR);
+
+  if (!FIGHTING(ch))
+  {
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
 
   struct affected_type af;
 
