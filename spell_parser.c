@@ -38,6 +38,7 @@
 struct spell_info_type spell_info[TOP_SKILL_DEFINE + 1];
 struct spell_info_type skill_info[TOP_SKILL_DEFINE + 1];
 char cast_arg2[MAX_INPUT_LENGTH] = {'\0'};
+char cast_arg3[MAX_INPUT_LENGTH] = {'\0'};
 const char *unused_spellname = "!UNUSED!";       /* So we can get &unused_spellname */
 const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearoff */
 
@@ -807,6 +808,12 @@ SAVING_WILL here...  */
       break;
     case SPELL_AQUEOUS_ORB:
       MANUAL_SPELL(spell_aqueous_orb);
+      break;
+    case SPELL_HUMAN_POTENTIAL:
+      MANUAL_SPELL(spell_human_potential);
+      break;
+    case SPELL_MASS_HUMAN_POTENTIAL:
+      MANUAL_SPELL(spell_mass_human_potential);
       break;
     case SPELL_BANISH:
       MANUAL_SPELL(spell_banish);
@@ -1894,6 +1901,8 @@ ACMDU(do_gen_cast)
   }
 
   target_arg = strtok(NULL, "\0");
+
+  snprintf(cast_arg3, sizeof(cast_arg3), "%s", target_arg);
 
   // log("DEBUG: target t = %s", target_arg);
   // log("DEBUG: Argument = %s", argument);
@@ -3998,6 +4007,14 @@ void mag_assign_spells(void)
   spello(SPELL_WARDING_WEAPON, "warding weapon", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
          "Your warding weapon blinks out of existence.", 5, 9, ABJURATION, FALSE);
+  // 2nd level spell
+  spello(SPELL_HUMAN_POTENTIAL, "human potential", 79, 64, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 4, 9, TRANSMUTATION, FALSE);
+  // 6th level spell
+  spello(SPELL_MASS_HUMAN_POTENTIAL, "mass human potential", 79, 64, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 12, 17, TRANSMUTATION, FALSE);
   // 3rd level spell
   spello(SPELL_AQUEOUS_ORB, "aqueous orb", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,

@@ -532,9 +532,11 @@
 #define SPELL_AQUEOUS_ORB 459
 #define SPELL_MOUNT 460
 #define SPELL_COMMUNAL_MOUNT 461
+#define SPELL_HUMAN_POTENTIAL 462
+#define SPELL_MASS_HUMAN_POTENTIAL 463
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 462
+#define NUM_SPELLS 464
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1377,6 +1379,9 @@ ASPELL(spell_silverymoon_recall);
 ASPELL(spell_mirabar_recall);
 ASPELL(spell_gird_allies);
 ASPELL(spell_aqueous_orb);
+ASPELL(spell_human_potential);
+ASPELL(spell_mass_human_potential);
+
 // psionics
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);
@@ -1505,6 +1510,7 @@ extern struct spell_info_type spell_info[];
 extern struct spell_info_type skill_info[];
 extern struct wall_information wallinfo[];
 extern char cast_arg2[];
+extern char cast_arg3[];
 extern const char *unused_spellname;
 
 #endif /* __SPELL_PARSER_C__ */

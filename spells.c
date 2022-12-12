@@ -898,6 +898,176 @@ ASPELL(spell_acid_arrow)
   }
 }
 
+ASPELL(spell_human_potential)
+{
+
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char which_stat[50] = {'\0'};
+  char stat_buf[200] = {'\0'};
+  struct affected_type af;
+  struct char_data *vict = NULL;
+
+  two_arguments(cast_arg3, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  new_affect(&af);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you wish to cast this upon.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "No one by that name here.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(vict, SPELL_HUMAN_POTENTIAL))
+  {
+    act("$N has already had their potential raised.", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "strength"))
+  {
+    af.location = APPLY_STR;
+    snprintf(which_stat, sizeof(which_stat), "stronger");
+  }
+  else if (is_abbrev(arg2, "constitution"))
+  {
+    af.location = APPLY_CON;
+    snprintf(which_stat, sizeof(which_stat), "more hardy");
+  }
+  else if (is_abbrev(arg2, "dexterity"))
+  {
+    af.location = APPLY_DEX;
+    snprintf(which_stat, sizeof(which_stat), "more agile");
+  }
+  else if (is_abbrev(arg2, "intelligence"))
+  {
+    af.location = APPLY_INT;
+    snprintf(which_stat, sizeof(which_stat), "smarter");
+  }
+  else if (is_abbrev(arg2, "wisdom"))
+  {
+    af.location = APPLY_WIS;
+    snprintf(which_stat, sizeof(which_stat), "wiser");
+  }
+  else if (is_abbrev(arg2, "charisma"))
+  {
+    af.location = APPLY_CHA;
+    snprintf(which_stat, sizeof(which_stat), "more likeable");
+  }
+  else
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.2\r\n");
+    return;
+  }
+
+  af.spell = SPELL_HUMAN_POTENTIAL;
+  af.modifier = 2;
+  af.duration = 10 * level;
+  af.bonus_type = BONUS_TYPE_RACIAL;
+
+  affect_to_char(vict, &af);
+
+  snprintf(stat_buf, sizeof(stat_buf), "You feel %s.", which_stat);
+  act(stat_buf, FALSE, ch, 0, vict, TO_VICT);
+  snprintf(stat_buf, sizeof(stat_buf), "$N looks %s.", which_stat);
+  act(stat_buf, FALSE, ch, 0, vict, TO_ROOM);
+
+}
+
+ASPELL(spell_mass_human_potential)
+{
+
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char which_stat[50] = {'\0'};
+  char stat_buf[200] = {'\0'};
+  struct affected_type af;
+  struct char_data *vict = NULL;
+  int apply_loc = APPLY_NONE;
+
+  one_argument(cast_arg3, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg1, "strength"))
+  {
+    apply_loc = APPLY_STR;
+    snprintf(which_stat, sizeof(which_stat), "stronger");
+  }
+  else if (is_abbrev(arg1, "constitution"))
+  {
+    apply_loc = APPLY_CON;
+    snprintf(which_stat, sizeof(which_stat), "more hardy");
+  }
+  else if (is_abbrev(arg1, "dexterity"))
+  {
+    apply_loc = APPLY_DEX;
+    snprintf(which_stat, sizeof(which_stat), "more agile");
+  }
+  else if (is_abbrev(arg1, "intelligence"))
+  {
+    apply_loc = APPLY_INT;
+    snprintf(which_stat, sizeof(which_stat), "smarter");
+  }
+  else if (is_abbrev(arg1, "wisdom"))
+  {
+    apply_loc = APPLY_WIS;
+    snprintf(which_stat, sizeof(which_stat), "wiser");
+  }
+  else if (is_abbrev(arg1, "charisma"))
+  {
+    apply_loc = APPLY_CHA;
+    snprintf(which_stat, sizeof(which_stat), "more likeable");
+  }
+  else
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.2\r\n");
+    return;
+  }
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+  {
+    if (GROUP(ch) != GROUP(vict) && ch != vict)
+      continue;
+
+    if (affected_by_spell(vict, SPELL_HUMAN_POTENTIAL))
+    {
+      act("$N has already had their potential raised.", FALSE, ch, 0, vict, TO_CHAR);
+      continue;
+    }
+
+    new_affect(&af);
+
+    af.location = apply_loc;
+    af.spell = SPELL_HUMAN_POTENTIAL;
+    af.modifier = 2;
+    af.duration = 10 * level;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+
+    affect_to_char(vict, &af);
+
+    snprintf(stat_buf, sizeof(stat_buf), "You feel %s.", which_stat);
+    act(stat_buf, FALSE, ch, 0, vict, TO_VICT);
+    snprintf(stat_buf, sizeof(stat_buf), "$N looks %s.", which_stat);
+    act(stat_buf, FALSE, ch, 0, vict, TO_ROOM);
+  }
+}
+
 ASPELL(spell_aqueous_orb)
 {
   int x = 0, num_rounds = 1;
