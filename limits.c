@@ -1828,7 +1828,12 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
     return;
   }
 
-  act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
+  if (!can_blood_drain_target(ch, vict))
+  {
+    
+  }
+
+    act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
   act("$n leans into your neck and drains the blood from your body.", FALSE, ch, 0, vict, TO_VICT);
   act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_NOTVICT);
 

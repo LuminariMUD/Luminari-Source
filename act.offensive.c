@@ -9057,31 +9057,9 @@ ACMD(do_blood_drain)
     return;
   }
 
-  if (!IS_LIVING(vict))
+  if (!can_blood_drain_target(ch, vict))
   {
-    send_to_char(ch, "This can only be used on the living.\r\n");
     return;
-  }
-
-  if (IS_OOZE(vict))
-  {
-    send_to_char(ch, "This cannot be used on oozes.\r\n");
-    return;
-  }
-
-  if (IS_ELEMENTAL(vict))
-  {
-    send_to_char(ch, "This cannot be used on oozes.\r\n");
-    return;
-  }
-
-  if (IS_GOOD(ch))
-  {
-    if (!IS_EVIL(vict) && IS_SENTIENT(vict))
-    {
-      send_to_char(ch, "Good aligned vampires can only feed on evil creatures or non-sentient creatures.\r\n");
-      return;
-    }
   }
 
   if ((uses_remaining = daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN)) == 0)

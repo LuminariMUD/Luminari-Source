@@ -7534,6 +7534,38 @@ void manifest_mastermind_power(struct char_data *ch)
   }
 }
 
+bool can_blood_drain_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!IS_LIVING(vict))
+  {
+    send_to_char(ch, "This can only be used on the living.\r\n");
+    return false;
+  }
+
+  if (IS_OOZE(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return false;
+  }
+
+  if (IS_ELEMENTAL(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return false;
+  }
+
+  if (IS_GOOD(ch))
+  {
+    if (!IS_EVIL(vict) && IS_SENTIENT(vict))
+    {
+      send_to_char(ch, "Good aligned vampires can only feed on evil creatures or non-sentient creatures.\r\n");
+      return false;
+    }
+  }
+  
+  return true;
+}
+
 int vampire_last_feeding_adjustment(struct char_data *ch)
 {
   if (IS_VAMPIRE(ch))

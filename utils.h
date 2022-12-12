@@ -2015,6 +2015,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 #define IS_POWERFUL_BEING(ch) ((ch && IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT))
 
+bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch) (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
@@ -2406,7 +2407,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GET_MARK(ch) (ch->player_specials->mark_target)
 #define GET_MARK_HIT_BONUS(ch) (ch->player_specials->death_attack_hit_bonus)
 #define GET_MARK_DAM_BONUS(ch) (ch->player_specials->death_attack_dam_bonus)
-bool is_marked_target(struct char_data *ch, struct char_data *vict);
+    bool is_marked_target(struct char_data *ch, struct char_data *vict);
 void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
 
 // Inquisitor Stuff
