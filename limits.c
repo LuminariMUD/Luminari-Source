@@ -1834,7 +1834,7 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 
   if (!IS_NPC(ch))
   {
-    TIME_SINCE_LAST_FEEDING(ch) -= 5;
+    TIME_SINCE_LAST_FEEDING(ch) -= 20;
 
     if (TIME_SINCE_LAST_FEEDING(ch) < 0)
       TIME_SINCE_LAST_FEEDING(ch) = 0;
