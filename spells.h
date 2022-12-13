@@ -536,9 +536,11 @@
 #define SPELL_MASS_HUMAN_POTENTIAL 463
 #define SPELL_BLACK_TENTACLES 464
 #define SPELL_GREATER_BLACK_TENTACLES 465
+#define SPELL_CONTROL_SUMMONED_CREATURE 466
+#define SPELL_CHARM_MONSTER 467
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 466
+#define NUM_SPELLS 468
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1332,6 +1334,7 @@ ASPELL(spell_acid_arrow);
 ASPELL(spell_augury);
 ASPELL(spell_banish);
 ASPELL(spell_charm);
+ASPELL(spell_charm_monster);
 ASPELL(spell_charm_animal);
 ASPELL(spell_clairvoyance);
 ASPELL(spell_cloudkill);
@@ -1383,6 +1386,7 @@ ASPELL(spell_gird_allies);
 ASPELL(spell_aqueous_orb);
 ASPELL(spell_human_potential);
 ASPELL(spell_mass_human_potential);
+ASPELL(spell_control_summoned_creature);
 
 // psionics
 ASPELL(psionic_concussive_onslaught);

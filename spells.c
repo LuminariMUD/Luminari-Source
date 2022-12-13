@@ -401,8 +401,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if (AFF_FLAGGED(victim, AFF_CHARM))
     send_to_char(ch, "Your victim is already charmed.\r\n");
 
-  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) ||
-                                       GET_LEVEL(victim) >= 8))
+  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) || GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
   else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
@@ -464,6 +463,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
       af.spell = SPELL_DOMINATE_PERSON;
     else if (spellnum == SPELL_MASS_DOMINATION)
       af.spell = SPELL_MASS_DOMINATION;
+    else if (spellnum == SPELL_CHARM_MONSTER)
+      af.spell = SPELL_CHARM_MONSTER;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;
@@ -898,6 +899,83 @@ ASPELL(spell_acid_arrow)
   }
 }
 
+ASPELL(spell_control_summoned_creature)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char outbuf[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  struct char_data *master = NULL;
+
+  one_argument(cast_arg3, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You have to specify a summoned creature to control.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "No one by that name here.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(vict))
+  {
+    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    return;
+  }
+
+  if (!AFF_FLAGGED(vict, AFF_CHARM) || !vict->master)
+  {
+    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    return;
+  }
+
+  master = vict->master;
+
+  if (!isSummonMob(GET_MOB_VNUM(vict)))
+  {
+    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    return;
+  }
+
+  if (mag_resistance(ch, vict, 0) || mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(ch), ENCHANTMENT))
+  {
+    act("Your attempt to wrest control over $N fails.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n's attempt to wrest control over You fails.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n's attempt to wrest control over $N fails.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+
+  if (skill_roll(ch, ABILITY_SPELLCRAFT) < skill_roll(vict, ABILITY_SPELLCRAFT))
+  {
+    act("Your attempt to wrest control over $N's minion fails.", FALSE, ch, 0, master, TO_CHAR);
+    act("$n's attempt to wrest control over Your minon fails.", FALSE, ch, 0, master, TO_CHAR);
+    act("$n's attempt to wrest control over $N's minion fails.", FALSE, ch, 0, master, TO_NOTVICT);
+    return;
+  }
+
+  snprintf(outbuf, sizeof(outbuf), "You wrest control of %s from $N.", GET_NAME(vict));
+  act(outbuf, FALSE, ch, 0, master, TO_CHAR);
+  snprintf(outbuf, sizeof(outbuf), "$n wrests control of %s from You.", GET_NAME(vict));
+  act(outbuf, FALSE, ch, 0, master, TO_VICT);
+  snprintf(outbuf, sizeof(outbuf), "$n wrests control of %s from $N.", GET_NAME(vict));
+  act(outbuf, FALSE, ch, 0, master, TO_NOTVICT);
+
+  if (GROUP(vict))
+    leave_group(ch);
+  stop_follower(vict);
+
+  save_char_pets(master);
+
+  add_follower(vict, ch);
+  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    join_group(vict, GROUP(ch));
+
+  save_char_pets(ch);
+}
+
 ASPELL(spell_human_potential)
 {
 
@@ -1152,6 +1230,15 @@ ASPELL(spell_charm) // enchantment
     return;
 
   effect_charm(ch, victim, SPELL_CHARM, casttype, level);
+}
+
+ASPELL(spell_charm_monster) // enchantment
+{
+
+  if (victim == NULL || ch == NULL)
+    return;
+
+  effect_charm(ch, victim, SPELL_CHARM_MONSTER, casttype, level);
 }
 
 ASPELL(spell_charm_animal) // enchantment
