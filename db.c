@@ -1219,7 +1219,7 @@ void index_boot(int mode)
   const char *index_filename, *prefix = NULL; /* NULL or egcs 1.1 complains */
   FILE *db_index, *db_file;
   int rec_count = 0, size[2] = {0, 0}, i = 0;
-  char buf2[PATH_MAX] = {'\0'};
+  char buf2[MAX_PATH] = {'\0'};
   char buf1[MAX_STRING_LENGTH] = {'\0'};
 
   switch (mode)

@@ -809,6 +809,9 @@ SAVING_WILL here...  */
     case SPELL_AQUEOUS_ORB:
       MANUAL_SPELL(spell_aqueous_orb);
       break;
+    case SPELL_CONTROL_SUMMONED_CREATURE:
+      MANUAL_SPELL(spell_control_summoned_creature);
+      break;
     case SPELL_HUMAN_POTENTIAL:
       MANUAL_SPELL(spell_human_potential);
       break;
@@ -820,6 +823,9 @@ SAVING_WILL here...  */
       break;
     case SPELL_CHARM:
       MANUAL_SPELL(spell_charm);
+      break;
+    case SPELL_CHARM_MONSTER:
+      MANUAL_SPELL(spell_charm_monster);
       break;
     case SPELL_CHARM_ANIMAL:
       MANUAL_SPELL(spell_charm_animal);
@@ -976,7 +982,7 @@ SAVING_WILL here...  */
   /* NOTE:  this requires a victim, so AoE effects have another
 similar method added -zusuk */
   if (SINFO.violent && cvict && GET_POS(cvict) == POS_STANDING &&
-      !FIGHTING(cvict) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL &&
+      !FIGHTING(cvict) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL && spellnum != SPELL_CHARM_MONSTER &&
       spellnum != SPELL_DOMINATE_PERSON)
   {
     if (cvict != caster && IN_ROOM(cvict) == IN_ROOM(caster))
@@ -2994,6 +3000,9 @@ void mag_assign_spells(void)
   spello(SPELL_CHARM, "charm person", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
          "You feel more self-confident.", 4, 7, ENCHANTMENT, FALSE);
+  spello(SPELL_CHARM_MONSTER, "charm monster", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         "You feel more self-confident.", 10, 13, ENCHANTMENT, FALSE);
   spello(SPELL_ENCHANT_ITEM, "enchant item", 0, 0, 0, POS_FIGHTING,
          TAR_OBJ_INV, FALSE, MAG_MANUAL,
          NULL, 5, 7, ENCHANTMENT, FALSE);
@@ -4023,6 +4032,10 @@ void mag_assign_spells(void)
   spello(SPELL_BLACK_TENTACLES, "black tentacles", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AREAS,
          NULL, 8, 13, CONJURATION, FALSE);
+  // 4th level spell
+  spello(SPELL_CONTROL_SUMMONED_CREATURE, "control summoned creature", 79, 64, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 8, 13, ENCHANTMENT, FALSE);
   // 6th level spell
   spello(SPELL_GREATER_BLACK_TENTACLES, "greater black tentacles", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AREAS,

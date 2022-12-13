@@ -2829,6 +2829,8 @@ void stop_follower(struct char_data *ch)
       affect_from_char(ch, SPELL_CHARM);
     if (affected_by_spell(ch, SPELL_CHARM_ANIMAL))
       affect_from_char(ch, SPELL_CHARM_ANIMAL);
+    if (affected_by_spell(ch, SPELL_CHARM_MONSTER))
+      affect_from_char(ch, SPELL_CHARM_MONSTER);
     if (affected_by_spell(ch, SPELL_DOMINATE_PERSON))
       affect_from_char(ch, SPELL_DOMINATE_PERSON);
     if (affected_by_spell(ch, SPELL_MASS_DOMINATION))
@@ -2979,7 +2981,7 @@ int get_line(FILE *fl, char *buf)
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name)
 {
   const char *prefix, *middle, *suffix;
-  char name[PATH_MAX], *ptr;
+  char name[MAX_PATH], *ptr;
 
   if (orig_name == NULL || *orig_name == '\0' || filename == NULL)
   {

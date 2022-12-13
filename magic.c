@@ -7298,7 +7298,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
-          !FIGHTING(tch) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL &&
+          !FIGHTING(tch) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL && spellnum != SPELL_CHARM_MONSTER &&
           spellnum != SPELL_DOMINATE_PERSON && spellnum != SPELL_MASS_DOMINATION)
       {
         if (tch != ch)
@@ -8154,25 +8154,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   send_to_char(ch, "You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.\r\n");
 }
-#undef OBJ_CLONE
-#undef MOB_CLONE
-#undef MOB_ZOMBIE
-#undef MOB_GHOUL
-#undef MOB_GIANT_SKELETON
-#undef MOB_MUMMY
-#undef MOB_RED_DRAGON
-#undef MOB_SHELGARNS_BLADE
-#undef MOB_DIRE_BADGER
-#undef MOB_DIRE_BOAR
-#undef MOB_DIRE_SPIDER
-#undef MOB_DIRE_BEAR
-#undef MOB_HOUND
-#undef MOB_DIRE_TIGER
-#undef MOB_FIRE_ELEMENTAL
-#undef MOB_EARTH_ELEMENTAL
-#undef MOB_AIR_ELEMENTAL
-#undef MOB_WATER_ELEMENTAL
-#undef MOB_ECTOPLASMIC_SHAMBLER
 
 /*----------------------------------------------------------------------------*/
 /* End Magic Summoning - Generic Routines and Local Globals */

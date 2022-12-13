@@ -890,7 +890,7 @@ bool is_sorc_bloodline_spell(int bloodline, int spellnum)
     case SPELL_CHARM:
     case SPELL_HIDEOUS_LAUGHTER:
     case SPELL_DEEP_SLUMBER:
-    case SPELL_POISON:
+    case SPELL_CHARM_MONSTER:
     case SPELL_FEEBLEMIND:
     case SPELL_TRUE_SEEING:
     case SPELL_PRISMATIC_SPRAY:
