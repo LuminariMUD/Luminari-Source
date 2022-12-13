@@ -4019,6 +4019,14 @@ void mag_assign_spells(void)
   spello(SPELL_AQUEOUS_ORB, "aqueous orb", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
          NULL, 6, 11, CONJURATION, FALSE);
+  // 4th level spell
+  spello(SPELL_BLACK_TENTACLES, "black tentacles", 79, 64, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AREAS,
+         NULL, 8, 13, CONJURATION, FALSE);
+  // 6th level spell
+  spello(SPELL_GREATER_BLACK_TENTACLES, "greater black tentacles", 79, 64, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AREAS,
+         NULL, 12, 17, CONJURATION, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,

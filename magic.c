@@ -4025,6 +4025,45 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "Tiny pinions grow forth from $n's hands and feet.";
     break;
 
+  case SPELL_BLACK_TENTACLES:
+    if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("You evade the tentacles.", FALSE, ch, 0, victim, TO_VICT);
+      act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_GREATER_BLACK_TENTACLES))
+    {
+      act("$N is already affected by greater black tentacles.", FALSE, ch, 0, victim, TO_CHAR);
+      return;
+    }
+    af[0].duration = level; // 1 round per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    to_vict = "You are encircled and entangled by large black tentacles that writhe from the ground.";
+    to_room = "$n is encircled and entangled by large black tentacles that writhe from the ground.";
+    break;
+
+  case SPELL_GREATER_BLACK_TENTACLES:
+    if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("You evade the tentacles.", FALSE, ch, 0, victim, TO_VICT);
+      act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_BLACK_TENTACLES))
+    {
+      affect_from_char(victim, SPELL_BLACK_TENTACLES);
+    }
+    af[0].duration = level; // 1 round per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    to_vict = "You are encircled and entangled by huge black tentacles that writhe from the ground.";
+    to_room = "$n is encircled and entangled by huge black tentacles that writhe from the ground.";
+    break;
+
   case SPELL_WARDING_WEAPON:
     af[0].duration = 10 + level; // 10 rounds + 1 round per level
     af[0].location = APPLY_SKILL;
@@ -6960,6 +6999,16 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_CALL_LIGHTNING_STORM:
     to_char = "You call down a furious lightning storm upon the area!";
     to_room = "$n raises $s arms and calls down a furious lightning storm!";
+    break;
+  case SPELL_BLACK_TENTACLES:
+    to_char = "You call forth many large, black tentacles from the ground!";
+    to_room = "$n calls forth many large, black tentacles from the ground!";
+    isEffect = TRUE;
+    break;
+  case SPELL_GREATER_BLACK_TENTACLES:
+    to_char = "You call forth many huge, black tentacles from the ground!";
+    to_room = "$n calls forth many huge, black tentacles from the ground!";
+    isEffect = TRUE;
     break;
   case SPELL_CHAIN_LIGHTNING:
     to_char = "Arcing bolts of lightning flare from your fingertips!";

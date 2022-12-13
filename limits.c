@@ -162,8 +162,7 @@ void affliction_tick(struct char_data *ch)
   else if (DOOM(ch))
   {
     call_magic(ch, NULL, NULL, SPELL_DOOM, 0, DIVINE_LEVEL(ch), CAST_SPELL);
-    DOOM(ch)
-    --;
+    DOOM(ch)--;
     if (DOOM(ch) <= 0)
     {
       send_to_char(ch, "Your creeping swarm of centipedes dissipates!\r\n");
@@ -184,6 +183,15 @@ void affliction_tick(struct char_data *ch)
     }
   }
   // end incendiary cloud
+
+  if (affected_by_spell(ch, SPELL_GREATER_BLACK_TENTACLES))
+  {
+    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, SPELL_GREATER_BLACK_TENTACLES, DAM_FORCE, FALSE);
+  }
+  else if (affected_by_spell(ch, SPELL_BLACK_TENTACLES))
+  {
+    damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(1, 6) + 4, SPELL_BLACK_TENTACLES, DAM_FORCE, FALSE);
+  }
 
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE))
@@ -1806,21 +1814,26 @@ void increase_anger(struct char_data *ch, float amount)
 void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 {
 
-  struct affected_type af, *af2;
+  struct affected_type af;
+  
+  // struct affected_type *af2;
 
-  for (af2 = ch->affected; af2; af2 = af2->next)
-  {
-    if (af2->spell == ABILITY_BLOOD_DRAIN)
-    {
-      af2->duration--;
-      if (af2->duration <= 0)
-      {
-        affect_from_char(ch, ABILITY_BLOOD_DRAIN);
-        send_to_char(ch, "You finish feasting on the blood of your opponent.\r\n");
-        break;
-      }
-    }
-  }
+  // for (af2 = ch->affected; af2; af2 = af2->next)
+  // {
+  //   if (af2->spell == ABILITY_BLOOD_DRAIN)
+  //   {
+  //     af2->duration--;
+  //     if (af2->duration <= 0)
+  //     {
+  //       affect_from_char(ch, ABILITY_BLOOD_DRAIN);
+  //       send_to_char(ch, "You finish feasting on the blood of your opponent.\r\n");
+  //       break;
+  //     }
+  //   }
+  // }
+
+  if (!ch || !vict) return;
+  if (IN_ROOM(ch) == NOWHERE || IN_ROOM(vict) == NOWHERE) return;
 
   if (IN_SUNLIGHT(ch) || IN_MOVING_WATER(ch))
   {
@@ -1831,15 +1844,16 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
   if (!can_blood_drain_target(ch, vict))
   {
     
+    return;
   }
 
-    act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
+  act("You lean into $N's neck and drain the blood from $S body.", FALSE, ch, 0, vict, TO_CHAR);
   act("$n leans into your neck and drains the blood from your body.", FALSE, ch, 0, vict, TO_VICT);
   act("$n leans into $N's neck and drains the blood from $S body.", FALSE, ch, 0, vict, TO_NOTVICT);
 
   if (!IS_NPC(ch))
   {
-    TIME_SINCE_LAST_FEEDING(ch) -= 20;
+    TIME_SINCE_LAST_FEEDING(ch) -= 25;
 
     if (TIME_SINCE_LAST_FEEDING(ch) < 0)
       TIME_SINCE_LAST_FEEDING(ch) = 0;

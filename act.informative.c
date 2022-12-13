@@ -811,6 +811,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+    else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
+      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -861,6 +865,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+    else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
+      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -1008,6 +1016,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+  else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
+    act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
     act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))

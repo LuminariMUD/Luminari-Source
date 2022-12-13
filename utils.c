@@ -7575,11 +7575,11 @@ int vampire_last_feeding_adjustment(struct char_data *ch)
 {
   if (IS_VAMPIRE(ch))
   {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 50)
     {
       return 2;
     }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 150)
     {
       return -2;
     }
