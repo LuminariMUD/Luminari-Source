@@ -1120,6 +1120,8 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "ne") &&
            !is_abbrev(complete_cmd_info[cmd].command, "se") &&
            !is_abbrev(complete_cmd_info[cmd].command, "sw") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "inside") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "outside") &&
            !is_abbrev(complete_cmd_info[cmd].command, "get") &&  /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
@@ -1156,6 +1158,22 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "cast") &&
            !is_abbrev(complete_cmd_info[cmd].command, "mark") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "races") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "cooldowns") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "abilities") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "resistances") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "lore") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "powerattack") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "expertise") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "ooc") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "save") &&
+#ifdef CAMPAIGN_FR
+           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
+#endif
            !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);

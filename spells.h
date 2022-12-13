@@ -534,9 +534,11 @@
 #define SPELL_COMMUNAL_MOUNT 461
 #define SPELL_HUMAN_POTENTIAL 462
 #define SPELL_MASS_HUMAN_POTENTIAL 463
+#define SPELL_BLACK_TENTACLES 464
+#define SPELL_GREATER_BLACK_TENTACLES 465
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 464
+#define NUM_SPELLS 466
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

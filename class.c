@@ -3804,6 +3804,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_SHADOW_JUMP, 7);
   spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 7);
   spell_assignment(CLASS_WIZARD, SPELL_GHOST_WOLF, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_BLACK_TENTACLES, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
@@ -3845,6 +3846,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_CIRCLE_OF_DEATH, 11);
   spell_assignment(CLASS_WIZARD, SPELL_UNDEATH_TO_DEATH, 11);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_HUMAN_POTENTIAL, 11);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_BLACK_TENTACLES, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_WIZARD, SPELL_MISSILE_STORM, 13);
@@ -4691,6 +4693,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_6, 11);
   spell_assignment(CLASS_DRUID, SPELL_TRANSPORT_VIA_PLANTS, 11);
   spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_LIGHT, 11);
+  spell_assignment(CLASS_DRUID, SPELL_GREATER_BLACK_TENTACLES, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_DRUID, SPELL_CONTROL_WEATHER, 13);
@@ -5057,6 +5060,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_SHADOW_JUMP, 8);
   spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 8);
   spell_assignment(CLASS_SORCERER, SPELL_GHOST_WOLF, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_BLACK_TENTACLES, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);
@@ -5098,6 +5102,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_CIRCLE_OF_DEATH, 12);
   spell_assignment(CLASS_SORCERER, SPELL_UNDEATH_TO_DEATH, 12);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_HUMAN_POTENTIAL, 12);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_BLACK_TENTACLES, 12);
   /*              class num      spell                   level acquired */
   /* 7th circle */
   spell_assignment(CLASS_SORCERER, SPELL_MISSILE_STORM, 14);
@@ -7388,7 +7393,7 @@ void load_class_list(void)
 
   // spell circle 3
   spell_assignment(CLASS_SUMMONER, SPELL_AQUEOUS_ORB, 7);
-  //spell_assignment(CLASS_SUMMONER, SPELL_BLACK_TENTACLES, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_BLACK_TENTACLES, 7);
   //spell_assignment(CLASS_SUMMONER, SPELL_CHARM_MONSTER, 7);
   //spell_assignment(CLASS_SUMMONER, SPELL_CONTROL_SUMMONED_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_DISPEL_MAGIC, 7);
