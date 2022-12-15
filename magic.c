@@ -6554,6 +6554,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_SHIELD_OF_FAITH:
     mag_affects(level, ch, tch, obj, SPELL_SHIELD_OF_FAITH, savetype, casttype, 0);
     break;
+  case SPELL_MASS_ENLARGE_PERSON:
+    mag_affects(level, ch, tch, obj, SPELL_ENLARGE_PERSON, savetype, casttype, 0);
+    break;
+  case SPELL_MASS_REDUCE_PERSON:
+    mag_affects(level, ch, tch, obj, SPELL_REDUCE_PERSON, savetype, casttype, 0);
+    break;
   case SPELL_MASS_ANT_HAUL:
     mag_affects(level, ch, tch, obj, SPELL_ANT_HAUL, savetype, casttype, 0);
     break;

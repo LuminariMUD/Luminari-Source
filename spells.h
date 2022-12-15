@@ -252,6 +252,7 @@
 #define SPELL_MINOR_GLOBE 139          // done
 #define SPELL_ENLARGE_PERSON 140       // done
 #define SPELL_SHRINK_PERSON 141        // done
+#define SPELL_REDUCE_PERSON SPELL_SHRINK_PERSON
 #define SPELL_FSHIELD_DAM 142          // done, fire shield proc
 #define SPELL_CSHIELD_DAM 143          // done, cold shield proc
 #define SPELL_ASHIELD_DAM 144          // done, acid shield proc
@@ -538,9 +539,11 @@
 #define SPELL_GREATER_BLACK_TENTACLES 465
 #define SPELL_CONTROL_SUMMONED_CREATURE 466
 #define SPELL_CHARM_MONSTER 467
+#define SPELL_MASS_ENLARGE_PERSON 468
+#define SPELL_MASS_REDUCE_PERSON 469
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 468
+#define NUM_SPELLS 470
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

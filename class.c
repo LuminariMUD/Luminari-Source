@@ -3807,6 +3807,8 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_GHOST_WOLF, 7);
   spell_assignment(CLASS_WIZARD, SPELL_BLACK_TENTACLES, 7);
   spell_assignment(CLASS_WIZARD, SPELL_CHARM_MONSTER, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_ENLARGE_PERSON, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_REDUCE_PERSON, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
@@ -5066,6 +5068,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_GHOST_WOLF, 8);
   spell_assignment(CLASS_SORCERER, SPELL_BLACK_TENTACLES, 8);
   spell_assignment(CLASS_SORCERER, SPELL_CHARM_MONSTER, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_ENLARGE_PERSON, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_REDUCE_PERSON, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);
@@ -7405,7 +7409,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_CONTROL_SUMMONED_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_DISPEL_MAGIC, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_DISPLACEMENT, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_MASS_ENLARGE_PERSON, 7);
+   spell_assignment(CLASS_SUMMONER, SPELL_MASS_ENLARGE_PERSON, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_EVOLUTION_SURGE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_FIRE_SHIELD, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_FLY, 7);
@@ -7417,7 +7421,7 @@ void load_class_list(void)
   // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ENERGY, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_MASS_REDUCE_PERSON, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_MASS_REDUCE_PERSON, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_RESIST_ENERGY, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_REJUVENATE_EIDOLON, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_RESTORE_EIDOLON, 7);

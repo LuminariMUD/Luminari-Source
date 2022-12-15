@@ -566,6 +566,9 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
       {0, "is in awful condition."},
       {-1, "is bleeding awfully from big wounds."},
   };
+  
+  if (!ch || !i) return;
+
   int percent, ar_index;
   char *pers = strdup(PERS(i, ch));
   int is_disguised = GET_DISGUISE_RACE(i);
@@ -2003,7 +2006,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\r\n");
   }
 
-  send_to_char(ch, "\tC");
+  send_to_char(ch, "\r\n\tC");
   text_line(ch, "\tYSpell Resistance\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
   send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(NULL, k, 0));
@@ -2429,9 +2432,9 @@ ACMD(do_masterlist)
   {
     i = spell_sort_info[bottom]; /* make sure spell_sort_info[] define is big enough! */
 
-    if (!strcmp(spell_info[i].name, "!UNUSED!"))
+    if (spell_info[i].min_position == POS_DEAD)
       continue;
-    if (is_spells && i > TOP_SPELL_DEFINE)
+    if (is_spells && i > NUM_SPELLS)
       continue;
     if (!is_spells && i < START_SKILLS)
       continue;
