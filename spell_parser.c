@@ -3316,9 +3316,9 @@ void mag_assign_spells(void)
   spello(SPELL_ENLARGE_PERSON, "enlarge person", 37, 22, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You feel your enlargement spell wear off.", 8, 13, TRANSMUTATION, FALSE);
-  spello(SPELL_SHRINK_PERSON, "shrink person", 37, 22, 1, POS_FIGHTING,
+  spello(SPELL_SHRINK_PERSON, "reduce person", 37, 22, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "You feel your shrink spell wear off.", 8, 13, TRANSMUTATION, FALSE);
+         "You feel your reduce person spell wear off.", 8, 13, TRANSMUTATION, FALSE);
   spello(SPELL_SPIKE_STONES, "spike stone", 0, 0, 0, POS_STANDING,
          TAR_IGNORE, FALSE, MAG_ROOM,
          "The large spike stones morph back into their natural form.", 8, 13, TRANSMUTATION, FALSE);
@@ -3965,34 +3965,34 @@ void mag_assign_spells(void)
   spello(SPELL_ACID, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, EVOCATION, FALSE);
-  spello(SPELL_ASHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ASHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_BLADES, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, NOSCHOOL, FALSE);
-  spello(SPELL_CSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_CSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_DEATHCLOUD, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_DEATHCLOUD, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_GENERIC_AOE, "aoe attack", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_FIRE_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FIRE_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_FROST_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FROST_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_LIGHTNING_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_ACID_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ACID_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_POISON_BREATHE, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_DRAGONFEAR, "dragon fear", 0, 0, 0, POS_FIGHTING,
@@ -4040,6 +4040,12 @@ void mag_assign_spells(void)
   spello(SPELL_GREATER_BLACK_TENTACLES, "greater black tentacles", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AREAS,
          NULL, 12, 17, CONJURATION, FALSE);
+  // 4th level spell
+  spello(SPELL_MASS_ENLARGE_PERSON, "mass enlarge person", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+         FALSE, MAG_GROUPS, "You shrink back down to your normal size.", 8, 13, TRANSMUTATION, FALSE);
+  // 4th level spell
+  spello(SPELL_MASS_REDUCE_PERSON, "mass reduce person", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+         FALSE, MAG_GROUPS, "You grow back to your normal size.", 8, 13, TRANSMUTATION, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -4149,14 +4155,14 @@ void mag_assign_spells(void)
   spello(ABILITY_CHANNEL_NEGATIVE_ENERGY, "channel negative energy", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AREAS | MAG_GROUPS, NULL, 9, 23, NOSCHOOL, FALSE);
 
-  spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_FSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_ESHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_ESHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   /* innate darkness spell, room events testing spell as well */
-  spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_STANDING,
+  spello(SPELL_I_DARKNESS, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, FALSE, MAG_ROOM,
          "The cloak of darkness in the area dissolves.", 5, 6, NOSCHOOL, FALSE);
 
@@ -4249,7 +4255,7 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
   spello(SKILL_POWERFUL_BLOW, "powerful blow", 0, 0, 0, POS_STANDING, // 530
          TAR_IGNORE, FALSE, 0,
          "The effects of your powerful blow have expired.", 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_FIGHTING,
+  spello(SPELL_INCENDIARY, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AREAS,
          NULL, 0, 0, NOSCHOOL, FALSE);
   spello(SPELL_STENCH, "!UNUSED!", 65, 50, 1, POS_DEAD,

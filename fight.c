@@ -5176,6 +5176,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     break;
   }
 
+  if (display_mode)
+    send_to_char(ch, "Size modifier: \tR%s%d\tn\r\n", size_modifiers[GET_SIZE(ch)] >= 0 ? "+" : "", size_modifiers[GET_SIZE(ch)] * 2);
+  dambonus += size_modifiers[GET_SIZE(ch)] * 2;
+
   // Sorcerer Draconic Bloodline Claw Attacks
   if (ch && vict && affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 11)
   {
