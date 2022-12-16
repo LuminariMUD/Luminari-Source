@@ -989,7 +989,7 @@ ASPELL(spell_siphon_might)
 
   if (!*arg1)
   {
-    send_to_char(ch, "You need to specify the recipient of the siphoned might.\r\n");
+    send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might you'd like to siphon.\r\n");
     return;
   }
   if (!*arg2)
@@ -1000,7 +1000,7 @@ ASPELL(spell_siphon_might)
     }
     else
     {
-      send_to_char(ch, "You need to specify whose might you'd like to siphon.\r\n");
+      send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might you'd like to siphon.\r\n");
       return;
     }
   }
@@ -1011,13 +1011,32 @@ ASPELL(spell_siphon_might)
     return;
   }
 
+  if (affected_by_spell(recipient, SPELL_SIPHON_MIGHT))
+  {
+    if (ch == recipient)
+    {
+      send_to_char(ch, "You're already under the effect of siphon might.\r\n");
+    }
+    else
+    {
+      act("$N is already under the effect of siphon might.", FALSE, ch, 0, recipient, TO_CHAR);
+    }
+    return;
+  }
+
   if (!enemy)
   {
-    if (!(enemy = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+    if (!(enemy = get_char_vis(ch, arg2, NULL, FIND_CHAR_ROOM)))
     {
       send_to_char(ch, "There's no enemy here by that description.\r\n");
       return;
     }
+  }
+
+  if (affected_by_spell(recipient, SPELL_SIPHON_MIGHT))
+  {
+    act("$N is already under the effect of siphon might.", FALSE, ch, 0, enemy, TO_CHAR);
+    return;
   }
 
   if (mag_resistance(ch, enemy, 0))
