@@ -976,6 +976,99 @@ ASPELL(spell_control_summoned_creature)
   save_char_pets(ch);
 }
 
+ASPELL(spell_siphon_might)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char out[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *enemy = NULL, *recipient = NULL;
+  int strength = 0;
+  struct affected_type af, af2;
+
+  two_arguments(cast_arg3, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify the recipient of the siphoned might.\r\n");
+    return;
+  }
+  if (!*arg2)
+  {
+    if (FIGHTING(ch))
+    {
+      enemy = FIGHTING(ch);
+    }
+    else
+    {
+      send_to_char(ch, "You need to specify whose might you'd like to siphon.\r\n");
+      return;
+    }
+  }
+
+  if (!(recipient = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "There's no recipient here by that description.\r\n");
+    return;
+  }
+
+  if (!enemy)
+  {
+    if (!(enemy = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, "There's no enemy here by that description.\r\n");
+      return;
+    }
+  }
+
+  if (mag_resistance(ch, enemy, 0))
+  {
+    act("$N has resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
+    act("$N has resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_NOTVICT);
+    return;
+  }
+
+  strength = dice(1, 6) + MIN(5, CASTER_LEVEL(ch) / 2);
+
+  if (!mag_savingthrow(ch, enemy, SAVING_FORT, 0, SPELL_SIPHON_MIGHT, CASTER_LEVEL(ch), NECROMANCY))
+  {
+    act("$N has resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
+    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_NOTVICT);
+    strength /= 2;
+  }
+
+  new_affect(&af);
+  af.spell = SPELL_SIPHON_MIGHT;
+  af.modifier = -strength;
+  af.duration = CASTER_LEVEL(ch);
+  af.location = APPLY_STR;
+  affect_to_char(enemy, &af);
+
+  new_affect(&af2);
+  af2.spell = SPELL_SIPHON_MIGHT;
+  af2.modifier = strength;
+  af2.duration = CASTER_LEVEL(ch);
+  af2.location = APPLY_STR;
+  affect_to_char(recipient, &af2);
+
+  if (ch == recipient)
+  {
+    act("You have siphoned might from $N into yourself.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("$n has siphoned might from You into $mself.", FALSE, ch, 0, enemy, TO_VICT);
+    act("$n has siphoned might from $N into $mself.", FALSE, ch, 0, enemy, TO_CHAR);
+  }
+  else
+  {
+    snprintf(out, sizeof(out), "You have siphoned might from $N into %s", GET_NAME(recipient));
+    act(out, FALSE, ch, 0, enemy, TO_CHAR);
+    snprintf(out, sizeof(out), "$n has siphoned might from You into %s", GET_NAME(recipient));
+    act(out, FALSE, ch, 0, enemy, TO_VICT);
+    snprintf(out, sizeof(out), "$n has siphoned might from $N into %s", GET_NAME(recipient));
+    act(out, FALSE, ch, 0, enemy, TO_NOTVICT);
+  }
+}
+
 ASPELL(spell_human_potential)
 {
 

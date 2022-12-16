@@ -543,9 +543,11 @@
 #define SPELL_MASS_REDUCE_PERSON 469
 #define SPELL_COMMUNAL_PROTECTION_FROM_ARROWS 470
 #define SPELL_RAGE 471
+#define SPELL_COMMUNAL_RESIST_ENERGY 472
+#define SPELL_SIPHON_MIGHT 473
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 472
+#define NUM_SPELLS 474
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1392,6 +1394,7 @@ ASPELL(spell_aqueous_orb);
 ASPELL(spell_human_potential);
 ASPELL(spell_mass_human_potential);
 ASPELL(spell_control_summoned_creature);
+ASPELL(spell_siphon_might);
 
 // psionics
 ASPELL(psionic_concussive_onslaught);

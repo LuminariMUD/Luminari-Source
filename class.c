@@ -3778,8 +3778,11 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_WIND_WALL, 5);
   spell_assignment(CLASS_WIZARD, SPELL_GASEOUS_FORM, 5);
   spell_assignment(CLASS_WIZARD, SPELL_AQUEOUS_ORB, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_RAGE, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_SIPHON_MIGHT, 5);
   spell_assignment(CLASS_WIZARD, SPELL_CONTROL_SUMMONED_CREATURE, 5);
   spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_RESIST_ENERGY, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD, 7);
@@ -4064,6 +4067,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_SEARING_LIGHT, 5);
   spell_assignment(CLASS_CLERIC, SPELL_WIND_WALL, 5);
   spell_assignment(CLASS_CLERIC, SPELL_CONTROL_SUMMONED_CREATURE, 5);
+  spell_assignment(CLASS_CLERIC, SPELL_COMMUNAL_RESIST_ENERGY, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_CLERIC, SPELL_CURE_CRITIC, 7);
@@ -4658,6 +4662,8 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_VIGORIZE_CRITICAL, 5);
   spell_assignment(CLASS_DRUID, SPELL_MOONBEAM, 5);
   spell_assignment(CLASS_DRUID, SPELL_AQUEOUS_ORB, 5);
+  spell_assignment(CLASS_DRUID, SPELL_SIPHON_MIGHT, 5);
+  spell_assignment(CLASS_DRUID, SPELL_COMMUNAL_RESIST_ENERGY, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_DRUID, SPELL_BLIGHT, 7);
@@ -5018,6 +5024,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_VAMPIRIC_TOUCH, 6);
   spell_assignment(CLASS_SORCERER, SPELL_HEROISM, 6);
   spell_assignment(CLASS_SORCERER, SPELL_FLY, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_RAGE, 6);
   spell_assignment(CLASS_SORCERER, SPELL_HOLD_PERSON, 6);
   spell_assignment(CLASS_SORCERER, SPELL_DEEP_SLUMBER, 6);
   spell_assignment(CLASS_SORCERER, SPELL_WALL_OF_FOG, 6);
@@ -5038,10 +5045,12 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_KEEN_EDGE, 6);
   spell_assignment(CLASS_SORCERER, SPELL_PROTECTION_FROM_ENERGY, 6);
   spell_assignment(CLASS_SORCERER, SPELL_WIND_WALL, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_SIPHON_MIGHT, 6);
   spell_assignment(CLASS_SORCERER, SPELL_GASEOUS_FORM, 6);
   spell_assignment(CLASS_SORCERER, SPELL_AQUEOUS_ORB, 6);
   spell_assignment(CLASS_SORCERER, SPELL_CONTROL_SUMMONED_CREATURE, 6);
   spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_RESIST_ENERGY, 6);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_SORCERER, SPELL_LESSER_MISSILE_STORM, 8);
@@ -5337,6 +5346,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_CURE_SERIOUS, 12);
   spell_assignment(CLASS_PALADIN, SPELL_HEAL_MOUNT, 12);
   spell_assignment(CLASS_PALADIN, SPELL_GREATER_MAGIC_WEAPON, 12);
+  spell_assignment(CLASS_PALADIN, SPELL_COMMUNAL_RESIST_ENERGY, 12);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_PALADIN, SPELL_AID, 15);
@@ -5790,6 +5800,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_SILENCE, 4);
   spell_assignment(CLASS_BARD, SPELL_GLITTERDUST, 4);
   spell_assignment(CLASS_BARD, SPELL_HUMAN_POTENTIAL, 4);
+  spell_assignment(CLASS_BARD, SPELL_RAGE, 4);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 7);
@@ -6986,6 +6997,8 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_GASEOUS_FORM, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_PROTECTION_FROM_ENERGY, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_COMMUNAL_RESIST_ENERGY, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_RAGE, 7);
 
   /* concoction circle 4 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_CRITIC, 10);
@@ -7196,6 +7209,7 @@ void load_class_list(void)
   spell_assignment(CLASS_INQUISITOR, SPELL_GREATER_MAGIC_WEAPON, 7);
   spell_assignment(CLASS_INQUISITOR, SPELL_MAGIC_VESTMENT, 7);
   spell_assignment(CLASS_INQUISITOR, SPELL_PROTECTION_FROM_ENERGY, 7);
+  spell_assignment(CLASS_INQUISITOR, SPELL_COMMUNAL_RESIST_ENERGY, 7);
 
   /* spell circle 4 */
   spell_assignment(CLASS_INQUISITOR, SPELL_CURE_CRITIC, 10);
@@ -7423,12 +7437,12 @@ void load_class_list(void)
    spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ENERGY, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_REDUCE_PERSON, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_RESIST_ENERGY, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_RESIST_ENERGY, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_REJUVENATE_EIDOLON, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_RESTORE_EIDOLON, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_SIPHON_MIGHT, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_SIPHON_MIGHT, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_SPIDER_CLIMB, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_STONESKIN, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_FIRE, 7);

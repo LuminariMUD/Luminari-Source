@@ -6579,6 +6579,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_COMMUNAL_PROTECTION_FROM_ARROWS:
     mag_affects(level, ch, tch, obj, SPELL_PROTECTION_FROM_ARROWS, savetype, casttype, 0);
     break;
+  case SPELL_COMMUNAL_RESIST_ENERGY:
+    mag_affects(level, ch, tch, obj, SPELL_RESIST_ENERGY, savetype, casttype, 0);
+    break;
   case SPELL_RAGE:
     mag_affects(level, ch, tch, obj, SPELL_RAGE, savetype, casttype, 0);
     break;
