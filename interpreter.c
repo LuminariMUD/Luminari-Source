@@ -524,6 +524,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"nogossip", "nogossip", POS_DEAD, do_gen_tog, 0, SCMD_NOGOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nograts", "nograts", POS_DEAD, do_gen_tog, 0, SCMD_NOGRATZ, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nohassle", "nohassle", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOHASSLE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"norage", "norage", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NORAGE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"norepeat", "norepeat", POS_DEAD, do_gen_tog, 0, SCMD_NOREPEAT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noshout", "noshout", POS_SLEEPING, do_gen_tog, 1, SCMD_NOSHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nosummon", "nosummon", POS_DEAD, do_gen_tog, 1, SCMD_NOSUMMON, TRUE, ACTION_NONE, {0, 0}, NULL},

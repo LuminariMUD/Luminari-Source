@@ -3779,6 +3779,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_GASEOUS_FORM, 5);
   spell_assignment(CLASS_WIZARD, SPELL_AQUEOUS_ORB, 5);
   spell_assignment(CLASS_WIZARD, SPELL_CONTROL_SUMMONED_CREATURE, 5);
+  spell_assignment(CLASS_WIZARD, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 5);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FIRE_SHIELD, 7);
@@ -5040,6 +5041,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_GASEOUS_FORM, 6);
   spell_assignment(CLASS_SORCERER, SPELL_AQUEOUS_ORB, 6);
   spell_assignment(CLASS_SORCERER, SPELL_CONTROL_SUMMONED_CREATURE, 6);
+  spell_assignment(CLASS_SORCERER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 6);
   /*              class num      spell                   level acquired */
   /* 4th circle */
   spell_assignment(CLASS_SORCERER, SPELL_LESSER_MISSILE_STORM, 8);
@@ -6983,6 +6985,7 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_REMOVE_DISEASE, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_GASEOUS_FORM, 7);
   spell_assignment(CLASS_ALCHEMIST, SPELL_PROTECTION_FROM_ENERGY, 7);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
 
   /* concoction circle 4 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_CURE_CRITIC, 10);
@@ -7417,8 +7420,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_INVIS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_MAGIC_FANG, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_NONDETECTION, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
+   spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ENERGY, 7);
   // spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_REDUCE_PERSON, 7);

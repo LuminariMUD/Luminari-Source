@@ -3962,13 +3962,13 @@ void mag_assign_spells(void)
   // end divine
 
   /* NON-castable spells should appear below here. */
-  spello(SPELL_ACID, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_ACID, "!UNUSED!", 79, 64, 1, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, EVOCATION, FALSE);
   spello(SPELL_ASHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          NULL, 0, 0, NOSCHOOL, FALSE);
-  spello(SPELL_BLADES, "!UNUSED!", 79, 64, 1, POS_FIGHTING,
+  spello(SPELL_BLADES, "!UNUSED!", 79, 64, 1, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, NOSCHOOL, FALSE);
   spello(SPELL_CSHIELD_DAM, "!UNUSED!", 0, 0, 0, POS_DEAD,
@@ -4008,6 +4008,10 @@ void mag_assign_spells(void)
   spello(SPELL_PROTECTION_FROM_ARROWS, "protection from arrows", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your protection from ranged attacks expires.", 5, 9, ABJURATION, FALSE);
+  // 3rd level spell
+  spello(SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, "communal protection from arrows", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ABJURATION, FALSE);
+  // 3rd level spell
+  spello(SPELL_RAGE, "rage", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ENCHANTMENT, FALSE);
   // 2nd level spell
   spello(SPELL_SPIDER_CLIMB, "spider climb", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
