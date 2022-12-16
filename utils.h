@@ -2380,6 +2380,12 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define GUI_RDSC_OPEN(ch) (gui_room_desc_wrap_open(ch))
 #define GUI_RDSC_CLOSE(ch) (gui_room_desc_wrap_close(ch))
 
+#ifdef CAMPAING_FR
+#define CRAFTING_CRYSTAL "shard of abeir"
+#else
+#define CRAFTING_CRYSTAL  "arcanite crystal"
+#endif
+
 // LootBoxes / Treasure Chests
 
 #define LOOTBOX_LEVEL(obj) (GET_OBJ_VAL(obj, 0))
