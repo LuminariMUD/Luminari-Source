@@ -694,6 +694,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_NO_FOLLOW 48
 #define SCMD_CONDENSED 49
 #define SCMD_CAREFUL_PET 50
+#define SCMD_NORAGE 51
 
 /* do_quit */
 ACMD_DECL(do_quit);

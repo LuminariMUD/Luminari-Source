@@ -1057,9 +1057,10 @@
 #define PRF_NO_FOLLOW 61              /**< Toggle PC followers */
 #define PRF_CONDENSED 62              /**< Toggle combat condensed mode */
 #define PRF_CAREFUL_PET 63            /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
+#define PRF_NO_RAGE 64                // Will reject casting of rage spell on them.
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 63
+#define NUM_PRF_FLAGS 65
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */

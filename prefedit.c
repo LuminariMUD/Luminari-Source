@@ -229,8 +229,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                /* Line 5 (5) - No Follow (PC) */
                "%s6%s) Condensed Combat Mode   %s[%s%3s%s]\r\n"
                /* Line 6 (6) - Condensed Combat Mode */
-               "%s7%s) Careful with Pets       %s[%s%3s%s]\r\n",
+               "%s7%s) Careful with Pets       %s[%s%3s%s]\r\n"
                /* Line 7 (7) - Careful with Pets Toggle */
+               "%s8%s) Reject Rage Spell       %s[%s%3s%s]\r\n",
+               /* Line 8 (8) No Rage Spell */
                /*******1********/
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
@@ -264,7 +266,12 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_CAREFUL_PET) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
-               ONOFF(PREFEDIT_FLAGGED(PRF_CAREFUL_PET)), CCCYN(d->character, C_NRM)
+               ONOFF(PREFEDIT_FLAGGED(PRF_CAREFUL_PET)), CCCYN(d->character, C_NRM),
+               /*******8*********/
+               CBYEL(d->character, C_NRM),
+               CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_NO_RAGE) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_NO_RAGE)), CCCYN(d->character, C_NRM)
 
                /*end*/);
 

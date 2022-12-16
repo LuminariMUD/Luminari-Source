@@ -541,9 +541,11 @@
 #define SPELL_CHARM_MONSTER 467
 #define SPELL_MASS_ENLARGE_PERSON 468
 #define SPELL_MASS_REDUCE_PERSON 469
+#define SPELL_COMMUNAL_PROTECTION_FROM_ARROWS 470
+#define SPELL_RAGE 471
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 470
+#define NUM_SPELLS 472
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

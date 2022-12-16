@@ -34,6 +34,7 @@
 #include "missions.h"
 #include "psionics.h"
 #include "combat_modes.h"
+#include "spec_procs.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -3847,6 +3848,38 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "The tide of battle turns in $n's favor!";
     break;
 
+  case SPELL_RAGE:
+    if (PRF_FLAGGED(victim, PRF_NO_RAGE))
+    {
+      act("$N has their NO_RAGE toggle turned off, so they will be skipped.", FALSE, ch, 0, victim, TO_CHAR);
+      act("You hav your NO_RAGE toggle turned off, so you will be skipped. Use PREFEDIT or type NORAGE to toggle it on.", FALSE, ch, 0, victim, TO_VICT);
+      return;
+    }
+
+    af[0].location = APPLY_STR;
+    af[0].modifier = 2;
+    af[0].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_CON;
+    af[1].modifier = 2;
+    af[1].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 1;
+    af[1].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = -2;
+    af[1].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    to_room = "$n enters a vicious rage!";
+    to_vict = "You enter a vicious rage!";
+    break;
+
   case SPELL_BLESS:
     if (affected_by_spell(victim, SPELL_AID) ||
         affected_by_spell(victim, SPELL_PRAYER))
@@ -6542,6 +6575,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_COMMUNAL_MOUNT:
     mag_summons(level, tch, NULL, SPELL_MOUNT, savetype, casttype);
+    break;
+  case SPELL_COMMUNAL_PROTECTION_FROM_ARROWS:
+    mag_affects(level, ch, tch, obj, SPELL_PROTECTION_FROM_ARROWS, savetype, casttype, 0);
+    break;
+  case SPELL_RAGE:
+    mag_affects(level, ch, tch, obj, SPELL_RAGE, savetype, casttype, 0);
     break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
     if (!IS_UNDEAD(tch))
