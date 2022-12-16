@@ -812,6 +812,9 @@ SAVING_WILL here...  */
     case SPELL_CONTROL_SUMMONED_CREATURE:
       MANUAL_SPELL(spell_control_summoned_creature);
       break;
+    case SPELL_SIPHON_MIGHT:
+      MANUAL_SPELL(spell_siphon_might);
+      break;
     case SPELL_HUMAN_POTENTIAL:
       MANUAL_SPELL(spell_human_potential);
       break;
@@ -4011,7 +4014,11 @@ void mag_assign_spells(void)
   // 3rd level spell
   spello(SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, "communal protection from arrows", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ABJURATION, FALSE);
   // 3rd level spell
+  spello(SPELL_COMMUNAL_RESIST_ENERGY, "communal resist energy", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ABJURATION, FALSE);
+  // 3rd level spell
   spello(SPELL_RAGE, "rage", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ENCHANTMENT, FALSE);
+  // 3rd level spell
+  spello(SPELL_SIPHON_MIGHT, "siphon might", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 5, 11, NECROMANCY, FALSE);
   // 2nd level spell
   spello(SPELL_SPIDER_CLIMB, "spider climb", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
