@@ -1023,57 +1023,56 @@ void award_random_crystal(struct char_data *ch, int grade)
   // two colors and descriptor
   if (roll >= 91)
   {
-    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s %s %s", buf2, colors[color1], colors[color2],
+    snprintf(buf, MEDIUM_STRING, "%s%s %s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1], colors[color2],
              crystal_descs[desc]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s, %s and %s arcanite crystal", buf2, crystal_descs[desc],
-             colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s, %s and %s %s", buf2, crystal_descs[desc],
+             colors[color1], colors[color2], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s, %s and %s arcanite crystal lies here.", buf2, crystal_descs[desc],
-             colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s, %s and %s %s lies here.", buf2, crystal_descs[desc],
+             colors[color1], colors[color2], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
 
     // one color and descriptor
   }
   else if (roll >= 66)
   {
-    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s %s", buf2, colors[color1], crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1], crystal_descs[desc]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s %s arcanite crystal", buf2, crystal_descs[desc], colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s %s %s", buf2, crystal_descs[desc], colors[color1], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s %s arcanite crystal lies here.", buf2, crystal_descs[desc],
-             colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s %s %s lies here.", buf2, crystal_descs[desc], colors[color1], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
 
     // two colors no descriptor
   }
   else if (roll >= 41)
   {
-    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s %s", buf2, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s %s", buf2, CRAFTING_CRYSTAL, colors[color1], colors[color2]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s and %s arcanite crystal", buf2, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s and %s %s", buf2, colors[color1], colors[color2], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s and %s arcanite crystal lies here.", buf2, colors[color1], colors[color2]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s and %s %s lies here.", buf2, colors[color1], colors[color2], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
   }
   else if (roll >= 21)
   { // one color no descriptor
-    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s", buf2, colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s", buf2, CRAFTING_CRYSTAL, colors[color1]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s arcanite crystal", buf2, colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s %s", buf2, colors[color1], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s arcanite crystal lies here.", buf2, colors[color1]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s %s lies here.", buf2, colors[color1], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
 
     // descriptor only
   }
   else
   {
-    snprintf(buf, MEDIUM_STRING, "%sarcanite crystal %s", buf2, crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%s%s %s", buf2, CRAFTING_CRYSTAL, crystal_descs[desc]);
     obj->name = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sa %s arcanite crystal", buf2, crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%sa %s %s", buf2, crystal_descs[desc], CRAFTING_CRYSTAL);
     obj->short_description = strdup(buf);
-    snprintf(buf, MEDIUM_STRING, "%sA %s arcanite crystal lies here.", buf2, crystal_descs[desc]);
+    snprintf(buf, MEDIUM_STRING, "%sA %s %s lies here.", buf2, crystal_descs[desc], CRAFTING_CRYSTAL);
     obj->description = strdup(buf);
   }
 

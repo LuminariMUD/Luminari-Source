@@ -315,7 +315,7 @@ magic.o: magic.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  interpreter.h constants.h dg_scripts.h class.h fight.h mud_event.h \
  dg_event.h act.h mudlim.h oasis.h help.h assign_wpn_armor.h \
  domains_schools.h feats.h race.h alchemy.h missions.h psionics.h \
- combat_modes.h
+ combat_modes.h spec_procs.h
 mail.o: mail.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h mail.h modify.h mudlim.h
