@@ -9344,6 +9344,12 @@ ACMD(do_award)
 ACMDU(do_setroomname)
 {
 
+  if (!can_edit_zone(ch, world[IN_ROOM(ch)].zone))
+  {
+    send_to_char(ch, "You do not have build permissions in this zone.\r\n");
+    return;
+  }
+
   skip_spaces(&argument);
 
   if (!*argument)
@@ -9366,6 +9372,12 @@ ACMDU(do_setroomname)
 
 ACMDU(do_setroomdesc)
 {
+
+  if (!can_edit_zone(ch, world[IN_ROOM(ch)].zone))
+  {
+    send_to_char(ch, "You do not have build permissions in this zone.\r\n");
+    return;
+  }
 
   skip_spaces(&argument);
 
@@ -9440,6 +9452,12 @@ ACMDU(do_setworldsect)
 
 ACMDU(do_setroomsect)
 {
+
+  if (!can_edit_zone(ch, world[IN_ROOM(ch)].zone))
+  {
+    send_to_char(ch, "You do not have build permissions in this zone.\r\n");
+    return;
+  }
 
   skip_spaces(&argument);
 

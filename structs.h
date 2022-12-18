@@ -1186,8 +1186,10 @@
 #define AFF_WIND_WALL 112          // surrounded by a wall of wind
 #define AFF_FEAR_AURA 113
 #define AFF_SPIDER_CLIMB 114
+#define AFF_DEADLY_AIM 115          // used to determine if using deadly aim feat benefits.
+
 /*---*/
-#define NUM_AFF_FLAGS 115
+#define NUM_AFF_FLAGS 116
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2327,12 +2329,14 @@
 #define FEAT_FAE_SENSES 956
 #define FEAT_FAE_MAGIC 957
 #define FEAT_FAE_RESISTANCE 958
+//misc
+#define FEAT_DEADLY_AIM 959
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 959
+#define FEAT_LAST_FEAT 960
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 960
+#define NUM_FEATS 961
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

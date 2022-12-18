@@ -5415,6 +5415,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  // deadly aim
+  if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
+  {
+      dambonus += COMBAT_MODE_VALUE(ch) * 2;
+      if (display_mode)
+        send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
+  }
+
   /* crystal fist */
   if (affected_by_spell(ch, RACIAL_ABILITY_CRYSTAL_FIST))
   {
@@ -7490,7 +7498,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     bonuses[BONUS_TYPE_UNDEFINED] -= 2;
   /* Modify this to store a player-chosen number for power attack and expertise */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE) || AFF_FLAGGED(ch, AFF_DEADLY_AIM))
     bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
   /* spellbattle */
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)

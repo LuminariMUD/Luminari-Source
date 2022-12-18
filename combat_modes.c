@@ -69,7 +69,9 @@ struct combat_mode_data combat_mode_info[] = {
     /* No Group */
     {"counterspell", AFF_COUNTERSPELL, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
     {"defensive casting", AFF_DEFENSIVE_CASTING, FEAT_UNDEFINED, FALSE, MODE_GROUP_NONE},
-    {"whirlwind attack", AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, MODE_GROUP_NONE}};
+    {"whirlwind attack", AFF_WHIRLWIND_ATTACK, FEAT_WHIRLWIND_ATTACK, MODE_GROUP_NONE},
+    {"deadly aim", AFF_DEADLY_AIM, FEAT_DEADLY_AIM, MODE_GROUP_NONE}
+    };
 
 /* Unified combat mode management */
 bool is_mode_enabled(const struct char_data *ch, const int mode)
@@ -255,10 +257,10 @@ ACMD(do_spellbattle)
 
   if (AFF_FLAGGED(ch, AFF_EXPERTISE) ||
       AFF_FLAGGED(ch, AFF_TOTAL_DEFENSE) ||
+      AFF_FLAGGED(ch, AFF_DEADLY_AIM) ||
       AFF_FLAGGED(ch, AFF_POWER_ATTACK))
   {
-    send_to_char(ch, "You can't be in a combat-mode and enter "
-                     "spell-battle.\r\n");
+    send_to_char(ch, "You can't be in a combat-mode and enter spell-battle.\r\n");
     return;
   }
 
@@ -278,8 +280,7 @@ ACMD(do_spellbattle)
     }
     if (char_has_mud_event(ch, eSPELLBATTLE))
     {
-      send_to_char(ch, "You can't exit spellbattle until the cooldown wears"
-                       " off.\r\n");
+      send_to_char(ch, "You can't exit spellbattle until the cooldown wears off.\r\n");
       return;
     }
     else

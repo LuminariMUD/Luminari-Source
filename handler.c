@@ -713,6 +713,11 @@ void compute_char_cap(struct char_data *ch, int mode)
     dam_cap += COMBAT_MODE_VALUE(ch) * 2;
   }
 
+  if (AFF_FLAGGED(ch, AFF_DEADLY_AIM))
+  {
+    dam_cap += COMBAT_MODE_VALUE(ch) * 2;
+  }
+
   /* rage is calculated in above switch */
 
   /*************/
