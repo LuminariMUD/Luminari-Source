@@ -992,6 +992,13 @@ void assign_feats(void)
         "just type powerattack with no argument.  VALUE must be between 1-5 and is also "
         "limited by your (BAB) base attack bonus.");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
+  feato(FEAT_DEADLY_AIM, "dealy aim", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "subtract a number from hit and add x2 that number to dam.",
+        "When active, take a value specified as penalty to attack roll and gain that "
+        "value x2 as damage bonus for ranged weapons only.  Usage: deadlyaim VALUE, to turn off, "
+        "just type deadlyaim with no argument.  VALUE must be between 1-5 and is also "
+        "limited by your (BAB) base attack bonus.");
+  feat_prereq_attribute(FEAT_DEADLY_AIM, AB_DEX, 13);
   feato(FEAT_COMBAT_EXPERTISE, "combat expertise", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "subtract a number from attack roll and add it to AC",
         "When active, take a value specified as penalty to attack roll and gain that "
@@ -5320,6 +5327,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
     case FEAT_POWER_ATTACK:
       if (ch->real_abils.str >= 13)
+        return TRUE;
+      return FALSE;
+
+    case FEAT_DEADLY_AIM:
+      if (ch->real_abils.dex >= 13)
         return TRUE;
       return FALSE;
 

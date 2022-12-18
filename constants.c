@@ -1710,6 +1710,7 @@ const char *affected_bits[] = {
     "Wind-Wall",
     "Fear-Aura",
     "Spider-Climb",
+    "Deadly-Aim",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1836,6 +1837,7 @@ const char *affected_bit_descs[] = {
     "You are surrounded by a wall of wind",
     "You radiate fear to your opponents.",
     "You can scale surfaces like a spider.",
+    "You are using your deadly aim feat benefit.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
