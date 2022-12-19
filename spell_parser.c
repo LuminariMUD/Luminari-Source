@@ -4014,11 +4014,16 @@ void mag_assign_spells(void)
   // 3rd level spell
   spello(SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, "communal protection from arrows", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ABJURATION, FALSE);
   // 3rd level spell
+  spello(SPELL_COMMUNAL_SPIDER_CLIMB, "communal spider climb", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, TRANSMUTATION, FALSE);
+  // 3rd level spell
   spello(SPELL_COMMUNAL_RESIST_ENERGY, "communal resist energy", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ABJURATION, FALSE);
   // 3rd level spell
   spello(SPELL_RAGE, "rage", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS, NULL, 7, 11, ENCHANTMENT, FALSE);
   // 3rd level spell
   spello(SPELL_SIPHON_MIGHT, "siphon might", 79, 64, 1, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 5, 11, NECROMANCY, FALSE);
+  // 4th level spell
+  spello(SPELL_CAUSTIC_BLOOD, "caustic blood", 79, 64, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS, "Your blood ceases to be acidic to others.", 7, 13, TRANSMUTATION, FALSE);
+  spello(AFFECT_CAUSTIC_BLOOD_DAMAGE, "caustic blood damage", 79, 64, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, "The acidic blood stops searing your body.", 7, 13, TRANSMUTATION, FALSE);
   // 2nd level spell
   spello(SPELL_SPIDER_CLIMB, "spider climb", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,

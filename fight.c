@@ -9272,14 +9272,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   // damage inflicting shields, like fire shield
-  damage_shield_check(ch, victim, attack_type, dam);
+  damage_shield_check(ch, victim, attack_type, dam, dam_type);
 
   return dam;
 }
 
 /* damage inflicting shields, like fire shield */
-int damage_shield_check(struct char_data *ch, struct char_data *victim,
-                        int attack_type, int dam)
+int damage_shield_check(struct char_data *ch, struct char_data *victim, int attack_type, int dam, int dam_type)
 {
   int return_val = 0;
   int energy = 0;
@@ -9289,26 +9288,28 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
 
   if (attack_type != ATTACK_TYPE_RANGED)
   {
-    if (dam && victim && GET_HIT(victim) >= -1 &&
-        IS_AFFECTED(victim, AFF_CSHIELD))
+    if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_CSHIELD))
     { // cold shield
       return_val = damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, attack_type);
     }
-    else if (dam && victim && GET_HIT(victim) >= -1 &&
-             IS_AFFECTED(victim, AFF_FSHIELD))
+    else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_FSHIELD))
     { // fire shield
       return_val = damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
     }
-    else if (dam && victim && GET_HIT(victim) >= -1 &&
-             IS_AFFECTED(victim, AFF_ESHIELD))
+    else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_ESHIELD))
     { // electric shield
       return_val = damage(victim, ch, dice(1, 6), SPELL_ESHIELD_DAM, DAM_ELECTRIC, attack_type);
     }
-    else if (dam && victim && GET_HIT(victim) >= -1 &&
-             IS_AFFECTED(victim, AFF_ASHIELD))
+    else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_ASHIELD))
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
+    
+    if (dam && victim && GET_HIT(victim) >= -1 && (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) && affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
+    { // caustic blood
+      return_val = call_magic(victim, ch, NULL, AFFECT_CAUSTIC_BLOOD_DAMAGE, 0, CASTER_LEVEL(victim), CAST_SPELL);
+    }
+
     if (dam && victim && GET_HIT(victim) >= -1 && affected_by_spell(victim, PSIONIC_EMPATHIC_FEEDBACK))
     {
       if (!power_resistance(ch, victim, 0))

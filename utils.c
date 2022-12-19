@@ -6219,10 +6219,12 @@ bool can_spell_be_revoked(int spellnum)
   case SPELL_DIVINE_POWER:
   case SPELL_MINOR_ILLUSION:
   case SPELL_WARDING_WEAPON:
-  case SPELL_HUMAN_POTENTIAL:
   case SPELL_GIRD_ALLIES:
   case SPELL_PROTECTION_FROM_ARROWS:
+  case SPELL_HUMAN_POTENTIAL:
   case SPELL_SPIDER_CLIMB:
+  case SPELL_RAGE:
+  case SPELL_CAUSTIC_BLOOD:
 
   // psionic powers
   case PSIONIC_BROKER:

@@ -1992,6 +1992,22 @@ void update_damage_and_effects_over_time(void)
       }
     } // end acid bombs
 
+    if (affected_by_spell(ch, AFFECT_CAUSTIC_BLOOD_DAMAGE))
+    {
+      for (affects = ch->affected; affects; affects = affects->next)
+      {
+        if (affects->spell == AFFECT_CAUSTIC_BLOOD_DAMAGE)
+        {
+          dam = damage(ch, ch, dice(affects->modifier, 6), AFFECT_CAUSTIC_BLOOD_DAMAGE, DAM_ACID, 0);
+
+          if (dam <= 0)
+          { /* they died */
+            break;
+          }
+        }
+      }
+    } // end acid bombs
+
     if (affected_by_spell(ch, BOMB_AFFECT_BONESHARD))
     {
       for (affects = ch->affected; affects; affects = affects->next)
