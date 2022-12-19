@@ -549,9 +549,10 @@
 #define SPELL_CAUSTIC_BLOOD 475
 #define SPELL_GREATER_PLANAR_HEALING 476
 #define SPELL_MASS_DAZE 477
+#define SPELL_HOLD_MONSTER 478
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 478
+#define NUM_SPELLS 479
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

@@ -3226,6 +3226,9 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel able to move again.", 3, 7,
          ENCHANTMENT, FALSE);
+  // 4th level
+  spello(SPELL_HOLD_MONSTER, "hold monster", 65, 50, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
+         "You feel able to move again.", 7, 13, ENCHANTMENT, FALSE);
   spello(SPELL_DEEP_SLUMBER, "deep slumber", 58, 43, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You feel less tired.", 4, 11, ENCHANTMENT, FALSE);

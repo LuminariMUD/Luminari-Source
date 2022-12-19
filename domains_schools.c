@@ -592,7 +592,7 @@ void assign_domains(void)
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_PROTECTION, SPELL_MAGE_ARMOR, SPELL_SHIELD,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_PROTECTION_FROM_ENERGY, SPELL_HOLD_PERSON, SPELL_RESERVED_DBC,
+                    SPELL_PROTECTION_FROM_ENERGY, SPELL_HOLD_PERSON, SPELL_HOLD_MONSTER,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_MINOR_GLOBE, SPELL_RESERVED_DBC, SPELL_ANTI_MAGIC_FIELD,
                     /* 9th circle */
