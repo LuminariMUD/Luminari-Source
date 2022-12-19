@@ -3880,6 +3880,7 @@ void mag_assign_spells(void)
   spello(SPELL_WORD_OF_RECALL, "word of recall", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+#ifdef CAMPAIGN_FR
   spello(SPELL_LUSKAN_RECALL, "recall to luskan", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
@@ -3892,6 +3893,7 @@ void mag_assign_spells(void)
   spello(SPELL_MIRABAR_RECALL, "recall to mirabar", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+#endif
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
          NULL, 7, 20, NOSCHOOL, FALSE);
