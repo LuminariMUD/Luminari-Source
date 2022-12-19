@@ -547,9 +547,11 @@
 #define SPELL_SIPHON_MIGHT 473
 #define SPELL_COMMUNAL_SPIDER_CLIMB 474
 #define SPELL_CAUSTIC_BLOOD 475
+#define SPELL_GREATER_PLANAR_HEALING 476
+#define SPELL_MASS_DAZE 477
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 476
+#define NUM_SPELLS 478
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */

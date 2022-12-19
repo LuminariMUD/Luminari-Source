@@ -3814,6 +3814,8 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_CHARM_MONSTER, 7);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_ENLARGE_PERSON, 7);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_REDUCE_PERSON, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_PLANAR_HEALING, 7);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_DAZE, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_WIZARD, SPELL_INTERPOSING_HAND, 9);
@@ -4090,6 +4092,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_DIVINE_POWER, 7);
   spell_assignment(CLASS_CLERIC, SPELL_AIR_WALK, 7);
   spell_assignment(CLASS_CLERIC, SPELL_VIGORIZE_SERIOUS, 7);
+  spell_assignment(CLASS_CLERIC, SPELL_GREATER_PLANAR_HEALING, 7);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_CLERIC, SPELL_POISON, 9);
@@ -5088,6 +5091,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_CHARM_MONSTER, 8);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_ENLARGE_PERSON, 8);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_REDUCE_PERSON, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_PLANAR_HEALING, 8);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_DAZE, 8);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_SORCERER, SPELL_INTERPOSING_HAND, 10);
@@ -5835,6 +5840,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_ICE_STORM, 10);
   spell_assignment(CLASS_BARD, SPELL_CURE_CRITIC, 10);
   spell_assignment(CLASS_BARD, SPELL_SHADOW_JUMP, 10);
+  spell_assignment(CLASS_BARD, SPELL_MASS_DAZE, 10);
   /*              class num      spell                   level acquired */
   /* 5th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_5, 13);
@@ -7237,6 +7243,7 @@ void load_class_list(void)
   spell_assignment(CLASS_INQUISITOR, SPELL_STONESKIN, 10);
   spell_assignment(CLASS_INQUISITOR, SPELL_DIVINE_POWER, 10);
   spell_assignment(CLASS_INQUISITOR, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 10);
+  spell_assignment(CLASS_INQUISITOR, SPELL_MASS_DAZE, 10);
 
   /* spell circle 5 */
   spell_assignment(CLASS_INQUISITOR, SPELL_BANISH, 13);
@@ -7465,8 +7472,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_STRENGTH, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_GRACE, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_CAUSTIC_BLOOD, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_PLANAR_HEALING, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_MASS_DAZE_MONSTER, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_GREATER_PLANAR_HEALING, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_MASS_DAZE, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_DISMISSAL, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CHARISMA, 10);
   // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_EVOLUTION_SURGE, 10);

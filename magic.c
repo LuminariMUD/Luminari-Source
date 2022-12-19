@@ -5949,10 +5949,33 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_PLANAR_HEALING: // conjuration
+    if (affected_by_spell(victim, SPELL_GREATER_PLANAR_HEALING))
+    {
+      if (ch == victim)
+      {
+        act("You are already under the effect of a more powerful spell.", FALSE, ch, 0, victim, TO_CHAR); 
+      }
+      else
+      {
+        act("$N is already under the effect of a more powerful spell.", FALSE, ch, 0, victim, TO_CHAR);
+      }
+      return;
+    }
     af[0].location = APPLY_FAST_HEALING;
     af[0].duration = 10 + MAX(1, level / 2);
     af[0].modifier = 1;
     to_vict = "You feel an outside power offer you enhanced healing.";
+    break;
+
+  case SPELL_GREATER_PLANAR_HEALING: // conjuration
+    if (affected_by_spell(victim, SPELL_PLANAR_HEALING))
+    {
+      affect_from_char(victim, SPELL_PLANAR_HEALING);
+    }
+    af[0].location = APPLY_FAST_HEALING;
+    af[0].duration = 10 + MAX(1, level / 2);
+    af[0].modifier = 4;
+    to_vict = "You feel an outside power offer you highly enhanced healing.";
     break;
 
   case SPELL_SLEEP: // enchantment
@@ -6622,6 +6645,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_RAGE:
     mag_affects(level, ch, tch, obj, SPELL_RAGE, savetype, casttype, 0);
+    break;
+  case SPELL_MASS_DAZE:
+    mag_affects(level, ch, tch, obj, SPELL_DAZE_MONSTER, savetype, casttype, 0);
     break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
     if (!IS_UNDEAD(tch))

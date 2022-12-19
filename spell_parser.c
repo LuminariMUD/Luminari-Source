@@ -2941,6 +2941,9 @@ void mag_assign_spells(void)
   spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You are no longer dazed.", 0, 7, ENCHANTMENT, FALSE);
+  // 4th level
+  spello(SPELL_MASS_DAZE, "mass daze monster", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_GROUPS,
+         "You are no longer dazed.", 7, 13, ENCHANTMENT, FALSE);
 
   /* = =  1st circle  = = */
   /* evocation */
@@ -2972,6 +2975,10 @@ void mag_assign_spells(void)
   spello(SPELL_PLANAR_HEALING, "planar healing", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your planar healing has expired.", 1, 7, CONJURATION, FALSE);
+  // 4th level
+  spello(SPELL_GREATER_PLANAR_HEALING, "greater planar healing", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your greater planar healing has expired.", 7, 13, CONJURATION, FALSE);
+
   spello(SPELL_MAGE_ARMOR, "mage armor", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "You feel less protected.", 4, 7,
          CONJURATION, FALSE);
