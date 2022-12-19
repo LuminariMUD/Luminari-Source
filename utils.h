@@ -2004,7 +2004,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
                          IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||                 \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER) || \
-                         affected_by_spell(ch, SPELL_PLANAR_HEALING))
+                         affected_by_spell(ch, SPELL_PLANAR_HEALING) || \
+                         affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
 #define IS_HUMANOID(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||    \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
                          (!IS_NPC(ch) && !IS_MORPHED(ch)))
