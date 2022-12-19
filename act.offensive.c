@@ -886,7 +886,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 
   /* fire-shield, etc check */
   if (success)
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
   /* make sure combat starts */
   if (vict != ch)
@@ -963,7 +963,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
       (name)(ch, shield, 0, "shieldpunch");
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
 
   return TRUE;
@@ -1031,7 +1031,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
     perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
 
   USE_STANDARD_ACTION(ch);
@@ -1111,7 +1111,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
 
   USE_STANDARD_ACTION(ch);
@@ -1187,7 +1187,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
   {
@@ -1509,7 +1509,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
   {
@@ -1696,7 +1696,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict)
         affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE); */
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
   {
@@ -5199,7 +5199,7 @@ int perform_tailsweep(struct char_data *ch)
             TO_NOTVICT);
 
         /* fire-shield, etc check */
-        damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+        damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
         vict_count++;
       }
@@ -6208,7 +6208,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
     got_em = TRUE;
   }
@@ -6283,7 +6283,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
@@ -7679,7 +7679,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
       obj_to_char(unequip_char(vict, pos), vict);
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else if (result <= -10)
   { /* critical failure */
@@ -7913,7 +7913,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   damage(ch, vict, amount, RACIAL_LICH_TOUCH, DAM_NEGATIVE, FALSE);
 
   /* fire-shield, etc check */
-  damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+  damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
   return TRUE;
 }
@@ -8991,7 +8991,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
     damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);

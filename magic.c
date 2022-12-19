@@ -1397,6 +1397,18 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     bonus = 0;
     break;
 
+  case AFFECT_CAUSTIC_BLOOD_DAMAGE: // transmutation
+    act("Caustic blood sputs from your body, covering $N in acid!", FALSE, ch, 0, victim, TO_CHAR);
+    act("Caustic blood sputs from $n's body, covering You in acid!", FALSE, ch, 0, victim, TO_VICT);
+    act("Caustic blood sputs from $n's body, covering $N in acid!", FALSE, ch, 0, victim, TO_NOTVICT);
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_ACID;
+    num_dice = MIN(15, level);
+    size_dice = 6;
+    bonus = 0;
+    break;
+
   case SPELL_SEARING_LIGHT: // evocation
     save = -1;
     mag_resist = TRUE;
@@ -3900,6 +3912,29 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n is now righteous!";
     to_vict = "You feel righteous.";
+    break;
+
+  case SPELL_CAUSTIC_BLOOD: // transmutation
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = 1;
+    to_vict = "Your blood becomes acidic to others and will sear any who pierce your skin with piercing or slashing attacks.";
+    break;
+
+  case AFFECT_CAUSTIC_BLOOD_DAMAGE: // transmutation
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
+    {
+      send_to_char(victim, "You manage to dodge well enough that the acidic blood doesn't stick!\r\n");
+      act("$n manages to dodge well enough that the acidic blood doesn't stick!", FALSE, victim, 0, 0, TO_ROOM);
+      return;
+    }
+
+    accum_duration = TRUE;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = MIN(7, level / 2);
+    af[0].duration = 1;
+    to_room = "$n is covered in acidic blood";
+    to_vict = "You are covered in acidic blood.";
     break;
 
   case SPELL_BLINDNESS: // necromancy
@@ -6581,6 +6616,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_COMMUNAL_RESIST_ENERGY:
     mag_affects(level, ch, tch, obj, SPELL_RESIST_ENERGY, savetype, casttype, 0);
+    break;
+  case SPELL_COMMUNAL_SPIDER_CLIMB:
+    mag_affects(level, ch, tch, obj, SPELL_SPIDER_CLIMB, savetype, casttype, 0);
     break;
   case SPELL_RAGE:
     mag_affects(level, ch, tch, obj, SPELL_RAGE, savetype, casttype, 0);
