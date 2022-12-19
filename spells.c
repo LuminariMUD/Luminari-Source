@@ -1581,8 +1581,7 @@ ASPELL(spell_dismissal)
       if (AFF_FLAGGED(k->follower, AFF_CHARM))
       {
         /* has proper subrace to be dismissed? */
-        if (IS_NPC(k->follower) &&
-            HAS_SUBRACE(k->follower, SUBRACE_EXTRAPLANAR))
+        if (IS_NPC(k->follower) && HAS_SUBRACE(k->follower, SUBRACE_EXTRAPLANAR))
         {
           /* great, attempt to dismiss and exit, just one victim */
           act("$n dismisses $N!", FALSE, ch, 0, k->follower, TO_ROOM);

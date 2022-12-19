@@ -5125,6 +5125,40 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
       return;
     }
+    if (!IS_LIVING(victim))
+    {
+      send_to_char(ch, "This spell only works on living targets.\r\n");
+      return;
+    }
+    if (paralysis_immunity(victim))
+    {
+      send_to_char(ch, "Your target is unfazed.\r\n");
+      return;
+    }
+    if (paralysis_immunity(victim))
+    {
+      send_to_char(ch, "Your target is unfazed.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(3, 3);
+    to_room = "$n is overcome by a powerful hold spell!";
+    to_vict = "You are overcome by a powerful hold spell!";
+    break;
+
+  case SPELL_HOLD_MONSTER: // enchantment
+  if (!IS_LIVING(victim))
+    {
+      send_to_char(ch, "This spell only works on living targets.\r\n");
+      return;
+    }
     if (paralysis_immunity(victim))
     {
       send_to_char(ch, "Your target is unfazed.\r\n");
@@ -8616,8 +8650,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     to_notvict = "There's a momentary gleam in $N's eyes.";
     break;
 
-  case SPELL_REMOVE_PARALYSIS:
-    /* this has fall-through from above */
+  case SPELL_REMOVE_PARALYSIS:    
     spell = SPELL_HOLD_PERSON;
     affect = AFF_PARALYZED;
     to_char = "You restore $N's movement.";
