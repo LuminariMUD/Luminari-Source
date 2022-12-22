@@ -4941,6 +4941,33 @@ const char *goto_zones_display[NUM_GOTO_ZONES + 1][2] = {
     {"", "-1"} // always last
 };
 
+const char *zone_entrances[NUM_ZONE_ENTRANCES + 1][3] = {
+    {"ten towns",                       "closed",   "602093"},
+    {"luskan",                          "open",     "607071"},
+    {"port llast",                      "closed",   "609796"},
+    {"neverwinter",                     "closed",   "610929"},
+    {"waterdeep",                       "closed",   "616237"},
+    {"mirabar",                         "open",     "603108"},
+    {"silverymoon",                     "open",     "604130"},
+    {"goblin encampment",               "open",     "603802"},
+    {"triboar",                         "open",     "611763"},
+    {"ice fortress",                    "closed",   "603043"},
+    {"orcish fort",                     "open",     "605137"},
+    {"fireshear",                       "closed",   "606884"},
+    {"longsaddle",                      "open",     "607751"},
+    {"hunter's forest",                 "open",     "608199"},
+    {"crypt of shadow",                 "open",     "605650"},
+    {"nesme",                           "closed",   "605533"},
+    {"earth cult camp",                 "open",     "605998"},
+    {"fireside tavern",                 "open",     "608264"},
+    {"gnoll cave",                      "open",     "602476"},
+    {"flaming fist mercenary camp",     "open",     "612721"},
+    {"the evermoors",                   "closed",   "605859"},
+    {"boat to chult",                   "closed",   "616076"},
+    {"fire giant keep",                 "open",     "613082"},
+    {"", "", "-1"} // always last
+};
+
 const char *asciimap_points[NUM_MAP_POINTS + 1][2] = {
     {"Ten Towns (Closed)", "602093"},
     {"Luskan South Gate (1-6, starter zone)", "607713"},
@@ -4951,7 +4978,7 @@ const char *asciimap_points[NUM_MAP_POINTS + 1][2] = {
     {"Waterdeep (Closed)", "616237"},
     {"Mirabar (11-13)", "603108"},
     {"Silverymoon (Closed)", "604130"},
-    {"Goblin Encampment (1-5)", "611288"},
+    {"Goblin Encampment (1-5)", "603802"},
     {"Triboar", "611763"},
     {"Ice Fortress (Closed)", "603043"},
     {"Orcish Fort (13-16)", "605137"},

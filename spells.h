@@ -550,9 +550,10 @@
 #define SPELL_GREATER_PLANAR_HEALING 476
 #define SPELL_MASS_DAZE 477
 #define SPELL_HOLD_MONSTER 478
+#define SPELL_OVERLAND_FLIGHT 479
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 479
+#define NUM_SPELLS 480
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -1401,6 +1402,7 @@ ASPELL(spell_human_potential);
 ASPELL(spell_mass_human_potential);
 ASPELL(spell_control_summoned_creature);
 ASPELL(spell_siphon_might);
+ASPELL(spell_overland_flight);
 
 // psionics
 ASPELL(psionic_concussive_onslaught);

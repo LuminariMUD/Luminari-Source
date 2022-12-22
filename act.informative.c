@@ -1250,6 +1250,23 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, sailing_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
     }
+    else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
+    {
+      rm->name = strdup("Flying High Above in the Sky");
+      snprintf(buf, sizeof(buf),
+               "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
+               "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
+               "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
+               "Judging by how far you've gone so far you should arrive in\r\n"
+               "about %d minutes and %d seconds to your destination: %s.\r\n",
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, 
+#ifdef CAMPAIGN_FR
+               zone_entrances[ch->player_specials->travel_locale][0]);
+#else
+               carriage_locales[ch->player_specials->travel_locale][0]);
+#endif
+      rm->description = strdup(buf);
+    }
   }
 
   /* exit conditions */
@@ -5563,14 +5580,6 @@ ACMD(do_moves)
 
 #ifdef CAMPAIGN_FR
 
-void set_x_y_coords(int start, int *x, int *y, int *room)
-{
-  *x = MIN(159, MAX(0, ((start - 600161) % 160)));
-  *y = MIN(159, MAX(0, ((start - 600161) / 160)));
-
-  *room = 600161 + (160 * *y) + *x;
-}
-
 ACMD(do_survey)
 {
 
@@ -6690,6 +6699,29 @@ ACMD(do_cruelties)
 ACMD(do_maxhp)
 {
   calculate_max_hp(ch, true);
+}
+
+ACMD(do_flightlist)
+{
+
+  int i = 0;
+  char zone[200];
+
+  #ifdef CAMPAIGN_FR
+    text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+    for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
+    {
+      snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances[i][0], zone_entrances[i][1]);
+      send_to_char(ch, "%-39s ", zone);
+      if ((i % 2) == 1)
+        send_to_char(ch, "\r\n");
+    }
+    if ((i % 2) != 1)
+        send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+  #else
+
+  #endif
 }
 
 #undef WPT_SIMPLE

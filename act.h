@@ -263,6 +263,7 @@ ACMD_DECL(do_judgement);
 ACMD_DECL(do_bane);
 ACMD_DECL(do_slayer);
 ACMD_DECL(do_true_judgement);
+ACMD_DECL(do_flightlist);
 
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);

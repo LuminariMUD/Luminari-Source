@@ -196,6 +196,7 @@ void mudlog(int type, int level, int file, const char *str, ...) __attribute__((
 int rand_number(int from, int to);
 float rand_float(float from, float to);
 bool do_not_list_spell(int spellnum);
+void set_x_y_coords(int start, int *x, int *y, int *room);
 bool is_paladin_mount(struct char_data *ch, struct char_data *victim);
 char *randstring(int length);
 int combat_skill_roll(struct char_data *ch, int skillnum);
