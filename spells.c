@@ -1570,6 +1570,9 @@ ASPELL(spell_detect_poison)
 ASPELL(spell_overland_flight)
 {
 
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
   int i = 0;
 
   char *zone = cast_arg3 + 1;
@@ -1581,6 +1584,12 @@ ASPELL(spell_overland_flight)
   }
 
 #ifdef CAMPAIGN_FR
+
+  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+  {
+    send_to_char(ch, "You can only use this spell on the world map.\n\r");
+    return;
+  }
 
   for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
   {
@@ -1600,21 +1609,26 @@ ASPELL(spell_overland_flight)
 
 #else
 
-  while (carriage_locales)
-
-  for (i = 0; i < ; i++)
+  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
   {
-    if (is_abbrev(zone, zone_entrances[i][0]))
-      break;
+    send_to_char(ch, "You can only use this spell in the wilderness.\n\r");
+    return;
   }
 
-  if (i >= NUM_ZONE_ENTRANCES)
+  while (atoi(carriage_locales[i][1]) != 0)
+  {
+      if (is_abbrev(zone, carriage_locales[i][0]))
+        break;
+      i++;
+  }
+
+  if (atoi(carriage_locales[i][1]) == 0)
   {
     send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
     return;
   }
 
-  send_to_char(ch, "You begin flying to %s.\r\n", zone_entrances[i][0]);
+  send_to_char(ch, "You begin flying to %s.\r\n", carriage_locales[i][0]);
 
   enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
 

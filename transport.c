@@ -655,9 +655,11 @@ void travel_tickdown(void)
 
 int get_distance(struct char_data *ch, int locale, int here, int type)
 {
-  int xf = 0, xt = 0, yf = 0, yt = 0, room = 0;
+  int xf = 0, xt = 0, yf = 0, yt = 0;
 
 #ifdef CAMPAIGN_FR
+
+  int room = 0;
 
   if (type == TRAVEL_CARRIAGE || type == TRAVEL_SAILING)
   {
@@ -673,7 +675,20 @@ int get_distance(struct char_data *ch, int locale, int here, int type)
   }
 
 #else
-
+  if (type == TRAVEL_CARRIAGE || type == TRAVEL_SAILING)
+  {
+    xf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][5]);
+    xt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][5]);
+    yf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][6]);
+    yt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][6]);
+  }
+  else if (type == TRAVEL_OVERLAND_FLIGHT)
+  {
+    xf = ch->coords[0];
+    xt = atoi(carriage_locales[locale][5]);
+    yf = ch->coords[1];
+    yt = atoi(carriage_locales[locale][6]);    
+  }
 #endif
 
   int dx, dy;
