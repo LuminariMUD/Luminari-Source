@@ -3917,7 +3917,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_CAUSTIC_BLOOD: // transmutation
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 0;
-    af[0].duration = 1;
+    af[0].duration = level;
     to_vict = "Your blood becomes acidic to others and will sear any who pierce your skin with piercing or slashing attacks.";
     break;
 

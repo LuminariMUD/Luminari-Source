@@ -7638,4 +7638,12 @@ int is_spell_or_power(int spellnum)
   return 2;
 }
 
+void set_x_y_coords(int start, int *x, int *y, int *room)
+{
+  *x = MIN(159, MAX(0, ((start - 600161) % 160)));
+  *y = MIN(159, MAX(0, ((start - 600161) / 160)));
+
+  *room = 600161 + (160 * *y) + *x;
+}
+
 /* EoF */

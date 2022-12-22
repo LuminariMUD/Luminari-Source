@@ -34,6 +34,7 @@
 #include "psionics.h"
 #include "assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */
+#include "transport.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -1562,6 +1563,63 @@ ASPELL(spell_detect_poison)
       send_to_char(ch, "You sense that it should not be consumed.\r\n");
     }
   }
+}
+
+// This spell will allow you to travel to any carriage or sea port destination for LuminariMUD
+// Or to any zone entrance if on Faerun.
+ASPELL(spell_overland_flight)
+{
+
+  int i = 0;
+
+  char *zone = cast_arg3 + 1;
+
+  if (zone == NULL || !*zone || strlen(zone) < 3)
+  {
+    send_to_char(ch, "Please specify the area you'd like to fly to.  Type flightlist for a list.\r\n");
+    return;
+  }
+
+#ifdef CAMPAIGN_FR
+
+  for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
+  {
+    if (is_abbrev(zone, zone_entrances[i][0]))
+      break;
+  }
+
+  if (i >= NUM_ZONE_ENTRANCES)
+  {
+    send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You begin flying to %s.\r\n", zone_entrances[i][0]);
+
+  enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
+
+#else
+
+  while (carriage_locales)
+
+  for (i = 0; i < ; i++)
+  {
+    if (is_abbrev(zone, zone_entrances[i][0]))
+      break;
+  }
+
+  if (i >= NUM_ZONE_ENTRANCES)
+  {
+    send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You begin flying to %s.\r\n", zone_entrances[i][0]);
+
+  enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
+
+#endif
+
 }
 
 ASPELL(spell_dismissal)

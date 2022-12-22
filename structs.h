@@ -249,6 +249,8 @@
 ** display the name of the location */
 #define NUM_MAP_POINTS 26
 
+#define NUM_ZONE_ENTRANCES 23
+
 #define NUM_FEMALE_NAMES 110
 #define NUM_MALE_NAMES 110
 #define NUM_SURNAMES 210

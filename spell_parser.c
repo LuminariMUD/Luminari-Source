@@ -815,6 +815,9 @@ SAVING_WILL here...  */
     case SPELL_SIPHON_MIGHT:
       MANUAL_SPELL(spell_siphon_might);
       break;
+    case SPELL_OVERLAND_FLIGHT:
+      MANUAL_SPELL(spell_overland_flight);
+      break;
     case SPELL_HUMAN_POTENTIAL:
       MANUAL_SPELL(spell_human_potential);
       break;
@@ -4052,6 +4055,10 @@ void mag_assign_spells(void)
   spello(SPELL_MASS_HUMAN_POTENTIAL, "mass human potential", 79, 64, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_MANUAL,
          NULL, 12, 17, TRANSMUTATION, FALSE);
+  // 5th level spell
+  spello(SPELL_OVERLAND_FLIGHT, "overland flight", 79, 64, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_MANUAL,
+         NULL, 10, 15, TRANSMUTATION, FALSE);
   // 3rd level spell
   spello(SPELL_AQUEOUS_ORB, "aqueous orb", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
