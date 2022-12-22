@@ -1585,7 +1585,7 @@ ASPELL(spell_overland_flight)
 
 #ifdef CAMPAIGN_FR
 
-  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_WORLDMAP))
   {
     send_to_char(ch, "You can only use this spell on the world map.\n\r");
     return;

@@ -3837,6 +3837,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_FIREBRAND, 9);
   spell_assignment(CLASS_WIZARD, SPELL_CAUSTIC_BLOOD, 9);
   spell_assignment(CLASS_WIZARD, SPELL_HOLD_MONSTER, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_OVERLAND_FLIGHT, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE, 11);
@@ -5115,6 +5116,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_FIREBRAND, 10);
   spell_assignment(CLASS_SORCERER, SPELL_CAUSTIC_BLOOD, 10);
   spell_assignment(CLASS_SORCERER, SPELL_HOLD_MONSTER, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_OVERLAND_FLIGHT, 10);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_SORCERER, SPELL_FREEZING_SPHERE, 12);
@@ -7033,6 +7035,7 @@ void load_class_list(void)
   /* concoction circle 5 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_NIGHTMARE, 13);
   spell_assignment(CLASS_ALCHEMIST, SPELL_POLYMORPH, 13);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_OVERLAND_FLIGHT, 13);
 
   /* concoction circle 6 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_EYEBITE, 16);
@@ -7483,7 +7486,7 @@ void load_class_list(void)
   // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_EVOLUTION_SURGE, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CUNNING, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_HOLD_MONSTER, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_OVERLAND_FLIGHT, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_OVERLAND_FLIGHT, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_WISDOM, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 10);
   // spell_assignment(CLASS_SUMMONER, SPELL_PURIFIED_CALLING, 10);
