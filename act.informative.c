@@ -6705,9 +6705,11 @@ ACMD(do_flightlist)
 {
 
   int i = 0;
-  char zone[200];
 
   #ifdef CAMPAIGN_FR
+
+    char zone[200];
+
     text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
     for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
     {
@@ -6720,7 +6722,18 @@ ACMD(do_flightlist)
         send_to_char(ch, "\r\n");
     send_to_char(ch, "\r\n");
   #else
-
+    i = 0;
+    text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+    while (atoi(carriage_locales[i][1]) != 0)
+    {
+      send_to_char(ch, "%-39s ", carriage_locales[i][0]);
+      if ((i % 2) == 1)
+        send_to_char(ch, "\r\n");
+      i++;
+    }
+    if ((i % 2) != 1)
+        send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
   #endif
 }
 
