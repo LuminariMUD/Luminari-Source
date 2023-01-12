@@ -5546,6 +5546,31 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_IMAGES(victim) = 4 + MIN(5, (int)(level / 3));
     break;
 
+  case SPELL_HOSTILE_JUXTAPOSITION:
+    if (affected_by_spell(ch, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
+    {
+      send_to_char(ch, "You are already under the effect of a greater hostile juxtaposition.\r\n");
+      return;
+    }
+    af[0].duration = level;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    to_vict = "You sense a supernatural ability to reflect the next attack against you.";
+    to_room = "You seem a gleam in $n's eye.";
+    break;
+
+  case SPELL_GREATER_HOSTILE_JUXTAPOSITION:
+    if (affected_by_spell(ch, SPELL_HOSTILE_JUXTAPOSITION))
+    {
+      affect_from_char(ch, SPELL_HOSTILE_JUXTAPOSITION);
+    }
+    af[0].duration = level;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    to_vict = "You sense a supernatural ability to reflect the next few attacks against you.";
+    to_room = "You seem a gleam in $n's eye.";
+    break;
+
   case SPELL_NIGHTMARE: // illusion
     if (mag_resistance(ch, victim, 0))
       return;
@@ -6676,6 +6701,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_COMMUNAL_SPIDER_CLIMB:
     mag_affects(level, ch, tch, obj, SPELL_SPIDER_CLIMB, savetype, casttype, 0);
+    break;
+  case SPELL_COMMUNAL_STONESKIN:
+    mag_affects(level, ch, tch, obj, SPELL_STONESKIN, savetype, casttype, 0);
     break;
   case SPELL_RAGE:
     mag_affects(level, ch, tch, obj, SPELL_RAGE, savetype, casttype, 0);

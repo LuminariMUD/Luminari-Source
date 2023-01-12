@@ -8495,6 +8495,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *missile)
 {
   struct affected_type af; /* for crippling strike */
+  struct affected_type *af2; // for hostile juxtaposition
   /* This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
             under certain circumstances.  This could be refactored into something else, but it may
             actually be best to refactor the entire homeland 'specials' system and include it into
@@ -9273,6 +9274,33 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   // damage inflicting shields, like fire shield
   damage_shield_check(ch, victim, attack_type, dam, dam_type);
+
+  if (dam > 0)
+  {
+    if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
+    {
+      send_to_char(victim, "Your hostile juxtaposition defense is triggered.\r\n");
+      damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      dam = 0;
+      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
+    }
+    else if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
+    {
+      send_to_char(victim, "Your greater hostile juxtaposition defense is triggered.\r\n");
+      damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      dam = 0;
+      for (af2 = victim->affected; af2; af2 = af2->next)
+      {
+        if (af2->location == SPELL_GREATER_HOSTILE_JUXTAPOSITION)
+        {
+          af2->modifier--;
+          break;
+        }
+      }
+      if (af2->modifier <= 0)
+        affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
+  }
+  }
 
   return dam;
 }

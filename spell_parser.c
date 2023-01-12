@@ -3324,6 +3324,10 @@ void mag_assign_spells(void)
   spello(SPELL_STONESKIN, "stone skin", 51, 36, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your skin returns to its normal texture.", 3, 13, ABJURATION, FALSE);
+  // 5th level
+  spello(SPELL_COMMUNAL_STONESKIN, "communal stone skin", 51, 36, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your skin returns to its normal texture.", 9, 17, ABJURATION, FALSE);
   spello(SPELL_MINOR_GLOBE, "minor globe", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your minor globe has faded away.", 8,
          13, ABJURATION, FALSE);
@@ -4081,6 +4085,12 @@ void mag_assign_spells(void)
   // 4th level spell
   spello(SPELL_MASS_REDUCE_PERSON, "mass reduce person", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_GROUPS, "You grow back to your normal size.", 8, 13, TRANSMUTATION, FALSE);
+  // 5th level spell
+  spello(SPELL_HOSTILE_JUXTAPOSITION, "hostile juxtaposition", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
+         FALSE, MAG_AFFECTS, "Your hostile juxtaposition defense expires.", 15, 16, CONJURATION, FALSE);
+  // 7th level spell
+  spello(SPELL_GREATER_HOSTILE_JUXTAPOSITION, "greater hostile juxtaposition", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
+         FALSE, MAG_AFFECTS, "Your greater hostile juxtaposition defense expires.", 18, 20, CONJURATION, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
