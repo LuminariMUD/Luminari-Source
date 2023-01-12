@@ -470,7 +470,8 @@ spells.o: spells.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h spells.h handler.h \
  constants.h interpreter.h dg_scripts.h act.h fight.h mud_event.h \
  dg_event.h house.h screen.h craft.h mudlim.h item.h domains_schools.h \
- oasis.h help.h genzon.h psionics.h assign_wpn_armor.h actions.h
+ oasis.h help.h genzon.h psionics.h assign_wpn_armor.h actions.h \
+ transport.h
 staff_events.o: staff_events.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h \
  interpreter.h handler.h screen.h wilderness.h dg_scripts.h \
