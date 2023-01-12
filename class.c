@@ -3837,7 +3837,9 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_FIREBRAND, 9);
   spell_assignment(CLASS_WIZARD, SPELL_CAUSTIC_BLOOD, 9);
   spell_assignment(CLASS_WIZARD, SPELL_HOLD_MONSTER, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_MASS_STONESKIN, 9);
   spell_assignment(CLASS_WIZARD, SPELL_OVERLAND_FLIGHT, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_HOSTILE_JUXTAPOSITION, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE, 11);
@@ -3884,6 +3886,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_MASS_CUNNING, 13);
   spell_assignment(CLASS_WIZARD, SPELL_MASS_FALSE_LIFE, 13);
   spell_assignment(CLASS_WIZARD, SPELL_FINGER_OF_DEATH, 13);
+  spell_assignment(CLASS_WIZARD, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 13);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_WIZARD, SPELL_CLENCHED_FIST, 15);
@@ -4716,6 +4719,7 @@ void load_class_list(void)
   spell_assignment(CLASS_DRUID, SPELL_SUMMON_NATURES_ALLY_6, 11);
   spell_assignment(CLASS_DRUID, SPELL_TRANSPORT_VIA_PLANTS, 11);
   spell_assignment(CLASS_DRUID, SPELL_MASS_CURE_LIGHT, 11);
+  spell_assignment(CLASS_DRUID, SPELL_MASS_STONESKIN, 11);
   spell_assignment(CLASS_DRUID, SPELL_GREATER_BLACK_TENTACLES, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
@@ -5116,7 +5120,9 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_FIREBRAND, 10);
   spell_assignment(CLASS_SORCERER, SPELL_CAUSTIC_BLOOD, 10);
   spell_assignment(CLASS_SORCERER, SPELL_HOLD_MONSTER, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_MASS_STONESKIN, 10);
   spell_assignment(CLASS_SORCERER, SPELL_OVERLAND_FLIGHT, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_HOSTILE_JUXTAPOSITION, 10);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_SORCERER, SPELL_FREEZING_SPHERE, 12);
@@ -5163,6 +5169,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_MASS_CUNNING, 14);
   spell_assignment(CLASS_SORCERER, SPELL_MASS_FALSE_LIFE, 14);
   spell_assignment(CLASS_SORCERER, SPELL_FINGER_OF_DEATH, 14);
+  spell_assignment(CLASS_SORCERER, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 14);
   /*              class num      spell                   level acquired */
   /* 8th circle */
   spell_assignment(CLASS_SORCERER, SPELL_CLENCHED_FIST, 16);
@@ -7036,6 +7043,7 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_NIGHTMARE, 13);
   spell_assignment(CLASS_ALCHEMIST, SPELL_POLYMORPH, 13);
   spell_assignment(CLASS_ALCHEMIST, SPELL_OVERLAND_FLIGHT, 13);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_MASS_STONESKIN, 13);
 
   /* concoction circle 6 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_EYEBITE, 16);
@@ -7260,6 +7268,7 @@ void load_class_list(void)
   spell_assignment(CLASS_INQUISITOR, SPELL_FLAME_STRIKE, 13);
   spell_assignment(CLASS_INQUISITOR, SPELL_SPELL_RESISTANCE, 13);
   spell_assignment(CLASS_INQUISITOR, SPELL_TRUE_SEEING, 13);
+  spell_assignment(CLASS_INQUISITOR, SPELL_MASS_STONESKIN, 13);
   spell_assignment(CLASS_INQUISITOR, SPELL_VIGORIZE_CRITICAL, 13);
 
   /* spell circle 6 */
@@ -7490,11 +7499,11 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_WISDOM, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 10);
   // spell_assignment(CLASS_SUMMONER, SPELL_PURIFIED_CALLING, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_MASS_STONESKIN, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_MASS_STONESKIN, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_TELEPORT, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_VITRIOLIC_MIST, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_ACID_SHEATH, 10);
   // spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_STONE, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_HOSTILE_JUXTAPOSITION, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_HOSTILE_JUXTAPOSITION, 10);
 
   // spell circle 5
   // spell_assignment(CLASS_SUMMONER, SPELL_BANISHING_BLADE, 13);
@@ -7519,7 +7528,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_DIMENSIONAL_LOCK, 16);
   // spell_assignment(CLASS_SUMMONER, SPELL_DISCERN_LOCATION, 16);
   // spell_assignment(CLASS_SUMMONER, SPELL_DOMINATE_MONSTER, 16);
-  // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 16);
+  spell_assignment(CLASS_SUMMONER, SPELL_GREATER_HOSTILE_JUXTAPOSITION, 16);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_HUMAN_POTENTIAL, 16);
   spell_assignment(CLASS_SUMMONER, SPELL_INCENDIARY_CLOUD, 16);
   // spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_SPELLS, 16);
