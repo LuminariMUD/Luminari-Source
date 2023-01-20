@@ -5546,6 +5546,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_IMAGES(victim) = 4 + MIN(5, (int)(level / 3));
     break;
 
+  case SPELL_BANISHING_BLADE:
+    af[0].duration = level;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    to_vict = "A blade of bright green energy appears beside you.";
+    to_room = "A blade of bright green energy appears beside $n.";
+    break;
+
   case SPELL_HOSTILE_JUXTAPOSITION:
     if (affected_by_spell(ch, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {

@@ -814,6 +814,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
       act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
     else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
@@ -868,6 +870,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
     if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
       act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
     else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
@@ -1019,6 +1023,8 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
   if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
       act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
   else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))

@@ -1938,6 +1938,10 @@ void update_damage_and_effects_over_time(void)
       TIME_SINCE_LAST_FEEDING(ch)++;
     }
 
+    // set this to false every round so banishing blade can be attempted again
+    if (ch->char_specials.banishing_blade_procced_this_round)
+      ch->char_specials.banishing_blade_procced_this_round = FALSE;
+
     if (HAS_FEAT(ch, FEAT_VAMPIRE_WEAKNESSES) && GET_LEVEL(ch) < LVL_IMMORT &&
         !affected_by_spell(ch, AFFECT_RECENTLY_DIED) && !affected_by_spell(ch, AFFECT_RECENTLY_RESPECED))
     {

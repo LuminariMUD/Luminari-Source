@@ -555,9 +555,10 @@
 #define SPELL_MASS_STONESKIN SPELL_COMMUNAL_STONESKIN
 #define SPELL_HOSTILE_JUXTAPOSITION 481
 #define SPELL_GREATER_HOSTILE_JUXTAPOSITION 482
+#define SPELL_BANISHING_BLADE 483
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 483
+#define NUM_SPELLS 484
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -612,6 +613,8 @@
 #define ABILITY_VAMPIRIC_DOMINATION 1237
 #define ABILITY_AFFECT_STONES_ENDURANCE 1238
 #define AFFECT_CAUSTIC_BLOOD_DAMAGE 1239
+#define AFFECT_IMMUNITY_BANISHING_BLADE 1240
+#define STATUS_AFFECT_STAGGERED 1241
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
