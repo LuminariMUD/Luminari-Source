@@ -4102,6 +4102,8 @@ struct char_special_data
     bool autodoor_message; // used for message handling in autodoor
 
     bool drainKilled; // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
+
+    bool banishing_blade_procced_this_round; // has the creature had a banishing blade affect attempted against him this round?
 };
 
 /* old memorization struct */

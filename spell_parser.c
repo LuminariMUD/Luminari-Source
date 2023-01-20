@@ -4091,6 +4091,12 @@ void mag_assign_spells(void)
   // 7th level spell
   spello(SPELL_GREATER_HOSTILE_JUXTAPOSITION, "greater hostile juxtaposition", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
          FALSE, MAG_AFFECTS, "Your greater hostile juxtaposition defense expires.", 18, 20, CONJURATION, FALSE);
+  // 5th level spell
+  spello(SPELL_BANISHING_BLADE, "banishing blade", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
+         FALSE, MAG_AFFECTS, "Your banishing blade winks out of existance.", 16, 18, ABJURATION, FALSE);
+  // Associated affect for banishing blade         
+  spello(AFFECT_IMMUNITY_BANISHING_BLADE, "banishing blade immunity", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+         FALSE, MAG_AFFECTS, "You are now again potentially vulnerable to the effects of a banishing blade spell.", 16, 18, NOSCHOOL, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -4231,6 +4237,10 @@ void mag_assign_spells(void)
   spello(ABILITY_SCORE_DAMAGE, "ability score damage", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,
          "The effects of your ability score damage expires.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(STATUS_AFFECT_STAGGERED, "staggered", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         "You are no longer staggered.", 1, 1, NOSCHOOL, FALSE);
 
   spello(AFFECT_RECENTLY_DIED, "recent death", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, TRUE, MAG_AFFECTS,

@@ -3840,6 +3840,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_MASS_STONESKIN, 9);
   spell_assignment(CLASS_WIZARD, SPELL_OVERLAND_FLIGHT, 9);
   spell_assignment(CLASS_WIZARD, SPELL_HOSTILE_JUXTAPOSITION, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_BANISHING_BLADE, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE, 11);
@@ -5123,6 +5124,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_MASS_STONESKIN, 10);
   spell_assignment(CLASS_SORCERER, SPELL_OVERLAND_FLIGHT, 10);
   spell_assignment(CLASS_SORCERER, SPELL_HOSTILE_JUXTAPOSITION, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_BANISHING_BLADE, 10);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_SORCERER, SPELL_FREEZING_SPHERE, 12);
@@ -5380,6 +5382,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_CURE_CRITIC, 15);
   spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD, 15);
   spell_assignment(CLASS_PALADIN, SPELL_STONESKIN, 15);
+  spell_assignment(CLASS_PALADIN, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
   class_prereq_align(CLASS_PALADIN, LAWFUL_GOOD);
@@ -5561,6 +5564,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
   class_prereq_align(CLASS_BLACKGUARD, LAWFUL_EVIL);
@@ -7270,6 +7274,7 @@ void load_class_list(void)
   spell_assignment(CLASS_INQUISITOR, SPELL_TRUE_SEEING, 13);
   spell_assignment(CLASS_INQUISITOR, SPELL_MASS_STONESKIN, 13);
   spell_assignment(CLASS_INQUISITOR, SPELL_VIGORIZE_CRITICAL, 13);
+  spell_assignment(CLASS_INQUISITOR, SPELL_BANISHING_BLADE, 13);
 
   /* spell circle 6 */
   spell_assignment(CLASS_INQUISITOR, SPELL_BLADE_BARRIER, 16);
@@ -7506,7 +7511,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_HOSTILE_JUXTAPOSITION, 10);
 
   // spell circle 5
-  // spell_assignment(CLASS_SUMMONER, SPELL_BANISHING_BLADE, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_BANISHING_BLADE, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_BANISHMENT, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_CREEPING_DOOM, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_DISPEL_MAGIC, 13);

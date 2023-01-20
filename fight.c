@@ -9299,7 +9299,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       }
       if (af2->modifier <= 0)
         affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
-  }
+    }
   }
 
   return dam;
@@ -9407,6 +9407,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       diceroll = 0,       /* ch's attack roll. */
       can_hit = 0,        /* ch successfully hit? */
       dam = 0;            /* Damage for the attack, with mods. */
+
+  struct affected_type af;
 
   bool is_critical = FALSE;
 
@@ -9896,6 +9898,61 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger
+
+  // This goes last because we're extracting ch in certain conditions within
+  if (victim && affected_by_spell(victim, SPELL_BANISHING_BLADE))
+  {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      if (!ch->char_specials.banishing_blade_procced_this_round)
+      {
+        ch->char_specials.banishing_blade_procced_this_round = TRUE;
+        
+        if (!affected_by_spell(ch, AFFECT_IMMUNITY_BANISHING_BLADE))
+        {
+          if (perform_knockdown(victim, ch, SPELL_BANISHING_BLADE))
+          {
+            if (IS_NPC(ch) && isSummonMob(GET_MOB_VNUM(ch)) && GET_LEVEL(victim) >= GET_LEVEL(ch))
+            {
+              if (!mag_resistance(victim, ch, 0) && !mag_savingthrow(victim, ch, SAVING_WILL, 0, CAST_WEAPON_SPELL, CASTER_LEVEL(victim), ABJURATION))
+              {
+                act("Your banishing blade has dismissed $N back to their place of origin.", FALSE, victim, 0, ch, TO_CHAR);
+                act("$n's banishing blade has dismissed You back to your place of origin.", FALSE, victim, 0, ch, TO_VICT);
+                act("$n's banishing blade has dismissed $N back to their place of origin.", FALSE, victim, 0, ch, TO_NOTVICT);
+                extract_char(ch);
+              }
+              else
+              {
+                // They're staggered for a round on a successful save
+                new_affect(&af);
+                af.spell = STATUS_AFFECT_STAGGERED;
+                af.location = APPLY_SPECIAL;
+                af.duration = 1;
+                af.modifier = 1;
+                SET_BIT_AR(af.bitvector, AFF_STAGGERED);
+                affect_to_char(ch, &af);
+              }
+            }
+
+            // on a successful trip attempt, they will be immune to the effect for 4 rounds.
+            // we check for (ch) here in case they were extracted above.
+            if (ch)
+            {
+              new_affect(&af);
+              af.spell = AFFECT_IMMUNITY_BANISHING_BLADE;
+              af.location = APPLY_SPECIAL;
+              af.duration = 4;
+              af.modifier = 1;
+              affect_to_char(ch, &af);
+            }
+          }
+        }
+      }
+    }
+  }
 
   return dam;
 }
