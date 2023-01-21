@@ -149,6 +149,9 @@ struct alias_data
 
 #define SCMD_PILFER 1
 
+#define SCMD_QUICK_CHANT 1
+#define SCMD_QUICK_MIND  2
+
 /* Necessary for CMD_IS macro.  Borland needs the structure defined first
  * so it has been moved down here. */
 /* Global buffering system */

@@ -2162,8 +2162,7 @@ void self_buffing(void)
 
     while (GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0) == 0 && GET_CURRENT_BUFF_SLOT(ch) < (MAX_BUFFS + 1))
     {
-      GET_CURRENT_BUFF_SLOT(ch)
-      ++;
+      GET_CURRENT_BUFF_SLOT(ch)++;
     }
     if (GET_CURRENT_BUFF_SLOT(ch) >= MAX_BUFFS)
     {
@@ -2185,7 +2184,16 @@ void self_buffing(void)
         if (IS_AFFECTED(ch, AFF_TIME_STOPPED))
           GET_BUFF_TIMER(ch) = 1;
         else
+        {
+#ifdef CAMPAIGN_FR
+          if (spell_info[spellnum].ritual_spell)
+            GET_BUFF_TIMER(ch) = MAX(6, spell_info[spellnum].time + 1);
+          else
+            GET_BUFF_TIMER(ch) = 6;
+#else
           GET_BUFF_TIMER(ch) = spell_info[spellnum].time + 1;
+#endif
+        }
 
         if (is_spell)
         {

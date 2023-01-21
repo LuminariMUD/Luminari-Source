@@ -4104,6 +4104,9 @@ struct char_special_data
     bool drainKilled; // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
 
     bool banishing_blade_procced_this_round; // has the creature had a banishing blade affect attempted against him this round?
+
+    bool quick_chant; // true if under the effect of quick chant
+    bool quick_mind; // true if under the effect of quick mind
 };
 
 /* old memorization struct */
