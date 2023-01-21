@@ -2744,9 +2744,17 @@ void assign_feats(void)
         "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
         "strength, dexterity and constitution.");
 
+#ifdef CAMPAIGN_FR
   feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
-        "you can cast spells faster",
-        "You can cast spells about 50 percent faster than normal with this feat.");
+        "You can cast spells faster.",
+        "You can cast/manifest ritual spells/psionic powers about 50 percent faster than normal with this feat. You also have a 10% chance to cast/manifest "
+        "any spell/psionic power as if it were quickened, using a swift action to cast/manifest instead of a standard action.\r\n");
+#else
+  feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "You can cast spells faster.",
+        "You can cast/manifest ritual spells/psionic powers about 50 percent faster than normal with this feat.");
+#endif
+
 
   feato(FEAT_AUGMENT_SUMMONING, "augment summoning", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "enhance summoned creatures",

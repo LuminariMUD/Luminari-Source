@@ -4381,6 +4381,10 @@ int get_daily_uses(struct char_data *ch, int featnum)
   int daily_uses = 0;
 
   switch (featnum) {
+    case FEAT_QUICK_CHANT:
+    case FEAT_QUICK_MIND:
+      daily_uses = 2;
+      break;
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
       break;

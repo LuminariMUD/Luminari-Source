@@ -9135,6 +9135,60 @@ ACMD(do_blood_drain)
 
 }
 
+ACMD(do_quick_chant)
+{
+
+  int uses_remaining = 0;
+
+  if (subcmd == SCMD_QUICK_CHANT && !HAS_FEAT(ch, FEAT_QUICK_CHANT))
+  {
+    send_to_char(ch, "You do not have the quick chant feat.\r\n");
+    return;
+  }
+  else if (subcmd == SCMD_QUICK_MIND && !HAS_FEAT(ch, FEAT_QUICK_MIND))
+  {
+    send_to_char(ch, "You do not have the quick mind feat.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, (subcmd == SCMD_QUICK_CHANT) ? FEAT_QUICK_CHANT : FEAT_QUICK_MIND)) == 0)
+  {
+    send_to_char(ch, "You must recover the energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (subcmd == SCMD_QUICK_CHANT)
+  {
+    if (ch->char_specials.quick_chant)
+    {
+      send_to_char(ch, "You are already benefitting from quick chant.\r\n");
+      return;
+    }
+    send_to_char(ch, "Youn invoke your quick chant ability.  The next non-ritual spell you cast will only use a swift action.\r\n");
+    ch->char_specials.quick_chant = true;
+  }
+  else
+  {
+    if (ch->char_specials.quick_mind)
+    {
+      send_to_char(ch, "You are already benefitting from quick mind.\r\n");
+      return;
+    }
+    send_to_char(ch, "Youn invoke your quick mind ability.  The next non-ritual power your manifest will only use a swift action.\r\n");
+    ch->char_specials.quick_mind = true;
+  }
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, (subcmd == SCMD_QUICK_CHANT) ? FEAT_QUICK_CHANT : FEAT_QUICK_MIND);
+
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

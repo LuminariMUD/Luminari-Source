@@ -615,6 +615,8 @@ ACMDCHECK(can_vampiric_shape_change);
 ACMD_DECL(do_vampiric_shape_change);
 ACMDCHECK(can_vampiric_dominate);
 ACMD_DECL(do_vampiric_dominate);
+ACMD_DECL(do_quick_chant);
+
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
  ****************************************************************************/

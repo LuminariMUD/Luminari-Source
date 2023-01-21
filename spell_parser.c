@@ -1440,12 +1440,10 @@ EVENTFUNC(event_casting)
           }
         }
         if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS))
-          CASTING_TIME(ch)
-        --;
+          CASTING_TIME(ch)--;
       }
 
-      CASTING_TIME(ch)
-      --;
+      CASTING_TIME(ch)--;
 
       // chance quick chant bumped us to finish early
       if (CASTING_TIME(ch) <= 0)
@@ -1494,6 +1492,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   int position = GET_POS(ch);
   int ch_class = CLASS_WIZARD, clevel = 0;
   int casting_time = 0;
+  bool quickened = FALSE;
 
   if (spellnum < 0 || spellnum > TOP_SPELL_DEFINE)
   {
@@ -1654,8 +1653,88 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     break;
   }
 
+#ifdef CAMPAIGN_FR
+  // We don't use casting times unless it's a ritual spell
+  if (SINFO.ritual_spell)
+    casting_time = SINFO.time;
+  else
+    casting_time = 1;
+#else
   /* establish base casting time for spell */
   casting_time = SINFO.time;
+#endif
+
+  /* meta magic! */
+  if (!IS_NPC(ch))
+  {
+    if (IS_SET(metamagic, METAMAGIC_QUICKEN))
+    {
+      casting_time = 0;
+      quickened = TRUE;
+    }
+    if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
+        IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
+        !IS_SET(metamagic, METAMAGIC_QUICKEN))
+    {
+      // Sorcerers with Arcane Bloodline
+      if (IS_SET(metamagic, METAMAGIC_ARCANE_ADEPT) || HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
+        ;
+      else
+        casting_time = casting_time * 3 / 2;
+    }
+  }
+
+  if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
+  {
+    HAS_ELDRITCH_SPELL_CRIT(ch) = false;
+    casting_time = 0;
+    quickened = TRUE;
+  }
+
+  if (spellnum == PSIONIC_MIND_TRAP)
+  {
+    casting_time = 0;
+    quickened = TRUE;
+  }
+
+#ifndef CAMPAIGN_FR
+  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+  {
+    casting_time += get_augment_casting_time_adjustment(ch);
+    if (IS_BUFFING(ch))
+      GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
+  }
+#endif
+
+  if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
+  {
+    if (GET_AUGMENT_PSP(ch) >= 4)
+    {
+      casting_time = 1;
+      quickened = TRUE;
+    }
+  }
+
+#ifdef CAMPAIGN_FR
+    if (quickened)
+    {
+      if (!is_action_available(ch, atSWIFT, FALSE))
+      {
+        send_to_char(ch, "This action requires a swift action to be available.\r\n");
+        return 0;
+      }
+      USE_SWIFT_ACTION(ch);
+    }
+    else
+    {
+      if (!is_action_available(ch, atSTANDARD, FALSE))
+      {
+        send_to_char(ch, "This action requires a standard action to be available.\r\n");
+        return 0;
+      }
+      USE_STANDARD_ACTION(ch);
+    }
+#endif
 
   /* Going to adjust spell queue and establish what class the character
 will be using for casting this spell */
@@ -1733,57 +1812,22 @@ will be using for casting this spell */
     return 0;
   }
 
-  /* meta magic! */
-  if (!IS_NPC(ch))
-  {
-    if (IS_SET(metamagic, METAMAGIC_QUICKEN))
-    {
-      casting_time = 0;
-    }
-    if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
-        IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
-        !IS_SET(metamagic, METAMAGIC_QUICKEN))
-    {
-      // Sorcerers with Arcane Bloodline
-      if (IS_SET(metamagic, METAMAGIC_ARCANE_ADEPT) || HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
-        ;
-      else
-        casting_time = casting_time * 3 / 2;
-    }
-  }
-
-  if (!IS_NPC(ch) && HAS_ELDRITCH_SPELL_CRIT(ch))
-  {
-    HAS_ELDRITCH_SPELL_CRIT(ch) = false;
-    casting_time = 0;
-  }
-
-  if (spellnum == PSIONIC_MIND_TRAP)
-  {
-    casting_time = 0;
-  }
-
-  if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
-  {
-    casting_time += get_augment_casting_time_adjustment(ch);
-    if (IS_BUFFING(ch))
-      GET_BUFF_TIMER(ch) += get_augment_casting_time_adjustment(ch);
-  }
-
-  if (spellnum == PSIONIC_ENERGY_ADAPTATION_SPECIFIED || spellnum == PSIONIC_ENERGY_ADAPTATION)
-  {
-    if (GET_AUGMENT_PSP(ch) >= 4)
-      casting_time = 0;
-  }
-
   /* handle spells with no casting time */
   if (casting_time <= 0 && !IS_NPC(ch))
   { /* we disabled this for npc's */
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
-    /* prevents spell spamming */
+#ifdef CAMPAIGN_FR
+    CASTING_TIME(ch) = casting_time;
+    CASTING_TCH(ch) = tch;
+    CASTING_TOBJ(ch) = tobj;
+    CASTING_SPELLNUM(ch) = spellnum;
+    CASTING_METAMAGIC(ch) = metamagic;
+#else
+    /* mandatory wait-state for any spell */
     USE_MOVE_ACTION(ch);
+#endif
 
     return (call_magic(ch, tch, tobj, spellnum, metamagic, CASTER_LEVEL(ch), CAST_SPELL));
   }
@@ -1830,8 +1874,11 @@ will be using for casting this spell */
       NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
     }
 
+#ifndef CAMPAIGN_FR
     /* mandatory wait-state for any spell */
     USE_MOVE_ACTION(ch);
+#endif
+
   }
   // this return value has to be checked -zusuk
   return (1);
@@ -2687,6 +2734,7 @@ void unused_spell(int spl)
   spell_info[spl].memtime = 0;
   spell_info[spl].schoolOfMagic = NOSCHOOL; // noschool
   spell_info[spl].quest = FALSE;
+  spell_info[spl].ritual_spell = FALSE;
 }
 
 void unused_skill(int spl)
