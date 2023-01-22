@@ -1421,8 +1421,7 @@ EVENTFUNC(event_casting)
         {
           if (rand_number(0, 1))
           {
-            CASTING_TIME(ch)
-            --;
+            CASTING_TIME(ch)--;
           }
         }
       }
@@ -1696,6 +1695,24 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     casting_time = 0;
     quickened = TRUE;
   }
+
+#ifdef CAMPAIGN_FR
+
+  if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
+  {
+    casting_time = 0;
+    quickened = true;
+    ch->char_specials.quick_chant = false;
+    send_to_char(ch, "Your casting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+  }
+  else if (!quickened && ch->char_specials.quick_mind && spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+  {
+    casting_time = 0;
+    quickened = true;
+    ch->char_specials.quick_mind = false;
+    send_to_char(ch, "Your manifesting of '%s' has been quickened by quick chant.\r\n", spell_info[spellnum].name);
+  }
+#endif
 
 #ifndef CAMPAIGN_FR
   if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
