@@ -325,6 +325,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_FAST_HEALING:
     GET_FAST_HEALING_MOD(ch) += mod;
     break;
+  case APPLY_INITIATIVE:
+    GET_INITIATIVE_MOD(ch) += mod;
+    break;
 
     /* end Do Not Use */
 

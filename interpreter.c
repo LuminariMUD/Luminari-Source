@@ -585,6 +585,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pin", "pin", POS_FIGHTING, do_pin, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"pixiedust", "pixiedust", POS_RECLINING, do_pixiedust, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixiedust},
     {"pixieinvis", "pixieinvis", POS_RECLINING, do_pixieinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixieinvis},
+    {"planarsoul", "planars", POS_FIGHTING, do_planarsoul, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"players", "players", POS_DEAD, do_players, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"psionicfocus", "psionicfocus", POS_FIGHTING, do_psionic_focus, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_psionic_focus},

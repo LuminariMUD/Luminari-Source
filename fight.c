@@ -620,6 +620,7 @@ int roll_initiative(struct char_data *ch)
   initiative = d20(ch) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
   initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
   initiative += GET_WIS_BONUS(ch) * HAS_FEAT(ch, FEAT_CUNNING_INITIATIVE);
+  initiative += GET_INITIATIVE_MOD(ch);
   // initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
 
   return initiative;
@@ -6149,7 +6150,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += (GET_LEVEL(ch) - 30) * 2;
     }
 
-    if (confirm_roll >= victim_ac) /* confirm critical */
+    if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
       return 1;                    /* yep, critical! */
   }
 

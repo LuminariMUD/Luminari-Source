@@ -940,6 +940,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_PSP_REGEN(ch) (ch->char_specials.saved.psp_regen)
 #define GET_ENCUMBRANCE_MOD(ch) (ch->char_specials.saved.encumbrance_mod)
 #define GET_FAST_HEALING_MOD(ch) (ch->char_specials.saved.fast_healing_mod)
+#define GET_INITIATIVE_MOD(ch) (ch->char_specials.saved.initiative_mod)
 /** Gold on ch. */
 #define GET_GOLD(ch) ((ch)->points.gold)
 /** Gold in bank of ch. */

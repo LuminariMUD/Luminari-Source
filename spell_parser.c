@@ -4162,6 +4162,12 @@ void mag_assign_spells(void)
   // Associated affect for banishing blade         
   spello(AFFECT_IMMUNITY_BANISHING_BLADE, "banishing blade immunity", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_AFFECTS, "You are now again potentially vulnerable to the effects of a banishing blade spell.", 16, 18, NOSCHOOL, FALSE);
+  // 5th level spell
+  spello(SPELL_PLANAR_SOUL, "planar soul", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
+         FALSE, MAG_AFFECTS, "You no longer benefit from the effects of your planar soul.", 16, 18, CONJURATION, FALSE);
+  // Associated affect for PLANAR_SOUL
+  spello(AFFECT_PLANAR_SOUL_SURGE, "planar soul surge", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
+         FALSE, MAG_AFFECTS, "The surging affects of your planar soul enhancement have expired.", 16, 18, CONJURATION, FALSE);
 
   spello(SPELL_PROTECTION_FROM_ENERGY, "protection from energy", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,

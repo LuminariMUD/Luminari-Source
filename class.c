@@ -4132,6 +4132,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_MASS_CUNNING, 11);
   spell_assignment(CLASS_CLERIC, SPELL_REMOVE_DISEASE, 11);
   spell_assignment(CLASS_CLERIC, SPELL_LEVITATE, 11);
+  spell_assignment(CLASS_CLERIC, SPELL_PLANAR_SOUL, 11);
   spell_assignment(CLASS_CLERIC, SPELL_UNDEATH_TO_DEATH, 11);
   /*              class num      spell                   level acquired */
   /* 7th circle */
@@ -5382,6 +5383,7 @@ void load_class_list(void)
   spell_assignment(CLASS_PALADIN, SPELL_CURE_CRITIC, 15);
   spell_assignment(CLASS_PALADIN, SPELL_HOLY_SWORD, 15);
   spell_assignment(CLASS_PALADIN, SPELL_STONESKIN, 15);
+  spell_assignment(CLASS_PALADIN, SPELL_PLANAR_SOUL, 15);
   spell_assignment(CLASS_PALADIN, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
@@ -5564,6 +5566,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
+  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
@@ -7474,7 +7477,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_INVIS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_MAGIC_FANG, 7);
-   spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ENERGY, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
@@ -7512,10 +7515,10 @@ void load_class_list(void)
 
   // spell circle 5
   spell_assignment(CLASS_SUMMONER, SPELL_BANISHING_BLADE, 13);
-  // spell_assignment(CLASS_SUMMONER, SPELL_BANISHMENT, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_BANISH, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_CREEPING_DOOM, 13);
-  // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_DISPEL_MAGIC, 13);
-  // spell_assignment(CLASS_SUMMONER, SPELL_EAGLESOUL, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_GREATER_DISPELLING, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_PLANAR_SOUL, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_ETHEREAL_JAUNT, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_GENIEKIND, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_GRAND_DESTINY, 13);

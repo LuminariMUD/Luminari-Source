@@ -2411,7 +2411,8 @@ const char *apply_types[] = {
     "PSP-Regen",
     "Encumbrance",
     "Fast-Healing",
-    "\n" /*51*/
+    "Initiative",
+    "\n" /*59*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
