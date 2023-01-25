@@ -2848,9 +2848,10 @@
 #define APPLY_PSP_REGEN 55
 #define APPLY_ENCUMBRANCE 56
 #define APPLY_FAST_HEALING 57
+#define APPLY_INITIATIVE 58
 
 /** Total number of applies */
-#define NUM_APPLIES 58
+#define NUM_APPLIES 59
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 20
@@ -3998,6 +3999,7 @@ struct char_special_data_saved
     int psp_regen;
     int encumbrance_mod;                        // This is added to strength only for purposes of calculating encumbrance limits.
     int fast_healing_mod;                       // This is like hp regen, except it will heal in combat.
+    int initiative_mod;                         // bonus to initative
 };
 
 /* not saved player data used for condensed combat */

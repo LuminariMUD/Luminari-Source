@@ -9189,6 +9189,68 @@ ACMD(do_quick_chant)
 
 }
 
+ACMD(do_planarsoul)
+{
+  if (!affected_by_spell(ch, SPELL_PLANAR_SOUL))
+  {
+    send_to_char(ch, "You must be under the affect of the planar soul spell to use it's surging effect.\r\n");
+    return;
+  }
+  
+  if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
+  {
+    send_to_char(ch, "You are already under the effect of a planar soul surge enhancement.\r\n");
+    return;
+  }
+
+  struct affected_type af[6];
+  struct affected_type *aff = NULL;
+  int i = 0, duration = 0;
+
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->spell == SPELL_PLANAR_SOUL)
+    {
+      duration = aff->duration;
+      break;
+    }
+  }
+
+  affect_from_char(ch, SPELL_PLANAR_SOUL);
+
+  duration /= 600;
+  duration = MAX(duration, 1);
+
+  for (i = 0; i < 6; i++)
+  {
+    af[i].spell = AFFECT_PLANAR_SOUL_SURGE;
+    af[i].bonus_type = BONUS_TYPE_SACRED;
+    af[i].duration = duration;
+  }
+
+  af[0].location = APPLY_AC_NEW;
+  af[0].modifier = 2;
+  af[1].location = APPLY_STR;
+  af[1].modifier = 4;
+  af[2].location = APPLY_RES_ACID;
+  af[2].modifier = 15;
+  af[3].location = APPLY_RES_FIRE;
+  af[3].modifier = 15;
+  af[4].location = APPLY_FAST_HEALING;
+  af[4].modifier = 2;
+  af[5].location = APPLY_SKILL;
+  af[5].modifier = 5;
+  af[5].specific = ABILITY_INTIMIDATE;
+
+  for (i = 0; i < 6; i++)
+  {
+      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  act("Your planar soul surges with might!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n seems to surge with might!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

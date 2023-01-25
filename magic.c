@@ -5554,6 +5554,28 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "A blade of bright green energy appears beside $n.";
     break;
 
+    case SPELL_PLANAR_SOUL:
+    if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
+    {
+      send_to_char(ch, "You cannot cast planar soul when you're already under the effect of a planar soul surge.\r\n");
+      return;
+    }
+    af[0].duration = level * 600;
+    af[0].location = APPLY_INITIATIVE;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
+
+    af[1].duration = level * 600;
+    af[1].location = APPLY_SKILL;
+    af[1].modifier = 2;
+    af[1].specific = ABILITY_PERCEPTION;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    to_vict = "You feel the power of the outer planes fuse with your soul.";
+    to_room = "An unknown power surges through $n's body.";
+    break;
+
   case SPELL_HOSTILE_JUXTAPOSITION:
     if (affected_by_spell(ch, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {
