@@ -1587,6 +1587,7 @@ bool isSummonMob(int vnum);
 sbyte isHighElfCantrip(struct char_data *ch, int spellnum);
 sbyte canCastAtWill(struct char_data *ch, int spellnum);
 sbyte isLunarMagic(struct char_data *ch, int spellnum);
+sbyte isWarlockMagic(struct char_data *ch, int spellnum);
 sbyte isDrowMagic(struct char_data *ch, int spellnum);
 sbyte isTieflingMagic(struct char_data *ch, int spellnum);
 sbyte isDuergarMagic(struct char_data *ch, int spellnum);

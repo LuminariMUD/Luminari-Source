@@ -7408,12 +7408,11 @@ ACMD(do_autoblast)
   }
 
   if (!affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
-    call_magic(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_LEVEL(ch), CAST_INNATE);
+    cast_spell(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0);
   } else {
     send_to_char(ch, "Your strikes will now flow with eldritch energy.\r\n");
   }
   BLASTING(ch) = TRUE;
-  USE_MOVE_ACTION(ch);
 }
 
 /* ranged-weapons combat, archery, a sort of ranged combat assist command

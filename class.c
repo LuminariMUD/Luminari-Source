@@ -7657,7 +7657,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_WARLOCK, "warlock", "Wlk", "\tDW\tWlk\tn", "u) \tDWarlock\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 6, 0, 1, 6, Y, 0, 0,
+         -1, N, N, M, 6, 0, 1, 2, Y, 0, 5,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
          /*descrip*/

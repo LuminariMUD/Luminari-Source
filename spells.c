@@ -2571,6 +2571,9 @@ ASPELL(spell_storm_of_vengeance)
 
 ASPELL(eldritch_blast)
 {
+  const char *to_room = "$N strikes $E with a blast of eldritch energy.";
+  const char *to_char = "You strike $N with a blast of eldritch energy.";
+  const char *to_vict = "$N strikes you with a blast of painful eldritch energy.";
   if (ch == NULL || victim == NULL)
     return;
 
@@ -2591,12 +2594,15 @@ ASPELL(eldritch_blast)
   if (affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW))
   {
     // We're probably here because we already hit with melee. Go with it.
+    to_room = "";
+    to_char = "";
+    to_vict = "";
   }
   else if (!attack_roll(ch, victim, ATTACK_TYPE_RANGED, TRUE, 0))
   {
-    act("You send a blast of energy towards $N, but $E avoids it.", FALSE, ch, 0, victim, TO_CHAR);
+    act("You send a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim, TO_CHAR);
     act("$n sends out a blast of energy towards you, but you avoid it.", FALSE, ch, 0, victim, TO_VICT);
-    act("$n sends out a blast of energy towards $N, but $E avoids it.", FALSE, ch, 0, victim, TO_NOTVICT);
+    act("$n sends out a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim, TO_NOTVICT);
     return;
   }
   
@@ -2607,9 +2613,15 @@ ASPELL(eldritch_blast)
 
   } else 
   {
-    mag_damage(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_LEVEL(ch), CAST_INNATE);
+    mag_damage(GET_WARLOCK_LEVEL(ch), ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
   }
-  // mag_affects(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+  if (to_room)
+    act (to_room, FALSE, ch, 0, victim, TO_NOTVICT);
+  if (to_char)
+    act (to_char, FALSE, ch, 0, victim, TO_CHAR);
+  if (to_vict)
+    act (to_vict, FALSE, ch, 0, victim, TO_VICT);
+  mag_affects(GET_WARLOCK_LEVEL(ch), ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
 }
 
 ASPELL(spell_summon)

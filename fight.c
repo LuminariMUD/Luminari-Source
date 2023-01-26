@@ -9149,7 +9149,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     /* Extra handling for ELDRITCH BLAAAAAAAST */
     if (BLASTING(ch) && affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
-      call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_LEVEL(ch), CAST_INNATE);
+      call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_WARLOCK_LEVEL(ch), CAST_INNATE);
     }
     break;
   }
@@ -10245,7 +10245,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       if (perform_attack)
       { /* correct phase for this attack? */
         
-        call_magic(ch, FIGHTING(ch), NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_LEVEL(ch), CAST_INNATE);
+        call_magic(ch, FIGHTING(ch), NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_WARLOCK_LEVEL(ch), CAST_INNATE);
       }
     }
 

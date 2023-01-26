@@ -3757,6 +3757,98 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     break;
 
+  case WARLOCK_BEGUILING_INFLUENCE:
+    af[0].location = APPLY_SKILL;
+    af[0].modifier = 6;
+    af[0].duration = 3600;
+    af[0].specific = ABILITY_DIPLOMACY;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_SKILL;
+    af[1].modifier = 6;
+    af[1].duration = 3600;
+    af[1].specific = ABILITY_BLUFF;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[2].location = APPLY_SKILL;
+    af[2].modifier = 6;
+    af[2].duration = 3600;
+    af[2].specific = ABILITY_INTIMIDATE;
+    af[2].bonus_type = BONUS_TYPE_INSIGHT;
+
+    to_room = "$n radiates all the charm and influence of the dark one himself.";
+    to_vict = "You radiate all the charm and influence of the dark one himself.";
+    break;
+  
+  case WARLOCK_DARK_ONES_OWN_LUCK:
+    af[0].location = APPLY_SAVING_WILL;
+    af[0].modifier = 2;
+    af[0].duration = 3600;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_SAVING_REFL;
+    af[1].modifier = 2;
+    af[1].duration = 3600;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[2].location = APPLY_SAVING_FORT;
+    af[2].modifier = 2;
+    af[2].duration = 3600;
+    af[2].bonus_type = BONUS_TYPE_MORALE;
+
+    to_room = "$n feels the dark one's luck.";
+    to_vict = "You feel the dark one's luck";
+    break;
+
+  case WARLOCK_DEVILS_SIGHT:
+    af[0].duration = 3600;
+    SET_BIT_AR(af[0].bitvector, AFF_ULTRAVISION);
+    accum_duration = FALSE;
+    to_vict = "You can now see in the dark as well as in the light.";
+    break;
+
+  case WARLOCK_LEAPS_AND_BOUNDS:
+    af[0].location = APPLY_DEX;
+    af[0].modifier = 4;
+    af[0].duration = 3600;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_SKILL;
+    af[1].modifier = 4;
+    af[1].duration = 3600;
+    af[1].specific = ABILITY_ACROBATICS;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+    to_vict = "You feel more graceful and acrobatic.";
+    break;
+
+  case WARLOCK_OTHERWORLDLY_WHISPERS:
+    af[0].location = APPLY_SKILL;
+    af[0].modifier = 6;
+    af[0].duration = 3600;
+    af[1].specific = ABILITY_LORE;
+    af[0].bonus_type = BONUS_TYPE_INSIGHT;
+
+    af[1].location = APPLY_SKILL;
+    af[1].modifier = 6;
+    af[1].duration = 3600;
+    af[1].specific = ABILITY_SPELLCRAFT;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+    to_vict = "You tap into ancient knowledges and insights.";
+    break;
+
+  case WARLOCK_SEE_THE_UNSEEN:
+    if (!AFF_FLAGGED(ch, AFF_DARKVISION) && GET_LEVEL(ch) >= 5)
+    {
+      af[0].duration = 3600;
+      SET_BIT_AR(af[0].bitvector, AFF_DARKVISION);
+    }
+    if (!AFF_FLAGGED(ch, AFF_DETECT_INVIS))
+    {
+      af[1].duration = 3600;
+      SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
+    }
+    to_vict = "You can now see into the shadows and things not meant to be seen.";
+    
     // spells and other effects
 
   case SPELL_ACID_SHEATH: // divination
@@ -9726,11 +9818,14 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj,
     to_room = "An obscuring mist suddenly fills the room from $n!";
     break;
 
+  case WARLOCK_DARKNESS:
   case SPELL_DARKNESS: // divination
     to_char = "You create a blanket of pitch black.";
     to_room = "$n creates a blanket of pitch black.";
     aff = RAFF_DARKNESS;
     rounds = 15;
+    if (spellnum == WARLOCK_DARKNESS)
+      rounds = GET_WARLOCK_LEVEL(ch);
     break;
 
   case SPELL_SACRED_SPACE: // divination
