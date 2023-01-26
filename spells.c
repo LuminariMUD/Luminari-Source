@@ -2587,6 +2587,18 @@ ASPELL(eldritch_blast)
       
   //   }
   // }
+  // Check to see if the spell should miss
+  if (affected_by_spell(ch, WARLOCK_HIDEOUS_STRIKE))
+  {
+    // We're probably here because we already hit with melee. Go with it.
+  }
+  else if (!attack_roll(ch, victim, ATTACK_TYPE_RANGED, TRUE, 0))
+  {
+    act("You send a blast of energy towards $N, but $E avoids it.", FALSE, ch, 0, victim, TO_CHAR);
+    act("$n sends out a blast of energy towards you, but you avoid it.", FALSE, ch, 0, victim, TO_VICT);
+    act("$n sends out a blast of energy towards $N, but $E avoids it.", FALSE, ch, 0, victim, TO_NOTVICT);
+    return;
+  }
   
   if (affected_by_spell(ch, WARLOCK_ELDRITCH_CHAIN))
   {
