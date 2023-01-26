@@ -661,6 +661,7 @@ const char *class_names[] = {
     "Assassin",
     "Inquisitor",
     "Summoner",
+    "Warlock",
     //  "unfinished",
     //  "unfinished",
     //  "unfinished",
@@ -2346,6 +2347,8 @@ const char *extra_bits[] = {
     "Anti-Lich",
     "Anti-Vampire",
     "Vampire-Only",
+    "Warlock-Only",
+    "Anti-Warlock",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -4302,6 +4305,7 @@ const char *spell_prep_dict[][4] = {
     {"", "", "", ""},                                        /* assassin */
     {"compel", "compelling", "compelled", "compellings"},    /* inquisitor */
     {"conjure", "conjuring", "conjured", "conjurings"},      // summoner
+    {"", "", "", ""},                                        /* warlock 28 */
     //  {"",         "",           "",          ""            }, /* psion */
     //  {"",         "",           "",          ""            }, /* psy warr */
     //  {"",         "",           "",          ""            }, /* soul knife */
@@ -4341,6 +4345,7 @@ const char *spell_consign_dict[][4] = {
     {"", "", "", ""},                                            /* assassin 25 */
     {"exempt", "exempted", "exempting", "exempt"},               /* inquisitor 26 */
     {"unconjure", "unconjured", "unconjuring", "unconjure"},     // summoner
+    {"", "", "", ""},                                            /* warlock 28 */
     //  {"",          "",            "",           ""            }, /* psion 18 */
     //  {"",          "",            "",           ""            }, /* psy warr 19 */
     //  {"",          "",            "",           ""            }, /* soul knife 20 */
@@ -4899,6 +4904,7 @@ const char *class_short_descriptions[] = {
     "A hired killed whose ability to observe and plan spell doom for his enemies without ever showing his face.",  // assassin
     "An agent of the divine who tracks down his deity's enemies and judges them with weapons and spells.",         // inquisitor
     "An arcane spellcaster who has mastered the art of conjuring and who controls a powerful eidolon follower.",   // summoner
+    "A savvy invoker who has dominated the arcane through sheer force of will and dark pacts.",                    // warlock
     ""};
 CHECK_TABLE_SIZE(class_short_descriptions, NUM_CLASSES + 1);
 

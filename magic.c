@@ -914,6 +914,21 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 4;
     bonus = 0;
     break;
+    
+    /*******************************************\
+      || ------------ WARLOCK POWERS ----------- ||
+      \*******************************************/
+  case WARLOCK_ELDRITCH_BLAST:
+    save = -1; // by default there's no save
+    mag_resist = TRUE;
+    element = DAM_FORCE;
+    size_dice = 6;
+    num_dice = HAS_FEAT(ch, FEAT_ELDRITCH_BLAST);
+    if (affected_by_spell(ch, WARLOCK_HELLRIME_BLAST))
+      element = DAM_COLD;
+    if (affected_by_spell(ch, WARLOCK_ELDRITCH_CONE))
+      size_dice = 8;    
+    break;
 
     /*******************************************\
       || ------------ PSIONIC POWERS ----------- ||
@@ -3608,6 +3623,140 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You feel confused and disoriented.";
     break;
 
+  // warlock insanity below
+  case WARLOCK_ELDRITCH_BLAST:
+    if (affected_by_spell(ch, WARLOCK_DRAINING_BLAST))
+    {
+      if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+      {
+        send_to_char(ch, "%s", CONFIG_NOEFFECT);
+        return;
+      }
+      
+      af[1].duration = 12;
+      SET_BIT_AR(af[0].bitvector, AFF_SLOW);
+      to_room = "$n begins to slow down!";
+      to_vict = "You feel yourself slow down!";
+    } 
+    else if (affected_by_spell(ch, WARLOCK_FRIGHTFUL_BLAST))
+    {    
+      if (is_immune_fear(ch, victim, TRUE))
+        return;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return;
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + affected_by_aura_of_cowardice(victim) ? -4 : 0, casttype, level, ILLUSION))
+      {
+        return;
+      }
+      is_mind_affect = TRUE;
+
+      SET_BIT_AR(af[0].bitvector, AFF_FEAR);
+      af[0].duration = 120;
+      to_room = "$n is imbued with fear!";
+      to_vict = "You feel scared and fearful!";
+      break;
+    }
+    else if (affected_by_spell(ch, WARLOCK_BESHADOWED_BLAST))
+    {
+      if (!can_blind(victim))
+        return;
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+        return;
+
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -4;
+      af[0].duration = 12;
+      SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -4;
+      af[1].duration = 12;
+      SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+      to_room = "$n seems to be blinded!";
+      to_vict = "You have been blinded!";
+      break;
+    } 
+    else if (affected_by_spell(ch, WARLOCK_HELLRIME_BLAST))
+    {
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+        return;
+
+      af[0].location = APPLY_DEX;
+      af[0].modifier = -2;
+      af[0].duration = 36;
+
+      to_room = "$n is chilled to the bone!";
+      to_vict = "You're so cold it's hard to move!";
+      break;
+    }
+    else if (affected_by_spell(ch, WARLOCK_BEWITCHING_BLAST))
+    {
+      if (!can_confuse(victim))
+        return;
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+        return;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return;
+
+      SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
+      af[0].duration = 12;
+      victim->confuser_idnum = GET_IDNUM(ch);
+      to_room = "A look of utter confusion washes over $n's face.";
+      to_vict = "You find yourself completely confused and disoriented.";
+      break;
+    }
+    else if (affected_by_spell(ch, WARLOCK_NOXIOUS_BLAST))
+    {
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
+        return;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return;
+
+      af[0].duration = 120;
+      SET_BIT_AR(af[0].bitvector, AFF_DAZED);
+      to_vict = "An assault on your mind has left you dazed!";
+      to_room = "$n suddenly looks shocked and dazed!";
+      break;
+    }
+    else if (affected_by_spell(ch, WARLOCK_BINDING_BLAST))
+    {
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+        return;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return;
+
+      is_mind_affect = TRUE;
+
+      SET_BIT_AR(af[0].bitvector, AFF_STUN);
+      af[0].duration = 12;
+      to_room = "$n is dazed by the blast!";
+      to_vict = "You are dazed by the blast!";
+      break;
+    }
+    else if (affected_by_spell(ch, WARLOCK_UTTERDARK_BLAST))
+    {
+
+    }
+    else 
+    {
+      /* no special effects have happened as a result */
+      return;
+    }
+    break;
+
     // spells and other effects
 
   case SPELL_ACID_SHEATH: // divination
@@ -5554,28 +5703,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "A blade of bright green energy appears beside $n.";
     break;
 
-    case SPELL_PLANAR_SOUL:
-    if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
-    {
-      send_to_char(ch, "You cannot cast planar soul when you're already under the effect of a planar soul surge.\r\n");
-      return;
-    }
-    af[0].duration = level * 600;
-    af[0].location = APPLY_INITIATIVE;
-    af[0].modifier = 2;
-    af[0].bonus_type = BONUS_TYPE_MORALE;
-    SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
-
-    af[1].duration = level * 600;
-    af[1].location = APPLY_SKILL;
-    af[1].modifier = 2;
-    af[1].specific = ABILITY_PERCEPTION;
-    af[1].bonus_type = BONUS_TYPE_MORALE;
-
-    to_vict = "You feel the power of the outer planes fuse with your soul.";
-    to_room = "An unknown power surges through $n's body.";
-    break;
-
   case SPELL_HOSTILE_JUXTAPOSITION:
     if (affected_by_spell(ch, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
     {
@@ -7200,6 +7327,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
    * the damaging part of the spell.   */
   switch (spellnum)
   {
+  case WARLOCK_ELDRITCH_BLAST:
+    to_char = "You conjure an immense beam of eldritch energy that explodes through the area!";
+    to_room = "$n conjures an immense beam of eldritch energy that explodes through the area!";
+    break;
   case SPELL_CALL_LIGHTNING_STORM:
     to_char = "You call down a furious lightning storm upon the area!";
     to_room = "$n raises $s arms and calls down a furious lightning storm!";

@@ -3493,6 +3493,30 @@ ACMD(do_intimidate)
   perform_intimidate(ch, vict);
 }
 
+ACMDCHECK(can_eldritchblast)
+{
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_ELDRITCH_BLAST, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_eldritchblast)
+{
+  // PREREQ_NOT_NPC();
+  // PREREQ_CHECK(can_eldritchblast);
+
+  // if (!FIGHTING(ch))
+  // {
+  //   send_to_char(ch, "You can only use this ability in combat.\r\n");
+  //   return;
+  // }
+
+  // send_to_char(ch, "You focus and fire a scorching ray of eldritch energy.\r\n");
+  // if (attack_roll(ch, FIGHTING(ch), ATTACK_TYPE_RANGED, TRUE, 1) < 0) // missed ranged attack roll
+  //   return;
+  // mag_damage(1, ch, FIGHTING(ch), NULL, 0, 0, NULL, CAST_INNATE);
+  // USE_STANDARD_ACTION(ch);
+}
+
 ACMDCHECK(can_tabaxi_claw_attack)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_TABAXI_CATS_CLAWS, "You have no idea how.\r\n");
@@ -7323,6 +7347,63 @@ ACMD(do_fire)
   {
     /* arrived here?  can't fire, silent-mode from can-fire sent a message why */
   }
+}
+
+/* primarily useful for those with eldritch blast,
+ * auto-assists players by auto-casting eldritch blast
+ * when possible */
+ACMD(do_autoblast)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL, *tch = NULL;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (FIGHTING(ch) || BLASTING(ch))
+  {
+    send_to_char(ch, "You are too busy fighting!\r\n");
+    return;
+  }
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Eldritch blast who?\r\n");
+    return;
+  }
+
+  vict = get_char_room_vis(ch, arg, NULL);
+
+  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
+         NULL)
+  {
+    if (IN_ROOM(tch) != IN_ROOM(vict))
+      continue;
+    if (vict == tch)
+    {
+      vict = FIGHTING(vict);
+      break;
+    }
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Eldritch blast at who?\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, 2); // 2 in last arg indicates ranged
+  BLASTING(ch) = TRUE;
+  USE_MOVE_ACTION(ch);
 }
 
 /* ranged-weapons combat, archery, a sort of ranged combat assist command

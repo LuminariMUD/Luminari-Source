@@ -295,6 +295,7 @@ extern "C"
 /* highest possible circle possible */
 #define TOP_CIRCLE 9 /*druid/wiz/sorc/cleric*/
 #define TOP_BARD_CIRCLE 6
+#define TOP_WARLOCK_CIRCLE 4
 #define TOP_RANGER_CIRCLE 4
 #define TOP_PALADIN_CIRCLE TOP_RANGER_CIRCLE
 #define TOP_BLACKGUARD_CIRCLE TOP_RANGER_CIRCLE
@@ -318,6 +319,7 @@ extern "C"
 #define CLERIC_PREP_TIME_FACTOR 2.5
 #define SORC_PREP_TIME_FACTOR 2.5
 #define BARD_PREP_TIME_FACTOR 2.5
+#define WARLOCK_PREP_TIME_FACTOR 2.5
 #define ALCHEMIST_PREP_TIME_FACTOR 2.5
 #define INQUISITOR_PREP_TIME_FACTOR 2.5
 
