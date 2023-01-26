@@ -896,6 +896,36 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
   OLC_MODE(d) = STUDY_SPELLS;
 }
 
+void warlock_known_spells_disp_menu(struct descriptor_data *d)
+{
+  int class_level = CLASS_LEVEL(d->character, CLASS_WARLOCK) +
+                    BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+                  "\r\n-- %sInvocations Known Menu\r\n"
+                  "\r\n"
+                  "%s 1%s) Least      : %s%d\r\n"
+                  "%s 2%s) Lesser     : %s%d\r\n"
+                  "%s 3%s) Greater    : %s%d\r\n"
+                  "%s 4%s) Dark       : %s%d\r\n"
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
+
+                  mgn,
+                  grn, nrm, yel, warlock_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 1),
+                  grn, nrm, yel, warlock_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 2),
+                  grn, nrm, yel, warlock_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 3),
+                  grn, nrm, yel, warlock_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_WARLOCK, 4),
+                  grn, nrm);
+
+  OLC_MODE(d) = STUDY_WARLOCK_KNOWN_SPELLS_MENU;
+}
+
 static void bard_known_spells_disp_menu(struct descriptor_data *d)
 {
   int class_level = CLASS_LEVEL(d->character, CLASS_BARD) +
@@ -1004,6 +1034,48 @@ void inquisitor_study_menu(struct descriptor_data *d, int circle)
                   nrm);
 
   OLC_MODE(d) = INQUISITOR_STUDY_SPELLS;
+}
+
+/* the menu for each circle, warlock */
+void warlock_study_menu(struct descriptor_data *d, int circle)
+{
+  int class_level = CLASS_LEVEL(d->character, CLASS_WARLOCK) +
+                    BONUS_CASTER_LEVEL(d->character, CLASS_WARLOCK);
+  int counter, columns = 0;
+
+  LEVELUP(d->character)->spell_circle = circle;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  /* SPELL PREPARATION HOOK */
+  for (counter = 1; counter < NUM_SPELLS; counter++)
+  {
+    if (compute_spells_circle(CLASS_WARLOCK,
+                              counter,
+                              METAMAGIC_NONE,
+                              DOMAIN_UNDEFINED) == circle)
+    {
+      if (is_a_known_spell(d->character, CLASS_WARLOCK, counter))
+        write_to_output(d, "%s%2d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
+                        spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
+      else
+        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+                        spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
+    }
+  }
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
+                  warlock_known[class_level][circle] -
+                      count_known_spells_by_circle(d->character, CLASS_WARLOCK, circle));
+  write_to_output(d, "\tCType the invocation number followed by 'help' to see help on that invocation.  Eg. 81 help\r\n\tn");
+  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
+                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+                  nrm);
+
+  OLC_MODE(d) = WARLOCK_STUDY_SPELLS;
 }
 
 /* the menu for each circle, sorcerer */
@@ -2560,6 +2632,8 @@ void study_parse(struct descriptor_data *d, char *arg)
         else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
                  ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
           inquisitor_known_spells_disp_menu(d);
+        else if (LEVELUP(ch)->class == CLASS_WARLOCK)
+          warlock_known_spells_disp_menu(d);
       }
       else
       {
@@ -3506,6 +3580,93 @@ void study_parse(struct descriptor_data *d, char *arg)
     }
     break;
     /******* end sorcerer **********/
+
+    /******* start warlock **********/
+  case STUDY_WARLOCK_KNOWN_SPELLS_MENU:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      display_main_menu(d);
+      break;
+      /* here are our spell levels for 'spells known' */
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+      warlock_study_menu(d, atoi(arg));
+      break;
+    default:
+      write_to_output(d, "That is an invalid choice!\r\n");
+      warlock_known_spells_disp_menu(d);
+      break;
+    }
+    break;
+
+  case WARLOCK_STUDY_SPELLS:
+    switch (*arg)
+    {
+    case 'q':
+    case 'Q':
+      warlock_known_spells_disp_menu(d);
+      break;
+
+    default:
+      number = atoi(arg);
+
+      /* SPELL PREPARATION HOOK */
+      for (counter = 1; counter < NUM_SPELLS; counter++)
+      {
+        if (counter == number)
+        {
+          if (compute_spells_circle(CLASS_WARLOCK,
+                                    counter,
+                                    METAMAGIC_NONE,
+                                    DOMAIN_UNDEFINED) ==
+              LEVELUP(d->character)->spell_circle)
+          {
+            if (*arg2 && is_abbrev(arg2, "help"))
+            {
+              do_study_spell_help(d->character, counter);
+              return;
+            }
+
+            if (is_a_known_spell(d->character, CLASS_WARLOCK, counter))
+            {
+              if (!LEVELUP(d->character)->spells_learned[counter])
+              {
+                send_to_char(d->character, "\tCYou cannot remove invocation known, unless it is an invocation you already chose this level. "
+                                           "To change past choices, you need "
+                                           "to respec your character.\r\n\tn");
+                break;
+              }
+              else
+              {
+                known_spells_remove_by_class(d->character, CLASS_WARLOCK, counter);
+                LEVELUP(d->character)->spells_learned[counter] = 0;
+              }
+            }
+            else
+            {
+              can_add_spell = known_spells_add(d->character, CLASS_WARLOCK, counter, FALSE);
+              if (!can_add_spell)
+              {
+                write_to_output(d, "You are all FULL for invocations!\r\n");
+                break;
+              }
+              else
+              {
+                LEVELUP(d->character)->spells_learned[counter] = 1;
+              }
+            }
+          }
+        }
+      }
+      warlock_study_menu(d, LEVELUP(d->character)->spell_circle);
+      break;
+    }
+    break;
+    /******* end warlock **********/
 
     /******* start bard **********/
 

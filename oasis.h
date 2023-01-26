@@ -658,6 +658,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define SET_HIGH_ELF_CANTRIP 60
 #define STUDY_CONFIRM_HIGH_ELF_CANTRIP 61
 #define STUDY_CHOOSE_LANGUAGES 62
+#define STUDY_WARLOCK_KNOWN_SPELLS_MENU 63
+#define WARLOCK_STUDY_SPELLS 64
 
 int save_config(IDXTYPE nowhere);
 

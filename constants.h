@@ -129,6 +129,7 @@ extern const int druid_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int cleric_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int paladin_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int ranger_slots[LVL_IMPL + 1][NUM_CIRCLES + 1];
+extern const int warlock_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int bard_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int inquisitor_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
 extern const int sorcerer_known[LVL_IMPL + 1][NUM_CIRCLES + 1];
