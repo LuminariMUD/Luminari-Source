@@ -2415,7 +2415,9 @@ const char *apply_types[] = {
     "Encumbrance",
     "Fast-Healing",
     "Initiative",
-    "\n" /*59*/
+    "Eldritch-Shape",
+    "Eldritch-Essence",
+    "\n" /*61*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
