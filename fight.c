@@ -3555,6 +3555,7 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
   //  if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
   //    damage_reduction += 12;
+  damage_reduction += HAS_FEAT(ch, FEAT_WARLOCK_DR); /* temporary mechanic until we upgrade this system */
 
   if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
     damage_reduction += 3;
@@ -9144,7 +9145,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         affect_from_char(ch, SKILL_CHARGE);
       }
     }
-    
+
     /* Extra handling for ELDRITCH BLAAAAAAAST */
     if (BLASTING(ch) && affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
       call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, 0, CAST_INNATE);
