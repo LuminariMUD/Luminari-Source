@@ -9148,7 +9148,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
 
     /* Extra handling for ELDRITCH BLAAAAAAAST */
-    if (BLASTING(ch) && affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
+    if (BLASTING(ch) && GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW) {
       call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_WARLOCK_LEVEL(ch), CAST_INNATE);
     }
     break;
@@ -10186,7 +10186,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     mileage out of striking-type casters. In this case we assume if the player
     is blasting they are using ranged. Otherwise if they're blasting and using
     hideous blow, they are doing melee. */
-  if (BLASTING(ch) && !affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW))
+  if (BLASTING(ch) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
     ranged_attacks += bonus_mainhand_attacks;
     if (is_tanking(ch))
