@@ -1758,6 +1758,11 @@ will be using for casting this spell */
         clevel = GET_PSIONIC_LEVEL(ch);
         CASTING_CLASS(ch) = CLASS_PSIONICIST;
       }
+      else if (isWarlockMagic(ch, spellnum))
+      {
+        clevel = GET_WARLOCK_LEVEL(ch);
+        CASTING_CLASS(ch) = CLASS_WARLOCK;        
+      }
       /*
       // zusuk is commenting this out trying to figure out bugs!
       else if (is_domain_spell_of_ch(ch, spellnum))
@@ -4052,40 +4057,40 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BEGUILING_INFLUENCE, "beguiling influence", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
-  spello(WARLOCK_DARK_ONES_OWN_LUCK, "dark one's own luck", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+  spello(WARLOCK_DARK_ONES_OWN_LUCK, "dark ones own luck", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
-  spello(WARLOCK_DARKNESS, "darkness", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+  spello(WARLOCK_DARKNESS, "warlocks darkness", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_ROOM,
         NULL, 1, 1, NOSCHOOL, FALSE);
-  spello(WARLOCK_DEVILS_SIGHT, "devil's sight", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+  spello(WARLOCK_DEVILS_SIGHT, "devils sight", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_ENTROPIC_WARDING, "entropic warding", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_LEAPS_AND_BOUNDS, "leaps and bounds", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_OTHERWORLDLY_WHISPERS, "otherworldly whispers", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_SEE_THE_UNSEEN, "see the unseen", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_ELDRITCH_CHAIN, "eldritch chain", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BESHADOWED_BLAST, "beshadowed blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BRIMSTONE_BLAST, "brimstone blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_HELLRIME_BLAST, "hellrime blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_CHARM, "charm", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
@@ -4816,6 +4821,8 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
 {
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return true;
+  if (isWarlockMagic(ch, spellnum))
+    return true;
   if (isHighElfCantrip(ch, spellnum))
     return true;
   if (isLunarMagic(ch, spellnum))
@@ -4837,6 +4844,65 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
   if (isFaeMagic(ch, spellnum))
     return true;
 
+  return false;
+}
+
+sbyte isWarlockMagic(struct char_data *ch, int spellnum)
+{
+  if (!HAS_FEAT(ch, FEAT_ELDRITCH_BLAST))
+    return false;
+  switch (spellnum)
+  {
+    case WARLOCK_ELDRITCH_SPEAR:
+    case WARLOCK_HIDEOUS_BLOW:
+    case WARLOCK_DRAINING_BLAST:
+    case WARLOCK_FRIGHTFUL_BLAST:
+    case WARLOCK_BEGUILING_INFLUENCE:
+    case WARLOCK_DARK_ONES_OWN_LUCK:
+    case WARLOCK_DARKNESS:
+    case WARLOCK_DEVILS_SIGHT:
+    case WARLOCK_ENTROPIC_WARDING:
+    case WARLOCK_LEAPS_AND_BOUNDS:
+    case WARLOCK_OTHERWORLDLY_WHISPERS:
+    case WARLOCK_SEE_THE_UNSEEN:
+      if (GET_LEVEL(ch) < 1)
+        return false;
+      return true;
+    case WARLOCK_ELDRITCH_CHAIN:
+    case WARLOCK_BESHADOWED_BLAST:
+    case WARLOCK_BRIMSTONE_BLAST:
+    case WARLOCK_HELLRIME_BLAST:
+    case WARLOCK_CHARM:
+    case WARLOCK_CURSE_OF_DESPAIR:
+    case WARLOCK_DREAD_SEIZURE:
+    case WARLOCK_FLEE_THE_SCENE:
+    case WARLOCK_THE_DEAD_WALK:
+    case WARLOCK_VORACIOUS_DISPELLING:
+    case WARLOCK_WALK_UNSEEN:
+      if (GET_LEVEL(ch) < 6)
+        return false;
+      return true;
+    case WARLOCK_ELDRITCH_CONE:
+    case WARLOCK_BEWITCHING_BLAST:
+    case WARLOCK_NOXIOUS_BLAST:
+    case WARLOCK_VITRIOLIC_BLAST:
+    case WARLOCK_CHILLING_TENTACLES:
+    case WARLOCK_DEVOUR_MAGIC:
+    case WARLOCK_TENACIOUS_PLAGUE:
+    case WARLOCK_WALL_OF_PERILOUS_FLAME:
+      if (GET_LEVEL(ch) < 11)
+        return false;
+      return true;
+    case WARLOCK_ELDRITCH_DOOM:
+    case WARLOCK_BINDING_BLAST:
+    case WARLOCK_UTTERDARK_BLAST:
+    case WARLOCK_DARK_FORESIGHT:
+    case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+    case WARLOCK_WORD_OF_CHANGING:
+      if (GET_LEVEL(ch) < 16)
+        return false;
+      return true;  
+  }
   return false;
 }
 
