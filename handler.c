@@ -655,6 +655,7 @@ void compute_char_cap(struct char_data *ch, int mode)
         dam_cap += class_level / 3;
         break;
       case CLASS_SORCERER:
+      case CLASS_WARLOCK:
         int_cap += class_level / 4 + 1;
         dex_cap += class_level / 4 + 1;
         cha_cap += class_level / 4 + 1;
@@ -2250,8 +2251,8 @@ void extract_char_final(struct char_data *ch)
   /* stop any fighting */
   if (FIGHTING(ch))
     stop_fighting(ch);
-  FIRING(ch) = 0;
-  BLASTING(ch) = 0;
+  FIRING(ch) = FALSE;
+  BLASTING(ch) = FALSE;
 
   for (k = combat_list; k; k = temp)
   {

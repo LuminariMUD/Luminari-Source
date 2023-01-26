@@ -2588,7 +2588,7 @@ ASPELL(eldritch_blast)
   //   }
   // }
   // Check to see if the spell should miss
-  if (affected_by_spell(ch, WARLOCK_HIDEOUS_STRIKE))
+  if (affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW))
   {
     // We're probably here because we already hit with melee. Go with it.
   }
@@ -2607,9 +2607,9 @@ ASPELL(eldritch_blast)
 
   } else 
   {
-    mag_damage(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, 0, CAST_INNATE);
+    mag_damage(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_LEVEL(ch), CAST_INNATE);
   }
-  mag_affects(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, CAST_INNATE, 0);
+  // mag_affects(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
 }
 
 ASPELL(spell_summon)

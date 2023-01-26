@@ -3061,6 +3061,9 @@ void nanny(struct descriptor_data *d, char *arg)
     case CLASS_INQUISITOR:
       perform_help(d, "class-inquisitor");
       break;
+    case CLASS_WARLOCK:
+      perform_help(d, "class-warlock");
+      break;
 
     default:
       write_to_output(d, "\r\nCommand not understood.\r\n");

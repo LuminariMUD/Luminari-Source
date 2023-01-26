@@ -7363,7 +7363,13 @@ ACMD(do_autoblast)
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (FIGHTING(ch) || BLASTING(ch))
+  if (BLASTING(ch))
+  {
+    send_to_char(ch, "You stop utilizing eldritch blast.\r\n");
+    BLASTING(ch) = FALSE;
+    return;
+  }
+  else if (FIGHTING(ch))
   {
     send_to_char(ch, "You are too busy fighting!\r\n");
     return;
@@ -7402,7 +7408,7 @@ ACMD(do_autoblast)
   }
 
   if (!affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
-    call_magic(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0, 0, CAST_INNATE);
+    call_magic(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_LEVEL(ch), CAST_INNATE);
   } else {
     send_to_char(ch, "Your strikes will now flow with eldritch energy.\r\n");
   }
