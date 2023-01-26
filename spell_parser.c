@@ -515,10 +515,11 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       (casttype != CAST_WAND) && !IS_NPC(caster))
     switch (CASTING_CLASS(caster))
     {
+    case CLASS_WARLOCK:
     case CLASS_BARD:
       if (!canCastAtWill(caster, spellnum))
       {
-        /* bards can wear light armor and cast unpenalized (bard spells) */
+        /* bards & warlocks can wear light armor and cast unpenalized (bard spells) */
         if (compute_gear_armor_type(caster) > ARMOR_TYPE_LIGHT ||
             compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
           if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
@@ -677,39 +678,19 @@ SAVING_WILL here...  */
     savetype = SAVING_WILL;
     switch (CASTING_CLASS(caster))
     {
-    case CLASS_WIZARD:
-      spell_level = level;
-      break;
-    case CLASS_CLERIC:
-      spell_level = level;
-      break;
-    case CLASS_DRUID:
-      spell_level = level;
-      break;
-    case CLASS_SORCERER:
-      spell_level = level;
-      break;
-    case CLASS_PALADIN:
-      spell_level = level;
-      break;
-    case CLASS_BLACKGUARD:
-      spell_level = level;
-      break;
-    case CLASS_RANGER:
-      spell_level = level;
-      break;
-    case CLASS_BARD:
-      spell_level = level;
-      break;
-    case CLASS_ALCHEMIST:
-      spell_level = level;
-      break;
-    case CLASS_PSIONICIST:
-      spell_level = level;
-      break;
-    case CLASS_INQUISITOR:
-      spell_level = level;
-      break;
+      case CLASS_WIZARD:
+      case CLASS_CLERIC:
+      case CLASS_DRUID:
+      case CLASS_SORCERER:
+      case CLASS_PALADIN:
+      case CLASS_BLACKGUARD:
+      case CLASS_RANGER:
+      case CLASS_BARD:
+      case CLASS_ALCHEMIST:
+      case CLASS_PSIONICIST:
+      case CLASS_INQUISITOR:
+        spell_level = level;
+        break;
     }
 
   default:
@@ -980,6 +961,10 @@ SAVING_WILL here...  */
       break;
     case PSIONIC_PSYCHOPORTATION:
       MANUAL_SPELL(psionic_psychoportation);
+      break;
+    // warlocks
+    case WARLOCK_ELDRITCH_BLAST:
+      MANUAL_SPELL(eldritch_blast);
       break;
     } /* end manual spells */
 
@@ -4162,7 +4147,7 @@ void mag_assign_spells(void)
   // Associated affect for banishing blade         
   spello(AFFECT_IMMUNITY_BANISHING_BLADE, "banishing blade immunity", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_AFFECTS, "You are now again potentially vulnerable to the effects of a banishing blade spell.", 16, 18, NOSCHOOL, FALSE);
-  // 5th level spell
+           // 5th level spell
   spello(SPELL_PLANAR_SOUL, "planar soul", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY,
          FALSE, MAG_AFFECTS, "You no longer benefit from the effects of your planar soul.", 16, 18, CONJURATION, FALSE);
   // Associated affect for PLANAR_SOUL
@@ -4368,6 +4353,10 @@ void mag_assign_spells(void)
   spello(ABILITY_AFFECT_STONES_ENDURANCE, "stone's endurance", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(WARLOCK_ELDRITCH_BLAST, "eldritch blast", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+         "", 0, 0, NOSCHOOL, FALSE);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,

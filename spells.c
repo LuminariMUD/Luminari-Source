@@ -2569,6 +2569,37 @@ ASPELL(spell_storm_of_vengeance)
   NEW_EVENT(eCHAIN_LIGHTNING, ch, NULL, (12 * PASSES_PER_SEC));
 }
 
+ASPELL(eldritch_blast)
+{
+  if (ch == NULL || victim == NULL)
+    return;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_IN_POSITION(POS_SITTING, "You must be on your feet to cast this.\r\n");
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  // struct char_data *tch = NULL, *next_tch = NULL;
+  // for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  // {
+  //   next_tch = tch->next_in_room;
+
+  //   if (aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST)) {
+      
+  //   }
+  // }
+  
+  if (affected_by_spell(ch, WARLOCK_ELDRITCH_CHAIN))
+  {
+
+  } else if (affected_by_spell(ch, WARLOCK_ELDRITCH_DOOM)) {
+
+  } else 
+  {
+    mag_damage(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, 0, CAST_INNATE);
+  }
+  mag_affects(0, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, CAST_INNATE, 0);
+}
+
 ASPELL(spell_summon)
 {
   if (ch == NULL || victim == NULL)

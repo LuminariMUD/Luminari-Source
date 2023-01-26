@@ -409,6 +409,7 @@
 #define CLASS_ASSASSIN 25
 #define CLASS_INQUISITOR 26
 #define CLASS_SUMMONER 27
+#define CLASS_WARLOCK 28
 //#define CLASS_PSYCHIC_WARRIOR   17
 //#define CLASS_PSY_WARR CLASS_PSYCHIC_WARRIOR
 //#define CLASS_SOULKNIFE         18
@@ -417,7 +418,7 @@
 /* !!!---- CRITICAL ----!!! make sure to add class names to constants.c's
    class_names[] - we are dependent on that for loading the feat-list */
 /** Total number of available PC Classes */
-#define NUM_CLASSES 28
+#define NUM_CLASSES 29
 
 // related to pc (classes, etc)
 /* note that max_classes was established to reign in some of the
@@ -2333,12 +2334,23 @@
 #define FEAT_FAE_RESISTANCE 958
 //misc
 #define FEAT_DEADLY_AIM 959
+// warlock
+#define FEAT_ELDRITCH_BLAST 960
+#define FEAT_INVOCATIONS_LEAST 961
+#define FEAT_INVOCATIONS_LESSER 962
+#define FEAT_INVOCATIONS_GREATER 963
+#define FEAT_INVOCATIONS_DARK 964
+#define FEAT_ELDRITCH_LORE 965
+#define FEAT_WARLOCK_COLD_IRON_DR 966
+#define FEAT_WARLOCK_DECEIVE_ITEM 967
+#define FEAT_WARLOCK_FIENDISH_RESILIENCE 968
+#define FEAT_WARLOCK_ENERGY_RESISTANCE 969
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 960
+#define FEAT_LAST_FEAT 970
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 961
+#define NUM_FEATS 972
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -2774,8 +2786,10 @@
 #define ITEM_ANTI_LICH 93    /* Not usable by lich */
 #define ITEM_ANTI_VAMPIRE 94 // Not useable by Lich
 #define ITEM_VAMPIRE_ONLY 95 // Only vampires can use
+#define ITEM_REQ_WARLOCK 96  // Must be warlock
+#define ITEM_ANTI_WARLOCK 97 // no fancy warlocks
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 96
+#define NUM_ITEM_FLAGS 98
 
 /* homeland-port */
 /*
@@ -3254,6 +3268,7 @@
 #define ATTACK_TYPE_PRIMARY_SNEAK 6 // impromptu sneak attack
 #define ATTACK_TYPE_OFFHAND_SNEAK 7 // impromptu sneak attack
 #define ATTACK_TYPE_PSIONICS 8
+#define ATTACK_TYPE_SPELLLIKE_ABILITY 9
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
@@ -4038,6 +4053,7 @@ struct char_special_data
     int totalDefense;                               /* how many totaldefense attempts left in the round */
     struct char_data *guarding;                     /* target for 'guard' ability */
     bool firing;                                    /* is char firing missile weapon? */
+    bool blasting;                                  /* is char eldritch blasting? */
     int mounted_blocks_left;                        /* how many mounted combat blocks left in the round */
     int deflect_arrows_left;                        /* deflect arrows left */
     struct condensed_combat_data *condensed_combat; /* condensed combat struct */

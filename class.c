@@ -5567,6 +5567,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);
+  
   spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
@@ -7477,7 +7478,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_INVIS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_LOCATE_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_MAGIC_FANG, 7);
-  spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
+   spell_assignment(CLASS_SUMMONER, SPELL_NON_DETECTION, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ARROWS, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_ENERGY, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
@@ -7644,6 +7645,120 @@ void load_class_list(void)
   class_prereq_feat(CLASS_ASSASSIN, FEAT_TWO_WEAPON_FIGHTING, 1);
   /****************************************************************************/
   /****************************************************************************/
+
+  /****************************************************************************/
+  /*     class-number               name      abrv   clr-abrv     menu-name*/
+  classo(CLASS_WARLOCK, "warlock", "Wlk", "\tDW\tWlk\tn", "u) \tDWarlock\tn",
+         /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
+         -1, N, N, M, 6, 0, 1, 6, Y, 0, 0,
+         /*prestige spell progression*/ "none",
+         /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
+         /*descrip*/
+         "Champions of dark and chaotic powers, warlocks are born of perilous "
+         "magic or extraplanar pacts. The powers they serve can be cruel, "
+         "capricious, wild, and unbound by conventional morality or law. "
+         "Ambitious and often unprincipled, warlocks seek to master the "
+         "magical energy suffusing their souls by sheer force of will.\r\n\r\n");
+  /* class-number then saves:        fortitude, reflex, will, poison, death */
+  assign_class_saves(CLASS_WARLOCK, B, B, G, B, G);
+
+  assign_class_abils(CLASS_WARLOCK, /* class number */
+                     /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
+                     CC, CC, CC, CA, CA, CA, CA,
+                     /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
+                     CC, CA, CC, CA, CC, CC, CC, CA,
+                     /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
+                     CA, CC, CC, CC, CC, CC,
+                     /*survival,swim,use_magic_device,perform*/
+                     CC, CC, CA, CC);
+  assign_class_titles(CLASS_WARLOCK,             /* class number */
+                      "the Fledgling Warlock",      /* <= 4  */
+                      "the Fledgling Warlock",  /* <= 9  */
+                      "the Fledgling Warlock",       /* <= 14 */
+                      "the Fledgling Warlock",  /* <= 19 */
+                      "the Fledgling Warlock",      /* <= 24 */
+                      "the Warlock", /* <= 29 */
+                      "the Warlock",       /* <= 30 */
+                      "the Warlock",    /* <= LVL_IMMORT */
+                      "the Limitless Warlock",   /* <= LVL_STAFF */
+                      "the God of Warlocking",     /* <= LVL_GRSTAFF */
+                      "the Warlock"              /* default */
+  );
+
+  /* starting feats and proficiencies */
+  feat_assignment(CLASS_WARLOCK, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 1, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_LORE, Y, 2, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 3, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 3, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_DECEIVE_ITEM, Y, 4, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 5, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 7, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 7, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_FIENDISH_RESILIENCE, Y, 8, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 9, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_ENERGY_RESISTANCE, Y, 8, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 11, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 11, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_FIENDISH_RESILIENCE, Y, 13, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 14, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 15, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 17, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_FIENDISH_RESILIENCE, Y, 18, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 19, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 20, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_ENERGY_RESISTANCE, Y, 20, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 22, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 23, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 24, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 26, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_COLD_IRON_DR, Y, 27, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 28, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 30, Y);
+  feat_assignment(CLASS_WARLOCK, FEAT_WARLOCK_ENERGY_RESISTANCE, Y, 30, Y);
+  // feat_assignment(CLASS_WARLOCK, FEAT_INVOCATIONS, Y, 1, Y);
+  /*              class num      spell                   level acquired */
+  spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_SPEAR, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_HIDEOUS_BLOW, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DRAINING_BLAST, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_FRIGHTFUL_BLAST, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_BEGUILING_INFLUENCE, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DARK_ONES_OWN_LUCK, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DARKNESS, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DEVILS_SIGHT, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_ENTROPIC_WARDING, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_LEAPS_AND_BOUNDS, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_OTHERWORLDLY_WHISPERS, 1);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_SEE_THE_UNSEEN, 1);
+
+  spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_CHAIN, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_BESHADOWED_BLAST, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_BRIMSTONE_BLAST, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_HELLRIME_BLAST, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_CHARM, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_CURSE_OF_DESPAIR, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DREAD_SEIZURE, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_FLEE_THE_SCENE, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_THE_DEAD_WALK, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_VORACIOUS_DISPELLING, 6);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_WALK_UNSEEN, 6);
+
+  spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_CONE, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_BEWITCHING_BLAST, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_NOXIOUS_BLAST, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_VITRIOLIC_BLAST, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_CHILLING_TENTACLES, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DEVOUR_MAGIC, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_TENACIOUS_PLAGUE, 11);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_WALL_OF_PERILOUS_FLAME, 11);
+
+  spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_DOOM, 16);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_BINDING_BLAST, 16);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_DARK_FORESIGHT, 16);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_RETRIBUTIVE_INVISIBILITY, 16);
+  spell_assignment(CLASS_WARLOCK, WARLOCK_WORD_OF_CHANGING, 16);
 
   /****************************************************************************/
   /****************************************************************************/

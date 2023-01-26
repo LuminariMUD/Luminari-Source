@@ -734,6 +734,66 @@
 /***************************************/
 #define PSIONIC_POWER_END 1602
 /***************************************/
+
+/** we're going to start warlock powers at 1649.
+ */
+
+/***************************************/
+/***************************************/
+#define WARLOCK_POWER_START 1648
+/***************************************/
+#define WARLOCK_ELDRITCH_BLAST 1649
+// start least invocations
+#define WARLOCK_ELDRITCH_SPEAR 1650
+#define WARLOCK_HIDEOUS_BLOW 1651
+#define WARLOCK_DRAINING_BLAST 1652
+#define WARLOCK_FRIGHTFUL_BLAST 1653
+#define WARLOCK_BEGUILING_INFLUENCE 1654
+#define WARLOCK_DARK_ONES_OWN_LUCK 1655
+#define WARLOCK_DARKNESS 1656
+#define WARLOCK_DEVILS_SIGHT 1657
+#define WARLOCK_ENTROPIC_WARDING 1658
+#define WARLOCK_LEAPS_AND_BOUNDS 1659
+#define WARLOCK_OTHERWORLDLY_WHISPERS 1660
+#define WARLOCK_SEE_THE_UNSEEN 1661
+// end least invocations
+// start lesser invocations
+#define WARLOCK_ELDRITCH_CHAIN 1662
+#define WARLOCK_BESHADOWED_BLAST 1663
+#define WARLOCK_BRIMSTONE_BLAST 1664
+#define WARLOCK_HELLRIME_BLAST 1665
+#define WARLOCK_CHARM 1666
+#define WARLOCK_CURSE_OF_DESPAIR 1667
+#define WARLOCK_DREAD_SEIZURE 1668
+#define WARLOCK_FLEE_THE_SCENE 1669
+#define WARLOCK_THE_DEAD_WALK 1670
+#define WARLOCK_VORACIOUS_DISPELLING 1671
+#define WARLOCK_WALK_UNSEEN 1672
+// end lesser invocations
+// start greater invocations
+#define WARLOCK_ELDRITCH_CONE 1673
+#define WARLOCK_BEWITCHING_BLAST 1674
+// #define WARLOCK_HINDERING_BLAST 1675 this appears to be exactly the same as DRAINING. Removed.
+#define WARLOCK_NOXIOUS_BLAST 1676
+#define WARLOCK_VITRIOLIC_BLAST 1677
+#define WARLOCK_CHILLING_TENTACLES 1678
+#define WARLOCK_DEVOUR_MAGIC 1679
+#define WARLOCK_TENACIOUS_PLAGUE 1680
+#define WARLOCK_WALL_OF_PERILOUS_FLAME 1681
+// end greater invocations
+// start dark invocations
+#define WARLOCK_ELDRITCH_DOOM 1682
+#define WARLOCK_BINDING_BLAST 1683
+#define WARLOCK_UTTERDARK_BLAST 1684
+#define WARLOCK_DARK_FORESIGHT 1685
+#define WARLOCK_RETRIBUTIVE_INVISIBILITY 1686
+#define WARLOCK_WORD_OF_CHANGING 1687
+// end dark invocations
+
+/***************************************/
+#define WARLOCK_POWER_END 1701
+/***************************************/
+
 /***************************************/
 
 /* Other files to be aware of for new spells:
@@ -1418,6 +1478,9 @@ ASPELL(spell_overland_flight);
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);
 ASPELL(psionic_psychoportation);
+
+// warlocks
+ASPELL(eldritch_blast);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

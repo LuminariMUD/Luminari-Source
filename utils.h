@@ -986,6 +986,8 @@ void char_from_furniture(struct char_data *ch);
 #define GUARDING(ch) ((ch)->char_specials.guarding)
 /** Is ch firing a missile weapon? */
 #define FIRING(ch) ((ch)->char_specials.firing)
+/** is ch auto-eldritch-blasting? */
+#define BLASTING(ch) ((ch)->char_specials.blasting)
 /** Condensed Combat */
 #define CNDNSD(ch) ((ch)->char_specials.condensed_combat)
 

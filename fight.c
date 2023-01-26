@@ -6150,7 +6150,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += (GET_LEVEL(ch) - 30) * 2;
     }
 
-    if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
+if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
       return 1;                    /* yep, critical! */
   }
 
@@ -10172,6 +10172,78 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   {
     ranged_attacks++;
     attacks_at_max_bab++;
+  }
+
+  /* eldritch blast is incredibly finnicky and complex so to make it more manageable
+    players can use autoblast. Autoblast is neat and the best way to get the full
+    mileage out of striking-type casters. In this case we assume if the player
+    is blasting they are using ranged. Otherwise if they're blasting and using
+    hideous blow, they are doing melee. */
+  if (BLASTING(ch) && !affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW))
+  {
+    ranged_attacks += bonus_mainhand_attacks;
+    if (is_tanking(ch))
+    {
+      penalty -= 4;
+    }
+
+    /* mounted archery requires a feat or you receive 4 penalty to attack rolls */
+    if (RIDING(ch) && !IS_NPC(ch))
+    {
+      if (!HAS_FEAT(ch, FEAT_MOUNTED_ARCHERY))
+        penalty -= 4;
+    }
+
+    /** BEGIN ELDRITCH BLAST COMBAT EXECUTION ROUTINE **/
+
+    for (i = 0; i <= ranged_attacks; i++)
+    { /* check phase for corresponding attack */
+      /* phase 1: 1 4 7 10 13
+       * phase 2: 2 5 8 11 14
+       * phase 3: 3 6 9 12 15 */
+      perform_attack = FALSE;
+      switch (i)
+      {
+      case 1:
+      case 4:
+      case 7:
+      case 10:
+      case 13:
+        if (phase == PHASE_0 || phase == PHASE_1)
+        {
+          perform_attack = TRUE;
+        }
+        break;
+      case 2:
+      case 5:
+      case 8:
+      case 11:
+      case 14:
+        if (phase == PHASE_0 || phase == PHASE_2)
+        {
+          perform_attack = TRUE;
+        }
+        break;
+      case 3:
+      case 6:
+      case 9:
+      case 12:
+      case 15:
+        if (phase == PHASE_0 || phase == PHASE_3)
+        {
+          perform_attack = TRUE;
+        }
+        break;
+      }
+      if (perform_attack)
+      { /* correct phase for this attack? */
+        
+        call_magic(ch, FIGHTING(ch), NULL, WARLOCK_ELDRITCH_BLAST, 0, 0, CAST_INNATE);
+      }
+    }
+
+    /* that is it, all done with eldritch blast-related combat! */
+    return 0;
   }
 
   /* how do we know if we are in "ranged" or "melee" combat?  the current solution
