@@ -7407,7 +7407,7 @@ ACMD(do_autoblast)
     return;
   }
 
-  if (!affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
+  if (GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW) {
     cast_spell(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0);
   } else {
     send_to_char(ch, "Your strikes will now flow with eldritch energy.\r\n");

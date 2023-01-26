@@ -1189,7 +1189,7 @@
 #define AFF_WIND_WALL 112          // surrounded by a wall of wind
 #define AFF_FEAR_AURA 113
 #define AFF_SPIDER_CLIMB 114
-#define AFF_DEADLY_AIM 115          // used to determine if using deadly aim feat benefits.
+#define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
 
 /*---*/
 #define NUM_AFF_FLAGS 116
@@ -2863,9 +2863,11 @@
 #define APPLY_ENCUMBRANCE 56
 #define APPLY_FAST_HEALING 57
 #define APPLY_INITIATIVE 58
+#define APPLY_ELDRITCH_SHAPE 59
+#define APPLY_ELDRITCH_ESSENCE 60
 
 /** Total number of applies */
-#define NUM_APPLIES 59
+#define NUM_APPLIES 61
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 20
@@ -4015,6 +4017,10 @@ struct char_special_data_saved
     int encumbrance_mod;                        // This is added to strength only for purposes of calculating encumbrance limits.
     int fast_healing_mod;                       // This is like hp regen, except it will heal in combat.
     int initiative_mod;                         // bonus to initative
+
+    /* Warlock data */
+    int eldritch_shape;            // saved shape for eldritch blasts
+    int eldritch_essence;          // the essence used for eldritch blasts
 };
 
 /* not saved player data used for condensed combat */
@@ -4125,6 +4131,10 @@ struct char_special_data
 
     bool quick_chant; // true if under the effect of quick chant
     bool quick_mind; // true if under the effect of quick mind
+
+    /* Warlock data */
+    int eldritch_shape;            // saved shape for eldritch blasts
+    int eldritch_essence;          // the essence used for eldritch blasts
 };
 
 /* old memorization struct */

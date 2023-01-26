@@ -4045,16 +4045,16 @@ void mag_assign_spells(void)
         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
         "", 0, 0, NOSCHOOL, FALSE);
   spello(WARLOCK_ELDRITCH_SPEAR, "eldritch spear", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_HIDEOUS_BLOW, "hideous blow", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_DRAINING_BLAST, "draining blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_FRIGHTFUL_BLAST, "frightful blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BEGUILING_INFLUENCE, "beguiling influence", 0, 0, 0, POS_FIGHTING,
         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
@@ -4081,16 +4081,16 @@ void mag_assign_spells(void)
         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_ELDRITCH_CHAIN, "eldritch chain", 0, 0, 0, POS_FIGHTING,
-        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BESHADOWED_BLAST, "beshadowed blast", 0, 0, 0, POS_FIGHTING,
-        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BRIMSTONE_BLAST, "brimstone blast", 0, 0, 0, POS_FIGHTING,
-        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_HELLRIME_BLAST, "hellrime blast", 0, 0, 0, POS_FIGHTING,
-        TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_CHARM, "charm", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
@@ -4114,16 +4114,16 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_ELDRITCH_CONE, "eldritch cone", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BEWITCHING_BLAST, "bewitching blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_NOXIOUS_BLAST, "noxious blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_VITRIOLIC_BLAST, "vitriolic blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_CHILLING_TENTACLES, "chilling tentacles", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
@@ -4138,10 +4138,10 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_ELDRITCH_DOOM, "eldritch doom", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_BINDING_BLAST, "binding blast", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_DARK_FORESIGHT, "dark foresight", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,

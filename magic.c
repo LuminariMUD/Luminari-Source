@@ -924,9 +924,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_FORCE;
     size_dice = 6;
     num_dice = HAS_FEAT(ch, FEAT_ELDRITCH_BLAST);
-    if (affected_by_spell(ch, WARLOCK_HELLRIME_BLAST))
+    if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
       element = DAM_COLD;
-    if (affected_by_spell(ch, WARLOCK_ELDRITCH_CONE))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
+      element = DAM_NEGATIVE;
+    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CONE)
       size_dice = 8;    
     break;
 
@@ -3625,7 +3627,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   // warlock insanity below
   case WARLOCK_ELDRITCH_BLAST:
-    if (affected_by_spell(ch, WARLOCK_DRAINING_BLAST))
+    if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_DRAINING_BLAST)
     {
       if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       {
@@ -3638,7 +3640,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n begins to slow down!";
       to_vict = "You feel yourself slow down!";
     } 
-    else if (affected_by_spell(ch, WARLOCK_FRIGHTFUL_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_FRIGHTFUL_BLAST)
     {    
       if (is_immune_fear(ch, victim, TRUE))
         return;
@@ -3658,7 +3660,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You feel scared and fearful!";
       break;
     }
-    else if (affected_by_spell(ch, WARLOCK_BESHADOWED_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BESHADOWED_BLAST)
     {
       if (!can_blind(victim))
         return;
@@ -3681,7 +3683,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You have been blinded!";
       break;
     } 
-    else if (affected_by_spell(ch, WARLOCK_HELLRIME_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
     {
       if (mag_resistance(ch, victim, 0))
         return;
@@ -3696,7 +3698,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You're so cold it's hard to move!";
       break;
     }
-    else if (affected_by_spell(ch, WARLOCK_BEWITCHING_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) ==  WARLOCK_BEWITCHING_BLAST)
     {
       if (!can_confuse(victim))
         return;
@@ -3714,7 +3716,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You find yourself completely confused and disoriented.";
       break;
     }
-    else if (affected_by_spell(ch, WARLOCK_NOXIOUS_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_NOXIOUS_BLAST)
     {
       if (mag_resistance(ch, victim, 0))
         return;
@@ -3729,7 +3731,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n suddenly looks shocked and dazed!";
       break;
     }
-    else if (affected_by_spell(ch, WARLOCK_BINDING_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BINDING_BLAST)
     {
       if (mag_resistance(ch, victim, 0))
         return;
@@ -3746,7 +3748,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_vict = "You are dazed by the blast!";
       break;
     }
-    else if (affected_by_spell(ch, WARLOCK_UTTERDARK_BLAST))
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
     {
 
     }
@@ -3848,7 +3850,38 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
     }
     to_vict = "You can now see into the shadows and things not meant to be seen.";
-    
+
+  case WARLOCK_ELDRITCH_SPEAR:
+  case WARLOCK_ELDRITCH_CHAIN:
+  case WARLOCK_ELDRITCH_CONE:
+  case WARLOCK_ELDRITCH_DOOM:
+  case WARLOCK_HIDEOUS_BLOW:
+    if (GET_ELDRITCH_SHAPE(ch) == spellnum) {
+      to_vict = "You stop using any eldritch shape at all";
+      GET_ELDRITCH_SHAPE(ch) = -1;
+      break;
+    }
+    to_vict = "Your eldritch blasts will be in that form going forward.";
+    GET_ELDRITCH_SHAPE(ch) = spellnum;
+    break;
+  case WARLOCK_DRAINING_BLAST:
+  case WARLOCK_FRIGHTFUL_BLAST:
+  case WARLOCK_BESHADOWED_BLAST:
+  case WARLOCK_BRIMSTONE_BLAST:
+  case WARLOCK_HELLRIME_BLAST:
+  case WARLOCK_BEWITCHING_BLAST:
+  case WARLOCK_NOXIOUS_BLAST:
+  case WARLOCK_VITRIOLIC_BLAST:
+  case WARLOCK_BINDING_BLAST:
+  case WARLOCK_UTTERDARK_BLAST:
+    if (GET_ELDRITCH_ESSENCE(ch) == spellnum) {
+      to_vict = "You stop using any eldritch essence at all";
+      GET_ELDRITCH_ESSENCE(ch) = -1;
+      break;
+    }
+    to_vict = "Your eldritch blasts will be in that essence going forward.";
+    GET_ELDRITCH_ESSENCE(ch) = spellnum;
+    break;
     // spells and other effects
 
   case SPELL_ACID_SHEATH: // divination

@@ -2591,7 +2591,7 @@ ASPELL(eldritch_blast)
   //   }
   // }
   // Check to see if the spell should miss
-  if (affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW))
+  if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
   {
     // We're probably here because we already hit with melee. Go with it.
     to_room = "";
@@ -2606,10 +2606,10 @@ ASPELL(eldritch_blast)
     return;
   }
   
-  if (affected_by_spell(ch, WARLOCK_ELDRITCH_CHAIN))
+  if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN)
   {
 
-  } else if (affected_by_spell(ch, WARLOCK_ELDRITCH_DOOM)) {
+  } else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM) {
 
   } else 
   {
