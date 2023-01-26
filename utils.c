@@ -159,6 +159,10 @@ bool can_study_known_spells(struct char_data *ch)
       ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
     return TRUE;
 
+  /* warlock */
+  if (LEVELUP(ch)->class == CLASS_WARLOCK)
+    return TRUE;
+
   /* nope! */
   return FALSE;
 }

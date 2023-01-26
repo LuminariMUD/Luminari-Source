@@ -467,6 +467,7 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
   {
     switch (ch_class)
     {
+    case CLASS_WARLOCK:
     case CLASS_BARD:
       if (bard_known[caster_level][circle] -
               count_known_spells_by_circle(ch, ch_class, circle) <=
@@ -1122,6 +1123,15 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
       return (NUM_CIRCLES + 1);
     }
     break;
+  case CLASS_WARLOCK:
+    spell_circle = spell_info[spellnum].min_level[class];
+    if (spell_circle <= 5)
+      return 1;
+    else if (spell_circle <= 10)
+      return 2;
+    else if (spell_circle <= 15)
+      return 3;
+    return 4;
   case CLASS_SORCERER:
     spell_circle = spell_info[spellnum].min_level[class] / 2;
     spell_circle += metamagic_mod;
@@ -1249,6 +1259,14 @@ int get_class_highest_circle(struct char_data *ch, int class)
       return 3;
     else
       return 4;
+  case CLASS_WARLOCK:
+    if (class_level <= 5)
+      return 1;
+    else if (class_level <= 10)
+      return 2;
+    else if (class_level <= 15)
+      return 3;
+    return 4;
   case CLASS_BARD:
   case CLASS_INQUISITOR:
     if (class_level < 4)
@@ -1362,6 +1380,7 @@ void start_prep_event(struct char_data *ch, int class)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
+  case CLASS_WARLOCK:
     if (!INNATE_MAGIC(ch, class))
     {
       send_to_char(ch, "You have nothing in your innate magic queue for this class to "
@@ -1399,6 +1418,7 @@ void stop_prep_event(struct char_data *ch, int class)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
+  case CLASS_WARLOCK:
     if (INNATE_MAGIC(ch, class))
       reset_preparation_time(ch, class);
     break;
