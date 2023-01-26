@@ -1392,6 +1392,7 @@ int valid_align_by_class(int alignment, int class)
   case CLASS_PSIONICIST:
   case CLASS_ASSASSIN:
   case CLASS_INQUISITOR:
+  case CLASS_WARLOCK:
     return TRUE;
   }
   /* shouldn't get here if we got all classes listed above */
@@ -1475,6 +1476,8 @@ int parse_class(char arg)
     return CLASS_PSIONICIST;
   case '1':
     return CLASS_INQUISITOR;
+  case '2':
+    return CLASS_WARLOCK;
     /* empty letters */
     /* empty letters */
     /* empty letters */
@@ -1572,6 +1575,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_BLACKGUARD;
   if (is_abbrev(arg, "assassin"))
     return CLASS_ASSASSIN;
+  if (is_abbrev(arg, "warlock"))
+    return CLASS_WARLOCK;
 
   return CLASS_UNDEFINED;
 }
@@ -2417,6 +2422,7 @@ void newbieEquipment(struct char_data *ch)
     /* switch fallthrough */
   case CLASS_SORCERER:
   case CLASS_PSIONICIST:
+  case CLASS_WARLOCK:
     obj = read_object(NOOB_CLOTH_SLEEVES, VIRTUAL);
     GET_OBJ_SIZE(obj) = GET_SIZE(ch);
     obj_to_char(obj, ch); // cloth sleeves
@@ -3487,6 +3493,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_SPELLSWORD:
   case CLASS_PSIONICIST:
   case CLASS_INQUISITOR:
+  case CLASS_WARLOCK:
     level--;
     if (level < 0)
       level = 0;

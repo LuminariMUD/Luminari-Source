@@ -3602,6 +3602,23 @@ void assign_feats(void)
         "proficiency in wizard weapons",
         "You are proficient in the usage of daggers, quarterstaff, club, heavy and light crossbows.");
 
+  /* Warlock */
+  feato(FEAT_ELDRITCH_BLAST, "eldritch blast", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "blast baleful energy",
+        "blast baleful energy at a target");
+  
+  feato(FEAT_WARLOCK_FIENDISH_RESILIENCE, "fiendish resilience", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "heal unnaturally fast",
+        "heal unnaturally fast - activate to heal as if having fast healing");
+
+  feato(FEAT_WARLOCK_DR, "damage reduction - warlock", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
+        "resist physical damage",
+        "resist physical damage - passive damage reduction to physical attacks");
+  
+  feato(FEAT_WARLOCK_DECEIVE_ITEM, "deceive item", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "deceive magical items",
+        "deceive magical items - +2 to all use magic device checks");
+
   /* Psionicist */
   feato(FEAT_WEAPON_PROFICIENCY_PSIONICIST, "weapon proficiency - psionicist", TRUE, FALSE, FALSE, FEAT_TYPE_GENERAL,
         "proficiency in psioncist weapons",

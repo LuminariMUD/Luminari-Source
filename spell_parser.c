@@ -4034,6 +4034,122 @@ void mag_assign_spells(void)
   // end divine
 
   /* NON-castable spells should appear below here. */
+
+  // start warlock invocation definitions
+  spello(WARLOCK_ELDRITCH_BLAST, "eldritch blast", 0, 0, 0, POS_FIGHTING,
+        TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
+        "", 0, 0, NOSCHOOL, FALSE);
+  spello(WARLOCK_ELDRITCH_SPEAR, "eldritch spear", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_HIDEOUS_BLOW, "hideous blow", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DRAINING_BLAST, "draining blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_FRIGHTFUL_BLAST, "frightful blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_BEGUILING_INFLUENCE, "beguiling influence", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DARK_ONES_OWN_LUCK, "dark one's own luck", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DARKNESS, "darkness", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DEVILS_SIGHT, "devil's sight", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_ENTROPIC_WARDING, "entropic warding", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_LEAPS_AND_BOUNDS, "leaps and bounds", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_OTHERWORLDLY_WHISPERS, "otherworldly whispers", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_SEE_THE_UNSEEN, "see the unseen", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_ELDRITCH_CHAIN, "eldritch chain", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_BESHADOWED_BLAST, "beshadowed blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_BRIMSTONE_BLAST, "brimstone blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_HELLRIME_BLAST, "hellrime blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_CHARM, "charm", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_CURSE_OF_DESPAIR, "curse of despair", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DREAD_SEIZURE, "dread seizure", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_FLEE_THE_SCENE, "flee the scene", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_THE_DEAD_WALK, "the dead walk", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_VORACIOUS_DISPELLING, "voracious dispelling", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_WALK_UNSEEN, "walk unseen", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_ELDRITCH_CONE, "eldritch cone", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_BEWITCHING_BLAST, "bewitching blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_NOXIOUS_BLAST, "noxious blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_VITRIOLIC_BLAST, "vitriolic blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_CHILLING_TENTACLES, "chilling tentacles", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DEVOUR_MAGIC, "devour magic", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);  
+  spello(WARLOCK_TENACIOUS_PLAGUE, "tenacious plague", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_WALL_OF_PERILOUS_FLAME, "wall of perilous flame", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_ELDRITCH_DOOM, "eldritch doom", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_BINDING_BLAST, "binding blast", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_DARK_FORESIGHT, "dark foresight", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_RETRIBUTIVE_INVISIBILITY, "retributive invisibility", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_WORD_OF_CHANGING, "word of changing", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+
+  // end warlock invocation definitions
+
   spello(SPELL_ACID, "!UNUSED!", 79, 64, 1, POS_DEAD,
          TAR_IGNORE, TRUE, MAG_MASSES,
          NULL, 8, 12, EVOCATION, FALSE);
@@ -4352,11 +4468,7 @@ void mag_assign_spells(void)
 
   spello(ABILITY_AFFECT_STONES_ENDURANCE, "stone's endurance", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
-         "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);
-
-  spello(WARLOCK_ELDRITCH_BLAST, "eldritch blast", 0, 0, 0, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
-         "", 0, 0, NOSCHOOL, FALSE);
+         "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);    
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,

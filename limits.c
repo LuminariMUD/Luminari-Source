@@ -330,11 +330,11 @@ void pulse_luminari()
 
     /* safety check to make sure you aren't firing when not fighting */
     if (!FIGHTING(i))
-      FIRING(i) = 0;
+      FIRING(i) = FALSE;
 
     /* safety check to make sure you aren't blasting when not fighting */
     if (!BLASTING(i))
-      BLASTING(i) = 0;
+      BLASTING(i) = FALSE;
 
     /* a function meant to check for room-based hazards, like
        falling, drowning, lava, etc */
