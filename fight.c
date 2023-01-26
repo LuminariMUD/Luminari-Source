@@ -9144,6 +9144,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         affect_from_char(ch, SKILL_CHARGE);
       }
     }
+    
+    /* Extra handling for ELDRITCH BLAAAAAAAST */
+    if (BLASTING(ch) && affected_by_spell(ch, WARLOCK_HIDEOUS_BLOW)) {
+      call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, 0, CAST_INNATE);
+    }
     break;
   }
 
