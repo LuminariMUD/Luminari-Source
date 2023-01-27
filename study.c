@@ -1050,7 +1050,7 @@ void warlock_study_menu(struct descriptor_data *d, int circle)
 
   /* SPELL PREPARATION HOOK */
   for (counter = WARLOCK_POWER_START + 1; counter < WARLOCK_POWER_END; counter++)
-  {
+  {    
     if (compute_spells_circle(CLASS_WARLOCK,
                               counter,
                               METAMAGIC_NONE,
@@ -3615,7 +3615,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       number = atoi(arg);
 
       /* SPELL PREPARATION HOOK */
-      for (counter = 1; counter < NUM_SPELLS; counter++)
+      for (counter = WARLOCK_POWER_START + 1; counter < WARLOCK_POWER_END; counter++)
       {
         if (counter == number)
         {

@@ -773,7 +773,7 @@
 // start greater invocations
 #define WARLOCK_ELDRITCH_CONE 1673
 #define WARLOCK_BEWITCHING_BLAST 1674
-// #define WARLOCK_HINDERING_BLAST 1675 this appears to be exactly the same as DRAINING. Removed.
+#define WARLOCK_UNUSED_ABILITY 1675  // this appears to be exactly the same as DRAINING. Removed.
 #define WARLOCK_NOXIOUS_BLAST 1676
 #define WARLOCK_VITRIOLIC_BLAST 1677
 #define WARLOCK_CHILLING_TENTACLES 1678
