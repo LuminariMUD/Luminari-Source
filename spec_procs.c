@@ -979,6 +979,15 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 2;
     if (HAS_FEAT(ch, FEAT_FAE_SENSES))
       value += 3;
+    // if you're inside or in a forest, you can use spider climb to scale walls/trees and hide
+    // from above.
+    if (!OUTSIDE(ch) || (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_FOREST))
+    {
+      if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB))
+        value += 8;
+      else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
+        value += 8;
+    }
     value += (size_modifiers_inverse[GET_SIZE(ch)] * 4);
     value += compute_gear_armor_penalty(ch);
     return value;
@@ -1150,7 +1159,9 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
-    if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
+    if (AFF_FLAGGED(ch, AFF_SPIDER_CLIMB))
+      value += 30;
+    else if (HAS_FEAT(ch, FEAT_VAMPIRE_SPIDER_CLIMB) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 30;
     value += compute_gear_armor_penalty(ch);
     return value;

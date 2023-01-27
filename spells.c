@@ -34,6 +34,7 @@
 #include "psionics.h"
 #include "assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */
+#include "transport.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -401,8 +402,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if (AFF_FLAGGED(victim, AFF_CHARM))
     send_to_char(ch, "Your victim is already charmed.\r\n");
 
-  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) ||
-                                       GET_LEVEL(victim) >= 8))
+  else if (spellnum == SPELL_CHARM && (CASTER_LEVEL(ch) < GET_LEVEL(victim) || GET_LEVEL(victim) >= 8))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
   else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
@@ -464,6 +464,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
       af.spell = SPELL_DOMINATE_PERSON;
     else if (spellnum == SPELL_MASS_DOMINATION)
       af.spell = SPELL_MASS_DOMINATION;
+    else if (spellnum == SPELL_CHARM_MONSTER)
+      af.spell = SPELL_CHARM_MONSTER;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;
@@ -694,6 +696,133 @@ EVENTFUNC(event_acid_arrow)
   return 0;
 }
 
+
+/* The "return" of the event function is the time until the event is called
+ * again. If we return 0, then the event is freed and removed from the list, but
+ * any other numerical response will be the delay until the next call */
+EVENTFUNC(event_aqueous_orb)
+{
+  struct char_data *ch, *victim = NULL;
+  struct mud_event_data *pMudEvent;
+  int casttype = CAST_SPELL;
+  int level = 0;
+  bool is_fire = false;
+
+  /* This is just a dummy check, but we'll do it anyway */
+  if (event_obj == NULL)
+    return 0;
+
+  /* For the sake of simplicity, we will place the event data in easily
+   * referenced pointers */
+  pMudEvent = (struct mud_event_data *)event_obj;
+
+  ch = (struct char_data *)pMudEvent->pStruct;
+
+  if (ch && FIGHTING(ch)) // assign victim, if none escape
+    victim = FIGHTING(ch);
+  else
+    return 0;
+
+  if (ch == NULL || victim == NULL)
+    return 0;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return 0;
+  }
+
+  if (mag_resistance(ch, victim, 0))
+    return 0;
+
+  if (affected_by_spell(victim, SPELL_FIRE_SHIELD) || AFF_FLAGGED(victim, AFF_FSHIELD))
+  {
+    act("The aqueous orb quenches your fire shield.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's fire shield.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_FIRE_SHIELD);
+    REMOVE_BIT_AR(AFF_FLAGS(victim), AFF_FSHIELD);
+  }
+
+  if (affected_by_spell(victim, SPELL_CONTINUAL_FLAME))
+  {
+    act("The aqueous orb quenches your continual flame.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's continual flame.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_CONTINUAL_FLAME);
+  }
+
+  if (affected_by_spell(victim, SPELL_SUN_METAL))
+  {
+    act("The aqueous orb quenches your sun metal enhancement.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's sun metal enhancement.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_SUN_METAL);
+  }
+
+  if (affected_by_spell(victim, SPELL_FIRE_OF_ENTANGLEMENT))
+  {
+    act("The aqueous orb quenches your fires of entanglement.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's fires of entanglement.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, SPELL_FIRE_OF_ENTANGLEMENT);
+  }
+
+  if (affected_by_spell(victim, BOMB_AFFECT_FIRE_BRAND))
+  {
+    act("The aqueous orb quenches your fire brand bomb effect.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's fire brand bomb effect.", FALSE, victim, 0, 0, TO_ROOM);
+    affect_from_char(victim, BOMB_AFFECT_FIRE_BRAND);
+  }
+
+  if (INCENDIARY(victim) > 0)
+  {
+    act("The aqueous orb quenches your incendiary cloud.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb quenches $n's incendiary cloud.", FALSE, victim, 0, 0, TO_ROOM);
+    INCENDIARY(victim) = 0;
+  }
+
+  if (GET_SIZE(victim) > SIZE_LARGE)
+  {
+    act("The aqueous orb rolls through you, leaving you unaffected.", FALSE, victim, 0, 0, TO_CHAR);
+    act("The aqueous orb rolls through $n, leaving $m unaffected.", FALSE, victim, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  if (!IS_LIVING(victim))
+  {
+    act("Without the need to breathe, being engulfed in the aqueous orb does not harm you at all.", FALSE, victim, 0, 0, TO_CHAR);
+    act("Without the need to breathe, being engulfed in the aqueous orb does not harm $n at all.", FALSE, victim, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  if (AFF_FLAGGED(victim, AFF_WATER_BREATH))
+  {
+    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm you at all.", FALSE, victim, 0, 0, TO_CHAR);
+    act("With the ability to breathe water, being engulfed in the aqueous orb does not harm $n at all.", FALSE, victim, 0, 0, TO_ROOM);
+    return 0;
+  }
+
+  is_fire = (GET_SUBRACE(victim, 0) == SUBRACE_FIRE || 
+            GET_SUBRACE(victim, 1) == SUBRACE_FIRE || 
+            GET_SUBRACE(victim, 2) == SUBRACE_FIRE || 
+            GET_RACE(victim) == RACE_SMALL_FIRE_ELEMENTAL || 
+            GET_RACE(victim) == RACE_MEDIUM_FIRE_ELEMENTAL || 
+            GET_RACE(victim) == RACE_LARGE_FIRE_ELEMENTAL || 
+            GET_RACE(victim) == RACE_HUGE_FIRE_ELEMENTAL);
+
+  /* how about wands and everything else?? */
+  level = CASTER_LEVEL(ch);
+
+  if (level < 1)
+    level = 15; /* so lame */
+
+  if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, CONJURATION))
+    damage(ch, victim, is_fire ? dice(2, 6) : 0, SPELL_AQUEOUS_ORB, DAM_WATER, FALSE);
+  else
+    damage(ch, victim, is_fire ? dice(4, 6) : dice(2, 6), SPELL_AQUEOUS_ORB, DAM_WATER, FALSE);
+
+  update_pos(victim);
+
+  return 0;
+}
+
 /* The "return" of the event function is the time until the event is called
  * again. If we return 0, then the event is freed and removed from the list, but
  * any other numerical response will be the delay until the next call */
@@ -771,6 +900,409 @@ ASPELL(spell_acid_arrow)
   }
 }
 
+ASPELL(spell_control_summoned_creature)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char outbuf[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *vict = NULL;
+  struct char_data *master = NULL;
+
+  one_argument(cast_arg3, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You have to specify a summoned creature to control.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "No one by that name here.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(vict))
+  {
+    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    return;
+  }
+
+  if (!AFF_FLAGGED(vict, AFF_CHARM) || !vict->master)
+  {
+    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    return;
+  }
+
+  master = vict->master;
+
+  if (!isSummonMob(GET_MOB_VNUM(vict)))
+  {
+    send_to_char(ch, "You can only used this on mobs that are summoned through various summoning spells.\r\n");
+    return;
+  }
+
+  if (mag_resistance(ch, vict, 0) || mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(ch), ENCHANTMENT))
+  {
+    act("Your attempt to wrest control over $N fails.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n's attempt to wrest control over You fails.", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n's attempt to wrest control over $N fails.", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+
+  if (skill_roll(ch, ABILITY_SPELLCRAFT) < skill_roll(vict, ABILITY_SPELLCRAFT))
+  {
+    act("Your attempt to wrest control over $N's minion fails.", FALSE, ch, 0, master, TO_CHAR);
+    act("$n's attempt to wrest control over Your minon fails.", FALSE, ch, 0, master, TO_CHAR);
+    act("$n's attempt to wrest control over $N's minion fails.", FALSE, ch, 0, master, TO_NOTVICT);
+    return;
+  }
+
+  snprintf(outbuf, sizeof(outbuf), "You wrest control of %s from $N.", GET_NAME(vict));
+  act(outbuf, FALSE, ch, 0, master, TO_CHAR);
+  snprintf(outbuf, sizeof(outbuf), "$n wrests control of %s from You.", GET_NAME(vict));
+  act(outbuf, FALSE, ch, 0, master, TO_VICT);
+  snprintf(outbuf, sizeof(outbuf), "$n wrests control of %s from $N.", GET_NAME(vict));
+  act(outbuf, FALSE, ch, 0, master, TO_NOTVICT);
+
+  if (GROUP(vict))
+    leave_group(ch);
+  stop_follower(vict);
+
+  save_char_pets(master);
+
+  add_follower(vict, ch);
+  if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
+    join_group(vict, GROUP(ch));
+
+  save_char_pets(ch);
+}
+
+ASPELL(spell_siphon_might)
+{
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char out[MAX_INPUT_LENGTH] = {'\0'};
+  struct char_data *enemy = NULL, *recipient = NULL;
+  int strength = 0;
+  struct affected_type af, af2;
+
+  two_arguments(cast_arg3, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might you'd like to siphon.\r\n");
+    return;
+  }
+  if (!*arg2)
+  {
+    if (FIGHTING(ch))
+    {
+      enemy = FIGHTING(ch);
+    }
+    else
+    {
+      send_to_char(ch, "You need to specify the recipient of the siphoned might and whose might you'd like to siphon.\r\n");
+      return;
+    }
+  }
+
+  if (!(recipient = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "There's no recipient here by that description.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(recipient, SPELL_SIPHON_MIGHT))
+  {
+    if (ch == recipient)
+    {
+      send_to_char(ch, "You're already under the effect of siphon might.\r\n");
+    }
+    else
+    {
+      act("$N is already under the effect of siphon might.", FALSE, ch, 0, recipient, TO_CHAR);
+    }
+    return;
+  }
+
+  if (!enemy)
+  {
+    if (!(enemy = get_char_vis(ch, arg2, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, "There's no enemy here by that description.\r\n");
+      return;
+    }
+  }
+
+  if (affected_by_spell(recipient, SPELL_SIPHON_MIGHT))
+  {
+    act("$N is already under the effect of siphon might.", FALSE, ch, 0, enemy, TO_CHAR);
+    return;
+  }
+
+  if (mag_resistance(ch, enemy, 0))
+  {
+    act("$N has resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
+    act("$N has resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_NOTVICT);
+    return;
+  }
+
+  strength = dice(1, 6) + MIN(5, CASTER_LEVEL(ch) / 2);
+
+  if (!mag_savingthrow(ch, enemy, SAVING_FORT, 0, SPELL_SIPHON_MIGHT, CASTER_LEVEL(ch), NECROMANCY))
+  {
+    act("$N has resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
+    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_NOTVICT);
+    strength /= 2;
+  }
+
+  new_affect(&af);
+  af.spell = SPELL_SIPHON_MIGHT;
+  af.modifier = -strength;
+  af.duration = CASTER_LEVEL(ch);
+  af.location = APPLY_STR;
+  affect_to_char(enemy, &af);
+
+  new_affect(&af2);
+  af2.spell = SPELL_SIPHON_MIGHT;
+  af2.modifier = strength;
+  af2.duration = CASTER_LEVEL(ch);
+  af2.location = APPLY_STR;
+  affect_to_char(recipient, &af2);
+
+  if (ch == recipient)
+  {
+    act("You have siphoned might from $N into yourself.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("$n has siphoned might from You into $mself.", FALSE, ch, 0, enemy, TO_VICT);
+    act("$n has siphoned might from $N into $mself.", FALSE, ch, 0, enemy, TO_CHAR);
+  }
+  else
+  {
+    snprintf(out, sizeof(out), "You have siphoned might from $N into %s", GET_NAME(recipient));
+    act(out, FALSE, ch, 0, enemy, TO_CHAR);
+    snprintf(out, sizeof(out), "$n has siphoned might from You into %s", GET_NAME(recipient));
+    act(out, FALSE, ch, 0, enemy, TO_VICT);
+    snprintf(out, sizeof(out), "$n has siphoned might from $N into %s", GET_NAME(recipient));
+    act(out, FALSE, ch, 0, enemy, TO_NOTVICT);
+  }
+}
+
+ASPELL(spell_human_potential)
+{
+
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char which_stat[50] = {'\0'};
+  char stat_buf[200] = {'\0'};
+  struct affected_type af;
+  struct char_data *vict = NULL;
+
+  two_arguments(cast_arg3, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  new_affect(&af);
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to specify who you wish to cast this upon.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg1, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "No one by that name here.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(vict, SPELL_HUMAN_POTENTIAL))
+  {
+    act("$N has already had their potential raised.", FALSE, ch, 0, vict, TO_CHAR);
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg2, "strength"))
+  {
+    af.location = APPLY_STR;
+    snprintf(which_stat, sizeof(which_stat), "stronger");
+  }
+  else if (is_abbrev(arg2, "constitution"))
+  {
+    af.location = APPLY_CON;
+    snprintf(which_stat, sizeof(which_stat), "more hardy");
+  }
+  else if (is_abbrev(arg2, "dexterity"))
+  {
+    af.location = APPLY_DEX;
+    snprintf(which_stat, sizeof(which_stat), "more agile");
+  }
+  else if (is_abbrev(arg2, "intelligence"))
+  {
+    af.location = APPLY_INT;
+    snprintf(which_stat, sizeof(which_stat), "smarter");
+  }
+  else if (is_abbrev(arg2, "wisdom"))
+  {
+    af.location = APPLY_WIS;
+    snprintf(which_stat, sizeof(which_stat), "wiser");
+  }
+  else if (is_abbrev(arg2, "charisma"))
+  {
+    af.location = APPLY_CHA;
+    snprintf(which_stat, sizeof(which_stat), "more likeable");
+  }
+  else
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.2\r\n");
+    return;
+  }
+
+  af.spell = SPELL_HUMAN_POTENTIAL;
+  af.modifier = 2;
+  af.duration = 10 * level;
+  af.bonus_type = BONUS_TYPE_RACIAL;
+
+  affect_to_char(vict, &af);
+
+  snprintf(stat_buf, sizeof(stat_buf), "You feel %s.", which_stat);
+  act(stat_buf, FALSE, ch, 0, vict, TO_VICT);
+  snprintf(stat_buf, sizeof(stat_buf), "$N looks %s.", which_stat);
+  act(stat_buf, FALSE, ch, 0, vict, TO_ROOM);
+
+}
+
+ASPELL(spell_mass_human_potential)
+{
+
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char which_stat[50] = {'\0'};
+  char stat_buf[200] = {'\0'};
+  struct affected_type af;
+  struct char_data *vict = NULL;
+  int apply_loc = APPLY_NONE;
+
+  one_argument(cast_arg3, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg1, "strength"))
+  {
+    apply_loc = APPLY_STR;
+    snprintf(which_stat, sizeof(which_stat), "stronger");
+  }
+  else if (is_abbrev(arg1, "constitution"))
+  {
+    apply_loc = APPLY_CON;
+    snprintf(which_stat, sizeof(which_stat), "more hardy");
+  }
+  else if (is_abbrev(arg1, "dexterity"))
+  {
+    apply_loc = APPLY_DEX;
+    snprintf(which_stat, sizeof(which_stat), "more agile");
+  }
+  else if (is_abbrev(arg1, "intelligence"))
+  {
+    apply_loc = APPLY_INT;
+    snprintf(which_stat, sizeof(which_stat), "smarter");
+  }
+  else if (is_abbrev(arg1, "wisdom"))
+  {
+    apply_loc = APPLY_WIS;
+    snprintf(which_stat, sizeof(which_stat), "wiser");
+  }
+  else if (is_abbrev(arg1, "charisma"))
+  {
+    apply_loc = APPLY_CHA;
+    snprintf(which_stat, sizeof(which_stat), "more likeable");
+  }
+  else
+  {
+    send_to_char(ch, "Please specify an ability score: strength, constituion, dexterity, intelligence, wisdom, charisma.2\r\n");
+    return;
+  }
+
+  for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
+  {
+    if (GROUP(ch) != GROUP(vict) && ch != vict)
+      continue;
+
+    if (affected_by_spell(vict, SPELL_HUMAN_POTENTIAL))
+    {
+      act("$N has already had their potential raised.", FALSE, ch, 0, vict, TO_CHAR);
+      continue;
+    }
+
+    new_affect(&af);
+
+    af.location = apply_loc;
+    af.spell = SPELL_HUMAN_POTENTIAL;
+    af.modifier = 2;
+    af.duration = 10 * level;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+
+    affect_to_char(vict, &af);
+
+    snprintf(stat_buf, sizeof(stat_buf), "You feel %s.", which_stat);
+    act(stat_buf, FALSE, ch, 0, vict, TO_VICT);
+    snprintf(stat_buf, sizeof(stat_buf), "$N looks %s.", which_stat);
+    act(stat_buf, FALSE, ch, 0, vict, TO_ROOM);
+  }
+}
+
+ASPELL(spell_aqueous_orb)
+{
+  int x = 0, num_rounds = 1;
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  struct obj_data *wall = NULL;
+
+  one_argument(cast_arg2, arg, sizeof(arg));
+
+  // if there's a wall of fire, quench it.
+  if (*arg)
+  {
+    send_to_char(ch, "You send out a large ball of rolling water!\r\n");
+    act("$n sends out a large ball of rolling water!", FALSE, ch, 0, 0, TO_ROOM);
+
+    for (wall = world[victim->in_room].contents; wall; wall = wall->next_content)
+    {
+      if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_FIRE)
+      {
+        send_to_char(ch, "You quench a wall of fire!\r\n");
+        act("$n quenches a wall of fire!", FALSE, ch, 0, 0, TO_ROOM);
+        obj_from_room(wall);
+      }
+    }
+  }
+
+  // Now inflict a DoT
+
+  if (ch == NULL || victim == NULL)
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  num_rounds += CASTER_LEVEL(ch);
+
+  for (x = 0; x < num_rounds; x++)
+  {
+    NEW_EVENT(eAQUEOUSORB, ch, NULL, ((x * 6) * PASSES_PER_SEC));
+  }
+}
+
 ASPELL(spell_banish)
 {
   struct follow_type *k;
@@ -811,6 +1343,15 @@ ASPELL(spell_charm) // enchantment
     return;
 
   effect_charm(ch, victim, SPELL_CHARM, casttype, level);
+}
+
+ASPELL(spell_charm_monster) // enchantment
+{
+
+  if (victim == NULL || ch == NULL)
+    return;
+
+  effect_charm(ch, victim, SPELL_CHARM_MONSTER, casttype, level);
 }
 
 ASPELL(spell_charm_animal) // enchantment
@@ -1024,6 +1565,77 @@ ASPELL(spell_detect_poison)
   }
 }
 
+// This spell will allow you to travel to any carriage or sea port destination for LuminariMUD
+// Or to any zone entrance if on Faerun.
+ASPELL(spell_overland_flight)
+{
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
+  int i = 0;
+
+  char *zone = cast_arg3 + 1;
+
+  if (zone == NULL || !*zone || strlen(zone) < 3)
+  {
+    send_to_char(ch, "Please specify the area you'd like to fly to.  Type flightlist for a list.\r\n");
+    return;
+  }
+
+#ifdef CAMPAIGN_FR
+
+  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_WORLDMAP))
+  {
+    send_to_char(ch, "You can only use this spell on the world map.\n\r");
+    return;
+  }
+
+  for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
+  {
+    if (is_abbrev(zone, zone_entrances[i][0]))
+      break;
+  }
+
+  if (i >= NUM_ZONE_ENTRANCES)
+  {
+    send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You begin flying to %s.\r\n", zone_entrances[i][0]);
+
+  enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
+
+#else
+
+  if (!ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+  {
+    send_to_char(ch, "You can only use this spell in the wilderness.\n\r");
+    return;
+  }
+
+  while (atoi(carriage_locales[i][1]) != 0)
+  {
+      if (is_abbrev(zone, carriage_locales[i][0]))
+        break;
+      i++;
+  }
+
+  if (atoi(carriage_locales[i][1]) == 0)
+  {
+    send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You begin flying to %s.\r\n", carriage_locales[i][0]);
+
+  enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
+
+#endif
+
+}
+
 ASPELL(spell_dismissal)
 {
   struct follow_type *k;
@@ -1041,8 +1653,7 @@ ASPELL(spell_dismissal)
       if (AFF_FLAGGED(k->follower, AFF_CHARM))
       {
         /* has proper subrace to be dismissed? */
-        if (IS_NPC(k->follower) &&
-            HAS_SUBRACE(k->follower, SUBRACE_EXTRAPLANAR))
+        if (IS_NPC(k->follower) && HAS_SUBRACE(k->follower, SUBRACE_EXTRAPLANAR))
         {
           /* great, attempt to dismiss and exit, just one victim */
           act("$n dismisses $N!", FALSE, ch, 0, k->follower, TO_ROOM);
@@ -2056,6 +2667,35 @@ ASPELL(spell_summon)
   entry_memory_mtrigger(victim);
   greet_mtrigger(victim, -1);
   greet_memory_mtrigger(victim);
+}
+
+ASPELL(spell_gird_allies)
+{
+
+  struct char_data *pet = NULL;
+  struct affected_type af;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
+  send_to_char(ch, "You weave a protective shell around your conjured allies.\r\n");
+
+  for (pet = world[IN_ROOM(ch)].people; pet; pet = pet->next_in_room)
+  {
+    if (IS_PET(pet) && GROUP(pet->master) == GROUP(ch))
+    {
+      act("You have been protected by $n's might.", FALSE, ch, 0, pet, TO_VICT);
+      act("$n has been proected by $N's might.", FALSE, pet, 0, ch, TO_ROOM);
+      new_affect(&af);
+      af.spell = SPELL_GIRD_ALLIES;
+      af.duration = 10 * (level / 2);
+      af.location = APPLY_AC_NEW;
+      af.modifier = 1 + (level / 6);
+      af.bonus_type = BONUS_TYPE_DEFLECTION;
+      affect_join(pet, &af, FALSE, FALSE, FALSE, FALSE);
+    }
+  }
+
 }
 
 ASPELL(spell_teleport)

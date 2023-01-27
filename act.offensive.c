@@ -562,7 +562,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   bool success = FALSE, counter_success = FALSE, skilled_monk = FALSE;
 
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
-      ch->next_in_room != vict && vict->next_in_room != ch)
+      ch->next_in_room != vict && vict->next_in_room != ch && skill != SPELL_BANISHING_BLADE)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
     return FALSE;
@@ -570,62 +570,73 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 
   if (MOB_FLAGGED(vict, MOB_NOKILL))
   {
-    send_to_char(ch, "This mob is protected.\r\n");
+    if (skill != SPELL_BANISHING_BLADE)
+      send_to_char(ch, "This mob is protected.\r\n");
     return FALSE;
   }
 
   if (!is_mission_mob(ch, vict))
   {
-    send_to_char(ch, "This mob cannot be attacked by you.\r\n");
+    if (skill != SPELL_BANISHING_BLADE)
+      send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return FALSE;
   }
 
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2)
   {
-    send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too small!\r\n");
+    if (skill != SPELL_BANISHING_BLADE)
+      send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too small!\r\n");
     return FALSE;
   }
 
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2)
   {
-    send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too big!\r\n");
+    if (skill != SPELL_BANISHING_BLADE)
+      send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too big!\r\n");
     return FALSE;
   }
 
   if (GET_POS(vict) == POS_SITTING)
   {
-    send_to_char(ch, "You can't knock down something that is already down!\r\n");
+    if (skill != SPELL_BANISHING_BLADE)
+      send_to_char(ch, "You can't knock down something that is already down!\r\n");
     return FALSE;
   }
 
   if (IS_INCORPOREAL(vict) && !is_using_ghost_touch_weapon(ch))
   {
-    act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!",
-        FALSE, ch, NULL, vict, TO_NOTVICT);
-    act("You sprawl completely through $N as you try to attack $M, slamming into the ground!",
-        FALSE, ch, NULL, vict, TO_CHAR);
-    act("$n sprawls completely through you as $e tries to attack you, slamming into the ground!",
-        FALSE, ch, NULL, vict, TO_VICT);
-    change_position(ch, POS_SITTING);
+    if (skill != SPELL_BANISHING_BLADE)
+    {
+      act("$n sprawls completely through $N as $e tries to attack $M, slamming into the ground!",
+          FALSE, ch, NULL, vict, TO_NOTVICT);
+      act("You sprawl completely through $N as you try to attack $M, slamming into the ground!",
+          FALSE, ch, NULL, vict, TO_CHAR);
+      act("$n sprawls completely through you as $e tries to attack you, slamming into the ground!",
+          FALSE, ch, NULL, vict, TO_VICT);
+      change_position(ch, POS_SITTING);
+    }
     return FALSE;
   }
 
   if (MOB_FLAGGED(vict, MOB_NOBASH))
   {
-    send_to_char(ch, "You realize you will probably not succeed:  ");
+    if (skill != SPELL_BANISHING_BLADE)
+      send_to_char(ch, "You realize you will probably not succeed:  ");
     penalty = -100;
   }
 
   if (is_wearing(vict, 132133))
   {
-    send_to_char(ch, "You failed to knock over %s due to stability boots!  Incoming counter attack!!! ...\r\n", GET_NAME(vict));
-    send_to_char(vict, "You stand your ground against %s, and with a snarl attempt a counterattack!\r\n",
-                 GET_NAME(ch));
-    act("$N via stability boots a knockdown attack from $n is resisted...  $N follows up with a counterattack!", FALSE, ch, 0, vict,
-        TO_NOTVICT);
+    if (skill != SPELL_BANISHING_BLADE)
+    {
+      send_to_char(ch, "You failed to knock over %s due to stability boots!  Incoming counter attack!!! ...\r\n", GET_NAME(vict));
+      send_to_char(vict, "You stand your ground against %s, and with a snarl attempt a counterattack!\r\n",
+                  GET_NAME(ch));
+      act("$N via stability boots a knockdown attack from $n is resisted...  $N follows up with a counterattack!", FALSE, ch, 0, vict,
+          TO_NOTVICT);
 
-    perform_knockdown(vict, ch, SKILL_BASH);
-
+      perform_knockdown(vict, ch, SKILL_BASH);
+    }
     return FALSE;
   }
 
@@ -669,6 +680,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
       attack_of_opportunity(vict, ch, 0);
     break;
+  case SPELL_BANISHING_BLADE:    
+    break;
   default:
     log("Invalid skill sent to perform knockdown!\r\n");
     return FALSE;
@@ -679,14 +692,21 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   {
     /* Successful unarmed touch attacks. */
 
-    /* Perform strength check. */
-    // if the teamwork feat tandem trip is in effect, we'll take the highest of two d20 rolls.
-    // Otherwise, just one d20.
-    attack_check += MAX(d20(ch), has_teamwork_feat(ch, FEAT_TANDEM_TRIP) ? d20(ch) : 0);
-    attack_check += d20(ch) + size_modifiers[GET_SIZE(ch)]; /* we added stat bonus above */
+    if (skill != SPELL_BANISHING_BLADE)
+    {
+      attack_check += d20(ch);
+    }
+    else
+    {
+      /* Perform strength check. */
+      // if the teamwork feat tandem trip is in effect, we'll take the highest of two d20 rolls.
+      // Otherwise, just one d20.
+      attack_check += MAX(d20(ch), has_teamwork_feat(ch, FEAT_TANDEM_TRIP) ? d20(ch) : 0);
+      attack_check += d20(ch) + size_modifiers[GET_SIZE(ch)]; /* we added stat bonus above */
+    }
     defense_check = d20(vict) + MAX(GET_STR_BONUS(vict), GET_DEX_BONUS(vict)) + size_modifiers[GET_SIZE(vict)];
 
-    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
+    if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_TRIP) && skill != SPELL_BANISHING_BLADE)
     {
       /* You do not provoke an attack of opportunity when you attempt to trip an opponent while you are unarmed.
        * You also gain a +4 bonus on your Strength check to trip your opponent.
@@ -700,7 +720,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       attack_check += 4;
     }
 
-    if (MONK_TYPE(ch) >= 10)
+    if (MONK_TYPE(ch) >= 10 && skill != SPELL_BANISHING_BLADE)
     {
       attack_check += 8;
       skilled_monk = TRUE;
@@ -744,6 +764,12 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
         act("\ty$n grabs and SLAMS you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
         act("\ty$n grabs and SLAMS $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
         break;
+      case SPELL_BANISHING_BLADE:
+        /* Messages for body slam */
+        act("\tyYour banishing blade sweeps under $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
+        act("\ty$n's banishing blade sweeps under you, throwing you to the ground!\tn", FALSE, ch, NULL, vict, TO_VICT);
+        act("\ty$n's banishing blade sweeps under $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_NOTVICT);
+        break;
       default:
         /* (Default) Messages for successful trip */
         act("\tyYou grab and overpower $N, throwing $M to the ground!\tn", FALSE, ch, NULL, vict, TO_CHAR);
@@ -758,6 +784,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       if (skill == SKILL_SHIELD_CHARGE)
       {
         /* just moved this to damage-messages */
+      }
+      else if (skill == SPELL_BANISHING_BLADE)
+      {
+        // no fail message
       }
       else
       {
@@ -777,7 +807,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       }
 
       /* Victim gets a chance to countertrip */
-      if (skill != SKILL_SHIELD_CHARGE && GET_POS(vict) > POS_SITTING)
+      if (skill != SKILL_SHIELD_CHARGE && skill != SPELL_BANISHING_BLADE && GET_POS(vict) > POS_SITTING)
       {
         attack_check = (d20(vict) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch)) * 4);
         defense_check = (d20(ch) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
@@ -844,6 +874,10 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     {
       /* just moved this to damage-messages */
     }
+    if (skill == SPELL_BANISHING_BLADE)
+    {
+      // No miss message
+    }
     else
     {
       act("\tyYou are unable to grab $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
@@ -885,8 +919,8 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   }
 
   /* fire-shield, etc check */
-  if (success)
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+  if (success && skill != SKILL_SHIELD_CHARGE)
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
   /* make sure combat starts */
   if (vict != ch)
@@ -899,7 +933,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     }
   }
 
-  return TRUE;
+  return success;
 }
 
 /* shieldpunch engine :
@@ -963,7 +997,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
       (name)(ch, shield, 0, "shieldpunch");
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
 
   return TRUE;
@@ -1031,7 +1065,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
     perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
 
   USE_STANDARD_ACTION(ch);
@@ -1111,7 +1145,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
 
   USE_STANDARD_ACTION(ch);
@@ -1187,7 +1221,7 @@ void perform_headbutt(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
   {
@@ -1509,7 +1543,7 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
   {
@@ -1696,7 +1730,7 @@ void perform_springleap(struct char_data *ch, struct char_data *vict)
         affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE); */
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
   {
@@ -5199,7 +5233,7 @@ int perform_tailsweep(struct char_data *ch)
             TO_NOTVICT);
 
         /* fire-shield, etc check */
-        damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+        damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
         vict_count++;
       }
@@ -6208,7 +6242,7 @@ int perform_dragonbite(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
     got_em = TRUE;
   }
@@ -6283,7 +6317,7 @@ void perform_kick(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
     damage(ch, vict, 0, SKILL_KICK, DAM_FORCE, FALSE);
@@ -7679,7 +7713,7 @@ int perform_disarm(struct char_data *ch, struct char_data *vict, int mod)
       obj_to_char(unequip_char(vict, pos), vict);
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else if (result <= -10)
   { /* critical failure */
@@ -7913,7 +7947,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   damage(ch, vict, amount, RACIAL_LICH_TOUCH, DAM_NEGATIVE, FALSE);
 
   /* fire-shield, etc check */
-  damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+  damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
 
   return TRUE;
 }
@@ -8991,7 +9025,7 @@ void perform_slam(struct char_data *ch, struct char_data *vict)
     }
 
     /* fire-shield, etc check */
-    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE);
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
   }
   else
     damage(ch, vict, 0, SKILL_SLAM, DAM_FORCE, FALSE);
@@ -9026,6 +9060,195 @@ ACMD(do_slam)
     vict = FIGHTING(ch);
 
   perform_slam(ch, vict);
+}
+
+ACMD(do_blood_drain)
+{
+
+  struct char_data *vict = NULL;
+  char arg[200];
+  int uses_remaining;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN))
+  {
+    send_to_char(ch, "You don't have the ability to food on the blood of others.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
+  {
+    send_to_char(ch, "You are already feasting on your opponent's blood.\r\n");
+    return;
+  }
+
+  if (FIGHTING(ch))
+    vict = FIGHTING(ch);
+  else if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "There's no one there by that description.\r\n");
+    return;
+  }
+
+  if (!can_blood_drain_target(ch, vict))
+  {
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, FEAT_VAMPIRE_BLOOD_DRAIN)) == 0)
+  {
+    send_to_char(ch, "You must recover the profane energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    send_to_char(ch, "Blood drain requires a standard action available to use.\r\n");
+    return;
+  }
+
+  act("You prepare to feast on the blood of $N!", FALSE, ch, 0, vict, TO_CHAR);
+
+  if (!FIGHTING(ch))
+  {
+    hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
+
+  struct affected_type af;
+
+  new_affect(&af);
+  af.spell = ABILITY_BLOOD_DRAIN;
+  af.duration = 5 + GET_LEVEL(ch) / 6;
+  affect_to_char(ch, &af);
+
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_VAMPIRE_BLOOD_DRAIN);
+
+  USE_STANDARD_ACTION(ch);
+
+}
+
+ACMD(do_quick_chant)
+{
+
+  int uses_remaining = 0;
+
+  if (subcmd == SCMD_QUICK_CHANT && !HAS_FEAT(ch, FEAT_QUICK_CHANT))
+  {
+    send_to_char(ch, "You do not have the quick chant feat.\r\n");
+    return;
+  }
+  else if (subcmd == SCMD_QUICK_MIND && !HAS_FEAT(ch, FEAT_QUICK_MIND))
+  {
+    send_to_char(ch, "You do not have the quick mind feat.\r\n");
+    return;
+  }
+
+  if ((uses_remaining = daily_uses_remaining(ch, (subcmd == SCMD_QUICK_CHANT) ? FEAT_QUICK_CHANT : FEAT_QUICK_MIND)) == 0)
+  {
+    send_to_char(ch, "You must recover the energy required to use this ability again.\r\n");
+    return;
+  }
+
+  if (uses_remaining < 0)
+  {
+    send_to_char(ch, "You are not experienced enough.\r\n");
+    return;
+  }
+
+  if (subcmd == SCMD_QUICK_CHANT)
+  {
+    if (ch->char_specials.quick_chant)
+    {
+      send_to_char(ch, "You are already benefitting from quick chant.\r\n");
+      return;
+    }
+    send_to_char(ch, "Youn invoke your quick chant ability.  The next non-ritual spell you cast will only use a swift action.\r\n");
+    ch->char_specials.quick_chant = true;
+  }
+  else
+  {
+    if (ch->char_specials.quick_mind)
+    {
+      send_to_char(ch, "You are already benefitting from quick mind.\r\n");
+      return;
+    }
+    send_to_char(ch, "Youn invoke your quick mind ability.  The next non-ritual power your manifest will only use a swift action.\r\n");
+    ch->char_specials.quick_mind = true;
+  }
+  
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, (subcmd == SCMD_QUICK_CHANT) ? FEAT_QUICK_CHANT : FEAT_QUICK_MIND);
+
+}
+
+ACMD(do_planarsoul)
+{
+  if (!affected_by_spell(ch, SPELL_PLANAR_SOUL))
+  {
+    send_to_char(ch, "You must be under the affect of the planar soul spell to use it's surging effect.\r\n");
+    return;
+  }
+  
+  if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
+  {
+    send_to_char(ch, "You are already under the effect of a planar soul surge enhancement.\r\n");
+    return;
+  }
+
+  struct affected_type af[6];
+  struct affected_type *aff = NULL;
+  int i = 0, duration = 0;
+
+  for (aff = ch->affected; aff; aff = aff->next)
+  {
+    if (aff->spell == SPELL_PLANAR_SOUL)
+    {
+      duration = aff->duration;
+      break;
+    }
+  }
+
+  affect_from_char(ch, SPELL_PLANAR_SOUL);
+
+  duration /= 600;
+  duration = MAX(duration, 1);
+
+  for (i = 0; i < 6; i++)
+  {
+    af[i].spell = AFFECT_PLANAR_SOUL_SURGE;
+    af[i].bonus_type = BONUS_TYPE_SACRED;
+    af[i].duration = duration;
+  }
+
+  af[0].location = APPLY_AC_NEW;
+  af[0].modifier = 2;
+  af[1].location = APPLY_STR;
+  af[1].modifier = 4;
+  af[2].location = APPLY_RES_ACID;
+  af[2].modifier = 15;
+  af[3].location = APPLY_RES_FIRE;
+  af[3].modifier = 15;
+  af[4].location = APPLY_FAST_HEALING;
+  af[4].modifier = 2;
+  af[5].location = APPLY_SKILL;
+  af[5].modifier = 5;
+  af[5].specific = ABILITY_INTIMIDATE;
+
+  for (i = 0; i < 6; i++)
+  {
+      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+  }
+
+  act("Your planar soul surges with might!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n seems to surge with might!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 /* cleanup! */

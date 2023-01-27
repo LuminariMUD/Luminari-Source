@@ -456,7 +456,7 @@ void assign_domains(void)
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_WATER, SPELL_ICE_DAGGER, SPELL_CHILL_TOUCH,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_BLUR, SPELL_STINKING_CLOUD, SPELL_COLD_SHIELD,
+                    SPELL_AQUEOUS_ORB, SPELL_STINKING_CLOUD, SPELL_COLD_SHIELD,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_ICE_STORM, SPELL_CONE_OF_COLD, SPELL_DISPLACEMENT,
                     /* 9th circle */
@@ -484,11 +484,11 @@ void assign_domains(void)
   add_domain_powers(DOMAIN_DESTRUCTION, DOMAIN_POWER_DESTRUCTIVE_SMITE, DOMAIN_POWER_DESTRUCTIVE_AURA,
                     DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED, DOMAIN_POWER_UNDEFINED);
   /* 1st circle */ /* 2nd circle */
-  add_domain_spells(DOMAIN_DESTRUCTION, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+  add_domain_spells(DOMAIN_DESTRUCTION, SPELL_TRUE_STRIKE, SPELL_RESERVED_DBC,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_RESERVED_DBC, SPELL_RESERVED_DBC, SPELL_CLOUDKILL,
+                    SPELL_RAGE, SPELL_RESERVED_DBC, SPELL_CLOUDKILL,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
-                    SPELL_SYMBOL_OF_PAIN, SPELL_RESERVED_DBC, SPELL_RESERVED_DBC,
+                    SPELL_SYMBOL_OF_PAIN, SPELL_RESERVED_DBC, SPELL_EARTHQUAKE,
                     /* 9th circle */
                     SPELL_HORRID_WILTING);
 
@@ -592,7 +592,7 @@ void assign_domains(void)
   /* 1st circle */ /* 2nd circle */
   add_domain_spells(DOMAIN_PROTECTION, SPELL_MAGE_ARMOR, SPELL_SHIELD,
                     /* 3rd circle */ /* 4th circle */ /* 5th circle */
-                    SPELL_PROTECTION_FROM_ENERGY, SPELL_HOLD_PERSON, SPELL_RESERVED_DBC,
+                    SPELL_PROTECTION_FROM_ENERGY, SPELL_HOLD_PERSON, SPELL_HOLD_MONSTER,
                     /* 6th circle */ /* 7th circle */ /* 8th circle */
                     SPELL_MINOR_GLOBE, SPELL_RESERVED_DBC, SPELL_ANTI_MAGIC_FIELD,
                     /* 9th circle */

@@ -263,6 +263,7 @@ ACMD_DECL(do_judgement);
 ACMD_DECL(do_bane);
 ACMD_DECL(do_slayer);
 ACMD_DECL(do_true_judgement);
+ACMD_DECL(do_flightlist);
 
 int max_judgements_active(struct char_data *ch);
 int num_judgements_active(struct char_data *ch);
@@ -531,6 +532,7 @@ ACMD_DECL(do_kick);
 ACMDCHECK(can_kick);
 ACMD_DECL(do_slam);
 ACMDCHECK(can_slam);
+ACMD_DECL(do_blood_drain);
 ACMD_DECL(do_seekerarrow);
 ACMDCHECK(can_seekerarrow);
 ACMD_DECL(do_arrowswarm);
@@ -613,6 +615,9 @@ ACMDCHECK(can_vampiric_shape_change);
 ACMD_DECL(do_vampiric_shape_change);
 ACMDCHECK(can_vampiric_dominate);
 ACMD_DECL(do_vampiric_dominate);
+ACMD_DECL(do_quick_chant);
+ACMD_DECL(do_planarsoul);
+
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
  ****************************************************************************/
@@ -693,6 +698,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_NO_FOLLOW 48
 #define SCMD_CONDENSED 49
 #define SCMD_CAREFUL_PET 50
+#define SCMD_NORAGE 51
 
 /* do_quit */
 ACMD_DECL(do_quit);

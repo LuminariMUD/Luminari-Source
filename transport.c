@@ -408,6 +408,15 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
   {
     snprintf(air, sizeof(air), "%s", sailing_locales[locale][1]);
   }
+  else if (type == TRAVEL_OVERLAND_FLIGHT)
+  {
+#ifdef CAMPAIGN_FR
+    snprintf(car, sizeof(car), "%s", zone_entrances[locale][0]);
+#else
+    snprintf(car, sizeof(car), "%s", carriage_locales[locale][1]);
+#endif
+  }
+  
 
   if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? strdup(air) : strdup(car))) == NOWHERE)
   {
@@ -419,10 +428,12 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
 
   if (taxi == NOWHERE)
   {
-    if (type != TRAVEL_SAILING)
+    if (type == TRAVEL_CARRIAGE)
       send_to_char(ch, "There are no carriages available currently.\r\n");
-    else
+    else if (type == TRAVEL_SAILING)
       send_to_char(ch, "There are no ships available currently.\r\n");
+    else
+      send_to_char(ch, "The skies are too tumultous right now.\r\n");
     return;
   }
 
@@ -441,6 +452,9 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
       continue;
     if (GET_POS(tch) < POS_STANDING)
       continue;
+    // overland flight is for the caster only
+    if (type == TRAVEL_OVERLAND_FLIGHT && ch != tch)
+      continue;
 
     if (type == TRAVEL_CARRIAGE)
     {
@@ -454,10 +468,20 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
       send_to_char(tch, "Your group leader ushers you into the ship.\r\n");
       send_to_char(tch, "You board the caravel and sail off to %s.\r\n\r\n", sailing_locales[locale][0]);
     }
+    else if (type == TRAVEL_OVERLAND_FLIGHT)
+    {
+      act("$n leaps into the air and flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
+#ifdef CAMPAIGN_FR
+      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", zone_entrances[locale][0]);
+#else
+      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", carriage_locales[locale][0]);
+#endif
+    }
 
     char_from_room(tch);
     char_to_room(tch, taxi);
     tch->player_specials->destination = to_room;
+    // need to take care of this part still for overland flight spell
     tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here, type);
     tch->player_specials->travel_type = type;
     tch->player_specials->travel_locale = locale;
@@ -537,6 +561,14 @@ void travel_tickdown(void)
         else if (ch->player_specials->travel_type == TRAVEL_SAILING)
         {
           snprintf(sail, sizeof(sail), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
+        }
+        else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
+        {
+#ifdef CAMPAIGN_FR
+          snprintf(car, sizeof(car), "%s", zone_entrances[ch->player_specials->travel_locale][2]);
+#else
+          snprintf(car, sizeof(car), "%s", carriage_locales[ch->player_specials->travel_locale][1]);
+#endif
         }
 
         if (ch->player_specials->travel_type == TRAVEL_SAILING)
@@ -623,11 +655,41 @@ void travel_tickdown(void)
 
 int get_distance(struct char_data *ch, int locale, int here, int type)
 {
-  int xf, xt, yf, yt;
-  xf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][5]);
-  xt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][5]);
-  yf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][6]);
-  yt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][6]);
+  int xf = 0, xt = 0, yf = 0, yt = 0;
+
+#ifdef CAMPAIGN_FR
+
+  int room = 0;
+
+  if (type == TRAVEL_CARRIAGE || type == TRAVEL_SAILING)
+  {
+    xf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][5]);
+    xt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][5]);
+    yf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][6]);
+    yt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][6]);
+  }
+  else if (type == TRAVEL_OVERLAND_FLIGHT)
+  {
+    set_x_y_coords(atoi(zone_entrances[locale][2]), &xf, &yf, &room);
+    set_x_y_coords(here, &xt, &yt, &room);
+  }
+
+#else
+  if (type == TRAVEL_CARRIAGE || type == TRAVEL_SAILING)
+  {
+    xf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][5]);
+    xt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][5]);
+    yf = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[here][6]);
+    yt = atoi(((type == TRAVEL_SAILING) ? sailing_locales : carriage_locales)[locale][6]);
+  }
+  else if (type == TRAVEL_OVERLAND_FLIGHT)
+  {
+    xf = ch->coords[0];
+    xt = atoi(carriage_locales[locale][5]);
+    yf = ch->coords[1];
+    yt = atoi(carriage_locales[locale][6]);    
+  }
+#endif
 
   int dx, dy;
 
@@ -646,12 +708,18 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
 
   distance *= 10;
 
+
   if (speed == 0)
     speed = 10;
+
+#ifdef CAMPAIGN_FR
+  distance *= 5;
+#endif
 
   distance /= speed;
 
   distance /= 2;
+  
 
   return distance;
 }

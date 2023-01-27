@@ -34,6 +34,7 @@
 #include "missions.h"
 #include "psionics.h"
 #include "combat_modes.h"
+#include "spec_procs.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -1393,6 +1394,18 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     element = DAM_FIRE;
     num_dice = MIN(15, level);
     size_dice = 10;
+    bonus = 0;
+    break;
+
+  case AFFECT_CAUSTIC_BLOOD_DAMAGE: // transmutation
+    act("Caustic blood sputs from your body, covering $N in acid!", FALSE, ch, 0, victim, TO_CHAR);
+    act("Caustic blood sputs from $n's body, covering You in acid!", FALSE, ch, 0, victim, TO_VICT);
+    act("Caustic blood sputs from $n's body, covering $N in acid!", FALSE, ch, 0, victim, TO_NOTVICT);
+    save = SAVING_REFL;
+    mag_resist = FALSE;
+    element = DAM_ACID;
+    num_dice = MIN(15, level);
+    size_dice = 6;
     bonus = 0;
     break;
 
@@ -3847,6 +3860,38 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "The tide of battle turns in $n's favor!";
     break;
 
+  case SPELL_RAGE:
+    if (PRF_FLAGGED(victim, PRF_NO_RAGE))
+    {
+      act("$N has their NO_RAGE toggle turned off, so they will be skipped.", FALSE, ch, 0, victim, TO_CHAR);
+      act("You hav your NO_RAGE toggle turned off, so you will be skipped. Use PREFEDIT or type NORAGE to toggle it on.", FALSE, ch, 0, victim, TO_VICT);
+      return;
+    }
+
+    af[0].location = APPLY_STR;
+    af[0].modifier = 2;
+    af[0].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_CON;
+    af[1].modifier = 2;
+    af[1].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_SAVING_WILL;
+    af[1].modifier = 1;
+    af[1].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = -2;
+    af[1].duration = compute_ability(ch, ABILITY_CONCENTRATION) + level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    to_room = "$n enters a vicious rage!";
+    to_vict = "You enter a vicious rage!";
+    break;
+
   case SPELL_BLESS:
     if (affected_by_spell(victim, SPELL_AID) ||
         affected_by_spell(victim, SPELL_PRAYER))
@@ -3867,6 +3912,29 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     to_room = "$n is now righteous!";
     to_vict = "You feel righteous.";
+    break;
+
+  case SPELL_CAUSTIC_BLOOD: // transmutation
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    af[0].duration = level;
+    to_vict = "Your blood becomes acidic to others and will sear any who pierce your skin with piercing or slashing attacks.";
+    break;
+
+  case AFFECT_CAUSTIC_BLOOD_DAMAGE: // transmutation
+    if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, TRANSMUTATION))
+    {
+      send_to_char(victim, "You manage to dodge well enough that the acidic blood doesn't stick!\r\n");
+      act("$n manages to dodge well enough that the acidic blood doesn't stick!", FALSE, victim, 0, 0, TO_ROOM);
+      return;
+    }
+
+    accum_duration = TRUE;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = MIN(7, level / 2);
+    af[0].duration = 1;
+    to_room = "$n is covered in acidic blood";
+    to_vict = "You are covered in acidic blood.";
     break;
 
   case SPELL_BLINDNESS: // necromancy
@@ -3891,6 +3959,32 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[1].location = APPLY_AC_NEW;
     af[1].modifier = -4;
     af[1].duration = 25;
+    SET_BIT_AR(af[1].bitvector, AFF_BLIND);
+
+    to_room = "$n seems to be blinded!";
+    to_vict = "You have been blinded!";
+    break;
+
+  case SPELL_GLITTERDUST: // conjuration
+    if (!can_blind(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem blindable.\r\n");
+      return;
+    }
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, CONJURATION))
+    {
+      send_to_char(ch, "The blindness is resisted!\r\n");
+      return;
+    }
+
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -4;
+    af[0].duration = level;
+    SET_BIT_AR(af[0].bitvector, AFF_BLIND);
+
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = -4;
+    af[1].duration = level;
     SET_BIT_AR(af[1].bitvector, AFF_BLIND);
 
     to_room = "$n seems to be blinded!";
@@ -3988,6 +4082,75 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].modifier = level;
     to_vict = "A shield of shimmering force envelops you.";
     to_room = "A shield of shimmering force envelops $n.";
+    break;
+
+  case SPELL_SPIDER_CLIMB:
+    af[0].duration = 10 * 10 * level; // 10 minutes per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_SPIDER_CLIMB);
+    to_vict = "You gain the ability to scale surfaces like a spider.";
+    to_room = "Tiny pinions grow forth from $n's hands and feet.";
+    break;
+
+  case SPELL_BLACK_TENTACLES:
+    if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("You evade the tentacles.", FALSE, ch, 0, victim, TO_VICT);
+      act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_GREATER_BLACK_TENTACLES))
+    {
+      act("$N is already affected by greater black tentacles.", FALSE, ch, 0, victim, TO_CHAR);
+      return;
+    }
+    af[0].duration = level; // 1 round per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    to_vict = "You are encircled and entangled by large black tentacles that writhe from the ground.";
+    to_room = "$n is encircled and entangled by large black tentacles that writhe from the ground.";
+    break;
+
+  case SPELL_GREATER_BLACK_TENTACLES:
+    if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("You evade the tentacles.", FALSE, ch, 0, victim, TO_VICT);
+      act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_BLACK_TENTACLES))
+    {
+      affect_from_char(victim, SPELL_BLACK_TENTACLES);
+    }
+    af[0].duration = level; // 1 round per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    to_vict = "You are encircled and entangled by huge black tentacles that writhe from the ground.";
+    to_room = "$n is encircled and entangled by huge black tentacles that writhe from the ground.";
+    break;
+
+  case SPELL_WARDING_WEAPON:
+    af[0].duration = 10 + level; // 10 rounds + 1 round per level
+    af[0].location = APPLY_SKILL;
+    af[0].modifier = 6;
+    af[0].specific = ABILITY_CONCENTRATION;
+    af[1].duration = 10 + level; // 10 rounds + 1 round per level
+    af[1].location = APPLY_AC_NEW;
+    af[1].modifier = 2;
+    af[1].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+    to_vict = "A shimmering blade of force appears before you to ward off attempts to distract you.";
+    to_room = "A shimmering blade of force appears before $n.";
+    break;
+
+  case SPELL_PROTECTION_FROM_ARROWS:
+    af[0].duration = 10 * level; // 1 minute per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    to_vict = "A shield of shimmering green force envelops you.";
+    to_room = "A shield of shimmering green force envelops $n.";
     break;
 
   case SPELL_KEEN_EDGE:
@@ -4266,7 +4429,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     is_mind_affect = TRUE;
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
-    af[0].duration = dice(2, 4);
+    af[0].duration = dice(1, 3);
     to_room = "$n is dazed by the spell!";
     to_vict = "You are dazed by the spell!";
     break;
@@ -4962,6 +5125,40 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
       return;
     }
+    if (!IS_LIVING(victim))
+    {
+      send_to_char(ch, "This spell only works on living targets.\r\n");
+      return;
+    }
+    if (paralysis_immunity(victim))
+    {
+      send_to_char(ch, "Your target is unfazed.\r\n");
+      return;
+    }
+    if (paralysis_immunity(victim))
+    {
+      send_to_char(ch, "Your target is unfazed.\r\n");
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = dice(3, 3);
+    to_room = "$n is overcome by a powerful hold spell!";
+    to_vict = "You are overcome by a powerful hold spell!";
+    break;
+
+  case SPELL_HOLD_MONSTER: // enchantment
+  if (!IS_LIVING(victim))
+    {
+      send_to_char(ch, "This spell only works on living targets.\r\n");
+      return;
+    }
     if (paralysis_immunity(victim))
     {
       send_to_char(ch, "Your target is unfazed.\r\n");
@@ -5347,6 +5544,61 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n grins as multiple images pop up and smile!";
     to_vict = "You watch as multiple images pop up and smile at you!";
     GET_IMAGES(victim) = 4 + MIN(5, (int)(level / 3));
+    break;
+
+  case SPELL_BANISHING_BLADE:
+    af[0].duration = level;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    to_vict = "A blade of bright green energy appears beside you.";
+    to_room = "A blade of bright green energy appears beside $n.";
+    break;
+
+    case SPELL_PLANAR_SOUL:
+    if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
+    {
+      send_to_char(ch, "You cannot cast planar soul when you're already under the effect of a planar soul surge.\r\n");
+      return;
+    }
+    af[0].duration = level * 600;
+    af[0].location = APPLY_INITIATIVE;
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
+    SET_BIT_AR(af[0].bitvector, AFF_DETECT_ALIGN);
+
+    af[1].duration = level * 600;
+    af[1].location = APPLY_SKILL;
+    af[1].modifier = 2;
+    af[1].specific = ABILITY_PERCEPTION;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
+
+    to_vict = "You feel the power of the outer planes fuse with your soul.";
+    to_room = "An unknown power surges through $n's body.";
+    break;
+
+  case SPELL_HOSTILE_JUXTAPOSITION:
+    if (affected_by_spell(ch, SPELL_GREATER_HOSTILE_JUXTAPOSITION))
+    {
+      send_to_char(ch, "You are already under the effect of a greater hostile juxtaposition.\r\n");
+      return;
+    }
+    af[0].duration = level;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 1;
+    to_vict = "You sense a supernatural ability to reflect the next attack against you.";
+    to_room = "You seem a gleam in $n's eye.";
+    break;
+
+  case SPELL_GREATER_HOSTILE_JUXTAPOSITION:
+    if (affected_by_spell(ch, SPELL_HOSTILE_JUXTAPOSITION))
+    {
+      affect_from_char(ch, SPELL_HOSTILE_JUXTAPOSITION);
+    }
+    af[0].duration = level;
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 3;
+    to_vict = "You sense a supernatural ability to reflect the next few attacks against you.";
+    to_room = "You seem a gleam in $n's eye.";
     break;
 
   case SPELL_NIGHTMARE: // illusion
@@ -5786,10 +6038,33 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_PLANAR_HEALING: // conjuration
+    if (affected_by_spell(victim, SPELL_GREATER_PLANAR_HEALING))
+    {
+      if (ch == victim)
+      {
+        act("You are already under the effect of a more powerful spell.", FALSE, ch, 0, victim, TO_CHAR); 
+      }
+      else
+      {
+        act("$N is already under the effect of a more powerful spell.", FALSE, ch, 0, victim, TO_CHAR);
+      }
+      return;
+    }
     af[0].location = APPLY_FAST_HEALING;
     af[0].duration = 10 + MAX(1, level / 2);
     af[0].modifier = 1;
     to_vict = "You feel an outside power offer you enhanced healing.";
+    break;
+
+  case SPELL_GREATER_PLANAR_HEALING: // conjuration
+    if (affected_by_spell(victim, SPELL_PLANAR_HEALING))
+    {
+      affect_from_char(victim, SPELL_PLANAR_HEALING);
+    }
+    af[0].location = APPLY_FAST_HEALING;
+    af[0].duration = 10 + MAX(1, level / 2);
+    af[0].modifier = 4;
+    to_vict = "You feel an outside power offer you highly enhanced healing.";
     break;
 
   case SPELL_SLEEP: // enchantment
@@ -6445,6 +6720,27 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
     break;
+  case SPELL_COMMUNAL_MOUNT:
+    mag_summons(level, tch, NULL, SPELL_MOUNT, savetype, casttype);
+    break;
+  case SPELL_COMMUNAL_PROTECTION_FROM_ARROWS:
+    mag_affects(level, ch, tch, obj, SPELL_PROTECTION_FROM_ARROWS, savetype, casttype, 0);
+    break;
+  case SPELL_COMMUNAL_RESIST_ENERGY:
+    mag_affects(level, ch, tch, obj, SPELL_RESIST_ENERGY, savetype, casttype, 0);
+    break;
+  case SPELL_COMMUNAL_SPIDER_CLIMB:
+    mag_affects(level, ch, tch, obj, SPELL_SPIDER_CLIMB, savetype, casttype, 0);
+    break;
+  case SPELL_COMMUNAL_STONESKIN:
+    mag_affects(level, ch, tch, obj, SPELL_STONESKIN, savetype, casttype, 0);
+    break;
+  case SPELL_RAGE:
+    mag_affects(level, ch, tch, obj, SPELL_RAGE, savetype, casttype, 0);
+    break;
+  case SPELL_MASS_DAZE:
+    mag_affects(level, ch, tch, obj, SPELL_DAZE_MONSTER, savetype, casttype, 0);
+    break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
     if (!IS_UNDEAD(tch))
       mag_points(level, ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY, savetype, casttype);
@@ -6455,6 +6751,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
     break;
   case SPELL_GROUP_SHIELD_OF_FAITH:
     mag_affects(level, ch, tch, obj, SPELL_SHIELD_OF_FAITH, savetype, casttype, 0);
+    break;
+  case SPELL_MASS_ENLARGE_PERSON:
+    mag_affects(level, ch, tch, obj, SPELL_ENLARGE_PERSON, savetype, casttype, 0);
+    break;
+  case SPELL_MASS_REDUCE_PERSON:
+    mag_affects(level, ch, tch, obj, SPELL_REDUCE_PERSON, savetype, casttype, 0);
     break;
   case SPELL_MASS_ANT_HAUL:
     mag_affects(level, ch, tch, obj, SPELL_ANT_HAUL, savetype, casttype, 0);
@@ -6611,6 +6913,10 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ANIMAL_SHAPES:
     to_char = "You transform your group!\tn";
     to_room = "$n transforms $s group!\tn";
+    break;
+  case SPELL_COMMUNAL_MOUNT:
+    to_char = "You summon forth mounts for each member of your party.";
+    to_room = "$n summons forth riding horses.";
     break;
   case PSIONIC_INTELLECT_FORTRESS:
     to_char = "You manifest a psychic fortress against psionic attacks!";
@@ -6898,6 +7204,16 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     to_char = "You call down a furious lightning storm upon the area!";
     to_room = "$n raises $s arms and calls down a furious lightning storm!";
     break;
+  case SPELL_BLACK_TENTACLES:
+    to_char = "You call forth many large, black tentacles from the ground!";
+    to_room = "$n calls forth many large, black tentacles from the ground!";
+    isEffect = TRUE;
+    break;
+  case SPELL_GREATER_BLACK_TENTACLES:
+    to_char = "You call forth many huge, black tentacles from the ground!";
+    to_room = "$n calls forth many huge, black tentacles from the ground!";
+    isEffect = TRUE;
+    break;
   case SPELL_CHAIN_LIGHTNING:
     to_char = "Arcing bolts of lightning flare from your fingertips!";
     to_room = "Arcing bolts of lightning fly from the fingers of $n!";
@@ -6917,6 +7233,12 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     is_uneffect = TRUE;
     to_char = "You summon faerie fog!\tn";
     to_room = "$n summons faerie fog!\tn";
+    break;
+  case SPELL_GLITTERDUST:
+    is_uneffect = TRUE;
+    isEffect = TRUE;
+    to_char = "You summon a cloud of glittering golden dust!\tn";
+    to_room = "$n summons a cloud of glittering golden dust!\tn";
     break;
   case SPELL_FIRE_STORM:
     to_char = "You call forth sheets of roaring flame!";
@@ -7180,7 +7502,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
 
       /* we gotta start combat here */
       if (isEffect && spell_info[spellnum].violent && tch && GET_POS(tch) == POS_STANDING &&
-          !FIGHTING(tch) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL &&
+          !FIGHTING(tch) && spellnum != SPELL_CHARM && spellnum != SPELL_CHARM_ANIMAL && spellnum != SPELL_CHARM_MONSTER &&
           spellnum != SPELL_DOMINATE_PERSON && spellnum != SPELL_MASS_DOMINATION)
       {
         if (tch != ch)
@@ -7321,6 +7643,7 @@ static const char *mag_summon_fail_msgs[] = {
 #define MOB_DIRE_BOAR 42   // " " ii
 #define MOB_DIRE_WOLF 43   // " " iii
 #define MOB_PHANTOM_STEED 44
+#define MOB_MOUNT_SPELL 101320
 // 45    wizard eye
 #define MOB_DIRE_SPIDER 46 // summon creature iv
 // 47    wall of force
@@ -7384,6 +7707,7 @@ bool isSummonMob(int vnum)
   case MOB_CHILDREN_OF_THE_NIGHT_BATS:
   case MOB_CREATE_VAMPIRE_SPAWN:
   case MOB_GHOST_WOLF:
+  case MOB_MOUNT_SPELL:
     return true;
   }
   return false;
@@ -7576,6 +7900,14 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     msg = 19;
     fmsg = rand_number(2, 6); /* Random fail message. */
     mob_num = MOB_PHANTOM_STEED;
+    pfail = 0;
+    break;
+
+    case SPELL_MOUNT: // conjuration
+    handle_corpse = FALSE;
+    msg = 19;
+    fmsg = rand_number(2, 6); /* Random fail message. */
+    mob_num = MOB_MOUNT_SPELL;
     pfail = 0;
     break;
 
@@ -8026,25 +8358,6 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
 
   send_to_char(ch, "You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' with no argument to dismiss all your non-present summoned creatures.\r\n");
 }
-#undef OBJ_CLONE
-#undef MOB_CLONE
-#undef MOB_ZOMBIE
-#undef MOB_GHOUL
-#undef MOB_GIANT_SKELETON
-#undef MOB_MUMMY
-#undef MOB_RED_DRAGON
-#undef MOB_SHELGARNS_BLADE
-#undef MOB_DIRE_BADGER
-#undef MOB_DIRE_BOAR
-#undef MOB_DIRE_SPIDER
-#undef MOB_DIRE_BEAR
-#undef MOB_HOUND
-#undef MOB_DIRE_TIGER
-#undef MOB_FIRE_ELEMENTAL
-#undef MOB_EARTH_ELEMENTAL
-#undef MOB_AIR_ELEMENTAL
-#undef MOB_WATER_ELEMENTAL
-#undef MOB_ECTOPLASMIC_SHAMBLER
 
 /*----------------------------------------------------------------------------*/
 /* End Magic Summoning - Generic Routines and Local Globals */
@@ -8395,8 +8708,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     to_notvict = "There's a momentary gleam in $N's eyes.";
     break;
 
-  case SPELL_REMOVE_PARALYSIS:
-    /* this has fall-through from above */
+  case SPELL_REMOVE_PARALYSIS:    
     spell = SPELL_HOLD_PERSON;
     affect = AFF_PARALYZED;
     to_char = "You restore $N's movement.";
@@ -8444,6 +8756,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_DISPEL_INVIS:
+  case SPELL_GLITTERDUST:
     spell = SPELL_INVISIBLE;
     affect = AFF_INVISIBLE;
     to_char = "You remove the invisibility from $N.";

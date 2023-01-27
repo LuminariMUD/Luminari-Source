@@ -1559,6 +1559,8 @@ const char *preference_bits[] = {
     "Auto-Hit",
     "No-Follow",
     "Condensed",
+    "Careful",
+    "No-Rage",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -1707,6 +1709,8 @@ const char *affected_bits[] = {
     "Hidden-Alignment",
     "Wind-Wall",
     "Fear-Aura",
+    "Spider-Climb",
+    "Deadly-Aim",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1832,6 +1836,8 @@ const char *affected_bit_descs[] = {
     "Your alignment is hidden from others.",
     "You are surrounded by a wall of wind",
     "You radiate fear to your opponents.",
+    "You can scale surfaces like a spider.",
+    "You are using your deadly aim feat benefit.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
@@ -2405,7 +2411,8 @@ const char *apply_types[] = {
     "PSP-Regen",
     "Encumbrance",
     "Fast-Healing",
-    "\n" /*51*/
+    "Initiative",
+    "\n" /*59*/
 };
 CHECK_TABLE_SIZE(apply_types, NUM_APPLIES + 1);
 
@@ -4935,32 +4942,61 @@ const char *goto_zones_display[NUM_GOTO_ZONES + 1][2] = {
     {"", "-1"} // always last
 };
 
+const char *zone_entrances[NUM_ZONE_ENTRANCES + 1][3] = {
+    {"boat to chult", "closed", "616076"},
+    {"crypt of shadow", "open", "605650"},
+    {"earth cult camp", "open", "605998"},
+    {"fire giant keep", "open", "613082"},
+    {"fireshear", "closed", "606884"},
+    {"fireside tavern", "open", "608264"},
+    {"flaming fist mercenary camp", "open", "612721"},
+    {"gnoll cave", "open", "602476"},
+    {"goblin arrows", "open", "610957"},
+    {"goblin encampment", "open", "603802"},
+    {"hunter's forest", "open", "608199"},
+    {"ice fortress", "closed", "603043"},
+    {"longsaddle", "open", "607751"},
+    {"luskan", "open", "607071"},
+    {"mirabar", "open", "603108"},
+    {"nesme", "closed", "605533"},
+    {"neverwinter", "closed", "610929"},
+    {"orcish fort", "open", "605137"},
+    {"port llast", "closed", "609796"},
+    {"silverymoon", "open", "604130"},
+    {"ten towns", "closed", "602093"},
+    {"the evermoors", "closed", "605859"},
+    {"triboar", "open", "611763"},
+    {"waterdeep", "closed", "616237"},
+    {"", "", "-1"} // always last
+};
+
 const char *asciimap_points[NUM_MAP_POINTS + 1][2] = {
-    {"Ten Towns (Closed)", "602093"},
-    {"Luskan South Gate (1-6, starter zone)", "607713"},
+    {"Boat to Chult (28-30)", "616076"},
+    {"Crypt of Shadow (7-10)", "605650"},
+    {"Earth Cult Camp (16-19)", "605998"},
+    {"Fire Giant Keep (28-30)", "613082"},
+    {"Fireshear (Closed)", "606884"},
+    {"Fireside Tavern (19-22)", "608264"},
+    {"Flaming Fist Mercenary Camp (22-25)", "612721"},
+    {"Gnoll Cave (19-22)", "602476"},
+    {"Goblin Arrows (1-5)", "610957"},
+    {"Goblin Encampment (1-5)", "603802"},
+    {"Hunter's Forest (7-10)", "608199"},
+    {"Ice Fortress (Closed)", "603043"},
+    {"Longsaddle (13-16)", "607751"},
     {"Luskan East Gate (1-6), starter zone", "607233"},
     {"Luskan North Gate (1-6), starter zone", "607071"},
-    {"Port Llast (Closed)", "609796"},
-    {"Neverwinter (Closed)", "610929"},
-    {"Waterdeep (Closed)", "616237"},
+    {"Luskan South Gate (1-6, starter zone)", "607713"},
     {"Mirabar (11-13)", "603108"},
-    {"Silverymoon (Closed)", "604130"},
-    {"Goblin Encampment (1-5)", "611288"},
-    {"Triboar", "611763"},
-    {"Ice Fortress (Closed)", "603043"},
-    {"Orcish Fort (13-16)", "605137"},
-    {"Fireshear (Closed)", "606884"},
-    {"Longsaddle (13-16)", "607751"},
-    {"Hunter's Forest (7-10)", "608199"},
-    {"Crypt of Shadow (7-10)", "605650"},
     {"Nesme (Closed)", "605533"},
-    {"Earth Cult Camp (16-19)", "605998"},
-    {"Fireside Tavern (19-22)", "608264"},
-    {"Gnoll Cave (19-22)", "602476"},
-    {"Flaming Fist Mercenary Camp (22-25)", "612721"},
+    {"Neverwinter (Closed)", "610929"},
+    {"Orcish Fort (13-16)", "605137"},
+    {"Port Llast (Closed)", "609796"},
+    {"Silverymoon (Closed)", "604130"},
+    {"Ten Towns (Closed)", "602093"},
     {"The Evermoors (25-28)", "605859"},
-    {"Boat to Chult (28-30)", "616076"},
-    {"Fire Giant Keep (28-30)", "613082"},
+    {"Triboar", "611763"},
+    {"Waterdeep (Closed)", "616237"},
     {"", "-1"} // always last
 };
 

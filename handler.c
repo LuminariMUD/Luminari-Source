@@ -325,6 +325,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_FAST_HEALING:
     GET_FAST_HEALING_MOD(ch) += mod;
     break;
+  case APPLY_INITIATIVE:
+    GET_INITIATIVE_MOD(ch) += mod;
+    break;
 
     /* end Do Not Use */
 
@@ -364,6 +367,7 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
   int i = 0, j = 0;
   int best = 0;
   int modifier = 0;
+  int penalty = 0;
 
   /* Skip stackable bonus types and bonus types without a modifier. */
   if ((location == APPLY_NONE) ||
@@ -385,6 +389,9 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
       continue;
 
     modifier = af->modifier;
+
+    if (modifier < 0)
+      penalty -= modifier;
 
     if (af->location == location && modifier > best)
       best = modifier;
@@ -410,13 +417,15 @@ int calculate_best_mod(struct char_data *ch, int location, int bonus_type, int e
             (GET_EQ(ch, i)->affected[j].location == location))
         {
           modifier = GET_EQ(ch, i)->affected[j].modifier;
+          if (modifier < 0)
+            penalty -= modifier;
           if (modifier > best)
             best = modifier;
         }
       }
     }
   }
-  return best;
+  return best - penalty;
 }
 
 /* this will take a character's modified 'points' and reset it
@@ -703,6 +712,11 @@ void compute_char_cap(struct char_data *ch, int mode)
   }
 
   if (AFF_FLAGGED(ch, AFF_POWER_ATTACK))
+  {
+    dam_cap += COMBAT_MODE_VALUE(ch) * 2;
+  }
+
+  if (AFF_FLAGGED(ch, AFF_DEADLY_AIM))
   {
     dam_cap += COMBAT_MODE_VALUE(ch) * 2;
   }

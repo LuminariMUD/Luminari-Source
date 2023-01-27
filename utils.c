@@ -2829,6 +2829,8 @@ void stop_follower(struct char_data *ch)
       affect_from_char(ch, SPELL_CHARM);
     if (affected_by_spell(ch, SPELL_CHARM_ANIMAL))
       affect_from_char(ch, SPELL_CHARM_ANIMAL);
+    if (affected_by_spell(ch, SPELL_CHARM_MONSTER))
+      affect_from_char(ch, SPELL_CHARM_MONSTER);
     if (affected_by_spell(ch, SPELL_DOMINATE_PERSON))
       affect_from_char(ch, SPELL_DOMINATE_PERSON);
     if (affected_by_spell(ch, SPELL_MASS_DOMINATION))
@@ -2979,7 +2981,7 @@ int get_line(FILE *fl, char *buf)
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name)
 {
   const char *prefix, *middle, *suffix;
-  char name[PATH_MAX], *ptr;
+  char name[MAX_PATH], *ptr;
 
   if (orig_name == NULL || *orig_name == '\0' || filename == NULL)
   {
@@ -4379,8 +4381,15 @@ int get_daily_uses(struct char_data *ch, int featnum)
   int daily_uses = 0;
 
   switch (featnum) {
+    case FEAT_QUICK_CHANT:
+    case FEAT_QUICK_MIND:
+      daily_uses = 2;
+      break;
     case FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT:
       daily_uses = 1;
+      break;
+    case FEAT_VAMPIRE_BLOOD_DRAIN:
+      daily_uses = 2 + (GET_LEVEL(ch) / 3);
       break;
     case FEAT_STONES_ENDURANCE:
       daily_uses += 2 + GET_LEVEL(ch) / 6;
@@ -6213,6 +6222,13 @@ bool can_spell_be_revoked(int spellnum)
   case SPELL_PROTECTION_FROM_ENERGY:
   case SPELL_DIVINE_POWER:
   case SPELL_MINOR_ILLUSION:
+  case SPELL_WARDING_WEAPON:
+  case SPELL_GIRD_ALLIES:
+  case SPELL_PROTECTION_FROM_ARROWS:
+  case SPELL_HUMAN_POTENTIAL:
+  case SPELL_SPIDER_CLIMB:
+  case SPELL_RAGE:
+  case SPELL_CAUSTIC_BLOOD:
 
   // psionic powers
   case PSIONIC_BROKER:
@@ -6879,7 +6895,7 @@ int teamwork_best_stealth(struct char_data *ch, int featnum)
       continue;
     if (HAS_REAL_FEAT(k, featnum) || HAS_REAL_FEAT(ch, FEAT_SOLO_TACTICS))
     {
-      stealth = MAX(stealth, compute_ability_full(ch, ABILITY_STEALTH, TRUE));
+      stealth = MAX(stealth, compute_ability_full(k, ABILITY_STEALTH, TRUE));
     }
   }
 
@@ -7531,15 +7547,47 @@ void manifest_mastermind_power(struct char_data *ch)
   }
 }
 
+bool can_blood_drain_target(struct char_data *ch, struct char_data *vict)
+{
+  if (!IS_LIVING(vict))
+  {
+    send_to_char(ch, "This can only be used on the living.\r\n");
+    return false;
+  }
+
+  if (IS_OOZE(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return false;
+  }
+
+  if (IS_ELEMENTAL(vict))
+  {
+    send_to_char(ch, "This cannot be used on oozes.\r\n");
+    return false;
+  }
+
+  if (IS_GOOD(ch))
+  {
+    if (!IS_EVIL(vict) && IS_SENTIENT(vict))
+    {
+      send_to_char(ch, "Good aligned vampires can only feed on evil creatures or non-sentient creatures.\r\n");
+      return false;
+    }
+  }
+  
+  return true;
+}
+
 int vampire_last_feeding_adjustment(struct char_data *ch)
 {
   if (IS_VAMPIRE(ch))
   {
-    if (TIME_SINCE_LAST_FEEDING(ch) <= 20)
+    if (TIME_SINCE_LAST_FEEDING(ch) <= 50)
     {
       return 2;
     }
-    else if (TIME_SINCE_LAST_FEEDING(ch) >= 80)
+    else if (TIME_SINCE_LAST_FEEDING(ch) >= 150)
     {
       return -2;
     }
@@ -7592,6 +7640,14 @@ int is_spell_or_power(int spellnum)
     }
   }
   return 2;
+}
+
+void set_x_y_coords(int start, int *x, int *y, int *room)
+{
+  *x = MIN(159, MAX(0, ((start - 600161) % 160)));
+  *y = MIN(159, MAX(0, ((start - 600161) / 160)));
+
+  *room = 600161 + (160 * *y) + *x;
 }
 
 /* EoF */

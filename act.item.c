@@ -1134,9 +1134,9 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
 
     case LOOTBOX_TYPE_CRYSTAL:
       if (mode == ITEM_STAT_MODE_G_LORE)
-        send_to_group(NULL, GROUP(ch), "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+        send_to_group(NULL, GROUP(ch), "Treasure: Crystal, garaunteed %s, low chance for other items.\r\n", CRAFTING_CRYSTAL);
       else
-        send_to_char(ch, "Treasure: Crystal, garaunteed arcanite crystal, low chance for other items.\r\n");
+        send_to_char(ch, "Treasure: Crystal, garaunteed %s, low chance for other items.\r\n", CRAFTING_CRYSTAL);
       break;
 
     case LOOTBOX_TYPE_UNDEFINED: /*fallthrough*/

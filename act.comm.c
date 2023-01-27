@@ -913,11 +913,11 @@ ACMDU(do_gen_comm)
     case CON_TRIGEDIT:
     case CON_HEDIT:
     case CON_QEDIT:
-    case CON_PREFEDIT:
+    // case CON_PREFEDIT:
     case CON_IBTEDIT:
     case CON_CLANEDIT:
     case CON_MSGEDIT:
-    case CON_STUDY:
+    // case CON_STUDY:
     case CON_HLQEDIT:
     case CON_QSTATS:
       continue;

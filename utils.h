@@ -196,6 +196,7 @@ void mudlog(int type, int level, int file, const char *str, ...) __attribute__((
 int rand_number(int from, int to);
 float rand_float(float from, float to);
 bool do_not_list_spell(int spellnum);
+void set_x_y_coords(int start, int *x, int *y, int *room);
 bool is_paladin_mount(struct char_data *ch, struct char_data *victim);
 char *randstring(int length);
 int combat_skill_roll(struct char_data *ch, int skillnum);
@@ -815,7 +816,7 @@ void char_from_furniture(struct char_data *ch);
 #define ARCANE_LEVEL(ch) (compute_arcane_level(ch))
 #define MAGIC_LEVEL(ch) ARCANE_LEVEL(ch)
 #define ALCHEMIST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
-#define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
+#define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : (GET_LEVEL(ch) > 30) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
@@ -939,6 +940,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_PSP_REGEN(ch) (ch->char_specials.saved.psp_regen)
 #define GET_ENCUMBRANCE_MOD(ch) (ch->char_specials.saved.encumbrance_mod)
 #define GET_FAST_HEALING_MOD(ch) (ch->char_specials.saved.fast_healing_mod)
+#define GET_INITIATIVE_MOD(ch) (ch->char_specials.saved.initiative_mod)
 /** Gold on ch. */
 #define GET_GOLD(ch) ((ch)->points.gold)
 /** Gold in bank of ch. */
@@ -2004,7 +2006,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_OUTSIDER(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_OUTSIDER) || \
                          IS_ELEMENTAL(ch) || IS_EFREETI(ch) ||                 \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_OUTSIDER) || \
-                         affected_by_spell(ch, SPELL_PLANAR_HEALING))
+                         affected_by_spell(ch, SPELL_PLANAR_HEALING) || \
+                         affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
 #define IS_HUMANOID(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||    \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
                          (!IS_NPC(ch) && !IS_MORPHED(ch)))
@@ -2015,6 +2018,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 #define IS_POWERFUL_BEING(ch) ((ch && IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT))
 
+bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch) (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))
@@ -2379,6 +2383,12 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GUI_RDSC_OPEN(ch) (gui_room_desc_wrap_open(ch))
 #define GUI_RDSC_CLOSE(ch) (gui_room_desc_wrap_close(ch))
 
+#ifdef CAMPAING_FR
+#define CRAFTING_CRYSTAL "shard of abeir"
+#else
+#define CRAFTING_CRYSTAL  "arcanite crystal"
+#endif
+
 // LootBoxes / Treasure Chests
 
 #define LOOTBOX_LEVEL(obj) (GET_OBJ_VAL(obj, 0))
@@ -2406,7 +2416,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GET_MARK(ch) (ch->player_specials->mark_target)
 #define GET_MARK_HIT_BONUS(ch) (ch->player_specials->death_attack_hit_bonus)
 #define GET_MARK_DAM_BONUS(ch) (ch->player_specials->death_attack_dam_bonus)
-bool is_marked_target(struct char_data *ch, struct char_data *vict);
+    bool is_marked_target(struct char_data *ch, struct char_data *vict);
 void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vict);
 
 // Inquisitor Stuff

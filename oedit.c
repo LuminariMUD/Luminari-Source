@@ -372,8 +372,9 @@ static void oedit_disp_lootbox_types(struct descriptor_data *d)
                   "4) Consumables, guaranteed at least one consumable, low chance for other items.\r\n"
                   "5) Trinkets, guaranteed trinket (rings, bracers, etc), low chance for other items.\r\n"
                   "6) Gold, much more gold, low chance for other items.\r\n"
-                  "7) Crystal, garaunteed arcanite crystal, low chance for other items.\r\n"
-                  "\r\nYour Choice: ");
+                  "7) Crystal, garaunteed %s, low chance for other items.\r\n"
+                  "\r\nYour Choice: ",
+                  CRAFTING_CRYSTAL);
 }
 
 /* Menu functions */
