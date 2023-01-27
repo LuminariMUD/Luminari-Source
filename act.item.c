@@ -6080,7 +6080,7 @@ void recite_scroll(struct char_data *ch, char *argument)
 
   if (!*arg2)
   {
-    send_to_char(ch, "You need to specify the spell name of the potion you wish to quaff.\r\n");
+    send_to_char(ch, "You need to specify the spell name of the scroll you wish to quaff.\r\n");
     return;
   }
 
