@@ -3606,7 +3606,11 @@ void assign_feats(void)
   feato(FEAT_ELDRITCH_BLAST, "eldritch blast", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
         "blast baleful energy",
         "blast baleful energy at a target");
-  
+
+  feato(FEAT_ELDRITCH_LORE, "eldritch lore", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "+2 to lore, spellcraft",
+        "+2 to lore, spellcraft");
+
   feato(FEAT_WARLOCK_FIENDISH_RESILIENCE, "fiendish resilience", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
         "heal unnaturally fast",
         "heal unnaturally fast - activate to heal as if having fast healing");
