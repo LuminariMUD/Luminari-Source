@@ -4879,6 +4879,7 @@ sbyte isWarlockMagic(struct char_data *ch, int spellnum)
     return false;
   switch (spellnum)
   {
+    case WARLOCK_ELDRITCH_BLAST:
     case WARLOCK_ELDRITCH_SPEAR:
     case WARLOCK_HIDEOUS_BLOW:
     case WARLOCK_DRAINING_BLAST:
