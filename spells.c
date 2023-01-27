@@ -2669,6 +2669,7 @@ ASPELL(eldritch_blast)
     target_list = create_list();
     for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
     {
+      next_tch = tch->next_in_room;
       if (!aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST))
         continue;
       else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN && target_list->iSize >= (spell_level / 5))

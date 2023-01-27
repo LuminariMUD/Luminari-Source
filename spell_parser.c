@@ -581,7 +581,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
 
   /* globe of invulernability spell(s)
    * and spell mantles */
-  if (cvict)
+  if (!isWarlockMagic(caster, spellnum) && cvict)
   {
     int lvl = lowest_spell_level(spellnum);
 
@@ -982,6 +982,16 @@ SAVING_WILL here...  */
     case WARLOCK_ELDRITCH_CHAIN:
     case WARLOCK_ELDRITCH_CONE:
     case WARLOCK_ELDRITCH_DOOM:
+      if (GET_ELDRITCH_SHAPE(caster) == spellnum) {
+        act("You stop using any eldritch shape at all",
+          FALSE, caster, NULL, caster, TO_CHAR);
+        GET_ELDRITCH_SHAPE(caster) = -1;
+        break;
+      }
+      act( "Your eldritch blasts will be in that form going forward.",
+        FALSE, caster, NULL, caster, TO_CHAR);
+      GET_ELDRITCH_SHAPE(caster) = spellnum;
+    break;
     case WARLOCK_HIDEOUS_BLOW:
     case WARLOCK_DRAINING_BLAST:
     case WARLOCK_FRIGHTFUL_BLAST:
@@ -993,7 +1003,15 @@ SAVING_WILL here...  */
     case WARLOCK_VITRIOLIC_BLAST:
     case WARLOCK_BINDING_BLAST:
     case WARLOCK_UTTERDARK_BLAST:
-      mag_affects(spell_level, caster, caster, NULL, spellnum, -1, casttype, metamagic);
+      if (GET_ELDRITCH_ESSENCE(caster) == spellnum) {
+        act("You stop using any eldritch essence at all",
+          FALSE, caster, NULL, caster, TO_CHAR);
+        GET_ELDRITCH_ESSENCE(caster) = -1;
+        break;
+      }
+      act("Your eldritch blasts will be in that essence going forward.",
+          FALSE, caster, NULL, caster, TO_CHAR);
+      GET_ELDRITCH_ESSENCE(caster) = spellnum;
       break;
     } /* end manual spells */
 
@@ -4179,6 +4197,9 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_WORD_OF_CHANGING, "word of changing", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_MANUAL,
+        NULL, 1, 1, NOSCHOOL, FALSE);
+  spello(WARLOCK_UTTERDARK_BLAST, "utterdark blast", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
 

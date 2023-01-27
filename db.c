@@ -5125,6 +5125,8 @@ void reset_char(struct char_data *ch)
   ch->char_specials.crafting_object = NULL;
   ch->char_specials.crafting_repeat = 0;
   ch->char_specials.crafting_bonus = 0;
+  ch->char_specials.eldritch_shape = -1;
+  ch->char_specials.eldritch_essence = -1;
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;

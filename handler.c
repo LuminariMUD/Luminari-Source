@@ -2252,7 +2252,6 @@ void extract_char_final(struct char_data *ch)
   if (FIGHTING(ch))
     stop_fighting(ch);
   FIRING(ch) = FALSE;
-  BLASTING(ch) = FALSE;
 
   for (k = combat_list; k; k = temp)
   {
