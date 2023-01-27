@@ -1823,6 +1823,9 @@ void advance_premade_build(struct char_data *ch)
     case CLASS_INQUISITOR:
       levelup_inquisitor(ch, level, TRUE);
       break;
+    case CLASS_WARLOCK:
+      levelup_warlock(ch, level, TRUE);
+      break;
     default:
       send_to_char(ch, "ERROR.  Please inform staff, error code PREBLD001.\r\n");
       break;
