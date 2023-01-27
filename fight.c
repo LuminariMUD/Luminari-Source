@@ -7283,7 +7283,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
-  if (attack_type == ATTACK_TYPE_UNARMED)
+  if (attack_type == ATTACK_TYPE_UNARMED || attack_type == ATTACK_TYPE_ELDRITCH_BLAST)
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -7320,6 +7320,10 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       calc_bab += GET_STR_BONUS(ch);
     }
     break;
+  case ATTACK_TYPE_ELDRITCH_BLAST:
+    /* This is a just a ranged touch attack */
+    calc_bab += HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER) * 2;
+    /* fall through is intentional here */
   case ATTACK_TYPE_RANGED:
     calc_bab += GET_DEX_BONUS(ch);
     break;

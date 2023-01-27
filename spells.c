@@ -2692,7 +2692,7 @@ ASPELL(eldritch_blast)
       act("You're hit with a wave of eldritch energy from $n.", FALSE, ch, 0, tch, TO_VICT);
     }
   }
-  else if (!attack_roll(ch, victim, ATTACK_TYPE_RANGED, TRUE, 0))
+  else if (!attack_roll(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0))
   {
     act("You send a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim, TO_CHAR);
     act("$n sends out a blast of energy towards you, but you avoid it.", FALSE, ch, 0, victim, TO_VICT);
