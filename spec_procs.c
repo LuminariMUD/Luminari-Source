@@ -507,6 +507,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   int domain_1 = GET_1ST_DOMAIN(ch);
   int domain_2 = GET_2ND_DOMAIN(ch);
   bool is_psionic = (class == CLASS_PSIONICIST);
+  bool is_warlock = class == CLASS_WARLOCK;
 
   // default class case
   if (class == -1)
@@ -519,7 +520,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   if (mode == 0)
   {
 
-    len = snprintf(buf2, sizeof(buf2), "\tCKnown %s List\tn\r\n%s", is_psionic ? "Power" : "Spell",
+    len = snprintf(buf2, sizeof(buf2), "\tCKnown %s List\tn\r\n%s", is_psionic || is_warlock ? "Power" : "Spell",
                    (is_psionic && CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1) ? "\tYNOTE:\tnThere is a known bug where new psionicists will show all powers instead of\r\n"
                                                                             "only the ones they know. To correct this, please quit, then press '0' to return to\r\n"
                                                                             "the account menu, and login again.\r\n"
@@ -530,7 +531,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       if ((circle != -1) && circle != slot)
         continue;
       nlen = snprintf(buf2 + len, sizeof(buf2) - len,
-                      "\r\n\tC%s Circle Level %d\tn\r\n", is_psionic ? "Power" : "Spell", slot);
+                      "\r\n\tC%s Circle Level %d\tn\r\n", (is_psionic || is_warlock) ? "Power" : "Spell", slot);
       if (len + nlen >= sizeof(buf2) || nlen < 0)
         break;
       len += nlen;
@@ -575,6 +576,15 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             break;
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
+        }
+        else if (class == CLASS_WARLOCK && is_a_known_spell(ch, CLASS_WARLOCK, i) &&
+                 compute_spells_circle(CLASS_WARLOCK, i, 0, DOMAIN_UNDEFINED) == slot)
+        {
+          nlen = snprintf(buf2 + len, sizeof(buf2) - len,
+                "%-30s %2ds base invocation time\r\n", spell_info[i].name, spell_info[i].time);
+          if (len + nlen >= sizeof(buf2) || nlen < 0)
+            break;
+          len += nlen;
         }
         else if (class == CLASS_PSIONICIST && is_a_known_spell(ch, CLASS_PSIONICIST, i) &&
                  compute_spells_circle(CLASS_PSIONICIST, i, 0, DOMAIN_UNDEFINED) == slot)

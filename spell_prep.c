@@ -1227,7 +1227,7 @@ int get_class_highest_circle(struct char_data *ch, int class)
   if (IS_NPC(ch))
     return (MAX(1, MIN(9, (GET_LEVEL(ch) + 1) / 2)));
   /* if pc has no caster classes, he/she has no business here */
-  if (!IS_CASTER(ch) && !IS_PSIONIC(ch))
+  if (!IS_CASTER(ch) && !IS_PSIONIC(ch) && GET_WARLOCK_LEVEL(ch) == 0)
     return (FALSE);
   /* no levels in this class? */
   if (!CLASS_LEVEL(ch, class))
