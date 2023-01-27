@@ -1102,6 +1102,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
     if (HAS_REAL_FEAT(ch, FEAT_SHADOWFELL_MIND))
       value += 2;
+    if (HAS_FEAT(ch, FEAT_ELDRITCH_LORE))
+      value += 2;
     return value;
   case ABILITY_APPRAISE:
     value += GET_INT_BONUS(ch);
@@ -1131,6 +1133,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     if (HAS_FEAT(ch, FEAT_ARTIFICERS_LORE))
       value += 2;
     if (GET_RACE(ch) == RACE_H_ELF)
+      value += 2;
+    if (HAS_FEAT(ch, FEAT_ELDRITCH_LORE))
       value += 2;
     value += GET_INT_BONUS(ch);
     return value;
