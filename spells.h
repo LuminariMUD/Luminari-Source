@@ -1481,6 +1481,8 @@ ASPELL(psionic_psychoportation);
 
 // warlocks
 ASPELL(eldritch_blast);
+ASPELL(warlock_charm);
+ASPELL(voracious_dispelling);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);

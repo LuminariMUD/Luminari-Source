@@ -966,6 +966,12 @@ SAVING_WILL here...  */
     case WARLOCK_ELDRITCH_BLAST:
       MANUAL_SPELL(eldritch_blast);
       break;
+    case WARLOCK_CHARM:
+      MANUAL_SPELL(warlock_charm);
+      break;
+    case WARLOCK_VORACIOUS_DISPELLING:
+      MANUAL_SPELL(voracious_dispelling);
+      break;
     case WARLOCK_ELDRITCH_SPEAR:
     case WARLOCK_ELDRITCH_CHAIN:
     case WARLOCK_ELDRITCH_CONE:
@@ -4119,10 +4125,10 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_FLEE_THE_SCENE, "flee the scene", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_GROUPS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_THE_DEAD_WALK, "the dead walk", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_SUMMONS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_VORACIOUS_DISPELLING, "voracious dispelling", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
