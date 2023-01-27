@@ -9151,6 +9151,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     /* Extra handling for ELDRITCH BLAAAAAAAST */
     if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW) {
+      act("Your blow crackles with an extra burst of eldritch energy!",
+          FALSE, ch, wielded, victim, TO_CHAR);
+      act("A boom of eldritch energy hits you from $n's blow.",
+          FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+      act("A boom of eldritch energy crackles with $n's blow.",
+          FALSE, ch, wielded, victim, TO_NOTVICT);
       call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_WARLOCK_LEVEL(ch), CAST_INNATE);
     }
     break;
