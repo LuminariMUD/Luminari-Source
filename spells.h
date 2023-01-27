@@ -252,6 +252,7 @@
 #define SPELL_MINOR_GLOBE 139          // done
 #define SPELL_ENLARGE_PERSON 140       // done
 #define SPELL_SHRINK_PERSON 141        // done
+#define SPELL_REDUCE_PERSON SPELL_SHRINK_PERSON
 #define SPELL_FSHIELD_DAM 142          // done, fire shield proc
 #define SPELL_CSHIELD_DAM 143          // done, cold shield proc
 #define SPELL_ASHIELD_DAM 144          // done, acid shield proc
@@ -524,9 +525,41 @@
 #define SPELL_PLANAR_HEALING 451
 #define SPELL_CUSHIONING_BANDS 452
 #define SPELL_GHOST_WOLF 453
+#define SPELL_GIRD_ALLIES 454
+#define SPELL_GLITTERDUST 455
+#define SPELL_PROTECTION_FROM_ARROWS 456
+#define SPELL_SPIDER_CLIMB 457
+#define SPELL_WARDING_WEAPON 458
+#define SPELL_AQUEOUS_ORB 459
+#define SPELL_MOUNT 460
+#define SPELL_COMMUNAL_MOUNT 461
+#define SPELL_HUMAN_POTENTIAL 462
+#define SPELL_MASS_HUMAN_POTENTIAL 463
+#define SPELL_BLACK_TENTACLES 464
+#define SPELL_GREATER_BLACK_TENTACLES 465
+#define SPELL_CONTROL_SUMMONED_CREATURE 466
+#define SPELL_CHARM_MONSTER 467
+#define SPELL_MASS_ENLARGE_PERSON 468
+#define SPELL_MASS_REDUCE_PERSON 469
+#define SPELL_COMMUNAL_PROTECTION_FROM_ARROWS 470
+#define SPELL_RAGE 471
+#define SPELL_COMMUNAL_RESIST_ENERGY 472
+#define SPELL_SIPHON_MIGHT 473
+#define SPELL_COMMUNAL_SPIDER_CLIMB 474
+#define SPELL_CAUSTIC_BLOOD 475
+#define SPELL_GREATER_PLANAR_HEALING 476
+#define SPELL_MASS_DAZE 477
+#define SPELL_HOLD_MONSTER 478
+#define SPELL_OVERLAND_FLIGHT 479
+#define SPELL_COMMUNAL_STONESKIN 480
+#define SPELL_MASS_STONESKIN SPELL_COMMUNAL_STONESKIN
+#define SPELL_HOSTILE_JUXTAPOSITION 481
+#define SPELL_GREATER_HOSTILE_JUXTAPOSITION 482
+#define SPELL_BANISHING_BLADE 483
+#define SPELL_PLANAR_SOUL 484
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 454
+#define NUM_SPELLS 485
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -580,6 +613,10 @@
 #define RACIAL_ABILITY_INSECTBEING 1236
 #define ABILITY_VAMPIRIC_DOMINATION 1237
 #define ABILITY_AFFECT_STONES_ENDURANCE 1238
+#define AFFECT_CAUSTIC_BLOOD_DAMAGE 1239
+#define AFFECT_IMMUNITY_BANISHING_BLADE 1240
+#define STATUS_AFFECT_STAGGERED 1241
+#define AFFECT_PLANAR_SOUL_SURGE 1242
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -1278,6 +1315,7 @@ struct spell_info_type
         int duration;     /* assigned in the code currently */
         int saving_throw; /* assigned in the code currently */
         int resistance;   /* spell resistance, assigned in code currently */
+        bool ritual_spell; // If this is a ritual spell, it will have a cast time, otherwise it won't
 };
 
 /* wall struct for wall spells, like wall of fire, force, thorns, etc */
@@ -1320,6 +1358,7 @@ ASPELL(spell_acid_arrow);
 ASPELL(spell_augury);
 ASPELL(spell_banish);
 ASPELL(spell_charm);
+ASPELL(spell_charm_monster);
 ASPELL(spell_charm_animal);
 ASPELL(spell_clairvoyance);
 ASPELL(spell_cloudkill);
@@ -1367,6 +1406,14 @@ ASPELL(spell_luskan_recall);
 ASPELL(spell_triboar_recall);
 ASPELL(spell_silverymoon_recall);
 ASPELL(spell_mirabar_recall);
+ASPELL(spell_gird_allies);
+ASPELL(spell_aqueous_orb);
+ASPELL(spell_human_potential);
+ASPELL(spell_mass_human_potential);
+ASPELL(spell_control_summoned_creature);
+ASPELL(spell_siphon_might);
+ASPELL(spell_overland_flight);
+
 // psionics
 ASPELL(psionic_concussive_onslaught);
 ASPELL(psionic_wall_of_ectoplasm);
@@ -1495,6 +1542,7 @@ extern struct spell_info_type spell_info[];
 extern struct spell_info_type skill_info[];
 extern struct wall_information wallinfo[];
 extern char cast_arg2[];
+extern char cast_arg3[];
 extern const char *unused_spellname;
 
 #endif /* __SPELL_PARSER_C__ */

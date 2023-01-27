@@ -167,6 +167,7 @@ extern const int armor_suit_weight[];
 extern const char *armor_suit_types[NUM_SPEC_ARMOR_SUIT_TYPES + 1];
 extern const char *goto_zones[NUM_GOTO_ZONES + 1][2];
 extern const char *goto_zones_display[NUM_GOTO_ZONES + 1][2];
+extern const char *zone_entrances[NUM_ZONE_ENTRANCES + 1][3];
 extern const char *asciimap_points[NUM_MAP_POINTS + 1][2];
 extern const char *ascii_webmap_colors[NUM_ROOM_SECTORS + 1];
 extern const char *sector_map_letters[NUM_ROOM_SECTORS + 1];

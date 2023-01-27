@@ -38,7 +38,7 @@ void npc_racial_behave(struct char_data *ch);
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
 #define SPELLUP_SPELLS 55
-#define OFFENSIVE_SPELLS 58
+#define OFFENSIVE_SPELLS 59
 #define OFFENSIVE_AOE_SPELLS 16
 
 /* list of spells mobiles will use for spellups */
@@ -180,7 +180,9 @@ int valid_offensive_spell[OFFENSIVE_SPELLS] = {
     SPELL_FLAMING_SPHERE,
     SPELL_BLIGHT, // 55
     SPELL_FINGER_OF_DEATH,
-    SPELL_WHIRLWIND};
+    SPELL_WHIRLWIND,
+    SPELL_HOLD_MONSTER
+    };
 
 /* end local */
 

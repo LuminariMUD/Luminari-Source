@@ -247,7 +247,9 @@
 /* Map points refer to locations shown on the asciimap, with the purpose of
 ** displaying the asciimap on a web site.  Hovering over these points will
 ** display the name of the location */
-#define NUM_MAP_POINTS 26
+#define NUM_MAP_POINTS 27
+
+#define NUM_ZONE_ENTRANCES 24
 
 #define NUM_FEMALE_NAMES 110
 #define NUM_MALE_NAMES 110
@@ -1057,9 +1059,10 @@
 #define PRF_NO_FOLLOW 61              /**< Toggle PC followers */
 #define PRF_CONDENSED 62              /**< Toggle combat condensed mode */
 #define PRF_CAREFUL_PET 63            /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
+#define PRF_NO_RAGE 64                // Will reject casting of rage spell on them.
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 63
+#define NUM_PRF_FLAGS 65
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1184,8 +1187,11 @@
 #define AFF_HIDE_ALIGNMENT 111     // alignment can't be detected
 #define AFF_WIND_WALL 112          // surrounded by a wall of wind
 #define AFF_FEAR_AURA 113
+#define AFF_SPIDER_CLIMB 114
+#define AFF_DEADLY_AIM 115          // used to determine if using deadly aim feat benefits.
+
 /*---*/
-#define NUM_AFF_FLAGS 114
+#define NUM_AFF_FLAGS 116
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2325,12 +2331,14 @@
 #define FEAT_FAE_SENSES 956
 #define FEAT_FAE_MAGIC 957
 #define FEAT_FAE_RESISTANCE 958
+//misc
+#define FEAT_DEADLY_AIM 959
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 959
+#define FEAT_LAST_FEAT 960
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 960
+#define NUM_FEATS 961
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -2840,9 +2848,10 @@
 #define APPLY_PSP_REGEN 55
 #define APPLY_ENCUMBRANCE 56
 #define APPLY_FAST_HEALING 57
+#define APPLY_INITIATIVE 58
 
 /** Total number of applies */
-#define NUM_APPLIES 58
+#define NUM_APPLIES 59
 
 // maximum number of spells/powers to buff
 #define MAX_BUFFS 20
@@ -3990,6 +3999,7 @@ struct char_special_data_saved
     int psp_regen;
     int encumbrance_mod;                        // This is added to strength only for purposes of calculating encumbrance limits.
     int fast_healing_mod;                       // This is like hp regen, except it will heal in combat.
+    int initiative_mod;                         // bonus to initative
 };
 
 /* not saved player data used for condensed combat */
@@ -4094,6 +4104,11 @@ struct char_special_data
     bool autodoor_message; // used for message handling in autodoor
 
     bool drainKilled; // true if killed by an energy draining creature (like a vampire), while under the effect of AFFECT_LEVEL_DRAIN
+
+    bool banishing_blade_procced_this_round; // has the creature had a banishing blade affect attempted against him this round?
+
+    bool quick_chant; // true if under the effect of quick chant
+    bool quick_mind; // true if under the effect of quick mind
 };
 
 /* old memorization struct */

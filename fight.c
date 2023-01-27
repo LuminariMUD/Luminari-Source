@@ -620,6 +620,7 @@ int roll_initiative(struct char_data *ch)
   initiative = d20(ch) + GET_DEX_BONUS(ch) + 4 * HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE);
   initiative += 2 * HAS_FEAT(ch, FEAT_IMPROVED_REACTION);
   initiative += GET_WIS_BONUS(ch) * HAS_FEAT(ch, FEAT_CUNNING_INITIATIVE);
+  initiative += GET_INITIATIVE_MOD(ch);
   // initiative += HAS_FEAT(ch, FEAT_HEROIC_INITIATIVE);
 
   return initiative;
@@ -4242,7 +4243,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   {
     for (tch = world[IN_ROOM(victim)].people; tch; tch = tch->next_in_room)
     {
-      if (FIGHTING(tch) == victim && IS_VAMPIRE(tch) && tch != victim && affected_by_spell(victim, ABILITY_BLOOD_DRAIN))
+      if (FIGHTING(tch) == victim && IS_VAMPIRE(tch) && tch != victim && affected_by_spell(tch, ABILITY_BLOOD_DRAIN))
         victim->char_specials.drainKilled = TRUE;
     }
   }
@@ -4279,6 +4280,13 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   CLOUDKILL(victim) = 0;    // stop any cloudkill bursts
   DOOM(victim) = 0;         // stop any creeping doom
   INCENDIARY(victim) = 0;   // stop any incendiary bursts
+  
+  // Stop the killer's blood drain
+  if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
+  {
+    affect_from_char(ch, ABILITY_BLOOD_DRAIN);
+    send_to_char(ch, "You finish feeding on the blood of your opponent and must seek a new target to continue feeding.\r\n");
+  }
 
   if (!IS_NPC(victim))
   { // forget victim, log
@@ -5169,6 +5177,10 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     break;
   }
 
+  if (display_mode)
+    send_to_char(ch, "Size modifier: \tR%s%d\tn\r\n", size_modifiers[GET_SIZE(ch)] >= 0 ? "+" : "", size_modifiers[GET_SIZE(ch)] * 2);
+  dambonus += size_modifiers[GET_SIZE(ch)] * 2;
+
   // Sorcerer Draconic Bloodline Claw Attacks
   if (ch && vict && affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 11)
   {
@@ -5402,6 +5414,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
         send_to_char(ch, "Power attack bonus: \tR%d\tn\r\n",
                      COMBAT_MODE_VALUE(ch));
     }
+  }
+
+  // deadly aim
+  if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
+  {
+      dambonus += COMBAT_MODE_VALUE(ch) * 2;
+      if (display_mode)
+        send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
   }
 
   /* crystal fist */
@@ -6130,7 +6150,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += (GET_LEVEL(ch) - 30) * 2;
     }
 
-    if (confirm_roll >= victim_ac) /* confirm critical */
+    if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
       return 1;                    /* yep, critical! */
   }
 
@@ -7479,7 +7499,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
   if (AFF_FLAGGED(ch, AFF_GRAPPLED) || AFF_FLAGGED(ch, AFF_ENTANGLED))
     bonuses[BONUS_TYPE_UNDEFINED] -= 2;
   /* Modify this to store a player-chosen number for power attack and expertise */
-  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE))
+  if (AFF_FLAGGED(ch, AFF_POWER_ATTACK) || AFF_FLAGGED(ch, AFF_EXPERTISE) || AFF_FLAGGED(ch, AFF_DEADLY_AIM))
     bonuses[BONUS_TYPE_UNDEFINED] -= COMBAT_MODE_VALUE(ch);
   /* spellbattle */
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
@@ -8476,6 +8496,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *missile)
 {
   struct affected_type af; /* for crippling strike */
+  struct affected_type *af2; // for hostile juxtaposition
   /* This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
             under certain circumstances.  This could be refactored into something else, but it may
             actually be best to refactor the entire homeland 'specials' system and include it into
@@ -9075,8 +9096,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
       affected_by_spell(victim, SKILL_RAGE))
   {
-    GET_TOTAL_AOO(victim)
-    --; /* free aoo and will be incremented in the function */
+    GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
     attack_of_opportunity(victim, ch, 0);
 
     /* dummy check */
@@ -9254,14 +9274,40 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   }
 
   // damage inflicting shields, like fire shield
-  damage_shield_check(ch, victim, attack_type, dam);
+  damage_shield_check(ch, victim, attack_type, dam, dam_type);
+
+  if (dam > 0)
+  {
+    if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
+    {
+      send_to_char(victim, "Your hostile juxtaposition defense is triggered.\r\n");
+      damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      dam = 0;
+      affect_from_char(victim, SPELL_HOSTILE_JUXTAPOSITION);
+    }
+    else if (affected_by_spell(victim, SPELL_HOSTILE_JUXTAPOSITION))
+    {
+      send_to_char(victim, "Your greater hostile juxtaposition defense is triggered.\r\n");
+      damage(victim, ch, dam, SPELL_HOSTILE_JUXTAPOSITION, dam_type, attack_type);
+      dam = 0;
+      for (af2 = victim->affected; af2; af2 = af2->next)
+      {
+        if (af2->location == SPELL_GREATER_HOSTILE_JUXTAPOSITION)
+        {
+          af2->modifier--;
+          break;
+        }
+      }
+      if (af2->modifier <= 0)
+        affect_from_char(victim, SPELL_GREATER_HOSTILE_JUXTAPOSITION);
+    }
+  }
 
   return dam;
 }
 
 /* damage inflicting shields, like fire shield */
-int damage_shield_check(struct char_data *ch, struct char_data *victim,
-                        int attack_type, int dam)
+int damage_shield_check(struct char_data *ch, struct char_data *victim, int attack_type, int dam, int dam_type)
 {
   int return_val = 0;
   int energy = 0;
@@ -9271,26 +9317,28 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim,
 
   if (attack_type != ATTACK_TYPE_RANGED)
   {
-    if (dam && victim && GET_HIT(victim) >= -1 &&
-        IS_AFFECTED(victim, AFF_CSHIELD))
+    if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_CSHIELD))
     { // cold shield
       return_val = damage(victim, ch, dice(1, 6), SPELL_CSHIELD_DAM, DAM_COLD, attack_type);
     }
-    else if (dam && victim && GET_HIT(victim) >= -1 &&
-             IS_AFFECTED(victim, AFF_FSHIELD))
+    else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_FSHIELD))
     { // fire shield
       return_val = damage(victim, ch, dice(1, 6), SPELL_FSHIELD_DAM, DAM_FIRE, attack_type);
     }
-    else if (dam && victim && GET_HIT(victim) >= -1 &&
-             IS_AFFECTED(victim, AFF_ESHIELD))
+    else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_ESHIELD))
     { // electric shield
       return_val = damage(victim, ch, dice(1, 6), SPELL_ESHIELD_DAM, DAM_ELECTRIC, attack_type);
     }
-    else if (dam && victim && GET_HIT(victim) >= -1 &&
-             IS_AFFECTED(victim, AFF_ASHIELD))
+    else if (dam && victim && GET_HIT(victim) >= -1 && IS_AFFECTED(victim, AFF_ASHIELD))
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
+    
+    if (dam && victim && GET_HIT(victim) >= -1 && (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) && affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
+    { // caustic blood
+      return_val = call_magic(victim, ch, NULL, AFFECT_CAUSTIC_BLOOD_DAMAGE, 0, CASTER_LEVEL(victim), CAST_SPELL);
+    }
+
     if (dam && victim && GET_HIT(victim) >= -1 && affected_by_spell(victim, PSIONIC_EMPATHIC_FEEDBACK))
     {
       if (!power_resistance(ch, victim, 0))
@@ -9360,6 +9408,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       diceroll = 0,       /* ch's attack roll. */
       can_hit = 0,        /* ch successfully hit? */
       dam = 0;            /* Damage for the attack, with mods. */
+
+  struct affected_type af;
 
   bool is_critical = FALSE;
 
@@ -9535,8 +9585,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     obj_from_obj(missile);
     /* if this was a weapon that was loaded, unload */
     if (wielded && GET_OBJ_VAL(wielded, 5) > 0)
-      GET_OBJ_VAL(wielded, 5)
-    --;
+      GET_OBJ_VAL(wielded, 5)--;
 
     /* we are checking here for spec procs associated with arrows */
 #define WARBOW_VNUM 132115
@@ -9800,8 +9849,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
           FALSE, victim, missile, ch, TO_NOTVICT);
       obj_to_room(missile, IN_ROOM(victim));
     }
-    DEFLECT_ARROWS_LEFT(victim)
-    --;
+    DEFLECT_ARROWS_LEFT(victim)--;
     return (HIT_MISS);
   }
 
@@ -9810,6 +9858,23 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     act("Your wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_CHAR);
     act("$n's wall of wind throws aside Your shot.", FALSE, victim, 0, ch, TO_VICT);
     act("$n's wall of wind throws aside $N's shot.", FALSE, victim, 0, ch, TO_NOTVICT);
+    return (HIT_MISS);
+  }
+
+  if (attack_type == ATTACK_TYPE_RANGED && affected_by_spell(victim, SPELL_PROTECTION_FROM_ARROWS))
+  {
+    struct affected_type *afx = NULL;
+    for (afx = victim->affected; afx; afx = afx->next)
+    {
+      if (afx->spell == SPELL_PROTECTION_FROM_ARROWS)
+        break;
+    }
+
+    if (--afx->modifier <= 0)
+      affect_from_char(victim, SPELL_PROTECTION_FROM_ARROWS);
+
+    act("An invisible barrier forces $n's shot wide.", FALSE, ch, 0, victim, TO_ROOM);
+    act("An invisible barrier forces your shot wide.", FALSE, ch, 0, victim, TO_CHAR);
     return (HIT_MISS);
   }
 
@@ -9834,6 +9899,61 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   }
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger
+
+  // This goes last because we're extracting ch in certain conditions within
+  if (victim && affected_by_spell(victim, SPELL_BANISHING_BLADE))
+  {
+    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
+    {
+    }
+    else
+    {
+      if (!ch->char_specials.banishing_blade_procced_this_round)
+      {
+        ch->char_specials.banishing_blade_procced_this_round = TRUE;
+        
+        if (!affected_by_spell(ch, AFFECT_IMMUNITY_BANISHING_BLADE))
+        {
+          if (perform_knockdown(victim, ch, SPELL_BANISHING_BLADE))
+          {
+            if (IS_NPC(ch) && isSummonMob(GET_MOB_VNUM(ch)) && GET_LEVEL(victim) >= GET_LEVEL(ch))
+            {
+              if (!mag_resistance(victim, ch, 0) && !mag_savingthrow(victim, ch, SAVING_WILL, 0, CAST_WEAPON_SPELL, CASTER_LEVEL(victim), ABJURATION))
+              {
+                act("Your banishing blade has dismissed $N back to their place of origin.", FALSE, victim, 0, ch, TO_CHAR);
+                act("$n's banishing blade has dismissed You back to your place of origin.", FALSE, victim, 0, ch, TO_VICT);
+                act("$n's banishing blade has dismissed $N back to their place of origin.", FALSE, victim, 0, ch, TO_NOTVICT);
+                extract_char(ch);
+              }
+              else
+              {
+                // They're staggered for a round on a successful save
+                new_affect(&af);
+                af.spell = STATUS_AFFECT_STAGGERED;
+                af.location = APPLY_SPECIAL;
+                af.duration = 1;
+                af.modifier = 1;
+                SET_BIT_AR(af.bitvector, AFF_STAGGERED);
+                affect_to_char(ch, &af);
+              }
+            }
+
+            // on a successful trip attempt, they will be immune to the effect for 4 rounds.
+            // we check for (ch) here in case they were extracted above.
+            if (ch)
+            {
+              new_affect(&af);
+              af.spell = AFFECT_IMMUNITY_BANISHING_BLADE;
+              af.location = APPLY_SPECIAL;
+              af.duration = 4;
+              af.modifier = 1;
+              affect_to_char(ch, &af);
+            }
+          }
+        }
+      }
+    }
+  }
 
   return dam;
 }

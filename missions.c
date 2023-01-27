@@ -170,7 +170,7 @@ SPECIAL(faction_mission)
 
     if (GET_MISSION_COOLDOWN(ch) > 0 && GET_LEVEL(ch) < LVL_GRSTAFF)
     {
-        send_to_char(ch, "You are not ready to take a mission right now.  Check the cooldowns command for more info.\r\n");
+        send_to_char(ch, "take a mission right now.  Check the cooldowns command for more info.\r\n");
         return 1;
     }
 

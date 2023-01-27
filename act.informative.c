@@ -566,6 +566,9 @@ static void diag_char_to_char(struct char_data *i, struct char_data *ch)
       {0, "is in awful condition."},
       {-1, "is bleeding awfully from big wounds."},
   };
+  
+  if (!ch || !i) return;
+
   int percent, ar_index;
   char *pers = strdup(PERS(i, ch));
   int is_disguised = GET_DISGUISE_RACE(i);
@@ -811,6 +814,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+    else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
+      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -861,6 +870,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+    else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
+      act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
       act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
     if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -1008,6 +1023,12 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
 
   if (AFF_FLAGGED(i, AFF_SANCTUARY))
     act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
+    if (affected_by_spell(i, SPELL_BANISHING_BLADE))
+      act("...a green blade of pure energy dances at $s side!", FALSE, i, 0, ch, TO_VICT);
+  if (affected_by_spell(i, SPELL_GREATER_BLACK_TENTACLES))
+      act("...$e is being curshed by huge, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
+  else if (affected_by_spell(i, SPELL_BLACK_TENTACLES))
+    act("...$e is being curshed by large, black tentacles sprouting from the ground!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_BLIND) && GET_LEVEL(i) < LVL_IMMORT)
     act("...$e is groping around blindly!", FALSE, i, 0, ch, TO_VICT);
   if (AFF_FLAGGED(i, AFF_FAERIE_FIRE))
@@ -1233,6 +1254,23 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "and rythemic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, sailing_locales[ch->player_specials->travel_locale][0]);
+      rm->description = strdup(buf);
+    }
+    else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
+    {
+      rm->name = strdup("Flying High Above in the Sky");
+      snprintf(buf, sizeof(buf),
+               "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
+               "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
+               "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
+               "Judging by how far you've gone so far you should arrive in\r\n"
+               "about %d minutes and %d seconds to your destination: %s.\r\n",
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, 
+#ifdef CAMPAIGN_FR
+               zone_entrances[ch->player_specials->travel_locale][0]);
+#else
+               carriage_locales[ch->player_specials->travel_locale][0]);
+#endif
       rm->description = strdup(buf);
     }
   }
@@ -1991,7 +2029,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
       send_to_char(ch, "\r\n");
   }
 
-  send_to_char(ch, "\tC");
+  send_to_char(ch, "\r\n\tC");
   text_line(ch, "\tYSpell Resistance\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
   send_to_char(ch, "Spell Resist: %d\r\n", compute_spell_res(NULL, k, 0));
@@ -2083,7 +2121,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   struct mud_event_data *pMudEvent = NULL;
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYAffected By\tC", 80, '-', '-');
+  text_line(ch, "\tYAffected By\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
   for (i = 0; i < NUM_AFF_FLAGS; i++)
@@ -2097,7 +2135,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYSpell/Skill-like Affects\tC", 80, '-', '-');
+  text_line(ch, "\tYSpell/Skill-like Affects\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
   buf[0] = '\0'; // Reset the string buffer for later use.
@@ -2155,6 +2193,10 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       { /* Handle DR a bit differently */
         snprintf(buf3, sizeof(buf3), "%s", "(see DR)");
       }
+      else if (aff->location == APPLY_SKILL)
+      {
+        snprintf(buf3, sizeof(buf3), "%+d to %s (%s)", aff->modifier, apply_types[(int)aff->location], ability_names[aff->specific]);
+      }
       else
       {
         snprintf(buf3, sizeof(buf3), "%+d to %s", aff->modifier, apply_types[(int)aff->location]);
@@ -2163,12 +2205,12 @@ void perform_affects(struct char_data *ch, struct char_data *k)
       if (aff->bitvector[0] || aff->bitvector[1] ||
           aff->bitvector[2] || aff->bitvector[3])
       {
-        snprintf(buf2, sizeof(buf2), "%s(see affected by)", ((aff->modifier) ? ", " : ""));
+        snprintf(buf2, sizeof(buf2), "%s (see affected by)", ((aff->modifier) ? ", " : ""));
         strlcat(buf3, buf2, sizeof(buf3));
       }
 
       buf2[0] = '\0';
-      snprintf(buf2, sizeof(buf2), "%-25s", buf3);
+      snprintf(buf2, sizeof(buf2), "%-34s", buf3);
       buf3[0] = '\0';
       /* Add the Bonus type. */
       send_to_char(ch, "%s %s \tc(%s)\tn\r\n", buf, buf2, bonus_types[aff->bonus_type]);
@@ -2176,7 +2218,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   }
 
   send_to_char(ch, "\tC");
-  text_line(ch, "\tYOther Affects\tC", 80, '-', '-');
+  text_line(ch, "\tYOther Affects\tC", 90, '-', '-');
   send_to_char(ch, "\tn");
 
   /* Check to see if the victim is affected by an AURA OF COURAGE */
@@ -2227,6 +2269,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tRStunned!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eACIDARROW)))
     send_to_char(ch, "\tRAcid Arrow!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eAQUEOUSORB)))
+    send_to_char(ch, "\tRAqueous Orb!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eHOLYJAVELIN)))
     send_to_char(ch, "\tRHoly Javelin!\tn - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eIMPLODE)))
@@ -2242,7 +2286,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "You are blood starved and receive penalties to some abilities.  See HELP BLOOD STARVED.\r\n");
 
   send_to_char(ch, "\tC");
-  draw_line(ch, 80, '-', '-');
+  draw_line(ch, 90, '-', '-');
   send_to_char(ch, "\tn");
 
   /* leads to other commands */
@@ -2411,9 +2455,9 @@ ACMD(do_masterlist)
   {
     i = spell_sort_info[bottom]; /* make sure spell_sort_info[] define is big enough! */
 
-    if (!strcmp(spell_info[i].name, "!UNUSED!"))
+    if (spell_info[i].min_position == POS_DEAD)
       continue;
-    if (is_spells && i > TOP_SPELL_DEFINE)
+    if (is_spells && i > NUM_SPELLS)
       continue;
     if (!is_spells && i < START_SKILLS)
       continue;
@@ -2596,7 +2640,7 @@ ACMD(do_gold)
 void perform_abilities(struct char_data *ch, struct char_data *k)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  int line_length = 80;
+  int line_length = 90;
   int i = 0, remaining = 0, total = 0;
 
   /* Set up the output. */
@@ -2612,7 +2656,7 @@ void perform_abilities(struct char_data *ch, struct char_data *k)
       remaining = daily_uses_remaining(k, i);
       total = get_daily_uses(k, i);
       send_to_char(ch,
-                   "%-20s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
+                   "%-30s \tc%-14s\tn %s%2d\tn/%-2d uses remaining\r\n",
                    feat_list[i].name,
                    buf,
                    (remaining > (total / 2) ? "\tn" : (remaining <= 1 ? "\tR" : "\tY")),
@@ -5542,14 +5586,6 @@ ACMD(do_moves)
 
 #ifdef CAMPAIGN_FR
 
-void set_x_y_coords(int start, int *x, int *y, int *room)
-{
-  *x = MIN(159, MAX(0, ((start - 600161) % 160)));
-  *y = MIN(159, MAX(0, ((start - 600161) / 160)));
-
-  *room = 600161 + (160 * *y) + *x;
-}
-
 ACMD(do_survey)
 {
 
@@ -6669,6 +6705,42 @@ ACMD(do_cruelties)
 ACMD(do_maxhp)
 {
   calculate_max_hp(ch, true);
+}
+
+ACMD(do_flightlist)
+{
+
+  int i = 0;
+
+  #ifdef CAMPAIGN_FR
+
+    char zone[200];
+
+    text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+    for (i = 0; i < NUM_ZONE_ENTRANCES; i++)
+    {
+      snprintf(zone, sizeof(zone), "%s (%s)", zone_entrances[i][0], zone_entrances[i][1]);
+      send_to_char(ch, "%-39s ", zone);
+      if ((i % 2) == 1)
+        send_to_char(ch, "\r\n");
+    }
+    if ((i % 2) != 1)
+        send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+  #else
+    i = 0;
+    text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+    while (atoi(carriage_locales[i][1]) != 0)
+    {
+      send_to_char(ch, "%-39s ", carriage_locales[i][0]);
+      if ((i % 2) == 1)
+        send_to_char(ch, "\r\n");
+      i++;
+    }
+    if ((i % 2) != 1)
+        send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+  #endif
 }
 
 #undef WPT_SIMPLE

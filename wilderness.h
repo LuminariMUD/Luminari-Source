@@ -22,8 +22,12 @@
 #define IS_WILDERNESS_VNUM(room_vnum) ((room_vnum >= WILD_ROOM_VNUM_START && room_vnum <= WILD_ROOM_VNUM_END) || (room_vnum >= WILD_DYNAMIC_ROOM_VNUM_START && room_vnum <= WILD_DYNAMIC_ROOM_VNUM_END))
 
 /* Utility macros */
+#ifdef CAMPAIGN_FR
+#define IS_DYNAMIC(rnum)  (FALSE)
+#else
 #define IS_DYNAMIC(rnum) ((world[rnum].number >= WILD_DYNAMIC_ROOM_VNUM_START) && \
                           (world[rnum].number <= WILD_DYNAMIC_ROOM_VNUM_END))
+#endif
 
 /* Map Types */
 #define MAP_TYPE_NORMAL 0

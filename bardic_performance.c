@@ -600,6 +600,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   case SKILL_SONG_OF_FLIGHT:
     if (!AFF_FLAGGED(tch, AFF_FLYING))
     {
+      af[0].location = APPLY_SPECIAL;
       af[0].duration = 30;
       SET_BIT_AR(af[0].bitvector, AFF_FLYING);
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);

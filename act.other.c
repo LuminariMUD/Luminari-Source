@@ -1178,6 +1178,7 @@ ACMD(do_imbuearrow)
   case SPELL_HALT_UNDEAD:
   case SPELL_VAMPIRIC_TOUCH:
   case SPELL_HOLD_PERSON:
+  case SPELL_HOLD_MONSTER:
   case SPELL_DEEP_SLUMBER:
   case SPELL_DAYLIGHT:
   case SPELL_SLOW:
@@ -1238,6 +1239,7 @@ ACMD(do_imbuearrow)
   case SPELL_DIMENSIONAL_LOCK:
   case SPELL_STORM_OF_VENGEANCE:
   case SPELL_CHARM_ANIMAL:
+  case SPELL_CHARM_MONSTER:
   case SPELL_FAERIE_FIRE:
   case SPELL_PRODUCE_FLAME:
   case SPELL_FLAME_BLADE:
@@ -6897,6 +6899,9 @@ ACMD(do_gen_tog)
       /*50*/
       {"You will no longer be careful with your pets (and vice versa).\r\n",
        "You will now be careful with your pets (and vice versa).\r\n"},
+      // 51
+      {"You will now allow yourself to be affected by the rage spell.\r\n",
+       "You will now reject any castings of the rage spell upon you.\r\n"},
 
   };
 
@@ -6910,6 +6915,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_AUTO_STAND:
     result = PRF_TOG_CHK(ch, PRF_AUTO_STAND);
+    break;
+  case SCMD_NORAGE:
+    result = PRF_TOG_CHK(ch, PRF_NO_RAGE);
     break;
   case SCMD_AUTOHIT:
     result = PRF_TOG_CHK(ch, PRF_AUTOHIT);

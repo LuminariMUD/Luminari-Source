@@ -198,6 +198,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"breathe", "breathe", POS_FIGHTING, do_breathe, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_breathe},
     {"blank", "blank", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_BLANK, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"blooddrain", "blooddrain", POS_RESTING, do_blood_drain, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bombs", "bombs", POS_RESTING, do_bombs, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"boosts", "boost", POS_RECLINING, do_boosts, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
@@ -306,6 +307,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"disguise", "disguise", POS_RESTING, do_disguise, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"destructiveaura", "destructiveaura", POS_FIGHTING, do_destructiveaura, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"destructivesmite", "destructivesmite", POS_FIGHTING, do_destructivesmite, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"deadlyaim", "deadlyaim", POS_FIGHTING, do_mode, 1, MODE_DEADLY_AIM, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"deatharrow", "deatharrow", POS_FIGHTING, do_deatharrow, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_deatharrow},
     {"defenses", "defenses", POS_DEAD, do_defenses, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"defensivestance", "defensivestance", POS_FIGHTING, do_defensive_stance, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_defensive_stance},
@@ -355,6 +357,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"fill", "fil", POS_STANDING, do_pour, 0, SCMD_FILL, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"file", "file", POS_SLEEPING, do_file, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"flee", "fl", POS_FIGHTING, do_flee, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"flightlist", "flightlist", POS_RESTING, do_flightlist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"follow", "fol", POS_RECLINING, do_follow, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"forget", "forget", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_FORGET, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"freeze", "freeze", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_FREEZE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -523,6 +526,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"nogossip", "nogossip", POS_DEAD, do_gen_tog, 0, SCMD_NOGOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nograts", "nograts", POS_DEAD, do_gen_tog, 0, SCMD_NOGRATZ, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nohassle", "nohassle", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NOHASSLE, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"norage", "norage", POS_DEAD, do_gen_tog, LVL_IMMORT, SCMD_NORAGE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"norepeat", "norepeat", POS_DEAD, do_gen_tog, 0, SCMD_NOREPEAT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"noshout", "noshout", POS_SLEEPING, do_gen_tog, 1, SCMD_NOSHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"nosummon", "nosummon", POS_DEAD, do_gen_tog, 1, SCMD_NOSUMMON, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -581,6 +585,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"pin", "pin", POS_FIGHTING, do_pin, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"pixiedust", "pixiedust", POS_RECLINING, do_pixiedust, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixiedust},
     {"pixieinvis", "pixieinvis", POS_RECLINING, do_pixieinvis, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_pixieinvis},
+    {"planarsoul", "planars", POS_FIGHTING, do_planarsoul, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"players", "players", POS_DEAD, do_players, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"psionicfocus", "psionicfocus", POS_FIGHTING, do_psionic_focus, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_psionic_focus},
@@ -601,6 +606,10 @@ cpp_extern const struct command_info cmd_info[] = {
     {"qecho", "qec", POS_DEAD, do_qcomm, LVL_STAFF, SCMD_QECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"quest", "que", POS_DEAD, do_quest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+#ifdef CAMPAIGN_FR
+    {"quickchant", "quickc", POS_FIGHTING, do_quick_chant, 0, SCMD_QUICK_CHANT, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"quickmind", "quickm", POS_FIGHTING, do_quick_chant, 0, SCMD_QUICK_MIND, TRUE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"quit", "quit", POS_DEAD, do_quit, 0, SCMD_QUIT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qsay", "qsay", POS_RECLINING, do_qcomm, 0, SCMD_QSAY, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"qref", "qref", POS_DEAD, do_qref, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -675,9 +684,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"set", "set", POS_DEAD, do_set, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setcloak", "setcloak", POS_RECLINING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"setbaneweapon", "setb", POS_RECLINING, do_setbaneweapon, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomname", "setr", POS_DEAD, do_setroomname, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomdesc", "setroomd", POS_DEAD, do_setroomdesc, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1119,6 +1128,8 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "ne") &&
            !is_abbrev(complete_cmd_info[cmd].command, "se") &&
            !is_abbrev(complete_cmd_info[cmd].command, "sw") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "inside") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "outside") &&
            !is_abbrev(complete_cmd_info[cmd].command, "get") &&  /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "take") && /* maybe re-analyze this one */
            !is_abbrev(complete_cmd_info[cmd].command, "group") &&
@@ -1154,6 +1165,23 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "disabletrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "detecttrap") &&
            !is_abbrev(complete_cmd_info[cmd].command, "cast") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "mark") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "races") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "cooldowns") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "abilities") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "resistances") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "lore") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "powerattack") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "expertise") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "ooc") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "chat") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "save") &&
+#ifdef CAMPAIGN_FR
+           !is_abbrev(complete_cmd_info[cmd].command, "say") &&
+#endif
            !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
   {
     REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_HIDE);
