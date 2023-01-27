@@ -1374,6 +1374,19 @@ void assign_feats(void)
   feat_prereq_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_SPECIALIZATION);
   feat_prereq_class_level(FEAT_EPIC_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 20);
 
+  feato(FEAT_EPIC_ELDRITCH_MASTER, "eldritch master", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "+50% blast damage, +2 hit",
+        "Warlock's Eldritch Blast deals +50% base damage, and have a +2"
+        "to attack rolls");
+  feat_prereq_class_level(FEAT_EPIC_ELDRITCH_MASTER, CLASS_WARLOCK, 16);
+  feat_prereq_ability(FEAT_EPIC_ELDRITCH_MASTER, ABILITY_SPELLCRAFT, 24);
+
+  feato(FEAT_EPIC_ELDRITCH_BLAST, "epic eldritch blast", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+        "+1d6 eldritch blast",
+        "Warlock's Eldritch Blast deals an additional 1d6 of damage."
+        "This feat may be taken multiple times and stacks.");
+  feat_prereq_class_level(FEAT_EPIC_ELDRITCH_MASTER, CLASS_WARLOCK, 20);
+
   /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

@@ -927,7 +927,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       mag_resist = FALSE; // Unmodified Eldritch Blasts of +10d6 damage or more skip Spell Resistance.
     element = DAM_FORCE;
     size_dice = 6;
-    num_dice = HAS_FEAT(ch, FEAT_ELDRITCH_BLAST);
+    num_dice = HAS_FEAT(ch, FEAT_ELDRITCH_BLAST) + HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_BLAST);
     if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
       element = DAM_COLD;
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
@@ -2267,6 +2267,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   {
     dam = dice(num_dice, size_dice) + bonus;
   }
+
+  if (HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER))
+    dam += dam / 2;
 
   if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
     GET_DC_BONUS(ch) += 1;

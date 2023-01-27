@@ -2346,13 +2346,14 @@
 #define FEAT_WARLOCK_DR 966
 #define FEAT_WARLOCK_DECEIVE_ITEM 967
 #define FEAT_WARLOCK_FIENDISH_RESILIENCE 968
-// #define FEAT_WARLOCK_ENERGY_RESISTANCE 969
+#define FEAT_EPIC_ELDRITCH_MASTER 969
+#define FEAT_EPIC_ELDRITCH_BLAST 970
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 969
+#define FEAT_LAST_FEAT 971
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 970
+#define NUM_FEATS 972
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3272,7 +3273,7 @@
 #define ATTACK_TYPE_PRIMARY_SNEAK 6 // impromptu sneak attack
 #define ATTACK_TYPE_OFFHAND_SNEAK 7 // impromptu sneak attack
 #define ATTACK_TYPE_PSIONICS 8
-#define ATTACK_TYPE_SPELLLIKE_ABILITY 9
+#define ATTACK_TYPE_ELDRITCH_BLAST 9
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
