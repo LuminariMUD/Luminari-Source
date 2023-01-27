@@ -934,6 +934,25 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 8;    
     break;
 
+  case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+    if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
+    {
+      change_position(victim, POS_SITTING);
+      act("You have been knocked down!", FALSE, victim, 0, ch, TO_CHAR);
+      act("$n is knocked down!", TRUE, victim, 0, ch, TO_ROOM);
+      if (!OUTDOORS(victim))
+      {
+        act("You have been slammed hard against the wall!", FALSE, victim, 0, ch, TO_CHAR);
+        act("$n is slammed hard against the wall!", TRUE, victim, 0, ch, TO_ROOM);
+        damage(ch, victim, dice(num_dice, size_dice) + bonus, spellnum, DAM_FORCE, FALSE);
+      }
+    }
+    mag_resist = TRUE;
+    element = DAM_SOUND;
+    size_dice = 6;
+    num_dice = 4;
+    break;
+
     /*******************************************\
       || ------------ PSIONIC POWERS ----------- ||
       \*******************************************/
@@ -1709,6 +1728,15 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     num_dice = level;
     size_dice = 12;
     bonus = level + 10;
+    break;
+
+  case WARLOCK_WALL_OF_PERILOUS_FLAME: // evocation
+    save = SAVING_FORT;
+    mag_resist = TRUE;
+    element = DAM_FIRE;
+    num_dice = 2;
+    size_dice = 6;
+    bonus = level * 2;
     break;
 
   case SPELL_WALL_OF_FIRE: // evocation
@@ -3662,7 +3690,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 120;
       to_room = "$n is imbued with fear!";
       to_vict = "You feel scared and fearful!";
-      break;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BESHADOWED_BLAST)
     {
@@ -3685,7 +3712,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       to_room = "$n seems to be blinded!";
       to_vict = "You have been blinded!";
-      break;
     } 
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_HELLRIME_BLAST)
     {
@@ -3700,7 +3726,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
       to_room = "$n is chilled to the bone!";
       to_vict = "You're so cold it's hard to move!";
-      break;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) ==  WARLOCK_BEWITCHING_BLAST)
     {
@@ -3718,7 +3743,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       victim->confuser_idnum = GET_IDNUM(ch);
       to_room = "A look of utter confusion washes over $n's face.";
       to_vict = "You find yourself completely confused and disoriented.";
-      break;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_NOXIOUS_BLAST)
     {
@@ -3733,7 +3757,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       SET_BIT_AR(af[0].bitvector, AFF_DAZED);
       to_vict = "An assault on your mind has left you dazed!";
       to_room = "$n suddenly looks shocked and dazed!";
-      break;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BINDING_BLAST)
     {
@@ -3750,11 +3773,29 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       af[0].duration = 12;
       to_room = "$n is dazed by the blast!";
       to_vict = "You are dazed by the blast!";
-      break;
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
     {
+      if (mag_resistance(ch, victim, 0))
+        return;
+      if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
+        return;
+      
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -2;
+      af[0].duration = 360;
 
+      af[1].location = APPLY_AC_NEW;
+      af[1].modifier = -2;
+      af[1].duration = 360;
+
+      af[2].location = APPLY_HIT;
+      af[2].modifier = -10;
+      af[2].duration = 360;
+      to_room = "$n is weakened by the utterdark blast.";
+      to_vict = "You are weakened by an utterdark blast.";
+
+      accum_duration = accum_affect = TRUE;
     }
     else 
     {
@@ -3861,6 +3902,42 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       victim = ch;
 
     af[0].duration = 3600;
+    af[0].modifier = 4;
+    af[0].location = APPLY_AC_NEW;
+    SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
+    to_vict = "You vanish.";
+    to_room = "$n slowly fades out of existence.";
+    break;
+
+  case WARLOCK_DARK_FORESIGHT:
+    if (!victim)
+      victim = ch;
+
+    CREATE(new_dr, struct damage_reduction_type, 1);
+
+    new_dr->bypass_cat[0] = DR_BYPASS_CAT_MATERIAL;
+    new_dr->bypass_val[0] = MATERIAL_ALCHEMAL_SILVER;
+
+    new_dr->bypass_cat[1] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[1] = 0; /* Unused. */
+
+    new_dr->bypass_cat[2] = DR_BYPASS_CAT_UNUSED;
+    new_dr->bypass_val[2] = 0; /* Unused. */
+
+    new_dr->amount = 10;
+    new_dr->max_damage = 10 * level;
+    new_dr->spell = WARLOCK_DARK_FORESIGHT;
+    new_dr->feat = FEAT_UNDEFINED;
+    new_dr->next = GET_DR(victim);
+    GET_DR(victim) = new_dr;
+    to_room = "Your senses become enhanced with visions of the future.";
+    break;
+
+  case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+    if (!victim)
+      victim = ch;
+
+    af[0].duration = 3;
     af[0].modifier = 4;
     af[0].location = APPLY_AC_NEW;
     SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
@@ -7683,6 +7760,10 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_METEOR_SWARM:
     to_char = "You call down meteors from the sky to pummel your foes!";
     to_room = "$n invokes a swarm of meteors to rain from the sky!";
+    break;
+  case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+    to_char = "An explosive shockwave blasts out from around you.";
+    to_room = "An explosive shockwave blasts outwards from $n.";
     break;
   case SPELL_PRISMATIC_SPRAY:
     is_eff_and_dam = TRUE;

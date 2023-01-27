@@ -975,6 +975,9 @@ SAVING_WILL here...  */
     case WARLOCK_TENACIOUS_PLAGUE:
       MANUAL_SPELL(tenacious_plague);
       break;
+    case WARLOCK_WALL_OF_PERILOUS_FLAME:
+      MANUAL_SPELL(wall_of_perilous_flame);
+      break;
     case WARLOCK_ELDRITCH_SPEAR:
     case WARLOCK_ELDRITCH_CHAIN:
     case WARLOCK_ELDRITCH_CONE:

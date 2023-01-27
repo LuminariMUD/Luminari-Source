@@ -63,6 +63,7 @@ bool is_wall_spell(int spellnum)
   case SPELL_WALL_OF_THORNS:
   case SPELL_WALL_OF_FOG:
   case SPELL_PRISMATIC_SPHERE:
+  case WARLOCK_WALL_OF_PERILOUS_FLAME:
   case PSIONIC_WALL_OF_ECTOPLASM:
     break;
   default:
@@ -115,6 +116,13 @@ struct wall_information wallinfo[NUM_WALL_TYPES] = {
      "\tna wall of ectoplasm",
      "wall ectoplasm",
      10},
+    /* WALL_TYPE_FIRE 6 */
+    {FALSE,
+     WARLOCK_WALL_OF_PERILOUS_FLAME,
+     "\trA wall of perilous f\tRi\trre stands towards the %s.\tn",
+     "\tra wall of perilous fire\tn",
+     "wall perilous fire",
+     0},
 };
 
 /* called from movement, etc..  basically make the wall work - we will try
@@ -558,7 +566,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
     attempt = d20(ch) + CASTER_LEVEL(ch);
     challenge = d20(vict) + CASTER_LEVEL(vict);
 
-    if (spellnum == SPELL_GREATER_DISPELLING)
+    if (spellnum == SPELL_GREATER_DISPELLING || spellnum == WARLOCK_VORACIOUS_DISPELLING || spellnum == WARLOCK_DEVOUR_MAGIC)
     {
       num_dispels = dice(2, 2);
       for (i = 0; i < num_dispels; i++)
@@ -567,6 +575,11 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
         { // successful
           if (vict->affected)
           {
+            if (vict->affected[0].spell == WARLOCK_RETRIBUTIVE_INVISIBILITY)
+            {
+              // this spell explodes.
+              mag_areas(GET_WARLOCK_LEVEL(vict), vict, NULL, WARLOCK_RETRIBUTIVE_INVISIBILITY, 0, SAVING_FORT, CAST_INNATE);
+            }
             msg = TRUE;
             affect_remove(vict, vict->affected);
             if (spellnum == WARLOCK_VORACIOUS_DISPELLING)
@@ -576,7 +589,7 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
             else if (spellnum == WARLOCK_DEVOUR_MAGIC)
             {
               mag_affects(GET_WARLOCK_LEVEL(ch), ch, ch, NULL, WARLOCK_DEVOUR_MAGIC, -1, CAST_INNATE, 0);
-            }        
+            } 
           }
         }
         attempt = d20(ch) + CASTER_LEVEL(ch);
@@ -1283,7 +1296,7 @@ ASPELL(spell_aqueous_orb)
 
     for (wall = world[victim->in_room].contents; wall; wall = wall->next_content)
     {
-      if (GET_OBJ_TYPE(wall) == ITEM_WALL && GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_FIRE)
+      if (GET_OBJ_TYPE(wall) == ITEM_WALL && (GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_FIRE || GET_OBJ_VAL(wall, WALL_TYPE) == WALL_TYPE_PERILOUS_FIRE))
       {
         send_to_char(ch, "You quench a wall of fire!\r\n");
         act("$n quenches a wall of fire!", FALSE, ch, 0, 0, TO_ROOM);
@@ -2608,6 +2621,30 @@ ASPELL(tenacious_plague)
   act("$n summons forth a mass of biting and stinging insects!", FALSE, ch, 0, 0, TO_ROOM);
 
   TENACIOUS_PLAGUE(ch) = 3;
+}
+
+ASPELL(wall_of_perilous_flame)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int dir = -1;
+
+  if (AFF_FLAGGED(ch, AFF_CHARM))
+    return;
+
+  one_argument(cast_arg2, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
+    return;
+  }
+
+  dir = search_block(arg, dirs, FALSE);
+  if (dir >= 0)
+  {
+    create_wall(ch, ch->in_room, dir, WALL_TYPE_PERILOUS_FIRE, GET_WARLOCK_LEVEL(ch));
+  }
+  else
+    send_to_char(ch, "You must specify a direction to conjure your wall at.\r\n");
 }
 
 ASPELL(eldritch_blast)
