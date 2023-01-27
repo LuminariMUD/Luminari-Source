@@ -3686,6 +3686,8 @@ int compute_concealment(struct char_data *ch)
     concealment += 20;
   else if (affected_by_spell(ch, PSIONIC_CONCEALING_AMORPHA)) // this is here to prevent overpowered combinations of buffs
     concealment += 20;
+  else if (affected_by_spell(ch, WARLOCK_ENTROPIC_WARDING))
+    concealment += 20;
   else if (AFF_FLAGGED(ch, AFF_BLUR))
     concealment += 20;
 

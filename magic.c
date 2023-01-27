@@ -3872,7 +3872,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_SKILL;
     af[0].modifier = 6;
     af[0].duration = 3600;
-    af[1].specific = ABILITY_LORE;
+    af[0].specific = ABILITY_LORE;
     af[0].bonus_type = BONUS_TYPE_INSIGHT;
 
     af[1].location = APPLY_SKILL;
@@ -3907,6 +3907,21 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
     to_vict = "You vanish.";
     to_room = "$n slowly fades out of existence.";
+    break;
+
+  case WARLOCK_ENTROPIC_WARDING:
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 20;
+    af[0].duration = level * 12;
+
+    af[1].location = APPLY_SKILL;
+    af[1].modifier = 4;
+    af[1].duration = level * 12;
+    af[1].specific = ABILITY_STEALTH;
+    af[1].bonus_type = BONUS_TYPE_INSIGHT;
+
+    to_vict = "A magical field of glowing runes encases you.";
+    to_room = "A magical field of glowing runes encases $n.";
     break;
 
   case WARLOCK_DARK_FORESIGHT:
