@@ -921,6 +921,9 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case WARLOCK_ELDRITCH_DOOM:
   case WARLOCK_ELDRITCH_CHAIN:
   case WARLOCK_ELDRITCH_BLAST:
+  case WARLOCK_ELDRITCH_CONE:
+  case WARLOCK_ELDRITCH_SPEAR:
+  case WARLOCK_CRITICAL_ELDRITCH_BLAST:
     save = -1; // by default there's no save
     mag_resist = TRUE;
     if (level >= 10)
@@ -2446,6 +2449,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   }
   else if (spellnum == WARLOCK_ELDRITCH_CHAIN)
     dam /= 2;
+  else if (spellnum == WARLOCK_CRITICAL_ELDRITCH_BLAST)
+    dam *= 2;
   else if (dam && (save != -1))
   {
     // saving throw for half damage if applies

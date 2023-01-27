@@ -6133,7 +6133,10 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* we get here, the powerful being beat it */
   }
 
-  threat_range = determine_threat_range(ch, wielded);
+  if (wielded) 
+    threat_range = determine_threat_range(ch, wielded);
+  else
+    threat_range = 20;
 
   if (diceroll >= threat_range)
   { /* critical potential? */
@@ -6156,9 +6159,9 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
       confirm_roll += (GET_LEVEL(ch) - 30) * 2;
     }
 
-if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
+    if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
       return 1;                    /* yep, critical! */
-  }
+    }
 
   return 0; /* nope, no critical */
 }
@@ -8000,6 +8003,57 @@ int attack_roll(struct char_data *ch,     /* Attacker */
   int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
 
   int diceroll = d20(ch);
+  int result = ((attack_bonus + diceroll) - victim_ac);
+
+  //  if (attack_type == ATTACK_TYPE_RANGED) {
+  /* 1d20 + base attack bonus + Dexterity modifier + size modifier + range penalty */
+  /* Range penalty - only if victim is in a different room. */
+  //  } else if (attack_type == ATTACK_TYPE_PRIMARY) {
+  /* 1d20 + base attack bonus + Strength modifier + size modifier */
+  //  } else if (attack_type == ATTACK_TYPE_OFFHAND) {
+  /* 1d20 + base attack bonus + Strength modifier + size modifier */
+  //  }
+
+  if (DEBUGMODE)
+  {
+    send_to_char(ch, "DEBUG: attack bonus: %d, diceroll: %d, victim_ac: %d, result: %d\r\n", attack_bonus, diceroll, victim_ac, result);
+  }
+
+  return result;
+}
+
+/*
+ * Perform an attack, returns the difference of the attacker's roll and the defender's
+ * AC.  This value can be negative, and will be on a miss.  Does not deal damage, only
+ * checks to see if the attack was successful!
+ * 
+ * This version includes a chance to critical and will return 999 if
+ * it's a critical hit.
+ *
+ * Valid attack_type(s) are:
+ *   ATTACK_TYPE_PRIMARY : Primary hand attack.
+ *   ATTACK_TYPE_OFFHAND : Offhand attack.
+ *   ATTACK_TYPE_RANGED  : Ranged attack.
+ *   ATTACK_TYPE_UNARMED : Unarmed attack.
+ *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
+ *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
+ *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand   */
+int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
+                struct char_data *victim, /* Defender */
+                int attack_type,          /* Type of attack */
+                int is_touch,             /* TRUE/FALSE this is a touch attack? */
+                int attack_number,        /* Attack number, determines penalty. */
+                int critical_threshold)   /* Minimum roll # required to crit */
+{
+
+  //  struct obj_data *wielded = get_wielded(ch, attack_type);
+
+  int attack_bonus = compute_attack_bonus(ch, victim, attack_type);
+  int victim_ac = compute_armor_class(ch, victim, is_touch, MODE_ARMOR_CLASS_NORMAL);
+
+  int diceroll = d20(ch);
+  if (diceroll >= critical_threshold && is_critical_hit(ch, NULL, diceroll, attack_bonus, victim_ac) && !IS_IMMUNE_CRITS(ch, victim))
+    return 999;
   int result = ((attack_bonus + diceroll) - victim_ac);
 
   //  if (attack_type == ATTACK_TYPE_RANGED) {
