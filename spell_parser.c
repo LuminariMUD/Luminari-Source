@@ -4880,59 +4880,8 @@ sbyte isWarlockMagic(struct char_data *ch, int spellnum)
 {
   if (!HAS_FEAT(ch, FEAT_ELDRITCH_BLAST))
     return false;
-  switch (spellnum)
-  {
-    case WARLOCK_ELDRITCH_BLAST:
-    case WARLOCK_ELDRITCH_SPEAR:
-    case WARLOCK_HIDEOUS_BLOW:
-    case WARLOCK_DRAINING_BLAST:
-    case WARLOCK_FRIGHTFUL_BLAST:
-    case WARLOCK_BEGUILING_INFLUENCE:
-    case WARLOCK_DARK_ONES_OWN_LUCK:
-    case WARLOCK_DARKNESS:
-    case WARLOCK_DEVILS_SIGHT:
-    case WARLOCK_ENTROPIC_WARDING:
-    case WARLOCK_LEAPS_AND_BOUNDS:
-    case WARLOCK_OTHERWORLDLY_WHISPERS:
-    case WARLOCK_SEE_THE_UNSEEN:
-      if (GET_LEVEL(ch) < 1)
-        return false;
-      return true;
-    case WARLOCK_ELDRITCH_CHAIN:
-    case WARLOCK_BESHADOWED_BLAST:
-    case WARLOCK_BRIMSTONE_BLAST:
-    case WARLOCK_HELLRIME_BLAST:
-    case WARLOCK_CHARM:
-    case WARLOCK_CURSE_OF_DESPAIR:
-    case WARLOCK_DREAD_SEIZURE:
-    case WARLOCK_FLEE_THE_SCENE:
-    case WARLOCK_THE_DEAD_WALK:
-    case WARLOCK_VORACIOUS_DISPELLING:
-    case WARLOCK_WALK_UNSEEN:
-      if (GET_LEVEL(ch) < 6)
-        return false;
-      return true;
-    case WARLOCK_ELDRITCH_CONE:
-    case WARLOCK_BEWITCHING_BLAST:
-    case WARLOCK_NOXIOUS_BLAST:
-    case WARLOCK_VITRIOLIC_BLAST:
-    case WARLOCK_CHILLING_TENTACLES:
-    case WARLOCK_DEVOUR_MAGIC:
-    case WARLOCK_TENACIOUS_PLAGUE:
-    case WARLOCK_WALL_OF_PERILOUS_FLAME:
-      if (GET_LEVEL(ch) < 11)
-        return false;
-      return true;
-    case WARLOCK_ELDRITCH_DOOM:
-    case WARLOCK_BINDING_BLAST:
-    case WARLOCK_UTTERDARK_BLAST:
-    case WARLOCK_DARK_FORESIGHT:
-    case WARLOCK_RETRIBUTIVE_INVISIBILITY:
-    case WARLOCK_WORD_OF_CHANGING:
-      if (GET_LEVEL(ch) < 16)
-        return false;
-      return true;  
-  }
+  if (spellnum > WARLOCK_POWER_START && spellnum < WARLOCK_POWER_END)
+    return true;
   return false;
 }
 
