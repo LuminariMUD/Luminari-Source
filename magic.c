@@ -939,6 +939,16 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       size_dice = 8;    
     break;
 
+  case WARLOCK_TENACIOUS_PLAGUE:
+    act ("$n is tore into by swarms of insects.", TRUE, victim, 0, ch, TO_ROOM);
+    act ("Swarms of insects bite and bore into your skin.", FALSE, victim, 0, ch, TO_CHAR);
+    element = DAM_ENERGY;
+    size_dice = 6;
+    num_dice = (level / 3) * 2;
+    bonus = GET_CHA_BONUS(ch);
+    mag_affects(level, ch, victim, NULL, spellnum, SAVING_WILL, CAST_INNATE, metamagic);
+    break;
+
   case WARLOCK_RETRIBUTIVE_INVISIBILITY:
     if (!mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NOSCHOOL))
     {
@@ -3822,6 +3832,20 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     break;
 
+  case WARLOCK_TENACIOUS_PLAGUE:
+    if (is_immune_fear(ch, victim, 1))
+      break;
+    if (is_immune_mind_affecting(ch, victim, 1))
+      break;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))
+      break;
+
+    af[0].location = APPLY_NONE;
+    af[0].modifier = 0;
+    af[0].duration = 10 * level;
+    SET_BIT_AR(af[0].bitvector, AFF_SHAKEN);
+    break;
+
   case WARLOCK_BEGUILING_INFLUENCE:
     af[0].location = APPLY_SKILL;
     af[0].modifier = 6;
@@ -3958,7 +3982,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     new_dr->bypass_val[2] = 0; /* Unused. */
 
     new_dr->amount = 10;
-    new_dr->max_damage = 10 * level;
+    new_dr->max_damage = MIN(150, 10 * GET_WARLOCK_LEVEL(ch));
     new_dr->spell = WARLOCK_DARK_FORESIGHT;
     new_dr->feat = FEAT_UNDEFINED;
     new_dr->next = GET_DR(victim);
@@ -7710,6 +7734,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
    * the damaging part of the spell.   */
   switch (spellnum)
   {
+  case WARLOCK_TENACIOUS_PLAGUE:
+    break;
   case WARLOCK_ELDRITCH_BLAST:
     to_char = "You conjure an immense beam of eldritch energy that explodes through the area!";
     to_room = "$n conjures an immense beam of eldritch energy that explodes through the area!";
