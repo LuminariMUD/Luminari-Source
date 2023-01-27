@@ -569,6 +569,10 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
           {
             msg = TRUE;
             affect_remove(vict, vict->affected);
+            if (spellnum == WARLOCK_VORACIOUS_DISPELLING)
+            {
+              damage(ch, vict, CASTER_LEVEL(ch) / 2, WARLOCK_VORACIOUS_DISPELLING, DAM_FORCE, 0);
+            }            
           }
         }
         attempt = d20(ch) + CASTER_LEVEL(ch);
@@ -2567,6 +2571,25 @@ ASPELL(spell_storm_of_vengeance)
 
   NEW_EVENT(eICE_STORM, ch, NULL, (6 * PASSES_PER_SEC));
   NEW_EVENT(eCHAIN_LIGHTNING, ch, NULL, (12 * PASSES_PER_SEC));
+}
+
+ASPELL(warlock_charm)
+{
+  if (victim == NULL || ch == NULL)
+    return;
+
+  effect_charm(ch, victim, WARLOCK_CHARM, casttype, level);
+}
+
+ASPELL(voracious_dispelling) // divination
+{
+
+  if (ch == NULL)
+    return;
+  if (victim == NULL)
+    victim = ch;
+
+  perform_dispel(ch, victim, obj, WARLOCK_VORACIOUS_DISPELLING);
 }
 
 ASPELL(eldritch_blast)

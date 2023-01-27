@@ -3850,6 +3850,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
     }
     to_vict = "You can now see into the shadows and things not meant to be seen.";
+    break;
+  
+  case WARLOCK_WALK_UNSEEN:
+    if (!victim)
+      victim = ch;
+
+    af[0].duration = 3600;
+    af[0].modifier = 4;
+    af[0].location = APPLY_AC_NEW;
+    SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
+    to_vict = "You vanish.";
+    to_room = "$n slowly fades out of existence.";
+    break;
 
   case WARLOCK_ELDRITCH_SPEAR:
   case WARLOCK_ELDRITCH_CHAIN:
@@ -3882,6 +3895,67 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "Your eldritch blasts will be in that essence going forward.";
     GET_ELDRITCH_ESSENCE(ch) = spellnum;
     break;
+
+  case WARLOCK_CURSE_OF_DESPAIR:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+      return;
+
+    af[0].location = APPLY_DEX;
+    af[0].modifier = -3;
+    af[0].duration = 3600;
+    af[1].location = APPLY_STR;
+    af[1].modifier = -3;
+    af[1].duration = 3600;
+    af[2].location = APPLY_WIS;
+    af[2].modifier = -3;
+    af[2].duration = 3600;
+    af[3].location = APPLY_CON;
+    af[3].modifier = -3;
+    af[3].duration = 3600;
+    af[4].location = APPLY_INT;
+    af[4].modifier = -3;
+    af[4].duration = 3600;
+    af[5].location = APPLY_CHA;
+    af[5].modifier = -3;
+    af[5].duration = 3600;
+
+    to_vict = "Despair grips you and you feel weakened.";
+    break;
+
+  case WARLOCK_DREAD_SEIZURE:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (mag_savingthrow(ch, victim, SAVING_FORT, enchantment_bonus, casttype, level, NOSCHOOL))
+      return;
+
+    af[0].location = APPLY_HITROLL;
+    af[0].modifier = -3;
+    af[0].duration = 3;
+
+    af[1].duration = 3;
+    SET_BIT_AR(af[0].bitvector, AFF_SLOW);
+
+    to_vict = "Unspeakable pain sears your mind.";
+    to_room = "$n screams in pain and seizes up.";
+    break;
+  
+  case WARLOCK_FLEE_THE_SCENE:
+    if (affected_by_spell(victim, SPELL_SLOW))
+    {
+      affect_from_char(victim, SPELL_SLOW);
+      send_to_char(ch, "You dispel the slow spell!\r\n");
+      send_to_char(victim, "Your slow spell is dispelled!\r\n");
+      return;
+    }
+
+    af[0].duration = 5;
+    SET_BIT_AR(af[0].bitvector, AFF_HASTE);
+    to_room = "$n begins to speed up!";
+    to_vict = "You begin to speed up!";
+    break;
+
     // spells and other effects
 
   case SPELL_ACID_SHEATH: // divination
@@ -6991,6 +7065,9 @@ static void perform_mag_groups(int level, struct char_data *ch,
 
   switch (spellnum)
   {
+  case WARLOCK_FLEE_THE_SCENE:
+    mag_affects(level, ch, tch, obj, WARLOCK_FLEE_THE_SCENE, savetype, casttype, 0);
+    break;
   case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
     break;
@@ -8044,7 +8121,8 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     }
     pfail = 10;
     break;
-
+  
+  case WARLOCK_THE_DEAD_WALK:
   case SPELL_ANIMATE_DEAD: // necromancy
     if (obj == NULL || !IS_CORPSE(obj))
     {
