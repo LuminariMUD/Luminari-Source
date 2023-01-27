@@ -4850,7 +4850,7 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
 {
   if (GET_LEVEL(ch) >= LVL_IMMORT)
     return true;
-  if (isWarlockMagic(ch, spellnum))
+  if (isWarlockMagic(ch, spellnum) && is_a_known_spell(ch, CLASS_WARLOCK, spellnum))
     return true;
   if (isHighElfCantrip(ch, spellnum))
     return true;
