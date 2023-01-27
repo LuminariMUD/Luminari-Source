@@ -7767,7 +7767,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WARLOCK, WARLOCK_BINDING_BLAST, 16);
   spell_assignment(CLASS_WARLOCK, WARLOCK_DARK_FORESIGHT, 16);
   spell_assignment(CLASS_WARLOCK, WARLOCK_RETRIBUTIVE_INVISIBILITY, 16);
-  spell_assignment(CLASS_WARLOCK, WARLOCK_WORD_OF_CHANGING, 16);
+  // spell_assignment(CLASS_WARLOCK, WARLOCK_WORD_OF_CHANGING, 16); // missing cornugon
 
   /****************************************************************************/
   /****************************************************************************/
