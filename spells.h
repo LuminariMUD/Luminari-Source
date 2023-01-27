@@ -1396,8 +1396,9 @@ struct wall_information
 #define WALL_TYPE_FOG 3
 #define WALL_TYPE_PRISM 4
 #define WALL_TYPE_ECTOPLASM 5
+#define WALL_TYPE_PERILOUS_FIRE 6
 /******/
-#define NUM_WALL_TYPES 6
+#define NUM_WALL_TYPES 7
 /****/
 #define WALL_ITEM 101220
 /* object values for walls */
@@ -1484,6 +1485,7 @@ ASPELL(eldritch_blast);
 ASPELL(warlock_charm);
 ASPELL(voracious_dispelling);
 ASPELL(tenacious_plague);
+ASPELL(wall_of_perilous_flame);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);
