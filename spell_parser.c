@@ -972,6 +972,9 @@ SAVING_WILL here...  */
     case WARLOCK_VORACIOUS_DISPELLING:
       MANUAL_SPELL(voracious_dispelling);
       break;
+    case WARLOCK_TENACIOUS_PLAGUE:
+      MANUAL_SPELL(tenacious_plague);
+      break;
     case WARLOCK_ELDRITCH_SPEAR:
     case WARLOCK_ELDRITCH_CHAIN:
     case WARLOCK_ELDRITCH_CONE:
@@ -4131,10 +4134,10 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_SUMMONS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_VORACIOUS_DISPELLING, "voracious dispelling", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_WALK_UNSEEN, "walk unseen", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_ELDRITCH_CONE, "eldritch cone", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
@@ -4149,10 +4152,10 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_CHILLING_TENTACLES, "chilling tentacles", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_IGNORE, FALSE, MAG_AREAS,
         NULL, 1, 1, NOSCHOOL, FALSE);
   spello(WARLOCK_DEVOUR_MAGIC, "devour magic", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
+        TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, FALSE);  
   spello(WARLOCK_TENACIOUS_PLAGUE, "tenacious plague", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,

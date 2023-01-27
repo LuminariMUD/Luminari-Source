@@ -572,7 +572,11 @@ void perform_dispel(struct char_data *ch, struct char_data *vict,
             if (spellnum == WARLOCK_VORACIOUS_DISPELLING)
             {
               damage(ch, vict, CASTER_LEVEL(ch) / 2, WARLOCK_VORACIOUS_DISPELLING, DAM_FORCE, 0);
-            }            
+            }    
+            else if (spellnum == WARLOCK_DEVOUR_MAGIC)
+            {
+              mag_affects(GET_WARLOCK_LEVEL(ch), ch, ch, NULL, WARLOCK_DEVOUR_MAGIC, -1, CAST_INNATE, 0);
+            }        
           }
         }
         attempt = d20(ch) + CASTER_LEVEL(ch);
@@ -1429,7 +1433,7 @@ ASPELL(spell_cloudkill)
 {
   int num_of_clouds = 0;
 
-  if (INCENDIARY(ch) || DOOM(ch))
+  if (INCENDIARY(ch) || DOOM(ch) || TENACIOUS_PLAGUE(ch))
   {
     send_to_char(ch, "You already have a cloud following you!\r\n");
     return;
@@ -1859,7 +1863,7 @@ ASPELL(spell_implode)
 
 ASPELL(spell_incendiary_cloud)
 {
-  if (CLOUDKILL(ch) || DOOM(ch))
+  if (CLOUDKILL(ch) || DOOM(ch) || TENACIOUS_PLAGUE(ch))
   {
     send_to_char(ch, "You already have a cloud following you!\r\n");
     return;
@@ -2581,7 +2585,7 @@ ASPELL(warlock_charm)
   effect_charm(ch, victim, WARLOCK_CHARM, casttype, level);
 }
 
-ASPELL(voracious_dispelling) // divination
+ASPELL(voracious_dispelling)
 {
 
   if (ch == NULL)
@@ -2590,6 +2594,20 @@ ASPELL(voracious_dispelling) // divination
     victim = ch;
 
   perform_dispel(ch, victim, obj, WARLOCK_VORACIOUS_DISPELLING);
+}
+
+ASPELL(tenacious_plague)
+{
+  if (CLOUDKILL(ch) || INCENDIARY(ch) || DOOM(ch))
+  {
+    send_to_char(ch, "You already have a cloud following you!\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You summon forth a mass of biting and stinging insects!\r\n");
+  act("$n summons forth a mass of biting and stinging insects!", FALSE, ch, 0, 0, TO_ROOM);
+
+  TENACIOUS_PLAGUE(ch) = 3;
 }
 
 ASPELL(eldritch_blast)

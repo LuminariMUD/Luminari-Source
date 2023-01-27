@@ -5127,6 +5127,7 @@ void reset_char(struct char_data *ch)
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
+  TENACIOUS_PLAGUE(ch) = 0;
 
   if (GET_HIT(ch) <= 0)
     GET_HIT(ch) = 1;
@@ -5339,6 +5340,7 @@ void init_char(struct char_data *ch)
   CLOUDKILL(ch) = 0;
   DOOM(ch) = 0;
   INCENDIARY(ch) = 0;
+  TENACIOUS_PLAGUE(ch) = 0;
 
   /* more inits */
   FIGHTING(ch) = NULL;

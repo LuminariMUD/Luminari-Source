@@ -1483,6 +1483,7 @@ ASPELL(psionic_psychoportation);
 ASPELL(eldritch_blast);
 ASPELL(warlock_charm);
 ASPELL(voracious_dispelling);
+ASPELL(tenacious_plague);
 
 /* basic magic calling functions */
 int find_skill_num(char *name);
