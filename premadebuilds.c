@@ -113,6 +113,16 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
       break;
+    case CLASS_WARLOCK:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      give_premade_skill(ch, verbose, ABILITY_USE_MAGIC_DEVICE, amount);
+      give_premade_skill(ch, verbose, ABILITY_LINGUISTICS, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_INTIMIDATE, amount);
+      break;
     case CLASS_PALADIN:
       give_premade_skill(ch, verbose, ABILITY_RIDE, amount);
       give_premade_skill(ch, verbose, ABILITY_LORE, amount);
@@ -229,6 +239,21 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
 {
 
   switch (chclass) {
+    case CLASS_WARLOCK:
+        switch (level) {
+          case 1:
+            GET_REAL_STR(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) =  16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+          break;
+          case 4: case 8: case 12: case 16: case 20:
+            GET_REAL_CHA(ch)++;
+            break;
+        }
+      break;
     case CLASS_WARRIOR:
         switch (level) {
           case 1:
@@ -702,6 +727,48 @@ void add_premade_inquisitor_spells(struct char_data *ch, int level)
   case 20:
     known_spells_add(ch, chclass, SPELL_REMOVE_POISON, FALSE);
     known_spells_add(ch, chclass, SPELL_UNDEATH_TO_DEATH, FALSE);
+    break;
+  }
+}
+
+void add_premade_warlock_invocations(struct char_data *ch, int level)
+{
+  int chclass = CLASS_WARLOCK;
+  switch (level)
+  {
+  case 1:
+    known_spells_add(ch, chclass, WARLOCK_HIDEOUS_BLOW, FALSE);
+    known_spells_add(ch, chclass, WARLOCK_DRAINING_BLAST, FALSE);
+    break;
+  case 3:
+    known_spells_add(ch, chclass, WARLOCK_DEVILS_SIGHT, FALSE);
+    break;
+  case 5:
+    known_spells_add(ch, chclass, WARLOCK_THE_DEAD_WALK, FALSE);
+    break;
+  case 7:
+    known_spells_add(ch, chclass, WARLOCK_FLEE_THE_SCENE, FALSE);
+    break;
+  case 9:
+    known_spells_add(ch, chclass, WARLOCK_WALK_UNSEEN, FALSE);
+    break;
+  case 10:
+    known_spells_add(ch, chclass, WARLOCK_CHILLING_TENTACLES, FALSE);
+    break;
+  case 12:
+    known_spells_add(ch, chclass, WARLOCK_NOXIOUS_BLAST, FALSE);
+    break;
+  case 14:
+    known_spells_add(ch, chclass, WARLOCK_DEVOUR_MAGIC, FALSE);
+    break;
+  case 15:
+    known_spells_add(ch, chclass, WARLOCK_ELDRITCH_DOOM, FALSE);
+    break;
+  case 17:
+    known_spells_add(ch, chclass, WARLOCK_UTTERDARK_BLAST, FALSE);
+    break;
+  case 19:
+    known_spells_add(ch, chclass, WARLOCK_DARK_FORESIGHT, FALSE);
     break;
   }
 }
@@ -1546,6 +1613,53 @@ void levelup_bard(struct char_data *ch, int level, bool verbose)
   }
   increase_skills(ch, chclass, TRUE, level);
   add_premade_bard_spells(ch, level);
+}
+
+void levelup_warlock(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_WARLOCK;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_MASTER_OF_THE_MIND, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_ARMORED_SPELLCASTING, 0);
+      }
+      break;
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_DODGE, 0);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_WEAPON_FOCUS, WEAPON_FAMILY_LIGHT_BLADE);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      break;
+    case 12:
+      set_premade_stats(ch, chclass, 12);
+      give_premade_feat(ch, verbose, FEAT_MOBILITY, 0);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_IMPROVED_CRITICAL, WEAPON_FAMILY_LIGHT_BLADE);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_ARMOR_SPECIALIZATION_LIGHT, 0);
+      break;
+    case 20:
+      set_premade_stats(ch, chclass, 20);
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+  add_premade_warlock_invocations(ch, level);
 }
 
 void levelup_inquisitor(struct char_data *ch, int level, bool verbose)
