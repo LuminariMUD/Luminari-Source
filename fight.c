@@ -9150,7 +9150,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
 
     /* Extra handling for ELDRITCH BLAAAAAAAST */
-    if (BLASTING(ch) && GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW) {
+    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW) {
       call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_WARLOCK_LEVEL(ch), CAST_INNATE);
     }
     break;
