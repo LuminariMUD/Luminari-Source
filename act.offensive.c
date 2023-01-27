@@ -3493,28 +3493,157 @@ ACMD(do_intimidate)
   perform_intimidate(ch, vict);
 }
 
-ACMDCHECK(can_eldritchblast)
+ACMDCHECK(can_eldritch_blast)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_ELDRITCH_BLAST, "You have no idea how.\r\n");
   return CAN_CMD;
 }
 
-ACMD(do_eldritchblast)
+ACMD(do_blast)
 {
-  // PREREQ_NOT_NPC();
-  // PREREQ_CHECK(can_eldritchblast);
+  struct char_data *vict = NULL, *tch = NULL;
+  char arg1[MAX_INPUT_LENGTH] = {'\0'};
+  char arg2[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum room = NOWHERE;
+  int direction = -1, original_loc = NOWHERE;
 
-  // if (!FIGHTING(ch))
-  // {
-  //   send_to_char(ch, "You can only use this ability in combat.\r\n");
-  //   return;
-  // }
+  PREREQ_NOT_NPC();
+  PREREQ_NOT_PEACEFUL_ROOM();
+  PREREQ_CHECK(can_eldritch_blast);
 
-  // send_to_char(ch, "You focus and fire a scorching ray of eldritch energy.\r\n");
-  // if (attack_roll(ch, FIGHTING(ch), ATTACK_TYPE_RANGED, TRUE, 1) < 0) // missed ranged attack roll
-  //   return;
-  // mag_damage(1, ch, FIGHTING(ch), NULL, 0, 0, NULL, CAST_INNATE);
-  // USE_STANDARD_ACTION(ch);
+  if (FIGHTING(ch) || BLASTING(ch))
+  {
+    send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
+    return;
+  } 
+  else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
+  {
+    send_to_char(ch, "Just hit them!\r\n");
+    return;
+  }
+  
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  /* no 2nd argument?  target room has to be same room */
+  if (!*arg2)
+  {
+    room = IN_ROOM(ch);
+  }
+  else
+  {
+    if (!IS_NPC(ch) && GET_ELDRITCH_SHAPE(ch) != WARLOCK_ELDRITCH_SPEAR)
+    {
+      send_to_char(ch, "You need the 'eldritch spear' shape to shoot outside of your"
+                       " immediate area!\r\n");
+      return;
+    }
+
+    /* try to find target room */
+    direction = search_block(arg2, dirs, FALSE);
+    if (direction < 0)
+    {
+      send_to_char(ch, "That is not a direction!\r\n");
+      return;
+    }
+    if (!CAN_GO(ch, direction))
+    {
+      send_to_char(ch, "You can't fire in that direction!\r\n");
+      return;
+    }
+    room = EXIT(ch, direction)->to_room;
+  }
+
+  /* since we could possible no longer be in room, check if combat is ok
+   in new room */
+  if (ROOM_FLAGGED(room, ROOM_PEACEFUL))
+  {
+    send_to_char(ch, "This room just has such a peaceful, easy feeling...\r\n");
+    return;
+  }
+
+  /* no arguments?  no go! */
+  if (!*arg1)
+  {
+    send_to_char(ch, "You need to select a target!\r\n");
+    return;
+  }
+
+  /* a location has been found. */
+  original_loc = IN_ROOM(ch);
+  char_from_room(ch);
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[room].coords[0];
+    Y_LOC(ch) = world[room].coords[1];
+  }
+
+  char_to_room(ch, room);
+  vict = get_char_room_vis(ch, arg1, NULL);
+
+  /* check if the char is still there */
+  if (IN_ROOM(ch) == room)
+  {
+    char_from_room(ch);
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(original_loc), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[original_loc].coords[0];
+      Y_LOC(ch) = world[original_loc].coords[1];
+    }
+
+    char_to_room(ch, original_loc);
+  }
+
+  if (!vict)
+  {
+    send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "Aren't we funny today...\r\n");
+    return;
+  }
+
+  /* if target is group member, we presume you meant to assist */
+  if (GROUP(ch) && room == IN_ROOM(ch))
+  {
+    while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
+           NULL)
+    {
+      if (IN_ROOM(tch) != IN_ROOM(vict))
+        continue;
+      if (vict == tch)
+      {
+        vict = FIGHTING(vict);
+        break;
+      }
+    }
+  }
+
+  /* maybe its your pet?  so assist */
+  if (vict && IS_PET(vict) && vict->master == ch && room == IN_ROOM(ch))
+    vict = FIGHTING(vict);
+
+  if (ch && vict && IN_ROOM(ch) != IN_ROOM(vict))
+  {
+    cast_spell(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0);
+    /* don't forget to remove the fight event! */
+    if (char_has_mud_event(ch, eCOMBAT_ROUND))
+    {
+      event_cancel_specific(ch, eCOMBAT_ROUND);
+    }
+
+    stop_fighting(ch);
+    USE_STANDARD_ACTION(ch);
+  }
+  else 
+  {
+    cast_spell(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0);
+    BLASTING(ch) = TRUE;
+  }
 }
 
 ACMDCHECK(can_tabaxi_claw_attack)
