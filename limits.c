@@ -174,7 +174,7 @@ void affliction_tick(struct char_data *ch)
   /* tenacious plague */
   else if (TENACIOUS_PLAGUE(ch))
   {
-    call_magic(ch, NULL, NULL, SPELL_DOOM, 0, GET_WARLOCK_LEVEL(ch), CAST_SPELL);
+    mag_areas(GET_WARLOCK_LEVEL(ch), ch, NULL, WARLOCK_TENACIOUS_PLAGUE, 0, SAVING_REFL, CAST_INNATE);
     TENACIOUS_PLAGUE(ch)--;
     if (TENACIOUS_PLAGUE(ch) <= 0)
     {
