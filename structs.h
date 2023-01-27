@@ -1191,9 +1191,10 @@
 #define AFF_FEAR_AURA 113
 #define AFF_SPIDER_CLIMB 114
 #define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
+#define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
 
 /*---*/
-#define NUM_AFF_FLAGS 116
+#define NUM_AFF_FLAGS 117
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values

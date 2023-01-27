@@ -366,7 +366,8 @@ void pulse_luminari()
     if (GET_HIT(i) == GET_MAX_HIT(i) &&
         GET_MOVE(i) == GET_MAX_MOVE(i) &&
         GET_PSP(i) == GET_MAX_PSP(i) &&
-        !AFF_FLAGGED(i, AFF_POISON))
+        !AFF_FLAGGED(i, AFF_POISON) &&
+        !AFF_FLAGGED(i, AFF_ACID_COAT))
       ;
     else
       regen_update(i);
@@ -574,6 +575,28 @@ void regen_update(struct char_data *ch)
     }
 
   } /* done dealing with poison */
+
+  // Similarly people coated in acid will just continue to be hurt.
+  if (AFF_FLAGGED(ch, AFF_ACID_COAT))
+  {
+    if (FIGHTING(ch) || dice(1, 2) == 2)
+    {
+      for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+      {
+        if (!IS_NPC(tch) && FIGHTING(tch) == ch)
+        {
+          damage(tch, ch, dice(2, 6), WARLOCK_VITRIOLIC_BLAST, DAM_ACID, FALSE);
+          found = 1;
+          break;
+        }
+      }
+
+      if (!found)
+        damage(ch, ch, 3, WARLOCK_VITRIOLIC_BLAST, DAM_ACID, FALSE);
+      update_pos(ch);
+      return;
+    }
+  } /* done dealing with acid */
 
   /* mortally wounded, you will die if not aided! */
   found = 0;
@@ -796,7 +819,7 @@ int psp_gain(struct char_data *ch)
       gain /= 4;
   }
 
-  if (AFF_FLAGGED(ch, AFF_POISON))
+  if (AFF_FLAGGED(ch, AFF_POISON) || AFF_FLAGGED(ch, AFF_ACID_COAT))
     gain /= 4;
 
   return (gain);
@@ -845,7 +868,7 @@ int hit_gain(struct char_data *ch)
       gain /= 4;
   }
 
-  if (AFF_FLAGGED(ch, AFF_POISON))
+  if (AFF_FLAGGED(ch, AFF_POISON) || AFF_FLAGGED(ch, AFF_ACID_COAT))
     gain /= 4;
 
   return (gain);
@@ -888,7 +911,7 @@ int move_gain(struct char_data *ch)
       gain /= 4;
   }
 
-  if (AFF_FLAGGED(ch, AFF_POISON))
+  if (AFF_FLAGGED(ch, AFF_POISON) || AFF_FLAGGED(ch, AFF_ACID_COAT))
     gain /= 4;
 
   gain *= 10;

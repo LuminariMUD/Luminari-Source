@@ -1634,6 +1634,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     /* Remove unwanted bits right away. */
     REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_CHARM);
     REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_POISON);
+    REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_ACID_COAT);
     REMOVE_BIT_AR(AFF_FLAGS(OLC_MOB(d)), AFF_SLEEP);
     medit_disp_aff_flags(d);
     return;

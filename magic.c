@@ -923,6 +923,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case WARLOCK_ELDRITCH_BLAST:
     save = -1; // by default there's no save
     mag_resist = TRUE;
+    if (level >= 10)
+      mag_resist = FALSE; // Unmodified Eldritch Blasts of +10d6 damage or more skip Spell Resistance.
     element = DAM_FORCE;
     size_dice = 6;
     num_dice = HAS_FEAT(ch, FEAT_ELDRITCH_BLAST);
@@ -3672,6 +3674,14 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n begins to slow down!";
       to_vict = "You feel yourself slow down!";
     } 
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_VITRIOLIC_BLAST)
+    {
+      af[0].location = APPLY_NONE;
+      af[0].duration = level / 5;
+      SET_BIT_AR(af[0].bitvector, AFF_ACID_COAT);
+      to_vict = "You are covered in burning acid.";
+      to_room = "$n is seared by burning acid!";
+    }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_FRIGHTFUL_BLAST)
     {    
       if (is_immune_fear(ch, victim, TRUE))
