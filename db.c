@@ -2486,6 +2486,7 @@ void parse_mobile(FILE *mob_f, int nr)
     /* Make some basic checks. */
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_CHARM);
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_POISON);
+    REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_ACID_COAT);
     REMOVE_BIT_AR(AFF_FLAGS(mob_proto + i), AFF_SLEEP);
     if (MOB_FLAGGED(mob_proto + i, MOB_AGGRESSIVE) && MOB_FLAGGED(mob_proto + i, MOB_AGGR_GOOD))
       REMOVE_BIT_AR(MOB_FLAGS(mob_proto + i), MOB_AGGR_GOOD);
