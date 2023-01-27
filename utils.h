@@ -1081,6 +1081,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SHAPECHANGES(ch) ((ch)->char_specials.saved.spec_abil[SHAPECHANGES])
 /* creeping doom spell */
 #define DOOM(ch) ((ch)->char_specials.saved.spec_abil[C_DOOM])
+#define TENACIOUS_PLAGUE(ch) ((ch)->char_specials.saved.spec_abil[C_TENACIOUS_PLAGUE])
 /* how many bursts of cloudkill left */
 #define CLOUDKILL(ch) ((ch)->char_specials.saved.spec_abil[CLOUD_K])
 /*trelux applypoison variables*/

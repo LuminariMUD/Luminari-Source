@@ -548,9 +548,10 @@
 #define TRLX_PSN_SPELL_LVL 15 // poison weapon data for trelux
 #define TRLX_PSN_SPELL_HIT 16 // poison weapon data for trelux
 #define CLOUD_K 17            /* cloud kill spells bursts remaining */
+#define C_TENACIOUS_PLAGUE 18 // tenacious plague
 /* -- */
 /*---------------*/
-#define NUM_SPEC_ABIL 18
+#define NUM_SPEC_ABIL 19
 #define MAX_SPEC_ABIL MAX_CLASSES
 /* max = MAX_CLASSES right now, which was 30 last time i checked  */
 

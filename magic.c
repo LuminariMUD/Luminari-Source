@@ -3956,6 +3956,41 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You begin to speed up!";
     break;
 
+  case WARLOCK_CHILLING_TENTACLES:
+    if (AFF_FLAGGED(victim, AFF_FREE_MOVEMENT))
+    {
+      act("You evade the tentacles.", FALSE, ch, 0, victim, TO_VICT);
+      act("$n evades the tentacles.", FALSE, ch, 0, victim, TO_ROOM);
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_BLACK_TENTACLES))
+    {
+      affect_from_char(victim, SPELL_BLACK_TENTACLES);
+    }
+    if (affected_by_spell(victim, SPELL_GREATER_BLACK_TENTACLES))
+    {
+      affect_from_char(victim, SPELL_GREATER_BLACK_TENTACLES);
+    }
+    af[0].duration = level; // 1 round per level
+    af[0].location = APPLY_SPECIAL;
+    af[0].modifier = 0;
+    SET_BIT_AR(af[0].bitvector, AFF_ENTANGLED);
+    to_vict = "You are encircled and entangled by huge frigid black tentacles that writhe from the ground.";
+    to_room = "$n is encircled and entangled by huge frigid black tentacles that writhe from the ground.";
+    break;
+
+  case WARLOCK_DEVOUR_MAGIC:
+    af[0].location = APPLY_HIT;
+    af[0].modifier = level * 2;
+    af[0].duration = level * 6;
+    af[0].bonus_type = BONUS_TYPE_CIRCUMSTANCE;
+
+    to_vict = "You devour energy and are filled with life.";
+    to_room = "$n devours magical energy and is filled with false life.";
+
+    accum_affect = accum_duration = TRUE;
+    break;
+
     // spells and other effects
 
   case SPELL_ACID_SHEATH: // divination
@@ -4453,6 +4488,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       act("$N is already affected by greater black tentacles.", FALSE, ch, 0, victim, TO_CHAR);
       return;
     }
+    if (affected_by_spell(victim, WARLOCK_CHILLING_TENTACLES))
+    {
+      act("$N is already affected by chilling black tentacles.", FALSE, ch, 0, victim, TO_CHAR);
+      return;
+    }
     af[0].duration = level; // 1 round per level
     af[0].location = APPLY_SPECIAL;
     af[0].modifier = 0;
@@ -4471,6 +4511,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (affected_by_spell(victim, SPELL_BLACK_TENTACLES))
     {
       affect_from_char(victim, SPELL_BLACK_TENTACLES);
+    }
+    if (affected_by_spell(victim, WARLOCK_CHILLING_TENTACLES))
+    {
+      act("$N is already affected by chilling black tentacles.", FALSE, ch, 0, victim, TO_CHAR);
+      return;
     }
     af[0].duration = level; // 1 round per level
     af[0].location = APPLY_SPECIAL;

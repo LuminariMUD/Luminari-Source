@@ -171,6 +171,19 @@ void affliction_tick(struct char_data *ch)
     }
   } // end creeping doom
 
+  /* tenacious plague */
+  else if (TENACIOUS_PLAGUE(ch))
+  {
+    call_magic(ch, NULL, NULL, SPELL_DOOM, 0, GET_WARLOCK_LEVEL(ch), CAST_SPELL);
+    TENACIOUS_PLAGUE(ch)--;
+    if (TENACIOUS_PLAGUE(ch) <= 0)
+    {
+      send_to_char(ch, "Your swam of biting and stinging insects dissipates!\r\n");
+      act("The swarm of biting and stinging insects following $n dissipates!", TRUE, ch, 0, NULL,
+          TO_ROOM);
+    }
+  } // end tenacious plague
+
   /* incendiary cloud */
   else if (INCENDIARY(ch))
   {
@@ -188,10 +201,16 @@ void affliction_tick(struct char_data *ch)
   {
     damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, SPELL_GREATER_BLACK_TENTACLES, DAM_FORCE, FALSE);
   }
+  else if (affected_by_spell(ch, WARLOCK_CHILLING_TENTACLES))
+  {
+    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(4, 6) + 13, WARLOCK_CHILLING_TENTACLES, DAM_FORCE, FALSE);
+    damage(FIGHTING(ch) ? FIGHTING(ch): ch, ch, dice(2, 6), WARLOCK_CHILLING_TENTACLES, DAM_COLD, FALSE);
+  }
   else if (affected_by_spell(ch, SPELL_BLACK_TENTACLES))
   {
     damage(FIGHTING(ch) ? FIGHTING(ch) : ch, ch, dice(1, 6) + 4, SPELL_BLACK_TENTACLES, DAM_FORCE, FALSE);
   }
+
 
   /* disease */
   if (IS_AFFECTED(ch, AFF_DISEASE))

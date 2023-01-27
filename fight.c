@@ -1907,6 +1907,7 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
 
   /* spec-abil saves on exit, so make sure this does not save */
   DOOM(ch) = 0;
+  TENACIOUS_PLAGUE(ch) = 0;
   INCENDIARY(ch) = 0;
   CLOUDKILL(ch) = 0;
   GET_MARK(killer) = NULL;
@@ -4281,6 +4282,7 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   resetCastingData(victim); // stop casting
   CLOUDKILL(victim) = 0;    // stop any cloudkill bursts
   DOOM(victim) = 0;         // stop any creeping doom
+  TENACIOUS_PLAGUE(victim) = 0;
   INCENDIARY(victim) = 0;   // stop any incendiary bursts
   
   // Stop the killer's blood drain
