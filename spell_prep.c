@@ -676,10 +676,8 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
           !is_sorc_bloodline_spell(get_sorc_bloodline(ch), current->spell))
         counter++;
       break;
+    case CLASS_WARLOCK:
     case CLASS_BARD:
-      if (compute_spells_circle(class, current->spell, 0, 0) == circle)
-        counter++;
-      break;
     case CLASS_INQUISITOR:
       if (compute_spells_circle(class, current->spell, 0, 0) == circle)
         counter++;
