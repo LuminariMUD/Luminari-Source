@@ -949,6 +949,8 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
     return (NUM_CIRCLES + 1);
   else if (class == CLASS_PSIONICIST && (spellnum < PSIONIC_POWER_START || spellnum > PSIONIC_POWER_END))
     return (NUM_CIRCLES + 1);
+  else if (class == CLASS_WARLOCK && (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
+    return (NUM_CIRCLES + 1);
 
   switch (spellnum)
   {
