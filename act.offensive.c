@@ -3511,7 +3511,7 @@ ACMD(do_blast)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_CHECK(can_eldritch_blast);
 
-  if (FIGHTING(ch) || BLASTING(ch))
+  if (FIGHTING(ch))
   {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
@@ -3519,6 +3519,7 @@ ACMD(do_blast)
   else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
   {
     send_to_char(ch, "Just hit them!\r\n");
+    BLASTING(ch) = TRUE;
     return;
   }
   
