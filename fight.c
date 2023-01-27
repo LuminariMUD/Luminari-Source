@@ -1397,7 +1397,6 @@ void stop_fighting(struct char_data *ch)
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
   FIRING(ch) = FALSE;
-  BLASTING(ch) = FALSE;
   if (GET_POS(ch) == POS_FIGHTING) /* in case they are position fighting */
     change_position(ch, POS_STANDING);
   update_pos(ch);

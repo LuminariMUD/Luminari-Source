@@ -7673,7 +7673,7 @@ void load_class_list(void)
                      /*acrobatics,stealth,perception,heal,intimidate,concentration, spellcraft*/
                      CC, CC, CC, CA, CA, CA, CA,
                      /*appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff*/
-                     CC, CA, CC, CA, CC, CC, CC, CA,
+                     CA, CA, CC, CA, CC, CC, CC, CA,
                      /*diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive*/
                      CA, CC, CC, CC, CC, CC,
                      /*survival,swim,use_magic_device,perform*/
@@ -7727,6 +7727,11 @@ void load_class_list(void)
   feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 28, Y);
   feat_assignment(CLASS_WARLOCK, FEAT_ELDRITCH_BLAST, Y, 30, Y);
   feat_assignment(CLASS_WARLOCK, FEAT_ENERGY_RESISTANCE, Y, 30, Y);
+
+  /* epic class */
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_ELDRITCH_MASTER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_ELDRITCH_BLAST, Y, NOASSIGN_FEAT, N);
+  
   // feat_assignment(CLASS_WARLOCK, FEAT_INVOCATIONS, Y, 1, Y);
   /*              class num      spell                   level acquired */
   spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_SPEAR, 1);
@@ -7768,6 +7773,15 @@ void load_class_list(void)
   spell_assignment(CLASS_WARLOCK, WARLOCK_DARK_FORESIGHT, 16);
   spell_assignment(CLASS_WARLOCK, WARLOCK_RETRIBUTIVE_INVISIBILITY, 16);
   // spell_assignment(CLASS_WARLOCK, WARLOCK_WORD_OF_CHANGING, 16); // missing cornugon
+
+  // epic spells
+  feat_assignment(CLASS_WARLOCK, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_GREATER_RUIN, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_DRAGON_KNIGHT, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_HELLBALL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_EPIC_MAGE_ARMOR, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_EPIC_WARDING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_GREAT_INTELLIGENCE, Y, NOASSIGN_FEAT, N);
 
   /****************************************************************************/
   /****************************************************************************/

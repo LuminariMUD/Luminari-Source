@@ -1374,14 +1374,14 @@ void assign_feats(void)
   feat_prereq_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION, FEAT_GREATER_WEAPON_SPECIALIZATION);
   feat_prereq_class_level(FEAT_EPIC_WEAPON_SPECIALIZATION, CLASS_WARRIOR, 20);
 
-  feato(FEAT_EPIC_ELDRITCH_MASTER, "eldritch master", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_EPIC_ELDRITCH_MASTER, "eldritch master", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "+50% blast damage, +2 hit",
         "Warlock's Eldritch Blast deals +50% base damage, and have a +2"
         "to attack rolls");
   feat_prereq_class_level(FEAT_EPIC_ELDRITCH_MASTER, CLASS_WARLOCK, 16);
   feat_prereq_ability(FEAT_EPIC_ELDRITCH_MASTER, ABILITY_SPELLCRAFT, 24);
 
-  feato(FEAT_EPIC_ELDRITCH_BLAST, "epic eldritch blast", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
+  feato(FEAT_EPIC_ELDRITCH_BLAST, "epic eldritch blast", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "+1d6 eldritch blast",
         "Warlock's Eldritch Blast deals an additional 1d6 of damage."
         "This feat may be taken multiple times and stacks.");
@@ -4618,6 +4618,8 @@ void assign_feats(void)
   epicfeat(FEAT_AUTOMATIC_QUICKEN_SPELL);
   epicfeat(FEAT_IMPROVED_SPELL_RESISTANCE);
   epicfeat(FEAT_BLINDING_SPEED);
+  epicfeat(FEAT_EPIC_ELDRITCH_MASTER);
+  epicfeat(FEAT_EPIC_ELDRITCH_BLAST);
   /* epic spell feats */
   epicfeat(FEAT_MUMMY_DUST);
   epicfeat(FEAT_DRAGON_KNIGHT);
@@ -5570,6 +5572,15 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return TRUE;
       if (is_proficient_with_weapon(ch, iarg) &&
           has_combat_feat(ch, FEAT_GREATER_WEAPON_SPECIALIZATION, iarg))
+        return TRUE;
+      return FALSE;
+    case FEAT_EPIC_ELDRITCH_MASTER:
+      if (GET_ABILITY(ch, ABILITY_SPELLCRAFT) >= 24 && GET_WARLOCK_LEVEL(ch) >= 16 &&
+        (GET_LEVEL(ch) >= 21))
+        return TRUE;
+      return FALSE;
+    case FEAT_EPIC_ELDRITCH_BLAST:
+      if (HAS_FEAT(ch, FEAT_ELDRITCH_BLAST) >= 9 && GET_WARLOCK_LEVEL(ch) >= 21)
         return TRUE;
       return FALSE;
 

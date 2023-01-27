@@ -4002,38 +4002,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n slowly fades out of existence.";
     break;
 
-  case WARLOCK_ELDRITCH_SPEAR:
-  case WARLOCK_ELDRITCH_CHAIN:
-  case WARLOCK_ELDRITCH_CONE:
-  case WARLOCK_ELDRITCH_DOOM:
-  case WARLOCK_HIDEOUS_BLOW:
-    if (GET_ELDRITCH_SHAPE(ch) == spellnum) {
-      to_vict = "You stop using any eldritch shape at all";
-      GET_ELDRITCH_SHAPE(ch) = -1;
-      break;
-    }
-    to_vict = "Your eldritch blasts will be in that form going forward.";
-    GET_ELDRITCH_SHAPE(ch) = spellnum;
-    break;
-  case WARLOCK_DRAINING_BLAST:
-  case WARLOCK_FRIGHTFUL_BLAST:
-  case WARLOCK_BESHADOWED_BLAST:
-  case WARLOCK_BRIMSTONE_BLAST:
-  case WARLOCK_HELLRIME_BLAST:
-  case WARLOCK_BEWITCHING_BLAST:
-  case WARLOCK_NOXIOUS_BLAST:
-  case WARLOCK_VITRIOLIC_BLAST:
-  case WARLOCK_BINDING_BLAST:
-  case WARLOCK_UTTERDARK_BLAST:
-    if (GET_ELDRITCH_ESSENCE(ch) == spellnum) {
-      to_vict = "You stop using any eldritch essence at all";
-      GET_ELDRITCH_ESSENCE(ch) = -1;
-      break;
-    }
-    to_vict = "Your eldritch blasts will be in that essence going forward.";
-    GET_ELDRITCH_ESSENCE(ch) = spellnum;
-    break;
-
   case WARLOCK_CURSE_OF_DESPAIR:
     if (mag_resistance(ch, victim, 0))
       return;
