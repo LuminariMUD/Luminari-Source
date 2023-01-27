@@ -631,7 +631,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     {
       send_to_char(ch, "You failed to knock over %s due to stability boots!  Incoming counter attack!!! ...\r\n", GET_NAME(vict));
       send_to_char(vict, "You stand your ground against %s, and with a snarl attempt a counterattack!\r\n",
-                  GET_NAME(ch));
+                   GET_NAME(ch));
       act("$N via stability boots a knockdown attack from $n is resisted...  $N follows up with a counterattack!", FALSE, ch, 0, vict,
           TO_NOTVICT);
 
@@ -680,7 +680,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
       attack_of_opportunity(vict, ch, 0);
     break;
-  case SPELL_BANISHING_BLADE:    
+  case SPELL_BANISHING_BLADE:
     break;
   default:
     log("Invalid skill sent to perform knockdown!\r\n");
@@ -3515,14 +3515,14 @@ ACMD(do_blast)
   {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
-  } 
+  }
   else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
   {
     send_to_char(ch, "Just hit them!\r\n");
     BLASTING(ch) = TRUE;
     return;
   }
-  
+
   two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   /* no 2nd argument?  target room has to be same room */
@@ -3640,7 +3640,7 @@ ACMD(do_blast)
     stop_fighting(ch);
     USE_STANDARD_ACTION(ch);
   }
-  else 
+  else
   {
     cast_spell(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0);
     BLASTING(ch) = TRUE;
@@ -3880,7 +3880,6 @@ ACMD(do_dragonfear)
 
   USE_SWIFT_ACTION(ch);
 }
-
 
 ACMDCHECK(can_fear_aura)
 {
@@ -7511,6 +7510,12 @@ ACMD(do_autoblast)
     return;
   }
 
+  if (!GROUP(ch))
+  {
+    send_to_char(ch, "But you are not a member of a group, this is an assist command for eldritch blast!\r\n");
+    return;
+  }
+
   vict = get_char_room_vis(ch, arg, NULL);
 
   while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
@@ -7537,9 +7542,12 @@ ACMD(do_autoblast)
     return;
   }
 
-  if (GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW) {
+  if (GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
+  {
     cast_spell(ch, vict, NULL, WARLOCK_ELDRITCH_BLAST, 0);
-  } else {
+  }
+  else
+  {
     send_to_char(ch, "Your strikes will now flow with eldritch energy.\r\n");
   }
   BLASTING(ch) = TRUE;
@@ -7568,6 +7576,12 @@ ACMD(do_autofire)
   if (!*arg)
   {
     send_to_char(ch, "Fire at who?\r\n");
+    return;
+  }
+
+  if (!GROUP(ch))
+  {
+    send_to_char(ch, "But you are not a member of a group, this is an assist command for archery!\r\n");
     return;
   }
 
@@ -9352,7 +9366,6 @@ ACMD(do_blood_drain)
     start_daily_use_cooldown(ch, FEAT_VAMPIRE_BLOOD_DRAIN);
 
   USE_STANDARD_ACTION(ch);
-
 }
 
 ACMD(do_quick_chant)
@@ -9403,10 +9416,9 @@ ACMD(do_quick_chant)
     send_to_char(ch, "Youn invoke your quick mind ability.  The next non-ritual power your manifest will only use a swift action.\r\n");
     ch->char_specials.quick_mind = true;
   }
-  
+
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, (subcmd == SCMD_QUICK_CHANT) ? FEAT_QUICK_CHANT : FEAT_QUICK_MIND);
-
 }
 
 ACMD(do_planarsoul)
@@ -9416,7 +9428,7 @@ ACMD(do_planarsoul)
     send_to_char(ch, "You must be under the affect of the planar soul spell to use it's surging effect.\r\n");
     return;
   }
-  
+
   if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
   {
     send_to_char(ch, "You are already under the effect of a planar soul surge enhancement.\r\n");
@@ -9464,7 +9476,7 @@ ACMD(do_planarsoul)
 
   for (i = 0; i < 6; i++)
   {
-      affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
   }
 
   act("Your planar soul surges with might!", FALSE, ch, 0, 0, TO_CHAR);
