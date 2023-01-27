@@ -2652,6 +2652,8 @@ ASPELL(eldritch_blast)
   if (ch == NULL || victim == NULL)
     return;
 
+  int attack_result = 0;
+
   PREREQ_CAN_FIGHT();
   PREREQ_IN_POSITION(POS_SITTING, "You must be on your feet to cast this.\r\n");
   PREREQ_NOT_PEACEFUL_ROOM();
@@ -2692,7 +2694,7 @@ ASPELL(eldritch_blast)
       act("You're hit with a wave of eldritch energy from $n.", FALSE, ch, 0, tch, TO_VICT);
     }
   }
-  else if (!attack_roll(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0))
+  else if (!(attack_result = attack_roll_with_critical(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0, 20)))
   {
     act("You send a blast of energy towards $E, but $E avoids it.", FALSE, ch, 0, victim, TO_CHAR);
     act("$n sends out a blast of energy towards you, but you avoid it.", FALSE, ch, 0, victim, TO_VICT);
@@ -2702,11 +2704,23 @@ ASPELL(eldritch_blast)
   }
   else if (GET_ELDRITCH_SHAPE(ch) != WARLOCK_HIDEOUS_BLOW)
   {
-    act("$N strikes $E with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_NOTVICT);
-    act("You strike $N with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_CHAR);
-    act("$N strikes you with a blast of painful eldritch energy.", FALSE, ch, 0, victim, TO_VICT);
-    mag_damage(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
-    mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+    const bool is_critical = attack_result == 999;
+    if (is_critical) 
+    {
+      act("$N critically explodes $E with a blast of eldritch energy!!", FALSE, ch, 0, victim, TO_NOTVICT);
+      act("You critically explode $N with a blast of eldritch energy!!", FALSE, ch, 0, victim, TO_CHAR);
+      act("$N critically explodes you with a blast of painful eldritch energy!!", FALSE, ch, 0, victim, TO_VICT);
+      mag_damage(spell_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+    }
+    else
+    {
+      act("$N strikes $E with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_NOTVICT);
+      act("You strike $N with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_CHAR);
+      act("$N strikes you with a blast of painful eldritch energy.", FALSE, ch, 0, victim, TO_VICT);
+      mag_damage(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+    }
     if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN)
     {
       while (target_list->iSize > 0)

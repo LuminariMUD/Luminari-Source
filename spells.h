@@ -740,9 +740,10 @@
 
 /***************************************/
 /***************************************/
-#define WARLOCK_POWER_START 1648
+#define WARLOCK_POWER_START 1647
 /***************************************/
-#define WARLOCK_ELDRITCH_BLAST 1649
+#define WARLOCK_ELDRITCH_BLAST 1648
+#define WARLOCK_CRITICAL_ELDRITCH_BLAST 1949
 // start least invocations
 #define WARLOCK_ELDRITCH_SPEAR 1650
 #define WARLOCK_HIDEOUS_BLOW 1651

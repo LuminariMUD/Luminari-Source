@@ -71,6 +71,7 @@ void free_messages(void);
 int dam_killed_vict(struct char_data *ch, struct char_data *victim);
 void update_pos(struct char_data *victim);
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);
+int attack_roll_with_critical(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number, int threat_range);
 int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int penalty);
 void attacks_of_opportunity(struct char_data *victim, int penalty);
 int compute_attack_bonus(struct char_data *ch, struct char_data *victim, int attack_type);
