@@ -2689,10 +2689,17 @@ ASPELL(eldritch_blast)
       tch = random_from_list(target_list);
       remove_from_list(tch, target_list);
       // Do the spell effects.
-      mag_damage(spell_level / 2, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, 0, SAVING_REFL, CAST_INNATE);
-      mag_affects(spell_level / 2, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, -1, CAST_INNATE, 0);
+      mag_damage(spell_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, 0, SAVING_REFL, CAST_INNATE);
+      mag_affects(spell_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, -1, CAST_INNATE, 0);
       act("You're hit with a wave of eldritch energy from $n.", FALSE, ch, 0, tch, TO_VICT);
     }
+  }
+  else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CONE)
+  {
+    act("$N sends out a cone of eldritch energy.", FALSE, ch, 0, tch, TO_NOTVICT);
+    act("You release a cone of eldritch energy into the area.", FALSE, ch, 0, tch, TO_CHAR);
+    mag_damage(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, 0, SAVING_REFL, CAST_INNATE);
+    mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, -1, CAST_INNATE, 0);
   }
   else if (!(attack_result = attack_roll_with_critical(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0, 20)))
   {
