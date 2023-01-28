@@ -1377,6 +1377,7 @@ struct spell_info_type
         int saving_throw; /* assigned in the code currently */
         int resistance;   /* spell resistance, assigned in code currently */
         bool ritual_spell; // If this is a ritual spell, it will have a cast time, otherwise it won't
+        int effective_level; /* the effective spell level. this is relevant for spell-like abilities */
 };
 
 /* wall struct for wall spells, like wall of fire, force, thorns, etc */

@@ -2653,6 +2653,11 @@ ASPELL(eldritch_blast)
     return;
 
   int attack_result = 0;
+  int effective_level = spell_info[WARLOCK_ELDRITCH_BLAST].effective_level;
+  if (GET_ELDRITCH_SHAPE(ch) != -1)
+    effective_level = MAX(effective_level, spell_info[GET_ELDRITCH_SHAPE(ch)].effective_level);
+  if (GET_ELDRITCH_ESSENCE(ch) != -1)
+    effective_level = MAX(effective_level, spell_info[GET_ELDRITCH_ESSENCE(ch)].effective_level);
 
   PREREQ_CAN_FIGHT();
   PREREQ_IN_POSITION(POS_SITTING, "You must be on your feet to cast this.\r\n");
@@ -2661,7 +2666,6 @@ ASPELL(eldritch_blast)
   /* dynamic memory allocation required */
   struct list_data *target_list = NULL;
   struct char_data *tch = NULL, *next_tch = NULL;
-  int spell_level = GET_WARLOCK_LEVEL(ch);
 
   if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN || GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM)
   {
@@ -2672,7 +2676,7 @@ ASPELL(eldritch_blast)
       next_tch = tch->next_in_room;
       if (!aoeOK(ch, tch, WARLOCK_ELDRITCH_BLAST))
         continue;
-      else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN && target_list->iSize >= (spell_level / 5))
+      else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN && target_list->iSize >= (GET_WARLOCK_LEVEL(ch) / 5))
         continue;
       add_to_list(tch, target_list);
     }
@@ -2690,8 +2694,8 @@ ASPELL(eldritch_blast)
       tch = random_from_list(target_list);
       remove_from_list(tch, target_list);
       // Do the spell effects.
-      mag_damage(spell_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, 0, SAVING_REFL, CAST_INNATE);
-      mag_affects(spell_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, -1, CAST_INNATE, 0);
+      mag_damage(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, 0, SAVING_REFL, CAST_INNATE);
+      mag_affects(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_DOOM, -1, CAST_INNATE, 0);
       act("You're hit with a wave of eldritch energy from $n.", FALSE, ch, 0, tch, TO_VICT);
     }
   }
@@ -2699,8 +2703,8 @@ ASPELL(eldritch_blast)
   {
     act("$N sends out a cone of eldritch energy.", FALSE, ch, 0, tch, TO_NOTVICT);
     act("You release a cone of eldritch energy into the area.", FALSE, ch, 0, tch, TO_CHAR);
-    mag_damage(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, 0, SAVING_REFL, CAST_INNATE);
-    mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, -1, CAST_INNATE, 0);
+    mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, 0, SAVING_REFL, CAST_INNATE);
+    mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_CONE, -1, CAST_INNATE, 0);
   }
   else if (!(attack_result = attack_roll_with_critical(ch, victim, ATTACK_TYPE_ELDRITCH_BLAST, TRUE, 0, 20)))
   {
@@ -2718,16 +2722,16 @@ ASPELL(eldritch_blast)
       act("$N critically explodes $E with a blast of eldritch energy!!", FALSE, ch, 0, victim, TO_NOTVICT);
       act("You critically explode $N with a blast of eldritch energy!!", FALSE, ch, 0, victim, TO_CHAR);
       act("$N critically explodes you with a blast of painful eldritch energy!!", FALSE, ch, 0, victim, TO_VICT);
-      mag_damage(spell_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
-      mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+      mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
     else
     {
       act("$N strikes $E with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_NOTVICT);
       act("You strike $N with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_CHAR);
       act("$N strikes you with a blast of painful eldritch energy.", FALSE, ch, 0, victim, TO_VICT);
-      mag_damage(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
-      mag_affects(spell_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+      mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
     if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CHAIN)
     {
@@ -2737,8 +2741,8 @@ ASPELL(eldritch_blast)
         tch = random_from_list(target_list);
         remove_from_list(tch, target_list);
         // Do the spell effects
-        mag_damage(spell_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, 0, -1, CAST_INNATE);
-        mag_affects(spell_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, -1, CAST_INNATE, 0);
+        mag_damage(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, 0, -1, CAST_INNATE);
+        mag_affects(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, -1, CAST_INNATE, 0);
         act("An eldritch arc of energy jumps to you from $N's blast.", FALSE, ch, 0, tch, TO_VICT);
         act("An eldritch arc of energy jumps to $E from $N's blast.", FALSE, ch, 0, tch, TO_NOTVICT);
         act("An eldritch arc of energy jumps to $n from your blast.", FALSE, ch, 0, tch, TO_CHAR);

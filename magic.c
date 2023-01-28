@@ -296,7 +296,10 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   default:
     if (ch)
     {
-      challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2; /* caster level */
+      if (spell_info[spellnum].effective_level)
+        challenge += level; /* this is a spell-like ability */
+      else
+        challenge += (DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch)) / 2; /* caster level */
 
       stat_bonus = GET_WIS_BONUS(ch);
       if (GET_CHA_BONUS(ch) > stat_bonus)
@@ -2281,8 +2284,11 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     dam = dice(num_dice, size_dice) + bonus;
   }
 
-  if (HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER))
-    dam += dam / 2;
+  if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
+  {
+    if (HAS_FEAT(ch, FEAT_EPIC_ELDRITCH_MASTER))
+      dam += dam / 2;
+  }
 
   if (HAS_FEAT(ch, FEAT_ARCANE_BLOODLINE_ARCANA) && metamagic > 0)
     GET_DC_BONUS(ch) += 1;
@@ -3704,7 +3710,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_VITRIOLIC_BLAST)
     {
       af[0].location = APPLY_NONE;
-      af[0].duration = level / 5;
+      af[0].duration = GET_WARLOCK_LEVEL(ch) / 5;
       SET_BIT_AR(af[0].bitvector, AFF_ACID_COAT);
       to_vict = "You are covered in burning acid.";
       to_room = "$n is seared by burning acid!";
@@ -3801,15 +3807,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
         return;
-      if (is_immune_mind_affecting(ch, victim, TRUE))
-        return;
-
-      is_mind_affect = TRUE;
 
       SET_BIT_AR(af[0].bitvector, AFF_STUN);
       af[0].duration = 12;
-      to_room = "$n is dazed by the blast!";
-      to_vict = "You are dazed by the blast!";
+      to_room = "$n is stunned by the blast!";
+      to_vict = "You are stunned by the blast!";
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
     {
@@ -3880,17 +3882,17 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   
   case WARLOCK_DARK_ONES_OWN_LUCK:
     af[0].location = APPLY_SAVING_WILL;
-    af[0].modifier = 2;
+    af[0].modifier = GET_CHA(ch);
     af[0].duration = 3600;
     af[0].bonus_type = BONUS_TYPE_MORALE;
 
     af[1].location = APPLY_SAVING_REFL;
-    af[1].modifier = 2;
+    af[1].modifier = GET_CHA(ch);
     af[1].duration = 3600;
     af[1].bonus_type = BONUS_TYPE_MORALE;
 
     af[2].location = APPLY_SAVING_FORT;
-    af[2].modifier = 2;
+    af[2].modifier = GET_CHA(ch);
     af[2].duration = 3600;
     af[2].bonus_type = BONUS_TYPE_MORALE;
 
