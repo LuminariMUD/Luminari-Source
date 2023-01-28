@@ -7729,8 +7729,8 @@ void load_class_list(void)
   feat_assignment(CLASS_WARLOCK, FEAT_ENERGY_RESISTANCE, Y, 30, Y);
 
   /* epic class */
-  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_ELDRITCH_MASTER, Y, NOASSIGN_FEAT, N);
-  feat_assignment(CLASS_WARRIOR, FEAT_EPIC_ELDRITCH_BLAST, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_MASTER, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_BLAST, Y, NOASSIGN_FEAT, Y);
   
   // feat_assignment(CLASS_WARLOCK, FEAT_INVOCATIONS, Y, 1, Y);
   /*              class num      spell                   level acquired */
