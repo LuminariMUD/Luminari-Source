@@ -424,9 +424,9 @@ int regen_hps(struct char_data *ch)
     hp += dice(3, 2) + 1;
 
   if (HAS_FEAT(ch, FEAT_FAST_HEALING))
-  {
     hp += HAS_FEAT(ch, FEAT_FAST_HEALING) * 3;
-  }
+  else if (HAS_FEAT(ch, FEAT_WARLOCK_FIENDISH_RESILIENCE))
+    hp += HAS_FEAT(ch, FEAT_WARLOCK_FIENDISH_RESILIENCE) * 3;
 
   if (HAS_FEAT(ch, FEAT_VAMPIRE_FAST_HEALING) && !ch->player.exploit_weaknesses)
   {
