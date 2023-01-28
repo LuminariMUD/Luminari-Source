@@ -982,6 +982,7 @@ SAVING_WILL here...  */
     case WARLOCK_ELDRITCH_CHAIN:
     case WARLOCK_ELDRITCH_CONE:
     case WARLOCK_ELDRITCH_DOOM:
+    case WARLOCK_HIDEOUS_BLOW:
       if (GET_ELDRITCH_SHAPE(caster) == spellnum) {
         act("You stop using any eldritch shape at all",
           FALSE, caster, NULL, caster, TO_CHAR);
@@ -992,7 +993,6 @@ SAVING_WILL here...  */
         FALSE, caster, NULL, caster, TO_CHAR);
       GET_ELDRITCH_SHAPE(caster) = spellnum;
     break;
-    case WARLOCK_HIDEOUS_BLOW:
     case WARLOCK_DRAINING_BLAST:
     case WARLOCK_FRIGHTFUL_BLAST:
     case WARLOCK_BESHADOWED_BLAST:
