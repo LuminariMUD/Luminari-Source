@@ -2519,8 +2519,17 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
   if (!element) // want to make sure all spells have some sort of damage category
     log("SYSERR: %d is lacking DAM_", spellnum);
-
-  return (damage(ch, victim, dam, spellnum, element, FALSE));
+  if (element == DAM_NEGATIVE && IS_UNDEAD(victim))
+  {
+    // Undead are healed by negative energy
+    const int heal_amount = MIN(GET_MAX_HIT(victim) - GET_HIT(victim), dam);
+    GET_HIT(victim) += heal_amount;
+    return (0);
+  }
+  else
+  {
+    return (damage(ch, victim, dam, spellnum, element, FALSE));
+  }
 }
 /* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
    old tick = 75 seconds, or 1.25 minutes or 25 rounds */
@@ -7600,13 +7609,19 @@ void mag_masses(int level, struct char_data *ch, struct obj_data *obj,
 
 int aoeOK(struct char_data *ch, struct char_data *tch, int spellnum)
 {
-  // skip self - tested
-  if (tch == ch)
-    return 0;
-
-  // immorts that are nohas
+    // immorts that are nohas
   if (!IS_NPC(tch) && GET_LEVEL(tch) >= LVL_IMMORT &&
       PRF_FLAGGED(tch, PRF_NOHASSLE))
+    return 0;
+
+  // rare reverse where we want to always AOE.
+  if ((spellnum == WARLOCK_ELDRITCH_BLAST || spellnum == WARLOCK_CRITICAL_ELDRITCH_BLAST) &&
+    GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST &&
+    IS_UNDEAD(tch))
+    return 1;
+
+  // skip self - tested
+  if (tch == ch)
     return 0;
 
   // earthquake currently doesn't work on flying victims
