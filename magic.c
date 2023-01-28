@@ -3693,6 +3693,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   // warlock insanity below
+  case WARLOCK_ELDRITCH_CHAIN:
+  case WARLOCK_ELDRITCH_CONE:
+  case WARLOCK_ELDRITCH_DOOM:
+  case WARLOCK_ELDRITCH_SPEAR:
+  case WARLOCK_HIDEOUS_BLOW:
+  case WARLOCK_CRITICAL_ELDRITCH_BLAST:
   case WARLOCK_ELDRITCH_BLAST:
     if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_DRAINING_BLAST)
     {
