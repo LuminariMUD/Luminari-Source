@@ -3814,7 +3814,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
         return;
 
-      SET_BIT_AR(af[0].bitvector, AFF_STUN);
+      SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
       af[0].duration = 12;
       to_room = "$n is stunned by the blast!";
       to_vict = "You are stunned by the blast!";
@@ -8303,6 +8303,18 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     break;
   
   case WARLOCK_THE_DEAD_WALK:
+    if (check_npc_followers(ch, NPC_MODE_FLAG, MOB_ANIMATED_DEAD))
+    {
+      send_to_char(ch, "You can't control more undead!\r\n");
+      return;
+    }
+
+    if (AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      send_to_char(ch, "You are too giddy to have any followers!\r\n");
+      return;
+    }
+    // fall through is intentional here.
   case SPELL_ANIMATE_DEAD: // necromancy
     if (obj == NULL || !IS_CORPSE(obj))
     {
