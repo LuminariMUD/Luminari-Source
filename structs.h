@@ -2348,12 +2348,14 @@
 #define FEAT_WARLOCK_FIENDISH_RESILIENCE 968
 #define FEAT_EPIC_ELDRITCH_MASTER 969
 #define FEAT_EPIC_ELDRITCH_BLAST 970
+//more misc
+#define FEAT_OVERSIZED_TWO_WEAPON_FIGHTING 971
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 971
+#define FEAT_LAST_FEAT 972
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 972
+#define NUM_FEATS 973
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
