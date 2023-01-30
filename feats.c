@@ -1228,6 +1228,13 @@ void assign_feats(void)
         "gives an additional offhand weapon attack at -10 penalty");
   feat_prereq_cfeat(FEAT_GREATER_TWO_WEAPON_FIGHTING, FEAT_IMPROVED_TWO_WEAPON_FIGHTING);
   feat_prereq_attribute(FEAT_GREATER_TWO_WEAPON_FIGHTING, AB_DEX, 19);
+  feato(FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, "oversized two weapon fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "treat one-handed weapon in offhand as light weapon",
+        "normally there is a penalty to using a non-light weapon in an offhand "
+        "while wielding two weapons. When dual-wielding with this feat "
+        "that offhand weapon is treated as a light weapon, removing "
+        "that penalty");
+  feat_prereq_cfeat(FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
   feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "when wielding two weapons receive +1 shield ac bonus",
         "When dual-wielding, or using a double-weapon, you automatically get a +1 "
@@ -5400,6 +5407,11 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
     case FEAT_TWO_WEAPON_FIGHTING:
       if (ch->real_abils.dex >= 15)
+        return TRUE;
+      return FALSE;
+    
+    case FEAT_OVERSIZED_TWO_WEAPON_FIGHTING:
+      if (has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING))
         return TRUE;
       return FALSE;
 
