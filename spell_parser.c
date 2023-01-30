@@ -3132,6 +3132,9 @@ void mag_assign_spells(void)
   spello(SPELL_CHARM_MONSTER, "charm monster", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
          "You feel more self-confident.", 10, 13, ENCHANTMENT, FALSE);
+  spello(SPELL_MASS_CHARM_MONSTER, "mass charm monster", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         "You feel more self-confident.", 10, 13, ENCHANTMENT, FALSE);
   spello(SPELL_ENCHANT_ITEM, "enchant item", 0, 0, 0, POS_FIGHTING,
          TAR_OBJ_INV, FALSE, MAG_MANUAL,
          NULL, 5, 7, ENCHANTMENT, FALSE);
@@ -3641,6 +3644,8 @@ void mag_assign_spells(void)
          19, ENCHANTMENT, FALSE);
   spello(SPELL_MASS_FLY, "mass fly", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_GROUPS, "The fly spell fades away.", 7, 19, ENCHANTMENT, FALSE);
+  spello(SPELL_MASS_INVISIBILITY, "mass invisibility", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
+         FALSE, MAG_GROUPS, "The invisibility spell fades away.", 7, 19, ENCHANTMENT, FALSE);
   /* illusion */
   spello(SPELL_DISPLACEMENT, "displacement", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
@@ -3731,6 +3736,9 @@ void mag_assign_spells(void)
   spello(SPELL_MIND_BLANK, "mind blank", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your mind-blank fades.", 8, 21, ABJURATION, FALSE);
+  spello(SPELL_REPULSION, "spell repulsion", 79, 64, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         "Your bubble of repulsion fades away.", 8, 21, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_CONTROL_PLANTS, "control plants", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,

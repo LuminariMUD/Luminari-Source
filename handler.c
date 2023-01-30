@@ -1198,6 +1198,13 @@ void affect_from_char(struct char_data *ch, int spell)
         ch->player_specials->energy_conversion[DAM_SOUND] = 0;
         ch->player_specials->energy_conversion[DAM_ELECTRIC] = 0;
       }
+      else if (spell == SPELL_REPULSION)
+      {
+        if (ch->char_specials.repulse_blacklist != NULL)
+          free_list(ch->char_specials.repulse_blacklist);
+        if (ch->char_specials.repulse_whitelist != NULL)
+          free_list(ch->char_specials.repulse_whitelist);
+      }
     }
   }
 }

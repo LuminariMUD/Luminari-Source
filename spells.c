@@ -2685,7 +2685,7 @@ ASPELL(eldritch_blast)
   // Check to see if the spell should miss
   if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM)
   {
-    act("$N sends out an explosive blast of eldritch energy.", FALSE, ch, 0, tch, TO_NOTVICT);
+    act("$N sends out an explosive blast of eldritch energy.", FALSE, ch, 0, tch, TO_ROOM);
     act("You release an explosive blast of eldritch energy into the area.", FALSE, ch, 0, tch, TO_CHAR);
     add_to_list(victim, target_list);
     while (target_list->iSize > 0)
@@ -2745,7 +2745,7 @@ ASPELL(eldritch_blast)
         mag_affects(effective_level, ch, tch, NULL, WARLOCK_ELDRITCH_CHAIN, -1, CAST_INNATE, 0);
         act("An eldritch arc of energy jumps to you from $N's blast.", FALSE, ch, 0, tch, TO_VICT);
         act("An eldritch arc of energy jumps to $E from $N's blast.", FALSE, ch, 0, tch, TO_NOTVICT);
-        act("An eldritch arc of energy jumps to $n from your blast.", FALSE, ch, 0, tch, TO_CHAR);
+        act("An eldritch arc of energy jumps to $E from your blast.", FALSE, ch, 0, tch, TO_CHAR);
       }
     }
   }
