@@ -3813,6 +3813,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
         return;
+      if (is_immune_mind_affecting(ch, victim, TRUE))
+        return;
 
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
       af[0].duration = 12;
