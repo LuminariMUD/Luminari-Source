@@ -5742,13 +5742,34 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_INVISIBLE: // illusion
     if (!victim)
       victim = ch;
-
+    
     af[0].duration = 300 + (level * 6);
     af[0].modifier = 4;
     af[0].location = APPLY_AC_NEW;
     SET_BIT_AR(af[0].bitvector, AFF_INVISIBLE);
     to_vict = "You vanish.";
     to_room = "$n slowly fades out of existence.";
+    break;
+
+  case SPELL_REPULSION: // abjuration
+    if (!victim)
+      victim = ch;
+
+    // setup the data.
+    if (ch->char_specials.repulse_blacklist != NULL)
+      free_list(ch->char_specials.repulse_blacklist);
+    ch->char_specials.repulse_blacklist = create_list();
+    if (ch->char_specials.repulse_whitelist != NULL)
+      free_list(ch->char_specials.repulse_whitelist);
+    ch->char_specials.repulse_whitelist = create_list();
+
+    // Add the affect
+    af[0].duration = level;
+    af[0].modifier = 0;
+    af[0].location = APPLY_NONE;
+    SET_BIT_AR(af[0].bitvector, AFF_REPULSION);
+    to_vict = "A bubble of repulsion forms around you.";
+    to_room = "$n now has a bubble of force around them.";
     break;
 
   case SPELL_IRON_GUTS: // transmutation
@@ -7324,6 +7345,12 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_MASS_FLY:
     mag_affects(level, ch, tch, obj, SPELL_FLY, savetype, casttype, 0);
     break;
+  case SPELL_MASS_CHARM_MONSTER:
+    effect_charm(ch, tch, SPELL_CHARM_MONSTER, casttype, level);
+    break;
+  case SPELL_MASS_INVISIBILITY:
+    mag_affects(level, ch, tch, obj, SPELL_INVISIBLE, savetype, casttype, 0);
+    break;
   case SPELL_MASS_CUNNING:
     mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype, casttype, 0);
     break;
@@ -7430,6 +7457,10 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_MASS_FLY:
     to_char = "Your magicks brings strong magical winds to aid in flight!\tn";
     to_room = "$n brings strong magical winds to aid in flight!\tn";
+    break;
+  case SPELL_MASS_INVISIBILITY:
+    to_char = "Your magicks fade your group from sight.\tn";
+    to_room = "$n masks $s group with invisibility.\tn";
     break;
   case SPELL_ANIMAL_SHAPES:
     to_char = "You transform your group!\tn";
@@ -9320,6 +9351,17 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
         to_char = "$p slowly fades into existence.";
       }
     }
+    break;
+
+  case SPELL_REPULSION:
+    affect = AFF_REPULSION;
+    to_char = "You remove the bubble of force from $N.";
+    to_vict = "$n removes the bubble of force from around you.";
+    to_notvict = "$N's bubble of repulsion fades away.";
+    if (ch->char_specials.repulse_blacklist != NULL)
+      free_list(ch->char_specials.repulse_blacklist);
+    if (ch->char_specials.repulse_whitelist != NULL)
+      free_list(ch->char_specials.repulse_whitelist);
     break;
 
   case SPELL_REMOVE_DISEASE:

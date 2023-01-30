@@ -1713,6 +1713,7 @@ const char *affected_bits[] = {
     "Spider-Climb",
     "Deadly-Aim",
     "Acid-Coated",
+    "Repulsion-Fielded",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1841,6 +1842,7 @@ const char *affected_bit_descs[] = {
     "You can scale surfaces like a spider.",
     "You are using your deadly aim feat benefit.",
     "You are coated in painful acid",
+    "You are surrounded by a repulsion field",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

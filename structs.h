@@ -1192,9 +1192,10 @@
 #define AFF_SPIDER_CLIMB 114
 #define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
 #define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
+#define AFF_REPULSION 117          // A field of repulsion is around person
 
 /*---*/
-#define NUM_AFF_FLAGS 117
+#define NUM_AFF_FLAGS 118
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4069,6 +4070,7 @@ struct char_special_data
     int deflect_arrows_left;                        /* deflect arrows left */
     struct condensed_combat_data *condensed_combat; /* condensed combat struct */
 
+
     /* Mode Data */
     int mode_value; /* Bonus/penalty for power attack and combat expertise. */
 
@@ -4136,6 +4138,9 @@ struct char_special_data
 
     bool quick_chant; // true if under the effect of quick chant
     bool quick_mind; // true if under the effect of quick mind
+
+    struct list_data *repulse_blacklist; // characters who can't attack through repulse
+    struct list_data *repulse_whitelist; // characters who are able to attack through repulse
 
     /* Warlock data */
     int eldritch_shape;            // saved shape for eldritch blasts

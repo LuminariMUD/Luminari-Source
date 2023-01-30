@@ -7150,6 +7150,12 @@ void idle_weapon_spells(struct char_data *ch)
             case SPELL_MASS_FLY:
               affected_by_spellnum = affected_by_spell(ch, SPELL_FLY);
               break;
+            case SPELL_MASS_CHARM_MONSTER:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_CHARM_MONSTER);
+              break;
+            case SPELL_MASS_INVISIBILITY:
+              affected_by_spellnum = affected_by_spell(ch, SPELL_INVISIBLE);
+              break;
             case SPELL_MASS_GRACE:
               affected_by_spellnum = affected_by_spell(ch, SPELL_GRACE);
               break;
@@ -9651,6 +9657,35 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   }
 
+  if (attack_type != ATTACK_TYPE_RANGED && 
+    AFF_FLAGGED(victim, AFF_REPULSION))
+  {
+    if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL)
+    {
+      return (HIT_MISS);
+    }
+    else if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL &&
+      find_in_list(ch, victim->char_specials.repulse_whitelist) == NULL)
+    {
+      // We haven't checked if this person is repulsing us yet. Do the check!
+      if (mag_savingthrow(victim, ch, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(victim), ABJURATION))
+      {
+        add_to_list(ch, victim->char_specials.repulse_whitelist);
+      }
+      else 
+      {
+        add_to_list(ch, victim->char_specials.repulse_blacklist);
+        act("$N bounces off of your bubble of repulsion.",
+            FALSE, victim, wielded, ch, TO_CHAR);
+        act("You bounce off of $n's bubble of repulsion.",
+            FALSE, victim, wielded, ch, TO_VICT);
+        act("$N bounces off of $n's field of repulsion.",
+            FALSE, victim, wielded, ch, TO_ROOM);
+        return (HIT_MISS);
+      }
+    }
+  }
+
   /* At this point, ch should be fighting vict and vice versa, unless ch and vict
     are in different rooms and this is a ranged attack. */
 
@@ -11415,6 +11450,29 @@ void perform_violence(struct char_data *ch, int phase)
       }
 
       /* we're done, free the list */
+      free_list(room_list);
+      return;
+    }
+  }
+
+  if (AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) && 
+    !is_using_ranged_weapon(ch, TRUE) && 
+    !IS_CASTING(ch) && 
+    !BLASTING(ch) && 
+    find_in_list(ch, FIGHTING(ch)->char_specials.repulse_blacklist) != NULL)
+  {
+    // We need to find a new target.
+    room_list = create_list(); /* allocate memory for list */
+    if (!IN_ROOM(ch)) /* dummy check */
+      return;
+    
+    for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) /* build list */
+      if (tch && tch != ch && FIGHTING(ch) != tch && FIGHTING(tch) == ch)
+        add_to_list(tch, room_list); // Add people who aren't this person, who are fighting us
+    
+    if (room_list->iSize == 0) // There's no one else to attack we aren't repulsed by
+    {
+      stop_fighting(ch);
       free_list(room_list);
       return;
     }
