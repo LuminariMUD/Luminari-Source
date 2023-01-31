@@ -5114,10 +5114,12 @@ void reset_char(struct char_data *ch)
   ch->char_specials.carry_weight = 0;
   ch->char_specials.carry_items = 0;
   ch->char_specials.totalDefense = 0;
+  ch->char_specials.vital_strike = 0;
   ch->char_specials.mounted_blocks_left = 0;
   ch->char_specials.deflect_arrows_left = 0;
   ch->char_specials.riding = NULL;
   ch->char_specials.ridden_by = NULL;
+  cb->char_specials.blasting = 0;
   for (i = 0; i < NUM_CASTERS; i++)
     ch->char_specials.is_preparing[i] = 0;
   ch->char_specials.crafting_type = 0;

@@ -214,6 +214,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cast", "c", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SPELL, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"carriage", "car", POS_RECLINING, do_carriage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"catsclaws", "catsclaws", POS_FIGHTING, do_tabaxi_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_tabaxi_claw_attack},
+    {"dazzlingdisplay", "dazzlingdisplay", POS_FIGHTING, do_dazzling_display, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_dazzling_display},
     {"cedit", "cedit", POS_DEAD, do_oasis_cedit, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"chat", "chat", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"changelog", "cha", POS_DEAD, do_changelog, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

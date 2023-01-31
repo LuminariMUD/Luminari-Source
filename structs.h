@@ -2351,12 +2351,16 @@
 #define FEAT_EPIC_ELDRITCH_BLAST 970
 //more misc
 #define FEAT_OVERSIZED_TWO_WEAPON_FIGHTING 971
+#define FEAT_DAZZLING_DISPLAY 972
+#define FEAT_VITAL_STRIKE 973
+#define FEAT_IMPROVED_VITAL_STRIKE 974
+#define FEAT_GREATER_VITAL_STRIKE 975
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 972
+#define FEAT_LAST_FEAT 974
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 973
+#define NUM_FEATS 975
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4069,6 +4073,7 @@ struct char_special_data
     int mounted_blocks_left;                        /* how many mounted combat blocks left in the round */
     int deflect_arrows_left;                        /* deflect arrows left */
     struct condensed_combat_data *condensed_combat; /* condensed combat struct */
+    bool vital_strike;                              /* if we're using vital strike */
 
 
     /* Mode Data */
