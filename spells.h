@@ -621,6 +621,11 @@
 #define STATUS_AFFECT_STAGGERED 1241
 #define AFFECT_PLANAR_SOUL_SURGE 1242
 #define ABILITY_DAZZLING_DISPLAY 1243
+#define ABILITY_BLEEDING_CRITICAL 1244
+#define ABILITY_SICKENING_CRITICAL 1245
+#define ABILITY_STAGGERING_CRITICAL 1246
+#define ABILITY_CENSORING_CRITICAL 1247
+#define ABILITY_STUNNING_CRITICAL 1248
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c

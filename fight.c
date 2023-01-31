@@ -10017,6 +10017,19 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
   if (is_critical)
   {
+    /* apply critical feats first */
+    if (HAS_FEAT(ch, FEAT_STUNNING_CRITICAL))
+      mag_affects(0, ch, victim, NULL, FEAT_STUNNING_CRITICAL, -1, CAST_INNATE, 0);
+    else if (HAS_FEAT(ch, FEAT_STAGGERING_CRITICAL))
+      mag_affects(0, ch, victim, NULL, FEAT_STAGGERING_CRITICAL, -1, CAST_INNATE, 0);
+    if (HAS_FEAT(ch, FEAT_BLEEDING_CRITICAL))
+      mag_affects(0, ch, victim, NULL, FEAT_BLEEDING_CRITICAL, -1, CAST_INNATE, 0);
+    if (HAS_FEAT(ch, FEAT_SICKENING_CRITICAL))
+      mag_affects(0, ch, victim, NULL, FEAT_SICKENING_CRITICAL, -1, CAST_INNATE, 0);
+    if (HAS_FEAT(ch, FEAT_CENSORING_CRITICAL))
+      mag_affects(0, ch, victim, NULL, FEAT_CENSORING_CRITICAL, -1, CAST_INNATE, 0);
+
+    /* perform teamwork feats */
     if (is_flanked(ch, victim))
       teamwork_attacks_of_opportunity(victim, 0, FEAT_OUTFLANK);
     if (teamwork_using_shield(ch, FEAT_SEIZE_THE_MOMENT))

@@ -2649,7 +2649,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   switch (spellnum)
   {
-
     // psionic powers 1st
 
   case PSIONIC_BROKER:
@@ -3690,6 +3689,40 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     SET_BIT_AR(af[0].bitvector, AFF_CONFUSED);
     accum_duration = FALSE;
     to_vict = "You feel confused and disoriented.";
+    break;
+
+  // critical feats list
+  case ABILITY_BLEEDING_CRITICAL:
+    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    af[0].modifier = dice(2, 6);
+    SET_BIT_AR(af[0].bitvector, AFF_BLEED);
+    to_vict = "You start to bleed.";
+    to_room = "$n starts to bleed.";
+    accum_affect = TRUE;
+    break;
+
+  case ABILITY_SICKENING_CRITICAL:
+    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    SET_BIT_AR(af[0].bitvector, AFF_SICKENED);
+    to_vict = "You start to feel incredibly sickened.";
+    to_room = "$n looks incredibly sickened.";
+    accum_duration = TRUE;
+    break;
+
+  case ABILITY_STAGGERING_CRITICAL:
+    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    SET_BIT_AR(af[0].bitvector, AFF_STAGGERED);
+    to_vict = "You feel staggered.";
+    to_room = "$n looks staggered.";
+    accum_duration = TRUE;
+    break;
+
+  case ABILITY_STUNNING_CRITICAL:
+    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    SET_BIT_AR(af[0].bitvector, AFF_STUN);
+    to_vict = "You are stunned.";
+    to_room = "$n looks stunned.";
+    accum_duration = TRUE;
     break;
 
   // warlock insanity below

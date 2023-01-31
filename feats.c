@@ -1106,6 +1106,38 @@ void assign_feats(void)
   feat_prereq_weapon_proficiency(FEAT_IMPROVED_CRITICAL);
   feat_prereq_bab(FEAT_IMPROVED_CRITICAL, 8);
 
+  feato(FEAT_BLEEDING_CRITICAL, "bleeding critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "2d6 bleed/round on critical, stacks",
+        "slashing or piercing weapon causes 2d6 bleed/round to opponent "
+        "when weapon criticals. This effect stacks with itself. "
+        "Can only select one critical feat without critical mastery.");
+  feato(FEAT_CENSORING_CRITICAL, "censoring critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "silence victim 1d4+1 rounds on critical",
+        "Victim is silenced for 1d4+1 rounds on a critical, a successful "
+        "fortitude save reduces this to 1 round. "
+        "Can only select one critical feat without critical mastery.");
+  feato(FEAT_STAGGERING_CRITICAL, "staggering critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "stagger victim 1d4+1 rounds on critical",
+        "Victim is staggered for 1d4+1 rounds on a critical, a successful "
+        "fortitude save reduces this to 1 round. "
+        "Can only select one critical feat without critical mastery, "
+        "except for stunning critical.");
+  feato(FEAT_STUNNING_CRITICAL, "stunning critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "stun victim 1d4+1 rounds on critical",
+        "Victim is stunned for 1d4+1 rounds on a critical, a successful "
+        "fortitude save reduces this to 1 round. "
+        "Can only select one critical feat without critical mastery.");
+  feato(FEAT_CRITICAL_MASTERY, "critical mastery", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "may select second critical feat",
+        "Normally can only have one critical feat, "
+        "having critical mastery enables the selection of a second "
+        "critical feat.");
+  feato(FEAT_SICKENING_CRITICAL, "sickening critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "sicken victim 1d4+1 rounds on critical",
+        "Victim is sickened for 1d4+1 rounds on a critical, a successful "
+        "fortitude save reduces this to 1 round. "
+        "Can only select one critical feat without critical mastery.");
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* ranged attack feats */
   feato(FEAT_POINT_BLANK_SHOT, "point blank shot", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
@@ -4929,6 +4961,23 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
   return TRUE;
 }
 
+/* counts how many critical feats we have */
+int critical_feat_total(struct char_data *ch)
+{
+  int total = 0;
+  if (HAS_FEAT(ch, FEAT_STAGGERING_CRITICAL) || HAS_FEAT(ch, FEAT_STUNNING_CRITICAL))
+    total++;
+  if (HAS_FEAT(ch, FEAT_SICKENING_CRITICAL))
+    total++;
+  if (HAS_FEAT(ch, FEAT_IMPALING_CRITICAL) || HAS_FEAT(ch, FEAT_IMPROVED_IMPALING_CRITICAL))
+    total++;
+  if (HAS_FEAT(ch, FEAT_CENSORING_CRITICAL))
+    total++;
+  if (HAS_FEAT(ch, FEAT_BLEEDING_CRITICAL))
+    total++;
+  return total;
+}
+
 /* The follwing function is used to check if the character satisfies the various prerequisite(s) (if any)
    of a feat in order to learn it. */
 int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
@@ -4989,6 +5038,79 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (compute_slots_by_circle(ch, CLASS_DRUID, 9) > 0)
         return TRUE;
       return FALSE;
+
+    case FEAT_STAGGERING_CRITICAL:
+      if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
+        return FALSE;
+      if (BAB(ch) < 13)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_SICKENING_CRITICAL:
+      if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
+        return FALSE;
+      if (BAB(ch) < 11)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_STUNNING_CRITICAL:
+      if (!HAS_FEAT(ch, FEAT_STAGGERING_CRITICAL) && critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_STAGGERING_CRITICAL))
+        return FALSE;
+      if (BAB(ch) < 17)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_CENSORING_CRITICAL:
+      if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
+        return FALSE;
+      if (BAB(ch) < 15)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_IMPALING_CRITICAL:
+      if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
+        return FALSE;
+      if (BAB(ch) < 11)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_IMPROVED_IMPALING_CRITICAL:
+      if (!HAS_FEAT(ch, FEAT_IMPALING_CRITICAL) && critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_IMPALING_CRITICAL))
+        return FALSE;
+      if (BAB(ch) < 13)
+        return FALSE;
+      return TRUE;
+
+    case FEAT_CRITICAL_MASTERY:
+      if (critical_feat_total(ch) < 1)
+        return FALSE;
+      if (CLASS_LEVEL(ch, CLASS_WARRIOR) < 14)
+        return FALSE;
+      return TRUE;
 
     case FEAT_SWARM_OF_ARROWS:
       if (ch->real_abils.dex < 23)
