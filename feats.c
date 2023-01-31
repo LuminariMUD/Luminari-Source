@@ -992,7 +992,7 @@ void assign_feats(void)
         "just type powerattack with no argument.  VALUE must be between 1-5 and is also "
         "limited by your (BAB) base attack bonus.");
   feat_prereq_attribute(FEAT_POWER_ATTACK, AB_STR, 13);
-  feato(FEAT_DEADLY_AIM, "dealy aim", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+  feato(FEAT_DEADLY_AIM, "deadly aim", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "subtract a number from hit and add x2 that number to dam.",
         "When active, take a value specified as penalty to attack roll and gain that "
         "value x2 as damage bonus for ranged weapons only.  Usage: deadlyaim VALUE, to turn off, "
@@ -1266,7 +1266,6 @@ void assign_feats(void)
         "while wielding two weapons. When dual-wielding with this feat "
         "that offhand weapon is treated as a light weapon, removing "
         "that penalty");
-  feat_prereq_cfeat(FEAT_OVERSIZED_TWO_WEAPON_FIGHTING, FEAT_TWO_WEAPON_FIGHTING);
   feato(FEAT_TWO_WEAPON_DEFENSE, "two weapon defense", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "when wielding two weapons receive +1 shield ac bonus",
         "When dual-wielding, or using a double-weapon, you automatically get a +1 "
@@ -1278,27 +1277,20 @@ void assign_feats(void)
         "Sacrifice all attacks to make one attack at full bab for double weapon dice damage.",
         "Sacrifice all attacks to make one attack at full bab for double weapon dice damage. "
         "Use 'vitalstrike' to toggle this mode on or off.");
-  feat_prereq_bab(FEAT_VITAL_STRIKE, 6);
-  feat_prereq_cfeat(FEAT_VITAL_STRIKE, FEAT_DAZZLING_DISPLAY);
 
   feato(FEAT_IMPROVED_VITAL_STRIKE, "improved vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Improves vital strike to triple weapon dice damage.",
         "Improves vital strike to triple weapon dice damage.");
-  feat_prereq_cfeat(FEAT_IMPROVED_VITAL_STRIKE, FEAT_VITAL_STRIKE);
-  feat_prereq_bab(FEAT_IMPROVED_VITAL_STRIKE, 11);
   
   feato(FEAT_GREATER_VITAL_STRIKE, "greater vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Improves vital strike to quadruple weapon dice damage.",
         "Improves vital strike to quadruple weapon dice damage.");
-  feat_prereq_cfeat(FEAT_GREATER_VITAL_STRIKE, FEAT_IMPROVED_VITAL_STRIKE);
-  feat_prereq_bab(FEAT_IMPROVED_VITAL_STRIKE, 16);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* uncategorized combat feats */
   feato(FEAT_DAZZLING_DISPLAY, "dazzling display", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "use a full round action to intimidate all foes in sight, dazzling them.",
         "use a full round action to intimidate all foes in sight, dazzling them.");
-  feat_prereq_cfeat(FEAT_DAZZLING_DISPLAY, FEAT_WEAPON_FOCUS);
 
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "when fighting blind, retain dex bonus to AC and deny enemy +4 attack bonus for invisibility.",
@@ -5039,6 +5031,17 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return TRUE;
       return FALSE;
 
+    case FEAT_BLEEDING_CRITICAL:
+      if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
+        return FALSE;
+      if (critical_feat_total(ch) >= 2)
+        return FALSE;
+      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
+        return FALSE;
+      if (BAB(ch) < 13)
+        return FALSE;
+      return TRUE;
+
     case FEAT_STAGGERING_CRITICAL:
       if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
         return FALSE;
@@ -5609,7 +5612,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
     
     case FEAT_OVERSIZED_TWO_WEAPON_FIGHTING:
-      if (has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING))
+      if (has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) && ch->real_abils.dex >= 13)
         return TRUE;
       return FALSE;
 
