@@ -1476,12 +1476,9 @@ void assign_feats(void)
   feato(FEAT_ARCANE_ARMOR_TRAINING, "arcane armor training", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "reduce spell failure for armor by 10%",
         "reduce spell failure for armor by 10%");
-  feat_prereq_feat(FEAT_ARCANE_ARMOR_TRAINING, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
   feato(FEAT_ARCANE_ARMOR_MASTERY, "arcane armor mastery", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "reduce spell failure for armor by 20%",
         "reduce spell failure for armor by 20%, does not stack with arcane armor training");
-  feat_prereq_feat(FEAT_ARCANE_ARMOR_MASTERY, FEAT_ARCANE_ARMOR_TRAINING, 1);
-  feat_prereq_feat(FEAT_ARCANE_ARMOR_MASTERY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
   feato(FEAT_BATTLE_CASTER, "battle caster", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
       "ignore spell failure chance for medium armor",
       "ignore spell failure chance for medium armor");
