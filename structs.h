@@ -2355,12 +2355,15 @@
 #define FEAT_VITAL_STRIKE 973
 #define FEAT_IMPROVED_VITAL_STRIKE 974
 #define FEAT_GREATER_VITAL_STRIKE 975
+#define FEAT_ARCANE_ARMOR_TRAINING 976
+#define FEAT_ARCANE_ARMOR_MASTERY 977
+#define FEAT_BATTLE_CASTER 978
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 974
+#define FEAT_LAST_FEAT 979
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 975
+#define NUM_FEATS 980
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
