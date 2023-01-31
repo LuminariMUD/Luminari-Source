@@ -522,13 +522,10 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     {
     case CLASS_WARLOCK:
     case CLASS_BARD:
-      int max_armor_size = ARMOR_TYPE_LIGHT;
-      if (HAS_FEAT(caster, FEAT_BATTLE_CASTER))
-        max_armor_size = ARMOR_TYPE_MEDIUM;
       if (!canCastAtWill(caster, spellnum))
       {
         /* bards & warlocks can wear light armor and cast unpenalized (bard spells) */
-        if (compute_gear_armor_type(caster) > max_armor_size ||
+        if (compute_gear_armor_type(caster) > (HAS_FEAT(caster, FEAT_BATTLE_CASTER) ? ARMOR_TYPE_MEDIUM : ARMOR_TYPE_LIGHT) ||
             compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
           if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
           {

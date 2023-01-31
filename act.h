@@ -594,7 +594,7 @@ ACMD_DECL(do_dragonborn_breath_weapon);
 ACMDCHECK(can_dragonborn_breath_weapon);
 ACMD_DECL(do_tabaxi_claw_attack);
 ACMDCHECK(can_tabaxi_claw_attack);
-ACMDCHECK(do_dazzling_display);
+ACMD_DECL(do_dazzling_display);
 ACMDCHECK(can_dazzling_display);
 ACMD_DECL(do_blast);
 ACMDCHECK(can_eldritch_blast);
