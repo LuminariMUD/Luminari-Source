@@ -4545,7 +4545,31 @@ void mag_assign_spells(void)
 
   spello(ABILITY_AFFECT_STONES_ENDURANCE, "stone's endurance", 0, 0, 0, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS,
-         "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);    
+         "You have lost the durability of the mountains.", 1, 1, NOSCHOOL, FALSE);  
+
+  spello(ABILITY_DAZZLING_DISPLAY, "dazzling display", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer dazzled.", 1, 1, NOSCHOOL, 0);
+
+  spello(ABILITY_BLEEDING_CRITICAL, "bleeding critical", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer bleeding.", 1, 1, NOSCHOOL, 0);
+
+  spello(ABILITY_SICKENING_CRITICAL, "sickening critical", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer sickened.", 1, 1, NOSCHOOL, 0);
+
+  spello(ABILITY_STAGGERING_CRITICAL, "staggering critical", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer staggered.", 1, 1, NOSCHOOL, 0);
+
+  spello(ABILITY_CENSORING_CRITICAL, "censoring critical", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer censored.", 1, 1, NOSCHOOL, 0);
+
+  spello(ABILITY_STUNNING_CRITICAL, "stunning critical", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS,
+         "You are no longer stunned.", 1, 1, NOSCHOOL, 0);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
