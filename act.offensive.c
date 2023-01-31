@@ -3649,7 +3649,7 @@ ACMD(do_blast)
 
 ACMDCHECK(can_dazzling_display)
 {
-  ACMDCHECK_PREREQ_HAS_FEAT(FEAT_DAZZLING_DISPLAY, "You have no idea how.\r\n");
+  ACMDCHECK_PREREQ_HASFEAT(FEAT_DAZZLING_DISPLAY, "You have no idea how.\r\n");
   return CAN_CMD;
 }
 
@@ -3682,7 +3682,7 @@ ACMD(do_dazzling_display)
       continue;
     if (is_immune_mind_affecting(ch, tch, 0))
       continue;
-    int roll = savingthrow(tch, SAVING_WILL, 0) + d20(tch) + GET_LEVEL(tch);
+    int roll = compute_mag_saves(tch, SAVING_WILL, 0) + d20(tch) + GET_LEVEL(tch);
     if (roll > challenge)
       continue;
     struct affected_type af;
