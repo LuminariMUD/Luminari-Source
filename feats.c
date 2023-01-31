@@ -1449,6 +1449,18 @@ void assign_feats(void)
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* weapon / armor proficiency */
+  feato(FEAT_ARCANE_ARMOR_TRAINING, "arcane armor training", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "reduce spell failure for armor by 10%",
+        "reduce spell failure for armor by 10%");
+  feat_prereq_feat(FEAT_ARCANE_ARMOR_TRAINING, FEAT_ARMOR_PROFICIENCY_LIGHT, 1);
+  feato(FEAT_ARCANE_ARMOR_MASTERY, "arcane armor mastery", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+        "reduce spell failure for armor by 20%",
+        "reduce spell failure for armor by 20%, does not stack with arcane armor training");
+  feat_prereq_feat(FEAT_ARCANE_ARMOR_MASTERY, FEAT_ARCANE_ARMOR_TRAINING, 1);
+  feat_prereq_feat(FEAT_ARCANE_ARMOR_MASTERY, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1);
+  feato(FEAT_BATTLE_CASTER, "battle caster", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
+      "ignore spell failure chance for medium armor",
+      "ignore spell failure chance for medium armor");
   feato(FEAT_ARMOR_PROFICIENCY_LIGHT, "light armor proficiency", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "allows unpenalized use of light armor ",
         "allows unpenalized use of light armor ");
@@ -5428,6 +5440,22 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     case FEAT_DAZZLING_DISPLAY:
       if (has_feat_requirement_check(ch, FEAT_WEAPON_FOCUS))
         return TRUE;
+      return FALSE;
+
+    case FEAT_ARCANE_ARMOR_TRAINING:
+      if (has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_ARCANE_ARMOR_MASTERY:
+      if (has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM) &&
+        has_feat_requirement_check(ch, FEAT_ARCANE_ARMOR_TRAINING))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_BATTLE_CASTER:
+      if (CLASS_LEVEL(ch, CLASS_BARD) || CLASS_LEVEL(ch, CLASS_WARLOCK))
+        return TRUE; // requires a class that can ignore light armor
       return FALSE;
 
     case FEAT_VITAL_STRIKE:

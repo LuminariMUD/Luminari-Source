@@ -1459,6 +1459,11 @@ int compute_gear_spell_failure(struct char_data *ch)
     spell_failure = spell_failure / count;
   }
 
+  if (HAS_FEAT(ch, FEAT_ARCANE_ARMOR_MASTERY))
+    spell_failure -= 20;
+  else if (HAS_FEAT(ch, FEAT_ARCANE_ARMOR_TRAINING))
+    spell_failure -= 10;
+
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     spell_failure += 25;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
