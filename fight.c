@@ -6077,6 +6077,16 @@ int compute_dam_dice(struct char_data *ch, struct char_data *victim,
       return (diceOne * diceTwo) + diceOne; /* max damage! And more! */
   }
 
+  if (VITAL_STRIKING(ch))
+  {
+    if (HAS_FEAT(ch, FEAT_GREATER_VITAL_STRIKE))
+      diceOne *= 4;
+    else if (HAS_FEAT(ch, FEAT_IMPROVED_VITAL_STRIKE))
+      diceOne *= 3;
+    else if (HAS_FEAT(ch, FEAT_VITAL_STRIKE))
+      diceOne *= 2;
+  }
+
   return dice(diceOne, diceTwo);
 }
 
@@ -10569,7 +10579,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   /************************/
   /* Process Melee Attacks -------------------------------------------------- */
   // melee: now lets determine base attack(s) and resulting possible penalty
-  dual = is_dual_wielding(ch); // trelux or has off-hander equipped
+  dual = is_dual_wielding(ch) && !VITAL_STRIKING(ch); // trelux or has off-hander equipped
 
   /* we are going to exit melee combat if we are somehow wielding a ranged
              weapon here */
@@ -10655,8 +10665,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
 
   /* haste or equivalent? */
-  if (AFF_FLAGGED(ch, AFF_HASTE) ||
-      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)))
+  if (!VITAL_STRIKING(ch) && (AFF_FLAGGED(ch, AFF_HASTE) ||
+      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED))))
   {
     numAttacks++;
     if (mode == NORMAL_ATTACK_ROUTINE)
@@ -10677,6 +10687,9 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
 
   // execute the calculated attacks from above
+  if (VITAL_STRIKING(ch))
+    bonus_mainhand_attacks = 0;
+  
   int j = 0;
   for (i = 0; i < bonus_mainhand_attacks; i++)
   {

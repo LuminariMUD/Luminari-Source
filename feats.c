@@ -1241,8 +1241,33 @@ void assign_feats(void)
         "shield bonus to AC");
   feat_prereq_cfeat(FEAT_TWO_WEAPON_DEFENSE, FEAT_TWO_WEAPON_FIGHTING);
 
+  /* vital strike weapon feats */
+  feato(FEAT_VITAL_STRIKE, "vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Sacrifice all attacks to make one attack at full bab for double weapon dice damage.",
+        "Sacrifice all attacks to make one attack at full bab for double weapon dice damage. "
+        "Use 'vitalstrike' to toggle this mode on or off.");
+  feat_prereq_bab(FEAT_VITAL_STRIKE, 6);
+  feat_prereq_cfeat(FEAT_VITAL_STRIKE, FEAT_DAZZLING_DISPLAY);
+
+  feato(FEAT_IMPROVED_VITAL_STRIKE, "improved vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Improves vital strike to triple weapon dice damage.",
+        "Improves vital strike to triple weapon dice damage.");
+  feat_prereq_cfeat(FEAT_IMPROVED_VITAL_STRIKE, FEAT_VITAL_STRIKE);
+  feat_prereq_bab(FEAT_IMPROVED_VITAL_STRIKE, 11);
+  
+  feato(FEAT_GREATER_VITAL_STRIKE, "greater vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "Improves vital strike to quadruple weapon dice damage.",
+        "Improves vital strike to quadruple weapon dice damage.");
+  feat_prereq_cfeat(FEAT_GREATER_VITAL_STRIKE, FEAT_IMPROVED_VITAL_STRIKE);
+  feat_prereq_bab(FEAT_IMPROVED_VITAL_STRIKE, 16);
+
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* uncategorized combat feats */
+  feato(FEAT_DAZZLING_DISPLAY, "dazzling display", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "use a full round action to intimidate all foes in sight, dazzling them.",
+        "use a full round action to intimidate all foes in sight, dazzling them.");
+  feat_prereq_cfeat(FEAT_DAZZLING_DISPLAY, FEAT_WEAPON_FOCUS);
+
   feato(FEAT_BLIND_FIGHT, "blind fighting", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "when fighting blind, retain dex bonus to AC and deny enemy +4 attack bonus for invisibility.",
         "when fighting blind, retain dex bonus to AC and deny enemy +4 attack bonus for invisibility.");
@@ -5399,6 +5424,29 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return TRUE;
       else
         return FALSE;
+
+    case FEAT_DAZZLING_DISPLAY:
+      if (has_feat_requirement_check(ch, FEAT_WEAPON_FOCUS))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_VITAL_STRIKE:
+      if (has_feat_requirement_check(ch, FEAT_DAZZLING_DISPLAY) &&
+        (BAB(ch) >= 6))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_IMPROVED_VITAL_STRIKE:
+      if (has_feat_requirement_check(ch, FEAT_VITAL_STRIKE) &&
+        (BAB(ch) >= 11))
+        return TRUE;
+      return FALSE;
+
+    case FEAT_GREATER_VITAL_STRIKE:
+      if (has_feat_requirement_check(ch, FEAT_IMPROVED_VITAL_STRIKE) &&
+        (BAB(ch) >= 16))
+        return TRUE;
+      return FALSE;
 
     case FEAT_SUNDER:
       if (has_feat_requirement_check(ch, FEAT_POWER_ATTACK))

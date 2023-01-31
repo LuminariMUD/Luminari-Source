@@ -3647,6 +3647,60 @@ ACMD(do_blast)
   }
 }
 
+ACMDCHECK(can_dazzling_display)
+{
+  ACMDCHECK_PREREQ_HAS_FEAT(FEAT_DAZZLING_DISPLAY, "You have no idea how.\r\n");
+  return CAN_CMD;
+}
+
+ACMD(do_dazzling_display)
+{
+  PREREQ_NOT_NPC();
+  PREREQ_CHECK(can_dazzling_display);
+
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You can only use this ability in combat.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSTANDARD, TRUE))
+  {
+    return;
+  }
+
+  act ("You make an intimidating display of force with your dazzling display of weapons.", false, ch, 0, ch, TO_CHAR);
+  struct char_data *tch = NULL, *next_tch = NULL;
+  const int skill_lvl = compute_ability(ch, ABILITY_INTIMIDATE);
+  const int challenge = 10 + skill_lvl;
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (AFF_FLAGGED(ch, AFF_DAZZLED))
+      continue;
+    if (!aoeOK(ch, tch, ABILITY_DAZZLING_DISPLAY))
+      continue;
+    if (is_immune_mind_affecting(ch, tch, 0))
+      continue;
+    int roll = savingthrow(tch, SAVING_WILL, 0) + d20(tch) + GET_LEVEL(tch);
+    if (roll > challenge)
+      continue;
+    struct affected_type af;
+    new_affect(&af);
+    af.spell = ABILITY_DAZZLING_DISPLAY;
+    af.location = APPLY_SPECIAL;
+    af.modifier = 0;
+    af.duration = 1 + ((challenge - roll) / 5);
+    SET_BIT_AR(af.bitvector, AFF_DAZZLED);
+    affect_to_char(ch, &af);
+    act("You are dazzled by $n's fearsome weapon display.", false, ch, 0, tch, TO_VICT);
+    act("$N is dazzled by your fearsome weapon display.", false, ch, 0, tch, TO_CHAR);
+    act("$N is dazzled by $n's fearsome weapon display.", false, ch, 0, tch, TO_NOTVICT);
+  }
+
+  USE_FULL_ROUND_ACTION(ch);
+}
+
 ACMDCHECK(can_tabaxi_claw_attack)
 {
   ACMDCHECK_PREREQ_HASFEAT(FEAT_TABAXI_CATS_CLAWS, "You have no idea how.\r\n");

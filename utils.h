@@ -971,6 +971,7 @@ void char_from_furniture(struct char_data *ch);
 // ***  char_specials (there are others spread about utils.h file) *** //
 #define GET_ELDRITCH_SHAPE(ch) ((ch)->char_specials.eldritch_shape)
 #define GET_ELDRITCH_ESSENCE(ch) ((ch)->char_specials.eldritch_essence)
+#define VITAL_STRIKING(ch) ((ch)->char_specials.vital_strike)
 /** Current position (standing, sitting) of ch. */
 #define GET_POS(ch) ((ch)->char_specials.position)
 /** Timer  */

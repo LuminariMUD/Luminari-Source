@@ -620,6 +620,7 @@
 #define AFFECT_IMMUNITY_BANISHING_BLADE 1240
 #define STATUS_AFFECT_STAGGERED 1241
 #define AFFECT_PLANAR_SOUL_SURGE 1242
+#define ABILITY_DAZZLING_DISPLAY 1243
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
