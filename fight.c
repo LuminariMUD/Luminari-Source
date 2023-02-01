@@ -11567,7 +11567,7 @@ void perform_violence(struct char_data *ch, int phase)
 #undef NORMAL_ATTACK_ROUTINE
 
     /* handle cleave */
-    if (phase == 1 && HAS_FEAT(ch, FEAT_CLEAVE) && !is_using_ranged_weapon(ch, TRUE))
+    if (phase == 1 && (HAS_FEAT(ch, FEAT_CLEAVE) || HAS_FEAT(ch, FEAT_GREAT_CLEAVE)) && !is_using_ranged_weapon(ch, TRUE))
       handle_cleave(ch);
   }
   /**/
