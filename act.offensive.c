@@ -1379,8 +1379,20 @@ void perform_layonhands(struct char_data *ch, struct char_data *vict)
     return;
   }
 
-  heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict),
-                    20 + GET_CHA_BONUS(ch) + dice(CLASS_LEVEL(ch, CLASS_PALADIN), 6));
+  if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION)) 
+  {
+    // maximize the lay on hands as per feat description
+    heal_amount = 20 + GET_CHA_BONUS(ch) + CLASS_LEVEL(ch, CLASS_PALADIN) * 7;
+  }
+  else {
+    heal_amount = 20 + GET_CHA_BONUS(ch) + dice(CLASS_LEVEL(ch, CLASS_PALADIN), 6);
+    if (HAS_FEAT(ch, FEAT_HOLY_WARRIOR)) 
+    {
+      // add plus one healing per die as per feat description
+      heal_amount += CLASS_LEVEL(ch, CLASS_PALADIN);
+    }
+  }
+  heal_amount = MIN(GET_MAX_HIT(vict) - GET_HIT(vict), heal_amount);
 
   send_to_char(ch, "Your hands flash \tWbright white\tn as you reach out...\r\n");
   if (ch == vict)
