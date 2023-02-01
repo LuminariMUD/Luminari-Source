@@ -11481,7 +11481,7 @@ void perform_violence(struct char_data *ch, int phase)
     }
   }
 
-  if (AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) && 
+  if (FIGHTING(ch) && AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) && 
     !is_using_ranged_weapon(ch, TRUE) && 
     !IS_CASTING(ch) && 
     !BLASTING(ch) && 
