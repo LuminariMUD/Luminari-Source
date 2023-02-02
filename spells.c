@@ -2719,17 +2719,11 @@ ASPELL(eldritch_blast)
     const bool is_critical = attack_result == 999;
     if (is_critical) 
     {
-      act("$N critically explodes $E with a blast of eldritch energy!!", FALSE, ch, 0, victim, TO_NOTVICT);
-      act("You critically explode $N with a blast of eldritch energy!!", FALSE, ch, 0, victim, TO_CHAR);
-      act("$N critically explodes you with a blast of painful eldritch energy!!", FALSE, ch, 0, victim, TO_VICT);
       mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
     else
     {
-      act("$N strikes $E with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_NOTVICT);
-      act("You strike $N with a blast of eldritch energy.", FALSE, ch, 0, victim, TO_CHAR);
-      act("$N strikes you with a blast of painful eldritch energy.", FALSE, ch, 0, victim, TO_VICT);
       mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
