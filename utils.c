@@ -7649,6 +7649,73 @@ int is_spell_or_power(int spellnum)
   return 2;
 }
 
+int get_number_of_spellcasting_classes(struct char_data *ch)
+{
+  int i = 0;
+  int num_classes = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (CLASS_LEVEL(ch, i) > 0)
+      num_classes++;
+
+  return num_classes;
+}
+
+bool warlock_spell_type(int spellnum)
+{
+
+  switch (spellnum)
+  {
+    case WARLOCK_ELDRITCH_SPEAR:
+    case WARLOCK_HIDEOUS_BLOW:
+    case WARLOCK_ELDRITCH_CHAIN:
+    case WARLOCK_ELDRITCH_CONE:
+    case WARLOCK_ELDRITCH_DOOM:
+      return WARLOCK_POWER_SHAPE;
+    
+    case WARLOCK_DRAINING_BLAST:
+    case WARLOCK_FRIGHTFUL_BLAST:
+    case WARLOCK_BESHADOWED_BLAST:
+    case WARLOCK_BRIMSTONE_BLAST:
+    case WARLOCK_HELLRIME_BLAST:
+    case WARLOCK_BEWITCHING_BLAST:
+    case WARLOCK_NOXIOUS_BLAST:
+    case WARLOCK_VITRIOLIC_BLAST:
+    case WARLOCK_BINDING_BLAST:
+    case WARLOCK_UTTERDARK_BLAST:
+      return WARLOCK_POWER_ESSENCE;
+    
+    case WARLOCK_BEGUILING_INFLUENCE:
+    case WARLOCK_DARK_ONES_OWN_LUCK:
+    case WARLOCK_DARKNESS:
+    case WARLOCK_DEVILS_SIGHT:
+    case WARLOCK_ENTROPIC_WARDING:
+    case WARLOCK_LEAPS_AND_BOUNDS:
+    case WARLOCK_OTHERWORLDLY_WHISPERS:
+    case WARLOCK_SEE_THE_UNSEEN:
+    case WARLOCK_CHARM:
+    case WARLOCK_CURSE_OF_DESPAIR:
+    case WARLOCK_DREAD_SEIZURE:
+    case WARLOCK_FLEE_THE_SCENE:
+    case WARLOCK_THE_DEAD_WALK:
+    case WARLOCK_VORACIOUS_DISPELLING:
+    case WARLOCK_WALK_UNSEEN:
+    case WARLOCK_CHILLING_TENTACLES:
+    case WARLOCK_DEVOUR_MAGIC:
+    case WARLOCK_TENACIOUS_PLAGUE:
+    case WARLOCK_WALL_OF_PERILOUS_FLAME:
+    case WARLOCK_DARK_FORESIGHT:
+    case WARLOCK_RETRIBUTIVE_INVISIBILITY:
+      return WARLOCK_POWER_SPELL;    
+    
+    // not implemented yet
+    case WARLOCK_WORD_OF_CHANGING:
+    default:
+      return WARLOCK_POWER_NONE;
+  }
+  return WARLOCK_POWER_NONE;
+}
+
 void set_x_y_coords(int start, int *x, int *y, int *room)
 {
   *x = MIN(159, MAX(0, ((start - 600161) % 160)));

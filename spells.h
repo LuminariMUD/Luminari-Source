@@ -804,6 +804,11 @@
 #define WARLOCK_POWER_END 1688
 /***************************************/
 
+#define WARLOCK_POWER_NONE 0
+#define WARLOCK_POWER_SPELL 1
+#define WARLOCK_POWER_ESSENCE 2
+#define WARLOCK_POWER_SHAPE 3
+
 /***************************************/
 
 /* Other files to be aware of for new spells:

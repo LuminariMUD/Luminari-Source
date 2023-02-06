@@ -501,9 +501,12 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
   int bottom = 0, top = 0;
   size_t len = 0, nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char cname[100];
   const char *overflow = "\r\n**OVERFLOW**\r\n";
+  
   if (!ch)
     return;
+
   int domain_1 = GET_1ST_DOMAIN(ch);
   int domain_2 = GET_2ND_DOMAIN(ch);
   bool is_psionic = (class == CLASS_PSIONICIST);
@@ -517,10 +520,12 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       send_to_char(ch, "You don't have any levels in your current class.\r\n");
   }
 
+  snprintf(cname, sizeof(cname), "%s", class_list[class].name);
+
   if (mode == 0)
   {
 
-    len = snprintf(buf2, sizeof(buf2), "\tCKnown %s List\tn\r\n%s", is_psionic || is_warlock ? "Power" : "Spell",
+    len = snprintf(buf2, sizeof(buf2), "\tCKnown %s %s List\tn\r\n%s", CAP(cname), is_psionic || is_warlock ? "Power" : "Spell",
                    (is_psionic && CLASS_LEVEL(ch, CLASS_PSIONICIST) == 1) ? "\tYNOTE:\tnThere is a known bug where new psionicists will show all powers instead of\r\n"
                                                                             "only the ones they know. To correct this, please quit, then press '0' to return to\r\n"
                                                                             "the account menu, and login again.\r\n"
@@ -577,7 +582,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         }
-        else if (class == CLASS_WARLOCK && is_a_known_spell(ch, CLASS_WARLOCK, i) &&
+        else if (class == CLASS_WARLOCK && is_a_known_spell(ch, CLASS_WARLOCK, i) && warlock_spell_type(i) == WARLOCK_POWER_SPELL &&
                  compute_spells_circle(CLASS_WARLOCK, i, 0, DOMAIN_UNDEFINED) == slot)
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len,
@@ -609,7 +614,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR && class != CLASS_PSIONICIST &&
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
                  (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_1) && compute_spells_circle(class, i, 0, domain_1) == slot &&
                  GET_SKILL(ch, i))
         {
@@ -620,7 +625,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           len += nlen;
           /* SPELL PREPARATION HOOK (spellCircle) */
         }
-        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR && class != CLASS_PSIONICIST &&
+        else if (class != CLASS_SORCERER && class != CLASS_BARD && class != CLASS_WIZARD && class != CLASS_INQUISITOR && class != CLASS_PSIONICIST && class != CLASS_WARLOCK &&
                  (BONUS_CASTER_LEVEL(ch, class) + CLASS_LEVEL(ch, class)) >= MIN_SPELL_LVL(i, class, domain_2) && compute_spells_circle(class, i, 0, domain_2) == slot &&
                  GET_SKILL(ch, i))
         {
