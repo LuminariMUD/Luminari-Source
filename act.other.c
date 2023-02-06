@@ -8136,6 +8136,7 @@ ACMD(do_buffself)
     if (!found)
     {
       send_to_char(ch, "You do not have any spells or powers in your buff list.\r\n");
+      return;
     }
     GET_BUFF(ch, i, 1) = aug;
     send_to_char(ch, "You assign %d augment psp to '%s'.\r\n", aug, spell_info[spellnum].name);

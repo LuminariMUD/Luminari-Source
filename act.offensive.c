@@ -3523,7 +3523,7 @@ ACMD(do_blast)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_CHECK(can_eldritch_blast);
 
-  if (FIGHTING(ch))
+  if (FIGHTING(ch) && GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_SPEAR)
   {
     send_to_char(ch, "You are too busy fighting to try and fire right now!\r\n");
     return;
@@ -7564,7 +7564,7 @@ ACMD(do_autoblast)
     BLASTING(ch) = FALSE;
     return;
   }
-  else if (FIGHTING(ch))
+  else if (FIGHTING(ch) && GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_SPEAR)
   {
     send_to_char(ch, "You are too busy fighting!\r\n");
     return;
