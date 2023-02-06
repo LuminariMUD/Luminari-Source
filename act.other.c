@@ -6214,14 +6214,31 @@ bool invalid_staff_spell(int spell_num)
 ACMD(do_use)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
+  char cmdname[100];
   struct obj_data *mag_item = NULL;
   int dc = 10;
   int check_result;
   int spell;
   int umd_ability_score;
 
-  if (subcmd == SCMD_INVOKE)
-    subcmd = SCMD_USE;
+  switch (subcmd)
+  {
+    case SCMD_QUAFF:
+      snprintf(cmdname, sizeof(cmdname), "quaff");
+      break;
+
+    case SCMD_RECITE:
+      snprintf(cmdname, sizeof(cmdname), "recite");
+      break;
+
+    case SCMD_INVOKE:
+      snprintf(cmdname, sizeof(cmdname), "invoke");
+      break;
+
+    default:
+      snprintf(cmdname, sizeof(cmdname), "use");
+      break;
+  }
 
   if (subcmd == SCMD_QUAFF && affected_by_spell(ch, PSIONIC_OAK_BODY))
   {
@@ -6239,7 +6256,7 @@ ACMD(do_use)
 
   if (!*arg)
   {
-    send_to_char(ch, "What do you want to %s?\r\n", CMD_NAME);
+    send_to_char(ch, "What do you want to %s?\r\n", cmdname);
     return;
   }
 
