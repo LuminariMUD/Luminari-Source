@@ -3445,7 +3445,7 @@ void mag_assign_spells(void)
          "Your skin returns to its normal texture.", 3, 13, ABJURATION, FALSE);
   // 5th level
   spello(SPELL_COMMUNAL_STONESKIN, "communal stone skin", 51, 36, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+         TAR_CHAR_ROOM, FALSE, MAG_GROUPS,
          "Your skin returns to its normal texture.", 9, 17, ABJURATION, FALSE);
   spello(SPELL_MINOR_GLOBE, "minor globe", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, "Your minor globe has faded away.", 8,
