@@ -5311,13 +5311,15 @@ ACMD(do_spells)
 
   two_arguments(argument, arg, sizeof(arg), arg1, sizeof(arg1));
 
-  if (!*arg && subcmd != SCMD_CONCOCT && subcmd != SCMD_POWERS)
+  if (!*arg && subcmd != SCMD_CONCOCT && subcmd != SCMD_POWERS && get_number_of_spellcasting_classes(ch) != 1)
   {
     send_to_char(ch, "The spells command requires at least one argument - Usage:  spells <class name> <circle>\r\n");
   }
   else
   {
-    if (subcmd == SCMD_CONCOCT)
+    if (get_number_of_spellcasting_classes(ch) == 1 && GET_LEVEL(ch) < LVL_IMMORT)
+      class = GET_CLASS(ch);
+    else if (subcmd == SCMD_CONCOCT)
       class = CLASS_ALCHEMIST;
     else if (subcmd == SCMD_POWERS)
       class = CLASS_PSIONICIST;
@@ -5337,7 +5339,7 @@ ACMD(do_spells)
         return;
       }
     }
-    if (CLASS_LEVEL(ch, class))
+    if (CLASS_LEVEL(ch, class) || GET_LEVEL(ch) >= LVL_IMMORT)
     {
       list_spells(ch, 0, class, circle);
     }
@@ -6217,6 +6219,9 @@ ACMD(do_use)
   int check_result;
   int spell;
   int umd_ability_score;
+
+  if (subcmd == SCMD_INVOKE)
+    subcmd = SCMD_USE;
 
   if (subcmd == SCMD_QUAFF && affected_by_spell(ch, PSIONIC_OAK_BODY))
   {
