@@ -4842,7 +4842,7 @@ struct str_app_type
 {
     sh_int tohit;   /**< To Hit (THAC0) Bonus/Penalty        */
     sh_int todam;   /**< Damage Bonus/Penalty                */
-    sh_int carry_w; /**< Maximum weight that can be carrried */
+    int carry_w; /**< Maximum weight that can be carrried */
     sh_int wield_w; /**< Maximum weight that can be wielded  */
 };
 
