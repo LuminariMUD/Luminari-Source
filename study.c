@@ -1056,6 +1056,8 @@ void warlock_study_menu(struct descriptor_data *d, int circle)
                               METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
+      if (warlock_spell_type(counter) == WARLOCK_POWER_NONE) continue;
+
       if (is_a_known_spell(d->character, CLASS_WARLOCK, counter))
         write_to_output(d, "%s%2d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
                         spell_info[counter].name,
@@ -3617,7 +3619,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       /* SPELL PREPARATION HOOK */
       for (counter = WARLOCK_POWER_START + 2; counter < WARLOCK_POWER_END; counter++)
       {
-        if (counter == number)
+        if (counter == number && warlock_spell_type(counter) != WARLOCK_POWER_NONE)
         {
           if (compute_spells_circle(CLASS_WARLOCK,
                                     counter,

@@ -300,7 +300,7 @@ int is_spell_or_power(int spellnum);
 sbyte isSpecialFeat(int feat);
 sbyte isRacialFeat(int feat);
 int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats);
-bool warlock_spell_type(int spellnum);
+int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
 
 /* ASCII output formatting */

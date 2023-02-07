@@ -329,6 +329,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"efreetimagic", "efreetimagic", POS_FIGHTING, do_efreetimagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_efreetimagic},
     {"blast", "blast", POS_FIGHTING, do_blast, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_eldritch_blast},
+    {"eldritch", "eldritch", POS_FIGHTING, do_eldritch, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {":", ":", POS_RECLINING, do_echo, 1, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"enter", "ent", POS_STANDING, do_enter, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
