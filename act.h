@@ -769,6 +769,7 @@ ACMD_DECL(do_todo);
 ACMD_DECL(do_buffself);
 ACMDCHECK(can_tinker);
 ACMD_DECL(do_tinker);
+ACMD_DECL(do_eldritch);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c

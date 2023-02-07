@@ -7661,7 +7661,7 @@ int get_number_of_spellcasting_classes(struct char_data *ch)
   return num_classes;
 }
 
-bool warlock_spell_type(int spellnum)
+int warlock_spell_type(int spellnum)
 {
 
   switch (spellnum)

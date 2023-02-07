@@ -5352,6 +5352,8 @@ ACMD(do_spells)
   send_to_char(ch, "\tDType 'feats' to see your feats\tn\r\n");
   send_to_char(ch, "\tDType 'train' to see your abilities\tn\r\n");
   send_to_char(ch, "\tDType 'boost' to adjust your stats\tn\r\n");
+  if (class == CLASS_WARLOCK)
+    send_to_char(ch, "\tDType 'eldritch' to see and toggle any blast essences or blast shapes you may know.\tn\r\n");
   if (subcmd == SCMD_CONCOCT)
     send_to_char(ch, "\tDType 'extractlist' to see all of your extracts.\tn\r\n");
   else if (subcmd == SCMD_POWERS)
@@ -6280,6 +6282,7 @@ ACMD(do_use)
       }
       break;
     case SCMD_USE:
+    case SCMD_INVOKE:
       send_to_char(ch, "You don't seem to be holding %s %s.\r\n",
                    AN(arg), arg);
       return;
@@ -6309,6 +6312,7 @@ ACMD(do_use)
     }
     break;
   case SCMD_USE:
+  case SCMD_INVOKE:
     if ((GET_OBJ_TYPE(mag_item) != ITEM_WAND) &&
         (GET_OBJ_TYPE(mag_item) != ITEM_STAFF) &&
         (!HAS_SPECIAL_ABILITIES(mag_item)) &&
@@ -6335,6 +6339,7 @@ ACMD(do_use)
         break;
 
       case SCMD_USE:
+      case SCMD_INVOKE:
         if (GET_OBJ_TYPE(mag_item) == ITEM_WAND)
           send_to_char(ch, "That wand belongs to %s, go wave your own about!\r\n", CAP(get_name_by_id(GET_OBJ_BOUND_ID(mag_item))));
         else
@@ -6467,6 +6472,7 @@ ACMD(do_use)
     break;
 
   case SCMD_USE:
+  case SCMD_INVOKE:
 
     /*special cases*/
     if (GET_OBJ_VNUM(mag_item) == PRISTINEHORN_PRIZE)
@@ -8436,6 +8442,78 @@ ACMDU(do_devote)
     snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
     send_to_char(ch, "You are now a worshipper of %s!\r\n", CAP(dname));
     save_char(ch, 0);
+  }
+}
+
+ACMDU(do_eldritch)
+{
+  
+  skip_spaces(&argument);
+  int i = 0, count = 0;
+  bool found = false;
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Please specify either 'essences', 'shapes' or the name of the blast/essence you wish to toggle.\r\n");
+    return;
+  }
+  if (is_abbrev(argument, "essences"))
+  {
+    for (i = WARLOCK_POWER_START; i < WARLOCK_POWER_END; i++)
+    {
+      if (warlock_spell_type(i) == WARLOCK_POWER_ESSENCE && is_a_known_spell(ch, CLASS_WARLOCK, i))
+      {
+        send_to_char(ch, "%s %-30s ", (GET_ELDRITCH_ESSENCE(ch) == i) ? "\tG(A)\tn" : "   ", spell_info[i].name);
+        found = true;
+        count++;
+        if ((count % 2) == 0)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if (!found)
+    {
+      send_to_char(ch, "You don't know any eldritch blast essences.\r\n");
+      return;
+    }
+    if ((count % 2) == 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");  
+  }
+  else if (is_abbrev(argument, "shapes"))
+  {
+    for (i = WARLOCK_POWER_START; i < WARLOCK_POWER_END; i++)
+    {
+      if (warlock_spell_type(i) == WARLOCK_POWER_SHAPE && is_a_known_spell(ch, CLASS_WARLOCK, i))
+      {
+        send_to_char(ch, "%s %-30s ", (GET_ELDRITCH_SHAPE(ch) == i) ? "\tG(A)\tn" : "   ", spell_info[i].name);
+        found = true;
+        count++;
+        if ((count % 2) == 0)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if (!found)
+    {
+      send_to_char(ch, "You don't know any eldritch blast shapes.\r\n");
+      return;
+    }
+    if ((count % 2) == 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+  }
+  else
+  {
+    for (i = WARLOCK_POWER_START; i < WARLOCK_POWER_END; i++)
+    {
+      if (is_abbrev(argument, spell_info[i].name) && (warlock_spell_type(i) == WARLOCK_POWER_ESSENCE || warlock_spell_type(i) == WARLOCK_POWER_SHAPE) && is_a_known_spell(ch, CLASS_WARLOCK, i))
+      {
+        send_to_char(ch, "You toggle your elditch blast %s '%s'\r\n", warlock_spell_type(i) == WARLOCK_POWER_ESSENCE ? "essence" : "shape", spell_info[i].name);
+        call_magic(ch, ch, 0, i, 0, CLASS_LEVEL(ch, CLASS_WARLOCK), CAST_SPELL);
+        return;
+      }
+    }
+    send_to_char(ch, "You don't know of any eldritch blast essences or shapes of that name.\r\n");
+    return;
   }
 }
 
