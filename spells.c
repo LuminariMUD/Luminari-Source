@@ -2745,6 +2745,20 @@ ASPELL(eldritch_blast)
       }
     }
   }
+    else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
+  {
+    const bool is_critical = attack_result == 999;
+    if (is_critical) 
+    {
+      mag_damage(effective_level, ch, victim, NULL, WARLOCK_CRITICAL_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+    }
+    else
+    {
+      mag_damage(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, -1, CAST_INNATE);
+      mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
+    }
+  }
   
   free_list(target_list);
 }

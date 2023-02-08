@@ -3754,7 +3754,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       {
         return;
       }
-      af[0].location = APPLY_NONE;
+      af[0].location = APPLY_SPECIAL;
       af[0].duration = GET_WARLOCK_LEVEL(ch) / 5;
       SET_BIT_AR(af[0].bitvector, AFF_ACID_COAT);
       to_vict = "You are covered in burning acid.";
@@ -3849,7 +3849,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
 
-      af[0].duration = 120;
+      af[0].duration = 10;
       SET_BIT_AR(af[0].bitvector, AFF_DAZED);
       to_vict = "An assault on your mind has left you dazed!";
       to_room = "$n suddenly looks shocked and dazed!";

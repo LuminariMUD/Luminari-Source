@@ -694,6 +694,8 @@ SAVING_WILL here...  */
       case CLASS_ALCHEMIST:
       case CLASS_PSIONICIST:
       case CLASS_INQUISITOR:
+      case CLASS_WARLOCK:
+      case CLASS_SUMMONER:
         spell_level = level;
         break;
     }
@@ -969,6 +971,7 @@ SAVING_WILL here...  */
       break;
     // warlocks
     case WARLOCK_ELDRITCH_BLAST:
+    case WARLOCK_CRITICAL_ELDRITCH_BLAST:
       MANUAL_SPELL(eldritch_blast);
       break;
     case WARLOCK_CHARM:
