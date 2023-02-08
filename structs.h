@@ -1193,9 +1193,10 @@
 #define AFF_DEADLY_AIM 115         // used to determine if using deadly aim feat benefits.
 #define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
 #define AFF_REPULSION 117          // A field of repulsion is around person
+#define AFF_ON_FIRE 118             // person is on fire
 
 /*---*/
-#define NUM_AFF_FLAGS 118
+#define NUM_AFF_FLAGS 119
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values

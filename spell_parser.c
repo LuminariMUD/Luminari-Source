@@ -4161,7 +4161,7 @@ void mag_assign_spells(void)
   spellabilo(WARLOCK_HELLRIME_BLAST, "hellrime blast", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 4, FALSE);
-  spellabilo(WARLOCK_CHARM, "charm", 0, 0, 0, POS_FIGHTING,
+  spellabilo(WARLOCK_CHARM, "warlock charm", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 4, FALSE);
   spellabilo(WARLOCK_CURSE_OF_DESPAIR, "curse of despair", 0, 0, 0, POS_FIGHTING,

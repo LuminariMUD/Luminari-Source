@@ -416,7 +416,7 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
   else if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
     send_to_char(ch, "You can not manage more followers!\r\n");
 
-  else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION) &&
+  else if ((spellnum == SPELL_DOMINATE_PERSON || spellnum == SPELL_MASS_DOMINATION || spellnum == WARLOCK_CHARM) &&
            CASTER_LEVEL(ch) < GET_LEVEL(victim))
     send_to_char(ch, "Your victim is too powerful.\r\n");
 
@@ -474,6 +474,8 @@ void effect_charm(struct char_data *ch, struct char_data *victim,
       af.spell = SPELL_MASS_DOMINATION;
     else if (spellnum == SPELL_CHARM_MONSTER)
       af.spell = SPELL_CHARM_MONSTER;
+    else if (spellnum == WARLOCK_CHARM)
+      af.spell = WARLOCK_CHARM;
     af.duration = 100;
     if (GET_CHA_BONUS(ch))
       af.duration += GET_CHA_BONUS(ch) * 4;
