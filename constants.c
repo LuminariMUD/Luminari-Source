@@ -1714,6 +1714,7 @@ const char *affected_bits[] = {
     "Deadly-Aim",
     "Acid-Coated",
     "Repulsion-Fielded",
+    "On-Fire",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1841,8 +1842,9 @@ const char *affected_bit_descs[] = {
     "You radiate fear to your opponents.",
     "You can scale surfaces like a spider.",
     "You are using your deadly aim feat benefit.",
-    "You are coated in painful acid",
-    "You are surrounded by a repulsion field",
+    "You are coated in painful acid.",
+    "You are surrounded by a repulsion field.",
+    "You have been caught on fire!",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

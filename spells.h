@@ -1101,6 +1101,7 @@
 
 /* other attack types */
 
+#define TYPE_ON_FIRE 2390
 #define TYPE_LAVA_DAMAGE 2391
 #define TYPE_DROWNING 2392
 #define TYPE_MOVING_WATER 2393

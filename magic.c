@@ -938,6 +938,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       element = DAM_COLD;
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_UTTERDARK_BLAST)
       element = DAM_NEGATIVE;
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BRIMSTONE_BLAST)
+      element = DAM_FIRE;
     if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_CONE)
       size_dice = 8;    
     break;
@@ -3748,11 +3750,23 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     } 
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_VITRIOLIC_BLAST)
     {
+      if (mag_savingthrow(ch, victim, SAVING_REFL, 0, casttype, level, NOSCHOOL))
+      {
+        return;
+      }
       af[0].location = APPLY_NONE;
       af[0].duration = GET_WARLOCK_LEVEL(ch) / 5;
       SET_BIT_AR(af[0].bitvector, AFF_ACID_COAT);
       to_vict = "You are covered in burning acid.";
       to_room = "$n is seared by burning acid!";
+    }
+    else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_BRIMSTONE_BLAST)
+    {
+      af[0].location = APPLY_NONE;
+      af[0].duration = GET_WARLOCK_LEVEL(ch) / 5;
+      SET_BIT_AR(af[0].bitvector, AFF_ON_FIRE);
+      to_vict = "You are covered searing flames!";
+      to_room = "$n is covered in searing flames!";
     }
     else if (GET_ELDRITCH_ESSENCE(ch) == WARLOCK_FRIGHTFUL_BLAST)
     {    
@@ -3803,7 +3817,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
 
       af[0].location = APPLY_DEX;
-      af[0].modifier = -2;
+      af[0].modifier = -4;
       af[0].duration = 36;
 
       to_room = "$n is chilled to the bone!";
@@ -4057,8 +4071,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case WARLOCK_CURSE_OF_DESPAIR:
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+    if (affected_by_spell(victim, SPELL_CURSE))
+    {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
+    }
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+    {
+      af[0].location = APPLY_HITROLL;
+      af[0].modifier = -1;
+      af[0].duration = 10;
+      to_vict = "A lesser despair grips you and you feel weakened.";
+      return;
+    }
 
     af[0].location = APPLY_DEX;
     af[0].modifier = -3;
@@ -4927,6 +4952,11 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_CURSE: // necromancy
+    if (affected_by_spell(victim, WARLOCK_CURSE_OF_DESPAIR))
+    {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      return;
+    }
     if (mag_resistance(ch, victim, 0))
       return;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NECROMANCY))

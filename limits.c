@@ -1980,6 +1980,11 @@ void update_damage_and_effects_over_time(void)
       TIME_SINCE_LAST_FEEDING(ch)++;
     }
 
+    if (AFF_FLAGGED(ch, AFF_ON_FIRE))
+    {
+      damage(ch, ch, dice(2, 6), TYPE_ON_FIRE, DAM_FIRE, FALSE);
+    }
+
     // set this to false every round so banishing blade can be attempted again
     if (ch->char_specials.banishing_blade_procced_this_round)
       ch->char_specials.banishing_blade_procced_this_round = FALSE;
