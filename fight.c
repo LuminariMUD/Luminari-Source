@@ -9226,19 +9226,11 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
     /* Extra handling for ELDRITCH BLAAAAAAAST */
     if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW) {
-      int effective_level = spell_info[WARLOCK_ELDRITCH_BLAST].effective_level;
-      if (GET_ELDRITCH_SHAPE(ch) != -1)
-        effective_level = MAX(effective_level, spell_info[GET_ELDRITCH_SHAPE(ch)].effective_level);
-      if (GET_ELDRITCH_ESSENCE(ch) != -1)
-        effective_level = MAX(effective_level, spell_info[GET_ELDRITCH_ESSENCE(ch)].effective_level);
-      act("Your blow crackles with an extra burst of eldritch energy!",
-          FALSE, ch, wielded, victim, TO_CHAR);
-      act("A boom of eldritch energy hits you from $n's blow.",
-          FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
-      act("A boom of eldritch energy crackles with $n's blow.",
-          FALSE, ch, wielded, victim, TO_NOTVICT);
-      call_magic(ch, victim, NULL, is_critical ? WARLOCK_CRITICAL_ELDRITCH_BLAST : WARLOCK_ELDRITCH_BLAST,
-        0, effective_level, CAST_INNATE);
+      int effective_level = GET_WARLOCK_LEVEL(ch);
+      act("Your blow crackles with an extra burst of eldritch energy!", FALSE, ch, wielded, victim, TO_CHAR);
+      act("A boom of eldritch energy hits you from $n's blow.", FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
+      act("A boom of eldritch energy crackles with $n's blow.", FALSE, ch, wielded, victim, TO_NOTVICT);
+      call_magic(ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, 0, effective_level, CAST_INNATE);
     }
     break;
   }
