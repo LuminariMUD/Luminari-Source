@@ -5857,6 +5857,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_3, 7);
   spell_assignment(CLASS_BARD, SPELL_LIGHTNING_BOLT, 7);
   spell_assignment(CLASS_BARD, SPELL_DEEP_SLUMBER, 7);
+  spell_assignment(CLASS_BARD, SPELL_DISPEL_MAGIC, 7);
   spell_assignment(CLASS_BARD, SPELL_HASTE, 7);
   spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_EVIL, 7);
   spell_assignment(CLASS_BARD, SPELL_CIRCLE_A_GOOD, 7);
@@ -5889,6 +5890,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_MIND_FOG, 13);
   spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT, 13);
   spell_assignment(CLASS_BARD, SPELL_SHADOW_WALK, 13);
+  spell_assignment(CLASS_BARD, SPELL_GREATER_DISPELLING, 13);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7, 16);
