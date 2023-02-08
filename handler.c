@@ -328,6 +328,9 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
   case APPLY_INITIATIVE:
     GET_INITIATIVE_MOD(ch) += mod;
     break;
+  case APPLY_ELDRITCH_ESSENCE:
+  case APPLY_ELDRITCH_SHAPE:
+    break;
 
     /* end Do Not Use */
 
