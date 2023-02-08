@@ -8459,6 +8459,7 @@ ACMDU(do_eldritch)
   }
   if (is_abbrev(argument, "essences"))
   {
+    send_to_char(ch, "Known Warlock Eldritch Blast Essences:\r\n");
     for (i = WARLOCK_POWER_START; i < WARLOCK_POWER_END; i++)
     {
       if (warlock_spell_type(i) == WARLOCK_POWER_ESSENCE && is_a_known_spell(ch, CLASS_WARLOCK, i))
@@ -8481,6 +8482,7 @@ ACMDU(do_eldritch)
   }
   else if (is_abbrev(argument, "shapes"))
   {
+    send_to_char(ch, "Known Warlock Eldritch Blast Shapes:\r\n");
     for (i = WARLOCK_POWER_START; i < WARLOCK_POWER_END; i++)
     {
       if (warlock_spell_type(i) == WARLOCK_POWER_SHAPE && is_a_known_spell(ch, CLASS_WARLOCK, i))

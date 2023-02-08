@@ -7656,7 +7656,8 @@ int get_number_of_spellcasting_classes(struct char_data *ch)
 
   for (i = 0; i < NUM_CLASSES; i++)
     if (CLASS_LEVEL(ch, i) > 0)
-      num_classes++;
+      if (IS_SPELLCASTER_CLASS(i))
+        num_classes++;
 
   return num_classes;
 }
