@@ -7633,6 +7633,7 @@ bool do_not_list_spell(int spellnum)
 // returns 0 if neither spell or psionic power
 // returns 1 if psionic power
 // returns 2 if spell
+// returns 3 if warlock power
 int is_spell_or_power(int spellnum)
 {
   if (spellnum <= 0 || spellnum >= NUM_SPELLS)
@@ -7640,6 +7641,10 @@ int is_spell_or_power(int spellnum)
     if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
     {
       return 1;
+    }
+    else if (spellnum >= WARLOCK_POWER_START && spellnum <= WARLOCK_POWER_END)
+    {
+      return 3;
     }
     else
     {

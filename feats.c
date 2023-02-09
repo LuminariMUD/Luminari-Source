@@ -3683,7 +3683,14 @@ void assign_feats(void)
   /* Warlock */
   feato(FEAT_ELDRITCH_BLAST, "eldritch blast", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
         "blast baleful energy",
-        "blast baleful energy at a target");
+        "A Warlock attacks his foes with Eldritch power, using baleful magical energy to deal damage and sometimes impart "
+        "other debilitating effects. An Eldritch blast deals 1d6 points of magical damage at 1st level and increases in power "
+        "as the Warlock rises in level (up to 14d6 by level 30). There is no Saving Throw with this attack, but spell "
+        "resistance can negate it. This power can be used at will.\r\n"
+        "* It is a ranged touch attack that affects a single target.\r\n"
+        "* It is a weapon-like spell (Critical hit on a roll of 20, double damage on a critical hit)\r\n"
+        "* One each of an Eldritch Essence and Blast Shape invocations may be applied to an Eldritch Blast.\r\n"
+        "* Applied invocations may cause additional effects and thus allow for a saving throw.");
 
   feato(FEAT_ELDRITCH_LORE, "eldritch lore", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "+2 to lore, spellcraft",

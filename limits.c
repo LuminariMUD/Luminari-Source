@@ -148,8 +148,7 @@ void affliction_tick(struct char_data *ch)
   if (CLOUDKILL(ch))
   {
     call_magic(ch, NULL, NULL, SPELL_DEATHCLOUD, 0, MAGIC_LEVEL(ch), CAST_SPELL);
-    CLOUDKILL(ch)
-    --;
+    CLOUDKILL(ch)--;
     if (CLOUDKILL(ch) <= 0)
     {
       send_to_char(ch, "Your cloud of death dissipates!\r\n");
@@ -178,9 +177,8 @@ void affliction_tick(struct char_data *ch)
     TENACIOUS_PLAGUE(ch)--;
     if (TENACIOUS_PLAGUE(ch) <= 0)
     {
-      send_to_char(ch, "Your swam of biting and stinging insects dissipates!\r\n");
-      act("The swarm of biting and stinging insects following $n dissipates!", TRUE, ch, 0, NULL,
-          TO_ROOM);
+      send_to_char(ch, "Your swarm of biting and stinging insects dissipates!\r\n");
+      act("The swarm of biting and stinging insects following $n dissipates!", TRUE, ch, 0, NULL, TO_ROOM);
     }
   } // end tenacious plague
 
@@ -2225,7 +2223,6 @@ void self_buffing(void)
       {
         spellnum = GET_BUFF(ch, GET_CURRENT_BUFF_SLOT(ch), 0);
         is_spell = is_spell_or_power(spellnum);
-        is_spell--;
         send_to_char(ch, "You continue buffing... (buff cancel to stop)\r\n");
 
         if (IS_AFFECTED(ch, AFF_TIME_STOPPED))
@@ -2242,7 +2239,7 @@ void self_buffing(void)
 #endif
         }
 
-        if (is_spell)
+        if (is_spell >= 2) // spell or warlock power
         {
           snprintf(spellname, sizeof(spellname), " '%s'", spell_info[spellnum].name);
           do_gen_cast(ch, (const char *)spellname, 0, SCMD_CAST_SPELL);
