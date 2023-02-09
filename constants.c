@@ -1887,7 +1887,7 @@ const char *connected_types[] = {
     "Select Race",
     "Clan Edit",
     "Message Edit",
-    "Spells Known Edit",   // 35
+    "Study Menu",   // 35
     "Class Help",          // 36
     "Alignment Selection", // 37
     "Race Help",           // 38
