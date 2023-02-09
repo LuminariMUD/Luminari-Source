@@ -852,7 +852,6 @@ ACMDU(do_gen_comm)
   /* Now send all the strings out. */
   for (i = descriptor_list; i; i = i->next)
   {
-
     /* completely unacceptable connection states */
     switch (STATE(i))
     {
@@ -917,15 +916,15 @@ ACMDU(do_gen_comm)
     case CON_IBTEDIT:
     case CON_CLANEDIT:
     case CON_MSGEDIT:
-    // case CON_STUDY:
+    //case CON_STUDY:
     case CON_HLQEDIT:
     case CON_QSTATS:
       continue;
     }
 
     /* 'writing' such as study, olc, mud-mail, etc */
-    if (!IS_NPC(ch) && PLR_FLAGGED(i->character, PLR_WRITING))
-      continue;
+    // if (!IS_NPC(ch) && PLR_FLAGGED(i->character, PLR_WRITING))
+    //   continue;
 
     /* soundproof room */
     if (IN_ROOM(i->character) != NOWHERE && ROOM_FLAGGED(IN_ROOM(i->character), ROOM_SOUNDPROOF) && (GET_LEVEL(ch) < LVL_STAFF))
@@ -941,7 +940,9 @@ ACMDU(do_gen_comm)
       continue;
 
     snprintf(buf2, sizeof(buf2), "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf1, KNRM);
-    msg = act(buf2, FALSE, ch, 0, i->character, TO_VICT | TO_SLEEP);
+    //msg = act(buf2, FALSE, ch, 0, i->character, TO_VICT | TO_SLEEP);
+    send_to_char(i->character, "%s%s%s", (COLOR_LEV(i->character) >= C_NRM) ? color_on : "", buf3, KNRM);
+    
   }
 }
 
