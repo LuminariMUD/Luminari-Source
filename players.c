@@ -453,6 +453,9 @@ int load_char(const char *name, struct char_data *ch)
     GET_ENCUMBRANCE_MOD(ch) = 0;
     GET_FAST_HEALING_MOD(ch) = 0;
 
+    GET_ELDRITCH_ESSENCE(ch) = 0;
+    GET_ELDRITCH_SHAPE(ch) = 0;
+
     GET_NUM_QUESTS(ch) = PFDEF_COMPQUESTS;
     GET_LAST_MOTD(ch) = PFDEF_LASTMOTD;
     GET_LAST_NEWS(ch) = PFDEF_LASTNEWS;
@@ -790,6 +793,10 @@ int load_char(const char *name, struct char_data *ch)
           EFREETI_MAGIC_USES(ch) = atoi(line);
         else if (!strcmp(tag, "EfMT"))
           EFREETI_MAGIC_TIMER(ch) = atoi(line);
+        else if (!strcmp(tag, "EldE"))
+          GET_ELDRITCH_ESSENCE(ch) = atoi(line);
+        else if (!strcmp(tag, "EldS"))
+          GET_ELDRITCH_SHAPE(ch) = atoi(line);
         else if (!strcmp(tag, "EncM"))
           GET_ENCUMBRANCE_MOD(ch) = atoi(line);
         break;
@@ -1686,6 +1693,10 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "EfMT: %d\n", EFREETI_MAGIC_TIMER(ch));
   if (GET_ENCUMBRANCE_MOD(ch) != 0)
     fprintf(fl, "EncM: %d\n", GET_ENCUMBRANCE_MOD(ch));
+  if (GET_ELDRITCH_ESSENCE(ch) != 0)
+    fprintf(fl, "EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
+  if (GET_ELDRITCH_SHAPE(ch) != 0)
+    fprintf(fl, "EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
 
   if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
     fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));
