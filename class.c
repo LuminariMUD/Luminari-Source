@@ -1736,8 +1736,6 @@ int BAB(struct char_data *ch)
     }
   }
 
-  bab += CLASS_LEVEL(ch, i) - 20;
-
   bab = (int)counter;
 
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
