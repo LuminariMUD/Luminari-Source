@@ -80,6 +80,7 @@ SPECIAL_DECL(bought_pet);
 SPECIAL_DECL(bolthammer);
 SPECIAL_DECL(bonedancer);
 SPECIAL_DECL(stability_boots);
+SPECIAL_DECL(celestial_leviathan);
 SPECIAL_DECL(cf_alathar);
 SPECIAL_DECL(cf_trainingmaster);
 SPECIAL_DECL(chan);

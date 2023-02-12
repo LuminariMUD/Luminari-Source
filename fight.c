@@ -57,6 +57,7 @@
 /* vnum of special mobile:  the prisoner */
 #define THE_PRISONER 113750
 #define DRACOLICH_PRISONER 113751
+#define CELESTIAL_LEVIATHAN 13700
 
 /* local global */
 struct obj_data *last_missile = NULL;
@@ -1697,10 +1698,12 @@ void death_cry(struct char_data *ch)
     switch (GET_MOB_VNUM(ch))
     {
 
-    /* special custom death cry messages can be placed here for NPCs! */
+      /* special custom death cry messages can be placed here for NPCs! */
+
     case THE_PRISONER:
       /* no message here, special one in zone_procs.c code */
       break;
+
     case DRACOLICH_PRISONER:
 
       for (pt = descriptor_list; pt; pt = pt->next)
@@ -1710,6 +1713,20 @@ void death_cry(struct char_data *ch)
           send_to_char(pt->character, "\tLWith a final horrifying wail, the skeletal remains of the Prisoner\n\r"
                                       "fall to the ground with a resounding thud.\tn"
                                       "\n\r\n\r\n\r\twThe mighty \tLPrisoner \twfinally ceases to move.\tn\r\n");
+        }
+      }
+
+      break;
+
+    case CELESTIAL_LEVIATHAN:
+
+      for (pt = descriptor_list; pt; pt = pt->next)
+      {
+        if (pt->character)
+        {
+          send_to_char(pt->character, "\tLWith a final musical trumpet, the \tWCelestial \tYLeviathan\tn\n\r"
+                                      "crashes to the ground with a thunderous thud.\tn"
+                                      "\n\r\n\r\n\r\twThe colossal \tWCelestial \tYLeviathan \twfinally ceases to breathe.\tn\r\n");
         }
       }
 
@@ -4284,8 +4301,8 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   CLOUDKILL(victim) = 0;    // stop any cloudkill bursts
   DOOM(victim) = 0;         // stop any creeping doom
   TENACIOUS_PLAGUE(victim) = 0;
-  INCENDIARY(victim) = 0;   // stop any incendiary bursts
-  
+  INCENDIARY(victim) = 0; // stop any incendiary bursts
+
   // Stop the killer's blood drain
   if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
   {
@@ -5424,9 +5441,9 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
   // deadly aim
   if (AFF_FLAGGED(ch, AFF_DEADLY_AIM) && attack_type == ATTACK_TYPE_RANGED)
   {
-      dambonus += COMBAT_MODE_VALUE(ch) * 2;
-      if (display_mode)
-        send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
+    dambonus += COMBAT_MODE_VALUE(ch) * 2;
+    if (display_mode)
+      send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
   }
 
   /* crystal fist */
@@ -6142,7 +6159,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* we get here, the powerful being beat it */
   }
 
-  if (wielded) 
+  if (wielded)
     threat_range = determine_threat_range(ch, wielded);
   else
     threat_range = 20;
@@ -6169,8 +6186,8 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     }
 
     if (confirm_roll >= victim_ac || affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE)) /* confirm critical */
-      return 1;                    /* yep, critical! */
-    }
+      return 1;                                                                       /* yep, critical! */
+  }
 
   return 0; /* nope, no critical */
 }
@@ -8041,7 +8058,7 @@ int attack_roll(struct char_data *ch,     /* Attacker */
  * Perform an attack, returns the difference of the attacker's roll and the defender's
  * AC.  This value can be negative, and will be on a miss.  Does not deal damage, only
  * checks to see if the attack was successful!
- * 
+ *
  * This version includes a chance to critical and will return 999 if
  * it's a critical hit.
  *
@@ -8054,11 +8071,11 @@ int attack_roll(struct char_data *ch,     /* Attacker */
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand   */
 int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
-                struct char_data *victim, /* Defender */
-                int attack_type,          /* Type of attack */
-                int is_touch,             /* TRUE/FALSE this is a touch attack? */
-                int attack_number,        /* Attack number, determines penalty. */
-                int critical_threshold)   /* Minimum roll # required to crit */
+                              struct char_data *victim, /* Defender */
+                              int attack_type,          /* Type of attack */
+                              int is_touch,             /* TRUE/FALSE this is a touch attack? */
+                              int attack_number,        /* Attack number, determines penalty. */
+                              int critical_threshold)   /* Minimum roll # required to crit */
 {
 
   //  struct obj_data *wielded = get_wielded(ch, attack_type);
@@ -8574,7 +8591,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              int is_critical, int attack_type, int dam_type,
                              struct obj_data *missile)
 {
-  struct affected_type af; /* for crippling strike */
+  struct affected_type af;   /* for crippling strike */
   struct affected_type *af2; // for hostile juxtaposition
   /* This is a bit of cruft from homeland code - It is used to activate a weapon 'special'
             under certain circumstances.  This could be refactored into something else, but it may
@@ -9175,7 +9192,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
       affected_by_spell(victim, SKILL_COME_AND_GET_ME) &&
       affected_by_spell(victim, SKILL_RAGE))
   {
-    GET_TOTAL_AOO(victim)--; /* free aoo and will be incremented in the function */
+    GET_TOTAL_AOO(victim)
+    --; /* free aoo and will be incremented in the function */
     attack_of_opportunity(victim, ch, 0);
 
     /* dummy check */
@@ -9225,7 +9243,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     }
 
     /* Extra handling for ELDRITCH BLAAAAAAAST */
-    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW) {
+    if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
+    {
       int effective_level = GET_WARLOCK_LEVEL(ch);
       act("Your blow crackles with an extra burst of eldritch energy!", FALSE, ch, wielded, victim, TO_CHAR);
       act("A boom of eldritch energy hits you from $n's blow.", FALSE, ch, wielded, victim, TO_VICT | TO_SLEEP);
@@ -9421,7 +9440,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
     { // acid shield
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
-    
+
     if (dam && victim && GET_HIT(victim) >= -1 && (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) && affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
     { // caustic blood
       return_val = call_magic(victim, ch, NULL, AFFECT_CAUSTIC_BLOOD_DAMAGE, 0, CASTER_LEVEL(victim), CAST_SPELL);
@@ -9659,22 +9678,22 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   }
 
-  if (attack_type != ATTACK_TYPE_RANGED && 
-    AFF_FLAGGED(victim, AFF_REPULSION))
+  if (attack_type != ATTACK_TYPE_RANGED &&
+      AFF_FLAGGED(victim, AFF_REPULSION))
   {
     if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL)
     {
       return (HIT_MISS);
     }
     else if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL &&
-      find_in_list(ch, victim->char_specials.repulse_whitelist) == NULL)
+             find_in_list(ch, victim->char_specials.repulse_whitelist) == NULL)
     {
       // We haven't checked if this person is repulsing us yet. Do the check!
       if (mag_savingthrow(victim, ch, SAVING_WILL, 0, CAST_SPELL, CASTER_LEVEL(victim), ABJURATION))
       {
         add_to_list(ch, victim->char_specials.repulse_whitelist);
       }
-      else 
+      else
       {
         add_to_list(ch, victim->char_specials.repulse_blacklist);
         act("$N bounces off of your bubble of repulsion.",
@@ -9702,7 +9721,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     obj_from_obj(missile);
     /* if this was a weapon that was loaded, unload */
     if (wielded && GET_OBJ_VAL(wielded, 5) > 0)
-      GET_OBJ_VAL(wielded, 5)--;
+      GET_OBJ_VAL(wielded, 5)
+    --;
 
     /* we are checking here for spec procs associated with arrows */
 #define WARBOW_VNUM 132115
@@ -9966,7 +9986,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
           FALSE, victim, missile, ch, TO_NOTVICT);
       obj_to_room(missile, IN_ROOM(victim));
     }
-    DEFLECT_ARROWS_LEFT(victim)--;
+    DEFLECT_ARROWS_LEFT(victim)
+    --;
     return (HIT_MISS);
   }
 
@@ -10041,7 +10062,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       if (!ch->char_specials.banishing_blade_procced_this_round)
       {
         ch->char_specials.banishing_blade_procced_this_round = TRUE;
-        
+
         if (!affected_by_spell(ch, AFFECT_IMMUNITY_BANISHING_BLADE))
         {
           if (perform_knockdown(victim, ch, SPELL_BANISHING_BLADE))
@@ -10367,7 +10388,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       }
       if (perform_attack)
       { /* correct phase for this attack? */
-        
+
         call_magic(ch, FIGHTING(ch), NULL, WARLOCK_ELDRITCH_BLAST, 0, GET_WARLOCK_LEVEL(ch), CAST_INNATE);
       }
     }
@@ -10671,7 +10692,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 
   /* haste or equivalent? */
   if (!VITAL_STRIKING(ch) && (AFF_FLAGGED(ch, AFF_HASTE) ||
-      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED))))
+                              (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED))))
   {
     numAttacks++;
     if (mode == NORMAL_ATTACK_ROUTINE)
@@ -10694,7 +10715,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   // execute the calculated attacks from above
   if (VITAL_STRIKING(ch))
     bonus_mainhand_attacks = 0;
-  
+
   int j = 0;
   for (i = 0; i < bonus_mainhand_attacks; i++)
   {
@@ -11473,21 +11494,21 @@ void perform_violence(struct char_data *ch, int phase)
     }
   }
 
-  if (FIGHTING(ch) && AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) && 
-    !is_using_ranged_weapon(ch, TRUE) && 
-    !IS_CASTING(ch) && 
-    !BLASTING(ch) && 
-    find_in_list(ch, FIGHTING(ch)->char_specials.repulse_blacklist) != NULL)
+  if (FIGHTING(ch) && AFF_FLAGGED(FIGHTING(ch), AFF_REPULSION) &&
+      !is_using_ranged_weapon(ch, TRUE) &&
+      !IS_CASTING(ch) &&
+      !BLASTING(ch) &&
+      find_in_list(ch, FIGHTING(ch)->char_specials.repulse_blacklist) != NULL)
   {
     // We need to find a new target.
     room_list = create_list(); /* allocate memory for list */
-    if (!IN_ROOM(ch)) /* dummy check */
+    if (!IN_ROOM(ch))          /* dummy check */
       return;
-    
+
     for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room) /* build list */
       if (tch && tch != ch && FIGHTING(ch) != tch && FIGHTING(tch) == ch)
         add_to_list(tch, room_list); // Add people who aren't this person, who are fighting us
-    
+
     if (room_list->iSize == 0) // There's no one else to attack we aren't repulsed by
     {
       stop_fighting(ch);
@@ -11597,6 +11618,7 @@ void perform_violence(struct char_data *ch, int phase)
 
 #undef THE_PRISONER       /* vnum for special mobile 'the prisoner' */
 #undef DRACOLICH_PRISONER /* vnum for special mobile 'the dracolich of the prisoner' */
+#undef CELESTIAL_LEVIATHAN
 
 #undef DEBUGMODE
 

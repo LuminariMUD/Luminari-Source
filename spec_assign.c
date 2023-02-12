@@ -75,7 +75,6 @@ void assign_mobiles(void)
 {
 #ifdef CAMPAIGN_FR
 
-
   // Luskan Market
   ASSIGNMOB(3276, buyweapons);
   ASSIGNMOB(3275, buyarmor);
@@ -96,7 +95,7 @@ void assign_mobiles(void)
   ASSIGNMOB(6000, buyweapons);
   ASSIGNMOB(6002, buyweapons);
   ASSIGNMOB(6006, buyweapons);
-  ASSIGNMOB(6003, buyarmor);  
+  ASSIGNMOB(6003, buyarmor);
 
   // Mirabar
   ASSIGNMOB(4825, buyweapons);
@@ -709,6 +708,7 @@ void assign_mobiles(void)
   /* big baddie - the prisoner */
   ASSIGNMOB(113751, prisoner_dracolich);
   ASSIGNMOB(113750, the_prisoner);
+  ASSIGNMOB(13700, celestial_leviathan);
 
   /* dracolich mobs */
   ASSIGNMOB(138703, dracolich_mob); /* Neremeezder */
@@ -1154,6 +1154,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Bone Dancer", bonedancer, ""},
     {"Boots of Stability", stability_boots, ""},
     {"Alathar", cf_alathar, ""},
+    {"The Celestial Leviathan", celestial_leviathan, ""},
     {"Chan", chan, ""},
     {"Ches", ches, ""},
     {"Chionthar Ferry", chionthar_ferry, ""},
