@@ -1717,7 +1717,7 @@ int BAB(struct char_data *ch)
   /* added float for more(?) accuracy */
   for (i = 0; i < MAX_CLASSES; i++)
   {
-    level = MIN(20, CLASS_LEVEL(ch, i));
+    level = MIN(30, CLASS_LEVEL(ch, i));
     if (level)
     {
       switch (CLSLIST_BAB(i))
