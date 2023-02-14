@@ -3683,9 +3683,14 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
   if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESILIENCY))
     damage_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESILIENCY);
+  
+  damage_reduction += GET_DR_MOD(ch);
 
-  // damage reduction cap is 20
-  return (MIN(MAX_DAM_REDUC, damage_reduction));
+  // damage reduction cap is 20 for players
+  if (!IS_NPC(ch))
+    damage_reduction = MIN(MAX_DAM_REDUC, damage_reduction);
+
+  return damage_reduction;
 }
 
 /* this is straight avoidance percentage, applies to ALL attacks
@@ -9678,8 +9683,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
     }
   }
 
-  if (attack_type != ATTACK_TYPE_RANGED &&
-      AFF_FLAGGED(victim, AFF_REPULSION))
+  if (attack_type != ATTACK_TYPE_RANGED && AFF_FLAGGED(victim, AFF_REPULSION))
   {
     if (find_in_list(ch, victim->char_specials.repulse_blacklist) == NULL)
     {
@@ -9696,12 +9700,9 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
       else
       {
         add_to_list(ch, victim->char_specials.repulse_blacklist);
-        act("$N bounces off of your bubble of repulsion.",
-            FALSE, victim, wielded, ch, TO_CHAR);
-        act("You bounce off of $n's bubble of repulsion.",
-            FALSE, victim, wielded, ch, TO_VICT);
-        act("$N bounces off of $n's field of repulsion.",
-            FALSE, victim, wielded, ch, TO_ROOM);
+        act("$N bounces off of your bubble of repulsion.", FALSE, victim, wielded, ch, TO_CHAR);
+        act("You bounce off of $n's bubble of repulsion.", FALSE, victim, wielded, ch, TO_VICT);
+        act("$N bounces off of $n's field of repulsion.", FALSE, victim, wielded, ch, TO_ROOM);
         return (HIT_MISS);
       }
     }

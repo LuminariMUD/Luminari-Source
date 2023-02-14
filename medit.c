@@ -27,6 +27,7 @@
 #include "fight.h"
 #include "race.h"
 #include "class.h"
+#include "feats.h"
 #include "modify.h" /* for smash_tilde */
 
 /* local functions */
@@ -46,6 +47,129 @@ static int medit_get_mob_flag_by_number(int num);
 static void medit_disp_mob_flags(struct descriptor_data *d);
 static void medit_disp_aff_flags(struct descriptor_data *d);
 static void medit_disp_menu(struct descriptor_data *d);
+
+void medit_add_class_feats(struct descriptor_data *d)
+{
+  int cl = 0, lvl = 0;
+  struct char_data *mob = OLC_MOB(d);
+  struct class_feat_assign *feat_assign = NULL;
+
+  if (!mob) return;
+
+  if (class_list[cl].featassign_list == NULL)
+    return;
+
+  cl = GET_CLASS(mob);
+
+  for (lvl = 1; lvl <= GET_LEVEL(mob); lvl++)
+  {
+    for (feat_assign = class_list[cl].featassign_list; feat_assign != NULL; feat_assign = feat_assign->next) 
+    {
+      if (feat_assign->level_received == lvl)
+      {
+        MOB_SET_FEAT(mob, feat_assign->feat_num, MOB_HAS_FEAT(mob, feat_assign->feat_num) + 1);
+      }
+    }
+  }
+}
+
+void medit_clear_all_feats(struct descriptor_data *d)
+{
+  struct char_data *mob = OLC_MOB(d);
+  int i = 0;
+
+  if (!mob) return;
+
+  for (i = 0; i < FEAT_LAST_FEAT; i++)
+  {
+    MOB_SET_FEAT(mob, i, 0);
+  }
+
+}
+
+void medit_clear_all_spells(struct descriptor_data *d)
+{
+  struct char_data *mob = OLC_MOB(d);
+  int i = 0;
+
+  if (!mob) return;
+
+  for (i = 1; i < NUM_SPELLS; i++)
+  {
+    MOB_KNOWS_SPELL(mob, i) = 0;
+  }
+
+}
+
+bool does_mob_have_feats(struct char_data *mob)
+{
+  if (!mob) return false;
+  if (!IS_NPC(mob)) return false;
+
+  int i = 0;
+  for (i = 0; i < FEAT_LAST_FEAT; i++)
+    if (MOB_HAS_FEAT(mob, i)) return true;
+
+  return false;
+}
+
+bool does_mob_have_spells(struct char_data *mob)
+{
+  if (!mob) return false;
+  if (!IS_NPC(mob)) return false;
+
+  int i = 0;
+  for (i = 1; i < NUM_SPELLS; i++)
+    if (MOB_KNOWS_SPELL(mob, i) > 0) return true;
+  return false;
+}
+
+
+void medit_disp_add_feats(struct descriptor_data *d)
+{
+  int i = 0, count = 0;
+
+  write_to_output(d, "\r\nKnown Feats\r\n");
+
+  for (i = 0; i < FEAT_LAST_FEAT; i++)
+  {
+    if (MOB_HAS_FEAT(OLC_MOB(d), i))
+    {
+      if (count > 0)
+        write_to_output(d, ", ");
+      write_to_output(d, "%s", feat_list[i].name);
+      if (feat_list[i].can_stack)
+        write_to_output(d, "(x%d)", MOB_HAS_FEAT(OLC_MOB(d), i));
+      count++;
+    }
+  }
+  write_to_output(d, "\r\n\r\nType addclassfeats to add all class feats for any classes the mob has.\r\n");
+  write_to_output(d, "Enter erase to delete all feats, or quit to exit this screen.\r\n");
+  write_to_output(d, "\r\nPlease enter the name of the feat you wish to toggle: ");
+}
+
+void medit_disp_add_spells(struct descriptor_data *d)
+{
+  int i = 0, count = 0;
+
+  write_to_output(d, "\r\nKnown Spells\r\n");
+
+  for (i = 1; i < NUM_SPELLS; i++)
+  {
+    if (MOB_KNOWS_SPELL(OLC_MOB(d), i))
+    {
+      if (count > 0)
+        write_to_output(d, ", ");
+      write_to_output(d, "%s", spell_info[i].name);
+      count++;
+    }
+  }
+  write_to_output(d, "\r\n\r\nEnter erase to delete all spells, or quit to exit this screen.\r\n");
+  write_to_output(d, "Please understand that these spells are in addition to any the mob might know from having spellcaster class levels.\r\n");
+  write_to_output(d, "\r\nPlease enter the name of the spell you wish to toggle: ");
+}
+
+
 
 /*  utility functions */
 ACMD(do_oasis_medit)
@@ -626,6 +750,8 @@ static void medit_disp_menu(struct descriptor_data *d)
                   "%sE%s) SubRace   : %s%s\r\n"
                   "%sF%s) SubRace   : %s%s\r\n"
                   "%sC%s) Class     : %s%s\r\n"
+                  "%sH%s) Feats     : %s%s\r\n"
+                  "%sN%s) Spells    : %s%s\r\n"
                   "%sI%s) Size      : %s%s\r\n"
                   "%sJ%s) Walk-In   : %s%s\r\n"
                   "%sK%s) Walk-Out  : %s%s\r\n"
@@ -650,6 +776,8 @@ static void medit_disp_menu(struct descriptor_data *d)
                   grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 0)],
                   grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 1)],
                   grn, nrm, yel, npc_subrace_types[GET_SUBRACE(mob, 2)],
+                  grn, nrm, yel, does_mob_have_feats(mob) ? "Set" : "None",
+                  grn, nrm, yel, does_mob_have_spells(mob) ? "Set" : "None",
                   grn, nrm, yel, CLSLIST_NAME(GET_CLASS(mob)),
                   grn, nrm, yel, size_names[GET_SIZE(mob)],
                   grn, nrm, yel, GET_WALKIN(mob) ? GET_WALKIN(mob) : "Default.",
@@ -783,8 +911,8 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
                   "%-*s(range %s%d%s to %s%d%s)\r\n\r\n"
 
                   "(%sA%s) Armor Class: %s[%s%4d (%2d) %s]%s   (%sD%s) Hitroll:   %s[%s%5d%s]%s\r\n"
-                  "(%sB%s) Exp Points:  %s[%s%10d%s]%s  (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
-                  "(%sC%s) Gold:        %s[%s%10d%s]%s\r\n\r\n",
+                  "(%sB%s) Exp Points:  %s[%s%10d%s]%s   (%sE%s) Alignment: %s[%s%s%s]%s\r\n"
+                  "(%sC%s) Gold:        %s[%s%10d%s]%s   (%sR%s) Damage Reduction: %s[%s%d%s]%s\r\n\r\n",
                   cyn, yel, OLC_NUM(d), cyn, nrm,
                   cyn, nrm, cyn, yel, GET_LEVEL(mob), cyn, nrm,
                   cyn, nrm, cyn, nrm,
@@ -798,7 +926,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
 
                   cyn, nrm, cyn, yel, GET_AC(mob), compute_armor_class(NULL, mob, FALSE, MODE_ARMOR_CLASS_NORMAL), cyn, nrm, cyn, nrm, cyn, yel, GET_HITROLL(mob), cyn, nrm,
                   cyn, nrm, cyn, yel, GET_EXP(mob), cyn, nrm, cyn, nrm, cyn, yel, get_align_by_num(GET_ALIGNMENT(mob)), cyn, nrm,
-                  cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm);
+                  cyn, nrm, cyn, yel, GET_GOLD(mob), cyn, nrm, cyn, nrm, cyn, yel, GET_DR_MOD(mob), cyn, nrm);
 
   if (CONFIG_MEDIT_ADVANCED)
   {
@@ -826,7 +954,7 @@ static void medit_disp_stats_menu(struct descriptor_data *d)
 
 void medit_parse(struct descriptor_data *d, char *arg)
 {
-  int i = -1, j;
+  int i = -1, j, k = 0;
   char *oldtext = NULL;
   char t_buf[200];
 
@@ -967,6 +1095,18 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'C':
       OLC_MODE(d) = MEDIT_CLASS;
       medit_disp_class(d);
+      return;
+    case 'h':
+    case 'H':
+      medit_disp_add_feats(d);
+      OLC_MODE(d) = MEDIT_ADD_FEATS;
+      i--;
+      return;
+    case 'n':
+    case 'N':
+      medit_disp_add_spells(d);
+      OLC_MODE(d) = MEDIT_ADD_SPELLS;
+      i--;
       return;
     case 'i':
     case 'I':
@@ -1292,6 +1432,11 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'E':
       OLC_MODE(d) = MEDIT_ALIGNMENT;
       disp_align_menu(d);
+      i++;
+      break;
+    case 'r':
+    case 'R':
+      OLC_MODE(d) = MEDIT_DR;
       i++;
       break;
     case 'f':
@@ -1741,6 +1886,12 @@ void medit_parse(struct descriptor_data *d, char *arg)
     medit_disp_stats_menu(d);
     return;
 
+    case MEDIT_DR:
+    GET_DR_MOD(OLC_MOB(d)) = LIMIT(i, 0, 100);
+    OLC_VAL(d) = TRUE;
+    medit_disp_stats_menu(d);
+    return;
+
   case MEDIT_PARA:
     GET_SAVE(OLC_MOB(d), SAVING_FORT) = LIMIT(i, 0, 100);
     OLC_VAL(d) = TRUE;
@@ -1954,6 +2105,117 @@ void medit_parse(struct descriptor_data *d, char *arg)
     else
       GET_CLASS(OLC_MOB(d)) = LIMIT(i, 0, NUM_CLASSES - 1);
     break;
+
+  
+  case MEDIT_ADD_FEATS:
+    
+    if (arg && *arg)
+    {
+      if (is_abbrev(arg, "quit") || is_abbrev(arg, "QUIT"))
+      {
+        break;
+      }
+
+      if (is_abbrev(arg, "addclassfeats"))
+      {
+        medit_add_class_feats(d);
+        medit_disp_add_feats(d);
+        return;
+      }
+
+      if (is_abbrev(arg, "erase"))
+      {
+        medit_clear_all_feats(d);
+        medit_disp_add_feats(d);
+        return;
+      }
+      
+      for (k = 0; k < FEAT_LAST_FEAT; k++)
+      {
+        if (is_abbrev(arg, feat_list[k].name))
+        {
+          
+          if (feat_list[k].can_stack && feat_list[k].in_game)
+          {
+            
+            write_to_output(d, "How many ranks do you want to add? (0 to remove feat): ");
+            OLC_MOB(d)->mob_specials.temp_feat = k;
+            OLC_MODE(d) = MEDIT_SET_FEAT_RANKS;
+            return;
+          }
+          else
+          {
+            
+            if (MOB_HAS_FEAT(OLC_MOB(d), k))
+              MOB_SET_FEAT(OLC_MOB(d), k, 0);
+            else
+              MOB_SET_FEAT(OLC_MOB(d), k, 1);
+          }
+          medit_disp_add_feats(d);
+          return;
+        }
+      }
+    }
+    else
+    {
+      write_to_output(d, "Please enter the name of the feat you would like to toggle.\r\n");
+      medit_disp_add_feats(d);
+      return;
+    }
+    write_to_output(d, "That is not a valid feat.");
+    medit_disp_add_feats(d);
+    return;
+
+    case MEDIT_ADD_SPELLS:
+    
+    if (arg && *arg)
+    {
+      if (is_abbrev(arg, "quit") || is_abbrev(arg, "QUIT"))
+      {
+        break;
+      }
+
+      if (is_abbrev(arg, "erase"))
+      {
+        medit_clear_all_spells(d);
+        medit_disp_add_spells(d);
+        return;
+      }
+      
+      for (k = 1; k < NUM_SPELLS; k++)
+      {
+        if (is_abbrev(arg, spell_info[k].name))
+        {
+          if (MOB_KNOWS_SPELL(OLC_MOB(d), k))
+              MOB_KNOWS_SPELL(OLC_MOB(d), k) = 0;
+            else
+              MOB_KNOWS_SPELL(OLC_MOB(d), k) = 1;
+          medit_disp_add_spells(d);
+          return;
+        }
+      }
+    }
+    else
+    {
+      write_to_output(d, "Please enter the name of the spell you would like to toggle.\r\n");
+      medit_disp_add_spells(d);
+      return;
+    }
+    write_to_output(d, "That is not a valid spell.");
+    medit_disp_add_spells(d);
+    return;
+
+  case MEDIT_SET_FEAT_RANKS:
+    if (OLC_MOB(d)->mob_specials.temp_feat < 0 || 
+        OLC_MOB(d)->mob_specials.temp_feat >= FEAT_LAST_FEAT)
+    {
+      write_to_output(d, "The feat selected is invalid.\r\n");
+      break;
+    }
+    MOB_SET_FEAT(OLC_MOB(d), OLC_MOB(d)->mob_specials.temp_feat, i);
+    medit_disp_add_feats(d);
+    OLC_MODE(d) = MEDIT_ADD_FEATS;
+    return;
 
   case MEDIT_SIZE:
     GET_REAL_SIZE(OLC_MOB(d)) = LIMIT(i, 0, NUM_SIZES - 1);

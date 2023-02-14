@@ -127,29 +127,31 @@ int scan_file(void)
  * A simple little function which tells you if the player has mail or not. */
 int has_mail(long recipient)
 {
-  FILE *mail_file;
-  struct mail_t *record = NULL;
+  // old mail system no longer in use -- Gicker Feb 13, 2023
+  return 0;
+  // FILE *mail_file;
+  // struct mail_t *record = NULL;
 
-  if (!(mail_file = fopen(MAIL_FILE, "r")))
-  {
-    perror("read_delete: Mail file not accessible.");
-    return FALSE;
-  }
+  // if (!(mail_file = fopen(MAIL_FILE, "r")))
+  // {
+  //   perror("read_delete: Mail file not accessible.");
+  //   return FALSE;
+  // }
 
-  record = read_mail_record(mail_file);
+  // record = read_mail_record(mail_file);
 
-  while (record)
-  {
-    if (record->recipient == recipient)
-    {
-      free_mail_record(record);
-      fclose(mail_file);
-      return TRUE;
-    }
-    free_mail_record(record);
-    record = read_mail_record(mail_file);
-  }
-  fclose(mail_file);
+  // while (record)
+  // {
+  //   if (record->recipient == recipient)
+  //   {
+  //     free_mail_record(record);
+  //     fclose(mail_file);
+  //     return TRUE;
+  //   }
+  //   free_mail_record(record);
+  //   record = read_mail_record(mail_file);
+  // }
+  // fclose(mail_file);
   return FALSE;
 }
 

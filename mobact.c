@@ -34,6 +34,7 @@
 
 void npc_offensive_spells(struct char_data *ch);
 void npc_racial_behave(struct char_data *ch);
+bool mob_knows_assigned_spells(struct char_data *ch);
 
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
@@ -1007,6 +1008,70 @@ void npc_class_behave(struct char_data *ch)
   }
 }
 
+bool mob_knows_assigned_spells(struct char_data *ch)
+{
+  int i = 0;
+
+  for (i = 0; i < NUM_SPELLS; i++)
+  {
+    if (MOB_KNOWS_SPELL(ch, i))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void npc_assigned_spells(struct char_data *ch)
+{
+  int i = 0, spellnum = 0;
+  bool found = false;
+  struct char_data *victim = NULL;
+
+  while (!found)
+  {
+    for (i = 0; i < NUM_SPELLS; i++)
+    {
+      if (MOB_KNOWS_SPELL(ch, i))
+      {
+        if (dice(1, 10) == 1)
+        {
+          found = true;
+          spellnum = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (spellnum < 0 || spellnum >= NUM_SPELLS)
+    return;
+
+  if (spell_info[spellnum].violent == FALSE)
+  {
+    /* determine victim (someone in group, including self) */
+    if (GROUP(ch) && GROUP(ch)->members->iSize)
+    {
+      victim = (struct char_data *)random_from_list(GROUP(ch)->members);
+      if (!victim)
+        victim = ch;
+    }
+    if (!victim)
+      victim = ch;
+    cast_spell(ch, victim, 0, spellnum, 0);
+    return;
+  }
+  else
+  {
+    if (!FIGHTING(ch))
+      return;
+    victim = FIGHTING(ch);
+    if (IN_ROOM(ch) != IN_ROOM(victim))
+      return;
+    cast_spell(ch, victim, 0, spellnum, 0);
+  }
+}
+
 /* this defines maximum amount of times the function will check the
  spellup array for a valid spell
  note:  npc_offensive_spells() uses this define as well */
@@ -1349,11 +1414,13 @@ void mobile_activity(void)
     {
       if (FIGHTING(ch))
       {
-        // 50% chance will react off of class, 50% chance will react off of race
-        if (dice(1, 3) == 1)
+        
+        if (dice(1, 4) == 1)
           npc_racial_behave(ch);
-        else if (dice(1, 3) == 2)
+        else if (dice(1, 4) == 2)
           npc_ability_behave(ch);
+        else if (dice(1, 4) == 3 && mob_knows_assigned_spells(ch))
+          npc_assigned_spells(ch);
         else if (IS_NPC_CASTER(ch))
           npc_offensive_spells(ch);
         else

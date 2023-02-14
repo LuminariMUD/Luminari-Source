@@ -426,6 +426,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_REAL_INT(ch) = PFDEF_INT;
     GET_REAL_WIS(ch) = PFDEF_WIS;
     GET_REAL_CHA(ch) = PFDEF_CHA;
+    GET_DR_MOD(ch) = 0;
     GET_HIT(ch) = PFDEF_HIT;
     GET_REAL_MAX_HIT(ch) = PFDEF_MAXHIT;
     GET_PSP(ch) = PFDEF_PSP;
@@ -752,6 +753,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_PC_DESCRIPTOR_2(ch) = atoi(line);
         else if (!strcmp(tag, "Dex "))
           GET_REAL_DEX(ch) = atoi(line);
+        else if (!strcmp(tag, "DRMd"))
+          GET_DR_MOD(ch) = atoi(line);
         else if (!strcmp(tag, "Drnk"))
           GET_COND(ch, DRUNK) = atoi(line);
         else if (!strcmp(tag, "Drol"))
@@ -1697,6 +1700,8 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "EldE: %d\n", GET_ELDRITCH_ESSENCE(ch));
   if (GET_ELDRITCH_SHAPE(ch) != 0)
     fprintf(fl, "EldS: %d\n", GET_ELDRITCH_SHAPE(ch));
+  if (GET_DR_MOD(ch) > 0)
+    fprintf(fl, "DRMd: %d\n", GET_DR_MOD(ch));
 
   if (DRAGON_MAGIC_USES(ch) != PFDEF_DRAGON_MAGIC_USES)
     fprintf(fl, "DrMU: %d\n", DRAGON_MAGIC_USES(ch));

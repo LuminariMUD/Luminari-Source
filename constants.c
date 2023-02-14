@@ -1715,6 +1715,7 @@ const char *affected_bits[] = {
     "Acid-Coated",
     "Repulsion-Fielded",
     "On-Fire",
+    "Flame-Blade",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1845,6 +1846,7 @@ const char *affected_bit_descs[] = {
     "You are coated in painful acid.",
     "You are surrounded by a repulsion field.",
     "You have been caught on fire!",
+    "Your weapons are sheathed in fire!",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 

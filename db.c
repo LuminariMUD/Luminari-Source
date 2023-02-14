@@ -2120,6 +2120,24 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
     GET_REAL_SAVE(mob_proto + i, SAVING_DEATH) = num_arg;
   }
 
+  CASE("MFeat")
+  {
+    sscanf(value, "%d %d", &num, &num2);
+    MOB_SET_FEAT(mob_proto + i, num, num2);
+  }
+
+  CASE("DR_MOD")
+  {
+    RANGE(0, 100);
+    GET_DR_MOD(mob_proto + i) = num_arg;
+  }
+
+  CASE("KnownSpell")
+  {
+    RANGE(1, NUM_SPELLS);
+    MOB_KNOWS_SPELL((mob_proto + i), num_arg) = TRUE;
+  }
+
   /* end saving throws */
 
   /* damtype resistances */

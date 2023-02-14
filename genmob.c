@@ -514,9 +514,23 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
     strlcat(buf, "\n", sizeof(buf));
     fprintf(fd, "%s", buf);
   }
+  
+  // Deprecated by MFeat
+  // for (i = 0; i < NUM_FEATS; i++)
+  //   if (HAS_FEAT(mob, i))
+  //     fprintf(fd, "E\nFeat: %d %d\n", i, HAS_FEAT(mob, i));
+
   for (i = 0; i < NUM_FEATS; i++)
-    if (HAS_FEAT(mob, i))
-      fprintf(fd, "E\nFeat: %d %d\n", i, HAS_FEAT(mob, i));
+    if (MOB_HAS_FEAT(mob, i))
+      fprintf(fd, "MFeat: %d %d\n", i, MOB_HAS_FEAT(mob, i));
+
+  fprintf(fd, "DR_MOD: %d\n", GET_DR_MOD(mob));
+
+  for (i = 0; i < NUM_SPELLS; i++)
+  {
+    if (MOB_KNOWS_SPELL(mob, i))
+      fprintf(fd, "KnownSpell: %d\n", i);
+  }
 
   /* finalize */
   fputs("E\n", fd);

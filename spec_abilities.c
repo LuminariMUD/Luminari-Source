@@ -380,6 +380,10 @@ int process_weapon_abilities(struct obj_data *weapon,  /* The weapon to check fo
   {
     damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
   }
+  else if (AFF_FLAGGED(ch, AFF_FLAME_BLADE))
+  {
+    damage(ch, victim, dice(1, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+  }
 
   //  Paladin divine bond
   if (victim && HAS_FEAT(ch, FEAT_DIVINE_BOND))

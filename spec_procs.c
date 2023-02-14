@@ -10772,6 +10772,11 @@ SPECIAL(vampire_cloak)
   return 1;
 }
 
+SPECIAL(celestial_leviathan)
+{
+  return 0;
+}
+
 /*************************/
 /* end object procedures */
 /*************************/

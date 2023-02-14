@@ -979,6 +979,50 @@
 /**********************/
 /**********************/
 
+/* Defines for Mag_Summons */
+// objects
+#define OBJ_CLONE 161 /**< vnum for clone material. */
+// mobiles
+#define MOB_CLONE 10          /**< vnum for the clone mob. */
+#define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
+#define MOB_GHOUL 35          // " " level 11+
+#define MOB_GIANT_SKELETON 36 // " " level 21+
+#define MOB_MUMMY 37          // " " level 30
+#define MOB_MUMMY_LORD 38     // epic spell mummy dust
+#define MOB_RED_DRAGON 39     // epic spell dragon knight
+#define MOB_SHELGARNS_BLADE 40
+#define MOB_DIRE_BADGER 41 // summon creature i
+#define MOB_DIRE_BOAR 42   // " " ii
+#define MOB_DIRE_WOLF 43   // " " iii
+#define MOB_PHANTOM_STEED 44
+#define MOB_MOUNT_SPELL 101320
+// 45    wizard eye
+#define MOB_DIRE_SPIDER 46 // summon creature iv
+// 47    wall of force
+#define MOB_DIRE_BEAR 48 // summon creature v
+#define MOB_HOUND 49
+#define MOB_DIRE_TIGER 50 // summon creature vi
+#define MOB_FIRE_ELEMENTAL 51
+#define MOB_EARTH_ELEMENTAL 52
+#define MOB_AIR_ELEMENTAL 53
+#define MOB_WATER_ELEMENTAL 54                // these elementals are for rest of s.c.
+#define MOB_GHOST 55                          // great animation
+#define MOB_SPECTRE 56                        // great animation
+#define MOB_BANSHEE 57                        // great animation
+#define MOB_WIGHT 58                          // great animation
+#define MOB_BLADE_OF_DISASTER 59              // black blade of disaster
+#define MOB_DIRE_RAT 9400                     // summon natures ally i
+#define MOB_ECTOPLASMIC_SHAMBLER 93           // ectoplasmic shambler psionic ability
+#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 9419 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420   // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421   // Potential mob for children of the night vampire ability.
+#define MOB_CREATE_VAMPIRE_SPAWN 9422         // Mob to use for create vampire spawn
+#define MOB_GHOST_WOLF 801                    // Mob to use for ghost wolf spell
+#define MOB_DJINNI_KIND 101321
+#define MOB_EFREETI_KIND 101322
+#define MOB_MARID_KIND 101323
+#define MOB_SHAITAN_KIND 101324
+
 /**********************/
 /* misc defines */
 #define SHAPE_AFFECTS 3
@@ -1194,9 +1238,10 @@
 #define AFF_ACID_COAT 116              /**< (R) Char is covered in acid */
 #define AFF_REPULSION 117          // A field of repulsion is around person
 #define AFF_ON_FIRE 118             // person is on fire
+#define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
 
 /*---*/
-#define NUM_AFF_FLAGS 119
+#define NUM_AFF_FLAGS 120
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -4043,6 +4088,7 @@ struct char_special_data_saved
     /* Warlock data */
     int eldritch_shape;            // saved shape for eldritch blasts
     int eldritch_essence;          // the essence used for eldritch blasts
+    int damage_reduction_mod;
 };
 
 /* not saved player data used for condensed combat */
@@ -4504,6 +4550,8 @@ struct mob_special_data
     bool coersion_attempted[5]; // used for encounters to track if they've been coerced before (intimidate, bluff, stealth and diplomacy)
     int hunt_type;              // for hunts, used to track which hunt entry it is on the huhnt table
     int hunt_cooldown;          // for hunts, when hunt expires, this is set to 5 minutes, at which point it will be extracted
+    int temp_feat;
+    int spells_known[MAX_SPELLS];
 };
 
 /** An affect structure. */

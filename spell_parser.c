@@ -905,6 +905,9 @@ SAVING_WILL here...  */
     case SPELL_POLYMORPH:
       MANUAL_SPELL(spell_polymorph);
       break;
+    case SPELL_GENIEKIND:
+      MANUAL_SPELL(spell_geniekind);
+      break;
     case SPELL_PRISMATIC_SPHERE:
       MANUAL_SPELL(spell_prismatic_sphere);
       break;
@@ -3739,9 +3742,8 @@ void mag_assign_spells(void)
   spello(SPELL_MIND_BLANK, "mind blank", 79, 64, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "Your mind-blank fades.", 8, 21, ABJURATION, FALSE);
-  spello(SPELL_REPULSION, "spell repulsion", 79, 64, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "Your bubble of repulsion fades away.", 8, 21, ABJURATION, FALSE);
+  // spello(SPELL_REPULSION, "repulsion", 79, 64, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
+  //        "Your bubble of repulsion fades away.", 8, 21, ABJURATION, FALSE);
   /* transmutation */
   spello(SPELL_CONTROL_PLANTS, "control plants", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_MANUAL,
@@ -3811,6 +3813,18 @@ void mag_assign_spells(void)
   spello(SPELL_MASS_ENHANCE, "mass enhance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_GROUPS, "The physical enhancement spell wears off.", 2, 23,
          TRANSMUTATION, FALSE);
+
+  // level 5 spell
+  spello(SPELL_GENIEKIND, "geniekind", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_MANUAL, NULL, 9, 23, CONJURATION, FALSE);
+  spello(SPELL_DJINNI_KIND, "djinni-kind", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS | MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
+  spello(SPELL_EFREETI_KIND, "efreeti-kind", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS | MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
+  spello(SPELL_MARID_KIND, "marid-kind", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS | MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
+  spello(SPELL_SHAITAN_KIND, "shaitan-kind", 58, 43, 1, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_AFFECTS | MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
 
   // epic magical
   spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
