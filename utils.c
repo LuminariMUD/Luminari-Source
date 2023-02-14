@@ -6094,6 +6094,10 @@ bool can_spell_be_revoked(int spellnum)
   switch (spellnum)
   {
   // spells
+  case SPELL_DJINNI_KIND:
+  case SPELL_EFREETI_KIND:
+  case SPELL_MARID_KIND:
+  case SPELL_SHAITAN_KIND:
   case SPELL_WIND_WALL:
   case SPELL_GASEOUS_FORM:
   case SPELL_AIR_WALK:

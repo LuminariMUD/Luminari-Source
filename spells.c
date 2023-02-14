@@ -2108,6 +2108,76 @@ ASPELL(spell_plane_shift)
   greet_memory_mtrigger(ch);
 }
 
+#define GENIE_DJINNI 1
+#define GENIE_EFREETI 2
+#define GENIE_MARID 3
+#define GENIE_SHAITAN 4
+
+ASPELL(spell_geniekind)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  int geniekind = 0;
+
+  if (IS_NPC(ch) || !ch->desc)
+    return;
+
+  if (check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_DJINNI_KIND) || affected_by_spell(ch, SPELL_DJINNI_KIND) ||
+      check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_EFREETI_KIND) || affected_by_spell(ch, SPELL_EFREETI_KIND) ||
+      check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_MARID_KIND) || affected_by_spell(ch, SPELL_MARID_KIND) ||
+      check_npc_followers(ch, NPC_MODE_SPECIFIC, MOB_SHAITAN_KIND) || affected_by_spell(ch, SPELL_SHAITAN_KIND))
+  {
+    send_to_char(ch, "You are already benefitting from genie-kind.  You may only benefit from one type of genie-kind at a time.\r\n"
+                     "Please revoke your genie-kind affect and dismiss your genie follower to cancel the benefit.\r\n");
+    return;
+  }
+
+  one_argument(cast_arg3, arg, sizeof(arg));
+
+  if (is_abbrev(arg, "djinni"))
+  {
+    geniekind = GENIE_DJINNI;
+  }
+  else if (is_abbrev(arg, "efreeti"))
+  {
+    geniekind = GENIE_EFREETI;
+  }
+  else if (is_abbrev(arg, "marid"))
+  {
+    geniekind = GENIE_MARID;
+  }
+  else if (is_abbrev(arg, "shaitan"))
+  {
+    geniekind = GENIE_SHAITAN;
+  }
+  else
+  {
+    geniekind = dice(1, 4);
+  }
+
+  switch (geniekind)
+  {
+    case GENIE_DJINNI:
+      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL, 0);
+      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_DJINNI_KIND, 0, CAST_SPELL);
+      break;
+    case GENIE_EFREETI:
+      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL, 0);
+      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_EFREETI_KIND, 0, CAST_SPELL);
+      break;
+    case GENIE_MARID:
+      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL, 0);
+      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_MARID_KIND, 0, CAST_SPELL);
+      break;
+    case GENIE_SHAITAN:
+      mag_affects(CASTER_LEVEL(ch), ch, ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL, 0);
+      mag_summons(CASTER_LEVEL(ch), ch, 0, SPELL_SHAITAN_KIND, 0, CAST_SPELL);
+      break;
+    default:
+      send_to_char(ch, "You were unable to summon any kind of genie.\r\n");
+      break;
+  }
+}
+
 ASPELL(spell_polymorph)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};

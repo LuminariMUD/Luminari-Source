@@ -404,6 +404,10 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define MEDIT_DAM_LIGHT 75
 #define MEDIT_DAM_ENERGY 76
 #define MEDIT_DAM_WATER 77
+#define MEDIT_DR 78
+#define MEDIT_ADD_FEATS 79
+#define MEDIT_SET_FEAT_RANKS 80
+#define MEDIT_ADD_SPELLS 81
 
 /* Submodes of SEDIT connectedness. */
 #define SEDIT_MAIN_MENU 0

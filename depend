@@ -323,7 +323,7 @@ medit.o: medit.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h interpreter.h comm.h \
  spells.h shop.h genolc.h genmob.h genzon.h genshp.h oasis.h help.h \
  handler.h constants.h improved-edit.h dg_olc.h dg_scripts.h screen.h \
- fight.h race.h class.h modify.h
+ fight.h race.h class.h feats.h modify.h
 missions.o: missions.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h interpreter.h \
  handler.h spells.h screen.h constants.h dg_scripts.h mud_event.h \

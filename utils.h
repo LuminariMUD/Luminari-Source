@@ -970,6 +970,7 @@ void char_from_furniture(struct char_data *ch);
 
 /* Damage reduction structure for character ch */
 #define GET_DR(ch) ((ch)->char_specials.saved.damage_reduction)
+#define GET_DR_MOD(ch) ((ch)->char_specials.saved.damage_reduction_mod)
 
 // ***  char_specials (there are others spread about utils.h file) *** //
 #define GET_ELDRITCH_SHAPE(ch) ((ch)->char_specials.eldritch_shape)
@@ -1415,6 +1416,8 @@ void char_from_furniture(struct char_data *ch);
 
 /** If mob is a mob, return the virtual number of it. */
 #define GET_MOB_VNUM(mob) (IS_MOB(mob) ? mob_index[GET_MOB_RNUM(mob)].vnum : NOBODY)
+
+#define MOB_KNOWS_SPELL(mob, spellnum)  ((mob)->mob_specials.spells_known[spellnum])
 
 /** Return the default position of ch. */
 #define GET_DEFAULT_POS(ch) ((ch)->mob_specials.default_pos)

@@ -4176,6 +4176,86 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     // spells and other effects
 
+  case SPELL_DJINNI_KIND:
+    af[0].duration = 10 * level;
+    af[0].modifier = 20;
+    af[0].location = APPLY_RES_AIR;
+    af[0].bonus_type = BONUS_TYPE_INHERENT;
+    SET_BIT_AR(af[0].bitvector, AFF_FLYING);
+
+    af[1].duration = 10 * level;
+    af[1].modifier = 20;
+    af[1].bonus_type = BONUS_TYPE_INHERENT;
+    af[1].location = APPLY_RES_ELECTRIC;
+
+    af[2].duration = 10 * level;
+    af[2].modifier = 2;
+    af[2].bonus_type = BONUS_TYPE_INHERENT;
+    af[2].location = APPLY_DEX;
+
+    to_vict = "You take on the characteristics of a djinni.";
+    to_room = "$n takes on the characteristics of a djinni.";
+    break;
+
+  case SPELL_EFREETI_KIND:
+    af[0].duration = 10 * level;
+    af[0].modifier = 20;
+    af[0].location = APPLY_RES_FIRE;
+    af[0].bonus_type = BONUS_TYPE_INHERENT;
+    SET_BIT_AR(af[0].bitvector, AFF_FLAME_BLADE);
+
+    af[1].duration = 10 * level;
+    af[1].modifier = 2;
+    af[1].bonus_type = BONUS_TYPE_INHERENT;
+    af[1].location = APPLY_INT;
+
+    to_vict = "You take on the characteristics of an efreeti.";
+    to_room = "$n takes on the characteristics of an efreeti.";
+    break;
+
+  case SPELL_MARID_KIND:
+    af[0].duration = 10 * level;
+    af[0].modifier = 20;
+    af[0].location = APPLY_RES_WATER;
+    af[0].bonus_type = BONUS_TYPE_INHERENT;
+    SET_BIT_AR(af[0].bitvector, AFF_WATER_BREATH);
+
+    af[1].duration = 10 * level;
+    af[1].modifier = 20;
+    af[1].bonus_type = BONUS_TYPE_INHERENT;
+    af[1].location = APPLY_RES_COLD;
+    SET_BIT_AR(af[1].bitvector, AFF_WATERWALK);
+
+    af[2].duration = 10 * level;
+    af[2].modifier = 2;
+    af[2].bonus_type = BONUS_TYPE_INHERENT;
+    af[2].location = APPLY_CON;
+
+    to_vict = "You take on the characteristics of a marid.";
+    to_room = "$n takes on the characteristics of a marid.";
+    break;
+
+  case SPELL_SHAITAN_KIND:
+
+    af[0].duration = 10 * level;
+    af[0].modifier = 20;
+    af[0].location = APPLY_RES_EARTH;
+    af[0].bonus_type = BONUS_TYPE_INHERENT;
+
+    af[1].duration = 10 * level;
+    af[1].modifier = 20;
+    af[1].bonus_type = BONUS_TYPE_INHERENT;
+    af[1].location = APPLY_RES_ACID;
+
+    af[2].duration = 10 * level;
+    af[2].modifier = 2;
+    af[2].bonus_type = BONUS_TYPE_INHERENT;
+    af[2].location = APPLY_STR;
+
+    to_vict = "You take on the characteristics of a marid.";
+    to_room = "$n takes on the characteristics of a marid.";
+    break;
+
   case SPELL_ACID_SHEATH: // divination
     if (affected_by_spell(victim, SPELL_FIRE_SHIELD) ||
         affected_by_spell(victim, SPELL_COLD_SHIELD))
@@ -8258,46 +8338,6 @@ static const char *mag_summon_fail_msgs[] = {
     "Your summons go unanswered.\r\n",
 };
 
-/* Defines for Mag_Summons */
-// objects
-#define OBJ_CLONE 161 /**< vnum for clone material. */
-// mobiles
-#define MOB_CLONE 10          /**< vnum for the clone mob. */
-#define MOB_ZOMBIE 11         /* animate dead levels 1-7 */
-#define MOB_GHOUL 35          // " " level 11+
-#define MOB_GIANT_SKELETON 36 // " " level 21+
-#define MOB_MUMMY 37          // " " level 30
-#define MOB_MUMMY_LORD 38     // epic spell mummy dust
-#define MOB_RED_DRAGON 39     // epic spell dragon knight
-#define MOB_SHELGARNS_BLADE 40
-#define MOB_DIRE_BADGER 41 // summon creature i
-#define MOB_DIRE_BOAR 42   // " " ii
-#define MOB_DIRE_WOLF 43   // " " iii
-#define MOB_PHANTOM_STEED 44
-#define MOB_MOUNT_SPELL 101320
-// 45    wizard eye
-#define MOB_DIRE_SPIDER 46 // summon creature iv
-// 47    wall of force
-#define MOB_DIRE_BEAR 48 // summon creature v
-#define MOB_HOUND 49
-#define MOB_DIRE_TIGER 50 // summon creature vi
-#define MOB_FIRE_ELEMENTAL 51
-#define MOB_EARTH_ELEMENTAL 52
-#define MOB_AIR_ELEMENTAL 53
-#define MOB_WATER_ELEMENTAL 54                // these elementals are for rest of s.c.
-#define MOB_GHOST 55                          // great animation
-#define MOB_SPECTRE 56                        // great animation
-#define MOB_BANSHEE 57                        // great animation
-#define MOB_WIGHT 58                          // great animation
-#define MOB_BLADE_OF_DISASTER 59              // black blade of disaster
-#define MOB_DIRE_RAT 9400                     // summon natures ally i
-#define MOB_ECTOPLASMIC_SHAMBLER 93           // ectoplasmic shambler psionic ability
-#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 9419 // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420   // Potential mob for children of the night vampire ability.
-#define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421   // Potential mob for children of the night vampire ability.
-#define MOB_CREATE_VAMPIRE_SPAWN 9422         // Mob to use for create vampire spawn
-#define MOB_GHOST_WOLF 801                    // Mob to use for ghost wolf spell
-
 bool isSummonMob(int vnum)
 {
   switch (vnum)
@@ -8339,6 +8379,10 @@ bool isSummonMob(int vnum)
   case MOB_CREATE_VAMPIRE_SPAWN:
   case MOB_GHOST_WOLF:
   case MOB_MOUNT_SPELL:
+  case MOB_DJINNI_KIND:
+  case MOB_EFREETI_KIND:
+  case MOB_MARID_KIND:
+  case MOB_SHAITAN_KIND:
     return true;
   }
   return false;
@@ -8529,6 +8573,34 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       break;
     }
     num = dice(2, 4);
+    break;
+
+  case SPELL_DJINNI_KIND:
+    handle_corpse = FALSE;
+    fmsg = 6;
+    msg = 27;
+    mob_num = MOB_DJINNI_KIND;
+    break;
+
+  case SPELL_EFREETI_KIND:
+    handle_corpse = FALSE;
+    fmsg = 6;
+    msg = 29;
+    mob_num = MOB_EFREETI_KIND;
+    break;
+
+  case SPELL_MARID_KIND:
+    handle_corpse = FALSE;
+    fmsg = 6;
+    msg = 30;
+    mob_num = MOB_MARID_KIND;
+    break;
+
+  case SPELL_SHAITAN_KIND:
+    handle_corpse = FALSE;
+    fmsg = 6;
+    msg = 28;
+    mob_num = MOB_SHAITAN_KIND;
     break;
 
   case SPELL_FAITHFUL_HOUND: // divination
@@ -8944,6 +9016,10 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     case SPELL_SUMMON_CREATURE_7:
     case SPELL_SUMMON_CREATURE_8:
     case SPELL_SUMMON_CREATURE_9:
+    case SPELL_DJINNI_KIND:
+    case SPELL_EFREETI_KIND:
+    case SPELL_MARID_KIND:
+    case SPELL_SHAITAN_KIND:
       if (HAS_FEAT(ch, FEAT_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_SPELL_FOCUS), CONJURATION))
         spell_focus_bonus++;
       if (HAS_FEAT(ch, FEAT_GREATER_SPELL_FOCUS) && HAS_SCHOOL_FEAT(ch, feat_to_sfeat(FEAT_GREATER_SPELL_FOCUS), CONJURATION))

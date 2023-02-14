@@ -7012,6 +7012,21 @@ void list_feats(struct char_data *ch, const char *arg, int list_type, struct cha
         strlcat(buf2, buf, sizeof(buf2));
         none_shown = FALSE;
       }
+      else if (i == FEAT_WARLOCK_DR)
+      {
+        if (mode == 1)
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_WARLOCK_DR));
+          snprintf(buf, sizeof(buf), "\tW%-30s\tC:\tn %s\r\n", buf3, feat_list[i].short_description);
+        }
+        else
+        {
+          snprintf(buf3, sizeof(buf3), "%s (%d/-)", feat_list[i].name, HAS_FEAT(ch, FEAT_WARLOCK_DR));
+          snprintf(buf, sizeof(buf), "%-40s ", buf3);
+        }
+        strlcat(buf2, buf, sizeof(buf2));
+        none_shown = FALSE;
+      }
       else if (i == FEAT_TOUCH_OF_CORRUPTION)
       {
         if (mode == 1)

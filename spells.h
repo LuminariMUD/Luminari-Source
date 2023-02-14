@@ -560,9 +560,10 @@
 #define SPELL_MASS_INVISIBILITY 485
 #define SPELL_REPULSION 486
 #define SPELL_MASS_CHARM_MONSTER 487
+#define SPELL_GENIEKIND 488
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 488
+#define NUM_SPELLS 489
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -626,6 +627,10 @@
 #define ABILITY_STAGGERING_CRITICAL 1246
 #define ABILITY_CENSORING_CRITICAL 1247
 #define ABILITY_STUNNING_CRITICAL 1248
+#define SPELL_DJINNI_KIND 1249
+#define SPELL_EFREETI_KIND 1250
+#define SPELL_MARID_KIND 1251
+#define SPELL_SHAITAN_KIND 1252
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -1491,6 +1496,7 @@ ASPELL(spell_mass_human_potential);
 ASPELL(spell_control_summoned_creature);
 ASPELL(spell_siphon_might);
 ASPELL(spell_overland_flight);
+ASPELL(spell_geniekind);
 
 // psionics
 ASPELL(psionic_concussive_onslaught);
