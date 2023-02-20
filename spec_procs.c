@@ -55,6 +55,8 @@ static int compare_spells(const void *x, const void *y);
 static void npc_steal(struct char_data *ch, struct char_data *victim);
 static void zone_yell(struct char_data *ch, const char *buf);
 
+int spell_sort_info[TOP_SKILL_DEFINE];
+
 /* Special procedures for mobiles. */
 
 #define LEARNED_LEVEL 0 /* % known which is considered "learned" */

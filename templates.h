@@ -35,10 +35,10 @@ ACMD_DECL(do_templates);
 ACMD_DECL(do_levelinfo);
 
 // constants
-const char * const template_types[NUM_TEMPLATES];
-const char * const template_types_capped[NUM_TEMPLATES];
-const char * const template_db_names[NUM_TEMPLATES];
-const char * const levelup_ability_scores[6];
+extern const char * const template_types[NUM_TEMPLATES];
+extern const char * const template_types_capped[NUM_TEMPLATES];
+extern const char * const template_db_names[NUM_TEMPLATES];
+extern const char * const levelup_ability_scores[6];
 
 // macros
 #define GET_TEMPLATE(ch) (ch->player_specials->saved.template)

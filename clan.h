@@ -141,9 +141,8 @@ struct clan_data
 };
 
 /* globals */
-struct clan_data *clan_list;
-struct claim_data *claim_list;
-int num_of_clans;
+extern struct clan_data *clan_list;
+extern struct claim_data *claim_list;
 
 int find_clan_by_id(int clan_id);
 clan_rnum real_clan(clan_vnum c);

@@ -70,7 +70,7 @@
 /***/
 
 /* staff events functions, arrays, etc */
-const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS];
+extern const char *staff_events_list[NUM_STAFF_EVENTS][STAFF_EVENT_FIELDS];
 
 int start_staff_event(int event_num);
 void end_staff_event(int event_num);

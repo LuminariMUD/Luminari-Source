@@ -1811,7 +1811,7 @@ void roll_real_abils(struct char_data *ch)
    4) level received
    5) feat name
    This function also assigns all our (starting) racial feats */
-static int level_feats[][LEVEL_FEATS] = {
+int level_feats[][LEVEL_FEATS] = {
 
     /****************/
     /* Racial feats */

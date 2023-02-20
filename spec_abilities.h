@@ -156,7 +156,7 @@ struct special_ability_info_type
   SPECAB_PROC_DEF(special_ability_proc);
 };
 
-struct special_ability_info_type special_ability_info[NUM_SPECABS];
+extern struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
 /* Macros for defining the actual abilities */
 #define WEAPON_SPECIAL_ABILITY(abilityname)            \
