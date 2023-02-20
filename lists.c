@@ -5,7 +5,8 @@
 #include "db.h"
 #include "dg_event.h"
 
-#ifdef LEAVE_THIS_COMMENTED_OUT
+//#ifdef LEAVE_THIS_COMMENTED_OUT
+#ifndef CAMPAIGN_FR
 /**************************************************************************
 *  File: lists.c                                           Part of tbaMUD *
 *  Usage: Handling of in-game lists                                       *
@@ -65,8 +66,8 @@ void free_list(struct list_data * pList)
     while ((pContent = simple_list(pList)))
       remove_from_list(pContent, pList);
     
-  if (pList->iSize > 0)
-    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
+//  if (pList->iSize > 0)
+//    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
       
   /* Global List for debugging */
   if (pList != global_lists)
@@ -406,8 +407,8 @@ void free_list(struct list_data *pList)
     while ((pContent = simple_list(pList)))
       remove_from_list(pContent, pList);
 
-  if (pList && pList->iSize > 0)
-    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
+//  if (pList && pList->iSize > 0)
+//    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
 
   /* Global List for debugging */
   if (pList != global_lists)
