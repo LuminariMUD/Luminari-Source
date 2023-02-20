@@ -213,6 +213,7 @@ ACMD_DECL(do_affects);
 #define SCMD_AFFECTS 0
 #define SCMD_COOLDOWNS 1
 #define SCMD_RESISTANCES 2
+#define SCMD_DAMAGE_REDUCTION 3
 
 /* functions without subcommands */
 ACMD_DECL(do_innates);

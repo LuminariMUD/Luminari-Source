@@ -3559,136 +3559,294 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
   return damtype_reduction;
 }
 
+int compute_damage_reduction(struct char_data *ch, int dam_type)
+{
+  return compute_damage_reduction_full(ch, dam_type, false);
+}
+
 /* this is straight damage reduction, applies to ALL attacks
  (not melee exclusive damage reduction) */
-int compute_damage_reduction(struct char_data *ch, int dam_type)
+int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool display)
 {
   int damage_reduction = 0;
 
   if (affected_by_spell(ch, RACIAL_ABILITY_CRYSTAL_BODY))
+  {
     damage_reduction += 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Crystal Body", 3);
+  }
 
   //  if (CLASS_LEVEL(ch, CLASS_BERSERKER))
   //    damage_reduction += CLASS_LEVEL(ch, CLASS_BERSERKER) / 4;
 
   //  if (AFF_FLAGGED(ch, AFF_SHADOW_SHIELD))
   //    damage_reduction += 12;
-  damage_reduction += HAS_FEAT(ch, FEAT_WARLOCK_DR); /* temporary mechanic until we upgrade this system */
+  if (HAS_FEAT(ch, FEAT_WARLOCK_DR))
+  {
+    damage_reduction += HAS_FEAT(ch, FEAT_WARLOCK_DR); /* temporary mechanic until we upgrade this system */
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Warlock DR", HAS_FEAT(ch, FEAT_WARLOCK_DR));
+  }
 
-  if (HAS_FEAT(ch, FEAT_PERFECT_SELF)) /* temporary mechanic until we upgrade this system */
+   /* temporary mechanic until we upgrade this system */
+  if (HAS_FEAT(ch, FEAT_PERFECT_SELF))
+  {
     damage_reduction += 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Perfect Self", 3);
+  }
 
-  if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY)) /* temporary mechanic until we upgrade this system */
+  /* temporary mechanic until we upgrade this system */
+  if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY))
+  {
     damage_reduction += 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Soul of the Fey", 3);
+  }
 
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_RP_HEAVY_SHRUG) && affected_by_spell(ch, SKILL_RAGE))
+  {
     damage_reduction += 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Raging: Heavy Shrug", 3);
+  }
+  
+  if (FIGHTING(ch) && affected_by_spell(ch, SKILL_RAGE) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
+  {
+    damage_reduction += 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Raging: Mighty Rage", 3);
+  }
 
   if (HAS_FEAT(ch, FEAT_IMMOBILE_DEFENSE) && affected_by_spell(ch, SKILL_DEFENSIVE_STANCE))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Defensive Stance", 1);
+  }
 
   if (HAS_FEAT(ch, FEAT_ARMOR_MASTERY) && (GET_EQ(ch, WEAR_BODY) || GET_EQ(ch, WEAR_SHIELD)))
+  {
     damage_reduction += 5;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Armor Mastery", 5);
+  }
 
   /* armor specialization, doesn't stack */
   if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_HEAVY) &&
       compute_gear_armor_type(ch) == ARMOR_TYPE_HEAVY)
+  {
     damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Heavy Armor Specialization", 2);
+  }
   else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_MEDIUM) &&
            compute_gear_armor_type(ch) == ARMOR_TYPE_MEDIUM)
+  {
     damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Medium Armor Specialization", 2);
+  }
   else if (HAS_FEAT(ch, FEAT_ARMOR_SPECIALIZATION_LIGHT) &&
            compute_gear_armor_type(ch) == ARMOR_TYPE_LIGHT)
+  {
     damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Light Armor Specialization", 2);
+  }
 
   /* this is now in the new system, study sets it up */
   // if (HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION))
   // damage_reduction += HAS_FEAT(ch, FEAT_DAMAGE_REDUCTION) * 3;
 
   if (HAS_FEAT(ch, FEAT_SHRUG_DAMAGE))
+  {
     damage_reduction += HAS_FEAT(ch, FEAT_SHRUG_DAMAGE);
-
-  if (FIGHTING(ch) && affected_by_spell(ch, SKILL_RAGE) && HAS_FEAT(ch, FEAT_MIGHTY_RAGE))
-    damage_reduction += 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Shrug Damage", HAS_FEAT(ch, FEAT_SHRUG_DAMAGE));
+  }
 
   if (affected_by_spell(ch, SPELL_EPIC_MAGE_ARMOR))
+  {
     damage_reduction += 6;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Epic Mage Armor", 2);
+  }
 
   if (IS_IRON_GOLEM(ch))
+  {
     damage_reduction += 10;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Iron Golem Bonus", 10);
+  }
   if (IS_PIXIE(ch) || HAS_FEAT(ch, FEAT_FAE_RESISTANCE))
+  {
     damage_reduction += 10;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Fey Resistance", 10);
+  }
   if (IS_DRAGON(ch))
+  {
     damage_reduction += 5;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragon Bonus", 5);
+  }
   if (IS_LICH(ch))
+  {
     damage_reduction += 4;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Lich Bonus", 4);
+  }
+  
+  if (IS_VAMPIRE(ch) && !IN_SUNLIGHT(ch))
+  {
+    damage_reduction += 10;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Vampire Bonus", 10);
+  }
 
   if (HAS_FEAT(ch, FEAT_ONE_OF_US))
-    damage_reduction += 5;
+  {
+     damage_reduction += 5;
+     if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "One of Us", 5);
+  }
+   
   else if (HAS_FEAT(ch, FEAT_DEATHS_GIFT))
   {
     if (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9)
       damage_reduction += 2;
     else
       damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Death's Gift", CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 2 : 1);
   }
 
   if (HAS_FEAT(ch, FEAT_AURA_OF_DEPRAVITY))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Aura of Depravity", 1);
+  }
+    
   if (HAS_FEAT(ch, FEAT_AURA_OF_RIGHTEOUSNESS))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Aura of Righteousness", 1);
+  }
 
   if (HAS_FEAT(ch, FEAT_HOLY_WARRIOR))
+  {
     damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Holy Warrior", 2);
+  }
+    
   if (HAS_FEAT(ch, FEAT_HOLY_CHAMPION))
+  {
     damage_reduction += 2;
-  if (HAS_FEAT(ch, FEAT_UNHOLY_WARRIOR))
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Holy Champion", 2);
+  }
+
+    if (HAS_FEAT(ch, FEAT_UNHOLY_WARRIOR))
+  {
     damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Unholy Warrior", 2);
+  }
+    
   if (HAS_FEAT(ch, FEAT_UNHOLY_CHAMPION))
+  {
     damage_reduction += 2;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Unholy Champion", 2);
+  }
 
   if (IS_SHADOW_CONDITIONS(ch) && HAS_FEAT(ch, FEAT_SHADOW_MASTER))
-    damage_reduction += 5;
-
-  if (IS_VAMPIRE(ch) && !IN_SUNLIGHT(ch))
   {
-    damage_reduction += 10;
+    damage_reduction += 5;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Shadow Master", 5);
   }
 
   if (GET_EQ(ch, WEAR_BODY) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_BODY)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONHIDE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONSCALE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_BODY)) == MATERIAL_DRAGONBONE)))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Chest Armor", 1);
+  }
   if (GET_EQ(ch, WEAR_HEAD) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_HEAD)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONHIDE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONSCALE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_HEAD)) == MATERIAL_DRAGONBONE)))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Head Armor", 1);
+  }
   if (GET_EQ(ch, WEAR_ARMS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_ARMS)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONHIDE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONSCALE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_ARMS)) == MATERIAL_DRAGONBONE)))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Arms Armor", 1);
+  }
   if (GET_EQ(ch, WEAR_LEGS) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_LEGS)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONHIDE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONSCALE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_LEGS)) == MATERIAL_DRAGONBONE)))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Leg Armor", 1);
+  }
   if (GET_EQ(ch, WEAR_SHIELD) && GET_OBJ_TYPE(GET_EQ(ch, WEAR_SHIELD)) == ITEM_ARMOR &&
       ((GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONHIDE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONSCALE) ||
        (GET_OBJ_MATERIAL(GET_EQ(ch, WEAR_SHIELD)) == MATERIAL_DRAGONBONE)))
+  {
     damage_reduction += 1;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Dragonskin Shield", 1);
+  }
 
   if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESILIENCY))
+  {
     damage_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESILIENCY);
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Resiliency Judgement", get_judgement_bonus(ch, INQ_JUDGEMENT_RESILIENCY));
+  }
   
-  damage_reduction += GET_DR_MOD(ch);
+  if (GET_DR_MOD(ch) != 0)
+  {
+    damage_reduction += GET_DR_MOD(ch);
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Misc (Gear, Spells, Etc.)", GET_DR_MOD(ch));
+  }
 
   // damage reduction cap is 20 for players
   if (!IS_NPC(ch))
-    damage_reduction = MIN(MAX_DAM_REDUC, damage_reduction);
+  {
+    if (damage_reduction > MAX_DAM_REDUC)
+    {
+      damage_reduction = MIN(MAX_DAM_REDUC, damage_reduction);
+      if (display)
+        send_to_char(ch, "%-30s: %d\r\n", "Damage Reduction Capped At", MAX_DAM_REDUC);
+    }
+  }
+
+  if (display)
+  {
+    send_to_char(ch, "\tC%-30s: %d\tn\r\n", "Final Damage Reduction:", damage_reduction);
+  }
 
   return damage_reduction;
 }

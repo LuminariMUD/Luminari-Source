@@ -8254,6 +8254,12 @@ ACMD(do_buffself)
       return;
     }
 
+    if (GET_POS(ch) < POS_FIGHTING)
+    {
+      send_to_char(ch, "You cannot buff yourself from that position.\r\n");
+      return;
+    }
+
     IS_BUFFING(ch) = true;
     GET_BUFF_TIMER(ch) = 1;
     GET_CURRENT_BUFF_SLOT(ch) = 0;

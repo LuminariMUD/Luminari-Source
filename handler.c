@@ -286,7 +286,6 @@ void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *ms
     GET_RESISTANCES(ch, DAM_WATER) += mod;
     break;
   case APPLY_DR:
-    GET_DR_MOD(ch) += mod;
     break;
     /* Do Not Use. */
   case APPLY_FEAT:
