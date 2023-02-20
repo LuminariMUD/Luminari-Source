@@ -84,7 +84,7 @@ void connect_to_mysql()
     exit(1);
   }
 
-  my_bool reconnect = 1;
+  _Bool reconnect = 1;
   mysql_options(conn, MYSQL_OPT_RECONNECT, &reconnect);
 
   if (!mysql_real_connect(conn, host, username, password, database, 0, NULL, 0))

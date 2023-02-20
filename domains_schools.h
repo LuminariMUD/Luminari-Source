@@ -102,7 +102,7 @@ extern "C"
     ubyte favored_weapon;
     const char *description;
   };
-  struct domain_info domain_list[NUM_DOMAINS];
+  extern struct domain_info domain_list[NUM_DOMAINS];
 
   /* haven't started this yet */
   struct school_info
@@ -116,7 +116,7 @@ extern "C"
     char *portfolio;
     char *description;
   };
-  struct school_info school_list[NUM_SCHOOLS];
+  extern struct school_info school_list[NUM_SCHOOLS];
 
   /******************************************/
 

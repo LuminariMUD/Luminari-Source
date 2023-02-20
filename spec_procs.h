@@ -16,9 +16,8 @@
 
 #include "spells.h"
 
-int spell_sort_info[TOP_SKILL_DEFINE];
-
 extern int prisoner_heads;
+extern int spell_sort_info[TOP_SKILL_DEFINE];
 
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
