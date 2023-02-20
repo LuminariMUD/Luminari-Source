@@ -2010,8 +2010,17 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
     send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
     send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+    send_to_char(ch, "\tDType 'damagereduction' to see your damage reduction breakdown.\tn\r\n");
     send_to_char(ch, "\tDType 'maxhp' to see hown your maximum hit points are calculated.\tn\r\n");
   }
+}
+
+void perform_damage_reduction(struct char_data *ch, struct char_data *k)
+{
+  send_to_char(ch, "\tC");
+  text_line(ch, "\tYDamage Reduction Breakdown\tC", 80, '-', '-');
+  send_to_char(ch, "\tn");
+  compute_damage_reduction_full(k, 0, true);
 }
 
 void perform_resistances(struct char_data *ch, struct char_data *k)
@@ -2109,6 +2118,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tDType 'affects' to see your affects and conditions.\tn\r\n");
     send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
     send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+    send_to_char(ch, "\tDType 'damagereduction' to see your damage reduction breakdown.\tn\r\n");
   }
 }
 
@@ -2297,6 +2307,7 @@ void perform_affects(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "\tDType 'cooldowns' to see your cooldowns.\tn\r\n");
     send_to_char(ch, "\tDType 'resistances' to see your resistances and damage reduction.\tn\r\n");
     send_to_char(ch, "\tDType 'abilities' to see your class and innate abilities.\tn\r\n");
+    send_to_char(ch, "\tDType 'damagereduction' to see your damage reduction breakdown.\tn\r\n");
   }
 }
 
@@ -2976,6 +2987,8 @@ ACMD(do_affects)
     perform_cooldowns(ch, vict);
   else if (subcmd == SCMD_RESISTANCES)
     perform_resistances(ch, vict);
+  else if (subcmd == SCMD_DAMAGE_REDUCTION)
+    perform_damage_reduction(ch, vict);
   else
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: Invalid subcmd sent to do_affects: %d", subcmd);
 }

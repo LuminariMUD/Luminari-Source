@@ -164,6 +164,7 @@ int comp_str_cost(struct char_data *ch, int number);
 int comp_base_str(struct char_data *ch);
 int comp_dex_cost(struct char_data *ch, int number);
 int comp_base_dex(struct char_data *ch);
+int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool display);
 bool is_spell_or_spell_like(int type);
 int vampire_last_feeding_adjustment(struct char_data *ch);
 bool can_dam_be_resisted(int type);
