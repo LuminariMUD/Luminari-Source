@@ -262,7 +262,7 @@ EVENTFUNC(event_countdown)
   case EVENT_REGION:
     regvnum = (region_vnum *)pMudEvent->pStruct;
     regrnum = real_region(*regvnum);
-    log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum);
+    //log("LOG: EVENT_REGION case in EVENTFUNC(event_countdown): Region VNum %d, RNum %d", *regvnum, regrnum);
     break;
   default:
     break;
@@ -533,7 +533,7 @@ EVENTFUNC(event_countdown)
       log("SYSERR: event_countdown for eENCOUNTER_REG_RESET, region out of bounds.");
       break;
     }
-    log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum);
+    // log("Encounter Region '%s' with vnum: %d reset.", region_table[regrnum].name, region_table[regrnum].vnum);
 
     if (pMudEvent->sVariables == NULL)
     {
@@ -553,7 +553,8 @@ EVENTFUNC(event_countdown)
 
         sscanf(*it, "%d", &eroom_vnum);
         eroom_rnum = real_room(eroom_vnum);
-        log("LOG: Processing encounter room vnum: %d", eroom_vnum);
+        // This log is causing lots of spam in our syslog.  Removing it.
+        //log("LOG: Processing encounter room vnum: %d", eroom_vnum);
 
         if (eroom_rnum == NOWHERE)
         {

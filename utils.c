@@ -4293,7 +4293,7 @@ int get_feat_value(struct char_data *ch, int featnum)
 
   if ((featnum <= FEAT_UNDEFINED) || (featnum >= FEAT_LAST_FEAT))
   {
-    log("SYSERR: get_feat_value called with invalid featnum: %d", featnum);
+    log("SYSERR: %s called get_feat_value with invalid featnum: %d", GET_NAME(ch), featnum);
     return 0;
   }
 

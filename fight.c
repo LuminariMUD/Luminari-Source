@@ -4659,8 +4659,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     if (PLR_FLAGGED(victim, PLR_NOTDEADYET) ||
         MOB_FLAGGED(victim, MOB_NOTDEADYET))
       return (-1);
-    log("SYSERR: Attempt to damage corpse '%s' in room #%d by '%s'.",
-        GET_NAME(victim), GET_ROOM_VNUM(IN_ROOM(victim)), GET_NAME(ch));
+    log("SYSERR: Attempt to damage corpse '%s' in room #%d by '%s'.", GET_NAME(victim), GET_ROOM_VNUM(IN_ROOM(victim)), GET_NAME(ch));
     die(victim, ch);
     return (-1);
   }
