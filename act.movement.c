@@ -1100,7 +1100,7 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       break;
   }
 
-  if (block && !PRF_FLAGGED(ch, PRF_NOHASSLE))
+  if (block && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
   {
     act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
     act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
@@ -3277,7 +3277,7 @@ ACMD(do_follow)
   }
 
   /* easy out */
-  if (PRF_FLAGGED(leader, PRF_NO_FOLLOW))
+  if (!IS_NPC(leader) && PRF_FLAGGED(leader, PRF_NO_FOLLOW))
   {
     act("$N has $S nofollow toggled.", FALSE, ch, 0, leader, TO_CHAR);
     return;

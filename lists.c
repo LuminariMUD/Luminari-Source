@@ -195,7 +195,10 @@ void * next_in_list(struct iterator_data * pIterator)
   pIterator->pItem = pTempItem;
 
   /* Grab the content */
-  pContent = pIterator->pItem ? pIterator->pItem->pContent : NULL;
+  if (pIterator)
+    pContent = pIterator->pItem ? pIterator->pItem->pContent : NULL;
+  else
+    return NULL;
 
   return (pContent);
 }
