@@ -7734,4 +7734,18 @@ void set_x_y_coords(int start, int *x, int *y, int *room)
   *room = 600161 + (160 * *y) + *x;
 }
 
+bool can_daze(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (GET_NODAZE_COOLDOWN(ch) > 0)
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
+    return false;
+
+  return true;
+}
+
 /* EoF */

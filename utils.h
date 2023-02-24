@@ -117,6 +117,7 @@ int get_region_language(int region);
 const char *get_region_info(int region);
 int get_vampire_cloak_bonus(int level, int type);
 bool can_silence(struct char_data *ch);
+bool can_daze(struct char_data *ch);
 int get_default_spell_weapon(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
 bool can_study_known_psionics(struct char_data *ch);
@@ -999,6 +1000,8 @@ void char_from_furniture(struct char_data *ch);
 #define BLASTING(ch) ((ch)->char_specials.blasting)
 /** Condensed Combat */
 #define CNDNSD(ch) ((ch)->char_specials.condensed_combat)
+
+#define GET_NODAZE_COOLDOWN(ch) (ch->char_specials.daze_cooldown)
 
 /* Mode data  */
 /* Power attack level and Combat expertise level are stored in the same place*/
