@@ -3110,12 +3110,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case PSIONIC_MENTAL_DISRUPTION:
     if (power_resistance(ch, victim, 0))
       return;
+    if (!can_daze(victim))
+        return;
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 1 + (GET_AUGMENT_PSP(ch) / 4);
     SET_BIT_AR(af[0].bitvector, AFF_DAZED);
+    GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
     to_vict = "An assault on your mind has left you dazed!";
     to_room = "$n suddenly looks shocked and dazed!";
     break;
@@ -3848,9 +3851,12 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
+      if (!can_daze(victim))
+        return;
 
-      af[0].duration = 10;
+      af[0].duration = 4;
       SET_BIT_AR(af[0].bitvector, AFF_DAZED);
+      GET_NODAZE_COOLDOWN(victim) = NODAZE_COOLDOWN_TIMER;
       to_vict = "An assault on your mind has left you dazed!";
       to_room = "$n suddenly looks shocked and dazed!";
     }

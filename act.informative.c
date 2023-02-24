@@ -2238,6 +2238,8 @@ void perform_affects(struct char_data *ch, struct char_data *k)
   {
     send_to_char(ch, "Aura of Courage (bonus resistance against fear-affects)\r\n");
   }
+  if (GET_NODAZE_COOLDOWN(ch) > 0)
+    send_to_char(ch, "Temporary Daze Immunity.\r\n");
 
   if (affected_by_aura_of_cowardice(ch))
   {

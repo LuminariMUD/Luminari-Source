@@ -1129,11 +1129,12 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
     if (name)
       (name)(ch, shield, 0, "shieldslam");
 
-    if (!savingthrow(vict, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch))))
+    if (!savingthrow(vict, SAVING_FORT, 0, (10 + (GET_LEVEL(ch) / 2) + GET_STR_BONUS(ch))) && can_daze(vict))
     {
       new_affect(&af);
       af.spell = SKILL_SHIELD_SLAM;
       SET_BIT_AR(af.bitvector, AFF_DAZED);
+      GET_NODAZE_COOLDOWN(vict) = NODAZE_COOLDOWN_TIMER;
       af.duration = 1; /* One round */
       affect_join(vict, &af, TRUE, FALSE, FALSE, FALSE);
       act("$N appears to be dazed by $n's blow!",

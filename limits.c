@@ -1968,6 +1968,11 @@ void update_damage_and_effects_over_time(void)
       act("$n collapses into a helpless heap, looking completely drained.", TRUE, ch, 0, 0, TO_ROOM);
     }
 
+    if (GET_NODAZE_COOLDOWN(ch) > 0)
+    {
+      GET_NODAZE_COOLDOWN(ch)--;
+    }
+
     if (affected_by_spell(ch, ABILITY_BLOOD_DRAIN))
     {
       vamp_blood_drain(ch, FIGHTING(ch));

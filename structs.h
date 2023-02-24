@@ -1398,6 +1398,8 @@
 /**/
 #define NUM_RANGED_MISSILES 2
 
+#define NODAZE_COOLDOWN_TIMER 20
+
 /***************************************/
 /* Feats defined below up to MAX_FEATS */
 #define FEAT_UNDEFINED 0
@@ -4208,6 +4210,7 @@ struct char_special_data
     /* Warlock data */
     int eldritch_shape;            // saved shape for eldritch blasts
     int eldritch_essence;          // the essence used for eldritch blasts
+    int daze_cooldown;             // once a character is dazed, we'll give them temporary immunity
 };
 
 /* old memorization struct */
