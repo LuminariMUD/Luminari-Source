@@ -7,9 +7,9 @@
 CC = gcc
 
 # Any special flags you want to pass to the compiler
-#MYFLAGS = -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000
+MYFLAGS = -Wall -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-aggressive-loop-optimizations -Wno-unused-value --param=max-vartrack-size=60000000
 #MYFLAGS = -Wno-error=format-truncation -Werror -Wall -Wwrite-strings -Wno-char-subscripts -Wno-unused-but-set-variable -Wno-unused-value --param=max-vartrack-size=60000000
-MYFLAGS = -Wall
+#MYFLAGS = -Wall
 
 #flags for profiling (see hacker.doc for more information)
 PROFILE = 
@@ -25,7 +25,7 @@ PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 BINDIR = ../bin
 
-CFLAGS = -Wno-error=format-truncation -g -O2 $(MYFLAGS) $(PROFILE) 
+CFLAGS = -g -O2 $(MYFLAGS) $(PROFILE) 
 CXXFLAGS = $(CFLAGS) -std=c++11
 
 LIBS =  -lstdc++ -lcrypt -lgd -lm -lmysqlclient
