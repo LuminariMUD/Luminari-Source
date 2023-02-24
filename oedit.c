@@ -2745,6 +2745,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     else if (number < 1 || number > MAX_WEAPON_SPELLS)
     {
       OLC_MODE(d) = OEDIT_MAIN_MENU;
+      OLC_VAL(d) = 1;
       oedit_disp_menu(d);
       return;
     }
