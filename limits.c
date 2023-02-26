@@ -1901,7 +1901,7 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
 
   if (vict && GET_CON(vict) > 0)
   {
-    if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_SPELL, GET_LEVEL(ch), NECROMANCY))
+    if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
     {
       new_affect(&af);
       af.spell = ABILITY_SCORE_DAMAGE;
