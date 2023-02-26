@@ -4501,7 +4501,7 @@ void mag_assign_spells(void)
          "The effects of your level drain expire.", 1, 1, NOSCHOOL, FALSE);
 
   spello(ABILITY_SCORE_DAMAGE, "ability score damage", 0, 0, 0, POS_FIGHTING,
-         TAR_IGNORE, TRUE, MAG_AFFECTS,
+         TAR_CHAR_ROOM, TRUE, MAG_AFFECTS,
          "The effects of your ability score damage expires.", 1, 1, NOSCHOOL, FALSE);
 
   spello(STATUS_AFFECT_STAGGERED, "staggered", 0, 0, 0, POS_FIGHTING,

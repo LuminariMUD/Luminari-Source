@@ -498,8 +498,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     if (ch && vict && vict != ch)
     {
       if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ",
-                     challenge, save_names[type], savethrow);
+        send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ", challenge, save_names[type], savethrow);
     }
   }
   return (FALSE);

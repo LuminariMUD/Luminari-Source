@@ -1899,16 +1899,16 @@ void vamp_blood_drain(struct char_data *ch, struct char_data *vict)
       TIME_SINCE_LAST_FEEDING(ch) = 0;
   }
 
-  if (vict && GET_CON(vict) > 0)
+  if (ch && vict && GET_CON(vict) > 0)
   {
-    if (!mag_savingthrow(ch, vict, ABILITY_SCORE_DAMAGE, 0, CAST_INNATE, GET_LEVEL(ch), NECROMANCY))
+    if (!mag_savingthrow(ch, vict, SAVING_FORT, 0, CAST_SPELL, GET_LEVEL(ch), NECROMANCY))
     {
       new_affect(&af);
       af.spell = ABILITY_SCORE_DAMAGE;
       af.location = APPLY_CON;
       af.modifier = -dice(1, 4);
       af.duration = 50; // approx five minutes
-      if ((GET_CON(vict) - af.modifier) < 0)
+      if ((GET_CON(vict) + af.modifier) < 0)
         af.modifier = GET_CON(vict);
       affect_join(vict, &af, FALSE, FALSE, TRUE, FALSE);
       act("You drain some of $N's constitution.", FALSE, ch, 0, vict, TO_CHAR);
