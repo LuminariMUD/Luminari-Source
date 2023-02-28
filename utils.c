@@ -4367,7 +4367,7 @@ int savingthrow(struct char_data *ch, int save, int modifier, int dc)
     return FALSE;
 
   /* 20 is an automatic success. */
-  if (roll == 20)
+  if (roll >= 20)
     return TRUE;
 
   roll += compute_mag_saves(ch, save, modifier);
