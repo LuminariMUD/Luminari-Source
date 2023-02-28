@@ -1,3 +1,4 @@
+/**/
 /**************************************************************************
  *  File: act.other.c                                  Part of LuminariMUD *
  *  Usage: Miscellaneous player-level commands.                            *
