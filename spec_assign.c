@@ -135,9 +135,11 @@ void assign_mobiles(void)
   ASSIGNMOB(145394, eqstats);
 
   // ashenport
-  ASSIGNMOB(103499, buyarmor);
-  ASSIGNMOB(103498, buyweapons);
+  ASSIGNMOB(103499, buyarmor); // +1 armor
+  ASSIGNMOB(103498, buyweapons); // +1 weapons
   ASSIGNMOB(103801, huntsmaster);
+  ASSIGNMOB(103802, buyarmor); // +2 armor
+  ASSIGNMOB(103803, buyweapons); // +2 weapons
 
   /* faction mission system */
   ASSIGNMOB(103698, faction_mission);

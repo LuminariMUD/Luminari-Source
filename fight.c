@@ -5978,7 +5978,9 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   if (wielded)
     threat_range = 20 - weapon_list[GET_OBJ_VAL(wielded, 0)].critRange;
   else
+  {
     threat_range = 20;
+  }
 
   /* mods */
   if (HAS_FEAT(ch, FEAT_IMPROVED_CRITICAL) || is_using_keen_weapon(ch))
@@ -6321,10 +6323,7 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
     /* we get here, the powerful being beat it */
   }
 
-  if (wielded)
-    threat_range = determine_threat_range(ch, wielded);
-  else
-    threat_range = 20;
+  threat_range = determine_threat_range(ch, wielded);
 
   if (diceroll >= threat_range)
   { /* critical potential? */

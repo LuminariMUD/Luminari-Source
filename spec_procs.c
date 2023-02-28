@@ -10234,6 +10234,8 @@ SPECIAL(buyweapons)
     level = 3;
   else if (GET_LEVEL(keeper) <= 30)
     level = 4;
+  else
+    level = 5;
 
   if (CMD_IS("list"))
   {
