@@ -44,6 +44,7 @@
 #include "hunts.h"
 #include "domains_schools.h"
 #include "staff_events.h" /* for staff events!  prisoner no xp penalty! */
+#include "assign_wpn_armor.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -769,11 +770,16 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
 
   /* bonus type deflection */
   /* two weapon defense */
-  if (!IS_NPC(ch) && is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
+  if (is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
   {
     bonuses[BONUS_TYPE_SHIELD]++;
   }
   else if (!IS_NPC(ch) && GET_EQ(ch, WEAR_WIELD_OFFHAND) && HAS_FEAT(ch, FEAT_TWO_WEAPON_DEFENSE))
+  {
+    bonuses[BONUS_TYPE_SHIELD]++;
+  }
+  // double weapons
+  if (is_using_double_weapon(ch) && HAS_FEAT(ch, FEAT_DOUBLE_WEAPON_DEFENSE))
   {
     bonuses[BONUS_TYPE_SHIELD]++;
   }
@@ -5441,6 +5447,14 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     }
   }
 
+  // double weapon focus
+  if (HAS_FEAT(ch, FEAT_DOUBLE_WEAPON_SPECIALIZATION) && is_using_double_weapon(ch))
+  {
+    if (display_mode)
+        send_to_char(ch, "DoubleWeapon specializiation: \tR2\tn\r\n");
+      dambonus += 2;
+  }
+
   if (!display_mode)
   {
     // Assassin stuff
@@ -6023,6 +6037,10 @@ int determine_threat_range(struct char_data *ch, struct obj_data *wielded)
   }
 
   if (affected_by_spell(ch, PSIONIC_ABILITY_PSIONIC_FOCUS) && HAS_FEAT(ch, FEAT_CRITICAL_FOCUS))
+    threat_range--;
+
+  // double weapon focus
+  if (HAS_FEAT(ch, FEAT_DOUBLE_WEAPON_CRITICAL) && is_using_double_weapon(ch))
     threat_range--;
 
   /* end mods */
@@ -7764,6 +7782,12 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
     }
     else if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_EPIC_WEAPON_SPECIALIZATION), weapon_list[WEAPON_TYPE_UNARMED].weaponFamily))
       bonuses[BONUS_TYPE_UNDEFINED] += 3;
+  }
+
+  // double weapon focus
+  if (HAS_FEAT(ch, FEAT_DOUBLE_WEAPON_FOCUS) && is_using_double_weapon(ch))
+  {
+      bonuses[BONUS_TYPE_UNDEFINED] += 1;
   }
 
   if (victim)

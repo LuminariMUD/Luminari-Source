@@ -1028,6 +1028,24 @@ void assign_feats(void)
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
+  // double weapon feats
+  feato(FEAT_DOUBLE_WEAPON_FOCUS, "double weapon focus", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "+1 to hit rolls for all double weapons.",
+        "+1 to hit rolls for all double weapons.");
+  feat_prereq_bab(FEAT_DOUBLE_WEAPON_FOCUS, 1);
+  feato(FEAT_DOUBLE_WEAPON_SPECIALIZATION, "double weapon specialization", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "+2 to damage rolls for all double weapons.",
+        "+2 to damage rolls for all double weapons.");
+  feat_prereq_bab(FEAT_DOUBLE_WEAPON_SPECIALIZATION, 2);
+  feato(FEAT_DOUBLE_WEAPON_DEFENSE, "double weapon defense", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "+1 shield ac when wielding any double weapon.",
+        "+1 shield ac when wielding any double weapon.");
+  feat_prereq_bab(FEAT_DOUBLE_WEAPON_DEFENSE, 1);
+  feato(FEAT_DOUBLE_WEAPON_CRITICAL, "double weapon critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
+        "+1 to weapon critical threat range when wielding any double weapon.",
+        "+1 to weapon critical threat range when wielding any double weapon.");
+  feat_prereq_bab(FEAT_DOUBLE_WEAPON_CRITICAL, 4);
+
   /* weapon focus feats */
   feato(FEAT_WEAPON_FOCUS, "weapon focus", TRUE, TRUE, TRUE, FEAT_TYPE_COMBAT,
         "+1 to hit rolls for selected weapon",
@@ -1110,33 +1128,39 @@ void assign_feats(void)
         "2d6 bleed/round on critical, stacks",
         "slashing or piercing weapon causes 2d6 bleed/round to opponent "
         "when weapon criticals. This effect stacks with itself. "
-        "Can only select one critical feat without critical mastery.");
+        "Can only select one critical feat without critical mastery. ");
+  feat_prereq_bab(FEAT_BLEEDING_CRITICAL, 13);
   feato(FEAT_CENSORING_CRITICAL, "censoring critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "silence victim 1d4+1 rounds on critical",
         "Victim is silenced for 1d4+1 rounds on a critical, a successful "
         "fortitude save reduces this to 1 round. "
         "Can only select one critical feat without critical mastery.");
+  feat_prereq_bab(FEAT_CENSORING_CRITICAL, 15);
   feato(FEAT_STAGGERING_CRITICAL, "staggering critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "stagger victim 1d4+1 rounds on critical",
         "Victim is staggered for 1d4+1 rounds on a critical, a successful "
         "fortitude save reduces this to 1 round. "
         "Can only select one critical feat without critical mastery, "
         "except for stunning critical.");
+  feat_prereq_bab(FEAT_STAGGERING_CRITICAL, 13);
   feato(FEAT_STUNNING_CRITICAL, "stunning critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "stun victim 1d4+1 rounds on critical",
         "Victim is stunned for 1d4+1 rounds on a critical, a successful "
         "fortitude save reduces this to 1 round. "
         "Can only select one critical feat without critical mastery.");
+  feat_prereq_bab(FEAT_STAGGERING_CRITICAL, 17);
   feato(FEAT_CRITICAL_MASTERY, "critical mastery", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "may select second critical feat",
         "Normally can only have one critical feat, "
         "having critical mastery enables the selection of a second "
         "critical feat.");
+  feat_prereq_class_level(FEAT_CRITICAL_MASTERY, CLASS_WARRIOR, 14);
   feato(FEAT_SICKENING_CRITICAL, "sickening critical", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "sicken victim 1d4+1 rounds on critical",
         "Victim is sickened for 1d4+1 rounds on a critical, a successful "
         "fortitude save reduces this to 1 round. "
         "Can only select one critical feat without critical mastery.");
+  feat_prereq_bab(FEAT_SICKENING_CRITICAL, 11);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* ranged attack feats */
@@ -5040,8 +5064,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
-        return FALSE;
       if (BAB(ch) < 13)
         return FALSE;
       return TRUE;
@@ -5051,8 +5073,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
-        return FALSE;
       if (BAB(ch) < 13)
         return FALSE;
       return TRUE;
@@ -5061,8 +5081,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
         return FALSE;
       if (critical_feat_total(ch) >= 2)
-        return FALSE;
-      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
         return FALSE;
       if (BAB(ch) < 11)
         return FALSE;
@@ -5084,8 +5102,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
-        return FALSE;
       if (BAB(ch) < 15)
         return FALSE;
       return TRUE;
@@ -5094,8 +5110,6 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       if (critical_feat_total(ch) >= 1 && !HAS_FEAT(ch, FEAT_CRITICAL_MASTERY))
         return FALSE;
       if (critical_feat_total(ch) >= 2)
-        return FALSE;
-      if (!has_feat_requirement_check(ch, FEAT_CRITICAL_FOCUS))
         return FALSE;
       if (BAB(ch) < 11)
         return FALSE;
