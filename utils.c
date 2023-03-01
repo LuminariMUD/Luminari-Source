@@ -6595,12 +6595,14 @@ void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict
   if (aff_flag == AFF_DONTUSE)
     return;
 
-  struct affected_type *af = NULL;
+  struct affected_type *af = NULL, *next_af = NULL;
 
   int spell = 0;
 
-  for (af = vict->affected; af; af = af->next)
+  for (af = vict->affected; af; af = next_af)
   {
+    next_af = af->next;
+    
     if (IS_SET_AR(af->bitvector, aff_flag))
     {
       spell = af->spell;
