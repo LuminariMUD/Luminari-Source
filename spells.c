@@ -1905,10 +1905,15 @@ ASPELL(spell_locate_creature)
     return;
   }
 
+  char vname[MAX_NAME_LENGTH], iname[MAX_NAME_LENGTH];
+
+  snprintf(vname, MAX_NAME_LENGTH, "%s", GET_NAME(victim));
+
   send_to_char(ch, "%s\r\n", QNRM);
   for (i = character_list; i; i = i->next)
   {
-    if (is_abbrev(GET_NAME(victim), GET_NAME(i)) && CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE)
+    snprintf(iname, MAX_NAME_LENGTH, "%s", GET_NAME(i));
+    if (is_abbrev(vname, iname) && CAN_SEE(ch, i) && IN_ROOM(i) != NOWHERE)
     {
       found = 1;
       send_to_char(ch, "%3d. %-25s%s - %-25s%s", ++num, GET_NAME(i), QNRM,
