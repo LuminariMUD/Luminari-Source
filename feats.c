@@ -1148,7 +1148,8 @@ void assign_feats(void)
         "Victim is stunned for 1d4+1 rounds on a critical, a successful "
         "fortitude save reduces this to 1 round. "
         "Can only select one critical feat without critical mastery.");
-  feat_prereq_bab(FEAT_STAGGERING_CRITICAL, 17);
+  feat_prereq_bab(FEAT_STUNNING_CRITICAL, 17);
+  feat_prereq_feat(FEAT_STUNNING_CRITICAL, FEAT_STAGGERING_CRITICAL, 1);
   feato(FEAT_CRITICAL_MASTERY, "critical mastery", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "may select second critical feat",
         "Normally can only have one critical feat, "
