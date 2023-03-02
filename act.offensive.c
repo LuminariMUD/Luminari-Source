@@ -9522,6 +9522,7 @@ ACMD(do_planarsoul)
 
   for (i = 0; i < 6; i++)
   {
+    new_affect(&(af[i]));
     af[i].spell = AFFECT_PLANAR_SOUL_SURGE;
     af[i].bonus_type = BONUS_TYPE_SACRED;
     af[i].duration = duration;
@@ -9543,7 +9544,7 @@ ACMD(do_planarsoul)
 
   for (i = 0; i < 6; i++)
   {
-    affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
+    affect_to_char(ch, (&(af[i])));
   }
 
   act("Your planar soul surges with might!", FALSE, ch, 0, 0, TO_CHAR);
