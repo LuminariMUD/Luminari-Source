@@ -1213,6 +1213,11 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
   case ITEM_FOUNTAIN:
     oedit_liquid_type(d);
     break;
+  case ITEM_TREASURE_CHEST:
+    write_to_output(d, "Is this a randomly loading chest? 1 if yes, 0 if no.\r\n"
+                       "A randomly loading chest will only load in rooms and/or zones flagged with RANDOM_CHEST.\r\n"
+                      "They will not have a cooldown timer to loot, and will be extracted when looted.\r\n");
+    break;
   case ITEM_PORTAL:
     switch (GET_OBJ_VAL(OLC_OBJ(d), 0))
     {
@@ -1238,6 +1243,9 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_4;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_TREASURE_CHEST:
+    write_to_output(d, "Search DC (0 for not hidden): ");
+    break;
   case ITEM_GEAR_OUTFIT:
     get_char_colors(d->character);
     clear_screen(d);
@@ -1290,6 +1298,9 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_5;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_TREASURE_CHEST:
+    write_to_output(d, "Pick Lock DC (0 for not locked): ");
+    break;
   case ITEM_GEAR_OUTFIT:
     write_to_output(d, "Apply modifier amount: ");
     break;
@@ -1314,6 +1325,12 @@ static void oedit_disp_val6_menu(struct descriptor_data *d)
   OLC_MODE(d) = OEDIT_VALUE_6;
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
+  case ITEM_TREASURE_CHEST:
+    write_to_output(d, "Trap Type (0 for no trap): ");
+    get_char_colors(d->character);
+    clear_screen(d);
+    column_list(d->character, 0, trap_effects, MAX_TRAP_EFFECTS, TRUE);
+    break;
   case ITEM_GEAR_OUTFIT:
     for (i = 0; i < NUM_BONUS_TYPES; i++)
     {
@@ -2328,6 +2345,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       }
       min_val = 1;
       max_val = NUM_MATERIALS - 1;
+      break;
+    case ITEM_TREASURE_CHEST:
+      if (number < 0 || number > 1)
+      {
+        write_to_output(d, "Please select 0 for a regular treasure chest or 1 for a random treasure chest.\r\n");
+        return;
+      }
+      min_val = 0;
+      max_val = 1;
       break;
     case ITEM_SCROLL:
     case ITEM_POTION:
