@@ -881,6 +881,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value += 3;
   if (HAS_SKILL_FEAT(ch, abilityNum, feat_to_skfeat(FEAT_EPIC_SKILL_FOCUS)))
     value += 6;
+  if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
+    value += 4;
   if (!IS_NPC(ch) && IS_DAYLIT(IN_ROOM(ch)) && HAS_FEAT(ch, FEAT_LIGHT_BLINDNESS))
     value -= 1;
   if (IS_FRIGHTENED(ch))

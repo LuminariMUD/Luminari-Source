@@ -2529,7 +2529,8 @@ ACMD(do_gen_door)
     door = find_door(ch, type, dir, cmd_door[subcmd]);
 
   if ((obj) && (GET_OBJ_TYPE(obj) != ITEM_CONTAINER &&
-                GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH))
+                GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH &&
+                GET_OBJ_TYPE(obj) != ITEM_TREASURE_CHEST))
   {
     obj = NULL;
     door = find_door(ch, type, dir, cmd_door[subcmd]);
@@ -2538,6 +2539,28 @@ ACMD(do_gen_door)
   if ((obj) || (door >= 0))
   {
     keynum = DOOR_KEY(ch, obj, door);
+    if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST)
+    {
+      if (GET_OBJ_VAL(obj, 4) <= 0)
+      {
+        act("$p is not locked.", TRUE, ch, obj, 0, TO_CHAR);
+        return;
+      }
+      if (skill_check(ch, ABILITY_SLEIGHT_OF_HAND, GET_OBJ_VAL(obj, 4)))
+      {
+        GET_OBJ_VAL(obj, 4) = 0;
+        act("You have picked the lock on $p!", FALSE, ch, obj, 0, TO_CHAR);
+        WAIT_STATE(ch, PULSE_VIOLENCE * 1);
+      }
+      else
+      {
+        act("You have failed to pick the lock on $p.", FALSE, ch, obj, 0, TO_CHAR);
+        WAIT_STATE(ch, PULSE_VIOLENCE * 3);
+      }
+      send_to_char(ch, "Your next action will be delayed.\r\n");
+      USE_FULL_ROUND_ACTION(ch);
+      return;
+    }
     if (!(DOOR_IS_OPENABLE(ch, obj, door)))
       send_to_char(ch, "You can't %s that!\r\n", cmd_door[subcmd]);
     else if (!DOOR_IS_OPEN(ch, obj, door) &&

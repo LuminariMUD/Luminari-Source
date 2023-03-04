@@ -7736,6 +7736,8 @@ void set_x_y_coords(int start, int *x, int *y, int *room)
   *room = 600161 + (160 * *y) + *x;
 }
 
+// This function will return true if the character can be affected by the
+// daze affect, or false if it cannot.
 bool can_daze(struct char_data *ch)
 {
   if (!ch)
@@ -7748,6 +7750,209 @@ bool can_daze(struct char_data *ch)
     return false;
 
   return true;
+}
+
+
+// This function simply checks to see if there's a random treasure chest in the room or not.
+bool is_random_chest_in_room(room_rnum rrnum)
+{
+  if (rrnum == NOWHERE)
+    return false;
+
+  struct obj_data *obj = NULL;
+  bool found = false;
+
+  for (obj = world[rrnum].contents; obj; obj = obj->next_content)
+  {
+    if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST && GET_OBJ_VAL(obj, 2) == 1)
+    {
+      found = true;
+      break;
+    }
+  }
+
+  return found; 
+}
+
+int number_of_chests_per_zone(int num_zone_rooms)
+{
+  return (num_zone_rooms / NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST);
+}
+
+
+// This function checks to see if a random treasure chest can be placed in the room.
+// It is based on different factors, such as whether the room or zone is flagged to
+// allow random chests, how many chests are already in the zone, and so forth.
+bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests)
+{
+
+  if (rrnum == NOWHERE)
+    return false;
+
+  zone_rnum zone = GET_ROOM_ZONE(rrnum);
+
+  if (num_zone_rooms <= 0)
+    return false;
+
+  // rooms flagged can only load a chest if there isn't any there already
+  if (ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST))
+  {
+    if (is_random_chest_in_room(rrnum))
+      return false;
+    return true;
+  }
+
+  if (ZONE_FLAGGED(zone, ZONE_RANDOM_CHESTS))
+  {
+    if (number_of_chests_per_zone(num_zone_rooms) < num_chests)
+      return false;
+    return true;
+  }
+
+  //mudlog(NRM, 34, FALSE, "ZReset B: %d %s %d %s", zone_table[zone].number, zone_table[zone].name, world[rrnum].number, world[rrnum].name);
+
+  return false;
+}
+
+// This function will return a 'grade' of gear based on the level entered.
+// For example, a return value of 1 is a mundane item, which is masterwork
+// or normal.  A 2 is a minor magic item, generally +1. A 6 is a superior
+// item generally level 26 or higher. These grades are mainly used for treasure
+// chest objects.
+int get_random_chest_item_level(int level)
+{
+  if (level <= 5)
+  {
+    switch (dice(1, 5))
+    {
+      case 1: return 1;
+      case 5: return 3;
+      default: return 2;
+    }
+  }
+  else if (level <= 10)
+  {
+    switch (dice(1, 10))
+    {
+      case 1: return 1;
+      case 7: case 8: case 9: case 10: return 3;
+      default: return 2;
+    }
+  }
+  else if (level <= 15)
+  {
+    switch (dice(1, 10))
+    {
+      case 1: return 2;
+      case 7: case 8: case 9: case 10: return 4;
+      default: return 3;
+    }
+  }
+  else if (level <= 20)
+  {
+    switch (dice(1, 10))
+    {
+      case 1: return 3;
+      case 7: case 8: case 9: case 10: return 5;
+      default: return 4;
+    }
+  }
+  else if (level <= 25)
+  {
+    switch (dice(1, 10))
+    {
+      case 1: return 4;
+      case 7: case 8: case 9: case 10: return 6;
+      default: return 5;
+    }
+  }
+  else
+  {
+    switch (dice(1, 10))
+    {
+      case 7: case 8: case 9: case 10: return 5;
+      default: return 6;
+    }
+  }
+
+  return 2;
+}
+
+// This will return a random kind of chest type. Types 2 through 7 are weapons, armor, consumables, trinkets, gold and crystals.
+// anything else is 1, which is generic and has a chance to drop anything based on the normal coded treasure tables.
+int get_chest_contents_type(void)
+{
+  int type = dice(1, 15);
+
+  if (type > 1 && type <= 7)
+    return type;
+
+  return 1;
+}
+
+// This function will return a chest dc based on the level provided
+// There is a 75% chance to return a 0, meaning the queried affect
+// is inactive on this chest.  Example: Used to get a pick lock dc
+// If the chest level is 10, there's a 75% chance to return 0 which
+// means the chest is not locked, otherwise it will return a dc of 15.
+int get_random_chest_dc(int level)
+{
+
+  if (level <= 0)
+    return 0;
+
+  // 75 % chance it won't be hidden at all
+  if (dice(1, 4) > 1)
+    return 0;
+
+  if (level <= 5)
+    return 10;
+  else if (level <= 10)
+    return 15;
+  else if (level <= 15)
+    return 20;
+  else if (level <= 20)
+    return 25;
+  else if (level <= 25)
+    return 30;
+  else if (level <= 30)
+    return 35;
+
+  return 40;
+}
+
+// This function will place a random treasure chest in the room
+// level will determine level of items dropped
+// search dc will be the desired search dc, 0 if you don't want it hidden or -1 if you want a random chance for a search dc based on chest level
+// pick dc will be the desired pick lock dc, 0 if you don't want it locked or -1 if you want a random chance for a pick dc based on chest level
+// trap chance is the percentage chance that the chest will be trapped. If it is the trap type will always be triggered by open container with a trap type based on chest level
+void place_random_chest(room_rnum rrnum, int level, int search_dc, int pick_dc, int trap_chance)
+{
+  if (rrnum == NOWHERE)
+    return;
+
+  struct obj_data *obj = read_object(RANDOM_TREASURE_CHEST_VNUM, VIRTUAL);
+
+  if (obj == NULL)
+    return;
+
+  // determines the level of items dropped
+  GET_OBJ_VAL(obj, 0) = get_random_chest_item_level(level);
+  // determines the type of object dropped
+  GET_OBJ_VAL(obj, 1) = get_chest_contents_type();
+  // we set this to 1 to tag it as a random treasure chest, meaning it can only be looted once
+  // with no cooldown and is extracted immediately after being looted.
+  GET_OBJ_VAL(obj, 2) = 1;
+  // This is the search dc.  If above zero it will cannot be interacted with unless located with search command
+  GET_OBJ_VAL(obj, 3) = (search_dc == -1) ? get_random_chest_dc(level) : search_dc;
+  // This is the pick lock dc.  If above zero it will cannot be looted unless unlocked with the picklock command.
+  GET_OBJ_VAL(obj, 4) = (pick_dc == -1) ? get_random_chest_dc(level) : pick_dc;
+  // We're going to see if there should be an associated trap
+  // This is currently not implemented
+  if (dice(1, 100) <= trap_chance)
+    GET_OBJ_VAL(obj, 5) = 0;
+
+  obj_to_room(obj, rrnum);
 }
 
 /* EoF */

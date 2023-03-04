@@ -4493,6 +4493,12 @@ ACMD(do_loot)
     }
   }
 
+  if (GET_OBJ_VAL(obj, 4) > 0)
+  {
+    act("$p seems to be locked.  You'll have to try and pick the lock.", TRUE, ch, obj, 0, TO_CHAR);
+    return;
+  }
+
   obj_vnum vnum = GET_OBJ_VNUM(obj);
 
   char query[500], last[20], curr[20];
@@ -4500,47 +4506,53 @@ ACMD(do_loot)
   MYSQL_ROW row = NULL;
   int found = FALSE;
 
-  /* Check the connection, reconnect if necessary. */
-  //	mysql_ping(conn);
-
-  snprintf(query, sizeof(query), "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
-                                 "FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s' AND DATE_ADD(last_loot, INTERVAL 4 HOUR) > NOW()",
-           vnum, GET_NAME(ch));
-
-  mysql_query(conn, query);
-  res = mysql_use_result(conn);
-  if (res != NULL)
+  // We only check the database for cooldowns if it's not a randomly placed chest
+  if (GET_OBJ_VAL(obj, 2) != 1)
   {
-    if ((row = mysql_fetch_row(res)) != NULL)
+
+    /* Check the connection, reconnect if necessary. */
+    //	mysql_ping(conn);
+
+    snprintf(query, sizeof(query), "SELECT last_loot, DATE_ADD(last_loot, INTERVAL 4 HOUR) as curr_time, DATE_ADD(last_loot, INTERVAL 4 HOUR) as reloot "
+                                  "FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s' AND DATE_ADD(last_loot, INTERVAL 4 HOUR) > NOW()",
+            vnum, GET_NAME(ch));
+
+    mysql_query(conn, query);
+    res = mysql_use_result(conn);
+    if (res != NULL)
     {
-      snprintf(last, sizeof(last), "%s", row[0]);
-      snprintf(curr, sizeof(curr), "%s", row[1]);
-      found = TRUE;
+      if ((row = mysql_fetch_row(res)) != NULL)
+      {
+        snprintf(last, sizeof(last), "%s", row[0]);
+        snprintf(curr, sizeof(curr), "%s", row[1]);
+        found = TRUE;
+      }
     }
+
+    mysql_free_result(res);
+
+    if (found && GET_LEVEL(ch) < LVL_IMMORT)
+    { // they've looted it less than four hours ago, so no go.
+      char *tmstr;
+      time_t mytime;
+
+      mytime = time(0);
+
+      tmstr = (char *)asctime(localtime(&mytime));
+      *(tmstr + strlen(tmstr) - 1) = '\0';
+      send_to_char(ch, "You've already looted this chest.  Your last loot was %s, and you can loot again at %s, server time. ", last, curr);
+      send_to_char(ch, "Current machine time: %s\r\n", tmstr);
+      //		  send_to_char(ch, "\r\nQUERY: %s\r\n", query);
+      return;
+    }
+
+    snprintf(query, sizeof(query), "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, GET_NAME(ch));
+    mysql_query(conn, query);
+
+    snprintf(query, sizeof(query), "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
+    mysql_query(conn, query);
+
   }
-
-  mysql_free_result(res);
-
-  if (found && GET_LEVEL(ch) < LVL_IMMORT)
-  { // they've looted it less than four hours ago, so no go.
-    char *tmstr;
-    time_t mytime;
-
-    mytime = time(0);
-
-    tmstr = (char *)asctime(localtime(&mytime));
-    *(tmstr + strlen(tmstr) - 1) = '\0';
-    send_to_char(ch, "You've already looted this chest.  Your last loot was %s, and you can loot again at %s, server time. ", last, curr);
-    send_to_char(ch, "Current machine time: %s\r\n", tmstr);
-    //		  send_to_char(ch, "\r\nQUERY: %s\r\n", query);
-    return;
-  }
-
-  snprintf(query, sizeof(query), "DELETE FROM loot_chests WHERE chest_vnum='%d' AND character_name='%s'", vnum, GET_NAME(ch));
-  mysql_query(conn, query);
-
-  snprintf(query, sizeof(query), "INSERT INTO loot_chests (loot_id, chest_vnum, character_name, last_loot) VALUES(NULL,'%d','%s',NOW())", vnum, GET_NAME(ch));
-  mysql_query(conn, query);
 
   int level = 0, max_grade = LOOTBOX_LEVEL_MUNDANE;
 
@@ -4692,6 +4704,12 @@ ACMD(do_loot)
       recMagic = true;
     }
   } while (!recMagic);
+
+  if (GET_OBJ_VAL(obj, 2) == 1)
+  {
+    obj_from_room(obj);
+    extract_obj(obj);
+  }
 
   // mysql_close(conn);
 }

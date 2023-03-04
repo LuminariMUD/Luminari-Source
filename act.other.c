@@ -4795,7 +4795,7 @@ ACMD(do_search)
   //  struct char_data *i; // for player/mob
   //  struct char_data *list = world[ch->in_room].people; // for player/mob
   //  struct obj_data *objlist = world[ch->in_room].contents;
-  //  struct obj_data *obj = NULL;
+  struct obj_data *obj = NULL;
   //  struct obj_data *cont = NULL;
   //  struct obj_data *next_obj = NULL;
   int search_dc = 0;
@@ -4853,6 +4853,21 @@ ACMD(do_search)
      */
     if (!found)
     {
+      // find a hidden chest
+      if (IN_ROOM(ch) != NOWHERE) {
+        for (obj = world[IN_ROOM(ch)].contents; obj; obj = obj->next_content)
+        {
+          if (GET_OBJ_TYPE(obj) != ITEM_TREASURE_CHEST) continue;
+          if (GET_OBJ_VAL(obj, 3) <= 0) continue;
+          if (skill_check(ch, ABILITY_PERCEPTION, GET_OBJ_VAL(obj, 3)))
+          {
+            GET_OBJ_VAL(obj, 3) = 0;
+            act("You have found $p!", FALSE, ch, obj, 0, TO_CHAR);
+            found = true;
+          }
+        }
+      }
+
       /* find a hidden door */
       for (door = 0; door < NUM_OF_DIRS && found == FALSE; door++)
       {

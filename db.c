@@ -3882,7 +3882,8 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 /* execute the reset command table of a given zone */
 void reset_zone(zone_rnum zone)
 {
-  int cmd_no = 0, jump = 0;
+  int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, num_traps = 0, max_chests = 0;
+  bool has_random_chests = false, has_random_traps = false;
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL, *obj_to = NULL;
   room_vnum rvnum = 0;
@@ -4394,8 +4395,49 @@ void reset_zone(zone_rnum zone)
   {
     rrnum = real_room(rvnum);
     if (rrnum != NOWHERE)
-      reset_wtrigger(&world[rrnum]);
+    {
+      total_rooms++;
+      reset_wtrigger(&world[rrnum]); 
+      if (has_random_chests == false && (ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST) || ZONE_FLAGGED(zone, ZONE_RANDOM_CHESTS)))
+        has_random_chests = true;
+      if (has_random_traps == false && (ROOM_FLAGGED(rrnum, ROOM_RANDOM_TRAP) || ZONE_FLAGGED(zone, ZONE_RANDOM_TRAPS)))
+        has_random_traps = true;
+      // we're not counting flagged rooms because the num_chests amount is only for calculating
+      // how many chests a zone can have if it's flagged for random chests.  rooms flagged such
+      // should always load a random chest, as long as there already isn't one in there, which
+      // we'll check for elsewhere
+      if (is_random_chest_in_room(rrnum) && !ROOM_FLAGGED(rrnum, ROOM_RANDOM_CHEST))
+        num_chests++;
+    }
     rvnum++;
+  }
+
+  max_chests = number_of_chests_per_zone(total_rooms);
+  int num_loops = 0;
+
+  // we'll place some random chests or traps
+  if (has_random_chests || has_random_traps)
+  {
+    while (max_chests > num_chests && num_loops < NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST)
+    {
+      rvnum = zone_table[zone].bot;
+      while (rvnum <= zone_table[zone].top)
+      {
+        rrnum = real_room(rvnum);
+        if (rrnum != NOWHERE)
+        {
+          if (can_place_random_chest_in_room(rrnum, total_rooms, num_chests) && (dice(1, NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST) == 1))
+          {
+            place_random_chest(rrnum, zone_table[zone].max_level, -1, -1, 25);
+            // we increase num_chests for the one we just placed, to ensure we won't go over
+            // our limit in zones flagged for random_chests
+            num_chests++;
+          }
+        }
+        rvnum++;
+      }
+      num_loops++; 
+    }
   }
 }
 

@@ -1151,6 +1151,8 @@ const char *room_bits[] = {
     "Trapped",
     "Wild-Generated-Desc",
     "Player-Shop",
+    "Random-Trap",
+    "Random-Chest",
     "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 
@@ -1190,6 +1192,8 @@ const char *zone_bits[] = {
     "Ethereal-Plane",
     "Elemental-Plane",
     "Wilderness",
+    "Random-Chests",
+    "Random-Traps",
     "\n"};
 CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 

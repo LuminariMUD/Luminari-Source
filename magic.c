@@ -119,6 +119,9 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   // should be modified - zusuk
   challenge += CASTER_LEVEL(ch);
 
+  if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
+    challenge += 4;
+
   if (is_judgement_possible(ch, vict, INQ_JUDGEMENT_PIERCING))
     challenge += get_judgement_bonus(ch, INQ_JUDGEMENT_PIERCING);
 
@@ -383,6 +386,8 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (ch && (GET_HIT(ch) * 2) < GET_MAX_HIT(ch) && !IS_NPC(vict) && HAS_FEAT(vict, FEAT_ASTRAL_MAJESTY))
     savethrow += 1;
+  if (affected_by_spell(vict, SPELL_EFFECT_GRAND_DESTINY))
+    savethrow += 4;
 
   // vampire bonuses / penalties for feeding
   challenge += vampire_last_feeding_adjustment(ch);
@@ -4180,6 +4185,15 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
     // spells and other effects
+
+  case SPELL_GRAND_DESTINY:
+    af[0].duration = 12 * 10 * level;
+    af[0].modifier = 0;
+    af[0].location = APPLY_SPECIAL;
+
+    to_vict = "A brief aura of brilliant blue surrounds you.";
+    to_room = "A brief aura of brilliant blue surrounds $n.";
+    break;
 
   case SPELL_DJINNI_KIND:
     af[0].duration = 10 * level;

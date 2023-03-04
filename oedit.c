@@ -1326,9 +1326,7 @@ static void oedit_disp_val6_menu(struct descriptor_data *d)
   switch (GET_OBJ_TYPE(OLC_OBJ(d)))
   {
   case ITEM_TREASURE_CHEST:
-    write_to_output(d, "Trap Type (0 for no trap): ");
-    get_char_colors(d->character);
-    clear_screen(d);
+    write_to_output(d, "Trap Type (0 for no trap):\r\n");
     column_list(d->character, 0, trap_effects, MAX_TRAP_EFFECTS, TRUE);
     break;
   case ITEM_GEAR_OUTFIT:
@@ -2422,6 +2420,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_TREASURE_CHEST:
+      if (number < 0 || number > 80)
+      {
+        write_to_output(d, "Please select 0 if the chest is not hidden, otherwise enter the search dc (max 80).\r\n");
+        return;
+      }
+      min_val = 0;
+      max_val = 80;
+      break;
     case ITEM_GEAR_OUTFIT:
       if (number == APPLY_SKILL || number == APPLY_FEAT)
       {
@@ -2485,6 +2492,17 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_TREASURE_CHEST:
+      if (number < 0 || number > 80)
+      {
+        write_to_output(d, "Please select 0 if the chest is not locked, otherwise enter the pick lock dc (max 80).\r\n");
+        return;
+      }
+      min_val = 0;
+      max_val = 80;
+      GET_OBJ_VAL(OLC_OBJ(d), 4) = LIMIT(number, min_val, max_val);
+      oedit_disp_val6_menu(d);
+      return;
     case ITEM_GEAR_OUTFIT:
       GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_APPLY_MOD) = number;
       oedit_disp_val6_menu(d);
@@ -2514,6 +2532,15 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
+    case ITEM_TREASURE_CHEST:
+      if (number < 0 || number > MAX_TRAP_EFFECTS)
+      {
+        write_to_output(d, "Please select 0 if the chest has no trap, otherwise enter the trap type desired.\r\n");
+        return;
+      }
+      min_val = 0;
+      max_val = MAX_TRAP_EFFECTS;
+      break;
     case ITEM_GEAR_OUTFIT:
       min_val = 0;
       max_val = NUM_BONUS_TYPES - 1;

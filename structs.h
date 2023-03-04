@@ -156,6 +156,11 @@
 /******************************************/
 /*end traps*/
 
+#define NUM_OF_ZONE_ROOMS_PER_RANDOM_TRAP  33
+#define NUM_OF_ZONE_ROOMS_PER_RANDOM_CHEST 33
+#define RANDOM_TREASURE_CHEST_VNUM 837
+#define RANDOM_TREASURE_TRAP_VNUM  838
+
 /* Room flags: used in room_data.room_flags */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
 #define ROOM_DARK 0             /**< Dark room, light needed to see */
@@ -199,10 +204,12 @@
                                   rooms that block different directions.     \ \ \ \
                                   (eg. around obstacles.) */
 #define ROOM_PLAYER_SHOP 35     /* indicates player shop, currently used so hsort() won't work */
+#define ROOM_RANDOM_TRAP 36    // a random trap will load in this room
+#define ROOM_RANDOM_CHEST 37    // a random treasure chest will load in this room
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 36
+#define NUM_ROOM_FLAGS 38
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events
@@ -238,8 +245,10 @@
 #define ZONE_ETH_PLANE 9    /* ethereal plane */
 #define ZONE_ELEMENTAL 10   /* elemental plane */
 #define ZONE_WILDERNESS 11
+#define ZONE_RANDOM_CHESTS 12 // random treasure chests will load in this zone
+#define ZONE_RANDOM_TRAPS 13 // random traps will load in this zone
 /** The total number of Zone Flags */
-#define NUM_ZONE_FLAGS 12
+#define NUM_ZONE_FLAGS 14
 
 /* Goto Zones: Used by the goto command to quickly go to specific zones on the worldmap */
 #define NUM_GOTO_ZONES 10
