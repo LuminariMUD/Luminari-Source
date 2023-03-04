@@ -63,7 +63,7 @@ static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
                                                 : (EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF)))
 #define DOOR_IS_CLOSED(ch, obj, door) (!(DOOR_IS_OPEN(ch, obj, door)))
 #define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
-#define DOOR_KEY(ch, obj, door) ((obj) ? (GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
+#define DOOR_KEY(ch, obj, door) ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2)) : (EXIT(ch, door)->key))
 
 /***** start file body *****/
 
@@ -2539,7 +2539,7 @@ ACMD(do_gen_door)
   if ((obj) || (door >= 0))
   {
     keynum = DOOR_KEY(ch, obj, door);
-    if (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST)
+    if (obj && GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST)
     {
       if (GET_OBJ_VAL(obj, 4) <= 0)
       {
