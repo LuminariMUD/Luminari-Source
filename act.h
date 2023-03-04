@@ -623,6 +623,7 @@ ACMDCHECK(can_vampiric_dominate);
 ACMD_DECL(do_vampiric_dominate);
 ACMD_DECL(do_quick_chant);
 ACMD_DECL(do_planarsoul);
+ACMD_DECL(do_grand_destiny);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c

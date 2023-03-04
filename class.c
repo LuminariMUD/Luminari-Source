@@ -3847,6 +3847,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_HOSTILE_JUXTAPOSITION, 9);
   spell_assignment(CLASS_WIZARD, SPELL_BANISHING_BLADE, 9);
   spell_assignment(CLASS_WIZARD, SPELL_GENIEKIND, 9);
+  spell_assignment(CLASS_WIZARD, SPELL_GRAND_DESTINY, 9);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_WIZARD, SPELL_FREEZING_SPHERE, 11);
@@ -4442,6 +4443,10 @@ void load_class_list(void)
   feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DOUBLE_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DOUBLE_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DOUBLE_WEAPON_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_WARRIOR, FEAT_DOUBLE_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
   /* epic class */
   feat_assignment(CLASS_WARRIOR, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARRIOR, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
@@ -5144,6 +5149,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_HOSTILE_JUXTAPOSITION, 10);
   spell_assignment(CLASS_SORCERER, SPELL_BANISHING_BLADE, 10);
   spell_assignment(CLASS_SORCERER, SPELL_GENIEKIND, 10);
+  spell_assignment(CLASS_SORCERER, SPELL_GRAND_DESTINY, 10);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_SORCERER, SPELL_FREEZING_SPHERE, 12);
@@ -5893,6 +5899,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BARD, SPELL_MASS_CURE_LIGHT, 13);
   spell_assignment(CLASS_BARD, SPELL_SHADOW_WALK, 13);
   spell_assignment(CLASS_BARD, SPELL_GREATER_DISPELLING, 13);
+  spell_assignment(CLASS_BARD, SPELL_GRAND_DESTINY, 13);
   /*              class num      spell                   level acquired */
   /* 6th circle */
   spell_assignment(CLASS_BARD, SPELL_SUMMON_CREATURE_7, 16);
@@ -6417,6 +6424,10 @@ void load_class_list(void)
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_MASTERY, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_FLURRY, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_WEAPON_SUPREMACY, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DOUBLE_WEAPON_FOCUS, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DOUBLE_WEAPON_SPECIALIZATION, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DOUBLE_WEAPON_CRITICAL, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_DOUBLE_WEAPON_DEFENSE, Y, NOASSIGN_FEAT, N);
   /* epic class */
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_EPIC_PROWESS, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_ELDRITCH_KNIGHT, FEAT_GREAT_STRENGTH, Y, NOASSIGN_FEAT, N);
@@ -7086,6 +7097,7 @@ void load_class_list(void)
   spell_assignment(CLASS_ALCHEMIST, SPELL_POLYMORPH, 13);
   spell_assignment(CLASS_ALCHEMIST, SPELL_OVERLAND_FLIGHT, 13);
   spell_assignment(CLASS_ALCHEMIST, SPELL_MASS_STONESKIN, 13);
+  spell_assignment(CLASS_ALCHEMIST, SPELL_GRAND_DESTINY, 13);
 
   /* concoction circle 6 */
   spell_assignment(CLASS_ALCHEMIST, SPELL_EYEBITE, 16);
@@ -7557,7 +7569,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_PLANAR_SOUL, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_ETHEREAL_JAUNT, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GENIEKIND, 13);
-  // spell_assignment(CLASS_SUMMONER, SPELL_GRAND_DESTINY, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_GRAND_DESTINY, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_HEROISM, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_INVISIBILITY, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_REJUVENATE_EIDOLON, 13);

@@ -7635,6 +7635,11 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
   /* Competence bonus */
 
+  if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
+  {
+     bonuses[BONUS_TYPE_CIRCUMSTANCE] += 4;
+  }
+
   /* Enhancement bonus */
   if (wielded)
   {

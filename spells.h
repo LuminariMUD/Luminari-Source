@@ -561,9 +561,10 @@
 #define SPELL_REPULSION 486
 #define SPELL_MASS_CHARM_MONSTER 487
 #define SPELL_GENIEKIND 488
+#define SPELL_GRAND_DESTINY 489
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 489
+#define NUM_SPELLS 490
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -631,6 +632,7 @@
 #define SPELL_EFREETI_KIND 1250
 #define SPELL_MARID_KIND 1251
 #define SPELL_SHAITAN_KIND 1252
+#define SPELL_EFFECT_GRAND_DESTINY 1253
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c

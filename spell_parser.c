@@ -3826,6 +3826,14 @@ void mag_assign_spells(void)
   spello(SPELL_SHAITAN_KIND, "shaitan-kind", 58, 43, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_AFFECTS | MAG_SUMMONS, NULL, 9, 23, CONJURATION, FALSE);
 
+  // level 5 spell
+  spello(SPELL_GRAND_DESTINY, "grand destiny", 58, 43, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+         "Your destiny is no longer amplified.", 9, 23, ENCHANTMENT, FALSE);
+  spello(SPELL_EFFECT_GRAND_DESTINY, "grand destiny actualized", 58, 43, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
+         "Your destiny is no longer amplified.", 9, 23, ENCHANTMENT, FALSE);
+
   // epic magical
   spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,

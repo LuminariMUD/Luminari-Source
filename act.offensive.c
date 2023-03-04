@@ -9551,6 +9551,36 @@ ACMD(do_planarsoul)
   act("$n seems to surge with might!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
+
+ACMD(do_grand_destiny)
+{
+  if (!affected_by_spell(ch, SPELL_GRAND_DESTINY))
+  {
+    send_to_char(ch, "You must be under the affect of the grand destiny spell to actualize it.\r\n");
+    return;
+  }
+
+  if (affected_by_spell(ch, SPELL_EFFECT_GRAND_DESTINY))
+  {
+    send_to_char(ch, "You are already under the effect of a grand destiny actualization.\r\n");
+    return;
+  }
+
+  struct affected_type af;
+
+  affect_from_char(ch, SPELL_GRAND_DESTINY);
+
+  new_affect(&af);
+  af.spell = SPELL_EFFECT_GRAND_DESTINY;
+  af.location = APPLY_SPECIAL;
+  af.duration = 3;
+
+  affect_to_char(ch, (&af));
+
+  act("Your grand destiny has been actualized!", FALSE, ch, 0, 0, TO_CHAR);
+  act("$n's grand destiny has been actualized!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

@@ -118,6 +118,13 @@ const char *get_region_info(int region);
 int get_vampire_cloak_bonus(int level, int type);
 bool can_silence(struct char_data *ch);
 bool can_daze(struct char_data *ch);
+bool is_random_chest_in_room(room_rnum rrnum);
+int get_random_chest_item_level(int level);
+int get_chest_contents_type(void);
+int get_random_chest_dc(int level);
+int number_of_chests_per_zone(int num_zone_rooms);
+void place_random_chest(room_rnum rrnum, int level, int search_dc, int pick_dc, int trap_chance);
+bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests);
 int get_default_spell_weapon(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
 bool can_study_known_psionics(struct char_data *ch);
@@ -1763,10 +1770,11 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define CAN_INFRA_OBJ_CARRIER(sub, obj)                     \
   ((!obj->carried_by || CAN_INFRA(sub, obj->carried_by)) && \
    (!obj->worn_by || CAN_INFRA(sub, obj->worn_by)))
+#define IS_TREASURE_CHEST_HIDDEN(obj)  (GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST && GET_OBJ_VAL(obj, 3) > 0)
 
 /** Can sub character see the obj, using mortal only checks? */
 #define MORT_CAN_SEE_OBJ(sub, obj) \
-  (LIGHT_OK(sub) && INVIS_OK_OBJ(sub, obj) && CAN_SEE_OBJ_CARRIER(sub, obj))
+  (LIGHT_OK(sub) && INVIS_OK_OBJ(sub, obj) && CAN_SEE_OBJ_CARRIER(sub, obj) && !IS_TREASURE_CHEST_HIDDEN(obj))
 #define MORT_CAN_INFRA_OBJ(sub, obj) \
   (INFRA_OK(sub) && INVIS_OK_OBJ(sub, obj) && CAN_INFRA_OBJ_CARRIER(sub, obj))
 
