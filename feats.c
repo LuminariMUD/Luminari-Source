@@ -7497,8 +7497,11 @@ int find_feat_num(const char *name)
  * differently, making them stand out.) */
 bool display_feat_info(struct char_data *ch, const char *featname)
 {
-  int feat = -1;
+  int feat = -1, i = 0, j = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
+  bool first = TRUE;
+  struct feat_prerequisite *prereq;
+  struct class_feat_assign *feat_assign = NULL;
 
   //  static int line_length = 57;
   static int line_length = 80;
@@ -7533,8 +7536,6 @@ bool display_feat_info(struct char_data *ch, const char *featname)
   }
   else
   {
-    bool first = TRUE;
-    struct feat_prerequisite *prereq;
 
     /* Get the wielded weapon, so that we can use it for checking prerequesites.
      * Don't bother checking the offhand since we can only use one value.
@@ -7574,6 +7575,150 @@ bool display_feat_info(struct char_data *ch, const char *featname)
   send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
+
+  // List any feats that this feat is a prerequisite for
+
+  first = true;
+  snprintf(buf, sizeof(buf), "\tn");
+
+  for (i = 0; i < FEAT_LAST_FEAT; i++)
+  {
+    if (feat_list[i].in_game == false) continue;
+    if (feat_list[i].prerequisite_list == NULL) continue;
+    for (prereq = feat_list[i].prerequisite_list; prereq != NULL; prereq = prereq->next)
+    {
+      if (prereq->prerequisite_type != FEAT_PREREQ_FEAT && prereq->prerequisite_type != FEAT_PREREQ_CFEAT) continue;
+      if (prereq->values[0] != feat) continue;
+      if (first)
+      {
+        first = FALSE;
+        snprintf(buf2, sizeof(buf2), "\tcPrerequisite For \tn: %s", feat_list[i].name);
+        strlcat(buf, buf2, sizeof(buf));
+      }
+      else
+      {
+        snprintf(buf2, sizeof(buf2), ", %s", feat_list[i].name);
+        strlcat(buf, buf2, sizeof(buf));
+      }
+    }
+  }
+
+  if (!first)
+  {
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  // List any races that get this feat for free
+
+  first = true;
+  snprintf(buf, sizeof(buf), "\tn");
+
+  for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+  {
+    j = 0;
+    while (level_feats[j][LF_FEAT] != FEAT_UNDEFINED)
+    {
+      if (level_feats[j][1] == i && level_feats[j][4] == feat && race_list[i].name != NULL)
+      {
+        if (first)
+        {
+          first = FALSE;
+          snprintf(buf2, sizeof(buf2), "\tcObtained by Races \tn: %s", race_list[i].name);
+          strlcat(buf, buf2, sizeof(buf));
+        }
+        else
+        {
+          snprintf(buf2, sizeof(buf2), ", %s", race_list[i].name);
+          strlcat(buf, buf2, sizeof(buf));
+        }
+      }
+      j++;
+    }
+  }
+
+  if (!first)
+  {
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  // List any classes that get this feat for free
+
+  first = true;
+  snprintf(buf, sizeof(buf), "\tn");
+
+  for (i = CLASS_WIZARD; i < NUM_CLASSES; i++)
+  {
+    if (class_list[i].featassign_list != NULL)
+    {
+      for (feat_assign = class_list[i].featassign_list; feat_assign != NULL; feat_assign = feat_assign->next)
+      {
+        if (feat_assign->level_received > 0 && feat_assign->feat_num == feat)
+        {
+          if (first)
+          {
+            first = FALSE;
+            snprintf(buf2, sizeof(buf2), "\tcObtained by Class \tn: %s (lvl %d)", class_list[i].name, feat_assign->level_received);
+            strlcat(buf, buf2, sizeof(buf));
+          }
+          else
+          {
+            snprintf(buf2, sizeof(buf2), ",  %s (lvl %d)", class_list[i].name, feat_assign->level_received);
+            strlcat(buf, buf2, sizeof(buf));
+          }
+        }
+      }
+    }
+  }
+
+  if (!first)
+  {
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  // List any classes for which this is a class feat
+
+  first = true;
+  snprintf(buf, sizeof(buf), "\tn");
+
+  for (i = CLASS_WIZARD; i < NUM_CLASSES; i++)
+  {
+    if (class_list[i].featassign_list != NULL)
+    {
+      for (feat_assign = class_list[i].featassign_list; feat_assign != NULL; feat_assign = feat_assign->next)
+      {
+        if (feat_assign->level_received == -1 && feat_assign->feat_num == feat)
+        {
+          if (first)
+          {
+            first = FALSE;
+            snprintf(buf2, sizeof(buf2), "\tcClass Feat for \tn: %s", class_list[i].name);
+            strlcat(buf, buf2, sizeof(buf));
+          }
+          else
+          {
+            snprintf(buf2, sizeof(buf2), ",  %s", class_list[i].name);
+            strlcat(buf, buf2, sizeof(buf));
+          }
+        }
+      }
+    }
+  }
+
+  if (!first)
+  {
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+    send_to_char(ch, "\tC");
+    draw_line(ch, line_length, '-', '-');
+  }
+
+  snprintf(buf, sizeof(buf), "\tn");
+
   send_to_char(ch, "\tn\r\n");
 
   return TRUE;
