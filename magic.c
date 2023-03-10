@@ -5560,19 +5560,28 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     af[0].location = APPLY_HITROLL;
     af[0].modifier = 4;
-    af[0].duration = 300;
+    af[0].duration = 12 * level;
+    af[0].bonus_type = BONUS_TYPE_MORALE;
 
     af[1].location = APPLY_SAVING_WILL;
     af[1].modifier = 4;
-    af[1].duration = 300;
+    af[1].duration = 12 * level;
+    af[1].bonus_type = BONUS_TYPE_MORALE;
 
     af[2].location = APPLY_SAVING_FORT;
     af[2].modifier = 4;
-    af[2].duration = 300;
+    af[2].duration = 12 * level;
+    af[2].bonus_type = BONUS_TYPE_MORALE;
 
     af[3].location = APPLY_SAVING_REFL;
     af[3].modifier = 4;
-    af[3].duration = 300;
+    af[3].duration = 12 * level;
+    af[3].bonus_type = BONUS_TYPE_MORALE;
+
+    af[4].location = APPLY_HIT;
+    af[4].modifier = MIN(20, level);
+    af[4].duration = 12 * level;
+    af[4].bonus_type = BONUS_TYPE_MORALE;
 
     to_room = "$n is now very heroic!";
     to_vict = "You feel very heroic.";

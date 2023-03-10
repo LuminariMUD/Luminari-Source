@@ -2834,7 +2834,7 @@ ASPELL(eldritch_blast)
       mag_affects(effective_level, ch, victim, NULL, WARLOCK_ELDRITCH_BLAST, -1, CAST_INNATE, 0);
     }
   }
-  
+  if (target_list && target_list->iSize > 0)
   free_list(target_list);
 }
 
