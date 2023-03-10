@@ -7510,9 +7510,6 @@ static void perform_mag_groups(int level, struct char_data *ch,
   case SPELL_MASS_CHARM_MONSTER:
     effect_charm(ch, tch, SPELL_CHARM_MONSTER, casttype, level);
     break;
-  case SPELL_MASS_INVISIBILITY:
-    mag_affects(level, ch, tch, obj, SPELL_INVISIBLE, savetype, casttype, 0);
-    break;
   case SPELL_MASS_CUNNING:
     mag_affects(level, ch, tch, obj, SPELL_MASS_CUNNING, savetype, casttype, 0);
     break;
@@ -7619,10 +7616,6 @@ void mag_groups(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_MASS_FLY:
     to_char = "Your magicks brings strong magical winds to aid in flight!\tn";
     to_room = "$n brings strong magical winds to aid in flight!\tn";
-    break;
-  case SPELL_MASS_INVISIBILITY:
-    to_char = "Your magicks fade your group from sight.\tn";
-    to_room = "$n masks $s group with invisibility.\tn";
     break;
   case SPELL_ANIMAL_SHAPES:
     to_char = "You transform your group!\tn";

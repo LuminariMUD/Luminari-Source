@@ -7571,7 +7571,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GENIEKIND, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GRAND_DESTINY, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_HEROISM, 13);
-  spell_assignment(CLASS_SUMMONER, SPELL_MASS_INVISIBILITY, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_INVISIBILITY_SPHERE, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_REJUVENATE_EIDOLON, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_REPULSION, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_SPELL_TURNING, 13);
