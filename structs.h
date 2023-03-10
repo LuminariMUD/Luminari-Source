@@ -2427,12 +2427,26 @@
 #define FEAT_DOUBLE_WEAPON_SPECIALIZATION 988
 #define FEAT_DOUBLE_WEAPON_DEFENSE 989
 #define FEAT_DOUBLE_WEAPON_CRITICAL 990
+// summoner
+#define FEAT_EIDOLON 991
+#define FEAT_LIFE_LINK 992
+#define FEAT_SUMMON_MONSTER 993
+#define FEAT_BOND_SENSES 994
+#define FEAT_SHIELD_ALLY 995
+#define FEAT_MAKERS_CALL 996
+#define FEAT_TRANSPOSITION 997
+#define FEAT_ASPECT 998
+#define FEAT_GREATER_SHIELD_ALLY 999
+#define FEAT_LIFE_BOND 1000
+#define FEAT_MERGE_FORMS 1001
+#define FEAT_GREATER_ASPECT 1002
+#define FEAT_GRAND_EIDOLON 1003
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 991
+#define FEAT_LAST_FEAT 1004
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 992
+#define NUM_FEATS 1005
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -4104,6 +4118,10 @@ struct char_special_data_saved
     int eldritch_shape;            // saved shape for eldritch blasts
     int eldritch_essence;          // the essence used for eldritch blasts
     int damage_reduction_mod;
+
+    // summoner
+    int eidolon_evolutions[AF_ARRAY_MAX]; /**< Bitvector for active eidolon evolutions */
+    int known_evolutions[AF_ARRAY_MAX]; /**< Bitvector for known eidolon evolutions */
 };
 
 /* not saved player data used for condensed combat */

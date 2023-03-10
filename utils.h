@@ -653,6 +653,11 @@ void char_from_furniture(struct char_data *ch);
 /** Affect flags on the NPC or PC. */
 #define AFF_FLAGS(ch) ((ch)->char_specials.saved.affected_by)
 
+/** Affect flags on the NPC or PC. */
+#define EVOLUTIONS(ch) ((ch)->char_specials.saved.eidolon_evolutions)
+/** Affect flags on the NPC or PC. */
+#define KNOWN_EVOLUTIONS(ch) ((ch)->char_specials.saved.known_evolutions)
+
 /** Room flags.
  * @param loc The real room number. */
 #define ROOM_FLAGS(loc) (world[(loc)].room_flags)
@@ -705,6 +710,12 @@ void char_from_furniture(struct char_data *ch);
 
 /** 1 if flag is set in the affect bitarray, 0 if not. */
 #define AFF_FLAGGED(ch, flag) (IS_SET_AR(AFF_FLAGS(ch), (flag)))
+
+/** 1 if flag is set in the affect bitarray, 0 if not. */
+#define HAS_EVOLUTION(ch, flag) (IS_SET_AR(EVOLUTIONS(ch), (flag)))
+
+/** 1 if flag is set in the affect bitarray, 0 if not. */
+#define KNOWS_EVOLUTION(ch, flag) (IS_SET_AR(KNOWN_EVOLUTIONS(ch), (flag)))
 
 /** 1 if flag is set in the preferences bitarray, 0 if not. */
 #define PRF_FLAGGED(ch, flag) (IS_SET_AR(PRF_FLAGS(ch), (flag)))

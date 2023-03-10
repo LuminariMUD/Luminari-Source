@@ -6135,7 +6135,6 @@ bool can_spell_be_revoked(int spellnum)
   case SPELL_RESIST_ENERGY:
   case SPELL_WATER_BREATHE:
   case SPELL_HEROISM:
-  case SPELL_INVISIBILITY_SPHERE:
   case SPELL_NON_DETECTION:
   case SPELL_HASTE:
   case SPELL_CIRCLE_A_EVIL:

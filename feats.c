@@ -1468,6 +1468,68 @@ void assign_feats(void)
         "This feat may be taken multiple times and stacks.");
   feat_prereq_class_level(FEAT_EPIC_ELDRITCH_MASTER, CLASS_WARLOCK, 20);
 
+  // summoner abilities
+
+  feato(FEAT_EIDOLON, "eidolon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Ability to summon a powerful creature under the summoner's control.",
+        "Ability to summon a powerful eidolon that can be enhanced by the summoner as they gain summoner class levels.");
+
+  feato(FEAT_LIFE_LINK, "life link", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When the eidolon takes enough damage to kill it, the extra damage is instead taken from the summoner.",
+        "When the eidolon takes enough damage to kill it, the extra damage is instead taken from the summoner, "
+        "unless that amount would reduce the summoner’s hp below zero. This can only happen once every 10 minutes. "
+        "See prefedit to toggle on and off, on by default.");
+
+  feato(FEAT_SUMMON_MONSTER, "conjure monster", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows the summoner to cast summon monster spells at-will.",
+        "Allows the summoner to cast summon monster spells at-will. As the summoner gains class levels, they can cast "
+        "more powerful versions of the summon monster spells.");
+
+  feato(FEAT_BOND_SENSES, "bond senses", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The summoner can take full control of their eidolon.",
+        "Allows the summoner to assume full control of their eidolon from a first person view.  Use the 'return' "
+        "command to return to the summoner's body.");
+  
+  feato(FEAT_SHIELD_ALLY, "shield ally", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "When in the same room as the eidolon the summoner gains a +2 shield bonus to AC, and a +2 circumstance bonus to saves.",
+        "When in the same room, and the eidolon is not grappled, helpless, paralyzed, stunned or unconscious, the summoner "
+        "gains a +2 shield bonus to AC, and a +2 circumstance bonus to saves.");
+
+  feato(FEAT_MAKERS_CALL, "makers call", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The summoner can call his summons to him for half the normal move cost.",
+        "The summoner can call his summons to him for half the normal move cost.");
+
+  feato(FEAT_TRANSPOSITION, "transposition", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The summoner can swap places with his eidolon.",
+        "The summoner can swap places with his eidolon.");
+
+  feato(FEAT_ASPECT, "aspect", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The summoner can add a single evolution to apply to themselves.",
+        "The summoner can add a single evolution to apply to themselves.");
+
+  feato(FEAT_GREATER_SHIELD_ALLY, "greater shield ally", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "As Shield Ally, except the above bonuses apply to all allies in the same room, and the summoner gains +4 bonuses instead of +2.",
+        "As Shield Ally, except the above bonuses apply to all allies in the same room, and the summoner gains +4 bonuses instead of +2.");
+
+  feato(FEAT_LIFE_BOND, "life bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead.",
+        "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead. "
+        "See prefedit to toggle on and off.  Turned off by default.");
+
+  feato(FEAT_MERGE_FORMS, "merge forms", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "Allows the summoner to dismiss their eidolon and take upon them all their abilities.",
+        "The summoner's eidolon is dismissed and the summoner gains all of the eidolon's evolutions, as well as their STR, DEX and CON "
+        "ability scores. This lasts 1 round per summoner level, and is usable once per day. Once the duration expires, or the effect is "
+        "revoked, the eidolon can be resummoned.");
+
+  feato(FEAT_GREATER_ASPECT, "greater aspect", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The summoner can now add two evolutions to apply to themselves.",
+        "The summoner can now add two evolutions to apply to themselves.");
+
+  feato(FEAT_GRAND_EIDOLON, "grand eidolon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The eidolon can now add two more evolutions.",
+        "The eidolon can now add two more evolutions.");
+
   /*****************/
   /* General feats */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */

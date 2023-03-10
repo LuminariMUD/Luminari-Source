@@ -544,14 +544,16 @@ int load_char(const char *name, struct char_data *ch)
     GET_DRAGONBORN_ANCESTRY(ch) = 0;
     HIGH_ELF_CANTRIP(ch) = 0;
     for (i = 0; i < AF_ARRAY_MAX; i++)
-      AFF_FLAGS(ch)
-    [i] = PFDEF_AFFFLAGS;
+      AFF_FLAGS(ch)[i] = PFDEF_AFFFLAGS;
     for (i = 0; i < PM_ARRAY_MAX; i++)
-      PLR_FLAGS(ch)
-    [i] = PFDEF_PLRFLAGS;
+      PLR_FLAGS(ch)[i] = PFDEF_PLRFLAGS;
     for (i = 0; i < PR_ARRAY_MAX; i++)
-      PRF_FLAGS(ch)
-    [i] = PFDEF_PREFFLAGS;
+      PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
+    for (i = 0; i < PR_ARRAY_MAX; i++)
+    {
+      EVOLUTIONS(ch)[i] = 0;
+      KNOWN_EVOLUTIONS(ch)[i] = 0;
+    }
     for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
       GET_BOMB(ch, i) = 0;
     for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
@@ -788,6 +790,18 @@ int load_char(const char *name, struct char_data *ch)
           GET_EXP(ch) = atoi(line);
         else if (!strcmp(tag, "Evnt"))
           load_events(fl, ch);
+        else if (!strcmp(tag, "Evol"))
+        {
+          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          {
+            EVOLUTIONS(ch)[0] = asciiflag_conv(f1);
+            EVOLUTIONS(ch)[1] = asciiflag_conv(f2);
+            EVOLUTIONS(ch)[2] = asciiflag_conv(f3);
+            EVOLUTIONS(ch)[3] = asciiflag_conv(f4);
+          }
+          else
+            EVOLUTIONS(ch)[0] = asciiflag_conv(line);
+        }
         else if (!strcmp(tag, "Ecfp"))
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
@@ -897,6 +911,18 @@ int load_char(const char *name, struct char_data *ch)
       case 'K':
         if (!strcmp(tag, "KnSp"))
           load_known_spells(fl, ch);
+        else if (!strcmp(tag, "KEvo"))
+        {
+          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          {
+            KNOWN_EVOLUTIONS(ch)[0] = asciiflag_conv(f1);
+            KNOWN_EVOLUTIONS(ch)[1] = asciiflag_conv(f2);
+            KNOWN_EVOLUTIONS(ch)[2] = asciiflag_conv(f3);
+            KNOWN_EVOLUTIONS(ch)[3] = asciiflag_conv(f4);
+          }
+          else
+            KNOWN_EVOLUTIONS(ch)[0] = asciiflag_conv(line);
+        }
         break;
 
       case 'L':
@@ -1502,6 +1528,18 @@ void save_char(struct char_data *ch, int mode)
   sprintascii(bits3, AFF_FLAGS(ch)[2]);
   sprintascii(bits4, AFF_FLAGS(ch)[3]);
   fprintf(fl, "Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
+
+  sprintascii(bits, EVOLUTIONS(ch)[0]);
+  sprintascii(bits2, EVOLUTIONS(ch)[1]);
+  sprintascii(bits3, EVOLUTIONS(ch)[2]);
+  sprintascii(bits4, EVOLUTIONS(ch)[3]);
+  fprintf(fl, "Evol: %s %s %s %s\n", bits, bits2, bits3, bits4);
+
+  sprintascii(bits, KNOWN_EVOLUTIONS(ch)[0]);
+  sprintascii(bits2, KNOWN_EVOLUTIONS(ch)[1]);
+  sprintascii(bits3, KNOWN_EVOLUTIONS(ch)[2]);
+  sprintascii(bits4, KNOWN_EVOLUTIONS(ch)[3]);
+  fprintf(fl, "KEvo: %s %s %s %s\n", bits, bits2, bits3, bits4);
 
   sprintascii(bits, PRF_FLAGS(ch)[0]);
   sprintascii(bits2, PRF_FLAGS(ch)[1]);
