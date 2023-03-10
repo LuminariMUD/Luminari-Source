@@ -2757,8 +2757,8 @@ ASPELL(eldritch_blast)
         continue;
       add_to_list(tch, target_list);
     }
-  } 
-
+  }
+  
   // Check to see if the spell should miss
   if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_ELDRITCH_DOOM)
   {
@@ -2820,7 +2820,7 @@ ASPELL(eldritch_blast)
       }
     }
   }
-    else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
+  else if (GET_ELDRITCH_SHAPE(ch) == WARLOCK_HIDEOUS_BLOW)
   {
     const bool is_critical = attack_result == 999;
     if (is_critical) 
@@ -2835,7 +2835,7 @@ ASPELL(eldritch_blast)
     }
   }
   if (target_list && target_list->iSize > 0)
-  free_list(target_list);
+    free_list(target_list);
 }
 
 ASPELL(spell_summon)
