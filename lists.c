@@ -413,10 +413,11 @@ void free_list(struct list_data *pList)
 //    mudlog(CMP, LVL_STAFF, TRUE, "List being freed while not empty.");
 
   /* Global List for debugging */
-  if (pList != global_lists)
+  if (pList != NULL && pList != global_lists)
     remove_from_list(pList, global_lists);
-
-  free(pList);
+  
+  if (pList != NULL)
+    free(pList);
 }
 
 void add_to_list(void *pContent, struct list_data *pList)
