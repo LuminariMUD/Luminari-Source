@@ -4969,6 +4969,16 @@ sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte displ
     return TRUE;
   }
 
+  if (affected_by_spell(victim, SPELL_GREATER_HEROISM))
+  {
+    if (display)
+    {
+      send_to_char(victim, "Your heroism overcomes the fear!\r\n");
+      act("$n \tWovercomes the \tDfear\tW with heroism!\tn\tn", TRUE, ch, 0, 0, TO_CHAR);
+    }
+    return TRUE;
+  }
+
   return FALSE;
 }
 
