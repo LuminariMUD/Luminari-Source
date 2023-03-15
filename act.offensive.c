@@ -2707,7 +2707,12 @@ ACMD(do_hit)
 
   if (!*arg)
   {
-    if (!PRF_FLAGGED(ch, PRF_AUTOHIT))
+    if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_AUTOHIT))
+    {
+      send_to_char(ch, "Hit who?\r\n");
+      return;
+    }
+    if (IS_NPC(ch) && (!ch->master  || !PRF_FLAGGED(ch->master, PRF_AUTOHIT)))
     {
       send_to_char(ch, "Hit who?\r\n");
       return;
