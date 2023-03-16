@@ -7564,6 +7564,9 @@ ACMD(do_autoblast)
 
   one_argument(argument, arg, sizeof(arg));
 
+  if (IN_ROOM(ch) == NOWHERE)
+    return;
+
   if (BLASTING(ch))
   {
     send_to_char(ch, "You stop utilizing eldritch blast.\r\n");
@@ -7588,10 +7591,16 @@ ACMD(do_autoblast)
     return;
   }
 
-  vict = get_char_room_vis(ch, arg, NULL);
+  if (!(vict = get_char_room_vis(ch, arg, NULL)))
+  {
+    send_to_char(ch, "There is no one by that description here.\r\n");
+    return;
+  }
 
-  while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) !=
-         NULL)
+  if (IN_ROOM(vict) == NOWHERE)
+    return;
+
+  while ((tch = (struct char_data *) simple_list(GROUP(ch)->members)) != NULL)
   {
     if (IN_ROOM(tch) != IN_ROOM(vict))
       continue;
