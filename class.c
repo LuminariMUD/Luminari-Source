@@ -5593,8 +5593,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);
-  
+  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);  
   spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
@@ -7592,17 +7591,30 @@ void load_class_list(void)
   /* starting feats and proficiencies */
   feat_assignment(CLASS_SUMMONER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
   feat_assignment(CLASS_SUMMONER, FEAT_ARMOR_PROFICIENCY_LIGHT, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_EIDOLON, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_LIFE_LINK, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMON_MONSTER, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_BOND_SENSES, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SHIELD_ALLY, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_MAKERS_CALL, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_TRANSPOSITION, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_ASPECT, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_GREATER_SHIELD_ALLY, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_LIFE_BOND, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_MERGE_FORMS, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_GREATER_ASPECT, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_GRAND_EIDOLON, Y, 1, N);
 
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
-  /* concontions */
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_1ST_CIRCLE, Y, 1, N);
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_2ND_CIRCLE, Y, 4, N);
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_3RD_CIRCLE, Y, 7, N);
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_4TH_CIRCLE, Y, 10, N);
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_5TH_CIRCLE, Y, 13, N);
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_6TH_CIRCLE, Y, 16, N);
-  // feat_assignment(CLASS_SUMMONER, FEAT_INQUISITOR_EPIC_SPELL, Y, 21, N);
+  /* spell levels */
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_1ST_CIRCLE, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_2ND_CIRCLE, Y, 4, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_3RD_CIRCLE, Y, 7, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_4TH_CIRCLE, Y, 10, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_5TH_CIRCLE, Y, 13, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_6TH_CIRCLE, Y, 16, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_EPIC_SPELL, Y, 21, N);
 
   /* class feats */
   //feat_assignment(CLASS_SUMMONER, FEAT_JUDGEMENT, Y, 1, Y);

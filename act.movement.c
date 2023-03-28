@@ -39,12 +39,9 @@
 #include "transport.h"
 
 /* do_gen_door utility functions */
-static int find_door(struct char_data *ch, const char *type, char *dir,
-                     const char *cmdname);
-static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door,
-                       int scmd);
-static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof,
-                   int scmd, int door);
+static int find_door(struct char_data *ch, const char *type, char *dir, const char *cmdname);
+static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int scmd);
+static int ok_pick(struct char_data *ch, obj_vnum keynum, int pickproof, int scmd, int door);
 
 #define DOOR_IS_OPENABLE(ch, obj, door) ((obj) ? (((GET_OBJ_TYPE(obj) ==                    \
                                                     ITEM_CONTAINER) ||                      \

@@ -429,7 +429,7 @@ void perform_rescue(struct char_data *ch, struct char_data *vict);
 void perform_smite(struct char_data *ch, int smite_type);
 void perform_rage(struct char_data *ch);
 void perform_layonhands(struct char_data *ch, struct char_data *vict);
-bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill);
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, bool can_counter, bool display);
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict);
 void perform_headbutt(struct char_data *ch, struct char_data *vict);
 void perform_sap(struct char_data *ch, struct char_data *vict);
@@ -456,6 +456,7 @@ ACMDCHECK(can_fey_magic);
 ACMD_DECL(do_grave_magic);
 ACMDCHECK(can_grave_magic);
 ACMD_DECL(do_mark);
+ACMD_DECL(do_pushaway);
 
 /* Functions without subcommands */
 ACMD_DECL(do_cexchange);
@@ -624,6 +625,8 @@ ACMD_DECL(do_vampiric_dominate);
 ACMD_DECL(do_quick_chant);
 ACMD_DECL(do_planarsoul);
 ACMD_DECL(do_grand_destiny);
+ACMD_DECL(do_evoweb);
+ACMD_DECL(do_evobreath);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
@@ -706,6 +709,8 @@ ACMD_DECL(do_racefix);
 #define SCMD_CONDENSED 49
 #define SCMD_CAREFUL_PET 50
 #define SCMD_NORAGE 51
+#define SCMD_SHADOWFORM 52
+#define SCMD_SICKENING_AURA 53
 
 /* do_quit */
 ACMD_DECL(do_quit);
@@ -730,6 +735,7 @@ ACMD_DECL(do_diplomacy);
 #define DIP_WAIT (diplomacy_types[dip_num].wait)
 /* Functions without subcommands */
 ACMD_DECL(do_recharge);
+ACMD_DECL(do_sacrifice);
 ACMD_DECL(do_nop);
 ACMD_DECL(do_buck);
 ACMD_DECL(do_dismount);

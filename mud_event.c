@@ -204,6 +204,7 @@ struct mud_event_list mud_event_index[] = {
     {"Goliath Stone's Endurance Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eSTONESENDURANCE
     {"Aqueous Orb", event_aqueous_orb, EVENT_CHAR},           // eAQUEOUSORB
     {"Vampiric Blood Drain", event_daily_use_cooldown, EVENT_CHAR},               // eVAMPIREBLOODDRAIN
+    {"Eidolon Breath Weapon Cooldown", event_daily_use_cooldown, EVENT_CHAR}, // eDRACBREATH
 
 };
 

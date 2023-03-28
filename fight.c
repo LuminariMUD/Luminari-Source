@@ -45,6 +45,7 @@
 #include "domains_schools.h"
 #include "staff_events.h" /* for staff events!  prisoner no xp penalty! */
 #include "assign_wpn_armor.h"
+#include "evolutions.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -741,6 +742,18 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 6;
   }
+  if (HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR) * 2;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_HUGE))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 5;
+  }
+  else if (HAS_EVOLUTION(ch, EVOLUTION_LARGE))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 2;
+  }
   /**/
 
   /* bonus type armor */
@@ -1206,6 +1219,14 @@ void update_pos_dam(struct char_data *victim)
     {
       act("\tYYour die hard toughness let's you push through.\tn", FALSE, victim, 0, 0, TO_CHAR);
       act("$n's die hard toughness let's $m push through.", FALSE, victim, 0, 0, TO_ROOM);
+      GET_HIT(victim) = 1;
+    }
+    else if (IS_NPC(victim) && MOB_FLAGGED(victim, MOB_EIDOLON) && victim->master && !IS_NPC(victim->master) && HAS_FEAT(victim->master, FEAT_LIFE_LINK) && 
+             GET_HIT(victim->master) > 0 && dice(1, 3) == 1 && is_eidolon_in_room(victim->master))
+    {
+      act("\tYYour life link with $N let's you push through.\tn", FALSE, victim, 0, victim->master, TO_CHAR);
+      act("$n's life link with you let's $m push through.", FALSE, victim, 0, victim->master, TO_VICT);
+      act("$n's life link with $s master let's $m push through.", FALSE, victim, 0, 0, TO_NOTVICT);
       GET_HIT(victim) = 1;
     }
     else
@@ -2976,6 +2997,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     if (HAS_FEAT(ch, FEAT_TIEFLING_HELLISH_RESISTANCE))
       dam_reduction += 10;
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
     break;
   case DAM_COLD:
     if (affected_by_spell(ch, SPELL_RESIST_ENERGY))
@@ -3006,6 +3029,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
       dam_reduction += 5;
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
     break;
   case DAM_HOLY:
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
@@ -3020,6 +3045,8 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += 10;
     if (HAS_FEAT(ch, FEAT_CELESTIAL_RESISTANCE))
       dam_reduction += 5;
+    if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
     break;
   case DAM_UNHOLY:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
@@ -3036,9 +3063,21 @@ int compute_energy_absorb(struct char_data *ch, int dam_type)
       dam_reduction += get_char_affect_modifier(ch, SPELL_PROTECTION_FROM_ENERGY, APPLY_SPECIAL);
     break;
   case DAM_POISON:
+    if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
   case DAM_CELESTIAL_POISON:
     break;
   case DAM_DISEASE:
+    if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      dam_reduction += get_evolution_appearance_save_bonus(ch);
     break;
   case DAM_NEGATIVE:
     if (AFF_FLAGGED(ch, AFF_DEATH_WARD))
@@ -3148,6 +3187,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 100;
     if (IS_EFREETI(ch))
       damtype_reduction += 100;
+
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
     break;
 
   case DAM_COLD:
@@ -3267,6 +3309,8 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 100;
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
       damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
     break;
 
   case DAM_HOLY:
@@ -3316,6 +3360,9 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 100;
     if (is_judgement_possible(ch, FIGHTING(ch), INQ_JUDGEMENT_RESISTANCE))
       damtype_reduction += get_judgement_bonus(ch, INQ_JUDGEMENT_RESISTANCE);
+
+    if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
     break;
 
   case DAM_UNHOLY:
@@ -3399,6 +3446,12 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       damtype_reduction += 25;
     if (HAS_FEAT(ch, FEAT_STOUT_RESILIENCE))
       damtype_reduction += 50;
+    if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
 
     /* npc vulnerabilities/strengths */
     if (IS_NPC(ch))
@@ -3448,6 +3501,13 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type)
       if (GET_NPC_RACE(ch) == RACE_TYPE_UNDEAD)
         damtype_reduction += 50;
     }
+
+    if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
+    if (HAS_EVOLUTION(ch, EVOLUTION_FIENDISH_APPEARANCE))
+      damtype_reduction += get_evolution_appearance_save_bonus(ch);
 
     break;
 
@@ -3830,6 +3890,13 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
     if (display)
       send_to_char(ch, "%-30s: %d\r\n", "Resiliency Judgement", get_judgement_bonus(ch, INQ_JUDGEMENT_RESILIENCY));
   }
+
+  if (HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION))
+  {
+    damage_reduction += HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION) * 3;
+    if (display)
+      send_to_char(ch, "%-30s: %d\r\n", "Evolution(Damage Reduction)", HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION) * 3);
+  }
   
   if (GET_DR_MOD(ch) != 0)
   {
@@ -3867,6 +3934,13 @@ int compute_concealment(struct char_data *ch)
   /* these shouldn't stack, should be sorted from top to bottom by highest concealment % */
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
     concealment += 50;
+  else if (HAS_EVOLUTION(ch, EVOLUTION_SHADOW_BLEND) && !room_is_daylit(IN_ROOM(ch)))
+  {
+    if (HAS_EVOLUTION(ch, EVOLUTION_SHADOW_FORM))
+      concealment += 50;
+    else
+      concealment += 20;
+  }
   else if (AFF_FLAGGED(ch, AFF_BLINKING))
     concealment += 20;
   else if (affected_by_spell(ch, PSIONIC_CONCEALING_AMORPHA)) // this is here to prevent overpowered combinations of buffs
@@ -3943,7 +4017,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
   bool is_spell = FALSE;
   struct obj_data *weapon = NULL;
   weapon = is_using_ranged_weapon(ch, true);
-  int damage_reduction = 0;
+  int damage_reduction = 0, dr_reduction = 0;
   float damtype_reduction = 0;
 
   /* lets figure out if this attacktype is magical or not */
@@ -4332,6 +4406,12 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
         act("The rocky hardness of $n's skin deflects some of the damage, then crumbles to dust.", FALSE, victim, 0, 0, TO_ROOM);
         affect_from_char(victim, ABILITY_AFFECT_STONES_ENDURANCE);
       }
+
+      dr_reduction += MAX(0, HAS_EVOLUTION(ch, EVOLUTION_DAMAGE_REDUCTION) * 3);
+
+      damage_reduction -= dr_reduction;
+
+      damage_reduction = MAX(0, damage_reduction);
 
       dam -= MIN(dam, damage_reduction);
 
@@ -5143,7 +5223,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * compute_hit_damage()*/
-  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  if (attack_type == ATTACK_TYPE_UNARMED || is_evolution_attack(attack_type) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
@@ -5189,6 +5269,19 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
     dambonus++;
     if (display_mode)
       send_to_char(ch, "Aura of Faith: \tR1\tn\r\n");
+  }
+
+  if (is_evolution_attack(attack_type) && HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_DAMAGE))
+  {
+    dambonus += HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_DAMAGE);
+    if (display_mode)
+      send_to_char(ch, "Evolution (Improved Damage): \tR%d\tn\r\n", HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_DAMAGE));
+  }
+  if (attack_type == ATTACK_TYPE_PRIMARY_EVO_TENTACLE && HAS_EVOLUTION(ch, EVOLUTION_CONSTRICT))
+  {
+    dambonus += 4;
+    if (display_mode)
+      send_to_char(ch, "Evolution (Constrict): \tR4\tn\r\n");
   }
 
   if (AFF_FLAGGED(ch, AFF_SICKENED))
@@ -5361,6 +5454,28 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "Two Handed tinker bonus: \tR2\tn\r\n");
     }
+    break;
+
+  case ATTACK_TYPE_PRIMARY_EVO_BITE:
+  case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
+  case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
+  case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
+  case ATTACK_TYPE_PRIMARY_EVO_STING:
+  case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
+  case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
+  case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
+  case ATTACK_TYPE_PRIMARY_EVO_GORE:
+  case ATTACK_TYPE_PRIMARY_EVO_RAKE:
+    if (display_mode)
+      send_to_char(ch, "%s bonus: \tR%d\tn\r\n", attack_types[attack_type], str_bonus / 2);
+    dambonus += str_bonus / 2;
+    break;
+
+  case ATTACK_TYPE_PRIMARY_EVO_REND:
+  case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
+    if (display_mode)
+      send_to_char(ch, "%s bonus: \tR%d\tn\r\n", attack_types[attack_type], str_bonus * 3 / 2);
+    dambonus += str_bonus * 3 / 2;
     break;
 
   default:
@@ -6400,20 +6515,27 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
 
   /* redundancy necessary due to sometimes arriving here without going through
    * hit()*/
-  if (attack_type == ATTACK_TYPE_UNARMED || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+  if (attack_type == ATTACK_TYPE_UNARMED || is_evolution_attack(attack_type) || IS_WILDSHAPED(ch) || IS_MORPHED(ch))
     wielded = NULL;
   else
     wielded = get_wielded(ch, attack_type);
 
-  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED &&
-      attack_type != ATTACK_TYPE_RANGED)
+  if (GET_EQ(ch, WEAR_WIELD_2H) && mode != MODE_DISPLAY_RANGED && attack_type != ATTACK_TYPE_RANGED)
     attack_type = ATTACK_TYPE_TWOHAND;
 
   /* calculate how much damage to do with a given hit() */
   if (mode == MODE_NORMAL_HIT)
   {
-    /* determine weapon dice damage (or lack of weaopn) */
-    dam = compute_dam_dice(ch, victim, wielded, mode);
+    if (is_evolution_attack(attack_type))
+    {
+      dam = determine_evolution_attack_damage_dice(ch, attack_type);
+    }
+    else
+    {
+      /* determine weapon dice damage (or lack of weaopn) */
+      dam = compute_dam_dice(ch, victim, wielded, mode); 
+    }
+
     /* add any modifers to melee damage: strength, circumstance penalty, fatigue, size, etc etc */
     dam += compute_damage_bonus(ch, victim, wielded, w_type, NO_MOD, mode, attack_type);
 
@@ -6655,7 +6777,7 @@ int compute_hit_damage(struct char_data *ch, struct char_data *victim,
         else
         { /*success!*/
           send_to_char(ch, "\tW[Raging CRIT!]\tn");
-          perform_knockdown(ch, victim, SKILL_BASH);
+          perform_knockdown(ch, victim, SKILL_BASH, true, true);
         }
       }
     } /* END critical hit */
@@ -6982,10 +7104,42 @@ bool weapon_bypasses_dr(struct obj_data *weapon, struct damage_reduction_type *d
           passed = TRUE;
         if (affected_by_spell(ch, SKILL_DRHRT_CLAWS) && CLASS_LEVEL(ch, CLASS_SORCERER) >= 7)
           passed = TRUE;
+        if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS))
+          passed = TRUE;
         break;
       case DR_BYPASS_CAT_MATERIAL:
         if (GET_OBJ_MATERIAL(weapon) == dr->bypass_val[i])
           passed = TRUE;
+        break;
+      case DR_BYPASS_CAT_ALIGNMENT:
+        if (dr->bypass_val[i] == DR_ALIGNTYPE_GOOD)
+        {
+          if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_GOOD || GET_SUBRACE(ch, 1) == SUBRACE_GOOD || GET_SUBRACE(ch, 2) == SUBRACE_GOOD))
+            passed = true;
+          if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_GOOD(ch))
+            passed = true;
+        }
+        else if (dr->bypass_val[i] == DR_ALIGNTYPE_EVIL)
+        {
+          if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_EVIL || GET_SUBRACE(ch, 1) == SUBRACE_EVIL || GET_SUBRACE(ch, 2) == SUBRACE_EVIL))
+            passed = true;
+          if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_EVIL(ch))
+            passed = true;
+        }
+        else if (dr->bypass_val[i] == DR_ALIGNTYPE_LAW)
+        {
+          if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_LAWFUL || GET_SUBRACE(ch, 1) == SUBRACE_LAWFUL || GET_SUBRACE(ch, 2) == SUBRACE_LAWFUL))
+            passed = true;
+          if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_LAWFUL(ch))
+            passed = true;
+        }
+        else if (dr->bypass_val[i] == DR_ALIGNTYPE_CHAOS)
+        {
+          if (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_CHAOTIC || GET_SUBRACE(ch, 1) == SUBRACE_CHAOTIC || GET_SUBRACE(ch, 2) == SUBRACE_CHAOTIC))
+            passed = true;
+          if (HAS_EVOLUTION(ch, EVOLUTION_MAGIC_ATTACKS) && GET_LEVEL(ch) >= 10 && IS_CHAOTIC(ch))
+            passed = true;
+        }
         break;
       case DR_BYPASS_CAT_DAMTYPE:
           if ((dr->bypass_val[i] == DR_DAMTYPE_BLUDGEONING) &&
@@ -7561,6 +7715,7 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
 
     break;
   case ATTACK_TYPE_TWOHAND:
+  case ATTACK_TYPE_PRIMARY_EVO_BITE:
     calc_bab += GET_STR_BONUS(ch);
     break;
   default:
@@ -8312,8 +8467,7 @@ int attack_of_opportunity(struct char_data *ch, struct char_data *victim, int pe
 
   if (GET_TOTAL_AOO(ch) < (!HAS_FEAT(ch, FEAT_COMBAT_REFLEXES) ? 1 : GET_DEX_BONUS(ch)))
   {
-    GET_TOTAL_AOO(ch)
-    ++;
+    GET_TOTAL_AOO(ch)++;
     return hit(ch, victim, TYPE_ATTACK_OF_OPPORTUNITY, DAM_RESERVED_DBC, penalty, FALSE);
   }
   else
@@ -8660,6 +8814,8 @@ void handle_missed_attack(struct char_data *ch, struct char_data *victim,
                           struct obj_data *missile)
 {
 
+  GET_CONSECUTIVE_HITS(ch) = 0;
+
   if (affected_by_spell(ch, SPELL_RIGHTEOUS_VIGOR))
   {
     struct affected_type *aff = NULL;
@@ -8790,6 +8946,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   char hit_msg[32] = "";
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
+  GET_CONSECUTIVE_HITS(ch)++;
 
   if (affected_by_spell(ch, SPELL_RIGHTEOUS_VIGOR))
   {
@@ -9543,6 +9700,12 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
     process_weapon_abilities(wielded, ch, victim, ACTMTD_ON_HIT, NULL);
   if (IS_EFREETI(ch))
     damage(ch, victim, dice(2, 6), TYPE_SPECAB_FLAMING, DAM_FIRE, FALSE);
+  
+  if (is_evolution_attack(attack_type))
+  {
+    process_evolution_elemental_damage(ch, victim);
+    process_evolution_thrash_alignment_damage(ch, victim);
+  }
 
   /* our primitive weapon-poison system, needs some love */
   if (ch && victim && (wielded || missile || IS_TRELUX(ch)) && !victim_is_dead)
@@ -10011,7 +10174,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
   }
   else
   {
-    can_hit = (calc_bab + diceroll >= victim_ac);
+    can_hit = ((calc_bab + diceroll) >= victim_ac);
   }
   if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
   {
@@ -10251,7 +10414,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
 
         if (!affected_by_spell(ch, AFFECT_IMMUNITY_BANISHING_BLADE))
         {
-          if (perform_knockdown(victim, ch, SPELL_BANISHING_BLADE))
+          if (perform_knockdown(victim, ch, SPELL_BANISHING_BLADE, true, true))
           {
             if (IS_NPC(ch) && isSummonMob(GET_MOB_VNUM(ch)) && GET_LEVEL(victim) >= GET_LEVEL(ch))
             {
@@ -10898,6 +11061,134 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
     }
   }
 
+  if (HAS_EVOLUTION(ch, EVOLUTION_BITE))
+  {
+    numAttacks++;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_BITE, DAM_PUNCTURE);
+    if (GET_CONSECUTIVE_HITS(ch) > 0)
+    {
+      if (FIGHTING(ch))
+      {
+        if (HAS_EVOLUTION(ch, EVOLUTION_BLEED))
+        {
+          apply_evolution_bleed(FIGHTING(ch));
+        }
+        if (HAS_EVOLUTION(ch, EVOLUTION_TRIP) && GET_SIZE(FIGHTING(ch)) <= GET_SIZE(ch))
+        {
+          perform_knockdown(ch, FIGHTING(ch), SKILL_TRIP, false, false);
+        }
+      }
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_CLAWS))
+  {
+    numAttacks += 2;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_CLAWS, DAM_SLICE);
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_CLAWS, DAM_SLICE);
+    
+    if (FIGHTING(ch))
+    {
+      if (HAS_EVOLUTION(ch, EVOLUTION_BLEED) && GET_CONSECUTIVE_HITS(ch) > 0)
+      {
+        apply_evolution_bleed(FIGHTING(ch));
+      }
+      if (GET_CONSECUTIVE_HITS(ch) >= 2)
+      {
+        GET_CONSECUTIVE_HITS(ch) = 0;
+        numAttacks++;
+        perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_REND, DAM_SLICE);
+        if (FIGHTING(ch) && HAS_EVOLUTION(ch, EVOLUTION_BLEED) && GET_CONSECUTIVE_HITS(ch) > 0)
+        {
+          apply_evolution_bleed(FIGHTING(ch));
+        }
+      }
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_HOOVES))
+  {
+    numAttacks += 2;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_HOOVES, DAM_FORCE);
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_HOOVES, DAM_FORCE);
+    if (FIGHTING(ch))
+    {
+      if (GET_CONSECUTIVE_HITS(ch) >= 2)
+      {
+        numAttacks++;
+        perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_TRAMPLE, DAM_FORCE);
+      }
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_PINCERS))
+  {
+    numAttacks += 2;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_PINCERS, DAM_FORCE);
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_PINCERS, DAM_FORCE);
+    if (FIGHTING(ch) && HAS_EVOLUTION(ch, EVOLUTION_BLEED) && GET_CONSECUTIVE_HITS(ch) > 0)
+    {
+      apply_evolution_bleed(FIGHTING(ch));
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_STING))
+  {
+    numAttacks++;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_STING, DAM_PUNCTURE);
+    if (FIGHTING(ch) && HAS_EVOLUTION(ch, EVOLUTION_POISON) && GET_CONSECUTIVE_HITS(ch) > 0)
+    {
+      apply_evolution_poison(ch, FIGHTING(ch));
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_TAIL_SLAP))
+  {
+    numAttacks++;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP, DAM_FORCE);
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+  {
+    numAttacks++;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_TENTACLE, DAM_FORCE);
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_WING_BUFFET))
+  {
+    numAttacks += 2;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET, DAM_FORCE);
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET, DAM_FORCE);
+    if (FIGHTING(ch) && GET_SIZE(FIGHTING(ch)) < GET_SIZE(ch))
+    {
+      perform_knockdown(ch, FIGHTING(ch), EVOLUTION_WING_BUFFET_EFFECT, false, false);
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_GORE))
+  {
+    numAttacks++;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_GORE, DAM_PUNCTURE);
+    if (FIGHTING(ch) && HAS_EVOLUTION(ch, EVOLUTION_BLEED) && GET_CONSECUTIVE_HITS(ch) > 0)
+    {
+      apply_evolution_bleed(FIGHTING(ch));
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+  if (HAS_EVOLUTION(ch, EVOLUTION_RAKE) && GRAPPLE_TARGET(ch))
+  {
+    numAttacks += 2;
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_RAKE, DAM_SLICE);
+    perform_evolution_attack(ch, mode, phase, ATTACK_TYPE_PRIMARY_EVO_RAKE, DAM_SLICE);
+    if (FIGHTING(ch) && HAS_EVOLUTION(ch, EVOLUTION_BLEED) && GET_CONSECUTIVE_HITS(ch) > 0)
+    {
+      apply_evolution_bleed(FIGHTING(ch));
+    }
+    GET_CONSECUTIVE_HITS(ch) = 0;
+  }
+
+
+
   // execute the calculated attacks from above
   if (VITAL_STRIKING(ch))
     bonus_mainhand_attacks = 0;
@@ -11355,7 +11646,7 @@ void handle_smash_defense(struct char_data *ch)
 
   /* OK should be ok now! */
   send_to_char(ch, "\tW[Smash Defense]\tn");
-  perform_knockdown(ch, vict, SKILL_BASH);
+  perform_knockdown(ch, vict, SKILL_BASH, true, true);
 
   /* tag with event to make sure this only happens once per round! */
   attach_mud_event(new_mud_event(eSMASH_DEFENSE, ch, NULL), 6 * PASSES_PER_SEC);
@@ -11429,6 +11720,27 @@ void perform_violence(struct char_data *ch, int phase)
       /* attempt to stand! checking if we can stand again in case springleap worked */
       if (can_stand(ch))
         do_stand(ch, 0, 0, 0);
+    }
+
+    if (GET_FRIGHTFUL_PRESENCE_TIMER(ch) <= 0 && (tch = FIGHTING(ch)) != NULL && HAS_EVOLUTION(tch, EVOLUTION_FRIGHTFUL_PRESENCE))
+    {
+      if (!is_immune_mind_affecting(tch, ch, FALSE) &&
+          !is_immune_fear(tch, ch, FALSE))
+      {
+        if (!mag_savingthrow(tch, ch, SAVING_WILL, 0, CAST_INNATE, GET_SUMMONER_LEVEL(tch), ENCHANTMENT))
+        {
+          struct affected_type af;
+          new_affect(&af);
+          af.spell = EVOLUTION_FRIGHTFUL_EFFECT;
+          af.duration = dice(3, 6);
+          SET_BIT_AR(af.bitvector, AFF_SHAKEN);
+          affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+          act("Your frightful presence causes $N to become shaken!", FALSE, tch, 0, ch, TO_CHAR);
+          act("$n's frightful presence causes YOU to become shaken!", FALSE, tch, 0, ch, TO_VICT);
+          act("$n's frightful presence causes $N to become shaken!", FALSE, tch, 0, ch, TO_NOTVICT);
+        }
+        GET_FRIGHTFUL_PRESENCE_TIMER(ch) = 50;
+      }
     }
   }
 

@@ -1475,10 +1475,8 @@ void assign_feats(void)
         "Ability to summon a powerful eidolon that can be enhanced by the summoner as they gain summoner class levels.");
 
   feato(FEAT_LIFE_LINK, "life link", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "When the eidolon takes enough damage to kill it, the extra damage is instead taken from the summoner.",
-        "When the eidolon takes enough damage to kill it, the extra damage is instead taken from the summoner, "
-        "unless that amount would reduce the summoner’s hp below zero. This can only happen once every 10 minutes. "
-        "See prefedit to toggle on and off, on by default.");
+        "When the eidolon takes enough damage to kill it, they have a 1 in 3 chance to instead be reduced to 1 hp instead.",
+        "When the eidolon takes enough damage to kill it, they have a 1 in 3 chance to instead be reduced to 1 hp instead.");
 
   feato(FEAT_SUMMON_MONSTER, "conjure monster", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Allows the summoner to cast summon monster spells at-will.",
@@ -1487,8 +1485,8 @@ void assign_feats(void)
 
   feato(FEAT_BOND_SENSES, "bond senses", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "The summoner can take full control of their eidolon.",
-        "Allows the summoner to assume full control of their eidolon from a first person view.  Use the 'return' "
-        "command to return to the summoner's body.");
+        "Allows the summoner to assume full control of their eidolon from a first person view.  Uses the 'eidolon bond' "
+        "command to take control of the eidolon, and the 'return' command to return to the summoner's body.");
   
   feato(FEAT_SHIELD_ALLY, "shield ally", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "When in the same room as the eidolon the summoner gains a +2 shield bonus to AC, and a +2 circumstance bonus to saves.",
@@ -1513,8 +1511,7 @@ void assign_feats(void)
 
   feato(FEAT_LIFE_BOND, "life bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead.",
-        "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead. "
-        "See prefedit to toggle on and off.  Turned off by default.");
+        "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead. ");
 
   feato(FEAT_MERGE_FORMS, "merge forms", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Allows the summoner to dismiss their eidolon and take upon them all their abilities.",
@@ -1529,6 +1526,48 @@ void assign_feats(void)
   feato(FEAT_GRAND_EIDOLON, "grand eidolon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "The eidolon can now add two more evolutions.",
         "The eidolon can now add two more evolutions.");
+
+  feato(FEAT_SUMMONER_1ST_CIRCLE, "1st circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 1st circle summoner spells",
+        "You now have access to 1st circle summoner spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SUMMONER_2ND_CIRCLE, "2nd circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 2nd circle summoner spells",
+        "You now have access to 2nd circle summoner spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SUMMONER_3RD_CIRCLE, "3rd circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 3rd circle summoner spells",
+        "You now have access to 3rd circle summoner spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SUMMONER_4TH_CIRCLE, "4th circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 4th circle summoner spells",
+        "You now have access to 4th circle summoner spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SUMMONER_5TH_CIRCLE, "5th circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 5th circle summoner spells",
+        "You now have access to 5th circle summoner spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SUMMONER_6TH_CIRCLE, "6th circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to 6th circle summoner spells",
+        "You now have access to 6th circle summoner spells.  The spells you gain access "
+        "are determined by class.  Some classes gain access to all the spells "
+        "instantly upon ataining this feat, others have to select the spells via "
+        "the 'study' command, and others have to acquire the spells in their 'spellbook.'");
+  feato(FEAT_SUMMONER_EPIC_SPELL, "epic summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "gain access to epic summoner spells",
+        "You now have access to epic summoner spells.  The spells you gain access "
+        "are determined by feat selection.  Epic spells are only usable once per "
+        "game-day.");
 
   /*****************/
   /* General feats */

@@ -983,8 +983,14 @@
 #define MOB_VAMP_SPWN 86
 #define MOB_DRAGON_KNIGHT 87
 #define MOB_MUMMY_DUST 88
+#define MOB_EIDOLON 89
+#define MOB_EIDOLON_BASE_FORM_AVIAN 90
+#define MOB_EIDOLON_BASE_FORM_BIPED 91
+#define MOB_EIDOLON_BASE_FORM_QUADRUPED 92
+#define MOB_EIDOLON_BASE_FORM_SERPENTINE 93
+#define MOB_EIDOLON_BASE_FORM_TAURIC 94
 /**********************/
-#define NUM_MOB_FLAGS 89
+#define NUM_MOB_FLAGS 95
 /**********************/
 /**********************/
 
@@ -1031,6 +1037,7 @@
 #define MOB_EFREETI_KIND 101322
 #define MOB_MARID_KIND 101323
 #define MOB_SHAITAN_KIND 101324
+#define MOB_NUM_EIDOLON 802
 
 /**********************/
 /* misc defines */
@@ -1248,9 +1255,10 @@
 #define AFF_REPULSION 117          // A field of repulsion is around person
 #define AFF_ON_FIRE 118             // person is on fire
 #define AFF_FLAME_BLADE 119        // melee hits deal 1d6 fire damage extra
+#define AFF_SICKENING_AURA 120
 
 /*---*/
-#define NUM_AFF_FLAGS 120
+#define NUM_AFF_FLAGS 121
 /********************************/
 /* add aff_ flag?  don't forget to add to:
    1)  places in code the affect will directly modify values
@@ -2441,12 +2449,20 @@
 #define FEAT_MERGE_FORMS 1001
 #define FEAT_GREATER_ASPECT 1002
 #define FEAT_GRAND_EIDOLON 1003
+#define FEAT_SUMMONER_1ST_CIRCLE 1004
+#define SUM_SLT_0 (FEAT_SUMMONER_1ST_CIRCLE - 1)
+#define FEAT_SUMMONER_2ND_CIRCLE 1005
+#define FEAT_SUMMONER_3RD_CIRCLE 1006
+#define FEAT_SUMMONER_4TH_CIRCLE 1007
+#define FEAT_SUMMONER_5TH_CIRCLE 1008
+#define FEAT_SUMMONER_6TH_CIRCLE 1009
+#define FEAT_SUMMONER_EPIC_SPELL 1010
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1004
+#define FEAT_LAST_FEAT 1011
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1005
+#define NUM_FEATS 1012
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -3367,6 +3383,18 @@
 #define ATTACK_TYPE_OFFHAND_SNEAK 7 // impromptu sneak attack
 #define ATTACK_TYPE_PSIONICS 8
 #define ATTACK_TYPE_ELDRITCH_BLAST 9
+#define ATTACK_TYPE_PRIMARY_EVO_BITE 10
+#define ATTACK_TYPE_PRIMARY_EVO_CLAWS 11
+#define ATTACK_TYPE_PRIMARY_EVO_HOOVES 12
+#define ATTACK_TYPE_PRIMARY_EVO_PINCERS 13
+#define ATTACK_TYPE_PRIMARY_EVO_STING 14
+#define ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP 15
+#define ATTACK_TYPE_PRIMARY_EVO_TENTACLE 16
+#define ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET 17
+#define ATTACK_TYPE_PRIMARY_EVO_GORE 18
+#define ATTACK_TYPE_PRIMARY_EVO_RAKE 19
+#define ATTACK_TYPE_PRIMARY_EVO_REND 20
+#define ATTACK_TYPE_PRIMARY_EVO_TRAMPLE 21
 
 /* WEAPON ATTACK TYPES - indicates type of attack both
    armed and unarmed attacks are, example: You BITE Bob.
@@ -3645,6 +3673,7 @@
 #define MAX_WEAPON_SPELLS 3
 #define MAX_WEAPON_CHANNEL_SPELLS 2
 #define MAX_BAB 55 /* zusuk experimentation */
+#define NUM_EVOLUTIONS 73
 
 #define MAX_DAM_BONUS 120
 #define MAX_AC 60      /* this is now CONFIG_PLAYER_AC_CAP */
@@ -4120,8 +4149,11 @@ struct char_special_data_saved
     int damage_reduction_mod;
 
     // summoner
-    int eidolon_evolutions[AF_ARRAY_MAX]; /**< Bitvector for active eidolon evolutions */
-    int known_evolutions[AF_ARRAY_MAX]; /**< Bitvector for known eidolon evolutions */
+    int eidolon_evolutions[NUM_EVOLUTIONS]; //active eidolon evolutions 
+    int known_evolutions[NUM_EVOLUTIONS]; // known eidolon evolutions
+    int eidolon_base_form;  // Eidolon base form determines their starting stats and evolutions
+    char *eidolon_shortdescription;
+    char *eidolon_longdescription;
 };
 
 /* not saved player data used for condensed combat */
@@ -4242,6 +4274,11 @@ struct char_special_data
     int eldritch_shape;            // saved shape for eldritch blasts
     int eldritch_essence;          // the essence used for eldritch blasts
     int daze_cooldown;             // once a character is dazed, we'll give them temporary immunity
+
+    int consecutive_hits;           // increases each time a melee attack hits, resets to zero on a miss.
+    int has_been_pushed;            // If they have been pushed, this is the cooldown until they can be pushed again
+    int sickening_aura_timer;       // When this timer is active, the creature is not susceptible to sickening aura
+    int frightful_presence_timer;       // When this timer is active, the creature is not susceptible to frightful presence
 };
 
 /* old memorization struct */
@@ -4611,11 +4648,17 @@ struct affected_type
 #define DR_BYPASS_CAT_MATERIAL 2 /* Materials that bypass the DR*/
 #define DR_BYPASS_CAT_MAGIC 3    /* Magical weapons bypass the DR */
 #define DR_BYPASS_CAT_DAMTYPE 4  /* DR Damage types that bypass the DR */
+#define DR_BYPASS_CAT_ALIGNMENT 5 // Alignment types that bypass the DR
 
 #define DR_DAMTYPE_BLUDGEONING 0 /* Bludgeoning damage bypasses the DR */
 #define DR_DAMTYPE_SLASHING 1    /* Slashing damage bypasses the DR */
 #define DR_DAMTYPE_PIERCING 2    /* Piercing damage bypasses the DR */
 #define NUM_DR_DAMTYPES 3
+
+#define DR_ALIGNTYPE_EVIL 1
+#define DR_ALIGNTYPE_GOOD 2
+#define DR_ALIGNTYPE_LAW 3
+#define DR_ALIGNTYPE_CHAOS 4
 
 /* Note that spells ALWAYS bypass DR! Resistances are for Spells, DR is for
  * physical damage! */

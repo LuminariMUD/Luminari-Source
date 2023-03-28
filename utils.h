@@ -122,6 +122,7 @@ bool is_random_chest_in_room(room_rnum rrnum);
 int get_random_chest_item_level(int level);
 int get_chest_contents_type(void);
 int get_random_chest_dc(int level);
+bool has_blindsense(struct char_data *ch);
 int number_of_chests_per_zone(int num_zone_rooms);
 void place_random_chest(room_rnum rrnum, int level, int search_dc, int pick_dc, int trap_chance);
 bool can_place_random_chest_in_room(room_rnum rrnum, int num_zone_rooms, int num_chests);
@@ -176,7 +177,9 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
 bool is_spell_or_spell_like(int type);
 int vampire_last_feeding_adjustment(struct char_data *ch);
 bool can_dam_be_resisted(int type);
+void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type);
 void dismiss_all_followers(struct char_data *ch);
+bool push_attempt(struct char_data *ch, struct char_data *vict, bool display);
 void remove_any_spell_with_aff_flag(struct char_data *ch, struct char_data *vict, int aff_flag, bool display);
 bool can_learn_paladin_mercy(struct char_data *ch, int mercy);
 int num_paladin_mercies_known(struct char_data *ch);
@@ -274,6 +277,7 @@ int num_obj_in_obj(struct obj_data *obj);
 bool ultra_blind(struct char_data *ch, room_rnum room_number);
 bool is_room_outdoors(room_rnum room_number);
 bool is_outdoors(struct char_data *ch);
+int get_evolution_appearance_save_bonus(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
 int find_armor_type(int specType);
 int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *victim);
@@ -311,6 +315,7 @@ sbyte isRacialFeat(int feat);
 int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats);
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
+struct char_data * get_mob_follower(struct char_data *ch, int mob_type);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -653,11 +658,6 @@ void char_from_furniture(struct char_data *ch);
 /** Affect flags on the NPC or PC. */
 #define AFF_FLAGS(ch) ((ch)->char_specials.saved.affected_by)
 
-/** Affect flags on the NPC or PC. */
-#define EVOLUTIONS(ch) ((ch)->char_specials.saved.eidolon_evolutions)
-/** Affect flags on the NPC or PC. */
-#define KNOWN_EVOLUTIONS(ch) ((ch)->char_specials.saved.known_evolutions)
-
 /** Room flags.
  * @param loc The real room number. */
 #define ROOM_FLAGS(loc) (world[(loc)].room_flags)
@@ -710,12 +710,6 @@ void char_from_furniture(struct char_data *ch);
 
 /** 1 if flag is set in the affect bitarray, 0 if not. */
 #define AFF_FLAGGED(ch, flag) (IS_SET_AR(AFF_FLAGS(ch), (flag)))
-
-/** 1 if flag is set in the affect bitarray, 0 if not. */
-#define HAS_EVOLUTION(ch, flag) (IS_SET_AR(EVOLUTIONS(ch), (flag)))
-
-/** 1 if flag is set in the affect bitarray, 0 if not. */
-#define KNOWS_EVOLUTION(ch, flag) (IS_SET_AR(KNOWN_EVOLUTIONS(ch), (flag)))
 
 /** 1 if flag is set in the preferences bitarray, 0 if not. */
 #define PRF_FLAGGED(ch, flag) (IS_SET_AR(PRF_FLAGS(ch), (flag)))
@@ -838,11 +832,14 @@ void char_from_furniture(struct char_data *ch);
 #define ARCANE_LEVEL(ch) (compute_arcane_level(ch))
 #define MAGIC_LEVEL(ch) ARCANE_LEVEL(ch)
 #define ALCHEMIST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
-#define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : (GET_LEVEL(ch) > 30) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
+#define CASTER_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : (GET_LEVEL(ch) > 30) ? GET_LEVEL(ch) : DIVINE_LEVEL(ch) + \
+                          MAGIC_LEVEL(ch) + GET_WARLOCK_LEVEL(ch) + ALCHEMIST_LEVEL(ch) - \
+                          (compute_arcana_golem_level(ch)), LVL_IMMORT - 1))
 #define IS_SPELLCASTER(ch) (CASTER_LEVEL(ch) > 0)
 #define IS_MEM_BASED_CASTER(ch) ((CLASS_LEVEL(ch, CLASS_WIZARD) > 0))
 #define GET_SHIFTER_ABILITY_CAST_LEVEL(ch) (CLASS_LEVEL(ch, CLASS_SHIFTER) + CLASS_LEVEL(ch, CLASS_DRUID))
 #define GET_WARLOCK_LEVEL(ch) (GET_LEVEL(ch) > LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_WARLOCK))
+#define GET_SUMMONER_LEVEL(ch) ((GET_LEVEL(ch) > LVL_IMMORT || IS_NPC(ch)) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_SUMMONER))
 #define GET_PSIONIC_LEVEL(ch) (GET_LEVEL(ch) >= LVL_IMMORT ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST))
 #define IS_PSIONIC(ch) (GET_PSIONIC_LEVEL(ch) > 0)
 #define PSIONIC_LEVEL(ch) (MIN(IS_NPC(ch) ? GET_LEVEL(ch) : CLASS_LEVEL(ch, CLASS_PSIONICIST), LVL_IMMORT - 1))
@@ -1718,7 +1715,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 // moved this here for connection between vision macros -zusuk
 #define CAN_SEE_IN_DARK(ch) \
-  (char_has_ultra(ch) || HAS_FEAT(ch, FEAT_BLINDSENSE) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
+  (char_has_ultra(ch) || has_blindsense(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
 #define CAN_INFRA_IN_DARK(ch) \
   (char_has_infra(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
 
@@ -1726,7 +1723,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 /** Defines if ch can see in general in the dark. */
 
 /** Defines if there is enough light for sub to see in. */
-#define LIGHT_OK(sub) ((!AFF_FLAGGED(sub, AFF_BLIND) || HAS_FEAT(sub, FEAT_BLINDSENSE)) && \
+#define LIGHT_OK(sub) ((!AFF_FLAGGED(sub, AFF_BLIND) || has_blindsense(sub)) && \
                        (IS_LIGHT(IN_ROOM(sub)) || CAN_SEE_IN_DARK(sub) ||                  \
                         GET_LEVEL(sub) >= LVL_IMMORT))
 #define INFRA_OK(sub) (!AFF_FLAGGED(sub, AFF_BLIND) &&                      \
@@ -2029,7 +2026,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
                        (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ANIMAL))
 #define IS_UNDEAD(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_UNDEAD) || \
                        IS_LICH(ch) || IS_VAMPIRE(ch) ||                    \
-                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD))
+                       (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_UNDEAD) || \
+                       HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
 #define IS_ELEMENTAL(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_ELEMENTAL) || \
                           (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_ELEMENTAL))
 #define IS_PLANT(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_PLANT) || \
@@ -2479,6 +2477,20 @@ int count_teamwork_feats_available(struct char_data *ch);
 #define GET_CURRENT_BUFF_SLOT(ch) (ch->player_specials->buff_slot)
 #define GET_BUFF_TIMER(ch)        (ch->player_specials->buff_timer)
 #define IS_BUFFING(ch)            (ch->player_specials->is_buffing)
+
+// summoners
+#define HAS_EVOLUTION(ch, i) ((ch)->char_specials.saved.eidolon_evolutions[i])
+#define KNOWS_EVOLUTION(ch, i) ((ch)->char_specials.saved.known_evolutions[i])
+#define GET_EIDOLON_BASE_FORM(ch) ((ch)->char_specials.saved.eidolon_base_form)
+#define GET_EIDOLON_SHORT_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_shortdescription)
+#define GET_EIDOLON_LONG_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_longdescription)
+
+// misc
+#define GET_CONSECUTIVE_HITS(ch)  ((ch)->char_specials.consecutive_hits)
+#define GET_PUSHED_TIMER(ch)  ((ch)->char_specials.has_been_pushed)
+#define GET_SICKENING_AURA_TIMER(ch)  ((ch)->char_specials.sickening_aura_timer)
+#define GET_FRIGHTFUL_PRESENCE_TIMER(ch)  ((ch)->char_specials.frightful_presence_timer)
+bool has_reach(struct char_data *ch);
 
 #endif /* _UTILS_H_ */
 

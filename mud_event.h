@@ -182,6 +182,7 @@ typedef enum
   eSTONESENDURANCE,                 // goliath stones endurance ability
   eAQUEOUSORB,                      // aqueous orb spell
   eVAMPIREBLOODDRAIN,               // vampire blood drain ability
+  eEVOBREATH,                       // eidolon evolution breath weapon
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

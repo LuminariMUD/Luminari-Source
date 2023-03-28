@@ -40,6 +40,7 @@
 #include "mobact.h"     /* npc_find_target() */
 #include "spell_prep.h" /* for star circlet proc */
 #include "handler.h"    /* for is_name() */
+#include "evolutions.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging
@@ -844,6 +845,7 @@ int compute_ability(struct char_data *ch, int abilityNum)
 int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 {
   int value = 0;
+  struct char_data *mobfol = NULL;
 
   if (!ch)
     return -1;
@@ -893,6 +895,17 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     value -= 2;
   if (char_has_mud_event(ch, eHOLYJAVELIN))
     value -= 2;
+  if (HAS_EVOLUTION(ch, EVOLUTION_SKILLED))
+  {
+    if (GET_SUMMONER_LEVEL(ch) >= 30)
+      value += 5;
+    else if (GET_SUMMONER_LEVEL(ch) >= 20)
+      value += 4;
+    else if (GET_SUMMONER_LEVEL(ch) >= 10)
+      value += 3;
+    else
+      value += 2;
+  }
   value -= get_char_affect_modifier(ch, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
   // vampire bonuses / penalties for feeding
   value += vampire_last_feeding_adjustment(ch);
@@ -1169,6 +1182,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if ((mobfol = get_mob_follower(ch, MOB_EIDOLON)))
+    {
+      if (IN_ROOM(ch) == IN_ROOM(mobfol) && HAS_EVOLUTION(mobfol, EVOLUTION_RIDER_BOND))
+        value += MAX(1, GET_SUMMONER_LEVEL(ch) / 2);
+    }
     return value;
   case ABILITY_CLIMB:
     value += GET_STR_BONUS(ch);
@@ -1300,6 +1318,13 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     {
       /* Unnamed bonus */
       value += 2;
+    }
+    if (HAS_EVOLUTION(ch, EVOLUTION_SWIM))
+      value += 20;
+    if ((mobfol = get_mob_follower(ch, MOB_EIDOLON)))
+    {
+      if (IN_ROOM(ch) == IN_ROOM(mobfol) && HAS_EVOLUTION(mobfol, EVOLUTION_SWIM))
+        value += 10;
     }
     return value;
   case ABILITY_USE_MAGIC_DEVICE:

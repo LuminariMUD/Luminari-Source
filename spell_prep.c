@@ -952,6 +952,7 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   else if (class == CLASS_WARLOCK && (spellnum < WARLOCK_POWER_START || spellnum > WARLOCK_POWER_END))
     return (NUM_CIRCLES + 1);
 
+#ifdef CAMPAIGN_FR
   switch (spellnum)
   {
   case SPELL_LUSKAN_RECALL:
@@ -960,6 +961,7 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   case SPELL_SILVERYMOON_RECALL:
     return 5;
   }
+#endif
 
   /* Here we add the circle changes resulting from metamagic use: */
   if (IS_SET(metamagic, METAMAGIC_QUICKEN))

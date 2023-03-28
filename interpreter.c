@@ -347,6 +347,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"eqrating", "eqrating", POS_SLEEPING, do_eqrating, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"emptybody", "emptybody", POS_RECLINING, do_emptybody, 1, 0, FALSE, ACTION_MOVE, {0, 6}, can_emptybody},
     {"ethshift", "ethshift", POS_STANDING, do_ethshift, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
+    {"evobreath", "evobreath", POS_FIGHTING, do_evobreath, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
+    {"evoweb", "evoweb", POS_FIGHTING, do_evoweb, 0, 0, FALSE, ACTION_SWIFT, {0, 0}, NULL},
     {"evilscythe", "evilscythe", POS_STANDING, do_evilscythe, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"eviltouch", "eviltouch", POS_STANDING, do_eviltouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"extracts", "extracts", POS_RECLINING, do_spells, 1, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -596,7 +598,8 @@ cpp_extern const struct command_info cmd_info[] = {
     //{ "play", "play", POS_FIGHTING, do_play, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"psionicfocus", "psionicfocus", POS_FIGHTING, do_psionic_focus, 1, 0, FALSE, ACTION_SWIFT, {0, 0}, can_psionic_focus},
     {"psychokinetic", "psychokinetic", POS_FIGHTING, do_psychokinetic, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
-    {"push", "push", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"pushaway", "pushaway", POS_STANDING, do_pushaway, 0, 0, FALSE, ACTION_STANDARD, {0, 6}, NULL},
+    {"pushswitch", "pushswitch", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"pull", "pull", POS_STANDING, do_pullswitch, 0, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     //{ "plist", "plist", POS_DEAD, do_plist, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"perfmon", "perfmon", POS_DEAD, do_perfmon, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -668,6 +671,7 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"sachp", "sachp", POS_RECLINING, do_sacrifice, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
 #ifdef CAMPAIGN_FR
     {"say", "s", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #else
@@ -695,11 +699,13 @@ cpp_extern const struct command_info cmd_info[] = {
     {"setroomsect", "setrooms", POS_DEAD, do_setroomsect, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"setworldsect", "setw", POS_DEAD, do_setworldsect, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shadowcast", "shc", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SHADOW, FALSE, ACTION_MOVE, {0, 6}, NULL},
+    {"shadowform", "shf", POS_SITTING, do_gen_tog, 1, SCMD_SHADOWFORM, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdown", "shutdown", POS_DEAD, do_shutdown, LVL_IMPL, SCMD_SHUTDOWN, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"sickeningaura", "sicka", POS_SITTING, do_gen_tog, 1, SCMD_SICKENING_AURA, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"sip", "sip", POS_RECLINING, do_drink, 0, SCMD_SIP, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"skillset", "skillset", POS_SLEEPING, do_skillset, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"sleep", "sl", POS_SLEEPING, do_sleep, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

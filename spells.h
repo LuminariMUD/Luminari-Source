@@ -563,9 +563,11 @@
 #define SPELL_MASS_CHARM_MONSTER 487
 #define SPELL_GENIEKIND 488
 #define SPELL_GRAND_DESTINY 489
+#define SPELL_BALL_OF_LIGHT 490
+#define SPELL_TOUCH_OF_FATIGUE 491
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 490
+#define NUM_SPELLS 492
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -634,6 +636,10 @@
 #define SPELL_MARID_KIND 1251
 #define SPELL_SHAITAN_KIND 1252
 #define SPELL_EFFECT_GRAND_DESTINY 1253
+#define EVOLUTION_BLEED_EFFECT 1254
+#define EVOLUTION_WING_BUFFET_EFFECT 1255
+#define EVOLUTION_SICKENING_EFFECT 1256
+#define EVOLUTION_FRIGHTFUL_EFFECT 1257
 
 /** we're going to start psionic powers at 1500.
  * most psionic stuff is either in psionics.c or spell_parser.c
@@ -1627,6 +1633,8 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum);
 sbyte isNaturalIllusion(struct char_data *ch, int spellnum);
 sbyte isPrimordialMagic(struct char_data *ch, int spellnum);
 sbyte isFaeMagic(struct char_data *ch, int spellnum);
+sbyte isEidolonMagic(struct char_data *ch, int spellnum);
+bool isSummonerMagic(struct char_data *ch, int spellnum);
 
 /**/
 

@@ -35,6 +35,7 @@
 #include "encounters.h"
 #include "constants.h"
 #include "spec_procs.h" /* for is_wearing() */
+#include "evolutions.h"
 
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];
@@ -556,7 +557,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
 #undef CHARGE_AFFECTS
 
 /* engine for knockdown, used in bash/trip/etc */
-bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
+bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, bool can_counter, bool display)
 {
   int penalty = 0, attack_check = 0, defense_check = 0;
   bool success = FALSE, counter_success = FALSE, skilled_monk = FALSE;
@@ -564,42 +565,48 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
   if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) &&
       ch->next_in_room != vict && vict->next_in_room != ch && skill != SPELL_BANISHING_BLADE)
   {
-    send_to_char(ch, "You simply can't reach that far.\r\n");
+    if (display)
+      send_to_char(ch, "You simply can't reach that far.\r\n");
     return FALSE;
   }
 
   if (MOB_FLAGGED(vict, MOB_NOKILL))
   {
-    if (skill != SPELL_BANISHING_BLADE)
-      send_to_char(ch, "This mob is protected.\r\n");
+    if (display)
+      if (skill != SPELL_BANISHING_BLADE)
+        send_to_char(ch, "This mob is protected.\r\n");
     return FALSE;
   }
 
   if (!is_mission_mob(ch, vict))
   {
-    if (skill != SPELL_BANISHING_BLADE)
-      send_to_char(ch, "This mob cannot be attacked by you.\r\n");
+    if (display)
+      if (skill != SPELL_BANISHING_BLADE)
+        send_to_char(ch, "This mob cannot be attacked by you.\r\n");
     return FALSE;
   }
 
   if ((GET_SIZE(ch) - GET_SIZE(vict)) >= 2)
   {
-    if (skill != SPELL_BANISHING_BLADE)
-      send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too small!\r\n");
+    if (display)
+      if (skill != SPELL_BANISHING_BLADE)
+        send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too small!\r\n");
     return FALSE;
   }
 
   if ((GET_SIZE(vict) - GET_SIZE(ch)) >= 2)
   {
-    if (skill != SPELL_BANISHING_BLADE)
-      send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too big!\r\n");
+    if (display)
+      if (skill != SPELL_BANISHING_BLADE)
+        send_to_char(ch, "Your knockdown attempt is unsuccessful due to the target being too big!\r\n");
     return FALSE;
   }
 
   if (GET_POS(vict) == POS_SITTING)
   {
-    if (skill != SPELL_BANISHING_BLADE)
-      send_to_char(ch, "You can't knock down something that is already down!\r\n");
+    if (display)
+      if (skill != SPELL_BANISHING_BLADE)
+        send_to_char(ch, "You can't knock down something that is already down!\r\n");
     return FALSE;
   }
 
@@ -620,12 +627,13 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
 
   if (MOB_FLAGGED(vict, MOB_NOBASH))
   {
-    if (skill != SPELL_BANISHING_BLADE)
-      send_to_char(ch, "You realize you will probably not succeed:  ");
+    if (display)
+      if (skill != SPELL_BANISHING_BLADE)
+        send_to_char(ch, "You realize you will probably not succeed:  ");
     penalty = -100;
   }
 
-  if (is_wearing(vict, 132133))
+  if (is_wearing(vict, 132133) && can_counter)
   {
     if (skill != SPELL_BANISHING_BLADE)
     {
@@ -635,7 +643,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       act("$N via stability boots a knockdown attack from $n is resisted...  $N follows up with a counterattack!", FALSE, ch, 0, vict,
           TO_NOTVICT);
 
-      perform_knockdown(vict, ch, SKILL_BASH);
+      perform_knockdown(vict, ch, SKILL_BASH, true, true);
     }
     return FALSE;
   }
@@ -680,6 +688,18 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
     if (!HAS_FEAT(ch, FEAT_IMPROVED_TRIP))
       attack_of_opportunity(vict, ch, 0);
     break;
+  case EVOLUTION_WING_BUFFET_EFFECT:
+    // one size smaller gives a -4 penalty
+    if ((GET_SIZE(ch) - GET_SIZE(vict)) == 1)
+      attack_check -= 4;
+    // two sizes smaller gives a -2 penalty
+    else if ((GET_SIZE(ch) - GET_SIZE(vict)) == 2)
+      attack_check -= 2;
+    // if target is not smaller at all, can't be done
+    else if ((GET_SIZE(ch) - GET_SIZE(vict)) <= 0)
+      return;
+    // three or more sizes smaller is no penalty
+    break;    
   case SPELL_BANISHING_BLADE:
     break;
   default:
@@ -785,7 +805,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       {
         /* just moved this to damage-messages */
       }
-      else if (skill == SPELL_BANISHING_BLADE)
+      else if (skill == SPELL_BANISHING_BLADE || skill == EVOLUTION_WING_BUFFET_EFFECT)
       {
         // no fail message
       }
@@ -807,7 +827,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill)
       }
 
       /* Victim gets a chance to countertrip */
-      if (skill != SKILL_SHIELD_CHARGE && skill != SPELL_BANISHING_BLADE && GET_POS(vict) > POS_SITTING)
+      if (skill != SKILL_SHIELD_CHARGE && skill != SPELL_BANISHING_BLADE && GET_POS(vict) > POS_SITTING && can_counter)
       {
         attack_check = (d20(vict) + GET_STR_BONUS(vict) + (GET_SIZE(vict) - GET_SIZE(ch)) * 4);
         defense_check = (d20(ch) + MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch)));
@@ -1062,7 +1082,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
     if (name)
       (name)(ch, shield, 0, "shieldcharge");
 
-    perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE);
+    perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE, true, true);
 
     /* fire-shield, etc check */
     damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
@@ -1528,6 +1548,9 @@ void perform_sap(struct char_data *ch, struct char_data *vict)
   if (!CAN_SEE(vict, ch))
     prob += 4;
 
+  if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
+    prob -= get_evolution_appearance_save_bonus(vict);
+
   dc = 10 + (CLASS_LEVEL(ch, CLASS_ROGUE) / 2) + GET_DEX_BONUS(ch);
 
   if (attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, FALSE, prob) > 0)
@@ -1831,9 +1854,17 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       hit(ch, vict, SKILL_BACKSTAB, DAM_PUNCTURE, 0, FALSE);
       make_aware = TRUE;
       // hidden weapons feat grants an extra attack
-      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
+      if (is_marked_target(ch, vict) && HAS_FEAT(ch, FEAT_HIDDEN_WEAPONS) && 
+          (skill_roll(ch, ABILITY_SLEIGHT_OF_HAND) >= skill_roll(vict, ABILITY_PERCEPTION)))
       {
         marked_target = TRUE;
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+
+      // reach attacks get extra attack when combat starts
+      if (has_reach(ch) && has_piercing)
+      {
+        send_to_char(ch, "You gain an extra attack because of having long reach.\r\n");
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }
@@ -1899,6 +1930,13 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
       {
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
+      
+      // reach attacks get extra attack when combat starts
+      if (has_reach(ch) && has_piercing)
+      {
+        send_to_char(ch, "You gain an extra attack because of having long reach.\r\n");
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
     }
     successful++;
   }
@@ -1929,6 +1967,9 @@ bool perform_backstab(struct char_data *ch, struct char_data *vict)
         assassin_mod += 2;
       if (HAS_FEAT(ch, FEAT_ANGEL_OF_DEATH))
         assassin_mod += 4;
+
+      if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
+        assassin_mod -= get_evolution_appearance_save_bonus(vict);
 
       if (!AFF_FLAGGED(vict, AFF_PARALYZED) && !paralysis_immunity(vict) &&
           !mag_savingthrow(ch, vict, SAVING_FORT, assassin_mod, CAST_INNATE, IS_ROGUE_TYPE(ch), NOSCHOOL))
@@ -2737,6 +2778,14 @@ ACMD(do_hit)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
         do_hit(ch, strdup(mob_keys), cmd, subcmd);
+        
+        // reach attacks get extra attack when combat starts
+        if (has_reach(ch))
+        {
+          send_to_char(ch, "You gain an extra attack because of having long reach.\r\n");
+          hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+        }
+        
         return;
       }
       if (!found)
@@ -2802,15 +2851,20 @@ ACMD(do_hit)
     {
 
       /* ch is taking an action so loses the Flat-footed flag */
-      if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED))
-        REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
+      if (AFF_FLAGGED(ch, AFF_FLAT_FOOTED)) REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_FLAT_FOOTED);
 
       hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE); /* ch first */
 
-      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE) &&
-          GET_POS(vict) > POS_DEAD)
+      if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_IMPROVED_INITIATIVE) && GET_POS(vict) > POS_DEAD)
       {
         send_to_char(vict, "\tYYour superior initiative grants another attack!\tn\r\n");
+        hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+      }
+
+      // reach attacks get extra attack when combat starts
+      if (has_reach(ch))
+      {
+        send_to_char(ch, "You gain an extra attack because of having long reach.\r\n");
         hit(ch, vict, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
       }
     }
@@ -5563,7 +5617,7 @@ ACMD(do_bash)
   if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
     vict = FIGHTING(ch);
 
-  perform_knockdown(ch, vict, SKILL_BASH);
+  perform_knockdown(ch, vict, SKILL_BASH, true, true);
 }
 
 ACMD(do_trip)
@@ -5595,7 +5649,7 @@ ACMD(do_trip)
   if (FIGHTING(ch) && !vict && IN_ROOM(ch) == IN_ROOM(FIGHTING(ch)))
     vict = FIGHTING(ch);
 
-  perform_knockdown(ch, vict, SKILL_TRIP);
+  perform_knockdown(ch, vict, SKILL_TRIP, true, true);
 }
 
 ACMDCHECK(can_layonhands)
@@ -6918,7 +6972,7 @@ ACMD(do_bodyslam)
     return;
   }
 
-  perform_knockdown(ch, vict, SKILL_BODYSLAM);
+  perform_knockdown(ch, vict, SKILL_BODYSLAM, true, true);
 }
 
 ACMDCHECK(can_headbutt)
@@ -8171,6 +8225,7 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   /* compute amount of points heal vs damage */
   int amount = 10 + GET_INT_BONUS(ch) + dice(GET_LEVEL(ch), 4);
   int dc = 10 + GET_INT_BONUS(ch) + (GET_LEVEL(ch) / 2);
+  int prob = 0;
 
   if (IS_POWERFUL_BEING(ch))
   {
@@ -8220,6 +8275,9 @@ bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
   act("\tLYou reach out and touch $N with \tRnegative energy\tL, and $E wilts before you.\tn", FALSE, ch, 0, vict, TO_CHAR);
   act("$n \tLreaches out and touches you with \tRnegative energy\tL, causing you to wilt before $m.\tn", FALSE, ch, 0, vict, TO_VICT);
   act("$n \tLreaches out and touches $N with \tRnegative energy\tL, causing $M to wilt!\tn", FALSE, ch, 0, vict, TO_NOTVICT);
+
+  if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
+    prob -= get_evolution_appearance_save_bonus(vict);
 
   /* paralysis - fortitude save */
   if (!savingthrow(vict, SAVING_FORT, 0, dc))
@@ -9579,6 +9637,156 @@ ACMD(do_grand_destiny)
 
   act("Your grand destiny has been actualized!", FALSE, ch, 0, 0, TO_CHAR);
   act("$n's grand destiny has been actualized!", FALSE, ch, 0, 0, TO_ROOM);
+}
+
+ACMD(do_pushaway)
+{
+  if (!HAS_EVOLUTION(ch, EVOLUTION_PUSH))
+  {
+    send_to_char(ch, "You don't have the ability to push others away.\r\n");
+    return;
+  }
+
+  struct char_data *vict = NULL;
+  char arg[MAX_STRING_LENGTH], arg2[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+  int dir = 0;
+
+  two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
+
+  if (!*arg)
+  {
+    send_to_char(ch, "You need to specify who you'd like to push away.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "There's no one there by that description.\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "In what direction do you wish to push your target?\r\n");
+    return;
+  }
+
+  for (dir = 0; dir < NUM_OF_DIRS; dir++)
+  {
+    if (is_abbrev(dirs[dir], arg2))
+      break;
+  }
+
+  if (dir >= NUM_OF_DIRS)
+  {
+    send_to_char(ch, "That is not a valid direction.\r\n");
+    return;
+  }
+
+  if (GET_SIZE(vict) >= GET_SIZE(ch))
+  {
+    send_to_char(ch, "They are too big for you to push away.\r\n");
+    return;
+  }
+
+  if (GET_PUSHED_TIMER(vict) > 0)
+  {
+    send_to_char(ch, "That subject is on a pushaway timer and is temporarily immune.\r\n");
+    return false;
+  }
+
+  GET_PUSHED_TIMER(vict) = 10;
+  USE_STANDARD_ACTION(ch);
+
+  if (!push_attempt(ch, vict, true))
+  {
+    act("You try to push $N, but $E won't budge an inch!", FALSE, ch, 0, vict, TO_CHAR);
+    act("$n tries to push You, but you refuse budge an inch!", FALSE, ch, 0, vict, TO_VICT);
+    act("$n tries to push $N, but $E won't budge an inch!", FALSE, ch, 0, vict, TO_NOTVICT);
+    return;
+  }
+
+  snprintf(buf, sizeof(buf), "You shove $N hard, pushing $M to the %s.", dirs[dir]);
+  act(buf, FALSE, ch, 0, vict, TO_CHAR);
+  snprintf(buf, sizeof(buf), "$n shoves You hard, pushing You to the %s.", dirs[dir]);
+  act(buf, FALSE, ch, 0, vict, TO_VICT);
+  snprintf(buf, sizeof(buf), "$n shoves $N hard, pushing $N to the %s.", dirs[dir]);
+  act(buf, FALSE, ch, 0, vict, TO_NOTVICT);
+
+  perform_move_full(vict, dir, false, false);
+
+}
+
+ACMD(do_evoweb)
+{
+  char arg[200];
+  struct chat_data *vict = NULL;
+
+  one_argument(argument, arg, sizeof (arg));
+
+  if (!HAS_EVOLUTION(ch, EVOLUTION_WEB))
+  {
+    send_to_char(ch, "You do not have the web evolution.\r\n");
+    return;
+  }
+
+  if (!*arg)
+  {
+    if (!FIGHTING(ch))
+    {
+      send_to_char(ch, "You need to specify whom you wish to web.");
+      return;
+    }
+    vict = FIGHTING(ch);    
+  }
+
+  if (!vict && (!(vict = get_char_room_vis(ch, arg, NULL))))
+  {
+    send_to_char(ch, "There is no one here by that name.\r\n");
+    return;
+  }
+
+  act("You raise your spinneret at $N, spitting forth a stream of webbing.", TRUE, ch, 0, vict, TO_CHAR);
+  act("$n raises $s spinneret at You, spitting forth a stream of webbing.", TRUE, ch, 0, vict, TO_VICT);
+  act("$n raises $s spinneret at $N, spitting forth a stream of webbing.", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  call_magic(ch, vict, 0, SPELL_WEB, 0, GET_SUMMONER_LEVEL(ch), CAST_INNATE);
+
+  USE_SWIFT_ACTION(ch);
+
+}
+
+
+ACMD(do_evobreath)
+{
+
+  int cooldown = 60;
+
+  PREREQ_CAN_FIGHT();
+  PREREQ_NOT_PEACEFUL_ROOM();
+
+  if (!HAS_EVOLUTION(ch, EVOLUTION_ACID_BREATH) && !HAS_EVOLUTION(ch, EVOLUTION_FIRE_BREATH) &&
+      !HAS_EVOLUTION(ch, EVOLUTION_COLD_BREATH) && !HAS_EVOLUTION(ch, EVOLUTION_ELECTRIC_BREATH))
+  {
+    send_to_char(ch, "You don't know how to do that.\r\n");
+    return;
+  }
+
+  if (char_has_mud_event(ch, eEVOBREATH))
+  {
+    send_to_char(ch, "You are too exhausted to do that!\r\n");
+    return;
+  }
+
+  act("You prepare your breath weapon.", TRUE, ch, 0, 0, TO_CHAR);
+  act("$n prepares a breath weapon.", TRUE, ch, 0, 0, TO_ROOM);
+
+  process_evolution_breath_damage(ch);
+
+  cooldown -= MAX(0, num_evo_breaths(ch) - 1) * 18;
+    
+  attach_mud_event(new_mud_event(eEVOBREATH, ch, NULL), cooldown * PASSES_PER_SEC);
+  USE_STANDARD_ACTION(ch);
 }
 
 /* cleanup! */

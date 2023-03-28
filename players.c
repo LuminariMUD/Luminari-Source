@@ -62,6 +62,8 @@ static void load_events(FILE *fl, struct char_data *ch);
 static void load_affects(FILE *fl, struct char_data *ch);
 static void load_skills(FILE *fl, struct char_data *ch);
 static void load_feats(FILE *fl, struct char_data *ch);
+static void load_evolutions(FILE *fl, struct char_data *ch);
+static void load_known_evolutions(FILE *fl, struct char_data *ch);
 static void load_class_feat_points(FILE *fl, struct char_data *ch);
 static void load_epic_class_feat_points(FILE *fl, struct char_data *ch);
 static void load_skill_focus(FILE *fl, struct char_data *ch);
@@ -549,10 +551,10 @@ int load_char(const char *name, struct char_data *ch)
       PLR_FLAGS(ch)[i] = PFDEF_PLRFLAGS;
     for (i = 0; i < PR_ARRAY_MAX; i++)
       PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
-    for (i = 0; i < PR_ARRAY_MAX; i++)
+    for (i = 0; i < NUM_EVOLUTIONS; i++)
     {
-      EVOLUTIONS(ch)[i] = 0;
-      KNOWN_EVOLUTIONS(ch)[i] = 0;
+      HAS_EVOLUTION(ch, i) = 0;
+      KNOWS_EVOLUTION(ch, i) = 0;
     }
     for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
       GET_BOMB(ch, i) = 0;
@@ -791,17 +793,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "Evnt"))
           load_events(fl, ch);
         else if (!strcmp(tag, "Evol"))
-        {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
-          {
-            EVOLUTIONS(ch)[0] = asciiflag_conv(f1);
-            EVOLUTIONS(ch)[1] = asciiflag_conv(f2);
-            EVOLUTIONS(ch)[2] = asciiflag_conv(f3);
-            EVOLUTIONS(ch)[3] = asciiflag_conv(f4);
-          }
-          else
-            EVOLUTIONS(ch)[0] = asciiflag_conv(line);
-        }
+          load_evolutions(fl, ch);
         else if (!strcmp(tag, "Ecfp"))
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
@@ -912,17 +904,7 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "KnSp"))
           load_known_spells(fl, ch);
         else if (!strcmp(tag, "KEvo"))
-        {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
-          {
-            KNOWN_EVOLUTIONS(ch)[0] = asciiflag_conv(f1);
-            KNOWN_EVOLUTIONS(ch)[1] = asciiflag_conv(f2);
-            KNOWN_EVOLUTIONS(ch)[2] = asciiflag_conv(f3);
-            KNOWN_EVOLUTIONS(ch)[3] = asciiflag_conv(f4);
-          }
-          else
-            KNOWN_EVOLUTIONS(ch)[0] = asciiflag_conv(line);
-        }
+          load_known_evolutions(fl, ch);
         break;
 
       case 'L':
@@ -1529,18 +1511,6 @@ void save_char(struct char_data *ch, int mode)
   sprintascii(bits4, AFF_FLAGS(ch)[3]);
   fprintf(fl, "Aff : %s %s %s %s\n", bits, bits2, bits3, bits4);
 
-  sprintascii(bits, EVOLUTIONS(ch)[0]);
-  sprintascii(bits2, EVOLUTIONS(ch)[1]);
-  sprintascii(bits3, EVOLUTIONS(ch)[2]);
-  sprintascii(bits4, EVOLUTIONS(ch)[3]);
-  fprintf(fl, "Evol: %s %s %s %s\n", bits, bits2, bits3, bits4);
-
-  sprintascii(bits, KNOWN_EVOLUTIONS(ch)[0]);
-  sprintascii(bits2, KNOWN_EVOLUTIONS(ch)[1]);
-  sprintascii(bits3, KNOWN_EVOLUTIONS(ch)[2]);
-  sprintascii(bits4, KNOWN_EVOLUTIONS(ch)[3]);
-  fprintf(fl, "KEvo: %s %s %s %s\n", bits, bits2, bits3, bits4);
-
   sprintascii(bits, PRF_FLAGS(ch)[0]);
   sprintascii(bits2, PRF_FLAGS(ch)[1]);
   sprintascii(bits3, PRF_FLAGS(ch)[2]);
@@ -1967,6 +1937,24 @@ void save_char(struct char_data *ch, int mode)
   }
   fprintf(fl, "0 0\n");
 
+  /* Save evolutions */
+  fprintf(fl, "Evol:\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (HAS_EVOLUTION(ch, i))
+      fprintf(fl, "%d %d\n", i, HAS_EVOLUTION(ch, i));
+  }
+  fprintf(fl, "0 0\n");
+
+  /* Save known evolutions */
+  fprintf(fl, "KEvo:\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (KNOWS_EVOLUTION(ch, i))
+      fprintf(fl, "%d %d\n", i, KNOWS_EVOLUTION(ch, i));
+  }
+  fprintf(fl, "0 0\n");
+
   /* spell prep system */
   save_spell_prep_queue(fl, ch);
   save_innate_magic_queue(fl, ch);
@@ -2232,6 +2220,8 @@ void save_char(struct char_data *ch, int mode)
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWILLUSION)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
     if ((pMudEvent = char_has_mud_event(ch, eSHADOWPOWER)))
+      fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
+    if ((pMudEvent = char_has_mud_event(ch, eEVOBREATH)))
       fprintf(fl, "%d %ld\n", pMudEvent->iId, event_time(pMudEvent->pEvent));
 
     fprintf(fl, "-1 -1\n");
@@ -3107,6 +3097,34 @@ void load_feats(FILE *fl, struct char_data *ch)
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
       SET_FEAT(ch, num, num2);
+  } while (num != 0);
+}
+
+void load_evolutions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      HAS_EVOLUTION(ch, num) = num2;
+  } while (num != 0);
+}
+
+void load_known_evolutions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      KNOWS_EVOLUTION(ch, num) = num2;
   } while (num != 0);
 }
 

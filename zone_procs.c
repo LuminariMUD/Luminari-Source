@@ -27,6 +27,7 @@
 #include "mobact.h"       /* for npc_find_target() */
 #include "dg_scripts.h"   /* for load_mtrigger() */
 #include "staff_events.h" /* for staff events!  prisoner treasury! */
+#include "evolutions.h"
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
@@ -3039,6 +3040,7 @@ SPECIAL(thrym)
 
   struct char_data *vict = FIGHTING(ch);
   struct affected_type af;
+  int bonus = 0;
 
   if (cmd || !vict || rand_number(0, 8))
     return 0;
@@ -3052,7 +3054,9 @@ SPECIAL(thrym)
   // no save, unless have special feat
   if (HAS_FEAT(vict, FEAT_PARALYSIS_RESIST))
   {
-    mag_savingthrow(ch, vict, SAVING_FORT, +4, /* +4 bonus from feat */
+    if (HAS_EVOLUTION(vict, EVOLUTION_UNDEAD_APPEARANCE))
+        bonus += get_evolution_appearance_save_bonus(vict);
+    mag_savingthrow(ch, vict, SAVING_FORT, 4 + bonus, /* +4 bonus from feat */
                     CAST_INNATE, 30, ENCHANTMENT);
     send_to_char(ch, "Your target is unfazed.\r\n");
     return 1;

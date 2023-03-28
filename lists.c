@@ -456,7 +456,7 @@ void remove_from_list(void *pContent, struct list_data *pList)
 
   if ((pRemovedItem = find_in_list(pContent, pList)) == NULL)
   {
-    log(CMP, LVL_STAFF, TRUE, "WARNING: Attempting to remove contents that don't exist in list.");
+    log("WARNING: Attempting to remove contents that don't exist in list.");
     return;
   }
 

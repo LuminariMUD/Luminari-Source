@@ -23,6 +23,7 @@
 #include "actions.h"
 #include "act.h"
 #include "fight.h"
+#include "evolutions.h"
 
 // external functions
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch, int attack_number);

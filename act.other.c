@@ -52,6 +52,7 @@
 #include "staff_events.h"
 #include "account.h"
 #include "deities.h"
+#include "evolutions.h"
 
 /* some defines for gain/respec */
 #define MODE_CLASSLIST_NORMAL 0
@@ -1759,10 +1760,21 @@ void perform_call(struct char_data *ch, int call_type, int level)
     mob_num = GET_MOUNT(ch);
 
     break;
+
+    case MOB_EIDOLON:
+
+      if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_EIDOLON))
+      {
+        send_to_char(ch, "You cannot summon an eidolon");
+        return;
+      }
+
+      mob_num = MOB_NUM_EIDOLON;
+      break;
   }
 
   /* couple of dummy checks */
-  if ((mob_num <= 0 || mob_num > 99) && mob_num != 60289) // zone 0 for mobiles, except for the shadow
+  if ((mob_num <= 0 || mob_num > 99) && mob_num != 60289 && mob_num != MOB_NUM_EIDOLON) // zone 0 for mobiles, except for the shadow and eidolon
     return;
   if (level >= LVL_IMMORT)
     level = LVL_IMMORT - 1;
@@ -1828,6 +1840,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     GET_REAL_SIZE(mob) = GET_SIZE(ch) + 1;
     GET_MOVE(mob) = GET_REAL_MAX_MOVE(mob) = 500;
+    break;
+  case MOB_EIDOLON:
+    GET_LEVEL(mob) = MIN(30, level);
+    autoroll_mob(mob, true, true);
+    GET_REAL_MAX_HIT(mob) += 20;
+    GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
+    assign_eidolon_evolutions(ch, mob);
     break;
   }
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -1959,6 +1978,18 @@ ACMD(do_call)
     }
 
     call_type = MOB_SHADOW;
+  }
+  else if (is_abbrev(argument, "eidolon"))
+  {
+    level = MIN(GET_LEVEL(ch), CLASS_LEVEL(ch, CLASS_SUMMONER));
+
+    if (IS_NPC(ch) || !HAS_REAL_FEAT(ch, FEAT_EIDOLON))
+    {
+      send_to_char(ch, "You do not have an eidolon that you can call.\r\n");
+      return;
+    }
+
+    call_type = MOB_EIDOLON;
   }
   else
   {
@@ -6946,7 +6977,12 @@ ACMD(do_gen_tog)
       // 51
       {"You will now allow yourself to be affected by the rage spell.\r\n",
        "You will now reject any castings of the rage spell upon you.\r\n"},
-
+      // 52
+      {"You assume shadowform making you incorporeal.\r\n",
+       "You are no longer in shadowform, making you corporeal again.\r\n"},
+      // 53
+      {"You activate your sickening aura.\r\n",
+       "You end your sickening aura.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -6954,6 +6990,50 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+  case SCMD_SICKENING_AURA:
+    if (!HAS_EVOLUTION(ch, EVOLUTION_SICKENING))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SICKENING_AURA);
+      send_to_char(ch, "You are not able to activate a sickening aura.\r\n");
+      return;
+    }
+    if (AFF_FLAGGED(ch, AFF_SICKENING_AURA))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_SICKENING_AURA);
+      act("You end your sickening aura.", TRUE, ch, 0, 0, TO_CHAR);
+      if (ch->master)
+        act("$n no longer emits a cloud of sickening stench.", TRUE, ch, 0, ch->master, TO_VICT);
+    }
+    else
+    {
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_SICKENING_AURA);
+      act("You activate your sickening aura.", TRUE, ch, 0, 0, TO_CHAR);
+      if (ch->master)
+        act("$n begins to emit a cloud of sickening stench", TRUE, ch, 0, ch->master, TO_VICT);
+    }
+    return;
+  case SCMD_SHADOWFORM:
+    if (!HAS_EVOLUTION(ch, EVOLUTION_SHADOW_FORM))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_IMMATERIAL);
+      send_to_char(ch, "You are not able to assume shadowform.\r\n");
+      return;
+    }
+    if (AFF_FLAGGED(ch, AFF_IMMATERIAL))
+    {
+      REMOVE_BIT_AR(AFF_FLAGS(ch), AFF_IMMATERIAL);
+      act("You are no longer in shadowform, making you corporeal again.", TRUE, ch, 0, 0, TO_CHAR);
+      if (ch->master)
+        act("$n is no longer in shadowform, making $m corporeal again.", TRUE, ch, 0, ch->master, TO_VICT);
+    }
+    else
+    {
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_IMMATERIAL);
+      act("You assume shadowform making you incorporeal.", TRUE, ch, 0, 0, TO_CHAR);
+      if (ch->master)
+        act("$n assumes shadowform making $m incorporeal.", TRUE, ch, 0, ch->master, TO_VICT);
+    }
+    return;
   case SCMD_USE_STORED_CONSUMABLES:
     result = PRF_TOG_CHK(ch, PRF_USE_STORED_CONSUMABLES);
     break;
@@ -8539,6 +8619,70 @@ ACMDU(do_eldritch)
     send_to_char(ch, "You don't know of any eldritch blast essences or shapes of that name.\r\n");
     return;
   }
+}
+
+ACMD(do_sacrifice)
+{
+  if (!HAS_EVOLUTION(ch, EVOLUTION_SACRIFICE))
+  {
+    send_to_char(ch, "You do not have the ability to sacrifice your hp for another.\r\n");
+    return;
+  }
+
+  struct char_data *vict = NULL;
+  char arg1[200], arg2[200], buf[200];
+  int sac = 0;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Who do you wish to sacrifice your hit points to?\r\n");
+    return;
+  }
+
+  if (!*arg2)
+  {
+    send_to_char(ch, "How many hit points do you wish to sacrifice?\r\n");
+    return;
+  }
+
+  if ((sac = atoi(arg2) <= 1))
+  {
+    send_to_char(ch, "You have to sacrifice 2 hit points or more.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_room_vis(ch, arg1, NULL)))
+  {
+    send_to_char(ch, "There's no one here by that description.\r\n");
+    return;
+  }
+
+  if (GET_HIT(vict) >= GET_MAX_HIT(vict))
+  {
+    send_to_char(ch, "They're already at full hp.\r\n");
+    return;
+  }
+
+  if (GET_HIT(ch) <= 2)
+  {
+    send_to_char(ch, "You cannot, because if you do you will fall unconscious.\r\n");
+    return;
+  }
+
+  snprintf(buf, sizeof(buf), "You sacrifice %d points of your own health to heal $N %d hit points.", sac, sac / 2);
+  act(buf, TRUE, ch, 0, vict, TO_CHAR);
+  snprintf(buf, sizeof(buf), "$n sacrifices some of $s own health to heal You %d hit points.", sac / 2);
+  act(buf, TRUE, ch, 0, vict, TO_VICT);
+  act("$n sacrifices some of $s own health to heal $N", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  GET_HIT(ch) -= sac;
+
+  sac /= 2;
+  GET_HIT(vict) = MIN(GET_MAX_HIT(vict) - GET_HIT(vict), sac);
+
+  USE_STANDARD_ACTION(ch);
 }
 
 /* undefines */

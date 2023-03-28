@@ -747,7 +747,7 @@ ACMD(do_map)
     return;
   }
   else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !HAS_FEAT(ch, FEAT_BLINDSENSE))
+           !has_blindsense(ch))
   {
     send_to_char(ch, "You can't see the map while blind!\r\n");
     return;

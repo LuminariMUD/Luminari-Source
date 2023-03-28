@@ -31,6 +31,7 @@
 #include "missions.h"
 #include "psionics.h"
 #include "act.h"
+#include "evolutions.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -3062,6 +3063,10 @@ void mag_assign_spells(void)
   spello(SPELL_RAY_OF_FROST, "ray of frost", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_DAMAGE,
          NULL, 0, 1, EVOCATION, FALSE);
+  spello(SPELL_BALL_OF_LIGHT, "globe of light", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, FALSE, MAG_CREATIONS, NULL, 0, 1, EVOCATION, FALSE);
+  spello(SPELL_TOUCH_OF_FATIGUE, "touch of fatigue", 0, 0, 0, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, "You fatigue passes.", 0, 1, NECROMANCY, FALSE);
 
   spello(SPELL_DAZE_MONSTER, "daze monster", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
@@ -4596,6 +4601,17 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_AFFECTS,
          "You are no longer stunned.", 1, 1, NOSCHOOL, 0);
 
+  spello(EVOLUTION_BLEED_EFFECT, "bleeding attack", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
+        
+  spello(EVOLUTION_WING_BUFFET_EFFECT, "wing buffet", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
+
+  spello(EVOLUTION_SICKENING_EFFECT, "sickening aura", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel sickened.", 1, 1, NOSCHOOL, 0);
+  spello(EVOLUTION_FRIGHTFUL_EFFECT, "frightful presence", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel shaken.", 1, 1, NOSCHOOL, 0);
+
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
     TAR_CHAR_ROOM | TAR_OBJ_INV | TAR_OBJ_ROOM, FALSE, MAG_MANUAL,
@@ -4964,7 +4980,82 @@ sbyte canCastAtWill(struct char_data *ch, int spellnum)
     return true;
   if (isFaeMagic(ch, spellnum))
     return true;
+  if (isEidolonMagic(ch, spellnum))
+    return true;
+  if (isSummonerMagic(ch, spellnum))
+    return true;
 
+  return false;
+}
+
+bool isSummonerMagic(struct char_data *ch, int spellnum)
+{
+  if (!ch) return false;
+  if (!HAS_FEAT(ch, FEAT_SUMMON_MONSTER)) return false;
+
+  switch (spellnum)
+  {
+    case SPELL_SUMMON_CREATURE_1: if (GET_SUMMONER_LEVEL(ch) >= 1) return true; break;
+    case SPELL_SUMMON_CREATURE_2: if (GET_SUMMONER_LEVEL(ch) >= 3) return true; break;
+    case SPELL_SUMMON_CREATURE_3: if (GET_SUMMONER_LEVEL(ch) >= 5) return true; break;
+    case SPELL_SUMMON_CREATURE_4: if (GET_SUMMONER_LEVEL(ch) >= 7) return true; break;
+    case SPELL_SUMMON_CREATURE_5: if (GET_SUMMONER_LEVEL(ch) >= 9) return true; break;
+    case SPELL_SUMMON_CREATURE_6: if (GET_SUMMONER_LEVEL(ch) >= 11) return true; break;
+    case SPELL_SUMMON_CREATURE_7: if (GET_SUMMONER_LEVEL(ch) >= 13) return true; break;
+    case SPELL_SUMMON_CREATURE_8: if (GET_SUMMONER_LEVEL(ch) >= 15) return true; break;
+    case SPELL_SUMMON_CREATURE_9: if (GET_SUMMONER_LEVEL(ch) >= 17) return true; break;
+  }
+
+  return false;
+}
+
+sbyte isEidolonMagic(struct char_data *ch, int spellnum)
+{
+  switch (spellnum)
+  {
+    case SPELL_DAZE_MONSTER:
+    case SPELL_DETECT_MAGIC:
+    case SPELL_ACID_SPLASH:
+    case SPELL_RAY_OF_FROST:
+    case SPELL_BALL_OF_LIGHT:
+    case SPELL_TOUCH_OF_FATIGUE:
+      if (HAS_EVOLUTION(ch, EVOLUTION_BASIC_MAGIC))
+        return true;
+      break;
+
+    case SPELL_BURNING_HANDS:
+    case SPELL_DETECT_ALIGN:
+    case SPELL_MAGIC_MISSILE:
+    case SPELL_OBSCURING_MIST:
+    case SPELL_MINOR_ILLUSION:
+    if (HAS_EVOLUTION(ch, EVOLUTION_MINOR_MAGIC))
+        return true;
+      break;
+
+    case SPELL_ACID_ARROW:
+    case SPELL_DARKNESS:
+    case SPELL_INVISIBLE:
+    case SPELL_LESSER_RESTORATION:
+    case SPELL_LEVITATE:
+    case SPELL_SCORCHING_RAY:
+    case SPELL_DETECT_INVIS:
+    case SPELL_SPIDER_CLIMB:
+    if (HAS_EVOLUTION(ch, EVOLUTION_MAJOR_MAGIC))
+        return true;
+      break;
+
+    case SPELL_DAYLIGHT:
+    case SPELL_FIREBALL:
+    case SPELL_GASEOUS_FORM:
+    case SPELL_LIGHTNING_BOLT:
+    case SPELL_FLY:
+    case SPELL_STINKING_CLOUD:
+    case SPELL_WATER_BREATHE:
+    //case SPELL_TONGUES:
+    if (HAS_EVOLUTION(ch, EVOLUTION_ULTIMATE_MAGIC))
+        return true;
+      break;
+  }
   return false;
 }
 
