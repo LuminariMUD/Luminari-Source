@@ -1147,7 +1147,7 @@ void look_at_room_number(struct char_data *ch, int ignore_brief, long room_numbe
     list_char_to_char(world[room_number].people, ch);
     return;
   }
-  else if (AFF_FLAGGED(ch, AFF_BLIND) && !HAS_FEAT(ch, FEAT_BLINDSENSE))
+  else if (AFF_FLAGGED(ch, AFF_BLIND) && !has_blindsense(ch))
   {
     send_to_char(ch, "You're blind, you can't see anything!\r\n");
     if (AFF_FLAGGED(ch, AFF_SENSE_LIFE))
@@ -1284,7 +1284,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     return;
   }
   else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !HAS_FEAT(ch, FEAT_BLINDSENSE))
+           !has_blindsense(ch))
   {
     send_to_char(ch, "You see nothing but infinite darkness...\r\n");
     return;
@@ -1976,6 +1976,8 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
     send_to_char(ch, "Touch of Corruption Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eCHANNELENERGY)))
     send_to_char(ch, "Channel Energy Cooldown - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eEVOBREATH)))
+    send_to_char(ch, "Eidolon Breath Weapon Cooldown  - Duration: %d seconds\r\n", (int)(event_time(pMudEvent->pEvent) / 10));
 
   if (GET_SETCLOAK_TIMER(ch) > 0)
     send_to_char(ch, "Vampire 'Setcloak' Cooldown - Duration: %d seconds\r\n", GET_SETCLOAK_TIMER(ch) * 6);
@@ -2100,6 +2102,8 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
         case DR_BYPASS_CAT_DAMTYPE:
           send_to_char(ch, "%s", damtypes[dr->bypass_val[i]]);
           break;
+        case DR_BYPASS_CAT_ALIGNMENT:
+          send_to_char(ch, "%s", dr_aligns[dr->bypass_val[i]]);
         default:
           send_to_char(ch, "???");
         }
@@ -2519,8 +2523,7 @@ ACMD(do_look)
 
   if (GET_POS(ch) < POS_SLEEPING)
     send_to_char(ch, "You can't see anything but stars!\r\n");
-  else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-           !HAS_FEAT(ch, FEAT_BLINDSENSE))
+  else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch))
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
   else if (IS_DARK(IN_ROOM(ch)) && !CAN_SEE_IN_DARK(ch) && !CAN_INFRA_IN_DARK(ch))
   {
@@ -5505,7 +5508,7 @@ ACMD(do_scan)
   else
     return;
 
-  if (IS_AFFECTED(ch, AFF_BLIND) && !HAS_FEAT(ch, FEAT_BLINDSENSE))
+  if (IS_AFFECTED(ch, AFF_BLIND) && !has_blindsense(ch))
   {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
@@ -5665,7 +5668,7 @@ ACMD(do_survey)
   }
 
   if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-      !HAS_FEAT(ch, FEAT_BLINDSENSE))
+      !has_blindsense(ch))
   {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;
@@ -5721,7 +5724,7 @@ ACMD(do_exits)
   int door, len = 0;
 
   if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-      !HAS_FEAT(ch, FEAT_BLINDSENSE))
+      !has_blindsense(ch))
   {
     send_to_char(ch, "You can't see a damned thing, you're blind!\r\n");
     return;

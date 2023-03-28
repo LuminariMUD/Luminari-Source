@@ -172,6 +172,9 @@ extern const char *ascii_webmap_colors[NUM_ROOM_SECTORS + 1];
 extern const char *sector_map_letters[NUM_ROOM_SECTORS + 1];
 extern const bool sector_show_worldmap[NUM_ROOM_SECTORS + 1];
 extern const char *mold_accessories[];
+extern const int evolution_points[];
+extern const char *attack_types[];
+extern const char *dr_aligns[];
 
 /* NewCraft */
 extern const char *craft_flags[];

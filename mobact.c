@@ -29,6 +29,7 @@
 #include "shop.h"
 #include "quest.h"      /* so you can identify questmaster mobiles */
 #include "dg_scripts.h" /* so you can identify script mobiles */
+#include "evolutions.h"
 
 /***********/
 
@@ -784,7 +785,7 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
   switch (rand_number(1, 2))
   {
   case 1:
-    if (perform_knockdown(ch, vict, SKILL_TRIP))
+    if (perform_knockdown(ch, vict, SKILL_TRIP, true, true))
       break;
     /* fallthrough */
   case 2:
@@ -823,7 +824,7 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict,
   switch (rand_number(1, 3))
   {
   case 1:
-    perform_knockdown(ch, vict, SKILL_TRIP);
+    perform_knockdown(ch, vict, SKILL_TRIP, true, true);
     break;
   case 2:
     perform_dirtkick(ch, vict);
@@ -862,7 +863,7 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
   switch (rand_number(1, 2))
   {
   case 1:
-    if (perform_knockdown(ch, vict, SKILL_BASH))
+    if (perform_knockdown(ch, vict, SKILL_BASH, true, true))
       break;
   case 2:
     if (perform_shieldpunch(ch, vict))

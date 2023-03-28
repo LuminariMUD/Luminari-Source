@@ -35,6 +35,7 @@
 #include "assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */
 #include "transport.h"
+#include "evolutions.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -3620,8 +3621,7 @@ ASPELL(spell_wizard_eye)
   load_mtrigger(eye);
 
   // now take control
-  send_to_char(ch, "You summon a wizard eye! (\tDType 'return' to return"
-                   " to your body\tn)\r\n");
+  send_to_char(ch, "You summon a wizard eye! (\tDType 'return' to return to your body\tn)\r\n");
   ch->desc->character = eye;
   ch->desc->original = ch;
   eye->desc = ch->desc;

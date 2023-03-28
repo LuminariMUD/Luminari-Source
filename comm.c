@@ -1614,8 +1614,7 @@ static char *make_prompt(struct descriptor_data *d)
         {
           seesExits = 0;
         }
-        else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT &&
-                 !HAS_FEAT(ch, FEAT_BLINDSENSE))
+        else if (AFF_FLAGGED(ch, AFF_BLIND) && GET_LEVEL(ch) < LVL_IMMORT && !has_blindsense(ch))
         {
           seesExits = 0;
         }

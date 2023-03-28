@@ -164,8 +164,7 @@ bool spellbook_ok(struct char_data *ch, int spellnum, int class, bool check_scro
     send_to_char(ch, "It is too dark to study!\r\n");
     return FALSE;
   }
-  if (AFF_FLAGGED(ch, AFF_BLIND) &&
-      !HAS_FEAT(ch, FEAT_BLINDSENSE))
+  if (AFF_FLAGGED(ch, AFF_BLIND) && !has_blindsense(ch))
   {
     send_to_char(ch, "You are blind!\r\n");
     return FALSE;

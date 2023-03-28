@@ -27,6 +27,7 @@
 #include "assign_wpn_armor.h"
 #include "feats.h"
 #include "grapple.h"
+#include "evolutions.h"
 
 /* As a standard action, you can attempt to grapple a foe, hindering his combat
  * options. If you do not have Improved Grapple, grab, or a similar ability,
@@ -209,6 +210,7 @@ ACMD(do_grapple)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict = NULL;
+  int grapple_mod = 0;
 
   if (IS_NPC(ch))
   {
@@ -243,12 +245,19 @@ ACMD(do_grapple)
     return;
   }
 
+  if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE) && HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+    grapple_mod = 0;
+  else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
+    grapple_mod = -4;
+  else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+   grapple_mod = 4;
+
   /* try for reversale? */
   if (GRAPPLE_ATTACKER(ch) && GRAPPLE_ATTACKER(ch) == vict &&
       AFF_FLAGGED(ch, AFF_GRAPPLED))
   {
     /* cmb, escape artist: check which is better is done in compute_cmb() */
-    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0) > 0)
+    if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, grapple_mod) > 0)
     {
       /* reversal! */
       if (AFF_FLAGGED(ch, AFF_PINNED))
@@ -303,6 +312,8 @@ ACMD(do_grapple)
     {
       grapple_penalty = attack_of_opportunity(vict, ch, 0);
     }
+
+    grapple_penalty -= grapple_mod;
 
      if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT))
      {
@@ -368,8 +379,16 @@ ACMD(do_struggle)
   }
 
   struct char_data *vict = GRAPPLE_ATTACKER(ch);
+  int grapple_mod = 0;
 
-  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, 0) > 0)
+  if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE) && HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+    grapple_mod = 0;
+  else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
+    grapple_mod = -4;
+  else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+   grapple_mod = 4;
+
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_REVERSAL, grapple_mod) > 0)
   {
     /* success, defender escapes! */
     act("\tyYou succeed in escaping the grapple from $N!\tn", FALSE, ch, NULL, vict, TO_CHAR);
@@ -429,6 +448,14 @@ ACMD(do_pin)
   /* we're assuming we are now in a position to attempt a pin */
   int grapple_penalty = 4;
   struct char_data *vict = GRAPPLE_TARGET(ch);
+  int grapple_mod = 0;
+
+  if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE) && HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+    grapple_mod = 0;
+  else if (HAS_EVOLUTION(vict, EVOLUTION_TENTACLE))
+    grapple_mod = -4;
+  else if (HAS_EVOLUTION(ch, EVOLUTION_TENTACLE))
+   grapple_mod = 4;
 
   if (vict == ch)
     return; /*huh?*/
@@ -438,6 +465,8 @@ ACMD(do_pin)
   {
     grapple_penalty += attack_of_opportunity(vict, ch, 0);
   }
+
+  grapple_penalty -= grapple_mod;
 
   if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_PIN, -(grapple_penalty)) > 0)
   {

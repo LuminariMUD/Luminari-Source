@@ -698,6 +698,31 @@ const char *attack_hit_types[] = {
     "\n"};
 CHECK_TABLE_SIZE(attack_hit_types, NUM_ATTACK_TYPES + 1);
 
+const char *attack_types[] = {
+    "Primary",
+    "Offhand",
+    "Ranged",
+    "Unarmed",
+    "Two-Handed",
+    "Bomb Toss",
+    "Primary (Sneak)",
+    "Offhand (Sneak)",
+    "Psionics",
+    "Eldritch Blast",
+    "Evolution (Bite)",
+    "Evolution (Claws)",
+    "Evolution (Hooves)",
+    "Evolution (Pincers)",
+    "Evolution (Sting)",
+    "Evolution (Tail Slap)",
+    "Evolution (Tentacle)",
+    "Evolution (Wing Buffet)",
+    "Evolution (Gore)",
+    "Evolution (Rake)",
+    "Evolution (Rend)",
+    "Evolution (Trample)",
+};
+
 const char *instrument_names[] = {
     "Lyre",
     "Flute",
@@ -1494,7 +1519,14 @@ const char *action_bits[] = {
     "Vampire-Spawn",
     "Dragon-Knight",
     "Mummy-Dust",
-    "\n"};
+    "Eidolon",
+    "Eidolon-Base-Form-Avian",
+    "Eidolon-Base-Form-Biped",
+    "Eidolon-Base-Form-Quadruped",
+    "Eidolon-Base-Form-Serpentine",
+    "Eidolon-Base-Form-Tauric",
+    "\n"
+};
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
 
 /** PC Preference flags.
@@ -1720,6 +1752,7 @@ const char *affected_bits[] = {
     "Repulsion-Fielded",
     "On-Fire",
     "Flame-Blade",
+    "Sickening-Aura",
     "\n"};
 
 CHECK_TABLE_SIZE(affected_bits, NUM_AFF_FLAGS + 1);
@@ -1851,6 +1884,7 @@ const char *affected_bit_descs[] = {
     "You are surrounded by a repulsion field.",
     "You have been caught on fire!",
     "Your weapons are sheathed in fire!",
+    "You are surrounded by a sickening aura.",
     "\n"};
 CHECK_TABLE_SIZE(affected_bit_descs, NUM_AFF_FLAGS + 1);
 
@@ -5176,6 +5210,53 @@ const char *regions[] = {
     "Zakhara",
     "\n"};
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);
+
+const int evolution_points[] = {
+    0,
+    3,  // 1
+    4,
+    5,
+    7,
+    8,  // 5
+    9,
+    10,
+    11,
+    13,
+    14, // 10
+    15,
+    16,
+    17,
+    19,
+    20, // 15
+    21,
+    22,
+    23,
+    25,
+    26, // 20
+    27,
+    29,
+    30,
+    32,
+    33, // 25
+    35,
+    36,
+    38,
+    39,
+    41, // 30
+    42,
+    44,
+    45,
+    47
+};
+CHECK_TABLE_SIZE(evolution_points, LVL_IMPL + 1);
+
+const char *dr_aligns[] = {
+    "",
+    "good",
+    "evil",
+    "lawful",
+    "chaotic"
+};
 
 /* --- End of constants arrays. --- */
 

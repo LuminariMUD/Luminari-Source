@@ -44,6 +44,7 @@
 #include "race.h"
 #include "spec_abilities.h"
 #include "domains_schools.h"
+#include "evolutions.h"
 
 struct special_ability_info_type special_ability_info[NUM_SPECABS];
 
@@ -1892,7 +1893,8 @@ WEAPON_SPECIAL_ABILITY(weapon_specab_exhausting)
 
   case ACTMTD_ON_CRIT: /* Called whenever a weapon hits critically. */
 
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
+    if (mag_savingthrow(ch, victim, SAVING_FORT, HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) ? 
+        get_evolution_appearance_save_bonus(victim) : 0, CAST_WEAPON_SPELL, GET_LEVEL(ch), SCHOOL_NOSCHOOL))
     {
       act("You resist the wave of exhaustion from the blow of $o.", FALSE, victim, weapon, ch, TO_CHAR);
       act("$n resists the wave of exhaustion from the blow of $o.", TRUE, victim, weapon, ch, TO_ROOM);

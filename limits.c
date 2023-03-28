@@ -33,6 +33,7 @@
 #include "missions.h"
 #include "account.h"
 #include "psionics.h"
+#include "evolutions.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);
@@ -467,6 +468,8 @@ int regen_hps(struct char_data *ch)
 
   hp += GET_FAST_HEALING_MOD(ch);
 
+  hp += HAS_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
+
   /* these are last bonuses (outside of exceptions) because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
   {
@@ -656,8 +659,7 @@ void regen_update(struct char_data *ch)
   {
     if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 15)
     {
-      GET_HIT(ch)
-      --;
+      GET_HIT(ch)--;
     }
     else if (GET_MAX_HIT(ch) - GET_HIT(ch) <= 45)
     {
@@ -1306,8 +1308,7 @@ void update_player_misc(void)
     affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)
-      GET_MISSION_COOLDOWN(ch)
-    --;
+      GET_MISSION_COOLDOWN(ch)--;
 
     if (HAS_FEAT(ch, FEAT_DETECT_ALIGNMENT))
       SET_BIT_AR(AFF_FLAGS(ch), AFF_DETECT_ALIGN);
@@ -1330,8 +1331,7 @@ void update_player_misc(void)
 
     if (IS_VAMPIRE(ch) && GET_SETCLOAK_TIMER(ch) > 0)
     {
-      GET_SETCLOAK_TIMER(ch)
-      --;
+      GET_SETCLOAK_TIMER(ch)--;
       if (GET_SETCLOAK_TIMER(ch) == 0)
       {
         send_to_char(ch, "You can now set your vampire cloak bonuses again. (setcloak command)\r\n");
@@ -1340,8 +1340,7 @@ void update_player_misc(void)
 
     if (HAS_FEAT(ch, FEAT_EFREETI_MAGIC) && IS_EFREETI(ch) && EFREETI_MAGIC_TIMER(ch) > 0)
     {
-      EFREETI_MAGIC_TIMER(ch)
-      --;
+      EFREETI_MAGIC_TIMER(ch)--;
       if (EFREETI_MAGIC_TIMER(ch) <= 0)
       {
         EFREETI_MAGIC_TIMER(ch) = 0;
@@ -1351,8 +1350,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_DRAGON_MAGIC) && IS_DRAGON(ch) && DRAGON_MAGIC_TIMER(ch) > 0)
     {
-      DRAGON_MAGIC_TIMER(ch)
-      --;
+      DRAGON_MAGIC_TIMER(ch)--;
       if (DRAGON_MAGIC_TIMER(ch) <= 0)
       {
         DRAGON_MAGIC_TIMER(ch) = 0;
@@ -1362,8 +1360,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_PIXIE_DUST) && IS_PIXIE(ch) && PIXIE_DUST_TIMER(ch) > 0)
     {
-      PIXIE_DUST_TIMER(ch)
-      --;
+      PIXIE_DUST_TIMER(ch)--;
       if (PIXIE_DUST_TIMER(ch) <= 0)
       {
         PIXIE_DUST_TIMER(ch) = 0;
@@ -1373,8 +1370,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_LAUGHING_TOUCH) && LAUGHING_TOUCH_TIMER(ch) > 0)
     {
-      LAUGHING_TOUCH_TIMER(ch)
-      --;
+      LAUGHING_TOUCH_TIMER(ch)--;
       if (LAUGHING_TOUCH_TIMER(ch) <= 0)
       {
         LAUGHING_TOUCH_TIMER(ch) = 0;
@@ -1384,8 +1380,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_FLEETING_GLANCE) && FLEETING_GLANCE_TIMER(ch) > 0)
     {
-      FLEETING_GLANCE_TIMER(ch)
-      --;
+      FLEETING_GLANCE_TIMER(ch)--;
       if (FLEETING_GLANCE_TIMER(ch) <= 0)
       {
         FLEETING_GLANCE_TIMER(ch) = 0;
@@ -1395,8 +1390,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_SOUL_OF_THE_FEY) && FEY_SHADOW_WALK_TIMER(ch) > 0)
     {
-      FEY_SHADOW_WALK_TIMER(ch)
-      --;
+      FEY_SHADOW_WALK_TIMER(ch)--;
       if (FEY_SHADOW_WALK_TIMER(ch) <= 0)
       {
         FEY_SHADOW_WALK_TIMER(ch) = 0;
@@ -1406,8 +1400,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_GRAVE_TOUCH) && GRAVE_TOUCH_TIMER(ch) > 0)
     {
-      GRAVE_TOUCH_TIMER(ch)
-      --;
+      GRAVE_TOUCH_TIMER(ch)--;
       if (GRAVE_TOUCH_TIMER(ch) <= 0)
       {
         GRAVE_TOUCH_TIMER(ch) = 0;
@@ -1417,8 +1410,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_GRASP_OF_THE_DEAD) && GRASP_OF_THE_DEAD_TIMER(ch) > 0)
     {
-      GRASP_OF_THE_DEAD_TIMER(ch)
-      --;
+      GRASP_OF_THE_DEAD_TIMER(ch)--;
       if (GRASP_OF_THE_DEAD_TIMER(ch) <= 0)
       {
         GRASP_OF_THE_DEAD_TIMER(ch) = 0;
@@ -1428,8 +1420,7 @@ void update_player_misc(void)
     }
     if (HAS_FEAT(ch, FEAT_INCORPOREAL_FORM) && INCORPOREAL_FORM_TIMER(ch) > 0)
     {
-      INCORPOREAL_FORM_TIMER(ch)
-      --;
+      INCORPOREAL_FORM_TIMER(ch)--;
       if (INCORPOREAL_FORM_TIMER(ch) <= 0)
       {
         INCORPOREAL_FORM_TIMER(ch) = 0;
@@ -1453,11 +1444,25 @@ void update_player_misc(void)
 void proc_d20_round(void)
 {
 
-  struct char_data *i = NULL;
+  struct char_data *i = NULL, *tch = NULL;
   struct raff_node *raff, *next_raff;
+  struct affected_type af;
 
   for (i = character_list; i; i = i->next)
   {
+
+    if (GET_PUSHED_TIMER(i) > 0)
+    {
+      GET_PUSHED_TIMER(i)--;
+    }
+    if (GET_SICKENING_AURA_TIMER(i) > 0)
+    {
+      GET_SICKENING_AURA_TIMER(i)--;
+    }
+    if (GET_FRIGHTFUL_PRESENCE_TIMER(i) > 0)
+    {
+      GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
+    }
 
     if (AFF_FLAGGED(i, AFF_WIND_WALL))
     {
@@ -1500,6 +1505,34 @@ void proc_d20_round(void)
               act("$n's wall of wind dissipates the wall of fog.", FALSE, i, 0, 0, TO_ROOM);
             }
           }
+        }
+      }
+      if (GET_SICKENING_AURA_TIMER(i) <= 0)
+      for (tch = world[IN_ROOM(i)].people; tch; tch = tch->next_in_room)
+      {
+        if (AFF_FLAGGED(tch, AFF_SICKENING_AURA) && aoeOK(tch, i, EVOLUTION_SICKENING_EFFECT))
+        {
+          if (mag_savingthrow(tch, i, SAVING_FORT, 0, CAST_INNATE, GET_SUMMONER_LEVEL(tch), NOSCHOOL))
+          {
+            act("$N is unaffected by your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
+            act("You are unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
+            act("$N is unaffected by $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
+          }
+          else
+          {
+            act("$N succumbs to your sickening aura.", TRUE, tch, 0, i, TO_CHAR);
+            act("You succumb to $n's sickening aura.", TRUE, tch, 0, i, TO_VICT);
+            act("$N succumbs to $n's sickening aura.", TRUE, tch, 0, i, TO_NOTVICT);
+
+            new_affect(&af);
+            af.spell = EVOLUTION_SICKENING_EFFECT;
+            af.location = APPLY_CON;
+            af.modifier = -2;
+            af.duration = 1;
+            SET_BIT_AR(af.bitvector, AFF_SICKENED);
+            affect_to_char(i, &af);
+          }
+          GET_SICKENING_AURA_TIMER(i) = 10;
         }
       }
     }
@@ -1942,6 +1975,9 @@ void update_damage_and_effects_over_time(void)
     if (!ch)
       return;
 
+    if (HAS_EVOLUTION(ch, EVOLUTION_GILLS))
+      SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+
     // This code handles ability score damage which can be healed with various 'restoration' spells
     if (GET_STR(ch) <= 0 || GET_DEX(ch) <= 0 || GET_INT(ch) <= 0 || GET_WIS(ch) <= 0 || GET_CHA(ch) <= 0 || GET_CON(ch) <= 0)
     {
@@ -2120,8 +2156,7 @@ void update_damage_and_effects_over_time(void)
     {
       GET_HIT(ch) += 5;
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch)
-      --;
+        GET_HIT(ch)--;
     }
 
     // judgement of healing
@@ -2136,8 +2171,7 @@ void update_damage_and_effects_over_time(void)
     {
       GET_HIT(ch) += get_char_affect_modifier(ch, PALADIN_MERCY_INJURED_FAST_HEALING, APPLY_SPECIAL);
       if (GET_HIT(ch) > GET_MAX_HIT(ch))
-        GET_HIT(ch)
-      --;
+        GET_HIT(ch)--;
     }
 
     if (affected_by_spell(ch, BOMB_AFFECT_IMMOLATION))

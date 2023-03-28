@@ -39,6 +39,7 @@
 #include "fight.h"
 #include "missions.h"
 #include "psionics.h"
+#include "evolutions.h"
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -218,6 +219,7 @@ int compute_arcane_level(struct char_data *ch)
   arcane_level += CLASS_LEVEL(ch, CLASS_WIZARD);
   arcane_level += CLASS_LEVEL(ch, CLASS_SORCERER);
   arcane_level += CLASS_LEVEL(ch, CLASS_BARD);
+  arcane_level += CLASS_LEVEL(ch, CLASS_SUMMONER);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW);
   arcane_level += CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT);
   arcane_level += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4;
@@ -3240,6 +3242,9 @@ bool room_is_daylit(room_rnum room)
     return (FALSE);
   }
 
+  if (ROOM_AFFECTED(room, RAFF_LIGHT))
+    return (TRUE);
+
   /* disqualifiers */
   /* sectors */
   if (SECT(room) == SECT_INSIDE)
@@ -4288,6 +4293,7 @@ const char *get_align_by_num(int align)
 int get_feat_value(struct char_data *ch, int featnum)
 {
   struct obj_data *obj;
+  struct char_data *mob = NULL;
   int i = 0, j = 0;
   int featval = 0;
 
@@ -4319,6 +4325,11 @@ int get_feat_value(struct char_data *ch, int featnum)
       }
     }
     featval += HAS_REAL_FEAT(ch, featnum);
+    if ((mob = get_mob_follower(ch, MOB_EIDOLON)))
+    {
+      if (HAS_EVOLUTION(mob, EVOLUTION_RIDER_BOND) && featnum == FEAT_MOUNTED_COMBAT)
+        featval++;
+    }
   }
 
   return featval;
@@ -4880,6 +4891,9 @@ bool paralysis_immunity(struct char_data *ch)
     return TRUE;
   if (AFF_FLAGGED(ch, AFF_FREE_MOVEMENT))
     return TRUE;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
+    return TRUE;
+
   return FALSE;
 }
 
@@ -4893,6 +4907,9 @@ bool sleep_immunity(struct char_data *ch)
     return TRUE;
   if (HAS_FEAT(ch, FEAT_ONE_OF_US))
     return TRUE;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
+    return TRUE;
+  
   return FALSE;
 }
 
@@ -5433,6 +5450,10 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
     bonus += 2;
   if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
     bonus -= 4;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE))
+    bonus += get_evolution_appearance_save_bonus(ch);
+  else if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE))
+    bonus += get_evolution_appearance_save_bonus(ch);
 
   bonus += HAS_FEAT(ch, FEAT_POISON_SAVE_BONUS);
 
@@ -6041,8 +6062,133 @@ bool can_disease(struct char_data *ch)
     return false;
   if (IS_UNDEAD(ch))
     return false;
+  if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
+    return false;
 
   return true;
+}
+
+// returns true if the vict can be pushed or false if they are somehow immune
+// also attempts a combat maneuver check at the end
+bool push_attempt(struct char_data *ch, struct char_data *vict, bool display)
+{
+  if (!vict) return false;
+
+  if (!IS_NPC(vict))
+  {
+    if (!PRF_FLAGGED(vict, PRF_PVP))
+    {
+      if (display)
+        send_to_char(ch, "Your subject has their pvp flag turned off.\r\n");
+      return false;
+    }
+    if (!PRF_FLAGGED(ch, PRF_PVP))
+    {
+      if (display)
+        send_to_char(ch, "You have your pvp flag turned off.\r\n");
+      return false;
+    }
+  }  
+
+  if (IS_NPC(vict))
+  {
+    // we want nobash and nokill mobs at the top, to refuse
+    // being pushed because we don't want people to charm
+    // powerful mobs and push them out of the room to get
+    // around having to kill them.  This attempts to
+    // preserve builder intentions for zones they've created.
+    if (MOB_FLAGGED(vict, MOB_NOBASH))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+    if (MOB_FLAGGED(vict, MOB_NOKILL))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+    if (vict->master && AFF_FLAGGED(vict, AFF_CHARM))
+    {
+      if (vict->master == ch)
+        return true;
+      else
+      {
+        if (display)
+          send_to_char(ch, "That mob can't be pushed.\r\n");
+        return false;
+      }
+    }
+    if (MOB_FLAGGED(vict, MOB_SENTINEL))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+    if (MOB_FLAGGED(vict, MOB_NOGRAPPLE))
+    {
+      if (display)
+        send_to_char(ch, "That mob can't be pushed.\r\n");
+      return false;
+    }
+  }
+
+  if (AFF_FLAGGED(vict, AFF_FREE_MOVEMENT) || GET_LEVEL(vict) >= LVL_IMMORT)
+  {
+    if (display)
+      send_to_char(ch, "They cannot be pushed.\r\n");
+    return false;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_PROTECT_EVIL) && IS_EVIL(ch) && mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    if (display)
+      send_to_char(ch, "A protective field repels you.\r\n");
+    return false;
+  }
+    
+  if (AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch) && mag_savingthrow(ch, vict, SAVING_WILL, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+  {
+    if (display)
+      send_to_char(ch, "A protective field repels you.\r\n");
+    return false;
+  }
+
+  if (AFF_FLAGGED(vict, AFF_STUN))
+    return true;
+  if (AFF_FLAGGED(vict, AFF_DAZED))
+    return true;
+  if (AFF_FLAGGED(vict, AFF_PARALYZED))
+    return true;
+
+  int cmb_bonus = 0;
+
+  if (AFF_FLAGGED(vict, AFF_SLOW))
+    cmb_bonus += 4;
+  if (AFF_FLAGGED(ch, AFF_SLOW))
+    cmb_bonus -= 4;
+  if (AFF_FLAGGED(vict, AFF_HASTE))
+    cmb_bonus += 2;
+  if (AFF_FLAGGED(ch, AFF_HASTE))
+    cmb_bonus += 2;
+
+  if (!combat_maneuver_check(ch, vict, 0, cmb_bonus))
+    return false;
+
+  return true;
+}
+
+// returns true if they have blindsense, which allows
+// seeing in the dark and if blinded.
+bool has_blindsense(struct char_data *ch)
+{
+  if (HAS_FEAT(ch, FEAT_BLINDSENSE))
+    return true;
+  if (HAS_EVOLUTION(ch, EVOLUTION_BLINDSIGHT))
+    return true;
+  
+  return false;
 }
 
 // returns true if the target doesn't have immunity to poison
@@ -6062,6 +6208,8 @@ bool can_poison(struct char_data *ch)
     return false;
   if (IS_UNDEAD(ch))
     return false;
+  if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
+    return false;
 
   return true;
 }
@@ -6072,6 +6220,8 @@ bool can_stun(struct char_data *ch)
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     return false;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))
+    return false;
+  if (HAS_EVOLUTION(ch, EVOLUTION_UNDEAD_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
     return false;
 
   return true;
@@ -6717,6 +6867,22 @@ void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vic
       affect_join(ch, &invis_effect, TRUE, FALSE, FALSE, FALSE);
     }
   }
+}
+
+// This will return the saving throw bonus for evolutions like
+// undead appearance, celestial appearance and fiendish appearance.
+int get_evolution_appearance_save_bonus(struct char_data *ch)
+{
+  if (!ch)
+    return;
+  
+  // at level 12, they're immune
+  if (GET_SUMMONER_LEVEL(ch) >= 12)
+    return 100;
+  if (GET_SUMMONER_LEVEL(ch) >= 7)
+    return +4;
+
+  return +2;
 }
 
 void remove_locked_door_flags(room_rnum room, int door)
@@ -7962,6 +8128,59 @@ void place_random_chest(room_rnum rrnum, int level, int search_dc, int pick_dc, 
     GET_OBJ_VAL(obj, 5) = 0;
 
   obj_to_room(obj, rrnum);
+}
+
+bool has_reach(struct char_data *ch)
+{
+  if (!ch) return false;
+
+  struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
+  if (!wielded)
+    wielded = GET_EQ(ch, WEAR_WIELD_2H);
+
+  if (wielded)
+    if (IS_SET(weapon_list[GET_OBJ_VAL(wielded, 0)].weaponFlags, WEAPON_FLAG_REACH))
+      return true;
+
+  if (HAS_EVOLUTION(ch, EVOLUTION_REACH))
+    return true;
+
+  return false;
+}
+
+// This will return the desired mob follower or NULL if not found.
+// mob_type refers to the mob flag normally associated with the call
+// command.
+struct char_data * get_mob_follower(struct char_data *ch, int mob_type)
+{
+
+  struct follow_type *k = NULL, *next = NULL;
+
+  for (k = ch->followers; k; k = next)
+  {
+    next = k->next;
+    if (IS_NPC(k->follower) && AFF_FLAGGED(k->follower, AFF_CHARM) && MOB_FLAGGED(k->follower, mob_type))
+    {
+      return k->follower;
+    }
+  }
+
+  return NULL;
+}
+
+void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type)
+{
+  if (!ch) return;
+
+  struct char_data *victim = NULL;
+
+  for (victim = world[IN_ROOM(ch)].people; victim; victim = victim->next_in_room)
+  {
+    if (aoeOK(ch, victim, spellnum))
+    {
+      damage(ch, victim, dam, spellnum, dam_type, FALSE);
+    }
+  }
 }
 
 /* EoF */

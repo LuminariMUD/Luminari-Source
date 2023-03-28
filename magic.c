@@ -35,6 +35,7 @@
 #include "psionics.h"
 #include "combat_modes.h"
 #include "spec_procs.h"
+#include "evolutions.h"
 
 // external
 extern struct raff_node *raff_list;
@@ -73,6 +74,22 @@ int compute_spell_res(struct char_data *ch, struct char_data *vict, int modifier
       resist = MAX(resist, 10 + GET_LEVEL(vict) / 2);
     else
       resist = MAX(resist, 5 + GET_LEVEL(vict) / 2);
+  }
+
+  if (HAS_EVOLUTION(vict, EVOLUTION_SPELL_RESISTANCE))
+  {
+    if (HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE))
+      resist = 15 + GET_LEVEL(vict);
+    else
+      resist = 10 + GET_LEVEL(vict);
+  }
+
+  if (HAS_EVOLUTION(vict, EVOLUTION_CELESTIAL_APPEARANCE) || HAS_EVOLUTION(vict, EVOLUTION_FIENDISH_APPEARANCE))
+  {
+    if (GET_SUMMONER_LEVEL(vict) >= 12)
+      resist = MAX(resist, 10 + GET_SUMMONER_LEVEL(vict));
+    else
+      resist = MAX(resist, 5 + GET_SUMMONER_LEVEL(vict));
   }
 
   if (IS_LICH(vict))
@@ -2555,7 +2572,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, x, spell_school = NOSCHOOL;
-  int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0;
+  int enchantment_bonus = 0, illusion_bonus = 0, paralysis_bonus = 0, success = 0, misc_bonus = 0;
   bool is_mind_affect = FALSE;
   struct damage_reduction_type *new_dr = NULL, *dr = NULL, *temp = NULL;
   bool is_immune_sleep = FALSE;
@@ -2903,7 +2920,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your victim doesn't seem vulnerable to your manifestation.");
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
     {
       return;
     }
@@ -3082,7 +3101,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     GET_DC_BONUS(ch) += (GET_PSIONIC_ENERGY_TYPE(ch) == DAM_ELECTRIC || GET_PSIONIC_ENERGY_TYPE(ch) == DAM_SOUND) ? 2 : 0;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 1;
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -3231,7 +3252,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     GET_DC_BONUS(ch) += GET_AUGMENT_PSP(ch) / 2;
     if (power_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, NOSCHOOL))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
       return;
     af[0].duration = 1 + GET_AUGMENT_PSP(ch) / 2;
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -3727,7 +3750,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_STUNNING_CRITICAL:
-    af[0].duration = savingthrow(victim, SAVING_FORT, 0, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    af[0].duration = savingthrow(victim, SAVING_FORT, misc_bonus, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "You are stunned.";
     to_room = "$n looks stunned.";
@@ -3868,7 +3893,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     {
       if (mag_resistance(ch, victim, 0))
         return;
-      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, NOSCHOOL))
+      if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+      if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, NOSCHOOL))
         return;
       if (is_immune_mind_affecting(ch, victim, TRUE))
         return;
@@ -4964,7 +4991,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ENCHANTMENT))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -5098,7 +5127,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus, casttype, level, ENCHANTMENT))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -5166,7 +5197,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -5350,7 +5383,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE) || HAS_EVOLUTION(victim, EVOLUTION_CELESTIAL_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
     {
       send_to_char(ch, "%s", CONFIG_NOEFFECT);
       return;
@@ -5676,11 +5711,6 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your target is not undead.\r\n");
       return;
     }
-    if (paralysis_immunity(victim))
-    {
-      send_to_char(ch, "Your target is unfazed.\r\n");
-      return;
-    }
     if (GET_LEVEL(victim) > 11)
     {
       send_to_char(ch, "Your target is too powerful to be affected by this enchantment.\r\n");
@@ -5759,6 +5789,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL,
                         enchantment_bonus + paralysis_bonus,
                         casttype, level, ENCHANTMENT))
@@ -5797,6 +5829,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -5831,6 +5865,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -5860,6 +5896,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -5973,6 +6011,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     // no save, unless have special feat
     if (HAS_FEAT(ch, FEAT_PARALYSIS_RESIST))
     {
+      if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
       mag_savingthrow(ch, victim, SAVING_WILL, paralysis_bonus, /* +4 bonus from feat */
                       casttype, level, ENCHANTMENT);
       return;
@@ -6178,6 +6218,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
     {
       return;
@@ -6314,9 +6356,13 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_NIGHTMARE: // illusion
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus, casttype, level, ILLUSION))
-      return;
 
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    
+    if (mag_savingthrow(ch, victim, SAVING_FORT, illusion_bonus + misc_bonus, casttype, level, ILLUSION))
+      return;
+    
     if (is_immune_mind_affecting(ch, victim, TRUE))
       return;
 
@@ -6462,6 +6508,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_PRISMATIC_SPRAY: // illusion, does damage too
     if (mag_resistance(ch, victim, 0))
       return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        paralysis_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + paralysis_bonus, casttype, level, ILLUSION))
     {
       return;
@@ -6555,7 +6603,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus, casttype, level, ILLUSION))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + misc_bonus, casttype, level, ILLUSION))
     {
       return;
     }
@@ -6797,7 +6847,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "Your victim doesn't seem vulnerable to your spell.");
       return;
     }
-    if (mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ENCHANTMENT))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ENCHANTMENT))
     {
       return;
     }
@@ -7062,6 +7114,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = 2;
     af[0].duration = 600;
+    af[0].bonus_type = BONUS_TYPE_RACIAL;
     to_vict = "You feel your bones harden.";
     to_room = "$n's bones harden!";
     break;
@@ -7111,8 +7164,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       act("$n seems to be deafened!", TRUE, victim, 0, ch, TO_ROOM);
       success = 1;
     }
-
-    if (!mag_savingthrow(ch, victim, SAVING_WILL, 0, casttype, level, ABJURATION) &&
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+    if (!mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, ABJURATION) &&
         !mag_resistance(ch, victim, 0))
     {
       if (!can_stun(victim))
@@ -7149,6 +7203,26 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     accum_duration = FALSE;
     to_vict = "The world around starts moving very slowly.";
     to_room = "$n begins to move outside of time.";
+    break;
+
+  case SPELL_TOUCH_OF_FATIGUE:
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + misc_bonus, casttype, level, ENCHANTMENT))
+    {
+      send_to_char(ch, "%s", CONFIG_NOEFFECT);
+      return;
+    }
+    if (attack_roll(ch, victim, ATTACK_TYPE_UNARMED, TRUE, 1) < 0)
+    {
+      return;
+    }
+    af[0].duration = level;
+    SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
+    to_vict = "You feel faitgued.";
+    to_room = "$n looks fatigued.";
     break;
 
   case SPELL_TOUCH_OF_IDIOCY: // enchantment
@@ -7258,6 +7332,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     if (mag_resistance(ch, victim, 0))
       return;
     // no save
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      if (get_evolution_appearance_save_bonus(victim) == 100)
+        return;
 
     SET_BIT_AR(af[0].bitvector, AFF_FATIGUED);
     GET_MOVE(victim) -= 20 + level;
@@ -7269,7 +7346,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_WAVES_OF_FATIGUE: // necromancy
     if (mag_resistance(ch, victim, 0))
       return;
-    if (mag_savingthrow(ch, victim, SAVING_FORT, 0, casttype, level, NECROMANCY))
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      misc_bonus = get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_FORT, misc_bonus, casttype, level, NECROMANCY))
     {
       return;
     }
@@ -7312,7 +7391,9 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     // no save, unless have special feat
     if (HAS_FEAT(ch, FEAT_PHANTASM_RESIST))
     {
-      mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + 4, /* +4 bonus from feat */
+      if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+        misc_bonus += get_evolution_appearance_save_bonus(victim);
+      mag_savingthrow(ch, victim, SAVING_WILL, illusion_bonus + 4 + misc_bonus, /* +4 bonus from feat */
                       casttype, level, ILLUSION);
       return;
     }
@@ -9839,6 +9920,11 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
 
   switch (spellnum)
   {
+  case SPELL_BALL_OF_LIGHT:
+    to_char = "You summon forth $p.";
+    to_room = "$n summons forth $p.";
+    object_vnum = 10;
+    break;
   case SPELL_CREATE_FOOD:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
@@ -9847,7 +9933,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_CONTINUAL_FLAME:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
-    object_vnum = 222;
+    object_vnum = 839;
     break;
   case SPELL_FIRE_SEEDS:
     to_char = "You create $p.";

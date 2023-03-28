@@ -26,6 +26,7 @@
 #include "actions.h"
 #include "wilderness.h"
 #include "shop.h" /* shopkeepers hunting?! */
+#include "evolutions.h"
 
 /* local functions */
 static int VALID_EDGE(room_rnum x, int y);
@@ -166,12 +167,14 @@ int find_first_step(room_rnum src, room_rnum target)
 ACMD(do_track)
 {
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char dirchar[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *vict;
   int dir, track_dc = 0;
   int ch_in_wild = FALSE, vict_in_wild = FALSE, moves = 0;
 
   /* The character must have the track skill. */
-  if (!HAS_FEAT(ch, FEAT_NATURAL_TRACKER) && !HAS_FEAT(ch, FEAT_TRACK))
+  if (!HAS_FEAT(ch, FEAT_NATURAL_TRACKER) && !HAS_FEAT(ch, FEAT_TRACK) && !HAS_EVOLUTION(ch, EVOLUTION_SCENT))
   {
     send_to_char(ch, "You have no idea how.\r\n");
     return;
@@ -181,6 +184,8 @@ ACMD(do_track)
   if (!*arg)
   {
     send_to_char(ch, "Whom are you trying to track?\r\n");
+    snprintf(buf, sizeof(buf), " %s Who do you want me to track?\r\n", GET_NAME(ch->master));
+    do_tell(ch, buf, 0, 0);
     return;
   }
 
@@ -188,6 +193,8 @@ ACMD(do_track)
   if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_WORLD)))
   {
     send_to_char(ch, "No one is around by that name.\r\n");
+    snprintf(buf, sizeof(buf), " %s I can't find tracks for anyone named %s\r\n", GET_NAME(ch->master), GET_NAME(vict));
+    do_tell(ch, buf, 0, 0);
     return;
   }
 
@@ -195,12 +202,16 @@ ACMD(do_track)
   if (AFF_FLAGGED(vict, AFF_NOTRACK) && GET_LEVEL(ch) < LVL_IMPL)
   {
     send_to_char(ch, "You sense they left no trail...\r\n");
+    snprintf(buf, sizeof(buf), " %s I sense no trail to %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+    do_tell(ch, buf, 0, 0);
     return;
   }
 
   if (IS_SET_AR(ROOM_FLAGS(IN_ROOM(ch)), ROOM_FOG) && GET_LEVEL(ch) < LVL_IMMORT)
   {
     send_to_char(ch, "The fog makes it impossible to attempt to track anything from here.");
+    snprintf(buf, sizeof(buf), " %s The fog makes it impossible to attempt to track anything from here.\r\n", GET_NAME(ch->master));
+    do_tell(ch, buf, 0, 0);
     return;
   }
 
@@ -211,6 +222,8 @@ ACMD(do_track)
   if (GET_MOVE(ch) < moves)
   {
     send_to_char(ch, "You are too exhausted!");
+    snprintf(buf, sizeof(buf), " %s I am too exhausted.\r\n", GET_NAME(ch->master));
+    do_tell(ch, buf, 0, 0);
     return;
   }
 
@@ -221,6 +234,9 @@ ACMD(do_track)
   }
   else
     track_dc = 10 + compute_ability(vict, ABILITY_SURVIVAL);
+
+  if (HAS_EVOLUTION(ch, EVOLUTION_KEEN_SCENT))
+    track_dc -= 5;
 
   /* skill check continue */
   if (GET_LEVEL(ch) >= LVL_IMPL)
@@ -236,6 +252,12 @@ ACMD(do_track)
       dir = rand_number(0, DIR_COUNT - 1);
     } while (!CAN_GO(ch, dir) && --tries);
     send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master), GET_NAME(vict), dirs[dir]);
+      do_tell(ch, buf, 0, 0);
+    }
+      
     return;
   }
 
@@ -262,17 +284,36 @@ ACMD(do_track)
 
     /* y corresponds to north/south (duh) */
     if (vict_y_location > ch_y_location) /* north! */
+    {
       send_to_char(ch, "north");
+      snprintf(dirchar, sizeof(dirchar), "north");
+    }
     else if (vict_y_location < ch_y_location) /* south! */
+    {
       send_to_char(ch, "south");
-
+      snprintf(dirchar, sizeof(dirchar), "south");
+    }
+  
     /* x corresponds to east/west (duh) */
     if (vict_x_location > ch_x_location) /* east! */
+    {
       send_to_char(ch, "east");
+      snprintf(dirchar, sizeof(dirchar), "east");
+    }
+
     else if (vict_x_location < ch_x_location) /* west! */
+    {
       send_to_char(ch, "west");
+      snprintf(dirchar, sizeof(dirchar), "west");
+    }
 
     send_to_char(ch, " from here!\r\n");
+
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master), GET_NAME(vict), dirchar);
+      do_tell(ch, buf, 0, 0);
+    }
   }
 
   /* handle inside of a zone (stock) */
@@ -286,12 +327,27 @@ ACMD(do_track)
       break;
     case BFS_ALREADY_THERE:
       send_to_char(ch, "You're already in the same room!!\r\n");
+      if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+      {
+        snprintf(buf, sizeof(buf), " %s We're already in the same room as %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+        do_tell(ch, buf, 0, 0);
+      }
       break;
     case BFS_NO_PATH:
       send_to_char(ch, "You can't sense a trail to %s from here.\r\n", HMHR(vict));
+      if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+      {
+        snprintf(buf, sizeof(buf), " %s I can't sense a trail to %s.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+        do_tell(ch, buf, 0, 0);
+      }
       break;
     default: /* Success! */
       send_to_char(ch, "You sense a trail %s from here!\r\n", dirs[dir]);
+      if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+      {
+        snprintf(buf, sizeof(buf), " %s I sense a trail to %s %s of here.\r\n", GET_NAME(ch->master), GET_NAME(vict), dirs[dir]);
+        do_tell(ch, buf, 0, 0);
+      }
       break;
     }
   }
@@ -300,6 +356,11 @@ ACMD(do_track)
   else
   {
     send_to_char(ch, "The trail has gone cold.\r\n");
+    if (IS_NPC(ch) && ch->master && AFF_FLAGGED(ch, AFF_CHARM))
+    {
+      snprintf(buf, sizeof(buf), " %s The trail to %s has gone cold.\r\n", GET_NAME(ch->master), GET_NAME(vict));
+      do_tell(ch, buf, 0, 0);
+    }
   }
 }
 
