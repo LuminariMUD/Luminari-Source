@@ -23,6 +23,7 @@
 #include "constants.h"
 #include "deities.h"
 #include "act.h"
+#include "evolutions.h"
 
 /* puts -'s instead of spaces */
 void space_to_minus(char *str)
@@ -331,57 +332,61 @@ ACMDU(do_help)
             /* Check feats for relevant entries! */
             if (!display_feat_info(ch, raw_argument))
             {
-
-              /* check weapon info */
-              if (display_weapon_info(ch, raw_argument))
+              /* Check feats for relevant entries! */
+              if (!display_evolution_info(ch, raw_argument))
               {
-                free(raw_argument);
-                return;
-              }
 
-              /* check armor info */
-              if (display_armor_info(ch, raw_argument))
-              {
-                free(raw_argument);
-                return;
-              }
-
-              /* check class info */
-              if (display_class_info(ch, raw_argument))
-              {
-                free(raw_argument);
-                return;
-              }
-
-              /* check race info */
-              if (display_race_info(ch, raw_argument))
-              {
-                free(raw_argument);
-                return;
-              }
-
-              send_to_char(ch, "There is no help on that word.\r\n");
-              mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
-                     "%s tried to get help on %s", GET_NAME(ch), argument);
-
-              /* Implement 'SOUNDS LIKE' search here... */
-              if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL)
-              {
-                send_to_char(ch, "\r\nDid you mean:\r\n");
-                tmp_keyword = keywords;
-                while (tmp_keyword != NULL)
+                /* check weapon info */
+                if (display_weapon_info(ch, raw_argument))
                 {
-                  send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
-                               tmp_keyword->keyword, tmp_keyword->keyword);
-                  tmp_keyword = tmp_keyword->next;
+                  free(raw_argument);
+                  return;
                 }
-                send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
-                while (keywords != NULL)
+
+                /* check armor info */
+                if (display_armor_info(ch, raw_argument))
                 {
-                  tmp_keyword = keywords->next;
-                  free(keywords);
-                  keywords = tmp_keyword;
-                  tmp_keyword = NULL;
+                  free(raw_argument);
+                  return;
+                }
+
+                /* check class info */
+                if (display_class_info(ch, raw_argument))
+                {
+                  free(raw_argument);
+                  return;
+                }
+
+                /* check race info */
+                if (display_race_info(ch, raw_argument))
+                {
+                  free(raw_argument);
+                  return;
+                }
+
+                send_to_char(ch, "There is no help on that word.\r\n");
+                mudlog(NRM, MAX(LVL_IMPL, GET_INVIS_LEV(ch)), TRUE,
+                      "%s tried to get help on %s", GET_NAME(ch), argument);
+
+                /* Implement 'SOUNDS LIKE' search here... */
+                if ((keywords = soundex_search_help_keywords(argument, GET_LEVEL(ch))) != NULL)
+                {
+                  send_to_char(ch, "\r\nDid you mean:\r\n");
+                  tmp_keyword = keywords;
+                  while (tmp_keyword != NULL)
+                  {
+                    send_to_char(ch, "  \t<send href=\"Help %s\">%s\t</send>\r\n",
+                                tmp_keyword->keyword, tmp_keyword->keyword);
+                    tmp_keyword = tmp_keyword->next;
+                  }
+                  send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
+                  while (keywords != NULL)
+                  {
+                    tmp_keyword = keywords->next;
+                    free(keywords);
+                    keywords = tmp_keyword;
+                    tmp_keyword = NULL;
+                  }
                 }
               }
             }

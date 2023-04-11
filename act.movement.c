@@ -3922,6 +3922,86 @@ int get_speed(struct char_data *ch, sbyte to_display)
   return speed;
 }
 
+ACMD(do_transposition)
+{
+  if (!HAS_FEAT(ch, FEAT_TRANSPOSITION))
+  {
+    send_to_char(ch, "You do not have the transposition feat.\r\n");
+    return;
+  }
+
+  struct follow_type *f = NULL;
+  struct char_data *mob = NULL, *eidolon = NULL;
+  room_rnum chRoom = NULL, eidolonRoom = NULL;
+
+  for (f = ch->followers; f; f = f->next)
+  {
+    mob = f->follower;
+    if (!mob) continue;
+    if (!IS_NPC(mob)) continue;
+    if (!MOB_FLAGGED(mob, MOB_EIDOLON)) continue;
+    eidolon = mob;
+    break;
+  }
+
+  if (!eidolon)
+  {
+    send_to_char(ch, "Your eidolon does not seem to be summoned.\r\n");
+    return;
+  }
+
+  chRoom = IN_ROOM(ch);
+  eidolonRoom = IN_ROOM(eidolon);
+
+  if (chRoom == NOWHERE || eidolonRoom == NOWHERE)
+  {
+    send_to_char(ch, "You are unable to transposition yourself and your eidolon.\r\n");
+    return;
+  }
+
+  if (!valid_mortal_tele_dest(eidolon, chRoom, true) || !valid_mortal_tele_dest(ch, eidolonRoom, true))
+  {
+    send_to_char(ch, "You are unable to transposition yourself and your eidolon.\r\n");
+    return;
+  }
+
+  // send eidolon to ch's location
+  act("$n disappears suddenly.", TRUE, eidolon, 0, 0, TO_ROOM);
+  char_from_room(eidolon);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(chRoom), ZONE_WILDERNESS))
+  {
+    X_LOC(eidolon) = world[chRoom].coords[0];
+    Y_LOC(eidolon) = world[chRoom].coords[1];
+  }
+  char_to_room(eidolon, chRoom);
+
+  act("$n arrives suddenly.", TRUE, eidolon, 0, 0, TO_ROOM);
+  act("$n has transpoisitoned locations with you!", FALSE, ch, 0, eidolon, TO_VICT);
+  look_at_room(eidolon, 0);
+  entry_memory_mtrigger(eidolon);
+  greet_mtrigger(eidolon, -1);
+  greet_memory_mtrigger(eidolon);
+
+  // send ch to eidolon's location
+  act("$n disappears suddenly.", TRUE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(eidolonRoom), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[eidolonRoom].coords[0];
+    Y_LOC(ch) = world[eidolonRoom].coords[1];
+  }
+  char_to_room(ch, chRoom);
+
+  act("$n arrives suddenly.", TRUE, ch, 0, 0, TO_ROOM);
+  act("$N has transpoisitoned locations with you!", FALSE, ch, 0, eidolon, TO_VICT);
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+
+  USE_STANDARD_ACTION(ch);
+}
+
 /* undefines */
 #undef PRISONER_KEY_1
 #undef PRISONER_KEY_2

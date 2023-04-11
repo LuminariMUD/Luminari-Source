@@ -697,7 +697,7 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
       attack_check -= 2;
     // if target is not smaller at all, can't be done
     else if ((GET_SIZE(ch) - GET_SIZE(vict)) <= 0)
-      return;
+      return FALSE;
     // three or more sizes smaller is no penalty
     break;    
   case SPELL_BANISHING_BLADE:
@@ -9706,7 +9706,7 @@ ACMD(do_pushaway)
   if (GET_PUSHED_TIMER(vict) > 0)
   {
     send_to_char(ch, "That subject is on a pushaway timer and is temporarily immune.\r\n");
-    return false;
+    return;
   }
 
   GET_PUSHED_TIMER(vict) = 10;
@@ -9734,7 +9734,7 @@ ACMD(do_pushaway)
 ACMD(do_evoweb)
 {
   char arg[200];
-  struct chat_data *vict = NULL;
+  struct char_data *vict = NULL;
 
   one_argument(argument, arg, sizeof (arg));
 

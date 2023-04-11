@@ -27,12 +27,14 @@
 #include "race.h"
 #include "premadebuilds.h"
 #include "psionics.h"
+#include "evolutions.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
 
 static void sorc_study_menu(struct descriptor_data *d, int circle);
 static void bard_study_menu(struct descriptor_data *d, int circle);
+static void summoner_study_menu(struct descriptor_data *d, int circle);
 static void favored_enemy_submenu(struct descriptor_data *d, int favored);
 static void favored_enemy_menu(struct descriptor_data *d);
 static void animal_companion_menu(struct descriptor_data *d);
@@ -279,6 +281,13 @@ void init_study(struct descriptor_data *d, int class)
       LEVELUP(ch)->skill_focus[i][j] = FALSE;
   for (i = 0; i < NUM_SFEATS; i++)
     LEVELUP(ch)->school_feats[i] = 0;
+
+  LEVELUP(ch)->eidolon_base_form = GET_EIDOLON_BASE_FORM(ch);
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    LEVELUP(ch)->eidolon_evolutions[i] = KNOWS_EVOLUTION(ch, i);
+    LEVELUP(ch)->summoner_aspects[i] = HAS_REAL_EVOLUTION(ch, i);
+  }
 }
 
 void finalize_study(struct descriptor_data *d)
@@ -486,6 +495,14 @@ void finalize_study(struct descriptor_data *d)
     {
       ch->player_specials->saved.languages_known[i] = TRUE;
     }
+  }
+
+  // Summoner stuff
+  GET_EIDOLON_BASE_FORM(ch) = LEVELUP(ch)->eidolon_base_form;
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    KNOWS_EVOLUTION(ch, i) = LEVELUP(ch)->eidolon_evolutions[i];
+    HAS_REAL_EVOLUTION(ch, i) = LEVELUP(ch)->summoner_aspects[i];
   }
 
   /* set spells learned for domain */
@@ -875,10 +892,10 @@ void sorc_study_menu(struct descriptor_data *d, int circle)
                               DOMAIN_UNDEFINED) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_SORCERER, counter))
-        write_to_output(d, "%s%2d%s)%s+%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%3d%s)%s+%-20.20s %s", grn, counter, nrm, mgn,
                         spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
       else
-        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+        write_to_output(d, "%s%3d%s) %s%-20.20s %s", grn, counter, nrm, yel,
                         spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
     }
   }
@@ -958,6 +975,41 @@ static void bard_known_spells_disp_menu(struct descriptor_data *d)
                   grn, nrm);
 
   OLC_MODE(d) = STUDY_BARD_KNOWN_SPELLS_MENU;
+}
+
+
+static void summoner_known_spells_disp_menu(struct descriptor_data *d)
+{
+  int class_level = CLASS_LEVEL(d->character, CLASS_SUMMONER) +
+                    BONUS_CASTER_LEVEL(d->character, CLASS_SUMMONER);
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  write_to_output(d,
+                  "\r\n-- %sSpells Known Menu\r\n"
+                  "\r\n"
+                  "%s 1%s) 1st Circle     : %s%d\r\n"
+                  "%s 2%s) 2nd Circle     : %s%d\r\n"
+                  "%s 3%s) 3rd Circle     : %s%d\r\n"
+                  "%s 4%s) 4th Circle     : %s%d\r\n"
+                  "%s 5%s) 5th Circle     : %s%d\r\n"
+                  "%s 6%s) 6th Circle     : %s%d\r\n"
+                  "\r\n"
+                  "%s Q%s) Quit\r\n"
+                  "\r\n"
+                  "Enter Choice : ",
+
+                  mgn,
+                  grn, nrm, yel, bard_known[class_level][1] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 1),
+                  grn, nrm, yel, bard_known[class_level][2] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 2),
+                  grn, nrm, yel, bard_known[class_level][3] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 3),
+                  grn, nrm, yel, bard_known[class_level][4] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 4),
+                  grn, nrm, yel, bard_known[class_level][5] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 5),
+                  grn, nrm, yel, bard_known[class_level][6] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, 6),
+                  grn, nrm);
+
+  OLC_MODE(d) = STUDY_SUMMONER_KNOWN_SPELLS_MENU;
 }
 
 static void inquisitor_known_spells_disp_menu(struct descriptor_data *d)
@@ -1080,7 +1132,7 @@ void warlock_study_menu(struct descriptor_data *d, int circle)
   OLC_MODE(d) = WARLOCK_STUDY_SPELLS;
 }
 
-/* the menu for each circle, sorcerer */
+/* the menu for each circle, bard */
 void bard_study_menu(struct descriptor_data *d, int circle)
 {
   int class_level = CLASS_LEVEL(d->character, CLASS_BARD) +
@@ -1101,11 +1153,11 @@ void bard_study_menu(struct descriptor_data *d, int circle)
                               DOMAIN_UNDEFINED) == circle)
     {
       if (is_a_known_spell(d->character, CLASS_BARD, counter))
-        write_to_output(d, "%s%2d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
+        write_to_output(d, "%s%3d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
                         spell_info[counter].name,
                         !(++columns % 3) ? "\r\n" : "");
       else
-        write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+        write_to_output(d, "%s%3d%s) %s%-20.20s %s", grn, counter, nrm, yel,
                         spell_info[counter].name,
                         !(++columns % 3) ? "\r\n" : "");
     }
@@ -1120,6 +1172,46 @@ void bard_study_menu(struct descriptor_data *d, int circle)
                   nrm);
 
   OLC_MODE(d) = BARD_STUDY_SPELLS;
+}
+
+/* the menu for each circle, bard */
+void summoner_study_menu(struct descriptor_data *d, int circle)
+{
+  int class_level = CLASS_LEVEL(d->character, CLASS_SUMMONER) + BONUS_CASTER_LEVEL(d->character, CLASS_SUMMONER);
+  int counter, columns = 0;
+
+  LEVELUP(d->character)->spell_circle = circle;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  /* SPELL PREPARATION HOOK */
+  for (counter = 1; counter < NUM_SPELLS; counter++)
+  {
+    if (compute_spells_circle(CLASS_SUMMONER,
+                              counter,
+                              METAMAGIC_NONE,
+                              DOMAIN_UNDEFINED) == circle)
+    {
+      if (is_a_known_spell(d->character, CLASS_SUMMONER, counter))
+        write_to_output(d, "%s%3d%s) %s+%-20.20s %s", grn, counter, nrm, mgn,
+                        spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
+      else
+        write_to_output(d, "%s%3d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+                        spell_info[counter].name,
+                        !(++columns % 3) ? "\r\n" : "");
+    }
+  }
+  write_to_output(d, "\r\n");
+  write_to_output(d, "%sNumber of slots available:%s %d.\r\n", grn, nrm,
+                  summoner_known[class_level][circle] - count_known_spells_by_circle(d->character, CLASS_SUMMONER, circle));
+  write_to_output(d, "\tCType the spell number followed by 'help' to see help on that spell.  Eg. 81 help\r\n\tn");
+  write_to_output(d, "%s+ A plus sign marks your current selection(s).\r\n"
+                     "Enter spell choice, to add or remove (Q to exit to main menu) : ",
+                  nrm);
+
+  OLC_MODE(d) = SUMMONER_STUDY_SPELLS;
 }
 
 void psionicist_study_menu(struct descriptor_data *d, int circle)
@@ -1506,6 +1598,7 @@ static void set_preferred_arcane(struct descriptor_data *d)
   write_to_output(d, "%d) %s\r\n", CLASS_WIZARD, CLSLIST_NAME(CLASS_WIZARD));
   write_to_output(d, "%d) %s\r\n", CLASS_SORCERER, CLSLIST_NAME(CLASS_SORCERER));
   write_to_output(d, "%d) %s\r\n", CLASS_BARD, CLSLIST_NAME(CLASS_BARD));
+  write_to_output(d, "%d) %s\r\n", CLASS_SUMMONER, CLSLIST_NAME(CLASS_SUMMONER));
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sEnter your preferred arcane class : ", nrm);
 }
@@ -2361,8 +2454,9 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   "%s C%s) Alchemist Discoveries Selection%s\r\n"
                   "%s D%s) Paladin Mercies%s\r\n"
                   "%s E%s) Blackguard Cruelties%s\r\n"
-                  "%s F%s) Racial Abilities Selection%s\r\n"
-                  "%s G%s) Languages%s\r\n"
+                  "%s F%s) Summoner Eidolons%s\r\n"
+                  "%s G%s) Racial Abilities Selection%s\r\n"
+                  "%s H%s) Languages%s\r\n"
                   "\r\n"
                   "%s R%s) Reset Character%s\r\n"
                   "%s Q%s) Quit\r\n"
@@ -2386,8 +2480,9 @@ static void generic_main_disp_menu(struct descriptor_data *d)
                   MENU_OPT(has_alchemist_discoveries_unchosen(ch)), has_alchemist_discoveries_unchosen(ch) ? "" : "*", // C
                   MENU_OPT(has_paladin_mercies_unchosen(ch)), has_paladin_mercies_unchosen(ch) ? "" : "*",             // D
                   MENU_OPT(has_blackguard_cruelties_unchosen(ch)), has_blackguard_cruelties_unchosen(ch) ? "" : "*",   // E
-                  MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // F
-                  MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // G
+                  MENU_OPT(has_eidolon_choices_unchosen(ch)), has_eidolon_choices_unchosen(ch) ? "" : "*",             // F
+                  MENU_OPT(has_racial_abils_unchosen(ch)), has_racial_abils_unchosen(ch) ? "" : "*",                   // G
+                  MENU_OPT(has_unchosen_languages(ch)), has_unchosen_languages(ch) ? "" : "*",                         // H
                   MENU_OPT(GET_LEVEL(ch) == 1), GET_LEVEL(ch) == 1 ? "" : "*",                                         // R
                   grn, nrm,
                   (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED) ? "(You are using premade build, options are limited!)" : "");
@@ -2545,7 +2640,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   int intel_bonus = 0;
   int tempXP = 0;
   int i = 0;
-  bool can_add_spell = TRUE;
+  bool can_add_spell = TRUE, found = FALSE;
   char arg1[200] = {'\0'}, arg2[200] = {'\0'};
   char buf[200] = {'\0'};
 
@@ -2631,6 +2726,12 @@ void study_parse(struct descriptor_data *d, char *arg)
                    LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
                   GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
           bard_known_spells_disp_menu(d);
+        else if (LEVELUP(ch)->class == CLASS_SUMMONER ||
+                 ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+                   LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+                  GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
+          summoner_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
                  ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
           inquisitor_known_spells_disp_menu(d);
@@ -2791,6 +2892,11 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     case 'F':
     case 'f':
+      study_eidolon_main_menu_select(d);
+      break;
+
+    case 'G':
+    case 'g':
       if (CAN_STUDY_FEATS(ch) && GET_LEVEL(ch) < LVL_IMMORT)
       {
         write_to_output(d, "Please choose your feat(s) first.\r\n");
@@ -2804,8 +2910,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       }
       break;
 
-    case 'g':
-    case 'G':
+    case 'h':
+    case 'H':
       if (has_unchosen_languages(ch))
       {
         choose_languages(d);
@@ -3761,9 +3867,9 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
     /******* end bard **********/
 
-    /******* start inquisitor **********/
+    /******* start summoner **********/
 
-  case STUDY_INQUISITOR_KNOWN_SPELLS_MENU:
+  case STUDY_SUMMONER_KNOWN_SPELLS_MENU:
     switch (*arg)
     {
     case 'q':
@@ -3778,21 +3884,21 @@ void study_parse(struct descriptor_data *d, char *arg)
     case '4':
     case '5':
     case '6':
-      inquisitor_study_menu(d, atoi(arg));
+      summoner_study_menu(d, atoi(arg));
       break;
     default:
       write_to_output(d, "That is an invalid choice!\r\n");
-      inquisitor_known_spells_disp_menu(d);
+      summoner_known_spells_disp_menu(d);
       break;
     }
     break;
 
-  case INQUISITOR_STUDY_SPELLS:
+  case SUMMONER_STUDY_SPELLS:
     switch (*arg)
     {
     case 'q':
     case 'Q':
-      inquisitor_known_spells_disp_menu(d);
+      summoner_known_spells_disp_menu(d);
       break;
 
     default:
@@ -3803,6 +3909,322 @@ void study_parse(struct descriptor_data *d, char *arg)
       {
         if (counter == number)
         {
+          if (compute_spells_circle(CLASS_SUMMONER,
+                                    counter,
+                                    METAMAGIC_NONE,
+                                    DOMAIN_UNDEFINED) ==
+              LEVELUP(d->character)->spell_circle)
+          {
+            if (*arg2 && is_abbrev(arg2, "help"))
+            {
+              do_study_spell_help(d->character, counter);
+              return;
+            }
+
+            if (is_a_known_spell(d->character, CLASS_SUMMONER, counter))
+            {
+              if (!LEVELUP(d->character)->spells_learned[counter])
+              {
+                send_to_char(d->character, "\tCYou cannot remove spells known, unless it is a spell you already chose this level. "
+                                           "To change past choices, you need to respec your character.\r\n\tn");
+                break;
+              }
+              else
+              {
+                known_spells_remove_by_class(d->character, CLASS_SUMMONER, counter);
+                LEVELUP(d->character)->spells_learned[counter] = 0;
+              }
+            }
+            else
+            {
+              can_add_spell = known_spells_add(d->character, CLASS_SUMMONER, counter, FALSE);
+              if (!can_add_spell)
+              {
+                write_to_output(d, "You are all FULL for spells!\r\n");
+                break;
+              }
+              else
+              {
+                LEVELUP(d->character)->spells_learned[counter] = 1;
+              }
+            }
+          }
+        }
+      }
+      summoner_study_menu(d, LEVELUP(d->character)->spell_circle);
+      break;
+    }
+    break;
+
+    case STUDY_MAIN_EIDOLON_MENU:
+      switch (*arg)
+      {
+        case '1': // choose base form
+        if (GET_EIDOLON_BASE_FORM(ch) != 0 || LEVELUP(d->character)->eidolon_base_form != 0)
+          {
+            write_to_output(d, "You have already chosen your eidolon base form.  You will need to respec to change it.\r\n");
+            break;
+          }
+          study_eidolon_base_form_select(d);
+          break;
+        
+        break;
+        case '2': // choose evolutions
+          if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
+          {
+            write_to_output(d, "You need to choose your base form first.\r\n");
+            return;
+          }
+          study_eidolon_evolutions_select(d);
+          break;
+        case '3': // choose aspects
+          if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
+          {
+            write_to_output(d, "You need to choose your base form first.\r\n");
+            return;
+          }
+          if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
+          {
+            write_to_output(d, "You need to choose your base form first.\r\n");
+            return;
+          }
+          else if (study_has_aspects_unchosen(d))
+          {
+            write_to_output(d, "\r\nYou are not currently able to select summoner aspects.\r\n");
+            return;
+          }
+          study_summoner_aspect_select(d);
+          break;
+        case 'q':
+        case 'Q':
+          display_main_menu(d);
+          break;
+        default:
+          write_to_output(d, "That is not a valid option.\r\n");
+          break;
+      }
+      break;
+
+    case STUDY_EIDOLON_BASE_FORM_SELECT:
+      switch (*arg)
+      {
+        case 'q':
+        case 'Q':
+          study_eidolon_main_menu_select(d);
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+          study_assign_eidolon_base_form(d->character, atoi(arg));
+          write_to_output(d, "\tGEidolon Base Form '%s' Selected.\tn\r\n", eidolon_base_form_names[atoi(arg)]);
+          study_eidolon_main_menu_select(d);
+          break;
+        default:
+          send_to_char(ch, "Please choose again: ");
+          break;
+      }
+      
+      break;
+
+    case STUDY_SELECT_EVOLUTIONS:
+      switch (*arg)
+      {
+      case 'q':
+      case 'Q':
+          study_eidolon_main_menu_select(d);
+          break;
+      }
+      if (is_abbrev(arg, "fulllist"))
+      {
+          for (i = 1; i < NUM_EVOLUTIONS; i++)
+          {
+            write_to_output(d, "%s%2d) [%2d] %-25s \tn", study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn " : "\trUn\tn ", i, evolution_list[i].evolution_points, evolution_list[i].name);
+            if ((i % 2) == 1)
+          write_to_output(d, "\r\n");
+          }
+          if ((i % 2) != 1)
+            write_to_output(d, "\r\n");
+          study_show_evolution_select_bottom_text(d);
+          return;
+      }
+      else if (is_abbrev(arg, "list"))
+      {
+          counter = 0;
+          for (i = 1; i < NUM_EVOLUTIONS; i++)
+          {
+            if (!study_qualifies_for_evolution(d->character, i, false))
+              continue;
+            counter++;
+            found = TRUE;
+            write_to_output(d, "%s%2d) [%2d] %-25s \tn", study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn " : "\trUn\tn ", i, evolution_list[i].evolution_points, evolution_list[i].name);
+            if ((counter % 2) == 1)
+          write_to_output(d, "\r\n");
+          }
+          if ((counter % 2) != 1)
+            write_to_output(d, "\r\n");
+          if (!found)
+          {
+            write_to_output(d, "\tCThere are no available evolutions for you right now.\r\n");
+          }
+          study_show_evolution_select_bottom_text(d);
+          return;
+      }
+      number = atoi(arg);
+
+      if (number < 1 || number >= NUM_EVOLUTIONS)
+      {
+          write_to_output(d, "That is not a valid evolution.\r\n");
+          return;
+      }
+
+      LEVELUP(d->character)->temp_evolution = number;
+
+      study_disp_evolution_confirm(d);
+      break;
+
+    case STUDY_SELECT_EVOLUTION_CONFIRM:
+      if (!*arg)
+      {
+          write_to_output(d, "Please select 'Yes' or 'No': ");
+          return;
+      }
+      if (is_abbrev(arg, "Yes") || is_abbrev(arg, "yes") || is_abbrev(arg, "YES"))
+      {
+          LEVELUP(d->character)->eidolon_evolutions[LEVELUP(d->character)->temp_evolution]++;
+          write_to_output(d, "You have selected the '%s' evolution for %d evolution points.\r\n",
+                          evolution_list[LEVELUP(d->character)->temp_evolution].name, evolution_list[LEVELUP(d->character)->temp_evolution].evolution_points);
+          study_eidolon_evolutions_select(d);
+          LEVELUP(d->character)->temp_evolution = 0;
+          break;
+      }
+      else if (is_abbrev(arg, "No") || is_abbrev(arg, "no") || is_abbrev(arg, "NO"))
+      {
+          study_eidolon_evolutions_select(d);
+          write_to_output(d, "Okay, skipping selection of '%s'.\r\n", evolution_list[LEVELUP(d->character)->temp_evolution].name);
+          LEVELUP(d->character)->temp_evolution = 0;
+      }
+      else
+      {
+          write_to_output(d, "Please select 'Yes' or 'No': ");
+          return;
+      }
+      break;
+
+    case STUDY_SELECT_ASPECT:
+      switch (*arg)
+      {
+      case 'q':
+      case 'Q':
+          study_eidolon_main_menu_select(d);
+          break;
+      }
+      if (is_abbrev(arg, "list"))
+      {
+          counter = 0;
+          for (i = 1; i < NUM_EVOLUTIONS; i++)
+          {
+            if (LEVELUP(d->character)->summoner_aspects[i]) continue;            
+            write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
+            if ((counter % 2) == 1)
+              write_to_output(d, "\r\n");
+            counter++;
+          }
+          if ((counter % 2) != 1)
+            write_to_output(d, "\r\n");
+          return;
+      }
+      number = atoi(arg);
+
+      if (number < 1 || number >= NUM_EVOLUTIONS)
+      {
+          write_to_output(d, "That is not a valid evolution.\r\n");
+          return;
+      }
+
+      if (LEVELUP(d->character)->summoner_aspects[i])
+      {
+          write_to_output(d, "You have already chosen that aspect.\r\n");
+          return;
+      }
+
+      LEVELUP(d->character)->temp_evolution = number;
+
+      study_disp_evolution_confirm(d);
+      break;
+
+    case STUDY_SELECT_ASPECT_CONFIRM:
+      if (!*arg)
+      {
+          write_to_output(d, "Please select 'Yes' or 'No': ");
+          return;
+      }
+      if (is_abbrev(arg, "Yes") || is_abbrev(arg, "yes") || is_abbrev(arg, "YES"))
+      {
+          LEVELUP(d->character)->summoner_aspects[LEVELUP(d->character)->temp_evolution] = 1;
+          write_to_output(d, "You have selected the '%s' aspect.\r\n", evolution_list[LEVELUP(d->character)->temp_evolution].name);
+          study_summoner_aspect_select(d);
+          LEVELUP(d->character)->temp_evolution = 0;
+          break;
+      }
+      else if (is_abbrev(arg, "No") || is_abbrev(arg, "no") || is_abbrev(arg, "NO"))
+      {
+          study_summoner_aspect_select(d);
+          write_to_output(d, "Okay, skipping selection of '%s'.\r\n", evolution_list[LEVELUP(d->character)->temp_evolution].name);
+          LEVELUP(d->character)->temp_evolution = 0;
+      }
+      else
+      {
+          write_to_output(d, "Please select 'Yes' or 'No': ");
+          return;
+      }
+      break;
+
+      /******* end summoner **********/
+
+      /******* start inquisitor **********/
+
+        case STUDY_INQUISITOR_KNOWN_SPELLS_MENU:
+      switch (*arg)
+      {
+      case 'q':
+      case 'Q':
+          display_main_menu(d);
+          break;
+
+          /* here are our spell levels for 'spells known' */
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+          inquisitor_study_menu(d, atoi(arg));
+          break;
+      default:
+          write_to_output(d, "That is an invalid choice!\r\n");
+          inquisitor_known_spells_disp_menu(d);
+          break;
+      }
+      break;
+
+    case INQUISITOR_STUDY_SPELLS:
+      switch (*arg)
+      {
+      case 'q':
+      case 'Q':
+          inquisitor_known_spells_disp_menu(d);
+          break;
+
+      default:
+          number = atoi(arg);
+
+          /* SPELL PREPARATION HOOK */
+          for (counter = 1; counter < NUM_SPELLS; counter++)
+          {
+            if (counter == number)
+            {
           if (compute_spells_circle(CLASS_INQUISITOR,
                                     counter,
                                     METAMAGIC_NONE,
@@ -4091,6 +4513,7 @@ void study_parse(struct descriptor_data *d, char *arg)
     number = atoi(arg);
     if (number != CLASS_WIZARD &&
         number != CLASS_SORCERER &&
+        number != CLASS_SUMMONER &&
         number != CLASS_BARD)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
@@ -4984,6 +5407,168 @@ sbyte isRacialFeat(int feat)
     return true;
   }
   return false;
+}
+
+void study_eidolon_base_form_select(struct descriptor_data *d)
+{
+  int i = 0;
+
+  write_to_output(d, "Choose Your Eidolon Base Form:\r\n\r\n");
+  for (i = 1; i < NUM_EIDOLON_BASE_FORMS; i++)
+  {
+    write_to_output(d, "%d) %-10s: %s\r\n", i, eidolon_base_form_names[i], eidolon_base_form_descs[i]);
+  }
+  write_to_output(d, "\tnYour Choice: ");
+  OLC_MODE(d) = STUDY_EIDOLON_BASE_FORM_SELECT;
+}
+
+void study_eidolon_main_menu_select(struct descriptor_data *d)
+{
+  write_to_output(d, "Summoner Eidolons and Aspects:\r\n"
+                     "\r\n"
+                     "1) Choose Eidolon Base Form : %s\tn\r\n"
+                     "2) Choose Eidolon Evolutions: %s\tn\r\n"
+                     "3) Choose Summoner Aspects  : %s\tn\r\n"
+                     "Q) Quit to Main Menu\r\n"
+                     "\r\n"
+                     "\tnYour Choice: ",
+                  (LEVELUP(d->character)->eidolon_base_form == 0) ? "Must Choose this First" : 
+                  eidolon_base_form_names[LEVELUP(d->character)->eidolon_base_form],
+                  has_evolutions_unchosen(d->character) ? "\tGAvailable" : "\trNot Available",
+                  study_has_aspects_unchosen(d) ? "\tGAvailable" : "\trNot Available");
+  OLC_MODE(d) = STUDY_MAIN_EIDOLON_MENU;
+}
+
+int study_num_free_evolution_points(struct char_data *ch)
+{
+  int num_points = evolution_points[GET_SUMMONER_LEVEL(ch)];
+  int num_spent = 0, form_evo = 0;
+  int i = 0;
+
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    form_evo = is_eidolon_base_form_evolution(GET_EIDOLON_BASE_FORM(ch) > 0 ? GET_EIDOLON_BASE_FORM(ch) : LEVELUP(ch)->eidolon_base_form, i);
+    if (LEVELUP(ch)->eidolon_evolutions[i] > 0)
+    {
+      num_spent += MAX(0, LEVELUP(ch)->eidolon_evolutions[i] - form_evo) * evolution_list[i].evolution_points;
+    }
+  }
+
+  return (num_points - num_spent);
+
+}
+
+void study_show_evolution_select_bottom_text(struct descriptor_data *d)
+{
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Q) Exit from this Menu.\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Evolutions marked \tGAv\tn are eligible to take.\r\n");
+  write_to_output(d, "Evolutions marked \trUn\tn are ineligible to take.\r\n");
+  write_to_output(d, "Numbers in square brackets (Eg. [4]) are how many evoilution points the ability costs.\r\n");
+  write_to_output(d, "Evolution eligibility will update after exiting the entire study menu.\r\n");
+  write_to_output(d, "Type \tClist\tn to see the list of available evolutions or \tCfulllist\tn to see a list of all evolutions.\r\n");
+  write_to_output(d, "You currently have \tG%d evolution points\tn to spend.\r\n", study_num_free_evolution_points(d->character));
+  write_to_output(d, "Please enter the number of the evolution you wish to take or see information about.\r\nYour Choice: ");
+}
+
+void study_eidolon_evolutions_select(struct descriptor_data *d)
+{
+  int i = 0, count = 0;
+  bool found = FALSE;
+
+  write_to_output(d, "Eidolon Evolutions:\r\n"
+                     "\r\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (!study_qualifies_for_evolution(d->character, i, false))
+      continue;
+    count++;
+    found = true;
+    write_to_output(d, "%s%2d) [%2d] %-25s \tn", study_qualifies_for_evolution(d->character, i, false) ? "\tGAv\tn " : "\trUn\tn ", i, evolution_list[i].evolution_points, evolution_list[i].name);
+    if ((count % 2) == 1)
+      write_to_output(d, "\r\n");
+  }
+  if ((count % 2) != 1)
+    write_to_output(d, "\r\n");
+  if (!found)
+    write_to_output(d, "\tCThere are no available evolutions for you right now.\r\n");
+  study_show_evolution_select_bottom_text(d);
+  OLC_MODE(d) = STUDY_SELECT_EVOLUTIONS;
+}
+
+void study_summoner_aspect_select(struct descriptor_data *d)
+{
+  int i = 0, count = 0;
+
+  if (!study_has_aspects_unchosen(d))
+  {
+    write_to_output(d, "You do not have any aspects left to choose.  If you have chosen an aspect in error, please exit the study menu without saving and try again.\r\n");
+    return;
+  }
+
+  write_to_output(d, "Aspect Evolutions:\r\n"
+                     "\r\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (LEVELUP(d->character)->summoner_aspects[i]) continue;
+    write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
+    if ((count % 2) == 1)
+      write_to_output(d, "\r\n");
+    count++;
+  }
+  if ((count % 2) != 1)
+    write_to_output(d, "\r\n");
+  OLC_MODE(d) = STUDY_SELECT_ASPECT;
+}
+
+void study_disp_evolution_confirm(struct descriptor_data *d)
+{
+  if (!d || !d->character || !LEVELUP(d->character))
+    return;
+
+  int evo = LEVELUP(d->character)->temp_evolution;
+
+  display_evolution_info(d->character, evolution_list[evo].name);
+
+  if (!evolution_list[evo].stacks && LEVELUP(d->character)->eidolon_evolutions[evo])
+  {
+    write_to_output(d, "\r\nYou have already taken this evolution.\r\n");
+    return;
+  }
+  else if (!study_qualifies_for_evolution(d->character, evo, false))
+  {
+    write_to_output(d, "\r\nYou do not qualify for this evolution.\r\n");
+    return;
+  }
+
+  write_to_output(d, "\r\nDo you wish to select this evolution? ");
+  OLC_MODE(d) = STUDY_SELECT_EVOLUTION_CONFIRM;
+}
+
+void study_disp_aspect_confirm(struct descriptor_data *d)
+{
+  if (!d || !d->character || !LEVELUP(d->character))
+    return;
+
+  int evo = LEVELUP(d->character)->temp_evolution;
+
+  display_evolution_info(d->character, evolution_list[evo].name);
+
+  if (LEVELUP(d->character)->summoner_aspects[evo])
+  {
+    write_to_output(d, "\r\nYou have already taken this evolution.\r\n");
+    return;
+  }
+  if (!study_has_aspects_unchosen(d))
+  {
+    write_to_output(d, "\r\nYou cannot choose more aspects.  If you've chosen in error, please exit the study menu without saving and try again.\r\n");
+    return;
+  }
+
+  write_to_output(d, "\r\nDo you wish to select this aspect? ");
+  OLC_MODE(d) = STUDY_SELECT_ASPECT_CONFIRM;
 }
 
 /* some undefines from top of file */

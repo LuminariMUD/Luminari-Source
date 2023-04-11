@@ -671,7 +671,7 @@ void assign_races(void)
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_HALF_ELF, "halfelf", "HalfElf", "\tMHalf Elf\tn", "HElf", "\tMHElf\tn",
+  add_race(RACE_HALF_ELF, "half elf", "Half Elf", "\tMHalf Elf\tn", "HElf", "\tMHElf\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
   set_race_details(RACE_HALF_ELF,
@@ -1662,7 +1662,7 @@ void assign_races(void)
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
-  add_race(RACE_HALF_ELF, "halfelf", "HalfElf", "\twHalf \tYElf\tn", "HElf", "\twH\tYElf\tn",
+  add_race(RACE_HALF_ELF, "half elf", "Half Elf", "\twHalf \tYElf\tn", "HElf", "\twH\tYElf\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
   set_race_details(RACE_HALF_ELF,

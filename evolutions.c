@@ -24,6 +24,7 @@
 #include "spell_prep.h"
 #include "evolutions.h"
 #include "fight.h"
+#include "oasis.h"
 
 int evolution_sort_info[NUM_EVOLUTIONS];
 struct evolution_info evolution_list[NUM_EVOLUTIONS];
@@ -282,19 +283,19 @@ void assign_evolutions(void)
                "The eidolon can sacrifice its own hp to heal another at a ratio of 2:1 using the sachp command.");
   evolutiono(EVOLUTION_WEB, "web", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon can cast the web spell at will as a swift action.");
-  evolutiono(EVOLUTION_ACID_BREATH, "acid breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_ATTACK, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+  evolutiono(EVOLUTION_ACID_BREATH, "acid breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
                "The eidolon can breathe acid dealing 1d6 / level acid damage to all enemies. The cooldown on this "
                "ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 18 seconds. "
                "This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_FIRE_BREATH, "fire breath", 4, true, 10, true, EVOLUTION_ACID_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_ATTACK, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+  evolutiono(EVOLUTION_FIRE_BREATH, "fire breath", 4, true, 10, true, EVOLUTION_ACID_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
                "The eidolon can breathe fire dealing 1d6 / level fire damage to all enemies. The cooldown on this "
                "ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 18 seconds. "
                "This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_COLD_BREATH, "cold breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_ACID_BREATH, EVOLUTION_ELECTRIC_ATTACK, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+  evolutiono(EVOLUTION_COLD_BREATH, "cold breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_ACID_BREATH, EVOLUTION_ELECTRIC_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
                "The eidolon can breathe frigid ice dealing 1d6 / level cold damage to all enemies. The cooldown on"
                " this ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 18 sec"
                "onds. This ability uses the evobreath command.");
-  evolutiono(EVOLUTION_ELECTRIC_BREATH, "electric breath", 10, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ACID_ATTACK, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+  evolutiono(EVOLUTION_ELECTRIC_BREATH, "electric breath", 4, true, 10, true, EVOLUTION_FIRE_BREATH, EVOLUTION_COLD_BREATH, EVOLUTION_ACID_BREATH, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
                "The eidolon can breathe electricity dealing 1d6 / level electric damage to all enemies. The cooldo"
                "wn on this ability starts at 60 seconds. For every extra rank of this feat the cooldown is reduced by 1"
                "8 seconds. This ability uses the evobreath command.");
@@ -340,7 +341,7 @@ bool qualifies_for_evolution(struct char_data *ch, int evolution)
   // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
   if (evolution_list[evolution].stacks && KNOWS_EVOLUTION(ch, evolution) > (level / evolution_list[evolution].stack_level))
     return false;
-  
+
   // If there's no other requirements, they can take it
   if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_NONE)
     return true;
@@ -350,7 +351,8 @@ bool qualifies_for_evolution(struct char_data *ch, int evolution)
   {
     for (i = 0; i < 6; i++)
     {
-      if (i == 0) continue;
+      if (i == 0)
+        continue;
       if (KNOWS_EVOLUTION(ch, evolution_list[evolution].evolution_requirements[i]))
         return true;
     }
@@ -361,7 +363,8 @@ bool qualifies_for_evolution(struct char_data *ch, int evolution)
   {
     for (i = 0; i < 6; i++)
     {
-      if (i == 0) continue;
+      if (i == 0)
+        continue;
       if (!KNOWS_EVOLUTION(ch, evolution_list[evolution].evolution_requirements[i]))
         return false;
     }
@@ -373,8 +376,102 @@ bool qualifies_for_evolution(struct char_data *ch, int evolution)
   {
     for (i = 0; i < 6; i++)
     {
-      if (i == 0) continue;
+      if (i == 0)
+        continue;
       if (KNOWS_EVOLUTION(ch, evolution_list[evolution].evolution_requirements[i]))
+        return false;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution)
+{
+  if (IS_NPC(ch))
+    return true;
+
+  if (!LEVELUP(ch))
+    return true;
+
+  int level = GET_SUMMONER_LEVEL(ch);
+
+  // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
+  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
+    return true;
+
+  return false;
+}
+
+// This will return true if the character passes all of the requirement checks
+// otherwise it will return false.
+bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_pc)
+{
+  if (IS_NPC(ch)) return false;
+
+  int i = 0;
+  int level = GET_SUMMONER_LEVEL(ch);
+
+  if (!LEVELUP(ch))
+    return false;
+
+  if (!evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution])
+    return false;
+
+  // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
+  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] <= (level / evolution_list[evolution].stack_level))
+    return false;
+
+  if (study_num_free_evolution_points(ch) < evolution_list[evolution].evolution_points)
+    return false;
+
+  // if it's not available to PCs and we're checking for aspects return false
+  if (is_pc && evolution_list[evolution].pc_avail != true)
+    return false;
+
+  // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
+  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
+    return false;
+
+  // If there's no other requirements, they can take it
+  if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_NONE)
+    return true;
+    
+  // if It requires 'any' of the listed feats and they have any of them, they can take it
+  // otherwise they can't
+  else if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_ANY)
+  {
+    for (i = 0; i < 6; i++)
+    {
+      if (i == 0)
+        continue;
+      if (LEVELUP(ch)->eidolon_evolutions[evolution_list[evolution].evolution_requirements[i]])
+        return true;
+    }
+  }
+  // if It requires 'all' of the listed feats and they have all of them, they can take it
+  // otherwise they can't
+  else if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_ALL)
+  {
+    for (i = 0; i < 6; i++)
+    {
+      if (i == 0)
+        continue;
+      if (!LEVELUP(ch)->eidolon_evolutions[evolution_list[evolution].evolution_requirements[i]])
+        return false;
+    }
+    return true;
+  }
+  // if it is 'unique', then if they have any of the listed feats, they can take it,
+  // otherwise they can't
+  else if (evolution_list[evolution].requirement_type == EVOLUTION_REQ_TYPE_UNIQUE)
+  {
+    for (i = 0; i < 6; i++)
+    {
+      if (i == 0)
+        continue;
+      if (LEVELUP(ch)->eidolon_evolutions[evolution_list[evolution].evolution_requirements[i]])
         return false;
     }
     return true;
@@ -577,10 +674,11 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   for (i = 0; i < NUM_EVOLUTIONS; i++)
   {
     if (KNOWS_EVOLUTION(ch, i))
-      HAS_EVOLUTION(mob, i) = KNOWS_EVOLUTION(ch, i);
+      HAS_REAL_EVOLUTION(mob, i) = KNOWS_EVOLUTION(ch, i);
   }
 
   // mob and aff flags
+  SET_BIT_AR(MOB_FLAGS(mob), MOB_EIDOLON);
   if (HAS_EVOLUTION(mob, EVOLUTION_MOUNT))
     SET_BIT_AR(MOB_FLAGS(mob), MOB_MOUNTABLE);
   if (HAS_EVOLUTION(mob, EVOLUTION_FLIGHT))
@@ -642,8 +740,262 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
     (mob)->aff_abils.con += 4;
     (mob)->aff_abils.dex -= 2;
     (mob)->points.size = SIZE_LARGE;
-  } 
-  
+  }
+
+  // base form
+  switch (GET_EIDOLON_BASE_FORM(ch))
+  {
+  case EIDOLON_BASE_FORM_AVIAN:
+    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
+    (mob)->aff_abils.str += 4;
+    (mob)->aff_abils.con += 4;
+    (mob)->aff_abils.dex += 6;
+    break;
+  case EIDOLON_BASE_FORM_BIPED:
+    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_GREAT_FORTITUDE) = true;
+    (mob)->aff_abils.str += 6;
+    (mob)->aff_abils.con += 4;
+    (mob)->aff_abils.dex += 4;
+    break;
+  case EIDOLON_BASE_FORM_QUADRUPED:
+    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
+    (mob)->aff_abils.str += 6;
+    (mob)->aff_abils.con += 4;
+    (mob)->aff_abils.dex += 6;
+    break;
+  case EIDOLON_BASE_FORM_SERPENTINE:
+    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
+    (mob)->aff_abils.str += 4;
+    (mob)->aff_abils.con += 4;
+    (mob)->aff_abils.dex += 6;
+    break;
+  case EIDOLON_BASE_FORM_TAURIC:
+    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
+    (mob)->aff_abils.str += 4;
+    (mob)->aff_abils.con += 6;
+    (mob)->aff_abils.dex += 2;
+    break;
+  }  
+}
+
+void merge_eidolon_evolutions(struct char_data *ch)
+{
+  if (!ch)
+    return;
+
+  int i = 0, mlev = GET_LEVEL(ch), amt = 0;
+  struct affected_type af;
+  struct affected_type af2[6];
+
+  // aff flags
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_FLIGHT))
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_GILLS))
+    SET_BIT_AR(AFF_FLAGS(ch), AFF_WATER_BREATH);
+
+  // resistances
+  if (mlev >= 10)
+    amt = 50;
+  else if (mlev >= 5)
+    amt = 25;
+  else
+    amt = 5;
+
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_FIRE_RESIST))
+  {
+    new_affect(&af);
+    af.location = APPLY_RES_FIRE;
+    af.modifier = amt;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_COLD_RESIST))
+  {
+    new_affect(&af);
+    af.location = APPLY_RES_COLD;
+    af.modifier = amt;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_ACID_RESIST))
+  {
+    new_affect(&af);
+    af.location = APPLY_RES_ACID;
+    af.modifier = amt;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_ELECTRIC_RESIST))
+  {
+    new_affect(&af);
+    af.location = APPLY_RES_ELECTRIC;
+    af.modifier = amt;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_SONIC_RESIST))
+  {
+    new_affect(&af);
+    af.location = APPLY_RES_SOUND;
+    af.modifier = amt;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+
+  // ability scores
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_STR_INCREASE))
+  {
+    new_affect(&af);
+    af.location = APPLY_STR;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_STR_INCREASE) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_CON_INCREASE))
+  {
+    new_affect(&af);
+    af.location = APPLY_CON;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_CON_INCREASE) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_DEX_INCREASE))
+  {
+    new_affect(&af);
+    af.location = APPLY_DEX;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_DEX_INCREASE) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_INT_INCREASE))
+  {
+    new_affect(&af);
+    af.location = APPLY_INT;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_INT_INCREASE) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_WIS_INCREASE))
+  {
+    new_affect(&af);
+    af.location = APPLY_WIS;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_WIS_INCREASE) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_CHA_INCREASE))
+  {
+    new_affect(&af);
+    af.location = APPLY_CHA;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_CHA_INCREASE) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+
+  // fast healing
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_FAST_HEALING))
+  {
+    new_affect(&af);
+    af.location = APPLY_FAST_HEALING;
+    af.modifier = HAS_TEMP_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
+    af.duration = mlev;
+    af.bonus_type = BONUS_TYPE_RACIAL;
+    af.spell = EIDOLON_MERGE_FORMS_EFFECT;
+    affect_to_char(ch, &af);
+  }
+
+  // eidolon size
+  if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_HUGE))
+  {
+    for (i = 0; i < 6; i++)
+      new_affect(&(af2[i]));
+
+    af2[0].location = APPLY_STR;
+    af2[0].modifier = 16;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    af2[0].location = APPLY_CON;
+    af2[0].modifier = 8;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    af2[0].location = APPLY_DEX;
+    af2[0].modifier = -4;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    af2[0].location = APPLY_SIZE;
+    af2[0].modifier = 2;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    for (i = 0; i < 6; i++)
+      affect_to_char(ch, (&(af2[i])));
+  }
+  else if (HAS_TEMP_EVOLUTION(ch, EVOLUTION_LARGE))
+  {
+    for (i = 0; i < 6; i++)
+      new_affect(&(af2[i]));
+
+    af2[0].location = APPLY_STR;
+    af2[0].modifier = 8;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    af2[0].location = APPLY_CON;
+    af2[0].modifier = 4;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    af2[0].location = APPLY_DEX;
+    af2[0].modifier = -2;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    af2[0].location = APPLY_SIZE;
+    af2[0].modifier = 1;
+    af2[0].duration = mlev;
+    af2[0].bonus_type = BONUS_TYPE_SIZE;
+    af2[0].spell = EIDOLON_MERGE_FORMS_EFFECT;
+
+    for (i = 0; i < 6; i++)
+      affect_to_char(ch, (&(af2[i])));
+  }
 }
 
 int num_evo_breaths(struct char_data *ch)
@@ -703,26 +1055,45 @@ struct char_data *get_eidolon_in_room(struct char_data *ch)
 
 ACMD(do_eidolon)
 {
-
-  if (!HAS_FEAT(ch, FEAT_BOND_SENSES))
-  {
-    send_to_char(ch, "You don't have the ability to bond senses with an eidolon.\r\n");
-    return;
-  }
-
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *eidolon = NULL;
+  char * desc = NULL;
+  int i = 0, count = 0;
 
   half_chop_c(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
   if (!*arg)
   {
     send_to_char(ch, "Please use one of the following options:\r\n"
+                     "-- evolutions - shows the evolutions you have learned.\r\n"
                      "-- shortdesc  - change the eidolon's short description.\r\n"
                      "-- longdesc   - change the eidolon's long description.\r\n"
+                     "-- detaildesc - change the eidolon's detailed description.\r\n"
                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
+                     "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
                      "\r\n"
                      "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "evolutions"))
+  {
+    send_to_char(ch, "Evolutions Known:\r\n");
+    for (i = 1; i < NUM_EVOLUTIONS; i++)
+    {
+      if (KNOWS_EVOLUTION(ch, i))
+      {
+        count++;
+        send_to_char(ch, "%-30s ", evolution_list[i].name);
+        if (count % 2 == 0)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if (count % 2 == 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Type: help (evolution name) for more info on specific evolutions.\r\n");
+    send_to_char(ch, "\r\n");
     return;
   }
 
@@ -742,6 +1113,13 @@ ACMD(do_eidolon)
                        "Type 'eidolon shortdesc reset' to reset the eidolon short description to the default.\r\n");
       return;
     }
+
+    if (strlen(arg2) > 60)
+    {
+      send_to_char(ch, "You cannot provide a short description length greater than 60.\r\n");
+      return;
+    }
+
     if (!strcmp(arg2, "reset"))
     {
       GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
@@ -749,14 +1127,393 @@ ACMD(do_eidolon)
       return;
     }
 
+    desc = strdup(arg2);
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = desc;
+    GET_SHORT(eidolon) = desc;
+    desc = strdup(arg2);
+    (eidolon)->player.name = desc;
+    send_to_char(ch, "You change your eidilon's short description to: %s\r\n", desc);
+    return;
+  }
+  else if (is_abbrev(arg, "longdesc"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify what you would like the long desc to be as well.\r\n"
+                       "Eg. eidolon longdesc A massive black panther with deep purple eyes paces back and forth here.\r\n"
+                       "Type 'eidolon longdesc reset' to reset the eidolon long description to the default.\r\n");
+      return;
+    }
+    if (strlen(arg2) > 120)
+    {
+      send_to_char(ch, "You cannot provide a long description length greater than 120.\r\n");
+      return;
+    }
+    if (!strcmp(arg2, "reset"))
+    {
+      GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
+      send_to_char(ch, "You've reset your eidolon long description.  This will be reflected next time you summon your eidolon.\r\n");
+      return;
+    }
+
+    desc = strdup(arg2);
+
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = desc;
+    eidolon->player.long_descr = desc;
+    send_to_char(ch, "You change your eidilon's long description to: %s\r\n", desc);
+    return;
+  }
+  else if (is_abbrev(arg, "detaildesc"))
+  {
+    if (!*arg2)
+    {
+      send_to_char(ch, "Please specify what you would like the deatiled desc to be as well.\r\n"
+                       "Eg. eidolon detaildesc A massive black panther with deep purple eyes is before you. It looks as large as a small horse and has deep yellow eyes betraying more than an animal intelligence.\r\n"
+                       "Type 'eidolon detaildesc reset' to reset the eidolon detailed description to the default.\r\n");
+      return;
+    }
+    if (strlen(arg2) > MAX_INPUT_LENGTH)
+    {
+      send_to_char(ch, "You cannot provide a detailed description length greater than %d.\r\n", MAX_INPUT_LENGTH);
+      return;
+    }
+    if (!strcmp(arg2, "reset"))
+    {
+      GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
+      send_to_char(ch, "You've reset your eidolon detail description.  This will be reflected next time you summon your eidolon.\r\n");
+      return;
+    }
+
+    desc = strdup(arg2);
+
+    GET_EIDOLON_DETAIL_DESCRIPTION(ch) = desc;
+    eidolon->player.description = desc;
+    send_to_char(ch, "You change your eidilon's detailed description to: %s\r\n", desc);
+    return;
+  }
+  else if (is_abbrev(arg, "bondsenses"))
+  {
+    if (!HAS_FEAT(ch, FEAT_BOND_SENSES))
+    {
+      send_to_char(ch, "You don't have the ability to bond senses with an eidolon.\r\n");
+      return;
+    }
+    send_to_char(ch, "You take control of your eidolon. (\tDType 'return' to return to your body\tn)\r\n");
+    ch->desc->character = eidolon;
+    ch->desc->original = ch;
+    eidolon->desc = ch->desc;
+    ch->desc = NULL;
+  }
+  else if (is_abbrev(arg, "mergeforms"))
+  {
+    if (!HAS_FEAT(ch, FEAT_MERGE_FORMS))
+    {
+      send_to_char(ch, "You do not know how to merge forms with your eidolon.\r\n");
+      return;
+    }
     
+    // approx 10 minutes before they can call their eidolon again
+    CALL_EIDOLON_COOLDOWN(ch) = 100;
+
+    for (i = 0; i < NUM_EVOLUTIONS; i++)
+    {
+      if (HAS_EVOLUTION(eidolon, i) && evolution_list[i].pc_avail && !HAS_REAL_EVOLUTION(ch, i))
+        HAS_TEMP_EVOLUTION(ch, i) = HAS_EVOLUTION(eidolon, i);
+    }
+
+    merge_eidolon_evolutions(ch);
+
+    act("You draw $N's form into your own.", FALSE, ch, 0, eidolon, TO_CHAR);
+    act("$n draws Your form into $s own.", FALSE, ch, 0, eidolon, TO_VICT);
+    act("$n draws $N's form into $s own.", FALSE, ch, 0, eidolon, TO_NOTVICT);
+
+    MERGE_FORMS_TIMER(ch) = GET_SUMMONER_LEVEL(ch);
+
+    extract_char(eidolon);
+    return;
+  }
+  else
+  {
+    send_to_char(ch, "Please use one of the following options:\r\n"
+                      "-- evolutions - shows the evolutions you have learned.\r\n"
+                      "-- shortdesc  - change the eidolon's short description.\r\n"
+                      "-- longdesc   - change the eidolon's long description.\r\n"
+                      "-- detaildesc - change the eidolon's detailed description.\r\n"
+                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
+                      "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
+                      "\r\n"
+                      "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
+    return;
+  }
+}
+
+int get_shield_ally_bonus(struct char_data *ch)
+{
+  struct char_data *tch = NULL;
+  int bonus = 0;
+
+  if (IN_ROOM(ch) == NOWHERE)
+    return 0;
+
+  if (HAS_FEAT(ch, FEAT_GREATER_SHIELD_ALLY))
+    bonus = 4;
+  else if (HAS_FEAT(ch, FEAT_SHIELD_ALLY))
+    bonus = 2;
+
+  if (get_eidolon_in_room(ch) && can_act(ch) && bonus > 0)
+    return bonus;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (GROUP(ch) == GROUP(tch) && get_eidolon_in_room(tch) && can_act(tch) && HAS_FEAT(tch, FEAT_GREATER_SHIELD_ALLY))
+    {
+      bonus = 4;
+      break;
+    }
   }
 
-  // now take control
-  send_to_char(ch, "You take control of your eidolon. (\tDType 'return' to return to your body\tn)\r\n");
-  ch->desc->character = eidolon;
-  ch->desc->original = ch;
-  eidolon->desc = ch->desc;
-  ch->desc = NULL;
+  return bonus;
+}
 
+int char_has_evolution(struct char_data *ch, int evo)
+{
+  if (HAS_REAL_EVOLUTION(ch, evo))
+    return HAS_REAL_EVOLUTION(ch, evo);
+
+  if (HAS_TEMP_EVOLUTION(ch, evo))
+    return HAS_TEMP_EVOLUTION(ch, evo);
+
+  return 0;
+}
+
+void display_evolution_requirements(struct char_data *ch, int evo)
+{
+
+  int i = 0, count = 0;
+  int line_length = 80;
+  char buf[MAX_STRING_LENGTH], buf2[MAX_STRING_LENGTH];
+
+  if (evo < 1 || evo >= NUM_EVOLUTIONS)
+  {
+    return;
+  }
+
+  snprintf(buf, sizeof(buf), "\tnRequires %d evolution points.\r\n", evolution_list[evo].evolution_points);
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+
+  if (evolution_list[evo].stacks)
+  {
+    snprintf(buf, sizeof(buf), "\tnCan be taken multiple times once every %d summoner levels.\r\n", evolution_list[evo].stack_level);
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+
+  if (evolution_list[evo].requirement_type == EVOLUTION_REQ_TYPE_ALL)
+  {
+    snprintf(buf, sizeof(buf), "\tnRequires ALL of the following evolutions to take: ");
+    for (i = 0; i < 6; i++)
+    {
+      if (evolution_list[evo].evolution_requirements[i] > 0)
+      {
+        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "", evolution_list[evolution_list[evo].evolution_requirements[i]].name);
+        strlcat(buf, buf2, sizeof(buf));
+        count++;
+      }
+    }
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+
+  if (evolution_list[evo].requirement_type == EVOLUTION_REQ_TYPE_ANY)
+  {
+    count = 0;
+    snprintf(buf, sizeof(buf), "\tnRequires ANY of the following evolutions to take: ");
+    for (i = 0; i < 6; i++)
+    {
+      if (evolution_list[evo].evolution_requirements[i] > 0)
+      {
+        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "", evolution_list[evolution_list[evo].evolution_requirements[i]].name);
+        strlcat(buf, buf2, sizeof(buf));
+        count++;
+      }
+    }
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+
+  if (evolution_list[evo].requirement_type == EVOLUTION_REQ_TYPE_UNIQUE)
+  {
+    count = 0;
+    snprintf(buf, sizeof(buf), "\tnCANNOT BE TAKEN if any of the following evolutions has already been chosen: ");
+    for (i = 0; i < 6; i++)
+    {
+      if (evolution_list[evo].evolution_requirements[i] > 0)
+      {
+        snprintf(buf2, sizeof(buf2), "%s%s", count > 0 ? ", " : "", evolution_list[evolution_list[evo].evolution_requirements[i]].name);
+        strlcat(buf, buf2, sizeof(buf));
+        count++;
+      }
+    }
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+
+  if (!evolution_list[evo].pc_avail)
+  {
+    snprintf(buf, sizeof(buf), "\tnCannot be taken as aspects by pcs; eidolons only.\r\n");
+    send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  }
+}
+
+bool display_evolution_info(struct char_data *ch, const char *evoname)
+{
+
+  int line_length = 80;
+  char buf[MAX_STRING_LENGTH];
+  int evo = 0;
+
+  skip_spaces_c(&evoname);
+  evo = find_evolution_num(evoname);
+
+  if (evo < 1 || evo >= NUM_EVOLUTIONS)
+    return false;
+
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  snprintf(buf, sizeof(buf), "Evolution:\tn %s\r\n", evolution_list[evo].name);
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "\tC");
+  snprintf(buf, sizeof(buf), "Description:\tn %s\r\n", evolution_list[evo].desc);
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  snprintf(buf, sizeof(buf), "Requirements:\tn\r\n");
+  send_to_char(ch, "%s", strfrmt(buf, line_length, 1, FALSE, FALSE, FALSE));
+  display_evolution_requirements(ch, evo);
+  send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+
+  return TRUE;
+}
+
+int find_evolution_num(const char *name)
+{
+  int index, ok;
+  const char *temp, *temp2;
+  char first[256], first2[256];
+
+  for (index = 1; index < NUM_EVOLUTIONS; index++)
+  {
+    if (is_abbrev(name, evolution_list[index].name))
+      return (index);
+
+    ok = TRUE;
+    /* It won't be changed, but other uses of this function elsewhere may. */
+    temp = any_one_arg_c(evolution_list[index].name, first, sizeof(first));
+    temp2 = any_one_arg_c(name, first2, sizeof(first2));
+    while (*first && *first2 && ok)
+    {
+      if (!is_abbrev(first2, first))
+        ok = FALSE;
+      temp = any_one_arg_c(temp, first, sizeof(first));
+      temp2 = any_one_arg_c(temp2, first2, sizeof(first2));
+    }
+    if (ok && !*first2)
+      return (index);
+  }
+
+  return (-1);
+}
+
+bool is_eidolon_base_form_evolution(int form, int evo)
+{
+  switch (form)
+  {
+  case EIDOLON_BASE_FORM_AVIAN:
+    if (evo == EVOLUTION_CLAWS)
+      return true;
+    if (evo == EVOLUTION_FLIGHT)
+      return true;
+    break;
+  case EIDOLON_BASE_FORM_BIPED:
+    if (evo == EVOLUTION_CLAWS)
+      return true;
+    break;
+  case EIDOLON_BASE_FORM_QUADRUPED:
+    if (evo == EVOLUTION_BITE)
+      return true;
+    break;
+  case EIDOLON_BASE_FORM_SERPENTINE:
+    if (evo == EVOLUTION_BITE)
+      return true;
+    if (evo == EVOLUTION_TAIL_SLAP)
+      return true;
+    break;
+  case EIDOLON_BASE_FORM_TAURIC:
+    if (evo == EVOLUTION_HOOVES)
+      return true;
+  }
+  return false;
+}
+
+void study_assign_eidolon_base_form(struct char_data *ch, int form)
+{
+  if (!ch || !LEVELUP(ch))
+    return;
+
+  // already chosen
+  if (GET_EIDOLON_BASE_FORM(ch) || (LEVELUP(ch) && LEVELUP(ch)->eidolon_base_form))
+    return;
+
+  // not a valid form
+  if (form <= EIDOLON_BASE_FORM_NONE || form >= NUM_EIDOLON_BASE_FORMS)
+    return;
+
+  int i = 0;
+
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (is_eidolon_base_form_evolution(form, i))
+    {
+      LEVELUP(ch)->eidolon_evolutions[i]++;
+    }
+  }
+  LEVELUP(ch)->eidolon_base_form = form;
+}
+
+int study_num_aspects_chosen(struct descriptor_data *d)
+{
+  if (!d || !d->character) return 0;
+  
+  if (!LEVELUP(d->character)) return 0;
+
+  int i = 0, num = 0;
+
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (LEVELUP(d->character)->summoner_aspects[i])
+      num++;
+  }
+
+  return num;
+
+}
+
+bool study_has_aspects_unchosen(struct descriptor_data *d)
+{
+  if (!d || !d->character)
+    return false;
+
+  if (IS_NPC(d->character))
+    return false;
+
+  if (!LEVELUP(d->character))
+    return false;
+
+  // Needs to set this first
+  if (GET_EIDOLON_BASE_FORM(d->character) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
+    return false;
+
+  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT);
+  int num_chosen = study_num_aspects_chosen(d);
+
+  if ((num_evos - num_chosen) > 0) return true;
+
+  return false;
 }

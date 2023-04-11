@@ -61,6 +61,7 @@
 #include "premadebuilds.h"
 #include "encounters.h"
 #include "hunts.h"
+#include "evolutions.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -669,6 +670,9 @@ void boot_world(void)
      in order to handle the class list (prereqs) */
   log("Loading Class List");
   load_class_list();
+
+  log("Loading evolutions.");
+  assign_evolutions();
 
   log("Initializing perlin noise generator.");
   init_perlin(NOISE_MATERIAL_PLANE_ELEV, NOISE_MATERIAL_PLANE_ELEV_SEED);
@@ -3882,7 +3886,7 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 /* execute the reset command table of a given zone */
 void reset_zone(zone_rnum zone)
 {
-  int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, num_traps = 0, max_chests = 0;
+  int cmd_no = 0, jump = 0, total_rooms = 0, num_chests = 0, max_chests = 0;
   bool has_random_chests = false, has_random_traps = false;
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL, *obj_to = NULL;

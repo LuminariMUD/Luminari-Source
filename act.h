@@ -405,6 +405,7 @@ ACMD_DECL(do_sleep);
 ACMD_DECL(do_stand);
 ACMD_DECL(do_wake);
 ACMD_DECL(do_pullswitch);
+ACMD_DECL(do_transposition);
 
 /* Switch info */
 #define SWITCH_UNHIDE 0
@@ -711,6 +712,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_NORAGE 51
 #define SCMD_SHADOWFORM 52
 #define SCMD_SICKENING_AURA 53
+#define SCMD_LIFE_BOND 54
 
 /* do_quit */
 ACMD_DECL(do_quit);

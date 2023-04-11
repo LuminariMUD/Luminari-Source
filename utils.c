@@ -155,6 +155,14 @@ bool can_study_known_spells(struct char_data *ch)
        GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
     return TRUE;
 
+  /* summoner */
+  if (LEVELUP(ch)->class == CLASS_SUMMONER ||
+      ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
+        LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
+    return TRUE;
+
   /* inquisitor */
   if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
       ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE) && GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
@@ -191,8 +199,10 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
   case CLASS_WIZARD:
   case CLASS_SORCERER:
   case CLASS_BARD:
+  case CLASS_SUMMONER:
     if (class == GET_PREFERRED_ARCANE(ch))
-      bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
+      bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + 
+                      ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) + CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     break;
   case CLASS_CLERIC:
   case CLASS_DRUID:
@@ -6874,7 +6884,7 @@ void apply_assassin_backstab_bonuses(struct char_data *ch, struct char_data *vic
 int get_evolution_appearance_save_bonus(struct char_data *ch)
 {
   if (!ch)
-    return;
+    return 0;
   
   // at level 12, they're immune
   if (GET_SUMMONER_LEVEL(ch) >= 12)
@@ -7432,6 +7442,7 @@ bool can_dam_be_resisted(int type)
   case DAM_SUNLIGHT:
   case DAM_MOVING_WATER:
   case DAM_BLOOD_DRAIN:
+  case DAM_BLEEDING:
     return false;
   }
 
@@ -8181,6 +8192,29 @@ void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type)
       damage(ch, victim, dam, spellnum, dam_type, FALSE);
     }
   }
+}
+
+bool can_act(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_PINNED))
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_STUN))
+    return false;
+  
+  if (AFF_FLAGGED(ch, AFF_PARALYZED))
+    return false;
+
+  if (AFF_FLAGGED(ch, AFF_DAZED))
+    return false;
+
+  if (!AWAKE(ch))
+    return false;
+
+  return true;
 }
 
 /* EoF */

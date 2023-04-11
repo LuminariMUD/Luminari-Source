@@ -65,6 +65,7 @@
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"
+#include "evolutions.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -210,7 +211,6 @@ cpp_extern const struct command_info cmd_info[] = {
     {"bazaar", "bazaar", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
-
     {"cast", "c", POS_SITTING, do_gen_cast, 1, SCMD_CAST_SPELL, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"carriage", "car", POS_RECLINING, do_carriage, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"catsclaws", "catsclaws", POS_FIGHTING, do_tabaxi_claw_attack, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_tabaxi_claw_attack},
@@ -237,6 +237,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"compact", "comp", POS_DEAD, do_gen_tog, 0, SCMD_COMPACT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"compel", "compel", POS_RECLINING, do_gen_preparation, 0, SCMD_COMPEL, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"concoct", "conc", POS_RESTING, do_gen_preparation, 0, SCMD_CONCOCT, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"conjure", "conjure", POS_RESTING, do_gen_preparation, 0, SCMD_CONJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"cooldowns", "coo", POS_DEAD, do_affects, 0, SCMD_COOLDOWNS, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"copyover", "copyover", POS_DEAD, do_copyover, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"copyroom", "copyroom", POS_DEAD, do_copyroom, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -329,6 +330,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"eat", "ea", POS_RECLINING, do_eat, 0, SCMD_EAT, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"echo", "ec", POS_SLEEPING, do_echo, LVL_IMMORT, SCMD_ECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"efreetimagic", "efreetimagic", POS_FIGHTING, do_efreetimagic, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_efreetimagic},
+    {"eidolon", "eidolon", POS_RECLINING, do_eidolon, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"blast", "blast", POS_FIGHTING, do_blast, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, can_eldritch_blast},
     {"eldritch", "eldritch", POS_FIGHTING, do_eldritch, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"emote", "em", POS_RECLINING, do_echo, 0, SCMD_EMOTE, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -489,6 +491,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"loot", "loot", POS_STANDING, do_loot, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"leave", "lea", POS_STANDING, do_leave, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"levels", "lev", POS_DEAD, do_levels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"lifebond", "lifebond", POS_STANDING, do_gen_tog, 1, SCMD_LIFE_BOND, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"listen", "listen", POS_STANDING, do_listen, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"links", "lin", POS_STANDING, do_links, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"lock", "loc", POS_SITTING, do_gen_door, 0, SCMD_LOCK, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -770,6 +773,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"track", "track", POS_STANDING, do_track, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"train", "tr", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"transfer", "transfer", POS_SLEEPING, do_trans, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"transposition", "transposition", POS_STANDING, do_transposition, 0, 0, TRUE, ACTION_STANDARD, {0, 0}, NULL},
     {"treatinjury", "treatinjury", POS_RECLINING, do_treatinjury, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_treatinjury},
     {"trip", "trip", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_trip},
     //  { "_trip", "_trip", POS_FIGHTING, do_trip, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -793,6 +797,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"unban", "unban", POS_DEAD, do_unban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"unaffect", "unaffect", POS_DEAD, do_wizutil, LVL_STAFF, SCMD_UNAFFECT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"uncommune", "uncommune", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCOMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"unconjure", "unconjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCONJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unstore", "unstore", POS_FIGHTING, do_unstore, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
     {"uptime", "uptime", POS_DEAD, do_date, 1, SCMD_UPTIME, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"use", "use", POS_FIGHTING, do_use_consumable, 0, SCMD_USE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
@@ -2852,19 +2857,32 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
+// #ifdef CAMPAIGN_FR
+//       write_to_output(d, "Races of Faerun\r\n\r\n");
+//       for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+// #else
+//       write_to_output(d, "Races of Luminari\r\n\r\n");
+//       for (i = 0; i < NUM_RACES; i++)
+// #endif
 #ifdef CAMPAIGN_FR
       write_to_output(d, "Races of Faerun\r\n\r\n");
       for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+      {
+        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
+          write_to_output(d, "%s\r\n", race_list[i].type);
+      }
 #else
-      write_to_output(d, "Races of Luminari\r\n\r\n");
+        write_to_output(d, "Races of Luminari\r\n\r\n");
       for (i = 0; i < NUM_RACES; i++)
-#endif
       {
         if (!is_locked_race(i) || has_unlocked_race(d->character, i))
           write_to_output(d, "%s\r\n", race_list[i].type);
       }
-      write_to_output(d, "\r\nRace Selection (type 'human' if you do not know "
-                         "what to pick): ");
+#endif
+      // {
+      //   if (!is_locked_race(i) || has_unlocked_race(d->character, i)) write_to_output(d, "%s\r\n", race_list[i].type);
+      // }
+      write_to_output(d, "\r\nRace Selection (type 'human' if you do not know what to pick): ");
       STATE(d) = CON_QRACE;
       return;
     }
@@ -3073,6 +3091,9 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case CLASS_WARLOCK:
       perform_help(d, "class-warlock");
+      break;
+    case CLASS_SUMMONER:
+      perform_help(d, "class-summoner");
       break;
 
     default:

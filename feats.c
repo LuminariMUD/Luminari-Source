@@ -1481,7 +1481,14 @@ void assign_feats(void)
   feato(FEAT_SUMMON_MONSTER, "conjure monster", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Allows the summoner to cast summon monster spells at-will.",
         "Allows the summoner to cast summon monster spells at-will. As the summoner gains class levels, they can cast "
-        "more powerful versions of the summon monster spells.");
+        "more powerful versions of the summon monster spells. At level one they can cast summon creature i.  At level three "
+        "they can cast summon creature ii.  At level five they can cast summon creature iii, and so forth up until level 17 "
+        "for summon creature ix. "
+// No gate spell in FR because there aren't multiple planes of existence yet
+#ifndef CAMPAIGN_FR
+        "At level 19, the summoner can cast the gate spell at-will."
+#endif
+        );
 
   feato(FEAT_BOND_SENSES, "bond senses", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "The summoner can take full control of their eidolon.",

@@ -469,9 +469,11 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
     {
     case CLASS_WARLOCK:
     case CLASS_BARD:
-      if (bard_known[caster_level][circle] -
-              count_known_spells_by_circle(ch, ch_class, circle) <=
-          0)
+      if (bard_known[caster_level][circle] - count_known_spells_by_circle(ch, ch_class, circle) <= 0)
+        return FALSE;
+      break;
+    case CLASS_SUMMONER:
+      if (summoner_known[caster_level][circle] - count_known_spells_by_circle(ch, ch_class, circle) <= 0)
         return FALSE;
       break;
     case CLASS_INQUISITOR:
@@ -481,8 +483,7 @@ bool known_spells_add(struct char_data *ch, int ch_class, int spellnum, bool loa
     case CLASS_SORCERER:
       if (compute_slots_by_circle(ch, ch_class, circle) -
               // sorcerer_known[caster_level][circle] -
-              count_known_spells_by_circle(ch, ch_class, circle) <=
-          0)
+              count_known_spells_by_circle(ch, ch_class, circle) <= 0)
         return FALSE;
       break;
     case CLASS_PSIONICIST:
@@ -679,6 +680,7 @@ int count_known_spells_by_circle(struct char_data *ch, int class, int circle)
     case CLASS_WARLOCK:
     case CLASS_BARD:
     case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
       if (compute_spells_circle(class, current->spell, 0, 0) == circle)
         counter++;
       break;
@@ -1072,6 +1074,40 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
       return (NUM_CIRCLES + 1);
     }
     break;
+  case CLASS_SUMMONER:
+    min_level = MIN_SPELL_LVL(spellnum, class, domain);
+    switch (min_level)
+    {
+    case 1:
+    case 2:
+    case 3:
+      return 1 + metamagic_mod;
+    case 4:
+    case 5:
+    case 6:
+      return 2 + metamagic_mod;
+    case 7:
+    case 8:
+    case 9:
+      return 3 + metamagic_mod;
+    case 10:
+    case 11:
+    case 12:
+      return 4 + metamagic_mod;
+    case 13:
+    case 14:
+    case 15:
+      return 5 + metamagic_mod;
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+      return 6 + metamagic_mod;
+    /* level 20 reserved for epic spells */
+    default:
+      return (NUM_CIRCLES + 1);
+    }
+    break;
   case CLASS_PALADIN:
   case CLASS_BLACKGUARD:
     switch (spell_info[spellnum].min_level[class])
@@ -1283,7 +1319,7 @@ int get_class_highest_circle(struct char_data *ch, int class)
       return 5;
     else
       return 6;
-  case CLASS_ALCHEMIST:
+  case CLASS_SUMMONER:
     if (class_level < 4)
       return 1;
     else if (class_level < 7)
@@ -1296,6 +1332,7 @@ int get_class_highest_circle(struct char_data *ch, int class)
       return 5;
     else
       return 6;
+  
   case CLASS_SORCERER:
     return (MAX(1, (MIN(9, class_level / 2))));
   case CLASS_WIZARD:
@@ -1538,6 +1575,10 @@ int compute_slots_by_circle(struct char_data *ch, int class, int circle)
     spell_slots += spell_bonus[GET_INT(ch)][circle];
     spell_slots += alchemist_slots[class_level][circle];
     break;
+  case CLASS_SUMMONER:
+    spell_slots += spell_bonus[GET_CHA(ch)][circle];
+    spell_slots += summoner_slots[class_level][circle];
+    break;
   case CLASS_INQUISITOR:
     spell_slots += spell_bonus[GET_WIS(ch)][circle];
     spell_slots += inquisitor_slots[class_level][circle];
@@ -1614,6 +1655,9 @@ void assign_feat_spell_slots(int ch_class)
   case CLASS_ALCHEMIST:
     feat_index = ALC_SLT_0;
     break;
+  case CLASS_SUMMONER:
+    feat_index = SUM_SLT_0;
+    break;
   case CLASS_INQUISITOR:
     feat_index = INQ_SLT_0;
     break;
@@ -1669,6 +1713,10 @@ void assign_feat_spell_slots(int ch_class)
       case CLASS_ALCHEMIST:
         slots_have[circle_counter] = alchemist_slots[level_counter][circle_counter];
         slots_had[circle_counter] = alchemist_slots[level_counter - 1][circle_counter];
+        break;
+      case CLASS_SUMMONER:
+        slots_have[circle_counter] = summoner_slots[level_counter][circle_counter];
+        slots_had[circle_counter] = summoner_slots[level_counter - 1][circle_counter];
         break;
       default:
         log("Error in assign_feat_spell_slots(), slots_have default case for class.");
@@ -2060,6 +2108,7 @@ void print_prep_collection_data(struct char_data *ch, int class)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
     print_innate_magic_queue(ch, class);
     display_available_slots(ch, class);
     break;
@@ -2161,6 +2210,10 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     prep_time *= ALCHEMIST_PREP_TIME_FACTOR;
     stat_bonus = GET_INT_BONUS(ch);
     break;
+  case CLASS_SUMMONER:
+    prep_time *= SUMMONER_PREP_TIME_FACTOR;
+    stat_bonus = GET_INT_BONUS(ch);
+    break;
   case CLASS_INQUISITOR:
     prep_time *= INQUISITOR_PREP_TIME_FACTOR;
     stat_bonus = GET_WIS_BONUS(ch);
@@ -2210,6 +2263,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
   case CLASS_WIZARD:
   case CLASS_SORCERER:
   case CLASS_BARD:
+  case CLASS_SUMMONER:
     prep_time = prep_time * CONFIG_ARCANE_PREP_TIME / 100;
     break;
 
@@ -2544,6 +2598,9 @@ ACMDU(do_consign_to_oblivion)
   case SCMD_DISCARD:
     class = CLASS_ALCHEMIST;
     break;
+  case SCMD_UNCONJURE:
+    class = CLASS_SUMMONER;
+    break;
   /* innate-magic casters such as sorc / bard, do not use this command */
   default:
     send_to_char(ch, "Invalid command!\r\n");
@@ -2760,6 +2817,9 @@ ACMDU(do_gen_preparation)
     break;
   case SCMD_CONCOCT:
     class = CLASS_ALCHEMIST;
+    break;
+  case SCMD_CONJURE:
+    class = CLASS_SUMMONER;
     break;
   default:
     send_to_char(ch, "Invalid command!\r\n");

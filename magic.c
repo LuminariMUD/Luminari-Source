@@ -226,6 +226,7 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   saves -= get_char_affect_modifier(vict, AFFECT_LEVEL_DRAIN, APPLY_SPECIAL);
   if (AFF_FLAGGED(vict, AFF_SHAKEN))
     saves -= 2;
+  saves += get_shield_ally_bonus(vict);
 
     /* determine base, add/minus bonus/penalty and return */
     if (IS_NPC(vict))
@@ -380,7 +381,7 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
 
   if (ch && HAS_FEAT(ch, FEAT_WIZ_DEBUFF) && !rand_number(0, 2))
   {
-    send_to_char(ch, "\tW*you flare with magical POWAH!*\tn ");
+    send_to_char(ch, "\tW*You flare with magical power!*\tn ");
     challenge += 20;
   }
 
@@ -7107,6 +7108,123 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_room = "$n's muscles begin to bulge!";
     break;
 
+  case SPELL_LESSER_EVOLUTION_SURGE: // conjuration
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_EVOLUTION_SURGE) || affected_by_spell(victim, SPELL_GREATER_EVOLUTION_SURGE))
+    {
+      send_to_char(ch, "You eidolon is already affected by a more powerful version of this spell.\r\n");
+      return;
+    }
+    af[0].location = APPLY_STR;
+    af[0].duration = (level * 12);
+    af[0].modifier = 2;
+    af[0].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[1].location = APPLY_DEX;
+    af[1].duration = (level * 12);
+    af[1].modifier = 2;
+    af[1].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[2].location = APPLY_CON;
+    af[2].duration = (level * 12);
+    af[2].modifier = 2;
+    af[2].bonus_type = BONUS_TYPE_EIDOLON;
+    
+    af[3].location = APPLY_AC;
+    af[3].duration = (level * 12);
+    af[3].modifier = 2;
+    af[3].bonus_type = BONUS_TYPE_EIDOLON;
+
+    accum_duration = FALSE;
+    to_vict = "You feel more powrful!";
+    to_room = "$n seems to grow in prowess!";
+    break;
+
+  case SPELL_EVOLUTION_SURGE: // conjuration
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    if (affected_by_spell(victim, SPELL_GREATER_EVOLUTION_SURGE))
+    {
+      send_to_char(ch, "You eidolon is already affected by a more powerful version of this spell.\r\n");
+      return;
+    }
+    // remove a weaker version of this spell and apply this new one
+    if (affected_by_spell(victim, SPELL_LESSER_EVOLUTION_SURGE))
+    {
+      affect_from_char(victim, SPELL_LESSER_EVOLUTION_SURGE);
+    }
+    af[0].location = APPLY_STR;
+    af[0].duration = (level * 12);
+    af[0].modifier = 4;
+    af[0].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[1].location = APPLY_DEX;
+    af[1].duration = (level * 12);
+    af[1].modifier = 4;
+    af[1].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[2].location = APPLY_CON;
+    af[2].duration = (level * 12);
+    af[2].modifier = 4;
+    af[2].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[3].location = APPLY_AC;
+    af[3].duration = (level * 12);
+    af[3].modifier = 4;
+    af[3].bonus_type = BONUS_TYPE_EIDOLON;
+
+    accum_duration = FALSE;
+    to_vict = "You feel more powrful!";
+    to_room = "$n seems to grow in prowess!";
+    break;
+
+  case SPELL_GREATER_EVOLUTION_SURGE: // conjuration
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    // remove a weaker version of this spell and apply this new one
+    if (affected_by_spell(victim, SPELL_LESSER_EVOLUTION_SURGE))
+    {
+      affect_from_char(victim, SPELL_LESSER_EVOLUTION_SURGE);
+    }
+    if (affected_by_spell(victim, SPELL_EVOLUTION_SURGE))
+    {
+      affect_from_char(victim, SPELL_EVOLUTION_SURGE);
+    }
+    af[0].location = APPLY_STR;
+    af[0].duration = (level * 12);
+    af[0].modifier = 6;
+    af[0].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[1].location = APPLY_DEX;
+    af[1].duration = (level * 12);
+    af[1].modifier = 6;
+    af[1].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[2].location = APPLY_CON;
+    af[2].duration = (level * 12);
+    af[2].modifier = 6;
+    af[2].bonus_type = BONUS_TYPE_EIDOLON;
+
+    af[3].location = APPLY_AC;
+    af[3].duration = (level * 12);
+    af[3].modifier = 6;
+    af[3].bonus_type = BONUS_TYPE_EIDOLON;
+
+    accum_duration = FALSE;
+    to_vict = "You feel more powrful!";
+    to_room = "$n seems to grow in prowess!";
+    break;
+
   case SPELL_STRENGTHEN_BONE:
     if (!IS_UNDEAD(victim))
       return;
@@ -9325,6 +9443,54 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "$n \twvigorizes you critically.\tn";
     break;
 
+  case SPELL_LESSER_REJUVENATE_EIDOLON:
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    healing = dice(2, 5) + 5 + MIN(10, level);
+    to_char = "You \twcure light wounds\tn on $N.";
+    to_vict = "$n \twcures light wounds\tn on you.";
+    to_notvict = "$N \twfeels a little better\tn.";
+    break;
+
+  case SPELL_REJUVENATE_EIDOLON:
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    healing = dice(6, 5) + 15 + MIN(20, level);
+    to_char = "You \twcure wounds\tn on $N.";
+    to_vict = "$n \twcures wounds\tn on you.";
+    to_notvict = "$N \twfeels better\tn.";
+    break;
+
+  case SPELL_GREATER_REJUVENATE_EIDOLON:
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    healing = dice(10, 5) + 25 + MIN(30, level);
+    to_char = "You \twcure great wounds\tn on $N.";
+    to_vict = "$n \twcures great wounds\tn on you.";
+    to_notvict = "$N \twfeels a lot better\tn.";
+    break;
+
+  case SPELL_PURIFIED_CALLING:
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
+      return;
+    }
+    healing = level * 10 + 20;
+    to_char = "You \twcure massive wounds\tn on $N.";
+    to_vict = "$n \twcures massive wounds\tn on you.";
+    to_notvict = "$N \twfeels far better\tn.";
+    break;
+
   case SPELL_CURE_LIGHT:
     healing = dice(2, 4) + 5 + MIN(10, level);
 
@@ -9685,6 +9851,15 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "$n shatters your mind blank!";
     break;
 
+  case SPELL_LESSER_RESTORE_EIDOLON:
+  case SPELL_RESTORE_EIDOLON:
+    if (victim != get_eidolon_in_room(ch))
+    {
+      send_to_char(ch, "This spell can only be used on your eidolon.\r\n");
+      return;
+    }
+    break;
+
   case SPELL_LESSER_RESTORATION:
   case SPELL_RESTORATION:
     // we handle this differently below.
@@ -9701,7 +9876,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim,
   // is_spell_restorable function. Lesser restoration will break the loop
   // after completing a single affect removal, whereas restoration will
   // remove all qualifying affects.
-  if (spellnum == SPELL_LESSER_RESTORATION || spellnum == SPELL_RESTORATION)
+  if (spellnum == SPELL_LESSER_RESTORATION || spellnum == SPELL_RESTORATION || spellnum == SPELL_LESSER_RESTORE_EIDOLON || spellnum == SPELL_RESTORE_EIDOLON)
   {
     for (af = victim->affected; af; af = af->next)
     {

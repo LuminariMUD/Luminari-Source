@@ -175,6 +175,7 @@ int comp_dex_cost(struct char_data *ch, int number);
 int comp_base_dex(struct char_data *ch);
 int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool display);
 bool is_spell_or_spell_like(int type);
+bool can_act(struct char_data *ch);
 int vampire_last_feeding_adjustment(struct char_data *ch);
 bool can_dam_be_resisted(int type);
 void AoEDamageRoom(struct char_data *ch, int dam, int spellnum, int dam_type);
@@ -1925,12 +1926,13 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_RANGER(ch) (CLASS_LEVEL(ch, CLASS_RANGER))
 #define IS_ALCHEMIST(ch) (CLASS_LEVEL(ch, CLASS_ALCHEMIST))
 #define IS_BLACKGUARD(ch) (CLASS_LEVEL(ch, CLASS_BLACKGUARD))
+#define IS_SUMMONER(ch) (CLASS_LEVEL(ch, CLASS_SUMMONER))
 
 #define IS_CASTER(ch) (GET_LEVEL(ch) >= LVL_IMMORT ||                                                          \
                        IS_CLERIC(ch) || IS_WIZARD(ch) || IS_DRUID(ch) || IS_SORCERER(ch) || IS_PALADIN(ch) ||  \
                        IS_RANGER(ch) || IS_BARD(ch) || IS_ALCHEMIST(ch) || IS_ARCANE_ARCHER(ch) ||             \
                        IS_MYSTICTHEURGE(ch) || IS_ARCANE_SHADOW(ch) || IS_SACRED_FIST(ch) || IS_SHIFTER(ch) || \
-                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch))
+                       IS_ELDRITCH_KNIGHT(ch) || IS_BLACKGUARD(ch) || IS_INQUISITOR(ch)|| IS_SUMMONER(ch))
 
 #define IS_FIGHTER(ch) (CLASS_LEVEL(ch, CLASS_WARRIOR) || CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) ||     \
                         CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) || CLASS_LEVEL(ch, CLASS_DUELIST) || \
@@ -2479,11 +2481,17 @@ int count_teamwork_feats_available(struct char_data *ch);
 #define IS_BUFFING(ch)            (ch->player_specials->is_buffing)
 
 // summoners
-#define HAS_EVOLUTION(ch, i) ((ch)->char_specials.saved.eidolon_evolutions[i])
+int char_has_evolution(struct char_data *ch, int evo);
+#define HAS_EVOLUTION(ch, i)      (char_has_evolution(ch, i))
+#define HAS_REAL_EVOLUTION(ch, i) ((ch)->char_specials.saved.eidolon_evolutions[i])
+#define HAS_TEMP_EVOLUTION(ch, i) ((ch)->char_specials.temporary_eidolon_evolutions[i])
 #define KNOWS_EVOLUTION(ch, i) ((ch)->char_specials.saved.known_evolutions[i])
 #define GET_EIDOLON_BASE_FORM(ch) ((ch)->char_specials.saved.eidolon_base_form)
 #define GET_EIDOLON_SHORT_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_shortdescription)
 #define GET_EIDOLON_LONG_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_longdescription)
+#define GET_EIDOLON_DETAIL_DESCRIPTION(ch) ((ch)->char_specials.saved.eidolon_detaildescription)
+#define CALL_EIDOLON_COOLDOWN(ch) (ch->player_specials->saved.call_eidolon_cooldown)
+#define MERGE_FORMS_TIMER(ch)  (ch->player_specials->saved.merge_forms_timer)
 
 // misc
 #define GET_CONSECUTIVE_HITS(ch)  ((ch)->char_specials.consecutive_hits)

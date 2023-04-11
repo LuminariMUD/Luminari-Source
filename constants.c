@@ -1520,11 +1520,6 @@ const char *action_bits[] = {
     "Dragon-Knight",
     "Mummy-Dust",
     "Eidolon",
-    "Eidolon-Base-Form-Avian",
-    "Eidolon-Base-Form-Biped",
-    "Eidolon-Base-Form-Quadruped",
-    "Eidolon-Base-Form-Serpentine",
-    "Eidolon-Base-Form-Tauric",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1598,6 +1593,7 @@ const char *preference_bits[] = {
     "Condensed",
     "Careful",
     "No-Rage",
+    "Life-Bond",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -1625,6 +1621,7 @@ const char *bonus_types[] = {
     "Trait",
     "Food",
     "Drink",
+    "Eidolon",
     "\n"};
 CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 
@@ -4136,6 +4133,47 @@ const int bard_known[][NUM_CIRCLES + 1] = {
 };
 CHECK_TABLE_SIZE(bard_known, LVL_IMPL + 1);
 
+/** known spells for bards **/
+const int summoner_known[][NUM_CIRCLES + 1] = {
+    // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+    {0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 2, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 4, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 5, 4, 2, 0, 0, 0, 0, 0, 0},
+    {0, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 6, 5, 4, 4, 0, 0, 0, 0, 0, 0},
+    {0, 6, 5, 5, 4, 2, 0, 0, 0, 0, 0}, // 13
+    {0, 6, 6, 5, 4, 3, 0, 0, 0, 0, 0},
+    {0, 6, 6, 5, 4, 4, 0, 0, 0, 0, 0}, // 15
+    {0, 6, 6, 5, 5, 4, 2, 0, 0, 0, 0},
+    {0, 6, 6, 6, 5, 4, 3, 0, 0, 0, 0}, // 17
+    {0, 6, 6, 6, 5, 4, 4, 0, 0, 0, 0},
+    {0, 6, 6, 6, 5, 5, 4, 0, 0, 0, 0},
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 6, 6, 6, 6, 5, 5, 0, 0, 0, 0}  // 34
+};
+CHECK_TABLE_SIZE(summoner_known, LVL_IMPL + 1);
+
 /** known spells for inquisitors **/
 const int inquisitor_known[][NUM_CIRCLES + 1] = {
     // 0,1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
@@ -4377,6 +4415,47 @@ const int alchemist_slots[][NUM_CIRCLES + 1] = {
     {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  // 34
 };
 CHECK_TABLE_SIZE(alchemist_slots, LVL_IMPL + 1);
+
+const int summoner_slots[][NUM_CIRCLES + 1] = {
+    // 1st,2nd,3rd,4th,5th,6th,7th,8th,9th,10th
+    // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 0
+    {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // 5
+    {0, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 3, 1, 0, 0, 0, 0, 0, 0, 0}, // 7
+    {0, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0}, // 9
+    {0, 5, 4, 3, 1, 0, 0, 0, 0, 0, 0},
+    {0, 5, 4, 4, 2, 0, 0, 0, 0, 0, 0}, // 11
+    {0, 5, 5, 4, 3, 0, 0, 0, 0, 0, 0},
+    {0, 5, 5, 4, 3, 1, 0, 0, 0, 0, 0}, // 13
+    {0, 5, 5, 4, 4, 2, 0, 0, 0, 0, 0},
+    {0, 5, 5, 5, 4, 3, 0, 0, 0, 0, 0}, // 15
+    {0, 5, 5, 5, 4, 3, 1, 0, 0, 0, 0},
+    {0, 5, 5, 5, 4, 4, 2, 0, 0, 0, 0}, // 17
+    {0, 5, 5, 5, 5, 4, 3, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 4, 0, 0, 0, 0},
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 20
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 21
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 22
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 23
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 24
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 25
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 26
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 27
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 28
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 29
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 30
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 31
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 32
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}, // 33
+    {0, 5, 5, 5, 5, 5, 5, 0, 0, 0, 0}  // 34
+};
+CHECK_TABLE_SIZE(summoner_slots, LVL_IMPL + 1);
 
 // (old) words to use for the spell preparation process for different classes.
 // const char *spell_prep_dictation[][4] = {
@@ -5256,6 +5335,24 @@ const char *dr_aligns[] = {
     "evil",
     "lawful",
     "chaotic"
+};
+
+const char *eidolon_base_form_names[] = {
+    "",
+    "Avian",
+    "Biped",
+    "Quadroped",
+    "Serpentine",
+    "Tauric"
+};
+
+const char *eidolon_base_form_descs[] = {
+    "",
+    "Flight, +2 Natural AC, Iron Will, Lightning Reflexes, Claws, +4 Str, +6 Dex, +4 Con",
+    "+2 Natural AC, Great Fortitude, Iron Will, Claws, +6 Str, +4 Dex, +4 Con",
+    "+2 Natural AC, Great Fortitude, Lightning Reflexes, Bite, +6 Str, +6 Dex, +4 Con",
+    "+2 Natural AC, Lightning Reflexes, Iron Will, Bite, Tail Slap, +4 Str, +6 Dex, +4 Con",
+    "+2 Natural AC, Great Fortitude, Iron Will, Hooves, +4 Str, +2 Dex, +6 Con"
 };
 
 /* --- End of constants arrays. --- */
