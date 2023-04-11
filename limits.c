@@ -1447,6 +1447,7 @@ void proc_d20_round(void)
   struct char_data *i = NULL, *tch = NULL;
   struct raff_node *raff, *next_raff;
   struct affected_type af;
+  int x = 0;
 
   for (i = character_list; i; i = i->next)
   {
@@ -1462,6 +1463,27 @@ void proc_d20_round(void)
     if (GET_FRIGHTFUL_PRESENCE_TIMER(i) > 0)
     {
       GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
+    }
+    if (CALL_EIDOLON_COOLDOWN(i) > 0)
+    {
+      GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
+      if (GET_FRIGHTFUL_PRESENCE_TIMER(i) <= 0)
+      {
+        send_to_char(i, "You can now summon your eidolon again.\r\n");
+      }
+    }
+    if (MERGE_FORMS_TIMER(i) > 0)
+    {
+      MERGE_FORMS_TIMER(i)--;
+      if (MERGE_FORMS_TIMER(i) <= 0)
+      {
+        act("Your eidolon's form departs from your own.", FALSE, i, 0, 0, TO_CHAR);
+        for (x = 0; x < NUM_EVOLUTIONS; x++)
+        {
+          if (HAS_TEMP_EVOLUTION(i, x))
+            HAS_TEMP_EVOLUTION(i, x) = 0;
+        }
+      }
     }
 
     if (AFF_FLAGGED(i, AFF_WIND_WALL))

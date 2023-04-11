@@ -701,6 +701,8 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
       bonuses[BONUS_TYPE_SHIELD] += teamwork_using_shield(ch, FEAT_SHIELD_WALL);
   }
 
+  bonuses[BONUS_TYPE_SHIELD] += get_shield_ally_bonus(ch);
+
   /* that should be it, just base armoring should be left, assign away! */
   eq_armoring = ((temp - 100) / 10);
 
@@ -751,6 +753,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
     bonuses[BONUS_TYPE_NATURALARMOR] += 5;
   }
   else if (HAS_EVOLUTION(ch, EVOLUTION_LARGE))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 2;
+  }
+  if (IS_NPC(ch) && MOB_FLAGGED(ch, MOB_EIDOLON))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 2;
   }
@@ -4730,6 +4736,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   bool is_ranged = FALSE;
   struct affected_type af;
+  struct char_data *eidolon;
 
   /* this is just a dummy check */
   if (!ch)
@@ -4862,6 +4869,17 @@ int damage(struct char_data *ch, struct char_data *victim, int dam,
     }
     else if (IS_PET(ch) && ch->master && IN_ROOM(ch->master) == IN_ROOM(ch) && !IS_NPC(ch->master))
       HUNTING(victim) = ch->master; // help curb pet-fodder methods
+  }
+
+  if (!IS_NPC(victim) && (eidolon = get_eidolon_in_room(victim)))
+  {
+    if (HAS_FEAT(victim, FEAT_LIFE_BOND) && PRF_FLAGGED(victim, PRF_LIFE_BOND))
+    {
+      act("$N steps in and takes the damage on your behalf.", FALSE, victim, 0, eidolon, TO_CHAR);
+      act("You step in and take the damage on $n's behalf.", FALSE, victim, 0, eidolon, TO_VICT);
+      act("$N steps in and takes the damage on $n's behalf.", FALSE, victim, 0, eidolon, TO_NOTVICT);
+      victim = eidolon;
+    }
   }
 
   /* modify damage: concealment, trelux leap, mirror image, energey absorb

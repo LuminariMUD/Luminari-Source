@@ -322,6 +322,7 @@ extern "C"
 #define WARLOCK_PREP_TIME_FACTOR 2.5
 #define ALCHEMIST_PREP_TIME_FACTOR 2.5
 #define INQUISITOR_PREP_TIME_FACTOR 2.5
+#define SUMMONER_PREP_TIME_FACTOR 2.5
 
 /* these are the subcommands for the prep system primary
        entry point: do_gen_preparation */
@@ -336,6 +337,7 @@ extern "C"
 #define SCMD_POWERS 9
 #define SCMD_CONDEMN 10
 #define SCMD_COMPEL 11
+#define SCMD_CONJURE 12
 
 /* these are the subcommands for the prep system command:
  *  do_consign_to_oblivion */
@@ -347,6 +349,7 @@ extern "C"
 #define SCMD_DISCARD 6
 #define SCMD_UNCONDEMN 7
 #define SCMD_EXEMPT 8
+#define SCMD_UNCONJURE 9
 
 /* MODE for searching from our lists */
 #define SPREP_SERACH_NORMAL 0

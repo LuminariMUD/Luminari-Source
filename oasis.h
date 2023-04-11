@@ -664,6 +664,14 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define STUDY_CHOOSE_LANGUAGES 62
 #define STUDY_WARLOCK_KNOWN_SPELLS_MENU 63
 #define WARLOCK_STUDY_SPELLS 64
+#define SUMMONER_STUDY_SPELLS 65
+#define STUDY_SUMMONER_KNOWN_SPELLS_MENU 66
+#define STUDY_MAIN_EIDOLON_MENU 67
+#define STUDY_EIDOLON_BASE_FORM_SELECT 68
+#define STUDY_SELECT_EVOLUTIONS 69
+#define STUDY_SELECT_EVOLUTION_CONFIRM 70
+#define STUDY_SELECT_ASPECT 71
+#define STUDY_SELECT_ASPECT_CONFIRM 72
 
 int save_config(IDXTYPE nowhere);
 
@@ -775,9 +783,17 @@ int compute_str_cost(struct char_data *ch, int number);
 int compute_base_str(struct char_data *ch);
 int compute_dex_cost(struct char_data *ch, int number);
 int compute_base_dex(struct char_data *ch);
+void study_eidolon_base_form_select(struct descriptor_data *d);
+void study_eidolon_main_menu_select(struct descriptor_data *d);
+void study_eidolon_evolutions_select(struct descriptor_data *d);
+int study_num_free_evolution_points(struct char_data *ch);
+void study_disp_evolution_confirm(struct descriptor_data *d);
+void study_show_evolution_select_bottom_text(struct descriptor_data *d);
+void study_summoner_aspect_select(struct descriptor_data *d);
+void study_disp_aspect_confirm(struct descriptor_data *d);
 
-/* public functions from msgedit.c */
-ACMD_DECL(do_msgedit);
+    /* public functions from msgedit.c */
+    ACMD_DECL(do_msgedit);
 void msgedit_parse(struct descriptor_data *d, char *arg);
 
 /* public functions from oasis_copy.c */

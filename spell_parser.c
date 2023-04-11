@@ -523,6 +523,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     {
     case CLASS_WARLOCK:
     case CLASS_BARD:
+    case CLASS_SUMMONER:
       if (!canCastAtWill(caster, spellnum))
       {
         /* bards & warlocks can wear light armor and cast unpenalized (bard spells) */
@@ -1716,8 +1717,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
       quickened = TRUE;
     }
     if ((ch_class == CLASS_SORCERER || ch_class == CLASS_BARD) &&
-        IS_SET(metamagic, METAMAGIC_MAXIMIZE) &&
-        !IS_SET(metamagic, METAMAGIC_QUICKEN))
+        IS_SET(metamagic, METAMAGIC_MAXIMIZE) && !IS_SET(metamagic, METAMAGIC_QUICKEN))
     {
       // Sorcerers with Arcane Bloodline
       if (IS_SET(metamagic, METAMAGIC_ARCANE_ADEPT) || HAS_FEAT(ch, FEAT_ARCANE_APOTHEOSIS))
@@ -1788,12 +1788,8 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
     else
     {
-      if (!is_action_available(ch, atSTANDARD, FALSE))
-      {
-        send_to_char(ch, "This action requires a standard action to be available.\r\n");
-        return 0;
-      }
       USE_STANDARD_ACTION(ch);
+      USE_MOVE_ACTION(ch);
     }
 #endif
 
@@ -2104,15 +2100,13 @@ ACMDU(do_gen_cast)
       IS_AFFECTED(ch, AFF_BATTLETIDE) ||
       affected_by_spell(ch, SPELL_BATTLETIDE))
   {
-    send_to_char(ch, "%s?  Why do that when you can SMASH!!\r\n",
-                 do_cast_types[subcmd][0]);
+    send_to_char(ch, "%s?  Why do that when you can SMASH!!\r\n", do_cast_types[subcmd][0]);
     return;
   }
 
   if (IS_AFFECTED(ch, AFF_WILD_SHAPE) && !HAS_FEAT(ch, FEAT_NATURAL_SPELL))
   {
-    send_to_char(ch, "%s?  You have no idea how!\r\n",
-                 do_cast_types[subcmd][0]);
+    send_to_char(ch, "%s?  You have no idea how!\r\n", do_cast_types[subcmd][0]);
     return;
   }
 
@@ -2333,6 +2327,7 @@ return;
             BONUS_CASTER_LEVEL(ch, CLASS_RANGER) + CLASS_LEVEL(ch, CLASS_RANGER) < SINFO.min_level[CLASS_RANGER] &&
             BONUS_CASTER_LEVEL(ch, CLASS_PALADIN) + CLASS_LEVEL(ch, CLASS_PALADIN) < SINFO.min_level[CLASS_PALADIN] &&
             BONUS_CASTER_LEVEL(ch, CLASS_BLACKGUARD) + CLASS_LEVEL(ch, CLASS_BLACKGUARD) < SINFO.min_level[CLASS_BLACKGUARD] &&
+            BONUS_CASTER_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_SUMMONER) < SINFO.min_level[CLASS_SUMMONER] &&
             BONUS_CASTER_LEVEL(ch, CLASS_BARD) + CLASS_LEVEL(ch, CLASS_BARD) < SINFO.min_level[CLASS_BARD] &&
             BONUS_CASTER_LEVEL(ch, CLASS_PSIONICIST) + CLASS_LEVEL(ch, CLASS_PSIONICIST) < SINFO.min_level[CLASS_PSIONICIST] &&
             BONUS_CASTER_LEVEL(ch, CLASS_SORCERER) + CLASS_LEVEL(ch, CLASS_SORCERER) < SINFO.min_level[CLASS_SORCERER] &&
@@ -2441,6 +2436,7 @@ return;
     case CLASS_SORCERER:
     case CLASS_PALADIN:
     case CLASS_BLACKGUARD:
+    case CLASS_SUMMONER:
       if ((10 + circle) > GET_CHA(ch))
       {
         send_to_char(ch, "You need to have a minimum charisma of %d to cast a circle %d spell.\r\n",
@@ -2460,6 +2456,11 @@ return;
       return;
     }
     if (CLASS_LEVEL(ch, CLASS_SORCERER) && GET_CHA(ch) < 10)
+    {
+      send_to_char(ch, "You are not charismatic enough to cast spells...\r\n");
+      return;
+    }
+    if (CLASS_LEVEL(ch, CLASS_SUMMONER) && GET_CHA(ch) < 10)
     {
       send_to_char(ch, "You are not charismatic enough to cast spells...\r\n");
       return;
@@ -3839,6 +3840,26 @@ void mag_assign_spells(void)
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS, 
          "Your destiny is no longer amplified.", 9, 23, ENCHANTMENT, FALSE);
 
+  // summoner / eidolon spells
+  spello(SPELL_LESSER_REJUVENATE_EIDOLON, "lesser rejuvenate eidolon", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 1, 8, CONJURATION, FALSE);
+  spello(SPELL_REJUVENATE_EIDOLON, "rejuvenate eidolon", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 3, 14, CONJURATION, FALSE);
+  spello(SPELL_GREATER_REJUVENATE_EIDOLON, "greater rejuvenate eidolon", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 6, 20, CONJURATION, FALSE);
+  spello(SPELL_PURIFIED_CALLING, "purified calling", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_POINTS,
+         NULL, 8, 22, CONJURATION, FALSE);
+  
+  spello(SPELL_LESSER_EVOLUTION_SURGE, "lesser evolution surge", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AFFECTS,
+         "Your evolution surge has expired.", 3, 10, CONJURATION, FALSE);
+  spello(SPELL_EVOLUTION_SURGE, "evolution surge", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AFFECTS,
+         "Your evolution surge has expired.", 4, 12, CONJURATION, FALSE);
+  spello(SPELL_GREATER_EVOLUTION_SURGE, "greater evolution surge", 30, 15, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_AFFECTS,
+         "Your evolution surge has expired.", 5, 14, CONJURATION, FALSE);
+
+  spello(SPELL_LESSER_RESTORATION, "lesser restore eidolon", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 3, 8, CONJURATION, FALSE);
+  spello(SPELL_RESTORATION, "restore eidolon", 44, 29, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE, MAG_UNAFFECTS, NULL, 5, 15, CONJURATION, FALSE);
+
   // epic magical
   spello(SPELL_EPIC_MAGE_ARMOR, "epic mage armor", 95, 80, 1, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE, MAG_AFFECTS,
@@ -4192,8 +4213,8 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 4, FALSE);
   spellabilo(WARLOCK_CHARM, "warlock charm", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_MANUAL,
-        NULL, 1, 1, NOSCHOOL, 4, FALSE);
+        TAR_CHAR_ROOM | TAR_NOT_SELF, FALSE, MAG_MANUAL,
+        "You feel more self-confident.", 1, 1, ENCHANTMENT, 4, FALSE);
   spellabilo(WARLOCK_CURSE_OF_DESPAIR, "curse of despair", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_MANUAL,
         NULL, 1, 1, NOSCHOOL, 4, FALSE);
@@ -4611,6 +4632,8 @@ void mag_assign_spells(void)
         TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel sickened.", 1, 1, NOSCHOOL, 0);
   spello(EVOLUTION_FRIGHTFUL_EFFECT, "frightful presence", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel shaken.", 1, 1, NOSCHOOL, 0);
+  spello(EIDOLON_MERGE_FORMS_EFFECT, "merge forms", 0, 0, 0, POS_FIGHTING,
+        TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
@@ -5004,6 +5027,10 @@ bool isSummonerMagic(struct char_data *ch, int spellnum)
     case SPELL_SUMMON_CREATURE_7: if (GET_SUMMONER_LEVEL(ch) >= 13) return true; break;
     case SPELL_SUMMON_CREATURE_8: if (GET_SUMMONER_LEVEL(ch) >= 15) return true; break;
     case SPELL_SUMMON_CREATURE_9: if (GET_SUMMONER_LEVEL(ch) >= 17) return true; break;
+// No gate spell in FR because there aren't multiple planes of existence yet
+#ifndef CAMPAIGN_FR
+    case SPELL_GATE: if (GET_SUMMONER_LEVEL(ch) >= 19) return true; break;
+#endif
   }
 
   return false;

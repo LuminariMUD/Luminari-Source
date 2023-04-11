@@ -3320,15 +3320,19 @@ void set_bonus_stats(struct char_data *ch, int str, int con, int dex, int ac)
 
   af[0].location = APPLY_STR;
   af[0].modifier = str;
+  af[0].bonus_type = BONUS_TYPE_RACIAL;
 
   af[1].location = APPLY_DEX;
   af[1].modifier = dex;
+  af[1].bonus_type = BONUS_TYPE_RACIAL;
 
   af[2].location = APPLY_CON;
   af[2].modifier = con;
+  af[2].bonus_type = BONUS_TYPE_RACIAL;
 
   af[3].location = APPLY_AC_NEW;
   af[3].modifier = ac;
+  af[3].bonus_type = BONUS_TYPE_NATURALARMOR;
 
   for (i = 0; i < WILDSHAPE_AFFECTS; i++)
     affect_join(ch, af + i, FALSE, FALSE, FALSE, FALSE);
@@ -5681,7 +5685,9 @@ static void print_group(struct char_data *ch)
       mv_clr = CBFRED(ch, C_NRM);
 
     psp_pct = ((float)GET_PSP(k)) / ((float)GET_MAX_PSP(k)) * 100.00;
-    if (psp_pct >= 100.0)
+    if (GET_PSIONIC_LEVEL(k) <= 0)
+      psp_clr = CBWHT(ch, C_NRM);
+    else if (psp_pct >= 100.0)
       psp_clr = CBWHT(ch, C_NRM);
     else if (psp_pct >= 95.0)
       psp_clr = CCNRM(ch, C_NRM);
@@ -5703,7 +5709,7 @@ static void print_group(struct char_data *ch)
                  count_color_chars(GET_NAME(k)) + 12, GET_NAME(k),
                  IN_ROOM(ch) == IN_ROOM(k) ? "\tYIR\tn" : "\tRAB\tn",
                  hp_clr, GET_HIT(k), GET_MAX_HIT(k),
-                 psp_clr, GET_PSP(k), GET_MAX_PSP(k),
+                 psp_clr, (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_PSP(k), (GET_PSIONIC_LEVEL(k) <= 0) ? 0 : GET_MAX_PSP(k),
                  mv_clr, GET_MOVE(k), GET_MAX_MOVE(k),
                  MAX(0, level_exp(k, GET_LEVEL(k) + 1) - GET_EXP(k)),
                  CCNRM(ch, C_NRM));
@@ -6983,6 +6989,9 @@ ACMD(do_gen_tog)
       // 53
       {"You activate your sickening aura.\r\n",
        "You end your sickening aura.\r\n"},
+      // 54
+      {"You activate your life bond.  Your eidolon will now take damage in your stead when conditions permit.\r\n",
+       "You deactivate your life bond. Your eidolon will no longer take damage in your stead.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -6990,6 +6999,16 @@ ACMD(do_gen_tog)
 
   switch (subcmd)
   {
+  case SCMD_LIFE_BOND:
+    if (!HAS_FEAT(ch, FEAT_LIFE_BOND))
+    {
+      send_to_char(ch, "You are not able to perform this ability.\r\n");
+      REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_LIFE_BOND);
+      return;
+    }
+    result = PRF_TOG_CHK(ch, PRF_LIFE_BOND);
+    break;
+
   case SCMD_SICKENING_AURA:
     if (!HAS_EVOLUTION(ch, EVOLUTION_SICKENING))
     {
@@ -7457,12 +7476,23 @@ static const char *const hints[] = {
            "If you have an idea for a hint, please let us know on the Discord Server: "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 9*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "Faerun is considered a 'younger' MUD and is under heavy "
+#else
            "LuminariMUD is considered a 'younger' MUD and is under heavy "
+#endif
            "and constant development.  If you run into a bug, our policy is to simply "
            "report the bug using the BUG command.  Example, BUG SUBMIT <header>, then "
            "use the in-game text editor that pops up to write details about the bug, then "
            "you can type /s to save the submission."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#ifdef CAMPAIGN_FR
+    /*10*/ "\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Luskan "
+           "area. There are multiple quests that will get you started, as well as stores and trainers. "
+           "When you are ready to move on, you can use the AREAS command to see what other zones are "
+           "around your level. You can view a web version of our worldmap at http://faerun.d20mud.com "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
     /*10*/ "\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
            "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
            "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
@@ -7470,14 +7500,28 @@ static const char *const hints[] = {
            "the teleporter, just type: TELEPORT <target>.  To get a list of target zones, you can "
            "type: HELP ZONES."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*11*/ "\tR[HINT]:\tn \tyYou can find a lot of gear in various shops throughout the "
            "world.  Some shops even include special powerful magic items that can "
            "be purchased with quest points.  In addition to finding normal loot "
            "that are on your foes, you may also find 'random treasure' on them "
            "as well with every victory, there is a slight chance you will find "
+#ifdef CAMPAIGN_FR
+           "this bonus loot.  Also, there is a special BAZAAR in Triboar where "
+#else
            "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
+#endif
            "you can purchase magic items to fill your missing equipment slots."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#ifdef CAMPAIGN_FR
+    /*12*/ "\tR[HINT]:\tn \tyIf you find items of value that you do not wish to retain, "
+           "there are pawn shops in most cities that will allow you to sell these items for "
+           "gold.  Ranks in the appraise skill will increase the amount of gold you get when "
+           "selling items.  You can also purchase gear in various shops around the world for "
+           "gold coins, also affected by the appraise skill. These items are often of high quality "
+           "and are a supplemental method of gaining gear. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
     /*12*/ "\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
            "you can always DONATE them.  This will cause them to appear in a "
            "donation pit throughout the realm.  Alternatively if you find an item"
@@ -7485,10 +7529,19 @@ static const char *const hints[] = {
            "Although not necessary since corpses decompose after a short time, you "
            "can SACrifice corpses to get rid of them."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*13*/ "\tR[HINT]:\tn \tyBe aware during combat!  Enemies can do various things "
            "to try and disable you, including knocking you down! You can check AFF "
            "to see affections both negative and positive that are affecting you."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#ifdef CAMPAIGN_FR
+    /*14*/ "\tR[HINT]:\tn \tyFaerun has several quests across the various zones. Currently we do "
+           "not have a cohesive 'main quest line', though that is one of the major items on our "
+           "to-do list.  We recommend that role players create their own personal storylines as"
+           "we build up the main story line and lore, which builds upon existing Forgotten Realms lore. "
+           "Forgotten Realms lore considered canon on the MUD are all events preceding the year 1496 DR. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
     /*14*/ "\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
            "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
            "important for telling fun and informative details about the lore of the "
@@ -7496,8 +7549,13 @@ static const char *const hints[] = {
            "In addition some of the rewards of the various quests in the chain have "
            "very powerful items."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*15*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "Have a great idea for features or changes to Faerun?  Please "
+#else
            "Have a great idea for features or changes to LuminariMUD?  Please "
+#endif
            "use the IDEA command, IDEA SUBMIT <title of submission>, you will then "
            "enter our text editor, type out the details of the idea, and then "
            "type /s to save the submission."
@@ -7508,6 +7566,13 @@ static const char *const hints[] = {
            "to call home and store your treasure.  You can add 'guests' to your home "
            "to allow your friends or other characters to enter."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#ifdef CAMPAIGN_FR
+    /*17*/ "\tR[HINT]:\tn \ty"
+           "Reached level 30?  We have epic level zones to explore, crafting systems to learn "
+           "role play plots to take part in and plenty of class and race options to create and "
+           "level alts for. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
     /*17*/ "\tR[HINT]:\tn \ty"
            "Reached level 30?  There are a lot of exciting end-game content here "
            "at LuminariMUD.  We have multiple planes of existence that can be accessed "
@@ -7515,8 +7580,13 @@ static const char *const hints[] = {
            "with extremely challenging group content with powerful magical items.  "
            "Hard to find epic quests litter the Realm as well, so explore!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*18*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "Faerun has an account system.  Through the account system you "
+#else
            "LuminariMUD has an account system.  Through the account system you "
+#endif
            "can manage multiple characters.  In addition you share 'account exp' "
            "between your characters, which can be spent on various account-wide "
            "benefits, such as unlocking advanced or epic races, and prestige classes. "
@@ -7535,7 +7605,11 @@ static const char *const hints[] = {
            "armor / shields that will cast a heal spell on you when they deflect a blow."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*20*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "Faerun's crafting system allows you to CREATE, RESTRING (rename), "
+#else
            "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
+#endif
            "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
            "travel to Sanctus, there is a work area for buying molds.  If you add a "
            "crafting crystal while creating a new item, you will enchant it.  You "
@@ -7552,12 +7626,28 @@ static const char *const hints[] = {
            "people that hunt in the zone.  The dynamic can result in clan-wars!  "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*22*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "Overwhelmed by all the class and feat choices? Your best bet for tips is "
+           "asking in game or on our Discord channel.  Don't feel shy to ask, our "
+           "players and staff are happy to help out. Our Discord Invite is: https://discord.gg/dxZAEd9gAq "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
            "Overwhelmed by all the class and feat choices?  We started a community "
            "built thread on the FORUM.  We then transfer those submissions to "
            "help files under the heading HELP CLASS-BUILD.  The forum link is:  "
            "http://www.luminarimud.com/forums/topic/class-builds/"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*23*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "Help files are critical!  We try our best to anticipate all the subjects "
+           "that are needed, but we rely heavily on contributions from players - "
+           "with emphasis on new ones.  Please take the time to post it on our Discord "
+           "at https://discord.gg/dxZAEd9gAq and you can also "
+           "post it as an IDEA in-game.  You can also help the staff workload by writing "
+           "helpfiles via the Discord channel!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
            "Help files are critical!  We try our best to anticipate all the subjects "
            "that are needed, but we rely heavily on contributions from players - "
            "with emphasis on new ones.  Please take the time to post it on the forum at "
@@ -7565,12 +7655,19 @@ static const char *const hints[] = {
            "post it as an IDEA in-game.  You can also help the staff workload by writing "
            "helpfiles via the forum!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*24*/ "\tR[HINT]:\tn \ty"
+#ifdef CAMPAIGN_FR
+           "LuminariMUD has a Discord channel where most out-of-game communication takes place. "
+           "Feel welcome to join in! The channel invite is https://discord.gg/dxZAEd9gAq "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
            "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
            "registration may be closed due to beloved spam-bots, but any staff can make "
            "you an account manually, just contact us via in-game mail, or email: "
            "Zusuk@@LuminariMUD.com or Ornir@@LuminariMUD.com"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*25*/ "\tR[HINT]:\tn \ty"
            "Voting keeps new players coming! (may require creating an account):\r\n"
            "http://www.topmudsites.com/vote-luminarimud.html \r\n"
@@ -7956,9 +8053,14 @@ ACMD(do_dice)
 ACMD(do_summon)
 {
 
-  if (GET_MOVE(ch) < 500)
+  int move_cost = SUMMON_COST;
+
+  if (HAS_FEAT(ch, FEAT_MAKERS_CALL))
+     move_cost /= 2;
+
+  if (GET_MOVE(ch) < move_cost)
   {
-    send_to_char(ch, "It costs %d movement points to summon all your pets/mercs to you.\r\n", SUMMON_COST);
+    send_to_char(ch, "It costs %d movement points to summon all your pets/mercs to you.\r\n", move_cost);
     return;
   }
 
@@ -8003,8 +8105,8 @@ ACMD(do_summon)
     send_to_char(ch, "You do not have any charmies that require summoning.\r\n");
   }
 
-  /* cost of 500 moves */
-  process_healing(ch, ch, -1, 0, -SUMMON_COST, 0);
+  /* cost of SUMMON_COST moves */
+  process_healing(ch, ch, -1, 0, -move_cost, 0);
 
   return;
 }

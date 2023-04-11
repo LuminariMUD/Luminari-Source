@@ -29,6 +29,7 @@
 #include "spell_prep.h"
 #include "premadebuilds.h"
 #include "alchemy.h"
+#include "evolutions.h"
 
 void give_premade_skill(struct char_data *ch, bool verbose, int skill, int amount)
 {
@@ -196,6 +197,16 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
       give_premade_skill(ch, verbose, ABILITY_PERCEPTION, amount);
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_STEALTH, amount);
+      break;
+    case CLASS_SUMMONER:
+      give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
+      give_premade_skill(ch, verbose, ABILITY_LORE, amount);
+      give_premade_skill(ch, verbose, ABILITY_PERFORM, amount);
+      give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
+      give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
+      give_premade_skill(ch, verbose, ABILITY_USE_MAGIC_DEVICE, amount);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN)
+        give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
       break;
   }
 
@@ -460,24 +471,47 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
       switch (level)
       {
       case 1:
-        GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
-        GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
-        GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
-        GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
-        GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
-        GET_REAL_CHA(ch) = 8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
-        break;
+            GET_REAL_STR(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) = 8 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            break;
       case 4:
       case 8:
       case 12:
-        GET_REAL_WIS(ch)
-        ++;
-        break;
+            GET_REAL_WIS(ch)
+            ++;
+            break;
       case 16:
       case 20:
-        GET_REAL_STR(ch)
-        ++;
-        break;
+            GET_REAL_STR(ch)
+            ++;
+            break;
+      }
+      break;
+
+    case CLASS_SUMMONER:
+      switch (level)
+      {
+      case 1:
+            GET_REAL_STR(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
+            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CHA(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            break;
+      case 4:
+      case 8:
+      case 12:
+            GET_REAL_CHA(ch)++;
+            break;
+      case 16:
+      case 20:
+            GET_REAL_CHA(ch)++;
+            break;
       }
       break;
   }
@@ -731,6 +765,88 @@ void add_premade_inquisitor_spells(struct char_data *ch, int level)
   }
 }
 
+void add_premade_summoner_spells(struct char_data *ch, int level)
+{
+  int chclass = CLASS_INQUISITOR;
+  switch (level)
+  {
+  case 1:
+    known_spells_add(ch, chclass, SPELL_MAGE_ARMOR, FALSE);
+    known_spells_add(ch, chclass, SPELL_LESSER_REJUVENATE_EIDOLON, FALSE);
+    break;
+  case 2:
+    known_spells_add(ch, chclass, SPELL_MAGE_SHIELD, FALSE);
+    break;
+  case 3:
+    known_spells_add(ch, chclass, SPELL_ENLARGE_PERSON, FALSE);
+    break;
+  case 4:
+    known_spells_add(ch, chclass, SPELL_LESSER_EVOLUTION_SURGE, FALSE);
+    known_spells_add(ch, chclass, SPELL_HASTE, FALSE);
+    break;
+  case 5:
+    known_spells_add(ch, chclass, SPELL_BARKSKIN, FALSE);
+    break;
+  case 6:
+    known_spells_add(ch, chclass, SPELL_GLITTERDUST, FALSE);
+    break;
+  case 7:
+    known_spells_add(ch, chclass, SPELL_REJUVENATE_EIDOLON, FALSE);
+    known_spells_add(ch, chclass, SPELL_STONESKIN, FALSE);
+    known_spells_add(ch, chclass, SPELL_GREATER_INVIS, FALSE);
+    break;
+  case 8:
+    known_spells_add(ch, chclass, SPELL_EVOLUTION_SURGE, FALSE);
+    break;
+  case 9:
+    known_spells_add(ch, chclass, SPELL_GREATER_MAGIC_FANG, FALSE);
+    break;
+  case 10:
+    known_spells_add(ch, chclass, SPELL_GREATER_PLANAR_HEALING, FALSE);
+    known_spells_add(ch, chclass, SPELL_GREATER_EVOLUTION_SURGE, FALSE);
+    known_spells_add(ch, chclass, SPELL_TELEPORT, FALSE);
+    break;
+  case 11:
+    known_spells_add(ch, chclass, SPELL_MASS_STONESKIN, FALSE);
+    known_spells_add(ch, chclass, SPELL_MASS_STRENGTH, FALSE);
+    break;
+  case 12:
+    known_spells_add(ch, chclass, SPELL_MASS_GRACE, FALSE);
+    break;
+  case 13:
+    known_spells_add(ch, chclass, SPELL_GREATER_REJUVENATE_EIDOLON, FALSE);
+    known_spells_add(ch, chclass, SPELL_GRAND_DESTINY, FALSE);
+    known_spells_add(ch, chclass, SPELL_TRUE_SEEING, FALSE);
+    break;
+  case 14:
+    known_spells_add(ch, chclass, SPELL_GREATER_HEROISM, FALSE);
+    known_spells_add(ch, chclass, SPELL_GENIEKIND, FALSE);
+    break;
+  case 15:
+    known_spells_add(ch, chclass, SPELL_SPELL_TURNING, FALSE);
+    break;
+  case 16:
+    known_spells_add(ch, chclass, SPELL_PURIFIED_CALLING, FALSE);
+    known_spells_add(ch, chclass, SPELL_MASS_HUMAN_POTENTIAL, FALSE);
+    known_spells_add(ch, chclass, SPELL_GREATER_HOSTILE_JUXTAPOSITION, FALSE);
+    break;
+  case 17:
+    known_spells_add(ch, chclass, SPELL_MASS_CHARM_MONSTER, FALSE);
+    known_spells_add(ch, chclass, SPELL_INVISIBILITY_SPHERE, FALSE);
+    break;
+  case 18:
+    known_spells_add(ch, chclass, SPELL_BANISHING_BLADE, FALSE);
+    break;
+  case 19:
+    known_spells_add(ch, chclass, SPELL_PLANAR_SOUL, FALSE);
+    break;
+  case 20:
+    known_spells_add(ch, chclass, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, FALSE);
+    known_spells_add(ch, chclass, SPELL_OVERLAND_FLIGHT, FALSE);
+    break;
+  }
+}
+
 void add_premade_warlock_invocations(struct char_data *ch, int level)
 {
   int chclass = CLASS_WARLOCK;
@@ -770,6 +886,19 @@ void add_premade_warlock_invocations(struct char_data *ch, int level)
   case 19:
     known_spells_add(ch, chclass, WARLOCK_DARK_FORESIGHT, FALSE);
     break;
+  }
+}
+
+void add_premade_sorcerer_evolutions(struct char_data *ch, int level)
+{
+  switch (level)
+  {
+    case 1:
+      GET_EIDOLON_BASE_FORM(ch) = EIDOLON_BASE_FORM_BIPED;
+      KNOWS_EVOLUTION(ch, EVOLUTION_CLAWS)++;
+      KNOWS_EVOLUTION(ch, EVOLUTION_BITE)++;
+      KNOWS_EVOLUTION(ch, EVOLUTION_MOUNT)++;
+      break;
   }
 }
 

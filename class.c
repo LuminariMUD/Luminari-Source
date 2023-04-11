@@ -1577,6 +1577,8 @@ int parse_class_long(const char *arg_in)
     return CLASS_ASSASSIN;
   if (is_abbrev(arg, "warlock"))
     return CLASS_WARLOCK;
+  if (is_abbrev(arg, "summoner"))
+    return CLASS_SUMMONER;
 
   return CLASS_UNDEFINED;
 }
@@ -2660,6 +2662,16 @@ void init_start_char(struct char_data *ch)
       (ch)->player_specials->saved.skill_focus[(i)][j] = 0;
   for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
     GET_BOMB(ch, i) = 0;
+
+  // Summoner stuff
+  for (i = 0; i < NUM_EVOLUTIONS; i++)
+  {
+    KNOWS_EVOLUTION(ch, i) = 0;
+    HAS_REAL_EVOLUTION(ch, i) = 0;
+  }
+  GET_EIDOLON_BASE_FORM(ch) = 0;
+  GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
+  GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
 
   /* initialize spell prep data, allow adjustment of spells known */
   destroy_spell_prep_queue(ch);
@@ -7419,7 +7431,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SUMMONER, "summoner", "Sum", "\tCS\tcum\tn", "f) \tCSummoner\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, N, N, M, 8, 0, 1, 2, N, 0, 0,
+         -1, Y, N, M, 8, 0, 1, 2, N, 0, 0,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
          /*descrip*/
@@ -7428,7 +7440,7 @@ void load_class_list(void)
          "the arcane arts forms a close bond with one particular outsider, known as an eidolon, who "
          "gains power as the summoner becomes more proficient at his summoning. Over time, the two "
          "become linked, eventually even sharing a shard of the same soul. But this power comes with "
-         "a price: the summoner’s spells and abilities are limited due to his time spent enhancing the "
+         "a price: the summoner's spells and abilities are limited due to his time spent enhancing the "
          "power and exploring the nature of his eidolon.\r\n\r\n");
   /* class-number then saves:        fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_SUMMONER, B, B, G, B, G);
@@ -7471,9 +7483,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_PROT_FROM_EVIL, 1);
   spell_assignment(CLASS_SUMMONER, SPELL_PROT_FROM_GOOD, 1);
   spell_assignment(CLASS_SUMMONER, SPELL_SHRINK_PERSON, 1);
-  // spell_assignment(CLASS_SUMMONER, SPELL_LESSER_EIDOLON_REJUVENATE, 1);
+  spell_assignment(CLASS_SUMMONER, SPELL_LESSER_REJUVENATE_EIDOLON, 1);
   spell_assignment(CLASS_SUMMONER, SPELL_MAGE_SHIELD, 1);
-  spell_assignment(CLASS_SUMMONER, SPELL_SUMMON_CREATURE_1, 1);
   spell_assignment(CLASS_SUMMONER, SPELL_DAZE_MONSTER, 1);
   spell_assignment(CLASS_SUMMONER, SPELL_PLANAR_HEALING, 1);
 
@@ -7486,7 +7497,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GRACE, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_CUSHIONING_BANDS, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_CHARISMA, 4);
-  // spell_assignment(CLASS_SUMMONER, SPELL_LESSER_EVOLUTION_SURGE, 4);
+  spell_assignment(CLASS_SUMMONER, SPELL_LESSER_EVOLUTION_SURGE, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_CUNNING, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_GHOST_WOLF, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_GIRD_ALLIES, 4);
@@ -7500,11 +7511,10 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_CIRCLE_A_GOOD, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_CIRCLE_A_EVIL, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_RESIST_ENERGY, 4);
-  // spell_assignment(CLASS_SUMMONER, SPELL_LESSER_RESTORE_EIDOLON, 4);
+  spell_assignment(CLASS_SUMMONER, SPELL_LESSER_RESTORE_EIDOLON, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_DETECT_INVIS, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_SLOW, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_SPIDER_CLIMB, 4);
-  spell_assignment(CLASS_SUMMONER, SPELL_SUMMON_CREATURE_2, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_WARDING_WEAPON, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_WIND_WALL, 4);
   spell_assignment(CLASS_SUMMONER, SPELL_HUMAN_POTENTIAL, 4);
@@ -7516,8 +7526,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_CONTROL_SUMMONED_CREATURE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_DISPEL_MAGIC, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_DISPLACEMENT, 7);
-   spell_assignment(CLASS_SUMMONER, SPELL_MASS_ENLARGE_PERSON, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_EVOLUTION_SURGE, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_MASS_ENLARGE_PERSON, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_EVOLUTION_SURGE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_FIRE_SHIELD, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_FLY, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_HEROISM, 7);
@@ -7530,8 +7540,8 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_RAGE, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_REDUCE_PERSON, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_RESIST_ENERGY, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_REJUVENATE_EIDOLON, 7);
-  // spell_assignment(CLASS_SUMMONER, SPELL_RESTORE_EIDOLON, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_REJUVENATE_EIDOLON, 7);
+  spell_assignment(CLASS_SUMMONER, SPELL_RESTORE_EIDOLON, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_SIPHON_MIGHT, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_SPIDER_CLIMB, 7);
   spell_assignment(CLASS_SUMMONER, SPELL_STONESKIN, 7);
@@ -7547,13 +7557,12 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_DAZE, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_DISMISSAL, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CHARISMA, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_EVOLUTION_SURGE, 10);
+  spell_assignment(CLASS_SUMMONER, SPELL_GREATER_EVOLUTION_SURGE, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CUNNING, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_HOLD_MONSTER, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_OVERLAND_FLIGHT, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_WISDOM, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_COMMUNAL_PROTECTION_FROM_ENERGY, 10);
-  // spell_assignment(CLASS_SUMMONER, SPELL_PURIFIED_CALLING, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_STONESKIN, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_TELEPORT, 10);
   spell_assignment(CLASS_SUMMONER, SPELL_ACID_SHEATH, 10);
@@ -7571,12 +7580,13 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_GRAND_DESTINY, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_GREATER_HEROISM, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_INVISIBILITY_SPHERE, 13);
-  // spell_assignment(CLASS_SUMMONER, SPELL_GREATER_REJUVENATE_EIDOLON, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_GREATER_REJUVENATE_EIDOLON, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_REPULSION, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_SPELL_TURNING, 13);
   spell_assignment(CLASS_SUMMONER, SPELL_TRUE_SEEING, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_IRON, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WREATH_OF_BLADES, 13);
+  spell_assignment(CLASS_SUMMONER, SPELL_PURIFIED_CALLING, 13);
   
   // spell circle 6
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CHARM_MONSTER, 16);
@@ -7594,16 +7604,16 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_EIDOLON, Y, 1, N);
   feat_assignment(CLASS_SUMMONER, FEAT_LIFE_LINK, Y, 1, N);
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMON_MONSTER, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_BOND_SENSES, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_SHIELD_ALLY, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_MAKERS_CALL, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_TRANSPOSITION, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_ASPECT, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_GREATER_SHIELD_ALLY, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_LIFE_BOND, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_MERGE_FORMS, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_GREATER_ASPECT, Y, 1, N);
-  feat_assignment(CLASS_SUMMONER, FEAT_GRAND_EIDOLON, Y, 1, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_BOND_SENSES, Y, 2, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_SHIELD_ALLY, Y, 4, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_MAKERS_CALL, Y, 6, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_TRANSPOSITION, Y, 8, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_ASPECT, Y, 10, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_GREATER_SHIELD_ALLY, Y, 12, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_LIFE_BOND, Y, 14, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_MERGE_FORMS, Y, 16, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_GREATER_ASPECT, Y, 18, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_GRAND_EIDOLON, Y, 20, N);
 
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
@@ -8275,6 +8285,79 @@ sbyte has_blackguard_cruelties_unchosen(struct char_data *ch)
 
   if ((num_avail - num_chosen) > 0)
     return TRUE;
+
+  return FALSE;
+}
+
+int num_eidolon_evolutions_known(struct char_data *ch)
+{
+  /* dummy check */
+  if (!ch)
+    return 0;
+
+  int i = 0;
+  int num_chosen = 0;
+
+  for (i = 0; i < NUM_EVOLUTIONS; i++)
+    if (KNOWS_EVOLUTION(ch, i))
+      num_chosen++;
+  return num_chosen;
+}
+
+int num_summoner_aspects_known(struct char_data *ch)
+{
+  /* dummy check */
+  if (!ch)
+    return 0;
+
+  int i = 0;
+  int num_chosen = 0;
+
+  for (i = 0; i < NUM_EVOLUTIONS; i++)
+    if (HAS_REAL_EVOLUTION(ch, i))
+      num_chosen++;
+  return num_chosen;
+}
+
+bool has_evolutions_unchosen(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!LEVELUP(ch))
+    return false;
+
+  // Needs to set this first
+  if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(ch)->eidolon_base_form == 0) return false;
+
+  int num_evos =   evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)];
+  int num_chosen = num_eidolon_evolutions_known(ch);
+
+  if ((num_evos - num_chosen) > 0)
+    return true;
+
+  return false;
+}
+
+sbyte has_eidolon_choices_unchosen(struct char_data *ch)
+{
+
+  if (!ch)
+    return false;
+
+  if (IS_NPC(ch))
+    return false;
+
+  if (!GET_EIDOLON_BASE_FORM(ch)) return TRUE;
+
+  if (has_evolutions_unchosen(ch))
+    return true;
+
+  if (study_has_aspects_unchosen(ch))
+    return true;
 
   return FALSE;
 }

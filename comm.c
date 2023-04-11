@@ -1456,7 +1456,7 @@ static char *make_prompt(struct descriptor_data *d)
         if (count >= 0)
           len += count;
       }
-      if (GET_PSP(ch) << 2 < GET_MAX_PSP(ch) && len < sizeof(prompt))
+      if (CLASS_LEVEL(ch, CLASS_PSIONICIST) > 0 && GET_PSP(ch) << 2 < GET_MAX_PSP(ch) && len < sizeof(prompt))
       {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d%sP%s ",
                          GET_PSP(ch),
@@ -1501,7 +1501,7 @@ static char *make_prompt(struct descriptor_data *d)
       }
 
       /* display psp points */
-      if (PRF_FLAGGED(d->character, PRF_DISPPSP) && len < sizeof(prompt))
+      if (CLASS_LEVEL(d->character, CLASS_PSIONICIST) > 0 && PRF_FLAGGED(d->character, PRF_DISPPSP) && len < sizeof(prompt))
       {
         count = snprintf(prompt + len, sizeof(prompt) - len, "%d/%d%sP%s ",
                          GET_PSP(d->character), GET_MAX_PSP(d->character),

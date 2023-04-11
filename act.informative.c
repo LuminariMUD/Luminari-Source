@@ -127,7 +127,7 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
 {
   int i = 0;
   size_t len = 0;
-  int count = 0;
+  int count = 0, dcount = 0;
   bool has_subrace = false;
   char subraces[MEDIUM_STRING] = {'\0'};
 
@@ -179,10 +179,15 @@ void lore_id_vict(struct char_data *ch, struct char_data *tch)
   text_line(ch, "\tYDamage Type Resistance / Vulnerability\tC", 80, '-', '-');
   for (i = 0; i < NUM_DAM_TYPES - 1; i++)
   {
-    send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                 compute_damtype_reduction(tch, i + 1), compute_energy_absorb(tch, i + 1));
-    if (i % 2)
-      send_to_char(ch, "\r\n");
+    if (can_dam_be_resisted(i+1))
+    {
+      send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
+                   compute_damtype_reduction(tch, i + 1), compute_energy_absorb(tch, i + 1));
+      dcount++;
+      if (dcount % 2)
+        send_to_char(ch, "\r\n");
+    }
+    
   }
 }
 
@@ -2027,7 +2032,7 @@ void perform_damage_reduction(struct char_data *ch, struct char_data *k)
 
 void perform_resistances(struct char_data *ch, struct char_data *k)
 {
-  int i = 0;
+  int i = 0, dcount = 0;
   // char buf[MAX_STRING_LENGTH] = {'\0'};
 
   send_to_char(ch, "\tC");
@@ -2036,10 +2041,14 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
 
   for (i = 0; i < NUM_DAM_TYPES - 1; i++)
   {
-    send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
-                 compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
-    if (i % 2)
-      send_to_char(ch, "\r\n");
+    if (can_dam_be_resisted(i+1))
+    {
+      send_to_char(ch, "     %-15s: %-4d%% (%-2d)         ", damtype_display[i + 1],
+                   compute_damtype_reduction(k, i + 1), compute_energy_absorb(k, i + 1));
+      dcount++;
+      if (dcount % 2)
+        send_to_char(ch, "\r\n");
+    }
   }
 
   send_to_char(ch, "\r\n\tC");

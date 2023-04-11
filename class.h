@@ -128,6 +128,10 @@ bool is_class_anti_object(struct char_data *ch, struct obj_data *obj, bool outpu
 int num_languages_learned(struct char_data *ch);
 bool has_unchosen_languages(struct char_data *ch);
 bool display_region_info(struct char_data *ch, int region);
+int num_eidolon_evolutions_known(struct char_data *ch);
+int num_summoner_aspects_known(struct char_data *ch);
+sbyte has_eidolon_choices_unchosen(struct char_data *ch);
+bool has_evolutions_unchosen(struct char_data *ch);
 
 /* ACMD */
 ACMD_DECL(do_class);

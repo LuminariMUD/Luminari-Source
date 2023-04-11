@@ -89,6 +89,7 @@ static void load_scrolls(FILE *fl, struct char_data *ch);
 static void load_wands(FILE *fl, struct char_data *ch);
 static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
+void load_temp_evolutions(FILE *fl, struct char_data *ch);
 void save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
@@ -553,9 +554,13 @@ int load_char(const char *name, struct char_data *ch)
       PRF_FLAGS(ch)[i] = PFDEF_PREFFLAGS;
     for (i = 0; i < NUM_EVOLUTIONS; i++)
     {
-      HAS_EVOLUTION(ch, i) = 0;
+      HAS_REAL_EVOLUTION(ch, i) = 0;
+      HAS_TEMP_EVOLUTION(ch, i) = 0;
       KNOWS_EVOLUTION(ch, i) = 0;
     }
+    GET_EIDOLON_BASE_FORM(ch) = 0;
+    CALL_EIDOLON_COOLDOWN(ch) = 0;
+    MERGE_FORMS_TIMER(ch) = 0;
     for (i = 0; i < MAX_BOMBS_ALLOWED; i++)
       GET_BOMB(ch, i) = 0;
     for (i = 0; i < NUM_ALC_DISCOVERIES; i++)
@@ -581,6 +586,10 @@ int load_char(const char *name, struct char_data *ch)
     GET_PC_ADJECTIVE_1(ch) = 0;
     GET_PC_DESCRIPTOR_2(ch) = 0;
     GET_PC_ADJECTIVE_2(ch) = 0;
+
+    GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
+    GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
+    GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
 
     ch->sticky_bomb[0] = 0;
     ch->sticky_bomb[1] = 0;
@@ -798,6 +807,10 @@ int load_char(const char *name, struct char_data *ch)
           load_epic_class_feat_points(fl, ch);
         else if (!strcmp(tag, "Efpt"))
           GET_EPIC_FEAT_POINTS(ch) = atoi(line);
+        else if (!strcmp(tag, "EidB"))
+          GET_EIDOLON_BASE_FORM(ch) = atoi(line);
+        else if (!strcmp(tag, "EidC"))
+          CALL_EIDOLON_COOLDOWN(ch) = atoi(line);
         else if (!strcmp(tag, "EfMU"))
           EFREETI_MAGIC_USES(ch) = atoi(line);
         else if (!strcmp(tag, "EfMT"))
@@ -808,6 +821,12 @@ int load_char(const char *name, struct char_data *ch)
           GET_ELDRITCH_SHAPE(ch) = atoi(line);
         else if (!strcmp(tag, "EncM"))
           GET_ENCUMBRANCE_MOD(ch) = atoi(line);
+        else if (!strcmp(tag, "EDDc"))
+          GET_EIDOLON_DETAIL_DESCRIPTION(ch) = strdup(line);
+        else if (!strcmp(tag, "ELDc"))
+          GET_EIDOLON_LONG_DESCRIPTION(ch) = strdup(line);
+        else if (!strcmp(tag, "ESDc"))
+          GET_EIDOLON_SHORT_DESCRIPTION(ch) = strdup(line);
         break;
 
       case 'F':
@@ -931,6 +950,8 @@ int load_char(const char *name, struct char_data *ch)
           load_HMVS(ch, line, LOAD_MOVE);
         else if (!strcmp(tag, "Mrph"))
           IS_MORPHED(ch) = atol(line);
+        else if (!strcmp(tag, "MFrm"))
+          MERGE_FORMS_TIMER(ch) = atoi(line);
         else if (!strcmp(tag, "Mrcy"))
           load_mercies(fl, ch);
         // Faction mission system
@@ -1154,6 +1175,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'T':
         if (!strcmp(tag, "Tmpl"))
           GET_TEMPLATE(ch) = atoi(line);
+        else if (!strcmp(tag, "TEvo"))
+          load_temp_evolutions(fl, ch);
         else if (!strcmp(tag, "Thir"))
           GET_COND(ch, THIRST) = atoi(line);
         else if (!strcmp(tag, "Thr1"))
@@ -1569,6 +1592,13 @@ void save_char(struct char_data *ch, int mode)
   if (GET_RESISTANCES(ch, 20) != PFDEF_RESISTANCES)
     fprintf(fl, "ResK: %d\n", GET_RESISTANCES(ch, 20));
 
+  if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
+    fprintf(fl, "EDDc: %s\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+  if (GET_EIDOLON_LONG_DESCRIPTION(ch))
+    fprintf(fl, "ELDc: %s\n", GET_EIDOLON_LONG_DESCRIPTION(ch));
+  if (GET_EIDOLON_SHORT_DESCRIPTION(ch))
+    fprintf(fl, "ESDc: %s\n", GET_EIDOLON_SHORT_DESCRIPTION(ch));
+
   if (GET_WIMP_LEV(ch) != PFDEF_WIMPLEV)
     fprintf(fl, "Wimp: %d\n", GET_WIMP_LEV(ch));
   if (GET_FREEZE_LEV(ch) != PFDEF_FREEZELEV)
@@ -1681,6 +1711,12 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "SpRs: %d\n", GET_SPELL_RES(ch));
   if (IS_MORPHED(ch) != PFDEF_MORPHED)
     fprintf(fl, "Mrph: %d\n", IS_MORPHED(ch));
+  if (MERGE_FORMS_TIMER(ch) != 0)
+    fprintf(fl, "EidC: %d\n", MERGE_FORMS_TIMER(ch));
+  if (GET_EIDOLON_BASE_FORM(ch) != 0)
+    fprintf(fl, "EidB: %d\n", GET_EIDOLON_BASE_FORM(ch));
+  if (CALL_EIDOLON_COOLDOWN(ch) != 0)
+    fprintf(fl, "MFrm: %d\n", CALL_EIDOLON_COOLDOWN(ch));
   fprintf(fl, "God : %d\n", GET_DEITY(ch));
 
   if (GET_AUTOCQUEST_VNUM(ch) != PFDEF_AUTOCQUEST_VNUM)
@@ -1941,8 +1977,17 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "Evol:\n");
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
-    if (HAS_EVOLUTION(ch, i))
-      fprintf(fl, "%d %d\n", i, HAS_EVOLUTION(ch, i));
+    if (HAS_REAL_EVOLUTION(ch, i))
+      fprintf(fl, "%d %d\n", i, HAS_REAL_EVOLUTION(ch, i));
+  }
+  fprintf(fl, "0 0\n");
+
+  /* Save temp evolutions */
+  fprintf(fl, "TEvo:\n");
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    if (HAS_TEMP_EVOLUTION(ch, i))
+      fprintf(fl, "%d %d\n", i, HAS_TEMP_EVOLUTION(ch, i));
   }
   fprintf(fl, "0 0\n");
 
@@ -3110,7 +3155,21 @@ void load_evolutions(FILE *fl, struct char_data *ch)
     get_line(fl, line);
     sscanf(line, "%d %d", &num, &num2);
     if (num != 0)
-      HAS_EVOLUTION(ch, num) = num2;
+      HAS_REAL_EVOLUTION(ch, num) = num2;
+  } while (num != 0);
+}
+
+void load_temp_evolutions(FILE *fl, struct char_data *ch)
+{
+  int num = 0, num2 = 0;
+  char line[MAX_INPUT_LENGTH + 1];
+
+  do
+  {
+    get_line(fl, line);
+    sscanf(line, "%d %d", &num, &num2);
+    if (num != 0)
+      HAS_TEMP_EVOLUTION(ch, num) = num2;
   } while (num != 0);
 }
 
@@ -3453,6 +3512,22 @@ void load_char_pets(struct char_data *ch)
     {
       mob->player.name = strdup(GET_NAME(ch));
       mob->player.short_descr = strdup(GET_NAME(ch));
+    }
+    if (MOB_FLAGGED(mob, MOB_EIDOLON))
+    {
+      if (GET_EIDOLON_SHORT_DESCRIPTION(ch))
+      {
+        mob->player.name = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+        mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      }
+      if (GET_EIDOLON_LONG_DESCRIPTION(ch))
+      {
+        mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
+      }
+      if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
+      {
+        mob->player.description = strdup(GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+      }
     }
     GET_REAL_STR(mob) = atoi(row[4]);
     GET_REAL_CON(mob) = atoi(row[5]);

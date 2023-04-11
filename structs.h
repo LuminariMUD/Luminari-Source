@@ -984,16 +984,19 @@
 #define MOB_DRAGON_KNIGHT 87
 #define MOB_MUMMY_DUST 88
 #define MOB_EIDOLON 89
-#define MOB_EIDOLON_BASE_FORM_AVIAN 90
-#define MOB_EIDOLON_BASE_FORM_BIPED 91
-#define MOB_EIDOLON_BASE_FORM_QUADRUPED 92
-#define MOB_EIDOLON_BASE_FORM_SERPENTINE 93
-#define MOB_EIDOLON_BASE_FORM_TAURIC 94
 /**********************/
-#define NUM_MOB_FLAGS 95
+#define NUM_MOB_FLAGS 90
 /**********************/
 /**********************/
 
+#define EIDOLON_BASE_FORM_NONE 0
+#define EIDOLON_BASE_FORM_AVIAN 1
+#define EIDOLON_BASE_FORM_BIPED 2
+#define EIDOLON_BASE_FORM_QUADRUPED 3
+#define EIDOLON_BASE_FORM_SERPENTINE 4
+#define EIDOLON_BASE_FORM_TAURIC 5
+
+#define NUM_EIDOLON_BASE_FORMS 6
 /* Defines for Mag_Summons */
 // objects
 #define OBJ_CLONE 161 /**< vnum for clone material. */
@@ -1122,9 +1125,10 @@
 #define PRF_CONDENSED 62              /**< Toggle combat condensed mode */
 #define PRF_CAREFUL_PET 63            /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
 #define PRF_NO_RAGE 64                // Will reject casting of rage spell on them.
+#define PRF_LIFE_BOND 65              // Summoner's life bond ability/feat
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 65
+#define NUM_PRF_FLAGS 66
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1289,8 +1293,9 @@
 #define BONUS_TYPE_TRAIT 19        /* Character Trait bonus */
 #define BONUS_TYPE_FOOD 20         // For food items only.
 #define BONUS_TYPE_DRINK 21        // For drink items only.
+#define BONUS_TYPE_EIDOLON 22      // For eidolons only
 /**/
-#define NUM_BONUS_TYPES 22
+#define NUM_BONUS_TYPES 23
 /****/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
@@ -4154,6 +4159,7 @@ struct char_special_data_saved
     int eidolon_base_form;  // Eidolon base form determines their starting stats and evolutions
     char *eidolon_shortdescription;
     char *eidolon_longdescription;
+    char *eidolon_detaildescription;
 };
 
 /* not saved player data used for condensed combat */
@@ -4279,6 +4285,7 @@ struct char_special_data
     int has_been_pushed;            // If they have been pushed, this is the cooldown until they can be pushed again
     int sickening_aura_timer;       // When this timer is active, the creature is not susceptible to sickening aura
     int frightful_presence_timer;       // When this timer is active, the creature is not susceptible to frightful presence
+    int temporary_eidolon_evolutions[NUM_EVOLUTIONS]; // temporary eidolon evolutions , such as with merge forms ability
 };
 
 /* old memorization struct */
@@ -4508,6 +4515,9 @@ struct player_special_data_saved
     int buff_abilities[MAX_BUFFS][2]; // This is used with the buff command to simplify the process of buffing by casters
 
     bool new_race_stats; // For use with racefix command.
+
+    int call_eidolon_cooldown;  // When this cooldown is active, the summoner cannot call their eidolon
+    int merge_forms_timer;      // How long the merge forms process lasts
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4752,6 +4762,11 @@ struct level_data
     int dragonborn_draconic_ancestry;
     int high_elf_cantrip; // the cantrip selected that high elves can cast at will.  Set in study menu
     int languages[NUM_LANGUAGES];
+
+    int eidolon_base_form;
+    int eidolon_evolutions[NUM_EVOLUTIONS];
+    int summoner_aspects[NUM_EVOLUTIONS];
+    int temp_evolution;
 };
 
 /** The list element that makes up a list of characters following this

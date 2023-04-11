@@ -112,5 +112,19 @@ void process_evolution_breath_damage(struct char_data *ch);
 int num_evo_breaths(struct char_data *ch);
 bool is_eidolon_in_room(struct char_data *ch);
 struct char_data *get_eidolon_in_room(struct char_data *ch);
+ACMD_DECL(do_eidolon);
+int get_shield_ally_bonus(struct char_data *ch);
+void merge_eidolon_evolutions(struct char_data *ch);
+void display_evolution_requirements(struct char_data *ch, int evo);
+bool display_evolution_info(struct char_data *ch, const char *evoname);
+int find_evolution_num(const char *name);
+void assign_evolutions(void);
+bool display_evolution_info(struct char_data *ch, const char *evoname);
+bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_pc);
+bool is_eidolon_base_form_evolution(int form, int evo);
+void study_assign_eidolon_base_form(struct char_data *ch, int form);
+bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution);
+int study_num_aspects_chosen(struct descriptor_data *d);
+bool study_has_aspects_unchosen(struct descriptor_data *d);
 
 #endif
