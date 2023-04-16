@@ -201,10 +201,8 @@ void increase_skills(struct char_data *ch, int chclass, bool verbose, int level)
     case CLASS_SUMMONER:
       give_premade_skill(ch, verbose, ABILITY_HEAL, amount);
       give_premade_skill(ch, verbose, ABILITY_LORE, amount);
-      give_premade_skill(ch, verbose, ABILITY_PERFORM, amount);
       give_premade_skill(ch, verbose, ABILITY_SPELLCRAFT, amount);
       give_premade_skill(ch, verbose, ABILITY_CONCENTRATION, amount);
-      give_premade_skill(ch, verbose, ABILITY_USE_MAGIC_DEVICE, amount);
       if (GET_REAL_RACE(ch) == RACE_HUMAN)
         give_premade_skill(ch, verbose, ABILITY_APPRAISE, amount);
       break;
@@ -258,7 +256,7 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
             GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
             GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
             GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
-            GET_REAL_CHA(ch) =  16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
+            GET_REAL_CHA(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
           break;
           case 4: case 8: case 12: case 16: case 20:
             GET_REAL_CHA(ch)++;
@@ -497,25 +495,60 @@ void set_premade_stats(struct char_data *ch, int chclass, int level)
       {
       case 1:
             GET_REAL_STR(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[0];
-            GET_REAL_CON(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
-            GET_REAL_INT(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
-            GET_REAL_WIS(ch) = 10 + race_list[GET_REAL_RACE(ch)].ability_mods[3];
-            GET_REAL_DEX(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
+            GET_REAL_CON(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[1];
+            GET_REAL_INT(ch) = 14 + race_list[GET_REAL_RACE(ch)].ability_mods[2];
+            GET_REAL_WIS(ch) = 8  + race_list[GET_REAL_RACE(ch)].ability_mods[3];
+            GET_REAL_DEX(ch) = 12 + race_list[GET_REAL_RACE(ch)].ability_mods[4];
             GET_REAL_CHA(ch) = 16 + race_list[GET_REAL_RACE(ch)].ability_mods[5];
             break;
-      case 4:
-      case 8:
-      case 12:
-            GET_REAL_CHA(ch)++;
-            break;
-      case 16:
-      case 20:
-            GET_REAL_CHA(ch)++;
-            break;
+     case 4: case 8: case 12: case 16: case 20:
+        GET_REAL_CHA(ch)++;
+        break;
       }
       break;
   }
 
+  if (IS_HUMAN(ch) && level == 1)
+      add_human_premade_stats(ch, chclass);
+}
+
+void add_human_premade_stats(struct char_data *ch, int chclass)
+{
+  switch (chclass)
+  {
+    case CLASS_WIZARD:
+    case CLASS_ALCHEMIST:
+    case CLASS_PSIONICIST:
+      GET_REAL_INT(ch) += 2;
+      break;
+
+    case CLASS_CLERIC:
+    case CLASS_MONK:
+    case CLASS_DRUID:
+      GET_REAL_WIS(ch) += 2;
+      break;
+
+    case CLASS_ROGUE:
+      GET_REAL_DEX(ch) += 2;
+      break;
+
+    case CLASS_WARRIOR:
+    case CLASS_BERSERKER:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+    case CLASS_INQUISITOR:
+    case CLASS_BLACKGUARD:
+      GET_REAL_STR(ch) += 2;
+      break;
+
+    case CLASS_SORCERER:
+    case CLASS_BARD:
+    case CLASS_SUMMONER:
+    case CLASS_WARLOCK:
+      GET_REAL_CHA(ch) += 2;
+      break;
+
+  }
 }
 
 void add_premade_sorcerer_spells(struct char_data *ch, int level)
@@ -785,10 +818,10 @@ void add_premade_summoner_spells(struct char_data *ch, int level)
     known_spells_add(ch, chclass, SPELL_HASTE, FALSE);
     break;
   case 5:
-    known_spells_add(ch, chclass, SPELL_BARKSKIN, FALSE);
+    known_spells_add(ch, chclass, SPELL_GIRD_ALLIES, FALSE);
     break;
   case 6:
-    known_spells_add(ch, chclass, SPELL_GLITTERDUST, FALSE);
+    known_spells_add(ch, chclass, SPELL_BARKSKIN, FALSE);
     break;
   case 7:
     known_spells_add(ch, chclass, SPELL_REJUVENATE_EIDOLON, FALSE);
@@ -802,9 +835,9 @@ void add_premade_summoner_spells(struct char_data *ch, int level)
     known_spells_add(ch, chclass, SPELL_GREATER_MAGIC_FANG, FALSE);
     break;
   case 10:
-    known_spells_add(ch, chclass, SPELL_GREATER_PLANAR_HEALING, FALSE);
+    known_spells_add(ch, chclass, SPELL_CHARISMA, FALSE);
     known_spells_add(ch, chclass, SPELL_GREATER_EVOLUTION_SURGE, FALSE);
-    known_spells_add(ch, chclass, SPELL_TELEPORT, FALSE);
+    known_spells_add(ch, chclass, SPELL_MASS_STRENGTH, FALSE);
     break;
   case 11:
     known_spells_add(ch, chclass, SPELL_MASS_STONESKIN, FALSE);
@@ -889,7 +922,7 @@ void add_premade_warlock_invocations(struct char_data *ch, int level)
   }
 }
 
-void add_premade_sorcerer_evolutions(struct char_data *ch, int level)
+void add_premade_summoner_evolutions(struct char_data *ch, int level)
 {
   switch (level)
   {
@@ -898,6 +931,18 @@ void add_premade_sorcerer_evolutions(struct char_data *ch, int level)
       KNOWS_EVOLUTION(ch, EVOLUTION_CLAWS)++;
       KNOWS_EVOLUTION(ch, EVOLUTION_BITE)++;
       KNOWS_EVOLUTION(ch, EVOLUTION_MOUNT)++;
+      break;
+    case 3:
+      KNOWS_EVOLUTION(ch, EVOLUTION_STING)++;
+      break;
+    case 4:
+      KNOWS_EVOLUTION(ch, EVOLUTION_POISON)++;
+      break;
+    case 6:
+      KNOWS_EVOLUTION(ch, EVOLUTION_SHADOW_BLEND)++;
+      break;
+    case 9:
+      KNOWS_EVOLUTION(ch, EVOLUTION_ACID_ATTACK)++;
       break;
   }
 }
@@ -1888,6 +1933,58 @@ void levelup_alchemist(struct char_data *ch, int level, bool verbose)
   add_premade_alchemist_discoveries(ch, level);
 }
 
+void levelup_summoner(struct char_data *ch, int level, bool verbose)
+{
+  int chclass = CLASS_SUMMONER;
+  switch (level) {
+    case 1:
+      set_premade_stats(ch, chclass, 1);
+      give_premade_feat(ch, verbose, FEAT_QUICK_CHANT, 0);
+      if (GET_REAL_RACE(ch) == RACE_HUMAN) {
+        give_premade_feat(ch, verbose, FEAT_LUCK_OF_HEROES, 0);
+      }
+    case 3:
+      give_premade_feat(ch, verbose, FEAT_SPELL_FOCUS, CONJURATION);
+      break;
+    case 4:
+      set_premade_stats(ch, chclass, 4);
+      break;
+    case 6:
+      give_premade_feat(ch, verbose, FEAT_AUGMENT_SUMMONING, 0);
+      break;
+    case 8:
+      set_premade_stats(ch, chclass, 8);
+      break;
+    case 9:
+      give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_FOCUS, CONJURATION);
+      break;
+    case 10:
+      give_premade_feat(ch, verbose, FEAT_MAXIMIZE_SPELL, 0);
+      break;
+    case 12:
+      give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
+      set_premade_stats(ch, chclass, 12);
+      break;
+    case 15:
+      give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
+      break;
+    case 16:
+      set_premade_stats(ch, chclass, 16);
+      break;
+    case 18:
+      give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
+      break;
+    case 20:
+      give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
+      set_premade_stats(ch, chclass, 20);
+
+      break;
+  }
+  increase_skills(ch, chclass, TRUE, level);
+  add_premade_summoner_spells(ch, level);
+  add_premade_summoner_evolutions(ch, level);
+}
+
 void setup_premade_levelup(struct char_data *ch, int chclass)
 {
   GET_FEAT_POINTS(ch) = 0;
@@ -1954,6 +2051,9 @@ void advance_premade_build(struct char_data *ch)
       break;
     case CLASS_WARLOCK:
       levelup_warlock(ch, level, TRUE);
+      break;
+    case CLASS_SUMMONER:
+      levelup_summoner(ch, level, TRUE);
       break;
     default:
       send_to_char(ch, "ERROR.  Please inform staff, error code PREBLD001.\r\n");

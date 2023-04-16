@@ -2955,7 +2955,7 @@ ASPELL(spell_gird_allies)
     if (IS_PET(pet) && GROUP(pet->master) == GROUP(ch))
     {
       act("You have been protected by $n's might.", FALSE, ch, 0, pet, TO_VICT);
-      act("$n has been proected by $N's might.", FALSE, pet, 0, ch, TO_ROOM);
+      act("$n has been protected by $N's might.", FALSE, pet, 0, ch, TO_ROOM);
       new_affect(&af);
       af.spell = SPELL_GIRD_ALLIES;
       af.duration = 10 * (level / 2);
