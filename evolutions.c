@@ -25,6 +25,7 @@
 #include "evolutions.h"
 #include "fight.h"
 #include "oasis.h"
+#include "genolc.h"
 
 int evolution_sort_info[NUM_EVOLUTIONS];
 struct evolution_info evolution_list[NUM_EVOLUTIONS];
@@ -100,7 +101,7 @@ void assign_evolutions(void)
 
     evolutiono(EVOLUTION_BASIC_MAGIC, "basic magic", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE, 
                "The eidolon is able to cast the following spells at-will: daze monster, detect magic, ball of light, "
-               "acid splash, ray of frost, touch opf fatigue.");
+               "acid splash, ray of frost, touch of fatigue.");
     evolutiono(EVOLUTION_BITE, "bite attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE, 
                "The eidolon gains a bite attack that deals 1d6 + 1/2 strength modifier piercing damage. 1d8 if large, 1d10 if huge.");
     evolutiono(EVOLUTION_BLEED, "bleeding attack", 3, false, 1, true, 
@@ -126,11 +127,11 @@ void assign_evolutions(void)
     evolutiono(EVOLUTION_PINCERS, "pincer attacks", 5, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon gains two pincer attacks, which deal 1d4 + 1/2 strength mod bludgeoning damage each, and also offer "
                "a +4 bonus to attacks to grapple the opponent. 1d6 if large, 1d8 if huge.");
-    evolutiono(EVOLUTION_PUSH, "push away", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
+    evolutiono(EVOLUTION_PUSH, "bullrush", 1, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon gains the ability to attempt to push another creature out of the room they are in. The "
                "target must be smaller than the eidolon and the eidolon must succeed at a combat maneuver check. "
                "Failure results in combat. Note that this does not work on targets that have freedom of movement "
-               "or mobiles with the sentinel flag.");
+               "or mobiles with the sentinel flag. Uses the bullrush command.");
     evolutiono(EVOLUTION_REACH, "reach attacks", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolons attacks are considered reach weapons, allowing them an extra attack in the first round "
                "of any battle.");
@@ -218,7 +219,7 @@ void assign_evolutions(void)
     evolutiono(EVOLUTION_GORE, "gore attack", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon gains a gore attack that deals 1d6 + 1/2 strength mod piercing damage. 1d8 if large "
                "and 1d10 if huge.");
-    evolutiono(EVOLUTION_MINOR_MAGIC, "minor magic", 3, false, 1, true,  EVOLUTION_BASIC_MAGIC, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
+    evolutiono(EVOLUTION_MINOR_MAGIC, "minor magic", 3, false, 1, true,  EVOLUTION_BASIC_MAGIC, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ANY,
               "The eidolon gains the ability to cast the following spells at-will:  burning hands, "
               "detect alignment, magic missile, obscuring mist, minor image.");
     evolutiono(EVOLUTION_POISON, "poison attack", 2, false, 1, true,  EVOLUTION_BITE, EVOLUTION_STING, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ANY,
@@ -1055,7 +1056,7 @@ struct char_data *get_eidolon_in_room(struct char_data *ch)
 
 ACMD(do_eidolon)
 {
-  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
+  char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *eidolon = NULL;
   char * desc = NULL;
   int i = 0, count = 0;
@@ -1072,7 +1073,7 @@ ACMD(do_eidolon)
                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
                      "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
                      "\r\n"
-                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
+                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'.\r\n");
     return;
   }
 
@@ -1100,7 +1101,7 @@ ACMD(do_eidolon)
   if (!(eidolon = get_eidolon_in_room(ch)))
   {
     send_to_char(ch, "You can only use this command if you have summoner your eidolon and it is in the same room as you.\r\n"
-                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
+                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'.\r\n");
     return;
   }
 
@@ -1126,6 +1127,8 @@ ACMD(do_eidolon)
       send_to_char(ch, "You've reset your eidolon short description.  This will be reflected next time you summon your eidolon.\r\n");
       return;
     }
+
+    strip_cr(arg2);
 
     desc = strdup(arg2);
     GET_EIDOLON_SHORT_DESCRIPTION(ch) = desc;
@@ -1155,6 +1158,8 @@ ACMD(do_eidolon)
       send_to_char(ch, "You've reset your eidolon long description.  This will be reflected next time you summon your eidolon.\r\n");
       return;
     }
+
+    strip_cr(arg2);
 
     desc = strdup(arg2);
 
@@ -1187,8 +1192,10 @@ ACMD(do_eidolon)
     desc = strdup(arg2);
 
     GET_EIDOLON_DETAIL_DESCRIPTION(ch) = desc;
-    eidolon->player.description = desc;
     send_to_char(ch, "You change your eidilon's detailed description to: %s\r\n", desc);
+    snprintf(buf, sizeof(buf), "%s\r\n", arg2);
+    eidolon->player.description = strdup(buf);
+
     return;
   }
   else if (is_abbrev(arg, "bondsenses"))
@@ -1260,8 +1267,13 @@ int get_shield_ally_bonus(struct char_data *ch)
   else if (HAS_FEAT(ch, FEAT_SHIELD_ALLY))
     bonus = 2;
 
+  if (!get_eidolon_in_room(ch))
+    return 0;
+
   if (get_eidolon_in_room(ch) && can_act(ch) && bonus > 0)
+  {
     return bonus;
+  }
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
   {
@@ -1487,7 +1499,7 @@ int study_num_aspects_chosen(struct descriptor_data *d)
 
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
-    if (LEVELUP(d->character)->summoner_aspects[i])
+    if (LEVELUP(d->character)->summoner_aspects[i] > 0)
       num++;
   }
 

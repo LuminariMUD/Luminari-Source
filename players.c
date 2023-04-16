@@ -3444,6 +3444,7 @@ void load_char_pets(struct char_data *ch)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char query[200];
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *mob = NULL;
 
   if (!ch)
@@ -3526,7 +3527,8 @@ void load_char_pets(struct char_data *ch)
       }
       if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
       {
-        mob->player.description = strdup(GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+        snprintf(buf, sizeof(buf), "%s\r\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+        mob->player.description = strdup(buf);
       }
     }
     GET_REAL_STR(mob) = atoi(row[4]);

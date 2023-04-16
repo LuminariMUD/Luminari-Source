@@ -10,5 +10,6 @@ void levelup_warrior(struct char_data *ch, int level, bool verbose);
 void levelup_rogue(struct char_data *ch, int level, bool verbose);
 void setup_premade_levelup(struct char_data *ch, int chclass);
 void advance_premade_build(struct char_data *ch);
+void add_human_premade_stats(struct char_data *ch, int chclass);
 
 #define GET_PREMADE_BUILD_CLASS(ch) 	((ch)->player_specials->saved.premade_build)

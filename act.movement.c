@@ -3990,7 +3990,7 @@ ACMD(do_transposition)
     X_LOC(ch) = world[eidolonRoom].coords[0];
     Y_LOC(ch) = world[eidolonRoom].coords[1];
   }
-  char_to_room(ch, chRoom);
+  char_to_room(ch, eidolonRoom);
 
   act("$n arrives suddenly.", TRUE, ch, 0, 0, TO_ROOM);
   act("$N has transpoisitoned locations with you!", FALSE, ch, 0, eidolon, TO_VICT);

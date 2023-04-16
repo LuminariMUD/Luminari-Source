@@ -3988,7 +3988,7 @@ void study_parse(struct descriptor_data *d, char *arg)
             write_to_output(d, "You need to choose your base form first.\r\n");
             return;
           }
-          else if (study_has_aspects_unchosen(d))
+          else if (!study_has_aspects_unchosen(d))
           {
             write_to_output(d, "\r\nYou are not currently able to select summoner aspects.\r\n");
             return;
@@ -4125,7 +4125,8 @@ void study_parse(struct descriptor_data *d, char *arg)
           counter = 0;
           for (i = 1; i < NUM_EVOLUTIONS; i++)
           {
-            if (LEVELUP(d->character)->summoner_aspects[i]) continue;            
+            if (LEVELUP(d->character)->summoner_aspects[i]) continue;    
+            if (!evolution_list[i].pc_avail) continue;
             write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
             if ((counter % 2) == 1)
               write_to_output(d, "\r\n");
@@ -4151,7 +4152,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
       LEVELUP(d->character)->temp_evolution = number;
 
-      study_disp_evolution_confirm(d);
+      study_disp_aspect_confirm(d);
       break;
 
     case STUDY_SELECT_ASPECT_CONFIRM:
@@ -5513,6 +5514,7 @@ void study_summoner_aspect_select(struct descriptor_data *d)
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
     if (LEVELUP(d->character)->summoner_aspects[i]) continue;
+    if (!evolution_list[i].pc_avail) continue;
     write_to_output(d, "%2d) %-25s \tn", i, evolution_list[i].name);
     if ((count % 2) == 1)
       write_to_output(d, "\r\n");
@@ -5559,6 +5561,11 @@ void study_disp_aspect_confirm(struct descriptor_data *d)
   if (LEVELUP(d->character)->summoner_aspects[evo])
   {
     write_to_output(d, "\r\nYou have already taken this evolution.\r\n");
+    return;
+  }
+  if (!evolution_list[evo].pc_avail)
+  {
+    send_to_char(d->character, "This aspect is not available.\r\n");
     return;
   }
   if (!study_has_aspects_unchosen(d))

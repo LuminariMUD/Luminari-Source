@@ -34,6 +34,7 @@
 #include "race.h"
 #include "alchemy.h"
 #include "premadebuilds.h"
+#include "evolutions.h"
 
 /** LOCAL DEFINES **/
 // good/bad
@@ -2672,6 +2673,7 @@ void init_start_char(struct char_data *ch)
   GET_EIDOLON_BASE_FORM(ch) = 0;
   GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
   GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
+  GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
 
   /* initialize spell prep data, allow adjustment of spells known */
   destroy_spell_prep_queue(ch);
@@ -8356,7 +8358,7 @@ sbyte has_eidolon_choices_unchosen(struct char_data *ch)
   if (has_evolutions_unchosen(ch))
     return true;
 
-  if (study_has_aspects_unchosen(ch))
+  if (study_has_aspects_unchosen(ch->desc))
     return true;
 
   return FALSE;

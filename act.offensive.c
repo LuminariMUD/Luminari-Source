@@ -9653,11 +9653,11 @@ ACMD(do_grand_destiny)
   act("$n's grand destiny has been actualized!", FALSE, ch, 0, 0, TO_ROOM);
 }
 
-ACMD(do_pushaway)
+ACMD(do_bullrush)
 {
   if (!HAS_EVOLUTION(ch, EVOLUTION_PUSH))
   {
-    send_to_char(ch, "You don't have the ability to push others away.\r\n");
+    send_to_char(ch, "You don't have the ability to bullrush.\r\n");
     return;
   }
 
@@ -9669,7 +9669,7 @@ ACMD(do_pushaway)
 
   if (!*arg)
   {
-    send_to_char(ch, "You need to specify who you'd like to push away.\r\n");
+    send_to_char(ch, "You need to specify who you'd like to bullrush.\r\n");
     return;
   }
 
@@ -9681,7 +9681,7 @@ ACMD(do_pushaway)
 
   if (!*arg2)
   {
-    send_to_char(ch, "In what direction do you wish to push your target?\r\n");
+    send_to_char(ch, "In what direction do you wish to bullrush your target?\r\n");
     return;
   }
 
@@ -9699,13 +9699,13 @@ ACMD(do_pushaway)
 
   if (GET_SIZE(vict) >= GET_SIZE(ch))
   {
-    send_to_char(ch, "They are too big for you to push away.\r\n");
+    send_to_char(ch, "They are too big for you to bullrush.\r\n");
     return;
   }
 
   if (GET_PUSHED_TIMER(vict) > 0)
   {
-    send_to_char(ch, "That subject is on a pushaway timer and is temporarily immune.\r\n");
+    send_to_char(ch, "That subject is on a bullrush timer and is temporarily immune.\r\n");
     return;
   }
 

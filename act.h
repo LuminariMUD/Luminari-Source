@@ -457,7 +457,7 @@ ACMDCHECK(can_fey_magic);
 ACMD_DECL(do_grave_magic);
 ACMDCHECK(can_grave_magic);
 ACMD_DECL(do_mark);
-ACMD_DECL(do_pushaway);
+ACMD_DECL(do_bullrush);
 
 /* Functions without subcommands */
 ACMD_DECL(do_cexchange);
