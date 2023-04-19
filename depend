@@ -107,7 +107,7 @@ class.o: class.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h spells.h interpreter.h \
  constants.h act.h handler.h comm.h mud_event.h dg_event.h mudlim.h \
  feats.h class.h assign_wpn_armor.h pfdefaults.h domains_schools.h \
- modify.h spell_prep.h race.h alchemy.h premadebuilds.h
+ modify.h spell_prep.h race.h alchemy.h premadebuilds.h evolutions.h
 combat_modes.o: combat_modes.c conf.h sysdep.h structs.h bool.h \
  protocol.h lists.h campaign.h utils.h db.h helpers.h perfmon.h feats.h \
  comm.h interpreter.h handler.h spells.h class.h mud_event.h dg_event.h \
@@ -209,7 +209,7 @@ evolutions.o: evolutions.c conf.h sysdep.h structs.h bool.h protocol.h \
  lists.h campaign.h utils.h db.h helpers.h perfmon.h comm.h spells.h \
  handler.h constants.h interpreter.h dg_scripts.h modify.h feats.h \
  class.h mud_event.h dg_event.h assign_wpn_armor.h domains_schools.h \
- spell_prep.h evolutions.h fight.h oasis.h help.h
+ spell_prep.h evolutions.h fight.h oasis.h help.h genolc.h
 feats.o: feats.c conf.h sysdep.h structs.h bool.h protocol.h lists.h \
  campaign.h utils.h db.h helpers.h perfmon.h comm.h spells.h handler.h \
  constants.h interpreter.h dg_scripts.h modify.h feats.h class.h \
