@@ -421,7 +421,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
     return false;
 
   // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
-  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] <= (level / evolution_list[evolution].stack_level))
+  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
     return false;
 
   if (study_num_free_evolution_points(ch) < evolution_list[evolution].evolution_points)
@@ -429,10 +429,6 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
 
   // if it's not available to PCs and we're checking for aspects return false
   if (is_pc && evolution_list[evolution].pc_avail != true)
-    return false;
-
-  // if the evolution can stack and the current ranks are greater than the stack level interval, they can't take it
-  if (evolution_list[evolution].stacks && LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
     return false;
 
   // If there's no other requirements, they can take it
@@ -445,7 +441,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
   {
     for (i = 0; i < 6; i++)
     {
-      if (i == 0)
+      if (evolution_list[evolution].evolution_requirements[i] == 0)
         continue;
       if (LEVELUP(ch)->eidolon_evolutions[evolution_list[evolution].evolution_requirements[i]])
         return true;
@@ -457,7 +453,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
   {
     for (i = 0; i < 6; i++)
     {
-      if (i == 0)
+      if (evolution_list[evolution].evolution_requirements[i] == 0)
         continue;
       if (!LEVELUP(ch)->eidolon_evolutions[evolution_list[evolution].evolution_requirements[i]])
         return false;
@@ -470,7 +466,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
   {
     for (i = 0; i < 6; i++)
     {
-      if (i == 0)
+      if (evolution_list[evolution].evolution_requirements[i] == 0)
         continue;
       if (LEVELUP(ch)->eidolon_evolutions[evolution_list[evolution].evolution_requirements[i]])
         return false;
@@ -781,7 +777,26 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
     (mob)->aff_abils.con += 6;
     (mob)->aff_abils.dex += 2;
     break;
-  }  
+  } 
+
+  if (HAS_REAL_FEAT(ch, FEAT_GRAND_EIDOLON))
+  {
+    (mob)->aff_abils.str += 2;
+    (mob)->aff_abils.con += 2;
+    (mob)->aff_abils.dex += 2;
+    (mob)->aff_abils.intel += 2;
+    (mob)->aff_abils.wis += 2;
+    (mob)->aff_abils.cha += 2;
+  }
+  if (HAS_REAL_FEAT(ch, FEAT_EPIC_EIDOLON))
+  {
+    (mob)->aff_abils.str += 4;
+    (mob)->aff_abils.con += 4;
+    (mob)->aff_abils.dex += 4;
+    (mob)->aff_abils.intel += 4;
+    (mob)->aff_abils.wis += 4;
+    (mob)->aff_abils.cha += 4;
+  } 
 }
 
 void merge_eidolon_evolutions(struct char_data *ch)
@@ -1098,6 +1113,27 @@ ACMD(do_eidolon)
     return;
   }
 
+  if (is_abbrev(arg, "aspects"))
+  {
+    send_to_char(ch, "Aspects Known:\r\n");
+    for (i = 1; i < NUM_EVOLUTIONS; i++)
+    {
+      if (HAS_REAL_EVOLUTION(ch, i))
+      {
+        count++;
+        send_to_char(ch, "%-30s ", evolution_list[i].name);
+        if (count % 2 == 0)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if (count % 2 == 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Type: help (aspect name) for more info on specific aspects.\r\n");
+    send_to_char(ch, "\r\n");
+    return;
+  }
+
   if (!(eidolon = get_eidolon_in_room(ch)))
   {
     send_to_char(ch, "You can only use this command if you have summoner your eidolon and it is in the same room as you.\r\n"
@@ -1161,11 +1197,13 @@ ACMD(do_eidolon)
 
     strip_cr(arg2);
 
-    desc = strdup(arg2);
+    snprintf(buf, sizeof(buf), "%s\r\n", arg2);
+
+    desc = strdup(buf);
 
     GET_EIDOLON_LONG_DESCRIPTION(ch) = desc;
     eidolon->player.long_descr = desc;
-    send_to_char(ch, "You change your eidilon's long description to: %s\r\n", desc);
+    send_to_char(ch, "You change your eidilon's long description to: %s\r\n", arg2);
     return;
   }
   else if (is_abbrev(arg, "detaildesc"))
@@ -1522,7 +1560,7 @@ bool study_has_aspects_unchosen(struct descriptor_data *d)
   if (GET_EIDOLON_BASE_FORM(d->character) == 0 && LEVELUP(d->character)->eidolon_base_form == 0)
     return false;
 
-  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT);
+  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_EPIC_ASPECT);
   int num_chosen = study_num_aspects_chosen(d);
 
   if ((num_evos - num_chosen) > 0) return true;

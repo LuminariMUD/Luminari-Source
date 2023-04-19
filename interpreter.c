@@ -267,6 +267,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"cursetouch", "cursetouch", POS_FIGHTING, do_cursetouch, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"copycat", "copycat", POS_FIGHTING, do_copycat, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"class", "class", POS_DEAD, do_class, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"charmiecombatroll", "charmiecombatroll", POS_DEAD, do_gen_tog, 0, SCMD_CHARMIE_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"combatroll", "combatroll", POS_DEAD, do_gen_tog, 0, SCMD_COMBATROLL, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"coordconvert", "coordconvert", POS_SLEEPING, do_coordconvert, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"cmdlev", "cmdlev", POS_DEAD, do_cmdlev, LVL_BUILDER, 0, FALSE, ACTION_NONE, {0, 0}, NULL},

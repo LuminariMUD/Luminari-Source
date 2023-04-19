@@ -713,6 +713,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_SHADOWFORM 52
 #define SCMD_SICKENING_AURA 53
 #define SCMD_LIFE_BOND 54
+#define SCMD_CHARMIE_COMBATROLL 55
 
 /* do_quit */
 ACMD_DECL(do_quit);

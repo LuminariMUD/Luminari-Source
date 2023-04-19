@@ -5873,8 +5873,7 @@ int d20(struct char_data *ch)
   if (dice(1, 100) <= 10 && get_lucky_weapon_bonus(ch))
   {
     roll += MAX(1, get_lucky_weapon_bonus(ch) / 2);
-    if (PRF_FLAGGED(ch, PRF_COMBATROLL))
-      send_to_char(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
+    send_combat_roll_info(ch, "\tY[Lucky Weapon Bonus! +%d]\tn\r\n", MAX(1, get_lucky_weapon_bonus(ch) / 2));
   }
 
   if (ch && !IS_NPC(ch) && ch->player_specials && ch->player_specials->cosmic_awareness)
@@ -8215,6 +8214,46 @@ bool can_act(struct char_data *ch)
     return false;
 
   return true;
+}
+
+bool show_combat_roll(struct char_data *ch)
+{
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+    return true;
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL))
+    return true;
+  return false;
+}
+
+void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
+{
+  if (!ch) return;
+
+  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
+  {
+    if (ch->desc && messg && *messg)
+    {
+      size_t left;
+      va_list args;
+
+      va_start(args, messg);
+      left = vwrite_to_output(ch->desc, messg, args);
+      va_end(args);
+    }
+  }
+  if (IS_NPC(ch) && AFF_FLAGGED(ch, AFF_CHARM) && ch->master && PRF_FLAGGED(ch->master, PRF_CHARMIE_COMBATROLL))
+  {
+    if (ch->master->desc && messg && *messg)
+    {
+      size_t left;
+      va_list args;
+
+      va_start(args, messg);
+      left = vwrite_to_output(ch->master->desc, messg, args);
+      va_end(args);
+    }
+  } 
+
 }
 
 /* EoF */

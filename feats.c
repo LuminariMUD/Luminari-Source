@@ -1531,8 +1531,16 @@ void assign_feats(void)
         "The summoner can now add two evolutions to apply to themselves.");
 
   feato(FEAT_GRAND_EIDOLON, "grand eidolon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "The eidolon can now add two more evolutions.",
-        "The eidolon can now add two more evolutions.");
+        "The eidolon gains a +2 bonus to all ability scores and natural armor class.",
+        "The eidolon gains a +2 bonus to all ability scores and natural armor class.");
+
+  feato(FEAT_EPIC_ASPECT, "epic aspect", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The summoner can now add three evolutions to apply to themselves.",
+        "The summoner can now add three evolutions to apply to themselves.");
+
+  feato(FEAT_EPIC_EIDOLON, "epic eidolon", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+        "The eidolon gains an additional +4 bonus to all ability scores and natural armor class.",
+        "The eidolon gains an additional +4 bonus to all ability scores and natural armor class.");
 
   feato(FEAT_SUMMONER_1ST_CIRCLE, "1st circle summoner spells", TRUE, FALSE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to 1st circle summoner spells",
@@ -2972,6 +2980,22 @@ void assign_feats(void)
         "Gives all creatures you have from summoning spells +4 to strength and "
         "constitution.  Note: this will not augment your familiar, called companions, "
         "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
+        
+  feato(FEAT_IMPROVED_AUGMENT_SUMMONING, "improved augment summoning", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "enhance summoned creatures",
+        "Gives all creatures you have from summoning spells +4 to strength and "
+        "constitution.  Note: this will not augment your familiar, called companions, "
+        "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
+  feat_prereq_attribute(FEAT_IMPROVED_AUGMENT_SUMMONING, AB_CHA, 16);
+  feat_prereq_feat(FEAT_IMPROVED_AUGMENT_SUMMONING, FEAT_AUGMENT_SUMMONING, 1);
+
+  feato(FEAT_EPIC_AUGMENT_SUMMONING, "epic augment summoning", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
+        "enhance summoned creatures",
+        "Gives all creatures you have from summoning spells +4 to strength and "
+        "constitution.  Note: this will not augment your familiar, called companions, "
+        "or charmed/dominated victims.  Note: requires spell-focus in conjuration.");
+  feat_prereq_attribute(FEAT_EPIC_AUGMENT_SUMMONING, AB_CHA, 21);
+  feat_prereq_feat(FEAT_EPIC_AUGMENT_SUMMONING, FEAT_IMPROVED_AUGMENT_SUMMONING, 1);
 
   feato(FEAT_ENHANCED_SPELL_DAMAGE, "enhanced spell damage", TRUE, TRUE, TRUE, FEAT_TYPE_SPELLCASTING,
         "+1 spell damage per die rolled",

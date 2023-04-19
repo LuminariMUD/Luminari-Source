@@ -5461,6 +5461,9 @@ int study_num_free_evolution_points(struct char_data *ch)
 
 void study_show_evolution_select_bottom_text(struct descriptor_data *d)
 {
+
+  int num_avail = study_num_free_evolution_points(d->character);
+
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n");
   write_to_output(d, "Q) Exit from this Menu.\r\n");
@@ -5470,8 +5473,23 @@ void study_show_evolution_select_bottom_text(struct descriptor_data *d)
   write_to_output(d, "Numbers in square brackets (Eg. [4]) are how many evoilution points the ability costs.\r\n");
   write_to_output(d, "Evolution eligibility will update after exiting the entire study menu.\r\n");
   write_to_output(d, "Type \tClist\tn to see the list of available evolutions or \tCfulllist\tn to see a list of all evolutions.\r\n");
-  write_to_output(d, "You currently have \tG%d evolution points\tn to spend.\r\n", study_num_free_evolution_points(d->character));
+  write_to_output(d, "You currently have \tG%d evolution point%s\tn to spend.\r\n", num_avail, num_avail != 1 ? "s" : "");
   write_to_output(d, "Please enter the number of the evolution you wish to take or see information about.\r\nYour Choice: ");
+}
+
+void study_show_aspect_select_bottom_text(struct descriptor_data *d)
+{
+
+  int num_evos = HAS_REAL_FEAT(d->character, FEAT_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_GREATER_ASPECT) + HAS_REAL_FEAT(d->character, FEAT_EPIC_ASPECT);
+  int num_chosen = study_num_aspects_chosen(d);
+  int num_avail = MAX(0, num_evos - num_chosen);
+
+  write_to_output(d, "\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "Q) Exit from this Menu.\r\n");
+  write_to_output(d, "\r\n");
+  write_to_output(d, "You are able to choose %d aspect%s\r\n", num_avail, num_avail != 1 ? "s" : "");
+  write_to_output(d, "Please enter the number of the aspect you wish to take or see information about.\r\nYour Choice: ");
 }
 
 void study_eidolon_evolutions_select(struct descriptor_data *d)
@@ -5499,6 +5517,8 @@ void study_eidolon_evolutions_select(struct descriptor_data *d)
   OLC_MODE(d) = STUDY_SELECT_EVOLUTIONS;
 }
 
+
+
 void study_summoner_aspect_select(struct descriptor_data *d)
 {
   int i = 0, count = 0;
@@ -5506,6 +5526,8 @@ void study_summoner_aspect_select(struct descriptor_data *d)
   if (!study_has_aspects_unchosen(d))
   {
     write_to_output(d, "You do not have any aspects left to choose.  If you have chosen an aspect in error, please exit the study menu without saving and try again.\r\n");
+    study_show_aspect_select_bottom_text(d);
+    OLC_MODE(d) = STUDY_SELECT_ASPECT;
     return;
   }
 
@@ -5522,6 +5544,7 @@ void study_summoner_aspect_select(struct descriptor_data *d)
   }
   if ((count % 2) != 1)
     write_to_output(d, "\r\n");
+  study_show_aspect_select_bottom_text(d);
   OLC_MODE(d) = STUDY_SELECT_ASPECT;
 }
 

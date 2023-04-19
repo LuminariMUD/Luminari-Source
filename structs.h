@@ -1126,9 +1126,10 @@
 #define PRF_CAREFUL_PET 63            /**< Code Toggle to reduce chance of hitting pets/pets hitting you */
 #define PRF_NO_RAGE 64                // Will reject casting of rage spell on them.
 #define PRF_LIFE_BOND 65              // Summoner's life bond ability/feat
+#define PRF_CHARMIE_COMBATROLL 66     // Will display combat roll info for any of your charmies in battle.
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 66
+#define NUM_PRF_FLAGS 67
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -2462,12 +2463,16 @@
 #define FEAT_SUMMONER_5TH_CIRCLE 1008
 #define FEAT_SUMMONER_6TH_CIRCLE 1009
 #define FEAT_SUMMONER_EPIC_SPELL 1010
+#define FEAT_EPIC_ASPECT 1011
+#define FEAT_EPIC_EIDOLON 1012
+#define FEAT_IMPROVED_AUGMENT_SUMMONING 1013
+#define FEAT_EPIC_AUGMENT_SUMMONING 1014
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1011
+#define FEAT_LAST_FEAT 1015
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1012
+#define NUM_FEATS 1016
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/

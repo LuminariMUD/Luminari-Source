@@ -738,6 +738,22 @@ ITEM_SPECIAL_ABILITY(item_specab_horn_of_summoning)
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
     }
 
+    if (HAS_FEAT(ch, FEAT_IMPROVED_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*improved augmentation* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    if (HAS_FEAT(ch, FEAT_EPIC_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*epic augmentation* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
     act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_ROOM);
     act("$N glides into the area, seemingly from nowhere!", FALSE, ch, 0, mob, TO_CHAR);
 
@@ -845,6 +861,22 @@ ITEM_SPECIAL_ABILITY(item_specab_item_summon)
     if (HAS_FEAT(ch, FEAT_AUGMENT_SUMMONING))
     {
       send_to_char(ch, "*augmented* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    if (HAS_FEAT(ch, FEAT_IMPROVED_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*improved augmentation* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    if (HAS_FEAT(ch, FEAT_EPIC_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*epic augmentation* ");
       GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
       GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */

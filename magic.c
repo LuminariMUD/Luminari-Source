@@ -153,12 +153,10 @@ int mag_resistance(struct char_data *ch, struct char_data *vict, int modifier)
   // success?
   if (resist > challenge)
   {
-    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
-      send_to_char(vict, "\tW*(Resist:%d>Challenge:%d) You Resist!*\tn", resist, challenge);
+      send_combat_roll_info(vict, "\tW*(Resist:%d>Challenge:%d) You Resist!*\tn", resist, challenge);
     if (ch)
     {
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tR*(Challenge:%d<Resist:%d) Resisted!*\tn", challenge, resist);
+      send_combat_roll_info(ch, "\tR*(Challenge:%d<Resist:%d) Resisted!*\tn", challenge, resist);
     }
     return TRUE;
   }
@@ -471,23 +469,19 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   {
     if (diceroll == 20)
     {
-      if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
-        send_to_char(vict, "\tW*Save Roll Twenty!\tn ");
+      send_combat_roll_info(vict, "\tW*Save Roll Twenty!\tn ");
       if (ch && vict && vict != ch)
       {
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-          send_to_char(ch, "\tR*Save Roll Twenty!\tn ");
+        send_combat_roll_info(ch, "\tR*Save Roll Twenty!\tn ");
       }
     }
     else
     {
-      if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
-        send_to_char(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
+      send_combat_roll_info(vict, "\tW*(%s:%d>Challenge:%d) Saved!*\tn ", save_names[type],
                      savethrow, challenge);
       if (ch && vict && vict != ch)
       {
-        if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-          send_to_char(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
+        send_combat_roll_info(ch, "\tR*(Challenge:%d<%s:%d) Opponent Saved!*\tn ",
                        challenge, save_names[type], savethrow);
       }
     }
@@ -505,23 +499,18 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
   /* failed! */
   if (diceroll == 1)
   {
-    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
-      send_to_char(vict, "\tR*Save Roll One!\tn ");
+    send_combat_roll_info(vict, "\tR*Save Roll One!\tn ");
     if (ch && vict && vict != ch)
     {
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tW*Save Roll One!\tn ");
+      send_combat_roll_info(ch, "\tW*Save Roll One!\tn ");
     }
   }
   else
   {
-    if (!IS_NPC(vict) && PRF_FLAGGED(vict, PRF_COMBATROLL))
-      send_to_char(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type],
-                   savethrow, challenge);
+    send_combat_roll_info(vict, "\tR*(%s:%d<Challenge:%d) Failed Save!*\tn ", save_names[type], savethrow, challenge);
     if (ch && vict && vict != ch)
     {
-      if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-        send_to_char(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ", challenge, save_names[type], savethrow);
+        send_combat_roll_info(ch, "\tW*(Challenge:%d>%s:%d) Opponent Failed Save!*\tn ", challenge, save_names[type], savethrow);
     }
   }
   return (FALSE);
@@ -951,7 +940,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   case WARLOCK_CRITICAL_ELDRITCH_BLAST:
     save = -1; // by default there's no save
     mag_resist = TRUE;
-    if (level >= 10)
+    if ((HAS_REAL_FEAT(ch, FEAT_ELDRITCH_BLAST) + HAS_REAL_FEAT(ch, FEAT_EPIC_ELDRITCH_BLAST)) >= 10)
       mag_resist = FALSE; // Unmodified Eldritch Blasts of +10d6 damage or more skip Spell Resistance.
     element = DAM_FORCE;
     size_dice = 6;
@@ -3975,19 +3964,19 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   
   case WARLOCK_DARK_ONES_OWN_LUCK:
     af[0].location = APPLY_SAVING_WILL;
-    af[0].modifier = GET_CHA(ch);
+    af[0].modifier = GET_CHA_BONUS(ch);
     af[0].duration = 3600;
-    af[0].bonus_type = BONUS_TYPE_MORALE;
+    af[0].bonus_type = BONUS_TYPE_LUCK;
 
     af[1].location = APPLY_SAVING_REFL;
-    af[1].modifier = GET_CHA(ch);
+    af[1].modifier = GET_CHA_BONUS(ch);
     af[1].duration = 3600;
-    af[1].bonus_type = BONUS_TYPE_MORALE;
+    af[1].bonus_type = BONUS_TYPE_LUCK;
 
     af[2].location = APPLY_SAVING_FORT;
-    af[2].modifier = GET_CHA(ch);
+    af[2].modifier = GET_CHA_BONUS(ch);
     af[2].duration = 3600;
-    af[2].bonus_type = BONUS_TYPE_MORALE;
+    af[2].bonus_type = BONUS_TYPE_LUCK;
 
     to_room = "$n feels the dark one's luck.";
     to_vict = "You feel the dark one's luck";
@@ -9200,6 +9189,22 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
     }
 
+    if (HAS_FEAT(ch, FEAT_IMPROVED_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*improved augmentation* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
+    if (HAS_FEAT(ch, FEAT_EPIC_AUGMENT_SUMMONING))
+    {
+      send_to_char(ch, "*epic augmentation* ");
+      GET_REAL_STR(mob) = (mob)->aff_abils.str += 4;
+      GET_REAL_CON(mob) = (mob)->aff_abils.con += 4;
+      GET_REAL_MAX_HIT(mob) = GET_MAX_HIT(mob) += 2 * GET_LEVEL(mob); /* con bonus */
+    }
+
     int spell_focus_bonus = 0;
 
     switch (spellnum)
@@ -9330,11 +9335,9 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   /* message to ch / victim */
   if (healing)
   {
-    if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_COMBATROLL))
-      send_to_char(ch, "<%d> ", healing);
+    send_combat_roll_info(ch, "<%d> ", healing);
     if (ch != victim)
-      if (!IS_NPC(victim) && PRF_FLAGGED(victim, PRF_COMBATROLL))
-        send_to_char(victim, "<%d> ", healing);
+      send_combat_roll_info(victim, "<%d> ", healing);
   }
 
   /* any special handling due to specific spellnum? */

@@ -6992,6 +6992,9 @@ ACMD(do_gen_tog)
       // 54
       {"You activate your life bond.  Your eidolon will now take damage in your stead when conditions permit.\r\n",
        "You deactivate your life bond. Your eidolon will no longer take damage in your stead.\r\n"},
+      // 55
+      {"CombatRoll for Charmies disabled.\r\n",
+       "CombatRoll for Charmies enabled, you now will see details behind the combat rolls of your charmies during combat.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7211,6 +7214,9 @@ ACMD(do_gen_tog)
     break;
   case SCMD_COMBATROLL:
     result = PRF_TOG_CHK(ch, PRF_COMBATROLL);
+    break;
+  case SCMD_CHARMIE_COMBATROLL:
+    result = PRF_TOG_CHK(ch, PRF_CHARMIE_COMBATROLL);
     break;
   case SCMD_AUTOGOLD:
     result = PRF_TOG_CHK(ch, PRF_AUTOGOLD);
