@@ -3508,6 +3508,7 @@ int level_exp(struct char_data *ch, int level)
   case CLASS_PSIONICIST:
   case CLASS_INQUISITOR:
   case CLASS_WARLOCK:
+  case CLASS_SUMMONER:
     level--;
     if (level < 0)
       level = 0;
