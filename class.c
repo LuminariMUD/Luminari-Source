@@ -2400,7 +2400,12 @@ void newbieEquipment(struct char_data *ch)
 
     break;
 
+  case CLASS_WIZARD:
+    obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch);      // wizard note
+    obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); // spellbook
+
   case CLASS_ALCHEMIST:
+  case CLASS_SUMMONER:
 
     obj = read_object(NOOB_LEATHER_SLEEVES, VIRTUAL);
     GET_OBJ_SIZE(obj) = GET_SIZE(ch);
@@ -2415,11 +2420,8 @@ void newbieEquipment(struct char_data *ch)
 
     obj = read_object(NOOB_STUD_LEATHER, VIRTUAL);
     GET_OBJ_SIZE(obj) = GET_SIZE(ch);
-    obj_to_char(obj, ch); // scale mail
+    obj_to_char(obj, ch); // studded leather
 
-  case CLASS_WIZARD:
-    obj_to_char(read_object(NOOB_WIZ_NOTE, VIRTUAL), ch);      // wizard note
-    obj_to_char(read_object(NOOB_WIZ_SPELLBOOK, VIRTUAL), ch); // spellbook
     /* switch fallthrough */
   case CLASS_SORCERER:
   case CLASS_PSIONICIST:

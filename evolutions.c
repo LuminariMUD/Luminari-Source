@@ -192,11 +192,9 @@ void assign_evolutions(void)
               "The eidolon will gain +2 to their charisma score for each rank.  Can be taken once every six "
               "summoner levels.");
     evolutiono(EVOLUTION_THRASH_EVIL, "thrash evil", 2, true, 10, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "Once per day, the eidolon can deal an extra 1d6 holy damage to any evil targets it damages with "
-               "its natural attacks.");
+               "The eidolon inflicts 1d6 holy damage on any successful attacks against evil foes.");
     evolutiono(EVOLUTION_THRASH_GOOD, "thrash good", 2, true, 10, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "Once per day, the eidolon can deal an extra 1d6 unholy damage to any good targets it damages with "
-               "its natural attacks.");
+               "The eidolon inflicts 1d6 unholy damage on any successful attacks against good foes.");
     evolutiono(EVOLUTION_CONSTRICT, "constrict", 2, false, 1, true, EVOLUTION_TENTACLE, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_ALL,
                "The eidolon adds an additional +4 damage to any tentacle attacks it performs.");
     evolutiono(EVOLUTION_FIRE_ATTACK, "flaming attacks", 4, false, 1, true, 
