@@ -7433,7 +7433,7 @@ void load_class_list(void)
   /*     class-number               name      abrv   clr-abrv     menu-name*/
   classo(CLASS_SUMMONER, "summoner", "Sum", "\tCS\tcum\tn", "f) \tCSummoner\tn",
          /* max-lvl  lock? prestige? BAB HD psp move trains in-game? unlkCst, eFeatp*/
-         -1, Y, N, M, 8, 0, 1, 2, N, 0, 0,
+         -1, N, N, M, 8, 0, 1, 2, Y, 0, 3,
          /*prestige spell progression*/ "none",
          /*primary attributes*/ "Charisma, Con/Dex for survivability, Str for combat",
          /*descrip*/
@@ -7588,7 +7588,6 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_TRUE_SEEING, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_IRON, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WREATH_OF_BLADES, 13);
-  spell_assignment(CLASS_SUMMONER, SPELL_PURIFIED_CALLING, 13);
   
   // spell circle 6
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CHARM_MONSTER, 16);
@@ -7599,6 +7598,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_HUMAN_POTENTIAL, 16);
   spell_assignment(CLASS_SUMMONER, SPELL_INCENDIARY_CLOUD, 16);
   // spell_assignment(CLASS_SUMMONER, SPELL_PROTECTION_FROM_SPELLS, 16);
+  spell_assignment(CLASS_SUMMONER, SPELL_PURIFIED_CALLING, 16);
 
   /* starting feats and proficiencies */
   feat_assignment(CLASS_SUMMONER, FEAT_SIMPLE_WEAPON_PROFICIENCY, Y, 1, N);
@@ -7616,6 +7616,8 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_MERGE_FORMS, Y, 16, N);
   feat_assignment(CLASS_SUMMONER, FEAT_GREATER_ASPECT, Y, 18, N);
   feat_assignment(CLASS_SUMMONER, FEAT_GRAND_EIDOLON, Y, 20, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_EPIC_ASPECT, Y, 25, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_EPIC_EIDOLON, Y, 30, N);
 
   /* feat assignment */
   /*              class num     feat                             cfeat lvl stack */
@@ -7629,7 +7631,10 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_SUMMONER_EPIC_SPELL, Y, 21, N);
 
   /* class feats */
-  //feat_assignment(CLASS_SUMMONER, FEAT_JUDGEMENT, Y, 1, Y);
+    /* epic class */
+  feat_assignment(CLASS_SUMMONER, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, Y);
+  feat_assignment(CLASS_SUMMONER, FEAT_EPIC_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
+  feat_assignment(CLASS_SUMMONER, FEAT_EPIC_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
   
 
   /* no spell assignment */

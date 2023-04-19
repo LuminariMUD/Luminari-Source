@@ -526,12 +526,12 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
     case CLASS_SUMMONER:
       if (!canCastAtWill(caster, spellnum))
       {
-        /* bards & warlocks can wear light armor and cast unpenalized (bard spells) */
+        /* bards, summoners & warlocks can wear light armor and cast unpenalized (bard spells) */
         if (compute_gear_armor_type(caster) > (HAS_FEAT(caster, FEAT_BATTLE_CASTER) ? ARMOR_TYPE_MEDIUM : ARMOR_TYPE_LIGHT) ||
             compute_gear_shield_type(caster) > ARMOR_TYPE_SHIELD)
           if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
           {
-            send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
+            send_to_char(caster, "Your armor ends up hampering your spell! (arcane spell failure)\r\n");
             act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
             return 0;
           }
@@ -543,7 +543,7 @@ int call_magic(struct char_data *caster, struct char_data *cvict,
       {
         if (rand_number(1, 100) <= compute_gear_spell_failure(caster))
         {
-          send_to_char(caster, "Your armor ends up hampering your spell!\r\n");
+          send_to_char(caster, "Your armor ends up hampering your spell! (arcane spell failure)\r\n");
           act("$n's spell is hampered by $s armor!", FALSE, caster, 0, 0, TO_ROOM);
           return 0;
         }

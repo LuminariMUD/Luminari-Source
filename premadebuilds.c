@@ -800,7 +800,7 @@ void add_premade_inquisitor_spells(struct char_data *ch, int level)
 
 void add_premade_summoner_spells(struct char_data *ch, int level)
 {
-  int chclass = CLASS_INQUISITOR;
+  int chclass = CLASS_SUMMONER;
   switch (level)
   {
   case 1:
@@ -922,27 +922,62 @@ void add_premade_warlock_invocations(struct char_data *ch, int level)
   }
 }
 
+void add_premade_evolution(struct char_data *ch, int evo)
+{
+  send_to_char(ch, "\tM[summoner] Your eidolon has gained the '%s' evolution!\r\n\tn", evolution_list[evo].name);
+  KNOWS_EVOLUTION(ch, evo)++;
+}
+
+void add_premade_aspect(struct char_data *ch, int evo)
+{
+  send_to_char(ch, "\tM[summoner] You have gained the '%s' aspect!\r\n\tn", evolution_list[evo].name);
+  HAS_REAL_EVOLUTION(ch, evo)++;
+}
+
 void add_premade_summoner_evolutions(struct char_data *ch, int level)
 {
   switch (level)
   {
     case 1:
+    send_to_char(ch, "Your eidolon has gained the 'biped' base form!\r\n");
+    
       GET_EIDOLON_BASE_FORM(ch) = EIDOLON_BASE_FORM_BIPED;
-      KNOWS_EVOLUTION(ch, EVOLUTION_CLAWS)++;
-      KNOWS_EVOLUTION(ch, EVOLUTION_BITE)++;
-      KNOWS_EVOLUTION(ch, EVOLUTION_MOUNT)++;
+      add_premade_evolution(ch, EVOLUTION_CLAWS);
+      add_premade_evolution(ch, EVOLUTION_BITE);
+      add_premade_evolution(ch, EVOLUTION_MOUNT);
       break;
     case 3:
-      KNOWS_EVOLUTION(ch, EVOLUTION_STING)++;
+      add_premade_evolution(ch, EVOLUTION_STING);
       break;
     case 4:
-      KNOWS_EVOLUTION(ch, EVOLUTION_POISON)++;
+      add_premade_evolution(ch, EVOLUTION_POISON);
       break;
     case 6:
-      KNOWS_EVOLUTION(ch, EVOLUTION_SHADOW_BLEND)++;
+      add_premade_evolution(ch, EVOLUTION_SHADOW_BLEND);
       break;
     case 9:
-      KNOWS_EVOLUTION(ch, EVOLUTION_ACID_ATTACK)++;
+      add_premade_evolution(ch, EVOLUTION_ACID_ATTACK);
+      break;
+    case 10:
+      add_premade_aspect(ch, EVOLUTION_CLAWS);
+      break;
+    case 11:
+      add_premade_evolution(ch, EVOLUTION_REACH);
+      break;
+    case 14:
+      add_premade_evolution(ch, EVOLUTION_HOOVES);
+      break;
+    case 17:
+      add_premade_evolution(ch, EVOLUTION_CELESTIAL_APPEARANCE);
+      break;
+    case 18:
+      add_premade_aspect(ch, EVOLUTION_ELECTRIC_ATTACK);
+      break;
+    case 19:
+      add_premade_evolution(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR);
+      break;
+    case 20:
+      add_premade_evolution(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR);
       break;
   }
 }
@@ -1962,17 +1997,17 @@ void levelup_summoner(struct char_data *ch, int level, bool verbose)
       give_premade_feat(ch, verbose, FEAT_MAXIMIZE_SPELL, 0);
       break;
     case 12:
-      give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
+      give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
       set_premade_stats(ch, chclass, 12);
       break;
     case 15:
-      give_premade_feat(ch, verbose, FEAT_GREATER_SPELL_PENETRATION, 0);
+      give_premade_feat(ch, verbose, FEAT_SPELL_PENETRATION, 0);
       break;
     case 16:
       set_premade_stats(ch, chclass, 16);
       break;
     case 18:
-      give_premade_feat(ch, verbose, FEAT_FASTER_MEMORIZATION, 0);
+      give_premade_feat(ch, verbose, FEAT_COMBAT_CASTING, 0);
       break;
     case 20:
       give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);

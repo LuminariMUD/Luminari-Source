@@ -317,6 +317,8 @@ int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats)
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
 struct char_data * get_mob_follower(struct char_data *ch, int mob_type);
+void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
+bool show_combat_roll(struct char_data *ch);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

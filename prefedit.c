@@ -217,7 +217,7 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
 
   /* The top section of the actual menu */
   send_to_char(d->character,
-               "%s1%s) Use Stored Consumables  %s[%s%3s%s]\r\n"
+               "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll    %s[%s%3s%s]\r\n"
                /* Line 1 (1) - use stored consumables */
                "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n"
                /* Line 2 (2) - Auto Stand */
@@ -237,6 +237,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_USE_STORED_CONSUMABLES)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_CHARMIE_COMBATROLL) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_CHARMIE_COMBATROLL)), CCCYN(d->character, C_NRM),
                /*******2*********/
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -961,6 +965,14 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '7':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CAREFUL_PET);
+      break;
+
+    case '8':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_NO_RAGE);
+      break;
+
+    case '9':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CHARMIE_COMBATROLL);
       break;
 
     default:
