@@ -257,7 +257,7 @@ void assign_evolutions(void)
                "appears as an undead they are still treated as an outsider.");
   evolutiono(EVOLUTION_BLINDSIGHT, "blindsight", 4, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon's gains blindsense, allowing them to be able to 'see' even if blinded, in darkness, or if the entity is invisible.");
-  evolutiono(EVOLUTION_CELESTIAL_APPEARANCE, "celestial appearace", 3, false, 1, false, EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_FIENDISH_APPEARANCE, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
+  evolutiono(EVOLUTION_CELESTIAL_APPEARANCE, "celestial appearance", 3, false, 1, false, EVOLUTION_UNDEAD_APPEARANCE, EVOLUTION_FIENDISH_APPEARANCE, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_UNIQUE,
                "The eidolon appears as a celestial being and gains some of their benefits. The eidolon gains a "
                "+2 bonus on saves against disease, petrification, poison, and electricity spells and effects. It "
                "also gains spell resistance equal to 5 + its HD. At 7th level the save bonuses increase to +4. At "
@@ -1080,11 +1080,13 @@ ACMD(do_eidolon)
   {
     send_to_char(ch, "Please use one of the following options:\r\n"
                      "-- evolutions - shows the evolutions you have learned.\r\n"
+                     "-- aspects - shows the aspects you have learned.\r\n"
                      "-- shortdesc  - change the eidolon's short description.\r\n"
                      "-- longdesc   - change the eidolon's long description.\r\n"
                      "-- detaildesc - change the eidolon's detailed description.\r\n"
                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
                      "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
+                     "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
                      "\r\n"
                      "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'.\r\n");
     return;
@@ -1096,6 +1098,27 @@ ACMD(do_eidolon)
     for (i = 1; i < NUM_EVOLUTIONS; i++)
     {
       if (KNOWS_EVOLUTION(ch, i))
+      {
+        count++;
+        send_to_char(ch, "%-30s ", evolution_list[i].name);
+        if (count % 2 == 0)
+          send_to_char(ch, "\r\n");
+      }
+    }
+    if (count % 2 == 1)
+      send_to_char(ch, "\r\n");
+    send_to_char(ch, "\r\n");
+    send_to_char(ch, "Type: help (evolution name) for more info on specific evolutions.\r\n");
+    send_to_char(ch, "\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "mergedevos"))
+  {
+    send_to_char(ch, "Merged Evolutions:\r\n");
+    for (i = 1; i < NUM_EVOLUTIONS; i++)
+    {
+      if (HAS_TEMP_EVOLUTION(ch, i))
       {
         count++;
         send_to_char(ch, "%-30s ", evolution_list[i].name);
@@ -1258,7 +1281,7 @@ ACMD(do_eidolon)
     // approx 10 minutes before they can call their eidolon again
     CALL_EIDOLON_COOLDOWN(ch) = 100;
 
-    for (i = 0; i < NUM_EVOLUTIONS; i++)
+    for (i = 1; i < NUM_EVOLUTIONS; i++)
     {
       if (HAS_EVOLUTION(eidolon, i) && evolution_list[i].pc_avail && !HAS_REAL_EVOLUTION(ch, i))
         HAS_TEMP_EVOLUTION(ch, i) = HAS_EVOLUTION(eidolon, i);
@@ -1278,14 +1301,16 @@ ACMD(do_eidolon)
   else
   {
     send_to_char(ch, "Please use one of the following options:\r\n"
-                      "-- evolutions - shows the evolutions you have learned.\r\n"
-                      "-- shortdesc  - change the eidolon's short description.\r\n"
-                      "-- longdesc   - change the eidolon's long description.\r\n"
-                      "-- detaildesc - change the eidolon's detailed description.\r\n"
-                      "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
-                      "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
-                      "\r\n"
-                      "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
+                     "-- evolutions - shows the evolutions you have learned.\r\n"
+                     "-- aspects    - shows the aspects you have learned.\r\n"
+                     "-- shortdesc  - change the eidolon's short description.\r\n"
+                     "-- longdesc   - change the eidolon's long description.\r\n"
+                     "-- detaildesc - change the eidolon's detailed description.\r\n"
+                     "-- bondsenses - take control of your eidolon.  Type 'return' to return control to your character.\r\n"
+                     "-- mergeforms - merge your eidolon with your own form and gain all of their evolutions.\r\n"
+                     "-- mergedevos - shows the evolutions you have gained through the mergeforms ability.\r\n"
+                     "\r\n"
+                     "To call your eidolon type 'call eidolon'.  If your eidolon is not in your room, type 'summon'\r\n");
     return;
   }
 }
