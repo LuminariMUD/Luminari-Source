@@ -1466,8 +1466,8 @@ void proc_d20_round(void)
     }
     if (CALL_EIDOLON_COOLDOWN(i) > 0)
     {
-      GET_FRIGHTFUL_PRESENCE_TIMER(i)--;
-      if (GET_FRIGHTFUL_PRESENCE_TIMER(i) <= 0)
+      CALL_EIDOLON_COOLDOWN(i)--;
+      if (CALL_EIDOLON_COOLDOWN(i) <= 0)
       {
         send_to_char(i, "You can now summon your eidolon again.\r\n");
       }

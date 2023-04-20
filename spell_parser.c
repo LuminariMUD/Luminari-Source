@@ -4603,23 +4603,23 @@ void mag_assign_spells(void)
          "You are no longer dazzled.", 1, 1, NOSCHOOL, 0);
 
   spello(ABILITY_BLEEDING_CRITICAL, "bleeding critical", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AFFECTS,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You are no longer bleeding.", 1, 1, NOSCHOOL, 0);
 
   spello(ABILITY_SICKENING_CRITICAL, "sickening critical", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AFFECTS,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You are no longer sickened.", 1, 1, NOSCHOOL, 0);
 
   spello(ABILITY_STAGGERING_CRITICAL, "staggering critical", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AFFECTS,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You are no longer staggered.", 1, 1, NOSCHOOL, 0);
 
   spello(ABILITY_CENSORING_CRITICAL, "censoring critical", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AFFECTS,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You are no longer censored.", 1, 1, NOSCHOOL, 0);
 
   spello(ABILITY_STUNNING_CRITICAL, "stunning critical", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AFFECTS,
+        TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
          "You are no longer stunned.", 1, 1, NOSCHOOL, 0);
 
   spello(EVOLUTION_BLEED_EFFECT, "bleeding attack", 0, 0, 0, POS_FIGHTING,
