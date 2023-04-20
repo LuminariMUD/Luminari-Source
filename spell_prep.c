@@ -1420,18 +1420,17 @@ void start_prep_event(struct char_data *ch, int class)
   case CLASS_BARD:
   case CLASS_INQUISITOR:
   case CLASS_WARLOCK:
+  case CLASS_SUMMONER:
     if (!INNATE_MAGIC(ch, class))
     {
-      send_to_char(ch, "You have nothing in your innate magic queue for this class to "
-                       "prepare!\r\n");
+      send_to_char(ch, "You have nothing in your innate magic queue for this class to prepare!\r\n");
       return;
     }
     break;
   default:
     if (!SPELL_PREP_QUEUE(ch, class))
     {
-      send_to_char(ch, "You have nothing in your preparation queue for this class to "
-                       "prepare!\r\n");
+      send_to_char(ch, "You have nothing in your preparation queue for this class to prepare!\r\n");
       return;
     }
     break;
@@ -1458,6 +1457,7 @@ void stop_prep_event(struct char_data *ch, int class)
   case CLASS_BARD:
   case CLASS_INQUISITOR:
   case CLASS_WARLOCK:
+  case CLASS_SUMMONER:
     if (INNATE_MAGIC(ch, class))
       reset_preparation_time(ch, class);
     break;
@@ -2141,11 +2141,9 @@ void begin_preparing(struct char_data *ch, int class)
       APOTHEOSIS_SLOTS(ch) = 0;
       send_to_char(ch, "You feel your focused arcane energy fade away.\r\n");
     }
-    send_to_char(ch, "You continue your %s.\r\n",
-                 spell_prep_dict[class][3]);
+    send_to_char(ch, "You continue your %s.\r\n", spell_prep_dict[class][3]);
     *buf = '\0';
-    snprintf(buf, sizeof(buf), "$n continues $s %s.",
-             spell_prep_dict[class][3]);
+    snprintf(buf, sizeof(buf), "$n continues $s %s.", spell_prep_dict[class][3]);
     act(buf, FALSE, ch, 0, 0, TO_ROOM);
     start_prep_event(ch, class);
   }
@@ -2212,7 +2210,7 @@ int compute_spells_prep_time(struct char_data *ch, int class, int circle, int do
     break;
   case CLASS_SUMMONER:
     prep_time *= SUMMONER_PREP_TIME_FACTOR;
-    stat_bonus = GET_INT_BONUS(ch);
+    stat_bonus = GET_CHA_BONUS(ch);
     break;
   case CLASS_INQUISITOR:
     prep_time *= INQUISITOR_PREP_TIME_FACTOR;
@@ -2301,28 +2299,17 @@ void reset_preparation_time(struct char_data *ch, int class)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
     if (!INNATE_MAGIC(ch, class))
       return;
-    preparation_time =
-        compute_spells_prep_time(
-            ch,
-            class,
-            INNATE_MAGIC(ch, class)->circle,
-            INNATE_MAGIC(ch, class)->domain);
+    preparation_time = compute_spells_prep_time(ch, class, INNATE_MAGIC(ch, class)->circle, INNATE_MAGIC(ch, class)->domain);
     INNATE_MAGIC(ch, class)->prep_time = preparation_time;
     break;
   default:
     if (!SPELL_PREP_QUEUE(ch, class))
       return;
-    preparation_time =
-        compute_spells_prep_time(
-            ch,
-            class,
-            compute_spells_circle(class,
-                                  SPELL_PREP_QUEUE(ch, class)->spell,
-                                  SPELL_PREP_QUEUE(ch, class)->metamagic,
-                                  SPELL_PREP_QUEUE(ch, class)->domain),
-            SPELL_PREP_QUEUE(ch, class)->domain);
+    preparation_time = compute_spells_prep_time(ch, class, compute_spells_circle(class, SPELL_PREP_QUEUE(ch, class)->spell,
+                                  SPELL_PREP_QUEUE(ch, class)->metamagic, SPELL_PREP_QUEUE(ch, class)->domain), SPELL_PREP_QUEUE(ch, class)->domain);
     SPELL_PREP_QUEUE(ch, class)->prep_time = preparation_time;
     break;
   }
@@ -2365,6 +2352,7 @@ int star_circlet_proc(struct char_data *ch)
       case CLASS_BARD:
       case CLASS_SORCERER:
       case CLASS_INQUISITOR:
+      case CLASS_SUMMONER:
         if (INNATE_MAGIC(ch, class))
         {
           send_to_char(ch, "You finish %s for %s%s%d circle slot.\r\n",
@@ -2439,6 +2427,7 @@ EVENTFUNC(event_preparation)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
     if (!INNATE_MAGIC(ch, class))
     {
       send_to_char(ch, "Your preparations are aborted!  You do not seem to have anything in your queue!\r\n");
@@ -2469,6 +2458,7 @@ EVENTFUNC(event_preparation)
   case CLASS_BARD:
   case CLASS_SORCERER:
   case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
     INNATE_MAGIC(ch, class)->prep_time--;
     if ((INNATE_MAGIC(ch, class)->prep_time) <= 0)
     {
@@ -2527,6 +2517,7 @@ EVENTFUNC(event_preparation)
   case CLASS_BARD:
   case CLASS_SORCERER:
   case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
     if (!INNATE_MAGIC(ch, class))
     {
       *buf = '\0';
@@ -2541,7 +2532,7 @@ EVENTFUNC(event_preparation)
     if (!SPELL_PREP_QUEUE(ch, class))
     {
       *buf = '\0';
-      send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
+      send_to_char(ch, "%s\r\n", spell_prep_dict[class][3]);
       snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       set_preparing_state(ch, class, FALSE);
@@ -2597,9 +2588,6 @@ ACMDU(do_consign_to_oblivion)
     break;
   case SCMD_DISCARD:
     class = CLASS_ALCHEMIST;
-    break;
-  case SCMD_UNCONJURE:
-    class = CLASS_SUMMONER;
     break;
   /* innate-magic casters such as sorc / bard, do not use this command */
   default:
@@ -2837,6 +2825,7 @@ ACMDU(do_gen_preparation)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_INQUISITOR:
+  case CLASS_SUMMONER:
     print_prep_collection_data(ch, class);
     begin_preparing(ch, class);
     return; /* innate-magic is finished in this command */
