@@ -3542,17 +3542,11 @@ void load_char_pets(struct char_data *ch)
     GET_REAL_AC(mob) = atoi(row[7]);
     GET_REAL_MAX_HIT(mob) = atoi(row[3]);
     GET_HIT(mob) = atoi(row[2]);
-    send_to_char(ch, "1-Mob: %s S: %d D: %d Co: %d I: %d W: %d Ch: %d AC: %d\r\n", GET_NAME(mob), GET_REAL_STR(mob), GET_REAL_DEX(mob), GET_REAL_CON(mob), GET_REAL_INT(mob),
-                 GET_REAL_WIS(mob), GET_REAL_CHA(mob), GET_REAL_AC(mob));
     affect_total(mob);
     load_mtrigger(mob);
     add_follower(mob, ch);
-    send_to_char(ch, "2-Mob: %s S: %d D: %d Co: %d I: %d W: %d Ch: %d AC: %d\r\n", GET_NAME(mob), GET_REAL_STR(mob), GET_REAL_DEX(mob), GET_REAL_CON(mob), GET_REAL_INT(mob),
-                 GET_REAL_WIS(mob), GET_REAL_CHA(mob), GET_REAL_AC(mob));
     if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
-    send_to_char(ch, "3-Mob: %s S: %d D: %d Co: %d I: %d W: %d Ch: %d AC: %d\r\n", GET_NAME(mob), GET_REAL_STR(mob), GET_REAL_DEX(mob), GET_REAL_CON(mob), GET_REAL_INT(mob),
-                 GET_REAL_WIS(mob), GET_REAL_CHA(mob), GET_REAL_AC(mob));
     act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
     act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
   }
