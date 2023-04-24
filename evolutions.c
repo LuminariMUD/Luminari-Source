@@ -664,12 +664,17 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   if (!ch || !mob)
     return;
 
+  send_to_char(ch, "1\r\n");
+
   int i = 0, mlev = GET_LEVEL(mob), amt = 0;
 
   for (i = 0; i < NUM_EVOLUTIONS; i++)
   {
     if (KNOWS_EVOLUTION(ch, i))
+    {
       HAS_REAL_EVOLUTION(mob, i) = KNOWS_EVOLUTION(ch, i);
+      send_to_char(ch, "Evo: %s\r\n", evolution_list[i].name);
+    }      
   }
 
   // mob and aff flags
@@ -711,12 +716,12 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   }
 
   // ability scores
-  (mob)->aff_abils.str += HAS_EVOLUTION(mob, EVOLUTION_STR_INCREASE) * 2;
-  (mob)->aff_abils.dex += HAS_EVOLUTION(mob, EVOLUTION_DEX_INCREASE) * 2;
-  (mob)->aff_abils.con += HAS_EVOLUTION(mob, EVOLUTION_CON_INCREASE) * 2;
-  (mob)->aff_abils.intel += HAS_EVOLUTION(mob, EVOLUTION_INT_INCREASE) * 2;
-  (mob)->aff_abils.wis += HAS_EVOLUTION(mob, EVOLUTION_WIS_INCREASE) * 2;
-  (mob)->aff_abils.cha += HAS_EVOLUTION(mob, EVOLUTION_CHA_INCREASE) * 2;
+  GET_REAL_STR(mob) += HAS_EVOLUTION(mob, EVOLUTION_STR_INCREASE) * 2;
+  GET_REAL_DEX(mob) += HAS_EVOLUTION(mob, EVOLUTION_DEX_INCREASE) * 2;
+  GET_REAL_CON(mob) += HAS_EVOLUTION(mob, EVOLUTION_CON_INCREASE) * 2;
+  GET_REAL_INT(mob) += HAS_EVOLUTION(mob, EVOLUTION_INT_INCREASE) * 2;
+  GET_REAL_WIS(mob) += HAS_EVOLUTION(mob, EVOLUTION_WIS_INCREASE) * 2;
+  GET_REAL_CHA(mob) += HAS_EVOLUTION(mob, EVOLUTION_CHA_INCREASE) * 2;
 
   // fast healing
   GET_FAST_HEALING_MOD(mob) += HAS_EVOLUTION(mob, EVOLUTION_FAST_HEALING) * 2;
@@ -724,17 +729,17 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   // eidolon size
   if (HAS_EVOLUTION(mob, EVOLUTION_HUGE))
   {
-    (mob)->aff_abils.str += 16;
-    (mob)->aff_abils.con += 8;
-    (mob)->aff_abils.dex -= 4;
-    (mob)->points.size = SIZE_HUGE;
+    GET_REAL_STR(mob) += 16;
+    GET_REAL_CON(mob) += 8;
+    GET_REAL_DEX(mob) -= 4;
+    GET_REAL_SIZE(mob) = SIZE_HUGE;
   }
   else if (HAS_EVOLUTION(mob, EVOLUTION_LARGE))
   {
-    (mob)->aff_abils.str += 8;
-    (mob)->aff_abils.con += 4;
-    (mob)->aff_abils.dex -= 2;
-    (mob)->points.size = SIZE_LARGE;
+    GET_REAL_STR(mob) += 8;
+    GET_REAL_CON(mob) += 4;
+    GET_REAL_DEX(mob) -= 2;
+    GET_REAL_SIZE(mob) = SIZE_LARGE;
   }
 
   // base form
@@ -743,54 +748,54 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   case EIDOLON_BASE_FORM_AVIAN:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
-    (mob)->aff_abils.str += 4;
-    (mob)->aff_abils.con += 4;
-    (mob)->aff_abils.dex += 6;
+    GET_REAL_STR(mob) += 4;
+    GET_REAL_CON(mob) += 4;
+    GET_REAL_DEX(mob) += 6;
     break;
   case EIDOLON_BASE_FORM_BIPED:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_GREAT_FORTITUDE) = true;
-    (mob)->aff_abils.str += 6;
-    (mob)->aff_abils.con += 4;
-    (mob)->aff_abils.dex += 4;
+    GET_REAL_STR(mob) += 6;
+    GET_REAL_CON(mob) += 4;
+    GET_REAL_DEX(mob) += 4;
     break;
   case EIDOLON_BASE_FORM_QUADRUPED:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
-    (mob)->aff_abils.str += 6;
-    (mob)->aff_abils.con += 4;
-    (mob)->aff_abils.dex += 6;
+    GET_REAL_STR(mob) += 6;
+    GET_REAL_CON(mob) += 4;
+    GET_REAL_DEX(mob) += 6;
     break;
   case EIDOLON_BASE_FORM_SERPENTINE:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
-    (mob)->aff_abils.str += 4;
-    (mob)->aff_abils.con += 4;
-    (mob)->aff_abils.dex += 6;
+    GET_REAL_STR(mob) += 4;
+    GET_REAL_CON(mob) += 4;
+    GET_REAL_DEX(mob) += 6;
     break;
   case EIDOLON_BASE_FORM_TAURIC:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
-    (mob)->aff_abils.str += 4;
-    (mob)->aff_abils.con += 6;
-    (mob)->aff_abils.dex += 2;
+    GET_REAL_STR(mob) += 4;
+    GET_REAL_CON(mob) += 6;
+    GET_REAL_DEX(mob) += 2;
     break;
   } 
 
   if (HAS_REAL_FEAT(ch, FEAT_GRAND_EIDOLON))
   {
-    (mob)->aff_abils.str += 2;
-    (mob)->aff_abils.con += 2;
-    (mob)->aff_abils.dex += 2;
+    GET_REAL_STR(mob) += 2;
+    GET_REAL_CON(mob) += 2;
+    GET_REAL_DEX(mob) += 2;
     (mob)->aff_abils.intel += 2;
     (mob)->aff_abils.wis += 2;
     (mob)->aff_abils.cha += 2;
   }
   if (HAS_REAL_FEAT(ch, FEAT_EPIC_EIDOLON))
   {
-    (mob)->aff_abils.str += 4;
-    (mob)->aff_abils.con += 4;
-    (mob)->aff_abils.dex += 4;
+    GET_REAL_STR(mob) += 4;
+    GET_REAL_CON(mob) += 4;
+    GET_REAL_DEX(mob) += 4;
     (mob)->aff_abils.intel += 4;
     (mob)->aff_abils.wis += 4;
     (mob)->aff_abils.cha += 4;

@@ -32,6 +32,7 @@
 #include "templates.h"
 #include "premadebuilds.h"
 #include "missions.h"
+#include "evolutions.h"
 
 #define LOAD_HIT 0
 #define LOAD_PSP 1
@@ -3419,17 +3420,18 @@ void save_char_pets(struct char_data *ch)
       continue;
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
-    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,");
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
 
-    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac) VALUES(NULL,");
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
     *end2++ = '\'';
     end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
     *end2++ = '\'';
     *end2++ = '\0';
 
-    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d')",
+    snprintf(query3, sizeof(query3), ",'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
              GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
-             GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch));
+             GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
+             GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
     if (mysql_query(conn, finalQuery))
     {
@@ -3455,7 +3457,7 @@ void load_char_pets(struct char_data *ch)
 
   mysql_ping(conn);
 
-  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
 
   if (mysql_query(conn, query))
   {
@@ -3534,13 +3536,23 @@ void load_char_pets(struct char_data *ch)
     GET_REAL_STR(mob) = atoi(row[4]);
     GET_REAL_CON(mob) = atoi(row[5]);
     GET_REAL_DEX(mob) = atoi(row[6]);
+    GET_REAL_INT(mob) = atoi(row[8]);
+    GET_REAL_WIS(mob) = atoi(row[9]);
+    GET_REAL_CHA(mob) = atoi(row[10]);
     GET_REAL_AC(mob) = atoi(row[7]);
     GET_REAL_MAX_HIT(mob) = atoi(row[3]);
     GET_HIT(mob) = atoi(row[2]);
+    send_to_char(ch, "1-Mob: %s S: %d D: %d Co: %d I: %d W: %d Ch: %d AC: %d\r\n", GET_NAME(mob), GET_REAL_STR(mob), GET_REAL_DEX(mob), GET_REAL_CON(mob), GET_REAL_INT(mob),
+                 GET_REAL_WIS(mob), GET_REAL_CHA(mob), GET_REAL_AC(mob));
+    affect_total(mob);
     load_mtrigger(mob);
     add_follower(mob, ch);
+    send_to_char(ch, "2-Mob: %s S: %d D: %d Co: %d I: %d W: %d Ch: %d AC: %d\r\n", GET_NAME(mob), GET_REAL_STR(mob), GET_REAL_DEX(mob), GET_REAL_CON(mob), GET_REAL_INT(mob),
+                 GET_REAL_WIS(mob), GET_REAL_CHA(mob), GET_REAL_AC(mob));
     if (GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)
       join_group(mob, GROUP(ch));
+    send_to_char(ch, "3-Mob: %s S: %d D: %d Co: %d I: %d W: %d Ch: %d AC: %d\r\n", GET_NAME(mob), GET_REAL_STR(mob), GET_REAL_DEX(mob), GET_REAL_CON(mob), GET_REAL_INT(mob),
+                 GET_REAL_WIS(mob), GET_REAL_CHA(mob), GET_REAL_AC(mob));
     act("$N appears beside you.", true, ch, 0, mob, TO_CHAR);
     act("$N appears beside $n.", true, ch, 0, mob, TO_ROOM);
   }
