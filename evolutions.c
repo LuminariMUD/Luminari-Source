@@ -663,9 +663,7 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
 {
   if (!ch || !mob)
     return;
-
-  send_to_char(ch, "1\r\n");
-
+    
   int i = 0, mlev = GET_LEVEL(mob), amt = 0;
 
   for (i = 0; i < NUM_EVOLUTIONS; i++)
@@ -673,7 +671,6 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
     if (KNOWS_EVOLUTION(ch, i))
     {
       HAS_REAL_EVOLUTION(mob, i) = KNOWS_EVOLUTION(ch, i);
-      send_to_char(ch, "Evo: %s\r\n", evolution_list[i].name);
     }      
   }
 
