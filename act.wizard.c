@@ -1163,7 +1163,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
   send_to_char(ch, "  \tCDR:\tn %d\tC, CM%%:\tn %d\tC | Trlx WpnPsn: %d/%d/%d.\tn\r\n",
                compute_damage_reduction(k, -1),
-               compute_concealment(k),
+               compute_concealment(k, NULL),
                TRLX_PSN_VAL(k),
                TRLX_PSN_LVL(k),
                TRLX_PSN_HIT(k));

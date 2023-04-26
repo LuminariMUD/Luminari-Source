@@ -2059,7 +2059,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
   send_to_char(ch, "\tC");
   text_line(ch, "\tYConcealment\tC", 80, '-', '-');
   send_to_char(ch, "\tn");
-  send_to_char(ch, "Conceal Percent: %d\r\n", compute_concealment(k));
+  send_to_char(ch, "Conceal Percent: %d\r\n", compute_concealment(k, NULL));
 
   send_to_char(ch, "\tC");
   text_line(ch, "\tYDamage Reduction\tC", 80, '-', '-');

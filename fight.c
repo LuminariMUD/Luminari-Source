@@ -3940,10 +3940,13 @@ int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool displ
 
 /* this is straight avoidance percentage, applies to ALL attacks
  (not exclusive to just melee attacks) */
-int compute_concealment(struct char_data *ch)
+int compute_concealment(struct char_data *ch, struct char_data *attacker)
 {
   int concealment = 0;
   int concealment_cap = 0; /* vanish can push you over */
+
+  if (attacker && !CAN_SEE(attacker, ch))
+    concealment += 50;
 
   /* these shouldn't stack, should be sorted from top to bottom by highest concealment % */
   if (AFF_FLAGGED(ch, AFF_DISPLACE))
@@ -4046,13 +4049,13 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       return 0;
 
     /* handle concealment */
-    int concealment = compute_concealment(victim);
+    int concealment = compute_concealment(victim, ch);
     /* seeking weapons (ranged weapons only) bypass concealment always */
     if (weapon && OBJ_FLAGGED(weapon, ITEM_SEEKING))
       concealment = 0;
     if (affected_by_spell(ch, PSIONIC_INEVITABLE_STRIKE))
       concealment = 0;
-    if (dice(1, 100) <= compute_concealment(victim) && !is_spell)
+    if (dice(1, 100) <= concealment && !is_spell)
     {
       send_combat_roll_info(victim, "\tW<conceal:%d>\tn", concealment);
       send_combat_roll_info(ch, "\tR<oconceal:%d>\tn", concealment);
@@ -8913,7 +8916,7 @@ int can_sneak_attack(struct char_data *ch, struct char_data *victim)
     return FALSE;
 
   /* concealment check to avoid sneak attack */
-  if (compute_concealment(victim) > rand_number(1, 101))
+  if (compute_concealment(victim, ch) > rand_number(1, 101))
     return FALSE;
 
   /* ok they don't have any easy out, and we know the attacker has sneak attack... is the target vulnerable? */

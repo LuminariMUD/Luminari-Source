@@ -58,7 +58,7 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict,
                           int combat_maneuver_type, int attacker_bonus);
 int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is_touch, int mode);
 int compute_damage_reduction(struct char_data *ch, int dam_type);
-int compute_concealment(struct char_data *ch);
+int compute_concealment(struct char_data *ch, struct char_data *attacker);
 int compute_damage_bonus(struct char_data *ch, struct char_data *victim,
                          struct obj_data *wielded, int attktype, int mod, int mode, int attack_type);
 int compute_cmb(struct char_data *ch, int combat_maneuver_type);
