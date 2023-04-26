@@ -1320,6 +1320,7 @@ int get_class_highest_circle(struct char_data *ch, int class)
     else
       return 6;
   case CLASS_SUMMONER:
+  case CLASS_ALCHEMIST:
     if (class_level < 4)
       return 1;
     else if (class_level < 7)
