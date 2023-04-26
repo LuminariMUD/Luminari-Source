@@ -2523,7 +2523,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
   /* surprise spell feat */
   if (HAS_FEAT(ch, FEAT_SURPRISE_SPELLS) &&
       (!KNOWS_DISCOVERY(victim, ALC_DISC_PRESERVE_ORGANS) || dice(1, 4) > 1) &&
-      (compute_concealment(victim) == 0) &&
+      (compute_concealment(victim, ch) == 0) &&
       ((AFF_FLAGGED(victim, AFF_FLAT_FOOTED)) /* Flat-footed */
        || !(has_dex_bonus_to_ac(ch, victim))  /* No dex bonus to ac */
        || is_flanked(ch, victim)              /* Flanked */

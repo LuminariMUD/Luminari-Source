@@ -7242,7 +7242,7 @@ bool can_one_with_shadows(struct char_data *ch)
 
   if (!HAS_REAL_FEAT(ch, FEAT_ONE_WITH_SHADOW)) return false;
 
-  if (compute_concealment(ch) > 0)
+  if (compute_concealment(ch, NULL) > 0)
     return true;
 
   if (has_cover(ch, FIGHTING(ch)))
