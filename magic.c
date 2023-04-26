@@ -9405,8 +9405,8 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
   if (casttype == CAST_WEAPON_POISON || casttype == CAST_WEAPON_SPELL)
     ;
   else
-    /* bards also get some healing spells */
-    level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_BARD) + ALCHEMIST_LEVEL(ch);
+    /* bards, alchemists and summoners also get some healing spells */
+    level = DIVINE_LEVEL(ch) + CLASS_LEVEL(ch, CLASS_SUMMONER) + CLASS_LEVEL(ch, CLASS_BARD) + ALCHEMIST_LEVEL(ch);
 
   switch (spellnum)
   {
@@ -9488,7 +9488,7 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim,
       send_to_char(ch, "This spell can only be cast upon your eidolon.\r\n");
       return;
     }
-    healing = level * 10 + 20;
+    healing = (level * 10) + 20;
     to_char = "You \twcure massive wounds\tn on $N.";
     to_vict = "$n \twcures massive wounds\tn on you.";
     to_notvict = "$N \twfeels far better\tn.";
