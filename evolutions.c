@@ -496,6 +496,36 @@ bool is_evolution_attack(int attack_type)
   return false;
 }
 
+int get_evolution_attack_w_type(int attack_type)
+{
+  switch (attack_type)
+  {
+    case ATTACK_TYPE_PRIMARY_EVO_BITE:
+      return TYPE_BITE;
+    case ATTACK_TYPE_PRIMARY_EVO_CLAWS:
+    case ATTACK_TYPE_PRIMARY_EVO_REND:
+      return TYPE_CLAW;
+    case ATTACK_TYPE_PRIMARY_EVO_HOOVES:
+      return TYPE_BLUDGEON;
+    case ATTACK_TYPE_PRIMARY_EVO_PINCERS:
+      return TYPE_CRUSH;
+    case ATTACK_TYPE_PRIMARY_EVO_STING:
+      return TYPE_STING;
+    case ATTACK_TYPE_PRIMARY_EVO_TAIL_SLAP:
+    case ATTACK_TYPE_PRIMARY_EVO_TENTACLE:
+      return TYPE_SMASH;
+    case ATTACK_TYPE_PRIMARY_EVO_WING_BUFFET:
+      return TYPE_BLAST;
+    case ATTACK_TYPE_PRIMARY_EVO_GORE:
+      return TYPE_GORE;
+    case ATTACK_TYPE_PRIMARY_EVO_RAKE:
+      return TYPE_RAKE;    
+    case ATTACK_TYPE_PRIMARY_EVO_TRAMPLE:
+      return TYPE_TRAMPLE;
+  }
+  return TYPE_HIT;
+}
+
 int determine_evolution_attack_damage_dice(struct char_data *ch, int attack_type)
 {
   switch (attack_type)
@@ -536,7 +566,10 @@ void perform_evolution_attack(struct char_data *ch, int mode, int phase, int att
   { 
     if (valid_fight_cond(ch, FALSE))
       if (phase == PHASE_0 || phase == PHASE_1)
+      {
         hit(ch, FIGHTING(ch), TYPE_UNDEFINED, dam_type, 0, attack_type);
+      }
+        
   }
   else if (mode == DISPLAY_ROUTINE_POTENTIAL)
   {
@@ -659,7 +692,7 @@ void process_evolution_breath_damage(struct char_data *ch)
     AoEDamageRoom(ch, dice(level, 6), SPELL_LIGHTNING_BREATHE, DAM_ELECTRIC);
 }
 
-void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
+void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool from_db)
 {
   if (!ch || !mob)
     return;
@@ -713,12 +746,15 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   }
 
   // ability scores
-  GET_REAL_STR(mob) += HAS_EVOLUTION(mob, EVOLUTION_STR_INCREASE) * 2;
-  GET_REAL_DEX(mob) += HAS_EVOLUTION(mob, EVOLUTION_DEX_INCREASE) * 2;
-  GET_REAL_CON(mob) += HAS_EVOLUTION(mob, EVOLUTION_CON_INCREASE) * 2;
-  GET_REAL_INT(mob) += HAS_EVOLUTION(mob, EVOLUTION_INT_INCREASE) * 2;
-  GET_REAL_WIS(mob) += HAS_EVOLUTION(mob, EVOLUTION_WIS_INCREASE) * 2;
-  GET_REAL_CHA(mob) += HAS_EVOLUTION(mob, EVOLUTION_CHA_INCREASE) * 2;
+  if (!from_db)
+  {
+    GET_REAL_STR(mob) += HAS_EVOLUTION(mob, EVOLUTION_STR_INCREASE) * 2;
+    GET_REAL_DEX(mob) += HAS_EVOLUTION(mob, EVOLUTION_DEX_INCREASE) * 2;
+    GET_REAL_CON(mob) += HAS_EVOLUTION(mob, EVOLUTION_CON_INCREASE) * 2;
+    GET_REAL_INT(mob) += HAS_EVOLUTION(mob, EVOLUTION_INT_INCREASE) * 2;
+    GET_REAL_WIS(mob) += HAS_EVOLUTION(mob, EVOLUTION_WIS_INCREASE) * 2;
+    GET_REAL_CHA(mob) += HAS_EVOLUTION(mob, EVOLUTION_CHA_INCREASE) * 2;
+  }
 
   // fast healing
   GET_FAST_HEALING_MOD(mob) += HAS_EVOLUTION(mob, EVOLUTION_FAST_HEALING) * 2;
@@ -726,16 +762,22 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   // eidolon size
   if (HAS_EVOLUTION(mob, EVOLUTION_HUGE))
   {
-    GET_REAL_STR(mob) += 16;
-    GET_REAL_CON(mob) += 8;
-    GET_REAL_DEX(mob) -= 4;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 16;
+      GET_REAL_CON(mob) += 8;
+      GET_REAL_DEX(mob) -= 4;
+    }
     GET_REAL_SIZE(mob) = SIZE_HUGE;
   }
   else if (HAS_EVOLUTION(mob, EVOLUTION_LARGE))
   {
-    GET_REAL_STR(mob) += 8;
-    GET_REAL_CON(mob) += 4;
-    GET_REAL_DEX(mob) -= 2;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 8;
+      GET_REAL_CON(mob) += 4;
+      GET_REAL_DEX(mob) -= 2;
+    }
     GET_REAL_SIZE(mob) = SIZE_LARGE;
   }
 
@@ -745,6 +787,10 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   case EIDOLON_BASE_FORM_AVIAN:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
+    if (!from_db)
+    {
+
+    }
     GET_REAL_STR(mob) += 4;
     GET_REAL_CON(mob) += 4;
     GET_REAL_DEX(mob) += 6;
@@ -752,50 +798,68 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob)
   case EIDOLON_BASE_FORM_BIPED:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_GREAT_FORTITUDE) = true;
-    GET_REAL_STR(mob) += 6;
-    GET_REAL_CON(mob) += 4;
-    GET_REAL_DEX(mob) += 4;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 6;
+      GET_REAL_CON(mob) += 4;
+      GET_REAL_DEX(mob) += 4;
+    }
     break;
   case EIDOLON_BASE_FORM_QUADRUPED:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
-    GET_REAL_STR(mob) += 6;
-    GET_REAL_CON(mob) += 4;
-    GET_REAL_DEX(mob) += 6;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 6;
+      GET_REAL_CON(mob) += 4;
+      GET_REAL_DEX(mob) += 6;
+    }
     break;
   case EIDOLON_BASE_FORM_SERPENTINE:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_LIGHTNING_REFLEXES) = true;
-    GET_REAL_STR(mob) += 4;
-    GET_REAL_CON(mob) += 4;
-    GET_REAL_DEX(mob) += 6;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 4;
+      GET_REAL_CON(mob) += 4;
+      GET_REAL_DEX(mob) += 6;
+    }
     break;
   case EIDOLON_BASE_FORM_TAURIC:
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
     HAS_REAL_FEAT(mob, FEAT_IRON_WILL) = true;
-    GET_REAL_STR(mob) += 4;
-    GET_REAL_CON(mob) += 6;
-    GET_REAL_DEX(mob) += 2;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 4;
+      GET_REAL_CON(mob) += 6;
+      GET_REAL_DEX(mob) += 2;
+    }
     break;
   } 
 
   if (HAS_REAL_FEAT(ch, FEAT_GRAND_EIDOLON))
   {
-    GET_REAL_STR(mob) += 2;
-    GET_REAL_CON(mob) += 2;
-    GET_REAL_DEX(mob) += 2;
-    (mob)->aff_abils.intel += 2;
-    (mob)->aff_abils.wis += 2;
-    (mob)->aff_abils.cha += 2;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 2;
+      GET_REAL_CON(mob) += 2;
+      GET_REAL_DEX(mob) += 2;
+      (mob)->aff_abils.intel += 2;
+      (mob)->aff_abils.wis += 2;
+      (mob)->aff_abils.cha += 2;
+    }
   }
   if (HAS_REAL_FEAT(ch, FEAT_EPIC_EIDOLON))
   {
-    GET_REAL_STR(mob) += 4;
-    GET_REAL_CON(mob) += 4;
-    GET_REAL_DEX(mob) += 4;
-    (mob)->aff_abils.intel += 4;
-    (mob)->aff_abils.wis += 4;
-    (mob)->aff_abils.cha += 4;
+    if (!from_db)
+    {
+      GET_REAL_STR(mob) += 4;
+      GET_REAL_CON(mob) += 4;
+      GET_REAL_DEX(mob) += 4;
+      (mob)->aff_abils.intel += 4;
+      (mob)->aff_abils.wis += 4;
+      (mob)->aff_abils.cha += 4;
+    }
   } 
 }
 

@@ -8694,6 +8694,10 @@ int determine_weapon_type(struct char_data *ch, struct char_data *victim,
 
     w_type = wildshape_weapon_type(ch);
   }
+  else if (is_evolution_attack(attack_type))
+  {
+    w_type = get_evolution_attack_w_type(attack_type);
+  }
   else
   { /* mobile messages or unarmed */
     if (IS_NPC(ch) && ch->mob_specials.attack_type != 0)
@@ -9860,8 +9864,7 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
     #define ATTACK_TYPE_OFFHAND_SNEAK   7  //impromptu sneak attack
    Attack queue will determine what kind of hit this is. */
 #define DAM_MES_LENGTH 20
-int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type,
-        int penalty, int attack_type)
+int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, int penalty, int attack_type)
 {
   int w_type = 0,         /* Weapon type? */
       victim_ac = 0,      /* Target's AC, from compute_ac(). */
@@ -11088,7 +11091,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
       {
         apply_evolution_bleed(FIGHTING(ch));
       }
-      if (GET_CONSECUTIVE_HITS(ch) >= 2)
+      if (GET_CONSECUTIVE_HITS(ch) >= 2 && HAS_EVOLUTION(ch, EVOLUTION_REND))
       {
         GET_CONSECUTIVE_HITS(ch) = 0;
         numAttacks++;

@@ -107,7 +107,7 @@ void apply_evolution_bleed(struct char_data *ch);
 void apply_evolution_poison(struct char_data *ch, struct char_data *vict);
 void process_evolution_elemental_damage(struct char_data *ch, struct char_data *victim);
 void process_evolution_thrash_alignment_damage(struct char_data *ch, struct char_data *victim);
-void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob);
+void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool from_db);
 void process_evolution_breath_damage(struct char_data *ch);
 int num_evo_breaths(struct char_data *ch);
 bool is_eidolon_in_room(struct char_data *ch);
@@ -126,5 +126,6 @@ void study_assign_eidolon_base_form(struct char_data *ch, int form);
 bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution);
 int study_num_aspects_chosen(struct descriptor_data *d);
 bool study_has_aspects_unchosen(struct descriptor_data *d);
+int get_evolution_attack_w_type(int attack_type);
 
 #endif

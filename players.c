@@ -3532,14 +3532,16 @@ void load_char_pets(struct char_data *ch)
         snprintf(buf, sizeof(buf), "%s\r\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
         mob->player.description = strdup(buf);
       }
+
+      assign_eidolon_evolutions(ch, mob, true);
     }
-    GET_REAL_STR(mob) = atoi(row[4]);
-    GET_REAL_CON(mob) = atoi(row[5]);
-    GET_REAL_DEX(mob) = atoi(row[6]);
-    GET_REAL_INT(mob) = atoi(row[8]);
-    GET_REAL_WIS(mob) = atoi(row[9]);
-    GET_REAL_CHA(mob) = atoi(row[10]);
-    GET_REAL_AC(mob) = atoi(row[7]);
+    GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
+    GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
+    GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
+    GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
+    GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
+    GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
+    GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
     GET_REAL_MAX_HIT(mob) = atoi(row[3]);
     GET_HIT(mob) = atoi(row[2]);
     affect_total(mob);
