@@ -1846,7 +1846,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
-    assign_eidolon_evolutions(ch, mob);
+    assign_eidolon_evolutions(ch, mob, false);
     break;
   }
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
