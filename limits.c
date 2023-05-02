@@ -166,8 +166,7 @@ void affliction_tick(struct char_data *ch)
     if (DOOM(ch) <= 0)
     {
       send_to_char(ch, "Your creeping swarm of centipedes dissipates!\r\n");
-      act("The creeping swarm of centipedes following $n dissipates!", TRUE, ch, 0, NULL,
-          TO_ROOM);
+      act("The creeping swarm of centipedes following $n dissipates!", TRUE, ch, 0, NULL, TO_ROOM);
     }
   } // end creeping doom
 

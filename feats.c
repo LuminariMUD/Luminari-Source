@@ -182,6 +182,26 @@ void feat_prereq_feat(int featnum, int feat, int ranks)
   feat_list[featnum].prerequisite_list = prereq;
 }
 
+void feat_prereq_nofeat(int featnum, int feat, int ranks)
+{
+  struct feat_prerequisite *prereq = NULL;
+  char buf[80];
+
+  prereq = create_prerequisite(FEAT_PREREQ_NOFEAT, feat, ranks, 0);
+
+  /* Generate the description. */
+  if (ranks > 1)
+    snprintf(buf, sizeof(buf), "%s (%d ranks)", feat_list[feat].name, ranks);
+  else
+    snprintf(buf, sizeof(buf), "%s", feat_list[feat].name);
+
+  prereq->description = strdup(buf);
+
+  /*   Link it up. */
+  prereq->next = feat_list[featnum].prerequisite_list;
+  feat_list[featnum].prerequisite_list = prereq;
+}
+
 void feat_prereq_cfeat(int featnum, int feat)
 {
   struct feat_prerequisite *prereq = NULL;
@@ -1518,7 +1538,7 @@ void assign_feats(void)
 
   feato(FEAT_LIFE_BOND, "life bond", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead.",
-        "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead. ");
+        "As long as the eidolon is in the same room and alive, any damage the summoner takes is redirected to the eidolon instead. Must be enabled to function, and can be toggled with the 'lifebond' command.");
 
   feato(FEAT_MERGE_FORMS, "merge forms", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "Allows the summoner to dismiss their eidolon and take upon them all their abilities.",
@@ -3481,8 +3501,8 @@ void assign_feats(void)
                          "can choose an enemy type as a favored enemy",
                          "can choose an enemy type as a favored enemy");
   /* unfinished */ feato(FEAT_FAVORED_ENEMY, "favored enemy", TRUE, FALSE, TRUE, FEAT_TYPE_CLASS_ABILITY,
-                         "Gain bonuses when fighting against a particular type of enemy",
-                         "Gain bonuses when fighting against a particular type of enemy");
+                         "Gain bonuses when fighting against a particular type of enemy.",
+                         "Gain bonuses when fighting against a particular type of enemy. Equal to 2 + (Ranger Level / 5). Affects hitroll damroll and armor class.");
   /* modified from original */
   feato(FEAT_CAMOUFLAGE, "camouflage", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "gain stealth bonus in nature",
@@ -3522,9 +3542,8 @@ void assign_feats(void)
         "Any weapon you wield that strikes an opponent that is a favored enemy will "
         "act as a bane weapon and do an additional 2d6 damage.");
   feato(FEAT_EPIC_FAVORED_ENEMY, "epic favored enemy", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "gain extra bonus to dam against fav enemy",
-        "You will gain an extra +6 to attack bonus and damage against any of your "
-        "favored enemies and will add your dex bonus to ranged attacks.");
+        "gain extra bonus to dam against fav enemy.",
+        "You will gain an extra bonus to your favored enemies equal to your dexterity bonus after modifications such as armor check penalty, etc.");
 
   /* Ranger / Druid */
   feato(FEAT_ANIMAL_COMPANION, "animal companion", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
@@ -4483,6 +4502,7 @@ void assign_feats(void)
   feato(FEAT_MONKEY_GRIP, "monkey grip", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
         "can wield weapons one size larger than wielder in one hand with -2 to attacks.",
         "can wield weapons one size larger than wielder in one hand with -2 to attacks.");
+  feat_prereq_nofeat(FEAT_MONKEY_GRIP, FEAT_POWERFUL_BUILD, 1);
 
   /**************************/
   /* Disabled/Unimplemented */
@@ -5005,6 +5025,10 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
     break;
   case FEAT_PREREQ_FEAT:
     if (has_feat_requirement_check(ch, prereq->values[0]) < prereq->values[1])
+      return FALSE;
+    break;
+  case FEAT_PREREQ_NOFEAT:
+    if (has_feat_requirement_check(ch, prereq->values[0]) >= prereq->values[1])
       return FALSE;
     break;
   case FEAT_PREREQ_ABILITY:
