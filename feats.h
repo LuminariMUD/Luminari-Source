@@ -120,6 +120,8 @@ ACMD_DECL(do_featlisting);
 #define FEAT_PREREQ_WEAPON_PROFICIENCY 9
 #define CLASS_PREREQ_WEAPON_PROFICIENCY 9
 #define CLASS_PREREQ_ALIGN 10
+#define FEAT_PREREQ_NOFEAT 11
+#define CLASS_PREREQ_NOFEAT 11
 
 /* prereq system, ability scores */
 #define AB_NONE 0

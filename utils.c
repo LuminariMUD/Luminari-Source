@@ -8256,4 +8256,80 @@ void send_combat_roll_info(struct char_data *ch, const char *messg, ...)
 
 }
 
+int can_carry_weight_limit(struct char_data *ch)
+{
+  if (!ch) return 0;
+
+  int strength = GET_CARRY_STRENGTH(ch);
+  int limit = 0;
+
+  if (strength <= 1)
+    limit = 5;
+  else
+  {
+    switch (strength)
+    {
+      case 2: limit = 13; break;
+      case 3: limit = 20; break;
+      case 4: limit = 26; break;
+      case 5: limit = 33; break;
+      case 6: limit = 40; break;
+      case 7: limit = 46; break;
+      case 8: limit = 53; break;
+      case 9: limit = 60; break;
+      case 10: limit = 66; break;
+      case 11: limit = 76; break;
+      case 12: limit = 86; break;
+      case 13: limit = 100; break;
+      case 14: limit = 116; break;
+      case 15: limit = 133; break;
+      case 16: limit = 153; break;
+      case 17: limit = 173; break;
+      case 18: limit = 200; break;
+      case 19: limit = 233; break;
+      case 20: limit = 266; break;
+      case 21: limit = 306; break;
+      case 22: limit = 346; break;
+      case 23: limit = 400; break;
+      case 24: limit = 466; break;
+      case 25: limit = 533; break;
+      case 26: limit = 613; break;
+      case 27: limit = 693; break;
+      case 28: limit = 800; break;
+      case 29: limit = 933; break;
+      // 30+
+      default:
+        limit = 1000 + MAX(0, (strength - 30)) * 200;
+        break;
+    }
+  }
+
+  // the above tables use the pathfinder value for a medium load.
+  // level 30+ we've customized so things don't get too insane.
+  // here we'll multiply by 1.5 to get their max load.
+  // if at some point in the future we want to fully implement
+  // the encumbrance system with light/medium/heavy loads we can
+  // add a mode variable to the function and multiply the above values
+  // accordingly. x0.5 for light x1.5 for heavy. For now all limits
+  // are heavy, so x1.5
+  limit = (int) (limit * 1.5);
+
+  switch (GET_SIZE(ch))
+  {
+    case SIZE_FINE: limit = (int) (limit * 0.125); break;
+    case SIZE_DIMINUTIVE: limit = (int) (limit * 0.25); break;
+    case SIZE_TINY: limit = (int) (limit * 0.5); break;
+    case SIZE_SMALL: limit = (int) (limit * 0.75); break;
+    case SIZE_LARGE: limit = (int) (limit * 2); break;
+    case SIZE_HUGE: limit = (int) (limit * 4); break;
+    case SIZE_GARGANTUAN: limit = (int) (limit * 8); break;
+    case SIZE_COLOSSAL: limit = (int) (limit * 16); break;
+  }
+
+  limit = MIN(25000, limit);
+
+  return MAX(1, limit);
+
+}
+
 /* EoF */

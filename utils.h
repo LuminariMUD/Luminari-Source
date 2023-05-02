@@ -261,6 +261,7 @@ bool is_covered(struct char_data *ch);
 void new_affect(struct affected_type *af);
 void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
+int can_carry_weight_limit(struct char_data *ch);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
@@ -1503,7 +1504,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GET_CARRY_STRENGTH(ch)  (GET_STR(ch) + GET_ENCUMBRANCE_MOD(ch) + (HAS_FEAT(ch, FEAT_ENCUMBERED_RESILIENCE) ? 2 : 0))
 
 /** Return how much weight ch can carry. */
-#define CAN_CARRY_W(ch) (GET_SIZE(ch) < SIZE_SMALL ? str_app[GET_CARRY_STRENGTH(ch)].carry_w / 2 : str_app[GET_CARRY_STRENGTH(ch)].carry_w)
+#define CAN_CARRY_W(ch) (can_carry_weight_limit(ch))
 
 /** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */
