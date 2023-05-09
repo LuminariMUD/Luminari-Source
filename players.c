@@ -3386,7 +3386,7 @@ void update_player_last_on(void)
 void save_char_pets(struct char_data *ch)
 {
 
-  if (!ch)
+  if (!ch || !ch->desc || IS_NPC(ch))
     return;
 
   struct follow_type *f = NULL;
@@ -3395,13 +3395,16 @@ void save_char_pets(struct char_data *ch)
   char query2[MEDIUM_STRING] = {'\0'};
   char query3[MEDIUM_STRING] = {'\0'};
   char finalQuery[MEDIUM_STRING * 2];
+  char chname[MEDIUM_STRING] = {'\0'};
   char *end = NULL, *end2 = NULL;
+
+  snprintf(chname, sizeof(chname), "%s", GET_NAME(ch));
 
   mysql_ping(conn);
 
   end = stpcpy(query, "DELETE FROM pet_data WHERE owner_name=");
   *end++ = '\'';
-  end += mysql_real_escape_string(conn, end, GET_NAME(ch), strlen(GET_NAME(ch)));
+  end += mysql_real_escape_string(conn, end, chname, strlen(chname));
   *end++ = '\'';
   *end++ = '\0';
 
@@ -3409,9 +3412,6 @@ void save_char_pets(struct char_data *ch)
   {
     log("SYSERR: Unable to DELETE from pet_data: %s", mysql_error(conn));
   }
-
-  if (!ch || !ch->desc || IS_NPC(ch))
-    return;
 
   for (f = ch->followers; f; f = f->next)
   {
