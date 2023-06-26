@@ -187,6 +187,8 @@ cpp_extern const struct command_info cmd_info[] = {
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
     {"backstab", "ba", POS_STANDING, do_backstab, 1, 0, FALSE, ACTION_NONE, {0, 0}, can_backstab},
+    {"bags", "bag", POS_RECLINING, do_bags, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"bagnames", "bagnames", POS_SLEEPING, do_bagnames, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ban", "ban", POS_DEAD, do_ban, LVL_GRSTAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"baneweapon", "banew", POS_RECLINING, do_bane, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bandage", "bandage", POS_FIGHTING, do_bandage, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, 0},
@@ -289,6 +291,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"diagnose", "diag", POS_RECLINING, do_diagnose, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"dice", "diceroll", POS_DEAD, do_diceroll, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"dig", "dig", POS_DEAD, do_dig, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"discard", "discard", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_DISCARD, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"discharge", "discharge", POS_RECLINING, do_discharge, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
@@ -720,6 +723,8 @@ cpp_extern const struct command_info cmd_info[] = {
     {"sneak", "sneak", POS_STANDING, do_sneak, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"snoop", "snoop", POS_DEAD, do_snoop, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"socials", "socials", POS_DEAD, do_commands, 0, SCMD_SOCIALS, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"sortfrom", "sortfrom", POS_RECLINING, do_sort, 0, SCMD_SORTFROM, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"sortto", "sortto", POS_RECLINING, do_sort, 0, SCMD_SORTTO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"speak", "speak", POS_RECLINING, do_speak, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spelllist", "spelllist", POS_RECLINING, do_spelllist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spells", "spells", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -737,6 +742,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"switch", "switch", POS_DEAD, do_switch, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shapechange", "shapechange", POS_FIGHTING, do_wildshape, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"skills", "skills", POS_RECLINING, do_train, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"skillcheck", "skillch", POS_RECLINING, do_skillcheck, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"supplyorder", "supplyorder", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spellbattle", "spellbattle", POS_STANDING, do_spellbattle, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spellquests", "spellquests", POS_DEAD, do_spellquests, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -765,6 +771,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"taste", "tas", POS_RECLINING, do_eat, 0, SCMD_TASTE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"taunt", "taunt", POS_FIGHTING, do_taunt, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, can_taunt},
     {"teleport", "tele", POS_DEAD, do_teleport, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"temote", "tem", POS_RECLINING, do_temote, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"tedit", "tedit", POS_DEAD, do_tedit, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL}, /* XXX: Oasisify */
     {"thaw", "thaw", POS_DEAD, do_wizutil, LVL_GRSTAFF, SCMD_THAW, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"title", "title", POS_DEAD, do_title, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1220,6 +1227,9 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
            !is_abbrev(complete_cmd_info[cmd].command, "'") &&
            !is_abbrev(complete_cmd_info[cmd].command, "help") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "class") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "race") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "spelllist") &&
            !is_abbrev(complete_cmd_info[cmd].command, "reply") &&
            !is_abbrev(complete_cmd_info[cmd].command, "prefedit") &&
            !is_abbrev(complete_cmd_info[cmd].command, "bug") &&
@@ -1227,7 +1237,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "idea") &&
            !is_abbrev(complete_cmd_info[cmd].command, "tell"))
     send_to_char(ch, "You are too busy crafting. [Available commands: gossip/"
-                     "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea]\r\n");
+                     "chat/gemote/look/score/group/say/tell/reply/help/prefedit/bug/typo/idea/class/race/spelllist]\r\n");
   else if (GET_POS(ch) < complete_cmd_info[cmd].minimum_position)
     switch (GET_POS(ch))
     {
@@ -1914,6 +1924,9 @@ int enter_player_game(struct descriptor_data *d)
   int i = 0;
 
   reset_char(d->character);
+
+  if (d->character->bags == NULL)
+    CREATE(d->character->bags, struct bag_data, 1);
 
   if (PLR_FLAGGED(d->character, PLR_INVSTART))
     GET_INVIS_LEV(d->character) = GET_LEVEL(d->character);

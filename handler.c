@@ -453,7 +453,7 @@ void reset_char_points(struct char_data *ch)
 
   /* Reset damage reduction */
   //  for (damreduct = ch->points.damage_reduction;
-  //       damreduct != NULL;
+  //       damreduct;
   //       damreduct = damreduct->next)
   //  {
   /* We have a damage reduction record.  Clear it out. */
@@ -1202,9 +1202,9 @@ void affect_from_char(struct char_data *ch, int spell)
       }
       else if (spell == SPELL_REPULSION)
       {
-        if (ch->char_specials.repulse_blacklist != NULL)
+        if (ch->char_specials.repulse_blacklist)
           free_list(ch->char_specials.repulse_blacklist);
-        if (ch->char_specials.repulse_whitelist != NULL)
+        if (ch->char_specials.repulse_whitelist)
           free_list(ch->char_specials.repulse_whitelist);
       }
     }
@@ -1484,13 +1484,97 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
 {
   if (object && ch)
   {
+    log("T1: %s", object->short_description);
     object->next_content = ch->carrying;
+    log("T2: %s", object->short_description);
     ch->carrying = object;
+    log("T3: %s", object->short_description);
     object->carried_by = ch;
+    log("T4: %s", object->short_description);
+    IN_ROOM(object) = NOWHERE;
+    log("T5: %s", object->short_description);
+    IS_CARRYING_W(ch) += GET_OBJ_WEIGHT(object);
+    IS_CARRYING_N(ch)++;
+    log("T6: %s", object->short_description);
+
+    /* autoquest system check point -Zusuk */
+    autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
+    log("T7: %s", object->short_description);
+
+    /* set flag for crash-save system, but not on mobs! */
+    if (!IS_NPC(ch))
+      SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+
+    log("T8: %s", object->short_description);
+
+    if (ch->desc)
+    {
+      log("T9: %s", object->short_description);
+      update_msdp_inventory(ch);
+      log("T10: %s", object->short_description);
+      MSDPFlush(ch->desc, eMSDP_INVENTORY);
+    }
+    log("T11: %s", object->short_description);
+  }
+  else
+    log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_char.", object, ch);
+}
+
+void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum)
+{
+  if (object && ch)
+  {
+
+    switch (bagnum)
+    {
+      case 1:
+        object->next_content = ch->bags->bag1;
+        ch->bags->bag1 = object;
+        break;
+      case 2:
+        object->next_content = ch->bags->bag2;
+        ch->bags->bag2 = object;
+        break;
+      case 3:
+        object->next_content = ch->bags->bag3;
+        ch->bags->bag3 = object;
+        break;
+      case 4:
+        object->next_content = ch->bags->bag4;
+        ch->bags->bag4 = object;
+        break;
+      case 5:
+        object->next_content = ch->bags->bag5;
+        ch->bags->bag5 = object;
+        break;
+      case 6:
+        object->next_content = ch->bags->bag6;
+        ch->bags->bag6 = object;
+        break;
+      case 7:
+        object->next_content = ch->bags->bag7;
+        ch->bags->bag7 = object;
+        break;
+      case 8:
+        object->next_content = ch->bags->bag8;
+        ch->bags->bag8 = object;
+        break;
+      case 9:
+        object->next_content = ch->bags->bag9;
+        ch->bags->bag9 = object;
+        break;
+      case 10:
+        object->next_content = ch->bags->bag10;
+        ch->bags->bag10 = object;
+        break;
+      default:
+        object->next_content = ch->bags->bag1;
+        ch->bags->bag1 = object;
+        break;
+    }
     IN_ROOM(object) = NOWHERE;
     IS_CARRYING_W(ch) += GET_OBJ_WEIGHT(object);
-    IS_CARRYING_N(ch)
-    ++;
+    IS_CARRYING_N(ch)++;
 
     /* autoquest system check point -Zusuk */
     autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
@@ -1499,18 +1583,6 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     if (!IS_NPC(ch))
       SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
 
-    /* group loot system */
-    /*
-    struct group_data *group = GROUP(ch);
-
-    if (group && IS_SET(GROUP_FLAGS(group), GROUP_LOOTZ) && GROUP_LEADER(group) && GROUP_LEADER(group) == ch)
-    {
-      // add it to the group list
-      object->next_gitem = group->gitems;
-      group->gitems = object;
-    }
-    */
-
     if (ch->desc)
     {
       update_msdp_inventory(ch);
@@ -1518,7 +1590,67 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
     }
   }
   else
-    log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_char.", object, ch);
+    log("SYSERR: NULL obj (%p) or char (%p) passed to obj_to_bag.", object, ch);
+}
+
+void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum)
+{
+  struct obj_data *temp = NULL;
+
+  if (object == NULL || ch == NULL)
+  {
+    log("SYSERR: NULL object or char passed to obj_from_bag.");
+    return;
+  }
+
+  switch (bagnum)
+  {
+    case 1:
+      REMOVE_FROM_LIST(object, ch->bags->bag1, next_content);
+      break;
+    case 2:
+      REMOVE_FROM_LIST(object, ch->bags->bag2, next_content);
+      break;
+    case 3:
+      REMOVE_FROM_LIST(object, ch->bags->bag3, next_content);
+      break;
+    case 4:
+      REMOVE_FROM_LIST(object, ch->bags->bag4, next_content);
+      break;
+    case 5:
+      REMOVE_FROM_LIST(object, ch->bags->bag5, next_content);
+      break;
+    case 6:
+      REMOVE_FROM_LIST(object, ch->bags->bag6, next_content);
+      break;
+    case 7:
+      REMOVE_FROM_LIST(object, ch->bags->bag7, next_content);
+      break;
+    case 8:
+      REMOVE_FROM_LIST(object, ch->bags->bag8, next_content);
+      break;
+    case 9:
+      REMOVE_FROM_LIST(object, ch->bags->bag9, next_content);
+      break;
+    case 10:
+      REMOVE_FROM_LIST(object, ch->bags->bag10, next_content);
+      break;
+  }
+
+  /* set flag for crash-save system, but not on mobs! */
+  if (!IS_NPC(ch))
+    SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+
+  IS_CARRYING_W(ch) -= GET_OBJ_WEIGHT(object);
+  IS_CARRYING_N(ch)--;
+  object->next_content = NULL;
+  GET_OBJ_SORT(object) = 0;
+
+  if (ch->desc)
+  {
+    update_msdp_inventory(ch);
+    MSDPFlush(ch->desc, eMSDP_INVENTORY);
+  }
 }
 
 /* take an object from a char */
@@ -1560,10 +1692,10 @@ void obj_from_char(struct obj_data *object)
     SET_BIT_AR(PLR_FLAGS(object->carried_by), PLR_CRASH);
 
   IS_CARRYING_W(object->carried_by) -= GET_OBJ_WEIGHT(object);
-  IS_CARRYING_N(object->carried_by)
-  --;
+  IS_CARRYING_N(object->carried_by)--;
   object->carried_by = NULL;
   object->next_content = NULL;
+  GET_OBJ_SORT(object) = 0;
 
   if (ch->desc)
   {

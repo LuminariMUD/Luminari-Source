@@ -10101,7 +10101,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_BALL_OF_LIGHT:
     to_char = "You summon forth $p.";
     to_room = "$n summons forth $p.";
-    object_vnum = 10;
+    object_vnum = 839;
     break;
   case SPELL_CREATE_FOOD:
     to_char = "You create $p.";

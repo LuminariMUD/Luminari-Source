@@ -113,6 +113,7 @@ void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
 bool valid_vampire_cloak_apply(int type);
+bool is_valid_ability_number(int num);
 int get_region_language(int region);
 const char *get_region_info(int region);
 int get_vampire_cloak_bonus(int level, int type);
@@ -320,6 +321,7 @@ int get_number_of_spellcasting_classes(struct char_data *ch);
 struct char_data * get_mob_follower(struct char_data *ch, int mob_type);
 void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
 bool show_combat_roll(struct char_data *ch);
+struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);
@@ -1676,6 +1678,10 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 /* bound objects - only usable by a designated player */
 #define GET_OBJ_BOUND_ID(obj) ((obj)->obj_flags.bound_id)
+
+/* i_sort determines how it is sorted in inventory */
+#define GET_OBJ_SORT(obj) ((obj)->obj_flags.i_sort)
+#define GET_BAG_NAME(ch, bagnum)  (ch->player_specials->saved.bag_names[bagnum])
 
 /** Defines if an obj is a corpse. */
 #define IS_CORPSE(obj) (GET_OBJ_TYPE(obj) == ITEM_CONTAINER && \

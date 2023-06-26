@@ -26,6 +26,8 @@
 #include "modify.h"
 #include "hlquest.h"
 #include "constants.h"
+#include "spells.h"
+#include "spec_procs.h"
 
 ACMDU(do_rsay)
 {
@@ -988,3 +990,235 @@ ACMDU(do_qcomm)
         act(buf, 0, ch, 0, i->character, TO_VICT | TO_SLEEP);
   }
 }
+
+ACMDU(do_temote)
+{
+  char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char msg[MAX_INPUT_LENGTH] = {'\0'};
+  char out[MAX_STRING_LENGTH] = {'\0'};
+  char *to_room = NULL;
+  struct char_data *vict = NULL;
+
+  half_chop(argument, arg, msg);
+
+  if (!*arg)
+  {
+    send_to_char(ch, "You need to provide the name or description of the creature you wish to target with this emote. See HELP EMOTES for more info.\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "There's no one here by that name. See HELP EMOTES.\r\n");
+    return;
+  }
+
+  if (vict == ch)
+  {
+    send_to_char(ch, "You cannot target yourself with a temote.  See HELP EMOTES.\r\n");
+    return;
+  }
+
+  if (!*msg)
+  {
+    send_to_char(ch, "You need to supply a message. See HELP EMOTES for formatting info.\r\n");
+    return;
+  }
+
+  if (!strstr(msg, "#n"))
+  {
+    send_to_char(ch, "A temote must include the symbol #n to signify where your name will be located in the string. See HELP EMOTES.\r\n");
+    return;
+  }
+
+  if (!strstr(msg, "#N"))
+  {
+    send_to_char(ch, "A temote must include the symbol #N to signify where your target's name will be located in the string. See HELP EMOTES.\r\n");
+    return;
+  }
+
+  to_room = strdup(msg);
+
+  if (replace_str(&to_room, "#", "$", true, MAX_STRING_LENGTH) == -1)
+  {
+    send_to_char(ch, "Your message is too long.\r\n");
+    return;
+  }
+
+  snprintf(out, sizeof(out), "\tC(%s)\tn %s", GET_NAME(ch), CAP(to_room));
+  act(out, FALSE, ch, 0, vict, TO_CHAR);
+  act(out, FALSE, ch, 0, vict, TO_NOTVICT);
+}
+
+ACMD(do_diceroll)
+{
+  int num = 0, size = 0, roll = 0, mod = 0;
+  char output[MEDIUM_STRING] = {'\0'};
+  char sarg[MEDIUM_STRING] = {'\0'};
+  char narg[MEDIUM_STRING] = {'\0'};
+  char marg[MEDIUM_STRING] = {'\0'};
+
+  three_arguments(argument, narg, sizeof(narg), sarg, sizeof(sarg), marg, sizeof(marg));
+
+  if (!*narg || !*sarg)
+  {
+    send_to_char(ch, "You need to specify the number of dice and size of dice desired.\r\n"
+                     "Eg. 'diceroll 2 10' will roll 2d10.\r\n");
+    return;
+  }
+
+  if (!*marg)
+    mod = 0;
+  else
+    mod = atoi(marg);
+
+  num = atoi(narg);
+  size = atoi(sarg);
+
+  if (num <= 0 || sarg <= 0)
+  {
+    send_to_char(ch, "You must choose a number and/or size of dice equal to 1 or greater.\r\n");
+    return;
+  }
+
+  roll = dice(num, size) + mod;
+
+  snprintf(output, sizeof(output), "\tC($n)\ty [%dd%d%s%d Roll]: %d.\r\n", num, size, mod >= 0 ? "+" : "", mod, roll);
+  act(output, FALSE, ch, 0, 0, TO_CHAR);
+  act(output, FALSE, ch, 0, 0, TO_ROOM);
+}
+
+#define CHECK_TAR_EVERYONE 0
+#define CHECK_TAR_SELF 1
+#define CHECK_TAR_PERSON 2
+
+ACMDU(do_skillcheck)
+{
+
+  int roll = 0, mod = 0, i = 0, j = 0;
+  char abiltext[MEDIUM_STRING] = { '\0' };
+  char abilname[MEDIUM_STRING] = { '\0' };
+  char output[MEDIUM_STRING] = { '\0' };
+  char arg[MEDIUM_STRING] = { '\0' };
+  char skill[MEDIUM_STRING] = { '\0' };
+  int target = CHECK_TAR_EVERYONE;
+  struct char_data *tarvict = NULL;
+
+  half_chop(argument, arg, skill);
+
+  if (!*arg)
+  {
+    send_to_char(ch, "Please specify who you would like to be able to see the check: either a player's name, 'everyone' or 'myself'.\r\n");
+    return;
+  }
+
+  if (is_abbrev(arg, "everyone"))
+  {
+    target = CHECK_TAR_EVERYONE;
+  }
+  else if (is_abbrev(arg, "myself"))
+  {
+    target = CHECK_TAR_SELF;
+  }
+  else
+  {
+    if (!(tarvict = get_char_vis(ch, arg, NULL, FIND_CHAR_ROOM)))
+    {
+      send_to_char(ch, "Please specify who you would like to be able to see the check: either a player's name, 'everyone' or 'myself'.\r\n");
+      return;
+    }
+    if (IS_NPC(tarvict))
+    {
+      send_to_char(ch, "You cannot display skill checks to mobs.\r\n");
+      return;
+    }
+    target = CHECK_TAR_PERSON;
+  }
+
+  if (!*skill)
+  {
+    send_to_char(ch, "Please specify a skill or ability score to make a check for. Type skills for a list of skills and score for your ability scores\r\n");
+    return;
+  }
+
+  if (is_abbrev(skill, "strength"))
+  {
+    mod = GET_STR_BONUS(ch);
+    snprintf(abiltext, sizeof(abiltext), "Strength");
+  }
+  else if (is_abbrev(skill, "dexterity"))
+  {
+    mod = GET_DEX_BONUS(ch);
+    snprintf(abiltext, sizeof(abiltext), "Dexterity");
+  }
+  else if (is_abbrev(skill, ""))
+  {
+    mod = GET_CON_BONUS(ch);
+    snprintf(abiltext, sizeof(abiltext), "Constitution");
+  }
+  else if (is_abbrev(skill, "intelligence"))
+  {
+    mod = GET_INT_BONUS(ch);
+    snprintf(abiltext, sizeof(abiltext), "Intelligence");
+  }
+  else if (is_abbrev(skill, "wisdom"))
+  {
+    mod = GET_WIS_BONUS(ch);
+    snprintf(abiltext, sizeof(abiltext), "Wisdom");
+  }
+  else if (is_abbrev(skill, "charisma"))
+  {
+    mod = GET_CHA_BONUS(ch);
+    snprintf(abiltext, sizeof(abiltext), "Charisma");
+  }
+  else
+  {
+    for (i = START_GENERAL_ABILITIES; i <= END_GENERAL_ABILITIES; i++)
+    {
+      if (!is_valid_ability_number(i)) continue;
+      snprintf(abilname, sizeof(abilname), "%s", ability_names[i]);
+      for (j = 0; j < strlen(abilname); j++)
+        abilname[j] = tolower(abilname[j]);
+      if (is_abbrev(skill, abilname))
+      {
+        snprintf(abiltext, strlen(abiltext), ability_names[i]);
+        break;
+      }
+    }
+
+    if (i > END_GENERAL_ABILITIES)
+    {
+     send_to_char(ch, "Please specify a skill or ability score to make a check for. Type skills for a list of skills and score for your ability scores\r\n");
+      return; 
+    }
+
+    snprintf(abiltext, sizeof(abiltext), "%s", ability_names[i]);
+    mod = compute_ability_full(ch, i, false);
+  }
+
+  roll = dice(1, 20);
+
+  if (target == CHECK_TAR_EVERYONE)
+  {
+    snprintf(output, sizeof(output), "\tC($n to Room)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext, roll, mod, roll + mod);
+    act(output, FALSE, ch, 0, 0, TO_CHAR);
+    act(output, FALSE, ch, 0, 0, TO_ROOM);
+  }
+  else if (target == CHECK_TAR_PERSON && tarvict)
+  {
+    snprintf(output, sizeof(output), "\tC($n to $N)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext, roll, mod, roll + mod);
+    act(output, FALSE, ch, 0, tarvict, TO_CHAR);
+    act(output, FALSE, ch, 0, tarvict, TO_VICT);
+  }
+  else
+  {
+    snprintf(output, sizeof(output), "\tC($n to self only)\ty [%s]: \tn1d20 (%d) + %d = %d.\r\n", abiltext, roll, mod, roll + mod);
+    act(output, FALSE, ch, 0, 0, TO_CHAR);
+  }
+    
+
+}
+
+#undef CHECK_TAR_EVERYONE
+#undef CHECK_TAR_SELF
+#undef CHECK_TAR_PERSON
