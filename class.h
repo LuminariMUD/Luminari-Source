@@ -132,6 +132,7 @@ int num_eidolon_evolutions_known(struct char_data *ch);
 int num_summoner_aspects_known(struct char_data *ch);
 sbyte has_eidolon_choices_unchosen(struct char_data *ch);
 bool has_evolutions_unchosen(struct char_data *ch);
+int BAB_OLD(struct char_data *ch);
 
 /* ACMD */
 ACMD_DECL(do_class);

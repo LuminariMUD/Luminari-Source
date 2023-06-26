@@ -5164,6 +5164,16 @@ void reset_char(struct char_data *ch)
   ch->master = NULL;
   IN_ROOM(ch) = NOWHERE;
   ch->carrying = NULL;
+  // ch->bags->bag1 = NULL;
+  // ch->bags->bag2 = NULL;
+  // ch->bags->bag3 = NULL;
+  // ch->bags->bag4 = NULL;
+  // ch->bags->bag5 = NULL;
+  // ch->bags->bag6 = NULL;
+  // ch->bags->bag7 = NULL;
+  // ch->bags->bag8 = NULL;
+  // ch->bags->bag9 = NULL;
+  // ch->bags->bag10 = NULL;
   ch->next = NULL;
   ch->next_fighting = NULL;
   ch->next_in_room = NULL;
@@ -5256,6 +5266,9 @@ void init_char(struct char_data *ch)
   /* create a player_special structure */
   if (ch->player_specials == NULL)
     CREATE(ch->player_specials, struct player_special_data, 1);
+
+  if (ch->bags == NULL)
+    CREATE(ch->bags, struct bag_data, 1);
 
   /* If this is our first player make him IMPL. */
   if (top_of_p_table == 0)
@@ -6214,6 +6227,7 @@ struct char_data *new_char()
   CREATE(ch, struct char_data, 1);
   clear_char(ch);
   CREATE(ch->player_specials, struct player_special_data, 1);
+  CREATE(ch->bags, struct bag_data, 1);
 
   /* Set all required NULL pointers and variables */
   ch->player_specials->saved.completed_quests = NULL;

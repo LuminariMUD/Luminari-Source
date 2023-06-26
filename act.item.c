@@ -1874,6 +1874,14 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
+#ifdef CAMPAIGN_FR
+  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10)
+  {
+    send_to_char(ch, "Containers can only fit 10 items.  Please use the 'sort' command to organize your inventory.\r\n");
+    return;
+  }
+#endif
+
   if ((GET_OBJ_VAL(cont, 0) > 0) &&
       (GET_OBJ_WEIGHT(cont) + GET_OBJ_WEIGHT(obj) > GET_OBJ_VAL(cont, 0)))
     act("$p won't fit in $P.", FALSE, ch, obj, cont, TO_CHAR);
@@ -7072,6 +7080,172 @@ ACMDU(do_tinker)
 
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_TINKER);
+}
+
+#define SORTTO_SYNTAX "Syntax is: sortto (item-name) bag1|bag2|bag3|bag4|bag5|bag6|bag7|bag8|bag9|bag10\r\n"
+#define SORTFROM_SYNTAX "Syntax is: sortfrom (item-name) bag1|bag2|bag3|bag4|bag5|bag6|bag7|bag8|bag9|bag10\r\n"
+
+void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum)
+{
+  char bagname[MEDIUM_STRING] = {'\0'};
+  struct obj_data *obj;
+
+  struct obj_data *bag = get_char_bag(ch, bagnum);
+  
+
+  if (!(obj = get_obj_in_list_vis(ch, objname, NULL, subcmd == SCMD_SORTTO ? ch->carrying : bag)))
+  {
+    send_to_char(ch, "You don't seem to be carrying that item.\r\n");
+    return;
+  }
+
+  if (GET_BAG_NAME(ch, bagnum) != NULL)
+    snprintf(bagname, sizeof(bagname), " '%s'", GET_BAG_NAME(ch, bagnum));
+  else
+    snprintf(bagname, sizeof(bagname), " 'bag%d'", bagnum);
+
+  if (GET_OBJ_SORT(obj) == bagnum && subcmd == SCMD_SORTTO)
+  {
+    send_to_char(ch, "The item '%s' is already in bag %d %s.\r\n", obj->short_description, bagnum, bagname);
+    return;
+  }
+  if (subcmd == SCMD_SORTTO)
+  {
+    if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
+    {
+      send_to_char(ch, "You cannot move containers or ammo pouches into virtual bags.\r\n");
+      return;
+    }
+    obj_from_char(obj);
+    GET_OBJ_SORT(obj) = bagnum;
+    obj_to_bag(ch, obj, bagnum);
+    send_to_char(ch, "You move '%s' to bag %d %s.\r\n", obj->short_description, bagnum, bagname);
+  }
+  else
+  {
+    obj_from_bag(ch, obj, bagnum);
+    GET_OBJ_SORT(obj) = 0;
+    obj_to_char(obj, ch);
+    send_to_char(ch, "You move '%s' to your main inventory.\r\n", obj->short_description);
+  }    
+}
+
+ACMD(do_sort)
+{
+
+  char arg1[MEDIUM_STRING] = { '\0' };
+  char arg2[MEDIUM_STRING] = {'\0'};
+  char bagname[MEDIUM_STRING] = {'\0'};
+  int i = 0;
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1 || !*arg2)
+  {
+    if (subcmd == SCMD_SORTTO)
+      send_to_char(ch, "%s", SORTTO_SYNTAX);
+    else if (subcmd == SCMD_SORTFROM)
+      send_to_char(ch, "%s", SORTFROM_SYNTAX);
+    return;
+  }
+
+  snprintf(bagname, sizeof(bagname), "\r");
+
+  for (i = 1; i <= MAX_BAGS; i++)
+  {
+    if (GET_BAG_NAME(ch, i) == NULL) continue;
+    if (is_abbrev(arg2, GET_BAG_NAME(ch, i)))
+      break;
+  }
+
+  if (i <= MAX_BAGS)
+  {
+    sort_object_bag(ch, arg1, subcmd, i);
+  }
+  else if (is_abbrev(arg2, "bag1"))
+  {
+    sort_object_bag(ch, arg1, subcmd, 1);
+  }
+  else if (is_abbrev(arg2, "bag2"))
+  { 
+    sort_object_bag(ch, arg1, subcmd, 2);
+  }
+  else if (is_abbrev(arg2, "bag3"))
+  {
+    sort_object_bag(ch, arg1, subcmd, 3);
+  }
+  else if (is_abbrev(arg2, "bag4"))
+  {
+    sort_object_bag(ch, arg1, subcmd, 4);
+  }
+  else if (is_abbrev(arg2, "bag5"))
+  {
+    sort_object_bag(ch, arg1, subcmd, 5);
+  }
+  else if (is_abbrev(arg2, "bag6"))
+  {
+    sort_object_bag(ch, arg1, subcmd, 6);
+  }
+  else if (is_abbrev(arg2, "bag7"))
+  { 
+    sort_object_bag(ch, arg1, subcmd, 7);
+  }
+  else if (is_abbrev(arg2, "bag8"))
+  { 
+    sort_object_bag(ch, arg1, subcmd, 8);
+  }
+  else if (is_abbrev(arg2, "bag9"))
+  {
+    sort_object_bag(ch, arg1, subcmd, 9);
+  }
+  else if (is_abbrev(arg2, "bag10"))
+  { 
+    sort_object_bag(ch, arg1, subcmd, 10);
+  }
+  else
+  {
+    if (subcmd == SCMD_SORTTO)
+      send_to_char(ch, "%s", SORTTO_SYNTAX);
+    else if (subcmd == SCMD_SORTFROM)
+      send_to_char(ch, "%s", SORTFROM_SYNTAX);
+    return;
+  }
+}
+
+#define BAGNAME_SYNTAX "Syntax is: bagname (bag number) (bag name)\r\nExample: bagname 1 materials\r\nThis will give bag1 the 'materials' nickname.\r\n"
+
+ACMD(do_bagnames)
+{
+  int bagnum = 0;
+
+  char arg1[MEDIUM_STRING] = {'\0'};
+  char arg2[MEDIUM_STRING] = {'\0'};
+
+  two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
+
+  if (!*arg1 || !*arg2)
+  {
+    send_to_char(ch, "%s", BAGNAME_SYNTAX);
+    return;
+  }
+
+  if (strlen(arg2) > 50)
+  {
+    send_to_char(ch, "That name is too long. (50 characters maximum)\r\n");
+    return;
+  }
+
+  bagnum = atoi(arg1);
+
+  if (bagnum < 1 || bagnum > MAX_BAGS)
+  {
+    send_to_char(ch, "You must specify a bag number between 1 and %d.\r\n", MAX_BAGS);
+    return;
+  }
+
+  GET_BAG_NAME(ch, bagnum) = strdup(arg2);
+  send_to_char(ch, "You have renamed bag%d to '%s'.\r\n", bagnum, arg2);
+  save_char(ch, 0);
 }
 
 /* EOF */

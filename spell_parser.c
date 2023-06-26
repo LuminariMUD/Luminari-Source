@@ -4715,6 +4715,20 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          TAR_IGNORE, TRUE, 0,
          NULL, 0, 0, NOSCHOOL, FALSE);
 
+  // poisons
+  spello(POISON_TYPE_SCORPION_WEAK, "weak scorpion poison", 1, 1, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak scorpion poison fully passes through your system.",
+         1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SCORPION_NORMAL, "typical scorpion poison", 1, 1, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical scorpion poison fully passes through your system.",
+         1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SCORPION_STRONG, "strong scorpion poison", 1, 1, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong scorpion poison fully passes through your system.",
+         1, 1, NOSCHOOL, FALSE);
+
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use
    * the skill for other classes is set up in class.c

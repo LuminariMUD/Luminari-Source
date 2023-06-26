@@ -156,6 +156,8 @@ ACMD_DECL(do_page);
 ACMD_DECL(do_reply);
 ACMD_DECL(do_tell);
 ACMD_DECL(do_write);
+ACMD_DECL(do_skillcheck);
+ACMD_DECL(do_diceroll);
 /*****************************************************************************
  * Begin Functions and defines for act.informative.c
  ****************************************************************************/
@@ -315,6 +317,9 @@ void stop_auction(int type, struct char_data *ch);
 void check_auction(void);
 void auc_send_to_all(char *messg, bool buyer);
 void list_consumables(struct char_data *ch, int type);
+void sort_object_bag(struct char_data *ch, char *objname, int subcmd, int bagnum);
+/* do_look, do_inventory utility functions */
+void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type);
 
 /* functions with subcommands */
 /* do_drop */
@@ -332,6 +337,11 @@ ACMD_DECL(do_eat);
 ACMD_DECL(do_pour);
 #define SCMD_POUR 0
 #define SCMD_FILL 1
+ACMD_DECL(do_sort);
+ACMD_DECL(do_bagnames);
+ACMD_DECL(do_bags);
+#define SCMD_SORTTO   1
+#define SCMD_SORTFROM 2
 
 /* AUCTIONING STATES */
 #define AUC_NULL_STATE 0  /* not doing anything */
@@ -970,4 +980,5 @@ ACMDCHECK(can_double_manifest);
 // deities.c
 ACMD_DECL(do_devote);
 
+ACMD_DECL(do_temote);
 #endif /* _ACT_H_ */

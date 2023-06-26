@@ -58,8 +58,6 @@ static void look_at_char(struct char_data *i, struct char_data *ch);
 static void look_at_target(struct char_data *ch, char *arg);
 static void look_in_direction(struct char_data *ch, int dir);
 static void look_in_obj(struct char_data *ch, char *arg);
-/* do_look, do_inventory utility functions */
-static void list_obj_to_char(struct obj_data *list, struct char_data *ch, int mode, int show, int mxp_type);
 /* do_look, do_equipment, do_examine, do_inventory */
 static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch);
 /* do_where utility functions */
@@ -499,7 +497,7 @@ static void show_obj_modifiers(struct obj_data *obj, struct char_data *ch)
     send_to_char(ch, " \tD(burned out)\tn");
 }
 
-static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
+void list_obj_to_char(struct obj_data *list, struct char_data *ch,
                              int mode, int show, int mxp_type)
 {
   struct obj_data *i = NULL, *j = NULL, *display = NULL;
@@ -520,35 +518,37 @@ static void list_obj_to_char(struct obj_data *list, struct char_data *ch,
     if (j != i)
       continue; /* we counted object i earlier in the list */
 
-    /* Count matching objects, including this one */
-    for (display = j = i; j; j = j->next_content)
-      /* This if-clause should be exactly the same as the one in the loop above */
-      if ((j->short_description == i->short_description && j->name == i->name) ||
-          (!strcmp(j->short_description, i->short_description) &&
-           !strcmp(j->name, i->name)))
-        if (CAN_SEE_OBJ(ch, j) /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/)
-        {
-          /* added the ability for players to see glowing items in their inventory in the dark
-           * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
-          ++num;
-          /* If the original item can't be seen, switch it for this one */
-          if (display == i && !CAN_SEE_OBJ(ch, display))
-            display = j;
-        }
-
-    /* When looking in room, hide objects starting with '.', except for holylight */
-    if (num > 0 && (mode != SHOW_OBJ_LONG || *display->description != '.' ||
-                    (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT))))
+    if ((display = j = i) != NULL)
     {
-      if (mode == SHOW_OBJ_LONG)
-        send_to_char(ch, "%s", CCGRN(ch, C_NRM));
-      if (num != 1)
-        send_to_char(ch, "(%2i) ", num);
-      show_obj_to_char(display, ch, mode, mxp_type);
-      send_to_char(ch, "%s", CCNRM(ch, C_NRM));
-      found = TRUE;
+      /* Count matching objects, including this one */
+      for (display = j = i; j; j = j->next_content)
+        /* This if-clause should be exactly the same as the one in the loop above */
+        if ((j->short_description == i->short_description && j->name == i->name) ||
+            (!strcmp(j->short_description, i->short_description) && !strcmp(j->name, i->name)))
+          if (CAN_SEE_OBJ(ch, j) /*|| (!AFF_FLAGGED(ch, AFF_BLIND) && OBJ_FLAGGED(j, ITEM_GLOW))*/)
+          {
+            /* added the ability for players to see glowing items in their inventory in the dark
+             * as long as they are not blind! maybe add this to CAN_SEE_OBJ macro? */
+            ++num;
+            /* If the original item can't be seen, switch it for this one */
+            if (display == i && !CAN_SEE_OBJ(ch, display))
+              display = j;
+          }
+
+      /* When looking in room, hide objects starting with '.', except for holylight */
+      if (num > 0 && (mode != SHOW_OBJ_LONG || *display->description != '.' ||
+                      (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT))))
+      {
+        if (mode == SHOW_OBJ_LONG)
+          send_to_char(ch, "%s", CCGRN(ch, C_NRM));
+        if (num != 1)
+          send_to_char(ch, "(%2i) ", num);
+        show_obj_to_char(display, ch, mode, mxp_type);
+        send_to_char(ch, "%s", CCNRM(ch, C_NRM));
+        found = TRUE;
+      }
+    } /* end loop */
     }
-  } /* end loop */
 
   if (!found && show)
     send_to_char(ch, "  Nothing.\r\n");
@@ -3183,8 +3183,8 @@ ACMD(do_score)
   send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
   send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
-  send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs\r\n",
-               size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch));
+  send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\r\n",
+               size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch));
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -3434,6 +3434,164 @@ ACMD(do_inventory)
         if (ch->desc->pProtocol->pVariables[eMSDP_MXP])
           if (ch->desc->pProtocol->pVariables[eMSDP_MXP]->ValueInt)
             send_to_char(ch, "\r\n\t<send href='equipment'>View equipped items\t</send>\r\n");
+
+  if (!IS_NPC(ch))
+  {
+    send_to_char(ch, "\r\nSee HELP SORT to view information on sorting your inventory into different virtual bags.\r\n");
+  }
+}
+
+int count_bag_contents(struct char_data *ch, int bagnum)
+{
+  struct obj_data *obj;
+  int count = 0;
+
+  switch (bagnum)
+  {
+    case 1:
+      for (obj = ch->bags->bag1; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 2:
+      for (obj = ch->bags->bag2; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 3:
+      for (obj = ch->bags->bag3; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 4:
+      for (obj = ch->bags->bag4; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 5:
+      for (obj = ch->bags->bag5; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 6:
+      for (obj = ch->bags->bag6; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 7:
+      for (obj = ch->bags->bag7; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 8:
+      for (obj = ch->bags->bag8; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 9:
+      for (obj = ch->bags->bag9; obj; obj = obj->next_content)
+        count++;
+      return count;
+    case 10:
+      for (obj = ch->bags->bag10; obj; obj = obj->next_content)
+        count++;
+      return count;
+  }
+  return count;
+}
+
+void show_bags_summary(struct char_data *ch)
+{
+  if (!ch) return;
+
+  char out[MEDIUM_STRING];
+  int i = 0;
+
+  send_to_char(ch, "Your bags summary:\r\n\r\n");
+  for (i = 1; i <= MAX_BAGS; i++)
+  {
+    if (GET_BAG_NAME(ch, i) != NULL)
+    {
+      snprintf(out, sizeof(out), "Bag %s#%d: %3d Items, Bag is Named: '%s'\r\n", i < 10 ? " " : "", i, count_bag_contents(ch, i), GET_BAG_NAME(ch, i));
+    }
+    else
+    {
+      snprintf(out, sizeof(out), "Bag %s#%d: %3d Items\r\n", i < 10 ? " " : "", i, count_bag_contents(ch, i));
+    }
+    send_to_char(ch, "%s", out);
+  }
+
+}
+
+#define BAGS_CMD_SYNTAX "\r\nUsage is: bags (bag number)|(bag name)\r\nEg. bags 1 - will show contents of bag 1.\r\nEg. bags materials - will show contents of a bag named 'materials'\r\n"
+
+ACMD(do_bags)
+{
+  char arg[MEDIUM_STRING] = {'\0'};
+  char bagname[MEDIUM_STRING] = {'\0'};
+  int bagnum = 0, i = 0;
+
+  one_argument(argument, arg, sizeof(arg));
+
+  if (!*arg)
+  {
+    show_bags_summary(ch);
+    send_to_char(ch, "%s", BAGS_CMD_SYNTAX);
+    return;
+  }
+
+  for (i = 1; i <= MAX_BAGS; i++)
+  {
+    if (GET_BAG_NAME(ch, i)  == NULL || !strcmp(GET_BAG_NAME(ch, i), "unused"))
+      continue;
+    if (is_abbrev(arg, GET_BAG_NAME(ch, i)))
+      break;
+  }
+
+  bagnum = i;
+
+  if (i > MAX_BAGS)
+  {
+    bagnum = atoi(arg);
+  }
+
+  if (bagnum < 1 || bagnum > MAX_BAGS)
+  {
+    send_to_char(ch, "%s", BAGS_CMD_SYNTAX);
+    return;
+  }
+
+  if (GET_BAG_NAME(ch, i)  != NULL)
+    snprintf(bagname, sizeof(bagname), " '%s'", GET_BAG_NAME(ch, i));
+
+  send_to_char(ch, "Your bag #%d%s contains:\r\n", bagnum, GET_BAG_NAME(ch, i)  != NULL ? bagname : "");
+
+  switch (bagnum)
+  {
+    case 1:
+      list_obj_to_char(ch->bags->bag1, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 2:
+      list_obj_to_char(ch->bags->bag2, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 3:
+      list_obj_to_char(ch->bags->bag3, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 4:
+      list_obj_to_char(ch->bags->bag4, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 5:
+      list_obj_to_char(ch->bags->bag5, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 6:
+      list_obj_to_char(ch->bags->bag6, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 7:
+      list_obj_to_char(ch->bags->bag7, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 8:
+      list_obj_to_char(ch->bags->bag8, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 9:
+      list_obj_to_char(ch->bags->bag9, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+    case 10:
+      list_obj_to_char(ch->bags->bag10, ch, SHOW_OBJ_SHORT, TRUE, 1);
+      break;
+  }
+
 }
 
 ACMD(do_equipment)

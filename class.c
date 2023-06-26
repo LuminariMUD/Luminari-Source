@@ -1689,6 +1689,11 @@ byte saving_throws(struct char_data *ch, int type)
 
 int BAB(struct char_data *ch)
 {
+  return BAB_OLD(ch);
+}
+
+int BAB_OLD(struct char_data *ch)
+{
 
   /* gnarly huh? */
   if (IS_AFFECTED(ch, AFF_TFORM))

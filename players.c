@@ -592,6 +592,11 @@ int load_char(const char *name, struct char_data *ch)
     GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
     GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
 
+    for (i = 0; i < MAX_BAGS; i++)
+    {
+      GET_BAG_NAME(ch, i) = NULL;
+    }
+
     ch->sticky_bomb[0] = 0;
     ch->sticky_bomb[1] = 0;
     ch->sticky_bomb[2] = 0;
@@ -677,6 +682,26 @@ int load_char(const char *name, struct char_data *ch)
       case 'B':
         if (!strcmp(tag, "Badp"))
           GET_BAD_PWS(ch) = atoi(line);
+        else if (!strcmp(tag, "Bag1"))
+          GET_BAG_NAME(ch, 1) = strdup(line);
+        else if (!strcmp(tag, "Bag2"))
+          GET_BAG_NAME(ch, 2) = strdup(line);
+        else if (!strcmp(tag, "Bag3"))
+          GET_BAG_NAME(ch, 3) = strdup(line);
+        else if (!strcmp(tag, "Bag4"))
+          GET_BAG_NAME(ch, 4) = strdup(line);
+        else if (!strcmp(tag, "Bag5"))
+          GET_BAG_NAME(ch, 5) = strdup(line);
+        else if (!strcmp(tag, "Bag6"))
+          GET_BAG_NAME(ch, 6) = strdup(line);
+        else if (!strcmp(tag, "Bag7"))
+          GET_BAG_NAME(ch, 7) = strdup(line);
+        else if (!strcmp(tag, "Bag8"))
+          GET_BAG_NAME(ch, 8) = strdup(line);
+        else if (!strcmp(tag, "Bag9"))
+          GET_BAG_NAME(ch, 9) = strdup(line);
+        else if (!strcmp(tag, "Bag10"))
+          GET_BAG_NAME(ch, 10) = strdup(line);
         else if (!strcmp(tag, "Bane"))
           GET_BANE_TARGET_TYPE(ch) = atoi(line);
         else if (!strcmp(tag, "BGrd"))
@@ -1876,6 +1901,28 @@ void save_char(struct char_data *ch, int mode)
   for (i = 0; i < MAX_BUFFS; i++)
     fprintf(fl, "%d %d %d\n", i, GET_BUFF(ch, i, 0), GET_BUFF(ch, i, 1));
   fprintf(fl, "-1 -1 -1\n");
+
+  // Save Bags
+  if (GET_BAG_NAME(ch, 1))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 1));
+  if (GET_BAG_NAME(ch, 2))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 2));
+  if (GET_BAG_NAME(ch, 3))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 3));
+  if (GET_BAG_NAME(ch, 4))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 4));
+  if (GET_BAG_NAME(ch, 5))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 5));
+  if (GET_BAG_NAME(ch, 6))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 6));
+  if (GET_BAG_NAME(ch, 7))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 7));
+  if (GET_BAG_NAME(ch, 8))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 8));
+  if (GET_BAG_NAME(ch, 9))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 9));
+  if (GET_BAG_NAME(ch, 10))
+    fprintf(fl, "Bag1: %s\n", GET_BAG_NAME(ch, 10));
 
   /* Save Bombs */
   fprintf(fl, "Bomb:\n");

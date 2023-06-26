@@ -3695,6 +3695,9 @@
 #define MAX_WEAPON_DAMAGE 24
 #define MIN_WEAPON_DAMAGE 2
 
+// maximum number of bags
+#define MAX_BAGS 10
+
 /* maximum number of moves a mobile can store for walking paths (patrols) */
 #define MAX_PATH 50
 
@@ -3784,6 +3787,7 @@ struct obj_flag_data
     int cost_per_day;                 /**< Rent cost per real day */
     int timer;                        /**< Timer for object             */
     int bitvector[AF_ARRAY_MAX];      /**< Affects characters           */
+    int i_sort;                       /**< What 'bag' is it sorted into in the inventory? */
 
     byte material; // what material is the item made of?
     int size;      // how big is the object?
@@ -3894,6 +3898,7 @@ struct obj_data
     char *char_sdesc; // This is the short desc of the player/mob whose corpse this is, for corpse objs only
 
     int tinker_bonus;
+    int temp_bag_num;
 };
 
 /** Instance info for an object that gets saved to disk.
@@ -4228,7 +4233,7 @@ struct char_special_data
 
     /* carrying */
     int carry_weight; /**< Carried weight */
-    byte carry_items; /**< Number of items carried */
+    int carry_items; /**< Number of items carried */
 
     /** casting (time) **/
     bool isCasting;               // casting or not
@@ -4523,6 +4528,7 @@ struct player_special_data_saved
 
     int call_eidolon_cooldown;  // When this cooldown is active, the summoner cannot call their eidolon
     int merge_forms_timer;      // How long the merge forms process lasts
+    char *bag_names[MAX_BAGS+1];  // nicknames for the characters' bags
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4782,6 +4788,20 @@ struct follow_type
     struct follow_type *next;   /**< Next character following. */
 };
 
+struct bag_data
+{
+    struct obj_data *bag1;
+    struct obj_data *bag2;
+    struct obj_data *bag3;
+    struct obj_data *bag4;
+    struct obj_data *bag5;
+    struct obj_data *bag6;
+    struct obj_data *bag7;
+    struct obj_data *bag8;
+    struct obj_data *bag9;
+    struct obj_data *bag10;
+};
+
 /** Master structure for PCs and NPCs. */
 struct char_data
 {
@@ -4806,6 +4826,7 @@ struct char_data
     struct obj_data *equipment[NUM_WEARS]; /**< Equipment array            */
 
     struct obj_data *carrying;    /**< List head for objects in inventory */
+    struct bag_data *bags;    /**< List head for objects in various bags */
     struct descriptor_data *desc; /**< Descriptor/connection info; NPCs = NULL */
 
     long id;                              /**< used by DG triggers - unique id */

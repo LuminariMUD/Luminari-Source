@@ -8332,4 +8332,73 @@ int can_carry_weight_limit(struct char_data *ch)
 
 }
 
+bool is_valid_ability_number(int num)
+{
+  switch (num)
+  {
+    case ABILITY_ACROBATICS:
+    case ABILITY_STEALTH:
+    case ABILITY_PERCEPTION:
+    case ABILITY_HEAL:
+    case ABILITY_INTIMIDATE:
+    case ABILITY_CONCENTRATION:
+    case ABILITY_SPELLCRAFT:
+    case ABILITY_APPRAISE:
+    case ABILITY_DISCIPLINE:
+    case ABILITY_TOTAL_DEFENSE:
+    case ABILITY_LORE:
+    case ABILITY_RIDE:
+    case ABILITY_CLIMB:
+    case ABILITY_SLEIGHT_OF_HAND:
+    case ABILITY_BLUFF:
+    case ABILITY_DIPLOMACY:
+    case ABILITY_DISABLE_DEVICE:
+    case ABILITY_DISGUISE:
+    case ABILITY_ESCAPE_ARTIST:
+    case ABILITY_HANDLE_ANIMAL:
+    case ABILITY_SENSE_MOTIVE:
+    case ABILITY_SURVIVAL:
+    case ABILITY_SWIM:
+    case ABILITY_USE_MAGIC_DEVICE:
+    case ABILITY_LINGUISTICS:
+    case ABILITY_PERFORM:
+      return true;
+  }
+  return false;
+}
+
+struct obj_data *get_char_bag(struct char_data *ch, int bagnum)
+{
+  if (bagnum < 1 || bagnum > MAX_BAGS)
+    return NULL;
+
+  switch (bagnum)
+  {
+  case 1:
+    return ch->bags->bag1;
+  case 2:
+    return ch->bags->bag2;
+  case 3:
+    return ch->bags->bag3;
+  case 4:
+    return ch->bags->bag4;
+  case 5:
+    return ch->bags->bag5;
+  case 6:
+    return ch->bags->bag6;
+  case 7:
+    return ch->bags->bag7;
+  case 8:
+    return ch->bags->bag8;
+  case 9:
+    return ch->bags->bag9;
+  case 10:
+    return ch->bags->bag10;
+  }
+
+  log("Error in get_char_bag returning NULL");
+
+  return NULL;
+}
+
 /* EoF */

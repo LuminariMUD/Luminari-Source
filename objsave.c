@@ -331,6 +331,14 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
     strlcat(ins_buf, line_buf, sizeof(ins_buf));
 #endif
   }
+  if (TEST_OBJN(i_sort))
+  {
+    fprintf(fp, "Sort: %d\n", GET_OBJ_SORT(obj));
+#ifdef OBJSAVE_DB
+    snprintf(line_buf, sizeof(line_buf), "Sort: %d\n", GET_OBJ_SORT(obj));
+    strlcat(ins_buf, line_buf, sizeof(ins_buf));
+#endif
+  }
 
   /* Do we have modified affects? */
   for (counter2 = 0; counter2 < MAX_OBJ_AFFECT; counter2++)
@@ -593,7 +601,12 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
     }
   }
   if (location <= 0) /* Inventory */
-    obj_to_char(obj, ch);
+  {
+    if (GET_OBJ_SORT(obj) > 0 && GET_OBJ_TYPE(obj) != ITEM_CONTAINER && GET_OBJ_TYPE(obj) != ITEM_AMMO_POUCH)
+      obj_to_bag(ch, obj, GET_OBJ_SORT(obj));
+    else
+      obj_to_char(obj, ch);
+  }
 }
 
 /* given a character's name, delete their crash-save-file */
@@ -971,6 +984,18 @@ void Crash_crashsave(struct char_data *ch)
       Crash_restore_weight(GET_EQ(ch, j));
     }
 
+  // bags
+  Crash_save(ch->bags->bag1, ch, fp, 0);
+  Crash_save(ch->bags->bag2, ch, fp, 0);
+  Crash_save(ch->bags->bag3, ch, fp, 0);
+  Crash_save(ch->bags->bag4, ch, fp, 0);
+  Crash_save(ch->bags->bag5, ch, fp, 0);
+  Crash_save(ch->bags->bag6, ch, fp, 0);
+  Crash_save(ch->bags->bag7, ch, fp, 0);
+  Crash_save(ch->bags->bag8, ch, fp, 0);
+  Crash_save(ch->bags->bag9, ch, fp, 0);
+  Crash_save(ch->bags->bag10, ch, fp, 0);
+
   /* inventory: recursive write-to-file function (like bags) */
   if (!Crash_save(ch->carrying, ch, fp, 0))
   {
@@ -993,6 +1018,7 @@ void Crash_crashsave(struct char_data *ch)
   }
 #endif
   REMOVE_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
+
 }
 
 void Crash_idlesave(struct char_data *ch)
@@ -1072,6 +1098,18 @@ void Crash_idlesave(struct char_data *ch)
     }
   }
 
+  // bags
+  Crash_save(ch->bags->bag1, ch, fp, 0);
+  Crash_save(ch->bags->bag2, ch, fp, 0);
+  Crash_save(ch->bags->bag3, ch, fp, 0);
+  Crash_save(ch->bags->bag4, ch, fp, 0);
+  Crash_save(ch->bags->bag5, ch, fp, 0);
+  Crash_save(ch->bags->bag6, ch, fp, 0);
+  Crash_save(ch->bags->bag7, ch, fp, 0);
+  Crash_save(ch->bags->bag8, ch, fp, 0);
+  Crash_save(ch->bags->bag9, ch, fp, 0);
+  Crash_save(ch->bags->bag10, ch, fp, 0);
+
   /* inventory: recursive write-to-file function (like bags) */
   if (!Crash_save(ch->carrying, ch, fp, 0))
   {
@@ -1146,6 +1184,18 @@ void Crash_rentsave(struct char_data *ch, int cost)
       Crash_extract_objs(GET_EQ(ch, j));
     }
   }
+
+  // bags
+  Crash_save(ch->bags->bag1, ch, fp, 0);
+  Crash_save(ch->bags->bag2, ch, fp, 0);
+  Crash_save(ch->bags->bag3, ch, fp, 0);
+  Crash_save(ch->bags->bag4, ch, fp, 0);
+  Crash_save(ch->bags->bag5, ch, fp, 0);
+  Crash_save(ch->bags->bag6, ch, fp, 0);
+  Crash_save(ch->bags->bag7, ch, fp, 0);
+  Crash_save(ch->bags->bag8, ch, fp, 0);
+  Crash_save(ch->bags->bag9, ch, fp, 0);
+  Crash_save(ch->bags->bag10, ch, fp, 0);
 
   /* inventory: recursive save function (like bags) */
   if (!Crash_save(ch->carrying, ch, fp, 0))
@@ -1727,6 +1777,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         temp->short_description = strdup(line);
       else if (!strcmp(tag, "Size"))
         GET_OBJ_SIZE(temp) = num;
+      else if (!strcmp(tag, "Sort"))
+        GET_OBJ_SORT(temp) = num;
       else if (!strcmp(tag, "Spbk"))
       {
         sscanf(line, "%d %d", &t[0], &t[1]);
@@ -2062,6 +2114,8 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
           temp->short_description = strdup(*line);
         else if (!strcmp(tag, "Size"))
           GET_OBJ_SIZE(temp) = num;
+        else if (!strcmp(tag, "Sort"))
+          GET_OBJ_SORT(temp) = num;
         else if (!strcmp(tag, "Spbk"))
         {
           sscanf(*line, "%d %d", &t[0], &t[1]);
@@ -2180,19 +2234,19 @@ static int Crash_load_objs(struct char_data *ch)
   char filename[MAX_STRING_LENGTH] = {'\0'};
   char line[READ_SIZE];
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  char str[64];
+  char str[MEDIUM_STRING];
   int i, num_of_days, orig_rent_code, num_objs = 0;
   unsigned long cost;
   struct obj_data *cont_row[MAX_BAG_ROWS];
   int rentcode, timed, netcost, gold, account, nitems;
   obj_save_data *loaded, *current;
 
-  bool using_db = FALSE; /* Needed outside the ifdefined */
+  bool using_db = false; /* Needed outside the ifdefined */
 
 #ifdef OBJSAVE_DB
   MYSQL_RES *result;
   MYSQL_ROW row;
-  char sql_buf[1024];
+  char sql_buf[MAX_STRING_LENGTH];
 #endif
 
   if (!get_filename(filename, sizeof(filename), CRASH_FILE, GET_NAME(ch)))
@@ -2324,7 +2378,9 @@ static int Crash_load_objs(struct char_data *ch)
     loaded = objsave_parse_objects(fl);
 
   for (current = loaded; current != NULL; current = current->next)
+  {
     num_objs += handle_obj(current->obj, ch, current->locate, cont_row);
+  }
 
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by handle_obj() */
