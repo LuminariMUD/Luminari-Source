@@ -5472,8 +5472,11 @@ int get_poison_save_mod(struct char_data *ch, struct char_data *victim)
 
 // will return TRUE if the poison is resisted, otherwise will return false
 // includes the saving throw against poison.
-sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level)
+bool check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level)
 {
+
+  if (!can_poison(victim))
+    return true;
 
   if (HAS_FEAT(victim, FEAT_POISON_IMMUNITY) || HAS_FEAT(victim, FEAT_SOUL_OF_THE_FEY))
     return TRUE;
@@ -7365,6 +7368,42 @@ void clear_group_marks(struct char_data *ch, struct char_data *victim)
   }
 }
 
+bool is_poison_spell(int spell)
+{
+  switch (spell)
+  {
+    case POISON_TYPE_SCORPION_WEAK:
+    case POISON_TYPE_SCORPION_NORMAL:
+    case POISON_TYPE_SCORPION_STRONG:
+    case POISON_TYPE_SNAKE_WEAK:
+    case POISON_TYPE_SNAKE_NORMAL:
+    case POISON_TYPE_SNAKE_STRONG:
+    case POISON_TYPE_SPIDER_WEAK:
+    case POISON_TYPE_SPIDER_NORMAL:
+    case POISON_TYPE_SPIDER_STRONG:
+    case POISON_TYPE_CENTIPEDE_WEAK:
+    case POISON_TYPE_CENTIPEDE_NORMAL:
+    case POISON_TYPE_CENTIPEDE_STRONG:
+    case POISON_TYPE_WASP_WEAK:
+    case POISON_TYPE_WASP_NORMAL:
+    case POISON_TYPE_WASP_STRONG:
+    case POISON_TYPE_FUNGAL_WEAK:
+    case POISON_TYPE_FUNGAL_NORMAL:
+    case POISON_TYPE_FUNGAL_STRONG:
+    case POISON_TYPE_DROW_WEAK:
+    case POISON_TYPE_DROW_NORMAL:
+    case POISON_TYPE_DROW_STRONG:
+    case POISON_TYPE_WYVERN:
+    case POISON_TYPE_PURPLE_WORM:
+    case POISON_TYPE_COCKATRICE:
+    case SPELL_POISON:
+    case WEAPON_POISON_BLACK_ADDER_VENOM:
+    case SPELL_POISON_BREATHE:
+      return true;
+  }
+  return false;
+}
+
 bool is_spell_restoreable(int spell)
 {
   switch (spell)
@@ -7383,14 +7422,15 @@ bool is_spell_restoreable(int spell)
   case SPELL_SILENCE:
   case SPELL_POISON_BREATHE:
   case SPELL_FEAR:
-  case WEAPON_POISON_BLACK_ADDER_VENOM:
   case AFFECT_LEVEL_DRAIN:
     /* case SKILL_AFFECT_WILDSHAPE:
     case SKILL_AFFECT_RAGE:
     case SPELL_AFFECT_PRAYER_DEBUFF: */
-    return false;
+    return true;
   }
-  return true;
+  if (is_poison_spell(spell))
+    return true;
+  return false;
 }
 
 bool is_spell_or_spell_like(int type)

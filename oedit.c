@@ -849,6 +849,21 @@ static void oedit_disp_spells_menu(struct descriptor_data *d)
   write_to_output(d, "\r\n%sEnter spell choice (-1 for none) : ", nrm);
 }
 
+static void oedit_disp_poisons_menu(struct descriptor_data *d)
+{
+  int counter, columns = 0;
+
+  get_char_colors(d->character);
+  clear_screen(d);
+
+  for (counter = POISON_TYPE_START; counter <= POISON_TYPE_END; counter++)
+  {
+    write_to_output(d, "%s%2d%s) %s%-20.20s %s", grn, counter, nrm, yel,
+                    spell_info[counter].name, !(++columns % 3) ? "\r\n" : "");
+  }
+  write_to_output(d, "\r\n%sEnter poison choice (-1 for none) : ", nrm);
+}
+
 static void oedit_disp_trap_type(struct descriptor_data *d)
 {
   int counter = 0;
@@ -997,6 +1012,8 @@ static void oedit_disp_val1_menu(struct descriptor_data *d)
     break;
   case ITEM_POISON:
     oedit_disp_spells_menu(d);
+    write_to_output(d, "\r\n");
+    oedit_disp_poisons_menu(d);
     break;
   case ITEM_ARMOR:
   case ITEM_CLANARMOR:
