@@ -94,7 +94,7 @@
 
 bool is_incorporeal(struct char_data *ch);
 bool is_spell_restoreable(int spell);
-sbyte check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level);
+bool check_poison_resist(struct char_data *ch, struct char_data *victim, int casttype, int level);
 int get_poison_save_mod(struct char_data *ch, struct char_data *victim);
 int is_immune_to_crits(struct char_data *attacker, struct char_data *target);
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display);
@@ -112,6 +112,7 @@ void gui_combat_wrap_notvict_close(struct char_data *ch, struct char_data *vict_
 void gui_room_desc_wrap_open(struct char_data *ch);
 void gui_room_desc_wrap_close(struct char_data *ch);
 int BAB(struct char_data *ch);
+bool is_poison_spell(int spell);
 bool valid_vampire_cloak_apply(int type);
 bool is_valid_ability_number(int num);
 int get_region_language(int region);

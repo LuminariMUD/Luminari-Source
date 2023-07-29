@@ -4716,18 +4716,61 @@ spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
          NULL, 0, 0, NOSCHOOL, FALSE);
 
   // poisons
-  spello(POISON_TYPE_SCORPION_WEAK, "weak scorpion poison", 1, 1, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
-         "The weak scorpion poison fully passes through your system.",
-         1, 1, NOSCHOOL, FALSE);
-  spello(POISON_TYPE_SCORPION_NORMAL, "typical scorpion poison", 1, 1, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
-         "The typical scorpion poison fully passes through your system.",
-         1, 1, NOSCHOOL, FALSE);
-  spello(POISON_TYPE_SCORPION_STRONG, "strong scorpion poison", 1, 1, 1, POS_FIGHTING,
-         TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
-         "The strong scorpion poison fully passes through your system.",
-         1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SCORPION_WEAK, "weak scorpion poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak scorpion poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SCORPION_NORMAL, "typical scorpion poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical scorpion poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SCORPION_STRONG, "strong scorpion poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong scorpion poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  
+  spello(POISON_TYPE_SNAKE_WEAK, "weak snake poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak snake poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SNAKE_NORMAL, "typical snake poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical snake poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SNAKE_STRONG, "strong snake poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong snake poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  
+  spello(POISON_TYPE_SPIDER_WEAK, "weak spider poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak spider poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SPIDER_NORMAL, "typical spider poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical spider poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_SPIDER_STRONG, "strong spider poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong spider poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(POISON_TYPE_CENTIPEDE_WEAK, "weak centipede poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak centipede poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_CENTIPEDE_NORMAL, "typical centipede poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical centipede poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_CENTIPEDE_STRONG, "strong centipede poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong centipede poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(POISON_TYPE_WASP_WEAK, "weak wasp poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak wasp poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_WASP_NORMAL, "typical wasp poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical wasp poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_WASP_STRONG, "strong wasp poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong wasp poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(POISON_TYPE_FUNGAL_WEAK, "weak fungal poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The weak fungal poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_FUNGAL_NORMAL, "typical fungal poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The typical fungal poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_FUNGAL_STRONG, "strong fungal poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The strong fungal poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(POISON_TYPE_DROW_WEAK, "weak drow poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, 
+         "The weak drow poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_DROW_NORMAL, "typical drow poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS, 
+         "The typical drow poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_DROW_STRONG, "strong drow poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_AFFECTS,
+         "The strong drow poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+
+  spello(POISON_TYPE_WYVERN, "wyvern poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The wyvern poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_PURPLE_WORM, "purple worm poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS, 
+         "The purple worm poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
+  spello(POISON_TYPE_COCKATRICE, "cockatrice poison", 1, 1, 1, POS_FIGHTING, TAR_CHAR_ROOM | TAR_NOT_SELF, TRUE, MAG_DAMAGE | MAG_AFFECTS,
+         "The cockatrice poison fully passes through your system.", 1, 1, NOSCHOOL, FALSE);
 
   /* Declaration of skills - this assigns categories and also will set it up
    * so that immortals can use these skills by default.  The min level to use

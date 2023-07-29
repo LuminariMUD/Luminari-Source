@@ -392,6 +392,8 @@ int mag_savingthrow_full(struct char_data *ch, struct char_data *vict,
     savethrow += 2;
   if (ch && casttype == CAST_WEAPON_POISON)
     savethrow += get_poison_save_mod(ch, vict);
+  if (ch && is_poison_spell(spellnum))
+    savethrow += get_poison_save_mod(ch, vict);
   if (ch && IS_FRIGHTENED(ch))
     savethrow -= 2;
   if (affected_by_aura_of_despair(vict))
@@ -909,6 +911,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       || ------------ SPECIAL SPELLS ----------- ||
       \*******************************************/
 
+      /*******************************************\
+      || ------------ POISONS ----------- ||
+      \*******************************************/
+
   case SPELL_POISON:
     save = SAVING_FORT;
     if (casttype != CAST_INNATE)
@@ -928,7 +934,55 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     size_dice = 4;
     bonus = 0;
     break;
-    
+
+  case POISON_TYPE_SCORPION_WEAK:
+  case POISON_TYPE_SNAKE_WEAK:
+  case POISON_TYPE_SPIDER_WEAK:
+  case POISON_TYPE_CENTIPEDE_WEAK:
+  case POISON_TYPE_WASP_WEAK:
+  case POISON_TYPE_FUNGAL_WEAK:
+  case POISON_TYPE_COCKATRICE:
+    if (!can_poison(victim))
+      return 0;
+    save = SAVING_FORT;
+    element = DAM_POISON;
+    num_dice = 1;
+    size_dice = 6;
+    bonus = 0;
+    break;
+  
+  case POISON_TYPE_SCORPION_NORMAL:
+  case POISON_TYPE_SNAKE_NORMAL:
+  case POISON_TYPE_SPIDER_NORMAL:
+  case POISON_TYPE_CENTIPEDE_NORMAL:
+  case POISON_TYPE_WASP_NORMAL:
+  case POISON_TYPE_FUNGAL_NORMAL:
+  case POISON_TYPE_WYVERN:
+  if (!can_poison(victim))
+      return 0;
+    save = SAVING_FORT;
+    element = DAM_POISON;
+    num_dice = 2;
+    size_dice = 6;
+    bonus = 0;
+    break;
+
+  case POISON_TYPE_SCORPION_STRONG:
+  case POISON_TYPE_SNAKE_STRONG:
+  case POISON_TYPE_SPIDER_STRONG:
+  case POISON_TYPE_CENTIPEDE_STRONG:
+  case POISON_TYPE_WASP_STRONG:
+  case POISON_TYPE_FUNGAL_STRONG:
+  case POISON_TYPE_PURPLE_WORM:
+  if (!can_poison(victim))
+      return 0;
+    save = SAVING_FORT;
+    element = DAM_POISON;
+    num_dice = 3;
+    size_dice = 6;
+    bonus = 0;
+    break;
+  
     /*******************************************\
       || ------------ WARLOCK POWERS ----------- ||
       \*******************************************/
@@ -2553,6 +2607,24 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 /* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
    old tick = 75 seconds, or 1.25 minutes or 25 rounds */
 
+bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int casttype, int level)
+{
+  if (!can_poison(victim))
+    {
+      send_to_char(ch, "Your opponent doesn't seem susceptible to poison.\r\n");
+      return true;
+    }
+    if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
+      return true;
+    int bonus = get_poison_save_mod(ch, victim);
+    if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
+    {
+      send_to_char(ch, "Your victim seems to resist the poison!\r\n");
+      return true;
+    }
+    return false;
+}
+
 /* all spells, spell-like affects, alchemy, psionics, etc that puts on an affect should be going through here */
 void mag_affects(int level, struct char_data *ch, struct char_data *victim,
                  struct obj_data *wpn, int spellnum, int savetype, int casttype, int metamagic)
@@ -2660,8 +2732,377 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   spell_school = spell_info[spellnum].schoolOfMagic;
 
+  if (is_poison_spell(spellnum))
+    if (passed_poison_checks(ch, victim, casttype, level))
+      return;
+
   switch (spellnum)
   {
+    // poisons
+
+    case POISON_TYPE_SCORPION_WEAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_CON;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 2));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SCORPION_NORMAL:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_CON;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SCORPION_STRONG:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_CON;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SNAKE_WEAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_STR;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 2));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SNAKE_NORMAL:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_STR;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SNAKE_STRONG:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_STR;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SPIDER_WEAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_DEX;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 2));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SPIDER_NORMAL:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_DEX;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_SPIDER_STRONG:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_DEX;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_CENTIPEDE_WEAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_INT;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 2));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_CENTIPEDE_NORMAL:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_INT;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_CENTIPEDE_STRONG:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_INT;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+
+    case POISON_TYPE_WASP_WEAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_WIS;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 2));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_WASP_NORMAL:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_WIS;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_WASP_STRONG:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_WIS;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_FUNGAL_WEAK:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_CHA;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 2));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_FUNGAL_NORMAL:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_CHA;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_FUNGAL_STRONG:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_CHA;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+
+    case POISON_TYPE_DROW_WEAK:
+      if (!can_stun(victim) || !can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].duration = dice(1, 4);
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      SET_BIT_AR(af[0].bitvector, AFF_STUN);
+      to_vict = "The poison stuns you.";
+      to_room = "$n looks stunned.";
+      accum_duration = TRUE;
+      break;
+
+    case POISON_TYPE_DROW_NORMAL:
+      if (!can_stun(victim) || !can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 2, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].duration = dice(1, 4) + 2;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      SET_BIT_AR(af[0].bitvector, AFF_STUN);
+      to_vict = "The poison stuns you.";
+      to_room = "$n looks stunned.";
+      accum_duration = TRUE;
+      break;
+
+    case POISON_TYPE_DROW_STRONG:
+      if (!can_stun(victim) || !can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 4, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].duration = dice(1, 4) + 4;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      SET_BIT_AR(af[0].bitvector, AFF_STUN);
+      to_vict = "The poison stuns you.";
+      to_room = "$n looks stunned.";
+      accum_duration = TRUE;
+      break;
+
+    case POISON_TYPE_WYVERN:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_STR;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      af[1].location = APPLY_CON;
+      af[1].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[1].duration *= 1.5;
+      af[1].modifier = -(dice(1, 4));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_PURPLE_WORM:
+    if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_STR;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 4));
+      af[1].location = APPLY_CON;
+      af[1].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[1].duration *= 1.5;
+      af[1].modifier = -(dice(1, 6));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      break;
+
+    case POISON_TYPE_COCKATRICE:
+      if (!can_poison(victim) || mag_savingthrow_full(ch, victim, SAVING_FORT, 0, casttype, level, ENCHANTMENT, spellnum))
+      {
+        return;
+      }
+      af[0].location = APPLY_DEX;
+      af[0].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[0].duration *= 1.5;
+      af[0].modifier = -(dice(1, 3));
+      af[1].location = APPLY_CON;
+      af[1].duration = 10;
+      if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+        af[1].duration *= 1.5;
+      af[1].modifier = -(dice(1, 3));
+      to_vict = "You feel very sick.";
+      to_room = "$n gets violently ill!";
+      if (can_stun(victim))
+      {
+        af[2].duration = dice(1, 4);
+        if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
+          af[2].duration *= 1.5;
+        SET_BIT_AR(af[2].bitvector, AFF_STUN);
+      }
+      to_vict = "The poison stuns you.";
+      to_room = "$n looks stunned.";
+      accum_duration = TRUE;
+      break;
+
     // psionic powers 1st
 
   case PSIONIC_BROKER:
@@ -6373,20 +6814,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case SPELL_POISON: // enchantment, shared
-    if (!can_poison(victim))
-    {
-      send_to_char(ch, "Your opponent doesn't seem susceptible to poison.\r\n");
-      return;
-    }
-    if (casttype != CAST_INNATE && mag_resistance(ch, victim, 0))
-      return;
-    int bonus = get_poison_save_mod(ch, victim);
-    if (mag_savingthrow(ch, victim, SAVING_FORT, bonus, casttype, level, ENCHANTMENT))
-    {
-      send_to_char(ch, "Your victim seems to resist the poison!\r\n");
-      return;
-    }
-
+    // poison check made above in passed_poison_checks
     af[0].location = APPLY_STR;
     if (casttype == CAST_INNATE || casttype == CAST_WEAPON_POISON) /* trelux for example */
       af[0].duration = GET_LEVEL(ch) * 5;
