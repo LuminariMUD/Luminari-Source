@@ -66,6 +66,7 @@ const char *quest_types[NUM_AQ_TYPES + 1] = {
     "Find a Player House",           /* 20 */
     "Get to Wilderness Coordinates", /* 21 */
     "Give Gold",                     /* 22 */
+    "Kill Multi Mob (comma-separated vnums)",
     "\n"};
 
 const char *aq_flags[] = {
@@ -190,6 +191,7 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].info = NULL;
   aquest_table[i].done = NULL;
   aquest_table[i].quit = NULL;
+  aquest_table[i].kill_list = NULL;
   aquest_table[i].flags = 0;
   aquest_table[i].type = -1;
   aquest_table[i].target = -1;
@@ -217,6 +219,7 @@ void parse_quest(FILE *quest_f, int nr)
   aquest_table[i].info = fread_string(quest_f, buf2);
   aquest_table[i].done = fread_string(quest_f, buf2);
   aquest_table[i].quit = fread_string(quest_f, buf2);
+  aquest_table[i].kill_list = fread_string(quest_f, buf2);
 
   /* parse the first line of ints */
   if (!get_line(quest_f, line) ||
@@ -819,6 +822,24 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict,
       if (!IS_NPC(ch) && IS_NPC(vict) && (ch != vict))
         if (QST_TARGET(rnum) == GET_MOB_VNUM(vict))
           generic_complete_quest(ch, index);
+      break;
+
+    case AQ_MOB_MULTI_KILL:
+      if (!IS_NPC(ch) && IS_NPC(vict) && (ch != vict))
+      {
+        char kill_list[MAX_STRING_LENGTH] = {'\0'};
+        snprintf(kill_list, sizeof(kill_list), "%s", QST_KLIST(rnum));
+        char *pt = strtok(kill_list, ",");
+        while (pt != NULL)
+        {
+            if (atoi(pt) == GET_MOB_VNUM(vict))
+            {
+              generic_complete_quest(ch, index);
+              break;
+            }
+            pt = strtok(NULL, ",");
+        }
+      }
       break;
 
     case AQ_MOB_SAVE:

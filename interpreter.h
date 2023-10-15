@@ -146,6 +146,7 @@ struct alias_data
 #define SCMD_OASIS_QLIST 6
 #define SCMD_OASIS_REGLIST 7
 #define SCMD_OASIS_PATHLIST 8
+#define SCMD_OASIS_OLIST_APPLIES 9
 
 #define SCMD_PILFER 1
 

@@ -985,6 +985,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
   case ABILITY_STEALTH:
     value += GET_DEX_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))  value += 2;
     if (HAS_FEAT(ch, FEAT_AFFINITY_MOVE_SILENT))
       value += 4;
     if (HAS_FEAT(ch, FEAT_STEALTHY))
@@ -1038,7 +1039,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
 
   case ABILITY_PERCEPTION:
     value += GET_WIS_BONUS(ch);
-
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
+      value += 2;
     if (HAS_FEAT(ch, FEAT_AFFINITY_LISTEN))
     {
       /* Unnamed bonus */
@@ -1102,6 +1104,12 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += MAX(1, CLASS_LEVEL(ch, CLASS_INQUISITOR) / 2);
     }
+    if (HAS_FEAT(ch, FEAT_MINOTAUR_INTIMIDATING))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
+
     if (HAS_REAL_FEAT(ch, FEAT_MENACING))
       value += 3;
     return value;
@@ -1109,7 +1117,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
   case ABILITY_CONCENTRATION: /* not srd */
     if (GET_RACE(ch) == RACE_GNOME)
       value += 2;
-
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
+      value += 2;
     value += GET_CON_BONUS(ch);
 
     if (!IS_NPC(ch) && GET_RACE(ch) == RACE_ARCANA_GOLEM)
@@ -1220,6 +1229,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_SLEIGHT_OF_HAND:
     value += GET_DEX_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
+      value += 2;
     value += compute_gear_armor_penalty(ch);
     if (HAS_FEAT(ch, FEAT_DEFT_HANDS))
     {
@@ -1234,6 +1245,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       /* Unnamed bonus */
       value += 2;
     }
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))  value += 2;
     if (HAS_FEAT(ch, FEAT_VAMPIRE_SKILL_BONUSES) && CAN_USE_VAMPIRE_ABILITY(ch))
       value += 8;
     return value;
@@ -1247,6 +1259,8 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_DISABLE_DEVICE:
     value += GET_INT_BONUS(ch);
+    if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
+      value += 2;
     if (HAS_FEAT(ch, FEAT_NIMBLE_FINGERS))
     {
       /* Unnamed bonus */
@@ -1327,6 +1341,11 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
       value += 2;
     }
     if (HAS_FEAT(ch, FEAT_NATURAL_ATHLETE))
+    {
+      /* Unnamed bonus */
+      value += 2;
+    }
+    if (HAS_FEAT(ch, FEAT_MINOTAUR_SEAFARING))
     {
       /* Unnamed bonus */
       value += 2;
@@ -10450,6 +10469,7 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
       return;
     }
     set_weapon_object(obj, selection);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
     snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(weapon_list[selection].name), weapon_list[selection].name);
     obj->name = strdup(buf);
     snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(weapon_list[selection].name), weapon_list[selection].name);
@@ -10468,6 +10488,7 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
       return;
     }
     set_armor_object(obj, selection);
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
     snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(armor_list[selection].name), armor_list[selection].name);
     obj->name = strdup(buf);
     snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(armor_list[selection].name), armor_list[selection].name);
@@ -10504,6 +10525,9 @@ void create_crafting_mold(struct char_data *ch, int selection, int type)
       SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_ABOUT);
       break;
     }
+
+    SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_MOLD);
+
     snprintf(buf, sizeof(buf), "mold %s %s", a_or_an(mold_accessories[selection]), mold_accessories[selection]);
     obj->name = strdup(buf);
     snprintf(buf, sizeof(buf), "a crafting mold for %s %s", a_or_an(mold_accessories[selection]), mold_accessories[selection]);
@@ -10823,6 +10847,55 @@ SPECIAL(celestial_leviathan)
 /*************************/
 /* end object procedures */
 /*************************/
+
+SPECIAL(identify_mob)
+{
+  if (!CMD_IS("identify"))
+    return 0;
+
+  char arg1[200];
+  struct obj_data *obj = NULL;
+
+  one_argument(argument, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Which item do you wish to have identified?\r\n");
+    return 1;
+  }
+
+  int target = generic_find(arg1, FIND_OBJ_INV, ch, 0, &obj);
+
+  if (!target)
+  {
+    send_to_char(ch, "You don't seem to have that item on hand.\r\n");
+    return 1;
+  }
+
+  /* success! */
+  if (obj)
+  {
+    int cost = GET_OBJ_LEVEL(obj) * 10;
+    
+    if (GET_GOLD(ch) < cost)
+    {
+      send_to_char(ch, "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n", cost, GET_GOLD(ch));
+      return 1;
+    }
+    GET_GOLD(ch) -= cost;
+    send_to_char(ch, "That will cost you %d coins.\r\n", cost);
+    do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
+    return 1;
+  }
+  else
+  {
+    send_to_char(ch, "You don't seem to have that item in your inventory.\r\n");
+    return 1;
+  }
+
+  return 1;
+
+}
 
 #undef DEBUGMODE
 

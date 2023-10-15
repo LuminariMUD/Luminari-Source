@@ -606,6 +606,7 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
     case CASTING_TYPE_ARCANE:
       if (!(IS_WIZARD(ch) ||
             IS_SORCERER(ch) ||
+            IS_SUMMONER(ch) ||
             IS_BARD(ch)))
         return FALSE;
       /* This stuff is all messed up - fix. */
@@ -2136,6 +2137,54 @@ int level_feats[][LEVEL_FEATS] = {
 #define NUM_NOOB_ARROWS 40
 #define NUM_NOOB_DROW_BOLTS 30
 #define NOOB_TELEPORTER 82
+
+#if defined(CAMPAIGN_DL)
+
+#define NOOB_TORCH 20858
+#define NOOB_RATIONS 20804
+#define NOOB_WATERSKIN 20803
+#define NOOB_BP 20857
+#define NOOB_CRAFTING_KIT 40118
+#define NOOB_BOW 20814
+#define NOOB_QUIVER 20816
+#define NOOB_ARROW 20815
+
+#define NOOB_CRAFT_MAT 16602
+#define NOOB_CRAFT_MOLD 16603
+
+/* various general items (not gear) */
+#define NOOB_WIZ_NOTE 20850
+#define NOOB_WIZ_SPELLBOOK 20812
+/* various general gear */
+#define NOOB_LEATHER_SLEEVES 20854
+#define NOOB_LEATHER_LEGGINGS 20855
+#define NOOB_IRON_MACE 20861
+#define NOOB_IRON_SHIELD 20863
+#define NOOB_SCALE_MAIL 20807
+#define NOOB_STEEL_SCIMITAR 20862
+#define NOOB_WOOD_SHIELD 20864
+#define NOOB_STUD_LEATHER 20851
+#define NOOB_LONG_SWORD 20808
+#define NOOB_CLOTH_ROBES 20809
+#define NOOB_DAGGER 20852
+#define NOOB_CLOTH_SLEEVES 20865
+#define NOOB_CLOTH_PANTS 20866
+/* dwarf racial */
+#define NOOB_DWARF_WARAXE 20806
+/* drow racial */
+#define NOOB_DROW_XBOW 20832
+#define NOOB_DROW_BOLT 20831
+#define NOOB_DROW_POUCH 20833
+/* bard instrument vnums */
+#define LYRE 20825
+#define FLUTE 20826
+#define DRUM 20827
+#define HORN 20828
+#define HARP 20829
+#define MANDOLIN 20830
+#define NOOB_HOOPAK 117
+
+#else
 #define NOOB_TORCH 867
 #define NOOB_RATIONS 804
 #define NOOB_WATERSKIN 803
@@ -2177,19 +2226,29 @@ int level_feats[][LEVEL_FEATS] = {
 #define HARP 829
 #define MANDOLIN 830
 
+#endif
+
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
 {
   int objNums[] = {
       NOOB_BP, /* HAS to be first */
       NOOB_BOW,
-      NOOB_TORCH,
       NOOB_RATIONS,
       NOOB_RATIONS,
       NOOB_RATIONS,
       NOOB_RATIONS,
       NOOB_WATERSKIN,
-#ifndef CAMPAIGN_FR
+
+#if defined(CAMPAIGN_DL)
+      NOOB_TORCH,
+      NOOB_TORCH,
+      NOOB_TORCH,
+      NOOB_TORCH,
+      NOOB_CRAFTING_KIT,
+#endif
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+      NOOB_TORCH,
       NOOB_TELEPORTER,
       NOOB_CRAFTING_KIT,
       NOOB_CRAFT_MAT,
@@ -2267,7 +2326,13 @@ void newbieEquipment(struct char_data *ch)
         obj_to_obj(obj, pouch);
     }
     break;
-#ifdef CAMPAIGN_FR    
+#if defined(CAMPAIGN_DL)
+  case DL_RACE_KENDER:
+    obj = read_object(NOOB_HOOPAK, VIRTUAL);
+    obj_to_char(obj, ch); // Kender hoopak
+    break;
+#endif
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   case RACE_VAMPIRE:
     obj = read_object(VAMPIRE_CLOAK_OBJ_VNUM, VIRTUAL);
     obj_to_char(obj, ch); // vampire cloak
@@ -2609,6 +2674,7 @@ void init_start_char(struct char_data *ch)
 
   /* reset title */
   set_title(ch, NULL);
+
 
   /* reset stats */
   roll_real_abils(ch);
@@ -3181,7 +3247,7 @@ void advance_level(struct char_data *ch, int class)
   add_hp = GET_CON_BONUS(ch);
 
   add_hp += CONFIG_EXTRA_PLAYER_HP_PER_LEVEL;
-  add_move += CONFIG_EXTRA_PLAYER_MV_PER_LEVEL;
+  add_move += CONFIG_EXTRA_PLAYER_MV_PER_LEVEL * 10;
 
   if (class == CLASS_PSIONICIST)
   {
@@ -3209,7 +3275,7 @@ void advance_level(struct char_data *ch, int class)
   add_hp += CLSLIST_HPS(class);
 
   /* calculate moves gain */
-  add_move += rand_number(1, CLSLIST_MVS(class));
+  add_move += rand_number(10, CLSLIST_MVS(class) * 10);
 
   /* calculate trains gained */
   trains += MAX(1, (CLSLIST_TRAINS(class) + (GET_REAL_INT_BONUS(ch))));
@@ -3273,13 +3339,17 @@ void advance_level(struct char_data *ch, int class)
   {
     add_move += rand_number(10, 20);
   }
+  if (HAS_FEAT(ch, FEAT_DRACONIAN_GALLOP))
+  {
+    add_move += rand_number(10, 20);
+  }
   if (HAS_FEAT(ch, FEAT_FAST_MOVEMENT))
   {
     add_move += rand_number(10, 20);
   }
   if (HAS_FEAT(ch, FEAT_WOOD_ELF_FLEETNESS))
   {
-    add_move += 2;
+    add_move += 20;
   }
 
   /* 'free' race feats gained (old system) */
@@ -3325,8 +3395,7 @@ void advance_level(struct char_data *ch, int class)
   }
   if (!(GET_LEVEL(ch) % 4))
   {
-    GET_BOOSTS(ch)
-    ++;
+    GET_BOOSTS(ch)++;
     if (GET_PREMADE_BUILD_CLASS(ch) != CLASS_UNDEFINED)
       send_to_char(ch, "\tMYou gain a boost (to stats) point!\tn\r\n");
   }
@@ -3343,9 +3412,6 @@ void advance_level(struct char_data *ch, int class)
   {
     add_hp++;
   }
-
-  // we're using more move points now
-  add_move *= 10;
 
   /* adjust final and report changes! */
   GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
@@ -3549,6 +3615,40 @@ int level_exp(struct char_data *ch, int level)
   case RACE_VAMPIRE:
     exp *= 10;
     break;
+#elif defined(CAMPAIGN_DL)
+
+  case RACE_LICH:
+    exp *= 10;
+    break;
+
+  case RACE_VAMPIRE:
+    exp *= 10;
+    break;
+
+  case DL_RACE_KAPAK_DRACONIAN:
+    exp *= 3;
+    break;
+
+  case DL_RACE_BOZAK_DRACONIAN:
+    exp *= 3;
+    break;
+
+  case DL_RACE_IRDA:
+    exp *= 3;
+    break;
+
+  case DL_RACE_OGRE:
+    exp *= 3;
+    break;
+
+  case DL_RACE_SIVAK_DRACONIAN:
+    exp *= 5;
+    break;
+
+  case DL_RACE_AURAK_DRACONIAN:
+    exp *= 10;
+    break;
+
 #else
     // advanced races
   case RACE_HALF_TROLL:
@@ -3589,10 +3689,21 @@ int level_exp(struct char_data *ch, int level)
     break;
   }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   // This is the final multiplier.  This will change all exp requirements across the board.
   // To keep it at the original -LuminariMUD based levels, comment out this line entirely
   exp *= 2;
+#endif
+
+#if defined(CAMPAIGN_DL)
+    if (level >= 25)
+      exp *= 3;
+    else if (level >= 20)
+      exp *= 2.5;
+    else if (level >= 15)
+      exp *= 2;
+    else if (level >= 10)
+      exp *= 1.5;
 #endif
 
   return exp;
@@ -3943,7 +4054,7 @@ void load_class_list(void)
   spell_assignment(CLASS_WIZARD, SPELL_METEOR_SWARM, 17);
   spell_assignment(CLASS_WIZARD, SPELL_BLADE_OF_DISASTER, 17);
   spell_assignment(CLASS_WIZARD, SPELL_SUMMON_CREATURE_9, 17);
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   spell_assignment(CLASS_WIZARD, SPELL_GATE, 17);
 #endif
   spell_assignment(CLASS_WIZARD, SPELL_ENERGY_DRAIN, 17);
@@ -5245,7 +5356,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SORCERER, SPELL_METEOR_SWARM, 18);
   spell_assignment(CLASS_SORCERER, SPELL_BLADE_OF_DISASTER, 18);
   spell_assignment(CLASS_SORCERER, SPELL_SUMMON_CREATURE_9, 18);
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   spell_assignment(CLASS_SORCERER, SPELL_GATE, 18);
 #endif
   spell_assignment(CLASS_SORCERER, SPELL_ENERGY_DRAIN, 18);
@@ -6324,8 +6435,7 @@ void load_class_list(void)
   class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_DISABLE_DEVICE, 4);
   class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_ESCAPE_ARTIST, 4);
   class_prereq_ability(CLASS_ARCANE_SHADOW, ABILITY_SPELLCRAFT, 4);
-  class_prereq_spellcasting(CLASS_ARCANE_SHADOW, CASTING_TYPE_ARCANE,
-                            PREP_TYPE_ANY, 2 /*circle*/);
+  class_prereq_spellcasting(CLASS_ARCANE_SHADOW, CASTING_TYPE_ARCANE, PREP_TYPE_ANY, 2 /*circle*/);
   class_prereq_feat(CLASS_ARCANE_SHADOW, FEAT_SNEAK_ATTACK, 2);
   class_prereq_align(CLASS_ARCANE_SHADOW, NEUTRAL_GOOD);
   class_prereq_align(CLASS_ARCANE_SHADOW, TRUE_NEUTRAL);

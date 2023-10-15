@@ -1874,8 +1874,8 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
-#ifdef CAMPAIGN_FR
-  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10)
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10 && !is_crafting_kit(cont))
   {
     send_to_char(ch, "Containers can only fit 10 items.  Please use the 'sort' command to organize your inventory.\r\n");
     return;
@@ -7062,13 +7062,24 @@ ACMDU(do_tinker)
   {
     send_to_char(ch, "You can only tinker on armor chest pieces and weapons.\r\n");
     return;
-  }
+  } 
 
   if (obj->tinker_bonus > 0)
   {
     send_to_char(ch, "This item has already been tinkered with.\r\n");
     return;
   }
+
+#if defined(CAMPAIGN_DL)
+  if (dice(1, 4) == 1)
+  {
+    act("You botched your tinkering on $p, destroying it!", TRUE, ch, obj, 0, TO_CHAR);
+    act("$n botched $s tinkering on $p, destroying it!", TRUE, ch, obj, 0, TO_ROOM);
+    obj_from_char(obj);
+    extract_obj(obj);
+    return;
+  }
+#endif
 
   send_to_char(ch, "You have successfully tinkered with %s, improving it.\r\n", obj->short_description);
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)

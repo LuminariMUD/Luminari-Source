@@ -735,6 +735,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += HAS_FEAT(ch, FEAT_ARMOR_SKIN);
   }
+  if (HAS_FEAT(ch, FEAT_MINOTAUR_TOUGH_HIDE))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 1;
+  }
   if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_DRAGON_RESISTANCES))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += (CLASS_LEVEL(ch, CLASS_SORCERER) >= 15 ? 4 : (CLASS_LEVEL(ch, CLASS_SORCERER) >= 9 ? 2 : 1));
@@ -743,6 +747,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch,
   if (HAS_FEAT(ch, FEAT_VAMPIRE_NATURAL_ARMOR) && CAN_USE_VAMPIRE_ABILITY(ch))
   {
     bonuses[BONUS_TYPE_NATURALARMOR] += 6;
+  }
+  if (HAS_FEAT(ch, FEAT_BAAZ_DRACONIAN_SCALES))
+  {
+    bonuses[BONUS_TYPE_NATURALARMOR] += 1;
   }
   if (HAS_EVOLUTION(ch, EVOLUTION_IMPROVED_NATURAL_ARMOR))
   {
@@ -1590,6 +1598,7 @@ static void make_corpse(struct char_data *ch)
   struct obj_data *money = NULL;
   int i = 0, x = 0, y = 0;
 
+#if !defined(CAMPAIGN_DL)
   /* handle mobile death that should not leave a corpse */
   if (IS_NPC(ch))
   { /* necessary check because of morphed druids */
@@ -1622,7 +1631,7 @@ static void make_corpse(struct char_data *ch)
       return;
     }
   } /* if we continue on, we need to actually make a corpse.... */
-
+#endif
   /* create the corpse object, blank prototype */
   corpse = create_obj();
 
@@ -1852,6 +1861,7 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
 
   /* check for killer first */
   autoquest_trigger_check(killer, ch, NULL, 0, AQ_MOB_KILL);
+  autoquest_trigger_check(killer, ch, NULL, 0, AQ_MOB_MULTI_KILL);
 
   /* check for all group members next */
   group = GROUP(killer);
@@ -1868,7 +1878,10 @@ void kill_quest_completion_check(struct char_data *killer, struct char_data *ch)
       if (IS_PET(k))
         continue;
       if (IN_ROOM(k) == IN_ROOM(killer))
+      {
         autoquest_trigger_check(k, ch, NULL, 0, AQ_MOB_KILL);
+        autoquest_trigger_check(k, ch, NULL, 0, AQ_MOB_MULTI_KILL);
+      }
     }
     /* Be kind, rewind. */
     remove_iterator(&it);
@@ -2244,11 +2257,17 @@ static void perform_group_gain(struct char_data *ch, int base,
     gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
   }
 
+#if !defined(CAMPAIGN_FR) && !defined(CAMAPIGN_DL)
   change_alignment(ch, victim);
+#endif
 }
 
 /* called for splitting xp in a group (prelim) */
-#define BONUS_PER_MEMBER 2
+#if defined(CAMPAIGN_DL)
+  #define BONUS_PER_MEMBER 10
+#else
+  #define BONUS_PER_MEMBER 2
+#endif
 
 static void group_gain(struct char_data *ch, struct char_data *victim)
 {
@@ -2298,13 +2317,20 @@ static void group_gain(struct char_data *ch, struct char_data *victim)
     base = 0;
 
   /* if mob isn't within X levels, don't give xp -zusuk */
+#if !defined(CAMPAIGN_DL)
   if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < party_level)
     base = 1;
+#endif
 
   /* XP bonus for groupping */
   if (tot_members > 1)
-    base = 1 + base *
-                   ((100 + (tot_members * BONUS_PER_MEMBER)) / 100);
+    base = 1 + base * ((100 + (tot_members * BONUS_PER_MEMBER)) / 100);
+
+#if defined(CAMPAIGN_DL)
+  if (GET_LEVEL(victim) < 18)
+    if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < party_level)
+      base /= 2;
+#endif
 
   while ((k = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
   {
@@ -2336,9 +2362,15 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
   /* minimum of 1 xp point */
   exp = MAX(exp, 1);
 
+#if defined(CAMAPIGN_DL)
+  if (GET_LEVEL(victim) < 18)
+    if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
+      exp /= 2;
+#else
   /* if mob isn't within X levels, don't give xp -zusuk */
   if ((GET_LEVEL(victim) + CONFIG_EXP_LEVEL_DIFFERENCE) < GET_LEVEL(ch))
     exp = 1;
+#endif
 
   /* avoid xp abuse in PvP */
   if (!IS_NPC(victim))
@@ -2359,7 +2391,9 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
     gain_exp(ch, exp, GAIN_EXP_MODE_SOLO);
   }
 
+#if !defined(CAMPAIGN_FR) && !defined(CAMAPIGN_DL)
   change_alignment(ch, victim);
+#endif
 }
 
 /* this function replaces the #w or #W with an appropriate weapon
@@ -5335,7 +5369,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
       if (display_mode)
         send_to_char(ch, "%s from Claws: \tR%d\tn\r\n", strength, str_bonus);
     }
-    else if (!IS_WILDSHAPED(ch) && !IS_MORPHED(ch) && GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
+    else if (str_bonus >= 0 && !IS_WILDSHAPED(ch) && !IS_MORPHED(ch) && GET_EQ(ch, WEAR_WIELD_2H) && !is_using_double_weapon(ch) && !OBJ_FLAGGED(wielded, ITEM_AGILE))
     {
       dambonus += str_bonus * 3 / 2; /* 2handed weapon */
       if (display_mode)
@@ -5505,6 +5539,13 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict,
 
   default:
     break;
+  }
+
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_KENDER) && wielded && GET_OBJ_VAL(wielded, 0) == WEAPON_TYPE_HOOPAK)
+  {
+    if (display_mode)
+      send_to_char(ch, "Kender Hoopak Prof: \tR2\tn\r\n");
+    dambonus += 2;
   }
 
   if (display_mode)
@@ -8035,6 +8076,9 @@ int compute_attack_bonus(struct char_data *ch,     /* Attacker */
       }
     }
   }
+
+  if (HAS_FEAT(ch, FEAT_BAAZ_DRACONIC_DEVOTION) && is_grouped_with_dragon(ch))
+    bonuses[BONUS_TYPE_MORALE] += 2;
 
   /* if the victim is using 'come and get me' then they will be vulnerable */
   if (victim && affected_by_spell(victim, SKILL_COME_AND_GET_ME))
@@ -10664,9 +10708,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
   }
 
   /* Haste or equivalent gives one extra attack, ranged or melee, at max BAB. */
-  if (AFF_FLAGGED(ch, AFF_HASTE) ||
-      (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)) ||
-      (has_speed_weapon(ch)))
+  if (AFF_FLAGGED(ch, AFF_HASTE) || (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)) || (has_speed_weapon(ch)))
   {
     ranged_attacks++;
     attacks_at_max_bab++;
@@ -11039,7 +11081,8 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 
   /* haste or equivalent? */
   if (!VITAL_STRIKING(ch) && (AFF_FLAGGED(ch, AFF_HASTE) ||
-                              (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED))))
+                              (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_BLINDING_SPEED)) ||
+                              has_speed_weapon(ch)))
   {
     numAttacks++;
     if (mode == NORMAL_ATTACK_ROUTINE)

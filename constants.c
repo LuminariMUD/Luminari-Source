@@ -1595,6 +1595,7 @@ const char *preference_bits[] = {
     "No-Rage",
     "Life-Bond",
     "Charmie-Combat-Roll",
+    "Auto-Prep",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -1623,6 +1624,7 @@ const char *bonus_types[] = {
     "Food",
     "Drink",
     "Eidolon",
+    "Universal",
     "\n"};
 CHECK_TABLE_SIZE(bonus_types, NUM_BONUS_TYPES + 1);
 
@@ -2149,7 +2151,7 @@ const char *item_profs[] = {
 CHECK_TABLE_SIZE(item_profs, NUM_ITEM_PROFS + 1);
 
 const char *material_name[] = {
-    "RESERVED",
+    "not-set",
     "cotton",
     "leather",
     "glass",
@@ -2393,6 +2395,7 @@ const char *extra_bits[] = {
     "Vampire-Only",
     "Warlock-Only",
     "Anti-Warlock",
+    "Set-Stats-At-Load",
     "\n"};
 CHECK_TABLE_SIZE(extra_bits, NUM_ITEM_FLAGS + 1);
 
@@ -3759,6 +3762,34 @@ const char *ability_names[] = {
     "planes",
     "\n"};
 
+#if defined(CAMPAIGN_DL)
+
+const char *languages[] =
+{
+    "common",
+    "draconic",
+    "druidic",
+    "dwarven",
+    "elven",
+    "ergot",
+    "giant",
+    "gnome",
+    "goblin",
+    "gullytalk",
+    "halfling",
+    "minotaur",
+    "nerakese",
+    "ogre",
+    "plainsfolk",
+    "solamnic",
+    "sylvan",
+    "thieves cant",
+    "\n"
+};
+CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
+
+#else
+
 const char *languages[] =
     {
         "common",
@@ -3804,20 +3835,30 @@ const char *languages[] =
         "\n"};
 CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
 
-const char *pantheons[] = {
-    "",
-    "All",
-    "Faerun",
-    "Dwarven",
-    "Drow",
-    "Elven",
-    "Gnome",
-    "Halfling",
-    "Orc",
-    "\n"
-};
-CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+#endif
 
+#if !defined(CAMPAIGN_DL)
+    const char *pantheons[] = {
+        "",
+        "All",
+        "Faerun",
+        "Dwarven",
+        "Drow",
+        "Elven",
+        "Gnome",
+        "Halfling",
+        "Orc",
+        "\n"
+    };
+    CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+#else
+    const char *pantheons[] = {
+        "",
+        "All",
+        "\n"
+    };
+    CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+#endif
 const char *draconic_heritage_names[] = {
     "none",
     "black",

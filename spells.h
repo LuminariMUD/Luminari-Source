@@ -574,9 +574,12 @@
 #define SPELL_LESSER_RESTORE_EIDOLON 498
 #define SPELL_RESTORE_EIDOLON 499
 #define SPELL_PURIFIED_CALLING 500
+#define SPELL_PALANTHAS_RECALL 501
+#define SPELL_SANCTION_RECALL 502
+#define SPELL_SOLACE_RECALL 503
 
 /** Total Number of defined spells  */
-#define NUM_SPELLS 501
+#define NUM_SPELLS 504
 #define LAST_SPELL_DEFINE NUM_SPELLS + 1
 
 #define MAX_SPELL_AFFECTS 6 /* change if more needed */
@@ -650,6 +653,7 @@
 #define EVOLUTION_SICKENING_EFFECT 1256
 #define EVOLUTION_FRIGHTFUL_EFFECT 1257
 #define EIDOLON_MERGE_FORMS_EFFECT 1258
+#define ABILITY_BAAZ_DRACONIAN_DEATH_THROES 1259
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1040,6 +1044,8 @@
 #define SKILL_EPIC_WILDSHAPE 2150 // implemented
 #define SKILL_DRAGON_BITE 2151
 #define SKILL_SLAM 2152
+#define SKILL_GORE 2153
+#define SKILL_BITE 2154
 
 /* reserving this space for different performances 2180 - 2199*/
 #define TOP_OF_PERFORMANCES 2180
@@ -1129,6 +1135,8 @@
 // Vampire cloak
 #ifdef CAMPAIGN_FR
   #define VAMPIRE_CLOAK_OBJ_VNUM 299
+elif defined(CAMPAIGN_DL)
+  #define VAMPIRE_CLOAK_OBJ_VNUM 16604
 #else
   #define VAMPIRE_CLOAK_OBJ_VNUM 34700
 #endif
@@ -1166,6 +1174,35 @@
 #define TYPE_SUFFERING 2399
 /* new attack types can be added here - up to TYPE_SUFFERING */
 #define MAX_TYPES 2400
+
+#if defined(CAMPAIGN_DL)
+
+#define SKILL_LANG_COMMON 2401
+#define SKILL_LANG_DRACONIC 2402
+#define SKILL_LANG_DRUIDIC 2403
+#define SKILL_LANG_DWARVEN 2404
+#define SKILL_LANG_ELVEN 2405
+#define SKILL_LANG_ERGOT 2406
+#define SKILL_LANG_GIANT 2407
+#define SKILL_LANG_GNOME 2408
+#define SKILL_LANG_GOBLIN 2409
+#define SKILL_LANG_GULLYTALK 2410
+#define SKILL_LANG_HALFLING 2411
+#define SKILL_LANG_MINOTAUR 2412
+#define SKILL_LANG_NERAKESE 2413
+#define SKILL_LANG_OGRE 2414
+#define SKILL_LANG_PLAINSFOLK 2415
+#define SKILL_LANG_SOLAMNIC 2416
+#define SKILL_LANG_SYLVAN 2417
+#define SKILL_LANG_THIEVES_CANT 2418
+
+/**/
+#define SKILL_LANG_LOW 2401
+#define SKILL_LANG_HIGH 2418
+#define MIN_LANGUAGES SKILL_LANG_LOW
+#define MAX_LANGUAGES SKILL_LANG_HIGH
+
+#else
 
 #define SKILL_LANG_COMMON 2401
 #define SKILL_LANG_BASIC SKILL_LANG_COMMON
@@ -1206,6 +1243,7 @@
 #define MIN_LANGUAGES SKILL_LANG_LOW
 #define MAX_LANGUAGES SKILL_LANG_HIGH
 
+#endif
 /*****  !!!! MAKE SURE MAX_SKILLS (structs.h) IS BIGGER THAN THIS NUMBER!!! -zusuk ******/
 #define TOP_SKILL_DEFINE 2433
 
@@ -1536,6 +1574,9 @@ ASPELL(spell_moonbeam);
 ASPELL(spell_luskan_recall);
 ASPELL(spell_triboar_recall);
 ASPELL(spell_silverymoon_recall);
+ASPELL(spell_palanthas_recall);
+ASPELL(spell_sanction_recall);
+ASPELL(spell_solace_recall);
 ASPELL(spell_mirabar_recall);
 ASPELL(spell_gird_allies);
 ASPELL(spell_aqueous_orb);

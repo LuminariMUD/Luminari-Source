@@ -32,6 +32,7 @@
 #include "psionics.h"
 #include "act.h"
 #include "evolutions.h"
+#include "mudlim.h"
 
 #define SINFO spell_info[spellnum]
 
@@ -952,6 +953,15 @@ SAVING_WILL here...  */
     case SPELL_WORD_OF_RECALL:
       MANUAL_SPELL(spell_recall);
       break;
+    case SPELL_PALANTHAS_RECALL:
+      MANUAL_SPELL(spell_palanthas_recall);
+      break;
+    case SPELL_SANCTION_RECALL:
+      MANUAL_SPELL(spell_sanction_recall);
+      break;
+    case SPELL_SOLACE_RECALL:
+      MANUAL_SPELL(spell_solace_recall);
+      break;
     case SPELL_LUSKAN_RECALL:
       MANUAL_SPELL(spell_luskan_recall);
       break;
@@ -1375,6 +1385,11 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
   send_to_char(ch, "You %s...", CASTING_CLASS(ch) == CLASS_ALCHEMIST ? "complete the extract" : (CASTING_CLASS(ch) == CLASS_PSIONICIST ? "complete your manifestation" : "complete your spell"));
+  if (FIGHTING(ch) && !IS_NPC(ch))
+  {
+    int spell_circle = spell_info[CASTING_SPELLNUM(ch)].min_level[CASTING_CLASS(ch)];
+    gain_exp(ch, GET_LEVEL(ch) * spell_circle * 50, GAIN_EXP_MODE_DAMAGE);
+  }
 
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
   {
@@ -1400,6 +1415,8 @@ void finishCasting(struct char_data *ch)
     }
     affect_from_char(ch, PSIONIC_ABILITY_DOUBLE_MANIFESTATION);
   }
+
+  
 
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
     affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
@@ -1697,7 +1714,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     break;
   }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   // We don't use casting times unless it's a ritual spell
   if (SINFO.ritual_spell)
     casting_time = SINFO.time;
@@ -1740,7 +1757,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     quickened = TRUE;
   }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
 
   if (!quickened && ch->char_specials.quick_chant && spellnum < NUM_SPELLS)
   {
@@ -1758,7 +1775,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
   }
 #endif
 
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
   {
     casting_time += get_augment_casting_time_adjustment(ch);
@@ -1776,7 +1793,7 @@ int cast_spell(struct char_data *ch, struct char_data *tch,
     }
   }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     if (quickened)
     {
       if (!is_action_available(ch, atSWIFT, FALSE))
@@ -1880,7 +1897,7 @@ will be using for casting this spell */
     send_to_char(ch, "%s", CONFIG_OK);
     say_spell(ch, spellnum, tch, tobj, FALSE);
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     CASTING_TIME(ch) = casting_time;
     CASTING_TCH(ch) = tch;
     CASTING_TOBJ(ch) = tobj;
@@ -1936,7 +1953,7 @@ will be using for casting this spell */
       NEW_EVENT(eCASTING, ch, NULL, 1 * PASSES_PER_SEC);
     }
 
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) || !defined(CAMPAIGN_DL)
     /* mandatory wait-state for any spell */
     USE_MOVE_ACTION(ch);
 #endif
@@ -4085,6 +4102,16 @@ void mag_assign_spells(void)
   spello(SPELL_MIRABAR_RECALL, "recall to mirabar", 72, 57, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
          NULL, 0, 20, NOSCHOOL, FALSE);
+#elif defined(CAMPAIGN_DL)
+  spello(SPELL_PALANTHAS_RECALL, "recall to palanthas", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  spello(SPELL_SANCTION_RECALL, "recall to sanction", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
+  spello(SPELL_SOLACE_RECALL, "recall to solace", 72, 57, 1, POS_FIGHTING,
+         TAR_CHAR_ROOM, FALSE, MAG_MANUAL,
+         NULL, 0, 20, NOSCHOOL, FALSE);
 #endif
   spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING,
          TAR_IGNORE, FALSE, MAG_GROUPS,
@@ -4633,7 +4660,11 @@ void mag_assign_spells(void)
   spello(EVOLUTION_FRIGHTFUL_EFFECT, "frightful presence", 0, 0, 0, POS_FIGHTING,
         TAR_IGNORE, FALSE, MAG_AFFECTS, "You no longer feel shaken.", 1, 1, NOSCHOOL, 0);
   spello(EIDOLON_MERGE_FORMS_EFFECT, "merge forms", 0, 0, 0, POS_FIGHTING,
-        TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
+         TAR_IGNORE, FALSE, MAG_AFFECTS, NULL, 1, 1, NOSCHOOL, 0);
+
+  spello(ABILITY_BAAZ_DRACONIAN_DEATH_THROES, "baaz draconian death throes", 0, 0, 0, POS_FIGHTING,
+         TAR_IGNORE, TRUE, MAG_AREAS,
+         NULL, 5, 9, TRANSMUTATION, FALSE);
 
   /*
 spello(SPELL_IDENTIFY, "!UNUSED!", 0, 0, 0, 0,
@@ -5085,7 +5116,7 @@ bool isSummonerMagic(struct char_data *ch, int spellnum)
     case SPELL_SUMMON_CREATURE_8: if (GET_SUMMONER_LEVEL(ch) >= 15) return true; break;
     case SPELL_SUMMON_CREATURE_9: if (GET_SUMMONER_LEVEL(ch) >= 17) return true; break;
 // No gate spell in FR because there aren't multiple planes of existence yet
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     case SPELL_GATE: if (GET_SUMMONER_LEVEL(ch) >= 19) return true; break;
 #endif
   }

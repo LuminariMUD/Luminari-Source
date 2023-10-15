@@ -39,10 +39,70 @@ bool mob_knows_assigned_spells(struct char_data *ch);
 
 /* local file scope only function prototypes, defines, externs, etc */
 #define SINFO spell_info[spellnum]
-#define SPELLUP_SPELLS 55
 #define OFFENSIVE_SPELLS 59
 #define OFFENSIVE_AOE_SPELLS 16
 
+
+#if defined(CAMPAIGN_DL)
+#define SPELLUP_SPELLS 53
+/* list of spells mobiles will use for spellups */
+int valid_spellup_spell[SPELLUP_SPELLS] = {
+    SPELL_SHIELD_OF_FAITH, // 0
+    SPELL_BLESS,
+    SPELL_DETECT_ALIGN,
+    SPELL_DETECT_INVIS,
+    SPELL_DETECT_MAGIC,
+    SPELL_DETECT_POISON,
+    SPELL_PROT_FROM_EVIL,
+    SPELL_SANCTUARY,
+    SPELL_STRENGTH,
+    SPELL_SENSE_LIFE,
+    SPELL_INFRAVISION,
+    SPELL_WATERWALK,
+    SPELL_FLY,
+    SPELL_BLUR,
+    SPELL_MIRROR_IMAGE,
+    SPELL_STONESKIN,
+    SPELL_ENDURANCE,
+    SPELL_PROT_FROM_GOOD,
+    SPELL_ENDURE_ELEMENTS,
+    SPELL_EXPEDITIOUS_RETREAT,
+    SPELL_IRON_GUTS,
+    SPELL_MAGE_ARMOR,
+    SPELL_SHIELD,
+    SPELL_TRUE_STRIKE,
+    SPELL_FALSE_LIFE,
+    SPELL_GRACE,
+    SPELL_RESIST_ENERGY,
+    SPELL_WATER_BREATHE,
+    SPELL_HEROISM,
+    SPELL_NON_DETECTION,
+    SPELL_HASTE,
+    SPELL_CUNNING,
+    SPELL_WISDOM,
+    SPELL_CHARISMA,
+    SPELL_FIRE_SHIELD,
+    SPELL_COLD_SHIELD,
+    SPELL_MINOR_GLOBE,
+    SPELL_GREATER_HEROISM,
+    SPELL_TRUE_SEEING,
+    SPELL_GLOBE_OF_INVULN,
+    SPELL_GREATER_MIRROR_IMAGE,
+    SPELL_DISPLACEMENT,
+    SPELL_PROTECT_FROM_SPELLS,
+    SPELL_SPELL_MANTLE,
+    SPELL_IRONSKIN,
+    SPELL_MIND_BLANK,
+    SPELL_SHADOW_SHIELD,
+    SPELL_GREATER_SPELL_MANTLE,
+    SPELL_REGENERATION,
+    SPELL_DEATH_SHIELD,
+    SPELL_BARKSKIN,
+    SPELL_SPELL_RESISTANCE,
+    SPELL_WATERWALK
+  };
+#else
+#define SPELLUP_SPELLS 55
 /* list of spells mobiles will use for spellups */
 int valid_spellup_spell[SPELLUP_SPELLS] = {
     SPELL_SHIELD_OF_FAITH, // 0
@@ -100,7 +160,7 @@ int valid_spellup_spell[SPELLUP_SPELLS] = {
     SPELL_BARKSKIN,
     SPELL_SPELL_RESISTANCE,
     SPELL_WATERWALK};
-
+#endif
 /* list of spells mobiles will use for offense (aoe) */
 int valid_aoe_spell[OFFENSIVE_AOE_SPELLS] = {
     /* aoe */
@@ -1194,6 +1254,13 @@ void npc_spellup(struct char_data *ch)
            affected_by_spell(victim, spellnum));
 
   /* we're putting some special restrictions here */
+
+  // we don't want wizards going invisible unless it's on their dedicated spell list.
+  if (spellnum == SPELL_INVISIBLE && !ch->mob_specials.spells_known[spellnum])
+    return;
+  if (spellnum == SPELL_GREATER_INVIS && !ch->mob_specials.spells_known[spellnum])
+    return;
+
   if (IS_MOB(ch) && mob_index[GET_MOB_RNUM(ch)].func == shop_keeper &&
       (spellnum == SPELL_GREATER_INVIS ||
        spellnum == SPELL_INVISIBLE))

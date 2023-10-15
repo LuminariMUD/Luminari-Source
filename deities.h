@@ -1,6 +1,7 @@
 
 #define DEITY_NONE			0
 
+#if defined(CAMPAIGN_FR)
 // FORGOTTEN REALMS DEITIES
 
 // Faerunian Pantheon
@@ -174,6 +175,47 @@
 #define DEITY_LIST_GNOME 11
 #define DEITY_LIST_HALFLING 12
 #define DEITY_LIST_ORC 13
+
+#elif defined(CAMPAIGN_DL)
+
+#define DEITY_PALADINE 1
+#define DEITY_MISHAKAL 2
+#define DEITY_KIRI_JOLITH 3
+#define DEITY_HABBAKUK 4
+#define DEITY_MAJERE 5
+#define DEITY_BRANCHALA 6
+#define DEITY_SOLINARI 7
+
+#define DEITY_GILEAN 8
+#define DEITY_REORX 9
+#define DEITY_ZIVILYN 10
+#define DEITY_CHISLEV 11
+#define DEITY_SIRRION 12
+#define DEITY_SHINARE 13
+#define DEITY_LUNITARI 14
+
+#define DEITY_TAKHISIS 15
+#define DEITY_MORGION 16
+#define DEITY_CHEMOSH 17
+#define DEITY_SARGONNAS 18
+#define DEITY_ZEBOIM 19
+#define DEITY_HIDDUKEL 20 
+#define DEITY_NUITARI 21
+
+#define NUM_DEITIES 22
+
+#define DEITY_PANTHEON_NONE		0
+#define DEITY_PANTHEON_ALL		1
+#define NUM_PANTHEONS 2
+
+#define DEITY_LIST_ALL 1
+#define DEITY_LIST_GOOD 2
+#define DEITY_LIST_NEUTRAL 3
+#define DEITY_LIST_EVIL 4
+#define DEITY_LIST_LAWFUL 5
+#define DEITY_LIST_CHAOTIC 6
+
+#endif
 
 struct deity_info
 {

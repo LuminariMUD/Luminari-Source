@@ -66,6 +66,7 @@
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"
 #include "evolutions.h"
+#include "deities.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -116,11 +117,14 @@ cpp_extern const struct command_info cmd_info[] = {
     {"se", "se", POS_RECLINING, do_move, 0, SCMD_SE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"southwest", "southw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sw", "sw", POS_RECLINING, do_move, 0, SCMD_SW, FALSE, ACTION_NONE, {0, 0}, NULL},
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
     // we want i to default to inventory, that's why it's up here.
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"inside", "ins", POS_RECLINING, do_move, 0, SCMD_IN, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"outside", "out", POS_RECLINING, do_move, 0, SCMD_OUT, FALSE, ACTION_NONE, {0, 0}, NULL},
+#elif  defined(CAMPAIGN_DL)
+    // we want i to default to inventory, that's why it's up here.
+    {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     /* now, the main list */
 
@@ -158,6 +162,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"autokey", "autokey", POS_DEAD, do_gen_tog, 0, SCMD_AUTOKEY, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoloot", "autoloot", POS_DEAD, do_gen_tog, 0, SCMD_AUTOLOOT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"automap", "automap", POS_DEAD, do_gen_tog, 0, SCMD_AUTOMAP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"autoprep", "autoprep", POS_DEAD, do_gen_tog, 0, SCMD_AUTO_PREP, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosac", "autosac", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSAC, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autoscan", "autoscan", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSCAN, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"autosplit", "autospl", POS_DEAD, do_gen_tog, 0, SCMD_AUTOSPLIT, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -195,8 +200,9 @@ cpp_extern const struct command_info cmd_info[] = {
     {"balance", "bal", POS_STANDING, do_not_here, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"bash", "bash", POS_FIGHTING, do_process_attack, 1, AA_TRIP, FALSE, ACTION_NONE, {0, 0}, can_bash},
     {"bid", "bid", POS_SLEEPING, do_bid, 0, SCMD_AUCTION, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"bite", "bite", POS_FIGHTING, do_bite_attack, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"brief", "br", POS_DEAD, do_gen_tog, 0, SCMD_BRIEF, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"buffself", "buffself", POS_DEAD, do_buffself, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"buff", "buff", POS_DEAD, do_buff, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buildwalk", "buildwalk", POS_STANDING, do_gen_tog, LVL_BUILDER, SCMD_BUILDWALK, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"buy", "bu", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bug", "bug", POS_DEAD, do_ibt, 0, SCMD_BUG, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -207,6 +213,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"boosts", "boost", POS_RECLINING, do_boosts, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"buck", "buck", POS_FIGHTING, do_buck, 1, 0, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"bodyslam", "bodyslam", POS_FIGHTING, do_bodyslam, 1, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, can_bodyslam},
+    {"borrow", "borrow", POS_FIGHTING, do_borrow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bind", "bind", POS_FIGHTING, do_bind, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"blessedtouch", "blessedtouch", POS_STANDING, do_blessedtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"battlerage", "battlerage", POS_STANDING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
@@ -286,7 +293,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"deletepath", "deletepath", POS_DEAD, do_deletepath, LVL_STAFF, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"deposit", "depo", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"detach", "detach", POS_DEAD, do_detach, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"deity", "deity", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"devote", "devote", POS_DEAD, do_devote, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
@@ -402,6 +409,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"gold", "gol", POS_RECLINING, do_gold, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 
     {"gossip", "gos", POS_SLEEPING, do_gen_comm, 0, SCMD_GOSSIP, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"gore", "gore", POS_FIGHTING, do_minotaur_gore, 0, 0, TRUE, ACTION_SWIFT, {0, 0}, NULL},
     {"group", "gr", POS_RECLINING, do_group, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"grab", "grab", POS_RECLINING, do_grab, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"granddestiny", "grandd", POS_RECLINING, do_grand_destiny, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -451,7 +459,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
     {"inventory", "i", POS_DEAD, do_inventory, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"identify", "id", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
@@ -475,7 +483,9 @@ cpp_extern const struct command_info cmd_info[] = {
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
 
+#if !defined(CAMPAIGN_DL)
     {"junk", "j", POS_RECLINING, do_drop, 0, SCMD_JUNK, FALSE, ACTION_NONE, {0, 0}, NULL},
+#endif
     {"judgement", "judge", POS_RECLINING, do_judgement, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 
     /* {"command", "sort_as", minimum_position, *command_pointer, minimum_level, subcmd, ignore_wait, actions_required, {action_cooldowns}, *command_check_pointer},*/
@@ -563,6 +573,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"offer", "off", POS_STANDING, do_not_here, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"olc", "olc", POS_DEAD, do_show_save_list, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"olist", "olist", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_OLIST, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"olistapplies", "olistapp", POS_DEAD, do_oasis_list, LVL_BUILDER, SCMD_OASIS_OLIST_APPLIES, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"oedit", "oedit", POS_DEAD, do_oasis_oedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"oset", "oset", POS_DEAD, do_oset, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"ocopy", "ocopy", POS_DEAD, do_oasis_copy, LVL_STAFF, CON_OEDIT, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -622,7 +633,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"qecho", "qec", POS_DEAD, do_qcomm, LVL_STAFF, SCMD_QECHO, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"quest", "que", POS_DEAD, do_quest, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"qui", "qui", POS_DEAD, do_quit, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"quickchant", "quickc", POS_FIGHTING, do_quick_chant, 0, SCMD_QUICK_CHANT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"quickmind", "quickm", POS_FIGHTING, do_quick_chant, 0, SCMD_QUICK_MIND, TRUE, ACTION_NONE, {0, 0}, NULL},
 #endif
@@ -679,7 +690,7 @@ cpp_extern const struct command_info cmd_info[] = {
 
     {"sacrifice", "sac", POS_RECLINING, do_sac, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"sachp", "sachp", POS_RECLINING, do_sacrifice, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     {"say", "s", POS_RECLINING, do_osay, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
 #else
     {"say", "s", POS_RECLINING, do_say, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -1204,7 +1215,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "osay") &&
            !is_abbrev(complete_cmd_info[cmd].command, "rest") &&
            !is_abbrev(complete_cmd_info[cmd].command, "save") &&
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
            !is_abbrev(complete_cmd_info[cmd].command, "say") &&
 #endif
            !is_abbrev(complete_cmd_info[cmd].command, "attackqueue"))
@@ -1966,6 +1977,8 @@ int enter_player_game(struct descriptor_data *d)
   char_to_room(d->character, load_room);
   load_result = Crash_load(d->character);
 
+  create_group(d->character);
+
   /* load up their pets, new system by gicksta */
   load_char_pets(d->character);
 
@@ -2003,10 +2016,15 @@ int enter_player_game(struct descriptor_data *d)
       init_class(d->character, i, CLASS_LEVEL(d->character, i));
   }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
   if (!race_list[GET_REAL_RACE(d->character)].is_pc)
     GET_REAL_RACE(d->character) = RACE_HUMAN;
-#endif
+#elif defined(CAMPAIGN_DL)
+  if (!race_list[GET_REAL_RACE(d->character)].is_pc)
+    GET_REAL_RACE(d->character) = DL_RACE_HUMAN;
+  if (GET_DEITY(d->character) >= NUM_DEITIES)
+    GET_DEITY(d->character) = 0;
+#endif 
 
   /* initialize the characters condensed combat data struct */
   init_condensed_combat_data(d->character);
@@ -2713,9 +2731,16 @@ void nanny(struct descriptor_data *d, char *arg)
                          "What IS your sex? ");
       return;
     }
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
     write_to_output(d, "Races of Faerun\r\n\r\n");
     for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+    {
+      if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
+        write_to_output(d, "%s\r\n", race_list[i].type);
+    }
+#elif defined(CAMPAIGN_DL)
+    write_to_output(d, "Races of Krynn\r\n\r\n");
+    for (i = DL_RACE_START; i < DL_RACE_END; i++)
     {
       if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
         write_to_output(d, "%s\r\n", race_list[i].type);
@@ -2748,7 +2773,8 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
       GET_REAL_RACE(d->character) = load_result;
-
+    
+#if !defined(CAMPAIGN_DL)
     switch (load_result)
     {
     case RACE_HUMAN:
@@ -2757,7 +2783,7 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_ELF:
       perform_help(d, "race-moon-elf");
       break;
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
     case RACE_DWARF:
       perform_help(d, "race-shield-dwarf");
       break;
@@ -2784,7 +2810,7 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_DROW:
       perform_help(d, "race-drow");
       break;
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
     case RACE_LICH:
       perform_help(d, "race-lich");
       break;
@@ -2811,7 +2837,7 @@ void nanny(struct descriptor_data *d, char *arg)
     case RACE_HIGH_ELF:
       perform_help(d, "race-high-elf");
       break;
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
     case RACE_WOOD_ELF:
       perform_help(d, "race-wood-elf");
       break;
@@ -2854,6 +2880,40 @@ void nanny(struct descriptor_data *d, char *arg)
       write_to_output(d, "\r\nCommand not understood.\r\n");
       return;
     }
+// dl races only
+#else
+switch (load_result)
+    {
+    case DL_RACE_HUMAN: perform_help(d, "race-human"); break; 
+    case DL_RACE_QUALINESTI_ELF: perform_help(d, "race-qualinesti-elf"); break; 
+    case DL_RACE_SILVANESTI_ELF: perform_help(d, "race-silvanesti-elf"); break; 
+    case DL_RACE_KAGONESTI_ELF: perform_help(d, "race-kagonesti-elf"); break; 
+    case DL_RACE_DARGONESTI_ELF: perform_help(d, "race-dargonesti-elf"); break; 
+    case DL_RACE_MOUNTAIN_DWARF: perform_help(d, "race-mountain-dwarf"); break; 
+    case DL_RACE_HILL_DWARF: perform_help(d, "race-hill-dwarf"); break; 
+    case DL_RACE_GULLY_DWARF: perform_help(d, "race-gully-dwarf"); break; 
+    case DL_RACE_MINOTAUR: perform_help(d, "race-minotaur"); break; 
+    case DL_RACE_KENDER: perform_help(d, "race-kender"); break; 
+    case DL_RACE_GNOME: perform_help(d, "race-gnome"); break; 
+    case DL_RACE_HALF_ELF: perform_help(d, "race-half-elf"); break; 
+    case DL_RACE_BAAZ_DRACONIAN: perform_help(d, "race-baaz-draconian"); break; 
+    case DL_RACE_GOBLIN: perform_help(d, "race-goblin"); break; 
+    case DL_RACE_HOBGOBLIN: perform_help(d, "race-hobgoblin"); break; 
+    case DL_RACE_KAPAK_DRACONIAN: perform_help(d, "race-kapak-draconian"); break; 
+    case DL_RACE_BOZAK_DRACONIAN: perform_help(d, "race-bozak-draconian"); break; 
+    case DL_RACE_SIVAK_DRACONIAN: perform_help(d, "race-sivak-draconian"); break; 
+    case DL_RACE_AURAK_DRACONIAN: perform_help(d, "race-aurak-draconian"); break; 
+    case DL_RACE_IRDA: perform_help(d, "race-irda"); break; 
+    case DL_RACE_OGRE: perform_help(d, "race-ogre"); break; 
+    case RACE_LICH: perform_help(d, "race-lich"); break;
+    case RACE_VAMPIRE: perform_help(d, "race-vampire"); break;
+
+    default:
+    write_to_output(d, "\r\nCommand not understood.\r\n");
+    return;
+    }
+
+#endif
     write_to_output(d, "Do you want to select this race? (y/n) : ");
     STATE(d) = CON_QRACE_HELP;
     break;
@@ -2871,16 +2931,23 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
-// #ifdef CAMPAIGN_FR
+// #if defined(CAMPAIGN_FR)
 //       write_to_output(d, "Races of Faerun\r\n\r\n");
 //       for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
 // #else
 //       write_to_output(d, "Races of Luminari\r\n\r\n");
 //       for (i = 0; i < NUM_RACES; i++)
 // #endif
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
       write_to_output(d, "Races of Faerun\r\n\r\n");
       for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+      {
+        if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
+          write_to_output(d, "%s\r\n", race_list[i].type);
+      }
+#elif defined(CAMPAIGN_DL)
+      write_to_output(d, "Races of Krynn\r\n\r\n");
+      for (i = DL_RACE_START; i < DL_RACE_END; i++)
       {
         if ((!is_locked_race(i) || has_unlocked_race(d->character, i)) && race_list[i].is_pc)
           write_to_output(d, "%s\r\n", race_list[i].type);
@@ -2902,8 +2969,10 @@ void nanny(struct descriptor_data *d, char *arg)
     }
 
     /* display class menu */
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
     write_to_output(d, "Classes of Faerun\r\n\r\n");
+#elif defined(CAMPAIGN_DL)
+    write_to_output(d, "Classes of Krynn\r\n\r\n");
 #else
     write_to_output(d, "Classes of Luminari\r\n\r\n");
 #endif
@@ -3453,7 +3522,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_PLR_DESC;
       break;
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     case '3':
       if (d->character->player.background)
       {
@@ -3469,6 +3538,7 @@ void nanny(struct descriptor_data *d, char *arg)
       STATE(d) = CON_PLR_BG;
       break;
 
+#if defined(CAMPAIGN_FR)
     case '4':
 
       if (GET_REGION(d->character))
@@ -3493,6 +3563,9 @@ void nanny(struct descriptor_data *d, char *arg)
 
       STATE(d) = CON_QREGION;
       break;
+#else
+     write_to_output(d, "That is not an option at this time.\r\n");
+#endif
 
     case '5':
       if (GET_PC_DESCRIPTOR_1(d->character) > 0 && GET_PC_ADJECTIVE_1(d->character) > 0)

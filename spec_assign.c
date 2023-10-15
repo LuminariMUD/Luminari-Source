@@ -30,6 +30,7 @@ SPECIAL_DECL(buymolds);
 SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
 SPECIAL_DECL(vampire_cloak);
+SPECIAL_DECL(identify_mob);
 
 /* local (file scope only) functions */
 static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
@@ -110,7 +111,16 @@ void assign_mobiles(void)
   ASSIGNMOB(7021, buymolds);
   ASSIGNMOB(7022, faction_mission);
   ASSIGNMOB(7023, huntsmaster);
+#elif defined(CAMPAIGN_DL)
+// palanthas
+  ASSIGNMOB(2427, buyweapons);
+  ASSIGNMOB(2428, buyarmor);
+  ASSIGNMOB(2430, buyweapons);
+  ASSIGNMOB(2429, buyarmor);
 
+  ASSIGNMOB(15321, crafting_quest);
+  ASSIGNMOB(15322, buymolds);
+  ASSIGNMOB(15323, identify_mob);
 #else
 
   /* vampire mobs (spec to do vampire-like abilities) */
@@ -759,9 +769,23 @@ void assign_objects(void)
   ASSIGNOBJ(3322, crafting_kit);
 
   ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
+#elif defined(CAMPAIGN_DL)
+  // general
+  ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
 
+  // palanthas
+  ASSIGNOBJ(40118, crafting_kit);
+
+  ASSIGNOBJ(1367, gen_board);
+  ASSIGNOBJ(1369, gen_board);
+  ASSIGNOBJ(1370, gen_board);
+  ASSIGNOBJ(2201, gen_board);
+  ASSIGNOBJ(2202, gen_board);
+  ASSIGNOBJ(2203, gen_board);
+  ASSIGNOBJ(2403, gen_board);
+
+  
 #else
-
   ASSIGNOBJ(1226, gen_board);   /* builder's board */
   ASSIGNOBJ(1227, gen_board);   /* staff board */
   ASSIGNOBJ(1228, gen_board);   /* advertising board */
@@ -1010,6 +1034,19 @@ void assign_rooms(void)
 
   // ASSIGNROOM(3031, pet_shops);
 
+#elif defined(CAMPAIGN_DL)
+
+  // palanthas
+  ASSIGNROOM(2314, bank); // s of fountain
+  ASSIGNROOM(7068, wizard_library); // academy
+  ASSIGNROOM(2496, bazaar); // market st
+  ASSIGNROOM(15301, pet_shops); // pets
+  ASSIGNROOM(15303, pet_shops); // mounts
+  ASSIGNROOM(15306, pet_shops); // mercs
+
+  // sanction
+  ASSIGNROOM(6525, bank); // sw of fountain
+
 #else
 
   /* bazaar - spend quest points on magic gear */
@@ -1217,6 +1254,7 @@ static const struct spec_func_data spec_func_list[] = {
     {"Faithful Hound", hound, ""},
     {"Illithid Guard", illithid_gguard, ""},
     {"Imix", imix, ""},
+    {"Identify Mob", identify_mob, ""},
 
     /* j-l */
     {"Janitor", janitor, ""},

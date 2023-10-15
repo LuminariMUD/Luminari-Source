@@ -504,6 +504,8 @@ ACMD_DECL(do_shieldslam);
 ACMDCHECK(can_shieldslam);
 ACMD_DECL(do_dirtkick);
 ACMDCHECK(can_dirtkick);
+ACMD_DECL(do_minotaur_gore);
+ACMD_DECL(do_bite_attack);
 ACMD_DECL(do_sap);
 ACMDCHECK(can_sap);
 ACMD_DECL(do_assist);
@@ -724,6 +726,7 @@ ACMD_DECL(do_racefix);
 #define SCMD_SICKENING_AURA 53
 #define SCMD_LIFE_BOND 54
 #define SCMD_CHARMIE_COMBATROLL 55
+#define SCMD_AUTO_PREP 56
 
 /* do_quit */
 ACMD_DECL(do_quit);
@@ -787,10 +790,11 @@ ACMD_DECL(do_ethshift);
 ACMD_DECL(do_handleanimal);
 // ACMD_DECL(do_nohints);
 ACMD_DECL(do_todo);
-ACMD_DECL(do_buffself);
+ACMD_DECL(do_buff);
 ACMDCHECK(can_tinker);
 ACMD_DECL(do_tinker);
 ACMD_DECL(do_eldritch);
+ACMD_DECL(do_borrow);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c

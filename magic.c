@@ -203,6 +203,8 @@ int compute_mag_saves(struct char_data *vict, int type, int modifier)
   /* universal bonuses/penalties */
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LUCK_OF_HEROES))
     saves += 1;
+  if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_KENDER_LUCK))
+    saves += 1;
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_LUCKY))
     saves += 1; /* halfling feat */
   if (!IS_NPC(vict) && HAS_FEAT(vict, FEAT_DIVINE_GRACE))
@@ -6340,6 +6342,30 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     to_vict = "You are overcome by a powerful hold spell!";
     break;
 
+  case ABILITY_BAAZ_DRACONIAN_DEATH_THROES:
+    if (paralysis_immunity(victim))
+    {
+      return;
+    }
+    if (paralysis_immunity(victim))
+    {
+      return;
+    }
+    if (mag_resistance(ch, victim, 0))
+      return;
+    if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
+      paralysis_bonus += get_evolution_appearance_save_bonus(victim);
+    if (mag_savingthrow(ch, victim, SAVING_WILL, enchantment_bonus + paralysis_bonus, casttype, level, ENCHANTMENT))
+    {
+      return;
+    }
+
+    SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
+    af[0].duration = 2;
+    to_room = "$n is held fast by the paralyzing gas!";
+    to_vict = "You are held fast by the paralyzing gas!";
+    break;
+
   case SPELL_HORIZIKAULS_BOOM: // evocation
     if (!can_deafen(victim))
     {
@@ -7551,7 +7577,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[2].modifier = 2;
     af[2].bonus_type = BONUS_TYPE_EIDOLON;
     
-    af[3].location = APPLY_AC;
+    af[3].location = APPLY_AC_NEW;
     af[3].duration = (level * 12);
     af[3].modifier = 2;
     af[3].bonus_type = BONUS_TYPE_EIDOLON;
@@ -8683,6 +8709,11 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj,
     is_uneffect = TRUE;
     to_char = "You throw a field of invisibility purging magic across the area.";
     to_room = "$n throws a field of invisibility purging magic across the area.";
+    break;
+  case ABILITY_BAAZ_DRACONIAN_DEATH_THROES:
+    to_char = "As you die, your body turns to stone and a cloud of paralyzing gas puffs out around you.";
+    to_room = "As $n dies, $s body turns to stone and a cloud of paralyzing gas puffs out around $m.";
+    isEffect = true;
     break;
 
   /** Psionics **/
@@ -10516,7 +10547,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   bool gate_process = FALSE;
   room_rnum gate_dest = NOWHERE;
   char buf[MEDIUM_STRING] = {'\0'};
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int loop_count = 0;
 #endif
@@ -10529,7 +10560,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_BALL_OF_LIGHT:
     to_char = "You summon forth $p.";
     to_room = "$n summons forth $p.";
-    object_vnum = 839;
+    object_vnum = 20839;
     break;
   case SPELL_CREATE_FOOD:
     to_char = "You create $p.";
@@ -10539,7 +10570,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_CONTINUAL_FLAME:
     to_char = "You create $p.";
     to_room = "$n creates $p.";
-    object_vnum = 839;
+    object_vnum = 20839;
     break;
   case SPELL_FIRE_SEEDS:
     to_char = "You create $p.";
@@ -10550,7 +10581,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
     else
       object_vnum = 9405;
     break;
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   case SPELL_GATE:
   case PSIONIC_PLANAR_TRAVEL:
     to_char = "\tnYou fold \tMtime\tn and \tDspace\tn, and create $p\tn.";
@@ -10677,12 +10708,12 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_HOLY_SWORD:
     to_char = "You summon $p.";
     to_room = "$n summons $p.";
-    object_vnum = 810;
+    object_vnum = 20810;
     break;
   case SPELL_UNHOLY_SWORD:
     to_char = "You summon $p.";
     to_room = "$n summons $p.";
-    object_vnum = 897;
+    object_vnum = 20897;
     break;
   case SPELL_MAGIC_STONE:
     to_char = "You create $p.";

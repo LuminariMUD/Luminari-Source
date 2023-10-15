@@ -656,12 +656,39 @@
 #define RACE_HALF_OGRE RACE_H_OGRE
 // space for new races up to 44
 
+#define DL_RACE_START 29
+#define DL_RACE_HUMAN 29
+#define DL_RACE_QUALINESTI_ELF 30
+#define DL_RACE_SILVANESTI_ELF 31
+#define DL_RACE_KAGONESTI_ELF 32
+#define DL_RACE_DARGONESTI_ELF 33
+#define DL_RACE_MOUNTAIN_DWARF 34
+#define DL_RACE_HILL_DWARF 35
+#define DL_RACE_GULLY_DWARF 36
+#define DL_RACE_MINOTAUR 37
+#define DL_RACE_KENDER 38
+#define DL_RACE_GNOME 39
+#define DL_RACE_HALF_ELF 40
+#define DL_RACE_BAAZ_DRACONIAN 41
+#define DL_RACE_GOBLIN 42
+#define DL_RACE_HOBGOBLIN 43
+
+
 #define RACE_LICH 45    /*quest only race*/
 #define RACE_VAMPIRE 46 /*quest only race*/
 
 // space for new quest only races up to 59
 
 #define NUM_EXTENDED_PC_RACES 47
+
+#define DL_RACE_KAPAK_DRACONIAN 48
+#define DL_RACE_BOZAK_DRACONIAN 49
+#define DL_RACE_SIVAK_DRACONIAN 50
+#define DL_RACE_AURAK_DRACONIAN 51
+#define DL_RACE_IRDA 52
+#define DL_RACE_OGRE 53
+
+#define DL_RACE_END 54
 
 #define RACE_HORSE 60
 #define RACE_IRON_GOLEM 61
@@ -945,7 +972,7 @@
 #define MOB_BLOCK_W 48
 #define MOB_BLOCK_NE 49
 #define MOB_BLOCK_SE 50
-#define MOB_BLOCK SW 51
+#define MOB_BLOCK_SW 51
 #define MOB_BLOCK_NW 52
 #define MOB_BLOCK_U 53
 #define MOB_BLOCK_D 54
@@ -997,6 +1024,8 @@
 #define EIDOLON_BASE_FORM_TAURIC 5
 
 #define NUM_EIDOLON_BASE_FORMS 6
+
+
 /* Defines for Mag_Summons */
 // objects
 #define OBJ_CLONE 161 /**< vnum for clone material. */
@@ -1013,7 +1042,6 @@
 #define MOB_DIRE_BOAR 42   // " " ii
 #define MOB_DIRE_WOLF 43   // " " iii
 #define MOB_PHANTOM_STEED 44
-#define MOB_MOUNT_SPELL 101320
 // 45    wizard eye
 #define MOB_DIRE_SPIDER 46 // summon creature iv
 // 47    wall of force
@@ -1029,8 +1057,27 @@
 #define MOB_BANSHEE 57                        // great animation
 #define MOB_WIGHT 58                          // great animation
 #define MOB_BLADE_OF_DISASTER 59              // black blade of disaster
-#define MOB_DIRE_RAT 9400                     // summon natures ally i
 #define MOB_ECTOPLASMIC_SHAMBLER 93           // ectoplasmic shambler psionic ability
+
+#if defined(CAMPAIGN_DL)
+
+#define MOB_GHOST_WOLF 20801                    // Mob to use for ghost wolf spell
+#define MOB_NUM_EIDOLON 20802
+#define MOB_DIRE_RAT 40100                     // summon natures ally i
+#define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 40119 // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_RATS 40120   // Potential mob for children of the night vampire ability.
+#define MOB_CHILDREN_OF_THE_NIGHT_BATS 40121   // Potential mob for children of the night vampire ability.
+#define MOB_CREATE_VAMPIRE_SPAWN 40122         // Mob to use for create vampire spawn
+#define MOB_MOUNT_SPELL 40320
+#define MOB_DJINNI_KIND 40321
+#define MOB_EFREETI_KIND 40322
+#define MOB_MARID_KIND 40323
+#define MOB_SHAITAN_KIND 40324
+
+#else
+
+#define MOB_DIRE_RAT 9400                     // summon natures ally i
+#define MOB_MOUNT_SPELL 101320
 #define MOB_CHILDREN_OF_THE_NIGHT_WOLVES 9419 // Potential mob for children of the night vampire ability.
 #define MOB_CHILDREN_OF_THE_NIGHT_RATS 9420   // Potential mob for children of the night vampire ability.
 #define MOB_CHILDREN_OF_THE_NIGHT_BATS 9421   // Potential mob for children of the night vampire ability.
@@ -1041,6 +1088,8 @@
 #define MOB_MARID_KIND 101323
 #define MOB_SHAITAN_KIND 101324
 #define MOB_NUM_EIDOLON 802
+
+#endif
 
 /**********************/
 /* misc defines */
@@ -1127,9 +1176,10 @@
 #define PRF_NO_RAGE 64                // Will reject casting of rage spell on them.
 #define PRF_LIFE_BOND 65              // Summoner's life bond ability/feat
 #define PRF_CHARMIE_COMBATROLL 66     // Will display combat roll info for any of your charmies in battle.
+#define PRF_AUTO_PREP 67
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 67
+#define NUM_PRF_FLAGS 68
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -1295,8 +1345,9 @@
 #define BONUS_TYPE_FOOD 20         // For food items only.
 #define BONUS_TYPE_DRINK 21        // For drink items only.
 #define BONUS_TYPE_EIDOLON 22      // For eidolons only
+#define BONUS_TYPE_UNIVERSAL 23    // stacks with everything, including itself
 /**/
-#define NUM_BONUS_TYPES 23
+#define NUM_BONUS_TYPES 24
 /****/
 
 /* Modes of connectedness: used by descriptor_data.state 		*/
@@ -2467,12 +2518,31 @@
 #define FEAT_EPIC_EIDOLON 1012
 #define FEAT_IMPROVED_AUGMENT_SUMMONING 1013
 #define FEAT_EPIC_AUGMENT_SUMMONING 1014
+#define FEAT_KENDER_SKILL_MOD 1015
+#define FEAT_KENDER_BORROWING 1016
+#define FEAT_KENDER_TAUNT 1017
+#define FEAT_KENDER_FEARLESSNESS 1018
+#define FEAT_WEAPON_PROFICIENCY_KENDER 1019
+#define FEAT_KENDER_RACIAL_ADJUSTMENT 1020
+#define FEAT_KENDER_LUCK 1021
+#define FEAT_MINOTAUR_RACIAL_ADJUSTMENT 1022
+#define FEAT_MINOTAUR_TOUGH_HIDE 1023
+#define FEAT_MINOTAUR_INTIMIDATING 1024
+#define FEAT_MINOTAUR_SEAFARING 1025
+#define FEAT_MINOTAUR_GORE 1026
+#define FEAT_BAAZ_DEATH_THROES 1027 // not coded yet
+#define FEAT_DRACONIAN_CONTROLLED_FALL 1028
+#define FEAT_BAAZ_DRACONIC_DEVOTION 1029
+#define FEAT_DRACONIAN_GALLOP 1030
+#define FEAT_BAAZ_DISEASE_IMMUNITY 1031
+#define FEAT_BAAZ_DRACONIAN_SCALES 1032
+#define FEAT_DRACONIAN_BITE 1033
 
 /**************/
 /** reserved above feat# + 1**/
-#define FEAT_LAST_FEAT 1015
+#define FEAT_LAST_FEAT 1034
 /** FEAT_LAST_FEAT + 1 ***/
-#define NUM_FEATS 1016
+#define NUM_FEATS 1035
 /** absolute cap **/
 #define MAX_FEATS 1500
 /*****/
@@ -2910,8 +2980,9 @@
 #define ITEM_VAMPIRE_ONLY 95 // Only vampires can use
 #define ITEM_REQ_WARLOCK 96  // Must be warlock
 #define ITEM_ANTI_WARLOCK 97 // no fancy warlocks
+#define ITEM_SET_STATS_AT_LOAD 98
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 98
+#define NUM_ITEM_FLAGS 99
 
 /* homeland-port */
 /*
@@ -3358,8 +3429,9 @@
 #define WEAPON_TYPE_WARMAUL 74
 #define WEAPON_TYPE_KHOPESH 75
 #define WEAPON_TYPE_KNIFE 76
+#define WEAPON_TYPE_HOOPAK 77
 // One higher than last above
-#define NUM_WEAPON_TYPES 77
+#define NUM_WEAPON_TYPES 78
 
 /* different ammo types */
 #define AMMO_TYPE_UNDEFINED 0
@@ -3453,6 +3525,7 @@
 #define COMBAT_MANEUVER_TYPE_PIN 7
 #define COMBAT_MANEUVER_TYPE_BITE 8
 #define COMBAT_MANEUVER_TYPE_SLAM 9
+#define COMBAT_MANEUVER_TYPE_GORE 10
 
 /* Critical hit types */
 #define CRIT_X2 0
@@ -3494,48 +3567,28 @@
 
 // Spoken Languages
 #define LANG_COMMON 0
-#define LANG_DWARVISH 1
-#define LANG_ELVISH 2
-#define LANG_ELVEN LANG_ELVISH
-#define LANG_GIANT 3
-#define LANG_GNOMISH 4
-#define LANG_GOBLIN 5
-#define LANG_HALFLING 6
-#define LANG_ORC 7
-#define LANG_ABYSSAL 8
-#define LANG_CELESTIAL 9
-#define LANG_DEEP SPEECH 10
-#define LANG_DRACONIC 11
-#define LANG_INFERNAL 12
-#define LANG_PRIMORDIAL 13
-#define LANG_SYLVAN 14
-#define LANG_UNDERCOMMON 15
-#define LANG_AGLARONDAN 16
-#define LANG_ALZHEDO 17
-#define LANG_CHONDATHAN 18
-#define LANG_CHULTAN 19
-#define LANG_DAMARAN 20
-#define LANG_DAMBRATHAN 21
-#define LANG_GURAN 22
-#define LANG_HALRUAAN 23
-#define LANG_ILLUSKAN 24
-#define LANG_MIDANI 25
-#define LANG_MULAN 26
-#define LANG_NAR 27
-#define LANG_NETHERESE 28
-#define LANG_RASHEMI 29
-#define LANG_ROUSHOUM 30
-#define LANG_SHAARAN 31
-#define LANG_SHOU 32
-#define LANG_THORASS 33
-#define LANG_TUIGAN 34
-#define LANG_TURMIC 35
-#define LANG_ULUIK 36
-#define LANG_WAELAN 37
-#define LANG_DRUIDIC 38
-#define LANG_THEIVES_CANT 39
+#define LANG_DRACONIC 1
+#define LANG_DRUIDIC 2
+#define LANG_DWARVEN 3
+#define LANG_ELVEN 4
+#define LANG_ELVISH LANG_ELVEN
+#define LANG_ERGOT 5
+#define LANG_GIANT 6
+#define LANG_GNOME 7
+#define LANG_GOBLIN 8
+#define LANG_GULLYTALK 9
+#define LANG_HALFLING 10
+#define LANG_MINOTAUR 11
+#define LANG_NERAKESE 12
+#define LANG_OGRE 13
+#define LANG_PLAINSFOLK 14
+#define LANG_SOLAMNIC 15
+#define LANG_SYLVAN 16
+#define LANG_THIEVES_CANT 17
 
-#define NUM_LANGUAGES 40
+#define NUM_LANGUAGES 18
+
+#define NUM_KENDER_BAUBLES 314
 
 /* Staff Ran Event */
 #define STAFF_RAN_EVENTS_VAR 300 /* values saved for staff events on player */
@@ -4138,7 +4191,7 @@ struct char_special_data_saved
     struct damage_reduction_type *damage_reduction; /**< Damage Reduction */
 
     /* disguise system port d20mud */
-    ubyte disguise_race;
+    byte disguise_race;
     ubyte disguise_sex;
     ubyte disguise_dsc1;
     ubyte disguise_dsc2;
@@ -4296,6 +4349,9 @@ struct char_special_data
     int sickening_aura_timer;       // When this timer is active, the creature is not susceptible to sickening aura
     int frightful_presence_timer;       // When this timer is active, the creature is not susceptible to frightful presence
     int temporary_eidolon_evolutions[NUM_EVOLUTIONS]; // temporary eidolon evolutions , such as with merge forms ability
+
+    bool has_borrow_been_attempted; // if true, the mob can no longer be 'borrowed' from (kender ability)
+    int which_treasure_message;           // when we want to use a custom message for random treasure
 };
 
 /* old memorization struct */
@@ -4603,6 +4659,7 @@ struct player_special_data
     int buff_slot;
     int buff_timer;
     bool is_buffing;
+    struct char_data *buff_target;
 };
 
 /** Special data used by NPCs, not PCs */

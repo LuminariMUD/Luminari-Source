@@ -194,7 +194,12 @@ int compute_current_size(struct char_data *ch);
 room_vnum what_vnum_is_in_this_direction(room_rnum room_origin, int direction);
 int convert_alignment(int align);
 void set_alignment(struct char_data *ch, int alignment);
+bool is_spellcasting_class(int class_name);
+int get_spellcasting_class(struct char_data *ch);
+bool valid_pet_name(char *name);
+int count_spellcasting_classes(struct char_data *ch);
 const char *get_align_by_num_cnd(int align);
+bool char_pets_to_char_loc(struct char_data *ch);
 const char *get_align_by_num(int align);
 int d20(struct char_data *ch);
 void manifest_mastermind_power(struct char_data *ch);
@@ -281,6 +286,7 @@ int num_obj_in_obj(struct obj_data *obj);
 bool ultra_blind(struct char_data *ch, room_rnum room_number);
 bool is_room_outdoors(room_rnum room_number);
 bool is_outdoors(struct char_data *ch);
+bool is_crafting_kit(struct obj_data *kit);
 int get_evolution_appearance_save_bonus(struct char_data *ch);
 void set_mob_grouping(struct char_data *ch);
 int find_armor_type(int specType);
@@ -299,11 +305,14 @@ bool pvp_ok(struct char_data *ch, struct char_data *target, bool display);
 bool is_pc_idnum_in_room(struct char_data *ch, long int idnum);
 int is_player_grouped(struct char_data *target, struct char_data *group);
 int find_ability_num_by_name(char *name);
+bool is_grouped_with_dragon(struct char_data *ch);
+bool has_bite_attack(struct char_data *ch);
 bool power_resistance(struct char_data *ch, struct char_data *victim, int modifier);
 int get_power_penetrate_mod(struct char_data *ch);
 int get_power_resist_mod(struct char_data *ch);
 bool is_spellnum_psionic(int spellnum);
 void absorb_energy_conversion(struct char_data *ch, int dam_type, int dam);
+int countlines(char *filename);
 bool can_blind(struct char_data *ch);
 bool can_deafen(struct char_data *ch);
 bool can_disease(struct char_data *ch);
@@ -830,7 +839,7 @@ void char_from_furniture(struct char_data *ch);
 #define IS_EPIC_LEVEL(ch) (GET_LEVEL(ch) > 20)
 #define IS_EPIC(ch) (IS_EPIC_LEVEL(ch))
 
-#define TOTAL_STAT_POINTS(ch) (GET_REAL_RACE(ch) == RACE_HUMAN ? 34 : 30)
+#define TOTAL_STAT_POINTS(ch) ((GET_REAL_RACE(ch) == RACE_HUMAN || GET_REAL_RACE(ch) == DL_RACE_HUMAN) ? 34 : 30)
 #define MAX_POINTS_IN_A_STAT 10
 #define BASE_STAT 8
 
@@ -1511,7 +1520,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 /** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */
-#define CAN_CARRY_N(ch) (10 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
+#define CAN_CARRY_N(ch) (20 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
 
 /** Return whether or not ch is awake. */
 #define AWAKE(ch) (GET_POS(ch) > POS_SLEEPING)
@@ -1726,7 +1735,8 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 // moved this here for connection between vision macros -zusuk
 #define CAN_SEE_IN_DARK(ch) \
-  (char_has_ultra(ch) || has_blindsense(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
+  (char_has_ultra(ch) || has_blindsense(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)) || \
+  (char_has_infra(ch) && OUTSIDE(ch)))
 #define CAN_INFRA_IN_DARK(ch) \
   (char_has_infra(ch) || (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_HOLYLIGHT)))
 
@@ -1969,7 +1979,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 /* 1 if ch is race, 0 if not */
 #define IS_HUMAN(ch) (!IS_NPC(ch) && \
-                      (GET_RACE(ch) == RACE_HUMAN))
+                      (GET_RACE(ch) == RACE_HUMAN || GET_RACE(ch) == DL_RACE_HUMAN))
 #define IS_ELF(ch) (!IS_NPC(ch) && \
                     (GET_RACE(ch) == RACE_ELF || GET_RACE(ch) == RACE_WILD_ELF || GET_RACE(ch) == RACE_HIGH_ELF))
 #define IS_DWARF(ch) (!IS_NPC(ch) && \
@@ -2017,7 +2027,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GET_LANG(ch)     ((ch)->player_specials->saved.speaking)
 
 #define HIGH_ELF_CANTRIP(ch)	(ch->player_specials->saved.high_elf_cantrip)
-#define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch) (HIGH_ELF_CANTRIP(ch) || GET_RACE(d->character) != RACE_HIGH_ELF)
+#define CAN_CHOOSE_HIGH_ELF_CANTRIP(ch) (HIGH_ELF_CANTRIP(ch) || (GET_RACE(d->character) != RACE_HIGH_ELF && GET_RACE(d->character) != DL_RACE_SILVANESTI_ELF))
 #define GET_RACIAL_MAGIC(ch, slot) (ch->player_specials->saved.racial_magic[slot])
 #define GET_RACIAL_COOLDOWN(ch, slot) (ch->player_specials->saved.racial_cooldown[slot])
 #define GET_DRAGONBORN_ANCESTRY(ch) (ch->player_specials->saved.dragonborn_draconic_ancestry)
@@ -2057,6 +2067,9 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define IS_HUMANOID(ch) ((IS_NPC(ch) && GET_RACE(ch) == RACE_TYPE_HUMANOID) ||    \
                          (!IS_NPC(ch) && IS_MORPHED(ch) == RACE_TYPE_HUMANOID) || \
                          (!IS_NPC(ch) && !IS_MORPHED(ch)))
+#define IS_DRACONIAN(ch) (IS_NPC(ch) && (GET_RACE(ch) == DL_RACE_BAAZ_DRACONIAN || GET_RACE(ch) == DL_RACE_BOZAK_DRACONIAN || \
+                                         GET_RACE(ch) == DL_RACE_KAPAK_DRACONIAN || GET_RACE(ch) == DL_RACE_SIVAK_DRACONIAN || \
+                                         GET_RACE(ch) == DL_RACE_AURAK_DRACONIAN))
 #define IS_LIVING(ch) (!IS_UNDEAD(ch) && !IS_CONSTRUCT(ch))
 #define IS_VAMPIRE(ch) ((!IS_NPC(ch) && GET_RACE(ch) == RACE_VAMPIRE) ||         \
                         (IS_NPC(ch) && (GET_SUBRACE(ch, 0) == SUBRACE_VAMPIRE || \
@@ -2419,7 +2432,8 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define GET_BAB(ch) (BAB(ch))
 
 /* Bonus Types */
-#define BONUS_TYPE_STACKS(bonus_type) ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) || (bonus_type == BONUS_TYPE_UNDEFINED))
+#define BONUS_TYPE_STACKS(bonus_type) ((bonus_type == BONUS_TYPE_DODGE) || (bonus_type == BONUS_TYPE_CIRCUMSTANCE) || \
+                                       (bonus_type == BONUS_TYPE_UNDEFINED) || (bonus_type == BONUS_TYPE_UNIVERSAL))
 
 /* GUI MSDP Related Defines */
 #define GUI_CMBT_OPEN(ch) (gui_combat_wrap_open(ch))
@@ -2431,6 +2445,8 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 
 #ifdef CAMPAING_FR
 #define CRAFTING_CRYSTAL "shard of abeir"
+#elif defined(CAMPAIGN_DL)
+#define CRAFTING_CRYSTAL "greygem shard"
 #else
 #define CRAFTING_CRYSTAL  "arcanite crystal"
 #endif
@@ -2489,6 +2505,7 @@ int count_teamwork_feats_available(struct char_data *ch);
 #define GET_CURRENT_BUFF_SLOT(ch) (ch->player_specials->buff_slot)
 #define GET_BUFF_TIMER(ch)        (ch->player_specials->buff_timer)
 #define IS_BUFFING(ch)            (ch->player_specials->is_buffing)
+#define GET_BUFF_TARGET(ch)       (ch->player_specials->buff_target)
 
 // summoners
 int char_has_evolution(struct char_data *ch, int evo);

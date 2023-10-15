@@ -83,7 +83,7 @@ void assign_deities(void) {
 // length.  Cut and paste it where needed then return it here.
 // -----------------------------------------------------------------------------
 
-
+#if defined(CAMPAING_FR)
   add_deity(DEITY_NONE, "None", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED,
             DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, WEAPON_TYPE_UNARMED, DEITY_PANTHEON_ALL, "The Faithless",
 	"Those who choose to worship no deity at all are known as the faithless.  It is their\r\n"
@@ -1567,4 +1567,364 @@ void assign_deities(void) {
             "humm when danger is near also with their semi-sentience they can be mentally \r\n"
             "ordered to be quiet.\r\n"
             "\r\n");
+
+#elif defined(CAMPAIGN_DL)
+  add_deity(DEITY_NONE, "None", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED,
+            DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, WEAPON_TYPE_UNARMED, DEITY_PANTHEON_ALL, "The Faithless",
+	"Those who choose to worship no deity at all are known as the faithless.  It is their\r\n"
+	"destiny to become part of the living wall in Kelemvor's domain when they die, to\r\n"
+	"ultimately have their very soul devoured and destroyed forever.\r\n");
+
+  add_deity(DEITY_PALADINE, "Paladine", ETHOS_LAWFUL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_LONG_SWORD, DEITY_PANTHEON_ALL, "Good Dragons, Guardians, Rulers",
+            "Paladine is the head god of good in the world of Krynn, also known as the\r\n"
+            "Platinum Dragon. Paladine represents the godly force of majesty. He sponsors the soul's\r\n"
+            "aspirations to rise to greater heights and to improve itself by following the example of\r\n"
+            "others. He is the brother to Takhisis and to Gilean He chose the goddess Mishakal as\r\n"
+            "his consort. He fathered three children: Kiri-Jolith, Habbakuk, and Solinari.\r\n"
+            "\r\n");
+    add_deity(DEITY_MISHAKAL, "Mishakal", ETHOS_LAWFUL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_QUARTERSTAFF, DEITY_PANTHEON_ALL, "Healing",
+            "Mishakal, also known as the Light Bringer, the Healing Hand, and the Blue\r\n"
+            "Lady, represents the godly power of restoration. She embraces the soul's wish to\r\n"
+            "grow and to learn from mistakes. She is the patron of healing, motherhood, and\r\n"
+            "restoring the lost. She actively works to make things right in the world and tries to\r\n"
+            "rid the world of evil with her compassion. Her nature sometimes conflicts with the\r\n"
+            "violent conditions her faithful encounter, but she has a wide breadth of worship\r\n"
+            "during times of strife. She was the Goddess who restored the knowledge of the true\r\n"
+            "Gods during the War of the Lance. Mishakal is constantly loving and protecting to\r\n"
+            "the world. The cleric Goldmoon was given the Blue Crystal Staff to restore the\r\n"
+            "faith of the Gods to the world. The teachings of Mishakal, taken up by Goldmoon, led\r\n"
+            "to the discovery of mysticism when magic was lost after the Chaos War. She is\r\n"
+            "loved by all the Gods of Good, and the Gods of Neutrality all hold her in regard.\r\n"
+            "She is in opposition to every God of Evil for the same reasons she is beloved by\r\n"
+            "the Gods of Good. Every God of Evil harms life in some way, and for that reason\r\n"
+            "Mishakal opposes them all. Her celestial symbol is the constellation Infinity.\r\n"
+            "\r\n");
+      add_deity(DEITY_KIRI_JOLITH, "Kiri-Jolith", ETHOS_LAWFUL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_GREAT_SWORD, DEITY_PANTHEON_ALL, "Honor, War",
+            "Kiri-Jolith, also known as the Sword of Justice and the Bison of Heaven,\r\n"
+            "represents the godly power of unity. He encourages the soul to grow as a part of the\r\n"
+            "whole in order to benefit from the strength of brotherhood. He patrons soldiers and\r\n"
+            "warriors who fight in order to defeat evil. He promotes courage and justice, and is the\r\n"
+            "spirit of honorable battle. He is not a warlike god, however, but supports war when\r\n"
+            "it is necessary to maintain integrity. He promotes strength of spirit in times of\r\n"
+            "peace. He is the courageous spirit of bonds among mortals. He is the patron of the\r\n"
+            "Knights of Solamnia, and his warrior priests lead the fights against evil armies and\r\n"
+            "advise rulers. Kiri Jolith is close with most of the Gods of Good, particularly\r\n"
+            "Paladine and Habbakuk. He has the least in common with Branchala. He is the second\r\n"
+            "most-worshipped god by the minotaurs, who also call him \"Emperor\". He is closest to Reorx and\r\n"
+            "Shinare among the Gods of Neutrality, and is in opposition with Sargonnas, his\r\n"
+            "opposite in war, who has a more violent approach to battle. He is also against Hiddukel\r\n"
+            "because of his lies and deceit. His celestial symbol is the constellation Bison's\r\n"
+            "Head.\r\n"
+            "\r\n");
+      add_deity(DEITY_HABBAKUK, "Habbakuk", ETHOS_NEUTRAL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_SCIMITAR, DEITY_PANTHEON_ALL, "Animal Life, Natural Balance",
+            "Habbakuk, also known as The Fisher King, Skylord, and the Blue Phoenix,\r\n"
+            "represents the godly power of persistence. He believes in the perseverance of the soul\r\n"
+            "and its opposition to adversity for the greater goal. Habbakuk's interests are\r\n"
+            "generally directed at animals of all kinds. He is the patron of rangers, hunters, and\r\n"
+            "the natural cycle of life and death, abhorring things like undead. He also\r\n"
+            "represents loyalty and obedience to the whole. He promotes persistence of truths that\r\n"
+            "promote good. He has a strong presence in the world through patronage of good druids\r\n"
+            "and rangers. Sailors and explorers also honor him.\r\n"
+            "\r\n");
+      add_deity(DEITY_MAJERE, "Majere", ETHOS_LAWFUL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_UNARMED, DEITY_PANTHEON_ALL, "Meditation, Order",
+            "Majere, also known as Mantis of the Rose, Master of Mind, and the\r\n"
+            "Dreamsender,The Even-Handed God, represents the godly force of discipline. He believes the way\r\n"
+            "for the soul to become better is through discipline and hard work. Majere is seen\r\n"
+            "as distant and separate. He encourages mortals to look within for enlightenment,\r\n"
+            "rather than turn to worldly desires and material goods. He is friend and adviser to\r\n"
+            "Paladine. He has few faithful compared to the other gods, but does have a following of\r\n"
+            "monks. His influence on the world is constant but subtle. He often gives counsel to\r\n"
+            "the other Gods of Light in times of crisis. He is appreciated by all the Gods of\r\n"
+            "Good, advising Paladine, Kiri-Jolith, and Mishakal. He rarely interacts with\r\n"
+            "Branchala or Habbakuk, and counts among the Gods of Neutrality Gilean, Shinare, and\r\n"
+            "Zivilyn his allies. He does not have any specific enemies among the Gods of Evil but\r\n"
+            "responds to evil quickly. His celestial symbol is the constellation Rose.\r\n"
+            "\r\n");
+      add_deity(DEITY_BRANCHALA, "Branchala", ETHOS_NEUTRAL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_RAPIER, DEITY_PANTHEON_ALL, "Music",
+            "Branchala, also known as The Bard King, the Song of Life, and the Songmaster,\r\n"
+            "represents the godly power of inspiration. He encourages souls to rise to greater heights\r\n"
+            "of happiness and beauty. He is the patron of music and poetry. He is closely\r\n"
+            "allied with Habbakuk, and their followers often work together. Branchala earliest\r\n"
+            "endeavors made a place of romance and esteem, bringing art and song in Krynn's mortals.\r\n"
+            "The elves hold Branchala in high regard. In addition to his alliance with\r\n"
+            "Habbakuk, Branchala works with Mishakal. He can be at odds with Kiri-Jolith, Majere, and\r\n"
+            "Paladine because of their lawful tendencies and Branchala's chaotic ones. Among the\r\n"
+            "Gods of Neutrality he is closest with Sirrion because of their joint interest in\r\n"
+            "art and creativity. He opposes Chemosh, Hiddukel, and Morgion the most among the\r\n"
+            "Gods of Evil. His celestial symbol is the constellation Harp.\r\n"
+            "\r\n");
+      add_deity(DEITY_SOLINARI, "Solinari", ETHOS_LAWFUL, ALIGNMENT_GOOD, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_DAGGER, DEITY_PANTHEON_ALL, "Good Magic",
+            "Solinari, also known as the Mighty Hand, the Ivory Disk, and God's Eye,\r\n"
+            "represents the godly power of magic used for good. He patrons wizards who use their magic\r\n"
+            "with the ideals of compassion, protection, and foresight. As one of the creators of\r\n"
+            "the Laws of High Sorcery he upholds them vigorously. At one point he is the divine\r\n"
+            "power of vigilance, but when he and his cousins in magic abandon the godly planes to\r\n"
+            "be closer to the world he becomes less focused on the Progression of Souls.\r\n"
+            "Solinari guides the souls of good wizards to the Beyond. At one point he dwells in the\r\n"
+            "Dome of Creation but chooses to represent himself in the white moon of Krynn in\r\n"
+            "order to watch over and protect magic. He promotes using magic for the good of all\r\n"
+            "the world. He is friendly with Majere, Habbakuk, Branchala, and Mishakal. He is\r\n"
+            "saddened at Paladine's downfall and offered him his protection, which Paladine, called\r\n"
+            "Valthonis, refused. His relations with the other Gods is minimal, aside from the other\r\n"
+            "Gods of Magic, Lunitari and Nuitari. His celestial symbol is the silver moon,\r\n"
+            "Solinari.\r\n"
+            "\r\n");
+
+      add_deity(DEITY_GILEAN, "Gilean", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_DAGGER, DEITY_PANTHEON_ALL, "Knowledge",
+            "Gilean, also known as the Book, the Sage, and the Gray Voyager, represents the\r\n"
+            "godly force of knowledge. He supports the growth of the soul through attaining\r\n"
+            "knowledge and experience. He is the holder of the Tobril, which contains the divine plan\r\n"
+            "of the High God for the world. He is the patron of sages, librarians, and\r\n"
+            "scholars. He is the leader of the Gods of Balance. He supports free will and individual\r\n"
+            "choice for all individuals of Krynn. He is one of the first gods to be called out of\r\n"
+            "the Beyond and is on equal power with Takhisis and Paladine. A legend of him\r\n"
+            "states that the High God commanded Gilean to ensure his own existence by raising the\r\n"
+            "soul of a mortal scholar who would one day become him, in an ontological paradox of\r\n"
+            "sorts. That scholar is most likely Astinus, who watches over the Great Library of\r\n"
+            "Palanthas and scribes all history as it happens until the Chaos War. Gilean is a\r\n"
+            "mediator between the Gods of Good and Evil, siding against the faction that threatens\r\n"
+            "the Balance. All of the Gods of Neutrality look to him for help and advice, and\r\n"
+            "the Gods of Light often do the same in hopes he will side with them. The Gods of\r\n"
+            "Evil manipulate situations to present Gilean with a case where he can only side\r\n"
+            "with them, such as in the Chaos War where Takhisis forces Gilean to side with her\r\n"
+            "Dark Knights, as they are the only chance that mortals can stand against Chaos. His\r\n"
+            "celestial symbol is the constellation Book of Souls.\r\n"
+            "\r\n");
+      add_deity(DEITY_ZIVILYN, "Zivilyn", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_QUARTERSTAFF, DEITY_PANTHEON_ALL, "Wisdom",
+            "Zivilyn, also known as the World Tree, Wise One, and the Tree of Life,\r\n"
+            "represents the godly force of wisdom. He encourages the soul to grow by achieving\r\n"
+            "enlightenment and wisdom. Zivilyn's influence extends to all realms and to all times. He\r\n"
+            "promotes understanding and spiritual awareness. Zivilyn gives counsel to Gilean,\r\n"
+            "bringing wisdom to Chislev as well. Zivilyn, despite his extensive knowledge of all\r\n"
+            "times and places of Krynn, cannot foresee Takhisis stealing the world away during\r\n"
+            "the War of Souls. Zivilyn is respected by all Gods, and never chooses sides in a\r\n"
+            "fight or disagreement. He is closest to Gilean and is the partner of Chislev, and\r\n"
+            "has much in common with Majere and Hiddukel because of their understandings of the\r\n"
+            "power of wisdom and awareness, respectively. Zivilyn does not allow the forces of\r\n"
+            "compassion or corruption to influence him. His celestial symbol is the planet Zivilyn. \r\n"
+            "\r\n");
+      add_deity(DEITY_REORX, "Reorx", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_WARHAMMER, DEITY_PANTHEON_ALL, "Craft",
+            "Reorx, also known as the Forge, the World Smith, and Tamer of Chaos,\r\n"
+            "represents the godly force of creation. He desires for souls to grow through crafting and\r\n"
+            "gaining skill. He is the patron of dwarves and gnomes, but also of all craftsmen. He\r\n"
+            "is also followed by gamblers and rogues because they rely on their own talents to\r\n"
+            "change the course of an event. He respects and encourages the power of mortals to\r\n"
+            "shape, build, and produce. Reorx often takes the mortal form of a handsomely dressed\r\n"
+            "dwarf named Dougan Redhammer. Reorx, at the behest of the High God, created the\r\n"
+            "world of Krynn from the raw energies of Chaos. He unknowingly encases Chaos into the\r\n"
+            "Graygem when he sought a bit of the essence of the higher deity to anchor the balance\r\n"
+            "in the world, which later has dire repercussions on the world, releasing an\r\n"
+            "aspect of hatred and destruction upon Ansalon, causing the Chaos War. He is a much\r\n"
+            "loved deity; he works with Shinare and Gilean, and is respected by Sargonnas and\r\n"
+            "Kiri-Jolith for his power of smithing mighty weapons. Zeboim is known to go to Reorx to\r\n"
+            "better understand the workings of ships and the like, so that she can better destroy\r\n"
+            "them. The dwarves hold that Reorx created them as his chosen; however, Reorx creates\r\n"
+            "the gnomes instead when a chosen group of men fall from his grace. The dwarves and\r\n"
+            "the kender are created when the energies of Chaos morph a group of gnomes into the\r\n"
+            "two races. His celestial symbol is the red star Reorx.\r\n"
+            "\r\n");
+      add_deity(DEITY_CHISLEV, "Chislev", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_SICKLE, DEITY_PANTHEON_ALL, "Nature",
+            "Chislev, also known as the Beast, Wild One, and World Mother, represents the\r\n"
+            "godly force of instinct. She believes the soul grows by releasing thought and\r\n"
+            "instinct, and giving in to primal urges. She is the power of the natural world and all\r\n"
+            "things wild. She is at one with Krynn, and extends her wrath to those that abuse the\r\n"
+            "earth. Chislev is wracked with pain and suffering during times of war, and works in\r\n"
+            "the current world to heal the wounds done to it. She is the partner of Zivilyn,\r\n"
+            "and maintains friendship with Sirrion. She conflicts with Shinare and Reorx.\r\n"
+            "Gilean grants Chislev knowledge but he is at times overly intelligent for her.\r\n"
+            "Chislev is regarded among all the Gods of Good, and opposes Morgion among the Gods of\r\n"
+            "Evil in particular. Her celestial symbol is the planet Chislev.\r\n"
+            "\r\n");
+      add_deity(DEITY_SHINARE, "Shinare", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_LIGHT_HAMMER, DEITY_PANTHEON_ALL, "Travel, Wealth", 
+            "Shinare, also known as Winged Victory, the Silver Mistress, and Walking\r\n"
+            "Liberty, represents the godly force of interaction. Those who follow Shinare grow by\r\n"
+            "communicating with other people. She oversees all oaths, negotiations, and partnerships. She\r\n"
+            "promotes the advancement of the world through enterprise. She patrons merchants,\r\n"
+            "without regard to motivation so long as business is done fairly. With that principle\r\n"
+            "in mind, she does not condemn slavery or mercenary activity. Things like theft\r\n"
+            "and cheating, however, she opposes as they impair the principles of interaction.\r\n"
+            "She secretly influenced the development of steel as the principle currency of\r\n"
+            "Ansalon, and has recently become a major influence in the nation of Solamnia. Shinare\r\n"
+            "is partnered with Sirrion, whom she sometimes clashes with because of his chaotic\r\n"
+            "tendencies. She works with Reorx as well, but has only basic, polite relationships with\r\n"
+            "the other Gods of Neutrality. She is closest to Kiri-Jolith and Majere among the\r\n"
+            "Gods of Light because of her belief in honesty and truth, and directly opposes\r\n"
+            "Hiddukel among the Gods of Evil because of his lies and cheating. Her celestial symbol\r\n"
+            "is the planet Shinare.\r\n"
+            "\r\n");
+      add_deity(DEITY_SIRRION, "Sirrion", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_SPIKED_CHAIN, DEITY_PANTHEON_ALL, "Change, Fire",
+            "Sirrion, also known as the Flowing Flame, the Alchemist, and the Firemaster,\r\n"
+            "represents the godly force of transformation. He promotes the soul to give in to passion\r\n"
+            "and creativity to grow and change. He represents fire, because it is the element\r\n"
+            "that brings change and growth, and it represents the creativity of artists and\r\n"
+            "alchemists. Sirrion is chaotic, but does not condone random destruction; instead, change\r\n"
+            "should produce something new. He is the patron of art and alchemy. Legend holds that\r\n"
+            "he created his partner Shinare from grand metals, and that he gave fire to Reorx\r\n"
+            "for the creation of the world. In truth, his responsibility was equal to the other\r\n"
+            "gods. He is the companion of Shinare, although being her complete opposite; however,\r\n"
+            "his passion with her progressive spirit can create much in the world. Sirrion\r\n"
+            "works with Reorx and Chislev, but is not often working with Zivilyn or Gilean.\r\n"
+            "Sirrion is close to Branchala and Habbakuk among the Gods of Light, and opposes\r\n"
+            "Sargonnas among the Gods of Evil, for Sargonnas directs flame into the spirit of wrath\r\n"
+            "and revenge. His celestial symbol is the planet Sirrion.\r\n"
+            "\r\n");
+      add_deity(DEITY_LUNITARI, "Lunitari", ETHOS_NEUTRAL, ALIGNMENT_NEUTRAL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_DAGGER, DEITY_PANTHEON_ALL, "Neutral Magic",
+            "Lunitari, also known as the Veiled Maiden, Maid of Illusion, and Night Candle,\r\n"
+            "represents the power of magic used for neutrality. She supports wizards who use magic in\r\n"
+            "the name of balance, freedom, and curiosity. She seeks to preserve the balance of\r\n"
+            "good and evil in magic. She is once the power divine force of mystery, but she\r\n"
+            "removes herself from the Hidden Vale and joins her cousins Solinari and Nuitari in\r\n"
+            "order to give magic her closer attention. Her focus instead became the mystery of\r\n"
+            "magic. She is said to come fully born from the thoughts of her father Gilean. She\r\n"
+            "resides in and represents herself through the red moon of Krynn. She tells her\r\n"
+            "faithful to the secrets and discoveries of magic. She is close to Reorx, who sometimes\r\n"
+            "helps her in forging magical artifacts. She, along with Reorx, conspires to trap\r\n"
+            "Chaos in the Graygem, which has led the other Gods of Neutrality to distrust her.\r\n"
+            "She rarely interacts with the Gods of Good and Evil, except for her cousins\r\n"
+            "Solinari and Nuitari. Her celestial symbol is the red moon, Lunitari.\r\n"
+            "\r\n");
+
+      add_deity(DEITY_TAKHISIS, "Takhisis", ETHOS_LAWFUL, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_HEAVY_MACE, DEITY_PANTHEON_ALL, "Evil Dragons, Hatred, Night",
+            "Takhisis, also known as the Queen of Darkness, the Many-Headed Dragon, The\r\n"
+            "Dragon of Many Colors and None, The Temptress, and the Dark Warrior, represents the\r\n"
+            "godly force of control. She brings souls under her will and encourages them to grow\r\n"
+            "according to her plans for conquest. She orders souls to surrender to dominance and give\r\n"
+            "way to those who are stronger. She likewise orders souls to dominate others. She\r\n"
+            "is the highest power among the Gods of Evil and believes that it is her right to\r\n"
+            "one day dominate the entire world. Takhisis is one of the first gods, called along\r\n"
+            "with Paladine. She controls the chromatic dragons and uses them for her conquests,\r\n"
+            "but is always beaten back by the forces of good, evidenced by events like her\r\n"
+            "defeat by Huma Dragonbane with his dragonlance. She launches the War of the Lance on\r\n"
+            "Ansalon but is beaten by the Heroes of the Lance in the end. Her last great scheme,\r\n"
+            "the theft of the world from the other gods, ends in failure for her as she is\r\n"
+            "stripped of her godhood and slain by the elf Silvanoshei. Her celestial symbol is the\r\n"
+            "constellation Many-Headed Dragon.\r\n"
+            "\r\n");
+      add_deity(DEITY_SARGONNAS, "Sargonnas", ETHOS_LAWFUL, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_BATTLE_AXE, DEITY_PANTHEON_ALL, "Fire, Vengeance",
+            "Sargonnas, also known as the Red Condor, the Firebringer, and the Bull God,\r\n"
+            "represents the godly force of wrath. He orders souls to seek revenge on anything that\r\n"
+            "does them wrong or takes power from them. He is the master of vengeance, wars\r\n"
+            "fought for passion, anger, volcanoes, birds of prey and broken promises. His\r\n"
+            "followers are focused in the use of discipline and order for their pursuits. He is the\r\n"
+            "favorite god of minotaurs, who claim him to be the supreme deity and name him Sargas.\r\n"
+            "Sargonnas favors the minotaurs in turn. Sargonnas is the consort to Takhisis, despite\r\n"
+            "having an uneasy partnership with her; he can ally with her or oppose her to further\r\n"
+            "his own goals. With Takhisis gone and his followers flourishing, Sargonnas is a\r\n"
+            "powerful god in the current time of Krynn. Sargonnas has no real allies. He conflicts\r\n"
+            "with his child Nuitari, and Chemosh, Morgion, and Hiddukel are distrusted by him.\r\n"
+            "He does, however, ally with Zeboim, because his minotaurs are a sea-faring\r\n"
+            "people, and they often honor her. Kiri-Jolith and Paladine are his enemies among the\r\n"
+            "Gods of Good, although each side has a grudging respect for the other. His\r\n"
+            "celestial symbol is the constellation Condor. Sargonnas is known to appear in several\r\n"
+            "forms: His most favored form is a minotaur with jet black or blood red fur, massive\r\n"
+            "horns and blazing eyes, but he can also appear as a minotaur made of magma or a\r\n"
+            "monstrous condor. Minotaurs claim that five is Sargonnas favored number.\r\n"
+            "\r\n");
+      add_deity(DEITY_CHEMOSH, "Chemosh", ETHOS_LAWFUL, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_SCYTHE, DEITY_PANTHEON_ALL, "Undead",
+            "Chemosh, also known as the Lord of Bones, Lifebane, and the Black Goat,\r\n"
+            "represents the godly force of fatalism. He encourages souls to give up to destiny and\r\n"
+            "fate. Chemosh disdains life, feeling that it is wasted on the people of Krynn. He\r\n"
+            "prefers to promise \"immortality\" by making souls into undead rather than letting them\r\n"
+            "pass into the afterlife. Chemosh gains power as people surrender their free will to\r\n"
+            "him. Chemosh sits in the Hall of Soul's Passing and watches the progression of\r\n"
+            "souls into the afterlife, where he attempts to lure souls into becoming undead.\r\n"
+            "Chemosh is the direct opposite of Mishakal as she promotes life and hope. He is the\r\n"
+            "foe of all of the Gods of Good, and among the Gods of Neutrality is in opposition\r\n"
+            "to Chislev, for disrupting the natural order of life, and Sirrion, for\r\n"
+            "suppressing hope and creativity. He has few allies but sometimes works with Hiddukel and\r\n"
+            "Morgion due to the nature of his schemes. His celestial symbol is the constellation\r\n"
+            "Goat's Skull.\r\n"
+            "\r\n");
+      add_deity(DEITY_HIDDUKEL, "Hiddukel", ETHOS_CHAOTIC, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_DAGGER, DEITY_PANTHEON_ALL, "Greed, Lies",
+            "Hiddukel, also known as the Prince of Lies, the Betrayer, and the Broken\r\n"
+            "Scales, represents the godly force of exploitation. He influences souls to use every\r\n"
+            "encounter with another person to their advantage. He captures souls who are desiring or\r\n"
+            "despairing to use the misfortune of others to their profit. He is ultimately selfish and\r\n"
+            "cares for no one but himself, and passes that attitude on to his mortal followers.\r\n"
+            "Hiddukel constantly attempts to make deals with the other gods, and his lies lead\r\n"
+            "mortals to carry out evil in the world. He is impressed and surprised at the deception\r\n"
+            "of Takhisis in stealing the world from the other Gods. He can call upon nearly\r\n"
+            "all of the Gods of Evil for aid because of his dealing with them and his ability\r\n"
+            "to divert their attention from him if they begin to suspect him. All of the Gods\r\n"
+            "of Neutrality, especially Shinare, because of her promoting of fair trade and\r\n"
+            "honesty, oppose him. Reorx as well dislikes him because Hiddukel tricked him into\r\n"
+            "forging the Graygem. Majere and Branchala among the Gods of Good are his enemies, as\r\n"
+            "the powers of discipline and positive interaction respectively. His celestial\r\n"
+            "symbol is the constellation Broken Scale.\r\n"
+            "\r\n");
+      add_deity(DEITY_MORGION, "Morgion", ETHOS_NEUTRAL, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_FLAIL, DEITY_PANTHEON_ALL, "Disease, Secrecy",
+            "Morgion, also known as the Black Wind, Master of the Bronze Tower, and the Rat\r\n"
+            "King, represents the godly force of decay. He urges souls to break down their\r\n"
+            "complexities to attain their most basic form. He believes mortals should leave Krynn with\r\n"
+            "nothing but what they came in with. Morgion is the god of diseases and of the ultimate\r\n"
+            "decay of all things, from individuals to nations. Morgion succeeds in the suffering\r\n"
+            "of Krynn. Morgion opposes things like a healthy, wholesome life or a quick,\r\n"
+            "painless death. He believes that the strong survive, and to survive one must suffer.\r\n"
+            "Morgion remains isolated from the other gods and tries to infect the world with plague\r\n"
+            "and horror. He seeks to make Krynn endure as much pain as possible. He opposes\r\n"
+            "Mishakal, Majere, and Habbakuk especially among the Gods of Good, all of whom oppose\r\n"
+            "him. Chislev opposes him for seeking to degrade life, and Sirrion is against him\r\n"
+            "because of Morgion's constant gloom. Shinare and Reorx oppose his goals as well. He\r\n"
+            "interacts little with the other Gods of Evil, brooding in the Bronze Tower at the edge\r\n"
+            "of the Abyss. His celestial symbol is the constellation Diseased Hood.\r\n"
+            "\r\n");
+      add_deity(DEITY_ZEBOIM, "Zeboim", ETHOS_CHAOTIC, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_TRIDENT, DEITY_PANTHEON_ALL, "Sea, Storms",
+            "Zeboim, also known as the Sea Witch, the Darkling Sea, and the Dragon Turtle,\r\n"
+            "represents the godly force of strife. She encourages souls to give into its urges and\r\n"
+            "release anger. She is the unpredictable and embodies storm and raging sea, which is\r\n"
+            "the element she commands over. Her attitude constantly changes, going from calm to\r\n"
+            "raging in a minute. She wants souls to continually cause anguish and anger, so that\r\n"
+            "they remain active and vital, instead of becoming predictable and stagnant. Sailors\r\n"
+            "and mariners try to calm her during voyages so that she does not make trouble for\r\n"
+            "their vessel. Zeboim is the daughter of Takhisis and Sargonnas. She mothers, through\r\n"
+            "one of her aspects, the founder of the Knights of Takhisis Ariakan, the son of\r\n"
+            "Ariakas. She loves him dearly and when he is killed she damns his slayer Ausric Krell\r\n"
+            "to become a death knight and traps him on an island. She dislikes her mother and\r\n"
+            "father, along with Chemosh, though she works with both her parents on occasion. She\r\n"
+            "ignores Morgion and Nuitari and works with Hiddukel well. She hates or works against\r\n"
+            "the Gods of Neutrality and has a special dislike for Habbakuk, who she sees as her\r\n"
+            "true foe because of his power of the sea. Her celestial symbol is the constellation\r\n"
+            "Dragon Turtle.\r\n"
+            "\r\n");
+      add_deity(DEITY_NUITARI, "Nuitari", ETHOS_LAWFUL, ALIGNMENT_EVIL, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, DOMAIN_UNDEFINED, 
+            DOMAIN_UNDEFINED, WEAPON_TYPE_DAGGER, DEITY_PANTHEON_ALL, "Evil Magic",
+            "Nuitari, also known as the Devouring Dark, Nightreaver, and Ungod, represents\r\n"
+            "the power of magic used for evil. He patrons wizards who use magic for greed,\r\n"
+            "revenge, hatred, and ambition. He uses the laws of High Sorcery, but only in an attempt\r\n"
+            "to strengthen his own power. He was once representative of the godly force of\r\n"
+            "ambition, but he leaves the Abyss and houses his essence in the black moon of Krynn. His\r\n"
+            "focus now is the Black Robed wizards and watching them as they go through their\r\n"
+            "lives. Nuitari is the son of Takhisis and Sargonnas. He houses his essence into the\r\n"
+            "black moon when it becomes apparent to him that magic needs to be brought under\r\n"
+            "control, to prevent it from falling into the hands of wild mages. Nuitari, for the most\r\n"
+            "part, loathes his fellow Gods of Evil, and especially detests Takhisis for directing\r\n"
+            "arcane power into the Gray Robed Knights of Takhisis. The only Gods Nuitari regularly\r\n"
+            "interacts with are his cousins Solinari and Lunitari. His celestial symbol is the black\r\n"
+            "moon, Nuitari.\r\n"
+            "\r\n");
+      
+
+
+
+#endif
 };

@@ -14,8 +14,8 @@
 #define _BOARDS_H_
 
 #define NUM_OF_BOARDS 7         /* change if needed! */
-#define MAX_BOARD_MESSAGES 60   /* arbitrary -- change if needed */
-#define MAX_MESSAGE_LENGTH 4096 /* arbitrary -- change if needed */
+#define MAX_BOARD_MESSAGES 300   /* arbitrary -- change if needed */
+#define MAX_MESSAGE_LENGTH 9192 /* arbitrary -- change if needed */
 
 #define INDEX_SIZE ((NUM_OF_BOARDS * MAX_BOARD_MESSAGES) + 5)
 

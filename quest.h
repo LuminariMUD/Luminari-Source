@@ -36,8 +36,9 @@
 #define AQ_HOUSE_FIND 20       /* Player must reach house                */
 #define AQ_WILD_FIND 21        /* Player must find specific wilderness room */
 #define AQ_GIVE_GOLD 22        /* Player must give at least X gold */
+#define AQ_MOB_MULTI_KILL 23   /* Player must kill a number of mobs from a given, comma-separated list of vnums */
 /************************/
-#define NUM_AQ_TYPES 23 /* Used in qedit functions                 */
+#define NUM_AQ_TYPES 24 /* Used in qedit functions                 */
 /************************/
 /************************/
 
@@ -70,6 +71,7 @@ struct aq_data
   int type;        /* Quest type                           */
   mob_vnum qm;     /* questmaster offering quest           */
   int target;      /* Target value                         */
+  char *kill_list; /* For multi kill quests, a list of comma-separated mob vnums */
   obj_vnum prereq; /* Object required to undertake quest   */
 
   int value[7]; /* Quest values                         */
@@ -99,6 +101,7 @@ struct aq_data
 #define QST_MASTER(i) (aquest_table[i].qm)
 #define QST_TARGET(i) (aquest_table[i].target)
 #define QST_PREREQ(i) (aquest_table[i].prereq)
+#define QST_KLIST(i) (aquest_table[i].kill_list)
 
 #define QST_POINTS(i) (aquest_table[i].value[0])
 #define QST_PENALTY(i) (aquest_table[i].value[1])

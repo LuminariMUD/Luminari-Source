@@ -742,6 +742,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
   {
     if (IS_NPC(i))
       send_to_char(ch, "[%d] ", GET_MOB_VNUM(i));
+    send_to_char(ch, "[%2d] ", GET_LEVEL(i));
     if (SCRIPT(i) && TRIGGERS(SCRIPT(i)))
     {
       if (!TRIGGERS(SCRIPT(i))->next)
@@ -815,7 +816,10 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     if (IS_NPC(i) && (GET_MOB_SPEC(i) == questmaster))
       send_to_char(ch, "\tn(\tY!\tn) ");
 
-    send_to_char(ch, "%s", i->player.long_descr);
+    if (strstr(i->player.long_descr, "\n"))
+      send_to_char(ch, "\ty%s", i->player.long_descr);
+    else
+      send_to_char(ch, "\ty%s\r\n", i->player.long_descr);
 
     if (AFF_FLAGGED(i, AFF_SANCTUARY))
       act("...$e glows with a bright light!", FALSE, i, 0, ch, TO_VICT);
@@ -1272,9 +1276,30 @@ void look_at_room(struct char_data *ch, int ignore_brief)
                "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
                "Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
-               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, 
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
 #ifdef CAMPAIGN_FR
                zone_entrances[ch->player_specials->travel_locale][0]);
+#elif defined(CAMPAIGN_DL)
+               zone_entrances[ch->player_specials->travel_locale][0]);
+#else
+               carriage_locales[ch->player_specials->travel_locale][0]);
+#endif
+      rm->description = strdup(buf);
+    }
+    else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+    {
+      rm->name = strdup("Flying High Above in the Sky");
+      snprintf(buf, sizeof(buf),
+               "Soaring through the air, high above in the sky, the landscape below stretches\r\n"
+               "out endlessly, a tapestry of green forests, blue oceans, and sprawling cities.\r\n"
+               "In the distance, your destination beckons forward, a faint outline on the horizon.\r\n"
+               "Judging by how far you've gone so far you should arrive in\r\n"
+               "about %d minutes and %d seconds to your destination: %s.\r\n",
+               ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60,
+#ifdef CAMPAIGN_FR
+               zone_entrances[ch->player_specials->travel_locale][0]);
+#elif defined(CAMPAIGN_DL)
+               sailing_locales[ch->player_specials->travel_locale][0]);
 #else
                carriage_locales[ch->player_specials->travel_locale][0]);
 #endif
@@ -1410,6 +1435,16 @@ void look_at_room(struct char_data *ch, int ignore_brief)
     if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(carriage_locales[i][1]))
     {
       send_to_char(ch, "\r\nThis room is a carriage stop.  Use the \tYcarriage\tn command to see options.\r\n");
+      break;
+    }
+    i++;
+  }
+  i = 0;
+  while (atoi(sailing_locales[i][1]) != 0)
+  {
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == atoi(sailing_locales[i][1]))
+    {
+      send_to_char(ch, "\r\nThis room is a ferry dock.  Use the \tYsail\tn command to see options.\r\n");
       break;
     }
     i++;
@@ -3183,8 +3218,8 @@ ACMD(do_score)
   send_to_char(ch, "\tcAlignment : \tn%s (%d)\r\n", get_align_by_num(GET_ALIGNMENT(ch)), GET_ALIGNMENT(ch));
   send_to_char(ch, "\tcAge  : \tn%-3d \tcyrs / \tn%2d \tcmths    \tcPlayed  : \tn%d days / %d hrs\r\n",
                age(ch)->year, age(ch)->month, playing_time.day, playing_time.hours);
-  send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\r\n",
-               size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch));
+  send_to_char(ch, "\tcSize : \tn%-20s \tcLoad    : \tn%d\tc/\tn%d \tclbs \tcNum Items: \tn%d\tc/\tn%d \tn\r\n",
+               size_names[GET_SIZE(ch)], IS_CARRYING_W(ch), CAN_CARRY_W(ch), IS_CARRYING_N(ch), CAN_CARRY_N(ch));
 
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
@@ -3773,7 +3808,13 @@ ACMD(do_who)
     const int max_level;
     int count; /* must always start as 0 */
   } rank[] = {
+  #if defined(CAMPAIGN_DL)
+      {"\tb--\tB= \tCChronicles of Krynn Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
+  #elif defined(CAMPAIGN_FR)
+      {"\tb--\tB= \tCFaerun Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
+  #else
       {"\tb--\tB= \tCLuminari Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT, LVL_IMPL, 0},
+  #endif
       {"\tb--\tB=\tC Mortals \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", 1, LVL_IMMORT - 1, 0},
       {"\n", 0, 0, 0}};
 
@@ -5519,7 +5560,7 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 
 ACMD(do_areas)
 {
-  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0;
+  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, tmp_len = 0, count = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
   bool show_zone = FALSE, overlap = FALSE, overlap_shown = FALSE, show_popularity = FALSE;
@@ -5528,7 +5569,15 @@ ACMD(do_areas)
 
   one_argument(argument, arg, sizeof(arg));
 
-  if (*arg)
+  if (!*arg)
+  {
+    lolev = GET_LEVEL(ch);
+  }
+  else if (is_abbrev(arg, "all"))
+  {
+    ;
+  }
+  else
   {
     /* There was an arg typed - check for level range */
     second = strchr(arg, '-');
@@ -5638,12 +5687,27 @@ ACMD(do_areas)
       if (overlap)
         overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn\r\n", ++zcount, overlap ? QRED : QCYN,
+      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*s\tn %s%s\tn    ", ++zcount, overlap ? QRED : QCYN,
                          count_color_chars(zone_table[i].name) + 30, zone_table[i].name,
                          lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       len += tmp_len;
+      if ((count % 2) == 1)
+      {
+        tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
+        len += tmp_len;
+      }
+      count++;
     }
   }
+  if ((count % 2) != 1)
+  {
+    tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
+    len += tmp_len;
+  }
+  
+  tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n\r\n");
+  len += tmp_len;
+
   tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%d%s area%s found.\r\n", QYEL, zcount, QNRM, zcount == 1 ? "" : "s");
   len += tmp_len;
 
@@ -5653,8 +5717,15 @@ ACMD(do_areas)
     len += tmp_len;
   }
 
+#if defined(CAMPAIGN_DL)
+  tmp_len = snprintf(buf + len, sizeof(buf) - len, "To show all areas type 'areas all', or to filter zones by level see HELP AREAS.\r\n");
+  len += tmp_len;
+  tmp_len = snprintf(buf + len, sizeof(buf) - len, "To show more information on a specific zone, type HELP (zone name as shown in areas command).\r\n");
+  len += tmp_len;
+#else
   tmp_len = snprintf(buf + len, sizeof(buf) - len, "More areas are listed in HELP ZONES");
   len += tmp_len;
+#endif
 
   if (zcount == 0)
     send_to_char(ch, "No areas found.\r\n");
@@ -6917,6 +6988,9 @@ ACMD(do_flightlist)
   #else
     i = 0;
     text_line(ch, "\tYOverland Flight Spell Destinations\tC", 80, '-', '-');
+    #if defined(CAMPAIGN_DL)
+    text_line(ch, "\tYCarriage Stops:\tC", 80, '-', '-');
+#endif
     while (atoi(carriage_locales[i][1]) != 0)
     {
       send_to_char(ch, "%-39s ", carriage_locales[i][0]);
@@ -6925,8 +6999,22 @@ ACMD(do_flightlist)
       i++;
     }
     if ((i % 2) != 1)
-        send_to_char(ch, "\r\n");
+      send_to_char(ch, "\r\n");
     send_to_char(ch, "\r\n");
+    i = 0;
+    #if defined(CAMPAIGN_DL)
+    text_line(ch, "\tYSailing Ports\tC", 80, '-', '-');
+    while (atoi(sailing_locales[i][1]) != 0)
+    {
+      send_to_char(ch, "%-39s ", sailing_locales[i][0]);
+      if ((i % 2) == 1)
+        send_to_char(ch, "\r\n");
+      i++;
+      }
+      if ((i % 2) != 1)
+          send_to_char(ch, "\r\n");
+      send_to_char(ch, "\r\n");
+    #endif
   #endif
 }
 

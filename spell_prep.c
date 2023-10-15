@@ -963,6 +963,14 @@ int compute_spells_circle(int class, int spellnum, int metamagic, int domain)
   case SPELL_SILVERYMOON_RECALL:
     return 5;
   }
+#elif defined(CAMPAIGN_DL)
+switch (spellnum)
+  {
+  case SPELL_PALANTHAS_RECALL:
+  case SPELL_SANCTION_RECALL:
+  case SPELL_SOLACE_RECALL:
+    return 5;
+  }
 #endif
 
   /* Here we add the circle changes resulting from metamagic use: */
@@ -2831,7 +2839,7 @@ ACMDU(do_gen_preparation)
     begin_preparing(ch, class);
     return; /* innate-magic is finished in this command */
   default:
-    if (!*argument)
+    if (!*argument || !strcmp(argument, "autoprep"))
     {
       print_prep_collection_data(ch, class);
       begin_preparing(ch, class);
@@ -2964,6 +2972,25 @@ ACMDU(do_gen_preparation)
 }
 
 /* END acmd */
+
+int class_to_spell_prep_scmd(int class_name)
+{
+  switch (class_name)
+  {
+    case CLASS_WIZARD: return SCMD_MEMORIZE;
+    case CLASS_CLERIC: return SCMD_PRAY;
+    case CLASS_DRUID: return SCMD_COMMUNE;
+    case CLASS_SORCERER: return SCMD_MEDITATE;
+    case CLASS_PALADIN: return SCMD_CHANT;
+    case CLASS_RANGER: return SCMD_ADJURE;
+    case CLASS_BARD: return SCMD_COMPOSE;
+    case CLASS_ALCHEMIST: return SCMD_CONCOCT;
+    case CLASS_BLACKGUARD: return SCMD_CONDEMN;
+    case CLASS_INQUISITOR: return SCMD_COMPEL;
+    case CLASS_SUMMONER: return SCMD_CONJURE;
+  }
+  return 0;
+}
 
 #undef DEBUGMODE
 

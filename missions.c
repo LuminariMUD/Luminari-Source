@@ -555,8 +555,12 @@ void create_mission_mobs(char_data *ch)
     }
 }
 
-#else
+#elif defined(CAMPAIGN_DL)
+void create_mission_mobs(char_data *ch)
+{
 
+}
+#else
 void create_mission_mobs(char_data *ch)
 {
     struct char_data *mob = NULL;

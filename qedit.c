@@ -286,8 +286,11 @@ static void qedit_disp_menu(struct descriptor_data *d)
 {
   struct aq_data *quest;
   char quest_flags[MAX_STRING_LENGTH] = {'\0'}, buf2[MAX_STRING_LENGTH] = {'\0'};
-  char targetname[MAX_STRING_LENGTH] = {'\0'};
+  char targetname[MAX_STRING_LENGTH] = {'\0'}, buf3[MAX_STRING_LENGTH] = {'\0'};
   mob_vnum return_mob;
+  char *pt;
+  int count = 0, i;
+  char targs[5][100];
 
   quest = OLC_QUEST(d);
 
@@ -338,7 +341,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
       snprintf(targetname, sizeof(targetname), "Severe Mission Difficulty ");
       break;
     default:
-      //#define MISSION_DIFF_EASY 0
+      // #define MISSION_DIFF_EASY 0
       /* EASY or weird value */
       snprintf(targetname, sizeof(targetname), "Easy Mission Difficulty ");
       break;
@@ -367,10 +370,41 @@ static void qedit_disp_menu(struct descriptor_data *d)
     break;
 
   case AQ_MOB_FIND:
-  case AQ_MOB_KILL:
   case AQ_MOB_SAVE:
+  case AQ_MOB_KILL:
     snprintf(targetname, sizeof(targetname), "%s",
              real_mobile(quest->target) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(quest->target)]));
+    break;
+
+  case AQ_MOB_MULTI_KILL:
+    if (quest->kill_list != NULL)
+    {
+      snprintf(buf3, sizeof(buf3), "%s", quest->kill_list ? quest->kill_list : "");
+      for (i = 0; i < 5; i++)
+      {
+        snprintf(targs[i], sizeof(targs[i]), " ");
+      }
+      char kill_list[MAX_STRING_LENGTH] = {'\0'};
+      snprintf(kill_list, sizeof(kill_list), "%s", quest->kill_list);
+      pt = strtok(kill_list, ",");
+      while (pt != NULL)
+      {
+        if (count < 5)
+        {
+          int a = atoi(pt);
+          snprintf(targs[count], sizeof(targs[count]), "(%d) %s ", a,
+                   real_mobile(a) == NOBODY ? "An unknown mobile" : GET_NAME(&mob_proto[real_mobile(a)]));
+        }
+        count++;
+
+        pt = strtok(NULL, ",");
+      }
+    }
+    else
+    {
+      snprintf(buf3, sizeof(buf3), "%6d", -1);
+    }
+    snprintf(targetname, sizeof(targetname), "%s%s%s%s%s", targs[0], targs[1], targs[2], targs[3], targs[4]);
     break;
 
   /* catch all */
@@ -378,6 +412,9 @@ static void qedit_disp_menu(struct descriptor_data *d)
     snprintf(targetname, sizeof(targetname), "Unknown");
     break;
   }
+
+  if (quest->type != AQ_MOB_MULTI_KILL)
+    snprintf(buf3, sizeof(buf3), "%6d", (quest->target == NOBODY ? -1 : quest->target));
 
   write_to_output(d,
                   "-- Quest Number    : \tn[\tc%6d\tn]\r\n"
@@ -389,7 +426,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   "\tg 6\tn) Quest Flags    : \tc%s\r\n"
                   "\tg 7\tn) Quest Type     : \tc%s %s\r\n"
                   "\tg 8\tn) Quest Master   : [\tc%6d\tn] \ty%s\r\n"
-                  "\tg 9\tn) Quest Target   : [\tc%6d\tn] \ty%s\r\n"
+                  "\tg 9\tn) Quest Target   : [\tc%s\tn] \ty%s\r\n"
                   "\tg H\tn) X-Coord (wild) : [\tc%6d\tn]      \tg I\tn) Y-Coord     : [\tc%6d\tn]\r\n"
                   "\tg A\tn) Quantity       : [\tc%6d\tn]\r\n"
                   "\tn    Quest Point Rewards\r\n"
@@ -423,7 +460,9 @@ static void qedit_disp_menu(struct descriptor_data *d)
                   (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD) ? buf2 : "",
                   quest->qm == NOBODY ? -1 : quest->qm,
                   real_mobile(quest->qm) == NOBODY ? "Invalid Mob" : mob_proto[(real_mobile(quest->qm))].player.short_descr,
-                  quest->target == NOBODY ? -1 : quest->target, targetname,
+
+                  buf3, targetname,
+
                   quest->coord_x, quest->coord_y,
                   quest->value[6],
                   quest->value[0], quest->value[1],
@@ -623,7 +662,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       break;
     case '9':
       OLC_MODE(d) = QEDIT_TARGET;
-      write_to_output(d, "Enter target mob/obj vnum, amount of gold coins, or mission "
+      write_to_output(d, "Enter target mob/obj vnum (comma-separated for multi types), amount of gold coins, or mission "
                          "difficulty (0 easy, 1 normal, 2 tough, 3 challenging, 4 arduous, 5 severe): ");
       break;
     case 'a':
@@ -846,8 +885,10 @@ void qedit_parse(struct descriptor_data *d, char *arg)
       if (number < 0 || number >= NUM_MISSION_DIFFICULTIES)
         number = MISSION_DIFF_EASY;
     }
-
-    OLC_QUEST(d)->target = number;
+    if (OLC_QUEST(d)->type == AQ_MOB_MULTI_KILL)
+      OLC_QUEST(d)->kill_list = strdup(arg);
+    else
+      OLC_QUEST(d)->target = number;
 
     break;
 

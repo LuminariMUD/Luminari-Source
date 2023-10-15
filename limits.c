@@ -1183,7 +1183,7 @@ int gain_exp_regardless(struct char_data *ch, int gain, bool is_ress)
           send_to_char(ch, "You rise a level!\r\n");
         else
           send_to_char(ch, "You rise %d levels!\r\n", num_levels);
-#ifndef CAMPAIGN_FR
+#if  !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
         set_title(ch, NULL);
 #endif
       }
@@ -2252,8 +2252,10 @@ void self_buffing(void)
   struct char_data *ch = NULL;
   struct descriptor_data *d = NULL;
   int is_spell = false;
-  int spellnum = 0;
+  int spellnum = 0, i = 0;
   char spellname[200];
+  char buf1[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -2289,7 +2291,7 @@ void self_buffing(void)
           GET_BUFF_TIMER(ch) = 1;
         else
         {
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
           if (spell_info[spellnum].ritual_spell)
             GET_BUFF_TIMER(ch) = MAX(6, spell_info[spellnum].time + 1);
           else
@@ -2302,7 +2304,19 @@ void self_buffing(void)
         if (is_spell >= 2) // spell or warlock power
         {
           snprintf(spellname, sizeof(spellname), " '%s'", spell_info[spellnum].name);
-          do_gen_cast(ch, (const char *)spellname, 0, SCMD_CAST_SPELL);
+          if (GET_BUFF_TARGET(ch) && IN_ROOM(GET_BUFF_TARGET(ch)) == IN_ROOM(ch))
+          {
+            snprintf(buf1, sizeof(buf1), "%s", GET_NAME(GET_BUFF_TARGET(ch)));
+            for (i = 0; i < strlen(buf1); i++)
+              if (buf1[i] == ' ')
+                buf1[i] = '-';
+            snprintf(buf2, sizeof(buf2), "%s %s", spellname, buf1);
+            do_gen_cast(ch, (const char *)buf2, 0, SCMD_CAST_SPELL);
+          }
+          else
+          {
+            do_gen_cast(ch, (const char *)spellname, 0, SCMD_CAST_SPELL);
+          }
         }
         else
         {

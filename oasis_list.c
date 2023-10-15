@@ -30,6 +30,7 @@
 #include "genshp.h"
 #include "wilderness.h"
 #include "assign_wpn_armor.h"
+#include "feats.h"
 
 #define MAX_OBJ_LIST 100
 
@@ -47,6 +48,8 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
 static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax, char *name);
 static void list_regions(struct char_data *ch);
 static void list_paths(struct char_data *ch);
+static void list_object_applies(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax);
+static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax, bool show_applies);
 
 /* unfinished, wanted to build a mobile name lookup (prototypes) */
 void perform_mob_name_list(struct char_data *ch, char *arg)
@@ -1030,6 +1033,9 @@ ACMD(do_oasis_list)
     else
       list_objects(ch, rzone, vmin, vmax);
     break;
+  case SCMD_OASIS_OLIST_APPLIES:
+    list_object_applies(ch, rzone, vmin, vmax);
+    break;
   case SCMD_OASIS_RLIST:
     list_rooms(ch, rzone, vmin, vmax);
     break;
@@ -1360,12 +1366,24 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
     page_string(ch->desc, buf, TRUE);
 }
 
-/* List all objects in a zone. */
+static void list_object_applies(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax)
+{
+  list_objects_full(ch, rnum, vmin, vmax, true);
+}
+
 static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax)
 {
-  obj_rnum i = 0, j = 0;
+  list_objects_full(ch, rnum, vmin, vmax, false);
+}
+
+/* List all objects in a zone. */
+static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax, bool show_applies)
+{
+  obj_rnum i = 0, j = 0, k = 0;
   obj_vnum bottom = 0, top = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char buf2[MAX_STRING_LENGTH] = {'\0'};
+  char bitbuf[MAX_STRING_LENGTH] = {'\0'};
   int counter = 0, num_found = 0, len = 0, len2 = 0;
   struct obj_data *l = NULL;
   char wears_text[LONG_STRING] = {'\0'};
@@ -1382,7 +1400,7 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
   }
 
   len = strlcpy(buf,
-                "Index VNum    #  D Object Name                                              Object Type        Cost     Specific Type\r\n"
+                "Index VNum    #  D Object Name                                              Object Type        Cost     [Bonus] + Specific Type\r\n"
                 "----- ------- -- - -------------------------------------------------------- -----------------  -------- -------------------------\r\n",
                 sizeof(buf));
 
@@ -1417,15 +1435,47 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
         }
       }
 
-      len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%-14s]%s %8d %s%s%s %s\r\n",
+      len += snprintf(buf + len, sizeof(buf) - len, "%s%4d%s) %s%-7d%s %2d %s %s%-*s %s[%-14s]%s %8d [%d] %s%-25s%s %s ",
                       QGRN, counter, QNRM, QGRN, obj_index[i].vnum, QNRM, num_found,
                       (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"),
                       QCYN, count_color_chars(obj_proto[i].short_description) + 58,
                       obj_proto[i].short_description, QYEL,
                       item_types[obj_proto[i].obj_flags.type_flag], QNRM,
-                      obj_proto[i].obj_flags.cost, QYEL,
+                      obj_proto[i].obj_flags.cost, 
+                      (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR || obj_proto[i].obj_flags.type_flag == ITEM_WEAPON) ? obj_proto[i].obj_flags.value[4] : 0,
+                      QYEL,
                       obj_proto[i].obj_flags.type_flag == ITEM_WORN ? wears_text : (obj_proto[i].obj_flags.type_flag == ITEM_ARMOR ? armor_list[obj_proto[i].obj_flags.value[1]].name : (obj_proto[i].obj_flags.type_flag == ITEM_WEAPON ? weapon_list[obj_proto[i].obj_flags.value[0]].name : "")),
-                      QNRM, obj_proto[i].proto_script ? " [TRIG]" : "");
+                      QNRM, 
+                      show_applies ? "" : (obj_proto[i].proto_script ? " [TRIG]" : "")
+                      );
+
+      if (show_applies)
+      {
+        for (k = 0; k < MAX_OBJ_AFFECT; k++)
+        {
+          if ((obj_proto[i].affected[k].location != APPLY_NONE) && (obj_proto[i].affected[k].modifier != 0))
+          {
+            sprinttype(obj_proto[i].affected[k].location, apply_types, bitbuf, sizeof(bitbuf));
+            switch (obj_proto[i].affected[k].location)
+            {
+            case APPLY_FEAT:
+              snprintf(buf2, sizeof(buf2), " (%s)", feat_list[obj_proto[i].affected[k].modifier].name);
+              len += snprintf(buf + len, sizeof(buf) - len, " %s%s", bitbuf, buf2);
+              break;
+            default:
+              buf2[0] = 0;
+              len += snprintf(buf + len, sizeof(buf) - len, " %s%s %s%d (%s)", bitbuf, buf2,
+                           (obj_proto[i].affected[k].modifier > 0) ? "+"
+                                                           : "",
+                           obj_proto[i].affected[k].modifier,
+                           bonus_types[obj_proto[i].affected[k].bonus_type]);
+              break;
+            }
+          }
+        }
+      }
+      
+      len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
 
       if (len > sizeof(buf))
         break;

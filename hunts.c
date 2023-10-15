@@ -441,7 +441,7 @@ int get_hunt_room(int start, int x, int y)
   return room;
 }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
 
 void select_hunt_coords(int which_hunt)
 {

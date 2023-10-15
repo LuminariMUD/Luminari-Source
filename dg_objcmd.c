@@ -461,7 +461,7 @@ static OCMD(do_oteleport)
       }
 
       char_to_room(ch, target);
-
+      char_pets_to_char_loc(ch);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
 
@@ -489,7 +489,7 @@ static OCMD(do_oteleport)
         }
 
         char_to_room(ch, target);
-
+        char_pets_to_char_loc(ch);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
     }

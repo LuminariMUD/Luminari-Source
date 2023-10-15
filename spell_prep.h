@@ -281,6 +281,8 @@ extern "C"
     // Returns true if the spell is an epic spell
     bool isEpicSpell(int spellnum);
 
+    int class_to_spell_prep_scmd(int class_name);
+
     /** END functions **/
 
     /** Start ACMD **/

@@ -3430,6 +3430,13 @@ void update_player_last_on(void)
   }
 }
 
+bool valid_pet_name(char *name)
+{
+  if (strstr(name, ";") || strstr(name, "\""))
+    return false;
+  return true;
+}
+
 void save_char_pets(struct char_data *ch)
 {
 
@@ -3438,11 +3445,11 @@ void save_char_pets(struct char_data *ch)
 
   struct follow_type *f = NULL;
   struct char_data *tch = NULL;
-  char query[MEDIUM_STRING] = {'\0'};
-  char query2[MEDIUM_STRING] = {'\0'};
-  char query3[MEDIUM_STRING] = {'\0'};
-  char finalQuery[MEDIUM_STRING * 2];
-  char chname[MEDIUM_STRING] = {'\0'};
+  char query[MAX_STRING_LENGTH] = {'\0'};
+  char query2[MAX_STRING_LENGTH] = {'\0'};
+  char query3[MAX_STRING_LENGTH] = {'\0'};
+  char finalQuery[MAX_STRING_LENGTH] = {'\0'};
+  char chname[MAX_STRING_LENGTH] = {'\0'};
   char *end = NULL, *end2 = NULL;
 
   snprintf(chname, sizeof(chname), "%s", GET_NAME(ch));
@@ -3467,6 +3474,72 @@ void save_char_pets(struct char_data *ch)
       continue;
     if (!AFF_FLAGGED(tch, AFF_CHARM))
       continue;
+#if defined(CAMPAIGN_DL)
+    snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+
+    end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
+    *end2++ = '\'';
+    end2 += mysql_real_escape_string(conn, end2, GET_NAME(ch), strlen(GET_NAME(ch)));
+    *end2++ = '\'';
+    *end2++ = ',';
+
+    if (valid_pet_name(tch->player.name))
+    {
+      *end2++ = '\'';
+      end2 += mysql_real_escape_string(conn, end2, GET_NAME(tch), strlen(GET_NAME(tch)));
+      *end2++ = '\'';
+    }
+    else
+    {
+      *end2++ = '\'';
+      *end2++ = '\'';
+    }
+    *end2++ = ',';
+    if (valid_pet_name(tch->player.short_descr))
+    {
+      *end2++ = '\'';
+      end2 += mysql_real_escape_string(conn, end2, tch->player.short_descr, strlen(tch->player.short_descr));
+      *end2++ = '\'';
+    }
+    else
+    {
+      *end2++ = '\'';
+      *end2++ = '\'';
+    }
+    *end2++ = ',';
+    if (valid_pet_name(tch->player.long_descr))
+    {
+      *end2++ = '\'';
+      end2 += mysql_real_escape_string(conn, end2, tch->player.long_descr, strlen(tch->player.long_descr));
+      *end2++ = '\'';
+    }
+    else
+    {
+      *end2++ = '\'';
+      *end2++ = '\'';
+    }
+    *end2++ = ',';
+    if (valid_pet_name(tch->player.description))
+    {
+      *end2++ = '\'';
+      end2 += mysql_real_escape_string(conn, end2, tch->player.description, strlen(tch->player.description));
+      *end2++ = '\'';
+    }
+    else
+    {
+      *end2++ = '\'';
+      *end2++ = '\'';
+    }
+    *end2++ = ',';
+    
+    *end2++ = '\0';
+
+    snprintf(query3, sizeof(query3), "'%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+             GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch),
+             GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
+             GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
+    snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
+#else
     snprintf(query2, sizeof(query2), "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
 
     end2 = stpcpy(query2, "INSERT INTO pet_data (pet_data_id, owner_name, vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha) VALUES(NULL,");
@@ -3480,9 +3553,11 @@ void save_char_pets(struct char_data *ch)
              GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch),
              GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch));
     snprintf(finalQuery, sizeof(finalQuery), "%s%s", query2, query3);
+#endif
     if (mysql_query(conn, finalQuery))
     {
       log("SYSERR: Unable to INSERT INTO pet_data: %s", mysql_error(conn));
+      log("QUERY: %s", finalQuery);
       return;
     }
   }
@@ -3493,7 +3568,8 @@ void load_char_pets(struct char_data *ch)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char query[200];
-  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  char desc1[MAX_STRING_LENGTH] = {'\0'}; char desc2[MAX_STRING_LENGTH] = {'\0'};
+  char desc3[MAX_STRING_LENGTH] = {'\0'}; char desc4[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *mob = NULL;
 
   if (!ch)
@@ -3504,7 +3580,11 @@ void load_char_pets(struct char_data *ch)
 
   mysql_ping(conn);
 
+#if defined(CAMPAIGN_DL)
+  snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, pet_sdesc, pet_ldesc, pet_ddesc FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+#else
   snprintf(query, sizeof(query), "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha FROM pet_data WHERE owner_name='%s'", GET_NAME(ch));
+#endif
 
   if (mysql_query(conn, query))
   {
@@ -3563,22 +3643,44 @@ void load_char_pets(struct char_data *ch)
       mob->player.name = strdup(GET_NAME(ch));
       mob->player.short_descr = strdup(GET_NAME(ch));
     }
+#if defined(CAMPAIGN_DL)
+    if (strlen(row[11]) > 0)
+    {
+      snprintf(desc1, sizeof(desc1), "%s", row[11]);
+      mob->player.name = strdup(desc1);
+    }
+    if (strlen(row[12]) > 0)
+    {
+      snprintf(desc2, sizeof(desc2), "%s", row[12]);
+      mob->player.short_descr = strdup(desc2);
+    }
+    if (strlen(row[13]) > 0)
+    {
+      snprintf(desc3, sizeof(desc3), "%s", row[13]);
+      mob->player.long_descr = strdup(desc3);
+    }
+    if (strlen(row[14]) > 0)
+    {
+      snprintf(desc4, sizeof(desc4), "%s", row[14]);
+      mob->player.description = strdup(desc4);
+    }
+#endif
     if (MOB_FLAGGED(mob, MOB_EIDOLON))
     {
-      if (GET_EIDOLON_SHORT_DESCRIPTION(ch))
-      {
-        mob->player.name = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
-        mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
-      }
-      if (GET_EIDOLON_LONG_DESCRIPTION(ch))
-      {
-        mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
-      }
-      if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
-      {
-        snprintf(buf, sizeof(buf), "%s\r\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
-        mob->player.description = strdup(buf);
-      }
+      // if (GET_EIDOLON_SHORT_DESCRIPTION(ch))
+      // {
+      //   mob->player.name = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      //   mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      // }
+      // if (GET_EIDOLON_LONG_DESCRIPTION(ch))
+      // {
+      //   mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
+      // }
+      // if (GET_EIDOLON_DETAIL_DESCRIPTION(ch))
+      // {
+      //   snprintf(buf, sizeof(buf), "%s\r\n", GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+      //   mob->player.description = strdup(buf);
+      // }
 
       assign_eidolon_evolutions(ch, mob, true);
     }

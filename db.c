@@ -62,6 +62,7 @@
 #include "encounters.h"
 #include "hunts.h"
 #include "evolutions.h"
+#include "treasure.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -183,6 +184,7 @@ static void free_extra_descriptions(struct extra_descr_data *edesc);
 static bitvector_t asciiflag_conv_aff(char *flag);
 static int help_sort(const void *a, const void *b);
 void assign_deities(void);
+void set_armor_object(struct obj_data *obj, int type);
 
 /* Ils: Global result_q needed for init_result_q, push_result & test_result */
 struct
@@ -680,7 +682,7 @@ void boot_world(void)
   init_perlin(NOISE_MATERIAL_PLANE_ELEV_DIST, NOISE_MATERIAL_PLANE_ELEV_DIST_SEED);
   init_perlin(NOISE_WEATHER, NOISE_WEATHER_SEED);
 
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   log("Indexing wilderness rooms.");
   initialize_wilderness_lists();
 
@@ -1024,10 +1026,12 @@ void boot_db(void)
   log("Loading random encounter tables.");
   populate_encounter_table();
 
+#ifndef CAMPAIGN_DL
   log("Loading hunts table.");
   load_hunts();
   log("Spawning hunts for the first time this boot.");
   create_hunts();
+#endif
 
   if (!no_rent_check)
   {
@@ -1301,7 +1305,7 @@ void index_boot(int mode)
   /* Exit if 0 records, unless this is shops */
   if (!rec_count)
   {
-    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST)
+    if (mode == DB_BOOT_SHP || mode == DB_BOOT_QST || mode == DB_BOOT_HLQST || mode == DB_BOOT_TRG)
       return;
     log("SYSERR: boot error - 0 records counted in %s/%s.", prefix,
         index_filename);
@@ -3634,6 +3638,12 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
   //  for testing purposes - zusuk
   //  GET_CLASS(mob) = rand_number(0, NUM_CLASSES - 1);
 
+#if defined(CAMPAIGN_DL)
+  if (!MOB_FLAGGED(mob, MOB_CUSTOM_GOLD))
+    autoroll_mob(mob, FALSE, FALSE);
+    GET_HIT(mob) = GET_MAX_HIT(mob);
+#endif
+
   if (MOB_FLAGGED(mob, MOB_MOUNTABLE))
     GET_REAL_MAX_MOVE(mob) = 2000 + (GET_LEVEL(mob) * 200);
 
@@ -3750,6 +3760,28 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 
   copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
   assign_triggers(obj, OBJ_TRIGGER);
+
+  if (OBJ_FLAGGED(obj, ITEM_SET_STATS_AT_LOAD))
+  {
+    int cost = GET_OBJ_COST(obj);
+    int enhancement_bonus = GET_ENHANCEMENT_BONUS(obj);
+    if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
+    {
+      set_weapon_object(obj, GET_OBJ_VAL(obj, 0));
+      GET_OBJ_COST(obj) = cost;
+    }
+    else if (GET_OBJ_TYPE(obj) == ITEM_ARMOR)
+    {
+      set_armor_object(obj, GET_OBJ_VAL(obj, 1));
+      GET_OBJ_COST(obj) = cost;
+    }
+    GET_OBJ_VAL(obj, 4) = enhancement_bonus;
+    if (cost <= 100)
+    {
+      GET_OBJ_VAL(obj, 4) = 0;
+    }
+    // REMOVE_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_SET_STATS_AT_LOAD);
+  }
 
   return (obj);
 }
@@ -5285,8 +5317,9 @@ void init_char(struct char_data *ch)
     GET_MOVE(ch) = GET_REAL_MAX_MOVE(ch);
     newbieEquipment(ch);
   }
-
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
   set_title(ch, NULL);
+#endif
   ch->player.short_descr = NULL;
   ch->player.long_descr = NULL;
   ch->player.description = NULL;
@@ -5340,6 +5373,8 @@ void init_char(struct char_data *ch)
 
 #ifdef CAMPAIGN_FR
     if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_EXTENDED_PC_RACES)
+#elif defined(CAMPAIGN_DL)
+  if (GET_RACE(ch) < DL_RACE_START || GET_RACE(ch) >= DL_RACE_END)
 #else
   if (GET_RACE(ch) < -1 || GET_RACE(ch) >= NUM_RACES)
 #endif
@@ -5405,6 +5440,10 @@ void init_char(struct char_data *ch)
 
   // automap toggled on -zusuk
   SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTOMAP);
+#if defined(CAMPAIGN_FR)   || defined(CAMPAIGN_DL)
+  // autoprep toggled on -gicker
+  SET_BIT_AR(PRF_FLAGS(ch), PRF_AUTO_PREP);
+#endif
 
   // fresh start on casting data
   resetCastingData(ch);
