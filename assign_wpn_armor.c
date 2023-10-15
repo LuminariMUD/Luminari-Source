@@ -35,6 +35,9 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
   if (affected_by_spell(ch, SPELL_BESTOW_WEAPON_PROFICIENCY))
     return true;
 
+  if (HAS_FEAT(ch, FEAT_WEAPON_PROFICIENCY_KENDER) && weapon == WEAPON_TYPE_HOOPAK);
+    return TRUE;
+
   /* :) */
   if (weapon == WEAPON_TYPE_UNARMED && MONK_TYPE((ch)))
     return TRUE;
@@ -1252,6 +1255,10 @@ void load_weapons(void)
             DAMAGE_TYPE_BLUDGEONING, 10, 0, WEAPON_FAMILY_HAMMER, SIZE_LARGE, MATERIAL_STEEL,
             HANDLE_TYPE_HANDLE, HEAD_TYPE_HEAD,
             "A warmaul has one damaging end with two heads; one axe and one hammer.");
+  setweapon(WEAPON_TYPE_HOOPAK, "hoopak", 1, 6, 0, 2, WEAPON_FLAG_EXOTIC,
+            1, DAMAGE_TYPE_PIERCING, 4, 0, WEAPON_FAMILY_RANGED, SIZE_MEDIUM,
+            MATERIAL_WOOD, HANDLE_TYPE_SHAFT, HEAD_TYPE_HEAD,
+            "A hoopak is a sturdy stick with a sling at one end and a pointed tip at the other.");
 }
 
 /************** ------- ARMOR ----------************************************/

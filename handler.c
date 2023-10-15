@@ -2458,6 +2458,7 @@ void extract_char(struct char_data *ch)
 {
 
   char_from_furniture(ch);
+  char_from_buff_targets(ch);
 
   /* We want to save events, this will be last legitimate save including
      events before extract_char_final(), we have to make sure in

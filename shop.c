@@ -766,8 +766,11 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
 
   if (obj && OBJ_FLAGGED(obj, ITEM_QUEST))
     snprintf(tempbuf, sizeof(tempbuf), "%s That has cost you %d quest points.", GET_NAME(ch), goldamt);
-  else
+  else if (shop_index[shop_nr].message_buy != NULL)
     snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_buy, GET_NAME(ch), goldamt);
+  else
+    snprintf(tempbuf, sizeof(tempbuf), "%s That will cost you %d coins.", GET_NAME(ch), goldamt);
+  
 
   do_tell(keeper, tempbuf, cmd_tell, 0);
 
@@ -960,7 +963,10 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   snprintf(tempbuf, sizeof(tempbuf), "$n sells %s.", tempstr);
   act(tempbuf, FALSE, ch, obj, 0, TO_ROOM);
 
-  snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_sell, GET_NAME(ch), goldamt);
+  if (shop_index[shop_nr].message_sell != NULL)
+    snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_sell, GET_NAME(ch), goldamt);
+  else
+    snprintf(tempbuf, sizeof(tempbuf), "%s I will give you %d coins for that.", GET_NAME(ch), goldamt);
   do_tell(keeper, tempbuf, cmd_tell, 0);
 
   send_to_char(ch, "The shopkeeper now has %s.\r\n", tempstr);
@@ -1477,6 +1483,9 @@ void assign_the_shopkeepers(void)
       SHOP_FUNC(cindex) = mob_index[SHOP_KEEPER(cindex)].func;
 
     mob_index[SHOP_KEEPER(cindex)].func = shop_keeper;
+    SET_BIT_AR(MOB_FLAGS(&mob_proto[SHOP_KEEPER(cindex)]), MOB_CUSTOM_GOLD);
+    SET_BIT_AR(MOB_FLAGS(&mob_proto[SHOP_KEEPER(cindex)]), MOB_NO_AI);
+    GET_GOLD(&mob_proto[SHOP_KEEPER(cindex)]) = 100000;
   }
 }
 

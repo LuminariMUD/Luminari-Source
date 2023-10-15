@@ -96,6 +96,151 @@
 
 /* armor mold vnums (body, helm, sleeves, leggings) */
 /*body*/
+#if defined(CAMPAIGN_DL)
+
+#define PLATE_BODY 40119
+#define HALFPLATE_BODY 40143
+#define SPLINT_BODY 40144
+#define BREASTPLATE_BODY 40145 /*piecemail armor*/
+#define CHAIN_BODY 40146
+#define STUD_LEATHER_BODY 40147
+#define LEATHER_BODY 40148
+#define PADDED_BODY 40149
+#define CLOTH_BODY 40150
+#define BANDED_BODY 40241
+#define SCALE_BODY 40242
+#define HIDE_BODY 40243
+#define LIGHT_CHAIN_BODY 40244
+
+/*head*/
+#define PLATE_HELM 40151
+#define HALFPLATE_HELM 40152
+#define SPLINT_HELM 40153
+#define PIECEPLATE_HELM 40154
+#define CHAIN_HELM 40155
+#define STUD_LEATHER_HELM 40156
+#define LEATHER_HELM 40157
+#define PADDED_HELM 40158
+#define CLOTH_HELM 40159
+
+#define BANDED_HELM 40245
+#define SCALE_HELM 40246
+#define HIDE_HELM 40247
+#define LIGHT_CHAIN_HELM 40248
+
+/*arms*/
+#define PLATE_ARMS 40160
+#define HALFPLATE_ARMS 40161
+#define SPLINT_ARMS 40162
+#define CHAIN_ARMS 40163
+#define STUD_LEATHER_ARMS 40164
+#define LEATHER_ARMS 40165
+#define PADDED_ARMS 40166
+#define CLOTH_ARMS 40167
+
+#define BANDED_ARMS 40249
+#define PIECEPLATE_ARMS 40250
+#define SCALE_ARMS 40251
+#define HIDE_ARMS 40252
+#define LIGHT_CHAIN_ARMS 40253
+
+/*legs*/
+#define PLATE_LEGS 40168
+#define HALFPLATE_LEGS 40169
+#define SPLINT_LEGS 40170
+#define CHAIN_LEGS 40171
+#define STUD_LEATHER_LEGS 40172
+#define LEATHER_LEGS 40173
+#define PADDED_LEGS 40174
+#define CLOTH_LEGS 40175
+
+#define BANDED_LEGS 40254
+#define PIECEPLATE_LEGS 40255
+#define SCALE_LEGS 40256
+#define HIDE_LEGS 40257
+#define LIGHT_CHAIN_LEGS 40258
+
+/*shields*/
+#define SHIELD_MEDIUM 40180
+#define SHIELD_LARGE 40181
+#define SHIELD_TOWER 40182
+
+/* end armor molds */
+#define NUM_ARMOR_MOLDS 37
+
+/* weapon mold vnums */
+/* simple */
+/* light */
+#define DAGGER 40212 // 0
+#define MACE 40213
+#define SICKLE 40214
+/* one handed */
+#define CLUB 40215
+#define MORNINGSTAR 40216
+/* two handed */
+#define SPEAR 40217 // 5
+#define QUARTERSTAFF 40218
+/* martial */
+/* light */
+#define HANDAXE 40219
+#define KUKRI 40220
+#define SHORTSWORD 40221
+/* one handed */
+#define BATTLEAXE 40222 // 10
+#define FLAIL 40223
+#define LONGSWORD 40224
+#define RAPIER 40225
+#define SCIMITAR 40226
+#define TRIDENT 40227 // 15
+#define WARHAMMER 40228
+/* two handed */
+#define FALCHION 40229
+#define GLAIVE 40230
+#define GREATAXE 40231
+#define GREATCLUB 40232 // 20
+#define GREATSWORD 40233
+#define HALBERD 40234
+#define LANCE 40235
+#define SCYTHE 40236
+/* exotic */
+/* light */
+#define KAMA 40237 // 25
+/* one handed */
+#define BASTARDSWORD 40238
+#define DWARVENWARAXE 40239
+/* two handed */
+#define DIREFLAIL 40240
+/* end weapon molds */
+#define NUM_WEAPON_MOLDS 29
+
+/* weapon blank object */
+#define WEAPON_PROTO 40299
+/* armor blank object */
+#define ARMOR_PROTO 40298
+/* ammo blank object */
+#define AMMO_PROTO 40297
+
+/* misc mold vnums */
+#define RING_MOLD 40176 // 0
+#define NECKLACE_MOLD 40177
+#define BOOTS_MOLD 40178
+#define GLOVES_MOLD 40179
+#define CLOAK_MOLD 40183
+#define BELT_MOLD 40184 // 5
+#define WRIST_MOLD 40185
+#define HELD_MOLD 40186
+/* end misc molds */
+#define NUM_MISC_MOLDS 8
+
+/* item prototype for potions/scrolls/wands/staves */
+#define ITEM_PROTOTYPE 40210
+/* item prototype for crystals */
+#define CRYSTAL_PROTOTYPE 40211
+
+#define KENDER_BAUBLE 40447
+
+#else
+
 #define PLATE_BODY 3119
 #define HALFPLATE_BODY 3143
 #define SPLINT_BODY 3144
@@ -162,6 +307,7 @@
 #define SHIELD_MEDIUM 3180
 #define SHIELD_LARGE 3181
 #define SHIELD_TOWER 3182
+
 /* end armor molds */
 #define NUM_ARMOR_MOLDS 37
 
@@ -234,6 +380,13 @@
 /* item prototype for crystals */
 #define CRYSTAL_PROTOTYPE 3211
 
+#define KENDER_BAUBLE 66700
+
+#endif
+
+#define CUSTOM_TREASURE_MESSAGE_NONE   0
+#define CUSTOM_TREASURE_MESSAGE_BORROW 1
+
 /* treasure_const.c - list of constant arrays */
 extern const char *gemstones[NUM_A_GEMSTONES + 1];
 extern const char *ring_descs[NUM_A_RING_DESCS + 1];
@@ -257,6 +410,7 @@ extern const char *handle_types[NUM_A_HANDLE_TYPES + 1];
 extern const char *head_types[NUM_A_HEAD_TYPES + 1];
 extern const char *ammo_descs[NUM_A_AMMO_DESCS + 1];
 extern const char *ammo_head_descs[NUM_A_AMMO_HEAD_DESCS + 1];
+extern const char *kender_loot[NUM_KENDER_BAUBLES];
 
 /* treasure.c functions */
 

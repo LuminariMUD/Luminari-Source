@@ -302,6 +302,10 @@ EVENTFUNC(event_falling)
       dam -= 21;
       dam -= dice((HAS_FEAT(ch, FEAT_SLOW_FALL) * 4), 6);
     }
+    if (HAS_FEAT(ch, FEAT_DRACONIAN_CONTROLLED_FALL))
+    {
+      dam /= 2;
+    }
 
     if (dam <= 0)
     { /* woo! avoided damage */
@@ -1097,12 +1101,13 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       break;
   }
 
-  if (block && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
-  {
-    act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
-    act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
-    return 0;
-  }
+  // this is removed until we can fix blocker mobs
+  // if (block && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
+  // {
+  //   act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
+  //   act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
+  //   return 0;
+  // }
 
   // acrobatics check
 
@@ -2366,7 +2371,12 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
         send_to_char(ch, "That item cannot be picked.\r\n");
         return;
       }
-      if (GET_SKILL(ch, ABILITY_DISABLE_DEVICE) > 0 && skill_check(ch, ABILITY_DISABLE_DEVICE, 15))
+      if (GET_SKILL(ch, ABILITY_DISABLE_DEVICE) <= 0)
+      {
+        send_to_char(ch, "You do not know how to pick locks.\r\n");
+        return;
+      }
+      if (skill_check(ch, ABILITY_DISABLE_DEVICE, 15))
       {
         TOGGLE_LOCK(IN_ROOM(ch), obj, door);
         send_to_char(ch, "The lock quickly yields to your skills.\r\n");
@@ -3151,6 +3161,19 @@ ACMD(do_rest)
     change_position(ch, POS_RESTING);
     break;
   }
+
+  if (PRF_FLAGGED(ch, PRF_AUTO_PREP))
+  {
+    if (count_spellcasting_classes(ch) == 1)
+    {
+      do_gen_preparation(ch, "autoprep", 0, class_to_spell_prep_scmd(get_spellcasting_class(ch)));
+    }
+    else if (count_spellcasting_classes(ch) > 1)
+    {
+      send_to_char(ch, "Since you have multiple classes that can cast spells, you must prepare those spells manually.  See 'class info (class name)' to see spell prep commands for your classes.\r\n");
+    }
+  }
+
 }
 
 ACMD(do_recline)

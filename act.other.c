@@ -1847,6 +1847,13 @@ void perform_call(struct char_data *ch, int call_type, int level)
     GET_REAL_MAX_HIT(mob) += 20;
     GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
     assign_eidolon_evolutions(ch, mob, false);
+    if (GET_EIDOLON_SHORT_DESCRIPTION(ch) && GET_EIDOLON_LONG_DESCRIPTION(ch) && GET_EIDOLON_DETAIL_DESCRIPTION(ch))
+    {
+      mob->player.name = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      mob->player.short_descr = strdup(GET_EIDOLON_SHORT_DESCRIPTION(ch));
+      mob->player.long_descr = strdup(GET_EIDOLON_LONG_DESCRIPTION(ch));
+      mob->player.description = strdup(GET_EIDOLON_DETAIL_DESCRIPTION(ch));
+    }
     break;
   }
   GET_HIT(mob) = GET_REAL_MAX_HIT(mob);
@@ -2138,8 +2145,17 @@ ACMD(do_dismiss)
 
   if (!found)
   {
-    send_to_char(ch, "Your target is not valid!\r\n");
-    return;
+    if (vict->master == ch)
+    {
+      act("$N is no longer following you.", TRUE, ch, 0, vict, TO_CHAR);
+      act("You is no longer follow $n.", TRUE, ch, 0, vict, TO_CHAR);
+      stop_follower(vict);
+    }
+    else
+    {
+      send_to_char(ch, "Your target is not valid!\r\n");
+      return;
+    }
   }
   else
   {
@@ -2403,7 +2419,7 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
 
   GET_CLASS(ch) = class;
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPGIN_DL)
   if (*arg && is_abbrev(arg, "premade"))
     GET_PREMADE_BUILD_CLASS(ch) = class;
 #else
@@ -2692,7 +2708,9 @@ ACMD(do_gain)
         send_to_char(ch, "You rise a level!\r\n");
       else
         send_to_char(ch, "You rise %d levels!\r\n", num_levels);
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
       set_title(ch, NULL);
+#endif
       if (GET_LEVEL(ch) >= LVL_IMMORT && !PLR_FLAGGED(ch, PLR_NOWIZLIST))
         run_autowiz();
 
@@ -5902,7 +5920,7 @@ ACMDU(do_group)
     }
     else if (GROUP(ch))
     {
-      send_to_char(ch, "But you are already part of a group.\r\n");
+      send_to_char(ch, "But you are already part of a group. Type 'group leave' and then try again.\r\n");
       return;
     }
     else if (!GROUP(vict))
@@ -6995,6 +7013,9 @@ ACMD(do_gen_tog)
       // 55
       {"CombatRoll for Charmies disabled.\r\n",
        "CombatRoll for Charmies enabled, you now will see details behind the combat rolls of your charmies during combat.\r\n"},
+      // 56
+      {"Autoprep disabled.\r\n",
+       "Autoprep enabled.\r\n"},
   };
 
   if (IS_NPC(ch))
@@ -7248,6 +7269,9 @@ ACMD(do_gen_tog)
   case SCMD_AUTOCONSIDER:
     result = PRF_TOG_CHK(ch, PRF_AUTOCON);
     break;
+  case SCMD_AUTO_PREP:
+    result = PRF_TOG_CHK(ch, PRF_AUTO_PREP);
+    break;
   default:
     log("SYSERR: Unknown subcmd %d in do_gen_toggle.", subcmd);
     return;
@@ -7484,6 +7508,8 @@ static const char *const hints[] = {
     /* 9*/ "\tR[HINT]:\tn \ty"
 #ifdef CAMPAIGN_FR
            "Faerun is considered a 'younger' MUD and is under heavy "
+#elif defined (CAMPGIN_DL)
+          "Chronicles of Krynn is considered a 'younger' MUD and is under heavy "
 #else
            "LuminariMUD is considered a 'younger' MUD and is under heavy "
 #endif
@@ -7498,7 +7524,7 @@ static const char *const hints[] = {
            "When you are ready to move on, you can use the AREAS command to see what other zones are "
            "around your level. You can view a web version of our worldmap at http://faerun.d20mud.com "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
-#else
+#elif !defined(CAMPAIGN_DL)
     /*10*/ "\tR[HINT]:\tn \tyThe beginning of your adventure will be focused in on the Ashenport "
            "Region of the world.  The region is relatively fairly small, maybe 1/10th of the "
            "surface space of Lumia, yet expands thousands of rooms in our WILDERNESS.  At the "
@@ -7514,6 +7540,8 @@ static const char *const hints[] = {
            "as well with every victory, there is a slight chance you will find "
 #ifdef CAMPAIGN_FR
            "this bonus loot.  Also, there is a special BAZAAR in Triboar where "
+#elif defined(CAMPAIGN_DL)
+           "this bonus loot.  Also, there is a special BAZAAR in Palanthas where "
 #else
            "this bonus loot.  Also, there is a special BAZAAR in Ashenport where "
 #endif
@@ -7523,6 +7551,14 @@ static const char *const hints[] = {
     /*12*/ "\tR[HINT]:\tn \tyIf you find items of value that you do not wish to retain, "
            "there are pawn shops in most cities that will allow you to sell these items for "
            "gold.  Ranks in the appraise skill will increase the amount of gold you get when "
+           "selling items.  You can also purchase gear in various shops around the world for "
+           "gold coins, also affected by the appraise skill. These items are often of high quality "
+           "and are a supplemental method of gaining gear. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#elif defined(CAMPAIGN_DL)
+    /*12*/ "\tR[HINT]:\tn \tyIf you find items of value that you do not wish to retain, "
+           "there are shops in most cities that will allow you to sell these items for "
+           "coin.  Ranks in the appraise skill will increase the amount of gold you get when "
            "selling items.  You can also purchase gear in various shops around the world for "
            "gold coins, also affected by the appraise skill. These items are often of high quality "
            "and are a supplemental method of gaining gear. "
@@ -7547,6 +7583,13 @@ static const char *const hints[] = {
            "we build up the main story line and lore, which builds upon existing Forgotten Realms lore. "
            "Forgotten Realms lore considered canon on the MUD are all events preceding the year 1496 DR. "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#elif defined(CAMPAIGN_DL)
+    /*14*/ "\tR[HINT]:\tn \tyChronicles of Krynn has several quests across the various zones. Currently we  "
+           "are working on a cohesive 'main quest line' for Palanthas, and then when done, Sanction. "
+           "We also recommend that role players create their own personal storylines as"
+           "we build up the main story line and lore, which builds upon existing Forgotten Realms lore. "
+           "Forgotten Realms lore considered canon on the MUD are all events preceding the year 1496 DR. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
     /*14*/ "\tR[HINT]:\tn \tyLuminariMUD has a 'main' quest line for the Ashenport Region "
            "that starts with the Mosswood Elder, in Mossswood.  The quest line is "
@@ -7559,6 +7602,8 @@ static const char *const hints[] = {
     /*15*/ "\tR[HINT]:\tn \ty"
 #ifdef CAMPAIGN_FR
            "Have a great idea for features or changes to Faerun?  Please "
+#elif defined(CAMPAIGN_DL)
+           "Have a great idea for features or changes to Krynn?  Please "
 #else
            "Have a great idea for features or changes to LuminariMUD?  Please "
 #endif
@@ -7572,7 +7617,7 @@ static const char *const hints[] = {
            "to call home and store your treasure.  You can add 'guests' to your home "
            "to allow your friends or other characters to enter."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
     /*17*/ "\tR[HINT]:\tn \ty"
            "Reached level 30?  We have epic level zones to explore, crafting systems to learn "
            "role play plots to take part in and plenty of class and race options to create and "
@@ -7590,6 +7635,8 @@ static const char *const hints[] = {
     /*18*/ "\tR[HINT]:\tn \ty"
 #ifdef CAMPAIGN_FR
            "Faerun has an account system.  Through the account system you "
+#elif defined(CAMPAIGN_DL)
+           "Krynn has an account system.  Through the account system you "
 #else
            "LuminariMUD has an account system.  Through the account system you "
 #endif
@@ -7613,10 +7660,27 @@ static const char *const hints[] = {
     /*20*/ "\tR[HINT]:\tn \ty"
 #ifdef CAMPAIGN_FR
            "Faerun's crafting system allows you to CREATE, RESTRING (rename), "
+           "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+           "travel to Triboar, there is a work area for buying molds.  If you add a "
+           "crafting crystal while creating a new item, you will enchant it.  You "
+           "can acquire crystals from treasure, DISENCHANTing magic items and you can "
+           "even use AUGMENT to combine crystals to make them more powerful.  In addition "
+           "you can do SUPPLYORDERs (basic crafting quests) in Triboar for rewards "
+           "including quest points. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#elif defined(CAMPAIGN_DL)
+           "Krynn's crafting system allows you to CREATE, RESTRING (rename), "
+           "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+           "travel to Palanthas or Sanction, there are work areas for buying molds.  If you add a "
+           "crafting crystal while creating a new item, you will enchant it.  You "
+           "can acquire crystals from treasure, DISENCHANTing magic items and you can "
+           "even use AUGMENT to combine crystals to make them more powerful.  In addition "
+           "you can do SUPPLYORDERs (basic crafting quests) in Palanthas and Sanction for rewards "
+           "including quest points. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
            "LuminariMUD's crafting system allows you to CREATE, RESTRING (rename), "
-#endif
-           "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
+            "RESIZE gear.  You will need a crafting kit and respective molds.  If you "
            "travel to Sanctus, there is a work area for buying molds.  If you add a "
            "crafting crystal while creating a new item, you will enchant it.  You "
            "can acquire crystals from treasure, DISENCHANTing magic items and you can "
@@ -7624,6 +7688,7 @@ static const char *const hints[] = {
            "you can do SUPPLYORDERs (basic crafting quests) in Sanctus for rewards "
            "including quest points. "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*21*/ "\tR[HINT]:\tn \ty"
            "Reached the end-game?  Forming a CLAN can help you co-ordinate "
            "team efforts for some serious carnage.  Having a well co-ordinated "
@@ -7636,6 +7701,11 @@ static const char *const hints[] = {
            "Overwhelmed by all the class and feat choices? Your best bet for tips is "
            "asking in game or on our Discord channel.  Don't feel shy to ask, our "
            "players and staff are happy to help out. Our Discord Invite is: https://discord.gg/dxZAEd9gAq "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#elif defined(CAMPAIGN_DL)
+          "Overwhelmed by all the class and feat choices? Your best bet for tips is "
+           "asking in game or on our Discord channel.  Don't feel shy to ask, our "
+           "players and staff are happy to help out. Our Discord Invite is: https://discord.gg/5m5EtQ5XQu "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
            "Overwhelmed by all the class and feat choices?  We started a community "
@@ -7653,6 +7723,14 @@ static const char *const hints[] = {
            "post it as an IDEA in-game.  You can also help the staff workload by writing "
            "helpfiles via the Discord channel!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#elif defined(CAMPAIGN_DL)
+           "Help files are critical!  We try our best to anticipate all the subjects "
+           "that are needed, but we rely heavily on contributions from players - "
+           "with emphasis on new ones.  Please take the time to post it on our Discord "
+           "at https://discord.gg/5m5EtQ5XQu and you can also "
+           "post it as an IDEA in-game.  You can also help the staff workload by writing "
+           "helpfiles via the Discord channel!"
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
            "Help files are critical!  We try our best to anticipate all the subjects "
            "that are needed, but we rely heavily on contributions from players - "
@@ -7666,6 +7744,10 @@ static const char *const hints[] = {
 #ifdef CAMPAIGN_FR
            "LuminariMUD has a Discord channel where most out-of-game communication takes place. "
            "Feel welcome to join in! The channel invite is https://discord.gg/dxZAEd9gAq "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#elif defined(CAMPAIGN_DL)
+           "LuminariMUD has a Discord channel where most out-of-game communication takes place. "
+           "Feel welcome to join in! The channel invite is  https://discord.gg/5m5EtQ5XQu "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #else
            "LuminariMUD has a forum at: https://www.luminarimud.com/forums/ the public "
@@ -8070,41 +8152,9 @@ ACMD(do_summon)
     return;
   }
 
-  struct char_data *tch = NULL;
   bool found = false;
 
-  for (tch = character_list; tch; tch = tch->next)
-  {
-    if (tch == ch)
-      continue;
-    if (!IS_NPC(tch))
-      continue;
-    if (!AFF_FLAGGED(tch, AFF_CHARM))
-      continue;
-    if (tch->master != ch)
-      continue;
-    if (IN_ROOM(tch) == NOWHERE)
-      continue;
-    if (IN_ROOM(tch) == IN_ROOM(ch))
-      continue;
-
-    /* leave the current room into the ether */
-    act("$n disappears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
-    char_from_room(tch);
-
-    /* set coords if necessary */
-    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
-    {
-      X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
-      Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
-    }
-
-    /* move into the new location! */
-    char_to_room(tch, IN_ROOM(ch));
-    act("$n appears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
-
-    found = true;
-  }
+  found = char_pets_to_char_loc(ch);
 
   if (!found)
   {
@@ -8282,19 +8332,20 @@ ACMDU(do_fiendishboon)
   send_to_char(ch, "You have activated your '%s' fiendish boon.\r\n", fiendish_boons[i]);
 }
 
-#define NOBUFF_MSG "buffself add (spell/power name)                - Add a spell or power to your buff list.\r\n"          \
-                   "buffself remove (spell/power name)             - Remove a spell or power from your buff list\r\n"      \
-                   "buffself (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n"         \
-                   "buffself list                                  - Will show you the spells and powers in your list\r\n" \
-                   "buffself perform                               - Will begin buffing you with your buff list\r\n"       \
-                   "buffself cancel                                - Will can any buffing action in process.\r\n"
+#define NOBUFF_MSG "buff add (spell/power name)                - Add a spell or power to your buff list.\r\n"          \
+                   "buff remove (spell/power name)             - Remove a spell or power from your buff list\r\n"      \
+                   "buff (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n"         \
+                   "buff list                                  - Will show you the spells and powers in your list\r\n" \
+                   "buff perform                               - Will begin buffing you with your buff list\r\n"       \
+                   "buff cancel                                - Will can any buffing action in process.\r\n"
 
-ACMD(do_buffself)
+ACMD(do_buff)
 {
   char arg1[200], arg2[200];
   int spellnum = 0, i = 0, aug = 0;
   int is_spell = true; // true if it's a spell, false if it's a psionic power
   bool found = false;
+  struct char_data *target;
 
   half_chop((char *)argument, arg1, arg2);
 
@@ -8304,18 +8355,49 @@ ACMD(do_buffself)
     return;
   }
 
-  if (!*arg2 && !is_abbrev(arg1, "list") && !is_abbrev(arg1, "perform") && !is_abbrev(arg1, "cancel"))
+  if (!*arg2 && !is_abbrev(arg1, "list") && !is_abbrev(arg1, "perform") && !is_abbrev(arg1, "cancel") && !is_abbrev(arg1, "target"))
   {
     send_to_char(ch, "You did not specify a power or spell name.\r\n"
                      "Please choose one of the following options:\r\n%s",
                  NOBUFF_MSG);
     return;
   }
+  if (*arg2 && is_abbrev(arg1, "target"))
+  {
+    if (!*arg2)
+    {
+      GET_BUFF_TARGET(ch) = NULL;
+      send_to_char(ch, "You have reset your buff target to yourself.\r\n");
+      return;
+    }
 
-  if (*arg2)
+    if (is_abbrev(arg2, "self") || is_abbrev(arg2, "me") || is_abbrev(arg2, "reset") || is_abbrev(arg2, "myself"))
+    {
+      GET_BUFF_TARGET(ch) = NULL;
+      send_to_char(ch, "You have reset your buff target to yourself.\r\n");
+      return;
+    }
+
+    if (!(target = get_char_room_vis(ch, arg2, NULL)))
+    {
+      send_to_char(ch, "There's no one here by that description.\r\n");
+      return;
+    }
+
+    GET_BUFF_TARGET(ch) = target;
+    act("You have set your buff target to $N.\r\n", TRUE, ch, 0, target, TO_CHAR);
+    return;
+  }
+  else if (*arg2)
   {
     spellnum = find_skill_num(arg2);
     is_spell = is_spell_or_power(spellnum);
+
+    if (spellnum >= PSIONIC_POWER_START && spellnum <= PSIONIC_POWER_END)
+    {
+      send_to_char(ch, "Buffing with psionics is not possible right now due to a serious, yet unresolved bug.\r\n");
+      return;
+    }
 
     if (!is_spell)
     {
@@ -8335,6 +8417,10 @@ ACMD(do_buffself)
 
   if (isdigit(*arg1))
   {
+
+    send_to_char(ch, "Buffing with psionics is not possible right now due to a serious, yet unresolved bug.\r\n");
+    return;
+
     // Assign augment psp to specified psionic power.
 
     if (!*arg2)
@@ -8388,8 +8474,8 @@ ACMD(do_buffself)
     }
     if (i >= MAX_BUFFS)
     {
-      send_to_char(ch, "All of your buff slots are full.  Please remove some using the buffself remove command.\r\n"
-                       "You can view your list of buffs with buffself list.\r\n");
+      send_to_char(ch, "All of your buff slots are full.  Please remove some using the buff remove command.\r\n"
+                       "You can view your list of buffs with buff list.\r\n");
       return;
     }
     GET_BUFF(ch, i, 0) = spellnum;
@@ -8408,7 +8494,7 @@ ACMD(do_buffself)
     if (i >= MAX_BUFFS)
     {
       send_to_char(ch, "You do not seem to have the %s '%s' in your buff list.\r\n"
-                       "You can view your list of buffs with buffself list.\r\n",
+                       "You can view your list of buffs with buff list.\r\n",
                    is_spell ? "spell" : "psionic power", spell_info[spellnum].name);
       return;
     }
@@ -8467,7 +8553,18 @@ ACMD(do_buffself)
     IS_BUFFING(ch) = true;
     GET_BUFF_TIMER(ch) = 1;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
-    send_to_char(ch, "You begin buffing yourself...\r\n");
+    if (GET_BUFF_TARGET(ch))
+    {
+      if (IN_ROOM(GET_BUFF_TARGET(ch)) != IN_ROOM(ch))
+      {
+        act("Your buff target ($N) is nowhere to be seen.\r\n", TRUE, ch, 0, GET_BUFF_TARGET(ch), TO_CHAR);
+        return;
+      }
+      act("You begin buffing $N...", TRUE, ch, 0, GET_BUFF_TARGET(ch), TO_CHAR);
+      act("$N begins buffing You...", TRUE, ch, 0, GET_BUFF_TARGET(ch), TO_VICT);
+    }
+    else
+      send_to_char(ch, "You begin buffing yourself...\r\n");
   }
   else if (is_abbrev(arg1, "cancel"))
   {
@@ -8475,7 +8572,7 @@ ACMD(do_buffself)
     IS_BUFFING(ch) = false;
     GET_BUFF_TIMER(ch) = 0;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
-    send_to_char(ch, "You cancel buffing yourself.\r\n");
+    send_to_char(ch, "You cease casting your buffing spells.\r\n");
   }
   else
   {
@@ -8502,7 +8599,11 @@ ACMDU(do_devote)
     if (!*arg2)
     {
       send_to_char(ch, "Please specify whether you wish to list 'all' deities or ones with the following keywords:\r\n");
+#if defined(CAMPAIGN_DL)
+      send_to_char(ch, "options: all|good|neutral|evil|lawful|chaotic\r\n");
+#else
       send_to_char(ch, "options: all|good|neutral|evil|lawful|chaotic|faerun|dwarven|drow|elven|gnome|halfling|orc\r\n");
+#endif
       return;
     }
     if (is_abbrev(arg2, "all"))
@@ -8517,28 +8618,24 @@ ACMDU(do_devote)
       listtype = DEITY_LIST_LAWFUL;
     else if (is_abbrev(arg2, "chaotic"))
       listtype = DEITY_LIST_CHAOTIC;
-    else if (is_abbrev(arg2, "faerun"))
-      listtype = DEITY_LIST_FAERUN;
-    else if (is_abbrev(arg2, "dwarven"))
-      listtype = DEITY_LIST_DWARVEN;
-    else if (is_abbrev(arg2, "drow"))
-      listtype = DEITY_LIST_DROW;
-    else if (is_abbrev(arg2, "elven"))
-      listtype = DEITY_LIST_ELVEN;
-    else if (is_abbrev(arg2, "gnome"))
-      listtype = DEITY_LIST_GNOME;
-    else if (is_abbrev(arg2, "halfling"))
-      listtype = DEITY_LIST_HALFLING;
-    else if (is_abbrev(arg2, "orc"))
-      listtype = DEITY_LIST_ORC;
     else
     {
       send_to_char(ch, "Please specify whether you wish to list 'all' deities or ones with the following keywords:\r\n");
+#if defined(CAMPAIGN_DL)
+      send_to_char(ch, "options: all|good|neutral|evil|lawful|chaotic\r\n");
+#else
       send_to_char(ch, "options: all|good|neutral|evil|lawful|chaotic|faerun|dwarven|drow|elven|gnome|halfling|orc\r\n");
+#endif
       return;
     }
 
+#if defined(CAMPAING_FR)
     send_to_char(ch, "%-25s - %-12s %-15s %s\r\n", "Deities of Faerun", "Pantheon", "Alignment", "Portfolio");
+#elif defined(CAMPAIGN_DL)
+send_to_char(ch, "%-25s - %-15s %s\r\n", "Deities of Krynn", "Alignment", "Portfolio");
+#else
+send_to_char(ch, "%-25s - %-12s %-15s %s\r\n", "Deities of Lumia", "Pantheon", "Alignment", "Portfolio");
+#endif
     for (i = 0; i < 80; i++)
       send_to_char(ch, "-");
     send_to_char(ch, "\r\n");
@@ -8557,23 +8654,13 @@ ACMDU(do_devote)
         continue;
       else if (listtype == DEITY_LIST_CHAOTIC && deity_list[i].ethos != ETHOS_CHAOTIC)
         continue;
-      else if (listtype == DEITY_LIST_FAERUN && deity_list[i].pantheon != DEITY_PANTHEON_FAERUNIAN)
-        continue;
-      else if (listtype == DEITY_LIST_DWARVEN && deity_list[i].pantheon != DEITY_PANTHEON_FR_DWARVEN)
-        continue;
-      else if (listtype == DEITY_LIST_DROW && deity_list[i].pantheon != DEITY_PANTHEON_FR_DROW)
-        continue;
-      else if (listtype == DEITY_LIST_ELVEN && deity_list[i].pantheon != DEITY_PANTHEON_FR_ELVEN)
-        continue;
-      else if (listtype == DEITY_LIST_GNOME && deity_list[i].pantheon != DEITY_PANTHEON_FR_GNOME)
-        continue;
-      else if (listtype == DEITY_LIST_HALFLING && deity_list[i].pantheon != DEITY_PANTHEON_FR_HALFLING)
-        continue;
-      else if (listtype == DEITY_LIST_ORC && deity_list[i].pantheon != DEITY_PANTHEON_FR_ORC)
-        continue;
       
       snprintf(dname, sizeof(dname), "%s", deity_list[i].name);
-      send_to_char(ch, "%-25s - %-12s %-15s - %s\r\n", CAP(dname), pantheons[deity_list[i].pantheon], GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].portfolio);
+#if defined(CAMPAIGN_DL)
+    send_to_char(ch, "%-25s - %-15s - %s\r\n", CAP(dname),GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].portfolio);
+#else
+    send_to_char(ch, "%-25s - %-12s %-15s - %s\r\n", CAP(dname), pantheons[deity_list[i].pantheon], GET_ALIGN_STRING(deity_list[i].ethos, deity_list[i].alignment), deity_list[i].portfolio);
+#endif
     }
   }
   else if (is_abbrev(arg1, "info"))
@@ -8791,6 +8878,137 @@ ACMD(do_sacrifice)
   GET_HIT(vict) = MIN(GET_MAX_HIT(vict) - GET_HIT(vict), sac);
 
   USE_STANDARD_ACTION(ch);
+}
+
+ACMDU(do_borrow)
+{
+
+  struct char_data *vict = NULL;
+  struct obj_data *obj = NULL;
+  int which = 0;
+  int grade, gold;
+  char buf[200];
+
+  if (!HAS_REAL_FEAT(ch, FEAT_KENDER_BORROWING))
+  {
+    send_to_char(ch, "Only kender 'borow'.  Others steal.\r\n");
+    return;
+  }
+
+  skip_spaces(&argument);
+
+  if (!*argument)
+  {
+    send_to_char(ch, "Who do you want to borrow something from?\r\n");
+    return;
+  }
+
+  if (!(vict = get_char_vis(ch, argument, NULL, FIND_CHAR_ROOM)))
+  {
+    send_to_char(ch, "You don't see anyone here by that description.\r\n");
+    return;
+  }
+
+  if (!IS_NPC(vict))
+  {
+    send_to_char(ch, "You can't borrow from players.\r\n");
+    return;
+  }
+
+  if (GET_RACE(vict) != RACE_TYPE_HUMANOID && GET_RACE(vict) != RACE_TYPE_GIANT && GET_RACE(vict) != RACE_TYPE_MONSTROUS_HUMANOID)
+  {
+    send_to_char(ch, "They don't seem to have any pockets or pouches to peek into.\r\n");
+    return;
+  }
+
+  int skill = skill_roll(ch, ABILITY_SLEIGHT_OF_HAND);
+  int dc = skill_roll(vict, ABILITY_PERCEPTION);
+
+  if (skill < dc)
+  {
+
+    if (vict->char_specials.has_borrow_been_attempted)
+    {
+      act("$N looks incredibly boring and uninteresting to you. Same with their pouches.", TRUE, ch, 0, vict, TO_CHAR);
+      return;
+    }
+    // you can only try once;
+    vict->char_specials.has_borrow_been_attempted = true;
+
+    appear(ch, FALSE);
+    act("$N spots your fingers in $S pouches and attacks!", FALSE, ch, 0, vict, TO_CHAR);
+    act("You spot $n's fingers in your pouch!", FALSE, ch, 0, vict, TO_VICT);
+    act("$N spots $n's fingers in $S pouches and attacks!", FALSE, ch, 0, vict, TO_NOTVICT);
+    hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+
+    return;
+  }
+  else
+  {
+    // you can only try once;
+    vict->char_specials.has_borrow_been_attempted = true;
+
+    which = dice(1, 10);
+    
+    // some uselkess bauble
+    if (which <= 9)
+    {
+      which = dice(1, NUM_KENDER_BAUBLES);
+      obj = read_object(KENDER_BAUBLE, VIRTUAL);
+      if (!obj)
+      {
+        send_to_char(ch, "You didn't find anything interesting.\r\n");
+        return;
+      }
+      snprintf(buf, sizeof(buf), "%s vendortrash vendor-trash.", kender_loot[which]);
+      obj->name = strdup(buf);
+      obj->short_description = strdup(kender_loot[which]);
+      snprintf(buf, sizeof(buf), "%s lies here.", kender_loot[which]);
+      CAP(buf);
+      obj->description = strdup(buf);
+      obj_to_char(obj, ch);
+      snprintf(buf, sizeof(buf), "\tY$N seems to have misplaced %s\tn\tY! Lucky for them that you found it!\tn\r\n", obj->short_description);
+      act(buf, TRUE, ch, 0, vict, TO_CHAR);
+    }
+    else
+    {
+      gold = dice(1, GET_LEVEL(vict)) * 10;
+      GET_GOLD(ch) += gold;
+      snprintf(buf, sizeof(buf), "$N seems to have misplaced some coins.  Looks to be about %d coins.  Lucky that you found it for them!\r\n", gold);
+      act(buf, TRUE, ch, 0, vict, TO_CHAR);
+      grade = quick_grade_check(GET_LEVEL(vict));
+      if (dice(1, 3) == 1)
+      {
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_BORROW;
+        switch(dice(1, 20))
+        {
+          case 1:
+            award_random_crystal(ch, grade);
+            break;
+          case 2: case 3:
+            award_expendable_item(ch, grade, TYPE_SCROLL);
+            break;
+          case 5:  case 6:  case 7: 
+            award_expendable_item(ch, grade, TYPE_POTION);
+            break;
+          case 8: 
+            award_expendable_item(ch, grade, TYPE_WAND);
+            break;
+          case 9: 
+            award_expendable_item(ch, grade, TYPE_STAFF);
+            break;
+          case 10: 
+            award_magic_ammo(ch, grade);
+            break;
+           case 11: 
+            award_misc_magic_item(ch, determine_rnd_misc_cat(), cp_convert_grade_enchantment(grade));
+            break;
+        }
+        ch->char_specials.which_treasure_message = CUSTOM_TREASURE_MESSAGE_NONE;
+        return;
+      }
+    }
+  }
 }
 
 /* undefines */

@@ -217,9 +217,9 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
 
   /* The top section of the actual menu */
   send_to_char(d->character,
-               "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll    %s[%s%3s%s]\r\n"
+               "%s1%s) Use Stored Consumables  %s[%s%3s%s]        %s9%s) Charmie Combat Roll      %s[%s%3s%s]\r\n"
                /* Line 1 (1) - use stored consumables */
-               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]\r\n"
+               "%s2%s) Auto Stand / Springleap %s[%s%3s%s]        %sA%s) Auto-Prep Spells on Rest %s[%s%3s%s]\r\n"
                /* Line 2 (2) - Auto Stand */
                "%s3%s) Auto Hit                %s[%s%3s%s]\r\n"
                /* Line 3 (3) - Auto Hit */
@@ -246,6 +246,10 @@ static void prefedit_extra_disp_toggles_menu(struct descriptor_data *d)
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
                PREFEDIT_FLAGGED(PRF_AUTO_STAND) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
                ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_STAND)), CCCYN(d->character, C_NRM),
+               /**/
+               CBYEL(d->character, C_NRM), CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
+               PREFEDIT_FLAGGED(PRF_AUTO_PREP) ? CBGRN(d->character, C_NRM) : CBRED(d->character, C_NRM),
+               ONOFF(PREFEDIT_FLAGGED(PRF_AUTO_PREP)), CCCYN(d->character, C_NRM),
                /*******3*********/
                CBYEL(d->character, C_NRM),
                CCNRM(d->character, C_NRM), CCCYN(d->character, C_NRM),
@@ -973,6 +977,11 @@ void prefedit_parse(struct descriptor_data *d, char *arg)
 
     case '9':
       TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_CHARMIE_COMBATROLL);
+      break;
+
+    case 'a':
+    case 'A':
+      TOGGLE_BIT_AR(PREFEDIT_GET_FLAGS, PRF_AUTO_PREP);
       break;
 
     default:

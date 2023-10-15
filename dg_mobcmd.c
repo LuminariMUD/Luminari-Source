@@ -730,6 +730,7 @@ ACMD(do_mteleport)
 
         /* we have to check this carefully! -zusuk */
         char_to_room(vict, target);
+        char_pets_to_char_loc(vict);
         enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
       }
     }
@@ -763,6 +764,7 @@ ACMD(do_mteleport)
 
       /* we have to check this carefully! -zusuk */
       char_to_room(vict, target);
+      char_pets_to_char_loc(ch);
       enter_wtrigger(&world[IN_ROOM(ch)], ch, -1);
     }
   }

@@ -421,13 +421,22 @@ void assign_feats(void)
   feato(FEAT_DWARF_RACIAL_ADJUSTMENT, "dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 con",
         "As a racial adjustment you have +2 to constitution.");
+#if defined(CAMAPIGN_DL)
+  // mountain dwarf
+  feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "mountain dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 str +2 Con",
+        "+2 racial bonus to strength and constituion ability scores.");
+  feato(FEAT_SHIELD_DWARF_ARMOR_TRAINING, "dwarven armor training", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "proficiency and bonuses in light and medium armor",
+        "All mountain dwarves are proficient in light and medium armor, and reduce their armor check penalty in all armor by 1.");
+#else
   feato(FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, "shield dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 str +2 Con",
         "+2 racial bonus to strength and constituion ability scores.");
   feato(FEAT_SHIELD_DWARF_ARMOR_TRAINING, "dwarven armor training", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "proficiency and bonuses in light and medium armor",
         "All shield dwarves are proficient in light and medium armor, and reduce their armor check penalty in all armor by 1.");
-
+#endif
   feato(FEAT_ENCUMBERED_RESILIENCE, "encumbered resilience", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Strength is treated as 2 points higher in determining maximum carry weight.",
         "Strength is treated as 2 points higher in determining maximum carry weight.");
@@ -556,6 +565,15 @@ void assign_feats(void)
   feato(FEAT_NATURAL_ILLUSIONIST, "natural illusionist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Can cast minor illusion at will.",
         "Can cast minor illusion at will. At level 20 can cast mirror image at will.");
+  #if defined(CAMPAIGN_DL)
+  // hill dwarves
+  feato(FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, "hill dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 wis",
+        "+1 racial bonus to wisdom ability score.");
+  feato(FEAT_GOLD_DWARF_TOUGHNESS, "hill dwarf toughness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+1 hit point per level",
+        "Hill dwarves receive an extra hit point at level 1 and +1 for each level they gain thereafter.");
+  #else
   // gold dwarves
   feato(FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, "gold dwarf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+1 wis",
@@ -563,7 +581,7 @@ void assign_feats(void)
   feato(FEAT_GOLD_DWARF_TOUGHNESS, "gold dwarf toughness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+1 hit point per level",
         "Gold dwarves receive an extra hit point at level 1 and +1 for each level they gain thereafter.");
-
+#endif
   // Aasimar
   feato(FEAT_AASIMAR_RACIAL_ADJUSTMENT, "aasimar racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 cha and +1 wis",
@@ -647,15 +665,6 @@ void assign_feats(void)
   feato(FEAT_ELF_RACIAL_ADJUSTMENT, "elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 dex",
         "Elven racial adjustment to stats are: +2 dexterity.");
-  feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 dex +1 wis",
-        "Moon Elven racial adjustment to stats are: +2 dexterity, +1 wisdom.");
-  feato(FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, "bathed in moonlight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+6 to stealth checks when outside at night",
-        "+6 to stealth and ability checks when outside at night time.");
-  feato(FEAT_MOON_ELF_LUNAR_MAGIC, "lunar magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "learns some spells as innate abilities",
-        "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  Castable 1/day each.");
 
   /* Half-Troll */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -919,7 +928,47 @@ void assign_feats(void)
         "powerful boost to stats 3x/day",
         "Allows you to tap into your insect being, greatly enhancing your stats 3x / day");
 
-  // Wild Elves
+#if defined(CAMPAIGN_DL)
+  feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "silvanesti elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 dex +1 int",
+        "Silvanesti Elf racial adjustment to stats are: +2 dexterity, +1 intelligence.");
+  feato(FEAT_HIGH_ELF_CANTRIP, "silvanesti elf cantrip", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "can choose 1 wizard cantrip",
+        "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen via the study menu.");
+  feato(FEAT_HIGH_ELF_LINGUIST, "silvanesti elf linguist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "can learn an additional language",
+        "Allows the choosing of an extra language.");
+
+  feato(FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, "kagonesti elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 Dex, +1 Str ",
+        "Kagonesti elf racial adjustment to stats are: +2 dexterity, +1 strength.");
+  feato(FEAT_WOOD_ELF_MASK_OF_THE_WILD, "mask of the wild", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+3 to stealth checks",
+        "+3 to stealth based skill and ability checks.");
+  feato(FEAT_WOOD_ELF_FLEETNESS, "kagonesti elf fleetness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "max movement points increased by +20 per level",
+        "The kagonesti elf's maximum movement points increases by +20 per level.");
+
+feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "qualinesti racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 dex +1 wis",
+        "Qualinesti elf racial adjustment to stats are: +2 dexterity, +1 wisdom.");
+  feato(FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, "bathed in moonlight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+6 to stealth checks when outside at night",
+        "+6 to stealth and ability checks when outside at night time.");
+  feato(FEAT_MOON_ELF_LUNAR_MAGIC, "lunar magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "learns some spells as innate abilities",
+        "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  Castable 1/day each.");
+#else
+  feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "high elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 dex +1 int",
+        "High Elven racial adjustment to stats are: +2 dexterity, +1 intelligence.");
+  feato(FEAT_HIGH_ELF_CANTRIP, "high elf cantrip", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "can choose 1 wizard cantrip",
+        "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen via the study menu.");
+  feato(FEAT_HIGH_ELF_LINGUIST, "high elf linguist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "can learn an additional language",
+        "Allows the choosing of an extra language.");
+
   feato(FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, "wood elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+2 Dex, +1 Str ",
         "Wood Elven racial adjustment to stats are: +2 dexterity, +1 strength.");
@@ -930,15 +979,54 @@ void assign_feats(void)
         "max movement points increased by +20 per level",
         "The wood elf's maximum movement points increases by +20 per level.");
 
-  feato(FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, "high elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "+2 dex +1 int",
-        "High Elven racial adjustment to stats are: +2 dexterity, +1 intelligence.");
-  feato(FEAT_HIGH_ELF_CANTRIP, "high elf cantrip", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "can choose 1 wizard cantrip",
-        "Allows the choosing of a single circle 1 wizard spell that can be cast at will, chosen via the study menu.");
-  feato(FEAT_HIGH_ELF_LINGUIST, "high elf linguist", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "can learn an additional language",
-        "Allows the choosing of an extra language.");
+feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 dex +1 wis",
+        "Moon Elven racial adjustment to stats are: +2 dexterity, +1 wisdom.");
+  feato(FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, "bathed in moonlight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+6 to stealth checks when outside at night",
+        "+6 to stealth and ability checks when outside at night time.");
+  feato(FEAT_MOON_ELF_LUNAR_MAGIC, "lunar magic", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "learns some spells as innate abilities",
+        "Learns minor illusion spell at level 1, sleep at level 3, and moonbeam at level 5.  Castable 1/day each.");
+#endif
+
+  feato(FEAT_WEAPON_PROFICIENCY_KENDER, "kender hoopak proficiency", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "All kender are proficient with hoopaks.",
+        "All kender are proficient with hoopaks. Also they gain a +2 to damage with hoopaks to offset their size penalty.");
+  feato(FEAT_KENDER_RACIAL_ADJUSTMENT, "kende racial adjustments", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Kender receive a +2 bonus to dexterity, but a -2 penalty to strength and wisdom.",
+        "Kender receive a +2 bonus to dexterity, but a -2 penalty to strength and wisdom.");
+  feato(FEAT_KENDER_SKILL_MOD, "skill skill mods", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Kender gain a +2 bonus to stealth, bluff, perception, disable device and sleight of hand skills. They receive a -4 penalty to concentration skills.",
+        "Kender gain a +2 bonus to stealth, bluff, perception, disable device and sleight of hand skills. They receive a -4 penalty to concentration skills.");
+  feato(FEAT_KENDER_BORROWING, "kender borrowing", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Kender gain access to the 'borrow' ability.",
+        "Kender gain access to the 'borrow' ability, which uses the @Yborrow@n command. See HELP BORROW for more info.");
+  feato(FEAT_KENDER_TAUNT, "kender taunt", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Kender gain a +4 bonus to the taunt ability.",
+        "Kender gain a +4 bonus to the taunt ability, and can perform taunts as a swift action.");
+  feato(FEAT_KENDER_FEARLESSNESS, "kender fearlessness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Kender are immune to fear, normal and magical.",
+        "Kender are immune to fear, normal and magical.");
+  feato(FEAT_KENDER_LUCK, "kender luck", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Kender gain a +1 luck bonus on all saving throws.",
+        "Kender gain a +1 luck bonus on all saving throws.");
+
+  feato(FEAT_MINOTAUR_RACIAL_ADJUSTMENT, "minotaur racial adjstment", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Minotaurs get +4 to strength but -2 to dexterity and intelligence.",
+        "Minotaurs get +4 to strength but -2 to dexterity and intelligence.");
+  feato(FEAT_MINOTAUR_TOUGH_HIDE, "tough hide", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Minotaurs get a +1 natural armor class bonus.",
+        "Minotaurs get a +1 natural armor class bonus.");
+  feato(FEAT_MINOTAUR_INTIMIDATING, "minotaur toughness", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Minotaurs get +2 to intimidation checks.",
+        "Minotaurs get +2 to intimidation checks.");
+  feato(FEAT_MINOTAUR_SEAFARING, "seafaring", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Minotaurs get +2 to swimming checks.",
+        "Minotaurs get +2 to swimming checks.");
+  feato(FEAT_MINOTAUR_GORE, "minotaur gore", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Minotaurs can use a gore attack as a swift action.",
+        "Minotaurs can use a gore attack as a swift action. Uses the @Ygore@n command.");
 
   /* Shared - Various */
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
@@ -959,9 +1047,9 @@ void assign_feats(void)
   feato(FEAT_TRUE_SIGHT, "true sight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "you can see invisible persons or items and the true forms of shapechanged, wildshaped, disguised or polymorphed beings",
         "you can see invisible persons or items and the true forms of shapechanged, wildshaped, disguised or polymorphed beings");
-  feato(FEAT_INFRAVISION, "infravision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
-        "you can see outlines of life in complete dark",
-        "you can see outlines of life in complete dark");
+  feato(FEAT_INFRAVISION, "low light vision", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "You can see outlines of life in complete dark, and see fully when outside at night.",
+        "You can see outlines of life in complete dark, and see fully when outside at night.");
   feato(FEAT_COMBAT_TRAINING_VS_GIANTS, "combat training vs giants", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "+1 size bonus versus larger opponents",
         "+1 size bonus versus larger opponents");
@@ -996,6 +1084,29 @@ void assign_feats(void)
   feato(FEAT_FAE_FLIGHT, "fae flight", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
         "Fae can fly at a speed of 60 ft / round.",
         "Fae can fly at a speed of 60 ft / round. Uses the fly and land commands.");
+
+  // baaz draconian
+  feato(FEAT_BAAZ_DEATH_THROES, "baaz death throes", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Upon death, all enemies will be paralyzed.",
+        "When a Baaz Draconian dies, it turns to stone and let's out a puff of gas that will paralyze all enemies in the room.");
+  feato(FEAT_DRACONIAN_CONTROLLED_FALL, "baaz controlled fall", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "Divide fall damge in half.",
+        "When falling, a Baaz Draconian can spread his wings to halve any fall damage they might take.");
+  feato(FEAT_BAAZ_DRACONIC_DEVOTION, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "+2 to attack rolls when grouped with another draconian or dragon.",
+        "Baaz Draconians receive a +2 to attack rolls whenever they are groluped with another draconian or a dragon of any type.");
+  feato(FEAT_DRACONIAN_GALLOP, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "",
+        "");
+  feato(FEAT_BAAZ_DISEASE_IMMUNITY, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "",
+        "");
+  feato(FEAT_BAAZ_DRACONIAN_SCALES, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "",
+        "");
+  feato(FEAT_DRACONIAN_BITE, "", TRUE, FALSE, FALSE, FEAT_TYPE_INNATE_ABILITY,
+        "",
+        "");
 
   /* End Racial ability feats */
 
@@ -1505,7 +1616,7 @@ void assign_feats(void)
         "they can cast summon creature ii.  At level five they can cast summon creature iii, and so forth up until level 17 "
         "for summon creature ix. "
 // No gate spell in FR because there aren't multiple planes of existence yet
-#ifndef CAMPAIGN_FR
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
         "At level 19, the summoner can cast the gate spell at-will."
 #endif
         );
@@ -2983,7 +3094,7 @@ void assign_feats(void)
         "Each rank in this feat will give your familiar: 1 AC, 10 Hit-points, +1 to "
         "strength, dexterity and constitution.");
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   feato(FEAT_QUICK_CHANT, "quick chant", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "You can cast spells faster.",
         "You can cast/manifest ritual spells/psionic powers about 50 percent faster than normal with this feat. You also have a 10% chance to cast/manifest "
@@ -5045,6 +5156,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
     case CASTING_TYPE_ARCANE:
       if (!(IS_WIZARD(ch) ||
             IS_SORCERER(ch) ||
+            IS_SUMMONER(ch) ||
             IS_BARD(ch)))
         return FALSE;
       /* If they need a certain circle, and they don't have any in any class, fail. */
@@ -5061,6 +5173,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
             IS_DRUID(ch) ||
             IS_INQUISITOR(ch) ||
             IS_PALADIN(ch) ||
+            IS_BLACKGUARD(ch) ||
             IS_RANGER(ch)))
         return FALSE;
       if (prereq->values[2] > 0)

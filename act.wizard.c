@@ -171,7 +171,7 @@ ACMD(do_send)
     send_to_char(ch, "You send '%s' to %s.\r\n", buf, GET_NAME(vict));
 }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
 
 /* take a string, and return an rnum.. used for goto, at, etc.  -je 4/6/93 */
 room_rnum find_target_room(struct char_data *ch, const char *rawroomstr)
@@ -1490,9 +1490,13 @@ ACMD(do_shutdown)
   if (!*arg)
   {
     log("(GC) Shutdown by %s (SLOWBOOT).", GET_NAME(ch));
-    send_to_all("Shutting dowscript will rebootn, script will reboot Luminari unless stated"
-                " otherwise by %s.\r\n",
-                GET_NAME(ch));
+#if defined(CAMPAIGN_FR)
+    send_to_all("Shutting down, script will reboot Faerun unless stated otherwise by %s.\r\n", GET_NAME(ch));
+#elif defined(CAMPAIGN_DL)
+  send_to_all("Shutting down, script will reboot Krynn unless stated otherwise by %s.\r\n", GET_NAME(ch));
+#else
+  send_to_all("Shutting down, script will reboot Luminari unless stated otherwise by %s.\r\n", GET_NAME(ch));
+#endif
     circle_shutdown = 1;
   }
   else if (!str_cmp(arg, "reboot"))
@@ -7958,8 +7962,11 @@ int get_eq_score(obj_rnum a)
         score -= 450;
         break;
 
-        /* we are attempting to handle every case */
-      default:
+      case ITEM_SET_STATS_AT_LOAD:
+        break;
+
+          /* we are attempting to handle every case */
+          default:
         if (DEBUG_EQ_SCORE)
         {
           for (pt = descriptor_list; pt; pt = pt->next)

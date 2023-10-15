@@ -44,6 +44,43 @@ int find_first_step(room_rnum src, room_rnum target);
 
 /* location name, carriage stop room vnum, cost to travel here, continent name (matched below),
 zone description, mapp coord x, map coord y */
+#if defined(CAMPAIGN_DL)
+const char *carriage_locales[][CARRIAGE_LOCALES_FIELDS] = {
+  {"palanthas gate",                 "15204", "25",   "Solamnia", "good alignment starting city", "1075", "2525" },
+  {"vingaard keep",                  "15206", "25",   "Solamnia", "levels 13-20", "1320", "2925"},
+  {"thelgaard keep",                 "15207", "25",  "Solamnia", "levels 21-24", "1765", "2555"},
+  {"caergoth gate",                  "15210", "25",  "Solamnia", "levels 8-16, boat to Abanasinia", "2210", "2260"},
+  {"solace",                         "15200", "25",   "Abanasinia", "city for neutral or unfactioned people of any alignment", "2690", "2535"},
+  {"que-shu village",                "15202", "25",   "Abanasinia", "level 18 npcs", "2730", "2650"},
+  {"xak tsaroth",                    "15203", "25",   "Abanasinia", "level 30 npcs, boat to sanction (taman busuk)", "2705", "2670"},
+  {"fireside tavern",                "15211", "25",   "Abanasinia",  "level 12 npcs", "2615", "2650"},
+  {"new sea docks",                  "15212", "25",  "Abanasinia",  "boat to solamnia", "2430", "2660"},
+  {"qualinost",                      "15213", "25",  "Abanasinia", "level 20 npcs", "2855", "2485"},
+  {"pax tharkas",                    "15214", "25",  "Abanasinia", "halfway between solace and tarsis", "2915", "2520"},
+  {"tarsis",                         "15215", "25",  "Abanasinia", "levels 18-25", "3595", "2630"},
+  {"sanction gate",                  "15205", "25",   "Taman Busuk",  "evil alignment starting city", "2020", "3765"},
+  {"neraka",                         "15216", "25",   "Taman Busuk", "levels 14-25", "1805", "3950"},
+  {"city of morning dew",            "15217", "25",  "Taman Busuk", "level 40 npcs", "3055", "3645"},
+  {"plains of dust",                 "15218", "25",  "Taman Busuk", "near the onyx obelisk epic level zone", "3590", "3200"},
+  {"always the last item",           "0",     "0",    "Nowhere", "nothing", "0", "0"}
+};
+
+
+/* continent name, ship dock room vnum, Cost in gold, faction name,
+     contintent description, map coord x, map coord y */
+const char *sailing_locales[][SAILING_LOCALES_FIELDS] = {
+    {"palanthas dock", "2459", "50", "Any", "Palanthas, Jewel of Solamnia, is the city of the Solamnic Knights & Forces of Whitestone", "1075", "2525"},
+    {"caergoth dock / northern new sea",  "4430", "50", "Any", "Caergoth is a city in Western Solamnia and its greatest port besides Palanthas.", "2210", "2260"},
+    {"abanasinia / southern new sea", "4429", "50", "Any", "Abanasinia is a temperate-climed land of many different peoples, cultures and races.", "2430", "2660"},
+    {"sanction dock", "6500", "50", "Any", "Sanction is the economic center of the Dragonarmies of Takhisis, and the home to many evil races and sects.", "2020", "3765"},
+    {"bethel island", "9201", "50", "Any", "Bethel Island is a small island in the Bay of Branchala north of Palanthas", "975", "2530"},
+    {"eastern abanasinia", "2966", "50", "Any", "A travelers dock commonly used for trade in eastern Abanasinia.", "2830", "2570"},
+    {"undomesticated island", "2501", "50", "Any", "A small island in the Eastern New Sea, near Sanction.", "1075", "2525"},
+
+    {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
+};
+
+#else
 const char *carriage_locales[][CARRIAGE_LOCALES_FIELDS] = {
     {"ashenport", "103000", "10", "Ondius", "central city for low to mid levels and main quest line", "-59", "92"},
     {"mosswood village", "145387", "10", "Ondius", "starting area, levels 1-5", "-51", "99"},
@@ -151,6 +188,8 @@ const char *sailing_locales[][SAILING_LOCALES_FIELDS] = {
 
     {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
 };
+
+#endif
 
 /* zone, destination vnum, title, details */
 const char *walkto_landmarks[][WALKTO_LANDMARKS_FIELDS] = {
@@ -416,7 +455,14 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     snprintf(car, sizeof(car), "%s", carriage_locales[locale][1]);
 #endif
   }
-  
+  else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+  {
+#ifdef CAMPAIGN_FR
+    snprintf(car, sizeof(car), "%s", zone_entrances[locale][0]);
+#else
+    snprintf(car, sizeof(car), "%s", sailing_locales[locale][1]);
+#endif
+  }
 
   if ((to_room = find_target_room(ch, (type == TRAVEL_SAILING) ? strdup(air) : strdup(car))) == NOWHERE)
   {
@@ -455,6 +501,8 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     // overland flight is for the caster only
     if (type == TRAVEL_OVERLAND_FLIGHT && ch != tch)
       continue;
+    if (type == TRAVEL_OVERLAND_FLIGHT_SAIL && ch != tch)
+      continue;
 
     if (type == TRAVEL_CARRIAGE)
     {
@@ -477,9 +525,19 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
       send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", carriage_locales[locale][0]);
 #endif
     }
+    else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+    {
+      act("$n leaps into the air and flies off into the distance.", FALSE, tch, 0, 0, TO_ROOM);
+#ifdef CAMPAIGN_FR
+      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", sailing_locales[locale][0]);
+#else
+      send_to_char(tch, "You leap into the air and fly off towards %s.\r\n\r\n", carriage_locales[locale][0]);
+#endif
+    }
 
     char_from_room(tch);
     char_to_room(tch, taxi);
+    char_pets_to_char_loc(tch);
     tch->player_specials->destination = to_room;
     // need to take care of this part still for overland flight spell
     tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here, type);
@@ -504,6 +562,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
 
   char_from_room(ch);
   char_to_room(ch, taxi);
+  char_pets_to_char_loc(tch);
   ch->player_specials->destination = to_room;
   ch->player_specials->travel_timer = get_travel_time(ch, 10, locale, here, type);
   ch->player_specials->travel_type = type;
@@ -539,9 +598,14 @@ void travel_tickdown(void)
 
     if (ch->player_specials->destination == 0 || ch->player_specials->destination == NOWHERE)
     {
+#if defined(CAMPAIGN_DL)
+      to_room = real_room(16500);
+#else
       to_room = real_room(14100);
+#endif
       char_from_room(ch);
       char_to_room(ch, to_room);
+      char_pets_to_char_loc(ch);
       look_at_room(ch, 0);
       entry_memory_mtrigger(ch);
       greet_mtrigger(ch, -1);
@@ -570,6 +634,14 @@ void travel_tickdown(void)
           snprintf(car, sizeof(car), "%s", carriage_locales[ch->player_specials->travel_locale][1]);
 #endif
         }
+        else if (ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+        {
+#ifdef CAMPAIGN_FR
+          snprintf(car, sizeof(car), "%s", zone_entrances[ch->player_specials->travel_locale][2]);
+#else
+          snprintf(car, sizeof(car), "%s", sailing_locales[ch->player_specials->travel_locale][1]);
+#endif
+        }
 
         if (ch->player_specials->travel_type == TRAVEL_SAILING)
         {
@@ -579,6 +651,7 @@ void travel_tickdown(void)
             {
               char_from_room(ch);
               char_to_room(ch, to_room);
+              char_pets_to_char_loc(ch);
               look_at_room(ch, 0);
               entry_memory_mtrigger(ch);
               greet_mtrigger(ch, -1);
@@ -593,6 +666,7 @@ void travel_tickdown(void)
             {
               char_from_room(ch);
               char_to_room(ch, to_room);
+              char_pets_to_char_loc(ch);
               look_at_room(ch, 0);
               entry_memory_mtrigger(ch);
               greet_mtrigger(ch, -1);
@@ -610,6 +684,7 @@ void travel_tickdown(void)
         {
           char_from_room(ch);
           char_to_room(ch, to_room);
+          char_pets_to_char_loc(ch);
           look_at_room(ch, 0);
           entry_memory_mtrigger(ch);
           greet_mtrigger(ch, -1);
@@ -626,12 +701,11 @@ void travel_tickdown(void)
         }
 
         char_to_room(ch, to_room);
+        char_pets_to_char_loc(ch);
         look_at_room(ch, 0);
         entry_memory_mtrigger(ch);
         greet_mtrigger(ch, -1);
         greet_memory_mtrigger(ch);
-
-        send_to_char(ch, "Target Room: %s\r\n", sailing_locales[ch->player_specials->travel_locale][1]);
 
         if (ch->player_specials->travel_type == TRAVEL_CARRIAGE)
         {
@@ -687,8 +761,19 @@ int get_distance(struct char_data *ch, int locale, int here, int type)
     xf = ch->coords[0];
     xt = atoi(carriage_locales[locale][5]);
     yf = ch->coords[1];
-    yt = atoi(carriage_locales[locale][6]);    
+    yt = atoi(carriage_locales[locale][6]);
   }
+  else if (type == TRAVEL_OVERLAND_FLIGHT_SAIL)
+  {
+    xf = ch->coords[0];
+    xt = atoi(sailing_locales[locale][5]);
+    yf = ch->coords[1];
+    yt = atoi(sailing_locales[locale][6]);
+  }
+#endif
+
+#if defined(CAMPAIGN_DL)
+  xf = yf = 0;
 #endif
 
   int dx, dy;
@@ -719,7 +804,10 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
   distance /= speed;
 
   distance /= 2;
-  
+
+#if defined(CAMPAIGN_DL)
+  distance /= 3;
+#endif
 
   return distance;
 }

@@ -2030,6 +2030,12 @@ SPECIAL(crafting_kit)
     return 1;
   }
 
+  if (kit->carried_by != ch)
+  {
+    send_to_char(ch, "You must be holding your kit to perform any crafting tasks.\r\n");
+    return 1;
+  }
+
   if (CMD_IS("resize"))
     return resize(argument, kit, ch);
   else if (CMD_IS("restring"))

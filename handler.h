@@ -83,6 +83,7 @@ void char_to_coords(struct char_data *ch, int x, int y, int wilderness);
 void extract_char(struct char_data *ch);
 void extract_char_final(struct char_data *ch);
 void extract_pending_chars(void);
+void char_from_buff_targets(struct char_data *ch);
 
 /* find if character can see */
 struct char_data *get_player_vis(struct char_data *ch, char *name, int *number, int inroom);

@@ -1076,9 +1076,9 @@ ASPELL(spell_siphon_might)
 
   if (!mag_savingthrow(ch, enemy, SAVING_FORT, 0, SPELL_SIPHON_MIGHT, CASTER_LEVEL(ch), NECROMANCY))
   {
-    act("$N has resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
-    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
-    act("You have resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_NOTVICT);
+    act("$N has partially resisted your siphoning.", FALSE, ch, 0, enemy, TO_CHAR);
+    act("You have partially resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_VICT);
+    act("You have partially resisted $n's siphoning.", FALSE, ch, 0, enemy, TO_NOTVICT);
     strength /= 2;
   }
 
@@ -1607,7 +1607,7 @@ ASPELL(spell_overland_flight)
     return;
   }
 
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR)
 
   if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_WORLDMAP))
   {
@@ -1630,6 +1630,46 @@ ASPELL(spell_overland_flight)
   send_to_char(ch, "You begin flying to %s.\r\n", zone_entrances[i][0]);
 
   enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
+#elif defined(CAMPAIGN_DL)
+
+  if (!OUTSIDE(ch))
+  {
+    send_to_char(ch, "That spell only functions outside.\r\n");
+    return;
+  }
+
+  while (atoi(carriage_locales[i][1]) != 0)
+  {
+    if (is_abbrev(zone, carriage_locales[i][0]))
+      break;
+    i++;
+  }
+
+  if (atoi(carriage_locales[i][1]) == 0)
+  {
+    i = 0;
+    while (atoi(sailing_locales[i][1]) != 0)
+    {
+      if (is_abbrev(zone, sailing_locales[i][0]))
+        break;
+      i++;
+    }
+    if (atoi(sailing_locales[i][1]) == 0)
+    {
+      send_to_char(ch, "Please specify a valid area you'd like to fly to.  Type flightlist for a list.\r\n");
+      return;
+    }
+    else
+    {
+      send_to_char(ch, "You begin flying to %s.\r\n", sailing_locales[i][0]);
+      enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT_SAIL, GET_ROOM_VNUM(IN_ROOM(ch)));
+    }
+  }
+  else
+  {
+    send_to_char(ch, "You begin flying to %s.\r\n", carriage_locales[i][0]);
+    enter_transport(ch, i, TRAVEL_OVERLAND_FLIGHT, GET_ROOM_VNUM(IN_ROOM(ch)));
+  }
 
 #else
 
@@ -2366,6 +2406,93 @@ ASPELL(spell_mirabar_recall)
   act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
   char_from_room(victim);
   char_to_room(victim, real_room(4923));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+
+ASPELL(spell_palanthas_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(2200));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+
+ASPELL(spell_sanction_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(6530));
+  act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
+  look_at_room(victim, 0);
+  entry_memory_mtrigger(victim);
+  greet_mtrigger(victim, -1);
+  greet_memory_mtrigger(victim);
+}
+
+
+ASPELL(spell_solace_recall)
+{
+  if (victim == NULL || IS_NPC(victim))
+    return;
+
+  if (ROOM_FLAGGED(IN_ROOM(victim), ROOM_NOTELEPORT) ||
+      ROOM_FLAGGED(IN_ROOM(victim), ROOM_NORECALL))
+  {
+    send_to_char(ch, "Something in the area is hampering your magic!\r\n");
+    return;
+  }
+
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(victim)), ZONE_NOASTRAL))
+  {
+    send_to_char(ch, "A bright flash prevents your spell from working!");
+    return;
+  }
+
+  act("$n disappears.", TRUE, victim, 0, 0, TO_ROOM);
+  char_from_room(victim);
+  char_to_room(victim, real_room(1317));
   act("$n appears in the middle of the room.", TRUE, victim, 0, 0, TO_ROOM);
   look_at_room(victim, 0);
   entry_memory_mtrigger(victim);

@@ -48,13 +48,14 @@
 /* Format: vnum, read lvl, write lvl, remove lvl, filename, 0 at end. Be sure
  * to also change NUM_OF_BOARDS in board.h*/
 struct board_info_type board_info[NUM_OF_BOARDS] = {
-    {3099, 0, 0, LVL_STAFF, LIB_ETC "board.mortal", 0},
-    {3098, LVL_IMMORT, LVL_IMMORT, LVL_GRSTAFF, LIB_ETC "board.immortal", 0},
-    {3097, LVL_IMMORT, LVL_GRSTAFF, LVL_IMPL, LIB_ETC "board.freeze", 0},
-    {3096, 0, 0, LVL_IMMORT, LIB_ETC "board.social", 0},
-    {1226, 0, 0, LVL_IMPL, LIB_ETC "board.builder", 0},
-    {1227, 0, 0, LVL_IMPL, LIB_ETC "board.staff", 0},
-    {1228, 0, 0, LVL_IMPL, LIB_ETC "board.advertising", 0},
+    {1367, 0, 1, LVL_IMPL, LIB_ETC "board.ooc"},
+    {1369, 0, 1, LVL_IMPL, LIB_ETC "board.bug"},
+    {1370, 0, 1, LVL_IMPL, LIB_ETC "board.policy"},
+    {2201, 0, 1, LVL_IMPL, LIB_ETC "board.genera"},
+    {2202, 0, 1, LVL_IMPL, LIB_ETC "board.trade"},
+    {2203, 0, 1, LVL_IMPL, LIB_ETC "board.crime"},
+    {2403, 0, 1, LVL_IMPL, LIB_ETC "board.palanthas.thief"},
+
 };
 
 /* local (file scope) global variables */

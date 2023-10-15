@@ -3327,6 +3327,7 @@ int perform_taunt(struct char_data *ch, struct char_data *vict)
       attempt = MAX(attempt, d20(ch));
     }
     attempt += compute_ability(ch, ABILITY_DIPLOMACY);
+    if (HAS_FEAT(ch, FEAT_KENDER_TAUNT)) attempt += 4;
   }
   else
   {
@@ -3356,7 +3357,11 @@ int perform_taunt(struct char_data *ch, struct char_data *vict)
   if (!FIGHTING(vict))
     hit(vict, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
 
-  if (HAS_FEAT(ch, FEAT_IMPROVED_TAUNTING))
+  if (HAS_FEAT(ch, FEAT_KENDER_TAUNT))
+  {
+    USE_SWIFT_ACTION(ch);
+  }
+  else if (HAS_FEAT(ch, FEAT_IMPROVED_TAUNTING))
   {
     USE_MOVE_ACTION(ch);
   }
@@ -3803,6 +3808,82 @@ ACMD(do_tabaxi_claw_attack)
   USE_SWIFT_ACTION(ch);
   if (!IS_NPC(ch))
     start_daily_use_cooldown(ch, FEAT_TABAXI_CATS_CLAWS);
+}
+
+ACMD(do_minotaur_gore)
+{
+  if (!HAS_FEAT(ch, FEAT_MINOTAUR_GORE))
+  {
+    send_to_char(ch, "You must be a minotaur to gore.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    return;
+  }
+
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You can only gore when in combat.\r\n");
+    return;
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  act("You rush forward to gore $N", true, ch, 0, vict, TO_CHAR);
+  act("$n rushes forward to gore $N.", TRUE, ch, 0, vict, TO_VICT);
+  act("$n rushes forward to gore You.", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_GORE, 0) > 0)
+  {
+    damage(ch, vict, dice(1, 6) + GET_STR_BONUS(ch), SKILL_GORE, DAM_PUNCTURE, FALSE);
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_PUNCTURE);
+  }
+  else
+    damage(ch, vict, 0, SKILL_GORE, DAM_PUNCTURE, FALSE);
+
+  USE_SWIFT_ACTION(ch);
+}
+
+ACMD(do_bite_attack)
+{
+  if (!has_bite_attack(ch))
+  {
+    send_to_char(ch, "You do not have a bite attack.\r\n");
+    return;
+  }
+
+  if (!is_action_available(ch, atSWIFT, TRUE))
+  {
+    return;
+  }
+
+  if (!FIGHTING(ch))
+  {
+    send_to_char(ch, "You can only bite when in combat.\r\n");
+    return;
+  }
+
+  struct char_data *vict = FIGHTING(ch);
+
+  act("You snap at $N with your vicious jaws.", true, ch, 0, vict, TO_CHAR);
+  act("$n snaps at $N with $s vicious jaws.", TRUE, ch, 0, vict, TO_VICT);
+  act("$n snaps at You with $s vicious jaws.", TRUE, ch, 0, vict, TO_NOTVICT);
+
+  if (combat_maneuver_check(ch, vict, COMBAT_MANEUVER_TYPE_BITE, 0) > 0)
+  {
+    damage(ch, vict, dice(1, 4) + GET_STR_BONUS(ch), SKILL_BITE, DAM_PUNCTURE, FALSE);
+
+    /* fire-shield, etc check */
+    damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_PUNCTURE);
+  }
+  else
+    damage(ch, vict, 0, SKILL_BITE, DAM_PUNCTURE, FALSE);
+
+  USE_SWIFT_ACTION(ch);
 }
 
 /* do_frightful - Perform an AoE attack that terrifies the victims, causign them to flee.

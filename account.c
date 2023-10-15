@@ -68,7 +68,7 @@ int change_account_xp(struct char_data *ch, int change_val)
 
 int has_unlocked_race(struct char_data *ch, int race)
 {
-#ifdef CAMPAIGN_FR
+#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
   if (!ch || !ch->desc || !ch->desc->account)
 #else
   if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
@@ -197,6 +197,8 @@ ACMD(do_accexp)
       send_to_char(ch, "Please choose from the following races:\r\n");
 #ifdef CAMPAIGN_FR
       for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+#elif defined(CAMPAIGN_DL)
+  for (i = DL_RACE_START; i < DL_RACE_END; i++)
 #else
       for (i = 0; i < NUM_RACES; i++)
 #endif
@@ -211,6 +213,8 @@ ACMD(do_accexp)
     }
 #ifdef CAMPAIGN_FR
     for (i = 0; i < NUM_EXTENDED_PC_RACES; i++)
+#elif defined(CAMPAIGN_DL)
+  for (i = DL_RACE_START; i < DL_RACE_END; i++)
 #else
     for (i = 0; i < NUM_RACES; i++)
 #endif
@@ -223,6 +227,8 @@ ACMD(do_accexp)
     }
 #ifdef CAMPAIGN_FR
     if (i >= NUM_EXTENDED_PC_RACES)
+#elif defined(CAMPAING_DL)
+    if (i >= DL_RACE_END)
 #else
     if (i >= NUM_RACES)
 #endif

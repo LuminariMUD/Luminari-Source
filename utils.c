@@ -981,6 +981,8 @@ bool not_npc_limit(struct char_data *pet)
     counts = TRUE;
   if (MOB_FLAGGED(pet, MOB_C_MOUNT))
     counts = TRUE;
+  if (MOB_FLAGGED(pet, MOB_EIDOLON))
+    counts = TRUE;
 
   /* vnums */
   switch (GET_MOB_VNUM(pet))
@@ -1088,11 +1090,13 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
     }   /* end charmee check */
   }     /* end for */
 
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   /* charisma bonus, spare represents our extra slots */
   if (GET_CHA_BONUS(ch) <= 0)
     spare = 0;
   else
     spare = GET_CHA_BONUS(ch);
+#endif
 
   spare++; /* base 1 */
 
@@ -1126,6 +1130,48 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
   } /* end switch */
 
   return total_count;
+}
+
+bool char_pets_to_char_loc(struct char_data *ch)
+{
+
+  bool found = false;
+
+  struct char_data *tch = NULL;
+
+  for (tch = character_list; tch; tch = tch->next)
+  {
+    if (tch == ch)
+      continue;
+    if (!IS_NPC(tch))
+      continue;
+    if (!AFF_FLAGGED(tch, AFF_CHARM))
+      continue;
+    if (tch->master != ch)
+      continue;
+    if (IN_ROOM(tch) == NOWHERE)
+      continue;
+    if (IN_ROOM(tch) == IN_ROOM(ch))
+      continue;
+
+    /* leave the current room into the ether */
+    act("$n disappears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
+    char_from_room(tch);
+
+    /* set coords if necessary */
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(tch) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(tch) = world[IN_ROOM(ch)].coords[1];
+    }
+
+    /* move into the new location! */
+    char_to_room(tch, IN_ROOM(ch));
+    act("$n appears in a flash of light.", FALSE, tch, 0, 0, TO_ROOM);
+
+    found = true;
+  }
+  return found;
 }
 
 /* this will calculate the arcana-golem race bonus caster level */
@@ -3514,6 +3560,17 @@ void char_from_furniture(struct char_data *ch)
   return;
 }
 
+void char_from_buff_targets(struct char_data *ch)
+{
+  struct char_data *tch;
+
+  for (tch = character_list; tch; tch = tch->next)
+  {
+    if (!IS_NPC(tch) && GET_BUFF_TARGET(tch) == ch)
+      GET_BUFF_TARGET(tch) = NULL;
+  }
+}
+
 /* column_list
    The list is output in a fixed format, and only the number of columns can be adjusted
    This function will output the list to the player
@@ -4941,6 +4998,9 @@ sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyt
 sbyte is_immune_fear(struct char_data *ch, struct char_data *victim, sbyte display)
 {
 
+  if (HAS_FEAT(ch, FEAT_KENDER_FEARLESSNESS))
+    return true;
+
   if (affected_by_aura_of_cowardice(victim))
   {
     return FALSE;
@@ -5119,6 +5179,58 @@ bool has_aura_of_courage(struct char_data *ch)
   return has_aura;
 }
 
+bool has_bite_attack(struct char_data *ch)
+{
+  
+  if (HAS_FEAT(ch, FEAT_DRACONIAN_BITE))
+    return true;
+
+  return false;
+}
+
+void perform_draconian_death_throes(struct char_data *ch)
+{
+  if (!IS_DRACONIAN(ch))
+    return;
+
+  switch (GET_RACE(ch))
+  {
+    case DL_RACE_BAAZ_DRACONIAN:
+      call_magic(ch, 0, 0, ABILITY_BAAZ_DRACONIAN_DEATH_THROES, 0, GET_LEVEL(ch), CAST_INNATE);
+      return;
+  }
+}
+
+bool is_grouped_with_dragon(struct char_data *ch)
+{
+  if (!ch)
+    return false;
+
+  struct char_data *tch = NULL;
+
+  bool is_dragon = false;
+
+  if (GROUP(ch) && GROUP(ch)->members && GROUP(ch)->members->iSize)
+  {
+    struct iterator_data Iterator;
+
+    tch = (struct char_data *)merge_iterator(&Iterator, GROUP(ch)->members);
+    for (; tch; tch = next_in_list(&Iterator))
+    {
+      if (IN_ROOM(tch) != IN_ROOM(ch))
+        continue;
+      if (IS_DRAGON(tch) || IS_DRACONIAN(tch))
+      {
+        is_dragon = TRUE;
+        break;
+      }
+    }
+    remove_iterator(&Iterator);
+  }
+
+  return is_dragon;
+}
+
 bool has_aura_of_good(struct char_data *ch)
 {
   if (!ch)
@@ -5201,7 +5313,7 @@ bool can_speak_language(struct char_data *ch, int language)
   if (language == race_list[GET_REAL_RACE(ch)].racial_language) return true;
   if (ch->player_specials->saved.languages_known[language]) return true;
   if (language == LANG_DRUIDIC && CLASS_LEVEL(ch, CLASS_DRUID)) return true;
-  if (language == LANG_THEIVES_CANT && CLASS_LEVEL(ch, CLASS_ROGUE)) return true;
+  if (language == LANG_THIEVES_CANT && CLASS_LEVEL(ch, CLASS_ROGUE)) return true;
   if (language == get_region_language(GET_REGION(ch))) return true;
 
   return false;
@@ -6075,6 +6187,8 @@ bool can_disease(struct char_data *ch)
   if (IS_UNDEAD(ch))
     return false;
   if (HAS_EVOLUTION(ch, EVOLUTION_CELESTIAL_APPEARANCE) && get_evolution_appearance_save_bonus(ch) == 100)
+    return false;
+  if (HAS_FEAT(ch, FEAT_BAAZ_DISEASE_IMMUNITY))
     return false;
 
   return true;
@@ -7183,6 +7297,7 @@ bool is_caster_class(int class)
   case CLASS_INQUISITOR:
   case CLASS_BLACKGUARD:
   case CLASS_SORCERER:
+  case CLASS_SUMMONER:
     return true;
   }
   return false;
@@ -7200,6 +7315,20 @@ int count_spellcasting_classes(struct char_data *ch)
       num++;
 
   return num;
+}
+
+int get_spellcasting_class(struct char_data *ch)
+{
+  if (!ch)
+    return 0;
+
+  int i = 0;
+
+  for (i = 0; i < NUM_CLASSES; i++)
+    if (is_caster_class(i) && CLASS_LEVEL(ch, i) > 0)
+      return i;
+
+  return -1;
 }
 
 // will return true if the sector type offers opportunity for cover
@@ -7856,6 +7985,9 @@ bool do_not_list_spell(int spellnum)
   case SPELL_TRIBOAR_RECALL:
   case SPELL_MIRABAR_RECALL:
   case SPELL_SILVERYMOON_RECALL:
+  case SPELL_PALANTHAS_RECALL:
+  case SPELL_SOLACE_RECALL:
+  case SPELL_SANCTION_RECALL:
     return true;
   }
   return false;
@@ -8439,6 +8571,56 @@ struct obj_data *get_char_bag(struct char_data *ch, int bagnum)
   log("Error in get_char_bag returning NULL");
 
   return NULL;
+}
+
+bool is_spellcasting_class(int class_name)
+{
+  switch (class_name)
+  {
+    case CLASS_WIZARD:
+    case CLASS_CLERIC:
+    case CLASS_DRUID:
+    case CLASS_SORCERER:
+    case CLASS_PALADIN:
+    case CLASS_RANGER:
+    case CLASS_BARD:
+    case CLASS_ALCHEMIST:
+    case CLASS_BLACKGUARD:
+    case CLASS_INQUISITOR:
+    case CLASS_SUMMONER:
+      return true;
+  }
+  return false;
+}
+
+int countlines(char *filename)
+{
+  // count the number of lines in the file called filename
+  FILE *fp = fopen(filename, "r");
+  int ch = 0;
+  int lines = 0;
+
+  if (fp == NULL)
+      ;
+  return 0;
+
+  lines++;
+  while ((ch = fgetc(fp)) != EOF)
+  {
+      if (ch == '\n')
+        lines++;
+  }
+  fclose(fp);
+  return lines;
+}
+
+bool is_crafting_kit(struct obj_data *kit)
+{
+  if (!kit) return false;
+  if (GET_OBJ_TYPE(kit) != ITEM_CONTAINER) return false;
+  obj_rnum rnum = GET_OBJ_RNUM(kit);
+  if (obj_index[rnum].func != crafting_kit) return false;
+  return true;
 }
 
 /* EoF */

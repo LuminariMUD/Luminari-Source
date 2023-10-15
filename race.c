@@ -478,6 +478,664 @@ void assign_races(void)
   /* PC */
   /******/
 
+#if defined(CAMPAIGN_DL)
+
+/****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_HUMAN, "human", "Human", "\tRHuman\tn", "Humn", "\tRHumn\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_HUMAN,
+                   /*descrip*/
+                   "Humans were among the first races created by "
+                  "the gods. They represent the Neutral portion of "
+                  "the triangle, and thus they were gifted with the "
+                  "freedom to choose their own ethical and moral "
+                  "paths. Due to their short lifespans, humans are "
+                  "viewed by longer-lived races as ambitious and "
+                  "impatient, restless and dissatisfied with their lot "
+                  "in life. Humans live throughout Ansalon, with "
+                  "cultures so diverse that the differences between "
+                  "individual humans are as great as differences "
+                  "between elves and dwarves. A race of extremes, "
+                  "humankind keeps the great pendulum of history "
+                  "constantly swaying between good and evil, law "
+                  "and chaos. "
+                  "Although each human culture differs from "
+                  "every other, a basic distinction can be made "
+                  "between so-called \"civilized\" human societies and "
+                  "the primitive, nomadic tribes. Both cultures "
+                  "believe their way of life to be superior to the "
+                  "other. City dwellers think of the nomads as ignorant savages, while the tribesfolk look upon city "
+                  "folk as soft and misguided ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Human.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Human.");
+  set_race_genders(DL_RACE_HUMAN, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_HUMAN, 0, 0, 0, 0, 0, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_HUMAN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_HUMAN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_HUMAN, FEAT_QUICK_TO_MASTER, 1, N);
+  feat_race_assignment(DL_RACE_HUMAN, FEAT_SKILLED, 1, N);
+  race_list[DL_RACE_HUMAN].racial_language = LANG_COMMON;
+
+
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_SILVANESTI_ELF, "silvanesti elf", "Silvanesti Elf", "\tGSilvanesti Elf\tn", "SvEl", "\tGSvEl\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_SILVANESTI_ELF,
+                   // description
+                   "Cool, aloof, and seemingly untouchable, the Silvanesti"
+                    "elves represent all that is best and worst"
+                    "in the elven people. Their haunting beauty is"
+                    "marred by their cold and aloof natures. They"
+                    "consider themselves better than all other people"
+                    "on Ansalon, including their own kin, the Qualinesti"
+                    "and Kagonesti. Being proud and arrogant, the Silvanesti"
+                    "have little use for the members of any other"
+                    "race, including other elves. Silvanesti are extremely"
+                    "prejudiced against the cultures of “inferior”"
+                    "people, and are intolerant of other customs"
+                    "and beliefs. Silvanesti dislike change. Their society"
+                    "has endured for more than 3,000 years, and"
+                    "has changed very little in that time. When change"
+                    "does occur, it is usually forced onto them. Slow to"
+                    "trust and quick to blame, very few Silvanesti form"
+                    "lasting friendships with non-Silvanesti.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Silvanesti Elf",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Silvanesti Elf");
+  set_race_genders(DL_RACE_SILVANESTI_ELF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_SILVANESTI_ELF, 0, 0, 1, 0, 2, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_SILVANESTI_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_SILVANESTI_ELF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_WEAPON_PROFICIENCY_ELF, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_SLEEP_ENCHANTMENT_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_KEEN_SENSES, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_ELF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_HIGH_ELF_CANTRIP, 1, N);
+  feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_HIGH_ELF_LINGUIST, 1, N);
+  race_list[DL_RACE_SILVANESTI_ELF].racial_language = LANG_ELVISH;
+
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_KAGONESTI_ELF, "kagonesti elf", "Kagonesti Elf", "\tBKagonesti Elf\tn", "KgEl", "\tBKgEl\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_KAGONESTI_ELF,
+                   // description
+                   "At home in the forests, the Kagonesti, or wild "
+                    "elves, believe every creature and object, from "
+                    "insects and birds to rivers and clouds, possesses a "
+                    "spirit. They honor these spirits and know that, in "
+                    "return, the spirits honor them. The Kagonesti believe that a happy "
+                    "life can only truly be achieved by harmoniously "
+                    "existing with nature. Passionate and proud, they "
+                    "want only to be left to themselves. Due to the "
+                    "expansion of human nations and mistreatment by "
+                    "their own elven cousins, the Kagonesti have been "
+                    "dragged from their forest homes and forced to live "
+                    "in a world they do not like or understand. Unlike "
+                    "their more placid kin, Kagonesti can be hottempered "
+                    "and fierce when driven to extremes. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Kagonesti Elf.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Kagonesti Elf.");
+  set_race_genders(DL_RACE_KAGONESTI_ELF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_KAGONESTI_ELF, 1, 0, 0, 0, 2, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_KAGONESTI_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_KAGONESTI_ELF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WEAPON_PROFICIENCY_ELF, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_SLEEP_ENCHANTMENT_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_KEEN_SENSES, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_ELF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WOOD_ELF_FLEETNESS, 1, N);
+  feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WOOD_ELF_MASK_OF_THE_WILD, 1, N);
+  race_list[DL_RACE_KAGONESTI_ELF].racial_language = LANG_ELVISH;
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_QUALINESTI_ELF, "qualinesti elf", "Qualinesti Elf", "\tYQualinesti Elf\tn", "QlEl", "\tYQlEl\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_QUALINESTI_ELF,
+                   // description
+                   "Of all the elven nations, the Qualinesti elves have "
+                    "the most interaction with the other races of "
+                    "Krynn. Though some Qualinesti prefer to remain "
+                    "in their forest homes, others can be found exploring "
+                    "the continent as merchants, priests, wizards, "
+                    "and travelers. Because of their relatively long "
+                    "life spans, Qualinesti accept the past without "
+                    "regret and look forward to the future. They "
+                    "patiently pursue their goals and have an optimistic "
+                    "view of life. While they grieve for what has "
+                    "been lost to them through the years, the Qualinesti "
+                    "do not allow themselves to dwell on negative "
+                    "emotions, preferring instead to look forward "
+                    "to the next new day, the next new challenge. "
+                    "The Qualinesti elves take pride in their abilities, "
+                    "tending to look with disdain upon the "
+                    "“crude” work by the obviously inferior races. "
+                    "Although Qualinesti are more tolerant and outgoing "
+                    "than the Silvanesti and relate well with "
+                    "other races, the Qualinesti still consider themselves "
+                    "the chosen of the gods. They are opposed "
+                    "to interracial marriages and, although they may "
+                    "offer sanctuary to half-elves, the half-elves are "
+                    "never fully accepted by the Qualinesti. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Moon Elven.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Moon Elven.");
+  set_race_genders(DL_RACE_QUALINESTI_ELF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_QUALINESTI_ELF, 0, 0, 0, 1, 2, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_QUALINESTI_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_QUALINESTI_ELF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_WEAPON_PROFICIENCY_ELF, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_SLEEP_ENCHANTMENT_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_KEEN_SENSES, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_ELF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_MOON_ELF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, 1, N);
+  feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_MOON_ELF_LUNAR_MAGIC, 1, N);
+  race_list[DL_RACE_QUALINESTI_ELF].racial_language = LANG_ELVISH;
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_HALF_ELF, "half elf", "Half Elf", "\tMHalf Elf\tn", "HElf", "\tMHElf\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_HALF_ELF,
+                   // description
+                   "Since the time of Kith-Kanan, when elves first "
+                   "began to interact extensively with human races, "
+                   "elves and humans have fallen in love and married. "
+                   "After the Cataclysm, human bandits and mercenaries "
+                   "raided Qualinesti borders, looting the elven "
+                   "lands, killing elven men and raping elven women. "
+                   "Half-breed children are the result of both unions. "
+                   "Whether born of love or hate, the mixed blood of "
+                   "the half-elves forever brands them as outcasts "
+                   "from both elven and human society. Half-elves inherit the best qualities "
+                   "of both their parents. They have the love of "
+                   "beauty and reverence for nature of the elves and "
+                   "the ambition and drive of humans. Due, perhaps, "
+                   "to the prejudice they face from both societies, "
+                   "half-elves tend to be introverts and loners. "
+                   "Scorned and belittled, some half-elves are insecure "
+                   "and rebellious, lashing out at those who hate "
+                   "them for what they are. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes Half-Elven.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes Half-Elven.");
+  set_race_genders(DL_RACE_HALF_ELF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_HALF_ELF, 0, 0, 0, 0, 0, 2);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_HALF_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_HALF_ELF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_WEAPON_PROFICIENCY_ELF, 1, N);
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_HALF_BLOOD, 1, N);
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_ADAPTABILITY, 1, N);
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_KEEN_SENSES, 1, N);
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
+  feat_race_assignment(DL_RACE_HALF_ELF, FEAT_HALF_ELF_RACIAL_ADJUSTMENT, 1, N);
+  race_list[DL_RACE_HALF_ELF].racial_language = LANG_ELVISH;
+  /* affect assignment */
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_KENDER, "Kender", "Kender", "\tCKender\tn", "Kend", "\tCKend\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_KENDER,
+                   // description
+                   "To the other races, kender are the child-race of Krynn. The diminutive kender"
+                   "have short attention spans, intense curiosity, and a fearlessness that serves"
+                   "them well in battle, but often lands them (and those traveling with them) in"
+                   "danger. Kender live a carefree existence where every new day is a day of"
+                   "wonderful secrets just waiting to be discovered. Their most defining character"
+                   "traits are their insatiable curiosity and their utter fearlessness, which makes"
+                   "for a frightening combination. All dark caves need exploring, all locked doors"
+                   "need opening, and all chests hide something interesting. Young kender around"
+                   "the age of 20 or so are afflicted with \" wanderlust\", an intense desire to"
+                   "depart their homeland and set out on a journey of discovery. Almost all kender"
+                   "encountered outside the kender homelands are on wanderlust. Kender are"
+                   "tantalized by the prospect of the new and exciting, and only the most extreme"
+                   "circumstances force them to place their own selfpreservation above this"
+                   "pursuit. Even the threat of imminent demise does not deter kender, for death is"
+                   "the start of the next truly big adventure. The unquenchable curiosity of kender"
+                   "drives them to investigate everything - including other people’s personal"
+                   "possessions. Kender appropriate absolutely anything that catches their eye."
+                   "Physical boundaries or notions of privacy are both alien concepts to them,"
+                   "while the monetary value of an object means nothing to them. They are as likely"
+                   "to be more captivated by the feather of goat-sucker bird as by a sapphire."
+                   "Kender are never happier than when their hands are in the pockets, pouches, or"
+                   "backpacks of those around them. Kender do not consider such appropriation to be"
+                   "thievery as others understand it (kender are as contemptuous of thieves as the"
+                   "next person). Kender term this \"handling\" or \"borrowing\" because they firmly"
+                   "intend to return what they pilfer to the proper owner. It’s just that with so"
+                   "many exciting and wonderful things going on in their lives, they forget to give"
+                   "things back. Kender are at best bemused and at worst outraged at being accused"
+                   "of theft or pick-pocketing. Kender always give perfectly reasonable"
+                   "explanations for just about every accusation leveled at them. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Kender.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Kender.");
+  set_race_genders(DL_RACE_KENDER, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_KENDER, -2, 0, 0, -2, 2, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_KENDER, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_KENDER,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_KENDER, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_KENDER, FEAT_WEAPON_PROFICIENCY_KENDER, 1, N);
+  feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_SKILL_MOD, 1, N);
+  feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_BORROWING, 1, N);
+  feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_TAUNT, 1, N);
+  feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_FEARLESSNESS, 1, N);
+  race_list[DL_RACE_KENDER].racial_language = LANG_COMMON;
+  /* affect assignment */
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_MOUNTAIN_DWARF, "mountain dwarf", "Mountain Dwarf", "\tJMountain Dwarf\tn", "MtDw", "\tJMtDw\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_MOUNTAIN_DWARF,
+                   // desc
+                   "The dwarves of the mountain kingdoms existed apart from much of Ansalon "
+                  "throughout their history. Since their contact with the outside world often "
+                  "turns out badly, the self-sufficient dwarves are quick to shut their gates and "
+                  "seal off their halls to preserve the way of life that has sustained them since "
+                  "the Age of Dreams. Mountain dwarves come from one of the following clans: Hylar "
+                  "(\"Highest\"): This is the oldest of the dwarf clans, often considered the most "
+                  "noble. Their halls within the mountain kingdoms are the best appointed and "
+                  "always magnificent. Daewar (\"Dearest\"): Another highly respected clan, the "
+                  "Daewar produce many important warriors and leaders. They are known for their "
+                  "excellent fighting prowess and often work in conjunction with leaders of the "
+                  "Hylar clan. Klar: The Klar were a clan of hill dwarves who were trapped inside "
+                  "Thorbardin during the Cataclysm and not allowed to leave the mountain kingdom "
+                  "when the dwarven kingdom was sealed from the inside. As a clan, they are known "
+                  "for wild-looking eyes and wiry beards, though in truth their reputation as "
+                  "madmen is largely undeserved. The mountain dwarves subjugated them as suspected "
+                  "Neidar sympathizers during the Dwarfgate War (another unfairly leveled charge) "
+                  "and since that time they have survived as a servitor clan. They are known as "
+                  "fierce combatants and loyal friends. Though their position of servitude may be "
+                  "unjust, many unflaggingly support their Hylar masters.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Mountain Dwarf.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Mountain Dwarf.");
+  set_race_genders(DL_RACE_MOUNTAIN_DWARF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_MOUNTAIN_DWARF, 1, 2, 0, 0, 0, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_MOUNTAIN_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_MOUNTAIN_DWARF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_POISON_RESIST, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_STABILITY, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_SPELL_HARDINESS, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_DWARF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_SHIELD_DWARF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_SHIELD_DWARF_ARMOR_TRAINING, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_ARMOR_PROFICIENCY_LIGHT, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
+  feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
+  race_list[DL_RACE_MOUNTAIN_DWARF].racial_language = LANG_DWARVEN;
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_HILL_DWARF, "hill dwarf", "Hill Dwarf", "\tLHill Dwarf\tn", "HlDw", "\tLHlDw\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_HILL_DWARF,
+                   // desc
+                   "Hill dwarves have left their underground halls to practice their skills in the "
+                  "greater world. Hill dwarves share the traits of their mountain dwarf cousins, "
+                  "but are a bit more accepting of other races and cultures. All hill dwarves are "
+                  "of the Neidar (\"Nearest\") clan. A longstanding, bitter feud exists between hill "
+                  "dwarves and mountain dwarves, dating back to the Cataclysm. The hill dwarves "
+                  "accuse the mountain dwarves of having shut the doors of Thorbardin on them when "
+                  "the Neidar sought refuge following the Cataclysm. In their defense, the "
+                  "mountain dwarves claim that they had resources enough to feed only their own "
+                  "people and that, if they allowed the hill dwarves into the mountain, they all "
+                  "might have starved.  ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Hill Dwarf.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Hill Dwarf.");
+  set_race_genders(DL_RACE_HILL_DWARF, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_HILL_DWARF, 0, 2, 0, 1, 0, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_HILL_DWARF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_HILL_DWARF,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_POISON_RESIST, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_STABILITY, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_SPELL_HARDINESS, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_DWARF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_GOLD_DWARF_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_GOLD_DWARF_TOUGHNESS, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
+  feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
+  race_list[DL_RACE_HILL_DWARF].racial_language = LANG_DWARVEN;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_MINOTAUR, "minotaur", "Minotaur", "\tyMinotaur\tn", "Mntr", "\tyMntr\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_MINOTAUR,
+                   // desc
+                   "At home both on land and at sea, minotaurs live in an honor-based society where "
+                   "strength determines power in both the gladiatorial arenas and in daily life. "
+                   "Minotaurs believe in the superiority of their race above all "
+                   "others. They believe their destiny is to rule the world. From youth, minotaurs "
+                   "are trained in combat and warfare and instilled with a strict code of honor. "
+                   "The militaristic society of minotaurs gives them a rigid view of the world, "
+                   "clearly delineated in black and white. Minotaurs value strength, cunning, and "
+                   "intelligence. The ultimate test of all three virtues is conducted in the Great "
+                   "Circus, an annual contest held in a gladiatorial arena. ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Minotaur.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Minotaur.");
+  set_race_abilities(DL_RACE_MINOTAUR, 4, 0, -2, 0, -2, 0);         /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_MINOTAUR, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_MINOTAUR,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_MINOTAUR, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_TOUGH_HIDE, 1, N);
+  feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_INTIMIDATING, 1, N);
+  feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_SEAFARING, 1, N);
+  feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_GORE, 1, N);
+  race_list[DL_RACE_MINOTAUR].racial_language = LANG_MINOTAUR;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_GNOME, "gnome", "Gnome", "\tDGnome\tn", "Gnom", "\tDGnom\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_SMALL, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_GNOME,
+                   // Description
+                   "Gnomes are the tinkers and inventors of Krynn. Fast thinking and fast speaking, "
+                    "their minds are forever fixed on cogs, gears, wheels, bells, whistles, and "
+                    "steam-powered engines. Despite the dangers inherent in their work, gnomes "
+                    "(sometimes called \"tinker\" gnomes) adore technology and continue throughout the "
+                    "ages to pursue and perfect their inventions. Personality: Inventive, skillful, "
+                    "and enthusiastic, gnomes are devoted to making life easier through technology, "
+                    "though their complex inventions usually have the exact opposite effect. Science "
+                    "is a gnome's life, so much so that every gnome chooses a special Life Quest "
+                    "upon reaching adulthood. More important than family ties, the Life Quest "
+                    "defines the gnome. The Life Quest is always related to furthering knowledge or "
+                    "developing technology. The goal is specific and usually out of reach. It is not "
+                    "uncommon for Life Quests to be handed down from one generation to the next "
+                    "multiple times before it is achieved. Successful completion of a Life Quest "
+                    "ensures the gnome, and any forebear working on the same quest, a place in the "
+                    "afterlife with Reorx. Only one gnome was ever able to complete three separate "
+                    "Life Quests in his own lifetime, and he was deemed a mad gnome and cast out of "
+                    "Mount Nevermind for making everyone else look bad. The gnome dedication to "
+                    "knowledge and invention leaves them sadly lacking in the social graces, at "
+                    "least when it concerns other races. Gnomes are always eager to discuss projects "
+                    "and compare notes, and in their hurry to explain what they mean, they often "
+                    "forget to be polite. Gnomes do care for other people's feelings, but they're "
+                    "typically focused on another matter entirely by the time it occurs to them that "
+                    "they were rude. The worse thing in the world (at least in the minds of other "
+                    "races) is a gnome apology. Believing that action speaks louder than words, a "
+                    "gnome making an apology will build an invention specifically for the injured "
+                    "party. All too often, this invention ends  ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Gnome.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Gnome.");
+  set_race_genders(DL_RACE_GNOME, N, Y, Y);                      /* n m f */
+  set_race_abilities(DL_RACE_GNOME, 0, 2, 2, -2, 0, 0);           /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_GNOME, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_GNOME,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_GNOME, FEAT_INFRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_COMBAT_TRAINING_VS_GIANTS, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_RESISTANCE_TO_ILLUSIONS, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_ILLUSION_AFFINITY, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_TINKER_FOCUS, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_GNOME_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
+  feat_race_assignment(DL_RACE_GNOME, FEAT_TINKER, 1, N);
+  race_list[DL_RACE_GNOME].racial_language = LANG_GNOME;
+
+  /****************************************************************************/
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(DL_RACE_BAAZ_DRACONIAN, "baaz draconian", "Baaz Draconian", "\tWBaaz Draconian\tn", "Baaz", "\tWBaaz\tn",
+           /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
+  set_race_details(DL_RACE_BAAZ_DRACONIAN,
+                   // desc
+                   "Baaz Draconians are the smallest of their brethren, made from Brass Dragon "
+                  "eggs, and are commonly used as ground troops. They are usually of chaotic "
+                  "alignment and as a result are interested in getting what is best for them "
+                  "individually. Baaz wear disguises often, concealing their wings and scales "
+                  "underneath large hoods and masks when traveling through non-draconian lands. " 
+                  "When a Baaz is killed, its body turns to stone and releases a puff of gas "
+                  "that paralyzes all nearby enemies.",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Baaz Draconian.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Baaz Draconian.");
+  set_race_abilities(DL_RACE_BAAZ_DRACONIAN, 2, 1, 0, 0, 0, 0);         /* str con int wis dex cha */
+  set_race_alignments(DL_RACE_BAAZ_DRACONIAN, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(DL_RACE_BAAZ_DRACONIAN,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, N, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, N, N, N, N, N, N, N, N, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DEATH_THROES, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_CONTROLLED_FALL, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DRACONIC_DEVOTION, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_GALLOP, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DISEASE_IMMUNITY, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DRACONIAN_SCALES, 1, N);
+  feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_BITE, 1, N);
+  race_list[DL_RACE_BAAZ_DRACONIAN].racial_language = LANG_DRACONIC;
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_LICH, "lich", "Lich", "\tLLich\tn", "Lich", "\tLLich\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 60000, IS_EPIC_R);
+  set_race_details(RACE_LICH,
+                   /*descrip*/ "Few creatures are more feared than the lich. The pinnacle of necromantic art, who "
+                               "has chosen to shed his life as a method to cheat death by becoming undead. While many who reach "
+                               "such heights of power stop at nothing to achieve immortality, the idea of becoming a lich is "
+                               "abhorrent to most creatures. The process involves the extraction of ones life-force and its "
+                               "imprisonment in a specially prepared phylactery.  One gives up life, but in trapping "
+                               "life he also traps his death, and as long as his phylactery remains intact he can continue on in "
+                               "his research and work without fear of the passage of time."
+                               "\r\n\r\n"
+                               "The quest to become a lich is a lengthy one. While construction of the magical phylactery to "
+                               "contain ones soul is a critical component, a prospective lich must also learn the "
+                               "secrets of transferring his soul into the receptacle and of preparing his body for the "
+                               "transformation into undeath, neither of which are simple tasks. Further complicating the ritual "
+                               "is the fact that no two bodies or souls are exactly alike, a ritual that works for one spellcaster "
+                               "might simply kill another or drive him insane. "
+                               "\r\n\r\n"
+                               "Please note that a Lich has all the advantages/disadvantages of being Undead.\r\n  ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Lich.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Lich.");
+  set_race_genders(RACE_LICH, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_LICH, 0, 2, 6, 2, 2, 6);           /* str con int wis dex cha */
+  set_race_alignments(RACE_LICH, N, N, N, N, N, N, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_LICH,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, N, N, N, N, N, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, Y, N, Y, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_LICH, FEAT_UNARMED_STRIKE, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_IMPROVED_UNARMED_STRIKE, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ARMOR_SKIN, 1, Y);
+  feat_race_assignment(RACE_LICH, FEAT_ULTRAVISION, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_HARDY, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_RACIAL_ADJUSTMENT, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_SPELL_RESIST, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_DAM_RESIST, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_TOUCH, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_REJUV, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_LICH_FEAR, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_ELECTRIC_IMMUNITY, 1, N);
+  feat_race_assignment(RACE_LICH, FEAT_COLD_IMMUNITY, 1, N);
+  /* affect assignment */
+  /*                  race-num  affect            lvl */
+  /****************************************************************************/
+
+  /****************************************************************************/
+  /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
+  add_race(RACE_VAMPIRE, "vampire", "Vampire", "\tLVampire\tn", "Vamp", "\tLVamp\tn",
+           /* race-family,     size-class,  Is PC?, Lvl-Adj, Unlock, Epic? */
+           RACE_TYPE_UNDEAD, SIZE_MEDIUM, TRUE, 10, 60000, IS_EPIC_R);
+  set_race_details(RACE_VAMPIRE,
+                   /*descrip*/ "Vampires are one of the most fearsome of the Undead creatures in Krynn. With unnatural strength, "
+                               " agility and cunning, they can easily overpower most other creatures with their physical "
+                               "prowess alone. But the vampire is much more deadly than just his claws and wits. Vampires have "
+                               "a number of supernatural abilities that inspire dread in his foes.  Gaining sustenance from "
+                               "the blood of the living, vampires can heal quickly from almost any wound. For the victims "
+                               "of their feeding, they may raise again as vampiric spawn... an undead creature under the vampire's "
+                               "control with many vampiric abilities of their own. They may also call animal minions to aid them "
+                               "in battle, from wolves, to swarms of rats and vampire bats as well. They can dominate intelligent "
+                               "foes with a simple gaze, and they may drain the energy of living beings with an unarmed attack. "
+                               "They can also assume the form of a wolf or a giant bat, as well as assume a gasoeus form at will, "
+                               "and have the ability to scale sheer surfaces as easily as a spider may."
+                               "\r\n\r\n"
+                               "But a vampire is not without its weaknesses. Exposed to sunlight, they will quickly be reduced "
+                               "to ash, and moving water is worse, able to kill a vampire submerged in running water in less than a minute."
+                               "\r\n\r\n"
+                               "Being a vampire is a state most would consider a curse, however there are legends of those who "
+                               "sought out the 'gift' of vampirism, with some few who actually obtained it. To this day however, "
+                               "such secrets have been lost to the ages. However these are the days of great heroes and villains, "
+                               "and such days often bring to light secrets of the past. Perhaps one day soon the legends may become "
+                               "reality."
+                               "\r\n\r\n"
+                               "Please note that a Vampire has all the advantages/disadvantages of being Undead.\r\n  ",
+                   /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Vampire.",
+                   /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Vampire.");
+  set_race_genders(RACE_VAMPIRE, N, Y, Y);                      /* n m f */
+  set_race_abilities(RACE_VAMPIRE, 6, 4, 2, 2, 4, 4);           /* str con int wis dex cha */
+  set_race_alignments(RACE_VAMPIRE, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
+  set_race_attack_types(RACE_VAMPIRE,
+                        /* hit sting whip slash bite bludgeon crush pound claw maul thrash pierce */
+                        Y, N, N, N, Y, N, N, N, Y, N, Y, N,
+                        /* blast punch stab slice thrust hack rake peck smash trample charge gore */
+                        N, Y, N, N, N, N, Y, N, Y, N, N, N);
+  /* feat assignment */
+  /*                   race-num    feat                  lvl stack */
+  feat_race_assignment(RACE_VAMPIRE, FEAT_ALERTNESS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_COMBAT_REFLEXES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_DODGE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_IMPROVED_INITIATIVE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_LIGHTNING_REFLEXES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_TOUGHNESS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_NATURAL_ARMOR, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_DAMAGE_REDUCTION, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ENERGY_RESISTANCE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_FAST_HEALING, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_WEAKNESSES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_BLOOD_DRAIN, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_CHILDREN_OF_THE_NIGHT, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_CREATE_SPAWN, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_DOMINATE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ENERGY_DRAIN, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_CHANGE_SHAPE, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_GASEOUS_FORM, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_SPIDER_CLIMB, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_SKILL_BONUSES, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_ABILITY_SCORE_BOOSTS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VAMPIRE_BONUS_FEATS, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_VITAL, 1, N);
+  feat_race_assignment(RACE_VAMPIRE, FEAT_HARDY, 1, N);
+
+#else
+
 #ifdef CAMPAIGN_FR
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -519,6 +1177,7 @@ void assign_races(void)
   /*                  race-num  affect            lvl */
   /**TEST**/ affect_assignment(RACE_HUMAN, AFF_DETECT_ALIGN, 1);
   /****************************************************************************/
+  
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
   add_race(RACE_HIGH_ELF, "high elf", "High Elf", "\tGHigh Elf\tn", "HiEl", "\tGHiEl\tn",
@@ -718,6 +1377,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_ELF, FEAT_HALF_ELF_RACIAL_ADJUSTMENT, 1, N);
   race_list[RACE_HALF_ELF].racial_language = LANG_ELVISH;
   /* affect assignment */
+
   /*                  race-num  affect            lvl */
 
   /****************************************************************************/
@@ -1475,6 +2135,9 @@ void assign_races(void)
   /*                  race-num  affect            lvl */
   /****************************************************************************/
 // End Faerun races, start luminarimud races
+// DL RACES
+// #elif defined(CAMPGIN_DL)
+
 #else
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -2785,6 +3448,8 @@ void assign_races(void)
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
+#endif
+
   /**********/
   /* Animal */
   /**********/
@@ -3531,6 +4196,59 @@ int parse_race_long(const char *arg_in)
 
   for (l = 0; *(arg + l); l++) /* convert to lower case */
     *(arg + l) = LOWER(*(arg + l));
+#if defined(CAMPAIGN_DL)
+
+  if (is_abbrev(arg, "human")) return  DL_RACE_HUMAN;
+  if (is_abbrev(arg, "qualinesti elf")) return  DL_RACE_QUALINESTI_ELF;
+  if (is_abbrev(arg, "qualinesti-elf")) return  DL_RACE_QUALINESTI_ELF;
+  if (is_abbrev(arg, "qualinestielf")) return  DL_RACE_QUALINESTI_ELF;
+  if (is_abbrev(arg, "silvanesti elf")) return  DL_RACE_SILVANESTI_ELF;
+  if (is_abbrev(arg, "silvanesti-elf")) return  DL_RACE_SILVANESTI_ELF;
+  if (is_abbrev(arg, "silvanestielf")) return  DL_RACE_SILVANESTI_ELF;
+  if (is_abbrev(arg, "kagonesti elf")) return  DL_RACE_KAGONESTI_ELF;
+  if (is_abbrev(arg, "kagonesti-elf")) return  DL_RACE_KAGONESTI_ELF;
+  if (is_abbrev(arg, "kagonestielf")) return  DL_RACE_KAGONESTI_ELF;
+  // if (is_abbrev(arg, "dargonesti elf")) return  DL_RACE_DARGONESTI_ELF;
+  // if (is_abbrev(arg, "dargonesti-elf")) return  DL_RACE_DARGONESTI_ELF;
+  // if (is_abbrev(arg, "dargonestielf")) return  DL_RACE_DARGONESTI_ELF;
+  if (is_abbrev(arg, "mountain dwarf")) return  DL_RACE_MOUNTAIN_DWARF;
+  if (is_abbrev(arg, "mountain-dwarf")) return  DL_RACE_MOUNTAIN_DWARF;
+  if (is_abbrev(arg, "mountaindwarf")) return  DL_RACE_MOUNTAIN_DWARF;
+  if (is_abbrev(arg, "hill dwarf")) return  DL_RACE_HILL_DWARF;
+  if (is_abbrev(arg, "hill-dwarf")) return  DL_RACE_HILL_DWARF;
+  if (is_abbrev(arg, "hilldwarf")) return  DL_RACE_HILL_DWARF;
+  // if (is_abbrev(arg, "gully dwarf")) return  DL_RACE_GULLY_DWARF;
+  // if (is_abbrev(arg, "gully-dwarf")) return  DL_RACE_GULLY_DWARF;
+  // if (is_abbrev(arg, "gullydwarf")) return  DL_RACE_GULLY_DWARF;
+  if (is_abbrev(arg, "minotaur")) return  DL_RACE_MINOTAUR;
+  if (is_abbrev(arg, "kender")) return  DL_RACE_KENDER;
+  if (is_abbrev(arg, "gnome")) return  DL_RACE_GNOME;
+  if (is_abbrev(arg, "half elf")) return  DL_RACE_HALF_ELF;
+  if (is_abbrev(arg, "half-elf")) return  DL_RACE_HALF_ELF;
+  if (is_abbrev(arg, "halfelf")) return  DL_RACE_HALF_ELF;
+  if (is_abbrev(arg, "baaz draconian")) return  DL_RACE_BAAZ_DRACONIAN;
+  if (is_abbrev(arg, "baaz-draconian")) return  DL_RACE_BAAZ_DRACONIAN;
+  if (is_abbrev(arg, "baazdraconian")) return  DL_RACE_BAAZ_DRACONIAN;
+  // if (is_abbrev(arg, "goblin")) return  DL_RACE_GOBLIN;
+  // if (is_abbrev(arg, "hobgoblin")) return  DL_RACE_HOBGOBLIN;
+  // if (is_abbrev(arg, "kapak draconian")) return  DL_RACE_KAPAK_DRACONIAN;
+  // if (is_abbrev(arg, "kapak-draconian")) return  DL_RACE_KAPAK_DRACONIAN;
+  // if (is_abbrev(arg, "kapakdraconian")) return  DL_RACE_KAPAK_DRACONIAN;
+  // if (is_abbrev(arg, "bozak draconian")) return  DL_RACE_BOZAK_DRACONIAN;
+  // if (is_abbrev(arg, "bozak-draconian")) return  DL_RACE_BOZAK_DRACONIAN;
+  // if (is_abbrev(arg, "bozakdraconian")) return  DL_RACE_BOZAK_DRACONIAN;
+  // if (is_abbrev(arg, "sivak draconian")) return  DL_RACE_SIVAK_DRACONIAN;
+  // if (is_abbrev(arg, "sivak-draconian")) return  DL_RACE_SIVAK_DRACONIAN;
+  // if (is_abbrev(arg, "sivakdraconian")) return  DL_RACE_SIVAK_DRACONIAN;
+  // if (is_abbrev(arg, "aurak draconian")) return  DL_RACE_AURAK_DRACONIAN;
+  // if (is_abbrev(arg, "aurak-draconian")) return  DL_RACE_AURAK_DRACONIAN;
+  // if (is_abbrev(arg, "aurakdraconian")) return  DL_RACE_AURAK_DRACONIAN;
+  // if (is_abbrev(arg, "irda")) return  DL_RACE_IRDA;
+  // if (is_abbrev(arg, "ogre")) return  DL_RACE_OGRE;
+  if (is_abbrev(arg, "lich")) return RACE_LICH;
+  if (is_abbrev(arg, "vampire")) return RACE_VAMPIRE;
+
+#else
 
   if (is_abbrev(arg, "human"))
     return RACE_HUMAN;
@@ -3700,6 +4418,7 @@ int parse_race_long(const char *arg_in)
     return RACE_VAMPIRE;
   if (is_abbrev(arg, "fae"))
     return RACE_FAE;
+#endif
 
   return RACE_UNDEFINED;
 }
@@ -3751,6 +4470,10 @@ sbyte has_racial_abils_unchosen(struct char_data *ch)
   switch (GET_RACE(ch))
   {
   case RACE_HIGH_ELF:
+    if (HIGH_ELF_CANTRIP(ch) == 0)
+      return true;
+    break;
+  case DL_RACE_SILVANESTI_ELF:
     if (HIGH_ELF_CANTRIP(ch) == 0)
       return true;
     break;
@@ -3907,6 +4630,13 @@ const char *get_region_info(int region)
   }
   return "Undefined";
 }
+#if defined(CAMPAIGN_DL)
+
+int get_region_language(int region)
+{
+  return LANG_COMMON;
+}
+#else
 
 int get_region_language(int region)
 {
@@ -3992,25 +4722,58 @@ int get_region_language(int region)
   }
   return LANG_COMMON;
 }
+#endif
 
 bool is_furry(int race)
 {
-  return (race == RACE_TABAXI);
+  switch (race)
+  {
+    case RACE_TABAXI:
+    case DL_RACE_MINOTAUR:
+      return true;
+  }
+  return false;
 }
 
 bool has_horns(int race)
 {
-  return (race == RACE_TIEFLING);
+  switch (race)
+  {
+    case RACE_TIEFLING:
+    case DL_RACE_MINOTAUR:
+      return true;
+  }
+  return false;
 }
 
 bool has_scales(int race)
 {
-  return (race == RACE_DRAGONBORN);
+  switch (race)
+  {
+    case RACE_DRAGONBORN:
+    case DL_RACE_AURAK_DRACONIAN:
+    case DL_RACE_BAAZ_DRACONIAN:
+    case DL_RACE_BOZAK_DRACONIAN:
+    case DL_RACE_KAPAK_DRACONIAN:
+    case DL_RACE_SIVAK_DRACONIAN:
+      return true;
+  }
+  return false;
 }
 
 bool race_has_no_hair(int race)
 {
-  return (race == RACE_DRAGONBORN);
+  switch (race)
+  {
+    case RACE_DRAGONBORN:
+    case DL_RACE_AURAK_DRACONIAN:
+    case DL_RACE_BAAZ_DRACONIAN:
+    case DL_RACE_BOZAK_DRACONIAN:
+    case DL_RACE_KAPAK_DRACONIAN:
+    case DL_RACE_SIVAK_DRACONIAN:
+      return true;
+  }
+  return false;
 }
 
 /*

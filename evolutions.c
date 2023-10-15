@@ -237,7 +237,7 @@ void assign_evolutions(void)
                "The eidolon gains 20 percent concealment when not in bright light.  If the eidolon also has the "
                "shadow form evolution, this benefit increases to 50 percent.");
     evolutiono(EVOLUTION_SHADOW_FORM, "shadow form", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
-               "The eidilon can become incorporeal at will.");
+               "The eidilon can become incorporeal at will. This effect can be toggled on and off with the shadowform command. Your eidolon will need to do this themselves. Eg. order eidolon shadowform.");
     evolutiono(EVOLUTION_SICKENING, "sickening aura", 2, false, 1, true, 0, 0, 0, 0, 0, 0, EVOLUTION_REQ_TYPE_NONE,
                "The eidolon emits a foul odour that affects everyone except the summoner and their party. "
                "Any creature in the same room as the eidolon must save vs. fortitude each round or be "
@@ -1250,6 +1250,12 @@ ACMD(do_eidolon)
       send_to_char(ch, "You've reset your eidolon short description.  This will be reflected next time you summon your eidolon.\r\n");
       return;
     }
+    
+    if(!valid_pet_name(arg2))
+    {
+      send_to_char(ch, "Pet descriptions cannot contain the \" or ; characters.\r\n");
+      return;
+    }
 
     strip_cr(arg2);
 
@@ -1282,6 +1288,12 @@ ACMD(do_eidolon)
       return;
     }
 
+    if(!valid_pet_name(arg2))
+    {
+      send_to_char(ch, "Pet descriptions cannot contain the \" or ; characters.\r\n");
+      return;
+    }
+
     strip_cr(arg2);
 
     snprintf(buf, sizeof(buf), "%s\r\n", arg2);
@@ -1311,6 +1323,12 @@ ACMD(do_eidolon)
     {
       GET_EIDOLON_DETAIL_DESCRIPTION(ch) = NULL;
       send_to_char(ch, "You've reset your eidolon detail description.  This will be reflected next time you summon your eidolon.\r\n");
+      return;
+    }
+
+    if(!valid_pet_name(arg2))
+    {
+      send_to_char(ch, "Pet descriptions cannot contain the \" or ; characters.\r\n");
       return;
     }
 

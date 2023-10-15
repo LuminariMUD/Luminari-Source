@@ -75,6 +75,7 @@ int copy_quest_strings(struct aq_data *to, struct aq_data *from)
   to->info = str_udup(from->info);
   to->done = str_udup(from->done);
   to->quit = str_udup(from->quit);
+  to->kill_list = str_udup(from->kill_list);
   return TRUE;
 }
 
@@ -91,6 +92,8 @@ void free_quest_strings(struct aq_data *quest)
     free(quest->done);
   if (quest->quit)
     free(quest->quit);
+  if (quest->kill_list)
+    free(quest->kill_list);
 }
 
 /* free the memory for a quest */
@@ -232,6 +235,7 @@ int save_quests(zone_rnum zone_num)
   char filename[128], oldname[128], quest_flags[MAX_STRING_LENGTH] = {'\0'};
   char quest_desc[MAX_STRING_LENGTH] = {'\0'}, quest_info[MAX_STRING_LENGTH] = {'\0'};
   char quest_done[MAX_STRING_LENGTH] = {'\0'}, quest_quit[MAX_STRING_LENGTH] = {'\0'};
+  char quest_kill_list[MAX_STRING_LENGTH] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, num_quests = 0;
 
@@ -272,14 +276,18 @@ int save_quests(zone_rnum zone_num)
               sizeof(quest_done) - 1);
       strncpy(quest_quit, QST_QUIT(rnum) ? QST_QUIT(rnum) : "undefined",
               sizeof(quest_quit) - 1);
+      strncpy(quest_kill_list, QST_KLIST(rnum) ? QST_KLIST(rnum) : "undefined",
+              sizeof(quest_kill_list) - 1);
       strip_cr(quest_desc);
       strip_cr(quest_info);
       strip_cr(quest_done);
       strip_cr(quest_quit);
+      strip_cr(quest_kill_list);
       /* Save the quest details to the file.  */
       sprintascii(quest_flags, QST_FLAGS(rnum));
       snprintf(buf, sizeof(buf),
                "#%d\n"
+               "%s%c\n"
                "%s%c\n"
                "%s%c\n"
                "%s%c\n"
@@ -295,6 +303,7 @@ int save_quests(zone_rnum zone_num)
                quest_info, STRING_TERMINATOR,
                quest_done, STRING_TERMINATOR,
                quest_quit, STRING_TERMINATOR,
+               quest_kill_list, STRING_TERMINATOR,
                QST_TYPE(rnum),
                QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
                quest_flags,
