@@ -10669,7 +10669,7 @@ int perform_attacks(struct char_data *ch, int mode, int phase)
 
   /* level based bonus attacks, which is BAB / 5 up to the ATTACK_CAP
    * [note might need to add armor restrictions here?] */
-  bonus_mainhand_attacks = MIN((BAB(ch) - 1) / 5, ATTACK_CAP);
+  bonus_mainhand_attacks = MIN((NUM_ATTACKS_BAB(ch) - 1) / 5, ATTACK_CAP);
 
   /* monk flurry of blows */
   if (MONK_TYPE(ch) && monk_gear_ok(ch) &&

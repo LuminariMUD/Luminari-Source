@@ -4552,7 +4552,11 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                        "may be integrated into future game systems.\r\n");
       send_to_char(ch, "Type 'quit' to exit out of region selection.\r\n");
+#if defined(CAMPAIGN_DL)
+  send_to_char(ch, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+#else      
       send_to_char(ch, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#endif
     }
     else
     {

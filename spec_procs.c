@@ -10850,7 +10850,7 @@ SPECIAL(celestial_leviathan)
 
 SPECIAL(identify_mob)
 {
-  if (!CMD_IS("identify"))
+  if (!CMD_IS("identify") && !CMD_IS("value"))
     return 0;
 
   char arg1[200];
@@ -10864,9 +10864,9 @@ SPECIAL(identify_mob)
     return 1;
   }
 
-  int target = generic_find(arg1, FIND_OBJ_INV, ch, 0, &obj);
+  if (!(obj = get_obj_in_list_vis(ch, arg1, NULL, ch->carrying)))
 
-  if (!target)
+  if (!obj)
   {
     send_to_char(ch, "You don't seem to have that item on hand.\r\n");
     return 1;
@@ -10875,16 +10875,23 @@ SPECIAL(identify_mob)
   /* success! */
   if (obj)
   {
-    int cost = GET_OBJ_LEVEL(obj) * 10;
+    int cost = MAX(1, GET_OBJ_LEVEL(obj) * 5);
     
-    if (GET_GOLD(ch) < cost)
+    if (CMD_IS("identify"))
     {
-      send_to_char(ch, "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n", cost, GET_GOLD(ch));
-      return 1;
+      if (GET_GOLD(ch) < cost)
+      {
+        send_to_char(ch, "You don't have the coins to play for that. You need %d, but only have %d on hand.\r\n", cost, GET_GOLD(ch));
+        return 1;
+      }
+      GET_GOLD(ch) -= cost;
+      send_to_char(ch, "That will cost you %d coins.\r\n", cost);
+      do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
     }
-    GET_GOLD(ch) -= cost;
-    send_to_char(ch, "That will cost you %d coins.\r\n", cost);
-    do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
+    else
+    {
+      send_to_char(ch, "It will cost %d coins to identify that item.", cost);
+    }
     return 1;
   }
   else

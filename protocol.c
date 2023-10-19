@@ -2964,102 +2964,274 @@ static void SendMSSP(descriptor_t *apDescriptor)
    * variables, otherwise crawlers may reject the data as invalid.
    */
   static MSSP_t MSSPTable[] = {
-      /* Required */
-      {"NAME", MUD_NAME}, /* Change this in protocol.h */
-      {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
-      {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
+  /* Required */
+#if defined(CAMPAIGN_DL)
+    {"NAME", "Chronicles of Krynn"},
+    {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
+    {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
 
-      /* Generic */
-      {"CRAWL DELAY", "-1"},
-      {"HOSTNAME", "LuminariMUD.com"},
-      {"PORT", "4100"},
-      {"CODEBASE", "LuminariMUD"},
-      {"CONTACT", "moshehwebservices<at>live.com"},
-      {"CREATED", "2012"},
-      {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
-      {"IP", "66.85.147.90"},
-      {"LANGUAGE", "English"},
-      {"LOCATION", "United States"},
-      {"MINIMUM AGE", "0"},
-      {"WEBSITE", "http://www.LuminariMUD.com/"},
+    /* Generic */
+    {"CRAWL DELAY", "-1"},
+    {"HOSTNAME", "Krynn.d20mud.com  "},
+    {"PORT", "4300"},
+    {"CODEBASE", "LuminariMUD"},
+    {"CONTACT", "gickerlds<at>gmail.com"},
+    {"CREATED", "2023"},
+    {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+    {"IP", "198.71.53.124"},
+    {"LANGUAGE", "English"},
+    {"LOCATION", "United States"},
+    {"MINIMUM AGE", "0"},
+    {"WEBSITE", "http://krynn.gicker.ca/"},
 
-      /* Categorisation */
-      {"FAMILY", "tbaMUD"},
-      {"GENRE", "Fantasy"},
-      {"GAMEPLAY", "Hack and Slash"},
-      {"STATUS", "Beta"},
-      {"GAMESYSTEM", "Pathfinder"},
-      {"INTERMUD", ""},
-      {"SUBGENRE", "Forgotten Realms DragonLance"},
+    /* Categorisation */
+    {"FAMILY", "tbaMUD"},
+    {"GENRE", "Fantasy"},
+    {"GAMEPLAY", "Role Play and PvE"},
+    {"STATUS", "Open"},
+    {"GAMESYSTEM", "Pathfinder"},
+    {"INTERMUD", ""},
+    {"SUBGENRE", "Post War of the Lance Dragonlance"},
 
-      /* World */
-      {"AREAS", "514"},
-      {"HELPFILES", "0"},
-      {"MOBILES", "14556"},
-      {"OBJECTS", "25114"},
-      {"ROOMS", "50166"},
-      {"CLASSES", "27"},
-      {"LEVELS", "30"},
-      {"RACES", "27"},
-      {"SKILLS", "999"},
+    /* World */
+    {"AREAS", "145"},
+    {"HELPFILES", "0"},
+    {"MOBILES", "6163"},
+    {"OBJECTS", "3037"},
+    {"ROOMS", "9931"},
+    {"CLASSES", "29"},
+    {"LEVELS", "30"},
+    {"RACES", "13"},
+    {"SKILLS", "999"},
 
-      /* Protocols */
-      {"ANSI", "1"},
-      {"GMCP", "1"},
+    /* Protocols */
+    {"ANSI", "1"},
+    {"GMCP", "1"},
 #ifdef USING_MCCP
-      {"MCCP", "1"},
+    {"MCCP", "1"},
 #else
-      {"MCCP", "0"},
+    {"MCCP", "0"},
 #endif // USING_MCCP
-      {"MCP", "0"},
-      {"MSDP", "1"},
-      {"MSP", "1"},
-      {"MXP", "1"},
-      {"PUEBLO", "0"},
-      {"UTF-8", "1"},
-      {"VT100", "0"},
-      {"256 COLORS & XTERM", "1"},
+    {"MCP", "0"},
+    {"MSDP", "1"},
+    {"MSP", "1"},
+    {"MXP", "1"},
+    {"PUEBLO", "0"},
+    {"UTF-8", "1"},
+    {"VT100", "0"},
+    {"256 COLORS & XTERM", "1"},
 
-      /* Commercial */
-      {"PAY TO PLAY", "0"},
-      {"PAY FOR PERKS", "0"},
+    /* Commercial */
+    {"PAY TO PLAY", "0"},
+    {"PAY FOR PERKS", "0"},
 
-      /* Hiring */
-      {"HIRING BUILDERS", "1"},
-      {"HIRING CODERS", "1"},
+    /* Hiring */
+    {"HIRING BUILDERS", "1"},
+    {"HIRING CODERS", "0"},
 
-      /* Game */
-      {"ADULT MATERIAL", "0"},
-      {"MULTICLASSING", "1"},
-      {"NEWBIE FRIENDLY", "1"},
-      {"PLAYER CITIES", "0"},
-      {"PLAYER CLANS", "1"},
-      {"PLAYER CRAFTING", "1"},
-      {"PLAYER GUILDS", "1"},
-      {"EQUIPMENT SYSTEM", "1"},
-      {"MULTIPLAYING", "1"},
-      {"PLAYERKILLING", "1"},
-      {"QUEST SYSTEM", "1"},
-      {"ROLEPLAYING", "1"},
-      {"TRAINING SYSTEM", "1"},
-      {"WORLD ORIGINALITY", "1"},
+    /* Game */
+    {"ADULT MATERIAL", "0"},
+    {"MULTICLASSING", "1"},
+    {"NEWBIE FRIENDLY", "1"},
+    {"PLAYER CITIES", "0"},
+    {"PLAYER CLANS", "1"},
+    {"PLAYER CRAFTING", "1"},
+    {"PLAYER GUILDS", "1"},
+    {"EQUIPMENT SYSTEM", "1"},
+    {"MULTIPLAYING", "0"},
+    {"PLAYERKILLING", "1"},
+    {"QUEST SYSTEM", "1"},
+    {"ROLEPLAYING", "1"},
+    {"TRAINING SYSTEM", "1"},
+    {"WORLD ORIGINALITY", "1"},
 
-      /* World */
-      {"EXITS", "8"},
-      {"EXTRA DESCRIPTIONS", "99999"},
-      {"MUDPROGS", "3652"},
-      {"MUDTRIGS", "1956"},
+    /* World */
+    {"EXITS", "8"},
+    {"EXTRA DESCRIPTIONS", "99999"},
+    {"MUDPROGS", "120"},
+    {"MUDTRIGS", "120"},
+#elif defined(CAMPAIGN_FR)
+    {"NAME", MUD_NAME}, /* Change this in protocol.h */
+    {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
+    {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
 
-      /* Extended variables */
-      /* Protocols */
-      /*
-      {"RESETS", "0"},
-      {"DBSIZE", "0"},
-          { "SSL",                "0" },
-          { "ZMP",                "0" },
-     */
+    /* Generic */
+    {"CRAWL DELAY", "-1"},
+    {"HOSTNAME", "faerun.d20mud.com"},
+    {"PORT", "3100"},
+    {"CODEBASE", "LuminariMUD"},
+    {"CONTACT", "gickerlds<at>gmail.com"},
+    {"CREATED", "2019"},
+    {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+    {"IP", "198.71.53.124"},
+    {"LANGUAGE", "English"},
+    {"LOCATION", "United States"},
+    {"MINIMUM AGE", "0"},
+    {"WEBSITE", "http://faerun.d20mud.com/"},
 
-      {NULL, NULL} /* This must always be last. */
+    /* Categorisation */
+    {"FAMILY", "tbaMUD"},
+    {"GENRE", "Fantasy"},
+    {"GAMEPLAY", "Role Play and PvE"},
+    {"STATUS", "Open"},
+    {"GAMESYSTEM", "Pathfinder"},
+    {"INTERMUD", ""},
+    {"SUBGENRE", "Forgotten Realms Post Second Sundering"},
+
+    /* World */
+    {"AREAS", "514"},
+    {"HELPFILES", "0"},
+    {"MOBILES", "14556"},
+    {"OBJECTS", "25114"},
+    {"ROOMS", "50166"},
+    {"CLASSES", "27"},
+    {"LEVELS", "30"},
+    {"RACES", "27"},
+    {"SKILLS", "999"},
+
+    /* Protocols */
+    {"ANSI", "1"},
+    {"GMCP", "1"},
+#ifdef USING_MCCP
+    {"MCCP", "1"},
+#else
+    {"MCCP", "0"},
+#endif // USING_MCCP
+    {"MCP", "0"},
+    {"MSDP", "1"},
+    {"MSP", "1"},
+    {"MXP", "1"},
+    {"PUEBLO", "0"},
+    {"UTF-8", "1"},
+    {"VT100", "0"},
+    {"256 COLORS & XTERM", "1"},
+
+    /* Commercial */
+    {"PAY TO PLAY", "0"},
+    {"PAY FOR PERKS", "0"},
+
+    /* Hiring */
+    {"HIRING BUILDERS", "1"},
+    {"HIRING CODERS", "1"},
+
+    /* Game */
+    {"ADULT MATERIAL", "0"},
+    {"MULTICLASSING", "1"},
+    {"NEWBIE FRIENDLY", "1"},
+    {"PLAYER CITIES", "0"},
+    {"PLAYER CLANS", "1"},
+    {"PLAYER CRAFTING", "1"},
+    {"PLAYER GUILDS", "1"},
+    {"EQUIPMENT SYSTEM", "1"},
+    {"MULTIPLAYING", "0"},
+    {"PLAYERKILLING", "1"},
+    {"QUEST SYSTEM", "1"},
+    {"ROLEPLAYING", "1"},
+    {"TRAINING SYSTEM", "1"},
+    {"WORLD ORIGINALITY", "1"},
+
+    /* World */
+    {"EXITS", "8"},
+    {"EXTRA DESCRIPTIONS", "99999"},
+    {"MUDPROGS", "3652"},
+    {"MUDTRIGS", "1956"},
+#else
+    {"NAME", MUD_NAME}, /* Change this in protocol.h */
+    {"PLAYERS", FUNCTION_CALL(GetMSSP_Players)},
+    {"UPTIME", FUNCTION_CALL(GetMSSP_Uptime)},
+
+    /* Generic */
+    {"CRAWL DELAY", "-1"},
+    {"HOSTNAME", "LuminariMUD.com"},
+    {"PORT", "4100"},
+    {"CODEBASE", "LuminariMUD"},
+    {"CONTACT", "moshehwebservices<at>live.com"},
+    {"CREATED", "2012"},
+    {"ICON", "http://luminarimud.com/images/luminarimud.bmp"},
+    {"IP", "198.71.53.124"},
+    {"LANGUAGE", "English"},
+    {"LOCATION", "United States"},
+    {"MINIMUM AGE", "0"},
+    {"WEBSITE", "http://www.LuminariMUD.com/"},
+
+    /* Categorisation */
+    {"FAMILY", "tbaMUD"},
+    {"GENRE", "Fantasy"},
+    {"GAMEPLAY", "Hack and Slash"},
+    {"STATUS", "Beta"},
+    {"GAMESYSTEM", "Pathfinder"},
+    {"INTERMUD", ""},
+    {"SUBGENRE", "Forgotten Realms DragonLance"},
+
+    /* World */
+    {"AREAS", "514"},
+    {"HELPFILES", "0"},
+    {"MOBILES", "14556"},
+    {"OBJECTS", "25114"},
+    {"ROOMS", "50166"},
+    {"CLASSES", "27"},
+    {"LEVELS", "30"},
+    {"RACES", "27"},
+    {"SKILLS", "999"},
+
+    /* Protocols */
+    {"ANSI", "1"},
+    {"GMCP", "1"},
+#ifdef USING_MCCP
+    {"MCCP", "1"},
+#else
+    {"MCCP", "0"},
+#endif // USING_MCCP
+    {"MCP", "0"},
+    {"MSDP", "1"},
+    {"MSP", "1"},
+    {"MXP", "1"},
+    {"PUEBLO", "0"},
+    {"UTF-8", "1"},
+    {"VT100", "0"},
+    {"256 COLORS & XTERM", "1"},
+
+    /* Commercial */
+    {"PAY TO PLAY", "0"},
+    {"PAY FOR PERKS", "0"},
+
+    /* Hiring */
+    {"HIRING BUILDERS", "1"},
+    {"HIRING CODERS", "1"},
+
+    /* Game */
+    {"ADULT MATERIAL", "0"},
+    {"MULTICLASSING", "1"},
+    {"NEWBIE FRIENDLY", "1"},
+    {"PLAYER CITIES", "0"},
+    {"PLAYER CLANS", "1"},
+    {"PLAYER CRAFTING", "1"},
+    {"PLAYER GUILDS", "1"},
+    {"EQUIPMENT SYSTEM", "1"},
+    {"MULTIPLAYING", "1"},
+    {"PLAYERKILLING", "1"},
+    {"QUEST SYSTEM", "1"},
+    {"ROLEPLAYING", "1"},
+    {"TRAINING SYSTEM", "1"},
+    {"WORLD ORIGINALITY", "1"},
+
+    /* World */
+    {"EXITS", "8"},
+    {"EXTRA DESCRIPTIONS", "99999"},
+    {"MUDPROGS", "3652"},
+    {"MUDTRIGS", "1956"},
+#endif
+
+    /* Extended variables */
+    /* Protocols */
+    /*
+    {"RESETS", "0"},
+    {"DBSIZE", "0"},
+        { "SSL",                "0" },
+        { "ZMP",                "0" },
+   */
+
+    {NULL, NULL} /* This must always be last. */
   };
 
   /* Begin the subnegotiation sequence */

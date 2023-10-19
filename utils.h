@@ -1373,12 +1373,12 @@ void char_from_furniture(struct char_data *ch);
                          type == SPEC_ARMOR_TYPE_LARGE_SHIELD || type == SPEC_ARMOR_TYPE_TOWER_SHIELD)
 
 /* MACROS for the study system */
-#define CAN_STUDY_FEATS(ch) ((GET_LEVELUP_FEAT_POINTS(ch) +                  \
+#define CAN_STUDY_FEATS(ch) ((((GET_LEVELUP_FEAT_POINTS(ch) +                  \
                                           GET_LEVELUP_CLASS_FEATS(ch) +      \
                                           GET_LEVELUP_TEAMWORK_FEATS(ch) +   \
                                           GET_LEVELUP_EPIC_FEAT_POINTS(ch) + \
-                                          GET_LEVELUP_EPIC_CLASS_FEATS(ch) > \
-                                      0                                      \
+                                          GET_LEVELUP_EPIC_CLASS_FEATS(ch)) > \
+                                      0)                                      \
                                   ? 1                                        \
                                   : 0))
 #define CAN_STUDY_SKILLS(ch) (GET_LEVELUP_SKILL_POINTS(ch))
@@ -1520,7 +1520,11 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 /** Return how many items ch can carry.
  *  Increased this by 5 - Ornir */
+#if defined(CAMPAIGN_DL)
+#define CAN_CARRY_N(ch) (1000)
+#else
 #define CAN_CARRY_N(ch) (20 + (GET_DEX(ch) >> 1) + (GET_LEVEL(ch) >> 1))
+#endif
 
 /** Return whether or not ch is awake. */
 #define AWAKE(ch) (GET_POS(ch) > POS_SLEEPING)
@@ -1555,6 +1559,10 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 #define GET_ALIGN_STRING(e, a) (e > 250 ? (a > 250 ? "Lawful Good" : (a < -250 ? "Lawful Evil" : "Lawful Neutral")) : (e < -250 ? (a > 250 ? "Chaotic Good" : (a < -250 ? "Chaotic Evil" : "Chaotic Neutral")) : ((a > 250 ? "Neutral Good" : (a < -250 ? "Neutral Evil" : "True Neutral")))))
 
 #define GET_DEITY(ch) (ch->player_specials->saved.deity)
+#define FIXED_BAB(ch) (ch->player_specials->saved.fixed_bab)
+int NUM_ATTACKS_BAB(struct char_data *ch);
+int BAB_NEW(struct char_data *ch);
+int ACTUAL_BAB(struct char_data *ch);
 
 /** Defines if ch is good. */
 //#define IS_GOOD(ch) (GET_ALIGNMENT(ch) >= 350) // old system
@@ -2077,7 +2085,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable);
 
 #define IS_POWERFUL_BEING(ch) ((ch && IS_NPC(ch) && GET_LEVEL(ch) >= LVL_IMMORT))
 
-bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
+    bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define IN_SUNLIGHT(ch) (is_room_in_sunlight(IN_ROOM(ch)))
 #define IN_MOVING_WATER(ch) (IN_ROOM(ch) != NOWHERE && world[IN_ROOM(ch)].sector_type == SECT_RIVER)
 #define CAN_USE_VAMPIRE_ABILITY(ch) (!IN_SUNLIGHT(ch) && !IN_MOVING_WATER(ch))

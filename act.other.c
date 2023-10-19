@@ -7316,7 +7316,13 @@ void show_happyhour(struct char_data *ch)
     snprintf(happyexp, sizeof(happyexp), "%s+%d%%%s to Experience per kill\r\n", CCYEL(ch, C_NRM), HAPPY_EXP, CCNRM(ch, C_NRM));
     snprintf(happytreasure, sizeof(happytreasure), "%s+%d%%%s to Treasure Drop rate\r\n", CCYEL(ch, C_NRM), HAPPY_TREASURE, CCNRM(ch, C_NRM));
 
-    send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
+#if defined(CAMPAIGN_DL)
+    send_to_char(ch, "Chronicles of Krynn Happy Hour!\r\n"
+#elif defined(CAMPAIGN_FR)
+  send_to_char(ch, "Faerun Happy Hour!\r\n"
+#else
+  send_to_char(ch, "LuminariMUD Happy Hour!\r\n"
+#endif
                      "------------------\r\n"
                      "%s%s%s%sTime Remaining: %s%d%s hours %s%d%s mins %s%d%s secs\r\n",
                  (IS_HAPPYEXP || (GET_LEVEL(ch) >= LVL_STAFF)) ? happyexp : "",
@@ -7509,7 +7515,7 @@ static const char *const hints[] = {
 #ifdef CAMPAIGN_FR
            "Faerun is considered a 'younger' MUD and is under heavy "
 #elif defined (CAMPGIN_DL)
-          "Chronicles of Krynn is considered a 'younger' MUD and is under heavy "
+           "Chronicles of Krynn is considered a 'younger' MUD and is under heavy "
 #else
            "LuminariMUD is considered a 'younger' MUD and is under heavy "
 #endif
@@ -7703,7 +7709,7 @@ static const char *const hints[] = {
            "players and staff are happy to help out. Our Discord Invite is: https://discord.gg/dxZAEd9gAq "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
 #elif defined(CAMPAIGN_DL)
-          "Overwhelmed by all the class and feat choices? Your best bet for tips is "
+           "Overwhelmed by all the class and feat choices? Your best bet for tips is "
            "asking in game or on our Discord channel.  Don't feel shy to ask, our "
            "players and staff are happy to help out. Our Discord Invite is: https://discord.gg/5m5EtQ5XQu "
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
@@ -7883,12 +7889,20 @@ static const char *const hints[] = {
            "about that since it puts pressure on the developres to fix critical bugs quickly)."
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /*45*/ "\tR[HINT]:\tn \ty"
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
            "Although our normal POLICY does not allow multi-playing, due to a need for thorough game testing "
            "and limited player base, we -DO- CURRENTLY -PERMIT- multi-playing up to 4 characters at the same time.  "
            "You can also create as many storage-characters as you like to dump all your treasure and crafting "
            "resources.  "
            "We only ask that you please take the time and effort to report bugs/issues you find to us in return!"
            "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#else
+           "A reminder that we do not permit multi playing on this MUD. You are restricted to having one character "
+          "online at a time. You CAN share loot/gear/money between characters as long as they aren't connected "
+          "at the same time, and you can offer a justifiable role-played reason for your characters being connected "
+          "in such a way if requested by a staff member. "
+           "  [use nohint or prefedit to deactivate this]\tn\r\n",
+#endif
     /*46*/ "\tR[HINT]:\tn \ty"
            "The henchmen, mercenaries, mounts and PETs that are spread throughout the realms not only can be "
            "hired with gold, but some of them can be acquired through mini quest lines.  A henchment guild has "

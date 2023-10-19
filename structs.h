@@ -13,8 +13,6 @@
 #define _STRUCTS_H_
 
 #include "bool.h"     /* for bool */
-#include "protocol.h" /* Kavir Plugin*/
-#include "lists.h"
 
 // You will need to add a campaign.h file, which is not included in the git repo.
 // You can leave it blank, unless you want to add special campaign/theme-specific
@@ -22,6 +20,9 @@
 // for the campaign that you can use to disable luminari code you don't want in
 // and add theme-specific code. This is mainly used for the Faerun codebase.
 #include "campaign.h"
+
+#include "protocol.h" /* Kavir Plugin*/
+#include "lists.h"
 
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
@@ -840,6 +841,42 @@
 #define NUM_GENDERS 3
 #define NUM_SEX NUM_GENDERS
 
+#if defined(CAMPAIGN_DL)
+
+#define REGION_NONE 0
+#define REGION_ABANASINIA  1
+#define REGION_BALIFOR 2
+#define REGION_BLODE 3
+#define REGION_BLOOD_SEA_ISLES 4
+#define REGION_ENSTAR 5
+#define REGION_ESTWILDE 6
+#define REGION_GOODLUND 7
+#define REGION_HYLO 8
+#define REGION_KAYOLIN 9
+#define REGION_KHUR 10
+#define REGION_LEMISH 11
+#define REGION_NIGHTLUND 12
+#define REGION_NORDMAAR 13
+#define REGION_NORTHERN_ERGOTH 14
+#define REGION_NOSTAR 15
+#define REGION_PRINCIPALITY_OF_KHAROLIS 16
+#define REGION_QUALINESTI 17
+#define REGION_SANCRIST_ISLE 18
+#define REGION_SCHALLSEA 19
+#define REGION_SILVANESTI 20
+#define REGION_SOLAMNIA 21
+#define REGION_SOUTHERN_ERGOTH 22
+#define REGION_TAMAN_BUSUK 23
+#define REGION_TARSIS 24
+#define REGION_TEYR 25
+#define REGION_THORADIN 26
+#define REGION_THORBARDIN 27
+#define REGION_THROTL 28
+
+#define NUM_REGIONS 29
+
+#else
+
 #define REGION_NONE                 0
 #define REGION_AGLAROND             1
 #define REGION_AMN                  2
@@ -879,6 +916,7 @@
 
 #define NUM_REGIONS                 36
 
+#endif
 /* Positions */
 #define POS_DEAD 0      /**< Position = dead */
 #define POS_MORTALLYW 1 /**< Position = mortally wounded */
@@ -4585,6 +4623,7 @@ struct player_special_data_saved
     int call_eidolon_cooldown;  // When this cooldown is active, the summoner cannot call their eidolon
     int merge_forms_timer;      // How long the merge forms process lasts
     char *bag_names[MAX_BAGS+1];  // nicknames for the characters' bags
+    int fixed_bab;  // This is the character's final bab which is set upon reaching lvl 20 and determines # of attacks per round
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is

@@ -5526,7 +5526,7 @@ ACMD(do_sorcerer_claw_attack)
   send_to_char(ch, "Your hands morph into long draconic claws that you bring to bear on your opponent.\r\n");
   hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
 
-  for (i = 0; i < BAB(ch) / 5 + 1; i++)
+  for (i = 0; i < NUM_ATTACKS_BAB(ch) / 5 + 1; i++)
   {
     if (FIGHTING(ch))
     {

@@ -239,12 +239,11 @@ void init_study(struct descriptor_data *d, int class)
    * used during the study process. */
   LEVELUP(ch)->class = class;
   LEVELUP(ch)->level = CLASS_LEVEL(ch, class);
-  LEVELUP(ch)->feat_points = GET_FEAT_POINTS(ch);
-  LEVELUP(ch)->class_feat_points = GET_CLASS_FEATS(ch, class);
-  LEVELUP(ch)->epic_feat_points = GET_EPIC_FEAT_POINTS(ch);
-  LEVELUP(ch)->epic_class_feat_points = GET_EPIC_CLASS_FEATS(ch, class);
-
-  LEVELUP(ch)->teamwork_feat_points = GET_TEAMWORK_FEAT_POINTS(ch);
+  LEVELUP(ch)->feat_points = MAX(0, GET_FEAT_POINTS(ch));
+  LEVELUP(ch)->class_feat_points = MAX(0, GET_CLASS_FEATS(ch, class));
+  LEVELUP(ch)->epic_feat_points = MAX(0, GET_EPIC_FEAT_POINTS(ch));
+  LEVELUP(ch)->epic_class_feat_points = MAX(0, GET_EPIC_CLASS_FEATS(ch, class));
+  LEVELUP(ch)->teamwork_feat_points = MAX(0, GET_TEAMWORK_FEAT_POINTS(ch));
 
   LEVELUP(ch)->practices = GET_PRACTICES(ch);
   LEVELUP(ch)->trains = GET_TRAINS(ch);

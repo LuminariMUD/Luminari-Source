@@ -1874,7 +1874,13 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
     return;
   }
 
-#if defined(CAMPAIGN_FR) || defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_DL)
+  if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && !is_crafting_kit(cont))
+  {
+    send_to_char(ch, "We are having issues right now with containers losing items. Until then please use the virtual bag system. Read HELP BAGS.\r\n");
+    return;
+  }
+#elif defined(CAMPAIGN_FR)
   if (GET_OBJ_TYPE(cont) == ITEM_CONTAINER && num_obj_in_obj(cont) >= 10 && !is_crafting_kit(cont))
   {
     send_to_char(ch, "Containers can only fit 10 items.  Please use the 'sort' command to organize your inventory.\r\n");

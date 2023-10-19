@@ -10,7 +10,13 @@
  Set your MUD_NAME, and change descriptor_t if necessary.
  ******************************************************************************/
 
-#define MUD_NAME "LuminariMUD"
+#if defined(CAMPAIGN_DL)
+   #define MUD_NAME "Chronicles of Krynn"
+#elif defined(CAMPAIGN_FR)
+   #define MUD_NAME "Faerun: A Forgotten Realms MUD"
+#else
+   #define MUD_NAME "LuminariMUD"
+#endif
 
 /* for ssize_t and friends */
 #include "conf.h"

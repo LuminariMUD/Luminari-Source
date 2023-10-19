@@ -368,6 +368,9 @@ static int same_obj(struct obj_data *obj1, struct obj_data *obj2)
   if (GET_OBJ_COST(obj1) != GET_OBJ_COST(obj2))
     return (FALSE);
 
+  if (strcmp(obj1->short_description, obj2->short_description))
+    return FALSE;
+
   for (aindex = 0; aindex < MAX_OBJ_AFFECT; aindex++)
   {
     // log("obj1 affected[%d] location: %d obj2 affected[%d] location: %d", aindex, obj1->affected[aindex].location,

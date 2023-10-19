@@ -858,6 +858,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'F':
         if (!strcmp(tag, "Frez"))
           GET_FREEZE_LEV(ch) = atoi(line);
+        if (!strcmp(tag, "FBAB"))
+          FIXED_BAB(ch) = atoi(line);
         else if (!strcmp(tag, "FaEn"))
           load_favored_enemy(fl, ch);
         else if (!strcmp(tag, "FaAd"))
@@ -1637,6 +1639,9 @@ void save_char(struct char_data *ch, int mode)
     fprintf(fl, "FdBn: %d\n", ch->player_specials->saved.fiendish_boons);
   if (ch->player_specials->saved.channel_energy_type != 0)
     fprintf(fl, "ChEn: %d\n", ch->player_specials->saved.channel_energy_type);
+
+  if (FIXED_BAB(ch) != 0)
+    fprintf(fl, "FBAB: %d\n", FIXED_BAB(ch));
 
   fprintf(fl, "FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
 

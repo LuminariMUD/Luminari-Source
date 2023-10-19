@@ -70,12 +70,13 @@ const char *carriage_locales[][CARRIAGE_LOCALES_FIELDS] = {
      contintent description, map coord x, map coord y */
 const char *sailing_locales[][SAILING_LOCALES_FIELDS] = {
     {"palanthas dock", "2459", "50", "Any", "Palanthas, Jewel of Solamnia, is the city of the Solamnic Knights & Forces of Whitestone", "1075", "2525"},
-    {"caergoth dock / northern new sea",  "4430", "50", "Any", "Caergoth is a city in Western Solamnia and its greatest port besides Palanthas.", "2210", "2260"},
+    {"caergoth dock / northern new sea", "4430", "50", "Any", "Caergoth is a city in Western Solamnia and its greatest port besides Palanthas.", "2210", "2260"},
     {"abanasinia / southern new sea", "4429", "50", "Any", "Abanasinia is a temperate-climed land of many different peoples, cultures and races.", "2430", "2660"},
     {"sanction dock", "6500", "50", "Any", "Sanction is the economic center of the Dragonarmies of Takhisis, and the home to many evil races and sects.", "2020", "3765"},
     {"bethel island", "9201", "50", "Any", "Bethel Island is a small island in the Bay of Branchala north of Palanthas", "975", "2530"},
     {"eastern abanasinia", "2966", "50", "Any", "A travelers dock commonly used for trade in eastern Abanasinia.", "2830", "2570"},
     {"undomesticated island", "2501", "50", "Any", "A small island in the Eastern New Sea, near Sanction.", "1075", "2525"},
+    {"northern ergoth", "34700", "50", "Any", "A neutral trade dock located in Northern Ergoth", "1765", "1210"},
 
     {"always the last item", "0", "0", "Nowhere", "nothing", "0", "0"},
 };

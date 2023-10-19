@@ -1433,14 +1433,19 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "Sacrifice all attacks to make one attack at full bab for double weapon dice damage.",
         "Sacrifice all attacks to make one attack at full bab for double weapon dice damage. "
         "Use 'vitalstrike' to toggle this mode on or off.");
+  feat_prereq_bab(FEAT_VITAL_STRIKE, 6);
 
   feato(FEAT_IMPROVED_VITAL_STRIKE, "improved vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Improves vital strike to triple weapon dice damage.",
         "Improves vital strike to triple weapon dice damage.");
-  
+  feat_prereq_bab(FEAT_IMPROVED_VITAL_STRIKE, 11);
+  feat_prereq_feat(FEAT_IMPROVED_VITAL_STRIKE, FEAT_VITAL_STRIKE, 1);
+
   feato(FEAT_GREATER_VITAL_STRIKE, "greater vital strike", TRUE, TRUE, FALSE, FEAT_TYPE_COMBAT,
         "Improves vital strike to quadruple weapon dice damage.",
         "Improves vital strike to quadruple weapon dice damage.");
+  feat_prereq_bab(FEAT_GREATER_VITAL_STRIKE, 16);
+  feat_prereq_feat(FEAT_GREATER_VITAL_STRIKE, FEAT_IMPROVED_VITAL_STRIKE, 1);
 
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
   /* uncategorized combat feats */
@@ -5231,7 +5236,7 @@ bool meets_prerequisite(struct char_data *ch, struct feat_prerequisite *prereq, 
       return FALSE;
     break;
   case FEAT_PREREQ_BAB:
-    if (BAB(ch) < prereq->values[0])
+    if (ACTUAL_BAB(ch) < prereq->values[0])
       return FALSE;
     break;
   case FEAT_PREREQ_CFEAT:
@@ -5334,7 +5339,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (BAB(ch) < 13)
+      if (ACTUAL_BAB(ch) < 13)
         return FALSE;
       return TRUE;
 
@@ -5343,7 +5348,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (BAB(ch) < 13)
+      if (ACTUAL_BAB(ch) < 13)
         return FALSE;
       return TRUE;
 
@@ -5352,7 +5357,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (BAB(ch) < 11)
+      if (ACTUAL_BAB(ch) < 11)
         return FALSE;
       return TRUE;
 
@@ -5363,7 +5368,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (!has_feat_requirement_check(ch, FEAT_STAGGERING_CRITICAL))
         return FALSE;
-      if (BAB(ch) < 17)
+      if (ACTUAL_BAB(ch) < 17)
         return FALSE;
       return TRUE;
 
@@ -5372,7 +5377,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (BAB(ch) < 15)
+      if (ACTUAL_BAB(ch) < 15)
         return FALSE;
       return TRUE;
 
@@ -5381,7 +5386,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (critical_feat_total(ch) >= 2)
         return FALSE;
-      if (BAB(ch) < 11)
+      if (ACTUAL_BAB(ch) < 11)
         return FALSE;
       return TRUE;
 
@@ -5392,7 +5397,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (!has_feat_requirement_check(ch, FEAT_IMPALING_CRITICAL))
         return FALSE;
-      if (BAB(ch) < 13)
+      if (ACTUAL_BAB(ch) < 13)
         return FALSE;
       return TRUE;
 
@@ -5815,12 +5820,12 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
         return FALSE;
       if (ch->real_abils.dex < 13)
         return FALSE;
-      if (BAB(ch) < 4)
+      if (ACTUAL_BAB(ch) < 4)
         return FALSE;
       return TRUE;
 
     case FEAT_STUNNING_FIST:
-      if (has_feat_requirement_check(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.wis >= 13 && ch->real_abils.dex >= 13 && BAB(ch) >= 8)
+      if (has_feat_requirement_check(ch, FEAT_IMPROVED_UNARMED_STRIKE) && ch->real_abils.wis >= 13 && ch->real_abils.dex >= 13 && ACTUAL_BAB(ch) >= 8)
         return TRUE;
       if (MONK_TYPE(ch) > 0)
         return TRUE;
@@ -5844,7 +5849,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
     case FEAT_GREAT_CLEAVE:
       if (has_feat_requirement_check(ch, FEAT_POWER_ATTACK) &&
           has_feat_requirement_check(ch, FEAT_CLEAVE) &&
-          (BAB(ch) >= 4) &&
+          (ACTUAL_BAB(ch) >= 4) &&
           (ch->real_abils.str >= 13))
         return TRUE;
       else
@@ -5872,20 +5877,19 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
 
     case FEAT_VITAL_STRIKE:
-      if (has_feat_requirement_check(ch, FEAT_DAZZLING_DISPLAY) &&
-        (BAB(ch) >= 6))
+      if (ACTUAL_BAB(ch) >= 6)
         return TRUE;
       return FALSE;
 
     case FEAT_IMPROVED_VITAL_STRIKE:
       if (has_feat_requirement_check(ch, FEAT_VITAL_STRIKE) &&
-        (BAB(ch) >= 11))
+        (ACTUAL_BAB(ch) >= 11))
         return TRUE;
       return FALSE;
 
     case FEAT_GREATER_VITAL_STRIKE:
       if (has_feat_requirement_check(ch, FEAT_IMPROVED_VITAL_STRIKE) &&
-        (BAB(ch) >= 16))
+        (ACTUAL_BAB(ch) >= 16))
         return TRUE;
       return FALSE;
 
@@ -5905,13 +5909,13 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
 
     case FEAT_IMPROVED_TWO_WEAPON_FIGHTING:
-      if (ch->real_abils.dex >= 17 && has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) && BAB(ch) >= 6)
+      if (ch->real_abils.dex >= 17 && has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) && ACTUAL_BAB(ch) >= 6)
         return TRUE;
       return FALSE;
 
     case FEAT_GREATER_TWO_WEAPON_FIGHTING:
       if (ch->real_abils.dex >= 19 && has_feat_requirement_check(ch, FEAT_TWO_WEAPON_FIGHTING) &&
-          has_feat_requirement_check(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && BAB(ch) >= 11)
+          has_feat_requirement_check(ch, FEAT_IMPROVED_TWO_WEAPON_FIGHTING) && ACTUAL_BAB(ch) >= 11)
         return TRUE;
       return FALSE;
 
@@ -5926,21 +5930,21 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
 
     case FEAT_IMPROVED_CRITICAL:
-      if (BAB(ch) < 8)
+      if (ACTUAL_BAB(ch) < 8)
         return FALSE;
       if (!iarg || is_proficient_with_weapon(ch, iarg))
         return TRUE;
       return FALSE;
 
     case FEAT_POWER_CRITICAL:
-      if (BAB(ch) < 4)
+      if (ACTUAL_BAB(ch) < 4)
         return FALSE;
       if (!iarg || has_combat_feat(ch, CFEAT_WEAPON_FOCUS, iarg))
         return TRUE;
       return FALSE;
       /*
                   case FEAT_WEAPON_FLURRY:
-                    if (BAB(ch) < 14)
+                    if (ACTUAL_BAB(ch) < 14)
                       return FALSE;
                     if (!iarg)
                       return TRUE;
@@ -5976,40 +5980,40 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
                   case FEAT_ROBILARS_GAMBIT:
                     if (!HAS_REAL_FEAT(ch, FEAT_COMBAT_REFLEXES))
                       return FALSE;
-                    if (BAB(ch) < 12)
+                    if (ACTUAL_BAB(ch) < 12)
                       return FALSE;
                     return TRUE;
 
                   case FEAT_KNOCKDOWN:
                     if (!HAS_REAL_FEAT(ch, FEAT_IMPROVED_TRIP))
                       return FALSE;
-                    if (BAB(ch) < 4)
+                    if (ACTUAL_BAB(ch) < 4)
                       return FALSE;
                     return TRUE;
          */
     case FEAT_ARMOR_SPECIALIZATION_LIGHT:
       if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_LIGHT))
         return FALSE;
-      if (BAB(ch) < 11)
+      if (ACTUAL_BAB(ch) < 11)
         return FALSE;
       return TRUE;
 
     case FEAT_ARMOR_SPECIALIZATION_MEDIUM:
       if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_MEDIUM))
         return FALSE;
-      if (BAB(ch) < 11)
+      if (ACTUAL_BAB(ch) < 11)
         return FALSE;
       return TRUE;
 
     case FEAT_ARMOR_SPECIALIZATION_HEAVY:
       if (!has_feat_requirement_check(ch, FEAT_ARMOR_PROFICIENCY_HEAVY))
         return FALSE;
-      if (BAB(ch) < 11)
+      if (ACTUAL_BAB(ch) < 11)
         return FALSE;
       return TRUE;
 
     case FEAT_WEAPON_FINESSE:
-      if (BAB(ch) < 1)
+      if (ACTUAL_BAB(ch) < 1)
         return FALSE;
       return TRUE;
 
@@ -6021,7 +6025,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
       return FALSE;
       /*
           case FEAT_WEAPON_FOCUS:
-            if (BAB(ch) < 1)
+            if (ACTUAL_BAB(ch) < 1)
               return FALSE;
             if (!iarg || is_proficient_with_weapon(ch, iarg))
               return TRUE;
@@ -6038,7 +6042,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
           case  FEAT_IMPROVED_WEAPON_FINESSE:
              if (!has_feat_requirement_check(ch, FEAT_WEAPON_FINESSE))
                return FALSE;
-             if (BAB(ch) < 4)
+             if (ACTUAL_BAB(ch) < 4)
                   return FALSE;
                 if (!iarg)
                   return TRUE;
@@ -6050,7 +6054,7 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
              return TRUE;
          */
     case FEAT_WEAPON_SPECIALIZATION:
-      if (BAB(ch) < 4 || WARRIOR_LEVELS(ch) < 4)
+      if (ACTUAL_BAB(ch) < 4 || WARRIOR_LEVELS(ch) < 4)
         return FALSE;
       if (!iarg || is_proficient_with_weapon(ch, iarg))
         return TRUE;
@@ -6233,14 +6237,14 @@ int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
 
     case FEAT_SHIELD_CHARGE:
       if (!has_feat_requirement_check(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
-          (BAB(ch) < 3))
+          (ACTUAL_BAB(ch) < 3))
         return FALSE;
       return TRUE;
 
     case FEAT_SHIELD_SLAM:
       if (!has_feat_requirement_check(ch, FEAT_SHIELD_CHARGE) ||
           !has_feat_requirement_check(ch, FEAT_IMPROVED_SHIELD_PUNCH) ||
-          (BAB(ch) < 6))
+          (ACTUAL_BAB(ch) < 6))
         return FALSE;
       return TRUE;
 
