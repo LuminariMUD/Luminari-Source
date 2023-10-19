@@ -216,7 +216,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"borrow", "borrow", POS_FIGHTING, do_borrow, 1, 0, FALSE, ACTION_STANDARD, {0, 0}, NULL},
     {"bind", "bind", POS_FIGHTING, do_bind, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"blessedtouch", "blessedtouch", POS_STANDING, do_blessedtouch, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
-    {"battlerage", "battlerage", POS_STANDING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"battlerage", "battlerage", POS_FIGHTING, do_battlerage, 0, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
     {"bazaar", "bazaar", POS_STANDING, do_not_here, 0, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"bullrush", "bullrush", POS_STANDING, do_bullrush, 0, 0, FALSE, ACTION_STANDARD, {0, 6}, NULL},
 
@@ -3052,7 +3052,7 @@ switch (load_result)
       write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
       STATE(d) = CON_QREGION;
       return;
     }
@@ -3560,6 +3560,31 @@ switch (load_result)
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
       write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+
+      STATE(d) = CON_QREGION;
+      break;
+#elif defined(CAMPAIGN_DL)
+    case '4':
+
+      if (GET_REGION(d->character))
+      {
+        write_to_output(d, "\r\n\tcYou have already chosen a homeland region.  To change it you will need to ask a staff member to do it.\r\n\r\n\tn");
+        return;
+      }
+
+      write_to_output(d, "\tcRegions of Ansalon\tn\r\n\r\n");
+      for (i = 1; i < NUM_REGIONS; i++)
+      {
+        write_to_output(d, "%-2d) %-20s ", i, regions[i]);
+        if (((i - 1) % 3) == 2)
+          send_to_char(d->character, "\r\n");
+      }
+      if (((i - 1) % 3) != 2)
+        send_to_char(d->character, "\r\n");
+      write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
+                         "may be integrated into future game systems.\r\n");
+      write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
 
       STATE(d) = CON_QREGION;
       break;

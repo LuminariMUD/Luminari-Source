@@ -686,7 +686,7 @@ bool meets_class_prerequisite(struct char_data *ch, struct class_prerequisite *p
 
     /* minimum BAB requirement */
   case CLASS_PREREQ_BAB:
-    if (BAB(ch) < prereq->values[0])
+    if (ACTUAL_BAB(ch) < prereq->values[0])
       return FALSE;
     break;
 
@@ -1686,11 +1686,72 @@ byte saving_throws(struct char_data *ch, int type)
   return save;
 }
 
-// base attack bonus, replacement for THAC0 system
+int NUM_ATTACKS_BAB(struct char_data *ch)
+{
+  if (IS_NPC(ch) || GET_LEVEL(ch) < 20 || !FIXED_BAB(ch))
+  {
+    return BAB_OLD(ch);
+  }
+  else
+  {
+    if (IS_AFFECTED(ch, AFF_TFORM))
+      return MIN(20, GET_LEVEL(ch));
 
+    if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+      return MIN(20, CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER));
+
+    return MIN(20, FIXED_BAB(ch));
+  }
+}
+
+// This is your actual BAB not including wildshape or spells or anything except what is granted by your
+// class levels. Used mainly for prerequisites such as certain feats.
+int ACTUAL_BAB(struct char_data *ch)
+{
+  int i = 0, level = 0, bab = 0;
+  float counter = 0.0;
+  if (IS_NPC(ch)) return BAB_OLD(ch);
+
+  if (GET_LEVEL(ch) < 20 || !FIXED_BAB(ch))
+  {
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
+      level = MIN(20, CLASS_LEVEL(ch, i));
+      if (level)
+      {
+        switch (CLSLIST_BAB(i))
+        {
+        case M:
+          counter += (float)level * 3.0 / 4.0;
+          break;
+        case H:
+          counter += (float)level;
+          break;
+        case L:
+        default:
+          counter += (float)level / 2.0;
+          break;
+        }
+      }
+    }
+
+    bab = (int)counter;
+  }
+  else
+  {
+    bab = MIN(20, FIXED_BAB(ch));
+  }
+  bab += MAX(0, GET_LEVEL(ch) - 20);
+  return bab;
+}
+
+// base attack bonus, replacement for THAC0 system
 int BAB(struct char_data *ch)
 {
-  return BAB_OLD(ch);
+  if (IS_NPC(ch) || GET_LEVEL(ch) < 20 || !FIXED_BAB(ch))
+    return BAB_OLD(ch);
+  else
+    return BAB_NEW(ch);
 }
 
 int BAB_OLD(struct char_data *ch)
@@ -1746,6 +1807,50 @@ int BAB_OLD(struct char_data *ch)
   }
 
   bab = (int) counter;
+
+  if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
+  {
+    bab += MAX(1, (SPELLBATTLE(ch) * 2 / 3));
+  }
+
+  if (wildshape_level > bab)
+    bab = wildshape_level;
+
+  if (!IS_NPC(ch)) /* cap pc bab at 30 */
+    return (MIN(bab, LVL_IMMORT - 1));
+
+  return bab;
+}
+
+int BAB_NEW(struct char_data *ch)
+{
+
+  /* gnarly huh? */
+  if (IS_AFFECTED(ch, AFF_TFORM))
+    return (GET_LEVEL(ch));
+
+  /* npc is simple */
+  if (IS_NPC(ch))
+  {
+    switch (CLSLIST_BAB(GET_CLASS(ch)))
+    {
+    case H:
+      return ((int)(GET_LEVEL(ch)));
+    case M:
+      return ((int)(GET_LEVEL(ch) * 3 / 4));
+    case L:
+    default:
+      return ((int)(GET_LEVEL(ch) / 2));
+    }
+  }
+
+  int bab = 0, wildshape_level = 0;
+
+  /* wildshape */
+  if (IS_WILDSHAPED(ch) || IS_MORPHED(ch))
+    wildshape_level = CLASS_LEVEL(ch, CLASS_DRUID) + CLASS_LEVEL(ch, CLASS_SHIFTER);
+
+  bab = FIXED_BAB(ch) + MAX(0, GET_LEVEL(ch) - 20);
 
   if (char_has_mud_event(ch, eSPELLBATTLE) && SPELLBATTLE(ch) > 0)
   {
@@ -3413,6 +3518,30 @@ void advance_level(struct char_data *ch, int class)
     add_hp++;
   }
 
+  if (GET_LEVEL(ch) == 20)
+  {
+    int level = 0;
+    float counter = 0.0;
+    for (i = 0; i < MAX_CLASSES; i++)
+    {
+      level = MIN(20, CLASS_LEVEL(ch, i));
+      switch (CLSLIST_BAB(i))
+      {
+      case M:
+        counter += (float)level * 3.0 / 4.0;
+        break;
+      case H:
+        counter += (float)level;
+        break;
+      case L:
+      default:
+        counter += (float)level / 2.0;
+        break;
+      }
+    }
+    FIXED_BAB(ch) = (int) counter;
+  }
+
   /* adjust final and report changes! */
   GET_REAL_MAX_HIT(ch) += MAX(1, add_hp);
   send_to_char(ch, "\tMTotal HP:\tn %d\r\n", MAX(1, add_hp));
@@ -3432,9 +3561,11 @@ void advance_level(struct char_data *ch, int class)
   }
   */
   GET_FEAT_POINTS(ch) += feats;
-  if (feats)
+  if (feats > 0)
+  {
     if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
       send_to_char(ch, "%d \tMFeat points gained.\tn\r\n", feats);
+  }
   GET_CLASS_FEATS(ch, class) += class_feats;
   if (class_feats)
     if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
@@ -3447,7 +3578,7 @@ void advance_level(struct char_data *ch, int class)
     send_to_char(ch, "%d \tMEpic class feat points gained.\tn\r\n", epic_class_feats);
   GET_TRAINS(ch) += trains;
   if (GET_PREMADE_BUILD_CLASS(ch) == CLASS_UNDEFINED)
-    send_to_char(ch, "%d \tMTraining sessions gained.\tn\r\n", trains);
+    send_to_char(ch, "%d \tMSkill points gained.\tn\r\n", trains);
   /*******/
   /* end advancement block */
   /*******/
@@ -4169,6 +4300,7 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_EFFORTLESS_ARMOR, 1);
   spell_assignment(CLASS_CLERIC, SPELL_ANT_HAUL, 1);
   spell_assignment(CLASS_CLERIC, SPELL_PLANAR_HEALING, 1);
+  spell_assignment(CLASS_CLERIC, SPELL_BLESS, 1);
   /*              class num      spell                   level acquired */
   /* 2nd circle */
   spell_assignment(CLASS_CLERIC, SPELL_AUGURY, 3);
@@ -4198,7 +4330,6 @@ void load_class_list(void)
   spell_assignment(CLASS_CLERIC, SPELL_GIRD_ALLIES, 3);
   /*              class num      spell                   level acquired */
   /* 3rd circle */
-  spell_assignment(CLASS_CLERIC, SPELL_BLESS, 5);
   spell_assignment(CLASS_CLERIC, SPELL_CURE_BLIND, 5);
   spell_assignment(CLASS_CLERIC, SPELL_DETECT_ALIGN, 5);
   spell_assignment(CLASS_CLERIC, SPELL_CAUSE_SERIOUS_WOUNDS, 5);

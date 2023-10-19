@@ -2590,7 +2590,7 @@ ACMD(do_look)
         if (tmp_object)
           look_at_target(ch, arg);
         else
-          send_to_char(ch, "You can't read that.\r\n");
+          do_examine(ch, argument, cmd, subcmd);
       }
       return;
     }
@@ -3154,7 +3154,7 @@ ACMD(do_score)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   struct time_info_data playing_time;
-  int calc_bab = MIN(MAX_BAB, BAB(ch)), i = 0, counter = 0;
+  int calc_bab = MIN(MAX_BAB, ACTUAL_BAB(ch)), i = 0, counter = 0;
   struct obj_data *wielded = GET_EQ(ch, WEAR_WIELD_1);
   float height = GET_HEIGHT(ch);
   int w_type = 0;

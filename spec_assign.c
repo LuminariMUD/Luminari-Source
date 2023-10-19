@@ -120,7 +120,7 @@ void assign_mobiles(void)
 
   ASSIGNMOB(15321, crafting_quest);
   ASSIGNMOB(15322, buymolds);
-  ASSIGNMOB(15323, identify_mob);
+  ASSIGNMOB(7021, identify_mob);
 #else
 
   /* vampire mobs (spec to do vampire-like abilities) */

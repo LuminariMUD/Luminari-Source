@@ -213,9 +213,9 @@ ACMD(do_mode)
       send_to_char(ch, "The maximum value you can specify for %s is %d (mode cap).\r\n", combat_mode_info[mode].name, MODE_CAP);
       return;
     }
-    else if (!IS_NPC(ch) && number > BAB(ch))
+    else if (!IS_NPC(ch) && number > NUM_ATTACKS_BAB(ch))
     {
-      send_to_char(ch, "Mode %s is limited to %d - your base attack bonus (BAB).\r\n", combat_mode_info[mode].name, BAB(ch));
+      send_to_char(ch, "Mode %s is limited to %d - your base attack bonus (BAB).\r\n", combat_mode_info[mode].name, NUM_ATTACKS_BAB(ch));
       return;
     }
     else if (number < 1)

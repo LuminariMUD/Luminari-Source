@@ -957,8 +957,7 @@ void Crash_crashsave(struct char_data *ch)
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';",
-           GET_NAME(ch));
+  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';", GET_NAME(ch));
   if (mysql_query(conn, del_buf))
   {
     log("SYSERR: Unable to delete player object save data: %s",
@@ -1036,6 +1035,24 @@ void Crash_idlesave(struct char_data *ch)
 
   if (!(fp = fopen(buf, "w")))
     return;
+
+#ifdef OBJSAVE_DB
+  char del_buf[2048];
+  if (mysql_query(conn, "start transaction;"))
+  {
+    log("SYSERR: Unable to start transaction for saving of player object data: %s",
+        mysql_error(conn));
+    return;
+  }
+  /* Delete existing save data.  In the future may just flag these for deletion. */
+  snprintf(del_buf, sizeof(del_buf), "delete from player_save_objs where name = '%s';", GET_NAME(ch));
+  if (mysql_query(conn, del_buf))
+  {
+    log("SYSERR: Unable to delete player object save data: %s",
+        mysql_error(conn));
+    return;
+  }
+#endif
 
   Crash_extract_norent_eq(ch);
   Crash_extract_norents(ch->carrying);
