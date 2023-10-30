@@ -4500,7 +4500,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
   /*5*/ feato(FEAT_RIPOSTE, "riposte", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "+2 bonus to riposte attempts (totaldefense)",
               "+2 bonus to riposte attempts (totaldefense)");
-  /*6*/ feato(FEAT_ACROBATIC_CHARGE, "dextrous charge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+  /*6*/ feato(FEAT_ACROBATIC_CHARGE, "dexterous charge", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
               "+4 damage when charging on foot",
               "+4 damage when charging on foot");
   /*7*/ feato(FEAT_ELABORATE_PARRY, "elaborate parry", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

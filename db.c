@@ -5220,7 +5220,6 @@ void reset_char(struct char_data *ch)
   ch->char_specials.carry_weight = 0;
   ch->char_specials.carry_items = 0;
   ch->char_specials.totalDefense = 0;
-  ch->char_specials.vital_strike = 0;
   ch->char_specials.mounted_blocks_left = 0;
   ch->char_specials.deflect_arrows_left = 0;
   ch->char_specials.riding = NULL;

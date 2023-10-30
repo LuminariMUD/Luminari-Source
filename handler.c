@@ -1484,34 +1484,34 @@ void obj_to_char(struct obj_data *object, struct char_data *ch)
 {
   if (object && ch)
   {
-    log("T1: %s", object->short_description);
+    // log("T1: %s", object->short_description);
     object->next_content = ch->carrying;
-    log("T2: %s", object->short_description);
+    // log("T2: %s", object->short_description);
     ch->carrying = object;
-    log("T3: %s", object->short_description);
+    // log("T3: %s", object->short_description);
     object->carried_by = ch;
-    log("T4: %s", object->short_description);
+    // log("T4: %s", object->short_description);
     IN_ROOM(object) = NOWHERE;
-    log("T5: %s", object->short_description);
+    // log("T5: %s", object->short_description);
     IS_CARRYING_W(ch) += GET_OBJ_WEIGHT(object);
     IS_CARRYING_N(ch)++;
-    log("T6: %s", object->short_description);
+    // log("T6: %s", object->short_description);
 
     /* autoquest system check point -Zusuk */
     autoquest_trigger_check(ch, NULL, object, 0, AQ_OBJ_FIND);
-    log("T7: %s", object->short_description);
+    // log("T7: %s", object->short_description);
 
     /* set flag for crash-save system, but not on mobs! */
     if (!IS_NPC(ch))
       SET_BIT_AR(PLR_FLAGS(ch), PLR_CRASH);
 
-    log("T8: %s", object->short_description);
+    // log("T8: %s", object->short_description);
 
     if (ch->desc)
     {
-      log("T9: %s", object->short_description);
+      // log("T9: %s", object->short_description);
       update_msdp_inventory(ch);
-      log("T10: %s", object->short_description);
+      // log("T10: %s", object->short_description);
       MSDPFlush(ch->desc, eMSDP_INVENTORY);
     }
     log("T11: %s", object->short_description);
@@ -2376,6 +2376,8 @@ void extract_char_final(struct char_data *ch)
       GUARDING(tch) = NULL;
   }
 
+  empty_bags_to_inventory(ch);
+
   /* transfer objects to room, if any */
   while (ch->carrying)
   {
@@ -3136,5 +3138,84 @@ void save_chars(void)
     if (!d->account)
       continue;
     save_char(ch, 0);
+  }
+}
+
+void empty_bags_to_inventory(struct char_data *ch)
+{
+  // empty bags
+  if (!IS_NPC(ch))
+  {
+    struct obj_data *tmp, *obj;
+    while (ch->bags->bag1)
+    {
+      tmp = ch->bags->bag1->next_content;
+      obj = ch->bags->bag1;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag1 = tmp;
+    }
+    while (ch->bags->bag2)
+    {
+      tmp = ch->bags->bag2->next_content;
+      obj = ch->bags->bag2;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag2 = tmp;
+    }
+    while (ch->bags->bag3)
+    {
+      tmp = ch->bags->bag3->next_content;
+      obj = ch->bags->bag3;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag3 = tmp;
+    }
+    while (ch->bags->bag4)
+    {
+      tmp = ch->bags->bag4->next_content;
+      obj = ch->bags->bag4;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag4 = tmp;
+    }
+    while (ch->bags->bag5)
+    {
+      tmp = ch->bags->bag5->next_content;
+      obj = ch->bags->bag5;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag5 = tmp;
+    }
+    while (ch->bags->bag6)
+    {
+      tmp = ch->bags->bag6->next_content;
+      obj = ch->bags->bag6;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag6 = tmp;
+    }
+    while (ch->bags->bag7)
+    {
+      tmp = ch->bags->bag7->next_content;
+      obj = ch->bags->bag7;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag7 = tmp;
+    }
+    while (ch->bags->bag8)
+    {
+      tmp = ch->bags->bag8->next_content;
+      obj = ch->bags->bag8;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag8 = tmp;
+    }
+    while (ch->bags->bag9)
+    {
+      tmp = ch->bags->bag9->next_content;
+      obj = ch->bags->bag9;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag9 = tmp;
+    }
+    while (ch->bags->bag10)
+    {
+      tmp = ch->bags->bag10->next_content;
+      obj = ch->bags->bag10;
+      obj_from_bag(ch, obj, 1);
+      ch->bags->bag10 = tmp;
+    }
   }
 }

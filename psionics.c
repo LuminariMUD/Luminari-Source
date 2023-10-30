@@ -94,7 +94,7 @@ void assign_psionic_powers(void)
     psiono(PSIONIC_BIOFEEDBACK, "biofeedback", 3, true, 3, 100, TELEPATHY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "You feel your biofeedback protection expire.", 2);
     psiono(PSIONIC_BODY_EQUILIBRIUM, "body equilibrium", 3, true, 1, 100, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "You feel your body equillibrium fade.", 2);
     psiono(PSIONIC_BREACH, "breach", 3, false, 1, 100, PSYCHOPORTATION, TAR_IGNORE, false, MAG_MANUAL, NULL, 2);
-    psiono(PSIONIC_CONCEALING_AMORPHA, "concealing amorpha", 3, true, 3, 100, METACREATIVITY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "The concealing amorpha surrounding you dissipates.", 2);
+    psiono(PSIONIC_CONCEALING_AMORPHA, "concealing amorpha", 3, true, 3, 100, METACREATIVITY, TAR_CHAR_ROOM, false, MAG_AFFECTS, "The concealing amorpha surrounding you dissipates.", 2);
     psiono(PSIONIC_CONCUSSION_BLAST, "concussion blast", 3, true, 2, 100, PSYCHOKINESIS, TAR_CHAR_ROOM | TAR_NOT_SELF, true, MAG_AREAS, NULL, 2);
     psiono(PSIONIC_DETECT_HOSTILE_INTENT, "detect hostile intent", 3, false, 0, 0, TELEPATHY, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your psychic ability to detect nearby danger has passed.", 2);
     psiono(PSIONIC_ELFSIGHT, "elfsight", 3, false, 0, 0, PSYCHOMETABOLISM, TAR_CHAR_ROOM | TAR_SELF_ONLY, false, MAG_AFFECTS, "Your elfsight wears off.", 2);

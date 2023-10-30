@@ -2365,6 +2365,8 @@ return;
     }
 
     // First, see what is the maximum augment usage allowed
+    if (GET_AUGMENT_PSP(ch) > max_augment_psp_allowed(ch, spellnum))
+      send_to_char(ch, "Your augment PSP has been capped at %d.\r\n", max_augment_psp_allowed(ch, spellnum));
     GET_AUGMENT_PSP(ch) = MIN(GET_AUGMENT_PSP(ch), max_augment_psp_allowed(ch, spellnum));
 
     // then adjust it to the specifications of the level and power used
@@ -2978,7 +2980,7 @@ void mag_assign_spells(void)
          "You feel weaker.", 2, 7, TRANSMUTATION, FALSE); // wiz2, cle1
   spello(SPELL_GRACE, "grace", 65, 50, 1, POS_FIGHTING,
          TAR_CHAR_ROOM, FALSE, MAG_AFFECTS,
-         "You feel less dextrous.", 2, 7, TRANSMUTATION, FALSE); // wiz2, cle1
+         "You feel less dexterous.", 2, 7, TRANSMUTATION, FALSE); // wiz2, cle1
   spello(SPELL_SCARE, "scare", 0, 0, 0, POS_FIGHTING,
          TAR_CHAR_ROOM | TAR_FIGHT_VICT, TRUE, MAG_AFFECTS,
          "You no longer feel scared.", 1, 7, ILLUSION, FALSE); // wiz1, cle2
@@ -3037,7 +3039,7 @@ void mag_assign_spells(void)
   spello(SPELL_MASS_STRENGTH, "mass strength", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_GROUPS, "You feel weaker.", 5, 19, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_GRACE, "mass grace", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
-         FALSE, MAG_GROUPS, "You feel less dextrous.", 5, 19, TRANSMUTATION, FALSE);
+         FALSE, MAG_GROUPS, "You feel less dexterous.", 5, 19, TRANSMUTATION, FALSE);
   spello(SPELL_MASS_ENDURANCE, "mass endurance", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          FALSE, MAG_GROUPS, "Your magical endurance has faded away.", 5, 19, TRANSMUTATION, FALSE);
   /**  end shared list **/

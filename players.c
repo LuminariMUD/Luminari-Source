@@ -592,6 +592,8 @@ int load_char(const char *name, struct char_data *ch)
     GET_EIDOLON_LONG_DESCRIPTION(ch) = NULL;
     GET_EIDOLON_SHORT_DESCRIPTION(ch) = NULL;
 
+    VITAL_STRIKING(ch) = FALSE;
+
     for (i = 0; i < MAX_BAGS; i++)
     {
       GET_BAG_NAME(ch, i) = NULL;
@@ -1259,6 +1261,8 @@ int load_char(const char *name, struct char_data *ch)
       case 'V':
         if (!strcmp(tag, "Vars"))
           read_saved_vars_ascii(fl, ch, atoi(line));
+        else if (!strcmp(tag, "VitS"))
+          VITAL_STRIKING(ch) = atoi(line);
         break;
 
       case 'W':
@@ -1549,6 +1553,9 @@ void save_char(struct char_data *ch, int mode)
   fprintf(fl, "MiXp: %ld\n", GET_MISSION_EXP(ch));
   fprintf(fl, "MiDf: %d\n", GET_MISSION_DIFFICULTY(ch));
   fprintf(fl, "MiRN: %d\n", GET_MISSION_NPC_NAME_NUM(ch));
+
+  if (VITAL_STRIKING(ch))
+    fprintf(fl, "VitS: %d\n", VITAL_STRIKING(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);

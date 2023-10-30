@@ -1520,6 +1520,9 @@ const char *action_bits[] = {
     "Dragon-Knight",
     "Mummy-Dust",
     "Eidolon",
+    "Mob-Block-Evil",
+    "Mob-Block-Neutral",
+    "Mob-Block-Good",
     "\n"
 };
 CHECK_TABLE_SIZE(action_bits, NUM_MOB_FLAGS + 1);
@@ -1596,6 +1599,7 @@ const char *preference_bits[] = {
     "Life-Bond",
     "Charmie-Combat-Roll",
     "Auto-Prep",
+    "Augmewnt-BUffs",
     "\n"};
 CHECK_TABLE_SIZE(preference_bits, NUM_PRF_FLAGS + 1);
 
@@ -5310,7 +5314,6 @@ const char *regions[] = {
     "Nordmaar",
     "Northern Ergoth",
     "Nostar",
-    "Principality of Kharolis",
     "Qualinesti",
     "Sancrist Isle",
     "Schallsea",
@@ -5320,9 +5323,7 @@ const char *regions[] = {
     "Taman Busuk",
     "Tarsis",
     "Teyr",
-    "Thoradin",
     "Thorbardin",
-    "Throtl",
     "\n"
 };
 CHECK_TABLE_SIZE(regions, NUM_REGIONS + 1);

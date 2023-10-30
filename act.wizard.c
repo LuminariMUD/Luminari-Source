@@ -9512,4 +9512,48 @@ ACMDU(do_setroomsect)
   add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
 }
 
+ACMD(do_show_blockers)
+{
+
+  struct char_data *tch;
+  int vnum = 0;
+
+  for (tch = character_list; tch; tch = tch->next)
+  {
+    if (!IS_NPC(tch)) continue;
+    if (MOB_FLAGGED(tch, MOB_BLOCK_N) || MOB_FLAGGED(tch, MOB_BLOCK_E) || MOB_FLAGGED(tch, MOB_BLOCK_S) || MOB_FLAGGED(tch, MOB_BLOCK_W) || 
+        MOB_FLAGGED(tch, MOB_BLOCK_NE) || MOB_FLAGGED(tch, MOB_BLOCK_NW) || MOB_FLAGGED(tch, MOB_BLOCK_SE) || MOB_FLAGGED(tch, MOB_BLOCK_SW) || 
+        MOB_FLAGGED(tch, MOB_BLOCK_U) || MOB_FLAGGED(tch, MOB_BLOCK_D))
+    {
+      if (IN_ROOM(tch) != NOWHERE)
+        vnum = GET_ROOM_VNUM(IN_ROOM(tch));
+      else
+        vnum = 0;
+      send_to_char(ch, "-- %5d %-20s ", vnum, GET_NAME(tch));
+      if (MOB_FLAGGED(tch, MOB_BLOCK_N))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_N]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_E))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_E]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_S))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_S]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_W))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_W]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_NE))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_NE]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_SE))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_SE]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_SW))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_SW]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_NW))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_NW]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_U))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_U]);
+      if (MOB_FLAGGED(tch, MOB_BLOCK_D))
+        send_to_char(ch, "%s ", action_bits[MOB_BLOCK_D]);
+      send_to_char(ch, "\r\n");
+    }
+  }
+
+}
+
 /* EOF */

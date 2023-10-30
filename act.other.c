@@ -5386,7 +5386,7 @@ ACMD(do_spells)
   }
   else
   {
-    if (get_number_of_spellcasting_classes(ch) == 1 && GET_LEVEL(ch) < LVL_IMMORT)
+    if (get_number_of_spellcasting_classes(ch) == 1 && GET_LEVEL(ch) < LVL_IMMORT && IS_SPELLCASTER_CLASS(GET_CLASS(ch)))
       class = GET_CLASS(ch);
     else if (subcmd == SCMD_CONCOCT)
       class = CLASS_ALCHEMIST;
@@ -8348,7 +8348,6 @@ ACMDU(do_fiendishboon)
 
 #define NOBUFF_MSG "buff add (spell/power name)                - Add a spell or power to your buff list.\r\n"          \
                    "buff remove (spell/power name)             - Remove a spell or power from your buff list\r\n"      \
-                   "buff (augment amount) (psionic power name) - Assign extra psp to augment a buff power\r\n"         \
                    "buff list                                  - Will show you the spells and powers in your list\r\n" \
                    "buff perform                               - Will begin buffing you with your buff list\r\n"       \
                    "buff cancel                                - Will can any buffing action in process.\r\n"
@@ -8356,7 +8355,7 @@ ACMDU(do_fiendishboon)
 ACMD(do_buff)
 {
   char arg1[200], arg2[200];
-  int spellnum = 0, i = 0, aug = 0;
+  int spellnum = 0, i = 0;
   int is_spell = true; // true if it's a spell, false if it's a psionic power
   bool found = false;
   struct char_data *target;
@@ -8429,51 +8428,52 @@ ACMD(do_buff)
     }
   }
 
-  if (isdigit(*arg1))
-  {
+  // if (isdigit(*arg1))
+  // {
 
-    send_to_char(ch, "Buffing with psionics is not possible right now due to a serious, yet unresolved bug.\r\n");
-    return;
+  //   send_to_char(ch, "Buffing with psionics is not possible right now due to a serious, yet unresolved bug.\r\n");
+  //   return;
 
-    // Assign augment psp to specified psionic power.
+  //   // Assign augment psp to specified psionic power.
 
-    if (!*arg2)
-    {
-      send_to_char(ch, "Please specify the psionic power buff you wish to assign augment psp to.\r\n");
-      return;
-    }
+  //   if (!*arg2)
+  //   {
+  //     send_to_char(ch, "Please specify the psionic power buff you wish to assign augment psp to.\r\n");
+  //     return;
+  //   }
 
-    if (is_spell)
-    {
-      send_to_char(ch, "You can only assign augment psp to a psionic power.\r\n");
-      return;
-    }
+  //   if (is_spell)
+  //   {
+  //     send_to_char(ch, "You can only assign augment psp to a psionic power.\r\n");
+  //     return;
+  //   }
 
-    aug = atoi(arg1);
+  //   aug = atoi(arg1);
 
-    if (aug < 0)
-    {
-      send_to_char(ch, "Please specify the amount of psp you wish to use to augment this psionnic buff.\r\n");
-      return;
-    }
+  //   if (aug < 0)
+  //   {
+  //     send_to_char(ch, "Please specify the amount of psp you wish to use to augment this psionnic buff.\r\n");
+  //     return;
+  //   }
 
-    for (i = 0; i < MAX_BUFFS; i++)
-    {
-      if (GET_BUFF(ch, i, 0) == spellnum)
-      {
-        found = true;
-        break;
-      }
-    }
-    if (!found)
-    {
-      send_to_char(ch, "You do not have any spells or powers in your buff list.\r\n");
-      return;
-    }
-    GET_BUFF(ch, i, 1) = aug;
-    send_to_char(ch, "You assign %d augment psp to '%s'.\r\n", aug, spell_info[spellnum].name);
-  }
-  else if (is_abbrev(arg1, "add"))
+  //   for (i = 0; i < MAX_BUFFS; i++)
+  //   {
+  //     if (GET_BUFF(ch, i, 0) == spellnum)
+  //     {
+  //       found = true;
+  //       break;
+  //     }
+  //   }
+  //   if (!found)
+  //   {
+  //     send_to_char(ch, "You do not have any spells or powers in your buff list.\r\n");
+  //     return;
+  //   }
+  //   GET_BUFF(ch, i, 1) = aug;
+  //   send_to_char(ch, "You assign %d augment psp to '%s'.\r\n", aug, spell_info[spellnum].name);
+  // }
+  // else 
+  if (is_abbrev(arg1, "add"))
   {
     // Add a spell/power to buff list.
     for (i = 0; i < MAX_BUFFS; i++)
@@ -8531,7 +8531,8 @@ ACMD(do_buff)
         }
         else
         {
-          send_to_char(ch, "-- %-25s %d augment psp\r\n", spell_info[GET_BUFF(ch, i, 0)].name, GET_BUFF(ch, i, 1));
+          // send_to_char(ch, "-- %-25s %d augment psp\r\n", spell_info[GET_BUFF(ch, i, 0)].name, GET_BUFF(ch, i, 1));
+          send_to_char(ch, "-- %-25s %s\r\n", spell_info[GET_BUFF(ch, i, 0)].name, PRF_FLAGGED(ch, PRF_AUGMENT_BUFFS) ? "*augmented*" : "");
         }
       }
     }

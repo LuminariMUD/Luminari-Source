@@ -9884,6 +9884,28 @@ ACMD(do_evobreath)
   USE_STANDARD_ACTION(ch);
 }
 
+ACMD(do_vital_strike)
+{
+  if (!HAS_FEAT(ch, FEAT_VITAL_STRIKE))
+  {
+    send_to_char(ch, "You do not know how to perform a vital strike.\r\n");
+    return;
+  }
+
+  if (VITAL_STRIKING(ch))
+  {
+    VITAL_STRIKING(ch) = FALSE;
+    act("You cease concentrating your attacks into a single vital strike!", TRUE, ch, 0, 0, TO_CHAR);
+  }
+  else
+  {
+    USE_FULL_ROUND_ACTION(ch);
+    VITAL_STRIKING(ch) = TRUE;
+    act("You concentrate your attacks into a single vital strike!", TRUE, ch, 0, 0, TO_CHAR);
+  }
+
+}
+
 /* cleanup! */
 #undef RAGE_AFFECTS
 #undef D_STANCE_AFFECTS

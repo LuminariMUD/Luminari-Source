@@ -2541,7 +2541,7 @@ EVENTFUNC(event_preparation)
     if (!SPELL_PREP_QUEUE(ch, class))
     {
       *buf = '\0';
-      send_to_char(ch, "%s\r\n", spell_prep_dict[class][3]);
+      send_to_char(ch, "Your %s are complete.\r\n", spell_prep_dict[class][3]);
       snprintf(buf, sizeof(buf), "$n completes $s %s.", spell_prep_dict[class][3]);
       act(buf, FALSE, ch, 0, 0, TO_ROOM);
       set_preparing_state(ch, class, FALSE);

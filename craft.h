@@ -213,4 +213,7 @@ ACMD_DECL(do_harvest);
 ACMD_DECL(do_disenchant);
 /* end command functions */
 
+int get_mysql_supply_orders_available(struct char_data *ch);
+void put_mysql_supply_orders_available(struct char_data *ch, int avail);
+
 #endif /* CRAFT_H */

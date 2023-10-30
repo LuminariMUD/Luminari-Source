@@ -260,7 +260,7 @@ ACMDU(do_carriage)
       if (GET_ROOM_VNUM(IN_ROOM(ch)) != atoi(carriage_locales[i][1]) && ((here != 999) ? (carriage_locales[here][3] == carriage_locales[i][3]) : TRUE))
       {
         found = true;
-        send_to_char(ch, "%-30s %4s %10d %10d (%s)\r\n", carriage_locales[i][0], carriage_locales[i][2], get_distance(ch, i, here, TRAVEL_CARRIAGE), get_travel_time(ch, 10, i, here, TRAVEL_CARRIAGE), carriage_locales[i][4]);
+        send_to_char(ch, "%-30s %4s %10d %10d (%s)\r\n", carriage_locales[i][0], carriage_locales[i][2], get_distance(ch, i, here, TRAVEL_CARRIAGE), get_travel_time(ch, 5, i, here, TRAVEL_CARRIAGE), carriage_locales[i][4]);
       }
       i++;
     }
@@ -438,6 +438,15 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     break;
   }
 
+  int speed = 0;
+
+  switch (type)
+  {
+    case TRAVEL_CARRIAGE: speed = 3; break;
+    case TRAVEL_SAILING: speed = 5; break;
+    default: speed = 2; break;
+  }
+
   room_rnum to_room = NOWHERE;
 
   if (type == TRAVEL_CARRIAGE)
@@ -541,7 +550,7 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     char_pets_to_char_loc(tch);
     tch->player_specials->destination = to_room;
     // need to take care of this part still for overland flight spell
-    tch->player_specials->travel_timer = get_travel_time(tch, 10, locale, here, type);
+    tch->player_specials->travel_timer = get_travel_time(tch, speed, locale, here, type);
     tch->player_specials->travel_type = type;
     tch->player_specials->travel_locale = locale;
     look_at_room(tch, 0);
@@ -794,9 +803,8 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
 
   distance *= 10;
 
-
   if (speed == 0)
-    speed = 10;
+    speed = 2;
 
 #ifdef CAMPAIGN_FR
   distance *= 5;
@@ -807,7 +815,8 @@ int get_travel_time(struct char_data *ch, int speed, int locale, int here, int t
   distance /= 2;
 
 #if defined(CAMPAIGN_DL)
-  distance /= 3;
+
+  distance /= speed;
 #endif
 
   return distance;
