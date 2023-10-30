@@ -640,6 +640,7 @@ ACMD_DECL(do_planarsoul);
 ACMD_DECL(do_grand_destiny);
 ACMD_DECL(do_evoweb);
 ACMD_DECL(do_evobreath);
+ACMD_DECL(do_vital_strike);
 
 /*****************************************************************************
  * Begin Functions and defines for act.other.c
@@ -795,6 +796,7 @@ ACMDCHECK(can_tinker);
 ACMD_DECL(do_tinker);
 ACMD_DECL(do_eldritch);
 ACMD_DECL(do_borrow);
+ACMD_DECL(do_unstuck);
 
 /*****************************************************************************
  * Begin Functions and defines for act.social.c
@@ -969,6 +971,7 @@ ACMD_DECL(do_dragonmagic);
 ACMD_DECL(do_resetpassword);
 ACMD_DECL(do_holyweapon);
 ACMD_DECL(do_award);
+ACMD_DECL(do_show_blockers);
 
 // encounters.c
 ACMD_DECL(do_encounterinfo);

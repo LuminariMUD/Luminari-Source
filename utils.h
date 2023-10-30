@@ -244,6 +244,9 @@ bool room_is_daylit(room_rnum room);
 bool can_naturally_stealthy(struct char_data *ch);
 bool can_one_with_shadows(struct char_data *ch);
 int get_party_size_same_room(struct char_data *ch);
+int get_apply_type_gear_mod(struct char_data *ch, int apply);
+int get_fast_healing_amount(struct char_data *ch);
+int get_hp_regen_amount(struct char_data *ch);
 int get_avg_party_level_same_room(struct char_data *ch);
 int get_max_party_level_same_room(struct char_data *ch);
 int levenshtein_distance(const char *s1, const char *s2);
@@ -1008,7 +1011,7 @@ void char_from_furniture(struct char_data *ch);
 // ***  char_specials (there are others spread about utils.h file) *** //
 #define GET_ELDRITCH_SHAPE(ch) ((ch)->char_specials.eldritch_shape)
 #define GET_ELDRITCH_ESSENCE(ch) ((ch)->char_specials.eldritch_essence)
-#define VITAL_STRIKING(ch) ((ch)->char_specials.vital_strike)
+#define VITAL_STRIKING(ch) ((ch)->player_specials->saved.vital_strike)
 /** Current position (standing, sitting) of ch. */
 #define GET_POS(ch) ((ch)->char_specials.position)
 /** Timer  */

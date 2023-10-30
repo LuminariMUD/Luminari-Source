@@ -268,6 +268,8 @@ int compute_channel_energy_level(struct char_data *ch)
   int level = 0;
 
   level += CLASS_LEVEL(ch, CLASS_CLERIC);
+  level += CLASS_LEVEL(ch, CLASS_INQUISITOR);
+  level += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
   level += MAX(0, CLASS_LEVEL(ch, CLASS_PALADIN) - 4);
   level += MAX(0, CLASS_LEVEL(ch, CLASS_BLACKGUARD) - 4);
   level += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) / 2;
@@ -5685,6 +5687,12 @@ bool is_flying(struct char_data *ch)
   if (AFF_FLAGGED(ch, AFF_FLYING))
     return TRUE;
 
+  if (RIDING(ch))
+  {
+    if (AFF_FLAGGED(RIDING(ch), AFF_FLYING))
+      return TRUE;
+  }
+
   return FALSE;
 }
 
@@ -8621,6 +8629,78 @@ bool is_crafting_kit(struct obj_data *kit)
   obj_rnum rnum = GET_OBJ_RNUM(kit);
   if (obj_index[rnum].func != crafting_kit) return false;
   return true;
+}
+
+int get_apply_type_gear_mod(struct char_data *ch, int apply)
+{
+  int i = 0, j = 0, full_bonus = 0;
+  int bonuses[NUM_BONUS_TYPES];
+  struct obj_data *obj;
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+    bonuses[i] = 0;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if ((obj = GET_EQ(ch, i)))
+    {
+      for (j = 0; j < 6; j++)
+      {
+        if (obj->affected[j].location == apply)
+        {
+          if (BONUS_TYPE_STACKS(obj->affected[j].bonus_type))
+          {
+            bonuses[obj->affected[j].bonus_type] += obj->affected[j].modifier;
+          }
+          else if (obj->affected[j].modifier > bonuses[obj->affected[j].bonus_type])
+          {
+            bonuses[obj->affected[j].bonus_type] = obj->affected[j].modifier;
+          }
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < NUM_BONUS_TYPES; i++)
+    full_bonus += bonuses[i];
+
+  return full_bonus;
+}
+
+int get_fast_healing_amount(struct char_data *ch)
+{
+  int hp = 0;
+
+  if (affected_by_spell(ch, SPELL_GREATER_PLANAR_HEALING))
+    hp += 4;
+  else if (affected_by_spell(ch, SPELL_PLANAR_HEALING))
+    hp += 1;
+
+  if (affected_by_spell(ch, AFFECT_PLANAR_SOUL_SURGE))
+    hp += 2;
+
+  if (affected_by_spell(ch, EIDOLON_MERGE_FORMS_EFFECT))
+    hp += get_char_affect_modifier(ch, EIDOLON_MERGE_FORMS_EFFECT, APPLY_FAST_HEALING);
+
+  hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_FAST_HEALING);
+  hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_FAST_HEALING);
+
+  hp += HAS_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
+
+  hp += get_apply_type_gear_mod(ch, APPLY_FAST_HEALING);
+
+  return hp;
+}
+
+int get_hp_regen_amount(struct char_data *ch)
+{
+  int hp = 0;
+
+  hp += get_char_affect_modifier(ch, AFFECT_FOOD, APPLY_HP_REGEN);
+  hp += get_char_affect_modifier(ch, AFFECT_DRINK, APPLY_HP_REGEN);
+  hp += get_apply_type_gear_mod(ch, APPLY_HP_REGEN);
+
+  return hp;
 }
 
 /* EoF */

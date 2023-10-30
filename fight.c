@@ -4258,6 +4258,11 @@ int damage_handling(struct char_data *ch, struct char_data *victim,
       GET_CASTING_CLASS(ch) = CLASS_UNDEFINED;
     }
 
+    else if (is_spell && IS_NPC(ch))
+    {
+      dam *= 0.75;
+    }
+
     else if (!is_spell && victim && IS_EVIL(victim) && group_member_affected_by_spell(ch, SPELL_LITANY_OF_RIGHTEOUSNESS) && has_aura_of_good(ch))
     {
       dam *= 2;

@@ -2305,7 +2305,7 @@ SPECIAL(quicksand)
   new_affect(&af);
   af.spell = SPELL_HOLD_PERSON;
   SET_BIT_AR(af.bitvector, AFF_PARALYZED);
-  af.duration = 5;
+  af.duration = 3;
   affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
 
   return TRUE;

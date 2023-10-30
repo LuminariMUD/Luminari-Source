@@ -3001,7 +3001,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       {
         return;
       }
-      af[0].duration = dice(1, 4);
+      af[0].duration = dice(1, 3);
       if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
         af[0].duration *= 1.5;
       SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -3015,7 +3015,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       {
         return;
       }
-      af[0].duration = dice(1, 4) + 2;
+      af[0].duration = dice(1, 3) + 1;
       if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
         af[0].duration *= 1.5;
       SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -3029,7 +3029,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       {
         return;
       }
-      af[0].duration = dice(1, 4) + 4;
+      af[0].duration = dice(1, 3) + 2;
       if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
         af[0].duration *= 1.5;
       SET_BIT_AR(af[0].bitvector, AFF_STUN);
@@ -3095,7 +3095,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
       to_room = "$n gets violently ill!";
       if (can_stun(victim))
       {
-        af[2].duration = dice(1, 4);
+        af[2].duration = dice(1, 3);
         if (KNOWS_DISCOVERY(ch, ALC_DISC_MALIGNANT_POISON))
           af[2].duration *= 1.5;
         SET_BIT_AR(af[2].bitvector, AFF_STUN);
@@ -3449,7 +3449,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
   case PSIONIC_CONCEALING_AMORPHA:
 
-    if (ch != victim && GET_AUGMENT_PSP(ch) < 3)
+    if (ch != victim && (GET_AUGMENT_PSP(ch) < 3 || max_augment_psp_allowed(ch, PSIONIC_CONCEALING_AMORPHA) < 3))
     {
       send_to_char(ch, "You need to augment this power with 3 psp points to use it on another being.\r\n");
       return;
@@ -3689,7 +3689,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         misc_bonus += get_evolution_appearance_save_bonus(victim);
     if (mag_savingthrow(ch, victim, SAVING_WILL, misc_bonus, casttype, level, NOSCHOOL))
       return;
-    af[0].duration = 1 + GET_AUGMENT_PSP(ch) / 2;
+    af[0].duration = 1 + (GET_AUGMENT_PSP(ch) / 2);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "You have been stunned by $N's psionic blast!";
     to_room = "$n has been stunned by $N's psionic blast!";
@@ -4185,7 +4185,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case ABILITY_STUNNING_CRITICAL:
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
         misc_bonus += get_evolution_appearance_save_bonus(victim);
-    af[0].duration = savingthrow(victim, SAVING_FORT, misc_bonus, 10 + BAB(ch)) ? 1 : dice(1, 4) + 1;
+    af[0].duration = savingthrow(victim, SAVING_FORT, misc_bonus, 10 + BAB(ch)) ? 1 : dice(1, 4);
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
     to_vict = "You are stunned.";
     to_room = "$n looks stunned.";
@@ -4334,7 +4334,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
 
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = 12;
+      af[0].duration = 1;
       to_room = "$n is stunned by the blast!";
       to_vict = "You are stunned by the blast!";
     }
@@ -4799,7 +4799,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_SHIELD_OF_FAITH:
 
     af[0].location = APPLY_AC_NEW;
-    af[0].modifier = 2;
+    af[0].modifier = MIN(5, 2 + (level / 6));
     af[0].duration = 400;
     af[0].bonus_type = BONUS_TYPE_DEFLECTION;
     to_vict = "You feel someone protecting you.";
@@ -5173,6 +5173,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
 
     af[0].duration = level;
     SET_BIT_AR(af[0].bitvector, AFF_SILENCED);
+    to_room = "$n seems unable to speak.";
+    to_vict = "You become unable to speak!";
     break;
 
     // These two are the same except for messages
@@ -5987,8 +5989,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 2 + (level / 5);
     af[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
-    to_vict = "You feel more dextrous!";
-    to_room = "$n's appears to be more dextrous!";
+    to_vict = "You feel more dexterous!";
+    to_room = "$n's appears to be more dexterous!";
     break;
 
   case SPELL_GRASPING_HAND: // evocation (also does damage)
@@ -6157,7 +6159,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = dice(3, 3);
+    af[0].duration = dice(1, 3) + 1;
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
     break;
@@ -6270,7 +6272,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = level; // one round per level
+    af[0].duration = dice(1, 3) + 1;
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
     break;
@@ -6306,7 +6308,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = dice(3, 3);
+    af[0].duration = dice(1, 3) + 1;
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
     break;
@@ -6337,7 +6339,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = dice(3, 3);
+    af[0].duration = dice(1, 3) + 2;
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
     break;
@@ -6476,7 +6478,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = dice(1, 4) + 1;
+    af[0].duration = dice(1, 3) + 1;
     to_room = "$n begins to dance uncontrollably!";
     to_vict = "You begin to dance uncontrollably!";
     break;
@@ -6586,8 +6588,8 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     af[0].location = APPLY_DEX;
     af[0].duration = (level * 12) + 100;
     af[0].modifier = 2 + (level / 5);
-    to_vict = "You feel more dextrous!";
-    to_room = "$n's appears to be more dextrous!";
+    to_vict = "You feel more dexterous!";
+    to_room = "$n's appears to be more dexterous!";
     break;
 
   case SPELL_MASS_STRENGTH: // transmutation
@@ -6683,7 +6685,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = dice(3, 4);
+    af[0].duration = dice(1, 3) + 1;
     to_room = "$n is overcome by a powerful hold spell!";
     to_vict = "You are overcome by a powerful hold spell!";
     break;
@@ -6968,7 +6970,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       SET_BIT_AR(af[0].bitvector, AFF_STUN);
-      af[0].duration = dice(2, 4);
+      af[0].duration = dice(1, 6);
       to_room = "$n is stunned by the colors!";
       to_vict = "You are stunned by the colors!";
       break;
@@ -6979,7 +6981,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         return;
       }
       SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-      af[0].duration = dice(1, 6);
+      af[0].duration = dice(1, 4);
       to_room = "$n is paralyzed by the colors!";
       to_vict = "You are paralyzed by the colors!";
       break;
@@ -7060,7 +7062,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     is_mind_affect = TRUE;
 
     SET_BIT_AR(af[0].bitvector, AFF_STUN);
-    af[0].duration = dice(3, 4);
+    af[0].duration = dice(1, 4) + 2;
     to_room = "$n is stunned by the pattern of bright colors!";
     to_vict = "You are dazed by the pattern of bright colors!";
     break;
@@ -7075,7 +7077,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
     }
 
     af[0].location = APPLY_STR;
-    af[0].duration = 25 + (level * 12);
+    af[0].duration = dice(2, 3) + level / 5;
     af[0].modifier = -dice(2, 4);
     accum_duration = TRUE;
     to_room = "$n is struck by enfeeblement!";
@@ -7735,7 +7737,7 @@ void mag_affects(int level, struct char_data *ch, struct char_data *victim,
         send_to_char(ch, "It seems your opponent cannot be stunned.\r\n");
         return;
       }
-      af[1].duration = 4;
+      af[1].duration = dice(1, 4) + 1;
       SET_BIT_AR(af[1].bitvector, AFF_STUN);
 
       act("You have been stunned!", FALSE, victim, 0, ch, TO_CHAR);
@@ -9036,11 +9038,19 @@ bool isSummonMob(int vnum)
   case MOB_BLADE_OF_DISASTER:
   case MOB_DIRE_RAT:
   case MOB_ECTOPLASMIC_SHAMBLER:
+#if defined(CAMPAIGN_DL)
+  case 40112: // air elemental
+  case 40113: // earth elemental
+  case 40114: // fire elemental
+  case 40115: // water elemental
+  case 40199: // shambling mound
+#else
   case 9412: // air elemental
   case 9413: // earth elemental
   case 9414: // fire elemental
   case 9415: // water elemental
   case 9499: // shambling mound
+#endif
   case MOB_CHILDREN_OF_THE_NIGHT_WOLVES:
   case MOB_CHILDREN_OF_THE_NIGHT_RATS:
   case MOB_CHILDREN_OF_THE_NIGHT_BATS:
@@ -9224,6 +9234,24 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
   case SPELL_ELEMENTAL_SWARM: // conjuration
     handle_corpse = FALSE;
     fmsg = rand_number(2, 6);
+#if defined(CAMPAIGN_DL)
+    mob_num = 40112 + rand_number(0, 3); // 9412-9415
+    switch (mob_num)
+    {
+    case 40112:
+      msg = 7;
+      break;
+    case 40113:
+      msg = 9;
+      break;
+    case 40114:
+      msg = 8;
+      break;
+    case 40115:
+      msg = 10;
+      break;
+    }
+#else
     mob_num = 9412 + rand_number(0, 3); // 9412-9415
     switch (mob_num)
     {
@@ -9240,6 +9268,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
       msg = 10;
       break;
     }
+#endif
     num = dice(2, 4);
     break;
 
@@ -9307,7 +9336,11 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj,
     handle_corpse = FALSE;
     msg = 25;
     fmsg = rand_number(2, 6);
+#if defined(CAMPAIGN_DL)
+    mob_num = 40199;
+#else
     mob_num = 9499;
+#endif
     num = dice(1, 4) + 2;
     break;
 

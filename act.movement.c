@@ -386,6 +386,14 @@ int has_boat(struct char_data *ch, room_rnum going_to)
       AFF_FLAGGED(ch, AFF_LEVITATE))
     return (1);
 
+  if (RIDING(ch))
+  {
+    if (AFF_FLAGGED(RIDING(ch), AFF_WATERWALK))
+      return TRUE;
+    if (AFF_FLAGGED(RIDING(ch), AFF_LEVITATE))
+      return TRUE;
+  }
+
   /* non-wearable boats in inventory will do it */
   for (obj = ch->carrying; obj; obj = obj->next_content)
     if (GET_OBJ_TYPE(obj) == ITEM_BOAT && (find_eq_pos(ch, obj, NULL) < 0))
@@ -1065,21 +1073,21 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       block = TRUE;
     else if (dir == EAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
       block = TRUE;
-    else if (dir == SOUTH && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == SOUTH && MOB_FLAGGED(mob, MOB_BLOCK_S))
       block = TRUE;
-    else if (dir == WEST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == WEST && MOB_FLAGGED(mob, MOB_BLOCK_W))
       block = TRUE;
-    else if (dir == NORTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == NORTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_NE))
       block = TRUE;
-    else if (dir == SOUTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == SOUTHEAST && MOB_FLAGGED(mob, MOB_BLOCK_SE))
       block = TRUE;
-    else if (dir == SOUTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == SOUTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_SW))
       block = TRUE;
-    else if (dir == NORTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == NORTHWEST && MOB_FLAGGED(mob, MOB_BLOCK_NW))
       block = TRUE;
-    else if (dir == UP && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == UP && MOB_FLAGGED(mob, MOB_BLOCK_U))
       block = TRUE;
-    else if (dir == DOWN && MOB_FLAGGED(mob, MOB_BLOCK_E))
+    else if (dir == DOWN && MOB_FLAGGED(mob, MOB_BLOCK_D))
       block = TRUE;
 
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_RACE) && GET_RACE(ch) == GET_RACE(mob))
@@ -1096,18 +1104,23 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
       block = FALSE;
     if (block && MOB_FLAGGED(mob, MOB_BLOCK_ALIGN) && IS_NEUTRAL(ch) > IS_NEUTRAL(mob))
       block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_EVIL) && (IS_NEUTRAL(ch) || IS_GOOD(ch)))
+      block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_NEUTRAL) && (IS_EVIL(ch) || IS_GOOD(ch)))
+      block = FALSE;
+    if (block && MOB_FLAGGED(mob, MOB_BLOCK_GOOD) && (IS_NEUTRAL(ch) || IS_EVIL(ch)))
+      block = FALSE;
 
     if (block)
       break;
   }
 
-  // this is removed until we can fix blocker mobs
-  // if (block && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
-  // {
-  //   act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
-  //   act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
-  //   return 0;
-  // }
+  if (block && !IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE))
+  {
+    act("$N blocks your from travelling in that direction.", FALSE, ch, 0, mob, TO_CHAR);
+    act("$n tries to leave the room, but $N blocks $m from travelling in their direction.", FALSE, ch, 0, mob, TO_ROOM);
+    return 0;
+  }
 
   // acrobatics check
 
@@ -4023,6 +4036,88 @@ ACMD(do_transposition)
   greet_memory_mtrigger(ch);
 
   USE_STANDARD_ACTION(ch);
+}
+
+ACMD(do_unstuck)
+{
+  char arg1[200];
+  char *confirm;
+  int exp = 0, gold = 0;
+
+  exp = GET_LEVEL(ch) * GET_LEVEL(ch) * 500;
+  gold = GET_LEVEL(ch) * GET_LEVEL(ch) * 5;
+
+  if (GET_LEVEL(ch) <= 5)
+    exp = gold = 0;
+  else if (GET_LEVEL(ch) <= 10)
+    { exp /= 4; gold /= 4; }
+  else if (GET_LEVEL(ch) <= 20)
+    { exp /= 2; gold /= 2; }
+
+  if (ch->player_specials->unstuck == NULL)
+  {
+    ch->player_specials->unstuck = confirm = randstring(6);
+  }
+  else
+  {
+    confirm = ch->player_specials->unstuck;
+  }
+
+  one_argument(argument, arg1, sizeof(arg1));
+
+  if (!*arg1)
+  {
+    send_to_char(ch, "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
+                     "You will be transported to the MUD start room", confirm);
+    if (exp > 0)
+      send_to_char(ch, ", and it will cost you %d experience points and %d coins", exp, gold);
+    send_to_char(ch, ".\r\n");
+    return;
+  }
+  if (strcmp(arg1, ch->player_specials->unstuck))
+  {
+    send_to_char(ch, "Please enter 'unstuck %s' to confirm your desire to become unstuck.\r\n"
+                     "You will be transported to the MUD start room", confirm);
+    if (exp > 0)
+      send_to_char(ch, ", and it will cost you %d experience points and %d coins", exp, gold);
+    send_to_char(ch, ".\r\n");
+    return;
+  }
+  else
+  {
+    GET_EXP(ch) -= exp;
+    send_to_char(ch, "You lose %d experience points.\r\n", exp);
+    if (GET_GOLD(ch) < gold)
+    {
+      gold -= GET_GOLD(ch);
+      send_to_char(ch, "You lose %d gold ", gold);
+      GET_GOLD(ch) = 0;
+      if (GET_BANK_GOLD(ch) < gold)
+      {
+        gold = GET_BANK_GOLD(ch);
+        send_to_char(ch, "and %d bank gold.\r\n", gold);
+        GET_BANK_GOLD(ch) = 0;
+      }
+      else
+      {
+        GET_BANK_GOLD(ch) -= gold;
+        send_to_char(ch, "and %d bank gold.\r\n", gold);
+      }
+    }
+    else
+    {
+      GET_GOLD(ch) -= gold;
+      send_to_char(ch, "You lose %d gold.\r\n", gold);
+    }
+  }
+  act("$n disappears.", TRUE, ch, 0, 0, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, real_room(16500));
+  act("$n appears in the middle of the room.", TRUE, ch, 0, 0, TO_ROOM);
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
 }
 
 /* undefines */

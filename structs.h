@@ -14,15 +14,15 @@
 
 #include "bool.h"     /* for bool */
 
+#include "protocol.h" /* Kavir Plugin*/
+#include "lists.h"
+
 // You will need to add a campaign.h file, which is not included in the git repo.
 // You can leave it blank, unless you want to add special campaign/theme-specific
 // code separate from the regular Luminari code.  In this case add a #define
 // for the campaign that you can use to disable luminari code you don't want in
 // and add theme-specific code. This is mainly used for the Faerun codebase.
 #include "campaign.h"
-
-#include "protocol.h" /* Kavir Plugin*/
-#include "lists.h"
 
 /** Intended use of this macro is to allow external packages to work with a
  * variety of versions without modifications.  For instance, an IS_CORPSE()
@@ -859,21 +859,18 @@
 #define REGION_NORDMAAR 13
 #define REGION_NORTHERN_ERGOTH 14
 #define REGION_NOSTAR 15
-#define REGION_PRINCIPALITY_OF_KHAROLIS 16
-#define REGION_QUALINESTI 17
-#define REGION_SANCRIST_ISLE 18
-#define REGION_SCHALLSEA 19
-#define REGION_SILVANESTI 20
-#define REGION_SOLAMNIA 21
-#define REGION_SOUTHERN_ERGOTH 22
-#define REGION_TAMAN_BUSUK 23
-#define REGION_TARSIS 24
-#define REGION_TEYR 25
-#define REGION_THORADIN 26
-#define REGION_THORBARDIN 27
-#define REGION_THROTL 28
+#define REGION_QUALINESTI 16
+#define REGION_SANCRIST_ISLE 17
+#define REGION_SCHALLSEA 18
+#define REGION_SILVANESTI 19
+#define REGION_SOLAMNIA 20
+#define REGION_SOUTHERN_ERGOTH 21
+#define REGION_TAMAN_BUSUK 22
+#define REGION_TARSIS 23
+#define REGION_TEYR 24
+#define REGION_THORBARDIN 25
 
-#define NUM_REGIONS 29
+#define NUM_REGIONS 26
 
 #else
 
@@ -1049,8 +1046,11 @@
 #define MOB_DRAGON_KNIGHT 87
 #define MOB_MUMMY_DUST 88
 #define MOB_EIDOLON 89
+#define MOB_BLOCK_EVIL 90
+#define MOB_BLOCK_NEUTRAL 91
+#define MOB_BLOCK_GOOD 92
 /**********************/
-#define NUM_MOB_FLAGS 90
+#define NUM_MOB_FLAGS 93
 /**********************/
 /**********************/
 
@@ -1215,9 +1215,10 @@
 #define PRF_LIFE_BOND 65              // Summoner's life bond ability/feat
 #define PRF_CHARMIE_COMBATROLL 66     // Will display combat roll info for any of your charmies in battle.
 #define PRF_AUTO_PREP 67
+#define PRF_AUGMENT_BUFFS 68          // Will attempt to use max psp to augment buffs
 
 /** Total number of available PRF flags */
-#define NUM_PRF_FLAGS 68
+#define NUM_PRF_FLAGS 69
 
 /* Affect bits: used in char_data.char_specials.saved.affected_by */
 /* WARNING: In the world files, NEVER set the bits marked "R" ("Reserved") */
@@ -4303,7 +4304,6 @@ struct char_special_data
     int mounted_blocks_left;                        /* how many mounted combat blocks left in the round */
     int deflect_arrows_left;                        /* deflect arrows left */
     struct condensed_combat_data *condensed_combat; /* condensed combat struct */
-    bool vital_strike;                              /* if we're using vital strike */
 
 
     /* Mode Data */
@@ -4624,6 +4624,8 @@ struct player_special_data_saved
     int merge_forms_timer;      // How long the merge forms process lasts
     char *bag_names[MAX_BAGS+1];  // nicknames for the characters' bags
     int fixed_bab;  // This is the character's final bab which is set upon reaching lvl 20 and determines # of attacks per round
+    bool vital_strike;                              /* if we're using vital strike */
+
 };
 
 /** Specials needed only by PCs, not NPCs.  Space for this structure is
@@ -4699,6 +4701,7 @@ struct player_special_data
     int buff_timer;
     bool is_buffing;
     struct char_data *buff_target;
+    char *unstuck;
 };
 
 /** Special data used by NPCs, not PCs */

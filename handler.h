@@ -53,9 +53,9 @@ int isname_obj(char *search, char *list); /* this is from spells.c */
 void obj_to_char(struct obj_data *object, struct char_data *ch);
 void obj_from_char(struct obj_data *object);
 void obj_from_inv_to_bag(struct char_data *ch, struct obj_data *object, int bagnum);
-void obj_from_bag_to_inv(struct char_data *ch, struct obj_data *object, int bagnum);
 void obj_from_bag(struct char_data *ch, struct obj_data *object, int bagnum);
 void obj_to_bag(struct char_data *ch, struct obj_data *object, int bagnum);
+void empty_bags_to_inventory(struct char_data *ch);
 
     void equip_char(struct char_data *ch, struct obj_data *obj, int pos);
 struct obj_data *unequip_char(struct char_data *ch, int pos);

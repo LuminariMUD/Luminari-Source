@@ -1262,7 +1262,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
       snprintf(buf, sizeof(buf),
                "This large passenger ship has been built with reasonably good comforts given the limited space on board.\r\n"
                "The wind fills the sails as it pushes the vessel along to your destination. The sway of the sea is steady\r\n"
-               "and rythemic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
+               "and rhythmic, and you find you sea legs quickly.  Judging by how far you've gone so far you should arrive in\r\n"
                "about %d minutes and %d seconds to your destination: %s.\r\n",
                ch->player_specials->travel_timer / 60, ch->player_specials->travel_timer % 60, sailing_locales[ch->player_specials->travel_locale][0]);
       rm->description = strdup(buf);
@@ -3122,6 +3122,11 @@ ACMD(do_defenses)
   send_to_char(ch, "\tC");
   draw_line(ch, line_length, '-', '-');
   send_to_char(ch, "\tn\r\nNote that AC caps at %d, but having over %d is beneficial due to position changes and debuffs.\r\n", CONFIG_PLAYER_AC_CAP, CONFIG_PLAYER_AC_CAP);
+  text_line(ch, "\tYFast Healing\tC", line_length, '-', '-');
+  send_to_char(ch, "Fast Healing Amount: %d\r\n", get_fast_healing_amount(ch));
+send_to_char(ch, "\tC");
+  draw_line(ch, line_length, '-', '-');
+  send_to_char(ch, "\tn");
 }
 
 /*
@@ -3555,7 +3560,7 @@ void show_bags_summary(struct char_data *ch)
 ACMD(do_bags)
 {
   char arg[MEDIUM_STRING] = {'\0'};
-  char bagname[MEDIUM_STRING] = {'\0'};
+  // char bagname[MEDIUM_STRING] = {'\0'};
   int bagnum = 0, i = 0;
 
   one_argument(argument, arg, sizeof(arg));
@@ -3588,10 +3593,13 @@ ACMD(do_bags)
     return;
   }
 
-  if (GET_BAG_NAME(ch, i)  != NULL)
-    snprintf(bagname, sizeof(bagname), " '%s'", GET_BAG_NAME(ch, i));
+  // if (GET_BAG_NAME(ch, i)  != NULL)
+  //   snprintf(bagname, sizeof(bagname), " '%s'", GET_BAG_NAME(ch, i));
+  // else
+  //   snprintf(bagname, sizeof(bagname), " 'bag%d'", bagnum);
 
-  send_to_char(ch, "Your bag #%d%s contains:\r\n", bagnum, GET_BAG_NAME(ch, i)  != NULL ? bagname : "");
+  // send_to_char(ch, "Your bag #%d%s contains:\r\n", bagnum, GET_BAG_NAME(ch, i)  != NULL ? bagname : "");
+  send_to_char(ch, "Your bag #%d contains:\r\n", bagnum);
 
   switch (bagnum)
   {

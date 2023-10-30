@@ -463,11 +463,9 @@ int regen_hps(struct char_data *ch)
   }
 
   if (!FIGHTING(ch))
-    hp += GET_HP_REGEN(ch);
+    hp += get_hp_regen_amount(ch);
 
-  hp += GET_FAST_HEALING_MOD(ch);
-
-  hp += HAS_EVOLUTION(ch, EVOLUTION_FAST_HEALING) * 2;
+  hp += get_fast_healing_amount(ch);
 
   /* these are last bonuses (outside of exceptions) because of multiplier */
   if (ROOM_FLAGGED(ch->in_room, ROOM_REGEN))
@@ -2005,7 +2003,7 @@ void update_damage_and_effects_over_time(void)
       struct affected_type af;
       new_affect(&af);
       af.spell = ABILITY_SCORE_DAMAGE;
-      af.duration = 50; // approx 5 minutes
+      af.duration = 5;
       SET_BIT_AR(af.bitvector, AFF_PARALYZED);
       affect_to_char(ch, &af);
 

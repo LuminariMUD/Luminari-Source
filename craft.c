@@ -19,6 +19,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include "structs.h"
+#include "mysql.h"
 #include "utils.h"
 #include "comm.h"
 #include "spells.h"
@@ -35,6 +36,8 @@
 #include "spec_procs.h" /* For compute_ability() */
 #include "item.h"
 #include "quest.h"
+
+extern MYSQL *conn;
 
 /* global variables */
 int mining_nodes = 0;
@@ -2066,10 +2069,17 @@ SPECIAL(crafting_quest)
   char desc[MAX_INPUT_LENGTH] = {'\0'};
   char arg[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
   int roll = 0;
+  int avail = 0;
 
   if (!CMD_IS("supplyorder"))
   {
     return 0;
+  }
+
+  if (IS_NPC(ch))
+  {
+    send_to_char(ch, "Mobiles can't craft.\r\n");
+    return 1;
   }
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
@@ -2082,6 +2092,14 @@ SPECIAL(crafting_quest)
     {
       send_to_char(ch, "You can't take a new supply order until you've "
                        "handed in the one you've completed (supplyorder complete).\r\n");
+      return 1;
+    }
+
+    avail = get_mysql_supply_orders_available(ch);
+
+    if (avail <= 0)
+    {
+      send_to_char(ch, "You must wait until tomorrow to perform more supply orders.\r\n");
       return 1;
     }
 
@@ -2156,12 +2174,44 @@ SPECIAL(crafting_quest)
 
     GET_AUTOCQUEST_DESC(ch) = strdup(desc);
     GET_AUTOCQUEST_MAKENUM(ch) = AUTOCQUEST_MAKENUM;
+#if defined(CAMPAIGN_DL)
+    GET_AUTOCQUEST_QP(ch) = MAX(5, GET_LEVEL(ch) / 2);
+#else
     if (!rand_number(0, 20))
       GET_AUTOCQUEST_QP(ch) = 1;
     else
       GET_AUTOCQUEST_QP(ch) = 0;
-    GET_AUTOCQUEST_EXP(ch) = GET_LEVEL(ch) * 10;
-    GET_AUTOCQUEST_GOLD(ch) = GET_LEVEL(ch) * 2;
+#endif
+    if (GET_LEVEL(ch) <= 5)
+    {
+      GET_AUTOCQUEST_GOLD(ch) = 50;
+      GET_AUTOCQUEST_EXP(ch) = 100;
+    }
+    else if (GET_LEVEL(ch) <= 10)
+    {
+      GET_AUTOCQUEST_GOLD(ch) = 100;
+      GET_AUTOCQUEST_EXP(ch) = 200;
+    }
+    else if (GET_LEVEL(ch) <= 15)
+    {
+      GET_AUTOCQUEST_GOLD(ch) = 300;
+      GET_AUTOCQUEST_EXP(ch) = 400;
+    }
+    else if (GET_LEVEL(ch) <= 20)
+    {
+      GET_AUTOCQUEST_GOLD(ch) = 500;
+      GET_AUTOCQUEST_EXP(ch) = 800;
+    }
+    else if (GET_LEVEL(ch) <= 25)
+    {
+      GET_AUTOCQUEST_GOLD(ch) = 800;
+      GET_AUTOCQUEST_EXP(ch) = 1000;
+    }
+    else
+    {
+      GET_AUTOCQUEST_GOLD(ch) = 1000;
+      GET_AUTOCQUEST_EXP(ch) = 1500;
+    };
 
     send_to_char(ch, "You have been commissioned for a supply order to "
                      "make %s.  We expect you to make %d before you can collect your "
@@ -2171,6 +2221,9 @@ SPECIAL(crafting_quest)
                      "experience points.\r\n",
                  desc, GET_AUTOCQUEST_MAKENUM(ch), GET_AUTOCQUEST_QP(ch),
                  GET_AUTOCQUEST_GOLD(ch), GET_AUTOCQUEST_EXP(ch));
+  
+    put_mysql_supply_orders_available(ch, --avail);
+
   }
   else if (!strcmp(arg, "complete"))
   {
@@ -2969,4 +3022,56 @@ ACMD(do_harvest)
     increase_skill(ch, skillnum);
 
   return;
+}
+
+int get_mysql_supply_orders_available(struct char_data *ch)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  char buf[MAX_STRING_LENGTH];
+  int avail = 0;
+  
+  mysql_ping(conn);
+
+  snprintf(buf, sizeof(buf), "SELECT supply_orders_available FROM player_supply_orders WHERE player_name='%s'", GET_NAME(ch));
+
+  if (mysql_query(conn, buf))
+  {
+    log("SYSERR: Unable to SELECT from player_supply_orders: %s", mysql_error(conn));
+    return -1;
+  }
+
+  if (!(result = mysql_store_result(conn)))
+  {
+    log("SYSERR: Unable to SELECT from player_supply_orders: %s", mysql_error(conn));
+    return -1;
+  }
+
+  if (!(row = mysql_fetch_row(result)))
+    return 10;
+
+  avail = atoi(row[0]);
+
+  mysql_free_result(result);
+
+  return avail;
+}
+
+void put_mysql_supply_orders_available(struct char_data *ch, int avail)
+{
+  char buf[MAX_STRING_LENGTH];
+  
+  mysql_ping(conn);
+
+  snprintf(buf, sizeof(buf), "DELETE FROM supply_orders_available WHERE player_name='%s'", GET_NAME(ch));
+
+  mysql_query(conn, buf);
+
+  snprintf(buf, sizeof(buf), "INSERT INTO supply_orders_available (idnum, player_name, supply_orders_available) VALUES(NULL, '%s', '%d')",
+          GET_NAME(ch), avail);
+
+  if (mysql_query(conn, buf))
+  {
+    log("SYSERR: Unable to INSERT INTO player_supply_orders: %s", mysql_error(conn));
+  }
 }

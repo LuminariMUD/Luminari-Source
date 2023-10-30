@@ -720,6 +720,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shadowform", "shf", POS_SITTING, do_gen_tog, 1, SCMD_SHADOWFORM, FALSE, ACTION_MOVE, {0, 6}, NULL},
     {"shout", "sho", POS_RECLINING, do_gen_comm, 0, SCMD_SHOUT, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"show", "show", POS_DEAD, do_show, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"showblockers", "showblockers", POS_DEAD, do_show_blockers, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"showwearoff", "showwearoff", POS_DEAD, do_showwearoff, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdow", "shutdow", POS_DEAD, do_shutdown, LVL_IMPL, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shutdown", "shutdown", POS_DEAD, do_shutdown, LVL_IMPL, SCMD_SHUTDOWN, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -818,6 +819,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"uncommune", "uncommune", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCOMMUNE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unconjure", "unconjure", POS_RECLINING, do_consign_to_oblivion, 0, SCMD_UNCONJURE, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"unstore", "unstore", POS_FIGHTING, do_unstore, 1, 0, FALSE, ACTION_MOVE, {0, 0}, NULL},
+    {"unstuck", "unstuck", POS_DEAD, do_unstuck, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"uptime", "uptime", POS_DEAD, do_date, 1, SCMD_UPTIME, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"use", "use", POS_FIGHTING, do_use_consumable, 0, SCMD_USE, FALSE, ACTION_SWIFT, {0, 6}, NULL},
     {"usestoredconsumables", "usestoredconsumables", POS_DEAD, do_gen_tog, 0, SCMD_USE_STORED_CONSUMABLES, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -834,6 +836,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"vampireform", "vampireform", POS_FIGHTING, do_vampiric_shape_change, 0, 0, FALSE, ACTION_STANDARD, {0, 0}, can_vampiric_shape_change},
     {"version", "ver", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"visible", "vis", POS_RECLINING, do_visible, 1, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"vitalstrike", "vitalstrike", POS_FIGHTING, do_vital_strike, 0, 0, FALSE, ACTION_STANDARD | ACTION_MOVE, {6, 6}, NULL},
     {"vnum", "vnum", POS_DEAD, do_vnum, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vstat", "vstat", POS_DEAD, do_vstat, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vdelete", "vdelete", POS_DEAD, do_vdelete, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -2025,6 +2028,10 @@ int enter_player_game(struct descriptor_data *d)
   if (GET_DEITY(d->character) >= NUM_DEITIES)
     GET_DEITY(d->character) = 0;
 #endif 
+
+
+  if (GET_REGION(d->character) < REGION_NONE || GET_REGION(d->character) >= NUM_REGIONS)
+    GET_REGION(d->character) = REGION_NONE;
 
   /* initialize the characters condensed combat data struct */
   init_condensed_combat_data(d->character);
