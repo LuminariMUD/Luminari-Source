@@ -3580,8 +3580,8 @@ void load_char_pets(struct char_data *ch)
   MYSQL_RES *result;
   MYSQL_ROW row;
   char query[200];
-  char desc1[MAX_STRING_LENGTH] = {'\0'}; char desc2[MAX_STRING_LENGTH] = {'\0'};
-  char desc3[MAX_STRING_LENGTH] = {'\0'}; char desc4[MAX_STRING_LENGTH] = {'\0'};
+  // char desc1[MAX_STRING_LENGTH] = {'\0'}; char desc2[MAX_STRING_LENGTH] = {'\0'};
+  // char desc3[MAX_STRING_LENGTH] = {'\0'}; char desc4[MAX_STRING_LENGTH] = {'\0'};
   struct char_data *mob = NULL;
 
   if (!ch)

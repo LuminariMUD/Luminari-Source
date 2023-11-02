@@ -3059,7 +3059,7 @@ switch (load_result)
       write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
       STATE(d) = CON_QREGION;
       return;
     }
