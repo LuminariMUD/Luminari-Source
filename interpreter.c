@@ -3047,7 +3047,11 @@ switch (load_result)
     }
     else
     {
+#ifdef CAMPAIGN_DL
+      write_to_output(d, "\tcRegions of Krynn\tn\r\n\r\n");
+#else
       write_to_output(d, "\tcRegions of Faerun\tn\r\n\r\n");
+#endif
       for (i = 1; i < NUM_REGIONS; i++)
       {
         write_to_output(d, "%-2d) %-20s ", i, regions[i]);
@@ -3059,7 +3063,11 @@ switch (load_result)
       write_to_output(d, "\r\n\r\nRegion selection is mainly a role playign choice, but it also awards an associated language and\r\n"
                          "may be integrated into future game systems.\r\n");
       write_to_output(d, "Type 'quit' to exit out of region selection.\r\n");
-      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#ifdef CAMPAIGN_DL
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Abanasinia' if you do not know what to pick): ", REGION_ABANASINIA);
+#else
+      write_to_output(d, "\r\nRegion Selection (select %d for 'Sword Coast' if you do not know what to pick): ", REGION_THE_SWORD_COAST);
+#endif
       STATE(d) = CON_QREGION;
       return;
     }
