@@ -215,6 +215,20 @@
 #define DEITY_LIST_LAWFUL 5
 #define DEITY_LIST_CHAOTIC 6
 
+#else
+
+#define DEITY_PANTHEON_NONE		0
+#define DEITY_PANTHEON_ALL		1
+#define NUM_PANTHEONS 2
+
+#define DEITY_LIST_ALL 1
+#define DEITY_LIST_GOOD 2
+#define DEITY_LIST_NEUTRAL 3
+#define DEITY_LIST_EVIL 4
+#define DEITY_LIST_LAWFUL 5
+#define DEITY_LIST_CHAOTIC 6
+
+    #define NUM_DEITIES 1
 #endif
 
 struct deity_info

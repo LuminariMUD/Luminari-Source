@@ -522,7 +522,7 @@ void assign_races(void)
   /*                   race-num    feat                  lvl stack */
   feat_race_assignment(DL_RACE_HUMAN, FEAT_QUICK_TO_MASTER, 1, N);
   feat_race_assignment(DL_RACE_HUMAN, FEAT_SKILLED, 1, N);
-  race_list[DL_RACE_HUMAN].racial_language = LANG_COMMON;
+  race_list[DL_RACE_HUMAN].racial_language = SKILL_LANG_COMMON;
 
 
 
@@ -571,7 +571,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_HIGH_ELF_CANTRIP, 1, N);
   feat_race_assignment(DL_RACE_SILVANESTI_ELF, FEAT_HIGH_ELF_LINGUIST, 1, N);
-  race_list[DL_RACE_SILVANESTI_ELF].racial_language = LANG_ELVISH;
+  race_list[DL_RACE_SILVANESTI_ELF].racial_language = SKILL_LANG_ELVISH;
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -619,7 +619,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WOOD_ELF_FLEETNESS, 1, N);
   feat_race_assignment(DL_RACE_KAGONESTI_ELF, FEAT_WOOD_ELF_MASK_OF_THE_WILD, 1, N);
-  race_list[DL_RACE_KAGONESTI_ELF].racial_language = LANG_ELVISH;
+  race_list[DL_RACE_KAGONESTI_ELF].racial_language = SKILL_LANG_ELVISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -676,7 +676,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_MOON_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, 1, N);
   feat_race_assignment(DL_RACE_QUALINESTI_ELF, FEAT_MOON_ELF_LUNAR_MAGIC, 1, N);
-  race_list[DL_RACE_QUALINESTI_ELF].racial_language = LANG_ELVISH;
+  race_list[DL_RACE_QUALINESTI_ELF].racial_language = SKILL_LANG_ELVISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -725,7 +725,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_HALF_ELF, FEAT_KEEN_SENSES, 1, N);
   feat_race_assignment(DL_RACE_HALF_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
   feat_race_assignment(DL_RACE_HALF_ELF, FEAT_HALF_ELF_RACIAL_ADJUSTMENT, 1, N);
-  race_list[DL_RACE_HALF_ELF].racial_language = LANG_ELVISH;
+  race_list[DL_RACE_HALF_ELF].racial_language = SKILL_LANG_ELVISH;
   /* affect assignment */
 
   /****************************************************************************/
@@ -784,7 +784,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_BORROWING, 1, N);
   feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_TAUNT, 1, N);
   feat_race_assignment(DL_RACE_KENDER, FEAT_KENDER_FEARLESSNESS, 1, N);
-  race_list[DL_RACE_KENDER].racial_language = LANG_COMMON;
+  race_list[DL_RACE_KENDER].racial_language = SKILL_LANG_COMMON;
   /* affect assignment */
 
   /****************************************************************************/
@@ -838,7 +838,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1, N);
   feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(DL_RACE_MOUNTAIN_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[DL_RACE_MOUNTAIN_DWARF].racial_language = LANG_DWARVEN;
+  race_list[DL_RACE_MOUNTAIN_DWARF].racial_language = SKILL_LANG_DWARVEN;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -882,7 +882,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_GOLD_DWARF_TOUGHNESS, 1, N);
   feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(DL_RACE_HILL_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[DL_RACE_HILL_DWARF].racial_language = LANG_DWARVEN;
+  race_list[DL_RACE_HILL_DWARF].racial_language = SKILL_LANG_DWARVEN;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -918,7 +918,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_INTIMIDATING, 1, N);
   feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_SEAFARING, 1, N);
   feat_race_assignment(DL_RACE_MINOTAUR, FEAT_MINOTAUR_GORE, 1, N);
-  race_list[DL_RACE_MINOTAUR].racial_language = LANG_MINOTAUR;
+  race_list[DL_RACE_MINOTAUR].racial_language = SKILL_LANG_MINOTAUR;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -975,7 +975,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_GNOME, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(DL_RACE_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
   feat_race_assignment(DL_RACE_GNOME, FEAT_TINKER, 1, N);
-  race_list[DL_RACE_GNOME].racial_language = LANG_GNOME;
+  race_list[DL_RACE_GNOME].racial_language = SKILL_LANG_GNOME;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -1011,7 +1011,7 @@ void assign_races(void)
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DISEASE_IMMUNITY, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_BAAZ_DRACONIAN_SCALES, 1, N);
   feat_race_assignment(DL_RACE_BAAZ_DRACONIAN, FEAT_DRACONIAN_BITE, 1, N);
-  race_list[DL_RACE_BAAZ_DRACONIAN].racial_language = LANG_DRACONIC;
+  race_list[DL_RACE_BAAZ_DRACONIAN].racial_language = SKILL_LANG_DRACONIC;
 
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -1172,7 +1172,7 @@ void assign_races(void)
   /*                   race-num    feat                  lvl stack */
   feat_race_assignment(RACE_HUMAN, FEAT_QUICK_TO_MASTER, 1, N);
   feat_race_assignment(RACE_HUMAN, FEAT_SKILLED, 1, N);
-  race_list[RACE_HUMAN].racial_language = LANG_COMMON;
+  race_list[RACE_HUMAN].racial_language = SKILL_LANG_COMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
   /**TEST**/ affect_assignment(RACE_HUMAN, AFF_DETECT_ALIGN, 1);
@@ -1220,7 +1220,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_CANTRIP, 1, N);
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_LINGUIST, 1, N);
-  race_list[RACE_HIGH_ELF].racial_language = LANG_ELVISH;
+  race_list[RACE_HIGH_ELF].racial_language = SKILL_LANG_ELVISH;
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -1271,7 +1271,7 @@ void assign_races(void)
   feat_race_assignment(RACE_WOOD_ELF, FEAT_WOOD_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_WOOD_ELF, FEAT_WOOD_ELF_FLEETNESS, 1, N);
   feat_race_assignment(RACE_WOOD_ELF, FEAT_WOOD_ELF_MASK_OF_THE_WILD, 1, N);
-  race_list[RACE_WOOD_ELF].racial_language = LANG_ELVISH;
+  race_list[RACE_WOOD_ELF].racial_language = SKILL_LANG_ELVISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1323,7 +1323,7 @@ void assign_races(void)
   feat_race_assignment(RACE_MOON_ELF, FEAT_MOON_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_MOON_ELF, FEAT_MOON_ELF_BATHED_IN_MOONLIGHT, 1, N);
   feat_race_assignment(RACE_MOON_ELF, FEAT_MOON_ELF_LUNAR_MAGIC, 1, N);
-  race_list[RACE_MOON_ELF].racial_language = LANG_ELVISH;
+  race_list[RACE_MOON_ELF].racial_language = SKILL_LANG_ELVISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1375,7 +1375,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_ELF, FEAT_KEEN_SENSES, 1, N);
   feat_race_assignment(RACE_HALF_ELF, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
   feat_race_assignment(RACE_HALF_ELF, FEAT_HALF_ELF_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_HALF_ELF].racial_language = LANG_ELVISH;
+  race_list[RACE_HALF_ELF].racial_language = SKILL_LANG_ELVISH;
   /* affect assignment */
 
   /*                  race-num  affect            lvl */
@@ -1416,7 +1416,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_DROW, FEAT_RESISTANCE_TO_ENCHANTMENTS, 1, N);
   feat_race_assignment(RACE_HALF_DROW, FEAT_HALF_DROW_RACIAL_ADJUSTMENT, 1, N);
   /* affect assignment */
-  race_list[RACE_HALF_DROW].racial_language = LANG_UNDERCOMMON;
+  race_list[RACE_HALF_DROW].racial_language = SKILL_LANG_UNDERCOMMON;
   /*                  race-num  affect            lvl */
 
   /****************************************************************************/
@@ -1450,7 +1450,7 @@ void assign_races(void)
   feat_race_assignment(RACE_DRAGONBORN, FEAT_DRAGONBORN_RESISTANCE, 1, N);
   feat_race_assignment(RACE_DRAGONBORN, FEAT_DRAGONBORN_FURY, 1, N);
   feat_race_assignment(RACE_DRAGONBORN, FEAT_DRAGONBORN_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_DRAGONBORN].racial_language = LANG_DRACONIC;
+  race_list[RACE_DRAGONBORN].racial_language = SKILL_LANG_DRACONIC;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1497,7 +1497,7 @@ void assign_races(void)
   feat_race_assignment(RACE_TIEFLING, FEAT_BLOODHUNT, 1, N);
   feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_MAGIC, 1, N);
-  race_list[RACE_TIEFLING].racial_language = LANG_ABYSSAL;
+  race_list[RACE_TIEFLING].racial_language = SKILL_LANG_ABYSSAL;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -1534,7 +1534,7 @@ void assign_races(void)
   feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_HEALING_HANDS, 1, N);
   feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_LIGHT_BEARER, 1, N);
-  race_list[RACE_AASIMAR].racial_language = LANG_CELESTIAL;
+  race_list[RACE_AASIMAR].racial_language = SKILL_LANG_CELESTIAL;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -1625,7 +1625,7 @@ void assign_races(void)
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_ARMOR_PROFICIENCY_MEDIUM, 1, N);
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(RACE_SHIELD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[RACE_SHIELD_DWARF].racial_language = LANG_DWARVISH;
+  race_list[RACE_SHIELD_DWARF].racial_language = SKILL_LANG_DWARVISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1681,7 +1681,7 @@ void assign_races(void)
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_GOLD_DWARF_TOUGHNESS, 1, N);
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_ENCUMBERED_RESILIENCE, 1, N);
   feat_race_assignment(RACE_GOLD_DWARF, FEAT_DWARVEN_WEAPON_PROFICIENCY, 1, N);
-  race_list[RACE_GOLD_DWARF].racial_language = LANG_DWARVISH;
+  race_list[RACE_GOLD_DWARF].racial_language = SKILL_LANG_DWARVISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1728,7 +1728,7 @@ void assign_races(void)
   feat_race_assignment(RACE_LIGHTFOOT_HALFLING, FEAT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_LIGHTFOOT_HALFLING, FEAT_LIGHTFOOT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_LIGHTFOOT_HALFLING, FEAT_NATURALLY_STEALTHY, 1, N);
-  race_list[RACE_LIGHTFOOT_HALFLING].racial_language = LANG_HALFLING;
+  race_list[RACE_LIGHTFOOT_HALFLING].racial_language = SKILL_LANG_HALFLING;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1797,7 +1797,7 @@ void assign_races(void)
   feat_race_assignment(RACE_STOUT_HALFLING, FEAT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_STOUT_HALFLING, FEAT_STOUT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_STOUT_HALFLING, FEAT_STOUT_RESILIENCE, 1, N);
-  race_list[RACE_STOUT_HALFLING].racial_language = LANG_HALFLING;
+  race_list[RACE_STOUT_HALFLING].racial_language = SKILL_LANG_HALFLING;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1848,7 +1848,7 @@ void assign_races(void)
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_FOREST_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_SPEAK_WITH_BEASTS, 1, N);
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_NATURAL_ILLUSIONIST, 1, N);
-  race_list[RACE_FOREST_GNOME].racial_language = LANG_GNOMISH;
+  race_list[RACE_FOREST_GNOME].racial_language = SKILL_LANG_GNOMISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1898,7 +1898,7 @@ void assign_races(void)
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_ROCK_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_ARTIFICERS_LORE, 1, N);
   feat_race_assignment(RACE_ROCK_GNOME, FEAT_TINKER, 1, N);
-  race_list[RACE_ROCK_GNOME].racial_language = LANG_GNOMISH;
+  race_list[RACE_ROCK_GNOME].racial_language = SKILL_LANG_GNOMISH;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1947,7 +1947,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HALF_ORC, FEAT_RELENTLESS_ENDURANCE, 1, N);
   feat_race_assignment(RACE_HALF_ORC, FEAT_SAVAGE_ATTACKS, 1, N);
   feat_race_assignment(RACE_HALF_ORC, FEAT_HALF_ORC_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_HALF_ORC].racial_language = LANG_ORC;
+  race_list[RACE_HALF_ORC].racial_language = SKILL_LANG_ORC;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -1989,7 +1989,7 @@ void assign_races(void)
   feat_race_assignment(RACE_SHADE, FEAT_SHADOWFELL_MIND, 1, N);
   feat_race_assignment(RACE_SHADE, FEAT_PRACTICED_SNEAK, 1, N);
   feat_race_assignment(RACE_SHADE, FEAT_SHADE_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_SHADE].racial_language = LANG_COMMON;
+  race_list[RACE_SHADE].racial_language = SKILL_LANG_COMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -2034,7 +2034,7 @@ void assign_races(void)
   feat_race_assignment(RACE_GOLIATH, FEAT_POWERFUL_BUILD, 1, N);
   feat_race_assignment(RACE_GOLIATH, FEAT_STONES_ENDURANCE, 1, N);
   feat_race_assignment(RACE_GOLIATH, FEAT_GOLIATH_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_GOLIATH].racial_language = LANG_GIANT;
+  race_list[RACE_GOLIATH].racial_language = SKILL_LANG_GIANT;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -2086,7 +2086,7 @@ void assign_races(void)
   feat_race_assignment(RACE_DROW_ELF, FEAT_DROW_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_DROW_ELF, FEAT_DROW_INNATE_MAGIC, 1, N);
   feat_race_assignment(RACE_DROW_ELF, FEAT_LIGHT_BLINDNESS, 1, N);
-  race_list[RACE_DROW_ELF].racial_language = LANG_UNDERCOMMON;
+  race_list[RACE_DROW_ELF].racial_language = SKILL_LANG_UNDERCOMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -2264,7 +2264,7 @@ void assign_races(void)
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_CANTRIP, 1, N);
   feat_race_assignment(RACE_HIGH_ELF, FEAT_HIGH_ELF_LINGUIST, 1, N);
-  race_list[RACE_HIGH_ELF].racial_language = LANG_ELVISH;
+  race_list[RACE_HIGH_ELF].racial_language = SKILL_LANG_ELVISH;
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -2435,7 +2435,7 @@ void assign_races(void)
   feat_race_assignment(RACE_DRAGONBORN, FEAT_DRAGONBORN_RESISTANCE, 1, N);
   feat_race_assignment(RACE_DRAGONBORN, FEAT_DRAGONBORN_FURY, 1, N);
   feat_race_assignment(RACE_DRAGONBORN, FEAT_DRAGONBORN_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_DRAGONBORN].racial_language = LANG_DRACONIC;
+  race_list[RACE_DRAGONBORN].racial_language = SKILL_LANG_DRACONIC;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -2482,7 +2482,7 @@ void assign_races(void)
   feat_race_assignment(RACE_TIEFLING, FEAT_BLOODHUNT, 1, N);
   feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_TIEFLING, FEAT_TIEFLING_MAGIC, 1, N);
-  race_list[RACE_TIEFLING].racial_language = LANG_ABYSSAL;
+  race_list[RACE_TIEFLING].racial_language = SKILL_LANG_ABYSSAL;
   /****************************************************************************/
   /****************************************************************************/
   /*            simple-name, no-color-name, color-name, abbrev, color-abbrev*/
@@ -2517,7 +2517,7 @@ void assign_races(void)
   feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_HEALING_HANDS, 1, N);
   feat_race_assignment(RACE_AASIMAR, FEAT_AASIMAR_LIGHT_BEARER, 1, N);
-  race_list[RACE_AASIMAR].racial_language = LANG_CELESTIAL;
+  race_list[RACE_AASIMAR].racial_language = SKILL_LANG_CELESTIAL;
 
   /****************************************************************************/
   /****************************************************************************/
@@ -2804,7 +2804,7 @@ void assign_races(void)
   feat_race_assignment(RACE_STOUT_HALFLING, FEAT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_STOUT_HALFLING, FEAT_STOUT_HALFLING_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_STOUT_HALFLING, FEAT_STOUT_RESILIENCE, 1, N);
-  race_list[RACE_STOUT_HALFLING].racial_language = LANG_HALFLING;
+  race_list[RACE_STOUT_HALFLING].racial_language = SKILL_LANG_HALFLING;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -2855,7 +2855,7 @@ void assign_races(void)
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_FOREST_GNOME_RACIAL_ADJUSTMENT, 1, N);
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_SPEAK_WITH_BEASTS, 1, N);
   feat_race_assignment(RACE_FOREST_GNOME, FEAT_NATURAL_ILLUSIONIST, 1, N);
-  race_list[RACE_FOREST_GNOME].racial_language = LANG_GNOMISH;
+  race_list[RACE_FOREST_GNOME].racial_language = SKILL_LANG_GNOMISH;
 
   /* affect assignment */
   /*                  race-num  affect            lvl */
@@ -3208,7 +3208,7 @@ void assign_races(void)
   feat_race_assignment(RACE_SHADE, FEAT_SHADOWFELL_MIND, 1, N);
   feat_race_assignment(RACE_SHADE, FEAT_PRACTICED_SNEAK, 1, N);
   feat_race_assignment(RACE_SHADE, FEAT_SHADE_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_SHADE].racial_language = LANG_COMMON;
+  race_list[RACE_SHADE].racial_language = SKILL_LANG_COMMON;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -3253,7 +3253,7 @@ void assign_races(void)
   feat_race_assignment(RACE_GOLIATH, FEAT_POWERFUL_BUILD, 1, N);
   feat_race_assignment(RACE_GOLIATH, FEAT_STONES_ENDURANCE, 1, N);
   feat_race_assignment(RACE_GOLIATH, FEAT_GOLIATH_RACIAL_ADJUSTMENT, 1, N);
-  race_list[RACE_GOLIATH].racial_language = LANG_GIANT;
+  race_list[RACE_GOLIATH].racial_language = SKILL_LANG_GIANT;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -3444,7 +3444,7 @@ void assign_races(void)
   feat_race_assignment(RACE_FAE, FEAT_FAE_RESISTANCE, 1, N);
   feat_race_assignment(RACE_FAE, FEAT_FAE_SENSES, 1, N);
   feat_race_assignment(RACE_FAE, FEAT_FAE_FLIGHT, 1, N);
-  race_list[RACE_FAE].racial_language = LANG_ELVEN;
+  race_list[RACE_FAE].racial_language = SKILL_LANG_ELVEN;
   /* affect assignment */
   /*                  race-num  affect            lvl */
 
@@ -4669,7 +4669,7 @@ const char *get_region_info(int region)
 
 int get_region_language(int region)
 {
-  return LANG_COMMON;
+  return SKILL_LANG_COMMON;
 }
 #else
 
@@ -4679,83 +4679,83 @@ int get_region_language(int region)
   {
   case REGION_AGLAROND:
   case REGION_WESTGATE:
-    return LANG_AGLARONDAN;
+    return SKILL_LANG_AGLARONDAN;
 
   case REGION_AMN:
-    return LANG_THORASS;
+    return SKILL_LANG_THORASS;
 
   case REGION_ANAUROCH_DESERT:
-    return LANG_NETHERESE;
+    return SKILL_LANG_NETHERESE;
 
   case REGION_CALIMSHAN:
   case REGION_TETHYR:
-    return LANG_ALZHEDO;
+    return SKILL_LANG_ALZHEDO;
 
   case REGION_CHESSENTA:
   case REGION_THAY:
   case REGION_MULHORAND:
-    return LANG_MULAN;
+    return SKILL_LANG_MULAN;
 
   case REGION_CHULT:
-    return LANG_CHULTAN;
+    return SKILL_LANG_CHULTAN;
 
   case REGION_CORMYR:
   case REGION_LURUAR:
   case REGION_SEMBIA:
   case REGION_THE_DALELANDS:
-    return LANG_CHONDATHAN;
+    return SKILL_LANG_CHONDATHAN;
 
   case REGION_DAMBRATH:
-    return LANG_DAMBRATHAN;
+    return SKILL_LANG_DAMBRATHAN;
 
   case REGION_ELFHARROW:
   case REGION_EVERMEET:
-    return LANG_ELVISH;
+    return SKILL_LANG_ELVISH;
 
   case REGION_HALRUAA:
-    return LANG_HALRUAAN;
+    return SKILL_LANG_HALRUAAN;
 
   case REGION_ICEWIND_DALE:
   case REGION_THE_SWORD_COAST:
   case REGION_THE_SAVAGE_FRONTIER:
-    return LANG_ILLUSKAN;
+    return SKILL_LANG_ILLUSKAN;
 
   case REGION_IMPILTUR:
   case REGION_THESK:
   case REGION_THE_COLD_LANDS:
   case REGION_THE_MOONSEA:
-    return LANG_DAMARAN;
+    return SKILL_LANG_DAMARAN;
 
   case REGION_KARA_TUR:
-    return LANG_SHOU;
+    return SKILL_LANG_SHOU;
 
   case REGION_LUIREN:
-    return LANG_HALFLING;
+    return SKILL_LANG_HALFLING;
 
   case REGION_RASHEMEN:
-    return LANG_RASHEMI;
+    return SKILL_LANG_RASHEMI;
 
   case REGION_THE_UNDERDARK:
-    return LANG_UNDERCOMMON;
+    return SKILL_LANG_UNDERCOMMON;
 
   case REGION_THE_HORDELANDS:
-    return LANG_GURAN;
+    return SKILL_LANG_GURAN;
 
   case REGION_THE_LAKE_OF_STEAM:
   case REGION_TURMISH:
   case REGION_UNTHER:
-    return LANG_SHAARAN;
+    return SKILL_LANG_SHAARAN;
 
   case REGION_TYMANTHER:
-    return LANG_DRACONIC;
+    return SKILL_LANG_DRACONIC;
 
   case REGION_ZAKHARA:
-    return LANG_MIDANI;
+    return SKILL_LANG_MIDANI;
 
   default:
-    return LANG_COMMON;
+    return SKILL_LANG_COMMON;
   }
-  return LANG_COMMON;
+  return SKILL_LANG_COMMON;
 }
 #endif
 

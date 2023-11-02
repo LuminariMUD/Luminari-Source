@@ -3797,51 +3797,47 @@ CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
 const char *languages[] =
     {
         "common",
-        "dwarfish",
-        "elvish",
-        "giant",
-        "gnomish",
-        "goblin",
-        "halfling",
-        "orc",
+        "thieves cant",
+        "druidic",
         "abyssal",
+        "elven",
+        "gnome",
+        "dwarven",
         "celestial",
-        "deep-speech",
         "draconic",
-        "infernal",
-        "primordial",
-        "sylvan",
+        "orcish",
+        "halfling",
+        "goblin",
+        "aberration",
+        "giant",
+        "kobold",
+        "barbarian",
+        "mulhorandi",
+        "rashemi",
+        "northerner",
         "undercommon",
+        "gnomish",
         "aglarondan",
+        "thorass",
+        "netherese",
         "alzhedo",
-        "chondathan",
+        "mulan",
         "chultan",
-        "damaran",
+        "chondathan",
         "dambrathan",
-        "guran",
         "halruaan",
         "illuskan",
-        "midani",
-        "mulan",
-        "nar",
-        "netherese",
-        "rashemi",
-        "roushoum",
-        "shaaran",
+        "damaran",
         "shou",
-        "thorass",
-        "tuigan",
-        "turmic",
-        "uluik",
-        "waelan",
-        "druidic",
-        "thieves-cant",
+        "guran",
+        "shaaran",
+        "midani",
         "\n"};
-CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
+CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 1);
 
 #endif
 
-#if !defined(CAMPAIGN_DL)
+#if defined(CAMPAIGN_FR)
     const char *pantheons[] = {
         "",
         "All",
@@ -3852,6 +3848,13 @@ CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
         "Gnome",
         "Halfling",
         "Orc",
+        "\n"
+    };
+    CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
+#elif defined(CAMPAIGN_DL)
+    const char *pantheons[] = {
+        "",
+        "All",
         "\n"
     };
     CHECK_TABLE_SIZE(pantheons, NUM_PANTHEONS + 1);
