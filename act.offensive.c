@@ -8894,6 +8894,7 @@ ACMD(do_mark)
 
   act("You begin to mark $N for assassination.", false, ch, 0, vict, TO_CHAR);
   GET_MARK(ch) = vict;
+  GET_MARK_ROUNDS(ch) = 0;
 }
 
 int max_judgements_active(struct char_data *ch)

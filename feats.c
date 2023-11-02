@@ -3149,7 +3149,7 @@ feato(FEAT_MOON_ELF_RACIAL_ADJUSTMENT, "moon elf racial adjustment", TRUE, FALSE
         "Once per game day, you can cast a spell that will conjure a powerful Mummy "
         "Lord to assist you in combat.");
   feat_prereq_ability(FEAT_MUMMY_DUST, ABILITY_SPELLCRAFT, 23);
-  feat_prereq_spellcasting(FEAT_MUMMY_DUST, CASTING_TYPE_ARCANE, 3, 9);
+  feat_prereq_spellcasting(FEAT_MUMMY_DUST, CASTING_TYPE_DIVINE, 3, 9);
   feato(FEAT_DRAGON_KNIGHT, "dragon knight", TRUE, TRUE, FALSE, FEAT_TYPE_SPELLCASTING,
         "gain access to epic spell - dragon knight",
         "Once per game day, you can cast a spell that will conjure a small red dragon"

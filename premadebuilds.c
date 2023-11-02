@@ -1830,7 +1830,7 @@ void levelup_warlock(struct char_data *ch, int level, bool verbose)
   switch (level) {
     case 1:
       set_premade_stats(ch, chclass, 1);
-      give_premade_feat(ch, verbose, FEAT_MASTER_OF_THE_MIND, 0);
+      give_premade_feat(ch, verbose, FEAT_TOUGHNESS, 0);
       if (GET_REAL_RACE(ch) == RACE_HUMAN) {
         give_premade_feat(ch, verbose, FEAT_ARMORED_SPELLCASTING, 0);
       }

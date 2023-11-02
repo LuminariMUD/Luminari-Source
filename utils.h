@@ -335,6 +335,8 @@ struct char_data * get_mob_follower(struct char_data *ch, int mob_type);
 void send_combat_roll_info(struct char_data *ch, const char *messg, ...);
 bool show_combat_roll(struct char_data *ch);
 struct obj_data *get_char_bag(struct char_data *ch, int bagnum);
+int get_psp_regen_amount(struct char_data *ch);
+int get_mv_regen_amount(struct char_data *ch);
 
 /* ASCII output formatting */
 char *line_string(int length, char first, char second);

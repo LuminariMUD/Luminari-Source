@@ -2887,8 +2887,8 @@ void init_start_char(struct char_data *ch)
   switch (GET_RACE(ch))
   {
   case RACE_HUMAN:
-    GET_FEAT_POINTS(ch)
-    ++;
+  case DL_RACE_HUMAN:
+    GET_FEAT_POINTS(ch)++;
     trains += 3;
     break;
   case RACE_CRYSTAL_DWARF:
@@ -2919,8 +2919,7 @@ void init_start_char(struct char_data *ch)
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
-    GET_CLASS_FEATS(ch, CLASS_WARRIOR)
-  ++; /* Bonus Feat */
+    GET_CLASS_FEATS(ch, CLASS_WARRIOR)++; /* Bonus Feat */
 
   /* when you study it reinitializes your trains now */
   int int_bonus = GET_INT_BONUS(ch); /* this is the way it should be */
@@ -3470,8 +3469,7 @@ void advance_level(struct char_data *ch, int class)
   // Racial Bonuses
   switch (GET_RACE(ch))
   {
-  case RACE_HUMAN:
-    trains++;
+  case RACE_HUMAN:trains++;
     break;
   case RACE_CRYSTAL_DWARF:
     add_hp += 4;
@@ -3935,7 +3933,6 @@ void load_class_list(void)
   feat_assignment(CLASS_WIZARD, FEAT_MAXIMIZE_SPELL, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_QUICKEN_SPELL, Y, NOASSIGN_FEAT, N);
   /* epic class */
-  feat_assignment(CLASS_WIZARD, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_GREATER_RUIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_DRAGON_KNIGHT, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WIZARD, FEAT_HELLBALL, Y, NOASSIGN_FEAT, N);
@@ -4277,6 +4274,7 @@ void load_class_list(void)
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_9TH_CIRCLE, Y, 17, N);
   /*epic*/
   feat_assignment(CLASS_CLERIC, FEAT_CLERIC_EPIC_SPELL, Y, 21, N);
+  feat_assignment(CLASS_CLERIC, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
   /**** spell assign ****/
   /*              class num      spell                   level acquired */
   /* 1st circle */
@@ -4904,6 +4902,7 @@ void load_class_list(void)
   feat_assignment(CLASS_DRUID, FEAT_DRUID_9TH_CIRCLE, Y, 17, N);
   /*epic*/
   feat_assignment(CLASS_DRUID, FEAT_DRUID_EPIC_SPELL, Y, 21, N);
+  feat_assignment(CLASS_DRUID, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 22, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 24, Y);
   feat_assignment(CLASS_DRUID, FEAT_WILD_SHAPE, Y, 26, Y);
@@ -8093,7 +8092,6 @@ void load_class_list(void)
   // spell_assignment(CLASS_WARLOCK, WARLOCK_WORD_OF_CHANGING, 16); // missing cornugon
 
   // epic spells
-  feat_assignment(CLASS_WARLOCK, FEAT_MUMMY_DUST, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARLOCK, FEAT_GREATER_RUIN, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARLOCK, FEAT_DRAGON_KNIGHT, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARLOCK, FEAT_HELLBALL, Y, NOASSIGN_FEAT, N);
